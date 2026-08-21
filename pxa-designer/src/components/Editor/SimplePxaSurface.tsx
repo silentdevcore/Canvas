@@ -9,24 +9,13 @@ import { applyVerticalWheelToHorizontalScroll } from '@/utils/editorScrolling';
 import { updateLanguageSelection } from '@/utils/languageSelection';
 import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
+import { designerAssetContentUrl } from '@/services/designerAssetApi';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
+import ChartRenderer from '@/chart/ChartRenderer';
+import ChartInspector from '@/chart/ChartInspector';
+import { createDefaultChartDefinition, toLegacyChartData } from '@/chart/model';
 import {
   FiArrowLeft,
   FiArrowUp,
@@ -99,6 +88,7 @@ import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
 import { notify } from '@/notifications/toast';
 import { uploadDesignerImage } from '@/services/designerAssetApi';
+import { EditableDocumentTitle } from './EditableDocumentTitle';
 
 
 interface SimplePxaSurfaceProps {
@@ -126,6 +116,7 @@ interface SimplePxaSurfaceProps {
   onCreateVersion?: () => Promise<string>;
   onPublish?: () => Promise<string>;
   onArchive?: () => Promise<string>;
+  onTemplateRename: (name: string) => void;
 }
 
 type Tool = {
@@ -338,16 +329,6 @@ const PAGE_PRESETS: Record<string, { width: number; height: number }> = {
   'Book A5':           { width: 420,  height: 595  },
   'Social Square':     { width: 1080, height: 1080 },
 };
-
-const createDefaultChartData = () => ({
-  labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-  datasets: [
-    {
-      label: 'Series 1',
-      data: [12, 19, 14, 22]
-    }
-  ]
-});
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -568,6 +549,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   onCreateVersion,
   onPublish,
   onArchive,
+  onTemplateRename,
 }) => {
   const { t } = useTranslation('editor');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -1091,8 +1073,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         y: 352,
         width: 200,
         height: 140,
+        chart: createDefaultChartDefinition(),
         chartType: 'bar',
-        chartData: createDefaultChartData()
+        chartData: toLegacyChartData(createDefaultChartDefinition())
       })
     },
     {
@@ -2876,219 +2859,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'chart') {
-      const transformToRechartsData = (data: any) => {
-        if (!data || !data.labels || !data.datasets) return [];
-        return data.labels.map((label: string, index: number) => ({
-          name: label,
-          pv: data.datasets[0]?.data[index] || 0,
-          uv: data.datasets[1]?.data[index] || 0
-        }));
-      };
-
-      const pieColors = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'];
-
-      if (isPreview) {
-        const chartData = transformToRechartsData(element.chartData || createDefaultChartData());
-        const chartType = element.chartType || 'bar';
-
-        return (
-          <ResponsiveContainer width="100%" height="100%">
-            {chartType === 'bar' && (
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="pv" fill="#8884d8" />
-                <Bar dataKey="uv" fill="#82ca9d" />
-              </BarChart>
-            )}
-            {chartType === 'line' && (
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="pv" stroke="#8884d8" />
-                <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-              </LineChart>
-            )}
-            {chartType === 'pie' && (
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="pv"
-                >
-                  {chartData.map((_: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            )}
-          </ResponsiveContainer>
-        );
-      }
-
-      const parsedChartData = element.chartData as
-        | { labels?: unknown[]; datasets?: Array<{ data?: unknown[]; label?: string }> }
-        | undefined;
-      const labels = Array.isArray(parsedChartData?.labels)
-        ? parsedChartData.labels.map((label) => String(label))
-        : [];
-      const firstDataset = Array.isArray(parsedChartData?.datasets)
-        ? parsedChartData.datasets[0]
-        : undefined;
-      const values = Array.isArray(firstDataset?.data)
-        ? firstDataset.data.map((value) => {
-            const numericValue = Number(value);
-            return Number.isFinite(numericValue) ? numericValue : 0;
-          })
-        : [];
-      const hasValues = values.length > 0;
-      const maxValue = hasValues ? Math.max(...values, 1) : 1;
-      const totalValue = hasValues
-        ? values.reduce((sum, value) => sum + Math.max(value, 0), 0)
-        : 0;
-
-      const renderPieSlicePath = (startAngle: number, endAngle: number, radius: number) => {
-        const centerX = 50;
-        const centerY = 50;
-        const startX = centerX + radius * Math.cos(startAngle);
-        const startY = centerY + radius * Math.sin(startAngle);
-        const endX = centerX + radius * Math.cos(endAngle);
-        const endY = centerY + radius * Math.sin(endAngle);
-        const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
-
-        return `M ${centerX} ${centerY} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
-      };
-
       return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            border: '1px solid #dbe7ff',
-            borderRadius: 8,
-            background: 'linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)',
-            padding: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#1e3a8a' }}>
-              {firstDataset?.label || t('diagnostics.chart')}
-            </span>
-            <small style={{ fontSize: 10, color: '#475569' }}>{element.chartType || 'bar'}</small>
-          </div>
-
-          {!hasValues && (
-            <div className="editor-placeholder editor-placeholder-wide" style={{ flex: 1 }}>
-              <FiLayers className="editor-placeholder-icon" />
-              <span>{t('diagnostics.noChartData')}</span>
-            </div>
-          )}
-
-          {hasValues && (element.chartType || 'bar') === 'bar' && (
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'flex-end',
-                gap: 6,
-                borderBottom: '1px solid #cbd5e1',
-                paddingBottom: 4
-              }}
-            >
-              {values.map((value, index) => {
-                const heightPercent = `${(Math.max(value, 0) / maxValue) * 100}%`;
-                return (
-                  <div key={`${index}-${value}`} style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        width: '100%',
-                        height: heightPercent,
-                        minHeight: 2,
-                        borderRadius: '4px 4px 0 0',
-                        backgroundColor: '#3b82f6'
-                      }}
-                    />
-                    <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 9,
-                        color: '#64748b',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {labels[index] || `#${index + 1}`}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {hasValues && (element.chartType || 'bar') === 'line' && (
-            <svg viewBox="0 0 100 54" style={{ flex: 1, width: '100%', height: '100%' }}>
-              <line x1="0" y1="50" x2="100" y2="50" stroke="#cbd5e1" strokeWidth="1" />
-              <polyline
-                fill="none"
-                stroke="#2563eb"
-                strokeWidth="2"
-                points={values
-                  .map((value, index) => {
-                    const x = values.length > 1 ? (index / (values.length - 1)) * 96 + 2 : 50;
-                    const y = 50 - (Math.max(value, 0) / maxValue) * 42;
-                    return `${x},${y}`;
-                  })
-                  .join(' ')}
-              />
-              {values.map((value, index) => {
-                const x = values.length > 1 ? (index / (values.length - 1)) * 96 + 2 : 50;
-                const y = 50 - (Math.max(value, 0) / maxValue) * 42;
-                return <circle key={`${index}-${value}`} cx={x} cy={y} r="2.1" fill="#1d4ed8" />;
-              })}
-            </svg>
-          )}
-
-          {hasValues && (element.chartType || 'bar') === 'pie' && (
-            <svg viewBox="0 0 100 100" style={{ flex: 1, width: '100%', height: '100%' }}>
-              {values.map((value, index) => {
-                const safeValue = Math.max(value, 0);
-                const previousTotal = values
-                  .slice(0, index)
-                  .reduce((sum, item) => sum + Math.max(item, 0), 0);
-                const startAngle = totalValue > 0 ? (previousTotal / totalValue) * Math.PI * 2 - Math.PI / 2 : 0;
-                const endAngle = totalValue > 0
-                  ? ((previousTotal + safeValue) / totalValue) * Math.PI * 2 - Math.PI / 2
-                  : 0;
-
-                return (
-                  <path
-                    key={`${index}-${value}`}
-                    d={renderPieSlicePath(startAngle, endAngle, 36)}
-                    fill={pieColors[index % pieColors.length]}
-                    stroke="#ffffff"
-                    strokeWidth="1"
-                  />
-                );
-              })}
-            </svg>
-          )}
-        </div>
+        <ChartRenderer
+          chart={element.chart}
+          legacyType={element.chartType}
+          legacyData={element.chartData}
+          ariaLabel={element.name || t('diagnostics.chart')}
+        />
       );
     }
 
@@ -3517,7 +3294,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </button>
           <div>
             <div className="editor-kicker">{t('topbar.kicker')}</div>
-            <h1>{template.name}</h1>
+            <EditableDocumentTitle
+              name={template.name}
+              inputLabel={t('topbar.renameLabel')}
+              actionLabel={t('topbar.renameAction', { name: template.name })}
+              hint={t('topbar.renameHint')}
+              validationMessage={t('topbar.renameValidation')}
+              onRename={onTemplateRename}
+            />
           </div>
           <div className="editor-brand-menu-wrap">
             <button
@@ -7572,34 +7356,23 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               })()}
 
               {selectedElement.type === 'chart' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>{t('elementInspector.chart.chartType')}</span>
-                    <select
-                      value={selectedElement.chartType || 'bar'}
-                      onChange={(event) => updateSelectedElement({ chartType: event.target.value as 'bar' | 'line' | 'pie' })}
-                    >
-                      <option value="bar">{t('elementInspector.chart.typeBar')}</option>
-                      <option value="line">{t('elementInspector.chart.typeLine')}</option>
-                      <option value="pie">{t('elementInspector.chart.typePie')}</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>{t('elementInspector.chart.chartData')}</span>
-                    <textarea
-                      rows={5}
-                      value={JSON.stringify(selectedElement.chartData || createDefaultChartData(), null, 2)}
-                      onChange={(event) => {
-                        try {
-                          const data = JSON.parse(event.target.value);
-                          updateSelectedElement({ chartData: data });
-                        } catch {
-                          // Invalid JSON, do nothing
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
+                <ChartInspector
+                  chart={selectedElement.chart}
+                  legacyType={selectedElement.chartType}
+                  legacyData={selectedElement.chartData}
+                  onChange={(chart) => updateSelectedElement({
+                    chart,
+                    chartType: chart.type,
+                    chartData: toLegacyChartData(chart)
+                  })}
+                  onRestoreSource={(assetId) => updateSelectedElement({
+                    type: 'image',
+                    content: designerAssetContentUrl(assetId),
+                    chart: undefined,
+                    chartType: undefined,
+                    chartData: undefined
+                  })}
+                />
               )}
 
               {selectedElement.type === 'line' && (

@@ -212,6 +212,13 @@
   font-weight: 650;
 }
 
+.pdfv-action-error {
+  max-width: 220px;
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .pdfv-form-panel {
   align-items: flex-start;
 }

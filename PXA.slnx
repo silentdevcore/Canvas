@@ -3,6 +3,15 @@
     <Project Path="src/Core/PXA.Domain/PXA.Domain.csproj" />
     <Project Path="src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj" />
   </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/PXA.Core/PXA.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Execution/">
+    <Project Path="src/Execution/PXA.CodeWorker/PXA.CodeWorker.csproj" />
+  </Folder>
+  <Folder Name="/src/Generation/">
+    <Project Path="src/Generation/PXA.Pdf/PXA.Pdf.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PXA.Infrastructure.Persistence.Tests/PXA.Infrastructure.Persistence.Tests.csproj" />
   </Folder>

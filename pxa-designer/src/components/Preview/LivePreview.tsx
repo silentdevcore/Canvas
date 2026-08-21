@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
-import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
 import { FiCheck, FiChevronDown, FiDownload, FiEdit3, FiCheckSquare, FiExternalLink, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
 import ExportService from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
@@ -14,6 +10,7 @@ import type { Template, SimpleElement, PageSettings, Page } from '@/types';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { installImportedFontFaces } from '@/utils/importedFonts';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
+import ChartRenderer from '@/chart/ChartRenderer';
 
 interface LivePreviewProps {
   template: Template;
@@ -76,6 +73,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const exportLockRef = useRef(false);
 
   const handleZoomIn  = () => setZoom(prev => Math.min(prev + 0.25, 2));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
@@ -91,11 +89,28 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   }, []);
 
   const handleExport = async (format: ExportFormat) => {
+    if (exportLockRef.current) return;
+    exportLockRef.current = true;
     setMenuOpen(false);
     setExportError(null);
 
     if (format === 'print') {
-      window.print();
+      try {
+        setExportingFormat('print');
+        await ExportService.printToPDF(template, pages, sharedElements, pageSettings, {
+          blocked: t('printBlocked'),
+          preparing: t('printPreparing'),
+          title: t('printTitle', { name: template.name }),
+        });
+        setExportDone('print');
+        onExport();
+        setTimeout(() => setExportDone(null), 2500);
+      } catch (err) {
+        setExportError(err instanceof Error ? err.message : t('exportFailed'));
+      } finally {
+        setExportingFormat(null);
+        exportLockRef.current = false;
+      }
       return;
     }
 
@@ -104,17 +119,14 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       setExportDone('json');
       onExport();
       setTimeout(() => setExportDone(null), 2500);
+      exportLockRef.current = false;
       return;
     }
 
     if (format === 'image') {
       try {
         setExportingFormat('image');
-        await ExportService.exportToImage(
-          '#preview-pages',
-          template.name.toLowerCase().replace(/\s+/g, '-'),
-          'png'
-        );
+        await ExportService.exportViaBackend('png', template, pages, sharedElements, pageSettings);
         setExportingFormat(null);
         setExportDone('image');
         onExport();
@@ -122,6 +134,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       } catch (err) {
         setExportingFormat(null);
         setExportError(err instanceof Error ? err.message : t('exportImageFailed'));
+      } finally {
+        exportLockRef.current = false;
       }
       return;
     }
@@ -129,15 +143,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     // PDF via backend
     try {
       setExportingFormat('pdf');
-      const blob = await ExportService.renderDesignPdfBlob(template, pages, sharedElements, pageSettings);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const blob = await ExportService.exportToPDF(template, pages, sharedElements, pageSettings);
       setViewerPdfDataUrl(await blobToDataUrl(blob));
       setExportingFormat(null);
       setExportDone('pdf');
@@ -146,6 +152,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     } catch (err) {
       setExportingFormat(null);
       setExportError(err instanceof Error ? err.message : t('exportFailed'));
+    } finally {
+      exportLockRef.current = false;
     }
   };
 
@@ -157,11 +165,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     });
     navigate('/pdf-viewer?handoff=session');
   };
-
-  const createDefaultChartData = () => ({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-    datasets: [{ label: 'Series 1', data: [12, 19, 14, 22] }]
-  });
 
   const getDatePreview = (element: SimpleElement) => {
     if (element.dateMode === 'static') return element.content || element.fallbackText || '-';
@@ -545,38 +548,13 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'chart') {
-      const raw = element.chartData || createDefaultChartData();
-      const chartData = (raw.labels || []).map((label: string, i: number) => ({
-        name: label,
-        pv: raw.datasets?.[0]?.data?.[i] || 0,
-        uv: raw.datasets?.[1]?.data?.[i] || 0
-      }));
-      const pieColors = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'];
-      const chartType = element.chartType || 'bar';
       return (
-        <ResponsiveContainer width="100%" height="100%">
-          {chartType === 'bar' ? (
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis />
-              <Tooltip /><Legend />
-              <Bar dataKey="pv" fill="#8884d8" /><Bar dataKey="uv" fill="#82ca9d" />
-            </BarChart>
-          ) : chartType === 'line' ? (
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis />
-              <Tooltip /><Legend />
-              <Line type="monotone" dataKey="pv" stroke="#8884d8" />
-              <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-            </LineChart>
-          ) : (
-            <PieChart>
-              <Pie data={chartData} cx="50%" cy="50%" outerRadius={80} dataKey="pv">
-                {chartData.map((_: unknown, i: number) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
-              </Pie>
-              <Tooltip /><Legend />
-            </PieChart>
-          )}
-        </ResponsiveContainer>
+        <ChartRenderer
+          chart={element.chart}
+          legacyType={element.chartType}
+          legacyData={element.chartData}
+          ariaLabel={element.name || 'Chart'}
+        />
       );
     }
 

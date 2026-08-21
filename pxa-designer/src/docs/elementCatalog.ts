@@ -309,13 +309,15 @@ export const ELEMENT_CATALOG: ElementDoc[] = [
   },
   {
     type: 'chart', label: 'Chart', category: 'Visual',
-    description: 'A bar, line, or pie chart rendered from inline data. (PDF/HTML; not native in Word.)',
+    description: 'A versioned multi-series chart rendered consistently in the Designer, preview, and PDF output.',
     formatSupport: { pdf: true, word: false, html: true, excel: false }, bindable: true,
     properties: [
-      { name: 'chartType', type: 'enum', allowedValues: ['bar', 'line', 'pie'], default: 'bar', description: 'Chart kind.' },
-      { name: 'chartData', type: 'object', description: 'Labels + datasets (Chart.js-style data object).' },
+      { name: 'chart.type', type: 'enum', allowedValues: ['bar', 'line', 'area', 'pie', 'doughnut', 'stackedBar', 'combo'], default: 'bar', description: 'Chart kind.' },
+      { name: 'chart.categories', type: 'array', description: 'Ordered category labels shared by the series.' },
+      { name: 'chart.series', type: 'array', description: 'Series definitions with stable IDs, values, colors, axis assignment, and optional stacking.' },
+      { name: 'chart.binding', type: 'object', description: 'Optional data path and category, series, and value field mapping.' },
     ],
-    example: { id: 'el1', type: 'chart', x: 40, y: 40, width: 320, height: 200, chartType: 'bar', chartData: { labels: ['Q1', 'Q2'], datasets: [{ label: 'Sales', data: [10, 20] }] } },
+    example: { id: 'el1', type: 'chart', x: 40, y: 40, width: 320, height: 200, chart: { schemaVersion: 2, type: 'bar', categories: ['Q1', 'Q2'], series: [{ id: 'sales', name: 'Sales', values: [10, 20], color: '#2563EB' }] } },
   },
 
   // ── Shapes & Layout ─────────────────────────────────────────────────────────────────────────────

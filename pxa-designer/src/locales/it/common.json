@@ -20,7 +20,7 @@
   },
   "pdfSidebar": {
     "createPdf": "Crea PDF",
-    "editPdf": "Modifica PDF",
+    "editPdf": "PDF con codice",
     "useTemplate": "Usa modello",
     "importPdf": "Importa PDF",
     "convertToPdf": "Converti in PDF",

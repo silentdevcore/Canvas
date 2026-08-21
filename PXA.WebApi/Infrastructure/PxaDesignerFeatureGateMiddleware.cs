@@ -9,6 +9,15 @@ public sealed class PxaDesignerFeatureGateMiddleware(RequestDelegate next)
 {
     private static readonly (string Prefix, string FeatureId)[] ProtectedPrefixes =
     [
+        ("/api/templates/csharp-code-to-pdf", "designer.code-workspace"),
+        ("/api/templates/csharp-code-to-json", "designer.code-workspace"),
+        ("/api/templates/csharp-to-json", "designer.code-workspace"),
+        ("/api/pxa/templates/csharp-code-to-pdf", "designer.code-workspace"),
+        ("/api/pxa/templates/csharp-code-to-json", "designer.code-workspace"),
+        ("/api/pxa/templates/csharp-to-json", "designer.code-workspace"),
+        ("/api/pxa/v1/designer/templates", "designer.code-workspace"),
+        ("/api/document/import-pdf-engine", "designer.pdf-chart-recognition"),
+        ("/api/pxa/document/import-pdf-engine", "designer.pdf-chart-recognition"),
         ("/api/pdf-viewer", "designer.pdf-viewer"),
         ("/api/pxa/pdf-viewer", "designer.pdf-viewer"),
         ("/api/spreadsheet", "designer.spreadsheet"),
@@ -61,17 +70,26 @@ public sealed class PxaDesignerFeatureGateMiddleware(RequestDelegate next)
 
     private static string? ResolveFeature(HttpContext context)
     {
+        var value = context.Request.Path.Value ?? string.Empty;
+        var match = ProtectedPrefixes.FirstOrDefault(item =>
+            value.Equals(item.Prefix, StringComparison.OrdinalIgnoreCase) ||
+            value.StartsWith($"{item.Prefix}/", StringComparison.OrdinalIgnoreCase));
+        if (match.FeatureId is "designer.pdf-chart-recognition" or "designer.code-workspace")
+        {
+            if (match.FeatureId == "designer.code-workspace" &&
+                value.StartsWith("/api/pxa/v1/designer/templates", StringComparison.OrdinalIgnoreCase) &&
+                !value.Contains("/code-workspace", StringComparison.OrdinalIgnoreCase))
+                return null;
+            return match.FeatureId;
+        }
+
         if (!string.Equals(
                 context.Request.Headers["X-PXA-Application"].ToString(),
                 "designer",
                 StringComparison.OrdinalIgnoreCase))
             return null;
 
-        var value = context.Request.Path.Value ?? string.Empty;
-        return ProtectedPrefixes.FirstOrDefault(item =>
-                value.Equals(item.Prefix, StringComparison.OrdinalIgnoreCase) ||
-                value.StartsWith($"{item.Prefix}/", StringComparison.OrdinalIgnoreCase))
-            .FeatureId;
+        return match.FeatureId;
     }
 
     private static async Task WriteProblemAsync(

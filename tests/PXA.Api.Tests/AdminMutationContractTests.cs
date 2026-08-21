@@ -33,7 +33,7 @@ public sealed partial class AdminMutationContractTests
             .ThenBy(value => value.Method.Name, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(43, mutations.Length);
+        Assert.Equal(44, mutations.Length);
         foreach (var mutation in mutations)
         {
             var displayName = $"{mutation.Controller.Name}.{mutation.Method.Name}";

@@ -18,6 +18,7 @@ using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Controllers;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using Testcontainers.PostgreSql;
 
@@ -1023,6 +1024,178 @@ public sealed class DesignerAuthenticationControllerTests
         Assert.Single(await dbContext.DesignerTemplateVersions.ToListAsync());
     }
 
+    [PostgreSqlFact]
+    public async Task Code_workspace_uses_designer_handoff_csrf_tenant_entitlement_and_audit_boundaries()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedCustomerAsync(factory.Services);
+        var templateId = Guid.NewGuid();
+        var foreignTemplateId = Guid.NewGuid();
+        const string initialDesign = """
+            {"id":"workspace-design","name":"Workspace design","pages":[{"id":"page-1","elements":[{"id":"title","type":"text","x":20,"y":30,"width":200,"height":30,"content":"Original"}]}]}
+            """;
+        const string changedDesign = """
+            {"id":"workspace-design","name":"Workspace design","pages":[{"id":"page-1","elements":[{"id":"title","type":"text","x":20,"y":30,"width":200,"height":30,"content":"Changed"}]}]}
+            """;
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var owned = CreateTemplate(templateId, seeded, "Code workspace", DateTimeOffset.UtcNow);
+            owned.DraftJson = initialDesign;
+            owned.DraftChecksum = Hash(initialDesign);
+            dbContext.DesignerTemplates.Add(owned);
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var accountClient = CreateClient(factory);
+        await LoginAsync(accountClient);
+        var handoff = await CreateHandoffAsync(accountClient, "/pdf/create?mode=code");
+        using var designerClient = CreateClient(factory);
+        await ExchangeSuccessfullyAsync(designerClient, handoff);
+
+        using (var get = DesignerGet($"/api/pxa/v1/designer/templates/{templateId}/code-workspace"))
+        {
+            var response = await designerClient.SendAsync(get);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var workspace = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(workspace.GetProperty("persisted").GetBoolean());
+            Assert.Equal(0, workspace.GetProperty("revision").GetInt64());
+            Assert.Equal("Original", workspace.GetProperty("canonicalDesign")
+                .GetProperty("pages")[0].GetProperty("elements")[0].GetProperty("content").GetString());
+        }
+
+        using (var missingCsrf = new HttpRequestMessage(
+                   HttpMethod.Put,
+                   $"/api/pxa/v1/designer/templates/{templateId}/code-workspace")
+               {
+                   Content = JsonContent.Create(new
+                   {
+                       revision = 0,
+                       language = PxaCodeLanguages.Json,
+                       source = changedDesign,
+                   }),
+               })
+        {
+            missingCsrf.Headers.Add("X-PXA-Application", "designer");
+            var response = await designerClient.SendAsync(missingCsrf);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(
+                PxaApiProblems.InvalidCsrf,
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        }
+
+        using (var save = await CreateCsrfRequestAsync(
+                   designerClient,
+                   HttpMethod.Put,
+                   $"/api/pxa/v1/designer/templates/{templateId}/code-workspace",
+                   new
+                   {
+                       revision = 0,
+                       language = PxaCodeLanguages.Json,
+                       source = changedDesign,
+                   },
+                   designer: true))
+        {
+            var response = await designerClient.SendAsync(save);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("\"1\"", response.Headers.ETag?.Tag);
+            var workspace = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(workspace.GetProperty("persisted").GetBoolean());
+            Assert.Equal(1, workspace.GetProperty("revision").GetInt64());
+        }
+
+        var foreignOrganizationId = await AddEntitledOrganizationAsync(
+            factory.Services, seeded.UserId, "Foreign Workspace", "foreign-code-workspace");
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            dbContext.DesignerTemplates.Add(new DesignerTemplate
+            {
+                Id = foreignTemplateId,
+                OrganizationId = foreignOrganizationId,
+                CreatedByUserId = seeded.UserId,
+                UpdatedByUserId = seeded.UserId,
+                Name = "Foreign code workspace",
+                DraftJson = initialDesign,
+                DraftChecksum = Hash(initialDesign),
+                SchemaVersion = "1.0",
+                DesignerVersion = "1.0",
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
+        using (var foreignGet = DesignerGet(
+                   $"/api/pxa/v1/designer/templates/{foreignTemplateId}/code-workspace"))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignGet)).StatusCode);
+        }
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            Assert.True(await dbContext.AuditEvents.AnyAsync(value =>
+                value.OrganizationId == seeded.OrganizationId &&
+                value.Action == "designer.code-workspace.saved" &&
+                value.TargetType == "designer_code_workspace" &&
+                value.Outcome == "succeeded"));
+            var entitlement = await (
+                from value in dbContext.SubscriptionEntitlements
+                join subscription in dbContext.OrganizationSubscriptions
+                    on value.SubscriptionId equals subscription.Id
+                where subscription.OrganizationId == seeded.OrganizationId &&
+                      value.Capability == "designer"
+                select value).SingleAsync();
+            entitlement.Enabled = false;
+            await dbContext.SaveChangesAsync();
+        }
+
+        using (var denied = DesignerGet($"/api/pxa/v1/designer/templates/{templateId}/code-workspace"))
+        {
+            var response = await designerClient.SendAsync(denied);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(
+                "PXA_ENTITLEMENT_DENIED",
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        }
+    }
+
+    [PostgreSqlFact]
+    public async Task Code_workspace_rate_limit_is_partitioned_by_active_organization()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedCustomerAsync(factory.Services);
+        var templateId = Guid.NewGuid();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            dbContext.DesignerTemplates.Add(CreateTemplate(
+                templateId, seeded, "Rate limited workspace", DateTimeOffset.UtcNow));
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var accountClient = CreateClient(factory);
+        await LoginAsync(accountClient);
+        var handoff = await CreateHandoffAsync(accountClient, "/pdf/create?mode=code");
+        using var designerClient = CreateClient(factory);
+        await ExchangeSuccessfullyAsync(designerClient, handoff);
+
+        var statuses = new List<HttpStatusCode>();
+        for (var index = 0; index < 31; index++)
+        {
+            using var request = DesignerGet(
+                $"/api/pxa/v1/designer/templates/{templateId}/code-workspace");
+            statuses.Add((await designerClient.SendAsync(request)).StatusCode);
+        }
+
+        Assert.Equal(30, statuses.Count(value => value == HttpStatusCode.OK));
+        Assert.Equal(HttpStatusCode.TooManyRequests, statuses[^1]);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -1035,6 +1208,7 @@ public sealed class DesignerAuthenticationControllerTests
                     ["Mail:Transport"] = "Disabled",
                     ["DesignerAuthentication:AllowedOrigins:0"] = "http://localhost:5176",
                     ["DesignerTemplates:MaximumDesignJsonBytes"] = "4096",
+                    ["CodeWorker:Enabled"] = "false",
                 }));
             builder.ConfigureServices(services =>
             {

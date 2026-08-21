@@ -24,7 +24,11 @@ public sealed class PdfDocumentBuilder
 
     public PdfDocumentModel Build(PdfObjectGraph graph)
     {
-        var document = new PdfDocumentModel { ObjectGraph = graph };
+        var document = new PdfDocumentModel
+        {
+            ObjectGraph = graph,
+            Metadata = ResolveDictionary(graph.Trailer?["Info"], graph) ?? new PdfDictionary()
+        };
         var pagesFromTree = false;
 
         foreach (var indirectObject in graph.Objects.Values)

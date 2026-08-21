@@ -144,7 +144,9 @@ public class DocumentOpsController : ControllerBase
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(DesignExportDto), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportPdfEngine(IFormFile? file)
+    public async Task<IActionResult> ImportPdfEngine(
+        IFormFile? file,
+        [FromQuery] string chartRecognition = "safe")
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "A PDF file is required." });
@@ -153,12 +155,27 @@ public class DocumentOpsController : ControllerBase
             !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             return BadRequest(new { error = "Only PDF files are accepted." });
 
+        if (!Enum.TryParse<PdfChartRecognitionMode>(chartRecognition, ignoreCase: true, out var recognitionMode))
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid PDF chart-recognition mode.",
+                Detail = "Use off, safe, or review."
+            });
+
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = await Importer("pdf").ImportAsync(
-                stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await PdfFileImporter.DoImportAsync(
+                stream,
+                Path.GetFileNameWithoutExtension(file.FileName),
+                new PdfFileImportOptions { ChartRecognition = recognitionMode },
+                HttpContext.RequestAborted);
             return Ok(design);
+        }
+        catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

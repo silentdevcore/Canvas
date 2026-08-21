@@ -32,12 +32,14 @@ public sealed class PxaJobQueue(
     public const string DocumentImportType = "document.import";
     public const string DocumentExportType = "document.export";
     public const string CodeMigrationType = "migration.code";
+    public const string DesignerCodeExecutionType = "designer.code-execution";
     public static IReadOnlyList<string> SupportedTypes { get; } =
     [
         TemplateRenderType,
         DocumentImportType,
         DocumentExportType,
         CodeMigrationType,
+        DesignerCodeExecutionType,
     ];
 
     public async Task<PxaBackgroundJob> EnqueueTemplateRenderAsync(

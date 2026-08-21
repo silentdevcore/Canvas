@@ -1,14 +1,12 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using PXA.Pdf;
-
-namespace PXA.WebApi.Infrastructure;
+namespace PXA.Pdf;
 
 /// <summary>
 /// Parses TipTap / ProseMirror HTML into styled span runs and renders them
 /// with mixed bold/italic/color/size on the same line via sequential DrawText calls.
 /// </summary>
-internal static partial class RichTextRenderer
+public static partial class PdfRichTextRenderer
 {
     private record SpanRun(
         string Text,

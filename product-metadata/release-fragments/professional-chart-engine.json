@@ -1,0 +1,22 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "professional-chart-engine",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer",
+    "infrastructure"
+  ],
+  "category": "added",
+  "summary": "Charts now share a professional multi-series model and vector PDF renderer, with lossless PXA round trips and confidence-based PDF chart recognition.",
+  "featureIds": [
+    "designer.pdf-chart-recognition"
+  ],
+  "documentation": [
+    "/docs/charts.md"
+  ],
+  "breaking": false
+}

@@ -5,6 +5,9 @@ using PXA.Importer;
 using PXA.Importer.Analysis;
 using PXA.Importer.Document;
 using PXA.Importer.Graphics;
+using ChartDefinitionNormalizer = PXA.Core.Primitives.ChartDefinitionNormalizer;
+using ChartMetadataCodec = PXA.Core.Primitives.ChartMetadataCodec;
+using ChartMetadataEntry = PXA.Core.Primitives.ChartMetadataEntry;
 
 namespace PXA.FileImporter;
 
@@ -16,10 +19,20 @@ namespace PXA.FileImporter;
 /// </summary>
 public sealed class PdfFileImporter : IFileImporter
 {
+    private readonly PdfFileImportOptions _options;
+
+    public PdfFileImporter(PdfFileImportOptions? options = null)
+    {
+        _options = options ?? new PdfFileImportOptions();
+    }
+
     public IReadOnlyList<string> SupportedExtensions { get; } = ["pdf"];
 
     public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        DoImportAsync(stream, name);
+        DoImportAsync(stream, name, _options);
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name, CancellationToken cancellationToken) =>
+        DoImportAsync(stream, name, _options, cancellationToken);
 
     private const double HeaderZone = 0.08;
     private const double FooterZone = 0.92;
@@ -29,10 +42,24 @@ public sealed class PdfFileImporter : IFileImporter
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
-    public static async Task<DesignExportDto> DoImportAsync(Stream stream, string? name = null)
+    public static async Task<DesignExportDto> DoImportAsync(
+        Stream stream,
+        string? name = null,
+        CancellationToken cancellationToken = default)
+        => await DoImportAsync(stream, name, new PdfFileImportOptions(), cancellationToken);
+
+    public static async Task<DesignExportDto> DoImportAsync(
+        Stream stream,
+        string? name,
+        PdfFileImportOptions options,
+        CancellationToken cancellationToken = default)
     {
-        var doc = await new PdfImporter().LoadAsync(stream);
+        ArgumentNullException.ThrowIfNull(options);
+        cancellationToken.ThrowIfCancellationRequested();
+        var doc = await new PdfImporter().LoadAsync(stream, cancellationToken);
         var sceneGraphEngine = new SceneGraphEngine();
+        var diagnostics = new List<ImportDiagnosticDto>();
+        var metadataCharts = ReadPxaChartMetadata(doc, diagnostics);
 
         var pages           = new List<PageDto>();
         var sharedByContent = new Dictionary<string, ElementDto>(StringComparer.Ordinal);
@@ -44,6 +71,7 @@ public sealed class PdfFileImporter : IFileImporter
         int pageNum = 0;
         foreach (var page in doc.Pages)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             pageNum++;
             int seq = 0;
 
@@ -55,8 +83,33 @@ public sealed class PdfFileImporter : IFileImporter
             double pageH   = originY + canvasH; // top of page in PDF coordinate space
 
             var scenePage = sceneGraphEngine.BuildPage(pageNum - 1, page);
-            var orderedPrimitives = OrderForImport(scenePage).ToList();
             var elements = new List<ElementDto>();
+            var pageMetadataCharts = metadataCharts
+                .Where(entry => entry.PageIndex == pageNum - 1)
+                .ToList();
+            elements.AddRange(pageMetadataCharts.Select(MapMetadataChart));
+            var recognizedCharts = pageMetadataCharts.Count == 0
+                ? PdfChartRecognitionEngine.Detect(scenePage, options, cancellationToken)
+                : [];
+            elements.AddRange(recognizedCharts.Select(candidate =>
+                MapRecognizedChart(candidate, originX, pageH, pageNum)));
+            foreach (var candidate in recognizedCharts)
+            {
+                diagnostics.Add(new ImportDiagnosticDto
+                {
+                    Code = candidate.DiagnosticCode,
+                    Severity = candidate.Confidence >= 0.85 ? "info" : "warning",
+                    Source = $"PDF page {pageNum}",
+                    Message = candidate.Confidence >= 0.85
+                        ? $"An editable chart was recognized with {candidate.Confidence:P0} confidence."
+                        : $"A possible chart was reconstructed with {candidate.Confidence:P0} confidence and requires review."
+                });
+            }
+            var orderedPrimitives = OrderForImport(scenePage)
+                .Where(primitive => !pageMetadataCharts.Any(chart => IsCoveredByMetadataChart(
+                    primitive, chart, originX, pageH)))
+                .Where(primitive => !recognizedCharts.Any(chart => chart.Consumed.Contains(primitive)))
+                .ToList();
 
             for (var index = 0; index < orderedPrimitives.Count; index++)
             {
@@ -88,7 +141,117 @@ public sealed class PdfFileImporter : IFileImporter
                 Orientation = canvasW > canvasH ? "landscape" : "portrait",
                 Margins     = new MarginsDto { Top = 0, Right = 0, Bottom = 0, Left = 0 },
             },
+            ImportDiagnostics = diagnostics.Count == 0 ? null : diagnostics,
         };
+    }
+
+    private static ElementDto MapRecognizedChart(
+        PdfChartCandidate candidate,
+        double originX,
+        double pageH,
+        int pageNumber)
+    {
+        var (x, y, width, height) = ToPxaBounds(candidate.Bounds, originX, pageH);
+        var element = new ElementDto
+        {
+            Id = ($"chart-{pageNumber}-{Guid.NewGuid():N}")[..24],
+            Type = "chart",
+            X = Math.Round(x, 1),
+            Y = Math.Round(y, 1),
+            Width = Math.Max(80, Math.Round(width, 1)),
+            Height = Math.Max(60, Math.Round(height, 1)),
+            Chart = candidate.Definition,
+            Style = new Dictionary<string, object>
+            {
+                ["pdfChartRecognitionStatus"] = candidate.Definition.Recognition?.Status ?? "reviewRequired",
+                ["pdfChartRecognitionConfidence"] = candidate.Confidence,
+                ["pdfChartRecognitionSource"] = "pdfVector",
+                ["pdfChartOriginalPreserved"] = false
+            }
+        };
+        ChartDefinitionNormalizer.SynchronizeLegacyFields(element);
+        return element;
+    }
+
+    private static IReadOnlyList<ChartMetadataEntry> ReadPxaChartMetadata(
+        PdfDocumentModel document,
+        List<ImportDiagnosticDto> diagnostics)
+    {
+        if (document.Metadata[ChartMetadataCodec.PdfInfoKey] is not PXA.Importer.Objects.PdfString value)
+            return [];
+
+        if (!ChartMetadataCodec.TryDecode(value.ToLatin1String(), out var envelope))
+        {
+            diagnostics.Add(new ImportDiagnosticDto
+            {
+                Code = "PXA-PDF-CHART-001",
+                Severity = "warning",
+                Source = "PDF metadata",
+                Message = "Embedded PXA chart metadata was invalid and was ignored."
+            });
+            return [];
+        }
+
+        diagnostics.Add(new ImportDiagnosticDto
+        {
+            Code = "PXA-PDF-CHART-002",
+            Severity = "info",
+            Source = "PDF metadata",
+            Message = $"Restored {envelope.Charts.Count} editable chart(s) from lossless PXA metadata."
+        });
+        return envelope.Charts;
+    }
+
+    private static ElementDto MapMetadataChart(ChartMetadataEntry entry)
+    {
+        entry.Definition.Recognition = new ChartRecognitionDto
+        {
+            Status = "automatic",
+            Confidence = 1,
+            SourceKind = "pxaMetadata",
+            DiagnosticCode = "PXA-PDF-CHART-002"
+        };
+        var element = new ElementDto
+        {
+            Id = entry.ElementId,
+            Type = "chart",
+            X = entry.X,
+            Y = entry.Y,
+            Width = entry.Width,
+            Height = entry.Height,
+            Chart = entry.Definition,
+            Style = new Dictionary<string, object>
+            {
+                ["pdfChartRecognitionStatus"] = "automatic",
+                ["pdfChartRecognitionConfidence"] = 1d,
+                ["pdfChartRecognitionSource"] = "pxaMetadata"
+            }
+        };
+        ChartDefinitionNormalizer.SynchronizeLegacyFields(element);
+        return element;
+    }
+
+    private static bool IsCoveredByMetadataChart(
+        PrimitiveObject primitive,
+        ChartMetadataEntry chart,
+        double originX,
+        double pageH)
+    {
+        var (x, y, width, height) = ToPxaBounds(primitive.Bounds, originX, pageH);
+        var left = Math.Max(x, chart.X);
+        var top = Math.Max(y, chart.Y);
+        var right = Math.Min(x + width, chart.X + chart.Width);
+        var bottom = Math.Min(y + height, chart.Y + chart.Height);
+        if (right <= left || bottom <= top)
+            return false;
+
+        var primitiveArea = Math.Max(width * height, 1);
+        var overlap = (right - left) * (bottom - top) / primitiveArea;
+        var centerX = x + width / 2;
+        var centerY = y + height / 2;
+        return overlap >= 0.5 ||
+               (centerX >= chart.X && centerX <= chart.X + chart.Width &&
+                centerY >= chart.Y && centerY <= chart.Y + chart.Height);
     }
 
     // ── Scene-graph primitive walker ──────────────────────────────────────────

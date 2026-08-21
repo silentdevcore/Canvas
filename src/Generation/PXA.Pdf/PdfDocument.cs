@@ -69,6 +69,12 @@ public sealed class PdfDocument
 
     public PdfGenerationDiagnostics? LastDiagnostics => _lastDiagnostics;
 
+    /// <summary>
+    /// Returns a typed, content-only snapshot of drawing operations for Designer round trips.
+    /// The snapshot never exposes source file paths or embedded image bytes.
+    /// </summary>
+    public PdfDesignSnapshot CreateDesignSnapshot() => PdfDesignSnapshotFactory.Create(this);
+
     public IReadOnlyList<PdfBookmarkInfo> GetBookmarks()
     {
         return _bookmarks

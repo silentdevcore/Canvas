@@ -3,12 +3,17 @@
   "title": "Code-Editor",
   "lang": {
     "json": "JSON",
-    "csharpCode": "C#-Code",
-    "csharpDto": "C#-DTO"
+    "csharpCode": "C# PDF",
+    "csharpDto": "C#-Modell",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "Prüfen", "run": "Ausführen", "convert": "Konvertieren", "restore": "Wiederherstellen", "apply": "Im Designer übernehmen", "accept": "Erzeugten Entwurf übernehmen", "cancel": "Abbrechen", "importLegacy": "Entwurf importieren", "dismiss": "Schließen" },
+  "status": { "saved": "Gespeichert", "modified": "Geändert", "generated": "Erzeugt", "outdated": "Veraltet", "invalid": "Ungültig", "conflict": "Konflikt" },
+  "workspace": { "legacy": "Ein lokaler Entwurf aus dem bisherigen Editor ist verfügbar.", "waiting": "Der Server-Workspace ist verfügbar, sobald das Template gespeichert wurde.", "target": "Konvertierungsziel", "fidelity": "Qualität", "documentFidelity": "Dokumenttreue", "sourcePreservation": "Quellcode-Erhaltung", "added": "Hinzugefügt", "changed": "Geändert", "removed": "Entfernt" },
   "converting": "Wird konvertiert…",
   "generating": "Wird erstellt…",
   "exportPdf": "PDF exportieren",
+  "preview": { "runningPdf": "C#-PDF-Code wird ausgeführt...", "converting": "Konvertierung läuft...", "pdfError": "C#-PDF-Fehler - korrigieren und erneut ausführen", "modelError": "C#-Model-Fehler - korrigieren und erneut ausführen", "base64Error": "FromBase64String-Fehler - korrigieren und erneut ausführen", "runPdf": "Code ausführen, um das PDF zu rendern.", "pdfReturn": "Das Skript muss ein PxaPdfCodeDocument oder ein älteres PdfDocument zurückgeben.", "runModel": "Code ausführen, um die Vorschau anzuzeigen.", "modelReturn": "Der Ausdruck muss eine DesignExportDto-Instanz zurückgeben.", "emptyJson": "JSON eingeben, um eine Live-Vorschau anzuzeigen.", "emptyJsonHint": "Mit einer Startvorlage kann direkt begonnen werden.", "jsonError": "JSON-Fehler korrigieren, um die Vorschau anzuzeigen." },
   "errors": {
     "syntaxError": "Syntaxfehler: {{message}}",
     "pagesMustBeArray": "\"pages\" muss ein Array sein.",

@@ -75,9 +75,35 @@ public static class PxaTelemetry
         Meter.CreateCounter<long>("pxa.browser.events", "{event}");
     private static readonly Histogram<double> BrowserWebVital =
         Meter.CreateHistogram<double>("pxa.browser.web_vital", "{value}");
+    private static readonly Counter<long> CodeOperations =
+        Meter.CreateCounter<long>("pxa.designer.code.operations", "{operation}");
+    private static readonly Histogram<double> CodeOperationDuration =
+        Meter.CreateHistogram<double>("pxa.designer.code.operation.duration", "s");
 
     public static void RecordJobEnqueued(string jobType) =>
         JobsEnqueued.Add(1, new KeyValuePair<string, object?>("job.type", jobType));
+
+    public static void RecordCodeOperation(
+        string operation,
+        string language,
+        string outcome,
+        string fidelity,
+        TimeSpan duration,
+        IReadOnlyCollection<string>? diagnosticCodes = null)
+    {
+        var tags = new TagList
+        {
+            { "code.operation", operation },
+            { "code.language", language },
+            { "code.outcome", outcome },
+            { "code.fidelity", fidelity },
+            { "code.diagnostics", diagnosticCodes is { Count: > 0 }
+                ? string.Join(',', diagnosticCodes.Distinct(StringComparer.Ordinal).Order().Take(8))
+                : "none" },
+        };
+        CodeOperations.Add(1, tags);
+        CodeOperationDuration.Record(Math.Max(0, duration.TotalSeconds), tags);
+    }
 
     public static Activity? StartJobEnqueue(string jobType)
     {

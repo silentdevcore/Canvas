@@ -1,4 +1,5 @@
 using PXA.Core.Abstractions;
+using PXA.Core.Primitives;
 
 namespace PXA.Application.UseCases;
 
@@ -23,21 +24,27 @@ public sealed class ExportDocumentUseCase
         }
 
         var data     = exporter.Export(request.Design, request.Options);
-        var safeName = MakeSafeFileName(request.Design.Name);
-        var fileName = $"{safeName}{exporter.FileExtension}";
+        var safeName = ExportFileNameSanitizer.Sanitize(request.Design.Name);
+        var isPageArchive = request.Design.Pages.Count > 1 &&
+            request.Format.EqualsAny("png", "jpeg", "tiff", "svg");
+        var fileName = isPageArchive
+            ? $"{safeName}-{request.Format.ToLowerInvariant()}-pages.zip"
+            : $"{safeName}{exporter.FileExtension}";
+        var mimeType = isPageArchive ? "application/zip" : exporter.MimeType;
 
-        return new ExportResult(data, exporter.MimeType, fileName);
+        return new ExportResult(data, mimeType, fileName);
     }
 
     public IEnumerable<ExporterInfo> GetSupportedFormats()
         => _exporters.Values.Select(e => new ExporterInfo(
             e.FormatKey, e.MimeType, e.FileExtension, e.Capabilities));
 
-    private static string MakeSafeFileName(string name)
-    {
-        var safe = string.Concat(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-        return string.IsNullOrWhiteSpace(safe) ? "export" : safe.Trim();
-    }
+}
+
+file static class ExportFormatExtensions
+{
+    public static bool EqualsAny(this string value, params string[] candidates) =>
+        candidates.Any(candidate => value.Equals(candidate, StringComparison.OrdinalIgnoreCase));
 }
 
 public record ExporterInfo(string Key, string MimeType, string Extension, IExporterCapabilities Capabilities);

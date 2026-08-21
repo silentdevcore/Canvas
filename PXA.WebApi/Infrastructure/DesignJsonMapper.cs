@@ -3,8 +3,8 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using PXA.Pdf;
+using PXA.Infrastructure.Pdf.Charts;
 using QRCoder;
-using SkiaSharp;
 using ZXing;
 using ZXing.Common;
 using DesignLayoutPlanner = PXA.Core.Primitives.DesignLayoutPlanner;
@@ -13,6 +13,7 @@ namespace PXA.WebApi.Infrastructure;
 
 public static class DesignJsonMapper
 {
+    private static readonly IChartRenderer ChartRenderer = new PxaChartPdfRenderer();
     /// <summary>
     /// Builds the <see cref="PdfSaveOptions"/> for a design — currently the PDF encryption settings —
     /// or null when the design requests no encryption. Pass the result to <c>document.ToBytes(options)</c>.
@@ -80,6 +81,9 @@ public static class DesignJsonMapper
 
         var ps = design.PageSettings ?? new PageSettingsDto();
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
+        var chartMetadata = PXA.Core.Primitives.ChartMetadataCodec.Encode(plannedPages);
+        if (!string.IsNullOrWhiteSpace(chartMetadata))
+            document.Info.CustomProperties[PXA.Core.Primitives.ChartMetadataCodec.PdfInfoKey] = chartMetadata;
         var totalPages = plannedPages.Count;
         var marginLeft = ps.Margins?.Left ?? 0;
         var marginTop  = ps.Margins?.Top  ?? 0;
@@ -315,7 +319,7 @@ public static class DesignJsonMapper
                 var opts = BuildParaOptions(style);
                 var availW = Math.Max(w - padL - padR, 1);
                 var baseColor = ParseColor(GetString(style, "color") ?? "#101828");
-                RichTextRenderer.Render(
+                PdfRichTextRenderer.Render(
                     page, html,
                     elX + padL,
                     TextY(pageH, elY + padT, opts.FontSize),
@@ -968,15 +972,7 @@ public static class DesignJsonMapper
 
             case "chart":
             {
-                try
-                {
-                    var pngBytes = GenerateChartPng(el, (int)Math.Max(w, 80), (int)Math.Max(h, 60));
-                    var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ".png");
-                    File.WriteAllBytes(tempPath, pngBytes);
-                    try { page.DrawImage(tempPath, elX, RectBottomY(pageH, elY, h), w, h); }
-                    finally { TryDelete(tempPath); }
-                }
-                catch { DrawPlaceholder(page, el, pageH, $"Chart ({el.ChartType ?? "bar"})"); }
+                ChartRenderer.Render(page, el, elX, RectBottomY(pageH, elY, h), w, h);
                 break;
             }
 
@@ -1229,143 +1225,6 @@ public static class DesignJsonMapper
         catch { DrawPlaceholder(page, el, pageH, "[Image]"); }
     }
 
-    private static byte[] GenerateChartPng(ElementDto el, int width, int height)
-    {
-        var chartType = (el.ChartType ?? "bar").ToLowerInvariant();
-        var data = el.ChartData ?? new Dictionary<string, object>();
-
-        var labels = ReadStringArray(data.GetValueOrDefault("labels"));
-
-        var series = new List<(string label, double[] values, SKColor color)>();
-        SKColor[] palette = [
-            SKColor.Parse("#3b82f6"), SKColor.Parse("#10b981"), SKColor.Parse("#f59e0b"),
-            SKColor.Parse("#ef4444"), SKColor.Parse("#8b5cf6"), SKColor.Parse("#06b6d4")
-        ];
-        var datasetItems = ReadObjectArray(data.GetValueOrDefault("datasets"));
-        if (datasetItems.Count > 0)
-        {
-            var idx = 0;
-            foreach (var ds in datasetItems)
-            {
-                var sLabel = ReadString(GetProperty(ds, "label")) ?? $"Series {idx + 1}";
-                var vals = ReadDoubleArray(GetProperty(ds, "data"));
-                var colorStr = ReadString(GetProperty(ds, "backgroundColor")) ?? ReadString(GetProperty(ds, "color"));
-                var color = TryParseSkColor(colorStr) ?? palette[idx % palette.Length];
-                series.Add((sLabel, vals, color));
-                idx++;
-            }
-        }
-
-        if (series.Count == 0 || (labels.Length == 0 && series.All(s => s.values.Length == 0)))
-        {
-            // Fallback: simple demo data
-            labels = ["A", "B", "C", "D"];
-            series = [("Data", [40, 70, 50, 90], SKColor.Parse("#3b82f6"))];
-        }
-
-        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
-        using var canvas = new SKCanvas(bitmap);
-        canvas.Clear(SKColors.White);
-
-        const float padL = 32, padR = 12, padT = 12, padB = 28;
-        float chartW = width - padL - padR;
-        float chartH = height - padT - padB;
-
-        double allMax = series.SelectMany(s => s.values).DefaultIfEmpty(1).Max();
-        if (allMax <= 0) allMax = 1;
-
-        using var axisPaint = new SKPaint { Color = SKColor.Parse("#9ca3af"), StrokeWidth = 1, IsAntialias = true, Style = SKPaintStyle.Stroke };
-        using var textPaint = new SKPaint { Color = SKColor.Parse("#374151"), IsAntialias = true };
-        var typeface = SKTypeface.Default;
-        using var tf = new SKFont(typeface, 9);
-
-        if (chartType == "pie")
-        {
-            // Pie chart
-            float cx = padL + chartW / 2, cy = padT + chartH / 2;
-            float r = Math.Min(chartW, chartH) / 2f - 4;
-            var allVals = series.SelectMany(s => s.values).ToArray();
-            var pieLabels = labels.Length > 0 ? labels : series.Select(s => s.label).ToArray();
-            double total = allVals.Sum(); if (total <= 0) total = 1;
-            float startAngle = -90;
-            for (var i = 0; i < allVals.Length; i++)
-            {
-                float sweep = (float)(allVals[i] / total * 360.0);
-                var sliceColor = palette[i % palette.Length];
-                using var slicePaint = new SKPaint { Color = sliceColor, Style = SKPaintStyle.Fill, IsAntialias = true };
-                using var path = new SKPath();
-                path.MoveTo(cx, cy);
-                path.ArcTo(new SKRect(cx - r, cy - r, cx + r, cy + r), startAngle, sweep, false);
-                path.LineTo(cx, cy);
-                canvas.DrawPath(path, slicePaint);
-                startAngle += sweep;
-            }
-        }
-        else if (chartType == "line")
-        {
-            // Line chart
-            int nLabels = Math.Max(labels.Length, series.Select(s => s.values.Length).DefaultIfEmpty(0).Max());
-            if (nLabels == 0) nLabels = 1;
-            float xStep = nLabels > 1 ? chartW / (nLabels - 1) : chartW;
-
-            canvas.DrawLine(padL, padT, padL, padT + chartH, axisPaint);
-            canvas.DrawLine(padL, padT + chartH, padL + chartW, padT + chartH, axisPaint);
-
-            foreach (var (_, vals, color) in series)
-            {
-                using var linePaint = new SKPaint { Color = color, StrokeWidth = 2, IsAntialias = true, Style = SKPaintStyle.Stroke };
-                using var dotPaint  = new SKPaint { Color = color, IsAntialias = true, Style = SKPaintStyle.Fill };
-                using var path = new SKPath();
-                for (var i = 0; i < vals.Length; i++)
-                {
-                    float x = padL + i * xStep;
-                    float y = padT + chartH - (float)(vals[i] / allMax * chartH);
-                    if (i == 0) path.MoveTo(x, y); else path.LineTo(x, y);
-                    canvas.DrawCircle(x, y, 3, dotPaint);
-                }
-                canvas.DrawPath(path, linePaint);
-            }
-            // X labels
-            for (var i = 0; i < labels.Length; i++)
-            {
-                float x = padL + i * xStep;
-                canvas.DrawText(labels[i], x - 6, padT + chartH + 16, tf, textPaint);
-            }
-        }
-        else // bar
-        {
-            int nGroups = Math.Max(labels.Length, series.Select(s => s.values.Length).DefaultIfEmpty(0).Max());
-            if (nGroups == 0) nGroups = 1;
-            float groupW = chartW / nGroups;
-            float barW = Math.Max(2, groupW / (series.Count + 1));
-
-            canvas.DrawLine(padL, padT, padL, padT + chartH, axisPaint);
-            canvas.DrawLine(padL, padT + chartH, padL + chartW, padT + chartH, axisPaint);
-
-            for (var gi = 0; gi < nGroups; gi++)
-            {
-                float groupX = padL + gi * groupW + barW * 0.5f;
-                for (var si = 0; si < series.Count; si++)
-                {
-                    var (_, vals, color) = series[si];
-                    if (gi >= vals.Length) continue;
-                    float barH = (float)(vals[gi] / allMax * chartH);
-                    float barX = groupX + si * barW;
-                    float barY = padT + chartH - barH;
-                    using var barPaint = new SKPaint { Color = color, Style = SKPaintStyle.Fill, IsAntialias = true };
-                    canvas.DrawRect(barX, barY, barW - 1, barH, barPaint);
-                }
-                // X label
-                if (gi < labels.Length)
-                    canvas.DrawText(labels[gi], padL + gi * groupW + groupW / 2 - 6, padT + chartH + 16, tf, textPaint);
-            }
-        }
-
-        using var img  = SKImage.FromBitmap(bitmap);
-        using var enc  = img.Encode(SKEncodedImageFormat.Png, 100);
-        return enc.ToArray();
-    }
-
     private static object? GetProperty(object? source, string name)
     {
         if (source is JsonElement json && json.ValueKind == JsonValueKind.Object &&
@@ -1439,13 +1298,6 @@ public static class DesignJsonMapper
         if (value is JsonElement json) return json.TryGetDouble(out var d) ? d : 0;
         try { return Convert.ToDouble(value, CultureInfo.InvariantCulture); }
         catch { return 0; }
-    }
-
-    private static SKColor? TryParseSkColor(string? color)
-    {
-        if (string.IsNullOrWhiteSpace(color)) return null;
-        try { return SKColor.Parse(color); }
-        catch { return null; }
     }
 
     private static byte[] GenerateQrPng(string value)

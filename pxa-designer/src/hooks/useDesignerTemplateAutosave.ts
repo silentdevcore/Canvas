@@ -69,7 +69,12 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
 
   const applyServerDocument = useCallback((serverDocument: Awaited<ReturnType<typeof getDesignerTemplate>>) => {
     const design = serverDocument.designDocument;
-    const template = design.template as unknown as Template;
+    const draftTemplate = design.template as unknown as Template;
+    const template: Template = {
+      ...draftTemplate,
+      name: serverDocument.name,
+      description: serverDocument.description ?? draftTemplate.description ?? '',
+    };
     useEditorStore.setState({
       currentTemplate: {
         ...template,

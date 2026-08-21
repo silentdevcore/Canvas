@@ -1,7 +1,7 @@
 services:
   pxa-webapi:
     build:
-      context: .
+      context: ../..
       dockerfile: PXA.WebApi/Dockerfile
       args:
         PXA_VERSION: ${PXA_VERSION:-1.1.0}
@@ -21,13 +21,23 @@ services:
       Ocr__UseIsolatedWorker: "true"
       Ocr__WorkerPath: /app/ocr-worker/PXA.FileImporter.ImageOcr.Worker.dll
       Ocr__TessDataPath: /usr/share/tesseract-ocr/5/tessdata
+      CodeWorker__Enabled: ${PXA_CODE_WORKER_ENABLED:-false}
+      CodeWorker__Hardened: ${PXA_CODE_WORKER_HARDENED:-false}
+      CodeWorker__WorkerPath: ${PXA_CODE_WORKER_PATH:-/app/code-worker}
       Licensing__PrivateKeyPath: /run/secrets/pxa_license_private_key
       Licensing__PublicKeyPath: /run/secrets/pxa_license_public_key
     ports:
       - "${PXA_API_HOST_IP:-127.0.0.1}:${PXA_API_HOST_PORT:-5087}:8080"
+    read_only: true
+    tmpfs:
+      - /app/tmp:rw,noexec,nosuid,nodev,size=${PXA_API_TMP_LIMIT:-512m},uid=1654,gid=1654,mode=0700
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - pxa-api-data:/app/data
-      - ${PXA_API_FONTS_PATH:-./deploy/api/fonts}:/app/fonts:ro
+      - ${PXA_API_FONTS_PATH:-./fonts}:/app/fonts:ro
     secrets:
       - pxa_license_private_key
       - pxa_license_public_key
@@ -45,6 +55,7 @@ services:
         limits:
           cpus: "${PXA_API_CPU_LIMIT:-2.0}"
           memory: ${PXA_API_MEMORY_LIMIT:-2G}
+          pids: ${PXA_API_PID_LIMIT:-256}
     stop_grace_period: 30s
     restart: unless-stopped
 

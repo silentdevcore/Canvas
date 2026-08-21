@@ -340,6 +340,162 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.ToTable("designer_authorization_codes", "identity");
                 });
 
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerCodeWorkspace", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("BaseTemplateRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CSharpBase64Checksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CSharpBase64Draft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CSharpModelChecksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CSharpModelDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CSharpPdfChecksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CSharpPdfDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CanonicalChecksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CanonicalDesignJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("JsonChecksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("JsonDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SourceMapJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt");
+
+                    b.ToTable("designer_code_workspaces", "designer");
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerCodeWorkspaceVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CSharpBase64Draft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CSharpModelDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CSharpPdfDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CanonicalDesignJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("JsonDraft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceMapJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TemplateVersionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("WorkspaceRevision")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("TemplateVersionId")
+                        .IsUnique();
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.HasIndex("OrganizationId", "CreatedAt");
+
+                    b.ToTable("designer_code_workspace_versions", "designer");
+                });
+
             modelBuilder.Entity("PXA.Domain.Entities.DesignerFeaturePolicy", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2104,6 +2260,60 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerCodeWorkspace", b =>
+                {
+                    b.HasOne("PXA.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.DesignerTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerCodeWorkspaceVersion", b =>
+                {
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.DesignerTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.DesignerTemplateVersion", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.DesignerCodeWorkspace", null)
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

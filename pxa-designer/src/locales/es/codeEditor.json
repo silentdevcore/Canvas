@@ -3,12 +3,17 @@
   "title": "Editor de código",
   "lang": {
     "json": "JSON",
-    "csharpCode": "Código C#",
-    "csharpDto": "DTO C#"
+    "csharpCode": "C# PDF",
+    "csharpDto": "Modelo C#",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "Validar", "run": "Ejecutar", "convert": "Convertir", "restore": "Restaurar", "apply": "Aplicar al Designer", "accept": "Aplicar borrador generado", "cancel": "Cancelar", "importLegacy": "Importar borrador", "dismiss": "Cerrar" },
+  "status": { "saved": "Guardado", "modified": "Modificado", "generated": "Generado", "outdated": "Desactualizado", "invalid": "No válido", "conflict": "Conflicto" },
+  "workspace": { "legacy": "Hay disponible un borrador local del editor anterior.", "waiting": "El espacio de trabajo del servidor estará disponible después de guardar la plantilla.", "target": "Destino de conversión", "fidelity": "Fidelidad", "documentFidelity": "Fidelidad del documento", "sourcePreservation": "Conservación del código fuente", "added": "Añadido", "changed": "Modificado", "removed": "Eliminado" },
   "converting": "Convirtiendo…",
   "generating": "Generando…",
   "exportPdf": "Exportar PDF",
+  "preview": { "runningPdf": "Ejecutando código PDF de C#...", "converting": "Convirtiendo...", "pdfError": "Error de PDF de C#; corríjalo y vuelva a ejecutar", "modelError": "Error de modelo de C#; corríjalo y vuelva a ejecutar", "base64Error": "Error de FromBase64String; corríjalo y vuelva a ejecutar", "runPdf": "Ejecute el código para renderizar el PDF.", "pdfReturn": "El script debe devolver un PxaPdfCodeDocument o un PdfDocument heredado.", "runModel": "Ejecute el código para mostrar la vista previa.", "modelReturn": "La expresión debe devolver una instancia de DesignExportDto.", "emptyJson": "Introduzca JSON para mostrar una vista previa en directo.", "emptyJsonHint": "Use una plantilla inicial para comenzar rápidamente.", "jsonError": "Corrija los errores de JSON para mostrar la vista previa." },
   "errors": {
     "syntaxError": "Error de sintaxis: {{message}}",
     "pagesMustBeArray": "\"pages\" debe ser un array.",

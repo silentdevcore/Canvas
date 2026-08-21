@@ -5,7 +5,6 @@ import SimplePxaSurface from '@/components/Editor/SimplePxaSurface';
 import LivePreview from '@/components/Preview/LivePreview';
 import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
 import { normalizePageSettings, useEditorStore } from '@/store';
-import { ExportService } from '@/services/ExportService';
 import {
   archiveDesignerTemplate,
   createDesignerTemplateVersion,
@@ -14,6 +13,7 @@ import {
 } from '@/services/designerTemplateApi';
 import { useDesignerTemplateAutosave } from '@/hooks/useDesignerTemplateAutosave';
 import type { Template } from '@/store';
+import type { ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
 
 type SubView = 'editor' | 'preview' | 'code';
 
@@ -72,6 +72,8 @@ const CreatePage: React.FC = () => {
         useEditorStore.setState({
           currentTemplate: {
             ...template,
+            name: serverDocument.name,
+            description: serverDocument.description ?? template.description ?? '',
             persistence: {
               id: serverDocument.id,
               revision: serverDocument.revision,
@@ -192,6 +194,37 @@ const CreatePage: React.FC = () => {
     return 'Template archived';
   };
 
+  const codeDesign: ParsedDesign = {
+    id: currentTemplate.id,
+    name: currentTemplate.name,
+    category: currentTemplate.category,
+    description: currentTemplate.description,
+    pages,
+    sharedElements,
+    pageSettings,
+  };
+
+  const handleCodeApply = (design: ParsedDesign, revision: number) => {
+    const active = useEditorStore.getState().currentTemplate;
+    if (!active) return;
+    useEditorStore.setState({
+      currentTemplate: {
+        ...active,
+        id: design.id ?? active.id,
+        name: design.name ?? active.name,
+        category: design.category ?? active.category,
+        description: design.description ?? active.description,
+        pages: design.pages,
+        sharedElements: design.sharedElements ?? [],
+        persistence: active.persistence ? { ...active.persistence, revision } : undefined,
+      },
+      currentPageIndex: Math.min(useEditorStore.getState().currentPageIndex, Math.max(0, design.pages.length - 1)),
+      pageSettings: normalizePageSettings(design.pageSettings),
+      undoStack: [],
+      redoStack: [],
+    });
+  };
+
   return (
     <AnimatePresence mode="wait">
       {subView === 'editor' && (
@@ -227,6 +260,10 @@ const CreatePage: React.FC = () => {
             onCreateVersion={currentTemplate.persistence ? handleCreateVersion : undefined}
             onPublish={currentTemplate.persistence ? handlePublish : undefined}
             onArchive={currentTemplate.persistence ? handleArchive : undefined}
+            onTemplateRename={name => {
+              const active = useEditorStore.getState().currentTemplate;
+              if (active) useEditorStore.setState({ currentTemplate: { ...active, name } });
+            }}
           />
           {autosave.state === 'conflict' && (
             <aside className="designer-save-conflict" role="alert">
@@ -257,7 +294,6 @@ const CreatePage: React.FC = () => {
             pageSettings={pageSettings}
             onBack={() => setSubView('editor')}
             onExport={() => {
-              ExportService.exportToJSON(currentTemplate, pages, sharedElements, pageSettings);
               markExported();
             }}
           />
@@ -273,7 +309,13 @@ const CreatePage: React.FC = () => {
           transition={{ duration: 0.25 }}
           style={{ height: '100vh' }}
         >
-          <LiveCodeEditor onBack={() => setSubView('editor')} />
+          <LiveCodeEditor
+            onBack={() => setSubView('editor')}
+            templateId={currentTemplate.persistence?.id}
+            templateRevision={currentTemplate.persistence?.revision}
+            initialDesign={codeDesign}
+            onApply={handleCodeApply}
+          />
         </motion.div>
       )}
     </AnimatePresence>

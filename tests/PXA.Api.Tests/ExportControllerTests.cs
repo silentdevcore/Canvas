@@ -1,4 +1,5 @@
 using System.Net;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -127,6 +128,78 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
         Assert.True(bytes.Length >= 2 && bytes[0] == 0x89 && bytes[1] == 0x50, "PNG should start with PNG magic bytes");
     }
 
+    [Fact]
+    public async Task Export_AllRegisteredFormats_ReturnMatchingMediaType_FileName_AndSignature()
+    {
+        var expectations = new Dictionary<string, (string MediaType, string Extension, byte[]? Signature)>
+        {
+            ["html"] = ("text/html", ".html", null),
+            ["xml"] = ("application/xml", ".xml", null),
+            ["svg"] = ("image/svg+xml", ".svg", null),
+            ["csv"] = ("text/csv", ".csv", null),
+            ["md"] = ("text/markdown", ".md", null),
+            ["png"] = ("image/png", ".png", [0x89, 0x50, 0x4E, 0x47]),
+            ["jpeg"] = ("image/jpeg", ".jpg", [0xFF, 0xD8, 0xFF]),
+            ["tiff"] = ("image/tiff", ".tiff", [0x49, 0x49, 0x2A, 0x00]),
+            ["odt"] = ("application/vnd.oasis.opendocument.text", ".odt", [0x50, 0x4B]),
+            ["word"] = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx", [0x50, 0x4B]),
+            ["excel"] = ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx", [0x50, 0x4B]),
+        };
+
+        foreach (var (format, expected) in expectations)
+        {
+            var response = await PostExport(format);
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expected.MediaType, response.Content.Headers.ContentType?.MediaType);
+            Assert.EndsWith(expected.Extension, response.Content.Headers.ContentDisposition?.FileNameStar ??
+                response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+            Assert.NotEmpty(bytes);
+            if (expected.Signature is not null)
+                Assert.True(bytes.AsSpan().StartsWith(expected.Signature), $"{format} bytes do not match the declared format.");
+        }
+    }
+
+    [Theory]
+    [InlineData("png", ".png", "89504E47")]
+    [InlineData("jpeg", ".jpg", "FFD8FF")]
+    [InlineData("tiff", ".tiff", "49492A00")]
+    [InlineData("svg", ".svg", "3C")]
+    public async Task Export_MultiPageImages_ReturnZipWithOneCorrectFilePerPage(
+        string format, string entryExtension, string signatureHex)
+    {
+        var design = new DesignExportDto
+        {
+            Id = SampleDesign.Id,
+            Name = "Multi Page",
+            PageSettings = SampleDesign.PageSettings,
+            Pages = [SampleDesign.Pages[0], new PageDto { Id = "p2", Elements = SampleDesign.Pages[0].Elements }],
+        };
+
+        var response = await PostExport(format, design: design);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith($"-{format}-pages.zip", response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+
+        using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+        Assert.Equal(2, archive.Entries.Count);
+        var expectedSignature = Convert.FromHexString(signatureHex);
+        foreach (var entry in archive.Entries)
+        {
+            Assert.EndsWith(entryExtension, entry.Name, StringComparison.OrdinalIgnoreCase);
+            using var stream = entry.Open();
+            var prefix = new byte[Math.Max(256, expectedSignature.Length)];
+            var read = await stream.ReadAsync(prefix);
+            Assert.True(read >= expectedSignature.Length);
+            if (format == "svg")
+                Assert.Contains("<svg", Encoding.UTF8.GetString(prefix, 0, read), StringComparison.OrdinalIgnoreCase);
+            else
+                Assert.True(prefix.AsSpan(0, read).StartsWith(expectedSignature));
+        }
+    }
+
     // ─── Unknown format → 415 ────────────────────────────────────────────────
 
     [Fact]
@@ -233,9 +306,12 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
 
     // ─── Helper ───────────────────────────────────────────────────────────────
 
-    private async Task<HttpResponseMessage> PostExport(string format, string route = "/api/export")
+    private async Task<HttpResponseMessage> PostExport(
+        string format,
+        string route = "/api/export",
+        DesignExportDto? design = null)
     {
-        var json    = JsonSerializer.Serialize(SampleDesign);
+        var json    = JsonSerializer.Serialize(design ?? SampleDesign);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         return await _client.PostAsync($"{route}?format={format}", content);
     }

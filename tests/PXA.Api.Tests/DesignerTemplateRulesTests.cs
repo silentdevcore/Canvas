@@ -27,7 +27,8 @@ public sealed class DesignerTemplateRulesTests
                 new CreateDesignerTemplateRequest("Rules", null, null, firstDesign),
                 CancellationToken.None));
         Assert.Equal(1, created.Revision);
-        Assert.Equal(Checksum(firstDesign), created.Checksum);
+        Assert.Equal(Checksum(created.DesignDocument), created.Checksum);
+        Assert.Equal("Rules", created.DesignDocument.GetProperty("template").GetProperty("name").GetString());
 
         var noOp = Read<OkObjectResult, DesignerTemplateDocument>(
             await controller.UpdateDraft(
@@ -43,7 +44,7 @@ public sealed class DesignerTemplateRulesTests
                 new UpdateDesignerTemplateDraftRequest(1, secondDesign),
                 CancellationToken.None));
         Assert.Equal(2, updated.Revision);
-        Assert.Equal(Checksum(secondDesign), updated.Checksum);
+        Assert.Equal(Checksum(updated.DesignDocument), updated.Checksum);
 
         var firstVersion = Read<CreatedAtActionResult, CreateDesignerTemplateVersionResponse>(
             await controller.CreateVersion(
@@ -101,8 +102,52 @@ public sealed class DesignerTemplateRulesTests
                 CancellationToken.None));
         var immutableVersion = Read<OkObjectResult, DesignerTemplateVersionDocument>(
             await controller.GetVersion(created.Id, 1, CancellationToken.None));
-        Assert.Equal(secondDesign.GetRawText(), immutableVersion.DesignDocument.GetRawText());
+        Assert.Equal(updated.DesignDocument.GetRawText(), immutableVersion.DesignDocument.GetRawText());
         Assert.NotEqual(thirdDesign.GetRawText(), immutableVersion.DesignDocument.GetRawText());
+    }
+
+    [Fact]
+    public async Task Draft_and_metadata_updates_keep_the_authoritative_name_in_sync()
+    {
+        await using var dbContext = CreateContext();
+        var controller = CreateController(dbContext);
+        var created = Read<CreatedAtActionResult, DesignerTemplateDocument>(
+            await controller.Create(
+                new CreateDesignerTemplateRequest("Original", "Description", ["tag"],
+                    JsonSerializer.SerializeToElement(new
+                    {
+                        template = new { name = "Stale client name" },
+                        pages = Array.Empty<object>(),
+                    })),
+                CancellationToken.None));
+
+        Assert.Equal("Original", created.Name);
+        Assert.Equal("Original", created.DesignDocument.GetProperty("template").GetProperty("name").GetString());
+
+        var renamedByDraft = Read<OkObjectResult, DesignerTemplateDocument>(
+            await controller.UpdateDraft(created.Id,
+                new UpdateDesignerTemplateDraftRequest(created.Revision,
+                    JsonSerializer.SerializeToElement(new
+                    {
+                        template = new { name = "Quarterly Report" },
+                        pages = Array.Empty<object>(),
+                    })),
+                CancellationToken.None));
+        Assert.Equal("Quarterly Report", renamedByDraft.Name);
+        Assert.Equal("Quarterly Report", renamedByDraft.DesignDocument.GetProperty("template").GetProperty("name").GetString());
+
+        var renamedByMetadata = Read<OkObjectResult, DesignerTemplateDocument>(
+            await controller.UpdateMetadata(created.Id,
+                new UpdateDesignerTemplateMetadataRequest(renamedByDraft.Revision, "Annual Report", "Description", ["tag"]),
+                CancellationToken.None));
+        Assert.Equal("Annual Report", renamedByMetadata.Name);
+        Assert.Equal("Annual Report", renamedByMetadata.DesignDocument.GetProperty("template").GetProperty("name").GetString());
+
+        var invalid = await controller.UpdateDraft(created.Id,
+            new UpdateDesignerTemplateDraftRequest(renamedByMetadata.Revision,
+                JsonSerializer.SerializeToElement(new { template = new { name = "   " } })),
+            CancellationToken.None);
+        Assert.IsType<BadRequestObjectResult>(invalid.Result);
     }
 
     [Fact]

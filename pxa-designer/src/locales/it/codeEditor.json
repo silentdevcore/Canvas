@@ -3,12 +3,17 @@
   "title": "Editor di codice",
   "lang": {
     "json": "JSON",
-    "csharpCode": "Codice C#",
-    "csharpDto": "DTO C#"
+    "csharpCode": "C# PDF",
+    "csharpDto": "Modello C#",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "Convalida", "run": "Esegui", "convert": "Converti", "restore": "Ripristina", "apply": "Applica al Designer", "accept": "Applica bozza generata", "cancel": "Annulla", "importLegacy": "Importa bozza", "dismiss": "Chiudi" },
+  "status": { "saved": "Salvato", "modified": "Modificato", "generated": "Generato", "outdated": "Obsoleto", "invalid": "Non valido", "conflict": "Conflitto" },
+  "workspace": { "legacy": "È disponibile una bozza locale dell'editor precedente.", "waiting": "Lo spazio di lavoro del server sarà disponibile dopo il salvataggio del modello.", "target": "Destinazione conversione", "fidelity": "Fedeltà", "documentFidelity": "Fedeltà del documento", "sourcePreservation": "Conservazione del codice sorgente", "added": "Aggiunto", "changed": "Modificato", "removed": "Rimosso" },
   "converting": "Conversione in corso…",
   "generating": "Generazione in corso…",
   "exportPdf": "Esporta PDF",
+  "preview": { "runningPdf": "Esecuzione del codice PDF C#...", "converting": "Conversione in corso...", "pdfError": "Errore PDF C#: correggilo ed esegui di nuovo", "modelError": "Errore del modello C#: correggilo ed esegui di nuovo", "base64Error": "Errore FromBase64String: correggilo ed esegui di nuovo", "runPdf": "Esegui il codice per generare il PDF.", "pdfReturn": "Lo script deve restituire un PxaPdfCodeDocument o un PdfDocument legacy.", "runModel": "Esegui il codice per mostrare l'anteprima.", "modelReturn": "L'espressione deve restituire un'istanza di DesignExportDto.", "emptyJson": "Inserisci JSON per mostrare un'anteprima dal vivo.", "emptyJsonHint": "Usa un modello iniziale per cominciare rapidamente.", "jsonError": "Correggi gli errori JSON per mostrare l'anteprima." },
   "errors": {
     "syntaxError": "Errore di sintassi: {{message}}",
     "pagesMustBeArray": "\"pages\" deve essere un array.",

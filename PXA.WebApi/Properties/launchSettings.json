@@ -8,7 +8,8 @@
       "applicationUrl": "http://localhost:5086",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "Mail__Transport": "Smtp"
+        "Mail__Transport": "Smtp",
+        "CodeWorker__Enabled": "true"
       }
     },
     "https": {
@@ -18,7 +19,8 @@
       "applicationUrl": "https://localhost:7254;http://localhost:5086",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "Mail__Transport": "Smtp"
+        "Mail__Transport": "Smtp",
+        "CodeWorker__Enabled": "true"
       }
     }
   }

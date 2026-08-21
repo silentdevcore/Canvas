@@ -36,6 +36,72 @@
   line-height: 1.2;
 }
 
+.editor-document-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(42vw, 520px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1c1917;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: text;
+}
+
+.editor-document-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-document-title svg {
+  flex: 0 0 auto;
+  color: #78716c;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.editor-document-title:hover svg,
+.editor-document-title:focus-visible svg { opacity: 1; }
+
+.editor-document-title-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-document-title-editor input {
+  width: min(42vw, 520px);
+  min-width: 180px;
+  padding: 3px 7px;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  color: #1c1917;
+  background: #fff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.editor-document-title-editor span {
+  position: absolute;
+  top: calc(100% + 5px);
+  inset-inline-start: 0;
+  z-index: 2;
+  min-width: 260px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: #991b1b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .editor-kicker {
   color: #78716c;
   font-size: 12px;
@@ -2557,13 +2623,15 @@
 .live-code-lang-toggle {
   display: flex;
   align-items: center;
+  min-width: 0;
+  overflow-x: auto;
   background: #292524;
   border: 1px solid #44403c;
   border-radius: 7px;
-  overflow: hidden;
 }
 
 .live-code-lang-btn {
+  flex: 0 0 auto;
   padding: 4px 12px;
   background: none;
   border: none;
@@ -2600,6 +2668,70 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+.code-draft-status {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.code-workspace-banner,
+.code-workspace-error,
+.code-workspace-progress,
+.code-conversion-review,
+.code-diagnostics {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-bottom: 1px solid #d9dee7;
+  background: #f6f8fb;
+  color: #263244;
+  font-size: 12px;
+}
+
+.code-workspace-error {
+  background: #fff1f1;
+  color: #9f1d1d;
+}
+
+.code-workspace-progress {
+  background: #eef6ff;
+  color: #164e86;
+}
+
+.code-conversion-review {
+  background: #fff9e8;
+  flex-wrap: wrap;
+}
+
+.code-diagnostics {
+  max-height: 92px;
+  align-items: stretch;
+  overflow: auto;
+}
+
+.code-diagnostics button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.code-diagnostics .diagnostic-error { color: #aa1e1e; }
+.code-diagnostics .diagnostic-warning { color: #805500; }
+
+@media (max-width: 820px) {
+  .live-code-editor-topbar { flex-wrap: wrap; height: auto; min-height: 56px; }
+  .live-code-topbar-right { width: 100%; overflow-x: auto; }
+  .live-code-editor-body { flex-direction: column; }
+  .live-code-editor-left,
+  .live-code-editor-right { width: 100% !important; min-height: 44vh; }
+  .live-code-splitter { display: none; }
 }
 
 .live-code-editor-left,

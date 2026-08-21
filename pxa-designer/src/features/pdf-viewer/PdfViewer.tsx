@@ -50,6 +50,7 @@ import {
 import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
+import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -232,11 +233,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [viewerEvents, setViewerEvents] = useState<ViewerEvent[]>([]);
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [printMode, setPrintMode] = useState<PrintMode>('all');
   const [printRange, setPrintRange] = useState('1');
   const [printError, setPrintError] = useState<string | null>(null);
+  const [downloadPending, setDownloadPending] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
   const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
   const [annotations, setAnnotations] = useState<PdfAnnotation[]>([]);
@@ -256,6 +258,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const eventIdRef = useRef(0);
   const annotationInteractionRef = useRef<AnnotationInteraction | null>(null);
   const suppressNextPageClickRef = useRef(false);
+  const downloadLockRef = useRef(false);
+  const printLockRef = useRef(false);
 
   const currentResult = searchResults[selectedResultIndex] ?? null;
   const currentPageAnnotations = annotations.filter(annotation => annotation.pageNumber === currentPage);
@@ -277,7 +281,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     fitPage: t('fitPage'),
     fitWidth: t('fitWidth'),
     download: t('download'),
+    downloadFailed: t('downloadFailed'),
+    invalidPdf: t('invalidPdf'),
     print: t('print'),
+    printBlocked: t('printBlocked'),
+    printFailed: t('printFailed'),
+    preparingPrint: t('preparingPrint'),
     review: t('review'),
     forms: t('forms'),
     language: t('language'),
@@ -377,17 +386,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
       emitViewerEvent('open:initial', { name: initialSource.name });
     }
   }, [emitViewerEvent, initialSource]);
-
-  useEffect(() => {
-    if (source?.kind !== 'file' || !(source.file instanceof File)) {
-      setObjectUrl(null);
-      return undefined;
-    }
-
-    const nextObjectUrl = URL.createObjectURL(source.file);
-    setObjectUrl(nextObjectUrl);
-    return () => URL.revokeObjectURL(nextObjectUrl);
-  }, [source]);
 
   useEffect(() => {
     setPageInput(String(currentPage));
@@ -689,6 +687,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
       throw new Error('No PDF source is available.');
     }
 
+    assertPdfBytes(bytes, labels.invalidPdf);
     const sourcePdf = await PdfLibDocument.load(bytes);
     const outputPdf = await PdfLibDocument.create();
     const pageIndexes = pages.map(page => page - 1);
@@ -697,27 +696,31 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     const subsetBytes = await outputPdf.save();
     const subsetBuffer = new ArrayBuffer(subsetBytes.byteLength);
     new Uint8Array(subsetBuffer).set(subsetBytes);
-    const blob = new Blob([subsetBuffer], { type: 'application/pdf' });
+    const blob = createPdfBlob(subsetBuffer, labels.invalidPdf);
     return URL.createObjectURL(blob);
   };
 
-  const downloadCurrentPdf = () => {
-    if (!source) {
+  const downloadCurrentPdf = async () => {
+    if (!source || downloadLockRef.current) {
       return;
     }
-
-    const href = source.kind === 'file' ? objectUrl : source.url;
-    if (!href) {
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    downloadLockRef.current = true;
+    setDownloadPending(true);
+    setDownloadError(null);
     emitViewerEvent('download:started', { name: source.name });
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) throw new Error(labels.downloadFailed);
+      downloadPdfBytes(bytes, source.name, labels.invalidPdf);
+      emitViewerEvent('download:completed', { name: source.name });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : labels.downloadFailed;
+      setDownloadError(message);
+      emitViewerEvent('download:failed', { name: source.name, message });
+    } finally {
+      downloadLockRef.current = false;
+      setDownloadPending(false);
+    }
   };
 
   const updateFormFieldValue = (name: string, value: PdfFormFieldValue) => {
@@ -1293,59 +1296,66 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     }
   };
 
-  const printHref = (href: string, label: string, revokeAfterPrint = false) => {
-    const printWindow = window.open(href, '_blank', 'noopener,noreferrer');
-    if (!printWindow) {
-      if (revokeAfterPrint) {
-        URL.revokeObjectURL(href);
-      }
-      emitViewerEvent('print:blocked', { name: source?.name, mode: label });
-      return;
-    }
-
-    emitViewerEvent('print:opened', { name: source?.name, mode: label });
-    window.setTimeout(() => {
-      printWindow.print();
-      if (revokeAfterPrint) {
-        window.setTimeout(() => URL.revokeObjectURL(href), 2000);
-      }
-    }, 700);
-  };
-
   const printCurrentPdf = async () => {
-    if (!source) {
+    if (!source || printLockRef.current) {
       return;
     }
 
     setPrintError(null);
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setPrintError(labels.printBlocked);
+      emitViewerEvent('print:blocked', { name: source.name, mode: printMode });
+      return;
+    }
+    printWindow.opener = null;
+    printWindow.document.title = `${labels.print}: ${source.name}`;
+    printWindow.document.body.textContent = labels.preparingPrint;
+    printLockRef.current = true;
+    let printScheduled = false;
 
     try {
+      let printUrl: string;
       if (printMode === 'all') {
-        const href = source.kind === 'file' ? objectUrl : source.url;
-        if (!href) {
-          throw new Error('No printable PDF URL is available.');
-        }
+        const bytes = await getSourceBytes();
+        if (!bytes) throw new Error(labels.printFailed);
+        printUrl = URL.createObjectURL(createPdfBlob(bytes, labels.invalidPdf));
+      } else {
+        const pages = printMode === 'current'
+          ? [currentPage]
+          : parsePageRange(printRange, numPages);
 
-        printHref(href, 'all');
-        setPrintDialogOpen(false);
-        return;
+        if (pages.length === 0)
+          throw new Error('Enter a valid page range, for example 1-3 or 2,4,6.');
+        printUrl = await buildSubsetPdfUrl(pages);
       }
 
-      const pages = printMode === 'current'
-        ? [currentPage]
-        : parsePageRange(printRange, numPages);
-
-      if (pages.length === 0) {
-        throw new Error('Enter a valid page range, for example 1-3 or 2,4,6.');
-      }
-
-      const subsetUrl = await buildSubsetPdfUrl(pages);
-      printHref(subsetUrl, printMode, true);
+      printWindow.location.replace(printUrl);
+      emitViewerEvent('print:opened', { name: source.name, mode: printMode });
       setPrintDialogOpen(false);
+      printScheduled = true;
+      window.setTimeout(() => {
+        try {
+          printWindow.print();
+          emitViewerEvent('print:completed', { name: source.name, mode: printMode });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : labels.printFailed;
+          setPrintError(message);
+          emitViewerEvent('print:failed', { message });
+        } finally {
+          printLockRef.current = false;
+          window.setTimeout(() => URL.revokeObjectURL(printUrl), 60_000);
+        }
+      }, 900);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Printing failed.';
+      printWindow.close();
+      const message = error instanceof Error ? error.message : labels.printFailed;
       setPrintError(message);
       emitViewerEvent('print:failed', { message });
+    } finally {
+      if (!printScheduled) {
+        printLockRef.current = false;
+      }
     }
   };
 
@@ -1445,7 +1455,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <FiColumns />
               <span>{labels.fitWidth}</span>
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={downloadCurrentPdf} disabled={!source} title={labels.download}>
+            <button className="pdfv-icon-button" type="button" onClick={() => void downloadCurrentPdf()} disabled={!source || downloadPending} title={downloadError ?? labels.download} aria-busy={downloadPending}>
               <FiDownload />
             </button>
             <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title={labels.print}>
@@ -1467,6 +1477,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 ))}
               </select>
             </label>
+            {downloadError && <span className="pdfv-action-error" role="alert">{downloadError}</span>}
           </div>
         </section>
 

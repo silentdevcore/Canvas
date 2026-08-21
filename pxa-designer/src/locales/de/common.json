@@ -20,11 +20,11 @@
   },
   "pdfSidebar": {
     "createPdf": "PDF erstellen",
-    "editPdf": "PDF bearbeiten",
+    "editPdf": "PDF mit Code",
     "useTemplate": "Vorlage verwenden",
     "importPdf": "PDF importieren",
     "convertToPdf": "In PDF konvertieren",
-    "pdfViewer": "PDF-Betrachter",
+    "pdfViewer": "PDF-Viewer",
     "migrations": "Migrationen"
   },
   "spreadsheetSidebar": {

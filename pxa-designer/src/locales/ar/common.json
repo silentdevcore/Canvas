@@ -20,7 +20,7 @@
   },
   "pdfSidebar": {
     "createPdf": "إنشاء PDF",
-    "editPdf": "تحرير PDF",
+    "editPdf": "PDF باستخدام الكود",
     "useTemplate": "استخدام قالب",
     "importPdf": "استيراد PDF",
     "convertToPdf": "التحويل إلى PDF",

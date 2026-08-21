@@ -11,17 +11,20 @@
   "resetZoom": "إعادة تعيين التكبير",
   "exportImageFailed": "فشل تصدير الصورة",
   "exportFailed": "فشل التصدير",
+  "printBlocked": "حظر المتصفح نافذة طباعة ملف PDF.",
+  "printPreparing": "جارٍ إعداد ملف PDF للطباعة…",
+  "printTitle": "طباعة {{name}}",
   "exporting": "جارٍ التصدير…",
   "exported": "تم التصدير!",
   "export": "تصدير",
   "exportMenu": {
     "pdf": {
       "label": "تصدير PDF",
-      "sub": "العرض عبر الخادم الخلفي (localhost:5086)"
+      "sub": "العرض باستخدام محرك PXA PDF"
     },
     "image": {
       "label": "تصدير صورة",
-      "sub": "الحفظ بصيغة PNG (كل الصفحات)"
+      "sub": "PNG أو ZIP للصفحات المتعددة"
     },
     "json": {
       "label": "تصدير JSON",
@@ -29,7 +32,7 @@
     },
     "print": {
       "label": "طباعة",
-      "sub": "مربع حوار الطباعة في المتصفح"
+      "sub": "طباعة ملف PDF المُنشأ"
     },
     "more": {
       "label": "تنسيقات أخرى…",

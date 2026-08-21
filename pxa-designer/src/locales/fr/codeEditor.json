@@ -3,12 +3,17 @@
   "title": "Éditeur de code",
   "lang": {
     "json": "JSON",
-    "csharpCode": "Code C#",
-    "csharpDto": "DTO C#"
+    "csharpCode": "C# PDF",
+    "csharpDto": "Modèle C#",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "Valider", "run": "Exécuter", "convert": "Convertir", "restore": "Restaurer", "apply": "Appliquer au Designer", "accept": "Appliquer le brouillon généré", "cancel": "Annuler", "importLegacy": "Importer le brouillon", "dismiss": "Fermer" },
+  "status": { "saved": "Enregistré", "modified": "Modifié", "generated": "Généré", "outdated": "Obsolète", "invalid": "Invalide", "conflict": "Conflit" },
+  "workspace": { "legacy": "Un brouillon local de l'ancien éditeur est disponible.", "waiting": "L'espace serveur sera disponible après l'enregistrement du modèle.", "target": "Cible de conversion", "fidelity": "Fidélité", "documentFidelity": "Fidélité du document", "sourcePreservation": "Préservation du code source", "added": "Ajouté", "changed": "Modifié", "removed": "Supprimé" },
   "converting": "Conversion en cours…",
   "generating": "Génération en cours…",
   "exportPdf": "Exporter en PDF",
+  "preview": { "runningPdf": "Exécution du code PDF C#...", "converting": "Conversion en cours...", "pdfError": "Erreur PDF C# - corrigez-la puis relancez", "modelError": "Erreur de modèle C# - corrigez-la puis relancez", "base64Error": "Erreur FromBase64String - corrigez-la puis relancez", "runPdf": "Exécutez le code pour générer le PDF.", "pdfReturn": "Le script doit renvoyer un PxaPdfCodeDocument ou un ancien PdfDocument.", "runModel": "Exécutez le code pour afficher l'aperçu.", "modelReturn": "L'expression doit renvoyer une instance de DesignExportDto.", "emptyJson": "Saisissez du JSON pour afficher un aperçu en direct.", "emptyJsonHint": "Utilisez un modèle de départ pour commencer rapidement.", "jsonError": "Corrigez les erreurs JSON pour afficher l'aperçu." },
   "errors": {
     "syntaxError": "Erreur de syntaxe : {{message}}",
     "pagesMustBeArray": "« pages » doit être un tableau.",

@@ -3,12 +3,17 @@
   "title": "محرر الكود",
   "lang": {
     "json": "JSON",
-    "csharpCode": "كود C#",
-    "csharpDto": "C# DTO"
+    "csharpCode": "C# PDF",
+    "csharpDto": "نموذج C#",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "تحقق", "run": "تشغيل", "convert": "تحويل", "restore": "استعادة", "apply": "تطبيق في المصمم", "accept": "تطبيق المسودة المُنشأة", "cancel": "إلغاء", "importLegacy": "استيراد المسودة", "dismiss": "إغلاق" },
+  "status": { "saved": "محفوظ", "modified": "معدّل", "generated": "مُنشأ", "outdated": "قديم", "invalid": "غير صالح", "conflict": "تعارض" },
+  "workspace": { "legacy": "تتوفر مسودة محلية من المحرر السابق.", "waiting": "ستتوفر مساحة عمل الخادم بعد حفظ القالب.", "target": "هدف التحويل", "fidelity": "الدقة", "documentFidelity": "دقة المستند", "sourcePreservation": "الحفاظ على الشفرة المصدرية", "added": "مضاف", "changed": "معدّل", "removed": "محذوف" },
   "converting": "جارٍ التحويل…",
   "generating": "جارٍ الإنشاء…",
   "exportPdf": "تصدير PDF",
+  "preview": { "runningPdf": "جارٍ تشغيل كود C# PDF...", "converting": "جارٍ التحويل...", "pdfError": "خطأ في C# PDF - صححه ثم شغّل مرة أخرى", "modelError": "خطأ في نموذج C# - صححه ثم شغّل مرة أخرى", "base64Error": "خطأ FromBase64String - صححه ثم شغّل مرة أخرى", "runPdf": "شغّل الكود لإنشاء ملف PDF.", "pdfReturn": "يجب أن يعيد البرنامج النصي PxaPdfCodeDocument أو PdfDocument قديمًا.", "runModel": "شغّل الكود لعرض المعاينة.", "modelReturn": "يجب أن يعيد التعبير نسخة من DesignExportDto.", "emptyJson": "أدخل JSON لعرض معاينة مباشرة.", "emptyJsonHint": "استخدم قالب بداية للبدء بسرعة.", "jsonError": "صحح أخطاء JSON لعرض المعاينة." },
   "errors": {
     "syntaxError": "خطأ في الصياغة: {{message}}",
     "pagesMustBeArray": "يجب أن يكون \"pages\" مصفوفة.",

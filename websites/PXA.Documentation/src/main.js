@@ -269,12 +269,39 @@ const editorDocs = [
       'You want diagnostics for files that cannot map cleanly.',
       'You are preparing imported content for designer or migration handoff.',
     ],
-    concepts: ['File detection', 'Normalization', 'Importer diagnostics', 'Format-specific importers', 'Designer handoff'],
-    tasks: ['Choose an input format', 'Normalize the file', 'Review import diagnostics', 'Send imported content to Designer or Migration'],
+    concepts: ['File detection', 'Normalization', 'Importer diagnostics', 'PDF chart confidence', 'Format-specific importers', 'Designer handoff'],
+    tasks: ['Choose an input format', 'Select off, safe, or review for PDF chart recognition', 'Normalize the file', 'Review chart confidence and diagnostics', 'Compare or restore the original visual when available', 'Send imported content to Designer or Migration'],
     related: [
       { label: 'Importer product page', href: companyPage('products/importer') },
       { label: 'Importer demo', href: `${siteLinks.demo}#demo/file-importer-flow` },
       { label: 'PXA.Importer', href: '#pxa-importer' },
+    ],
+    examples: [
+      {
+        title: 'PDF chart recognition modes',
+        json: `POST /api/document/import-pdf-engine?chartRecognition=safe
+Content-Type: multipart/form-data
+
+file=@report.pdf`,
+        note: 'safe converts confidence 0.85+ candidates. review also returns marked candidates from 0.60 to 0.849. off retains ordinary PDF primitives.',
+      },
+      {
+        title: 'Recognition result',
+        json: `{
+  "type": "chart",
+  "chart": {
+    "schemaVersion": 2,
+    "type": "bar",
+    "recognition": {
+      "status": "reviewRequired",
+      "confidence": 0.72,
+      "sourceKind": "pdfVector",
+      "diagnosticCode": "PXA-PDF-CHART-102"
+    }
+  }
+}`,
+        note: 'PXA metadata round trips return confidence 1.0. Heuristic recognition is local and best effort.',
+      },
     ],
   },
   {
@@ -529,14 +556,17 @@ const elementReferenceDocs = [
     type: 'chart',
     category: 'Visual Elements',
     status: 'Ready',
-    description: 'Bar, line, or pie chart rendered from inline chart data. Used heavily by report-designer migrations.',
-    addSteps: ['Open Visual Elements.', 'Click Chart.', 'Select chartType.', 'Paste chartData JSON.', 'Resize the chart area and preview output.'],
-    usage: ['Sales by period.', 'Report dashboard charts.', 'Migrated RDL/DevExpress/Jasper chart placeholders.', 'Small analytical visuals in generated documents.'],
+    description: 'Professional multi-series bar, line, area, pie, doughnut, stacked-bar, and combo charts rendered consistently in the Designer and vector PDF output.',
+    addSteps: ['Open Visual Elements.', 'Click Chart.', 'Edit categories and values under Data.', 'Configure series, appearance, axes, or binding.', 'Resize the chart and verify it in Live Preview.'],
+    usage: ['Sales by period.', 'Report dashboard charts.', 'Migrated report charts.', 'Editable charts recovered from supported PDFs.'],
     attributes: [
-      ['chartType', 'bar | line | pie', 'Chart kind.'],
-      ['chartData', 'object', 'Labels and datasets in Chart.js-style shape.'],
-      ['style.backgroundColor', 'string', 'Optional chart background.'],
-      ['style.color', 'string', 'Text/foreground hint.'],
+      ['chart.schemaVersion', '2', 'Version of the typed chart contract.'],
+      ['chart.type', 'bar | line | area | pie | doughnut | stackedBar | combo', 'Chart kind.'],
+      ['chart.categories', 'string[]', 'Labels on the category axis or circular slices.'],
+      ['chart.series', 'ChartSeries[]', 'Stable series with values, color, type, axis, and stack group.'],
+      ['chart.binding', 'object', 'Optional data path and category/series/value field mapping.'],
+      ['chart.recognition', 'object', 'Confidence and review state for charts recovered from PDFs.'],
+      ['chartType / chartData', 'legacy', 'Read for compatibility and normalized to chart schema version 2.'],
     ],
     example: `{
   "id": "sales-chart",
@@ -545,17 +575,22 @@ const elementReferenceDocs = [
   "y": 340,
   "width": 320,
   "height": 200,
-  "chartType": "bar",
-  "chartData": {
-    "labels": ["Q1", "Q2"],
-    "datasets": [{ "label": "Sales", "data": [10, 20] }]
+  "chart": {
+    "schemaVersion": 2,
+    "type": "combo",
+    "title": "Quarterly performance",
+    "categories": ["Q1", "Q2", "Q3"],
+    "series": [
+      { "id": "sales", "name": "Sales", "type": "bar", "values": [10, 20, 16], "color": "#2563eb" },
+      { "id": "margin", "name": "Margin", "type": "line", "values": [3, 5, 4], "color": "#16a34a" }
+    ]
   }
 }`,
     visual: {
       title: 'Designer usage',
       toolbar: 'Visual Elements -> Chart',
-      properties: ['Chart type', 'Chart data JSON', 'Size', 'Style'],
-      preview: 'Bar chart preview',
+      properties: ['Data', 'Series', 'Appearance', 'Axes', 'Binding', 'Advanced'],
+      preview: 'Multi-series chart preview',
     },
   },
   {
@@ -1675,7 +1710,7 @@ table.Row("Coffee", "2", "19.80");`,
     subcategory: 'PDF Page Content',
     title: 'Chart',
     status: 'Preview',
-    description: 'Render simple bar, line, or pie charts from labels and datasets.',
+    description: 'Render typed multi-series charts as sharp PDF vectors with a controlled raster fallback.',
     preview: { kind: 'chart', value: 'Q1 Q2' },
     csharp: `page.Chart(ChartType.Bar)
     .At(40, 340)
@@ -1688,10 +1723,14 @@ table.Row("Coffee", "2", "19.80");`,
   "y": 340,
   "width": 320,
   "height": 200,
-  "chartType": "bar",
-  "chartData": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Sales", "data": [10, 20] }] }
+  "chart": {
+    "schemaVersion": 2,
+    "type": "bar",
+    "categories": ["Q1", "Q2"],
+    "series": [{ "id": "sales", "name": "Sales", "values": [10, 20], "color": "#2563eb" }]
+  }
 }`,
-    model: 'Document -> Page -> ChartElement -> ChartData -> Dataset',
+    model: 'Document -> Page -> ChartElement -> ChartDefinition -> Series',
   },
   {
     category: 'PDF SDK',
@@ -3743,6 +3782,7 @@ document.querySelector('#app').innerHTML = `
             ${renderDetailNavList(editorSections)}
             ${renderElementNav(elementReferenceDocs)}
             <strong>Code SDK</strong>
+            <a class="pxa-doc-nav__featured" href="#code-designer-workspace">Code Designer Workspace</a>
             ${renderCodeSdkNav(codeSdkGroups, exportSdkDocs)}
             <strong>Migration</strong>
             ${renderNavList(migrationGuides)}
@@ -3824,6 +3864,21 @@ document.querySelector('#app').innerHTML = `
             <h2 class="pxa-heading">SDK examples ordered by product area</h2>
             ${renderTrackGuide(trackGuides.code)}
             <div class="pxa-doc-detail-stack">
+              <section class="pxa-card pxa-doc-detail" id="code-designer-workspace">
+                <div class="pxa-doc-detail__header">
+                  <span class="pxa-status pxa-status--preview">Beta</span>
+                  <h3>Code Designer Workspace</h3>
+                  <p>Keep independent JSON, readable C# Model, semantic C# PDF, and FromBase64String drafts beside a saved visual template, then convert and apply changes explicitly.</p>
+                </div>
+                <div class="pxa-doc-detail__grid">
+                  <article><h4>Draft workflow</h4><ol><li>Save the visual template.</li><li>Edit one language without changing the others.</li><li>Validate or run the active draft.</li><li>Convert and review added, changed, and removed elements.</li><li>Apply the canonical result to Designer.</li></ol></article>
+                  <article><h4>Four representations</h4><ul><li><strong>JSON:</strong> canonical <code>DesignExportDto</code>.</li><li><strong>C# Model:</strong> editable typed object initializer without hidden JSON.</li><li><strong>C# PDF:</strong> exact <code>PxaPdfCodeBuilder</code> with legacy low-level compatibility.</li><li><strong>FromBase64String:</strong> compact, strictly validated transport source.</li></ul></article>
+                  <article><h4>Fidelity</h4><p><code>documentFidelity</code> reports the resulting document as exact, compatible, review required, or unsupported. <code>sourcePreservation</code> separately reports preserved, regenerated, or structure lost, so exact output never implies that handwritten code structure survived.</p></article>
+                  <article><h4>Sandbox</h4><p>C# runs outside WebApi with a 32 MiB source limit, 10 MiB canonical document limit, 15-second execution limit, and bounded page, element, and output counts. Files, network, processes, environment, reflection, native interop, threads, unsafe code, dynamic dispatch, and package references are blocked.</p></article>
+                  <article><h4>Assets and conflicts</h4><p>Use tenant-owned Designer asset IDs, never paths or URLs. Autosave updates only the active draft. HTTP 409 protects both template and workspace revisions from stale writes.</p></article>
+                </div>
+                <p><strong>API:</strong> <code>/api/pxa/v1/designer/templates/{templateId}/code-workspace</code> provides load, save, validate, convert, execute, apply, restore, and source-map operations.</p>
+              </section>
               ${renderCodeSdkGroups(codeSdkGroups)}
               ${renderExportSdkDocs(exportSdkDocs)}
             </div>
@@ -4106,8 +4161,8 @@ function parseCodeExample(example, code) {
     if (dataset) {
       const values = [Number(dataset[2]), Number(dataset[3])];
       result.preview.values = values;
-      result.json.chartData.datasets[0].label = dataset[1];
-      result.json.chartData.datasets[0].data = values;
+      result.json.chart.series[0].name = dataset[1];
+      result.json.chart.series[0].values = values;
     } else {
       result.warning = 'Could not find .Dataset("Label", n, n).';
     }

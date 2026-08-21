@@ -3,6 +3,7 @@ using PXA.Application.UseCases;
 using PXA.Infrastructure.Spreadsheet;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using PXA.Core.Primitives;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaSpreadsheetDto = PXA.Core.Contracts.SpreadsheetDto;
 
@@ -54,13 +55,18 @@ public class SpreadsheetController : ControllerBase
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 
-        var name = SanitizeFileName(workbook.Name);
+        var name = ExportFileNameSanitizer.Sanitize(workbook.Name, "workbook");
         return format.ToLowerInvariant() switch
         {
             "xls" => File(_xls.Export(workbook), "application/vnd.ms-excel", $"{name}.xls"),
             "csv" => File(System.Text.Encoding.UTF8.GetBytes(workbook.Sheets.Count > 0 ? CsvSheetIo.ToCsv(workbook.Sheets[0]) : ""), "text/csv", $"{name}.csv"),
             "tsv" => File(System.Text.Encoding.UTF8.GetBytes(workbook.Sheets.Count > 0 ? CsvSheetIo.ToCsv(workbook.Sheets[0], '\t') : ""), "text/tab-separated-values", $"{name}.tsv"),
-            _ => File(_exporter.Export(workbook, recalculate), XlsxMime, $"{name}.xlsx"),
+            "xlsx" => File(_exporter.Export(workbook, recalculate), XlsxMime, $"{name}.xlsx"),
+            _ => StatusCode(StatusCodes.Status415UnsupportedMediaType, new
+            {
+                error = $"Spreadsheet export format '{format}' is not supported.",
+                supportedFormats = new[] { "xlsx", "xls", "csv", "tsv" },
+            }),
         };
     }
 
@@ -124,7 +130,7 @@ public class SpreadsheetController : ControllerBase
             return BadRequest(new { error = "Request body is required." });
 
         var design = _toDesign.Convert(workbook, sheet, gridlines: true);
-        var name = SanitizeFileName(workbook.Name);
+        var name = ExportFileNameSanitizer.Sanitize(workbook.Name, "workbook");
 
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase))
         {
@@ -220,11 +226,4 @@ public class SpreadsheetController : ControllerBase
         public Dictionary<string, System.Text.Json.JsonElement>? Data { get; set; }
     }
 
-    private static string SanitizeFileName(string? name)
-    {
-        var n = string.IsNullOrWhiteSpace(name) ? "workbook" : name;
-        foreach (var c in Path.GetInvalidFileNameChars())
-            n = n.Replace(c, '_');
-        return n.Trim();
-    }
 }

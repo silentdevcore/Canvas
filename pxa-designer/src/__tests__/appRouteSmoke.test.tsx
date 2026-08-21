@@ -265,7 +265,7 @@ describe('app route smoke tests', () => {
 
     await waitUntil(() => {
       expect(getByText(container, 'Create PDF')).toBeTruthy();
-      expect(getByText(container, 'Edit PDF')).toBeTruthy();
+      expect(getByText(container, 'PDF with Code')).toBeTruthy();
       expect(getByText(container, 'Use Template')).toBeTruthy();
       expect(getByText(container, 'Import PDF')).toBeTruthy();
       expect(getByText(container, 'Convert to PDF')).toBeTruthy();
@@ -274,7 +274,7 @@ describe('app route smoke tests', () => {
     });
   });
 
-  test('PDF sidebar switches cleanly between Create PDF and Edit PDF, back and forth', async () => {
+  test('PDF sidebar switches cleanly between Create PDF and PDF with Code, back and forth', async () => {
     // Regression test: /pdf/create and /pdf/edit (-> /pdf/create?mode=code) are
     // the same matched route, so React Router doesn't remount CreatePage when
     // switching between them via the sidebar — only the `mode` query param
@@ -430,7 +430,7 @@ describe('app route smoke tests', () => {
     expect(getByText(container, 'Preview: Booking Receipt')).toBeTruthy();
 
     await click(getButtonByText(container, 'Export'));
-    expect(ExportService.exportToJSON).toHaveBeenCalledTimes(1);
+    expect(ExportService.exportToJSON).not.toHaveBeenCalled();
   });
 
   test('opens the PDF viewer route', async () => {

@@ -78,6 +78,8 @@ Canvas.WebApi/App_Data/
 PXA.WebApi/App_Data/
 BookingReceipt.Designer.cs
 designer-simples/
+/api.log
+/api.pid
 
 # macOS
 .DS_Store

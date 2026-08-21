@@ -1,3 +1,5 @@
+import type { ChartDefinition, PxaChartType } from './chart/types';
+
 /**
  * Every element type the designer can place. This runtime array is the authoritative list — the
  * `ElementType` union is derived from it, and the documentation element catalog is drift-guarded
@@ -102,8 +104,9 @@ export interface SimpleElement {
   fieldName?: string;
   placeholder?: string;
   required?: boolean;
-  // Chart
-  chartType?: 'bar' | 'line' | 'pie';
+    // Chart
+  chart?: ChartDefinition;
+  chartType?: PxaChartType;
   chartData?: Record<string, any>;
   // Select / list / radio
   options?: string[];

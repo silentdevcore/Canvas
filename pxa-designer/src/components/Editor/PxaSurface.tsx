@@ -4,6 +4,7 @@ import { useEditorStore, SimpleElement } from '../../store';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Resizable } from 'react-resizable';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
+import ChartRenderer from '@/chart/ChartRenderer';
 
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
@@ -30,7 +31,7 @@ const PxaSurface: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
       case 'circle':
         return <div style={{ ...element.style, borderRadius: '50%', backgroundColor: element.style?.backgroundColor || 'gray' }}>Circle</div>;
       case 'chart':
-        return <div>Chart: {element.chartType}</div>; // Placeholder, integrate react-chartjs-2
+        return <ChartRenderer chart={element.chart} legacyType={element.chartType} legacyData={element.chartData} />;
       case 'subsection':
         return <div style={element.style}>Subsection</div>;
       case 'area':

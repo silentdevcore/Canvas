@@ -11,17 +11,20 @@
   "resetZoom": "Zoom zurücksetzen",
   "exportImageFailed": "Bildexport fehlgeschlagen",
   "exportFailed": "Export fehlgeschlagen",
+  "printBlocked": "Das PDF-Druckfenster wurde vom Browser blockiert.",
+  "printPreparing": "PDF wird zum Drucken vorbereitet…",
+  "printTitle": "{{name}} drucken",
   "exporting": "Wird exportiert…",
   "exported": "Exportiert!",
   "export": "Exportieren",
   "exportMenu": {
     "pdf": {
       "label": "PDF exportieren",
-      "sub": "Rendern über Backend (localhost:5086)"
+      "sub": "Mit der PXA-PDF-Engine rendern"
     },
     "image": {
       "label": "Bild exportieren",
-      "sub": "Als PNG speichern (alle Seiten)"
+      "sub": "PNG oder ZIP bei mehreren Seiten"
     },
     "json": {
       "label": "JSON exportieren",
@@ -29,7 +32,7 @@
     },
     "print": {
       "label": "Drucken",
-      "sub": "Druckdialog des Browsers"
+      "sub": "Die erzeugte PDF drucken"
     },
     "more": {
       "label": "Weitere Formate…",

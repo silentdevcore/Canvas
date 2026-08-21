@@ -2,6 +2,7 @@ using System.IO.Compression;
 using PXA.Pdf;
 using PXA.Application.UseCases;
 using PXA.WebApi.Infrastructure;
+using PXA.Core.Primitives;
 using Microsoft.AspNetCore.Mvc;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaExportOptions = PXA.Core.Contracts.ExportOptions;
@@ -49,7 +50,7 @@ public class ExportController : ControllerBase
         {
             var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
             var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
-            var safeName = SanitizeFileName(design.Name);
+            var safeName = ExportFileNameSanitizer.Sanitize(design.Name);
             return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
         }
 
@@ -89,7 +90,7 @@ public class ExportController : ControllerBase
         if (langs is null || langs.Count == 0)
             return BadRequest(new { error = "No active languages configured on the design." });
 
-        var safeName = SanitizeFileName(design.Name);
+        var safeName = ExportFileNameSanitizer.Sanitize(design.Name);
 
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
@@ -106,14 +107,6 @@ public class ExportController : ControllerBase
 
         zipStream.Position = 0;
         return File(zipStream.ToArray(), "application/zip", $"{safeName}-multilanguage.zip");
-    }
-
-    private static string SanitizeFileName(string? name)
-    {
-        var n = string.IsNullOrWhiteSpace(name) ? "document" : name;
-        foreach (var c in Path.GetInvalidFileNameChars())
-            n = n.Replace(c, '_');
-        return n.Trim();
     }
 
     /// <summary>
@@ -134,6 +127,7 @@ public class ExportController : ControllerBase
                 supportsImages     = f.Capabilities.SupportsImages,
                 supportsRichText   = f.Capabilities.SupportsRichText,
                 supportsFormFields = f.Capabilities.SupportsFormFields,
+                multiPagePackaging = f.Key is "png" or "jpeg" or "tiff" or "svg" ? "zip" : "native",
             });
 
         return Ok(formats);

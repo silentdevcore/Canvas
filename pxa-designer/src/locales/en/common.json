@@ -20,7 +20,7 @@
   },
   "pdfSidebar": {
     "createPdf": "Create PDF",
-    "editPdf": "Edit PDF",
+    "editPdf": "PDF with Code",
     "useTemplate": "Use Template",
     "importPdf": "Import PDF",
     "convertToPdf": "Convert to PDF",

@@ -7,6 +7,11 @@ export interface FormatInfo {
   key: string;
   mimeType: string;
   extension: string;
+  supportsMultiPage?: boolean;
+  supportsImages?: boolean;
+  supportsRichText?: boolean;
+  supportsFormFields?: boolean;
+  multiPagePackaging?: 'native' | 'zip';
 }
 
 let _formatsCache: FormatInfo[] | null = null;
@@ -37,6 +42,127 @@ export class ExportService {
       ...page,
       elements: await this.hydrateAssetElements(page.elements),
     })));
+  }
+
+  static safeFileStem(name: string | null | undefined): string {
+    const normalized = (name ?? '').trim()
+      .replace(/[<>:"/\\|?*\u0000-\u001f\s]+/g, '-')
+      .replace(/^[.-]+|[.-]+$/g, '')
+      .slice(0, 180);
+    return normalized || 'document';
+  }
+
+  static buildDesignPayload(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+  ) {
+    const settings = pageSettings ?? ({ width: 595, height: 842, orientation: 'portrait' } as PageSettings);
+    return {
+      id: template.id,
+      name: template.name.trim() || 'Untitled document',
+      category: template.category,
+      description: template.description,
+      pages: pages.map(page => ({ id: page.id, elements: page.elements })),
+      sharedElements,
+      pageSettings: {
+        width: settings.width,
+        height: settings.height,
+        orientation: settings.orientation,
+        unit: settings.unit,
+        backgroundColor: settings.backgroundColor,
+        backgroundImage: settings.backgroundImage || null,
+        backgroundImageFit: settings.backgroundImageFit,
+        margins: settings.margins,
+        pageNumbering: settings.pageNumbering?.enabled ? settings.pageNumbering : null,
+        globalWatermark: settings.globalWatermark?.enabled ? settings.globalWatermark : null,
+        metadata: settings.metadata,
+        namedStyles: settings.namedStyles ?? [],
+        protection: settings.protection ?? null,
+        encryption: settings.encryption?.enabled ? settings.encryption : null,
+        customProperties: settings.customProperties ?? [],
+        trackChanges: settings.trackChanges ?? false,
+        systemLanguage: settings.systemLanguage ?? navigator.language.split('-')[0],
+        activeLanguages: settings.activeLanguages ?? [],
+        localizedProperties: settings.localizedProperties ?? [],
+        targetLanguage: settings.targetLanguage ?? null,
+      },
+    };
+  }
+
+  private static async buildHydratedDesignPayload(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[],
+    pageSettings?: PageSettings,
+  ) {
+    const [hydratedPages, hydratedSharedElements] = await Promise.all([
+      this.hydrateAssetPages(pages),
+      this.hydrateAssetElements(sharedElements),
+    ]);
+    return this.buildDesignPayload(template, hydratedPages, hydratedSharedElements, pageSettings);
+  }
+
+  private static responseFileName(response: Response): string | undefined {
+    const disposition = response.headers.get('Content-Disposition') ?? '';
+    const rfc5987 = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const plain = disposition.match(/filename="?([^";]+)"?/i);
+    return rfc5987 ? decodeURIComponent(rfc5987[1]) : plain?.[1];
+  }
+
+  private static downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
+  private static async readBlobPrefix(blob: Blob, length: number): Promise<Uint8Array> {
+    const slice = blob.slice(0, length);
+    if (typeof slice.arrayBuffer === 'function') {
+      return new Uint8Array(await slice.arrayBuffer());
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error ?? new Error('Unable to inspect the exported file.'));
+      reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
+      reader.readAsArrayBuffer(slice);
+    });
+  }
+
+  private static async validateArtifact(blob: Blob, format: string, contentType: string): Promise<void> {
+    const actualType = contentType.split(';')[0].trim().toLowerCase();
+    const signatures: Record<string, { mime: string[]; bytes?: number[]; text?: RegExp }> = {
+      pdf: { mime: ['application/pdf'], bytes: [0x25, 0x50, 0x44, 0x46, 0x2d] },
+      word: { mime: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'], bytes: [0x50, 0x4b] },
+      excel: { mime: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'], bytes: [0x50, 0x4b] },
+      odt: { mime: ['application/vnd.oasis.opendocument.text'], bytes: [0x50, 0x4b] },
+      png: { mime: ['image/png'], bytes: [0x89, 0x50, 0x4e, 0x47] },
+      jpeg: { mime: ['image/jpeg'], bytes: [0xff, 0xd8, 0xff] },
+      tiff: { mime: ['image/tiff'], bytes: [0x49, 0x49] },
+      svg: { mime: ['image/svg+xml'], text: /<svg\b/i },
+      html: { mime: ['text/html'], text: /<!doctype html|<html\b/i },
+      xml: { mime: ['application/xml', 'text/xml'], text: /<\?xml|<[a-z_][\w:.-]*/i },
+      csv: { mime: ['text/csv'] },
+      md: { mime: ['text/markdown'] },
+      json: { mime: ['application/json'], text: /^\s*[\[{]/ },
+      zip: { mime: ['application/zip'], bytes: [0x50, 0x4b] },
+    };
+    const expected = signatures[format];
+    if (!expected) return;
+    if (!expected.mime.includes(actualType))
+      throw new Error(`Export returned '${actualType || 'unknown'}' instead of ${expected.mime.join(' or ')}.`);
+    const prefix = await this.readBlobPrefix(blob, 256);
+    if (expected.bytes && !expected.bytes.every((value, index) => prefix[index] === value))
+      throw new Error(`Export returned invalid ${format.toUpperCase()} data.`);
+    if (expected.text && !expected.text.test(new TextDecoder().decode(prefix)))
+      throw new Error(`Export returned invalid ${format.toUpperCase()} text.`);
   }
 
   static convertElementsToTemplate(pages: Page[], template: Template, sharedElements: SimpleElement[] = [], pageSettings?: PageSettings) {
@@ -282,6 +408,7 @@ export class ExportService {
       case 'chart':
         return {
           ...base,
+          chart: element.chart,
           chartType: element.chartType || 'bar',
           chartData: element.chartData || {},
         };
@@ -566,39 +693,7 @@ export class ExportService {
   ): Promise<void> {
     onProgress?.(`Preparing ${format.toUpperCase()} export…`);
 
-    const hydratedPages = await this.hydrateAssetPages(pages);
-    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
-
-    const payload = {
-      id: template.id,
-      name: template.name,
-      category: template.category,
-      description: template.description,
-      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements: hydratedSharedElements,
-      pageSettings: pageSettings
-        ? {
-            width: pageSettings.width,
-            height: pageSettings.height,
-            orientation: pageSettings.orientation,
-            margins: pageSettings.margins,
-            backgroundColor: pageSettings.backgroundColor,
-            backgroundImage: pageSettings.backgroundImage,
-            backgroundImageFit: pageSettings.backgroundImageFit,
-            pageNumbering: pageSettings.pageNumbering.enabled ? pageSettings.pageNumbering : null,
-            globalWatermark: pageSettings.globalWatermark.enabled ? pageSettings.globalWatermark : null,
-            metadata: pageSettings.metadata,
-            namedStyles: pageSettings.namedStyles ?? [],
-            protection: pageSettings.protection ?? null,
-            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
-            customProperties: pageSettings.customProperties ?? [],
-            trackChanges: pageSettings.trackChanges ?? false,
-            systemLanguage: navigator.language.split('-')[0],
-            activeLanguages: pageSettings.activeLanguages ?? [],
-            localizedProperties: pageSettings.localizedProperties ?? [],
-          }
-        : { width: 595, height: 842, orientation: 'portrait' },
-    };
+    const payload = await this.buildHydratedDesignPayload(template, pages, sharedElements, pageSettings);
 
     const response = await fetch(`${this.API_BASE_URL}/export?format=${encodeURIComponent(format)}`, {
       method: 'POST',
@@ -619,26 +714,19 @@ export class ExportService {
 
     onProgress?.('Downloading…');
     const blob = await response.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-
-    const disposition = response.headers.get('Content-Disposition') ?? '';
-    const rfc5987 = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-    const plain   = disposition.match(/filename="?([^";]+)"?/i);
-    const serverName = rfc5987 ? decodeURIComponent(rfc5987[1]) : plain?.[1];
+    const isPageArchive = pages.length > 1 && ['png', 'jpeg', 'tiff', 'svg'].includes(format);
+    await this.validateArtifact(blob, isPageArchive ? 'zip' : format, response.headers.get('Content-Type') ?? blob.type);
+    const serverName = this.responseFileName(response);
     const extMap: Record<string, string> = {
       word: 'docx', excel: 'xlsx', md: 'md', jpeg: 'jpg',
       html: 'html', xml: 'xml', svg: 'svg', csv: 'csv', png: 'png',
       tiff: 'tiff', odt: 'odt',
     };
     const fallbackExt = extMap[format] ?? format;
-    a.download = serverName ?? `${template.name.replace(/\s+/g, '-').toLowerCase()}.${fallbackExt}`;
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fallbackName = isPageArchive
+      ? `${this.safeFileStem(template.name)}-${format}-pages.zip`
+      : `${this.safeFileStem(template.name)}.${fallbackExt}`;
+    this.downloadBlob(blob, serverName ?? fallbackName);
     onProgress?.('Done!');
   }
 
@@ -648,29 +736,7 @@ export class ExportService {
     sharedElements: SimpleElement[] = [],
     pageSettings?: PageSettings,
   ): Promise<void> {
-    const hydratedPages = await this.hydrateAssetPages(pages);
-    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
-    const payload = {
-      id: template.id,
-      name: template.name,
-      category: template.category,
-      description: template.description,
-      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements: hydratedSharedElements,
-      pageSettings: pageSettings
-        ? {
-            width: pageSettings.width,
-            height: pageSettings.height,
-            orientation: pageSettings.orientation,
-            margins: pageSettings.margins,
-            backgroundColor: pageSettings.backgroundColor,
-            metadata: pageSettings.metadata,
-            systemLanguage: navigator.language.split('-')[0],
-            activeLanguages: pageSettings.activeLanguages ?? [],
-            localizedProperties: pageSettings.localizedProperties ?? [],
-          }
-        : { width: 595, height: 842, orientation: 'portrait' },
-    };
+    const payload = await this.buildHydratedDesignPayload(template, pages, sharedElements, pageSettings);
 
     const response = await fetch(`${this.API_BASE_URL}/export/multilanguage?format=pdf`, {
       method: 'POST',
@@ -684,27 +750,14 @@ export class ExportService {
     }
 
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}-multilanguage.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await this.validateArtifact(blob, 'zip', response.headers.get('Content-Type') ?? blob.type);
+    this.downloadBlob(blob, this.responseFileName(response) ?? `${this.safeFileStem(template.name)}-multilanguage.zip`);
   }
 
   static exportToJSON(template: Template, pages: Page[], sharedElements: SimpleElement[] = [], pageSettings?: PageSettings): void {
-    const payload = this.convertElementsToTemplate(pages, template, sharedElements, pageSettings);
+    const payload = this.buildDesignPayload(template, pages, sharedElements, pageSettings);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name.replace(/\s+/g, '_')}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    this.downloadBlob(blob, `${this.safeFileStem(template.name)}.json`);
   }
 
   static async exportToPDF(
@@ -713,17 +766,11 @@ export class ExportService {
     sharedElements: SimpleElement[] = [],
     pageSettings?: PageSettings,
     onProgress?: (progress: string) => void
-  ): Promise<void> {
-    const blob = await this.renderDesignPdfBlob(template, pages, sharedElements, pageSettings, onProgress);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  ): Promise<Blob> {
+    const artifact = await this.renderDesignPdfArtifact(template, pages, sharedElements, pageSettings, onProgress);
+    this.downloadBlob(artifact.blob, artifact.fileName ?? `${this.safeFileStem(template.name)}.pdf`);
     onProgress?.('Done!');
+    return artifact.blob;
   }
 
   static async renderDesignPdfBlob(
@@ -733,38 +780,19 @@ export class ExportService {
     pageSettings?: PageSettings,
     onProgress?: (progress: string) => void
   ): Promise<Blob> {
+    return (await this.renderDesignPdfArtifact(template, pages, sharedElements, pageSettings, onProgress)).blob;
+  }
+
+  private static async renderDesignPdfArtifact(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+    onProgress?: (progress: string) => void,
+  ): Promise<{ blob: Blob; fileName?: string }> {
     onProgress?.('Connecting to PDF service…');
 
-    const hydratedPages = await this.hydrateAssetPages(pages);
-    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
-
-    const payload = {
-      id: template.id,
-      name: template.name,
-      category: template.category,
-      description: template.description,
-      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements: hydratedSharedElements,
-      pageSettings: pageSettings
-        ? {
-            width: pageSettings.width,
-            height: pageSettings.height,
-            orientation: pageSettings.orientation,
-            margins: pageSettings.margins,
-            backgroundColor: pageSettings.backgroundColor,
-            backgroundImage: pageSettings.backgroundImage,
-            backgroundImageFit: pageSettings.backgroundImageFit,
-            pageNumbering: pageSettings.pageNumbering.enabled ? pageSettings.pageNumbering : null,
-            globalWatermark: pageSettings.globalWatermark.enabled ? pageSettings.globalWatermark : null,
-            metadata: pageSettings.metadata,
-            namedStyles: pageSettings.namedStyles ?? [],
-            protection: pageSettings.protection ?? null,
-            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
-            customProperties: pageSettings.customProperties ?? [],
-            trackChanges: pageSettings.trackChanges ?? false,
-          }
-        : { width: 595, height: 842, orientation: 'portrait' },
-    };
+    const payload = await this.buildHydratedDesignPayload(template, pages, sharedElements, pageSettings);
 
     const response = await fetch(`${this.API_BASE_URL}/templates/render-design`, {
       method: 'POST',
@@ -779,7 +807,36 @@ export class ExportService {
     }
 
     onProgress?.('Downloading…');
-    return response.blob();
+    const blob = await response.blob();
+    await this.validateArtifact(blob, 'pdf', response.headers.get('Content-Type') ?? blob.type);
+    return { blob, fileName: this.responseFileName(response) };
+  }
+
+  static async printToPDF(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+    messages: { blocked?: string; preparing?: string; title?: string } = {},
+  ): Promise<void> {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) throw new Error(messages.blocked ?? 'The PDF print window was blocked by the browser.');
+    printWindow.opener = null;
+    printWindow.document.title = messages.title ?? `Printing ${template.name}`;
+    printWindow.document.body.textContent = messages.preparing ?? 'Preparing PDF for printing...';
+    try {
+      const blob = await this.renderDesignPdfBlob(template, pages, sharedElements, pageSettings);
+      const url = URL.createObjectURL(blob);
+      printWindow.location.replace(url);
+      window.setTimeout(() => {
+        try { printWindow.print(); } finally {
+          window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        }
+      }, 900);
+    } catch (error) {
+      printWindow.close();
+      throw error;
+    }
   }
 
   static async exportJsonToPDF(payload: object, name = 'document'): Promise<void> {
@@ -793,14 +850,8 @@ export class ExportService {
       throw new Error(err.error || `HTTP ${response.status}`);
     }
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await this.validateArtifact(blob, 'pdf', response.headers.get('Content-Type') ?? blob.type);
+    this.downloadBlob(blob, this.responseFileName(response) ?? `${this.safeFileStem(name)}.pdf`);
   }
 
   static async exportToImage(

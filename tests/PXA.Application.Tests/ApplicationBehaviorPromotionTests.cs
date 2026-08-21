@@ -19,7 +19,7 @@ public sealed class ApplicationBehaviorPromotionTests
 
         Assert.Equal([1, 2, 3], result.Data);
         Assert.Equal("application/test", result.MimeType);
-        Assert.Equal("Invoice:July.test", result.FileName);
+        Assert.Equal("Invoice-July.test", result.FileName);
         Assert.Equal("design-1", exporter.LastDesign?.Id);
     }
 

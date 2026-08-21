@@ -32,6 +32,8 @@ public sealed class PxaDbContext
     public DbSet<DesignerAuthorizationCode> DesignerAuthorizationCodes => Set<DesignerAuthorizationCode>();
     public DbSet<DesignerTemplate> DesignerTemplates => Set<DesignerTemplate>();
     public DbSet<DesignerTemplateVersion> DesignerTemplateVersions => Set<DesignerTemplateVersion>();
+    public DbSet<DesignerCodeWorkspace> DesignerCodeWorkspaces => Set<DesignerCodeWorkspace>();
+    public DbSet<DesignerCodeWorkspaceVersion> DesignerCodeWorkspaceVersions => Set<DesignerCodeWorkspaceVersion>();
     public DbSet<AccountClosureRequest> AccountClosureRequests => Set<AccountClosureRequest>();
     public DbSet<UserConsentEvent> UserConsentEvents => Set<UserConsentEvent>();
     public DbSet<PxaBackgroundJob> BackgroundJobs => Set<PxaBackgroundJob>();

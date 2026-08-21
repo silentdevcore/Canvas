@@ -11,17 +11,20 @@
   "resetZoom": "Réinitialiser le zoom",
   "exportImageFailed": "Échec de l'exportation d'image",
   "exportFailed": "Échec de l'exportation",
+  "printBlocked": "La fenêtre d'impression PDF a été bloquée par le navigateur.",
+  "printPreparing": "Préparation du PDF pour l'impression…",
+  "printTitle": "Impression de {{name}}",
   "exporting": "Exportation en cours…",
   "exported": "Exporté !",
   "export": "Exporter",
   "exportMenu": {
     "pdf": {
       "label": "Exporter en PDF",
-      "sub": "Rendu via le backend (localhost:5086)"
+      "sub": "Rendu avec le moteur PDF PXA"
     },
     "image": {
       "label": "Exporter en image",
-      "sub": "Enregistrer en PNG (toutes les pages)"
+      "sub": "PNG ou ZIP pour plusieurs pages"
     },
     "json": {
       "label": "Exporter en JSON",
@@ -29,7 +32,7 @@
     },
     "print": {
       "label": "Imprimer",
-      "sub": "Boîte de dialogue d'impression du navigateur"
+      "sub": "Imprimer le PDF généré"
     },
     "more": {
       "label": "Autres formats…",

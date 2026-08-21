@@ -93,6 +93,10 @@ public sealed class DesignerProductExperienceTests
             organizationId, userId, "designer.spreadsheet");
         Assert.False(spreadsheetDenied.Enabled);
         Assert.Equal("PXA_ENTITLEMENT_DENIED", spreadsheetDenied.Code);
+
+        var chartRecognition = await gate.EvaluateAsync(
+            organizationId, userId, "designer.pdf-chart-recognition");
+        Assert.True(chartRecognition.Enabled);
     }
 
     [Fact]
@@ -223,6 +227,28 @@ public sealed class DesignerProductExperienceTests
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/pdf-viewer/forms";
         context.Request.Headers["X-PXA-Application"] = "designer";
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(
+            context,
+            new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()),
+            new DenyFeatureGate());
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Pdf_chart_recognition_import_is_server_side_gated()
+    {
+        var nextCalled = false;
+        var middleware = new PxaDesignerFeatureGateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/api/document/import-pdf-engine";
         context.Response.Body = new MemoryStream();
 
         await middleware.InvokeAsync(

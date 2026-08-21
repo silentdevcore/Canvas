@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../src/Execution/PXA.CodeWorker/PXA.CodeWorker.csproj" />
     <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
     <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />

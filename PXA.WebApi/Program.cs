@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization.Policy;
 using System.Threading.RateLimiting;
+using PXA.Core.Contracts;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
@@ -231,6 +232,15 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0,
         }));
+    options.AddPolicy("designer-code", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(PxaClaimTypes.ActiveOrganization)?.Value ??
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 30,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
@@ -238,6 +248,17 @@ builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
 builder.Services.AddScoped<IPxaUsageService, PxaUsageService>();
 builder.Services.AddSingleton<PxaDesignerProductMetadata>();
 builder.Services.AddScoped<IPxaDesignerFeatureGate, PxaDesignerFeatureGate>();
+builder.Services.AddOptions<PxaCodeWorkerOptions>()
+    .Bind(builder.Configuration.GetSection("CodeWorker"))
+    .Validate(options => options.TimeoutSeconds is >= 1 and <= 15 &&
+                         options.MaximumSourceBytes is > 0 and <= PxaCodeLimits.MaximumSourceBytes &&
+                         options.MaximumOutputBytes is > 0 and <= 50_000_000,
+        "Code worker limits are invalid.")
+    .Validate(options => builder.Environment.IsDevelopment() || !options.Enabled || options.Hardened,
+        "Production code execution requires CodeWorker:Hardened=true and an isolated deployment.")
+    .ValidateOnStart();
+builder.Services.AddScoped<IPxaCodeWorkerClient, PxaCodeWorkerClient>();
+builder.Services.AddScoped<IPxaCodeConversionService, PxaCodeConversionService>();
 builder.Services.AddOptions<PxaProductAccessOptions>()
     .Bind(builder.Configuration.GetSection("ProductAccess"));
 builder.Services.AddOptions<PxaLicensingOptions>()

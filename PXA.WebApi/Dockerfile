@@ -16,6 +16,11 @@ RUN dotnet publish src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImport
     --no-restore \
     --output /app/publish/ocr-worker \
     /p:UseAppHost=false
+RUN dotnet publish src/Execution/PXA.CodeWorker/PXA.CodeWorker.csproj \
+    --configuration Release \
+    --no-restore \
+    --output /app/publish/code-worker \
+    /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 ARG PXA_VERSION=1.1.0
@@ -57,7 +62,10 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
     Pdf__FontsDirectory=/app/fonts \
     Ocr__UseIsolatedWorker=true \
     Ocr__WorkerPath=/app/ocr-worker/PXA.FileImporter.ImageOcr.Worker.dll \
-    Ocr__TessDataPath=/usr/share/tesseract-ocr/5/tessdata
+    Ocr__TessDataPath=/usr/share/tesseract-ocr/5/tessdata \
+    CodeWorker__Enabled=false \
+    CodeWorker__Hardened=false \
+    CodeWorker__WorkerPath=/app/code-worker
 
 EXPOSE 8080
 USER $APP_UID

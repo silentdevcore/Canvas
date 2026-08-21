@@ -351,6 +351,36 @@ public sealed class PxaJobProcessorTests
             Assert.Equal(
                 PxaStoredObjectStatus.Deleted,
                 (await context.StoredObjects.SingleAsync(value => value.Id == transientObject.Id)).Status);
+
+            var codeJob = new PxaBackgroundJob
+            {
+                OrganizationId = organizationId,
+                CreatedByUserId = userId,
+                Type = PxaJobQueue.DesignerCodeExecutionType,
+                PayloadJson = "{\"sourceChecksum\":\"sha256-only\"}",
+                DiagnosticsJson = "{\"diagnosticCodes\":[\"PXACODE030\"]}",
+                Status = PxaBackgroundJobStatus.Completed,
+                RetentionMode = PxaJobRetentionMode.Transient,
+                CompletedAt = DateTimeOffset.UtcNow.AddHours(-2),
+                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+                MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(7),
+            };
+            context.BackgroundJobs.Add(codeJob);
+            await context.SaveChangesAsync();
+
+            Assert.Equal(1, await retention.CleanupAsync(CancellationToken.None));
+            context.ChangeTracker.Clear();
+            var purgedCodeJob = await context.BackgroundJobs.SingleAsync(value => value.Id == codeJob.Id);
+            Assert.Equal(PxaBackgroundJobStatus.Expired, purgedCodeJob.Status);
+            Assert.Equal("{}", purgedCodeJob.PayloadJson);
+            Assert.Null(purgedCodeJob.DiagnosticsJson);
+            Assert.NotNull(purgedCodeJob.ContentPurgedAt);
+
+            purgedCodeJob.MetadataExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+            await context.SaveChangesAsync();
+            Assert.Equal(0, await retention.CleanupAsync(CancellationToken.None));
+            context.ChangeTracker.Clear();
+            Assert.False(await context.BackgroundJobs.AnyAsync(value => value.Id == codeJob.Id));
             Assert.Contains(
                 queueMeasurements,
                 value => value.Name == "pxa.storage.operations");

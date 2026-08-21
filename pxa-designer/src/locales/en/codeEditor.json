@@ -3,12 +3,17 @@
   "title": "Code Editor",
   "lang": {
     "json": "JSON",
-    "csharpCode": "C# Code",
-    "csharpDto": "C# DTO"
+    "csharpCode": "C# PDF",
+    "csharpDto": "C# Model",
+    "csharpBase64": "FromBase64String"
   },
+  "actions": { "validate": "Validate", "run": "Run", "convert": "Convert", "restore": "Restore", "apply": "Apply to Designer", "accept": "Apply generated draft", "cancel": "Cancel", "importLegacy": "Import draft", "dismiss": "Dismiss" },
+  "status": { "saved": "Saved", "modified": "Modified", "generated": "Generated", "outdated": "Outdated", "invalid": "Invalid", "conflict": "Conflict" },
+  "workspace": { "legacy": "A local draft from the previous editor is available.", "waiting": "The server workspace becomes available after the template is saved.", "target": "Conversion target", "fidelity": "Fidelity", "documentFidelity": "Document fidelity", "sourcePreservation": "Source preservation", "added": "Added", "changed": "Changed", "removed": "Removed" },
   "converting": "Converting…",
   "generating": "Generating…",
   "exportPdf": "Export PDF",
+  "preview": { "runningPdf": "Running C# PDF code...", "converting": "Converting...", "pdfError": "C# PDF error - fix it and run again", "modelError": "C# Model error - fix it and run again", "base64Error": "FromBase64String error - fix it and run again", "runPdf": "Run the code to render the PDF.", "pdfReturn": "The script must return a PxaPdfCodeDocument or legacy PdfDocument.", "runModel": "Run the code to show the preview.", "modelReturn": "The expression must return a DesignExportDto instance.", "emptyJson": "Enter JSON to show a live preview.", "emptyJsonHint": "Use a starter template to begin quickly.", "jsonError": "Fix the JSON errors to show the preview." },
   "errors": {
     "syntaxError": "Syntax error: {{message}}",
     "pagesMustBeArray": "\"pages\" must be an array.",

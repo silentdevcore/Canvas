@@ -75,7 +75,7 @@ export default function JsonEditorPane({ value, language, onChange, onCsharpConv
     <div className="code-editor-pane">
       <div className="code-editor-toolbar">
         <span className="code-editor-toolbar-label">
-          {language === 'csharp-code' ? 'C# Code' : language === 'csharp-dto' ? 'C# DTO' : 'JSON'}
+          {language === 'csharpPdf' ? 'C# PDF' : language === 'csharpModel' ? 'C# Model' : language === 'csharpBase64' ? 'FromBase64String' : 'JSON'}
         </span>
 
         <div className="code-editor-toolbar-group">

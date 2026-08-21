@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace PXA.Core.Contracts;
 
 public sealed class DesignExportDto
@@ -10,6 +13,8 @@ public sealed class DesignExportDto
     public List<ElementDto> SharedElements { get; set; } = [];
     public PageSettingsDto? PageSettings { get; set; }
     public List<ImportDiagnosticDto>? ImportDiagnostics { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class ImportDiagnosticDto
@@ -24,6 +29,8 @@ public sealed class PageDto
 {
     public string Id { get; set; } = "";
     public List<ElementDto> Elements { get; set; } = [];
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class PageSettingsDto
@@ -50,6 +57,8 @@ public sealed class PageSettingsDto
     public List<LocalizedPropertyDto>? LocalizedProperties { get; set; }
     /// <summary>When set in the exported JSON, overrides the API query-param language for this export.</summary>
     public string? TargetLanguage { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class MarginsDto
@@ -262,6 +271,7 @@ public sealed class ElementDto
     public string? ListStyle { get; set; }
 
     // Chart
+    public ChartDefinitionDto? Chart { get; set; }
     public string? ChartType { get; set; }
     public Dictionary<string, object>? ChartData { get; set; }
 
@@ -317,6 +327,8 @@ public sealed class ElementDto
     public string? Expression { get; set; }
     public string? Formatter  { get; set; }
     public RepeatDto? Repeat  { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 
     // Image
     public bool? PreserveAspectRatio { get; set; }

@@ -1,15 +1,14 @@
-using System.Reflection;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
 using PXA.Application.UseCases;
 using PXA.Domain.Entities;
 using PXA.Domain.Repositories;
 using PXA.WebApi.Services.Jobs;
+using PXA.WebApi.Application.Designer;
+using PXA.WebApi.Security;
+using PXA.Core.Primitives;
 
 namespace PXA.WebApi.Controllers;
 
@@ -24,6 +23,7 @@ public class TemplatesController : ControllerBase
     private readonly ValidateTemplateUseCase _validateTemplateUseCase;
     private readonly IPxaJobQueue _jobQueue;
     private readonly PXA.Pdf.PdfFontLoader? _fontLoader;
+    private readonly IPxaCodeConversionService _codeConversionService;
 
     public TemplatesController(
         CreateTemplateUseCase createTemplateUseCase,
@@ -31,6 +31,7 @@ public class TemplatesController : ControllerBase
         GetTemplateUseCase getTemplateUseCase,
         ValidateTemplateUseCase validateTemplateUseCase,
         IPxaJobQueue jobQueue,
+        IPxaCodeConversionService codeConversionService,
         PXA.Pdf.PdfFontLoader? fontLoader = null)
     {
         _createTemplateUseCase = createTemplateUseCase;
@@ -38,6 +39,7 @@ public class TemplatesController : ControllerBase
         _getTemplateUseCase = getTemplateUseCase;
         _validateTemplateUseCase = validateTemplateUseCase;
         _jobQueue = jobQueue;
+        _codeConversionService = codeConversionService;
         _fontLoader = fontLoader;
     }
 
@@ -328,10 +330,8 @@ public class TemplatesController : ControllerBase
         try
         {
             var document = DesignJsonMapper.MapToPdfDocument(design, _fontLoader);
-            var bytes = document.ToBytes();
-            var filename = (design.Name ?? "document").ToLowerInvariant()
-                .Replace(" ", "-")
-                .Replace("/", "-") + ".pdf";
+            var bytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+            var filename = ExportFileNameSanitizer.Sanitize(design.Name) + ".pdf";
             return File(bytes, "application/pdf", filename);
         }
         catch (Exception ex)
@@ -347,6 +347,8 @@ public class TemplatesController : ControllerBase
     /// The script must evaluate to a PdfDocument instance as its last expression.
     /// </summary>
     [HttpPost("csharp-code-to-pdf")]
+    [Authorize(AuthenticationSchemes = PxaAuthenticationSchemes.DesignerCookie)]
+    [PxaValidateAntiforgery]
     [ProducesResponseType(typeof(FileResult), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -355,70 +357,14 @@ public class TemplatesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Code))
             return BadRequest(new { error = "Code is required." });
 
-        try
-        {
-            var platformRefs = (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ?? "")
-                .Split(System.IO.Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                .Where(System.IO.File.Exists)
-                .Select(p => MetadataReference.CreateFromFile(p))
-                .Cast<MetadataReference>()
-                .ToList();
+        Response.Headers["Deprecation"] = "true";
+        Response.Headers.Link = "</api/pxa/v1/designer/templates/{templateId}/code-workspace/execute>; rel=successor-version";
+        var workerResult = await _codeConversionService.ExecuteAsync(
+            PXA.Core.Contracts.PxaCodeLanguages.CSharpPdf, request.Code, HttpContext.RequestAborted);
+        if (!workerResult.Success || workerResult.PdfBytes is null)
+            return BadRequest(new { error = "Sandbox execution failed", details = workerResult.Diagnostics });
+        return File(workerResult.PdfBytes, "application/pdf", "preview.pdf");
 
-            var options = ScriptOptions.Default
-                .WithReferences(platformRefs)
-                .AddReferences(
-                    Assembly.GetExecutingAssembly(),
-                    typeof(PXA.Pdf.PdfDocument).Assembly)
-                .WithImports(
-                    "PXA.Pdf",
-                    "PXA.WebApi.Infrastructure",
-                    "System",
-                    "System.IO",
-                    "System.Collections.Generic")
-                .WithEmitDebugInformation(true);
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-
-            // Evaluate as object to avoid cross-context type identity issues.
-            // Roslyn loads assemblies in its own context; casting directly to PdfDocument
-            // fails at runtime even though the type name matches.
-            var result = await CSharpScript.EvaluateAsync<object>(request.Code.Trim(), options, cancellationToken: cts.Token);
-
-            if (result is null)
-                return BadRequest(new { error = "Script must return a PdfDocument instance as the last expression." });
-
-            // Call ToBytes() via reflection to side-step the type identity problem.
-            // Use LINQ search because ToBytes(PdfSaveOptions? options = null) has one optional param
-            // and GetMethod("ToBytes", Type.EmptyTypes) won't find it; reflection ignores defaults.
-            var toBytesMethod = result.GetType()
-                .GetMethods()
-                .FirstOrDefault(m => m.Name == "ToBytes" && m.ReturnType == typeof(byte[]));
-
-            if (toBytesMethod is null)
-                return BadRequest(new { error = $"Script returned '{result.GetType().Name}' — expected a PdfDocument instance." });
-
-            var invokeArgs = toBytesMethod.GetParameters().Select(_ => (object?)null).ToArray();
-            var bytes = (byte[])toBytesMethod.Invoke(result, invokeArgs)!;
-            return File(bytes, "application/pdf", "preview.pdf");
-        }
-        catch (CompilationErrorException ex)
-        {
-            var errors = ex.Diagnostics
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => d.GetMessage())
-                .ToList();
-            return BadRequest(new { error = "Compilation error", details = errors });
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(408, new { error = "Script timed out after 15 seconds." });
-        }
-        catch (Exception ex)
-        {
-            var line = ExtractScriptLineNumber(ex.StackTrace);
-            var details = line.HasValue ? $"{ex.Message}\n(script line {line})" : ex.Message;
-            return StatusCode(500, new { error = "Execution failed", details });
-        }
     }
 
     /// <summary>
@@ -427,6 +373,8 @@ public class TemplatesController : ControllerBase
     /// Example: new DesignExportDto { Name = "Hello", Pages = [ new PageDto { ... } ] }
     /// </summary>
     [HttpPost("csharp-to-json")]
+    [Authorize(AuthenticationSchemes = PxaAuthenticationSchemes.DesignerCookie)]
+    [PxaValidateAntiforgery]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -435,53 +383,13 @@ public class TemplatesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Code))
             return BadRequest(new { error = "Code is required." });
 
-        try
-        {
-            // Load all trusted platform assemblies so Roslyn can resolve every BCL type
-            var platformRefs = (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ?? "")
-                .Split(System.IO.Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                .Where(System.IO.File.Exists)
-                .Select(p => MetadataReference.CreateFromFile(p))
-                .Cast<MetadataReference>()
-                .ToList();
+        Response.Headers["Deprecation"] = "true";
+        var workerResult = await _codeConversionService.ExecuteAsync(
+            PXA.Core.Contracts.PxaCodeLanguages.CSharpModel, request.Code, HttpContext.RequestAborted);
+        return workerResult.Success && workerResult.CanonicalDesign is not null
+            ? Ok(workerResult.CanonicalDesign)
+            : BadRequest(new { error = "Sandbox execution failed", details = workerResult.Diagnostics });
 
-            var options = ScriptOptions.Default
-                .WithReferences(platformRefs)
-                .AddReferences(Assembly.GetExecutingAssembly())
-                .WithImports(
-                    "PXA.WebApi.Infrastructure",
-                    "System",
-                    "System.Collections.Generic")
-                .WithEmitDebugInformation(true);
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-
-            var result = await CSharpScript.EvaluateAsync<DesignExportDto>(
-                request.Code.Trim(), options, cancellationToken: cts.Token);
-
-            if (result is null)
-                return BadRequest(new { error = "Expression must return a DesignExportDto instance." });
-
-            return Ok(result);
-        }
-        catch (CompilationErrorException ex)
-        {
-            var errors = ex.Diagnostics
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => d.GetMessage())
-                .ToList();
-            return BadRequest(new { error = "Compilation error", details = errors });
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(408, new { error = "Script timed out after 15 seconds." });
-        }
-        catch (Exception ex)
-        {
-            var line = ExtractScriptLineNumber(ex.StackTrace);
-            var details = line.HasValue ? $"{ex.Message}\n(script line {line})" : ex.Message;
-            return StatusCode(500, new { error = "Execution failed", details });
-        }
     }
 
     /// <summary>
@@ -489,6 +397,8 @@ public class TemplatesController : ControllerBase
     /// Useful for round-tripping: Code → JSON → live preview.
     /// </summary>
     [HttpPost("csharp-code-to-json")]
+    [Authorize(AuthenticationSchemes = PxaAuthenticationSchemes.DesignerCookie)]
+    [PxaValidateAntiforgery]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -497,212 +407,15 @@ public class TemplatesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Code))
             return BadRequest(new { error = "Code is required." });
 
-        try
-        {
-            var platformRefs = (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ?? "")
-                .Split(System.IO.Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                .Where(System.IO.File.Exists)
-                .Select(p => MetadataReference.CreateFromFile(p))
-                .Cast<MetadataReference>()
-                .ToList();
+        Response.Headers["Deprecation"] = "true";
+        var workerResult = await _codeConversionService.ExecuteAsync(
+            PXA.Core.Contracts.PxaCodeLanguages.CSharpPdf, request.Code, HttpContext.RequestAborted);
+        return workerResult.Success && workerResult.CanonicalDesign is not null
+            ? Ok(workerResult.CanonicalDesign)
+            : BadRequest(new { error = "Sandbox execution failed", details = workerResult.Diagnostics });
 
-            var options = ScriptOptions.Default
-                .WithReferences(platformRefs)
-                .AddReferences(Assembly.GetExecutingAssembly(), typeof(PXA.Pdf.PdfDocument).Assembly)
-                .WithImports("PXA.Pdf", "System", "System.Collections.Generic")
-                .WithEmitDebugInformation(true);
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-
-            var result = await CSharpScript.EvaluateAsync<object>(request.Code.Trim(), options, cancellationToken: cts.Token);
-
-            if (result is null)
-                return BadRequest(new { error = "Script must return a PdfDocument instance as the last expression." });
-
-            // Pages is a public property
-            var pagesEnum = result.GetType()
-                .GetProperty("Pages", BindingFlags.Instance | BindingFlags.Public)
-                ?.GetValue(result) as System.Collections.IEnumerable;
-
-            if (pagesEnum is null)
-                return BadRequest(new { error = "Could not extract pages from the PdfDocument." });
-
-            var jsonPages   = new List<object>();
-            var firstPageW  = 595.0;
-            var firstPageH  = 842.0;
-            var pageIdx     = 0;
-
-            foreach (var pageObj in pagesEnum)
-            {
-                var pt     = pageObj.GetType();
-                var pageW  = pt.GetProperty("Width") ?.GetValue(pageObj) is double pw ? pw : 595.0;
-                var pageH  = pt.GetProperty("Height")?.GetValue(pageObj) is double ph ? ph : 842.0;
-                if (pageIdx == 0) { firstPageW = pageW; firstPageH = pageH; }
-
-                // Elements is internal — NonPublic binding is required
-                var elementsEnum = pt
-                    .GetProperty("Elements", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                    ?.GetValue(pageObj) as System.Collections.IEnumerable;
-
-                var jsonElements = new List<object>();
-                var elIdx = 0;
-
-                if (elementsEnum is not null)
-                {
-                    foreach (var elObj in elementsEnum)
-                    {
-                        var et   = elObj.GetType();
-                        var name = et.Name;
-
-                        object? P(string prop) => et.GetProperty(prop)?.GetValue(elObj);
-                        double  D(string prop, double fb = 0) => P(prop) is double d ? d : fb;
-                        string  Hex(string prop) => ColorToHex(P(prop));
-                        double  Lw(string prop)
-                        {
-                            var ss = P(prop);
-                            return ss?.GetType().GetProperty("LineWidth")?.GetValue(ss) is double lw ? lw : 1.0;
-                        }
-
-                        var id = $"el-{pageIdx}-{elIdx++}";
-
-                        var textContent = P("Text")?.ToString() ?? "";
-                        var fontSize    = D("FontSize", 12);
-
-                        object? jsonEl = name switch
-                        {
-                            "TextElement" => (object)new
-                            {
-                                id, type = "text",
-                                content = textContent,
-                                x = D("X"),
-                                y = pageH - D("Y") - fontSize * 0.72,
-                                width  = Math.Max(textContent.Length * fontSize * 0.55, 50),
-                                height = fontSize * 1.4,
-                                style  = new Dictionary<string, object>
-                                {
-                                    ["fontSize"] = fontSize,
-                                    ["color"]    = Hex("FillColor"),
-                                }
-                            },
-                            "RectangleElement" => new
-                            {
-                                id, type = "rect",
-                                x = D("X"), y = pageH - D("Y") - D("Height"),
-                                width = D("Width"), height = D("Height"),
-                                style = new Dictionary<string, object>
-                                {
-                                    ["backgroundColor"] = Hex("FillColor"),
-                                    ["borderColor"]     = Hex("StrokeColor"),
-                                    ["borderWidth"]     = (object)Lw("StrokeStyle"),
-                                }
-                            },
-                            "RoundedRectangleElement" => new
-                            {
-                                id, type = "rect",
-                                x = D("X"), y = pageH - D("Y") - D("Height"),
-                                width = D("Width"), height = D("Height"),
-                                style = new Dictionary<string, object>
-                                {
-                                    ["backgroundColor"] = Hex("FillColor"),
-                                    ["borderColor"]     = Hex("StrokeColor"),
-                                    ["borderWidth"]     = (object)Lw("StrokeStyle"),
-                                    ["borderRadius"]    = (object)D("CornerRadius"),
-                                }
-                            },
-                            "LineElement" => new
-                            {
-                                id, type = "line",
-                                x = D("X1"), y = pageH - D("Y1"),
-                                width  = Math.Abs(D("X2") - D("X1")),
-                                height = Math.Max(Math.Abs(D("Y2") - D("Y1")), Lw("StrokeStyle")),
-                                style  = new Dictionary<string, object>
-                                {
-                                    ["color"]       = Hex("StrokeColor"),
-                                    ["strokeWidth"] = (object)Lw("StrokeStyle"),
-                                }
-                            },
-                            "CircleElement" => new
-                            {
-                                id, type = "circle",
-                                x = D("CenterX") - D("Radius"), y = pageH - D("CenterY") - D("Radius"),
-                                width = D("Radius") * 2, height = D("Radius") * 2,
-                                style = new Dictionary<string, object>
-                                {
-                                    ["backgroundColor"] = Hex("FillColor"),
-                                    ["borderColor"]     = Hex("StrokeColor"),
-                                    ["borderWidth"]     = (object)Lw("StrokeStyle"),
-                                }
-                            },
-                            "ImageElement" => new
-                            {
-                                id, type = "image",
-                                x = D("X"),
-                                y = pageH - D("Y") - D("Height"),
-                                width  = D("Width"),
-                                height = D("Height"),
-                                style  = new Dictionary<string, object>()
-                            },
-                            _ => null
-                        };
-
-                        if (jsonEl is not null) jsonElements.Add(jsonEl);
-                    }
-                }
-
-                jsonPages.Add(new { id = $"page-{pageIdx + 1}", elements = jsonElements });
-                pageIdx++;
-            }
-
-            return Ok(new
-            {
-                name = "Imported from C# Code",
-                pageSettings = new { width = firstPageW, height = firstPageH },
-                pages = jsonPages
-            });
-        }
-        catch (CompilationErrorException ex)
-        {
-            var errors = ex.Diagnostics
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => d.GetMessage())
-                .ToList();
-            return BadRequest(new { error = "Compilation error", details = errors });
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(408, new { error = "Script timed out after 15 seconds." });
-        }
-        catch (Exception ex)
-        {
-            var line = ExtractScriptLineNumber(ex.StackTrace);
-            var details = line.HasValue ? $"{ex.Message}\n(script line {line})" : ex.Message;
-            return StatusCode(500, new { error = "Execution failed", details });
-        }
     }
 
-    private static int? ExtractScriptLineNumber(string? stackTrace)
-    {
-        if (string.IsNullOrEmpty(stackTrace)) return null;
-        var match = System.Text.RegularExpressions.Regex.Match(
-            stackTrace, @"Submission#\d+.*:line (\d+)");
-        return match.Success && int.TryParse(match.Groups[1].Value, out var n) ? n : null;
-    }
-
-    private static string ColorToHex(object? colorObj)
-    {
-        if (colorObj is null) return "#000000";
-        var t = colorObj.GetType();
-        // PdfColor: Red, Green, Blue
-        var r = t.GetProperty("Red")  ?.GetValue(colorObj) as double?;
-        var g = t.GetProperty("Green")?.GetValue(colorObj) as double?;
-        var b = t.GetProperty("Blue") ?.GetValue(colorObj) as double?;
-        if (r.HasValue && g.HasValue && b.HasValue)
-            return $"#{(int)Math.Round(r.Value * 255):X2}{(int)Math.Round(g.Value * 255):X2}{(int)Math.Round(b.Value * 255):X2}";
-        // PdfGrayColor: Gray
-        var gray = t.GetProperty("Gray")?.GetValue(colorObj) as double?;
-        if (gray.HasValue) { var gv = (int)Math.Round(gray.Value * 255); return $"#{gv:X2}{gv:X2}{gv:X2}"; }
-        return "#000000";
-    }
 }
 
 public class CsharpToJsonRequest

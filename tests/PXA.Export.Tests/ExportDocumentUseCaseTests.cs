@@ -104,6 +104,6 @@ public class ExportDocumentUseCaseTests
         var useCase = new ExportDocumentUseCase([new HtmlDocumentExporter()]);
         var result  = useCase.Execute(new ExportDocumentRequest(design, "html"));
 
-        Assert.StartsWith("My Report", result.FileName);
+        Assert.Equal("My-Report.html", result.FileName);
     }
 }

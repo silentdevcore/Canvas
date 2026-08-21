@@ -9,7 +9,7 @@ import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
 import { SpreadsheetService, type ValidationResult } from '../services/SpreadsheetService';
 import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
-import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
+import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook } from '../spreadsheet/io';
 import { notify } from '@/notifications/toast';
 import { uploadDesignerImage } from '@/services/designerAssetApi';
 import '../styles/spreadsheet.css';
@@ -69,6 +69,7 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const imageInput = useRef<HTMLInputElement>(null);
+  const exportLock = useRef(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportMenu, setExportMenu] = useState(false);
   const [cellMenu, setCellMenu] = useState(false);
@@ -121,8 +122,6 @@ const SpreadsheetEditorPage: React.FC = () => {
     }
   };
 
-  const safeName = (name || 'workbook').replace(/[\\/:*?"<>|]/g, '_');
-
   const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -148,19 +147,22 @@ const SpreadsheetEditorPage: React.FC = () => {
   };
 
   const exportAs = async (fmt: 'xlsx' | 'csv' | 'json') => {
+    if (exportLock.current) return;
+    exportLock.current = true;
     setExportMenu(false);
     setBusy(t('editor.exporting'));
     try {
       if (fmt === 'xlsx') {
         await SpreadsheetService.exportXlsx(toWire());
       } else if (fmt === 'csv') {
-        downloadText(sheetToCsv(sheets[active], computed), `${safeName}.csv`, 'text/csv;charset=utf-8');
+        SpreadsheetService.exportText(sheetToCsv(sheets[active], computed), name, 'csv');
       } else {
-        downloadText(workbookToJson(toWire()), `${safeName}.json`, 'application/json');
+        SpreadsheetService.exportText(workbookToJson(toWire()), name, 'json');
       }
     } catch (err) {
       notify.error(err instanceof Error ? err.message : t('editor.exportFailed'));
     } finally {
+      exportLock.current = false;
       setBusy(null);
     }
   };

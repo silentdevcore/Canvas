@@ -516,14 +516,30 @@ public sealed class JpegDocumentExporter : DocumentExporter
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
         var quality = options?.Quality ?? DefaultQuality;
-        var pngExporter = new ImageDocumentExporter();
-        var pngBytes    = pngExporter.Export(design, options);
+        var dpi = options?.Dpi ?? 150f;
+        var scale = dpi / 72f;
+        var pageSettings = design.PageSettings ?? new PageSettingsDto();
+        var pages = design.Pages.Count > 0
+            ? design.Pages
+            : [new PageDto { Id = "p1", Elements = design.SharedElements }];
 
-        using var skData  = SKData.CreateCopy(pngBytes);
-        using var img     = SKImage.FromEncodedData(skData);
-        if (img is null) return pngBytes;
-        using var jpgData = img.Encode(SKEncodedImageFormat.Jpeg, quality);
-        return jpgData.ToArray();
+        if (pages.Count == 1)
+            return ImageDocumentExporter.RenderPage(
+                pages[0], design.SharedElements, pageSettings, SKEncodedImageFormat.Jpeg, quality, scale);
+
+        using var zipStream = new MemoryStream();
+        using (var zip = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            for (var index = 0; index < pages.Count; index++)
+            {
+                var jpeg = ImageDocumentExporter.RenderPage(
+                    pages[index], design.SharedElements, pageSettings, SKEncodedImageFormat.Jpeg, quality, scale);
+                var entry = zip.CreateEntry($"page-{index + 1}.jpg");
+                using var stream = entry.Open();
+                stream.Write(jpeg, 0, jpeg.Length);
+            }
+        }
+        return zipStream.ToArray();
     }
 }
 

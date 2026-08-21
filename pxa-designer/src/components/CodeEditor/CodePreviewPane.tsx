@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import LivePreview from '@/components/Preview/LivePreview';
 import type { Page, SimpleElement, Template, PageSettings } from '@/types';
 
@@ -63,6 +64,7 @@ const DEFAULT_PAGE_SETTINGS: PageSettings = {
 };
 
 export default function CodePreviewPane({ raw, language, validation, parsed, pdfBlobUrl, onExport, isExporting, isConverting, convertError }: Props) {
+  const { t } = useTranslation('codeEditor');
   const pages: Page[] = useMemo(
     () =>
       (parsed?.pages ?? []).map(p => ({
@@ -104,8 +106,8 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
     return (
       <div className="code-preview-pane code-preview-empty">
         <div className="code-preview-placeholder">
-          <div className="code-preview-placeholder-icon">⏳</div>
-          <p>{language === 'csharp-code' ? 'Running C# code…' : 'Converting…'}</p>
+          <div className="code-preview-placeholder-icon" aria-hidden="true">...</div>
+          <p>{language === 'csharpPdf' ? t('preview.runningPdf') : t('preview.converting')}</p>
         </div>
       </div>
     );
@@ -116,8 +118,12 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
     return (
       <div className="code-preview-pane code-preview-error">
         <div className="code-preview-error-header">
-          <span className="code-preview-error-icon">⚠</span>
-          {language === 'csharp-code' ? 'C# error — fix it and click ▶ Run' : 'C# DTO error — fix it and click ▶ Run'}
+          <span className="code-preview-error-icon" aria-hidden="true">!</span>
+          {language === 'csharpPdf'
+            ? t('preview.pdfError')
+            : language === 'csharpBase64'
+              ? t('preview.base64Error')
+              : t('preview.modelError')}
         </div>
         <ul className="code-preview-error-list">
           {convertError.split('\n').map((e, i) => <li key={i}>{e}</li>)}
@@ -127,14 +133,14 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
   }
 
   // C# Code: show PDF iframe
-  if (language === 'csharp-code') {
+  if (language === 'csharpPdf') {
     if (!pdfBlobUrl) {
       return (
         <div className="code-preview-pane code-preview-empty">
           <div className="code-preview-placeholder">
             <div className="code-preview-placeholder-icon">{'{ }'}</div>
-            <p>Click <strong>▶ Run</strong> or press <strong>⌘↵</strong> to render the PDF.</p>
-            <p className="code-preview-placeholder-hint">The script must return a <code>PdfDocument</code> instance as the last expression.</p>
+            <p>{t('preview.runPdf')}</p>
+            <p className="code-preview-placeholder-hint">{t('preview.pdfReturn')}</p>
           </div>
         </div>
       );
@@ -147,13 +153,13 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
   }
 
   // C# DTO: waiting for first run
-  if (language === 'csharp-dto' && !parsed) {
+  if ((language === 'csharpModel' || language === 'csharpBase64') && !parsed) {
     return (
       <div className="code-preview-pane code-preview-empty">
         <div className="code-preview-placeholder">
           <div className="code-preview-placeholder-icon">{'{ }'}</div>
-          <p>Click <strong>▶ Run</strong> or press <strong>⌘↵</strong> to see the preview.</p>
-          <p className="code-preview-placeholder-hint">The expression must return a <code>DesignExportDto</code> instance.</p>
+          <p>{t('preview.runModel')}</p>
+          <p className="code-preview-placeholder-hint">{t('preview.modelReturn')}</p>
         </div>
       </div>
     );
@@ -165,8 +171,8 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
       <div className="code-preview-pane code-preview-empty">
         <div className="code-preview-placeholder">
           <div className="code-preview-placeholder-icon">{'{ }'}</div>
-          <p>Start typing JSON on the left to see a live preview here.</p>
-          <p className="code-preview-placeholder-hint">Pick a starter template from the toolbar to get started quickly.</p>
+          <p>{t('preview.emptyJson')}</p>
+          <p className="code-preview-placeholder-hint">{t('preview.emptyJsonHint')}</p>
         </div>
       </div>
     );
@@ -177,8 +183,8 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
     return (
       <div className="code-preview-pane code-preview-error">
         <div className="code-preview-error-header">
-          <span className="code-preview-error-icon">⚠</span>
-          JSON errors — fix them to see the preview
+          <span className="code-preview-error-icon" aria-hidden="true">!</span>
+          {t('preview.jsonError')}
         </div>
         <ul className="code-preview-error-list">
           {validation.errors.map((e, i) => <li key={i}>{e}</li>)}
@@ -198,7 +204,7 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
         onBack={() => {}}
         onExport={onExport}
         hideBackButton
-        exportLabel={isExporting ? 'Generating…' : 'Export PDF'}
+        exportLabel={isExporting ? t('generating') : t('exportPdf')}
       />
     </div>
   );

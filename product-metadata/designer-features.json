@@ -52,6 +52,32 @@
       "documentationPath": "/#pdf-viewer-details"
     },
     {
+      "id": "designer.pdf-chart-recognition",
+      "titleKey": "features.pdfChartRecognition.title",
+      "descriptionKey": "features.pdfChartRecognition.description",
+      "fallbackTitle": "PDF chart recognition",
+      "fallbackDescription": "Recover supported PDF charts as editable Designer elements with confidence-based review.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#pdf-chart-recognition"
+    },
+    {
+      "id": "designer.code-workspace",
+      "titleKey": "features.codeWorkspace.title",
+      "descriptionKey": "features.codeWorkspace.description",
+      "fallbackTitle": "Code workspace",
+      "fallbackDescription": "Convert, validate, and safely execute JSON, C# model, and PXA PDF code alongside the visual Designer.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#code-workspace"
+    },
+    {
       "id": "designer.spreadsheet",
       "titleKey": "features.spreadsheet.title",
       "descriptionKey": "features.spreadsheet.description",

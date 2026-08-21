@@ -2,6 +2,10 @@
   href: index.md
 - name: C# Cookbook
   href: csharp-cookbook.md
+- name: Charts
+  href: charts.md
+- name: Code Designer Workspace
+  href: code-designer-workspace.md
 - name: API Reference
   href: api/
 - name: Architecture

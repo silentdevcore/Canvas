@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
@@ -86,6 +87,7 @@ public sealed class DesignerTemplatesController(
             return TemplateValidationProblem("Template name is required and must not exceed 200 characters.");
         if (!TryReadDesign(request.DesignDocument, out var designJson, out var checksum, out var failure))
             return failure!;
+        SynchronizeDraftName(ref designJson, ref checksum, name);
 
         var now = DateTimeOffset.UtcNow;
         var template = new DesignerTemplate
@@ -146,6 +148,11 @@ public sealed class DesignerTemplatesController(
         template.Name = name;
         template.Description = NormalizeDescription(request.Description);
         template.Tags = NormalizeTags(request.Tags);
+        var draftJson = template.DraftJson;
+        var draftChecksum = template.DraftChecksum;
+        SynchronizeDraftName(ref draftJson, ref draftChecksum, name);
+        template.DraftJson = draftJson;
+        template.DraftChecksum = draftChecksum;
         Touch(template, userId);
         return await SaveTemplateAsync(template, userId, "designer.templates.metadata-updated", cancellationToken);
     }
@@ -168,6 +175,10 @@ public sealed class DesignerTemplatesController(
             return NotFound();
         if (template.Revision != expectedRevision)
             return await ConflictAsync(template, userId, cancellationToken);
+        var draftName = ReadDraftName(request.DesignDocument) ?? template.Name;
+        if (!TryValidateName(draftName, out draftName))
+            return TemplateValidationProblem("Template name is required and must not exceed 200 characters.");
+        SynchronizeDraftName(ref designJson, ref checksum, draftName);
         if (string.Equals(template.DraftChecksum, checksum, StringComparison.Ordinal))
         {
             SetRevisionHeader(template.Revision);
@@ -176,6 +187,7 @@ public sealed class DesignerTemplatesController(
 
         template.DraftJson = designJson;
         template.DraftChecksum = checksum;
+        template.Name = draftName;
         template.SchemaVersion = NormalizeVersion(request.SchemaVersion, template.SchemaVersion);
         template.DesignerVersion = NormalizeVersion(request.DesignerVersion, template.DesignerVersion);
         Touch(template, userId);
@@ -383,6 +395,26 @@ public sealed class DesignerTemplatesController(
             DesignerVersion = template.DesignerVersion,
         };
         dbContext.DesignerTemplateVersions.Add(version);
+        var workspace = await dbContext.DesignerCodeWorkspaces.AsNoTracking()
+            .SingleOrDefaultAsync(value => value.TemplateId == template.Id && value.OrganizationId == template.OrganizationId, cancellationToken);
+        if (workspace is not null)
+        {
+            dbContext.DesignerCodeWorkspaceVersions.Add(new DesignerCodeWorkspaceVersion
+            {
+                WorkspaceId = workspace.Id,
+                TemplateId = template.Id,
+                TemplateVersionId = version.Id,
+                OrganizationId = template.OrganizationId,
+                CreatedByUserId = userId,
+                WorkspaceRevision = workspace.Revision,
+                JsonDraft = workspace.JsonDraft,
+                CSharpModelDraft = workspace.CSharpModelDraft,
+                CSharpPdfDraft = workspace.CSharpPdfDraft,
+                CSharpBase64Draft = workspace.CSharpBase64Draft,
+                CanonicalDesignJson = workspace.CanonicalDesignJson,
+                SourceMapJson = workspace.SourceMapJson,
+            });
+        }
         AddAudit(template, userId, "designer.templates.version-created", new { version.VersionNumber });
         await dbContext.SaveChangesAsync(cancellationToken);
         return new VersionCreationResult(version, true);
@@ -491,6 +523,37 @@ public sealed class DesignerTemplatesController(
         }
         checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
         return true;
+    }
+
+    private static string? ReadDraftName(JsonElement document)
+    {
+        if (document.ValueKind != JsonValueKind.Object ||
+            !document.TryGetProperty("template", out var template) ||
+            template.ValueKind != JsonValueKind.Object ||
+            !template.TryGetProperty("name", out var name) ||
+            name.ValueKind != JsonValueKind.String)
+            return null;
+        return name.GetString();
+    }
+
+    private static void SynchronizeDraftName(ref string json, ref string checksum, string name)
+    {
+        if (JsonNode.Parse(json) is not JsonObject root)
+            return;
+        var template = root["template"] as JsonObject;
+        if (template is null)
+        {
+            template = new JsonObject();
+            root["template"] = template;
+        }
+        var existingName = template["name"] is JsonValue value && value.TryGetValue<string>(out var text)
+            ? text
+            : null;
+        if (string.Equals(existingName, name, StringComparison.Ordinal))
+            return;
+        template["name"] = name;
+        json = root.ToJsonString();
+        checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
     }
 
     private bool TryGetExpectedRevision(long bodyRevision, out long revision)

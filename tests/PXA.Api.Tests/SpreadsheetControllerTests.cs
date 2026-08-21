@@ -50,6 +50,54 @@ public sealed class SpreadsheetControllerTests : IClassFixture<WebApplicationFac
         Assert.Equal("1.0", body.GetProperty("supportedVersion").GetString());
     }
 
+    [Theory]
+    [InlineData("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx", "504B")]
+    [InlineData("xls", "application/vnd.ms-excel", ".xls", "D0CF11E0")]
+    [InlineData("csv", "text/csv", ".csv", null)]
+    [InlineData("tsv", "text/tab-separated-values", ".tsv", null)]
+    public async Task Export_ReturnsBytesMatchingTheDeclaredSpreadsheetFormat(
+        string format, string mediaType, string extension, string? signatureHex)
+    {
+        var workbook = SampleWorkbook();
+        workbook.Name = "Quarterly: Sales";
+
+        var response = await client.PostAsJsonAsync($"/api/pxa/spreadsheet/export?format={format}", workbook);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(mediaType, response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith(extension, response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Quarterly-Sales", response.Content.Headers.ContentDisposition?.ToString());
+        Assert.NotEmpty(bytes);
+        if (signatureHex is not null)
+            Assert.True(bytes.AsSpan().StartsWith(Convert.FromHexString(signatureHex)));
+    }
+
+    [Fact]
+    public async Task Export_RejectsUnknownFormatsInsteadOfReturningMislabeledXlsx()
+    {
+        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/export?format=pdf", SampleWorkbook());
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+        Assert.Contains("not supported", body.GetProperty("error").GetString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("xlsx", body.GetProperty("supportedFormats").EnumerateArray().Select(value => value.GetString()));
+    }
+
+    [Fact]
+    public async Task RenderPdf_ReturnsARealPdfWithMatchingFilename()
+    {
+        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/render?format=pdf", SampleWorkbook());
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith("Budget.pdf", response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.Ordinal);
+        Assert.True(bytes.AsSpan().StartsWith("%PDF-"u8));
+    }
+
     private static SpreadsheetDto SampleWorkbook() => new()
     {
         Id = "workbook-1",

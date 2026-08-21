@@ -4,8 +4,7 @@ import type { Page, PageSettings, SimpleElement } from '@/types';
 import type { Template } from '../../store';
 import { generateJSONExport } from '../../services/CodeGenerator';
 import { jsonToCode } from '@/utils/jsonToCode';
-
-const BACKEND_URL = 'http://localhost:5086';
+import ExportService from '@/services/ExportService';
 
 interface Props {
   isOpen: boolean;
@@ -66,23 +65,12 @@ const CodeViewer: React.FC<Props> = ({
     setExportState('loading');
     setExportError(null);
     try {
-      const payload = generateJSONExport(template, pages, sharedElements, pageSettings, targetLang);
-      const res = await fetch(`${BACKEND_URL}/api/templates/render-design`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        throw new Error(err.error ?? res.statusText);
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${template.name.toLowerCase().replace(/\s+/g, '-')}-${targetLang}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await ExportService.exportToPDF(
+        template,
+        pages,
+        sharedElements,
+        { ...pageSettings, targetLanguage: targetLang },
+      );
       setExportState('idle');
     } catch (err) {
       setExportError(err instanceof Error ? err.message : 'Export failed');

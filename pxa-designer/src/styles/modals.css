@@ -310,6 +310,9 @@
 }
 .export-card:hover { border-color: #c7d2fe; background: #f0f4ff; }
 .export-card--error { border-color: #fca5a5; background: #fff5f5; }
+.export-card--disabled { background: #fafaf9; opacity: .72; }
+.export-card--disabled:hover { border-color: #e7e5e4; background: #fafaf9; }
+.export-card--disabled .export-card-btn { cursor: not-allowed; }
 
 .export-card-icon {
   width: 36px; height: 36px; border-radius: 8px;

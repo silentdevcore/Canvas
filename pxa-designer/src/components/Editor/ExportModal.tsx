@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FiX, FiDownload, FiLoader, FiCheck, FiAlertCircle,
@@ -59,6 +59,19 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
     () => { try { return localStorage.getItem(LAST_FORMAT_KEY) ?? ''; } catch { return ''; } }
   );
   const [signOpen, setSignOpen] = useState(false);
+  const [formatsLoaded, setFormatsLoaded] = useState(false);
+  const [supportedFormats, setSupportedFormats] = useState<Set<string>>(new Set());
+  const runningFormats = useRef(new Set<string>());
+
+  useEffect(() => {
+    let active = true;
+    void ExportService.listSupportedFormats().then(formats => {
+      if (!active) return;
+      setSupportedFormats(new Set(formats.map(format => format.key)));
+      setFormatsLoaded(true);
+    });
+    return () => { active = false; };
+  }, []);
 
   const activeLangs = pageSettings?.activeLanguages ?? [];
   const hasMultiLang = activeLangs.length > 1;
@@ -66,6 +79,9 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   const [multiLangError, setMultiLangError] = useState('');
 
   const handleExport = useCallback(async (card: FormatCard) => {
+    if (card.serverSide && !supportedFormats.has(card.format)) return;
+    if (runningFormats.current.has(card.format)) return;
+    runningFormats.current.add(card.format);
     setStates(s => ({ ...s, [card.format]: 'loading' }));
     setErrors(e => ({ ...e, [card.format]: '' }));
     setProgress(p => ({ ...p, [card.format]: '' }));
@@ -89,10 +105,14 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
       const msg = err instanceof Error ? err.message : t('export.exportFailed');
       setStates(s => ({ ...s, [card.format]: 'error' }));
       setErrors(e => ({ ...e, [card.format]: msg }));
+    } finally {
+      runningFormats.current.delete(card.format);
     }
-  }, [template, pages, sharedElements, pageSettings, t]);
+  }, [template, pages, sharedElements, pageSettings, supportedFormats, t]);
 
   const handleExportAllLanguages = useCallback(async () => {
+    if (runningFormats.current.has('multilanguage')) return;
+    runningFormats.current.add('multilanguage');
     setMultiLangState('loading');
     setMultiLangError('');
     try {
@@ -102,6 +122,8 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
     } catch (err) {
       setMultiLangError(err instanceof Error ? err.message : t('export.exportFailed'));
       setMultiLangState('error');
+    } finally {
+      runningFormats.current.delete('multilanguage');
     }
   }, [template, pages, sharedElements, pageSettings, t]);
 
@@ -159,8 +181,12 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
                     const err   = errors[card.format] ?? '';
                     const prog  = progress[card.format] ?? '';
                     const label = t(`export.formats.${card.format}.label`);
+                    const available = !card.serverSide || (formatsLoaded && supportedFormats.has(card.format));
+                    const availabilityMessage = formatsLoaded
+                      ? t('export.unavailable')
+                      : t('export.checkingAvailability');
                     return (
-                      <div key={card.format} className={`export-card ${state === 'error' ? 'export-card--error' : ''}`}>
+                      <div key={card.format} className={`export-card ${state === 'error' ? 'export-card--error' : ''}${available ? '' : ' export-card--disabled'}`}>
                         <div className="export-card-icon">{card.icon}</div>
                         <div className="export-card-info">
                           <span className="export-card-label">
@@ -168,13 +194,13 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
                             {lastUsed === card.format && <span className="export-card-last-badge">{t('export.lastUsed')}</span>}
                           </span>
                           <span className="export-card-desc">
-                            {state === 'loading' && prog ? prog : err || t(`export.formats.${card.format}.description`)}
+                            {state === 'loading' && prog ? prog : err || (!available ? availabilityMessage : t(`export.formats.${card.format}.description`))}
                           </span>
                         </div>
                         <button
                           className={`export-card-btn export-card-btn--${state}`}
                           onClick={() => handleExport(card)}
-                          disabled={state === 'loading'}
+                          disabled={state === 'loading' || !available}
                           aria-label={t('export.exportAriaLabel', { label })}
                         >
                           {state === 'loading' ? <FiLoader className="spin" size={15} />

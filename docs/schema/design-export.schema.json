@@ -74,7 +74,44 @@
         "style": { "type": "object", "additionalProperties": true },
         "binding": { "type": "string", "description": "Data path whose value replaces the content at render time." },
         "expression": { "type": "string", "description": "Template expression ($iif/$sum/$concat/...) evaluated at render time." },
-        "visibleExpression": { "type": "string", "description": "Boolean expression gating visibility." }
+        "visibleExpression": { "type": "string", "description": "Boolean expression gating visibility." },
+        "chart": { "$ref": "#/$defs/chartDefinition" },
+        "chartType": { "type": "string", "description": "Legacy chart type; read for compatibility." },
+        "chartData": { "type": "object", "description": "Legacy labels/datasets payload; read for compatibility." }
+      },
+      "additionalProperties": true
+    },
+    "chartDefinition": {
+      "type": "object",
+      "required": ["schemaVersion", "type", "categories", "series"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "type": { "enum": ["bar", "line", "area", "pie", "doughnut", "stackedBar", "combo"] },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "locale": { "type": "string", "description": "BCP 47 locale used for chart number formatting." },
+        "categories": { "type": "array", "maxItems": 5000, "items": { "type": "string" } },
+        "series": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "$ref": "#/$defs/chartSeries" } },
+        "legend": { "type": "object", "properties": { "visible": { "type": "boolean" }, "position": { "enum": ["top", "bottom", "left", "right"] } } },
+        "dataLabels": { "type": "object", "properties": { "visible": { "type": "boolean" }, "position": { "type": "string" }, "numberFormat": { "type": "string" } } },
+        "binding": { "type": "object", "properties": { "dataPath": { "type": "string" }, "categoryField": { "type": "string" }, "seriesField": { "type": "string" }, "valueField": { "type": "string" } } },
+        "recognition": { "type": "object", "properties": { "status": { "enum": ["native", "automatic", "reviewRequired", "visualFallback"] }, "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "sourceKind": { "type": "string" }, "sourceAssetId": { "type": "string" }, "diagnosticCode": { "type": "string" } } }
+      },
+      "additionalProperties": true
+    },
+    "chartSeries": {
+      "type": "object",
+      "required": ["id", "name", "values"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "enum": ["bar", "line", "area"] },
+        "values": { "type": "array", "maxItems": 5000, "items": { "type": ["number", "null"] } },
+        "color": { "type": "string" },
+        "stackGroup": { "type": "string" },
+        "valueAxisId": { "type": "string" },
+        "fill": { "type": "boolean" },
+        "showMarkers": { "type": "boolean" }
       },
       "additionalProperties": true
     }
