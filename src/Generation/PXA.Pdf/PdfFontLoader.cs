@@ -1,7 +1,7 @@
 namespace PXA.Pdf;
 
 /// <summary>
-/// Resolves BCP-47 language tags to Noto font files and caches the loaded fonts.
+/// Resolves BCP-47 language tags and font styles to packaged font files and caches them.
 /// Font files must be placed in the configured directory (default: "fonts/" next to the assembly).
 /// Returns false gracefully when a font file is not present — the caller falls back to Type1.
 /// </summary>
@@ -27,7 +27,8 @@ public sealed class PdfFontLoader
         ("th",   "NotoSansThai-Regular.ttf"),
     ];
 
-    private const string FallbackFontFile = "NotoSans-Regular.ttf";
+    private const string LegacyFallbackFontFile = "NotoSans-Regular.ttf";
+    private const string DefaultRegularFontFile = "LiberationSans-Regular.ttf";
 
     private readonly string _fontsDirectory;
     private readonly Dictionary<string, PdfEmbeddedFont?> _cache = new(StringComparer.Ordinal);
@@ -39,48 +40,68 @@ public sealed class PdfFontLoader
     }
 
     /// <summary>
-    /// Tries to load a font for the given BCP-47 language tag.
+    /// Tries to load a regular font for the given BCP-47 language tag.
     /// Returns false without throwing when the font file is not found.
     /// </summary>
-    public bool TryLoad(string? language, out PdfEmbeddedFont? font)
+    public bool TryLoad(string? language, out PdfEmbeddedFont? font) =>
+        TryLoad(language, bold: false, italic: false, out font);
+
+    /// <summary>
+    /// Tries to load a packaged font matching the requested language and style.
+    /// Script-specific Noto fonts take precedence; Latin text uses Liberation Sans.
+    /// </summary>
+    public bool TryLoad(string? language, bool bold, bool italic, out PdfEmbeddedFont? font)
     {
         font = null;
-        if (string.IsNullOrWhiteSpace(language)) return false;
-
-        var fileName = ResolveFileName(language);
-        var cacheKey = fileName;
-
-        lock (_lock)
+        foreach (var fileName in ResolveFileNames(language, bold, italic))
         {
-            if (_cache.TryGetValue(cacheKey, out font))
-                return font is not null;
+            lock (_lock)
+            {
+                if (_cache.TryGetValue(fileName, out font))
+                {
+                    if (font is not null) return true;
+                    continue;
+                }
+            }
+
+            var filePath = Path.Combine(_fontsDirectory, fileName);
+            var loaded = PdfEmbeddedFont.TryLoad(filePath, IsRtl(language), out font);
+
+            lock (_lock)
+            {
+                _cache[fileName] = font;
+            }
+
+            if (loaded) return true;
         }
-
-        var filePath = Path.Combine(_fontsDirectory, fileName);
-        var isRtl = IsRtl(language);
-        bool loaded = PdfEmbeddedFont.TryLoad(filePath, isRtl, out font);
-
-        lock (_lock)
-        {
-            _cache[cacheKey] = font;
-        }
-
-        return loaded;
+        return false;
     }
 
     public static bool IsRtl(string? language) =>
         language is not null && RtlLanguages.Contains(language.Split('-')[0]);
 
-    private static string ResolveFileName(string language)
+    private static IEnumerable<string> ResolveFileNames(string? language, bool bold, bool italic)
     {
-        // Match on the primary language subtag (e.g. "zh" from "zh-CN")
-        var primary = language.Split('-')[0];
+        var primary = language?.Split('-')[0] ?? string.Empty;
 
         foreach (var (prefix, file) in LanguageFontMap)
         {
             if (primary.Equals(prefix, StringComparison.OrdinalIgnoreCase))
-                return file;
+            {
+                yield return file;
+                yield break;
+            }
         }
-        return FallbackFontFile;
+
+        yield return (bold, italic) switch
+        {
+            (true, true) => "LiberationSans-BoldItalic.ttf",
+            (true, false) => "LiberationSans-Bold.ttf",
+            (false, true) => "LiberationSans-Italic.ttf",
+            _ => DefaultRegularFontFile
+        };
+
+        if (bold || italic) yield return DefaultRegularFontFile;
+        yield return LegacyFallbackFontFile;
     }
 }

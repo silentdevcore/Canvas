@@ -23881,12 +23881,36 @@
           "id": {
             "type": "string"
           },
+          "layout": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/PageLayoutDto" }
+            ]
+          },
           "elements": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ElementDto"
             }
           }
+        }
+      },
+      "PageLayoutDto": {
+        "type": "object",
+        "properties": {
+          "width": { "type": ["null", "number", "string"], "format": "double" },
+          "height": { "type": ["null", "number", "string"], "format": "double" },
+          "orientation": { "type": ["null", "string"] },
+          "backgroundColor": { "type": ["null", "string"] },
+          "backgroundImage": { "type": ["null", "string"] },
+          "backgroundImageFit": { "type": ["null", "string"] },
+          "margins": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/MarginsDto" }
+            ]
+          },
+          "bleedSize": { "type": ["null", "number", "string"], "format": "double" }
         }
       },
       "PageNumberConfig": {
@@ -24070,6 +24094,11 @@
                 "$ref": "#/components/schemas/MarginsDto"
               }
             ]
+          },
+          "bleedSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": ["number", "string"],
+            "format": "double"
           },
           "pageNumbering": {
             "oneOf": [

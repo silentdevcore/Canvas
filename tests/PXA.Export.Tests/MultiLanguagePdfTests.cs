@@ -1,6 +1,5 @@
 using System.Text;
 using PXA.Pdf;
-using PXA.Pdf;
 
 namespace PXA.Export.Tests;
 
@@ -27,6 +26,22 @@ public sealed class MultiLanguagePdfTests
         Assert.False(loader.TryLoad(null, out _));
         Assert.False(loader.TryLoad("", out _));
         Assert.False(loader.TryLoad("   ", out _));
+    }
+
+    [Fact]
+    public void FontLoader_LoadsPackagedLatinStylesWithoutLanguageTag()
+    {
+        var loader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
+
+        Assert.True(loader.TryLoad(null, bold: false, italic: false, out var regular));
+        Assert.True(loader.TryLoad(null, bold: true, italic: false, out var bold));
+        Assert.True(loader.TryLoad(null, bold: false, italic: true, out var italic));
+        Assert.True(loader.TryLoad(null, bold: true, italic: true, out var boldItalic));
+
+        Assert.Equal("LiberationSans", regular!.BaseFontName);
+        Assert.Equal("LiberationSansBold", bold!.BaseFontName);
+        Assert.Equal("LiberationSansItalic", italic!.BaseFontName);
+        Assert.Equal("LiberationSansBoldItalic", boldItalic!.BaseFontName);
     }
 
     [Fact]

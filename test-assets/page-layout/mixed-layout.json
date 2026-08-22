@@ -1,0 +1,47 @@
+{
+  "id": "mixed-page-layout",
+  "name": "Mixed page layout",
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "unit": "pt",
+    "backgroundColor": "#ffffff",
+    "margins": { "top": 36, "right": 36, "bottom": 36, "left": 36 }
+  },
+  "pages": [
+    {
+      "id": "a4-portrait",
+      "elements": [
+        { "id": "portrait-title", "type": "text", "content": "A4 portrait", "x": 36, "y": 36, "width": 220, "height": 30, "style": { "fontSize": 20, "fontWeight": "bold" } }
+      ]
+    },
+    {
+      "id": "a4-landscape",
+      "layout": {
+        "width": 842,
+        "height": 595,
+        "orientation": "landscape",
+        "margins": { "top": 30, "right": 42, "bottom": 30, "left": 42 }
+      },
+      "elements": [
+        { "id": "landscape-title", "type": "text", "content": "A4 landscape", "x": 42, "y": 30, "width": 260, "height": 30, "style": { "fontSize": 20, "fontWeight": "bold" } }
+      ]
+    },
+    {
+      "id": "custom-square",
+      "layout": {
+        "width": 420,
+        "height": 420,
+        "orientation": "portrait",
+        "backgroundColor": "#f0f9ff",
+        "margins": { "top": 24, "right": 30, "bottom": 24, "left": 30 },
+        "bleedSize": 9
+      },
+      "elements": [
+        { "id": "custom-title", "type": "text", "content": "Custom square", "x": 30, "y": 24, "width": 220, "height": 30, "style": { "fontSize": 20, "fontWeight": "bold" } }
+      ]
+    }
+  ],
+  "sharedElements": []
+}

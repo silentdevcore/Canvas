@@ -21,8 +21,6 @@ public sealed class SvgDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        var ps = design.PageSettings ?? new PageSettingsDto();
-
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 
         // Web fonts used by the editor (Google Fonts) must be linked so the standalone
@@ -30,7 +28,7 @@ public sealed class SvgDocumentExporter : DocumentExporter
         var fontImport = BuildFontImport(plannedPages.SelectMany(p => p.Elements));
 
         if (plannedPages.Count == 1)
-            return RenderPageSvg(plannedPages[0].Elements, ps, fontImport);
+            return RenderPageSvg(plannedPages[0].Elements, plannedPages[0].Layout, fontImport);
 
         // Multi-page → zip
         using var zipStream = new MemoryStream();
@@ -38,7 +36,7 @@ public sealed class SvgDocumentExporter : DocumentExporter
         {
             for (int i = 0; i < plannedPages.Count; i++)
             {
-                var svgBytes = RenderPageSvg(plannedPages[i].Elements, ps, fontImport);
+                var svgBytes = RenderPageSvg(plannedPages[i].Elements, plannedPages[i].Layout, fontImport);
                 var entry    = zip.CreateEntry($"page-{i + 1}.svg");
                 using var es = entry.Open();
                 es.Write(svgBytes, 0, svgBytes.Length);
@@ -47,23 +45,25 @@ public sealed class SvgDocumentExporter : DocumentExporter
         return zipStream.ToArray();
     }
 
-    private static byte[] RenderPageSvg(IReadOnlyList<ElementDto> elements, PageSettingsDto ps, string? fontImport)
+    private static byte[] RenderPageSvg(IReadOnlyList<ElementDto> elements, PageLayoutDto layout, string? fontImport)
     {
-        var bgColor = ps.BackgroundColor ?? "#ffffff";
+        var width = layout.Width ?? PageLayoutResolver.DefaultWidth;
+        var height = layout.Height ?? PageLayoutResolver.DefaultHeight;
+        var bgColor = layout.BackgroundColor ?? "#ffffff";
 
         var svg = new XElement("svg",
             new XAttribute("xmlns", "http://www.w3.org/2000/svg"),
             new XAttribute(XNamespace.Xmlns + "xlink", "http://www.w3.org/1999/xlink"),
-            new XAttribute("viewBox", $"0 0 {Num(ps.Width)} {Num(ps.Height)}"),
-            new XAttribute("width", ps.Width),
-            new XAttribute("height", ps.Height),
+            new XAttribute("viewBox", $"0 0 {Num(width)} {Num(height)}"),
+            new XAttribute("width", width),
+            new XAttribute("height", height),
             fontImport is not null
                 ? new XElement("defs", new XElement("style", new XAttribute("type", "text/css"), new XCData(fontImport)))
                 : null,
             // Background
             new XElement("rect",
-                new XAttribute("width", ps.Width),
-                new XAttribute("height", ps.Height),
+                new XAttribute("width", width),
+                new XAttribute("height", height),
                 new XAttribute("fill", bgColor)),
             elements.Select(MapElement).Where(e => e is not null));
 

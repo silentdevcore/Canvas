@@ -17,6 +17,7 @@ public sealed class PdfEmbeddedFont
     public string BaseFontName { get; }
     public bool IsRtlCapable { get; }
     public ReadOnlyMemory<byte> FontBytes { get; }
+    internal int UnitsPerEm => _unitsPerEm;
 
     private PdfEmbeddedFont(
         string baseFontName,

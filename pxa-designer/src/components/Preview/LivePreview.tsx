@@ -1,16 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { QRCodeSVG } from 'qrcode.react';
-import JsBarcode from 'jsbarcode';
-import { FiCheck, FiChevronDown, FiDownload, FiEdit3, FiCheckSquare, FiExternalLink, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
+import { FiCheck, FiChevronDown, FiDownload, FiExternalLink, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
 import ExportService from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
+import { normalizePageSettings } from '@/store';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { installImportedFontFaces } from '@/utils/importedFonts';
-import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
-import ChartRenderer from '@/chart/ChartRenderer';
+import { effectivePageSettings } from '@/utils/pageLayout';
+import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
+import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
+import LineRenderer from '@/components/Rendering/LineRenderer';
+import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
+import ArrowRenderer from '@/components/Rendering/ArrowRenderer';
+import HighlightRenderer from '@/components/Rendering/HighlightRenderer';
+import {
+  formatNumberForPdf,
+  formatPageNumberForPdf,
+  pdfFontFamily,
+  PdfRichTextRenderer,
+  PdfSingleLineText,
+  PdfTextBlockRenderer,
+} from '@/components/Rendering/PdfTextRenderer';
+import {
+  PdfButtonRenderer,
+  PdfCheckboxRenderer,
+  PdfCheckmarkRenderer,
+  PdfDropdownRenderer,
+  PdfSignatureRenderer,
+} from '@/components/Rendering/PdfControlRenderer';
+import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
+import {
+  PdfCommentRenderer,
+  PdfContentControlRenderer,
+  PdfLayoutBoundaryRenderer,
+  PdfNoteRenderer,
+} from '@/components/Rendering/PdfStructureRenderer';
 
 interface LivePreviewProps {
   template: Template;
@@ -21,6 +47,8 @@ interface LivePreviewProps {
   onExport: () => void;
   hideBackButton?: boolean;
   exportLabel?: string;
+  /** Renders only deterministic pages for the internal visual-parity harness. */
+  visualParityMode?: boolean;
 }
 
 type ExportFormat = 'pdf' | 'json' | 'image' | 'print';
@@ -53,12 +81,19 @@ const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProp
   };
 };
 
-const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel }) => {
+const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel, visualParityMode = false }) => {
   const { t } = useTranslation('preview');
   const navigate = useNavigate();
   const [zoom, setZoom] = useState(1);
-  const pageWidth  = pageSettings?.width  ?? 595;
-  const pageHeight = pageSettings?.height ?? 842;
+  const documentPageSettings = normalizePageSettings(pageSettings);
+  const pageLayouts = pages.map(page => effectivePageSettings(documentPageSettings, page));
+  const uniquePageSizes = new Set(pageLayouts.map(layout => `${layout.width}:${layout.height}`));
+  const pageSizeLabel = uniquePageSizes.size > 1
+    ? t('footer.mixedPageSizes', { count: uniquePageSizes.size })
+    : t('footer.pageSizeValue', {
+        width: pageLayouts[0]?.width ?? documentPageSettings.width,
+        height: pageLayouts[0]?.height ?? documentPageSettings.height,
+      });
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
 
   useEffect(() => {
@@ -172,26 +207,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     return new Intl.DateTimeFormat(element.locale || 'de-DE', { dateStyle: 'medium' }).format(new Date());
   };
 
-  const getPageNumberPreview = (element: SimpleElement, pageIndex: number = 0) => {
-    const pageNum = (element.startNumber || 1) + pageIndex;
-    const prefix = element.prefix || '';
-    const suffix = element.suffix || '';
-    const toRoman = (n: number): string => {
-      const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
-      const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
-      let res = '';
-      vals.forEach((v, i) => { while (n >= v) { res += syms[i]; n -= v; } });
-      return res;
-    };
-    switch (element.numberingFormat || 'pageOfTotal') {
-      case 'current':    return `${prefix}${pageNum}${suffix}`;
-      case 'total':      return `${prefix}${pages.length}${suffix}`;
-      case 'roman':      return `${prefix}${toRoman(pageNum)}${suffix}`;
-      case 'alphabetic': return `${prefix}${String.fromCharCode(64 + Math.min(pageNum, 26))}${suffix}`;
-      default:           return `${prefix}Page ${pageNum} of ${pages.length}${suffix}`;
-    }
-  };
-
   // Shared border + padding style applied on the element wrapper
   const hexToRgba = (hex: string, opacity: number): string => {
     const h = hex.replace('#', '');
@@ -204,6 +219,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   const wrapperStyle = (el: SimpleElement): React.CSSProperties => {
     const s = el.style ?? {};
+    const rendersOwnBox = ['area', 'arrow', 'bookmark', 'checkbox', 'circle', 'comment', 'contentcontrol', 'draw', 'dropdown', 'field', 'highlight', 'line', 'note', 'pageboundary', 'rect', 'richtext', 'shape', 'subsection', 'table', 'text', 'textarea'].includes(el.type);
 
     let bgColor: string | undefined;
     const rawBg = s.backgroundColor ?? s.fill;
@@ -220,12 +236,12 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       height: el.height * zoom,
       transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
       transformOrigin: 'center center',
-      backgroundColor: bgColor,
-      ...borderStyleForZoom(s, zoom),
-      paddingTop:    s.paddingTop    ? s.paddingTop    * zoom : undefined,
-      paddingRight:  s.paddingRight  ? s.paddingRight  * zoom : undefined,
-      paddingBottom: s.paddingBottom ? s.paddingBottom * zoom : undefined,
-      paddingLeft:   s.paddingLeft   ? s.paddingLeft   * zoom : undefined,
+      backgroundColor: rendersOwnBox ? undefined : bgColor,
+      ...(rendersOwnBox ? {} : borderStyleForZoom(s, zoom)),
+      paddingTop:    !rendersOwnBox && s.paddingTop    ? s.paddingTop    * zoom : undefined,
+      paddingRight:  !rendersOwnBox && s.paddingRight  ? s.paddingRight  * zoom : undefined,
+      paddingBottom: !rendersOwnBox && s.paddingBottom ? s.paddingBottom * zoom : undefined,
+      paddingLeft:   !rendersOwnBox && s.paddingLeft   ? s.paddingLeft   * zoom : undefined,
       boxSizing: 'border-box',
       overflow: 'hidden',
     };
@@ -233,98 +249,35 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   const renderElement = (element: SimpleElement, pageIndex: number = 0) => {
     if (element.type === 'text') {
-      const s = element.style ?? {};
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          fontSize:       (s.fontSize      || 16) * zoom,
-          fontFamily:      s.fontFamily    || 'Arial',
-          color:           s.color         || '#111827',
-          fontWeight:      s.fontWeight    || 'normal',
-          fontStyle:       s.fontStyle     || 'normal',
-          textDecoration:  s.textDecoration|| 'none',
-          textAlign:      (s.textAlign     || 'left') as React.CSSProperties['textAlign'],
-          lineHeight:      s.lineHeight    ?? 1.4,
-          letterSpacing:   s.letterSpacing ? `${s.letterSpacing}px` : undefined,
-          whiteSpace:      s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
-          display: 'block',
-          overflow: 'hidden',
-        }}>
-          {element.content}
-        </div>
-      );
+      return <PdfTextBlockRenderer element={element} text={element.content ?? ''} />;
     }
 
     if (element.type === 'qrcode') {
-      return (
-        <QRCodeSVG
-          value={element.qrValue || 'https://example.com'}
-          size={element.qrSize || 120}
-          level="H"
-          includeMargin={true}
-        />
-      );
+      return <BackendSymbolRenderer element={element} type="qrcode" />;
     }
 
     if (element.type === 'barcode') {
-      return (
-        <canvas
-          ref={(canvas) => {
-            if (canvas) {
-              JsBarcode(canvas, element.barcodeValue || '123456789012', {
-                format: element.barcodeType || 'CODE128',
-                lineColor: '#000',
-                width: 2,
-                height: element.height || 88,
-                fontSize: 16
-              });
-            }
-          }}
-          style={{ width: '100%', height: '100%' }}
-        />
-      );
+      return <BackendSymbolRenderer element={element} type="barcode" />;
     }
 
     if (element.type === 'signature') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
-          <FiEdit3 style={{ marginBottom: 4, color: '#6b7280' }} />
-          <span style={{ fontSize: 12, color: '#374151' }}>{element.signatureLabel}</span>
-          <div style={{ width: '100%', borderBottom: '2px solid #111827', marginTop: 8 }} />
-          <small style={{ marginTop: 4, fontSize: 10, color: '#9ca3af' }}>Signature Line</small>
-        </div>
-      );
+      return <PdfSignatureRenderer element={element} />;
     }
 
     if (element.type === 'richtext') {
-      return (
-        <div
-          style={{ width: '100%', height: '100%', overflow: 'hidden' }}
-          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(element.htmlContent || '') }}
-        />
-      );
+      return <PdfRichTextRenderer element={element} />;
     }
 
     if (element.type === 'field') {
-      return (
-        <div style={{ width: '100%', height: '100%', padding: 8, border: '1px solid #93c5fd', background: '#eff6ff', borderRadius: 4 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#1d4ed8', marginBottom: 4 }}>
-            {element.fieldLabel}{element.required ? ' *' : ''}
-          </div>
-          <div style={{ height: 28, background: '#fff', border: '1px solid #bfdbfe', borderRadius: 3 }} />
-        </div>
-      );
+      return <FormFieldRenderer element={element} />;
+    }
+
+    if (element.type === 'textarea') {
+      return <FormFieldRenderer element={element} multiline />;
     }
 
     if (element.type === 'checkbox') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
-          <FiCheckSquare style={{ color: '#3b82f6', flexShrink: 0 }} />
-          <span style={{ fontSize: 14, color: '#374151' }}>
-            {element.fieldLabel}{element.required ? ' *' : ''}
-          </span>
-        </div>
-      );
+      return <PdfCheckboxRenderer element={element} />;
     }
 
     if (element.type === 'image') {
@@ -342,31 +295,15 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'shape' || element.type === 'rect') {
-      const s = element.style ?? {};
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          backgroundColor: s.backgroundColor ?? s.fill ?? 'transparent',
-          borderRadius: s.borderRadius || 0
-        }} />
-      );
+      return <PdfShapeRenderer element={element} />;
     }
 
     if (element.type === 'circle') {
-      const s = element.style ?? {};
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          backgroundColor: s.backgroundColor ?? s.fill ?? 'transparent',
-          borderRadius: '50%'
-        }} />
-      );
+      return <PdfCircleRenderer element={element} />;
     }
 
     if (element.type === 'line') {
-      return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: element.style?.backgroundColor || '#9ca3af' }} />
-      );
+      return <LineRenderer element={element} />;
     }
 
     if (element.type === 'table') {
@@ -381,6 +318,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       const headerBg   = element.headerBgColor || '#f1f5f9';
       const zebraOn    = element.zebraEnabled ?? false;
       const zebraColor = element.zebraColor || '#f9fafb';
+      const colWidths  = element.columnWidths ?? [];
       const colAligns  = element.columnAlignments ?? [];
       const cellData   = element.cellData ?? [];
       const bodyRows   = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
@@ -395,6 +333,11 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
             .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
         : [];
       const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
+      const visualRowHeight = (element.height * zoom) / Math.max(1, totalRows + rdlMatrixHeaders.length);
+      const cellFontSize = s.cellFontSize ?? 10;
+      const cellFontFamily = s.cellFontFamily ?? 'Arial';
+      const cellColor = s.cellColor as string | undefined;
+      const cellFontWeight = s.cellFontWeight ?? 'normal';
 
       const cellStyles = element.cellStyles ?? [];
       const sideCss = (sd?: { color?: string; width?: number }) =>
@@ -405,9 +348,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           border: `${bw}px solid ${bc}`,
           padding: cp,
           textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
-          fontSize: 10 * zoom,
-          fontWeight: kind === 'header' ? 700 : 'normal',
-          color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
+          fontSize: cellFontSize * zoom,
+          fontFamily: pdfFontFamily(cellFontFamily),
+          fontWeight: kind === 'header' || kind === 'footer' ? 700 : cellFontWeight,
+          color: cellColor ?? '#101828',
           backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
         };
         const cs = cellStyles.find((x) => x.row === dataRow && x.col === c);
@@ -437,11 +381,21 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       };
 
       return (
-        <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}` }}>
+        <table style={{
+          width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}`,
+          tableLayout: colWidths.some(Boolean) ? 'fixed' : 'auto',
+        }}>
+          {colWidths.some(Boolean) && (
+            <colgroup>
+              {Array.from({ length: columns }).map((_, index) => (
+                <col key={index} style={{ width: colWidths[index] || undefined }} />
+              ))}
+            </colgroup>
+          )}
           {hasHeader && (
             <thead>
               {rdlMatrixHeaders.map((header, index) => (
-                <tr key={`rdl-matrix-header-${index}`}>
+                <tr key={`rdl-matrix-header-${index}`} style={{ height: visualRowHeight }}>
                   <th
                     colSpan={columns}
                     style={{
@@ -455,22 +409,22 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                   </th>
                 </tr>
               ))}
-              <tr>{Array.from({ length: columns }).map((_, c) => (
-                <th key={c} style={tdSt(0, c, 'header')}>{cellData[0]?.[c] || `Header ${c + 1}`}</th>
+              <tr style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
+                <th key={c} style={tdSt(0, c, 'header')}>{cellData[0]?.[c] ?? ''}</th>
               ))}</tr>
             </thead>
           )}
           <tbody>
             {Array.from({ length: bodyRows }).map((_, r) => (
-              <tr key={r}>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(r, c, 'body', r + (hasHeader ? 1 : 0))}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] || 'Cell'}</td>
+              <tr key={r} style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
+                <td key={c} style={tdSt(r, c, 'body', r + (hasHeader ? 1 : 0))}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] ?? ''}</td>
               ))}</tr>
             ))}
           </tbody>
           {hasFooter && (
             <tfoot>
-              <tr>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(0, c, 'footer', totalRows - 1)}>{cellData[totalRows - 1]?.[c] || `Footer ${c + 1}`}</td>
+              <tr style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
+                <td key={c} style={tdSt(0, c, 'footer', totalRows - 1)}>{cellData[totalRows - 1]?.[c] ?? ''}</td>
               ))}</tr>
             </tfoot>
           )}
@@ -479,35 +433,11 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'button') {
-      return (
-        <button
-          style={{
-            width: '100%', height: '100%',
-            backgroundColor: element.style?.backgroundColor || '#3b82f6',
-            color: element.style?.color || '#ffffff',
-            fontSize: (element.style?.fontSize || 14) * zoom,
-            borderRadius: element.style?.borderRadius || 4,
-            border: 'none', cursor: element.buttonAction ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}
-          onClick={element.buttonAction ? () => window.open(element.buttonAction, '_blank', 'noopener') : undefined}
-        >
-          {element.content || 'Button'}
-        </button>
-      );
+      return <PdfButtonRenderer element={element} />;
     }
 
     if (element.type === 'dropdown') {
-      return (
-        <select style={{
-          width: '100%', height: '100%',
-          fontSize: (element.style?.fontSize || 14) * zoom,
-          color: element.style?.color || '#000000',
-          border: '1px solid #d1d5db', borderRadius: 4, padding: '0 8px'
-        }} multiple={!!element.multiSelect}>
-          {(element.options || []).map((opt, i) => <option key={i}>{opt}</option>)}
-        </select>
-      );
+      return <PdfDropdownRenderer element={element} />;
     }
 
     if (element.type === 'optionlist') {
@@ -549,11 +479,13 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
     if (element.type === 'chart') {
       return (
-        <ChartRenderer
+        <PdfContractChartRenderer
           chart={element.chart}
           legacyType={element.chartType}
           legacyData={element.chartData}
           ariaLabel={element.name || 'Chart'}
+          width={element.width}
+          height={element.height}
         />
       );
     }
@@ -586,233 +518,91 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'note') {
-      return (
-        <div style={{
-          width: '100%', height: '100%', padding: 10,
-          background: element.style?.backgroundColor || '#fef3c7',
-          color: element.style?.color || '#78350f',
-          borderRadius: 6,
-          overflow: 'hidden'
-        }}>
-          <strong style={{ display: 'block', fontSize: 12 * zoom, marginBottom: 6 }}>{element.noteTitle || 'Notiz'}</strong>
-          {!element.noteCollapsed && (
-            <>
-              <p style={{ margin: 0, fontSize: 11 * zoom, lineHeight: 1.35 }}>{element.noteBody || 'Kommentar eingeben'}</p>
-              <small style={{ display: 'block', marginTop: 8, opacity: 0.72 }}>{element.noteAuthor || 'Editor'}</small>
-            </>
-          )}
-        </div>
-      );
+      return <PdfNoteRenderer element={element} />;
     }
 
     if (element.type === 'arrow') {
-      const color = element.style?.color || '#dc2626';
-      const sw = element.style?.strokeWidth || 4;
-      const dashArray = element.style?.dashStyle === 'dashed' ? '8 6' : element.style?.dashStyle === 'dotted' ? '2 6' : undefined;
-      const path = element.arrowMode === 'curved'
-        ? 'M 12 50 C 36 6, 64 94, 88 50'
-        : element.arrowMode === 'elbow'
-          ? 'M 12 78 L 50 78 L 50 22 L 88 22'
-          : 'M 12 50 L 88 50';
-      const dirDeg = ({ right: 0, left: 180, down: 90, up: -90 } as Record<string, number>)[element.arrowDirection || 'right'] ?? 0;
-      const totalDeg = dirDeg + (element.arrowRotation || 0);
-      const eid = element.id;
-      const resolveMarker = (marker: string | undefined, isStart: boolean) => {
-        const side = isStart ? 's' : 'e';
-        if (!marker || marker === 'none') return undefined;
-        if (marker === 'filled' || marker === 'arrow') return `url(#paf-${side}-${eid})`;
-        if (marker === 'open')    return `url(#pao-${side}-${eid})`;
-        if (marker === 'dot')     return `url(#pad-${side}-${eid})`;
-        if (marker === 'diamond') return `url(#pam-${side}-${eid})`;
-        if (marker === 'square')  return `url(#paq-${side}-${eid})`;
-        if (marker === 'circle')  return `url(#pac-${side}-${eid})`;
-        return undefined;
-      };
-      return (
-        <svg viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="none"
-          style={{ overflow: 'visible', ...(totalDeg !== 0 ? { transform: `rotate(${totalDeg}deg)`, transformOrigin: '50% 50%' } : {}) }}>
-          <defs>
-            {(['e', 's'] as const).map(side => {
-              const orient = side === 's' ? 'auto-start-reverse' : 'auto';
-              return (
-                <React.Fragment key={side}>
-                  <marker id={`paf-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="11" refY="6" orient={orient}>
-                    <path d="M 0 0 L 12 6 L 0 12 z" fill={color} />
-                  </marker>
-                  <marker id={`pao-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="11" refY="6" orient={orient}>
-                    <path d="M 0 0 L 12 6 L 0 12" fill="none" stroke={color} strokeWidth={Math.max(1, sw * 0.5)} />
-                  </marker>
-                  <marker id={`pad-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5">
-                    <circle cx="5" cy="5" r="4" fill={color} />
-                  </marker>
-                  <marker id={`pam-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="6" refY="6" orient={orient}>
-                    <path d="M 0 6 L 6 0 L 12 6 L 6 12 z" fill={color} />
-                  </marker>
-                  <marker id={`paq-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5" orient={orient}>
-                    <rect x="0" y="0" width="10" height="10" fill={color} />
-                  </marker>
-                  <marker id={`pac-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5">
-                    <circle cx="5" cy="5" r="4" fill="none" stroke={color} strokeWidth={Math.max(1, sw * 0.5)} />
-                  </marker>
-                </React.Fragment>
-              );
-            })}
-          </defs>
-          <path d={path} fill="none" stroke={color} strokeWidth={sw}
-            strokeLinecap="round" strokeLinejoin="round" strokeDasharray={dashArray}
-            markerStart={resolveMarker(element.startMarker, true)}
-            markerEnd={resolveMarker(element.endMarker, false)}
-          />
-        </svg>
-      );
+      return <ArrowRenderer element={element} />;
     }
 
     if (element.type === 'draw') {
-      return (
-        <svg viewBox="0 0 216 108" width="100%" height="100%" preserveAspectRatio="none">
-          <path
-            d={element.pathData || 'M 10 76 C 44 18, 78 112, 116 54 S 184 20, 206 72'}
-            fill="none"
-            stroke={element.style?.color || '#1d4ed8'}
-            strokeWidth={element.style?.strokeWidth || 4}
-            strokeLinecap="round" strokeLinejoin="round"
-            opacity={element.style?.opacity ?? (element.drawTool === 'highlighter' ? 0.45 : 1)}
-          />
-        </svg>
-      );
+      return <PdfDrawingRenderer element={element} />;
     }
 
     if (element.type === 'date') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', color: element.style?.color || '#111827', fontSize: (element.style?.fontSize || 14) * zoom }}>
-          {getDatePreview(element)}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="date" text={getDatePreview(element)} />;
     }
 
     if (element.type === 'highlight') {
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          background: element.style?.backgroundColor || '#fde047',
-          opacity: element.style?.opacity ?? 0.45,
-          borderRadius: element.style?.borderRadius ?? 4,
-          mixBlendMode: element.style?.blendMode || 'multiply'
-        }} />
-      );
+      return <HighlightRenderer element={element} />;
     }
 
     if (element.type === 'subsection' || element.type === 'area') {
-      const color = element.style?.color || element.style?.borderColor || '#475569';
-      return (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 8 * zoom,
-          color,
-          fontSize: (element.style?.fontSize || 12) * zoom,
-          background: element.style?.backgroundColor || '#f8fafc',
-          border: `${(element.style?.borderWidth || 1) * zoom}px ${element.style?.borderStyle || 'dashed'} ${color}`,
-          borderRadius: (element.style?.borderRadius ?? 4) * zoom,
-          overflow: 'hidden',
-          textAlign: 'center',
-        }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.content || (element.type === 'subsection' ? 'Subsection' : 'Area')}
-          </span>
-        </div>
-      );
+      return <PdfLayoutBoundaryRenderer element={element} />;
     }
 
     if (element.type === 'checkmark') {
-      const color = element.style?.color || '#16a34a';
-      const state = element.checkState || 'checked';
+      return <PdfCheckmarkRenderer element={element} />;
+    }
+
+    if (element.type === 'pageboundary') {
+      return null;
+    }
+
+    if (element.type === 'pagenumber') {
+      return <PdfSingleLineText element={element} kind="pagenumber" text={formatPageNumberForPdf(element, pageIndex, pages.length)} />;
+    }
+
+    if (element.type === 'link') {
+      return <PdfSingleLineText element={element} kind="link" text={element.content || element.href || ''} />;
+    }
+
+    if (element.type === 'footnote' || element.type === 'endnote') {
+      const label = element.type === 'footnote' ? '†' : '‡';
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: '100%', color }}>
-          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
-            <rect x="2" y="2" width="22" height="22" rx="4" fill="none" stroke={color} strokeWidth="2" />
-            {state === 'checked' && <path d="M 7 13 L 11 17 L 20 8" fill="none" stroke={color} strokeWidth={element.style?.strokeWidth || 3} strokeLinecap="round" strokeLinejoin="round" />}
-            {state === 'cross'   && <path d="M 8 8 L 18 18 M 18 8 L 8 18" fill="none" stroke={color} strokeWidth={element.style?.strokeWidth || 3} strokeLinecap="round" />}
-            {state === 'dot'     && <circle cx="13" cy="13" r="5" fill={color} />}
-          </svg>
-          <span style={{ fontSize: (element.style?.fontSize || 14) * zoom, color: element.style?.labelColor || '#374151' }}>
-            {element.fieldLabel || 'Auswahl'}
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12 * zoom, color: '#6366f1', borderLeft: `${3 * zoom}px solid #6366f1`, overflow: 'hidden' }}>
+          <span style={{ fontWeight: 700 }}>{label}</span>
+          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.footnoteText || `${element.type === 'footnote' ? 'Footnote' : 'Endnote'}…`}
           </span>
         </div>
       );
     }
 
-    if (element.type === 'pageboundary') {
-      const color = element.style?.color || '#7c3aed';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 8, color }}>
-          <div style={{ flex: 1, borderTop: `2px dashed ${color}` }} />
-          <strong style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>
-            {element.pageBoundaryMode === 'end' ? 'Page end' : 'Page start'}
-          </strong>
-          <div style={{ flex: 1, borderTop: `2px dashed ${color}` }} />
-        </div>
-      );
+    if (element.type === 'bookmark') {
+      return null;
     }
 
-    if (element.type === 'pagenumber') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: element.style?.color || '#374151', fontSize: (element.style?.fontSize || 12) * zoom }}>
-          {getPageNumberPreview(element, pageIndex)}
-        </div>
-      );
+    if (element.type === 'comment') {
+      return <PdfCommentRenderer element={element} />;
     }
 
-    if (element.type === 'link') {
+    if (element.type === 'contentcontrol') {
+      return <PdfContentControlRenderer element={element} />;
+    }
+
+    if (element.type === 'toc') {
+      const fontSize = (element.style?.fontSize || 13) * zoom;
+      const color = element.style?.color || '#1f2937';
+      const entries = element.tocEntries ?? [];
       return (
-        <a
-          href={element.href || '#'}
-          target={element.linkTarget || '_blank'}
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center',
-            width: '100%', height: '100%',
-            color: element.style?.color || '#2563eb',
-            fontSize: (element.style?.fontSize || 14) * zoom,
-            fontFamily: element.style?.fontFamily || 'sans-serif',
-            fontWeight: element.style?.fontWeight || 'normal',
-            textDecoration: 'underline',
-            overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-          }}
-        >
-          {element.content || element.href || 'Link text'}
-        </a>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: `${8 * zoom}px ${10 * zoom}px`, border: `${zoom}px dashed #94a3b8`, borderRadius: 4 * zoom, background: '#f8fafc' }}>
+          <div style={{ fontSize: 10 * zoom, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6 * zoom, textTransform: 'uppercase' }}>
+            {element.tocTitle || 'Table of Contents'}
+          </div>
+          {entries.map((entry, index) => (
+            <div key={index} style={{ display: 'flex', alignItems: 'baseline', gap: 4 * zoom, marginBottom: 3 * zoom, paddingLeft: (entry.level - 1) * 12 * zoom, fontSize: entry.level === 1 ? fontSize : fontSize - zoom, fontWeight: entry.level === 1 ? 600 : 400, color }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.text}</span>
+              {element.tocShowLeaderDots !== false && <span style={{ flex: 1, borderBottom: '1px dotted #cbd5e1' }} />}
+              {element.tocShowPageNumbers !== false && <span>{entry.page}</span>}
+            </div>
+          ))}
+        </div>
       );
     }
 
     if (element.type === 'number') {
-      const val = element.numberValue ?? 0;
-      let formatted = '';
-      try {
-        const locale = element.numberLocale || 'de-DE';
-        if (element.numberStyle === 'currency') {
-          formatted = new Intl.NumberFormat(locale, { style: 'currency', currency: element.numberCurrency || 'EUR', minimumFractionDigits: element.numberDecimals ?? 2, maximumFractionDigits: element.numberDecimals ?? 2 }).format(val);
-        } else if (element.numberStyle === 'percent') {
-          formatted = new Intl.NumberFormat(locale, { style: 'percent', minimumFractionDigits: element.numberDecimals ?? 1, maximumFractionDigits: element.numberDecimals ?? 1 }).format(val / 100);
-        } else if (element.numberStyle === 'scientific') {
-          formatted = val.toExponential(element.numberDecimals ?? 2);
-        } else if (element.numberStyle === 'ordinal') {
-          const abs = Math.abs(Math.round(val));
-          const s = ['th', 'st', 'nd', 'rd'];
-          const v = abs % 100;
-          formatted = abs + (s[(v - 20) % 10] || s[v] || s[0]);
-        } else {
-          formatted = new Intl.NumberFormat(locale, { minimumFractionDigits: element.numberDecimals ?? 0, maximumFractionDigits: element.numberDecimals ?? 2 }).format(val);
-        }
-      } catch { formatted = String(val); }
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', color: element.style?.color || '#111827', fontSize: (element.style?.fontSize || 18) * zoom, fontFamily: element.style?.fontFamily || 'sans-serif', fontWeight: element.style?.fontWeight || 'bold', overflow: 'hidden' }}>
-          {(element.prefix || '') + formatted + (element.suffix || '')}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="number" text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />;
     }
 
     return (
@@ -824,44 +614,46 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   };
 
   const renderPage = (page: Page, pageIndex: number) => {
+    const layout = effectivePageSettings(documentPageSettings, page);
     const visiblePageElements = page.elements.filter(el => !el.hidden);
     const visibleShared = sharedElements.filter(el => !el.hidden);
     return (
-      <div key={page.id} style={{ marginBottom: pages.length > 1 ? 40 : 0 }}>
-        {pages.length > 1 && (
+      <div key={page.id} style={{ marginBottom: visualParityMode ? 0 : pages.length > 1 ? 40 : 0 }}>
+        {!visualParityMode && pages.length > 1 && (
           <p style={{ textAlign: 'center', marginBottom: 8, fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
             {t('pageLabel', { number: pageIndex + 1 })}
           </p>
         )}
         <div
+          data-parity-page={pageIndex + 1}
           style={{
-            width: `${pageWidth * zoom}px`,
-            height: `${pageHeight * zoom}px`,
-            backgroundColor: pageSettings?.backgroundColor ?? '#ffffff',
+            width: `${layout.width * zoom}px`,
+            height: `${layout.height * zoom}px`,
+            backgroundColor: layout.backgroundColor ?? '#ffffff',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
-            border: '1px solid #d1d5db',
-            margin: '0 auto',
-            ...(pageSettings?.backgroundImage ? {
-              backgroundImage: `url(${pageSettings.backgroundImage})`,
-              backgroundRepeat: pageSettings.backgroundImageFit === 'tile' ? 'repeat' : 'no-repeat',
-              backgroundSize: pageSettings.backgroundImageFit === 'fill' ? '100% 100%'
-                : pageSettings.backgroundImageFit === 'tile' ? 'auto'
-                : pageSettings.backgroundImageFit,
+            boxShadow: visualParityMode ? 'none' : '0 4px 24px rgba(0,0,0,0.15)',
+            border: visualParityMode ? 'none' : '1px solid #d1d5db',
+            margin: visualParityMode ? 0 : '0 auto',
+            ...(layout.backgroundImage ? {
+              backgroundImage: `url(${layout.backgroundImage})`,
+              backgroundRepeat: layout.backgroundImageFit === 'tile' ? 'repeat' : 'no-repeat',
+              backgroundSize: layout.backgroundImageFit === 'fill' ? '100% 100%'
+                : layout.backgroundImageFit === 'tile' ? 'auto'
+                : layout.backgroundImageFit,
               backgroundPosition: 'center',
             } : {}),
           }}
         >
           {/* Shared header/footer elements (same on every page) */}
           {visibleShared.map((element) => (
-            <div key={element.id} style={wrapperStyle(element)}>
+            <div key={element.id} data-element-id={element.id} style={wrapperStyle(element)}>
               {renderElement(element, pageIndex)}
             </div>
           ))}
           {/* Page-specific elements */}
           {visiblePageElements.map((element) => (
-            <div key={element.id} style={wrapperStyle(element)}>
+            <div key={element.id} data-element-id={element.id} style={wrapperStyle(element)}>
               {renderElement(element, pageIndex)}
             </div>
           ))}
@@ -901,6 +693,14 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   };
 
   const totalElements = pages.reduce((sum, p) => sum + p.elements.length, 0);
+
+  if (visualParityMode) {
+    return (
+      <div className="visual-parity-surface" data-parity-surface="preview">
+        {pages.map((page, index) => renderPage(page, index))}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -1025,7 +825,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           {[
             { label: t('footer.template'), value: template.name, bg: '#eff6ff', fg: '#1d4ed8' },
             { label: t('footer.pages'), value: `${pages.length}`, bg: '#f5f3ff', fg: '#6d28d9' },
-            { label: t('footer.pageSize'), value: t('footer.pageSizeValue', { width: pageWidth, height: pageHeight }), bg: '#f0fdf4', fg: '#15803d' },
+            { label: t('footer.pageSize'), value: pageSizeLabel, bg: '#f0fdf4', fg: '#15803d' },
             { label: t('footer.quality'), value: pageSettings?.exportDefaults?.quality ?? t('footer.qualityDefault'), bg: '#fff7ed', fg: '#c2410c' },
           ].map(({ label, value, bg, fg }) => (
             <div key={label} style={{ background: bg, borderRadius: 8, padding: '10px 14px' }}>

@@ -496,6 +496,31 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.ToTable("designer_code_workspace_versions", "designer");
                 });
 
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerElementFavorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ElementType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ElementType")
+                        .IsUnique();
+
+                    b.ToTable("designer_element_favorites", "designer");
+                });
+
             modelBuilder.Entity("PXA.Domain.Entities.DesignerFeaturePolicy", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2314,6 +2339,15 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasOne("PXA.Domain.Entities.DesignerCodeWorkspace", null)
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.DesignerElementFavorite", b =>
+                {
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

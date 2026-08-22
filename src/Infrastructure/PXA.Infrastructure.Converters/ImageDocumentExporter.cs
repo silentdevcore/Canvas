@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using PXA.Core.Abstractions;
 using PXA.Core.Contracts;
+using PXA.Core.Primitives;
 using SkiaSharp;
 
 namespace PXA.Infrastructure.Converters;
@@ -51,15 +52,17 @@ public sealed class ImageDocumentExporter : DocumentExporter
     internal static byte[] RenderPage(PageDto page, List<ElementDto> shared, PageSettingsDto ps,
         SKEncodedImageFormat format, int quality, float scale)
     {
-        int bmpW = (int)(ps.Width  * scale);
-        int bmpH = (int)(ps.Height * scale);
+        var effectiveSettings = PageLayoutResolver.ResolveSettings(ps, page.Layout);
+        int bmpW = (int)(effectiveSettings.Width  * scale);
+        int bmpH = (int)(effectiveSettings.Height * scale);
 
         using var bitmap  = new SKBitmap(bmpW, bmpH, SKColorType.Rgba8888, SKAlphaType.Premul);
         using var canvas  = new SKCanvas(bitmap);
 
         // Background
-        var bgColor = ParseColor(ps.BackgroundColor ?? "#ffffff");
+        var bgColor = ParseColor(effectiveSettings.BackgroundColor ?? "#ffffff");
         canvas.Clear(bgColor);
+        DrawBackgroundImage(canvas, effectiveSettings, bmpW, bmpH);
 
         var elements = page.Elements
             .Concat(shared.Where(s => !page.Elements.Any(e => e.Id == s.Id)))
@@ -72,6 +75,57 @@ public sealed class ImageDocumentExporter : DocumentExporter
         using var img  = SKImage.FromBitmap(bitmap);
         using var data = img.Encode(format, quality);
         return data.ToArray();
+    }
+
+    private static void DrawBackgroundImage(SKCanvas canvas, PageSettingsDto settings, int width, int height)
+    {
+        var source = settings.BackgroundImage;
+        if (string.IsNullOrWhiteSpace(source)) return;
+        byte[]? bytes = null;
+        if (source.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            try { bytes = Convert.FromBase64String(source[(source.IndexOf(',') + 1)..]); }
+            catch { return; }
+        }
+        else if (source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                 || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            try { bytes = HttpImageCache.Fetch(source); }
+            catch { return; }
+        }
+        if (bytes is null) return;
+        using var data = SKData.CreateCopy(bytes);
+        using var image = SKImage.FromEncodedData(data);
+        if (image is null) return;
+        using var paint = new SKPaint { IsAntialias = true };
+        var target = new SKRect(0, 0, width, height);
+        switch (settings.BackgroundImageFit)
+        {
+            case "tile":
+                for (var y = 0; y < height; y += image.Height)
+                for (var x = 0; x < width; x += image.Width)
+                    canvas.DrawImage(image, x, y, paint);
+                break;
+            case "contain":
+                var containScale = Math.Min((float)width / image.Width, (float)height / image.Height);
+                var containWidth = image.Width * containScale;
+                var containHeight = image.Height * containScale;
+                canvas.DrawImage(image, new SKRect(
+                    (width - containWidth) / 2, (height - containHeight) / 2,
+                    (width + containWidth) / 2, (height + containHeight) / 2), paint);
+                break;
+            case "cover":
+                var coverScale = Math.Max((float)width / image.Width, (float)height / image.Height);
+                var coverWidth = image.Width * coverScale;
+                var coverHeight = image.Height * coverScale;
+                canvas.DrawImage(image, new SKRect(
+                    (width - coverWidth) / 2, (height - coverHeight) / 2,
+                    (width + coverWidth) / 2, (height + coverHeight) / 2), paint);
+                break;
+            default:
+                canvas.DrawImage(image, target, paint);
+                break;
+        }
     }
 
     private static void DrawElement(SKCanvas canvas, ElementDto el, float scale)

@@ -46,6 +46,7 @@
     "pages": "الصفحات",
     "pageSize": "حجم الصفحة",
     "pageSizeValue": "{{width}} × {{height}} بكسل",
+    "mixedPageSizes": "مختلط ({{count}} أحجام)",
     "quality": "الجودة",
     "qualityDefault": "الطباعة",
     "previewModeTitle": "وضع المعاينة",

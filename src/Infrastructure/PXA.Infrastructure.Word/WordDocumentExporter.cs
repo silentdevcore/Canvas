@@ -106,9 +106,6 @@ public sealed class WordDocumentExporter : IDocumentExporter
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (pi > 0)
-                    body.AppendChild(new Paragraph(new Run(new Break { Type = BreakValues.Page })));
-
                 var layout = new LayoutContext(warnings, cancellationToken, fidelityV2);
                 var elements = plannedPages[pi].Elements;
 
@@ -116,6 +113,12 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     RenderElement(body, mainPart, el, layout, footnoteService, commentService);
+                }
+
+                if (pi < plannedPages.Count - 1)
+                {
+                    body.AppendChild(new Paragraph(
+                        new ParagraphProperties(CreateSectionProperties(plannedPages[pi].Layout, nextPage: true))));
                 }
             }
 
@@ -130,7 +133,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 body.InsertAt(new Paragraph(), 0);
 
             // sectPr MUST be the last child of body (OOXML §17.6.17)
-            ApplySectionGeometry(body, design.PageSettings);
+            ApplySectionGeometry(body, plannedPages[^1].Layout);
 
             mainPart.Document.Save();
         } // doc.Dispose() commits ZIP to ms
@@ -1778,11 +1781,16 @@ public sealed class WordDocumentExporter : IDocumentExporter
         return FontFamilyFallbackMap.TryGetValue(first, out var mapped) ? mapped : first;
     }
 
-    private static void ApplySectionGeometry(Body body, PageSettingsDto? settings)
+    private static void ApplySectionGeometry(Body body, PageLayoutDto layout)
     {
-        var widthUnits = settings?.Width > 0 ? settings.Width : 595;
-        var heightUnits = settings?.Height > 0 ? settings.Height : 842;
-        var orientation = settings?.Orientation?.ToLowerInvariant() ?? "portrait";
+        body.AppendChild(CreateSectionProperties(layout, nextPage: false));
+    }
+
+    private static SectionProperties CreateSectionProperties(PageLayoutDto layout, bool nextPage)
+    {
+        var widthUnits = layout.Width is > 0 ? layout.Width.Value : PageLayoutResolver.DefaultWidth;
+        var heightUnits = layout.Height is > 0 ? layout.Height.Value : PageLayoutResolver.DefaultHeight;
+        var orientation = layout.Orientation?.ToLowerInvariant() ?? "portrait";
         var isLandscape = orientation == "landscape";
 
         var pageWidthTwips = WordUnitConverter.PxaToTwips(widthUnits);
@@ -1793,7 +1801,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
         else if (!isLandscape && pageWidthTwips > pageHeightTwips)
             (pageWidthTwips, pageHeightTwips) = (pageHeightTwips, pageWidthTwips);
 
-        var margins = settings?.Margins;
+        var margins = layout.Margins;
         var sectPr = new SectionProperties(
             new PageSize
             {
@@ -1811,8 +1819,9 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 Footer = new UInt32Value(0U),
                 Gutter = new UInt32Value(0U),
             });
-
-        body.AppendChild(sectPr);
+        if (nextPage)
+            sectPr.PrependChild(new SectionType { Val = SectionMarkValues.NextPage });
+        return sectPr;
     }
 
     /// <summary>Injects a character style reference into the run's RunProperties when the element has one.</summary>

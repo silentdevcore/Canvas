@@ -18,7 +18,7 @@ internal sealed class CSharpDesignSourceWriter
 
     public string WritePageEnvelope(PageDto page, int indent = 0)
     {
-        var envelope = new PageDto { Id = page.Id, Extensions = page.Extensions, Elements = [] };
+        var envelope = new PageDto { Id = page.Id, Layout = page.Layout, Extensions = page.Extensions, Elements = [] };
         return WriteValue(envelope, typeof(PageDto), indent);
     }
 
@@ -133,7 +133,8 @@ internal sealed class CSharpDesignSourceWriter
 
     private static string TypeName(Type type)
     {
-        type = Nullable.GetUnderlyingType(type) ?? type;
+        var nullableType = Nullable.GetUnderlyingType(type);
+        if (nullableType is not null) return TypeName(nullableType) + "?";
         if (type == typeof(string)) return "string";
         if (type == typeof(object)) return "object";
         if (!type.IsGenericType) return type.Name;

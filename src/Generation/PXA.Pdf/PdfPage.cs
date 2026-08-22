@@ -154,7 +154,7 @@ public sealed class PdfPage
         var fillColor = options.FillColor ?? PdfColor.Black;
 
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
 
         _elements.Add(new TextElement(
             text,
@@ -778,7 +778,7 @@ public sealed class PdfPage
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
         var lines = WrapText(text, maxWidth, options.FontSize, resolvedFont);
         var widestLine = 0d;
 
@@ -884,7 +884,7 @@ public sealed class PdfPage
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
         var lines = WrapText(text, width, options.FontSize, resolvedFont);
         var contentHeight = lines.Count > 0 ? ((lines.Count - 1) * lineHeight) + options.FontSize : 0;
         var topBaselineY = ResolveTextBoxTopBaselineY(topY, height, contentHeight, options.FontSize, options.VerticalAlignment);
@@ -1156,55 +1156,6 @@ public sealed class PdfPage
         var currentRowTop = y;
         var tableBottom = y - rowHeights.Sum();
 
-        if (options.DrawOuterBorder)
-        {
-            DrawRectangle(
-                x: x,
-                y: tableBottom,
-                width: width,
-                height: y - tableBottom,
-                lineWidth: outerBorderLineWidth,
-                fill: false,
-                strokeColor: outerBorderColor,
-                strokeStyle: outerStrokeStyle);
-        }
-
-        if (options.DrawInnerHorizontalBorders)
-        {
-            var horizontalY = y;
-
-            for (var rowIndex = 0; rowIndex < rowHeights.Length - 1; rowIndex++)
-            {
-                horizontalY -= rowHeights[rowIndex];
-                DrawLine(
-                    x1: x,
-                    y1: horizontalY,
-                    x2: x + width,
-                    y2: horizontalY,
-                    lineWidth: innerBorderLineWidth,
-                    strokeColor: innerBorderColor,
-                    strokeStyle: innerStrokeStyle);
-            }
-        }
-
-        if (options.DrawInnerVerticalBorders)
-        {
-            var verticalX = x;
-
-            for (var columnIndex = 0; columnIndex < columnWidths.Length - 1; columnIndex++)
-            {
-                verticalX += columnWidths[columnIndex];
-                DrawLine(
-                    x1: verticalX,
-                    y1: tableBottom,
-                    x2: verticalX,
-                    y2: y,
-                    lineWidth: innerBorderLineWidth,
-                    strokeColor: innerBorderColor,
-                    strokeStyle: innerStrokeStyle);
-            }
-        }
-
         for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
         {
             var row = rows[rowIndex];
@@ -1262,11 +1213,7 @@ public sealed class PdfPage
 
                 var rawCellText = row[columnIndex] ?? string.Empty;
                 var cellText = columnFormatters[columnIndex](rawCellText);
-                var cellFont = isHeader && options.Font is null && options.FontFamily is null
-                    ? PdfStandardFonts.FromStyle(PdfFontFamily.Helvetica, bold: true)
-                    : isFooter && options.Font is null && options.FontFamily is null
-                        ? PdfStandardFonts.FromStyle(PdfFontFamily.Helvetica, bold: true)
-                    : font;
+                var cellFont = isHeader || isFooter ? WithBoldStyle(font) : font;
 
                 var availableTextWidth = cellWidth - paddingLeft - paddingRight;
                 var lines = WrapTableCellText(cellText, availableTextWidth, options.FontSize, cellFont, options.WrapCellText);
@@ -1316,6 +1263,57 @@ public sealed class PdfPage
             }
 
             currentRowTop = rowBottom;
+        }
+
+        // Borders must be emitted after cell fills. PDF elements are painted in
+        // insertion order, so drawing fills later would otherwise hide the grid.
+        if (options.DrawOuterBorder)
+        {
+            DrawRectangle(
+                x: x,
+                y: tableBottom,
+                width: width,
+                height: y - tableBottom,
+                lineWidth: outerBorderLineWidth,
+                fill: false,
+                strokeColor: outerBorderColor,
+                strokeStyle: outerStrokeStyle);
+        }
+
+        if (options.DrawInnerHorizontalBorders)
+        {
+            var horizontalY = y;
+
+            for (var rowIndex = 0; rowIndex < rowHeights.Length - 1; rowIndex++)
+            {
+                horizontalY -= rowHeights[rowIndex];
+                DrawLine(
+                    x1: x,
+                    y1: horizontalY,
+                    x2: x + width,
+                    y2: horizontalY,
+                    lineWidth: innerBorderLineWidth,
+                    strokeColor: innerBorderColor,
+                    strokeStyle: innerStrokeStyle);
+            }
+        }
+
+        if (options.DrawInnerVerticalBorders)
+        {
+            var verticalX = x;
+
+            for (var columnIndex = 0; columnIndex < columnWidths.Length - 1; columnIndex++)
+            {
+                verticalX += columnWidths[columnIndex];
+                DrawLine(
+                    x1: verticalX,
+                    y1: tableBottom,
+                    x2: verticalX,
+                    y2: y,
+                    lineWidth: innerBorderLineWidth,
+                    strokeColor: innerBorderColor,
+                    strokeStyle: innerStrokeStyle);
+            }
         }
 
         var totalHeight = rowHeights.Sum();
@@ -1717,6 +1715,27 @@ public sealed class PdfPage
                 ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
                 : DefaultFont);
     }
+
+    private static PdfStandardFont WithBoldStyle(PdfStandardFont font) => font switch
+    {
+        PdfStandardFont.Helvetica or PdfStandardFont.HelveticaBold => PdfStandardFont.HelveticaBold,
+        PdfStandardFont.HelveticaOblique or PdfStandardFont.HelveticaBoldOblique => PdfStandardFont.HelveticaBoldOblique,
+        PdfStandardFont.TimesRoman or PdfStandardFont.TimesBold => PdfStandardFont.TimesBold,
+        PdfStandardFont.TimesItalic or PdfStandardFont.TimesBoldItalic => PdfStandardFont.TimesBoldItalic,
+        PdfStandardFont.Courier or PdfStandardFont.CourierBold => PdfStandardFont.CourierBold,
+        PdfStandardFont.CourierOblique or PdfStandardFont.CourierBoldOblique => PdfStandardFont.CourierBoldOblique,
+        _ => font
+    };
+
+    private static bool IsBoldFont(PdfStandardFont font) => font is
+        PdfStandardFont.HelveticaBold or PdfStandardFont.HelveticaBoldOblique or
+        PdfStandardFont.TimesBold or PdfStandardFont.TimesBoldItalic or
+        PdfStandardFont.CourierBold or PdfStandardFont.CourierBoldOblique;
+
+    private static bool IsItalicFont(PdfStandardFont font) => font is
+        PdfStandardFont.HelveticaOblique or PdfStandardFont.HelveticaBoldOblique or
+        PdfStandardFont.TimesItalic or PdfStandardFont.TimesBoldItalic or
+        PdfStandardFont.CourierOblique or PdfStandardFont.CourierBoldOblique;
 
     private static double[] ResolveTableColumnWidths(double tableWidth, int columnCount, PdfTableOptions options)
     {

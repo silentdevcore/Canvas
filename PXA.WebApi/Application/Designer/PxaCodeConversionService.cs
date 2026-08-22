@@ -15,7 +15,9 @@ public interface IPxaCodeConversionService
     PxaCodeConversionResultDto ValidateJson(string source);
 }
 
-public sealed class PxaCodeConversionService(IPxaCodeWorkerClient worker) : IPxaCodeConversionService
+public sealed class PxaCodeConversionService(
+    IPxaCodeWorkerClient worker,
+    PXA.Pdf.PdfFontLoader? fontLoader = null) : IPxaCodeConversionService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private static readonly IReadOnlyDictionary<string, RepresentationCodec> Codecs = new RepresentationCodec[]
@@ -83,7 +85,7 @@ public sealed class PxaCodeConversionService(IPxaCodeWorkerClient worker) : IPxa
         }
         if (language == PxaCodeLanguages.CSharpPdf && result.Success && result.PdfBytes is null && result.CanonicalDesign is not null)
         {
-            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign);
+            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign, fontLoader);
             result.PdfBytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(result.CanonicalDesign));
         }
         PxaTelemetry.RecordCodeOperation("execute", language, result.Success ? "succeeded" : "rejected",

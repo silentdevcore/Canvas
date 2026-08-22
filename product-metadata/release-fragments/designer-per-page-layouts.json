@@ -1,0 +1,21 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-per-page-layouts",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer",
+    "infrastructure"
+  ],
+  "category": "added",
+  "summary": "Documents can mix portrait, landscape, and custom-sized pages while preserving each page layout across Designer preview, PDF, image, Word, ODT, and HTML output.",
+  "featureIds": [],
+  "documentation": [
+    "/#page-layout-details",
+    "/checklists/PXA.Designer-Per-Page-Settings-And-Backend-Parity.md"
+  ],
+  "breaking": false
+}

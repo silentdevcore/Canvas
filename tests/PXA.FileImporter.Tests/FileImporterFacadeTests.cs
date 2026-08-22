@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Packaging;
 using P = DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Wordprocessing;
 using PXA.FileImporter;
+using PXA.Pdf;
 using SkiaSharp;
 
 namespace PXA.FileImporter.Tests;
@@ -22,6 +23,18 @@ public sealed class FileImporterFacadeTests
         Assert.Equal(595, design.PageSettings!.Width);
         Assert.Equal("text", design.Pages[0].Elements[0].Type);
         Assert.Equal("Hello DOCX", design.Pages[0].Elements[0].Content);
+    }
+
+    [Fact]
+    public async Task DocxImporter_PreservesSectionPageLayouts()
+    {
+        await using var stream = new MemoryStream(MakeMixedLayoutDocx());
+
+        var design = await new DocxFileImporter().ImportAsync(stream, "mixed.docx");
+
+        Assert.Equal(2, design.Pages.Count);
+        Assert.Equal((595d, 842d), (design.Pages[0].Layout!.Width!.Value, design.Pages[0].Layout!.Height!.Value));
+        Assert.Equal((842d, 595d), (design.Pages[1].Layout!.Width!.Value, design.Pages[1].Layout!.Height!.Value));
     }
 
     [Fact]
@@ -44,6 +57,39 @@ public sealed class FileImporterFacadeTests
         Assert.Equal(595, design.PageSettings!.Width);
         Assert.Equal("text", design.Pages[0].Elements[0].Type);
         Assert.Equal("Hello PXA", design.Pages[0].Elements[0].Content);
+    }
+
+    [Fact]
+    public async Task OdtImporter_PreservesNamedPageLayouts()
+    {
+        await using var stream = new MemoryStream(MakeMixedLayoutOdt());
+
+        var design = await new OdtFileImporter().ImportAsync(stream, "mixed.odt");
+
+        Assert.Equal(2, design.Pages.Count);
+        Assert.Equal("portrait", design.Pages[0].Layout!.Orientation);
+        Assert.Equal("landscape", design.Pages[1].Layout!.Orientation);
+        Assert.Equal(842, design.Pages[1].Layout!.Width!.Value, 0);
+        Assert.Equal(595, design.Pages[1].Layout!.Height!.Value, 0);
+    }
+
+    [Fact]
+    public async Task PdfImporter_PreservesEverySourcePageBox()
+    {
+#pragma warning disable PXA0001
+        var pdf = new PdfDocument();
+#pragma warning restore PXA0001
+        pdf.AddPage(595, 842);
+        var landscape = pdf.AddPage(842, 595);
+        landscape.SetPageBoundary(PdfPageBoundary.CropBox, new PdfPoint(10, 20), new PdfPoint(810, 570));
+        await using var stream = new MemoryStream(pdf.ToBytes());
+
+        var design = await new PdfFileImporter().ImportAsync(stream, "mixed.pdf");
+
+        Assert.Equal(2, design.Pages.Count);
+        Assert.Equal((595d, 842d), (design.Pages[0].Layout!.Width!.Value, design.Pages[0].Layout!.Height!.Value));
+        Assert.Equal((800d, 550d), (design.Pages[1].Layout!.Width!.Value, design.Pages[1].Layout!.Height!.Value));
+        Assert.True(design.Pages[1].Extensions!.ContainsKey("pdfPageBoxes"));
     }
 
     [Fact]
@@ -119,10 +165,31 @@ public sealed class FileImporterFacadeTests
                 new Body(
                     new Paragraph(new Run(new Text(text))),
                     new SectionProperties(
-                        new PageSize { Width = 8925U, Height = 12630U },
+                        new PageSize { Width = 11900U, Height = 16840U },
                         new PageMargin { Top = 720, Right = 720U, Bottom = 720, Left = 720U })));
         }
 
+        return stream.ToArray();
+    }
+
+    private static byte[] MakeMixedLayoutDocx()
+    {
+        using var stream = new MemoryStream();
+        using (var doc = WordprocessingDocument.Create(
+            stream,
+            DocumentFormat.OpenXml.WordprocessingDocumentType.Document,
+            autoSave: true))
+        {
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new Document(new Body(
+                new Paragraph(
+                    new ParagraphProperties(new SectionProperties(
+                        new PageSize { Width = 11900U, Height = 16840U, Orient = PageOrientationValues.Portrait })),
+                    new Run(new Text("Portrait"))),
+                new Paragraph(new Run(new Text("Landscape"))),
+                new SectionProperties(
+                    new PageSize { Width = 16840U, Height = 11900U, Orient = PageOrientationValues.Landscape })));
+        }
         return stream.ToArray();
     }
 
@@ -194,6 +261,45 @@ public sealed class FileImporterFacadeTests
                 """);
         }
 
+        return stream.ToArray();
+    }
+
+    private static byte[] MakeMixedLayoutOdt()
+    {
+        using var stream = new MemoryStream();
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using (var writer = new StreamWriter(zip.CreateEntry("styles.xml").Open(), Encoding.UTF8))
+            {
+                writer.Write("""
+                    <office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0">
+                      <office:automatic-styles>
+                        <style:page-layout style:name="PL1"><style:page-layout-properties fo:page-width="20.99cm" fo:page-height="29.70cm" style:print-orientation="portrait"/></style:page-layout>
+                        <style:page-layout style:name="PL2"><style:page-layout-properties fo:page-width="29.70cm" fo:page-height="20.99cm" style:print-orientation="landscape"/></style:page-layout>
+                      </office:automatic-styles>
+                      <office:master-styles>
+                        <style:master-page style:name="P1" style:page-layout-name="PL1"/>
+                        <style:master-page style:name="P2" style:page-layout-name="PL2"/>
+                      </office:master-styles>
+                    </office:document-styles>
+                    """);
+            }
+            using (var writer = new StreamWriter(zip.CreateEntry("content.xml").Open(), Encoding.UTF8))
+            {
+                writer.Write("""
+                    <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0">
+                      <office:automatic-styles>
+                        <style:style style:name="Start1" style:family="paragraph" style:master-page-name="P1"/>
+                        <style:style style:name="Start2" style:family="paragraph" style:master-page-name="P2"><style:paragraph-properties fo:break-before="page"/></style:style>
+                      </office:automatic-styles>
+                      <office:body><office:text>
+                        <text:p text:style-name="Start1"/><text:p>Portrait</text:p>
+                        <text:p text:style-name="Start2"/><text:p>Landscape</text:p>
+                      </office:text></office:body>
+                    </office:document-content>
+                    """);
+            }
+        }
         return stream.ToArray();
     }
 }

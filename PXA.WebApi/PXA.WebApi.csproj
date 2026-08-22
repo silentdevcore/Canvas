@@ -19,6 +19,10 @@
              Link="OperatorDocumentation/%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../assets/fonts/liberation/*"
+             Link="fonts/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../product-metadata/designer-features.json"
                       LogicalName="PXA.ProductMetadata.designer-features.json" />
     <EmbeddedResource Include="../product-metadata/pxa-releases.json"

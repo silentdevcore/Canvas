@@ -1,0 +1,81 @@
+{
+  "id": "visual-parity-all-elements",
+  "name": "PXA Visual Parity",
+  "category": "test",
+  "description": "Deterministic cross-renderer visual parity fixture",
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "unit": "pt",
+    "backgroundColor": "#ffffff",
+    "backgroundImage": "",
+    "backgroundImageFit": "contain",
+    "margins": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+    "systemLanguage": "en",
+    "activeLanguages": ["en", "ar"],
+    "targetLanguage": "en"
+  },
+  "sharedElements": [],
+  "pages": [
+    {
+      "id": "typography-and-forms",
+      "elements": [
+        { "id": "text", "type": "text", "name": "Text", "x": 28, "y": 28, "width": 250, "height": 58, "content": "Wrapped text with padding and a deliberately long second line.", "style": { "fontFamily": "Arial", "fontSize": 14, "fontWeight": "bold", "color": "#172033", "lineHeight": 1.25, "paddingTop": 5, "paddingRight": 7, "paddingBottom": 5, "paddingLeft": 7, "backgroundColor": "#eef4ff", "borderColor": "#3b6ea8", "borderWidth": 1 } },
+        { "id": "richtext", "type": "richtext", "name": "Rich Text", "x": 310, "y": 28, "width": 250, "height": 76, "htmlContent": "<p><b>Rich text</b> with <i>emphasis</i><br/>and a second line.</p>", "style": { "fontFamily": "Arial", "fontSize": 13, "color": "#202939", "paddingLeft": 5, "paddingTop": 5 } },
+        { "id": "date", "type": "date", "name": "Date", "x": 28, "y": 120, "width": 160, "height": 28, "dateMode": "static", "content": "21.08.2026", "dateFormat": "dd.MM.yyyy", "locale": "de-DE", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#253858" } },
+        { "id": "number", "type": "number", "name": "Number", "x": 210, "y": 120, "width": 160, "height": 28, "numberValue": -12345.67, "numberStyle": "currency", "numberDecimals": 2, "numberCurrency": "CHF", "numberLocale": "de-CH", "style": { "fontFamily": "Arial", "fontSize": 14, "fontWeight": "bold", "color": "#7f1d1d" } },
+        { "id": "pagenumber", "type": "pagenumber", "name": "Page Number", "x": 400, "y": 120, "width": 160, "height": 28, "numberingFormat": "pageOfTotal", "startNumber": 1, "prefix": "Page ", "suffix": "", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#334155" } },
+        { "id": "field", "type": "field", "name": "Text Field", "x": 28, "y": 180, "width": 250, "height": 58, "fieldLabel": "Customer reference", "fieldName": "customerReference", "placeholder": "Enter reference", "required": true, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#374151", "borderColor": "#94a3b8", "borderWidth": 1, "backgroundColor": "#ffffff" } },
+        { "id": "textarea", "type": "textarea", "name": "Text Area", "x": 310, "y": 180, "width": 250, "height": 82, "fieldLabel": "Internal notes", "fieldName": "notes", "placeholder": "Write multiple lines", "required": false, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#374151", "borderColor": "#94a3b8", "borderWidth": 1, "backgroundColor": "#ffffff" } },
+        { "id": "checkbox", "type": "checkbox", "name": "Checkbox", "x": 28, "y": 290, "width": 250, "height": 34, "fieldLabel": "Approved for processing", "fieldName": "approved", "checkState": "checked", "required": true, "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#253858", "borderColor": "#253858" } },
+        { "id": "checkmark", "type": "checkmark", "name": "Checkmark", "x": 310, "y": 290, "width": 250, "height": 34, "fieldLabel": "Cross state", "checkState": "cross", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#253858", "borderColor": "#253858" } },
+        { "id": "signature", "type": "signature", "name": "Signature", "x": 28, "y": 350, "width": 250, "height": 90, "signatureLabel": "Authorized signature", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155" } },
+        { "id": "dropdown", "type": "dropdown", "name": "Dropdown", "x": 310, "y": 350, "width": 250, "height": 48, "fieldLabel": "Department", "fieldName": "department", "options": ["Sales", "Finance", "Engineering"], "selectedValue": "Finance", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155", "borderColor": "#94a3b8" } },
+        { "id": "radio", "type": "radio", "name": "Radio", "x": 28, "y": 470, "width": 250, "height": 76, "fieldLabel": "Delivery", "options": ["Email", "Postal", "Portal"], "selectedValue": "Portal", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155" } },
+        { "id": "optionlist", "type": "optionlist", "name": "Option List", "x": 310, "y": 430, "width": 250, "height": 116, "fieldLabel": "Regions", "options": ["Switzerland", "Germany", "France"], "selectedValue": "Switzerland", "multiSelect": false, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155", "borderColor": "#94a3b8" } },
+        { "id": "button", "type": "button", "name": "Button", "x": 28, "y": 580, "width": 160, "height": 38, "content": "Open details", "buttonAction": "url", "href": "https://example.invalid", "style": { "fontFamily": "Arial", "fontSize": 12, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#285f9e", "borderColor": "#1e4776", "borderWidth": 1, "borderRadius": 3 } },
+        { "id": "contentcontrol", "type": "contentcontrol", "name": "Content Control", "x": 210, "y": 580, "width": 350, "height": 48, "contentControlType": "plainText", "contentControlTitle": "Contract reference", "contentControlPlaceholder": "Choose or enter a value", "contentControlTag": "contract-reference", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155", "borderColor": "#64748b", "borderWidth": 1 } },
+        { "id": "rtl-text", "type": "text", "name": "RTL Text", "x": 28, "y": 670, "width": 532, "height": 54, "content": "مرحبا بكم في مستند الاختبار", "language": "ar", "textDirection": "rtl", "style": { "fontFamily": "Noto Sans Arabic", "fontSize": 16, "textAlign": "right", "color": "#17324d", "backgroundColor": "#f0f9ff", "paddingTop": 6, "paddingRight": 8, "paddingBottom": 6, "paddingLeft": 8 } }
+      ]
+    },
+    {
+      "id": "graphics-and-media",
+      "elements": [
+        { "id": "image", "type": "image", "name": "Image", "x": 28, "y": 28, "width": 160, "height": 100, "content": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "fitMode": "fill", "preserveAspectRatio": false },
+        { "id": "rect", "type": "rect", "name": "Rectangle", "x": 220, "y": 28, "width": 150, "height": 100, "style": { "backgroundColor": "#dbeafe", "borderColor": "#2563eb", "borderWidth": 3, "borderRadius": 8 } },
+        { "id": "shape", "type": "shape", "name": "Shape", "x": 400, "y": 28, "width": 160, "height": 100, "style": { "backgroundColor": "#dcfce7", "borderColor": "#15803d", "borderWidth": 2, "rotation": 5, "backgroundOpacity": 0.8 } },
+        { "id": "circle", "type": "circle", "name": "Circle", "x": 28, "y": 165, "width": 100, "height": 100, "style": { "backgroundColor": "#fef3c7", "borderColor": "#d97706", "borderWidth": 2 } },
+        { "id": "line", "type": "line", "name": "Line", "x": 160, "y": 210, "width": 180, "height": 4, "style": { "backgroundColor": "#be123c", "borderColor": "#be123c", "borderWidth": 2 } },
+        { "id": "arrow", "type": "arrow", "name": "Arrow", "x": 375, "y": 180, "width": 185, "height": 55, "arrowMode": "straight", "arrowDirection": "right", "startMarker": "dot", "endMarker": "filled", "style": { "color": "#1d4ed8", "borderColor": "#1d4ed8", "borderWidth": 3 } },
+        { "id": "highlight", "type": "highlight", "name": "Highlight", "x": 28, "y": 300, "width": 250, "height": 45, "content": "Highlighted text", "markMode": "text", "style": { "fontFamily": "Arial", "fontSize": 15, "color": "#111827", "backgroundColor": "#fde047", "backgroundOpacity": 0.55 } },
+        { "id": "draw", "type": "draw", "name": "Drawing", "x": 310, "y": 285, "width": 250, "height": 75, "drawTool": "pen", "pathData": "M 5 55 C 45 5, 90 70, 140 20 S 210 55, 240 12", "style": { "color": "#7c3aed", "borderColor": "#7c3aed", "borderWidth": 3 } },
+        { "id": "qrcode", "type": "qrcode", "name": "QR Code", "x": 28, "y": 400, "width": 130, "height": 130, "qrValue": "https://powerdoxautomation.com/parity", "qrSize": 120 },
+        { "id": "barcode", "type": "barcode", "name": "Barcode", "x": 190, "y": 410, "width": 370, "height": 100, "barcodeValue": "PXA-2026-0001", "barcodeType": "CODE128" },
+        { "id": "chart", "type": "chart", "name": "Chart", "x": 28, "y": 570, "width": 350, "height": 210, "chart": { "schemaVersion": 2, "type": "bar", "title": "Quarterly result", "categories": ["Q1", "Q2", "Q3", "Q4"], "series": [{ "id": "actual", "name": "Actual", "type": "bar", "values": [18, -7, 26, 31], "color": "#2563eb" }, { "id": "target", "name": "Target", "type": "line", "values": [15, 15, 22, 28], "color": "#dc2626" }], "legend": { "visible": true, "position": "bottom" }, "axes": { "x": { "visible": true }, "y": { "visible": true } } } },
+        { "id": "watermark", "type": "watermark", "name": "Watermark", "x": 410, "y": 590, "width": 150, "height": 150, "content": "DRAFT", "watermarkMode": "text", "style": { "fontFamily": "Arial", "fontSize": 28, "fontWeight": "bold", "color": "#9ca3af", "rotation": -35, "opacity": 0.35 } }
+      ]
+    },
+    {
+      "id": "tables-and-structure",
+      "elements": [
+        { "id": "table", "type": "table", "name": "Table", "x": 28, "y": 28, "width": 532, "height": 190, "headerRow": true, "footerRow": true, "headerBgColor": "#dbeafe", "zebraEnabled": true, "zebraColor": "#f8fafc", "columnWidths": [180, 176, 176], "columnAlignments": ["left", "right", "right"], "cellData": [["Item", "Quantity", "Amount"], ["Professional plan", "2", "CHF 198.00"], ["Storage", "10 GB", "CHF 20.00"], ["Total", "", "CHF 218.00"]], "style": { "rows": 4, "columns": 3, "borderColor": "#64748b", "borderWidth": 1, "cellPadding": 6, "cellFontFamily": "Arial", "cellFontSize": 10, "cellColor": "#1f2937" } },
+        { "id": "subsection", "type": "subsection", "name": "Subsection", "x": 28, "y": 250, "width": 250, "height": 90, "content": "Subsection content", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#334155", "backgroundColor": "#f1f5f9", "borderColor": "#64748b", "borderWidth": 1, "padding": 8 } },
+        { "id": "area", "type": "area", "name": "Area", "x": 310, "y": 250, "width": 250, "height": 90, "content": "Layout area", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#14532d", "backgroundColor": "#f0fdf4", "borderColor": "#16a34a", "borderWidth": 1, "padding": 8 } },
+        { "id": "note", "type": "note", "name": "Note", "x": 28, "y": 375, "width": 250, "height": 120, "noteTitle": "Review note", "noteBody": "Verify values before publishing this document.", "noteAuthor": "PXA QA", "noteCollapsed": false, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#713f12", "backgroundColor": "#fef9c3", "borderColor": "#eab308", "borderWidth": 1 } },
+        { "id": "pageboundary", "type": "pageboundary", "name": "Page Boundary", "x": 310, "y": 390, "width": 250, "height": 32, "pageBoundaryMode": "end", "style": { "color": "#64748b", "borderColor": "#64748b", "borderWidth": 1 } },
+        { "id": "link", "type": "link", "name": "Link", "x": 310, "y": 455, "width": 250, "height": 32, "content": "Open PXA documentation", "href": "https://example.invalid/docs", "linkTarget": "_blank", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#1d4ed8", "textDecoration": "underline" } },
+        { "id": "toc", "type": "toc", "name": "Table of Contents", "x": 28, "y": 535, "width": 532, "height": 220, "tocTitle": "Contents", "tocShowPageNumbers": true, "tocShowLeaderDots": true, "tocMinLevel": 1, "tocMaxLevel": 3, "tocEntries": [{ "text": "Introduction", "level": 1, "page": 1 }, { "text": "Visual elements", "level": 2, "page": 2 }, { "text": "Appendix", "level": 1, "page": 4 }], "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155", "borderColor": "#cbd5e1", "borderWidth": 1, "padding": 10 } }
+      ]
+    },
+    {
+      "id": "annotations-and-navigation",
+      "elements": [
+        { "id": "bookmark", "type": "bookmark", "name": "Bookmark", "x": 28, "y": 28, "width": 250, "height": 52, "content": "Executive summary", "bookmarkName": "executive-summary", "bookmarkTarget": "page-1", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#334155", "backgroundColor": "#eef2ff", "borderColor": "#6366f1", "borderWidth": 1 } },
+        { "id": "footnote", "type": "footnote", "name": "Footnote", "x": 310, "y": 28, "width": 250, "height": 70, "content": "1", "footnoteRef": "1", "footnoteText": "Footnote text with a deterministic reference.", "style": { "fontFamily": "Arial", "fontSize": 9, "color": "#475569" } },
+        { "id": "endnote", "type": "endnote", "name": "Endnote", "x": 28, "y": 125, "width": 250, "height": 70, "content": "A", "footnoteRef": "A", "footnoteText": "Endnote text at the end of the document.", "style": { "fontFamily": "Arial", "fontSize": 9, "color": "#475569" } },
+        { "id": "comment", "type": "comment", "name": "Comment", "x": 310, "y": 125, "width": 250, "height": 100, "content": "Commented content", "commentAuthor": "PXA Reviewer", "commentDate": "2026-08-21T10:00:00Z", "commentText": "This is synthetic test data.", "commentId": "comment-1", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#7c2d12", "backgroundColor": "#fff7ed", "borderColor": "#fb923c", "borderWidth": 1 } }
+      ]
+    }
+  ]
+}

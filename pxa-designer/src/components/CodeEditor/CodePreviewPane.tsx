@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import LivePreview from '@/components/Preview/LivePreview';
 import type { Page, SimpleElement, Template, PageSettings } from '@/types';
+import { normalizePageSettings } from '@/store';
 
 export interface ParsedDesign {
   id?: string;
   name?: string;
   category?: string;
   description?: string;
-  pages: { id: string; elements: SimpleElement[] }[];
+  pages: Page[];
   sharedElements?: SimpleElement[];
   pageSettings?: Partial<PageSettings> & { width?: number; height?: number };
 }
@@ -32,44 +33,14 @@ interface Props {
   convertError: string | null;
 }
 
-const DEFAULT_PAGE_SETTINGS: PageSettings = {
-  width: 595,
-  height: 842,
-  orientation: 'portrait',
-  backgroundColor: '#ffffff',
-  backgroundImage: '',
-  backgroundImageFit: 'contain',
-  margins: { top: 0, right: 0, bottom: 0, left: 0 },
-  headerEnabled: false,
-  headerHeight: 60,
-  headerFirstPageDifferent: false,
-  headerOddEvenDifferent: false,
-  footerEnabled: false,
-  footerHeight: 40,
-  footerFirstPageDifferent: false,
-  footerOddEvenDifferent: false,
-  bleedSize: 0,
-  gridVisible: false,
-  snapToGrid: false,
-  gridSize: 10,
-  unit: 'pt',
-  showMarginGuide: false,
-  showSafeArea: false,
-  cropMarks: false,
-  pageNumbering: { enabled: false, format: 'current', startNumber: 1, prefix: '', suffix: '', placement: 'bottom-center', showOnFirstPage: true },
-  globalWatermark: { enabled: false, mode: 'text', content: '', opacity: 0.3, rotation: 45, scale: 1, pageScope: 'all', pageRange: '', color: '#d1d5db', fontSize: 48 },
-  metadata: { title: '', author: '', subject: '', keywords: '' },
-  exportDefaults: { quality: 'screen', embedFonts: true, compressImages: true, accessibilityTagged: false },
-  pagination: { autoBreaks: false, repeatTableHeader: false, keepWithNext: false, sectionStartBehavior: 'continue', orphanLines: 2, widowLines: 2 },
-};
-
 export default function CodePreviewPane({ raw, language, validation, parsed, pdfBlobUrl, onExport, isExporting, isConverting, convertError }: Props) {
   const { t } = useTranslation('codeEditor');
   const pages: Page[] = useMemo(
     () =>
       (parsed?.pages ?? []).map(p => ({
-        id: p.id,
+        ...p,
         elements: (p.elements ?? []) as SimpleElement[],
+        layout: p.layout ? { ...p.layout, margins: p.layout.margins ? { ...p.layout.margins } : undefined } : undefined,
       })),
     [parsed],
   );
@@ -79,17 +50,10 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
     [parsed],
   );
 
-  const pageSettings: PageSettings = useMemo(() => {
-    const ps = parsed?.pageSettings ?? {};
-    return {
-      ...DEFAULT_PAGE_SETTINGS,
-      width:  ps.width  ?? DEFAULT_PAGE_SETTINGS.width,
-      height: ps.height ?? DEFAULT_PAGE_SETTINGS.height,
-      orientation: (ps.orientation ?? DEFAULT_PAGE_SETTINGS.orientation) as 'portrait' | 'landscape',
-      backgroundColor: (ps as any).backgroundColor ?? DEFAULT_PAGE_SETTINGS.backgroundColor,
-      margins: (ps as any).margins ?? DEFAULT_PAGE_SETTINGS.margins,
-    };
-  }, [parsed]);
+  const pageSettings: PageSettings = useMemo(
+    () => normalizePageSettings(parsed?.pageSettings),
+    [parsed],
+  );
 
   const template: Template = useMemo(
     () => ({

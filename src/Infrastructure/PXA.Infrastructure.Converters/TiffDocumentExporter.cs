@@ -1,5 +1,6 @@
 using PXA.Core.Abstractions;
 using PXA.Core.Contracts;
+using PXA.Core.Primitives;
 using SkiaSharp;
 
 namespace PXA.Infrastructure.Converters;
@@ -51,8 +52,9 @@ public sealed class TiffDocumentExporter : DocumentExporter
     private static byte[] RenderPageAsTiff(
         PageDto page, List<ElementDto> shared, PageSettingsDto ps, float scale)
     {
-        int bmpW = (int)(ps.Width  * scale);
-        int bmpH = (int)(ps.Height * scale);
+        var layout = PageLayoutResolver.Resolve(ps, page.Layout);
+        int bmpW = (int)((layout.Width ?? PageLayoutResolver.DefaultWidth) * scale);
+        int bmpH = (int)((layout.Height ?? PageLayoutResolver.DefaultHeight) * scale);
 
         // Render through the shared image pipeline so TIFF has full element fidelity
         // (wrapped text, rich text, tables, images, borders, …). SkiaSharp has no native

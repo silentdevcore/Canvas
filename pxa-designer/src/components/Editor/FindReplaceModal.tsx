@@ -31,7 +31,7 @@ const FindReplaceModal: React.FC<Props> = ({
   const buildDesign = () => ({
     id: template.id,
     name: template.name,
-    pages: pages.map(p => ({ id: p.id, elements: p.elements })),
+    pages: pages.map(p => ({ id: p.id, elements: p.elements, layout: p.layout })),
     sharedElements,
     pageSettings: pageSettings ?? {},
   });

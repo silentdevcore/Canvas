@@ -92,7 +92,8 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
         </header>
       )}
       <div style={{ flex: '1 1 auto', minHeight: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}
+          initialDimension={{ width: 1, height: 1 }}>
           {isCircular ? (
             <PieChart>
               <Pie

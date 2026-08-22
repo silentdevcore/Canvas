@@ -237,7 +237,7 @@ public sealed class CodeWorkspaceConversionTests
             {
               "id":"roundtrip","name":"Roundtrip","vendorDocumentFlag":true,
               "pageSettings":{"width":612,"height":792,"activeLanguages":["en","ar"],"targetLanguage":"ar","encryption":{"enabled":true,"algorithm":"Aes128","permissions":{"print":true,"copy":false}}},
-              "pages":[{"id":"page-1","elements":[
+              "pages":[{"id":"page-1","layout":{"width":792,"height":612,"orientation":"landscape","backgroundColor":"#f8fafc","margins":{"top":20,"right":21,"bottom":22,"left":23},"bleedSize":6},"elements":[
                 {"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong></p>","language":"ar","textDirection":"rtl","binding":"customer.name","vendorElementValue":"kept"},
                 {"id":"table-1","type":"table","x":10,"y":120,"width":300,"height":100,"cellData":[["A","B"],["1","2"]],"columnWidths":[120,180]},
                 {"id":"chart-1","type":"chart","x":10,"y":240,"width":300,"height":180,"chartType":"bar","chartData":{"labels":["A","B"],"values":[3,7]}}
@@ -301,6 +301,16 @@ public sealed class CodeWorkspaceConversionTests
             foreach (var property in type.GetProperties().Where(value => value.CanRead && value.CanWrite))
                 Assert.Contains($"{property.Name} =", source);
         }
+    }
+
+    [Fact]
+    public void ModelWriter_PreservesNullableNumericCollectionTypes()
+    {
+        var source = new CSharpDesignSourceWriter().WriteContractObject(
+            new List<double?> { 1, null, -2.5 });
+
+        Assert.Contains("new List<Double?>", source);
+        Assert.Contains("null", source);
     }
 
     [Fact]

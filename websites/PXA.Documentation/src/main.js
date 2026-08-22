@@ -23,9 +23,19 @@ const editorSections = [
     text: 'Understand pages, shared elements, bindings, repeats, and template structure before connecting data.',
   },
   {
+    title: 'Page Layout',
+    status: 'Ready',
+    text: 'Mix portrait, landscape, and custom page sizes while keeping Canvas, Preview, PDF, image, Word, ODT, and HTML output aligned.',
+  },
+  {
     title: 'Elements',
     status: 'Preview',
     text: 'Use text, tables, charts, images, forms, shapes, and layout primitives consistently across templates.',
+  },
+  {
+    title: 'Element Library',
+    status: 'Ready',
+    text: 'Find elements, synchronize personal favorites, and insert reusable blocks or complete page kits.',
   },
   {
     title: 'Localization',
@@ -97,6 +107,68 @@ const editorDocs = [
     ],
   },
   {
+    title: 'Page Layout',
+    status: 'Ready',
+    purpose:
+      'Configure the physical layout of each page independently. Document defaults remain available for legacy pages, while explicit overrides support mixed orientation, custom dimensions, margins, backgrounds, and bleed in one document.',
+    whenToUse: [
+      'A report combines portrait detail pages with a landscape summary table.',
+      'A cover or certificate requires a custom size or background.',
+      'Imported PDF, DOCX, or ODT pages expose different physical layouts.',
+    ],
+    concepts: ['Document default', 'This page override', 'Effective layout', 'Mixed orientation', 'Bleed and trim box', 'Overflow diagnostics'],
+    tasks: ['Change the active page layout', 'Apply one layout to every page', 'Reset an override', 'Duplicate or add a page with inherited geometry', 'Review clipping warnings', 'Export mixed layouts'],
+    related: [
+      { label: 'Templates', href: '#templates-details' },
+      { label: 'Export', href: '#export-details' },
+      { label: 'Open designer', href: siteLinks.designer },
+    ],
+    image: {
+      src: '/images/designer/mixed-page-layout.png',
+      alt: 'PXA Designer preview showing portrait, landscape, and custom-sized pages in one document',
+      caption: 'Each page uses its own effective dimensions, orientation, margins, background, and bleed settings.',
+    },
+    examples: [
+      {
+        title: 'Portrait, landscape, and custom pages',
+        json: `{
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "margins": { "top": 36, "right": 36, "bottom": 36, "left": 36 }
+  },
+  "pages": [
+    { "id": "portrait", "elements": [] },
+    { "id": "landscape", "layout": { "width": 842, "height": 595, "orientation": "landscape" }, "elements": [] },
+    {
+      "id": "custom",
+      "layout": {
+        "width": 420,
+        "height": 420,
+        "orientation": "portrait",
+        "backgroundColor": "#f8fafc",
+        "margins": { "top": 24, "right": 30, "bottom": 24, "left": 30 },
+        "bleedSize": 9
+      },
+      "elements": []
+    }
+  ]
+}`,
+        note: 'Pages without layout inherit pageSettings. Width and height are canonical; orientation normalizes contradictory dimensions.',
+      },
+      {
+        title: 'Designer workflow',
+        json: `1. Select the page in the page strip.
+2. Open Page Settings and edit Paper, Background, Margins, or Bleed.
+3. Review the Override badge and any clipping warning.
+4. Choose Apply to all pages to make this the document default, or Reset to document default to remove only this page override.
+5. Preview and export; each page keeps its effective physical dimensions.`,
+        note: 'Changing page geometry never scales or moves existing elements automatically. This makes clipping explicit and reversible.',
+      },
+    ],
+  },
+  {
     title: 'Elements',
     status: 'Preview',
     purpose:
@@ -114,6 +186,24 @@ const editorDocs = [
       { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Report migration guide', href: '#report-designer-migration' },
+    ],
+  },
+  {
+    title: 'Element Library',
+    status: 'Ready',
+    purpose:
+      'Use the Designer sidebar to find individual elements, keep personal favorites, and insert reusable content without rebuilding common document sections.',
+    whenToUse: [
+      'You repeatedly use the same text, field, table, chart, or layout elements.',
+      'You want a prepared invoice, book, certificate, presentation, report, or form section.',
+      'You need to add complete pages while preserving undo, autosave, bindings, localization, and RTL settings.',
+    ],
+    concepts: ['Elements mode', 'Content mode', 'Personal favorites', 'Blocks', 'Page kits', 'Safe insertion'],
+    tasks: ['Search the element catalog', 'Add or remove favorites', 'Preview and insert a block', 'Insert a complete page kit', 'Review scaling warnings'],
+    related: [
+      { label: 'Element Reference', href: '#element-reference' },
+      { label: 'Templates', href: '#templates-details' },
+      { label: 'Open designer', href: siteLinks.designer },
     ],
   },
   {
@@ -370,12 +460,32 @@ const designerWorkflowSteps = [
 ];
 
 const designerPanelReference = [
-  ['Toolbar', 'Adds elements by group: Text, Form, Visual, Shapes & Layout, and Document-oriented helpers.'],
+  ['Element Library', 'Switches between individual Elements and reusable Content blocks or page kits.'],
   ['Canvas / page surface', 'Shows the active page. Drag, resize, select, and inspect positioned elements.'],
   ['Properties panel', 'Edits geometry, content, style, binding, visibility, language, and element-specific fields.'],
   ['Preview', 'Renders the template output so layout, bindings, and export behavior can be checked.'],
   ['JSON / Export', 'Turns the design into handoff JSON or generated output artifacts.'],
   ['Migration handoff', 'Loads converted report designs so users can correct layout and complete manual follow-ups.'],
+];
+
+const elementLibraryGroups = [
+  ['Favorites', 'Personal shortcuts synchronized across devices and organizations. The original category entry remains available.'],
+  ['Text and Data', 'Text, rich text, numbers, dates, lists, variables, and data-oriented output.'],
+  ['Forms and Input', 'Text fields, text areas, checkboxes, radio buttons, dropdowns, signatures, and form helpers.'],
+  ['Tables and Charts', 'Tables, charts, repeat regions, and structured visual data.'],
+  ['Media and Codes', 'Images, barcodes, QR codes, and media-oriented elements.'],
+  ['Shapes and Layout', 'Lines, arrows, rectangles, shapes, guides, and layout regions.'],
+  ['Document and Navigation', 'Links, bookmarks, comments, table of contents, page numbers, and document helpers.'],
+  ['Word Elements', 'Word-specific elements. This group is shown only when the document mode supports it.'],
+];
+
+const contentLibraryReference = [
+  ['Forms', 'Address, contact, personal, configurable field blocks, and a complete form page.'],
+  ['Invoices', 'Header, customer details, item table, totals, and a complete invoice page.'],
+  ['Books', 'Chapter title, body, bibliography, and a multi-page chapter kit.'],
+  ['Certificates', 'Recipient, award text, signatures, and a complete certificate page.'],
+  ['Presentations', 'Title, content, chart blocks, and a small slide deck.'],
+  ['Reports', 'Report header, KPI, table, chart sections, and multi-page report kits.'],
 ];
 
 const commonElementAttributes = [
@@ -3221,6 +3331,12 @@ function renderExportSdkDocs(items) {
           <div class="pxa-doc-feature-list">
             ${item.points.map((point) => `<span>${point}</span>`).join('')}
           </div>
+          ${item.image
+            ? `<figure class="pxa-doc-screenshot">
+                <img src="${item.image.src}" alt="${item.image.alt}">
+                <figcaption>${item.image.caption}</figcaption>
+              </figure>`
+            : ''}
           ${item.examples
             ? `
               <div class="pxa-export-example-grid">
@@ -3387,6 +3503,7 @@ function renderDetailedDocs(items) {
             `
             : ''}
           ${item.title === 'Designer' ? renderDesignerWorkflow() : ''}
+          ${item.title === 'Element Library' ? renderElementLibraryGuide() : ''}
         </section>
       `,
     )
@@ -3418,6 +3535,96 @@ function renderDesignerWorkflow() {
       <div class="pxa-doc-workflow__panels">
         ${renderMigrationProviderTable(['Designer area', 'What it is used for'], designerPanelReference)}
       </div>
+    </div>
+  `;
+}
+
+function renderElementLibraryGuide() {
+  return `
+    <div class="pxa-element-library-guide" id="element-library-workflow">
+      <section class="pxa-doc-guide-section">
+        <div>
+          <p class="pxa-kicker">Elements mode</p>
+          <h4>Find and favorite individual elements</h4>
+          <ol>
+            <li>Open <strong>Elements</strong> at the top of the left Designer panel.</li>
+            <li>Enter a localized name, description, or keyword in <strong>Search elements</strong>.</li>
+            <li>Expand the required category and click an element to add it to the active page.</li>
+            <li>Select the star beside an element to add or remove it from <strong>Favorites</strong>.</li>
+          </ol>
+          <p>Favorites are personal to your user account, remain in their original categories, and synchronize independently of the active organization. A locally cached copy remains visible during a temporary connection failure.</p>
+        </div>
+        <figure class="pxa-doc-screenshot">
+          <img src="/images/designer/element-library-favorites.png" alt="PXA Designer Elements panel showing search, Favorites, and organized element categories">
+          <figcaption>Elements remain organized by purpose while Favorites provides a fast personal shortcut.</figcaption>
+        </figure>
+      </section>
+
+      <section class="pxa-doc-guide-section">
+        <div>
+          <p class="pxa-kicker">Content mode</p>
+          <h4>Insert reusable blocks and page kits</h4>
+          <ol>
+            <li>Switch from <strong>Elements</strong> to <strong>Content</strong>.</li>
+            <li>Search the library or select Forms, Invoices, Books, Certificates, Presentations, or Reports.</li>
+            <li>Use the eye action to inspect the visual preview and content description.</li>
+            <li>Select <strong>Insert content</strong>, or drag a block to the required canvas position.</li>
+          </ol>
+          <p><strong>Blocks</strong> add multiple elements to the active page. <strong>Page kits</strong> add one or more complete pages immediately after the active page.</p>
+        </div>
+        <figure class="pxa-doc-screenshot">
+          <img src="/images/designer/content-library-preview.png" alt="PXA Designer Content Library preview for an address form block">
+          <figcaption>Preview content before inserting it. Configurable blocks also expose their editable field list here.</figcaption>
+        </figure>
+      </section>
+
+      <section class="pxa-doc-guide-section pxa-doc-guide-section--single">
+        <div>
+          <p class="pxa-kicker">Catalog reference</p>
+          <h4>Element categories</h4>
+          ${renderMigrationProviderTable(['Category', 'Contains'], elementLibraryGroups)}
+        </div>
+        <div>
+          <h4>Content categories</h4>
+          ${renderMigrationProviderTable(['Category', 'Available building blocks'], contentLibraryReference)}
+        </div>
+      </section>
+
+      <section class="pxa-doc-guide-section pxa-doc-guide-section--single">
+        <div>
+          <p class="pxa-kicker">Safe insertion</p>
+          <h4>What the Designer preserves</h4>
+          <ul>
+            <li>Every inserted page and element receives a fresh identifier; internal references are rewritten automatically.</li>
+            <li>Only conflicting form field names are namespaced. Existing non-conflicting field names remain unchanged.</li>
+            <li>Bindings, localization, RTL, styles, assets, and extension data are retained.</li>
+            <li>The complete insertion is one undoable transaction and continues through normal template autosave.</li>
+            <li>Page kits are fitted proportionally to the document page size and centered. A warning identifies scaling or empty margins.</li>
+          </ul>
+          <aside class="pxa-doc-callout pxa-doc-callout--warning">
+            <strong>Before inserting asset-based content</strong>
+            <p>Required images or other assets must be available to the active organization. Validation failures leave the document unchanged.</p>
+          </aside>
+        </div>
+        <div>
+          <h4>Content Library versus Template Gallery</h4>
+          <dl class="pxa-doc-definition-list">
+            <div><dt>Content Library</dt><dd>Adds a block to the current page or inserts pages after the active page. Existing document content remains in place.</dd></div>
+            <div><dt>Template Gallery</dt><dd>Starts or replaces the current design with a complete template. Use it when the gallery template should become the document foundation.</dd></div>
+          </dl>
+          <h4>Troubleshooting</h4>
+          <ul>
+            <li><strong>No Favorites group:</strong> mark at least one currently supported element with the star.</li>
+            <li><strong>Favorite is hidden:</strong> clear search or switch to a document mode that supports the element.</li>
+            <li><strong>Content is incompatible:</strong> choose an entry that supports the active PDF or Word mode.</li>
+            <li><strong>Insert failed:</strong> restore connectivity, verify required assets, and retry; no partial elements are retained.</li>
+          </ul>
+          <aside class="pxa-doc-callout">
+            <strong>Screen size</strong>
+            <p>The current visual Designer requires a desktop or tablet-sized viewport. Mobile phones display the protected Desktop required state.</p>
+          </aside>
+        </div>
+      </section>
     </div>
   `;
 }
@@ -3873,6 +4080,8 @@ document.querySelector('#app').innerHTML = `
                 <div class="pxa-doc-detail__grid">
                   <article><h4>Draft workflow</h4><ol><li>Save the visual template.</li><li>Edit one language without changing the others.</li><li>Validate or run the active draft.</li><li>Convert and review added, changed, and removed elements.</li><li>Apply the canonical result to Designer.</li></ol></article>
                   <article><h4>Four representations</h4><ul><li><strong>JSON:</strong> canonical <code>DesignExportDto</code>.</li><li><strong>C# Model:</strong> editable typed object initializer without hidden JSON.</li><li><strong>C# PDF:</strong> exact <code>PxaPdfCodeBuilder</code> with legacy low-level compatibility.</li><li><strong>FromBase64String:</strong> compact, strictly validated transport source.</li></ul></article>
+                  <article><h4>Preview freshness</h4><p>JSON updates its Preview while you edit. C# Model, C# PDF, and FromBase64String show only the canonical result of the exact source last executed with <strong>Run</strong>. Editing that source invalidates the previous result, so stale generated output is never presented as current.</p></article>
+                  <article><h4>Layout parity</h4><p>The generated-code Preview preserves the same complete document settings and individual page layouts as Designer and backend PDF export, including mixed dimensions, orientation, margins, backgrounds, bleed, localization, RTL, bindings, protection, and extension data.</p></article>
                   <article><h4>Fidelity</h4><p><code>documentFidelity</code> reports the resulting document as exact, compatible, review required, or unsupported. <code>sourcePreservation</code> separately reports preserved, regenerated, or structure lost, so exact output never implies that handwritten code structure survived.</p></article>
                   <article><h4>Sandbox</h4><p>C# runs outside WebApi with a 32 MiB source limit, 10 MiB canonical document limit, 15-second execution limit, and bounded page, element, and output counts. Files, network, processes, environment, reflection, native interop, threads, unsafe code, dynamic dispatch, and package references are blocked.</p></article>
                   <article><h4>Assets and conflicts</h4><p>Use tenant-owned Designer asset IDs, never paths or URLs. Autosave updates only the active draft. HTTP 409 protects both template and workspace revisions from stale writes.</p></article>

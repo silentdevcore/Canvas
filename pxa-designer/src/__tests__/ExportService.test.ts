@@ -25,6 +25,19 @@ const makePage = (elements: SimpleElement[] = []): Page => ({ id: 'page-1', elem
 
 // J: Test save/load round-trip — export payload structure
 describe('convertElementsToTemplate', () => {
+  test('canonical export payload preserves page layout overrides', () => {
+    const pages: Page[] = [
+      makePage(),
+      { id: 'page-2', elements: [], layout: { width: 842, height: 595, orientation: 'landscape', bleedSize: 6 } },
+    ];
+
+    const payload = ExportService.buildDesignPayload(mockTemplate, pages, [], DEFAULT_PAGE_SETTINGS);
+
+    expect(payload.pages[0].layout).toBeNull();
+    expect(payload.pages[1].layout).toMatchObject({ width: 842, height: 595, orientation: 'landscape', bleedSize: 6 });
+    expect(payload.pageSettings.width).toBe(595);
+  });
+
   test('includes template metadata fields', () => {
     const out = ExportService.convertElementsToTemplate([], mockTemplate);
     expect(out.id).toBe('tpl-1');

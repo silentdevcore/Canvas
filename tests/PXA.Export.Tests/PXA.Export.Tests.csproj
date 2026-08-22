@@ -20,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="../../assets/fonts/liberation/*"
+             Link="fonts/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../src/Core/PXA.Application/PXA.Application.csproj" />
     <ProjectReference Include="../../src/Core/PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />

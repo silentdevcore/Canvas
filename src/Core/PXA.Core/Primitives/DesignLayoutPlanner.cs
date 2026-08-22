@@ -5,7 +5,13 @@ using PXA.Core.Contracts;
 
 namespace PXA.Core.Primitives;
 
-public sealed record PlannedPage(string PageId, IReadOnlyList<ElementDto> Elements);
+public sealed record PlannedPage(string PageId, IReadOnlyList<ElementDto> Elements, PageLayoutDto Layout)
+{
+    public PlannedPage(string pageId, IReadOnlyList<ElementDto> elements)
+        : this(pageId, elements, PageLayoutResolver.Resolve(null, null))
+    {
+    }
+}
 
 public static class DesignLayoutPlanner
 {
@@ -22,8 +28,9 @@ public static class DesignLayoutPlanner
             : [new PageDto { Id = "p1", Elements = sharedElements }];
 
         var planned = new List<PlannedPage>(allPages.Count);
-        foreach (var page in allPages)
+        for (var pageIndex = 0; pageIndex < allPages.Count; pageIndex++)
         {
+            var page = allPages[pageIndex];
             var pageElements = page.Elements ?? [];
             var visible = ExpandRepeats(pageElements, design)
                 .Concat(sharedElements.Where(s => !pageElements.Any(e => e.Id == s.Id)))
@@ -34,7 +41,14 @@ public static class DesignLayoutPlanner
                 .ThenBy(e => e.Id, StringComparer.Ordinal)
                 .ToList();
 
-            planned.Add(new PlannedPage(page.Id, visible));
+            var source = $"page:{page.Id}";
+            foreach (var diagnostic in PageLayoutResolver.Validate(design.PageSettings, page.Layout, source))
+            {
+                design.ImportDiagnostics ??= [];
+                if (!design.ImportDiagnostics.Any(existing => existing.Code == diagnostic.Code && existing.Source == source))
+                    design.ImportDiagnostics.Add(diagnostic);
+            }
+            planned.Add(new PlannedPage(page.Id, visible, PageLayoutResolver.Resolve(design.PageSettings, page.Layout)));
         }
 
         return planned;

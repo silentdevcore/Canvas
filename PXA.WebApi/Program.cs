@@ -241,6 +241,15 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0,
         }));
+    options.AddPolicy("designer-symbols", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(PxaClaimTypes.ActiveOrganization)?.Value ??
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 240,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();

@@ -25,6 +25,21 @@ Changing tabs never converts or replaces another draft. Use **Convert**, inspect
 
 Autosave stores only the active language after a two-second pause. A stale workspace or template revision returns HTTP 409 and does not overwrite either side.
 
+## Preview freshness
+
+JSON is parsed into the Preview while it is edited. C# Model, C# PDF, and FromBase64String require
+**Run** because their Preview represents the canonical result produced by the isolated worker. The
+result is bound to the exact language and source text that produced it.
+
+Editing a C# or FromBase64String draft invalidates its previous Preview immediately. Run the changed
+draft again before comparing, applying, or exporting it. A valid C# PDF result remains available when
+switching tabs, but is cleared as soon as its C# PDF source changes or a new execution starts. This
+prevents an older successful result from being presented as the output of newer source code.
+
+The Preview uses the same complete document settings and per-page layouts as the visual Designer and
+backend PDF export. This includes mixed page dimensions and orientations, margins, backgrounds,
+bleed, localization, protection, metadata, bindings, RTL, charts, tables, forms, and extension data.
+
 ## Fidelity and source preservation
 
 | Value | Meaning |

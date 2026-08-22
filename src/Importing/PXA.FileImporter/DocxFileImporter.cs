@@ -21,7 +21,7 @@ public sealed class DocxFileImporter : IFileImporter
     private const double PageHeight = 842;
     private const double MarginX    = 48;
     private const double MarginY    = 48;
-    private const double TwipToPx   = 96.0 / 1440.0; // 1 twip = 1/1440 inch; 96 dpi
+    private const double TwipToPxa  = 72.0 / 1440.0; // PXA page coordinates are PDF points.
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
@@ -32,28 +32,25 @@ public sealed class DocxFileImporter : IFileImporter
         var body = mainPart.Document?.Body
             ?? throw new InvalidDataException("DOCX body is missing.");
 
-        // ── Page size from section properties ─────────────────────────────────
-        double pageW  = PageWidth;
-        double pageH  = PageHeight;
-        double mLeft  = MarginX;
-        double mRight = MarginX;
-        double mTop   = MarginY;
-        double mBot   = MarginY;
-
-        var sectPr = body.Elements<SectionProperties>().LastOrDefault()
-                  ?? mainPart.Document.Body.Descendants<SectionProperties>().LastOrDefault();
-        if (sectPr is not null)
-        {
-            var pgSz  = sectPr.GetFirstChild<PageSize>();
-            var pgMar = sectPr.GetFirstChild<PageMargin>();
-            if (pgSz  is not null) { pageW = (pgSz.Width  ?? 12240) * TwipToPx; pageH = (pgSz.Height ?? 15840) * TwipToPx; }
-            if (pgMar is not null) { mLeft = (pgMar.Left  ?? 1440U) * TwipToPx; mRight = (pgMar.Right ?? 1440U) * TwipToPx;
-                                     mTop  = (pgMar.Top   ?? 1440)  * TwipToPx; mBot   = (pgMar.Bottom ?? 1440) * TwipToPx; }
-        }
-
-        double contentW = pageW - mLeft - mRight;
+        var sectionLayouts = body.Descendants<ParagraphProperties>()
+            .Select(properties => properties.GetFirstChild<SectionProperties>())
+            .Where(properties => properties is not null)
+            .Select(properties => ReadLayout(properties!))
+            .ToList();
+        sectionLayouts.Add(ReadLayout(body.Elements<SectionProperties>().LastOrDefault()));
+        var sectionIndex = 0;
+        var currentLayout = sectionLayouts[sectionIndex];
+        var documentLayout = currentLayout;
+        var pageW = currentLayout.Width!.Value;
+        var pageH = currentLayout.Height!.Value;
+        var mLeft = currentLayout.Margins!.Left;
+        var mRight = currentLayout.Margins.Right;
+        var mTop = currentLayout.Margins.Top;
+        var mBot = currentLayout.Margins.Bottom;
+        var contentW = pageW - mLeft - mRight;
 
         // ── Walk body paragraphs and tables ───────────────────────────────────
+        var pages = new List<PageDto>();
         var elements = new List<ElementDto>();
         double y = mTop;
         int seq = 0;
@@ -73,8 +70,24 @@ public sealed class DocxFileImporter : IFileImporter
             {
                 var els = ParseParagraph(para, mainPart, mLeft, ref y, contentW, pageH, mBot, ref seq);
                 elements.AddRange(els);
+                if (para.ParagraphProperties?.GetFirstChild<SectionProperties>() is not null)
+                {
+                    pages.Add(new PageDto { Id = $"page-{pages.Count + 1}", Layout = currentLayout, Elements = elements });
+                    elements = [];
+                    currentLayout = sectionLayouts[Math.Min(++sectionIndex, sectionLayouts.Count - 1)];
+                    pageW = currentLayout.Width!.Value;
+                    pageH = currentLayout.Height!.Value;
+                    mLeft = currentLayout.Margins!.Left;
+                    mRight = currentLayout.Margins.Right;
+                    mTop = currentLayout.Margins.Top;
+                    mBot = currentLayout.Margins.Bottom;
+                    contentW = pageW - mLeft - mRight;
+                    y = mTop;
+                }
             }
         }
+        if (elements.Count > 0 || pages.Count == 0)
+            pages.Add(new PageDto { Id = $"page-{pages.Count + 1}", Layout = currentLayout, Elements = elements });
 
         // ── Document metadata ─────────────────────────────────────────────────
         var coreProps = doc.PackageProperties;
@@ -84,14 +97,14 @@ public sealed class DocxFileImporter : IFileImporter
         {
             Id    = Guid.NewGuid().ToString("N")[..12],
             Name  = docName,
-            Pages = [new PageDto { Id = "page-1", Elements = elements }],
+            Pages = pages,
             SharedElements = [],
             PageSettings  = new PageSettingsDto
             {
-                Width       = Math.Round(pageW, 1),
-                Height      = Math.Round(pageH, 1),
-                Orientation = pageW > pageH ? "landscape" : "portrait",
-                Margins     = new MarginsDto { Top = Math.Round(mTop,1), Right = Math.Round(mRight,1), Bottom = Math.Round(mBot,1), Left = Math.Round(mLeft,1) },
+                Width       = documentLayout.Width!.Value,
+                Height      = documentLayout.Height!.Value,
+                Orientation = documentLayout.Orientation!,
+                Margins     = documentLayout.Margins,
                 Metadata    = new PdfMetadataDto
                 {
                     Title   = coreProps.Title   ?? "",
@@ -99,6 +112,28 @@ public sealed class DocxFileImporter : IFileImporter
                     Subject = coreProps.Subject  ?? "",
                     Keywords = coreProps.Keywords ?? "",
                 },
+            },
+        };
+    }
+
+    private static PageLayoutDto ReadLayout(SectionProperties? section)
+    {
+        var size = section?.GetFirstChild<PageSize>();
+        var margins = section?.GetFirstChild<PageMargin>();
+        var width = (size?.Width?.Value ?? 11900U) * TwipToPxa;
+        var height = (size?.Height?.Value ?? 16840U) * TwipToPxa;
+        var landscape = size?.Orient?.Value == PageOrientationValues.Landscape || width > height;
+        return new PageLayoutDto
+        {
+            Width = Math.Round(width, 1),
+            Height = Math.Round(height, 1),
+            Orientation = landscape ? "landscape" : "portrait",
+            Margins = new MarginsDto
+            {
+                Left = Math.Round((margins?.Left?.Value ?? 960U) * TwipToPxa, 1),
+                Right = Math.Round((margins?.Right?.Value ?? 960U) * TwipToPxa, 1),
+                Top = Math.Round((margins?.Top?.Value ?? 960) * TwipToPxa, 1),
+                Bottom = Math.Round((margins?.Bottom?.Value ?? 960) * TwipToPxa, 1),
             },
         };
     }
@@ -148,7 +183,7 @@ public sealed class DocxFileImporter : IFileImporter
             if (double.TryParse(spacing.After?.Value,  out var sa)) spaceAfter  = sa;
         }
 
-        y += spaceBefore * TwipToPx;
+        y += spaceBefore * TwipToPxa;
 
         double lineH = fontSize * 1.4 + 2;
         string? styleName = pPr?.ParagraphStyleId?.Val?.Value;
@@ -174,7 +209,7 @@ public sealed class DocxFileImporter : IFileImporter
             },
         });
 
-        y += lineH + spaceAfter * TwipToPx;
+        y += lineH + spaceAfter * TwipToPxa;
         return result;
     }
 

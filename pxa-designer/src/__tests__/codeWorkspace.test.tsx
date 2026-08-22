@@ -6,6 +6,7 @@ import type { ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
 import {
   applyCodeDraft,
   convertCodeDraft,
+  executeCodeDraft,
   getCodeWorkspace,
   saveCodeDraft,
 } from '@/services/codeWorkspaceApi';
@@ -29,8 +30,8 @@ jest.mock('@/components/CodeEditor/JsonEditorPane', () => ({
 
 jest.mock('@/components/CodeEditor/CodePreviewPane', () => ({
   __esModule: true,
-  default: ({ parsed }: { parsed: { name?: string } | null }) => (
-    <output data-testid="preview">{parsed?.name ?? 'empty'}</output>
+  default: ({ parsed, pdfBlobUrl }: { parsed: { name?: string } | null; pdfBlobUrl?: string | null }) => (
+    <output data-testid="preview">{pdfBlobUrl ? 'pdf-ready' : parsed?.name ?? 'empty'}</output>
   ),
 }));
 
@@ -83,6 +84,7 @@ const getMock = getCodeWorkspace as jest.MockedFunction<typeof getCodeWorkspace>
 const saveMock = saveCodeDraft as jest.MockedFunction<typeof saveCodeDraft>;
 const convertMock = convertCodeDraft as jest.MockedFunction<typeof convertCodeDraft>;
 const applyMock = applyCodeDraft as jest.MockedFunction<typeof applyCodeDraft>;
+const executeMock = executeCodeDraft as jest.MockedFunction<typeof executeCodeDraft>;
 const roots: Root[] = [];
 
 async function flush(): Promise<void> {
@@ -207,6 +209,61 @@ describe('Code workspace', () => {
     expect(container.textContent).toContain('lang.csharpDto');
     expect(container.textContent).toContain('lang.csharpCode');
     expect(container.textContent).toContain('lang.csharpBase64');
+  });
+
+  test('shows generated-code preview only for the exact source that produced it', async () => {
+    getMock.mockResolvedValue({
+      ...workspace(),
+      cSharpModel: { source: 'return ExistingModel();', checksum: 'model-checksum' },
+    });
+    executeMock.mockResolvedValue({
+      success: true,
+      canonicalDesign: changedDesign,
+      diagnostics: [],
+      sourceMap: [],
+      fidelity: 'exact',
+    });
+    const { container } = await renderWorkspace();
+
+    act(() => button(container, 'lang.csharpDto').click());
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('empty');
+
+    await act(async () => button(container, 'actions.run').click());
+    await flush();
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('Changed');
+
+    act(() => button(container, 'edit draft').click());
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('empty');
+  });
+
+  test('keeps a generated PDF across tab switches and invalidates it after editing its source', async () => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: jest.fn(() => 'blob:pxa-code') });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: jest.fn() });
+    getMock.mockResolvedValue({
+      ...workspace(),
+      cSharpPdf: { source: 'return ExistingPdf();', checksum: 'pdf-checksum' },
+    });
+    executeMock.mockResolvedValue({
+      success: true,
+      canonicalDesign: changedDesign,
+      pdfBytes: btoa('%PDF-1.7'),
+      diagnostics: [],
+      sourceMap: [],
+      fidelity: 'exact',
+    });
+    const { container } = await renderWorkspace();
+
+    act(() => button(container, 'lang.csharpCode').click());
+    await act(async () => button(container, 'actions.run').click());
+    await flush();
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('pdf-ready');
+
+    act(() => button(container, 'lang.json').click());
+    act(() => button(container, 'lang.csharpCode').click());
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('pdf-ready');
+
+    act(() => button(container, 'edit draft').click());
+    expect(container.querySelector('[data-testid="preview"]')?.textContent).toBe('empty');
   });
 
   test('shows a conflict when another workspace revision wins', async () => {

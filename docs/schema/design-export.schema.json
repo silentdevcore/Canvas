@@ -29,7 +29,31 @@
       "required": ["id", "elements"],
       "properties": {
         "id": { "type": "string" },
+        "layout": { "$ref": "#/$defs/pageLayout" },
         "elements": { "type": "array", "items": { "$ref": "#/$defs/element" } }
+      },
+      "additionalProperties": true
+    },
+    "pageLayout": {
+      "type": "object",
+      "description": "Optional physical layout override for one page. Omitted values inherit from pageSettings.",
+      "properties": {
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "orientation": { "type": "string", "enum": ["portrait", "landscape"] },
+        "backgroundColor": { "type": "string" },
+        "backgroundImage": { "type": ["string", "null"] },
+        "backgroundImageFit": { "type": "string", "enum": ["cover", "contain", "fill", "tile"] },
+        "margins": {
+          "type": "object",
+          "properties": {
+            "top": { "type": "number", "minimum": 0 },
+            "right": { "type": "number", "minimum": 0 },
+            "bottom": { "type": "number", "minimum": 0 },
+            "left": { "type": "number", "minimum": 0 }
+          }
+        },
+        "bleedSize": { "type": "number", "minimum": 0 }
       },
       "additionalProperties": true
     },
@@ -41,7 +65,8 @@
         "height": { "type": "number", "description": "Page height in points (842 = A4)." },
         "orientation": { "type": "string", "enum": ["portrait", "landscape"] },
         "unit": { "type": "string", "enum": ["px", "pt", "mm", "cm", "in"] },
-        "backgroundColor": { "type": "string" }
+        "backgroundColor": { "type": "string" },
+        "bleedSize": { "type": "number", "minimum": 0 }
       },
       "additionalProperties": true
     },

@@ -146,8 +146,8 @@ internal sealed class PdfWriter
                 $"/FontBBox [0 -200 1000 800] /ItalicAngle 0 /Ascent 800 /Descent -200 " +
                 $"/CapHeight 700 /StemV 80 /FontFile2 {ids.FontStreamId} 0 R >>\n"));
 
-            // 3. ToUnicode CMap stream (maps CID = Unicode code point back to Unicode for text extraction)
-            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(usedCodePoints));
+            // 3. ToUnicode CMap stream (maps TrueType glyph-ID CIDs back to Unicode for text extraction)
+            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(ef, usedCodePoints));
             objects.Add(new PdfIndirectObject(ids.ToUnicodeId, BuildContentStreamObject(cMapBytes, compressed: false)));
 
             // 4. CIDFont with /W widths array
@@ -1541,8 +1541,15 @@ internal sealed class PdfWriter
         return memory.ToArray();
     }
 
-    private static string BuildToUnicodeCMap(IReadOnlyList<int> codePoints)
+    private static string BuildToUnicodeCMap(PdfEmbeddedFont font, IReadOnlyList<int> codePoints)
     {
+        var mappings = codePoints
+            .Select(codePoint => (CodePoint: codePoint, GlyphId: font.GetGlyphId(codePoint)))
+            .Where(static mapping => mapping.GlyphId != 0)
+            .GroupBy(static mapping => mapping.GlyphId)
+            .Select(static group => group.First())
+            .OrderBy(static mapping => mapping.GlyphId)
+            .ToList();
         var sb = new StringBuilder();
         sb.AppendLine("/CIDInit /ProcSet findresource begin");
         sb.AppendLine("12 dict begin");
@@ -1555,14 +1562,17 @@ internal sealed class PdfWriter
         sb.AppendLine("endcodespacerange");
 
         const int chunkSize = 100;
-        for (var i = 0; i < codePoints.Count; i += chunkSize)
+        for (var i = 0; i < mappings.Count; i += chunkSize)
         {
-            var chunk = codePoints.Skip(i).Take(chunkSize).ToList();
+            var chunk = mappings.Skip(i).Take(chunkSize).ToList();
             sb.AppendLine($"{chunk.Count} beginbfchar");
-            foreach (var cp in chunk)
+            foreach (var mapping in chunk)
             {
-                var cidHex = cp.ToString("X4", CultureInfo.InvariantCulture);
-                var unicodeHex = cp.ToString("X4", CultureInfo.InvariantCulture);
+                var cidHex = mapping.GlyphId.ToString("X4", CultureInfo.InvariantCulture);
+                var unicodeHex = mapping.CodePoint <= 0xFFFF
+                    ? mapping.CodePoint.ToString("X4", CultureInfo.InvariantCulture)
+                    : string.Concat(char.ConvertFromUtf32(mapping.CodePoint)
+                        .Select(character => ((int)character).ToString("X4", CultureInfo.InvariantCulture)));
                 sb.AppendLine($"<{cidHex}> <{unicodeHex}>");
             }
             sb.AppendLine("endbfchar");
@@ -1580,10 +1590,11 @@ internal sealed class PdfWriter
         if (codePoints.Count == 0) return "[]";
 
         var sb = new StringBuilder("[");
-        foreach (var cp in codePoints)
+        foreach (var glyphId in codePoints.Select(font.GetGlyphId).Where(static glyphId => glyphId != 0).Distinct().Order())
         {
-            var w = font.GetPdfAdvanceWidth(cp);
-            sb.Append(CultureInfo.InvariantCulture, $"{cp} [{w}] ");
+            var advance = font.GetGlyphAdvance(glyphId);
+            var width = font.UnitsPerEm == 0 ? 500 : (int)Math.Round(advance / font.UnitsPerEm * 1000);
+            sb.Append(CultureInfo.InvariantCulture, $"{glyphId} [{width}] ");
         }
         sb.Append(']');
         return sb.ToString();

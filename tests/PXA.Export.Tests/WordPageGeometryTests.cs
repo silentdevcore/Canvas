@@ -9,6 +9,30 @@ namespace PXA.Export.Tests;
 public sealed class WordPageGeometryTests
 {
     [Fact]
+    public void Word_Export_CreatesASectionForEveryPageLayout()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "mixed",
+            Name = "Mixed",
+            PageSettings = new PageSettingsDto { Width = 595, Height = 842, Orientation = "portrait" },
+            Pages =
+            [
+                new PageDto { Id = "p1" },
+                new PageDto { Id = "p2", Layout = new PageLayoutDto { Width = 842, Height = 595, Orientation = "landscape" } },
+            ],
+        };
+
+        using var stream = new MemoryStream(new WordDocumentExporter().Export(design));
+        using var document = WordprocessingDocument.Open(stream, false);
+        var sections = document.MainDocumentPart!.Document.Body!.Descendants<SectionProperties>().ToArray();
+
+        Assert.Equal(2, sections.Length);
+        Assert.Equal(PageOrientationValues.Portrait, sections[0].GetFirstChild<PageSize>()!.Orient!.Value);
+        Assert.Equal(PageOrientationValues.Landscape, sections[1].GetFirstChild<PageSize>()!.Orient!.Value);
+    }
+
+    [Fact]
     public void Word_Export_SetsSectionPageSizeAndMargins_FromPageSettings()
     {
         var design = new DesignExportDto

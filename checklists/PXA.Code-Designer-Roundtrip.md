@@ -135,3 +135,28 @@ isolated, tenant-aware PXA sandbox.
 - [x] Reconcile the Admin mutation contract count and run the complete .NET suite in addition to
   focused .NET, Designer tests, type-check, production build, and authenticated desktop/mobile
   smoke tests.
+
+## V3 - Generated Code Viewer Parity
+
+### Viewer contract
+
+- [x] Preserve complete page objects, including per-page physical layout, when canonical generated
+  code results are adapted for Live Preview.
+- [x] Normalize every document Page Settings field through the same defaults used by the visual
+  Designer instead of maintaining a partial Preview-only settings model.
+- [x] Bind every non-JSON Preview result to its exact language and source text.
+- [x] Invalidate stale C# Model, C# PDF, and FromBase64String Preview output after a manual edit.
+- [x] Keep generated conversion output previewable before execution only when its canonical result
+  and generated source were returned atomically by the same conversion.
+- [x] Preserve a valid C# PDF result while switching tabs and clear it only when its source changes
+  or a new execution starts.
+
+### Audit and validation
+
+- [x] Test all four generated representations against the same canonical page layouts and document
+  settings used by Canvas and normal backend PDF export.
+- [x] Add UI regression coverage proving stale generated-code results are never shown as current.
+- [x] Re-run all twelve backend conversion directions, the generated PDF parity fixture, Designer
+  tests, type-check, and production build.
+- [x] Document Preview freshness, re-execution behavior, and complete page-layout preservation in
+  the Code Designer guide and public Documentation page.

@@ -358,6 +358,108 @@
   color: var(--pxa-color-ink);
 }
 
+.pxa-element-library-guide {
+  display: grid;
+  gap: var(--pxa-space-8);
+  padding-top: var(--pxa-space-6);
+  border-top: 1px solid var(--pxa-color-border);
+}
+
+.pxa-doc-guide-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  gap: var(--pxa-space-6);
+  align-items: start;
+}
+
+.pxa-doc-guide-section--single {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: var(--pxa-space-6);
+  border-top: 1px solid var(--pxa-color-border);
+}
+
+.pxa-doc-guide-section h4,
+.pxa-doc-guide-section p,
+.pxa-doc-guide-section ol,
+.pxa-doc-guide-section ul,
+.pxa-doc-screenshot,
+.pxa-doc-definition-list {
+  margin: 0;
+}
+
+.pxa-doc-guide-section > div {
+  display: grid;
+  gap: var(--pxa-space-4);
+}
+
+.pxa-doc-guide-section ol,
+.pxa-doc-guide-section ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  padding-inline-start: var(--pxa-space-5);
+  color: var(--pxa-color-muted);
+}
+
+.pxa-doc-screenshot {
+  overflow: hidden;
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-sm);
+  background: #ffffff;
+}
+
+.pxa-doc-screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pxa-doc-screenshot figcaption {
+  padding: var(--pxa-space-3) var(--pxa-space-4);
+  color: var(--pxa-color-muted);
+  border-top: 1px solid var(--pxa-color-border);
+  font-size: var(--pxa-text-xs);
+}
+
+.pxa-doc-callout {
+  display: grid;
+  gap: var(--pxa-space-2);
+  padding: var(--pxa-space-4);
+  border-inline-start: 4px solid var(--pxa-color-brand-600);
+  background: #f8fafc;
+}
+
+.pxa-doc-callout--warning {
+  border-inline-start-color: #b45309;
+  background: #fffbeb;
+}
+
+.pxa-doc-definition-list {
+  display: grid;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-doc-definition-list div {
+  display: grid;
+  gap: var(--pxa-space-1);
+}
+
+.pxa-doc-definition-list dt {
+  color: var(--pxa-color-ink);
+  font-weight: 850;
+}
+
+.pxa-doc-definition-list dd {
+  margin: 0;
+  color: var(--pxa-color-muted);
+}
+
+@media (max-width: 900px) {
+  .pxa-doc-guide-section,
+  .pxa-doc-guide-section--single {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pxa-code-sdk-example h4 {
   margin: 0;
 }

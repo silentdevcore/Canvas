@@ -487,6 +487,14 @@
     }
   },
   "toolGroups": {
+    "favorites": "Favoriten",
+    "textData": "Text und Daten",
+    "formsInput": "Formulare und Eingaben",
+    "tablesCharts": "Tabellen und Diagramme",
+    "mediaCodes": "Medien und Codes",
+    "shapesLayout": "Formen und Layout",
+    "documentNavigation": "Dokument und Navigation",
+    "wordElements": "Word-Elemente",
     "text": "Textelemente",
     "form": "Formularelemente",
     "visual": "Visuelle Elemente",
@@ -637,10 +645,39 @@
   },
   "toolPanel": {
     "addElements": "Elemente hinzufügen",
+    "libraryMode": "Modus der Designer-Bibliothek",
+    "elements": "Elemente",
+    "content": "Inhalte",
+    "searchElements": "Elemente suchen",
+    "addFavorite": "Zu Favoriten hinzufügen",
+    "removeFavorite": "Aus Favoriten entfernen",
+    "favoriteSaveFailed": "Favoriten konnten nicht gespeichert werden. Die vorherige Auswahl wurde wiederhergestellt.",
+    "noElements": "Keine passenden Elemente",
+    "loadingFavorites": "Favoriten werden geladen…",
+    "offlineFavorites": "Offline: Die zuletzt gespeicherten Favoriten werden angezeigt.",
     "wordOnlyWarning": "Einige Elemente auf der Zeichenfläche sind nur für Word und werden im PDF-Export nicht dargestellt.",
     "insertFormBlockTitle": "Eine vorgefertigte Gruppe von Formularfeldern einfügen (Adresse, Kontakt usw.)",
     "insertFormBlock": "Formularblock einfügen",
     "layers": "Ebenen"
+  },
+  "contentLibrary": {
+    "search": "Wiederverwendbare Inhalte suchen", "categoriesLabel": "Inhaltskategorien",
+    "categories": { "all": "Alle", "forms": "Formulare", "invoices": "Rechnungen", "books": "Bücher", "certificates": "Zertifikate", "presentations": "Präsentationen", "reports": "Berichte" },
+    "kinds": { "block": "Block", "pageKit": "Seitenvorlage" }, "preview": "Inhalt ansehen", "insert": "Inhalt einfügen", "close": "Vorschau schließen", "cancel": "Abbrechen", "empty": "Keine passenden Inhalte", "inserted": "Inhalt eingefügt", "insertFailed": "Der Inhalt konnte nicht eingefügt werden.", "scaled": "Die Seitenvorlage wurde mit {{percent}} % an dieses Dokument angepasst.", "scalingNote": "Diese Seitenvorlage wird proportional an die aktuelle Dokumentgröße angepasst.", "fieldLabels": "Feldbezeichnungen", "fieldNumber": "Feld {{number}}", "removeField": "Feld entfernen", "addField": "Feld hinzufügen", "newField": "Feld {{number}}",
+    "items": {
+      "address": { "title": "Adressblock" }, "contact": { "title": "Kontaktblock" }, "personal": { "title": "Persönliche Angaben" }, "customFields": { "title": "Eigene Formularfelder" }, "formPage": { "title": "Vollständiges Formular" },
+      "invoiceHeader": { "title": "Rechnungskopf" }, "customerDetails": { "title": "Kundendaten" }, "invoiceItems": { "title": "Rechnungspositionen" }, "invoiceTotals": { "title": "Rechnungssummen" }, "invoicePage": { "title": "Vollständige Rechnung" },
+      "chapterHeading": { "title": "Kapitelüberschrift" }, "bodySection": { "title": "Textabschnitt" }, "bibliographyPage": { "title": "Literaturverzeichnis" }, "bookKit": { "title": "Mehrseitiges Buch" },
+      "certificateRecipient": { "title": "Zertifikatsempfänger" }, "signatureRow": { "title": "Unterschriftenzeile" }, "certificatePage": { "title": "Vollständiges Zertifikat" },
+      "titleSlide": { "title": "Titelfolie" }, "contentSlideBlock": { "title": "Inhaltsfolie" }, "chartSlideBlock": { "title": "Diagrammfolie" }, "slideDeck": { "title": "Präsentationssatz" },
+      "reportHeader": { "title": "Berichtskopf" }, "kpiSection": { "title": "KPI-Bereich" }, "reportChart": { "title": "Berichtsdiagramm" }, "reportPage": { "title": "Vollständiger KPI-Bericht" }, "reportKit": { "title": "Mehrseitiger Bericht" },
+      "addressDescription": "Felder für Name und Postanschrift.", "contactDescription": "Felder für Telefon, E-Mail und Website.", "personalDescription": "Häufige Felder für persönliche Angaben.", "customFieldsDescription": "Eine eigene Feldliste konfigurieren und einfügen.", "formPageDescription": "Eine vollständige Seite für Bewerbungsformulare.",
+      "invoiceHeaderDescription": "Rechnungstitel, Nummer und Datum.", "customerDetailsDescription": "Rechnungsempfänger und Anschrift.", "invoiceItemsDescription": "Bearbeitbare Tabelle für Rechnungspositionen.", "invoiceTotalsDescription": "Zusammenfassung von Zwischensumme, Steuer und Gesamtbetrag.", "invoicePageDescription": "Eine vollständige professionelle Rechnungsseite.",
+      "chapterHeadingDescription": "Gestaltung für Kapitelnummer und Titel.", "bodySectionDescription": "Rich-Text-Bereich für längere Inhalte.", "bibliographyPageDescription": "Eine formatierte Seite für Quellenangaben.", "bookKitDescription": "Eine vollständige Buchstruktur mit zehn Seiten.",
+      "certificateRecipientDescription": "Name des Empfängers und Auszeichnungstext.", "signatureRowDescription": "Zwei Bereiche für bestätigende Unterschriften.", "certificatePageDescription": "Eine vollständige Seite für ein Kurszertifikat.",
+      "titleSlideDescription": "Seite für Präsentationstitel und Untertitel.", "contentSlideBlockDescription": "Folientitel und zentrale Punkte.", "chartSlideBlockDescription": "Folientitel und bearbeitbares Diagramm.", "slideDeckDescription": "Ein wiederverwendbarer Präsentationssatz.",
+      "reportHeaderDescription": "Berichtstitel und Berichtszeitraum.", "kpiSectionDescription": "Drei gebundene Leistungskennzahlen.", "reportChartDescription": "Bearbeitbares Trenddiagramm für Berichte.", "reportPageDescription": "Eine vollständige Dashboard-Berichtsseite.", "reportKitDescription": "Seiten für KPI-, Finanz- und Projektberichte."
+    }
   },
   "canvasStage": {
     "ariaLabel": "Dokumentleinwand",
@@ -663,6 +700,15 @@
     "body": "Ziehen Sie ein Werkzeug von links auf die PDF-Seite, oder klicken Sie auf ein Werkzeug, um es automatisch hinzuzufügen."
   },
   "pageSettings": {
+    "scope": {
+      "heading": "Seitenlayout",
+      "thisPage": "Diese Seite",
+      "overrideBadge": "Abweichend",
+      "defaultBadge": "Dokumentstandard",
+      "applyAll": "Auf alle Seiten anwenden",
+      "reset": "Auf Dokumentstandard zurücksetzen",
+      "overflowWarning": "{{count}} Element(e) ragen über diese Seite hinaus und können abgeschnitten werden."
+    },
     "paper": {
       "heading": "Papier",
       "size": "Größe",

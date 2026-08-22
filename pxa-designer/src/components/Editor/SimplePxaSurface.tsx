@@ -8,12 +8,10 @@ import { installImportedFontFaces } from '@/utils/importedFonts';
 import { applyVerticalWheelToHorizontalScroll } from '@/utils/editorScrolling';
 import { updateLanguageSelection } from '@/utils/languageSelection';
 import { isDocumentRtlLanguage } from '@/utils/documentDirection';
-import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
+import { effectivePageSettings } from '@/utils/pageLayout';
 import { designerAssetContentUrl } from '@/services/designerAssetApi';
 import { motion } from 'framer-motion';
-import { QRCodeSVG } from 'qrcode.react';
-import JsBarcode from 'jsbarcode';
-import ChartRenderer from '@/chart/ChartRenderer';
+import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
 import ChartInspector from '@/chart/ChartInspector';
 import { createDefaultChartDefinition, toLegacyChartData } from '@/chart/model';
 import {
@@ -22,7 +20,6 @@ import {
   FiArrowDown,
   FiBox,
   FiCheckSquare,
-  FiSquare,
   FiCreditCard,
   FiEdit3,
   FiEye,
@@ -76,11 +73,16 @@ import {
   FiBookOpen,
   FiHelpCircle,
   FiGrid,
+  FiStar,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
 import { ElementBoundary } from './ElementBoundary';
 import FindReplaceModal from './FindReplaceModal';
-import FormBlockModal from './FormBlockModal';
+import ContentLibraryPanel from './ContentLibraryPanel';
+import { ELEMENT_GROUP_ORDER, ELEMENT_REGISTRY, registryEntry, type ElementGroupId } from '@/data/elementRegistry';
+import { CONTENT_LIBRARY, buildContentPages, type ContentLibraryEntry } from '@/data/contentLibrary';
+import { prepareBlockInsertion, preparePageKitInsertion } from '@/utils/contentInsertion';
+import { useElementFavorites } from '@/hooks/useElementFavorites';
 import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
@@ -89,6 +91,33 @@ import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
 import { notify } from '@/notifications/toast';
 import { uploadDesignerImage } from '@/services/designerAssetApi';
 import { EditableDocumentTitle } from './EditableDocumentTitle';
+import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
+import LineRenderer from '@/components/Rendering/LineRenderer';
+import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
+import ArrowRenderer from '@/components/Rendering/ArrowRenderer';
+import HighlightRenderer from '@/components/Rendering/HighlightRenderer';
+import {
+  formatNumberForPdf,
+  formatPageNumberForPdf,
+  pdfFontFamily,
+  PdfRichTextRenderer,
+  PdfSingleLineText,
+  PdfTextBlockRenderer,
+} from '@/components/Rendering/PdfTextRenderer';
+import {
+  PdfButtonRenderer,
+  PdfCheckboxRenderer,
+  PdfCheckmarkRenderer,
+  PdfDropdownRenderer,
+  PdfSignatureRenderer,
+} from '@/components/Rendering/PdfControlRenderer';
+import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
+import {
+  PdfCommentRenderer,
+  PdfContentControlRenderer,
+  PdfLayoutBoundaryRenderer,
+  PdfNoteRenderer,
+} from '@/components/Rendering/PdfStructureRenderer';
 
 
 interface SimplePxaSurfaceProps {
@@ -117,6 +146,8 @@ interface SimplePxaSurfaceProps {
   onPublish?: () => Promise<string>;
   onArchive?: () => Promise<string>;
   onTemplateRename: (name: string) => void;
+  /** Renders only deterministic document pages for the internal visual-parity harness. */
+  visualParityMode?: boolean;
 }
 
 type Tool = {
@@ -171,7 +202,6 @@ type RotateState = {
 
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
-const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
   text:         'Text Block',
@@ -249,32 +279,6 @@ const FONT_FAMILIES = [
   'Noto Sans Arabic', 'Noto Sans SC', 'Noto Sans TC',
   'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
-
-const elementBorderStyle = (s: Record<string, any>): React.CSSProperties => {
-  const sideStyle: React.CSSProperties = {};
-  let hasSideBorder = false;
-
-  BORDER_SIDES.forEach((side) => {
-    const width = s[`border${side}Width`];
-    if (width == null) return;
-
-    hasSideBorder = true;
-    const key = `border${side}` as keyof React.CSSProperties;
-    sideStyle[key] = `${Number(width) || 0}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000000'}` as never;
-  });
-
-  if (hasSideBorder) {
-    return {
-      ...sideStyle,
-      borderRadius: s.borderRadius ?? undefined,
-    };
-  }
-
-  return {
-    border: s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000000'}` : undefined,
-    borderRadius: s.borderRadius ?? undefined,
-  };
-};
 
 const TYPOGRAPHY_TYPES = new Set<string>([
   'text', 'richtext', 'button', 'field', 'checkbox', 'dropdown', 'optionlist',
@@ -550,8 +554,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   onPublish,
   onArchive,
   onTemplateRename,
+  visualParityMode = false,
 }) => {
-  const { t } = useTranslation('editor');
+  const { t, i18n } = useTranslation('editor');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -560,7 +565,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const [draggingPageIndex, setDraggingPageIndex] = useState<number | null>(null);
   const [dragOverPageIndex, setDragOverPageIndex] = useState<number | null>(null);
   const [isDragOverSurface, setIsDragOverSurface] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(['text', 'form', 'visual', 'layout', 'advanced']);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pxa-designer-element-groups-v1') ?? '[]');
+      if (Array.isArray(saved) && saved.length) return saved;
+    } catch { /* use defaults */ }
+    return ['favorites', 'textData', 'formsInput', 'tablesCharts', 'mediaCodes', 'shapesLayout', 'documentNavigation'];
+  });
+  const [toolPanelMode, setToolPanelMode] = useState<'elements' | 'content'>('elements');
+  const [elementSearch, setElementSearch] = useState('');
   const [zoomLevel, setZoomLevel] = useState(1);
   const [linkedMargins, setLinkedMargins] = useState(true);
   const [linkedPadding, setLinkedPadding] = useState(true);
@@ -572,7 +585,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const [drawGhost, setDrawGhost] = useState<{ startX: number; startY: number; currentX: number; currentY: number; pathPoints?: string } | null>(null);
   const [codeViewerOpen, setCodeViewerOpen] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
-  const [formBlockModalOpen, setFormBlockModalOpen] = useState(false);
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
   const [templateActionPending, setTemplateActionPending] = useState(false);
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
@@ -585,6 +597,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const pageStripRef = useRef<HTMLDivElement | null>(null);
   const activePageThumbRef = useRef<HTMLDivElement | null>(null);
   const contentInputRef = useRef<HTMLInputElement>(null);
+  const { favorites, loading: favoritesLoading, offline: favoritesOffline, toggle: toggleFavorite } = useElementFavorites(t('toolPanel.favoriteSaveFailed'));
+
+  useEffect(() => {
+    localStorage.setItem('pxa-designer-element-groups-v1', JSON.stringify(expandedGroups));
+  }, [expandedGroups]);
 
   const runTemplateAction = async (action: () => Promise<string>) => {
     setTemplateActionPending(true);
@@ -644,12 +661,22 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   };
 
 
+  const { pageSettings: documentPageSettings, updatePageSettings, applyPageLayoutToAll, resetActivePageLayout, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, insertElements, insertPagesAfterCurrent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen, documentMode, setDocumentMode } = useEditorStore();
+  const activePage = pages[currentPageIndex];
+  const pageSettings = useMemo(
+    () => effectivePageSettings(documentPageSettings, activePage),
+    [documentPageSettings, activePage],
+  );
+  const hasPageLayoutOverride = Boolean(activePage?.layout);
+  const pageWidth = pageSettings.width;
+  const pageHeight = pageSettings.height;
+
   const buildDesign = () => ({
     id: template.id,
     name: template.name,
-    pages: pages.map(p => ({ id: p.id, elements: p.elements })),
+    pages: pages.map(p => ({ id: p.id, elements: p.elements, layout: p.layout })),
     sharedElements,
-    pageSettings: pageSettings ?? {},
+    pageSettings: documentPageSettings ?? {},
   });
 
   const handleCloneDesign = async () => {
@@ -687,9 +714,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
   };
 
-  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen, documentMode, setDocumentMode } = useEditorStore();
-  const pageWidth = pageSettings.width;
-  const pageHeight = pageSettings.height;
   const isCurrentRtl = isDocumentRtlLanguage(currentPreviewLanguage);
   // Only route position writes to langOverrides when the document has 2+ active languages.
   const isMultilingual = (pageSettings.activeLanguages?.length ?? 0) > 1;
@@ -1507,39 +1531,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
   ];
 
-  const toolGroups: ToolGroup[] = [
-    {
-      id: 'text',
-      label: t('toolGroups.text'),
-      toolIds: ['text', 'richtext', 'link']
-    },
-    {
-      id: 'form',
-      label: t('toolGroups.form'),
-      toolIds: ['field', 'textarea', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
-    },
-    {
-      id: 'visual',
-      label: t('toolGroups.visual'),
-      toolIds: ['image', 'qrcode', 'barcode', 'chart']
-    },
-    {
-      id: 'layout',
-      label: t('toolGroups.layout'),
-      toolIds: ['shape', 'rect', 'circle', 'line', 'table', 'subsection', 'area']
-    },
-    {
-      id: 'advanced',
-      label: t('toolGroups.advanced'),
-      toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber', 'toc']
-    },
-    {
-      id: 'word',
-      label: t('toolGroups.word'),
-      toolIds: ['footnote', 'endnote', 'bookmark', 'comment', 'contentcontrol']
-    }
-  ];
-
   const toolsById = useMemo(
     () => Object.fromEntries(tools.map(tool => [tool.id, tool])) as Record<SimpleElement['type'], Tool>,
     [tools]
@@ -1547,10 +1538,31 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
   const WORD_ONLY_TYPES = new Set<SimpleElement['type']>(['footnote', 'endnote', 'contentcontrol']);
 
-  const visibleToolGroups = useMemo(
-    () => documentMode === 'pdf' ? toolGroups.filter(g => g.id !== 'word') : toolGroups,
-    [documentMode, toolGroups]
-  );
+  const visibleToolGroups = useMemo(() => {
+    const needle = elementSearch.trim().toLocaleLowerCase(i18n.language);
+    const matches = (type: SimpleElement['type']) => {
+      const tool = toolsById[type];
+      const registry = registryEntry(type);
+      if (!tool || !registry) return false;
+      if (!(registry.supportedModes as readonly ('pdf' | 'word')[]).includes(documentMode)) return false;
+      if (!needle) return true;
+      return [tool.label, tool.hint, ...registry.keywords]
+        .join(' ')
+        .toLocaleLowerCase(i18n.language)
+        .includes(needle);
+    };
+    const groups: ToolGroup[] = ELEMENT_GROUP_ORDER.map((id: ElementGroupId) => ({
+      id,
+      label: t(`toolGroups.${id}`),
+      toolIds: ELEMENT_REGISTRY.filter(entry => entry.group === id).map(entry => entry.type).filter(matches),
+    })).filter(group => group.toolIds.length > 0);
+    const favoriteIds = ELEMENT_REGISTRY.map(entry => entry.type)
+      .filter(type => favorites.includes(type))
+      .filter(matches);
+    return favoriteIds.length > 0
+      ? [{ id: 'favorites', label: t('toolGroups.favorites'), toolIds: favoriteIds }, ...groups]
+      : groups;
+  }, [documentMode, elementSearch, favorites, i18n.language, t, toolsById]);
 
   const wordElementsOnSurface = useMemo(
     () => elements.some(el => WORD_ONLY_TYPES.has(el.type as SimpleElement['type'])),
@@ -2121,9 +2133,43 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     event.dataTransfer.effectAllowed = 'copy';
   };
 
+  const insertLibraryContent = (entry: ContentLibraryEntry, elementsOverride?: SimpleElement[], target?: { x: number; y: number }) => {
+    try {
+      if (entry.kind === 'block') {
+        const source = elementsOverride ?? entry.buildElements?.() ?? [];
+        const inserted = prepareBlockInsertion(source, pages, pageSettings, target);
+        insertElements(inserted);
+      } else {
+        const sourcePages = buildContentPages(entry, i18n.language);
+        const prepared = preparePageKitInsertion(
+          sourcePages,
+          pages,
+          entry.sourceSize ?? { width: pageSettings.width, height: pageSettings.height },
+          pageSettings,
+        );
+        insertPagesAfterCurrent(prepared.pages);
+        if (prepared.scaled) {
+          notify.warning(t('contentLibrary.scaled', { percent: Math.round(prepared.scale * 100) }));
+        }
+      }
+      const recent = JSON.parse(localStorage.getItem('pxa-designer-recent-content-v1') ?? '[]') as string[];
+      localStorage.setItem('pxa-designer-recent-content-v1', JSON.stringify([entry.id, ...recent.filter(id => id !== entry.id)].slice(0, 8)));
+      notify.success(t('contentLibrary.inserted'));
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : t('contentLibrary.insertFailed'));
+    }
+  };
+
   const handleSurfaceDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setIsDragOverSurface(false);
+
+    const contentId = event.dataTransfer.getData('application/x-pxa-content-block');
+    if (contentId) {
+      const entry = CONTENT_LIBRARY.find(value => value.id === contentId && value.kind === 'block');
+      if (entry) insertLibraryContent(entry, undefined, getSurfacePoint(event.clientX, event.clientY));
+      return;
+    }
 
     const toolId = event.dataTransfer.getData('application/x-ui-designer-tool');
     const tool = tools.find(item => item.id === toolId);
@@ -2379,168 +2425,41 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
   };
 
-  const getPageNumberPreview = (element: SimpleElement) => {
-    const start = element.startNumber || 1;
-    const prefix = element.prefix || '';
-    const suffix = element.suffix || '';
-
-    switch (element.numberingFormat || 'pageOfTotal') {
-      case 'current':
-        return `${prefix}${start}${suffix}`;
-      case 'total':
-        return `${prefix}1${suffix}`;
-      case 'roman':
-        return `${prefix}I${suffix}`;
-      case 'alphabetic':
-        return `${prefix}A${suffix}`;
-      case 'pageOfTotal':
-      default:
-        return `${prefix}Page ${start} of 1${suffix}`;
-    }
-  };
-
-  const renderElement = (element: SimpleElement, isPreview: boolean = false) => {
+  const renderElement = (element: SimpleElement, pageIndex = currentPageIndex) => {
     if (element.type === 'text') {
-      const s = element.style ?? {};
-      return (
-        <div
-          className="editor-element-text"
-          dir={element.textDirection || 'ltr'}
-          lang={element.language || undefined}
-          style={{
-            fontSize:       s.fontSize      || 16,
-            fontFamily:     s.fontFamily    || 'Arial',
-            color:          s.color         || '#111827',
-            fontWeight:     s.fontWeight    || 'normal',
-            fontStyle:      s.fontStyle     || 'normal',
-            textDecoration: s.textDecoration|| 'none',
-            textAlign:      (s.textAlign    || 'left') as React.CSSProperties['textAlign'],
-            lineHeight:     s.lineHeight    ?? 1.4,
-            letterSpacing:  s.letterSpacing != null ? `${s.letterSpacing}px` : undefined,
-            whiteSpace:     s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
-            backgroundColor:s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : undefined,
-            opacity:        s.backgroundOpacity != null ? s.backgroundOpacity : undefined,
-            ...elementBorderStyle(s),
-            padding:        [s.paddingTop ?? 0, s.paddingRight ?? 0, s.paddingBottom ?? 0, s.paddingLeft ?? 0].join('px ') + 'px',
-          }}
-        >
-          {resolveContent(element.content)}
-        </div>
-      );
+      return <PdfTextBlockRenderer element={element} text={resolveContent(element.content) ?? ''} />;
     }
 
     if (element.type === 'qrcode') {
-      if (isPreview) {
-        return (
-          <QRCodeSVG
-            value={element.qrValue || 'https://example.com'}
-            size={element.qrSize || 120}
-            level="H"
-            includeMargin={true}
-          />
-        );
-      }
-      return (
-        <div className="editor-placeholder">
-          <FiHash className="editor-placeholder-icon" />
-          <span>{t('placeholders.qrCode')}</span>
-          <small>{element.qrValue}</small>
-        </div>
-      );
+      return <BackendSymbolRenderer element={element} type="qrcode" />;
     }
 
     if (element.type === 'barcode') {
-      if (isPreview) {
-        return (
-          <canvas
-            ref={(canvas) => {
-              if (canvas) {
-                JsBarcode(canvas, element.barcodeValue || '123456789012', {
-                  format: element.barcodeType || 'CODE128',
-                  lineColor: '#000',
-                  width: 2,
-                  height: element.height || 88,
-                  fontSize: 16
-                });
-              }
-            }}
-            style={{ width: '100%', height: '100%' }}
-          />
-        );
-      }
-      return (
-        <div className="editor-placeholder editor-placeholder-wide">
-          <FiCreditCard className="editor-placeholder-icon" />
-          <span>{t('placeholders.barcode')}</span>
-          <small>{element.barcodeValue}</small>
-        </div>
-      );
+      return <BackendSymbolRenderer element={element} type="barcode" />;
     }
 
     if (element.type === 'signature') {
-      return (
-        <div className="editor-signature">
-          <FiEdit3 className="editor-placeholder-icon" />
-          <span>{resolveContent(element.signatureLabel)}</span>
-          <div className="editor-signature-line" />
-          <small>{t('placeholders.signatureLine')}</small>
-        </div>
-      );
+      return <PdfSignatureRenderer element={{ ...element, signatureLabel: resolveContent(element.signatureLabel) }} />;
     }
 
     if (element.type === 'richtext') {
-      return (
-        <div
-          className="editor-richtext"
-          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(element.htmlContent || '') }}
-        />
-      );
+      return <PdfRichTextRenderer element={element} />;
     }
 
     if (element.type === 'field') {
-      return (
-        <div className="editor-form-field">
-          <span>
-            {resolveContent(element.fieldLabel)}
-            {element.required && <span className="editor-field-required-badge" title={t('placeholders.requiredField')}>*</span>}
-          </span>
-          <strong>{element.required ? t('placeholders.required') : t('placeholders.optional')}</strong>
-        </div>
-      );
+      return <FormFieldRenderer element={element} resolveContent={resolveContent} />;
     }
 
     if (element.type === 'textarea') {
-      return (
-        <div className="editor-form-field editor-form-field--textarea">
-          <span>
-            {resolveContent(element.fieldLabel)}
-            {element.required && <span className="editor-field-required-badge" title={t('placeholders.requiredField')}>*</span>}
-          </span>
-          <div className="editor-textarea-preview">
-            {element.placeholder && (
-              <span className="editor-textarea-placeholder">{element.placeholder}</span>
-            )}
-          </div>
-        </div>
-      );
+      return <FormFieldRenderer element={element} multiline resolveContent={resolveContent} />;
     }
 
     if (element.type === 'checkbox') {
-      const isChecked = (element.checkState ?? 'checked') === 'checked';
-      const CheckboxIcon = isChecked ? FiCheckSquare : FiSquare;
-      return (
-        <div className="editor-checkbox-field">
-          <CheckboxIcon />
-          <span>{resolveContent(element.fieldLabel)}</span>
-        </div>
-      );
+      return <PdfCheckboxRenderer element={{ ...element, fieldLabel: resolveContent(element.fieldLabel) }} />;
     }
 
     if (element.type === 'line') {
-      const color = element.style?.backgroundColor || element.style?.borderColor || element.style?.color || '#9ca3af';
-      return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: color }} />
-      );
+      return <LineRenderer element={element} />;
     }
 
     if (element.type === 'image') {
@@ -2572,32 +2491,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'shape' || element.type === 'rect') {
-      const s = element.style ?? {};
-      const bg = s.backgroundColor ?? s.fill ?? 'transparent';
-      const bw = s.borderWidth ?? 1;
-      const bs = s.borderStyle ?? 'solid';
-      const bc = s.borderColor ?? '#000000';
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          backgroundColor: bg,
-          ...elementBorderStyle({ borderWidth: bw, borderStyle: bs, borderColor: bc, ...s }),
-        }} />
-      );
+      return <PdfShapeRenderer element={element} />;
     }
 
     if (element.type === 'circle') {
-      const s = element.style ?? {};
-      const bg = s.backgroundColor ?? s.fill ?? 'transparent';
-      const bw = s.borderWidth ?? 1;
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          backgroundColor: bg,
-          border: bw > 0 ? `${bw}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000000'}` : 'none',
-          borderRadius: '50%',
-        }} />
-      );
+      return <PdfCircleRenderer element={element} />;
     }
 
     if (element.type === 'table') {
@@ -2626,6 +2524,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
             .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
         : [];
       const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
+      const visualRowHeight = element.height / Math.max(1, totalRows + rdlMatrixHeaders.length);
 
       const cellFontSize   = element.style?.cellFontSize ?? 10;
       const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
@@ -2647,9 +2546,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           padding: cp,
           textAlign: colAligns[colIdx] || 'left',
           fontSize: cellFontSize,
-          fontFamily: cellFontFamily,
-          fontWeight: kind === 'header' ? 700 : cellFontWeight,
-          color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
+          fontFamily: pdfFontFamily(cellFontFamily),
+          fontWeight: kind === 'header' || kind === 'footer' ? 700 : cellFontWeight,
+          color: cellColor ?? '#101828',
           backgroundColor:
             kind === 'header' ? headerBg
             : kind === 'footer' ? '#f8fafc'
@@ -2704,7 +2603,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           {hasHeader && (
             <thead>
               {rdlMatrixHeaders.map((header, index) => (
-                <tr key={`rdl-matrix-header-${index}`}>
+                <tr key={`rdl-matrix-header-${index}`} style={{ height: visualRowHeight }}>
                   <th
                     colSpan={columns}
                     style={{
@@ -2718,10 +2617,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </th>
                 </tr>
               ))}
-              <tr>
+              <tr style={{ height: visualRowHeight }}>
                 {Array.from({ length: columns }).map((_, c) => (
                   <th key={c} style={tdStyle(0, c, 'header')}>
-                    {cell(0, c) || `Header ${c + 1}`}
+                    {cell(0, c)}
                   </th>
                 ))}
               </tr>
@@ -2731,10 +2630,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
             {Array.from({ length: bodyRows }).map((_, r) => {
               const dataRow = r + (hasHeader ? 1 : 0);
               return (
-                <tr key={r}>
+                <tr key={r} style={{ height: visualRowHeight }}>
                   {Array.from({ length: columns }).map((_, c) => (
                     <td key={c} style={tdStyle(r, c, 'body', dataRow)}>
-                      {cell(dataRow, c) || 'Cell'}
+                      {cell(dataRow, c)}
                     </td>
                   ))}
                 </tr>
@@ -2743,10 +2642,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </tbody>
           {hasFooter && (
             <tfoot>
-              <tr>
+              <tr style={{ height: visualRowHeight }}>
                 {Array.from({ length: columns }).map((_, c) => (
                   <td key={c} style={tdStyle(0, c, 'footer', totalRows - 1)}>
-                    {cell(totalRows - 1, c) || `Footer ${c + 1}`}
+                    {cell(totalRows - 1, c)}
                   </td>
                 ))}
               </tr>
@@ -2757,56 +2656,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'button') {
-      return (
-        <button
-          style={{
-            backgroundColor: element.style?.backgroundColor || '#3b82f6',
-            color: element.style?.color || '#ffffff',
-            fontSize: element.style?.fontSize || 14,
-            borderRadius: element.style?.borderRadius || 4,
-            border: 'none',
-            cursor: element.buttonAction ? 'pointer' : 'default',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-          }}
-          onClick={element.buttonAction ? () => {
-            const a = element.buttonAction!;
-            if (a.startsWith('http')) window.open(a, '_blank', 'noopener');
-          } : undefined}
-          title={element.buttonAction || undefined}
-        >
-          {element.content || 'Button'}
-          {element.buttonAction && <FiLink2 size={12} style={{ opacity: 0.7 }} />}
-        </button>
-      );
+      return <PdfButtonRenderer element={element} />;
     }
 
     if (element.type === 'dropdown') {
-      return (
-        <select
-          style={{
-            width: '100%',
-            height: '100%',
-            fontFamily: element.style?.fontFamily || 'sans-serif',
-            fontSize: element.style?.fontSize || 14,
-            color: element.style?.color || '#000000',
-            backgroundColor: '#ffffff',
-            border: '1px solid #d1d5db',
-            borderRadius: '4px',
-            padding: '0 8px'
-          }}
-          value={element.selectedValue || ''}
-          multiple={!!element.multiSelect}
-        >
-          {(element.options || []).map((opt, index) => (
-            <option key={index} value={opt}>{opt}</option>
-          ))}
-        </select>
-      );
+      return <PdfDropdownRenderer element={element} />;
     }
 
     if (element.type === 'optionlist') {
@@ -2860,11 +2714,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
     if (element.type === 'chart') {
       return (
-        <ChartRenderer
+        <PdfContractChartRenderer
           chart={element.chart}
           legacyType={element.chartType}
           legacyData={element.chartData}
           ariaLabel={element.name || t('diagnostics.chart')}
+          width={element.width}
+          height={element.height}
         />
       );
     }
@@ -2910,264 +2766,43 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'note') {
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            padding: 10,
-            background: element.style?.backgroundColor || '#fef3c7',
-            color: element.style?.color || '#78350f',
-            border: '1px solid rgba(146, 64, 14, 0.2)',
-            borderRadius: 6,
-            boxShadow: '0 8px 20px rgb(0 0 0 / 0.12)',
-            overflow: 'hidden'
-          }}
-        >
-          <strong style={{ display: 'block', fontSize: 12, marginBottom: 6 }}>{element.noteTitle || 'Notiz'}</strong>
-          {!element.noteCollapsed && (
-            <>
-              <p style={{ margin: 0, fontSize: 11, lineHeight: 1.35 }}>{element.noteBody || 'Kommentar eingeben'}</p>
-              <small style={{ display: 'block', marginTop: 8, opacity: 0.72 }}>{element.noteAuthor || 'Editor'}</small>
-            </>
-          )}
-        </div>
-      );
+      return <PdfNoteRenderer element={element} />;
     }
 
     if (element.type === 'arrow') {
-      const color = element.style?.color || '#dc2626';
-      const sw = element.style?.strokeWidth || 4;
-      const dashArray = element.style?.dashStyle === 'dashed' ? '8 6' : element.style?.dashStyle === 'dotted' ? '2 6' : undefined;
-      const isElbow = element.arrowMode === 'elbow';
-      const isCurved = element.arrowMode === 'curved';
-      // Paths pulled 12 units in from each edge to leave room for markers
-      const path = isCurved
-        ? 'M 12 50 C 36 6, 64 94, 88 50'
-        : isElbow
-          ? 'M 12 78 L 50 78 L 50 22 L 88 22'
-          : 'M 12 50 L 88 50';
-
-      const dirDeg = { right: 0, left: 180, down: 90, up: -90 }[element.arrowDirection || 'right'] ?? 0;
-      const totalDeg = dirDeg + (element.arrowRotation || 0);
-
-      const eid = element.id;
-      const resolveMarker = (marker: string | undefined, isStart: boolean) => {
-        const side = isStart ? 's' : 'e';
-        if (!marker || marker === 'none') return undefined;
-        if (marker === 'filled' || marker === 'arrow') return `url(#af-${side}-${eid})`;
-        if (marker === 'open')    return `url(#ao-${side}-${eid})`;
-        if (marker === 'dot')     return `url(#ad-${side}-${eid})`;
-        if (marker === 'diamond') return `url(#am-${side}-${eid})`;
-        if (marker === 'square')  return `url(#aq-${side}-${eid})`;
-        if (marker === 'circle')  return `url(#ac-${side}-${eid})`;
-        return undefined;
-      };
-
-      // markerUnits="userSpaceOnUse" → sizes are in viewBox coords, not stroke-width multiples
-      // orient="auto-start-reverse" on -s markers → start arrows point away from the path start
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          width="100%"
-          height="100%"
-          preserveAspectRatio="none"
-          style={{ overflow: 'visible', ...(totalDeg !== 0 ? { transform: `rotate(${totalDeg}deg)`, transformOrigin: '50% 50%' } : {}) }}
-        >
-          <defs>
-            {(['e', 's'] as const).map(side => {
-              const orient = side === 's' ? 'auto-start-reverse' : 'auto';
-              return (
-                <React.Fragment key={side}>
-                  <marker id={`af-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="11" refY="6" orient={orient}>
-                    <path d="M 0 0 L 12 6 L 0 12 z" fill={color} />
-                  </marker>
-                  <marker id={`ao-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="11" refY="6" orient={orient}>
-                    <path d="M 0 0 L 12 6 L 0 12" fill="none" stroke={color} strokeWidth={Math.max(1, sw * 0.5)} />
-                  </marker>
-                  <marker id={`ad-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5">
-                    <circle cx="5" cy="5" r="4" fill={color} />
-                  </marker>
-                  <marker id={`am-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="6" refY="6" orient={orient}>
-                    <path d="M 0 6 L 6 0 L 12 6 L 6 12 z" fill={color} />
-                  </marker>
-                  <marker id={`aq-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5" orient={orient}>
-                    <rect x="0" y="0" width="10" height="10" fill={color} />
-                  </marker>
-                  <marker id={`ac-${side}-${eid}`} markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="5" refY="5">
-                    <circle cx="5" cy="5" r="4" fill="none" stroke={color} strokeWidth={Math.max(1, sw * 0.5)} />
-                  </marker>
-                </React.Fragment>
-              );
-            })}
-          </defs>
-          <path
-            d={path}
-            fill="none"
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray={dashArray}
-            markerStart={resolveMarker(element.startMarker, true)}
-            markerEnd={resolveMarker(element.endMarker, false)}
-          />
-        </svg>
-      );
+      return <ArrowRenderer element={element} />;
     }
 
     if (element.type === 'link') {
-      return (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          color: element.style?.color || '#2563eb',
-          fontSize: element.style?.fontSize || 14,
-          fontFamily: element.style?.fontFamily || 'sans-serif',
-          fontWeight: element.style?.fontWeight || 'normal',
-          textDecoration: 'underline',
-          cursor: 'pointer',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-        }}>
-          {element.content || element.href || 'Link text'}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="link" text={element.content || element.href || ''} />;
     }
 
     if (element.type === 'number') {
-      const val = element.numberValue ?? 0;
-      let formatted = '';
-      try {
-        const locale = element.numberLocale || 'de-DE';
-        if (element.numberStyle === 'currency') {
-          formatted = new Intl.NumberFormat(locale, { style: 'currency', currency: element.numberCurrency || 'EUR', minimumFractionDigits: element.numberDecimals ?? 2, maximumFractionDigits: element.numberDecimals ?? 2 }).format(val);
-        } else if (element.numberStyle === 'percent') {
-          formatted = new Intl.NumberFormat(locale, { style: 'percent', minimumFractionDigits: element.numberDecimals ?? 1, maximumFractionDigits: element.numberDecimals ?? 1 }).format(val / 100);
-        } else if (element.numberStyle === 'scientific') {
-          formatted = val.toExponential(element.numberDecimals ?? 2);
-        } else if (element.numberStyle === 'ordinal') {
-          const abs = Math.abs(Math.round(val));
-          const s = ['th', 'st', 'nd', 'rd'];
-          const v = abs % 100;
-          formatted = abs + (s[(v - 20) % 10] || s[v] || s[0]);
-        } else {
-          formatted = new Intl.NumberFormat(locale, { minimumFractionDigits: element.numberDecimals ?? 0, maximumFractionDigits: element.numberDecimals ?? 2 }).format(val);
-        }
-      } catch { formatted = String(val); }
-      return (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          color: element.style?.color || '#111827',
-          fontSize: element.style?.fontSize || 18,
-          fontFamily: element.style?.fontFamily || 'sans-serif',
-          fontWeight: element.style?.fontWeight || 'bold',
-          overflow: 'hidden',
-        }}>
-          {(element.prefix || '') + formatted + (element.suffix || '')}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="number" text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />;
     }
 
     if (element.type === 'draw') {
-      return (
-        <svg viewBox="0 0 216 108" width="100%" height="100%" preserveAspectRatio="none">
-          <path
-            d={element.pathData || 'M 10 76 C 44 18, 78 112, 116 54 S 184 20, 206 72'}
-            fill="none"
-            stroke={element.style?.color || '#1d4ed8'}
-            strokeWidth={element.style?.strokeWidth || 4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={element.style?.opacity ?? (element.drawTool === 'highlighter' ? 0.45 : 1)}
-          />
-        </svg>
-      );
+      return <PdfDrawingRenderer element={element} />;
     }
 
     if (element.type === 'date') {
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            color: element.style?.color || '#111827',
-            fontSize: element.style?.fontSize || 14,
-            fontWeight: element.style?.fontWeight || 'normal'
-          }}
-        >
-          {getDatePreview(element)}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="date" text={getDatePreview(element)} />;
     }
 
     if (element.type === 'highlight') {
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            background: element.style?.backgroundColor || '#fde047',
-            opacity: element.style?.opacity ?? 0.45,
-            borderRadius: element.style?.borderRadius ?? 4,
-            mixBlendMode: element.style?.blendMode || 'multiply'
-          }}
-        />
-      );
+      return <HighlightRenderer element={element} />;
     }
 
     if (element.type === 'subsection' || element.type === 'area') {
-      const color = element.style?.color || element.style?.borderColor || '#475569';
-      return (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 8,
-          color,
-          fontSize: element.style?.fontSize || 12,
-          background: element.style?.backgroundColor || '#f8fafc',
-          border: `${element.style?.borderWidth || 1}px ${element.style?.borderStyle || 'dashed'} ${color}`,
-          borderRadius: element.style?.borderRadius ?? 4,
-          overflow: 'hidden',
-          textAlign: 'center',
-        }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.content || ELEMENT_TYPE_LABELS[element.type] || element.type}
-          </span>
-        </div>
-      );
+      return <PdfLayoutBoundaryRenderer element={element} />;
     }
 
     if (element.type === 'checkmark') {
-      const color = element.style?.color || '#16a34a';
-      const state = element.checkState || 'checked';
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: '100%', color }}>
-          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
-            <rect x="2" y="2" width="22" height="22" rx="4" fill="none" stroke={color} strokeWidth="2" />
-            {state === 'checked' && <path d="M 7 13 L 11 17 L 20 8" fill="none" stroke={color} strokeWidth={element.style?.strokeWidth || 3} strokeLinecap="round" strokeLinejoin="round" />}
-            {state === 'cross' && <path d="M 8 8 L 18 18 M 18 8 L 8 18" fill="none" stroke={color} strokeWidth={element.style?.strokeWidth || 3} strokeLinecap="round" />}
-            {state === 'dot' && <circle cx="13" cy="13" r="5" fill={color} />}
-          </svg>
-          <span style={{ fontSize: element.style?.fontSize || 14, color: element.style?.labelColor || '#374151' }}>
-            {resolveContent(element.fieldLabel) || 'Selection'}
-          </span>
-        </div>
-      );
+      return <PdfCheckmarkRenderer element={{ ...element, fieldLabel: resolveContent(element.fieldLabel) }} />;
     }
 
     if (element.type === 'pageboundary') {
+      if (visualParityMode) return null;
       const color = element.style?.color || '#7c3aed';
       return (
         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 8, color }}>
@@ -3181,21 +2816,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'pagenumber') {
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: element.style?.color || '#374151',
-            fontSize: element.style?.fontSize || 12
-          }}
-        >
-          {getPageNumberPreview(element)}
-        </div>
-      );
+      return <PdfSingleLineText element={element} kind="pagenumber" text={formatPageNumberForPdf(element, pageIndex, pages.length)} />;
     }
 
     if (element.type === 'footnote' || element.type === 'endnote') {
@@ -3211,6 +2832,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'bookmark') {
+      if (visualParityMode) return null;
       return (
         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12, color: '#0891b2' }}>
           <FiBookmark size={12} />
@@ -3222,23 +2844,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'comment') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: 6, fontSize: 11, background: '#fef9c3', border: '1px solid #fde047', borderRadius: 4, overflow: 'hidden' }}>
-          <span style={{ fontWeight: 600, color: '#92400e', marginBottom: 2 }}>{element.commentAuthor || 'Comment'}</span>
-          <span style={{ color: '#78350f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{element.commentText || '…'}</span>
-        </div>
-      );
+      return <PdfCommentRenderer element={element} />;
     }
 
     if (element.type === 'contentcontrol') {
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12, color: '#7c3aed', border: '1px dashed #a78bfa', borderRadius: 3, overflow: 'hidden' }}>
-          <FiCode size={12} />
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.contentControlTitle || element.contentControlTag || element.contentControlType || 'Content Control'}
-          </span>
-        </div>
-      );
+      return <PdfContentControlRenderer element={element} />;
     }
 
     if (element.type === 'toc') {
@@ -3276,6 +2886,54 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       </div>
     );
   };
+
+  if (visualParityMode) {
+    return (
+      <div className="visual-parity-surface" data-parity-surface="canvas">
+        {pages.map((page, pageIndex) => {
+          const layout = effectivePageSettings(documentPageSettings, page);
+          return (
+          <div
+            key={page.id}
+            className="visual-parity-page"
+            data-parity-page={pageIndex + 1}
+            style={{
+              position: 'relative',
+              width: layout.width,
+              height: layout.height,
+              overflow: 'hidden',
+              background: layout.backgroundColor,
+            }}
+          >
+            {[...sharedElements, ...page.elements]
+              .filter(element => !element.hidden)
+              .map(element => {
+                const position = getEffectivePos(element);
+                return (
+                  <div
+                    key={element.id}
+                    className="editor-canvas-element visual-parity-element"
+                    data-element-id={element.id}
+                    style={{
+                      left: position.x,
+                      top: position.y,
+                      width: position.width,
+                      height: position.height,
+                      transform: getEffectiveRotation(element)
+                        ? `rotate(${getEffectiveRotation(element)}deg)`
+                        : undefined,
+                    }}
+                  >
+                    <ElementBoundary name={element.name}>{renderElement(element, pageIndex)}</ElementBoundary>
+                  </div>
+                );
+              })}
+          </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="editor-shell">
@@ -3459,75 +3117,95 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {t('toolPanel.wordOnlyWarning')}
             </div>
           )}
-          <div className="editor-tool-list">
-            {visibleToolGroups.map(group => {
-              const isExpanded = expandedGroups.includes(group.id);
-
-              return (
-                <section key={group.id} className="editor-tool-group">
-                  <button
-                    type="button"
-                    className="editor-tool-group-toggle"
-                    onClick={() => toggleGroup(group.id)}
-                    aria-expanded={isExpanded}
-                  >
-                    <span className="editor-tool-group-title">{group.label}</span>
-                    <span className="editor-tool-group-meta">
-                      <span className="editor-tool-group-count">{group.toolIds.length}</span>
-                      <span className="editor-tool-group-chevron">{isExpanded ? '−' : '+'}</span>
-                    </span>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="editor-tool-group-body">
-                      {group.toolIds.map(toolId => {
-                        const tool = toolsById[toolId];
-                        if (!tool) return null;
-
-                        const Icon = tool.icon;
-
-                        return (
-                          <motion.button
-                            key={tool.id}
-                            className={`editor-tool-button${drawingMode === tool.id ? ' is-draw-active' : ''}`}
-                            onClick={() => {
-                              if (tool.id === 'line' || tool.id === 'arrow' || tool.id === 'draw') {
-                                setDrawingMode(prev => (prev === tool.id ? null : tool.id as 'line' | 'arrow' | 'draw'));
-                                clearSelection();
-                              } else {
-                                addElement(tool);
-                              }
-                            }}
-                            draggable
-                            onDragStartCapture={(event) => handleToolDragStart(event, tool)}
-                            whileHover={{ x: 2 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <span className="editor-tool-icon">
-                              <Icon />
-                            </span>
-                            <span>
-                              <strong>{tool.label}</strong>
-                              <small>{tool.hint}</small>
-                            </span>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
+          <div className="editor-tool-mode" role="tablist" aria-label={t('toolPanel.libraryMode')}>
+            <button type="button" role="tab" aria-selected={toolPanelMode === 'elements'} className={toolPanelMode === 'elements' ? 'is-active' : ''} onClick={() => setToolPanelMode('elements')}>
+              {t('toolPanel.elements')}
+            </button>
+            <button type="button" role="tab" aria-selected={toolPanelMode === 'content'} className={toolPanelMode === 'content' ? 'is-active' : ''} onClick={() => setToolPanelMode('content')}>
+              {t('toolPanel.content')}
+            </button>
           </div>
 
-          <button
-            className="editor-form-block-btn"
-            onClick={() => setFormBlockModalOpen(true)}
-            title={t('toolPanel.insertFormBlockTitle')}
-          >
-            <FiGrid size={14} />
-            {t('toolPanel.insertFormBlock')}
-          </button>
+          {toolPanelMode === 'elements' ? (
+            <>
+              <label className="editor-library-search editor-element-search">
+                <FiSearch aria-hidden="true" />
+                <input value={elementSearch} onChange={event => setElementSearch(event.target.value)} placeholder={t('toolPanel.searchElements')} aria-label={t('toolPanel.searchElements')} />
+              </label>
+              {favoritesLoading && <p className="editor-tool-status">{t('toolPanel.loadingFavorites')}</p>}
+              {!favoritesLoading && favoritesOffline && <p className="editor-tool-status is-warning">{t('toolPanel.offlineFavorites')}</p>}
+              <div className="editor-tool-list" aria-busy={favoritesLoading}>
+                {visibleToolGroups.map(group => {
+                  const isExpanded = expandedGroups.includes(group.id);
+
+                  return (
+                    <section key={group.id} className="editor-tool-group">
+                      <button
+                        type="button"
+                        className="editor-tool-group-toggle"
+                        onClick={() => toggleGroup(group.id)}
+                        aria-expanded={isExpanded}
+                      >
+                        <span className="editor-tool-group-title">{group.label}</span>
+                        <span className="editor-tool-group-meta">
+                          <span className="editor-tool-group-count">{group.toolIds.length}</span>
+                          <span className="editor-tool-group-chevron">{isExpanded ? '−' : '+'}</span>
+                        </span>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="editor-tool-group-body">
+                          {group.toolIds.map(toolId => {
+                            const tool = toolsById[toolId];
+                            if (!tool) return null;
+
+                            const Icon = tool.icon;
+                            const favorite = favorites.includes(tool.id);
+
+                            return (
+                              <div className="editor-tool-row" key={`${group.id}-${tool.id}`}>
+                                <motion.button
+                                  className={`editor-tool-button${drawingMode === tool.id ? ' is-draw-active' : ''}`}
+                                  onClick={() => {
+                                    if (tool.id === 'line' || tool.id === 'arrow' || tool.id === 'draw') {
+                                      setDrawingMode(prev => (prev === tool.id ? null : tool.id as 'line' | 'arrow' | 'draw'));
+                                      clearSelection();
+                                    } else {
+                                      addElement(tool);
+                                    }
+                                  }}
+                                  draggable
+                                  onDragStartCapture={(event) => handleToolDragStart(event, tool)}
+                                  whileHover={{ x: 2 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <span className="editor-tool-icon"><Icon /></span>
+                                  <span><strong>{tool.label}</strong><small>{tool.hint}</small></span>
+                                </motion.button>
+                                <button
+                                  type="button"
+                                  className={`editor-tool-favorite${favorite ? ' is-active' : ''}`}
+                                  onClick={() => void toggleFavorite(tool.id)}
+                                  title={favorite ? t('toolPanel.removeFavorite') : t('toolPanel.addFavorite')}
+                                  aria-label={favorite ? t('toolPanel.removeFavorite') : t('toolPanel.addFavorite')}
+                                  aria-pressed={favorite}
+                                >
+                                  <FiStar />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+                {visibleToolGroups.length === 0 && <p className="editor-library-empty">{t('toolPanel.noElements')}</p>}
+              </div>
+            </>
+          ) : (
+            <ContentLibraryPanel documentMode={documentMode} onInsert={insertLibraryContent} />
+          )}
 
           <div className="editor-layer-summary">
             <div>
@@ -3773,7 +3451,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     setSelectedElementId(element.id);
                   }}
                 >
-                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
+                  <ElementBoundary name={element.name}>{renderElement(element)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -3816,7 +3494,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
                 >
-                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
+                  <ElementBoundary name={element.name}>{renderElement(element)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -3913,7 +3591,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           {/* Page navigation strip */}
           <div
             ref={pageStripRef}
-            className={`editor-page-strip${pageWidth / pageHeight > 1.5 && pages.length > 1 ? ' editor-page-strip--widescreen' : ''}`}
+            className="editor-page-strip"
             onWheel={handlePageStripWheel}
             tabIndex={0}
             dir="ltr"
@@ -3943,6 +3621,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               >
                 <button
                   className="editor-page-thumb-btn"
+                  style={(() => {
+                    const layout = effectivePageSettings(documentPageSettings, page);
+                    const scale = 48 / Math.max(layout.width, layout.height);
+                    return {
+                      width: Math.max(24, Math.round(layout.width * scale)),
+                      height: Math.max(24, Math.round(layout.height * scale)),
+                    };
+                  })()}
                   onClick={() => onPageSelect(index)}
                   title={t('pagePanel.pageTitle', { number: index + 1 })}
                 >
@@ -4120,12 +3806,50 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 {/* Page settings validation */}
                 {(() => {
                   const warnings = getPageSettingsWarnings(pageSettings);
+                  const overflowCount = [...elements, ...sharedElements].filter(element => {
+                    const position = getEffectivePos(element);
+                    return position.x < 0 || position.y < 0
+                      || position.x + position.width > pageWidth
+                      || position.y + position.height > pageHeight;
+                  }).length;
+                  if (overflowCount > 0) {
+                    warnings.push({
+                      key: 'element-overflow',
+                      message: t('pageSettings.scope.overflowWarning', { count: overflowCount }),
+                    });
+                  }
                   return warnings.length > 0 ? (
                     <div className="editor-validation-panel">
                       {warnings.map(w => <span key={w.key}>{w.message}</span>)}
                     </div>
                   ) : null;
                 })()}
+
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiFileText />
+                    <span>{t('pageSettings.scope.heading')}</span>
+                    <span className={`editor-page-layout-badge${hasPageLayoutOverride ? ' is-overridden' : ''}`}>
+                      {hasPageLayoutOverride
+                        ? t('pageSettings.scope.overrideBadge')
+                        : t('pageSettings.scope.defaultBadge')}
+                    </span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <span className="editor-page-layout-scope">{t('pageSettings.scope.thisPage')}</span>
+                    <button type="button" className="editor-secondary-button" onClick={applyPageLayoutToAll}>
+                      {t('pageSettings.scope.applyAll')}
+                    </button>
+                    <button
+                      type="button"
+                      className="editor-secondary-button"
+                      onClick={resetActivePageLayout}
+                      disabled={!hasPageLayoutOverride}
+                    >
+                      {t('pageSettings.scope.reset')}
+                    </button>
+                  </div>
+                </div>
 
                 {markdownImportDiagnostics.length > 0 && (
                   <div className="editor-settings-section">
@@ -7935,17 +7659,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           onApply={(updatedPages, updatedShared) => {
             bulkReplaceContent(updatedPages, updatedShared);
             setFindReplaceOpen(false);
-          }}
-        />
-      )}
-
-      {formBlockModalOpen && (
-        <FormBlockModal
-          onClose={() => setFormBlockModalOpen(false)}
-          onInsert={(newElements) => {
-            snapshotHistory();
-            newElements.forEach(el => onElementAdd(nameElement(el)));
-            setFormBlockModalOpen(false);
           }}
         />
       )}

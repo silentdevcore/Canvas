@@ -3,6 +3,7 @@ using System.Text;
 using System.Xml;
 using PXA.Core.Abstractions;
 using PXA.Core.Contracts;
+using PXA.Core.Primitives;
 
 namespace PXA.Infrastructure.Converters;
 
@@ -24,8 +25,6 @@ public sealed class OdtDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        var ps = design.PageSettings ?? new PageSettingsDto();
-
         using var ms  = new MemoryStream();
         using var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true);
 
@@ -34,8 +33,8 @@ public sealed class OdtDocumentExporter : DocumentExporter
 
         WriteXml(zip, "META-INF/manifest.xml",   BuildManifest());
         WriteXml(zip, "meta.xml",                BuildMeta(design));
-        WriteXml(zip, "styles.xml",              BuildStyles(ps));
-        WriteXml(zip, "content.xml",             BuildContent(design, ps));
+        WriteXml(zip, "styles.xml",              BuildStyles(design));
+        WriteXml(zip, "content.xml",             BuildContent(design));
 
         zip.Dispose();
         return ms.ToArray();
@@ -77,46 +76,37 @@ public sealed class OdtDocumentExporter : DocumentExporter
             """;
     }
 
-    private static string BuildStyles(PageSettingsDto ps)
+    private static string BuildStyles(DesignExportDto design)
     {
-        var pageW  = MmStr(ps.Width);
-        var pageH  = MmStr(ps.Height);
-        var mTop   = MmStr(ps.Margins?.Top    ?? 0);
-        var mBot   = MmStr(ps.Margins?.Bottom ?? 0);
-        var mLeft  = MmStr(ps.Margins?.Left   ?? 0);
-        var mRight = MmStr(ps.Margins?.Right  ?? 0);
-        var orient = (ps.Orientation?.ToLowerInvariant() == "landscape") ? "landscape" : "portrait";
-
-        return $"""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <office:document-styles
-                xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-                xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
-                xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
-                office:version="1.3">
-              <office:automatic-styles>
-                <style:page-layout style:name="PageLayout">
-                  <style:page-layout-properties
-                      fo:page-width="{pageW}"
-                      fo:page-height="{pageH}"
-                      style:print-orientation="{orient}"
-                      fo:margin-top="{mTop}"
-                      fo:margin-bottom="{mBot}"
-                      fo:margin-left="{mLeft}"
-                      fo:margin-right="{mRight}"/>
-                </style:page-layout>
-              </office:automatic-styles>
-              <office:master-styles>
-                <style:master-page style:name="Standard" style:page-layout-name="PageLayout"/>
-              </office:master-styles>
-            </office:document-styles>
-            """;
+        var pages = DesignLayoutPlanner.BuildPages(design);
+        var sb = new StringBuilder();
+        sb.AppendLine("""<?xml version="1.0" encoding="UTF-8"?>""");
+        sb.AppendLine("""<office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" office:version="1.3">""");
+        sb.AppendLine("<office:automatic-styles>");
+        for (var i = 0; i < pages.Count; i++)
+        {
+            var layout = pages[i].Layout;
+            var margins = layout.Margins ?? new MarginsDto();
+            sb.AppendLine($"<style:page-layout style:name=\"PageLayout{i + 1}\"><style:page-layout-properties fo:page-width=\"{MmStr(layout.Width ?? PageLayoutResolver.DefaultWidth)}\" fo:page-height=\"{MmStr(layout.Height ?? PageLayoutResolver.DefaultHeight)}\" style:print-orientation=\"{layout.Orientation}\" fo:margin-top=\"{MmStr(margins.Top)}\" fo:margin-bottom=\"{MmStr(margins.Bottom)}\" fo:margin-left=\"{MmStr(margins.Left)}\" fo:margin-right=\"{MmStr(margins.Right)}\" fo:background-color=\"{Esc(layout.BackgroundColor ?? "#ffffff")}\"/></style:page-layout>");
+        }
+        sb.AppendLine("</office:automatic-styles><office:master-styles>");
+        for (var i = 0; i < pages.Count; i++)
+            sb.AppendLine($"<style:master-page style:name=\"Page{i + 1}\" style:page-layout-name=\"PageLayout{i + 1}\"/>");
+        sb.AppendLine("</office:master-styles></office:document-styles>");
+        return sb.ToString();
     }
 
-    private static string BuildContent(DesignExportDto design, PageSettingsDto ps)
+    private static string BuildContent(DesignExportDto design)
     {
         var sb = new StringBuilder();
         var cellStyleDefs = BuildCellStyleDefs(design);
+        var pages = DesignLayoutPlanner.BuildPages(design);
+        var pageStyleDefs = new StringBuilder();
+        for (var pi = 0; pi < pages.Count; pi++)
+        {
+            var breakBefore = pi == 0 ? "" : "<style:paragraph-properties fo:break-before=\"page\"/>";
+            pageStyleDefs.AppendLine($"<style:style style:name=\"PageStart{pi + 1}\" style:family=\"paragraph\" style:master-page-name=\"Page{pi + 1}\">{breakBefore}</style:style>");
+        }
         sb.AppendLine($$"""
             <?xml version="1.0" encoding="UTF-8"?>
             <office:document-content
@@ -136,21 +126,17 @@ public sealed class OdtDocumentExporter : DocumentExporter
                 <style:style style:name="pAlignLeft" style:family="paragraph"><style:paragraph-properties fo:text-align="start"/></style:style>
                 <style:style style:name="pAlignCenter" style:family="paragraph"><style:paragraph-properties fo:text-align="center"/></style:style>
                 <style:style style:name="pAlignRight" style:family="paragraph"><style:paragraph-properties fo:text-align="end"/></style:style>
+            {{pageStyleDefs}}
             {{cellStyleDefs}}  </office:automatic-styles>
               <office:body>
                 <office:text>
             """);
 
-        var pages = design.Pages.Count > 0 ? design.Pages : [new PageDto { Elements = design.SharedElements }];
-
         for (int pi = 0; pi < pages.Count; pi++)
         {
-            if (pi > 0)
-                sb.AppendLine("""      <text:p><text:s/></text:p>"""); // page break paragraph
+            sb.AppendLine($"<text:p text:style-name=\"PageStart{pi + 1}\"/>");
 
             var elements = pages[pi].Elements
-                .Concat(design.SharedElements.Where(s => !pages[pi].Elements.Any(e => e.Id == s.Id)))
-                .Where(e => e.Hidden != true)
                 .OrderBy(e => e.Y).ThenBy(e => e.X);
 
             foreach (var el in elements)

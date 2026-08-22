@@ -32,6 +32,9 @@ export default defineConfig({
     __PXA_VERSION__: JSON.stringify(version),
     __PXA_BUILD_COMMIT__: JSON.stringify(buildInfo.commitId),
     __PXA_BUILD_TIME__: JSON.stringify(buildInfo.buildTime),
+    __PXA_VISUAL_PARITY_ENABLED__: JSON.stringify(
+      process.env.VITE_ENABLE_VISUAL_PARITY === 'true',
+    ),
     __PXA_DOCUMENTATION_URL__: JSON.stringify(
       process.env.VITE_PXA_DOCUMENTATION_URL ?? 'http://localhost:5174',
     ),
@@ -50,6 +53,9 @@ export default defineConfig({
     port: 5176,
     strictPort: true,
     host: true,
+    fs: {
+      allow: [path.resolve(__dirname, '..')],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5086',

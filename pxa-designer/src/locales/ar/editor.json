@@ -487,6 +487,14 @@
     }
   },
   "toolGroups": {
+    "favorites": "المفضلة",
+    "textData": "النص والبيانات",
+    "formsInput": "النماذج والإدخال",
+    "tablesCharts": "الجداول والمخططات",
+    "mediaCodes": "الوسائط والرموز",
+    "shapesLayout": "الأشكال والتخطيط",
+    "documentNavigation": "المستند والتنقل",
+    "wordElements": "عناصر Word",
     "text": "عناصر نصية",
     "form": "عناصر النموذج",
     "visual": "عناصر مرئية",
@@ -637,10 +645,39 @@
   },
   "toolPanel": {
     "addElements": "إضافة عناصر",
+    "libraryMode": "وضع مكتبة المصمم",
+    "elements": "العناصر",
+    "content": "المحتوى",
+    "searchElements": "البحث عن عناصر",
+    "addFavorite": "إضافة إلى المفضلة",
+    "removeFavorite": "إزالة من المفضلة",
+    "favoriteSaveFailed": "تعذر حفظ المفضلة. تمت استعادة التحديد السابق.",
+    "noElements": "لا توجد عناصر مطابقة",
+    "loadingFavorites": "جارٍ تحميل المفضلة…",
+    "offlineFavorites": "غير متصل: يتم عرض آخر مفضلة محفوظة.",
     "wordOnlyWarning": "بعض العناصر على اللوحة خاصة بـ Word فقط ولن تُعرض في تصدير PDF.",
     "insertFormBlockTitle": "إدراج مجموعة جاهزة من حقول النموذج (عنوان، اتصال، إلخ)",
     "insertFormBlock": "إدراج كتلة نموذج",
     "layers": "الطبقات"
+  },
+  "contentLibrary": {
+    "search": "البحث في المحتوى القابل لإعادة الاستخدام", "categoriesLabel": "فئات المحتوى",
+    "categories": { "all": "الكل", "forms": "النماذج", "invoices": "الفواتير", "books": "الكتب", "certificates": "الشهادات", "presentations": "العروض", "reports": "التقارير" },
+    "kinds": { "block": "كتلة", "pageKit": "حزمة صفحات" }, "preview": "معاينة المحتوى", "insert": "إدراج المحتوى", "close": "إغلاق المعاينة", "cancel": "إلغاء", "empty": "لا يوجد محتوى مطابق", "inserted": "تم إدراج المحتوى", "insertFailed": "تعذر إدراج المحتوى.", "scaled": "تم ملاءمة حزمة الصفحات لهذا المستند بنسبة {{percent}}٪.", "scalingNote": "ستتم ملاءمة هذه الحزمة بشكل متناسب مع حجم الصفحة الحالي.", "fieldLabels": "تسميات الحقول", "fieldNumber": "الحقل {{number}}", "removeField": "إزالة الحقل", "addField": "إضافة حقل", "newField": "الحقل {{number}}",
+    "items": {
+      "address": { "title": "كتلة العنوان" }, "contact": { "title": "كتلة الاتصال" }, "personal": { "title": "البيانات الشخصية" }, "customFields": { "title": "حقول مخصصة" }, "formPage": { "title": "نموذج كامل" },
+      "invoiceHeader": { "title": "رأس الفاتورة" }, "customerDetails": { "title": "بيانات العميل" }, "invoiceItems": { "title": "بنود الفاتورة" }, "invoiceTotals": { "title": "إجماليات الفاتورة" }, "invoicePage": { "title": "فاتورة كاملة" },
+      "chapterHeading": { "title": "عنوان الفصل" }, "bodySection": { "title": "قسم النص" }, "bibliographyPage": { "title": "صفحة المراجع" }, "bookKit": { "title": "كتاب متعدد الصفحات" },
+      "certificateRecipient": { "title": "مستلم الشهادة" }, "signatureRow": { "title": "صف التوقيعات" }, "certificatePage": { "title": "شهادة كاملة" },
+      "titleSlide": { "title": "شريحة العنوان" }, "contentSlideBlock": { "title": "شريحة المحتوى" }, "chartSlideBlock": { "title": "شريحة المخطط" }, "slideDeck": { "title": "عرض تقديمي" },
+      "reportHeader": { "title": "رأس التقرير" }, "kpiSection": { "title": "قسم مؤشرات الأداء" }, "reportChart": { "title": "مخطط التقرير" }, "reportPage": { "title": "تقرير مؤشرات أداء كامل" }, "reportKit": { "title": "تقرير متعدد الصفحات" },
+      "addressDescription": "حقول الاسم والعنوان البريدي.", "contactDescription": "حقول الهاتف والبريد الإلكتروني والموقع.", "personalDescription": "حقول شائعة للمعلومات الشخصية.", "customFieldsDescription": "تكوين قائمة حقول خاصة وإدراجها.", "formPageDescription": "صفحة كاملة لنموذج طلب وظيفة.",
+      "invoiceHeaderDescription": "عنوان الفاتورة ورقمها وتاريخها.", "customerDetailsDescription": "مستلم الفاتورة وعنوانه.", "invoiceItemsDescription": "جدول قابل للتحرير لبنود الفاتورة.", "invoiceTotalsDescription": "ملخص المجموع الفرعي والضريبة والإجمالي.", "invoicePageDescription": "صفحة فاتورة احترافية كاملة.",
+      "chapterHeadingDescription": "تنسيق رقم الفصل وعنوانه.", "bodySectionDescription": "قسم نص منسق للمحتوى الطويل.", "bibliographyPageDescription": "صفحة مراجع منسقة.", "bookKitDescription": "هيكل كتاب كامل من عشر صفحات.",
+      "certificateRecipientDescription": "اسم المستلم ونص التكريم.", "signatureRowDescription": "منطقتان لتوقيعات الاعتماد.", "certificatePageDescription": "صفحة كاملة لشهادة دورة.",
+      "titleSlideDescription": "صفحة عنوان العرض وعنوانه الفرعي.", "contentSlideBlockDescription": "عنوان الشريحة والنقاط الرئيسية.", "chartSlideBlockDescription": "عنوان ومخطط قابل للتحرير.", "slideDeckDescription": "حزمة عرض تقديمي قابلة لإعادة الاستخدام.",
+      "reportHeaderDescription": "عنوان التقرير وفترته.", "kpiSectionDescription": "ثلاثة مؤشرات أداء مرتبطة.", "reportChartDescription": "مخطط اتجاه قابل للتحرير للتقارير.", "reportPageDescription": "صفحة تقرير لوحة معلومات كاملة.", "reportKitDescription": "صفحات لتقارير الأداء والمالية والمشاريع."
+    }
   },
   "canvasStage": {
     "ariaLabel": "لوحة المستند",
@@ -663,6 +700,15 @@
     "body": "اسحب أداة من اليسار إلى صفحة PDF، أو انقر على أداة لإضافتها تلقائيًا."
   },
   "pageSettings": {
+    "scope": {
+      "heading": "تخطيط الصفحة",
+      "thisPage": "هذه الصفحة",
+      "overrideBadge": "مخصص",
+      "defaultBadge": "إعداد المستند",
+      "applyAll": "تطبيق على كل الصفحات",
+      "reset": "إعادة تعيين إلى إعداد المستند",
+      "overflowWarning": "يمتد {{count}} عنصر خارج هذه الصفحة وقد يتم قصه."
+    },
     "paper": {
       "heading": "الورق",
       "size": "الحجم",

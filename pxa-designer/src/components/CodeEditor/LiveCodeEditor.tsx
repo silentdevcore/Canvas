@@ -90,7 +90,9 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   const [persisted, setPersisted] = useState(false);
   const [diagnostics, setDiagnostics] = useState<CodeDiagnostic[]>([]);
   const [previewDesign, setPreviewDesign] = useState<ParsedDesign | null>(initialDesign);
+  const [previewProvenance, setPreviewProvenance] = useState<{ language: CodeLanguage; source: string } | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfSource, setPdfSource] = useState<string | null>(null);
   const [busy, setBusy] = useState<'loading' | 'saving' | 'validating' | 'running' | 'converting' | 'applying' | null>('loading');
   const [error, setError] = useState('');
   const [targetLanguage, setTargetLanguage] = useState<CodeLanguage>('csharpModel');
@@ -102,7 +104,19 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const activeSource = drafts[language];
-  const parsedState = useMemo(() => parseAndValidate(language === 'json' ? activeSource : JSON.stringify(previewDesign ?? {}), t), [activeSource, language, previewDesign, t]);
+  const jsonState = useMemo(
+    () => parseAndValidate(language === 'json' ? activeSource : '', t),
+    [activeSource, language, t],
+  );
+  const activePreviewDesign = language === 'json'
+    ? jsonState.parsed
+    : previewProvenance?.language === language && previewProvenance.source === activeSource
+      ? previewDesign
+      : null;
+  const activePdfBlobUrl = language === 'csharpPdf' && pdfSource === activeSource ? pdfBlobUrl : null;
+  const parsedState = language === 'json'
+    ? jsonState
+    : { validation: { valid: activePreviewDesign !== null, errors: [] }, parsed: activePreviewDesign };
 
   const replacePdfUrl = useCallback((next: string | null) => {
     setPdfBlobUrl(previous => { if (previous) URL.revokeObjectURL(previous); return next; });
@@ -127,6 +141,8 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       setActiveTemplateRevision(workspace.baseTemplateRevision);
       setPersisted(workspace.persisted);
       setPreviewDesign(workspace.canonicalDesign as ParsedDesign);
+      setPreviewProvenance(null);
+      setPdfSource(null);
       setEditorKey(value => value + 1);
     }).catch(cause => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : String(cause)); })
       .finally(() => { if (!controller.signal.aborted) setBusy(null); });
@@ -157,8 +173,11 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       const parsed = parseAndValidate(value, t);
       setPreviewDesign(parsed.parsed);
       setDiagnostics(parsed.validation.errors.map(message => ({ code: 'PXACODE-LOCAL', severity: 'error', message })));
+    } else {
+      setPreviewProvenance(current => current?.language === language ? null : current);
+      if (language === 'csharpPdf') { replacePdfUrl(null); setPdfSource(null); }
     }
-  }, [language, t]);
+  }, [language, replacePdfUrl, t]);
 
   const requireTemplate = () => {
     if (!templateId) throw new Error('Wait until this template has been saved before running server code.');
@@ -172,19 +191,28 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       const next = result.diagnostics ?? [];
       setDiagnostics(next);
       setStatuses(current => ({ ...current, [language]: next.some((item: CodeDiagnostic) => item.severity === 'error') ? 'Invalid' : current[language] }));
-      if (result.canonicalDesign) setPreviewDesign(result.canonicalDesign);
+      if (result.canonicalDesign) {
+        setPreviewDesign(result.canonicalDesign);
+        setPreviewProvenance({ language, source: activeSource });
+      }
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(null); }
   };
 
   const run = async () => {
-    setBusy('running'); setError(''); replacePdfUrl(null);
+    setBusy('running'); setError(''); replacePdfUrl(null); setPdfSource(null);
     try {
       const result = await executeCodeDraft(requireTemplate(), language, activeSource);
       setDiagnostics(result.diagnostics ?? []);
       if (!result.success) { setStatuses(current => ({ ...current, [language]: 'Invalid' })); return; }
-      if (result.canonicalDesign) setPreviewDesign(result.canonicalDesign);
-      if (language === 'csharpPdf') replacePdfUrl(pdfUrl(result.pdfBytes));
+      if (result.canonicalDesign) {
+        setPreviewDesign(result.canonicalDesign);
+        setPreviewProvenance({ language, source: activeSource });
+      }
+      if (language === 'csharpPdf') {
+        replacePdfUrl(pdfUrl(result.pdfBytes));
+        if (result.pdfBytes) setPdfSource(activeSource);
+      }
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(null); }
   };
@@ -204,7 +232,17 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     if (!pendingConversion) return;
     setDrafts(current => ({ ...current, [pendingConversion.targetLanguage]: pendingConversion.generatedSource }));
     setStatuses(current => ({ ...current, [pendingConversion.targetLanguage]: 'Generated' }));
-    if (pendingConversion.canonicalDesign) setPreviewDesign(pendingConversion.canonicalDesign);
+    if (pendingConversion.canonicalDesign) {
+      setPreviewDesign(pendingConversion.canonicalDesign);
+      setPreviewProvenance({
+        language: pendingConversion.targetLanguage,
+        source: pendingConversion.generatedSource,
+      });
+    }
+    if (pendingConversion.targetLanguage === 'csharpPdf') {
+      replacePdfUrl(null);
+      setPdfSource(null);
+    }
     setLanguage(pendingConversion.targetLanguage); setPendingConversion(null); setEditorKey(value => value + 1);
   };
 
@@ -214,6 +252,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       const result = await applyCodeDraft(requireTemplate(), workspaceRevision, activeTemplateRevision, language, activeSource);
       setWorkspaceRevision(result.workspaceRevision); setActiveTemplateRevision(result.templateRevision);
       setPreviewDesign(result.conversion.canonicalDesign as ParsedDesign);
+      setPreviewProvenance({ language, source: activeSource });
       onApply(result.conversion.canonicalDesign as ParsedDesign, result.templateRevision);
       setStatuses(current => ({ ...current, [language]: 'Saved' }));
     } catch (cause: any) {
@@ -224,7 +263,11 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
 
   const restore = () => {
     if (language === 'json') setDrafts(current => ({ ...current, json: JSON.stringify(previewDesign ?? initialDesign, null, 2) }));
-    else setDrafts(current => ({ ...current, [language]: '' }));
+    else {
+      setDrafts(current => ({ ...current, [language]: '' }));
+      setPreviewProvenance(current => current?.language === language ? null : current);
+      if (language === 'csharpPdf') { replacePdfUrl(null); setPdfSource(null); }
+    }
     setStatuses(current => ({ ...current, [language]: language === 'json' ? 'Saved' : 'Outdated' }));
     setEditorKey(value => value + 1);
   };
@@ -238,10 +281,10 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   };
 
   const exportPdf = async () => {
-    if (language === 'csharpPdf' && pdfBlobUrl) {
-      const anchor = document.createElement('a'); anchor.href = pdfBlobUrl; anchor.download = 'pxa-code.pdf'; anchor.click(); return;
+    if (language === 'csharpPdf' && activePdfBlobUrl) {
+      const anchor = document.createElement('a'); anchor.href = activePdfBlobUrl; anchor.download = 'pxa-code.pdf'; anchor.click(); return;
     }
-    if (previewDesign) await ExportService.exportJsonToPDF(previewDesign, previewDesign.name ?? 'document');
+    if (activePreviewDesign) await ExportService.exportJsonToPDF(activePreviewDesign, activePreviewDesign.name ?? 'document');
   };
 
   useEffect(() => {
@@ -255,7 +298,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
   }, []);
 
-  const diff = pendingConversion ? designDiff(previewDesign, pendingConversion.canonicalDesign as ParsedDesign) : null;
+  const diff = pendingConversion ? designDiff(activePreviewDesign ?? previewDesign, pendingConversion.canonicalDesign as ParsedDesign) : null;
 
   return <div className="live-code-editor">
     <div className="live-code-editor-topbar">
@@ -263,7 +306,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       <span className="live-code-topbar-title">{t('title')}</span>
       <div className="live-code-lang-toggle" role="tablist">
         {LANGUAGES.map(item => <button key={item} role="tab" aria-selected={language === item}
-          className={`live-code-lang-btn${language === item ? ' is-active' : ''}`} onClick={() => { setLanguage(item); replacePdfUrl(null); }}>
+          className={`live-code-lang-btn${language === item ? ' is-active' : ''}`} onClick={() => setLanguage(item)}>
           {t(languageLabelKey(item))}
           <small className={`code-draft-status status-${statuses[item].toLowerCase()}`}>{t(`status.${statuses[item].toLowerCase()}`)}</small>
         </button>)}
@@ -277,7 +320,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
         <button className="code-editor-btn" onClick={convert} disabled={!!busy || targetLanguage === language}>{t('actions.convert')}</button>
         <button className="code-editor-btn" onClick={restore} disabled={!!busy}>{t('actions.restore')}</button>
         <button className="live-code-export-btn" onClick={apply} disabled={!!busy || !persisted}>{t('actions.apply')}</button>
-        <button className="code-editor-btn" onClick={exportPdf} disabled={!!busy || !previewDesign}>{t('exportPdf')}</button>
+        <button className="code-editor-btn" onClick={exportPdf} disabled={!!busy || !activePreviewDesign}>{t('exportPdf')}</button>
       </div>
     </div>
     {legacyDraft && <aside className="code-workspace-banner">{t('workspace.legacy')}
@@ -304,7 +347,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       <div className="live-code-splitter" onMouseDown={event => { event.preventDefault(); dragging.current = true; }}><div className="live-code-splitter-handle" /></div>
       <div className="live-code-editor-right" style={{ width: `${100 - splitPct}%` }}>
         <CodePreviewPane raw={language === 'json' ? activeSource : ''} language={language}
-          validation={parsedState.validation} parsed={previewDesign} pdfBlobUrl={pdfBlobUrl}
+          validation={parsedState.validation} parsed={activePreviewDesign} pdfBlobUrl={activePdfBlobUrl}
           isConverting={busy === 'running' || busy === 'converting'} convertError={error || null}
           onExport={exportPdf} isExporting={false} />
       </div>

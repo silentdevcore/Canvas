@@ -1,13 +1,10 @@
 using System.Globalization;
-using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using PXA.Pdf;
 using PXA.Infrastructure.Pdf.Charts;
-using QRCoder;
-using ZXing;
-using ZXing.Common;
 using DesignLayoutPlanner = PXA.Core.Primitives.DesignLayoutPlanner;
+using PageLayoutResolver = PXA.Core.Primitives.PageLayoutResolver;
 
 namespace PXA.WebApi.Infrastructure;
 
@@ -85,8 +82,6 @@ public static class DesignJsonMapper
         if (!string.IsNullOrWhiteSpace(chartMetadata))
             document.Info.CustomProperties[PXA.Core.Primitives.ChartMetadataCodec.PdfInfoKey] = chartMetadata;
         var totalPages = plannedPages.Count;
-        var marginLeft = ps.Margins?.Left ?? 0;
-        var marginTop  = ps.Margins?.Top  ?? 0;
         var sourcePages = design.Pages ?? [];
 
         // Collect elements with a cross-page scope (watermarks, page-number overlays, etc.)
@@ -121,44 +116,56 @@ public static class DesignJsonMapper
         for (var pi = 0; pi < plannedPages.Count; pi++)
         {
             var plannedPage = plannedPages[pi];
-            var page = document.AddPage(ps.Width, ps.Height);
+            var layout = plannedPage.Layout;
+            var pageWidth = layout.Width ?? PageLayoutResolver.DefaultWidth;
+            var pageHeight = layout.Height ?? PageLayoutResolver.DefaultHeight;
+            var margins = layout.Margins ?? new MarginsDto();
+            var marginLeft = margins.Left;
+            var marginTop = margins.Top;
+            var page = document.AddPage(pageWidth, pageHeight);
+            var bleed = Math.Min(layout.BleedSize ?? 0, Math.Min(pageWidth, pageHeight) / 2 - 0.01);
+            if (bleed > 0)
+            {
+                page.SetPageBoundary(PdfPageBoundary.BleedBox, new PdfPoint(0, 0), new PdfPoint(pageWidth, pageHeight));
+                page.SetPageBoundary(PdfPageBoundary.TrimBox, new PdfPoint(bleed, bleed), new PdfPoint(pageWidth - bleed, pageHeight - bleed));
+            }
             var pageNumber = pi + 1;
 
             // Page background color (skip default white to keep PDF clean)
-            if (!string.IsNullOrEmpty(ps.BackgroundColor) && ps.BackgroundColor != "#ffffff")
+            if (!string.IsNullOrEmpty(layout.BackgroundColor) && layout.BackgroundColor != "#ffffff")
             {
-                var bg = ParseColor(ps.BackgroundColor);
-                page.DrawRectangle(0, 0, ps.Width, ps.Height, lineWidth: 0.01, fill: true, strokeColor: bg, fillColor: bg);
+                var bg = ParseColor(layout.BackgroundColor);
+                page.DrawRectangle(0, 0, pageWidth, pageHeight, lineWidth: 0.01, fill: true, strokeColor: bg, fillColor: bg);
             }
 
             // Page background image (data: URLs only; external URLs are not reachable server-side)
-            if (!string.IsNullOrEmpty(ps.BackgroundImage) &&
-                ps.BackgroundImage.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(layout.BackgroundImage) &&
+                layout.BackgroundImage.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
-                    var commaIdx = ps.BackgroundImage.IndexOf(',', StringComparison.Ordinal);
+                    var commaIdx = layout.BackgroundImage.IndexOf(',', StringComparison.Ordinal);
                     if (commaIdx >= 0)
                     {
-                        var bytes = Convert.FromBase64String(ps.BackgroundImage[(commaIdx + 1)..]);
-                        var ext = ps.BackgroundImage.Contains("jpeg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
+                        var bytes = Convert.FromBase64String(layout.BackgroundImage[(commaIdx + 1)..]);
+                        var ext = layout.BackgroundImage.Contains("jpeg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
                         var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ext);
                         File.WriteAllBytes(tempPath, bytes);
                         try
                         {
-                            switch (ps.BackgroundImageFit)
+                            switch (layout.BackgroundImageFit)
                             {
                                 case "contain":
-                                    page.DrawImageFitCenter(tempPath, 0, 0, ps.Width, ps.Height);
+                                    page.DrawImageFitCenter(tempPath, 0, 0, pageWidth, pageHeight);
                                     break;
                                 case "tile":
                                     const double tileSize = 100;
-                                    for (var ty = 0.0; ty < ps.Height; ty += tileSize)
-                                    for (var tx = 0.0; tx < ps.Width;  tx += tileSize)
+                                    for (var ty = 0.0; ty < pageHeight; ty += tileSize)
+                                    for (var tx = 0.0; tx < pageWidth;  tx += tileSize)
                                         page.DrawImage(tempPath, tx, ty, tileSize, tileSize);
                                     break;
                                 default:
-                                    page.DrawImage(tempPath, 0, 0, ps.Width, ps.Height);
+                                    page.DrawImage(tempPath, 0, 0, pageWidth, pageHeight);
                                     break;
                             }
                         }
@@ -178,13 +185,13 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
+                RenderElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
+                RenderElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
             }
 
             // Global watermark from page settings
@@ -194,7 +201,7 @@ public static class DesignJsonMapper
                 var wColor = ParseColor(gw.Color ?? "#d1d5db");
                 var wFs = gw.FontSize * Math.Max(gw.Scale, 0.1);
                 page.DrawText(gw.Content,
-                    ps.Width / 2, ps.Height / 2,
+                    pageWidth / 2, pageHeight / 2,
                     new PdfDrawTextOptions
                     {
                         FontSize = wFs,
@@ -220,12 +227,12 @@ public static class DesignJsonMapper
                 const double pnPad = 18;
                 var (pnX, pnY) = pn.Placement switch
                 {
-                    "top-left"      => (marginLeft + pnPad,            ps.Height - marginTop - pnPad),
-                    "top-center"    => (ps.Width / 2,                  ps.Height - marginTop - pnPad),
-                    "top-right"     => (ps.Width - marginLeft - pnPad, ps.Height - marginTop - pnPad),
-                    "bottom-left"   => (marginLeft + pnPad,            (ps.Margins?.Bottom ?? 0) + pnPad),
-                    "bottom-right"  => (ps.Width - marginLeft - pnPad, (ps.Margins?.Bottom ?? 0) + pnPad),
-                    _               => (ps.Width / 2,                  (ps.Margins?.Bottom ?? 0) + pnPad) // bottom-center
+                    "top-left"      => (marginLeft + pnPad,              pageHeight - marginTop - pnPad),
+                    "top-center"    => (pageWidth / 2,                    pageHeight - marginTop - pnPad),
+                    "top-right"     => (pageWidth - marginLeft - pnPad,   pageHeight - marginTop - pnPad),
+                    "bottom-left"   => (marginLeft + pnPad,              margins.Bottom + pnPad),
+                    "bottom-right"  => (pageWidth - marginLeft - pnPad,  margins.Bottom + pnPad),
+                    _               => (pageWidth / 2,                    margins.Bottom + pnPad) // bottom-center
                 };
                 page.DrawText(pnText, pnX, pnY,
                     new PdfDrawTextOptions { FontSize = pnFs, FillColor = ParseColor("#374151") });
@@ -393,7 +400,7 @@ public static class DesignJsonMapper
                     fillColor: hasBg ? ParseColor(bgStr!) : PdfColor.White);
 
                 // Placeholder text inside the input box
-                var placeholderText = el.FieldName ?? "";
+                var placeholderText = el.Placeholder ?? el.FieldName ?? "";
                 if (!string.IsNullOrEmpty(placeholderText) && boxH > 10)
                     page.DrawText(placeholderText, elX + 6, TextY(pageH, elY + labelOffset + (boxH - fontSize * 1.2) / 2, fontSize),
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#9ca3af"), Italic = true });
@@ -600,6 +607,24 @@ public static class DesignJsonMapper
                 var radius = ClampRadius(ParseRadius(GetString(style, "borderRadius")), w, h);
                 var fillColor = hasFill ? ParseColor(fillStr) : PdfColor.White;
                 var boxY = RectBottomY(pageH, elY, h);
+                var rotation = GetDouble(style, "rotation", 0);
+                if (rotation == 0) rotation = ParseRotation(GetString(style, "transform"));
+
+                if (Math.Abs(rotation) > 0.0001)
+                {
+                    var borderWidth = GetDouble(style, "borderWidth", 0);
+                    var lineWidth = borderWidth > 0 ? borderWidth : 0.01;
+                    var strokeColor = borderWidth > 0
+                        ? ParseColor(GetString(style, "borderColor") ?? "#000000")
+                        : fillColor;
+                    page.DrawPolygon(
+                        RotatedRectanglePoints(elX, boxY, w, h, rotation),
+                        lineWidth: lineWidth,
+                        fill: hasFill,
+                        strokeColor: strokeColor,
+                        fillColor: fillColor);
+                    break;
+                }
 
                 if (hasFill && radius > 0)
                     page.DrawRoundedRectangle(elX, boxY, w, h, radius,
@@ -676,7 +701,7 @@ public static class DesignJsonMapper
 
                 page.DrawLine(lineX0, lineY, lineX1, lineY, lineWidth: sw, strokeColor: color);
 
-                if (startMarker == "arrow")
+                if (startMarker is "arrow" or "filled")
                     page.DrawPolygon([
                         new PdfPoint(elX, lineY),
                         new PdfPoint(elX + tipW, lineY + tipW / 2),
@@ -686,7 +711,7 @@ public static class DesignJsonMapper
                     page.DrawCircle(elX + dotR, lineY, dotR,
                         lineWidth: 0.5, fill: true, strokeColor: color, fillColor: color);
 
-                if (endMarker == "arrow")
+                if (endMarker is "arrow" or "filled")
                     page.DrawPolygon([
                         new PdfPoint(elX + w, lineY),
                         new PdfPoint(elX + w - tipW, lineY + tipW / 2),
@@ -728,8 +753,9 @@ public static class DesignJsonMapper
                 var rows = el.CellData;
                 if (rows is null || rows.Length == 0) return;
 
-                var fontSize = GetDouble(style, "fontSize", 11);
-                var textColor = ParseColor(GetString(style, "color") ?? "#101828");
+                var fontSize = GetDouble(style, "cellFontSize", GetDouble(style, "fontSize", 11));
+                var textColor = ParseColor(GetString(style, "cellColor") ?? GetString(style, "color") ?? "#101828");
+                var fontFamily = ParseFontFamily(GetString(style, "cellFontFamily") ?? GetString(style, "fontFamily"));
                 var borderColor = ParseColor(GetString(style, "borderColor") ?? "#e5e7eb");
                 var headerBg = string.IsNullOrEmpty(el.HeaderBgColor)
                     ? new PdfColor(0.94, 0.97, 1.0)
@@ -784,6 +810,8 @@ public static class DesignJsonMapper
                     RowHeight = Math.Max(rowH, 16),
                     CellPadding = cellPad,
                     FontSize = fontSize,
+                    FontFamily = fontFamily,
+                    Bold = GetString(style, "cellFontWeight") is "bold" or "700" or "600",
                     TextColor = textColor,
                     BorderColor = borderColor,
                     BorderLineWidth = Math.Max(bw, 0.5),
@@ -944,11 +972,8 @@ public static class DesignJsonMapper
                 if (string.IsNullOrWhiteSpace(value)) { DrawPlaceholder(page, el, pageH, "QR: (empty)"); break; }
                 try
                 {
-                    var pngBytes = GenerateQrPng(value);
-                    var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ".png");
-                    File.WriteAllBytes(tempPath, pngBytes);
-                    try { page.DrawImage(tempPath, elX, RectBottomY(pageH, elY, h), w, h); }
-                    finally { TryDelete(tempPath); }
+                    var pngBytes = PxaSymbolRenderer.RenderQrCode(value);
+                    page.DrawImage(pngBytes, elX, RectBottomY(pageH, elY, h), w, h);
                 }
                 catch { DrawPlaceholder(page, el, pageH, $"QR: {value}"); }
                 break;
@@ -960,11 +985,9 @@ public static class DesignJsonMapper
                 if (string.IsNullOrWhiteSpace(value)) { DrawPlaceholder(page, el, pageH, "Barcode: (empty)"); break; }
                 try
                 {
-                    var pngBytes = GenerateBarcodePng(value, el.BarcodeType, (int)Math.Max(w, 1), (int)Math.Max(h * 0.7, 1));
-                    var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ".png");
-                    File.WriteAllBytes(tempPath, pngBytes);
-                    try { page.DrawImage(tempPath, elX, RectBottomY(pageH, elY, h * 0.7), w, h * 0.7); }
-                    finally { TryDelete(tempPath); }
+                    var pngBytes = PxaSymbolRenderer.RenderBarcode(
+                        value, el.BarcodeType, (int)Math.Max(w, 1), (int)Math.Max(h * 0.7, 1));
+                    page.DrawImage(pngBytes, elX, RectBottomY(pageH, elY, h * 0.7), w, h * 0.7);
                 }
                 catch { DrawPlaceholder(page, el, pageH, $"Barcode: {value}"); }
                 break;
@@ -1020,13 +1043,8 @@ public static class DesignJsonMapper
                     _            => val.ToString($"N{decimals}", culture),
                 };
 
-                var fs      = GetDouble(style, "fontSize", 16);
-                var fgColor = ParseColor(GetString(style, "color") ?? "#000000");
-                var align   = ParseAlignment(GetString(style, "textAlign"));
-                page.DrawParagraph(text, elX, TextY(pageH, elY, fs), w, new PdfParagraphOptions
-                {
-                    FontSize = fs, FillColor = fgColor, Alignment = align
-                });
+                var opts = BuildParaOptions(style);
+                page.DrawParagraph(text, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
 
@@ -1298,103 +1316,6 @@ public static class DesignJsonMapper
         if (value is JsonElement json) return json.TryGetDouble(out var d) ? d : 0;
         try { return Convert.ToDouble(value, CultureInfo.InvariantCulture); }
         catch { return 0; }
-    }
-
-    private static byte[] GenerateQrPng(string value)
-    {
-        var gen = new QRCodeGenerator();
-        using var data = gen.CreateQrCode(value, QRCodeGenerator.ECCLevel.M);
-        var qr = new PngByteQRCode(data);
-        return qr.GetGraphic(10);
-    }
-
-    private static byte[] GenerateBarcodePng(string value, string? barcodeType, int width, int height)
-    {
-        var format = ParseBarcodeFormat(barcodeType);
-        var writer = new MultiFormatWriter();
-        var hints = new Dictionary<EncodeHintType, object> { [EncodeHintType.MARGIN] = 2 };
-        var matrix = writer.encode(value, format, width, height, hints);
-
-        var pixels = new bool[matrix.Height, matrix.Width];
-        for (var y = 0; y < matrix.Height; y++)
-            for (var x = 0; x < matrix.Width; x++)
-                pixels[y, x] = matrix[x, y]; // ZXing: [col, row]
-
-        return MatrixToPng(pixels, 1);
-    }
-
-    private static BarcodeFormat ParseBarcodeFormat(string? type) => type?.ToLowerInvariant() switch
-    {
-        "code128" or "code-128" => BarcodeFormat.CODE_128,
-        "code39"  or "code-39"  => BarcodeFormat.CODE_39,
-        "ean13"   or "ean-13"   => BarcodeFormat.EAN_13,
-        "ean8"    or "ean-8"    => BarcodeFormat.EAN_8,
-        "upca"    or "upc-a"    => BarcodeFormat.UPC_A,
-        "pdf417"                 => BarcodeFormat.PDF_417,
-        _                        => BarcodeFormat.CODE_128
-    };
-
-    private static byte[] MatrixToPng(bool[,] matrix, int scale)
-    {
-        var rows = matrix.GetLength(0);
-        var cols = matrix.GetLength(1);
-        var width = cols * scale;
-        var height = rows * scale;
-
-        var raw = new byte[height * (1 + width)];
-        var p = 0;
-        for (var y = 0; y < height; y++)
-        {
-            raw[p++] = 0; // filter: None
-            var row = y / scale;
-            for (var x = 0; x < width; x++)
-                raw[p++] = matrix[row, x / scale] ? (byte)0 : (byte)255;
-        }
-
-        byte[] idat;
-        using (var ms = new MemoryStream())
-        {
-            using (var zlib = new ZLibStream(ms, CompressionLevel.Fastest, leaveOpen: true))
-                zlib.Write(raw, 0, raw.Length);
-            idat = ms.ToArray();
-        }
-
-        using var png = new MemoryStream();
-        png.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
-        WritePngChunk(png, "IHDR", [
-            (byte)(width >> 24), (byte)(width >> 16), (byte)(width >> 8), (byte)width,
-            (byte)(height >> 24), (byte)(height >> 16), (byte)(height >> 8), (byte)height,
-            8, 0, 0, 0, 0  // 8-bit grayscale
-        ]);
-        WritePngChunk(png, "IDAT", idat);
-        WritePngChunk(png, "IEND", []);
-        return png.ToArray();
-    }
-
-    private static void WritePngChunk(Stream s, string type, byte[] data)
-    {
-        var len = data.Length;
-        s.Write(new[] { (byte)(len >> 24), (byte)(len >> 16), (byte)(len >> 8), (byte)len });
-        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
-        s.Write(typeBytes);
-        s.Write(data);
-        var crcInput = new byte[4 + data.Length];
-        typeBytes.CopyTo(crcInput, 0);
-        data.CopyTo(crcInput, 4);
-        var crc = PngCrc32(crcInput);
-        s.Write(new[] { (byte)(crc >> 24), (byte)(crc >> 16), (byte)(crc >> 8), (byte)crc });
-    }
-
-    private static uint PngCrc32(byte[] data)
-    {
-        var crc = 0xFFFFFFFFu;
-        foreach (var b in data)
-        {
-            crc ^= b;
-            for (var i = 0; i < 8; i++)
-                crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
-        }
-        return ~crc;
     }
 
     private static IReadOnlyList<PdfPoint> EllipsePoints(double cx, double cy, double rx, double ry)
@@ -1833,6 +1754,35 @@ public static class DesignJsonMapper
         var stripped = val.Replace("px", "", StringComparison.OrdinalIgnoreCase)
                           .Replace("%", "", StringComparison.OrdinalIgnoreCase).Trim();
         return double.TryParse(stripped, NumberStyles.Any, CultureInfo.InvariantCulture, out var r) && r > 0 ? r : 0;
+    }
+
+    private static PdfPoint[] RotatedRectanglePoints(
+        double x, double y, double width, double height, double rotationDegrees)
+    {
+        var centerX = x + width / 2;
+        var centerY = y + height / 2;
+        // CSS rotates clockwise for positive angles in screen coordinates. PDF page
+        // coordinates use the opposite vertical direction, so invert the angle.
+        var radians = -rotationDegrees * Math.PI / 180.0;
+        var cosine = Math.Cos(radians);
+        var sine = Math.Sin(radians);
+
+        PdfPoint Rotate(double pointX, double pointY)
+        {
+            var offsetX = pointX - centerX;
+            var offsetY = pointY - centerY;
+            return new PdfPoint(
+                centerX + offsetX * cosine - offsetY * sine,
+                centerY + offsetX * sine + offsetY * cosine);
+        }
+
+        return
+        [
+            Rotate(x, y),
+            Rotate(x + width, y),
+            Rotate(x + width, y + height),
+            Rotate(x, y + height),
+        ];
     }
 
     private static double ClampRadius(double r, double w, double h) =>

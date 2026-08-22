@@ -17,8 +17,6 @@ public sealed class HtmlDocumentExporter : DocumentExporter
     public byte[] Export(DesignExportDto design)
     {
         var sb = new StringBuilder();
-        var ps = design.PageSettings ?? new PageSettingsDto();
-
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 
         sb.AppendLine("<!DOCTYPE html>");
@@ -38,15 +36,24 @@ public sealed class HtmlDocumentExporter : DocumentExporter
         sb.AppendLine("    body { font-family: Arial, Helvetica, sans-serif; background: #e5e7eb; }");
         sb.AppendLine("    .canvas-page { position: relative; background: #fff; margin: 20px auto; box-shadow: 0 4px 24px rgba(0,0,0,.15); page-break-after: always; }");
         sb.AppendLine("    .canvas-page:last-child { page-break-after: avoid; }");
+        for (var i = 0; i < plannedPages.Count; i++)
+        {
+            var layout = plannedPages[i].Layout;
+            sb.AppendLine($"    @page pxa-page-{i + 1} {{ size: {N(layout.Width ?? PageLayoutResolver.DefaultWidth)}px {N(layout.Height ?? PageLayoutResolver.DefaultHeight)}px; margin: 0; }}");
+        }
         sb.AppendLine("    @media print { body { background: #fff; } .canvas-page { margin: 0; box-shadow: none; } }");
         sb.AppendLine("  </style>");
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
 
-        foreach (var page in plannedPages)
+        for (var pageIndex = 0; pageIndex < plannedPages.Count; pageIndex++)
         {
-            var bgColor = ps.BackgroundColor ?? "#ffffff";
-            sb.AppendLine($"  <div class=\"canvas-page\" style=\"width:{N(ps.Width)}px; height:{N(ps.Height)}px; background:{bgColor}\">");
+            var page = plannedPages[pageIndex];
+            var layout = page.Layout;
+            var width = layout.Width ?? PageLayoutResolver.DefaultWidth;
+            var height = layout.Height ?? PageLayoutResolver.DefaultHeight;
+            var bgColor = layout.BackgroundColor ?? "#ffffff";
+            sb.AppendLine($"  <div class=\"canvas-page\" style=\"width:{N(width)}px; height:{N(height)}px; background:{bgColor}; page:pxa-page-{pageIndex + 1}\">");
 
             foreach (var el in page.Elements)
                 RenderElement(sb, el);

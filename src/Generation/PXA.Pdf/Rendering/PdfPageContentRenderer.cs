@@ -117,7 +117,7 @@ internal static class PdfPageContentRenderer
             var displayText = element.TextDirection == "rtl"
                 ? ReverseForRtl(element.Text)
                 : element.Text;
-            sb.Append(EncodeAsHexUtf16Be(displayText));
+            sb.Append(EncodeAsHexGlyphIds(displayText, element.EmbeddedFont!));
             sb.Append(" Tj\n");
         }
         else
@@ -154,6 +154,14 @@ internal static class PdfPageContentRenderer
         }
 
         sb.Append("ET\n");
+    }
+
+    private static string EncodeAsHexGlyphIds(string text, PdfEmbeddedFont font)
+    {
+        var encoded = new StringBuilder(text.Length * 4 + 2).Append('<');
+        foreach (var rune in text.EnumerateRunes())
+            encoded.Append(font.GetGlyphId(rune.Value).ToString("X4", CultureInfo.InvariantCulture));
+        return encoded.Append('>').ToString();
     }
 
     private static void RenderImage(

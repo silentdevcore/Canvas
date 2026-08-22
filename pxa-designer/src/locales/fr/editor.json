@@ -487,6 +487,14 @@
     }
   },
   "toolGroups": {
+    "favorites": "Favoris",
+    "textData": "Texte et données",
+    "formsInput": "Formulaires et saisie",
+    "tablesCharts": "Tableaux et graphiques",
+    "mediaCodes": "Médias et codes",
+    "shapesLayout": "Formes et mise en page",
+    "documentNavigation": "Document et navigation",
+    "wordElements": "Éléments Word",
     "text": "Éléments de texte",
     "form": "Éléments de formulaire",
     "visual": "Éléments visuels",
@@ -637,10 +645,39 @@
   },
   "toolPanel": {
     "addElements": "Ajouter des éléments",
+    "libraryMode": "Mode de bibliothèque du concepteur",
+    "elements": "Éléments",
+    "content": "Contenu",
+    "searchElements": "Rechercher des éléments",
+    "addFavorite": "Ajouter aux favoris",
+    "removeFavorite": "Retirer des favoris",
+    "favoriteSaveFailed": "Les favoris n'ont pas pu être enregistrés. La sélection précédente a été restaurée.",
+    "noElements": "Aucun élément correspondant",
+    "loadingFavorites": "Chargement des favoris…",
+    "offlineFavorites": "Hors ligne : affichage des derniers favoris enregistrés.",
     "wordOnlyWarning": "Certains éléments de la zone de travail sont réservés à Word et ne seront pas rendus dans l'export PDF.",
     "insertFormBlockTitle": "Insérer un groupe préconstruit de champs de formulaire (adresse, contact, etc.)",
     "insertFormBlock": "Insérer un bloc de formulaire",
     "layers": "Calques"
+  },
+  "contentLibrary": {
+    "search": "Rechercher du contenu réutilisable", "categoriesLabel": "Catégories de contenu",
+    "categories": { "all": "Tout", "forms": "Formulaires", "invoices": "Factures", "books": "Livres", "certificates": "Certificats", "presentations": "Présentations", "reports": "Rapports" },
+    "kinds": { "block": "Bloc", "pageKit": "Kit de pages" }, "preview": "Aperçu du contenu", "insert": "Insérer le contenu", "close": "Fermer l'aperçu", "cancel": "Annuler", "empty": "Aucun contenu correspondant", "inserted": "Contenu inséré", "insertFailed": "Le contenu n'a pas pu être inséré.", "scaled": "Le kit a été ajusté à ce document à {{percent}} %.", "scalingNote": "Ce kit sera ajusté proportionnellement à la taille de page actuelle.", "fieldLabels": "Libellés des champs", "fieldNumber": "Champ {{number}}", "removeField": "Supprimer le champ", "addField": "Ajouter un champ", "newField": "Champ {{number}}",
+    "items": {
+      "address": { "title": "Bloc d'adresse" }, "contact": { "title": "Bloc de contact" }, "personal": { "title": "Informations personnelles" }, "customFields": { "title": "Champs personnalisés" }, "formPage": { "title": "Formulaire complet" },
+      "invoiceHeader": { "title": "En-tête de facture" }, "customerDetails": { "title": "Coordonnées client" }, "invoiceItems": { "title": "Lignes de facture" }, "invoiceTotals": { "title": "Totaux de facture" }, "invoicePage": { "title": "Facture complète" },
+      "chapterHeading": { "title": "Titre de chapitre" }, "bodySection": { "title": "Section de texte" }, "bibliographyPage": { "title": "Page de bibliographie" }, "bookKit": { "title": "Livre multipage" },
+      "certificateRecipient": { "title": "Destinataire du certificat" }, "signatureRow": { "title": "Ligne de signatures" }, "certificatePage": { "title": "Certificat complet" },
+      "titleSlide": { "title": "Diapositive de titre" }, "contentSlideBlock": { "title": "Diapositive de contenu" }, "chartSlideBlock": { "title": "Diapositive graphique" }, "slideDeck": { "title": "Présentation" },
+      "reportHeader": { "title": "En-tête de rapport" }, "kpiSection": { "title": "Section KPI" }, "reportChart": { "title": "Graphique de rapport" }, "reportPage": { "title": "Rapport KPI complet" }, "reportKit": { "title": "Rapport multipage" },
+      "addressDescription": "Champs pour le nom et l'adresse postale.", "contactDescription": "Champs pour le téléphone, l'e-mail et le site web.", "personalDescription": "Champs courants d'informations personnelles.", "customFieldsDescription": "Configurez et insérez votre propre liste de champs.", "formPageDescription": "Une page complète de candidature.",
+      "invoiceHeaderDescription": "Titre, numéro et date de la facture.", "customerDetailsDescription": "Destinataire et adresse de facturation.", "invoiceItemsDescription": "Tableau modifiable des lignes de facture.", "invoiceTotalsDescription": "Résumé du sous-total, de la taxe et du total.", "invoicePageDescription": "Une page de facture professionnelle complète.",
+      "chapterHeadingDescription": "Mise en forme du numéro et du titre de chapitre.", "bodySectionDescription": "Section de texte enrichi pour contenu long.", "bibliographyPageDescription": "Une page de références mise en forme.", "bookKitDescription": "Une structure complète de livre en dix pages.",
+      "certificateRecipientDescription": "Nom du destinataire et texte de distinction.", "signatureRowDescription": "Deux zones de signature d'approbation.", "certificatePageDescription": "Une page complète de certificat de formation.",
+      "titleSlideDescription": "Page de titre et sous-titre de présentation.", "contentSlideBlockDescription": "Titre et points clés de la diapositive.", "chartSlideBlockDescription": "Titre et graphique modifiable.", "slideDeckDescription": "Un kit de présentation réutilisable.",
+      "reportHeaderDescription": "Titre et période du rapport.", "kpiSectionDescription": "Trois indicateurs de performance liés.", "reportChartDescription": "Graphique de tendance modifiable pour les rapports.", "reportPageDescription": "Une page complète de rapport de tableau de bord.", "reportKitDescription": "Pages de rapports KPI, financiers et de projet."
+    }
   },
   "canvasStage": {
     "ariaLabel": "Canevas du document",
@@ -663,6 +700,15 @@
     "body": "Faites glisser un outil depuis la gauche sur la page PDF, ou cliquez sur un outil pour l'ajouter automatiquement."
   },
   "pageSettings": {
+    "scope": {
+      "heading": "Mise en page",
+      "thisPage": "Cette page",
+      "overrideBadge": "Personnalisée",
+      "defaultBadge": "Valeur du document",
+      "applyAll": "Appliquer à toutes les pages",
+      "reset": "Rétablir la valeur du document",
+      "overflowWarning": "{{count}} élément(s) dépassent cette page et peuvent être tronqués."
+    },
     "paper": {
       "heading": "Papier",
       "size": "Taille",

@@ -462,6 +462,147 @@
   padding: 12px;
 }
 
+.editor-tool-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 10px 12px 0;
+  padding: 3px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #f5f5f4;
+}
+
+.editor-tool-mode button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #57534e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.editor-tool-mode button.is-active {
+  background: #ffffff;
+  color: #1c1917;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.12);
+}
+
+.editor-library-search {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  margin: 10px 12px 0;
+  padding: 0 9px;
+  min-height: 36px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #fff;
+  color: #78716c;
+}
+
+.editor-library-search:focus-within { border-color: #0f766e; box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.12); }
+.editor-library-search input { min-width: 0; border: 0; outline: 0; font: inherit; color: #292524; }
+
+.editor-tool-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 4px;
+}
+
+.editor-tool-row .editor-tool-button { width: 100%; }
+
+.editor-tool-favorite,
+.editor-library-item-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #a8a29e;
+  cursor: pointer;
+}
+
+.editor-tool-favorite:hover,
+.editor-tool-favorite.is-active { color: #b45309; background: #fffbeb; }
+.editor-tool-favorite.is-active svg { fill: currentColor; }
+
+.editor-content-library { min-height: 0; }
+
+.editor-library-filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.editor-library-filters button {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  background: #fff;
+  color: #57534e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.editor-library-filters button.is-active { border-color: #0f766e; background: #f0fdfa; color: #115e59; }
+
+.editor-library-list { display: grid; gap: 8px; padding: 10px 12px 12px; }
+
+.editor-library-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 30px;
+  gap: 9px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.editor-library-item[draggable="true"] { cursor: grab; }
+.editor-library-item:hover { border-color: #99f6e4; background: #f0fdfa; }
+.editor-library-item-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: #ccfbf1; color: #0f766e; }
+.editor-library-item-copy { min-width: 0; }
+.editor-library-item-copy strong,
+.editor-library-item-copy small,
+.editor-library-item-copy em { display: block; }
+.editor-library-item-copy strong { color: #292524; font-size: 12px; }
+.editor-library-item-copy small { margin-top: 2px; color: #78716c; font-size: 11px; line-height: 1.3; }
+.editor-library-item-copy em { margin-top: 4px; color: #0f766e; font-size: 10px; font-style: normal; font-weight: 800; text-transform: uppercase; }
+.editor-library-item-actions { display: grid; gap: 3px; }
+.editor-library-item-actions button:hover { color: #0f766e; background: #ccfbf1; }
+.editor-library-empty { margin: 8px 12px; color: #78716c; font-size: 12px; text-align: center; }
+.editor-tool-status { margin: 7px 12px 0; color: #78716c; font-size: 11px; }
+.editor-tool-status.is-warning { color: #92400e; }
+
+.modal-dialog.editor-library-preview-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  border-radius: 8px;
+}
+.editor-library-preview-dialog .modal-body { min-height: 0; }
+.editor-library-preview-page { position: relative; width: 100%; aspect-ratio: 1.414 / 1; overflow: hidden; border: 1px solid #d6d3d1; background: #fff; box-shadow: 0 8px 24px rgba(41, 37, 36, 0.12); }
+.editor-library-preview-page span { position: absolute; min-width: 2px; min-height: 2px; border: 1px solid #94a3b8; background: #e2e8f0; }
+.editor-library-scaling-note { padding: 8px 10px; border-inline-start: 3px solid #d97706; background: #fffbeb; color: #92400e; font-size: 12px; }
+
+.editor-library-custom-fields { display: grid; gap: 7px; margin-top: 12px; }
+.editor-library-custom-fields > strong { font-size: 12px; color: #44403c; }
+.editor-library-custom-fields label { display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 6px; }
+.editor-library-custom-fields input { min-width: 0; padding: 7px 9px; border: 1px solid #d6d3d1; border-radius: 5px; }
+.editor-library-custom-fields label button,
+.editor-library-add-field { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d6d3d1; border-radius: 5px; background: #fff; color: #57534e; }
+.editor-library-custom-fields label button:hover { border-color: #fca5a5; color: #b91c1c; }
+.editor-library-add-field { justify-self: start; padding: 6px 9px; color: #0f766e; }
+
 .editor-tool-group {
   border: 1px solid #f3c77a;
   border-radius: 10px;
@@ -790,12 +931,46 @@
 .editor-canvas-element {
   position: absolute;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
+  background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+
+html[data-visual-parity="true"],
+html[data-visual-parity="true"] body,
+html[data-visual-parity="true"] #root {
+  min-width: 0;
+  margin: 0;
+  background: #ffffff;
+}
+
+.visual-parity-surface {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: max-content;
+  background: #ffffff;
+}
+
+.visual-parity-page {
+  flex: none;
+  box-sizing: border-box;
+}
+
+.visual-parity-element {
+  box-sizing: border-box;
+  border: 0;
+  cursor: default;
+  user-select: none;
+}
+
+.visual-parity-element:hover {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .editor-canvas-element:active {
@@ -940,6 +1115,10 @@
   overflow: hidden;
   color: #171717;
   line-height: 1.45;
+}
+
+.pxa-pdf-rich-text p {
+  margin: 0;
 }
 
 .editor-form-field {
@@ -1623,6 +1802,29 @@
   font-size: 12px;
   font-weight: 800;
   color: #292524;
+}
+
+.editor-page-layout-badge {
+  margin-left: auto;
+  padding: 2px 6px;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  color: #57534e;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.editor-page-layout-badge.is-overridden {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.editor-page-layout-scope {
+  color: #57534e;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .editor-language-multiselect {
@@ -2930,30 +3132,6 @@
   border-radius: 0 4px 4px 0;
 }
 
-/* ─── Form block insert button ─────────────────────────────────────────────── */
-
-.editor-form-block-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin: 4px 12px 8px;
-  padding: 9px 14px;
-  border: 1.5px dashed #d6d3d1;
-  border-radius: 8px;
-  background: #fafaf9;
-  color: #44403c;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-}
-.editor-form-block-btn:hover {
-  border-color: #6366f1;
-  background: #eef2ff;
-  color: #4f46e5;
-}
-
 /* ─── Workspace page size badge ───────────────────────────────────────────────── */
 
 .editor-page-size-badge {
@@ -3031,3 +3209,34 @@
   outline: none;
 }
 .editor-heading-select:focus { border-color: #6366f1; }
+@font-face {
+  font-family: 'PXA Helvetica';
+  src: url('../../../assets/fonts/liberation/LiberationSans-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PXA Helvetica';
+  src: url('../../../assets/fonts/liberation/LiberationSans-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PXA Helvetica';
+  src: url('../../../assets/fonts/liberation/LiberationSans-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PXA Helvetica';
+  src: url('../../../assets/fonts/liberation/LiberationSans-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+}

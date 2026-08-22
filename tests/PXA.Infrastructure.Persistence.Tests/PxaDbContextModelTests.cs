@@ -39,6 +39,20 @@ public sealed class PxaDbContextModelTests
     }
 
     [Fact]
+    public void Model_stores_element_favorites_per_user_without_an_organization_scope()
+    {
+        using var context = CreateContext();
+        var favorite = context.Model.FindEntityType(typeof(DesignerElementFavorite));
+
+        Assert.Equal(DatabaseSchemas.Designer, favorite?.GetSchema());
+        Assert.Equal("designer_element_favorites", favorite?.GetTableName());
+        Assert.Null(favorite?.FindProperty("OrganizationId"));
+        Assert.Contains(favorite!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Select(property => property.Name)
+                .SequenceEqual([nameof(DesignerElementFavorite.UserId), nameof(DesignerElementFavorite.ElementType)]));
+    }
+
+    [Fact]
     public void Model_scopes_membership_roles_and_audit_events_to_administration()
     {
         using var context = CreateContext();

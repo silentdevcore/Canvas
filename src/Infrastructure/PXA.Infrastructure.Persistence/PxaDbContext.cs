@@ -39,6 +39,7 @@ public sealed class PxaDbContext
     public DbSet<PxaBackgroundJob> BackgroundJobs => Set<PxaBackgroundJob>();
     public DbSet<PxaStoredObject> StoredObjects => Set<PxaStoredObject>();
     public DbSet<DesignerFeaturePreference> DesignerFeaturePreferences => Set<DesignerFeaturePreference>();
+    public DbSet<DesignerElementFavorite> DesignerElementFavorites => Set<DesignerElementFavorite>();
     public DbSet<DesignerFeaturePolicy> DesignerFeaturePolicies => Set<DesignerFeaturePolicy>();
     public DbSet<DesignerReleaseRead> DesignerReleaseReads => Set<DesignerReleaseRead>();
     public DbSet<DesignerNotification> DesignerNotifications => Set<DesignerNotification>();

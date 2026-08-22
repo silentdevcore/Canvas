@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SimpleElement, ElementType, LayerDirection, PageSettings, Page, Template as BaseTemplate, LocalizedProperty } from '@/types';
+import type { SimpleElement, ElementType, LayerDirection, PageSettings, PageLayoutSettings, Page, Template as BaseTemplate, LocalizedProperty } from '@/types';
+import { effectivePageSettings, materializePageLayout } from '@/utils/pageLayout';
 
 export type { ElementType, SimpleElement };
 
@@ -113,14 +114,15 @@ interface EditorState {
   upsertLocalizedProperty: (prop: LocalizedProperty) => void;
   deleteLocalizedProperty: (key: string) => void;
   // Undo/redo (not persisted)
-  undoStack: Template[];
-  redoStack: Template[];
+  undoStack: EditorHistoryEntry[];
+  redoStack: EditorHistoryEntry[];
   snapshotHistory: () => void;
   undo: () => void;
   redo: () => void;
   addTemplate: (template: Template) => void;
   setCurrentTemplate: (template: Template | null) => void;
   addElement: (element: SimpleElement) => void;
+  insertElements: (elements: SimpleElement[]) => void;
   updateElement: (id: string, updates: Partial<SimpleElement>) => void;
   deleteElement: (id: string) => void;
   reorderElement: (id: string, direction: LayerDirection) => void;
@@ -129,9 +131,12 @@ interface EditorState {
   setGeneratedCode: (code: string) => void;
   setBackgroundPdf: (file: File | null) => void;
   updatePageSettings: (updates: Partial<PageSettings>) => void;
+  applyPageLayoutToAll: () => void;
+  resetActivePageLayout: () => void;
   markExported: () => void;
   // Page operations
   addPage: () => void;
+  insertPagesAfterCurrent: (pages: Page[]) => void;
   deletePage: (index: number) => void;
   duplicatePage: (index: number) => void;
   setCurrentPage: (index: number) => void;
@@ -143,10 +148,26 @@ interface EditorState {
   bulkReplaceContent: (pages: Page[], sharedElements: SimpleElement[]) => void;
 }
 
-const makePage = (elements: SimpleElement[] = []): Page => ({
+const makePage = (elements: SimpleElement[] = [], layout?: PageLayoutSettings): Page => ({
   id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
   elements,
+  layout,
 });
+
+interface EditorHistoryEntry {
+  template: Template;
+  pageSettings: PageSettings;
+}
+
+const historyEntry = (template: Template, pageSettings: PageSettings): EditorHistoryEntry => ({
+  template,
+  pageSettings: normalizePageSettings(pageSettings),
+});
+
+const PHYSICAL_PAGE_KEYS = new Set<keyof PageSettings>([
+  'width', 'height', 'orientation', 'backgroundColor', 'backgroundImage',
+  'backgroundImageFit', 'margins', 'bleedSize',
+]);
 
 export const useEditorStore = create<EditorState>()(
   persist(
@@ -186,33 +207,35 @@ export const useEditorStore = create<EditorState>()(
       },
 
       snapshotHistory: () => {
-        const { currentTemplate, undoStack } = get();
+        const { currentTemplate, pageSettings, undoStack } = get();
         if (!currentTemplate) return;
         set({
-          undoStack: [...undoStack.slice(-49), currentTemplate],
+          undoStack: [...undoStack.slice(-49), historyEntry(currentTemplate, pageSettings)],
           redoStack: [],
         });
       },
 
       undo: () => {
-        const { undoStack, currentTemplate, redoStack } = get();
+        const { undoStack, currentTemplate, pageSettings, redoStack } = get();
         if (undoStack.length === 0) return;
         const previous = undoStack[undoStack.length - 1];
         set({
-          currentTemplate: previous,
+          currentTemplate: previous.template,
+          pageSettings: previous.pageSettings,
           undoStack: undoStack.slice(0, -1),
-          redoStack: currentTemplate ? [...redoStack, currentTemplate] : redoStack,
+          redoStack: currentTemplate ? [...redoStack, historyEntry(currentTemplate, pageSettings)] : redoStack,
         });
       },
 
       redo: () => {
-        const { redoStack, currentTemplate, undoStack } = get();
+        const { redoStack, currentTemplate, pageSettings, undoStack } = get();
         if (redoStack.length === 0) return;
         const next = redoStack[redoStack.length - 1];
         set({
-          currentTemplate: next,
+          currentTemplate: next.template,
+          pageSettings: next.pageSettings,
           redoStack: redoStack.slice(0, -1),
-          undoStack: currentTemplate ? [...undoStack, currentTemplate] : undoStack,
+          undoStack: currentTemplate ? [...undoStack, historyEntry(currentTemplate, pageSettings)] : undoStack,
         });
       },
 
@@ -229,7 +252,23 @@ export const useEditorStore = create<EditorState>()(
           );
           return {
             currentTemplate: { ...state.currentTemplate, pages },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+          };
+        }),
+
+      insertElements: (elements) =>
+        set((state) => {
+          if (!state.currentTemplate || elements.length === 0) return state;
+          const pages = state.currentTemplate.pages.map((page, index) =>
+            index === state.currentPageIndex
+              ? { ...page, elements: [...page.elements, ...elements] }
+              : page
+          );
+          return {
+            currentTemplate: { ...state.currentTemplate, pages },
+            selectedElementId: elements[elements.length - 1]?.id ?? null,
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -255,7 +294,7 @@ export const useEditorStore = create<EditorState>()(
           );
           return {
             currentTemplate: { ...state.currentTemplate, pages },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -280,7 +319,7 @@ export const useEditorStore = create<EditorState>()(
           });
           return {
             currentTemplate: { ...state.currentTemplate, pages },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -291,19 +330,101 @@ export const useEditorStore = create<EditorState>()(
       setBackgroundPdf: (file) => set({ backgroundPdf: file }),
 
       updatePageSettings: (updates) =>
-        set((state) => ({ pageSettings: { ...state.pageSettings, ...updates }, settingsModifiedSinceExport: true })),
+        set((state) => {
+          const documentUpdates = Object.fromEntries(
+            Object.entries(updates).filter(([key]) => !PHYSICAL_PAGE_KEYS.has(key as keyof PageSettings))
+          ) as Partial<PageSettings>;
+          const physicalUpdates = Object.fromEntries(
+            Object.entries(updates).filter(([key]) => PHYSICAL_PAGE_KEYS.has(key as keyof PageSettings))
+          ) as Partial<PageLayoutSettings>;
+          const nextSettings = normalizePageSettings({ ...state.pageSettings, ...documentUpdates });
+          if (!state.currentTemplate || Object.keys(physicalUpdates).length === 0) {
+            return { pageSettings: nextSettings, settingsModifiedSinceExport: true };
+          }
+          const page = state.currentTemplate.pages[state.currentPageIndex];
+          if (!page) return { pageSettings: nextSettings, settingsModifiedSinceExport: true };
+          const effective = effectivePageSettings(state.pageSettings, page);
+          const layout = materializePageLayout(normalizePageSettings({ ...effective, ...physicalUpdates }));
+          const pages = state.currentTemplate.pages.map((value, index) => index === state.currentPageIndex
+            ? { ...value, layout }
+            : value);
+          return {
+            pageSettings: nextSettings,
+            currentTemplate: { ...state.currentTemplate, pages },
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+            settingsModifiedSinceExport: true,
+          };
+        }),
+
+      applyPageLayoutToAll: () =>
+        set((state) => {
+          if (!state.currentTemplate) return state;
+          const active = state.currentTemplate.pages[state.currentPageIndex];
+          if (!active) return state;
+          const effective = effectivePageSettings(state.pageSettings, active);
+          const nextSettings = normalizePageSettings({ ...state.pageSettings, ...materializePageLayout(effective) });
+          return {
+            pageSettings: nextSettings,
+            currentTemplate: {
+              ...state.currentTemplate,
+              pages: state.currentTemplate.pages.map(page => ({ ...page, layout: undefined })),
+            },
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+            settingsModifiedSinceExport: true,
+          };
+        }),
+
+      resetActivePageLayout: () =>
+        set((state) => {
+          if (!state.currentTemplate) return state;
+          const page = state.currentTemplate.pages[state.currentPageIndex];
+          if (!page?.layout) return state;
+          return {
+            currentTemplate: {
+              ...state.currentTemplate,
+              pages: state.currentTemplate.pages.map((value, index) => index === state.currentPageIndex
+                ? { ...value, layout: undefined }
+                : value),
+            },
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+            settingsModifiedSinceExport: true,
+          };
+        }),
 
       markExported: () => set({ settingsModifiedSinceExport: false }),
 
       addPage: () =>
         set((state) => {
           if (!state.currentTemplate) return state;
-          const newPage = makePage();
+          const active = state.currentTemplate.pages[state.currentPageIndex];
+          const inherited = materializePageLayout(effectivePageSettings(state.pageSettings, active));
+          const newPage = makePage([], inherited);
           const pages = [...state.currentTemplate.pages, newPage];
           return {
             currentTemplate: { ...state.currentTemplate, pages },
             currentPageIndex: pages.length - 1,
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+          };
+        }),
+
+      insertPagesAfterCurrent: (insertedPages) =>
+        set((state) => {
+          if (!state.currentTemplate || insertedPages.length === 0) return state;
+          const insertionIndex = state.currentPageIndex + 1;
+          const pages = [
+            ...state.currentTemplate.pages.slice(0, insertionIndex),
+            ...insertedPages,
+            ...state.currentTemplate.pages.slice(insertionIndex),
+          ];
+          return {
+            currentTemplate: { ...state.currentTemplate, pages },
+            currentPageIndex: insertionIndex,
+            selectedElementId: null,
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -317,7 +438,7 @@ export const useEditorStore = create<EditorState>()(
           return {
             currentTemplate: { ...state.currentTemplate, pages },
             currentPageIndex: newIndex,
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -331,6 +452,7 @@ export const useEditorStore = create<EditorState>()(
           const newPage: Page = {
             id: `page-${ts}-copy`,
             elements: source.elements.map((el) => ({ ...el, id: `${el.id}-c${ts}` })),
+            layout: materializePageLayout(effectivePageSettings(state.pageSettings, source)),
           };
           const pages = [
             ...state.currentTemplate.pages.slice(0, index + 1),
@@ -340,7 +462,7 @@ export const useEditorStore = create<EditorState>()(
           return {
             currentTemplate: { ...state.currentTemplate, pages },
             currentPageIndex: index + 1,
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -359,7 +481,7 @@ export const useEditorStore = create<EditorState>()(
           return {
             currentTemplate: { ...state.currentTemplate, pages },
             currentPageIndex: toIndex,
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -372,7 +494,7 @@ export const useEditorStore = create<EditorState>()(
               ...state.currentTemplate,
               sharedElements: [...(state.currentTemplate.sharedElements ?? []), element],
             },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -398,7 +520,7 @@ export const useEditorStore = create<EditorState>()(
               ...state.currentTemplate,
               sharedElements: (state.currentTemplate.sharedElements ?? []).filter(el => el.id !== id),
             },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),
@@ -408,7 +530,7 @@ export const useEditorStore = create<EditorState>()(
           if (!state.currentTemplate) return state;
           return {
             currentTemplate: { ...state.currentTemplate, pages, sharedElements },
-            undoStack: [...state.undoStack.slice(-49), state.currentTemplate],
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };
         }),

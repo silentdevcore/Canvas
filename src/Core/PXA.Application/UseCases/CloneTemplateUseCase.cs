@@ -33,6 +33,7 @@ public sealed class CloneTemplateUseCase
             Pages = src.Pages.Select(p => new PageDto
             {
                 Id       = Guid.NewGuid().ToString("N")[..8],
+                Layout   = ClonePageLayout(p.Layout),
                 Elements = p.Elements.Select(CloneElement).ToList(),
             }).ToList(),
         };
@@ -43,35 +44,15 @@ public sealed class CloneTemplateUseCase
     private static PageSettingsDto? ClonePageSettings(PageSettingsDto? s)
     {
         if (s is null) return null;
-        return new PageSettingsDto
-        {
-            Width              = s.Width,
-            Height             = s.Height,
-            Orientation        = s.Orientation,
-            BackgroundColor    = s.BackgroundColor,
-            BackgroundImage    = s.BackgroundImage,
-            BackgroundImageFit = s.BackgroundImageFit,
-            Margins            = s.Margins is null ? null : new MarginsDto
-            {
-                Top    = s.Margins.Top,
-                Right  = s.Margins.Right,
-                Bottom = s.Margins.Bottom,
-                Left   = s.Margins.Left,
-            },
-            PageNumbering  = s.PageNumbering,
-            GlobalWatermark = s.GlobalWatermark,
-            Metadata = s.Metadata is null ? null : new PdfMetadataDto
-            {
-                Title    = s.Metadata.Title,
-                Author   = s.Metadata.Author,
-                Subject  = s.Metadata.Subject,
-                Keywords = s.Metadata.Keywords,
-            },
-            NamedStyles      = s.NamedStyles?.ToList(),
-            Protection       = s.Protection,
-            CustomProperties = s.CustomProperties?.ToList(),
-            TrackChanges     = s.TrackChanges,
-        };
+        var json = System.Text.Json.JsonSerializer.Serialize(s);
+        return System.Text.Json.JsonSerializer.Deserialize<PageSettingsDto>(json);
+    }
+
+    private static PageLayoutDto? ClonePageLayout(PageLayoutDto? layout)
+    {
+        if (layout is null) return null;
+        var json = System.Text.Json.JsonSerializer.Serialize(layout);
+        return System.Text.Json.JsonSerializer.Deserialize<PageLayoutDto>(json);
     }
 
     private static ElementDto CloneElement(ElementDto el)

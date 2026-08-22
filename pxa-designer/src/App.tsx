@@ -16,9 +16,23 @@ import ProductExperienceProvider from '@/product/ProductExperienceProvider';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
+const visualParityEnabled = typeof __PXA_VISUAL_PARITY_ENABLED__ !== 'undefined'
+  && __PXA_VISUAL_PARITY_ENABLED__;
+const VisualParityPage = visualParityEnabled
+  ? React.lazy(() => import('@/pages/VisualParityPage'))
+  : null;
 
-const App: React.FC = () => (
-  <LocaleProvider>
+const App: React.FC = () => {
+  if (visualParityEnabled && VisualParityPage && location.pathname === '/__visual-parity') {
+    return (
+      <LocaleProvider>
+        <Suspense fallback={null}><VisualParityPage /></Suspense>
+      </LocaleProvider>
+    );
+  }
+
+  return (
+    <LocaleProvider>
     <DesignerAuthGate>
       <ProductExperienceProvider>
       <Routes>
@@ -86,7 +100,8 @@ const App: React.FC = () => (
       </Routes>
       </ProductExperienceProvider>
     </DesignerAuthGate>
-  </LocaleProvider>
-);
+    </LocaleProvider>
+  );
+};
 
 export default App;

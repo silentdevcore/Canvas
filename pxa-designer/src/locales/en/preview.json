@@ -31,6 +31,7 @@
     "pages": "Pages",
     "pageSize": "Page Size",
     "pageSizeValue": "{{width}} × {{height}} px",
+    "mixedPageSizes": "Mixed ({{count}} sizes)",
     "quality": "Quality",
     "qualityDefault": "printer",
     "previewModeTitle": "Preview Mode",

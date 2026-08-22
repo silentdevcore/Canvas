@@ -13,7 +13,16 @@ internal static class PdfSnapshotDesignMapper
         var sequence = 0;
         foreach (var (page, pageIndex) in snapshot.Pages.Select((value, index) => (value, index)))
         {
-            var outputPage = new PageDto { Id = $"page-{pageIndex + 1}" };
+            var outputPage = new PageDto
+            {
+                Id = $"page-{pageIndex + 1}",
+                Layout = new PageLayoutDto
+                {
+                    Width = page.Width,
+                    Height = page.Height,
+                    Orientation = page.Width > page.Height ? "landscape" : "portrait",
+                },
+            };
             foreach (var element in page.Elements)
             {
                 if (++sequence > maximumElements)

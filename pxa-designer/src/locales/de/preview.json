@@ -46,6 +46,7 @@
     "pages": "Seiten",
     "pageSize": "Seitengröße",
     "pageSizeValue": "{{width}} × {{height}} px",
+    "mixedPageSizes": "Gemischt ({{count}} Größen)",
     "quality": "Qualität",
     "qualityDefault": "Druck",
     "previewModeTitle": "Vorschaumodus",

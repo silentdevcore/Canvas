@@ -29,8 +29,21 @@ public sealed class PageDto
 {
     public string Id { get; set; } = "";
     public List<ElementDto> Elements { get; set; } = [];
+    public PageLayoutDto? Layout { get; set; }
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? Extensions { get; set; }
+}
+
+public sealed class PageLayoutDto
+{
+    public double? Width { get; set; }
+    public double? Height { get; set; }
+    public string? Orientation { get; set; }
+    public string? BackgroundColor { get; set; }
+    public string? BackgroundImage { get; set; }
+    public string? BackgroundImageFit { get; set; }
+    public MarginsDto? Margins { get; set; }
+    public double? BleedSize { get; set; }
 }
 
 public sealed class PageSettingsDto
@@ -43,6 +56,7 @@ public sealed class PageSettingsDto
     public string? BackgroundImage { get; set; }
     public string? BackgroundImageFit { get; set; }
     public MarginsDto? Margins { get; set; }
+    public double BleedSize { get; set; }
     public PageNumberingDto? PageNumbering { get; set; }
     public GlobalWatermarkDto? GlobalWatermark { get; set; }
     public PdfMetadataDto? Metadata { get; set; }

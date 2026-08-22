@@ -273,6 +273,7 @@ export function generateJSONExport(
     },
     pages: pages.map(p => ({
       id: p.id,
+      layout: p.layout,
       elements: hasLanguages && targetLanguage
         ? p.elements.filter(el => !el.elementLanguage || el.elementLanguage === targetLanguage)
         : p.elements,

@@ -28,6 +28,19 @@ interface DesignerAuthContextValue {
 
 const DesignerAuthContext = createContext<DesignerAuthContextValue | null>(null);
 
+export const DesignerAuthContextProvider: React.FC<React.PropsWithChildren<{ user: DesignerUser }>> = ({
+  user: initialUser,
+  children,
+}) => {
+  const [user, setUser] = useState(initialUser);
+  const value = useMemo<DesignerAuthContextValue>(() => ({
+    user,
+    setUser,
+    refreshUser: async () => user,
+  }), [user]);
+  return <DesignerAuthContext.Provider value={value}>{children}</DesignerAuthContext.Provider>;
+};
+
 export function useDesignerAuth(): DesignerAuthContextValue {
   const value = useContext(DesignerAuthContext);
   if (!value)

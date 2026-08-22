@@ -273,21 +273,37 @@ function renderElement(el: any, depth: number): string {
   return lines.join('\n');
 }
 
-function renderPage(page: { id: string; elements: any[] }, depth: number): string {
+function renderPage(page: { id: string; elements: any[]; layout?: Record<string, any> }, depth: number): string {
   const i = indent(depth);
   const i1 = indent(depth + 1);
   const i2 = indent(depth + 2);
   const elements = (page.elements ?? []).map(el => `${i2}${renderElement(el, depth + 2)}`).join(',\n');
-  return [
+  const lines = [
     `new PageDto`,
     `${i}{`,
     `${i1}Id = ${str(page.id)},`,
+  ];
+  if (page.layout) {
+    lines.push(`${i1}Layout = new PageLayoutDto`);
+    lines.push(`${i1}{`);
+    if (page.layout.width != null) lines.push(`${i2}Width = ${num(page.layout.width)},`);
+    if (page.layout.height != null) lines.push(`${i2}Height = ${num(page.layout.height)},`);
+    if (page.layout.orientation) lines.push(`${i2}Orientation = ${str(page.layout.orientation)},`);
+    if (page.layout.backgroundColor) lines.push(`${i2}BackgroundColor = ${str(page.layout.backgroundColor)},`);
+    if (page.layout.backgroundImage) lines.push(`${i2}BackgroundImage = ${str(page.layout.backgroundImage)},`);
+    if (page.layout.backgroundImageFit) lines.push(`${i2}BackgroundImageFit = ${str(page.layout.backgroundImageFit)},`);
+    if (page.layout.margins) lines.push(`${i2}Margins = ${renderMargins(page.layout.margins, depth + 2)},`);
+    if (page.layout.bleedSize != null) lines.push(`${i2}BleedSize = ${num(page.layout.bleedSize)},`);
+    lines.push(`${i1}},`);
+  }
+  lines.push(
     `${i1}Elements = new List<ElementDto>`,
     `${i1}{`,
     elements,
     `${i1}}`,
     `${i}}`,
-  ].join('\n');
+  );
+  return lines.join('\n');
 }
 
 function renderLocalizedProperties(props: any[]): string[] {
@@ -345,6 +361,7 @@ export function jsonToCSharp(design: ParsedDesign): string {
     if ((ps as any).backgroundImage) lines.push(`        BackgroundImage = ${str((ps as any).backgroundImage)},`);
     if ((ps as any).backgroundImageFit) lines.push(`        BackgroundImageFit = ${str((ps as any).backgroundImageFit)},`);
     if ((ps as any).margins) lines.push(`        Margins = ${renderMargins((ps as any).margins, 2)},`);
+    if ((ps as any).bleedSize != null) lines.push(`        BleedSize = ${num((ps as any).bleedSize)},`);
     if (systemLanguage) lines.push(`        SystemLanguage = ${str(systemLanguage)},`);
     if (activeLanguages && activeLanguages.length > 0) {
       const langs = activeLanguages.map(l => str(l)).join(', ');

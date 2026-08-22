@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using PXA.Core.Contracts;
 using PXA.Importer;
 using PXA.Importer.Analysis;
@@ -67,6 +68,7 @@ public sealed class PdfFileImporter : IFileImporter
         bool multiPage      = doc.Pages.Count > 1;
 
         double canvasW = 595, canvasH = 842;
+        double firstPageWidth = canvasW, firstPageHeight = canvasH;
 
         int pageNum = 0;
         foreach (var page in doc.Pages)
@@ -76,10 +78,13 @@ public sealed class PdfFileImporter : IFileImporter
             int seq = 0;
 
             var mb      = page.MediaBox;
-            canvasW     = mb?.Width  ?? 595;
-            canvasH     = mb?.Height ?? 842;
-            double originX = mb?.X ?? 0;
-            double originY = mb?.Y ?? 0;
+            var visibleBox = page.CropBox ?? mb;
+            canvasW     = visibleBox?.Width  ?? 595;
+            canvasH     = visibleBox?.Height ?? 842;
+            if (pageNum == 1)
+                (firstPageWidth, firstPageHeight) = (canvasW, canvasH);
+            double originX = visibleBox?.X ?? 0;
+            double originY = visibleBox?.Y ?? 0;
             double pageH   = originY + canvasH; // top of page in PDF coordinate space
 
             var scenePage = sceneGraphEngine.BuildPage(pageNum - 1, page);
@@ -125,7 +130,29 @@ public sealed class PdfFileImporter : IFileImporter
                     elements, multiPage, sharedByContent, emittedFontFaces);
             }
 
-            pages.Add(new PageDto { Id = $"page-{pageNum}", Elements = elements });
+            pages.Add(new PageDto
+            {
+                Id = $"page-{pageNum}",
+                Elements = elements,
+                Layout = new PageLayoutDto
+                {
+                    Width = Math.Round(canvasW, 1),
+                    Height = Math.Round(canvasH, 1),
+                    Orientation = canvasW > canvasH ? "landscape" : "portrait",
+                    Margins = new MarginsDto(),
+                },
+                Extensions = new Dictionary<string, JsonElement>
+                {
+                    ["pdfPageBoxes"] = JsonSerializer.SerializeToElement(new
+                    {
+                        mediaBox = BoxValue(page.MediaBox),
+                        cropBox = BoxValue(page.CropBox),
+                        bleedBox = BoxValue(page.BleedBox),
+                        trimBox = BoxValue(page.TrimBox),
+                        rotation = page.Rotate,
+                    }),
+                },
+            });
         }
 
         return new DesignExportDto
@@ -136,14 +163,18 @@ public sealed class PdfFileImporter : IFileImporter
             SharedElements = [.. sharedByContent.Values],
             PageSettings   = new PageSettingsDto
             {
-                Width       = Math.Round(canvasW, 1),
-                Height      = Math.Round(canvasH, 1),
-                Orientation = canvasW > canvasH ? "landscape" : "portrait",
+                Width       = Math.Round(firstPageWidth, 1),
+                Height      = Math.Round(firstPageHeight, 1),
+                Orientation = firstPageWidth > firstPageHeight ? "landscape" : "portrait",
                 Margins     = new MarginsDto { Top = 0, Right = 0, Bottom = 0, Left = 0 },
             },
             ImportDiagnostics = diagnostics.Count == 0 ? null : diagnostics,
         };
     }
+
+    private static object? BoxValue(PdfRectangle? box) => box is null
+        ? null
+        : new { box.Value.X, box.Value.Y, box.Value.Width, box.Value.Height };
 
     private static ElementDto MapRecognizedChart(
         PdfChartCandidate candidate,

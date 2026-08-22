@@ -64,7 +64,7 @@ export class ExportService {
       name: template.name.trim() || 'Untitled document',
       category: template.category,
       description: template.description,
-      pages: pages.map(page => ({ id: page.id, elements: page.elements })),
+      pages: pages.map(page => ({ id: page.id, elements: page.elements, layout: page.layout ?? null })),
       sharedElements,
       pageSettings: {
         width: settings.width,
@@ -75,6 +75,7 @@ export class ExportService {
         backgroundImage: settings.backgroundImage || null,
         backgroundImageFit: settings.backgroundImageFit,
         margins: settings.margins,
+        bleedSize: settings.bleedSize ?? 0,
         pageNumbering: settings.pageNumbering?.enabled ? settings.pageNumbering : null,
         globalWatermark: settings.globalWatermark?.enabled ? settings.globalWatermark : null,
         metadata: settings.metadata,
@@ -208,6 +209,7 @@ export class ExportService {
       pages: pages.map((page, index) => ({
         pageIndex: index,
         id: page.id,
+        layout: page.layout,
         elements: [
           ...sharedElements.map(element => ({
             id: element.id,
