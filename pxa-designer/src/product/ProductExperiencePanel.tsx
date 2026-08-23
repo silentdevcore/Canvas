@@ -17,21 +17,12 @@ interface ProductExperiencePanelProps {
   onSelectVersion: (version: string) => void;
 }
 
-const changeLabels = {
-  added: 'Added',
-  improved: 'Improved',
-  fixed: 'Fixed',
-  security: 'Security',
-  deprecated: 'Deprecated',
-  breaking: 'Breaking',
-} as const;
-
 const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
   panel,
   selectedVersion,
   onSelectVersion,
 }) => {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const {
     closePanel,
     dismissNotification,
@@ -110,7 +101,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
 
         {panel === 'releases' && release && (
           <div className="pxa-product-panel-body">
-            <div className="pxa-release-selector" role="tablist" aria-label="Designer releases">
+            <div className="pxa-release-selector" role="tablist" aria-label={t('productExperience.designerReleases')}>
               {releases.map(item => (
                 <button
                   type="button"
@@ -121,21 +112,25 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                   onClick={() => onSelectVersion(item.version)}
                 >
                   <span>v{item.version}</span>
-                  {!readVersions.has(item.version) && <i aria-label="Unread release" />}
+                  {!readVersions.has(item.version) && <i aria-label={t('productExperience.unreadRelease')} />}
                 </button>
               ))}
             </div>
             <article className="pxa-release-notes">
               <div className="pxa-release-heading">
-                <span className={`pxa-release-channel is-${release.channel}`}>{release.channel}</span>
-                <time dateTime={release.publishedAt}>{release.publishedAt}</time>
+                <span className={`pxa-release-channel is-${release.channel}`}>
+                  {t(`productExperience.maturity.${release.channel}`)}
+                </span>
+                <time dateTime={release.publishedAt}>
+                  {new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(`${release.publishedAt}T00:00:00Z`))}
+                </time>
               </div>
               <h3>{release.title}</h3>
               <p>{release.summary}</p>
               {Object.entries(release.changes).map(([category, entries]) =>
                 entries.length > 0 && (
                   <section key={category}>
-                    <h4>{changeLabels[category as keyof typeof changeLabels]}</h4>
+                    <h4>{t(`productExperience.changeCategories.${category}`)}</h4>
                     <ul>{entries.map(entry => <li key={entry}>{entry}</li>)}</ul>
                   </section>
                 ))}
@@ -147,7 +142,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                 {t('productExperience.openDocumentation')} <FiExternalLink />
               </a>
               <footer>
-                Build {designerCommit} · {new Date(designerBuildTime).toLocaleString()}
+                {t('productExperience.build')} {designerCommit} · {new Date(designerBuildTime).toLocaleString(i18n.language)}
               </footer>
             </article>
           </div>
@@ -160,11 +155,15 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
               <article key={feature.id} className="pxa-feature-setting">
                 <div>
                   <span className="pxa-feature-title">
-                    <strong>{feature.fallbackTitle}</strong>
+                    <strong>{t(feature.titleKey, { defaultValue: feature.fallbackTitle })}</strong>
                     <FeatureBadge feature={feature} />
                   </span>
-                  <p>{feature.fallbackDescription}</p>
-                  {!feature.enabled && <small>{feature.decisionReason}</small>}
+                  <p>{t(feature.descriptionKey, { defaultValue: feature.fallbackDescription })}</p>
+                  {!feature.enabled && (
+                    <small>{t(`productExperience.decisions.${feature.decisionCode}`, {
+                      defaultValue: feature.decisionReason,
+                    })}</small>
+                  )}
                 </div>
                 {feature.maturity === 'alpha' && (
                   <label className="pxa-feature-toggle">
@@ -174,7 +173,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                       disabled={feature.decisionCode === 'PXA_DESIGNER_ALPHA_NOT_ALLOWED'}
                       onChange={event => void setFeaturePreference(feature.id, event.target.checked)}
                     />
-                    <span>{feature.enabled ? 'On' : 'Off'}</span>
+                    <span>{feature.enabled ? t('productExperience.on') : t('productExperience.off')}</span>
                   </label>
                 )}
               </article>
@@ -196,7 +195,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
               >
                 <span className="is-release"><FiFlag /></span>
                 <div>
-                  <small>Release</small>
+                  <small>{t('productExperience.release')}</small>
                   <button type="button" onClick={() => {
                     openPanel('releases', item.version);
                   }}>{item.title}</button>
@@ -212,7 +211,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
               <article className={`pxa-notification-item${item.read ? '' : ' is-unread'}`} key={item.id}>
                 <span className={`is-${item.severity.toLowerCase()}`}><FiBell /></span>
                 <div>
-                  <small>{item.category.replace(/([a-z])([A-Z])/g, '$1 $2')}</small>
+                  <small>{t(`productExperience.notificationCategories.${item.category}`)}</small>
                   <button type="button" onClick={() => void markNotificationRead(item.id)}>
                     {item.title}
                   </button>

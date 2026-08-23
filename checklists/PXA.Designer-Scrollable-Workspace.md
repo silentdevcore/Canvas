@@ -54,19 +54,19 @@ P0 usability fix for the PXA Designer.
 - [x] Add tests for two-axis page-grid overflow at high zoom and with a landscape/custom page.
 - [x] Add tests that side-panel height follows the complete editor-stage height and retains internal overflow.
 - [x] Verify page selection automatically reveals the active page thumbnail.
-- [ ] Verify element drag, resize, marquee selection, and context-menu placement after horizontal and vertical scrolling.
+- [x] Verify element drag, resize, marquee selection, and context-menu placement after horizontal and vertical scrolling. *(Authenticated Playwright flow passed.)*
 - [x] Run `npm test` in `pxa-designer`. *(26 suites, 262 tests passed.)*
 - [x] Run `npm run build` in `pxa-designer`.
-- [ ] Perform desktop smoke tests at 1280x720, 1440x900, and 1920x1080.
-- [ ] Perform mobile and tablet smoke tests without regressing drawer navigation.
+- [x] Perform desktop smoke tests at 1280x720, 1440x900, and 1920x1080.
+- [x] Perform mobile and tablet smoke tests without regressing drawer navigation. *(720x1024 and 390x844 passed; the audit also corrected Home hero/header overflow.)*
 
 ## Acceptance Criteria
 
-- [ ] Every page-navigation item remains reachable when the page strip is wider than its container.
-- [ ] Every edge of an oversized or zoomed page can be reached by scrolling in both axes.
-- [ ] Tool and inspector panels match the complete editor-stage height and scroll internally when their content is taller.
-- [ ] Existing editing interactions remain accurate after scrolling.
-- [ ] No editor control overlaps, clips, or causes an unintended page-level horizontal scrollbar.
+- [x] Every page-navigation item remains reachable when the page strip is wider than its container.
+- [x] Every edge of an oversized or zoomed page can be reached by scrolling in both axes.
+- [x] Tool and inspector panels match the complete editor-stage height and scroll internally when their content is taller.
+- [x] Existing editing interactions remain accurate after scrolling.
+- [x] No editor control overlaps, clips, or causes an unintended page-level horizontal scrollbar.
 
 ## Out Of Scope
 

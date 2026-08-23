@@ -181,11 +181,26 @@ export function parseInput(raw: string): { type: CellType; value?: Cell['value']
 
 const MAX_HISTORY = 50;
 
-const spreadsheetStorage: StateStorage = {
-  getItem: (name) => localStorage.getItem(name),
-  setItem: (name, value) => localStorage.setItem(name, value),
-  removeItem: (name) => localStorage.removeItem(name),
-};
+const SPREADSHEET_STORAGE_KEY = 'pxa-spreadsheet';
+const LEGACY_SPREADSHEET_STORAGE_KEY = 'canvas-spreadsheet';
+
+export const createSpreadsheetStorage = (
+  storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>,
+): StateStorage => ({
+  getItem: (name) => {
+    const current = storage.getItem(name);
+    if (current !== null || name !== SPREADSHEET_STORAGE_KEY) return current;
+
+    const legacy = storage.getItem(LEGACY_SPREADSHEET_STORAGE_KEY);
+    if (legacy !== null) {
+      storage.setItem(SPREADSHEET_STORAGE_KEY, legacy);
+      storage.removeItem(LEGACY_SPREADSHEET_STORAGE_KEY);
+    }
+    return legacy;
+  },
+  setItem: (name, value) => storage.setItem(name, value),
+  removeItem: (name) => storage.removeItem(name),
+});
 
 export const useSpreadsheetStore = create<SpreadsheetState>()(
   persist(
@@ -470,10 +485,10 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       },
     }),
     {
-      name: 'pxa-spreadsheet',
+      name: SPREADSHEET_STORAGE_KEY,
       storage: createJSONStorage(() => {
         if (typeof localStorage === 'undefined') throw new Error('localStorage unavailable');
-        return spreadsheetStorage;
+        return createSpreadsheetStorage(localStorage);
       }),
       partialize: (s) => ({ name: s.name, sheets: s.sheets, active: s.active }),
       onRehydrateStorage: () => (state) => { if (state) sheetEngine.rebuild(state.sheets); },

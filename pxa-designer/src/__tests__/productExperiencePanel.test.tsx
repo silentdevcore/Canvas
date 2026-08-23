@@ -15,7 +15,7 @@ const markReleaseRead = jest.fn().mockResolvedValue(undefined);
 const mockNotifications: Array<Record<string, unknown>> = [];
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key, i18n: { language: 'en' } }),
 }));
 
 jest.mock('@/product/productMetadata', () => ({

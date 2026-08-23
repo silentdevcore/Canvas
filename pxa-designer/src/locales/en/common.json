@@ -48,6 +48,34 @@
     "featuresIntro": "Alpha features require organization approval and your explicit opt-in. Beta features are available but may change.",
     "featureEnabled": "Experimental feature enabled.",
     "featureDisabled": "Experimental feature disabled.",
-    "refreshFailed": "Some product updates could not be loaded. Existing Designer workflows remain available."
+    "refreshFailed": "Some product updates could not be loaded. Existing Designer workflows remain available.",
+    "designerReleases": "Designer releases",
+    "unreadRelease": "Unread release",
+    "release": "Release",
+    "build": "Build",
+    "new": "New",
+    "on": "On",
+    "off": "Off",
+    "featureStatus": "Feature status: {{status}}{{newStatus}}",
+    "maturity": { "alpha": "Alpha", "beta": "Beta", "stable": "Stable" },
+    "changeCategories": { "added": "Added", "improved": "Improved", "fixed": "Fixed", "security": "Security", "deprecated": "Deprecated", "breaking": "Breaking" },
+    "notificationCategories": { "System": "System", "Security": "Security", "Subscription": "Subscription", "ActionRequired": "Action required", "Legal": "Legal" },
+    "decisions": {
+      "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "Your organization does not allow this Alpha feature.",
+      "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Enable this Alpha feature before use.",
+      "PXA_DESIGNER_FEATURE_DISABLED": "This feature is currently disabled.",
+      "PXA_DESIGNER_FEATURE_ENABLED": "The feature is available.",
+      "PXA_DESIGNER_FEATURE_UNKNOWN": "This feature is not available in this Designer version."
+    }
+  },
+  "features": {
+    "releaseNotes": { "title": "Release notes", "description": "Review new, improved, and fixed Designer capabilities." },
+    "notifications": { "title": "Notification center", "description": "Keep releases and important product messages available after transient feedback disappears." },
+    "experimental": { "title": "Experimental features", "description": "Opt in to organization-approved Alpha capabilities." },
+    "pdfViewer": { "title": "PDF Viewer", "description": "Inspect PDFs, annotations, forms, outlines, and related document data." },
+    "pdfChartRecognition": { "title": "PDF chart recognition", "description": "Recover supported PDF charts as editable Designer elements with confidence-based review." },
+    "codeWorkspace": { "title": "Code workspace", "description": "Convert, validate, and safely execute JSON, C# model, and PXA PDF code alongside the visual Designer." },
+    "spreadsheet": { "title": "Spreadsheet", "description": "Author, import, calculate, and export workbook-based content." },
+    "aiLayout": { "title": "AI layout assistant", "description": "Preview an experimental assisted-layout workflow when enabled by your organization." }
   }
 }

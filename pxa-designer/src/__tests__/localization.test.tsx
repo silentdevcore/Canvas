@@ -211,4 +211,22 @@ describe('localization', () => {
     expect(i18n.t('templates:sample.name', { defaultValue: 'Sample Template' })).toBe('Sample Template');
     await i18n.changeLanguage('en');
   });
+
+  test('product feature and notification chrome is translated in all six locales', async () => {
+    const expectedFeatureTitles: Record<string, string> = {
+      en: 'Code workspace',
+      de: 'Code-Arbeitsbereich',
+      fr: 'Espace de code',
+      es: 'Espacio de código',
+      it: 'Area di lavoro codice',
+      ar: 'مساحة عمل التعليمات البرمجية',
+    };
+
+    for (const [language, expectedTitle] of Object.entries(expectedFeatureTitles)) {
+      await i18n.changeLanguage(language);
+      expect(i18n.t('common:features.codeWorkspace.title')).toBe(expectedTitle);
+      expect(i18n.t('common:productExperience.changeCategories.fixed')).not.toContain('productExperience.');
+      expect(i18n.t('common:productExperience.notificationCategories.ActionRequired')).not.toContain('productExperience.');
+    }
+  });
 });

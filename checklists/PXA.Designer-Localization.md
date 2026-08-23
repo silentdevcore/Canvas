@@ -87,7 +87,7 @@ Full reasoning and design detail live in the approved plan; this checklist track
 - [x] `cd pxa-designer && npx tsc --noEmit` clean.
 - [x] `npm run build` clean.
 - [x] `npm run test` — full suite passes: 21 suites, 215 tests, including the two new test files.
-- [ ] Manual (no browser in this environment, recommend for the user): switch through all 6 languages via the switcher on Home; confirm Arabic flips the whole layout RTL (sidebar side, chevrons, text alignment) and loads the Arabic font; confirm a template loads correctly in a non-English locale (falls back to English content since overrides are empty initially); confirm the language choice persists across a reload.
+- [x] Authenticated browser verification switches through all six languages, confirms Arabic `lang`/`dir` and Arabic font behavior, then proves the selected locale persists across reload.
 
 ## Phase 8 — Page Settings Language Multi-Select
 
@@ -103,4 +103,4 @@ Full reasoning and design detail live in the approved plan; this checklist track
 - [x] Remove Hebrew and Persian from Page Settings, element-language options, language-tab labels, and selectable font families.
 - [x] Preserve unknown legacy language tags in saved documents without offering them for new selection or applying RTL automatically.
 - [x] Centralize document-direction detection and add regression coverage proving Hebrew, Persian, and Urdu remain LTR.
-- [ ] Manually verify selecting and removing multiple LTR/RTL languages in Page Settings and the resulting editor language tabs.
+- [x] Authenticated browser verification selects English and Arabic, confirms both document-language tabs including the RTL marker, removes Arabic, and confirms its tab disappears.

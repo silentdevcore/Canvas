@@ -66,6 +66,7 @@ describe('generated code preview parity', () => {
     const props = mockLivePreview.mock.calls.at(-1)![0] as {
       pages: ParsedDesign['pages'];
       pageSettings: NonNullable<ParsedDesign['pageSettings']>;
+      autoFitWidth: boolean;
     };
     expect(props.pages[1].layout).toEqual(design.pages[1].layout);
     expect(props.pageSettings).toMatchObject({
@@ -76,6 +77,7 @@ describe('generated code preview parity', () => {
       activeLanguages: ['en', 'ar'],
       metadata: { title: 'Generated', author: 'PXA', subject: 'Parity', keywords: 'code' },
     });
+    expect(props.autoFitWidth).toBe(true);
 
     act(() => root.unmount());
   });

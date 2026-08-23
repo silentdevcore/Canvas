@@ -49,6 +49,8 @@ interface LivePreviewProps {
   exportLabel?: string;
   /** Renders only deterministic pages for the internal visual-parity harness. */
   visualParityMode?: boolean;
+  /** Keeps the widest page inside the available preview width. */
+  autoFitWidth?: boolean;
 }
 
 type ExportFormat = 'pdf' | 'json' | 'image' | 'print';
@@ -81,12 +83,16 @@ const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProp
   };
 };
 
-const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel, visualParityMode = false }) => {
+const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel, visualParityMode = false, autoFitWidth = false }) => {
   const { t } = useTranslation('preview');
   const navigate = useNavigate();
   const [zoom, setZoom] = useState(1);
-  const documentPageSettings = normalizePageSettings(pageSettings);
-  const pageLayouts = pages.map(page => effectivePageSettings(documentPageSettings, page));
+  const previewPagesRef = useRef<HTMLDivElement>(null);
+  const documentPageSettings = React.useMemo(() => normalizePageSettings(pageSettings), [pageSettings]);
+  const pageLayouts = React.useMemo(
+    () => pages.map(page => effectivePageSettings(documentPageSettings, page)),
+    [documentPageSettings, pages],
+  );
   const uniquePageSizes = new Set(pageLayouts.map(layout => `${layout.width}:${layout.height}`));
   const pageSizeLabel = uniquePageSizes.size > 1
     ? t('footer.mixedPageSizes', { count: uniquePageSizes.size })
@@ -95,6 +101,22 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         height: pageLayouts[0]?.height ?? documentPageSettings.height,
       });
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
+
+  useEffect(() => {
+    if (!autoFitWidth || !previewPagesRef.current) return;
+
+    const updateZoom = () => {
+      const availableWidth = Math.max(0, previewPagesRef.current!.clientWidth - 80);
+      const widestPage = Math.max(...pageLayouts.map(layout => layout.width), documentPageSettings.width);
+      if (availableWidth > 0 && widestPage > 0)
+        setZoom(Math.min(1, Math.max(0.25, availableWidth / widestPage)));
+    };
+
+    updateZoom();
+    const observer = new ResizeObserver(updateZoom);
+    observer.observe(previewPagesRef.current);
+    return () => observer.disconnect();
+  }, [autoFitWidth, documentPageSettings.width, pageLayouts]);
 
   useEffect(() => {
     installImportedFontFaces(
@@ -815,7 +837,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       </header>
 
       {/* Preview area */}
-      <div id="preview-pages" style={{ padding: 40, overflowAuto: 'auto' } as React.CSSProperties}>
+      <div ref={previewPagesRef} id="preview-pages" style={{ padding: 40, overflow: 'auto' }}>
         {pages.map((page, i) => renderPage(page, i))}
       </div>
 

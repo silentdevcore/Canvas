@@ -192,6 +192,9 @@ public sealed class DesignerProductExperienceTests
         var firstController = CreateNotificationController(dbContext, organizationId, userId);
         Assert.IsType<NoContentResult>(
             await firstController.MarkReleaseRead("1.0.0", CancellationToken.None));
+        Assert.IsType<NoContentResult>(
+            await firstController.MarkReleaseRead("1.0.0", CancellationToken.None));
+        Assert.Single(await dbContext.DesignerReleaseReads.ToListAsync());
 
         var laterController = CreateNotificationController(dbContext, organizationId, userId);
         var action = await laterController.Releases(CancellationToken.None);

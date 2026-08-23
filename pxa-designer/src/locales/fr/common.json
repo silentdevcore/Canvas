@@ -48,6 +48,22 @@
     "featuresIntro": "Les fonctions Alpha nécessitent l'autorisation de l'organisation et votre accord explicite. Les fonctions Bêta sont disponibles mais peuvent évoluer.",
     "featureEnabled": "Fonction expérimentale activée.",
     "featureDisabled": "Fonction expérimentale désactivée.",
-    "refreshFailed": "Certaines mises à jour du produit n'ont pas pu être chargées. Les fonctions existantes du Designer restent disponibles."
+    "refreshFailed": "Certaines mises à jour du produit n'ont pas pu être chargées. Les fonctions existantes du Designer restent disponibles.",
+    "designerReleases": "Versions du Designer", "unreadRelease": "Version non lue", "release": "Version", "build": "Build", "new": "Nouveau", "on": "Activé", "off": "Désactivé",
+    "featureStatus": "État de la fonction : {{status}}{{newStatus}}",
+    "maturity": { "alpha": "Alpha", "beta": "Bêta", "stable": "Stable" },
+    "changeCategories": { "added": "Ajouté", "improved": "Amélioré", "fixed": "Corrigé", "security": "Sécurité", "deprecated": "Obsolète", "breaking": "Incompatible" },
+    "notificationCategories": { "System": "Système", "Security": "Sécurité", "Subscription": "Abonnement", "ActionRequired": "Action requise", "Legal": "Juridique" },
+    "decisions": { "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "Votre organisation n'autorise pas cette fonction Alpha.", "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Activez cette fonction Alpha avant de l'utiliser.", "PXA_DESIGNER_FEATURE_DISABLED": "Cette fonction est actuellement désactivée.", "PXA_DESIGNER_FEATURE_ENABLED": "La fonction est disponible.", "PXA_DESIGNER_FEATURE_UNKNOWN": "Cette fonction n'est pas disponible dans cette version du Designer." }
+  },
+  "features": {
+    "releaseNotes": { "title": "Notes de version", "description": "Consultez les fonctions du Designer ajoutées, améliorées et corrigées." },
+    "notifications": { "title": "Centre de notifications", "description": "Conservez les versions et messages importants après la disparition des alertes temporaires." },
+    "experimental": { "title": "Fonctions expérimentales", "description": "Activez les fonctions Alpha autorisées par votre organisation." },
+    "pdfViewer": { "title": "Visionneuse PDF", "description": "Inspectez les PDF, annotations, formulaires, signets et données associées." },
+    "pdfChartRecognition": { "title": "Reconnaissance des graphiques PDF", "description": "Récupérez les graphiques PDF pris en charge comme éléments modifiables avec contrôle de confiance." },
+    "codeWorkspace": { "title": "Espace de code", "description": "Convertissez, validez et exécutez en sécurité du JSON, des modèles C# et du code PDF PXA avec le Designer visuel." },
+    "spreadsheet": { "title": "Feuille de calcul", "description": "Créez, importez, calculez et exportez du contenu de classeur." },
+    "aiLayout": { "title": "Assistant de mise en page IA", "description": "Testez un flux expérimental de mise en page assistée autorisé par votre organisation." }
   }
 }

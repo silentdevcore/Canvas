@@ -394,6 +394,40 @@ describe('app route smoke tests', () => {
     });
   });
 
+  test('legacy report handoff is not replaced by a blank document in Strict Mode', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => authenticatedDesignerUser,
+    });
+    sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify({
+      template: {
+        id: 'migration-handoff',
+        name: 'Migration Handoff Report',
+        category: 'migration',
+        description: '',
+        pages: [{ id: 'handoff-page', elements: [] }],
+      },
+      pageSettings: { width: 595, height: 842 },
+    }));
+
+    root = createRoot(container);
+    await act(async () => {
+      root!.render(
+        <React.StrictMode>
+          <MemoryRouter initialEntries={['/create']}>
+            <App />
+          </MemoryRouter>
+        </React.StrictMode>,
+      );
+    });
+
+    await waitUntil(() => {
+      expect(getByText(container, /Designer: Migration Handoff Report/)).toBeTruthy();
+    });
+    expect(sessionStorage.getItem('pxa_migration_designer_handoff')).toBeNull();
+  });
+
   test('converts a report design, opens it in the designer, previews it, and exports JSON', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockResolvedValueOnce({

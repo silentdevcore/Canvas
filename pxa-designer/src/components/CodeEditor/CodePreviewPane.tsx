@@ -168,6 +168,7 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
         onBack={() => {}}
         onExport={onExport}
         hideBackButton
+        autoFitWidth
         exportLabel={isExporting ? t('generating') : t('exportPdf')}
       />
     </div>

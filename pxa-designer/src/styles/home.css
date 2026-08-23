@@ -1775,7 +1775,8 @@
 @media (max-width: 760px) {
   .pdf-nav-links,
   .pdf-link-button,
-  .pdf-nav-actions .pdf-outline-button {
+  .pdf-nav-actions .pdf-outline-button,
+  .pdf-nav-actions > .pdf-language-switcher {
     display: none;
   }
 
@@ -1789,6 +1790,10 @@
 
   .pdf-hero {
     padding-top: 36px;
+  }
+
+  .pdf-hero-cards {
+    grid-template-columns: 1fr;
   }
 
   .pdf-hero-copy h1 {

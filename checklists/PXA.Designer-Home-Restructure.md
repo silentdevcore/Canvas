@@ -49,4 +49,4 @@ Home used to link to only 4 of the PDF hub's 7 sidebar items and had **zero pres
 - [x] `cd pxa-designer && npx tsc --noEmit` clean.
 - [x] `npm run build` clean.
 - [x] `npm run test` (Jest, 19 suites/209 tests) — all pass. Added a new smoke test in `src/__tests__/appRouteSmoke.test.tsx` asserting Home (`/`) shows both the "Every PDF tool you need" and "Every spreadsheet tool you need" section headings plus representative cards from each grid — a regression guard against this gap reappearing.
-- [ ] Manual `npm run dev` walkthrough — not done, no browser available in this environment. Recommend checking: every new/changed card actually navigates where labeled; hero and category-grid clicks still work; "Sign DOCX" toast still fires; the disabled "Convert to Spreadsheet" card is visibly non-interactive and matches the sidebar's own disabled styling.
+- [x] Authenticated browser walkthrough confirms Home navigation coverage, the Sign DOCX toast, the disabled Convert to Spreadsheet card, language switching, and responsive drawer behavior. Route smoke tests continue to cover direct card destinations.

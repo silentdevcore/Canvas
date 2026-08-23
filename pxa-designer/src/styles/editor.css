@@ -3040,6 +3040,20 @@ html[data-visual-parity="true"] #root {
   overflow: hidden;
 }
 
+.code-editor-status {
+  min-height: 24px;
+  padding: 4px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  flex-shrink: 0;
+  border-top: 1px solid #3a3a3a;
+  background: #252526;
+  color: #a8a29e;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Code Preview Pane */
 .code-preview-pane {
   height: 100%;

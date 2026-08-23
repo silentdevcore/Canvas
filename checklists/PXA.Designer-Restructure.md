@@ -43,7 +43,11 @@ Exploration of `src/App.tsx`, `src/pages/*.tsx`, and `AppHeader.tsx` found almos
 - [x] `cd pxa-designer && npx tsc --noEmit` clean.
 - [x] `npm run build` clean (pre-existing chunk-size warning, unrelated).
 - [x] `npm run test` (Jest, 19 suites/208 tests) — all pass. Had to update `src/__tests__/appRouteSmoke.test.tsx`: its one test asserting on the now-deleted `MigrationsHubPage`'s content was rewritten to assert on `MigrationsPage`'s "PDF Code Migration" heading instead (plus a `fetch` mock for the frameworks-list effect it triggers on mount, which the old test path never exercised); added two new smoke tests asserting the PDF and Spreadsheet sidebars render every expected item, routed through `/pdf/import` and `/spreadsheet/import` specifically (not the `create` index-redirects) since those are the two entry points already safely mocked in this test file — the real `CreatePage`/`SpreadsheetEditorPage` pull in unmocked dependencies (editor store effects, `@glideapps/glide-data-grid`'s ESM-only markdown dependency) that this test file's existing mock setup doesn't cover, and covering that gap is out of scope for a navigation-restructure pass.
-- [ ] Manual `npm run dev` walkthrough — not done, no browser available in this environment. Recommend checking: old bookmarked URLs redirect correctly; PDF/Spreadsheet sidebars list the right items and the collapse toggle works and persists across a reload; `/pdf/edit` opens `CreatePage` with the code editor (not canvas) pre-selected; `/pdf/convert` still successfully generates a PDF from an uploaded image; `/spreadsheet/edit` only accepts `.json` while `/spreadsheet/import` accepts everything.
+- [x] Authenticated browser walkthrough confirms old bookmark redirects, persisted sidebar collapse,
+  `/pdf/edit` code mode, and responsive hub navigation.
+- [ ] Run dedicated file-fixture browser checks for `/pdf/convert`, `/spreadsheet/edit`, and
+  `/spreadsheet/import`; their API and component contracts are tested, but the actual file pickers
+  were not exercised during the navigation audit.
 
 ## Decision Record
 

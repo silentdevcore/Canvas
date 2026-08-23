@@ -36,4 +36,4 @@ Audit `pxa-designer/` for remaining "canvas" occurrences against `checklists/Ren
 - [x] `cd pxa-designer && npx tsc --noEmit` clean.
 - [x] `npm run build` clean.
 - [x] `npm run test` — full suite passes, 19 suites / 209 tests (had to add the `localStorage`-availability guard above after an initial run surfaced 13 failures in `spreadsheetStore.test.ts`, which runs in a plain node/non-jsdom Jest environment).
-- [ ] Manual check (no browser available in this environment) — recommend: usage stats still appear/update on Home after loading a template; loading a template via report-designer migration hand-off now correctly updates Home's "last opened template" (previously silently broken); an existing spreadsheet draft saved under the old `canvas-spreadsheet` key still opens correctly after this change.
+- [x] Browser and unit verification confirm the migration handoff and `canvas-spreadsheet` fallback migration. The anonymous Home usage strip is superseded by authenticated, PostgreSQL-backed templates and is no longer an active compatibility contract.

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
 import { STARTER_TEMPLATES, STARTER_LABELS, type StarterKey } from './starterTemplates';
 import type { EditorLanguage } from './LiveCodeEditor';
@@ -12,15 +13,80 @@ interface Props {
 
 const DEBOUNCE_MS = 400;
 
+export interface JsonSyntaxDiagnostic {
+  message: string;
+  line: number;
+  column: number;
+}
+
+function positionToLocation(raw: string, position: number) {
+  const beforeError = raw.slice(0, Math.max(0, position));
+  const lines = beforeError.split(/\r?\n/);
+  return { line: lines.length, column: (lines[lines.length - 1]?.length ?? 0) + 1 };
+}
+
+function findUnexpectedToken(raw: string, token: string) {
+  let inString = false;
+  let escaped = false;
+  for (let index = 0; index < raw.length; index++) {
+    const character = raw[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') inString = false;
+    } else if (character === '"') inString = true;
+    else if (character === token) return index;
+  }
+  return 0;
+}
+
+export function getJsonSyntaxDiagnostic(raw: string): JsonSyntaxDiagnostic | null {
+  try {
+    JSON.parse(raw);
+    return null;
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    const explicitLocation = message.match(/line\s+(\d+)\s+column\s+(\d+)/i);
+    if (explicitLocation) {
+      return { message, line: Number(explicitLocation[1]), column: Number(explicitLocation[2]) };
+    }
+    const positionMatch = message.match(/position\s+(\d+)/i);
+    const unexpectedToken = message.match(/Unexpected token ['"](.{1})['"]/i)?.[1];
+    const position = positionMatch
+      ? Number(positionMatch[1])
+      : unexpectedToken
+        ? findUnexpectedToken(raw, unexpectedToken)
+        : 0;
+    return { message, ...positionToLocation(raw, position) };
+  }
+}
+
+function updateJsonMarker(monaco: Monaco, model: any, raw: string) {
+  const diagnostic = getJsonSyntaxDiagnostic(raw);
+  monaco.editor.setModelMarkers(model, 'pxa-json', diagnostic ? [{
+    startLineNumber: diagnostic.line,
+    startColumn: diagnostic.column,
+    endLineNumber: diagnostic.line,
+    endColumn: diagnostic.column + 1,
+    message: diagnostic.message,
+    severity: monaco.MarkerSeverity.Error,
+  }] : []);
+}
+
 export default function JsonEditorPane({ value, language, onChange, onCsharpConvert }: Props) {
+  const { t } = useTranslation('codeEditor');
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<Monaco | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [statistics, setStatistics] = useState(() => ({ lines: value.split(/\r?\n/).length, characters: value.length }));
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
     if (language === 'json') configureSchema(monaco); // JSON schema only in JSON mode
+    if (language === 'json') updateJsonMarker(monaco, editor.getModel(), editor.getValue());
 
     // Cmd/Ctrl+Enter → force immediate emit / convert
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
@@ -38,6 +104,9 @@ export default function JsonEditorPane({ value, language, onChange, onCsharpConv
   const handleChange = useCallback(
     (raw: string | undefined) => {
       const v = raw ?? '';
+      setStatistics({ lines: v.split(/\r?\n/).length, characters: v.length });
+      if (language === 'json' && monacoRef.current && editorRef.current?.getModel())
+        updateJsonMarker(monacoRef.current, editorRef.current.getModel(), v);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => onChange(v), DEBOUNCE_MS);
     },
@@ -79,22 +148,21 @@ export default function JsonEditorPane({ value, language, onChange, onCsharpConv
         </span>
 
         <div className="code-editor-toolbar-group">
-          {language === 'json' && <span className="code-editor-hint">⌘↵ refresh</span>}
-          {language !== 'json' && <span className="code-editor-hint">⌘↵ run</span>}
-          <button className="code-editor-btn" onClick={handleFormat} title="Format">
-            ⌥ Format
+          <span className="code-editor-hint">⌘↵ {t(language === 'json' ? 'editor.refresh' : 'editor.run')}</span>
+          <button className="code-editor-btn" onClick={handleFormat} title={t('editor.format')}>
+            {t('editor.format')}
           </button>
-          <button className="code-editor-btn" onClick={handleCopy} title="Copy">
-            {copied ? '✓ Copied' : 'Copy'}
+          <button className="code-editor-btn" onClick={handleCopy} title={t('editor.copy')}>
+            {copied ? t('editor.copied') : t('editor.copy')}
           </button>
           {language !== 'json' && (
             <button
               className={`code-editor-run-btn${isRunning ? ' is-running' : ''}`}
               onClick={handleRun}
               disabled={isRunning}
-              title="Execute C# and update preview"
+              title={t('editor.runTitle')}
             >
-              {isRunning ? '⏳ Running…' : '▶ Run'}
+              {isRunning ? t('editor.running') : t('editor.run')}
             </button>
           )}
         </div>
@@ -106,7 +174,7 @@ export default function JsonEditorPane({ value, language, onChange, onCsharpConv
                 key={key}
                 className="code-editor-starter-btn"
                 onClick={() => handleStarter(key)}
-                title={`Load ${STARTER_LABELS[key]} template`}
+                title={t('editor.loadStarter', { name: STARTER_LABELS[key] })}
               >
                 {STARTER_LABELS[key]}
               </button>
@@ -135,6 +203,10 @@ export default function JsonEditorPane({ value, language, onChange, onCsharpConv
             guides: { bracketPairs: true },
           }}
         />
+      </div>
+      <div className="code-editor-status" role="status">
+        <span>{t('editor.lineCount', { count: statistics.lines })}</span>
+        <span>{t('editor.characterCount', { count: statistics.characters })}</span>
       </div>
     </div>
   );

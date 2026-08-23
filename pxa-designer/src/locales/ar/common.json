@@ -48,6 +48,22 @@
     "featuresIntro": "تتطلب ميزات Alpha موافقة المؤسسة وتفعيلك الصريح. ميزات Beta متاحة ولكنها قد تتغير.",
     "featureEnabled": "تم تفعيل الميزة التجريبية.",
     "featureDisabled": "تم تعطيل الميزة التجريبية.",
-    "refreshFailed": "تعذر تحميل بعض تحديثات المنتج. تظل مهام Designer الحالية متاحة."
+    "refreshFailed": "تعذر تحميل بعض تحديثات المنتج. تظل مهام Designer الحالية متاحة.",
+    "designerReleases": "إصدارات المصمم", "unreadRelease": "إصدار غير مقروء", "release": "الإصدار", "build": "البنية", "new": "جديد", "on": "مفعّل", "off": "معطّل",
+    "featureStatus": "حالة الميزة: {{status}}{{newStatus}}",
+    "maturity": { "alpha": "ألفا", "beta": "بيتا", "stable": "مستقر" },
+    "changeCategories": { "added": "تمت الإضافة", "improved": "تم التحسين", "fixed": "تم الإصلاح", "security": "الأمان", "deprecated": "مهمل", "breaking": "غير متوافق" },
+    "notificationCategories": { "System": "النظام", "Security": "الأمان", "Subscription": "الاشتراك", "ActionRequired": "إجراء مطلوب", "Legal": "قانوني" },
+    "decisions": { "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "لا تسمح مؤسستك بميزة ألفا هذه.", "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "فعّل ميزة ألفا هذه قبل استخدامها.", "PXA_DESIGNER_FEATURE_DISABLED": "هذه الميزة معطّلة حاليًا.", "PXA_DESIGNER_FEATURE_ENABLED": "الميزة متاحة.", "PXA_DESIGNER_FEATURE_UNKNOWN": "هذه الميزة غير متاحة في إصدار المصمم هذا." }
+  },
+  "features": {
+    "releaseNotes": { "title": "ملاحظات الإصدار", "description": "راجع إمكانات المصمم الجديدة والمحسّنة والمصححة." },
+    "notifications": { "title": "مركز الإشعارات", "description": "احتفظ بالإصدارات ورسائل المنتج المهمة بعد اختفاء التنبيهات المؤقتة." },
+    "experimental": { "title": "الميزات التجريبية", "description": "فعّل ميزات ألفا التي وافقت عليها مؤسستك." },
+    "pdfViewer": { "title": "عارض PDF", "description": "افحص ملفات PDF والتعليقات والنماذج والإشارات المرجعية وبيانات المستند." },
+    "pdfChartRecognition": { "title": "التعرّف على مخططات PDF", "description": "استعد مخططات PDF المدعومة كعناصر قابلة للتحرير مع مراجعة مستوى الثقة." },
+    "codeWorkspace": { "title": "مساحة عمل التعليمات البرمجية", "description": "حوّل وتحقق وشغّل JSON ونماذج C# وتعليمات PXA PDF بأمان بجانب المصمم المرئي." },
+    "spreadsheet": { "title": "جدول البيانات", "description": "أنشئ واستورد واحسب وصدّر محتوى المصنفات." },
+    "aiLayout": { "title": "مساعد التخطيط بالذكاء الاصطناعي", "description": "جرّب سير عمل تجريبيًا للتخطيط المساعد عندما تسمح به مؤسستك." }
   }
 }

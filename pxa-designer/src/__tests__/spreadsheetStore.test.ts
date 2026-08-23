@@ -1,4 +1,4 @@
-import { useSpreadsheetStore, parseInput } from '../spreadsheet/store';
+import { createSpreadsheetStorage, useSpreadsheetStore, parseInput } from '../spreadsheet/store';
 import { emptySheet } from '../spreadsheet/types';
 
 const reset = () => {
@@ -166,5 +166,35 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     sheet = useSpreadsheetStore.getState().toWire().sheets[0];
     expect(sheet.conditionalFormats).toHaveLength(0);
     expect(sheet.dataValidations).toHaveLength(0);
+  });
+});
+
+describe('spreadsheet storage compatibility', () => {
+  test('migrates the legacy Canvas draft once and removes the old key', () => {
+    const values = new Map<string, string>([['canvas-spreadsheet', '{"state":{"name":"Legacy workbook"}}']]);
+    const storage = createSpreadsheetStorage({
+      getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => { values.set(key, value); },
+      removeItem: key => { values.delete(key); },
+    });
+
+    expect(storage.getItem('pxa-spreadsheet')).toBe('{"state":{"name":"Legacy workbook"}}');
+    expect(values.get('pxa-spreadsheet')).toBe('{"state":{"name":"Legacy workbook"}}');
+    expect(values.has('canvas-spreadsheet')).toBe(false);
+  });
+
+  test('keeps an existing PXA draft authoritative', () => {
+    const values = new Map<string, string>([
+      ['pxa-spreadsheet', 'current'],
+      ['canvas-spreadsheet', 'legacy'],
+    ]);
+    const storage = createSpreadsheetStorage({
+      getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => { values.set(key, value); },
+      removeItem: key => { values.delete(key); },
+    });
+
+    expect(storage.getItem('pxa-spreadsheet')).toBe('current');
+    expect(values.get('canvas-spreadsheet')).toBe('legacy');
   });
 });

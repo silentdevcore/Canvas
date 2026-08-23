@@ -84,7 +84,7 @@ JSON format: the same payload that `ExportService.exportToPDF` sends to the back
   - List of `errors[]`
   - "Fix the JSON above to see the preview" hint
 - [x] When JSON is empty or initial load: show a placeholder "Start typing JSON to see the preview" screen.
-- [ ] Scale the preview to fit the pane width using `transform: scale(...)` so an A4 page always fits. *(currently uses LivePreview's built-in manual zoom — no auto-fit)*
+- [x] Scale the preview to fit the pane width. `LivePreview` now observes its available width and fits the widest effective page while retaining manual zoom controls.
 
 ---
 
@@ -110,9 +110,9 @@ JSON format: the same payload that `ExportService.exportToPDF` sends to the back
 ## H. UX Polish
 
 - [x] Resizable splitter between editor and preview: drag handle at 50 % default, snaps to 30 %/70 % range.
-- [ ] Editor gutter annotation for the first JSON parse error line. *(Monaco `editor.setModelMarkers(...)` API)*
+- [x] Editor gutter annotation for the first JSON parse error line through a dedicated Monaco model marker, including line/column recovery for current browser error formats.
 - [x] Keyboard shortcut `⌘ Enter` / `Ctrl Enter` → force-refresh preview without waiting for debounce.
 - [x] Supersede the proposed "Open in Editor" shortcut with the authenticated Code Workspace's
   revision-safe **Apply to Designer** operation.
 - [x] Remember last edited JSON in `localStorage` under key `canvas-code-editor-draft` so it survives page reload.
-- [ ] Line count / character count display in the bottom status bar of the editor pane.
+- [x] Localized line count / character count display in the bottom status bar of the editor pane.

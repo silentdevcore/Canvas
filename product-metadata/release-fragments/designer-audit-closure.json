@@ -1,0 +1,21 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-audit-closure",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer"
+  ],
+  "category": "improved",
+  "summary": "Designer now preserves report handoffs, migrates legacy spreadsheet drafts, localizes product status UI, improves Code Preview diagnostics, prevents mobile Home overflow, and records release reads reliably.",
+  "featureIds": [
+    "designer.code-workspace",
+    "designer.notifications",
+    "designer.release-notes"
+  ],
+  "documentation": [
+    "/checklists/PXA.Designer-Open-Work-Audit.md",
+    "/checklists/UI-LivePreview.md"
+  ],
+  "breaking": false
+}

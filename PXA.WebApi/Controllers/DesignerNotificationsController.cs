@@ -37,6 +37,19 @@ public sealed class DesignerNotificationsController(
         var release = metadata.FindRelease(version);
         if (release is null)
             return NotFound();
+
+        if (dbContext.Database.IsRelational())
+        {
+            var id = Guid.NewGuid();
+            var readAt = DateTimeOffset.UtcNow;
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO designer.designer_release_reads ("Id", "UserId", "Version", "ReadAt")
+                VALUES ({id}, {userId}, {release.Version}, {readAt})
+                ON CONFLICT ("UserId", "Version") DO NOTHING
+                """, cancellationToken);
+            return NoContent();
+        }
+
         var existing = await dbContext.DesignerReleaseReads.SingleOrDefaultAsync(value =>
             value.UserId == userId && value.Version == release.Version, cancellationToken);
         if (existing is null)

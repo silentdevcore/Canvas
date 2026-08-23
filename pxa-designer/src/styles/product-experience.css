@@ -13,8 +13,8 @@
 }
 
 .pxa-notification-trigger:hover {
-  color: #1769aa;
-  border-color: #1769aa;
+  color: #b45309;
+  border-color: #d97706;
 }
 
 .pxa-notification-trigger > span {
@@ -136,8 +136,8 @@
 }
 
 .pxa-product-panel-icon {
-  color: #1769aa;
-  background: #e8f2fa;
+  color: #b45309;
+  background: #fff7ed;
 }
 
 .pxa-product-panel > header > button {
@@ -176,15 +176,15 @@
 }
 
 .pxa-release-selector button.is-active {
-  color: #1769aa;
-  background: #e8f2fa;
+  color: #9a3412;
+  background: #fff7ed;
   font-weight: 800;
 }
 
 .pxa-release-selector i {
   width: 7px;
   height: 7px;
-  background: #1769aa;
+  background: #d97706;
   border-radius: 50%;
 }
 
@@ -231,7 +231,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 24px;
-  color: #1769aa;
+  color: #b45309;
   font-weight: 700;
   text-decoration: none;
 }
@@ -314,7 +314,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #1769aa;
+  color: #b45309;
   background: transparent;
   border: 0;
   font: inherit;
@@ -330,7 +330,7 @@
 
 .pxa-notification-item.is-unread {
   opacity: 1;
-  border-inline-start: 3px solid #1769aa;
+  border-inline-start: 3px solid #d97706;
 }
 
 .pxa-notification-item > span {
@@ -339,9 +339,26 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: #1769aa;
-  background: #e8f2fa;
+  color: #b45309;
+  background: #fff7ed;
   border-radius: 50%;
+}
+
+.pxa-notification-item > span.is-success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.pxa-notification-item > span.is-warning,
+.pxa-notification-item > span.is-actionrequired {
+  color: #9a3412;
+  background: #ffedd5;
+}
+
+.pxa-notification-item > span.is-error,
+.pxa-notification-item > span.is-security {
+  color: #991b1b;
+  background: #fee2e2;
 }
 
 .pxa-notification-item small {
@@ -385,7 +402,7 @@
 }
 
 .pxa-toast-content button {
-  color: #1769aa;
+  color: #b45309;
   background: transparent;
   border: 0;
   font-weight: 800;

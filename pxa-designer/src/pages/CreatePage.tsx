@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import SimplePxaSurface from '@/components/Editor/SimplePxaSurface';
@@ -25,6 +25,7 @@ const CreatePage: React.FC = () => {
   const [subView, setSubView] = useState<SubView>(initialMode);
   const [loadingPersistedTemplate, setLoadingPersistedTemplate] = useState(Boolean(persistedTemplateId));
   const [loadError, setLoadError] = useState('');
+  const localInitializationStarted = useRef(false);
 
   // /pdf/create and /pdf/edit (an alias that redirects to /pdf/create?mode=code)
   // are the same matched route, so switching between them via the sidebar only
@@ -99,6 +100,8 @@ const CreatePage: React.FC = () => {
 
   useEffect(() => {
     if (!loadingPersistedTemplate && !persistedTemplateId && !currentTemplate) {
+      if (localInitializationStarted.current) return;
+      localInitializationStarted.current = true;
       const handoffJson = sessionStorage.getItem('pxa_migration_designer_handoff');
       if (handoffJson) {
         try {

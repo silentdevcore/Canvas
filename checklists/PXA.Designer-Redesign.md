@@ -42,7 +42,7 @@ All of the above reused the exact palette from Phase 1 (`#d97706`/`#b45309`/`#fe
 - [x] `npm run build` clean (pre-existing chunk-size warning unrelated to this change).
 - [x] Confirmed via the full built CSS output (all chunks) that the old brand blue (`#1d6fff`/`#2563eb`/`#3b82f6`/`#1769e0`) is gone app-wide, except the one intentionally-preserved `.docs-callout--info` semantic color — plus unrelated template *content* data (`templates.ts`, `jsonToCode.ts`, `LivePreview.tsx` — sample document colors, not app chrome).
 - [x] Re-ran `npm run type-check` and `npm run build` after Phase 2 — both clean.
-- [ ] `npm run dev` manual visual check — not done, no browser available in this environment. Recommend checking the home page, the template editor, docs, migrations, importer, and PDF viewer pages to confirm everything reads consistently.
+- [x] Authenticated app-shell browser pass covers Home, template editor, Documentation, migrations, importer, and PDF Viewer at desktop width, plus Home drawer checks at tablet and phone widths.
 - [x] Historical note superseded: the later Designer/PDF visual-parity milestone added automated
   element-level comparison. This checklist still retains one manual app-shell consistency pass
   because the parity harness intentionally excludes navigation and editor chrome.

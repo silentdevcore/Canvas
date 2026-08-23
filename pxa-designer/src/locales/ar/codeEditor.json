@@ -13,6 +13,7 @@
   "converting": "جارٍ التحويل…",
   "generating": "جارٍ الإنشاء…",
   "exportPdf": "تصدير PDF",
+  "editor": { "refresh": "تحديث", "run": "تشغيل", "running": "جارٍ التشغيل...", "runTitle": "تشغيل C# وتحديث المعاينة", "format": "تنسيق", "copy": "نسخ", "copied": "تم النسخ", "loadStarter": "تحميل قالب {{name}}", "lineCount_zero": "{{count}} سطر", "lineCount_one": "{{count}} سطر", "lineCount_two": "{{count}} سطران", "lineCount_few": "{{count}} أسطر", "lineCount_many": "{{count}} سطرًا", "lineCount_other": "{{count}} سطر", "characterCount_zero": "{{count}} حرف", "characterCount_one": "{{count}} حرف", "characterCount_two": "{{count}} حرفان", "characterCount_few": "{{count}} أحرف", "characterCount_many": "{{count}} حرفًا", "characterCount_other": "{{count}} حرف" },
   "preview": { "runningPdf": "جارٍ تشغيل كود C# PDF...", "converting": "جارٍ التحويل...", "pdfError": "خطأ في C# PDF - صححه ثم شغّل مرة أخرى", "modelError": "خطأ في نموذج C# - صححه ثم شغّل مرة أخرى", "base64Error": "خطأ FromBase64String - صححه ثم شغّل مرة أخرى", "runPdf": "شغّل الكود لإنشاء ملف PDF.", "pdfReturn": "يجب أن يعيد البرنامج النصي PxaPdfCodeDocument أو PdfDocument قديمًا.", "runModel": "شغّل الكود لعرض المعاينة.", "modelReturn": "يجب أن يعيد التعبير نسخة من DesignExportDto.", "emptyJson": "أدخل JSON لعرض معاينة مباشرة.", "emptyJsonHint": "استخدم قالب بداية للبدء بسرعة.", "jsonError": "صحح أخطاء JSON لعرض المعاينة." },
   "errors": {
     "syntaxError": "خطأ في الصياغة: {{message}}",
