@@ -160,3 +160,20 @@ isolated, tenant-aware PXA sandbox.
   tests, type-check, and production build.
 - [x] Document Preview freshness, re-execution behavior, and complete page-layout preservation in
   the Code Designer guide and public Documentation page.
+
+## V4 - Designer Code Export Parity
+
+- [x] Generate the JSON tab from `ExportService.buildDesignPayload`, the same complete canonical
+  `DesignExportDto` used by normal backend exports.
+- [x] Preserve all language-scoped elements instead of filtering the exported source to the active
+  Preview language.
+- [x] Preserve per-page layouts, metadata, numbering, watermarks, styles, custom properties,
+  protection, encryption, localization, bindings, shared elements, and extension fields.
+- [x] Generate the C# tab through the authenticated backend JSON-to-C# PDF codec using the exact
+  JSON shown in the panel.
+- [x] Require a persisted template before exact C# generation instead of displaying lossy local
+  fallback code.
+- [x] Remove the obsolete browser-side `jsonToCode` PDF generator and its divergent tests.
+- [x] Add UI regression coverage for complete canonical JSON, exact C# request input, mixed page
+  layouts, language-scoped elements, and unsaved-template handling.
+- [x] Document the Code Export panel contract and add a customer-facing Patch release fragment.

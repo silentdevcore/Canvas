@@ -3,7 +3,7 @@ import { FiCheck, FiCode, FiCopy, FiDownload, FiX } from 'react-icons/fi';
 import type { Page, PageSettings, SimpleElement } from '@/types';
 import type { Template } from '../../store';
 import { generateJSONExport } from '../../services/CodeGenerator';
-import { jsonToCode } from '@/utils/jsonToCode';
+import { convertCodeDraft, type CodeDiagnostic } from '@/services/codeWorkspaceApi';
 import ExportService from '@/services/ExportService';
 
 interface Props {
@@ -18,6 +18,11 @@ interface Props {
 
 type Tab = 'json' | 'csharp';
 type ExportState = 'idle' | 'loading' | 'error';
+type CSharpResult = {
+  sourceJson: string;
+  code: string;
+  diagnostics: CodeDiagnostic[];
+};
 
 const CodeViewer: React.FC<Props> = ({
   isOpen,
@@ -32,6 +37,9 @@ const CodeViewer: React.FC<Props> = ({
   const [copied, setCopied] = useState(false);
   const [exportState, setExportState] = useState<ExportState>('idle');
   const [exportError, setExportError] = useState<string | null>(null);
+  const [csharpResult, setCsharpResult] = useState<CSharpResult | null>(null);
+  const [csharpLoading, setCsharpLoading] = useState(false);
+  const [csharpError, setCsharpError] = useState<string | null>(null);
 
   const sysLang = navigator.language.split('-')[0];
   const targetLang = currentPreviewLanguage || sysLang;
@@ -41,21 +49,51 @@ const CodeViewer: React.FC<Props> = ({
     [template, pages, sharedElements, pageSettings, targetLang],
   );
 
-  const csharpCode = useMemo(() => {
-    return jsonToCode({
-      id: template.id,
-      name: template.name,
-      category: template.category,
-      description: template.description,
-      pages,
-      sharedElements,
-      pageSettings: { ...pageSettings, systemLanguage: (pageSettings as any).systemLanguage ?? sysLang, targetLanguage: targetLang } as any,
-    });
-  }, [template, pages, sharedElements, pageSettings, sysLang, targetLang]);
-
+  const csharpCode = csharpResult?.sourceJson === jsonCode ? csharpResult.code : '';
   const code = activeTab === 'json' ? jsonCode : csharpCode;
 
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'csharp') return;
+    if (csharpResult?.sourceJson === jsonCode) return;
+    const templateId = template.persistence?.id;
+    if (!templateId) {
+      setCsharpResult(null);
+      setCsharpError('Save the document before generating exact C# PDF code.');
+      return;
+    }
+
+    let cancelled = false;
+    setCsharpLoading(true);
+    setCsharpError(null);
+    void convertCodeDraft(templateId, 'json', 'csharpPdf', jsonCode)
+      .then(result => {
+        if (cancelled) return;
+        const errors = result.diagnostics.filter(item => item.severity === 'error');
+        if (errors.length > 0 || !result.generatedSource) {
+          setCsharpResult(null);
+          setCsharpError(errors.map(item => `${item.code}: ${item.message}`).join('\n') || 'C# code could not be generated.');
+          return;
+        }
+        setCsharpResult({
+          sourceJson: jsonCode,
+          code: result.generatedSource,
+          diagnostics: result.diagnostics,
+        });
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setCsharpResult(null);
+          setCsharpError(error instanceof Error ? error.message : 'C# code could not be generated.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCsharpLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, csharpResult?.sourceJson, isOpen, jsonCode, template.persistence?.id]);
+
   const handleCopy = useCallback(async () => {
+    if (!code) return;
     await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -142,16 +180,29 @@ const CodeViewer: React.FC<Props> = ({
 
         <div className="code-panel-description">
           {activeTab === 'json'
-            ? `Full template data as JSON for language: ${langLabel}`
-            : `PXA-compatible PDF C# code — placeholders resolved for ${langLabel}.`}
+            ? 'Complete canonical DesignExportDto used by Designer and backend exports.'
+            : 'Exact PXA C# PDF builder code generated from the canonical JSON by the backend.'}
         </div>
 
         <div className="code-panel-body">
-          <button className="code-panel-copy" onClick={handleCopy} title="Copy to clipboard">
+          <button className="code-panel-copy" onClick={handleCopy} disabled={!code || csharpLoading} title="Copy to clipboard">
             {copied ? <FiCheck /> : <FiCopy />}
             {copied ? 'Copied!' : 'Copy'}
           </button>
-          <pre className="code-panel-pre"><code>{code}</code></pre>
+          {activeTab === 'csharp' && csharpLoading ? (
+            <div className="code-panel-error">Generating exact C# code…</div>
+          ) : activeTab === 'csharp' && csharpError ? (
+            <div className="code-panel-error" style={{ whiteSpace: 'pre-wrap' }}>{csharpError}</div>
+          ) : (
+            <>
+              {activeTab === 'csharp' && csharpResult && csharpResult.diagnostics.length > 0 && (
+                <div className="code-panel-error" style={{ whiteSpace: 'pre-wrap' }}>
+                  {csharpResult.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n')}
+                </div>
+              )}
+              <pre className="code-panel-pre"><code>{code}</code></pre>
+            </>
+          )}
         </div>
       </aside>
     </>

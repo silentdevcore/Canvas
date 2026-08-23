@@ -1,5 +1,6 @@
 import type { SimpleElement, Page, PageSettings } from '@/types';
 import type { Template } from '../store';
+import ExportService from '@/services/ExportService';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -252,36 +253,10 @@ export function generateJSONExport(
   pageSettings: PageSettings,
   targetLanguage?: string,
 ): string {
-  const hasLanguages = (pageSettings.activeLanguages?.length ?? 0) > 0;
-  const payload = {
-    id: template.id,
-    name: template.name,
-    category: template.category,
-    description: template.description,
-    pageSettings: {
-      width: pageSettings.width,
-      height: pageSettings.height,
-      orientation: pageSettings.orientation,
-      unit: pageSettings.unit,
-      margins: pageSettings.margins,
-      ...(hasLanguages && {
-        systemLanguage: navigator.language.split('-')[0],
-        activeLanguages: pageSettings.activeLanguages,
-        localizedProperties: pageSettings.localizedProperties,
-        ...(targetLanguage ? { targetLanguage } : {}),
-      }),
-    },
-    pages: pages.map(p => ({
-      id: p.id,
-      layout: p.layout,
-      elements: hasLanguages && targetLanguage
-        ? p.elements.filter(el => !el.elementLanguage || el.elementLanguage === targetLanguage)
-        : p.elements,
-    })),
-    sharedElements: hasLanguages && targetLanguage
-      ? sharedElements.filter(el => !el.elementLanguage || el.elementLanguage === targetLanguage)
-      : sharedElements,
-  };
+  const settings = targetLanguage && pageSettings.activeLanguages?.includes(targetLanguage)
+    ? { ...pageSettings, targetLanguage }
+    : pageSettings;
+  const payload = ExportService.buildDesignPayload(template, pages, sharedElements, settings);
   return JSON.stringify(payload, null, 2);
 }
 

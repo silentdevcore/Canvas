@@ -97,3 +97,17 @@ The authenticated endpoints are rooted at:
 They provide workspace load/save, validation, conversion, execution, atomic apply, restore, and source-map retrieval. Every operation requires a Designer session, active organization, Designer entitlement, the `designer.code-workspace` Beta feature, and applicable request limits.
 
 The old `/api/templates/csharp-*` endpoints remain protected compatibility adapters for one major release. They delegate to the same isolated worker and return deprecation headers.
+
+## Export code panel
+
+The visual Designer's **Export code** panel uses the same canonical document as backend export:
+
+- **JSON** displays the complete `DesignExportDto`. It preserves every language-scoped element,
+  shared element, page override, document setting, binding, asset reference, and extension field.
+  Selecting a Preview language does not remove other language content from the exported source.
+- **C# Code** sends that exact JSON to the authenticated backend converter and displays semantic
+  `PxaPdfCodeBuilder` code. It does not use the removed browser-only drawing-code generator.
+
+Exact C# generation requires a persisted template so the server can enforce tenant access,
+entitlements, feature gates, limits, and audit. Save a new document before opening its C# tab. If
+the JSON changes, the previous C# result is discarded and regenerated from the new source.
