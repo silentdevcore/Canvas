@@ -63,7 +63,9 @@
 - [x] Test Alpha, Beta, Stable, New, organization policy, user preference, and entitlement combinations.
 - [x] Test notification tenant isolation, expiry, pagination, read state, and dismissal.
 - [x] Test toast deduplication, loading transitions, actions, and accessibility semantics.
-- [ ] Test the unseen-release drawer and cross-device release-read state.
+- [x] Test the unseen-release drawer and cross-device release-read state. The API persistence test
+  recreates the controller for the same user, and the Designer regression test confirms that a read
+  release remains visible and can be reopened.
 - [x] Test Documentation sidebar, focus mode, search, filters, and internal links.
 - [x] Run WebApi tests and build.
 - [x] Run Designer tests, type check, and production build.

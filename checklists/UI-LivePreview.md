@@ -1,5 +1,10 @@
 # UI Live Code Editor & Preview Checklist
 
+> Status after the 2026-08-22 audit: this checklist records the original JSON-only editor. The
+> current source of truth is `PXA.Code-Designer-Roundtrip.md`, which adds independent JSON, C# Model,
+> C# PDF, and FromBase64String drafts, explicit conversion, worker execution, and transactional
+> Apply to Designer. Only the explicitly open presentation enhancements below remain active here.
+
 ## Scope
 Add a "Code Editor" view where users write JSON directly to define a PDF design.
 The preview updates live as they type (debounced). An Export button sends the JSON
@@ -107,6 +112,7 @@ JSON format: the same payload that `ExportService.exportToPDF` sends to the back
 - [x] Resizable splitter between editor and preview: drag handle at 50 % default, snaps to 30 %/70 % range.
 - [ ] Editor gutter annotation for the first JSON parse error line. *(Monaco `editor.setModelMarkers(...)` API)*
 - [x] Keyboard shortcut `⌘ Enter` / `Ctrl Enter` → force-refresh preview without waiting for debounce.
-- [ ] "Open in Editor" button: parses the JSON, loads it into the visual editor via `setCurrentTemplate` + `setCurrentPage`. *(converts raw JSON pages/elements into Zustand store format)*
+- [x] Supersede the proposed "Open in Editor" shortcut with the authenticated Code Workspace's
+  revision-safe **Apply to Designer** operation.
 - [x] Remember last edited JSON in `localStorage` under key `canvas-code-editor-draft` so it survives page reload.
 - [ ] Line count / character count display in the bottom status bar of the editor pane.

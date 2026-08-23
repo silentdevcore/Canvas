@@ -26,7 +26,9 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 ## P1 - Designer And Migration
 
 - [ ] Continue the incremental Designer architecture work tracked in `UI-Clean-Architecture.md` without blocking product fixes on a full rewrite.
-- [ ] Complete advanced elements, live preview, page settings, and remaining UI fixes through the focused UI checklists.
+- [ ] Complete advanced elements and remaining UI fixes through the focused UI checklists. Mixed
+  per-page settings and generated-code Preview parity are complete; the current remainder is tracked
+  in `PXA.Designer-Open-Work-Audit.md`.
 - [ ] Consolidate provider-neutral Roslyn behavior and finish provider compile/snapshot coverage from `Code-Migrations.md` and its provider checklists.
 - [ ] Close remaining report-designer fidelity gaps in the RDL, DevExpress, JasperReports, and related designer-migration checklists.
 

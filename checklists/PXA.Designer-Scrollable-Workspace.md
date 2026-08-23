@@ -70,7 +70,7 @@ P0 usability fix for the PXA Designer.
 
 ## Out Of Scope
 
-- [ ] Virtualizing pages or editor controls.
-- [ ] Replacing the existing zoom model.
-- [ ] Redesigning the tablet/mobile drawers.
-- [ ] Changing PDF pagination or document page-break semantics.
+- Virtualizing pages or editor controls.
+- Replacing the existing zoom model.
+- Redesigning the tablet/mobile drawers.
+- Changing PDF pagination or document page-break semantics.

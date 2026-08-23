@@ -45,9 +45,12 @@ Exploration of `src/App.tsx`, `src/pages/*.tsx`, and `AppHeader.tsx` found almos
 - [x] `npm run test` (Jest, 19 suites/208 tests) — all pass. Had to update `src/__tests__/appRouteSmoke.test.tsx`: its one test asserting on the now-deleted `MigrationsHubPage`'s content was rewritten to assert on `MigrationsPage`'s "PDF Code Migration" heading instead (plus a `fetch` mock for the frameworks-list effect it triggers on mount, which the old test path never exercised); added two new smoke tests asserting the PDF and Spreadsheet sidebars render every expected item, routed through `/pdf/import` and `/spreadsheet/import` specifically (not the `create` index-redirects) since those are the two entry points already safely mocked in this test file — the real `CreatePage`/`SpreadsheetEditorPage` pull in unmocked dependencies (editor store effects, `@glideapps/glide-data-grid`'s ESM-only markdown dependency) that this test file's existing mock setup doesn't cover, and covering that gap is out of scope for a navigation-restructure pass.
 - [ ] Manual `npm run dev` walkthrough — not done, no browser available in this environment. Recommend checking: old bookmarked URLs redirect correctly; PDF/Spreadsheet sidebars list the right items and the collapse toggle works and persists across a reload; `/pdf/edit` opens `CreatePage` with the code editor (not canvas) pre-selected; `/pdf/convert` still successfully generates a PDF from an uploaded image; `/spreadsheet/edit` only accepts `.json` while `/spreadsheet/import` accepts everything.
 
-## Open Decisions (judgment calls made during planning/implementation — revisit if they don't feel right once used)
+## Decision Record
 
-- [ ] "Edit Spreadsheet" reuses `SpreadsheetImportPage` narrowed to `.json` only, as the closest equivalent to Edit PDF's live inline code editor — not a byte-for-byte parallel experience, since no live-canvas-synced spreadsheet code editor exists today.
-- [ ] "Convert to Spreadsheet" ships as a disabled/"Coming soon" sidebar entry rather than a real page, since no existing capability converts an external format into a spreadsheet the way image→PDF/OCR does.
+- [x] Keep "Edit Spreadsheet" on `SpreadsheetImportPage` narrowed to `.json` until a dedicated
+  spreadsheet code workspace is planned.
+- [x] Keep "Convert to Spreadsheet" disabled with a visible "Coming soon" state until a real
+  conversion pipeline exists.
 - [ ] Whether to eventually build a real spreadsheet template gallery and/or a standalone read-only spreadsheet viewer, to make the two hubs fully parallel (explicitly out of scope for this pass).
-- [ ] `MigrationsHubPage.tsx` was deleted as dead code rather than kept around unreferenced — flag if there was a reason to keep it (e.g. an external link pointing at the old `/migrations` domain-picker specifically) that wasn't visible from within this repo.
+- [x] Keep `MigrationsHubPage.tsx` deleted. Repository routes preserve the supported migration
+  aliases and no internal reference requires the removed domain-picker page.
