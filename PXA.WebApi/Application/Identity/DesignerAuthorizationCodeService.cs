@@ -72,11 +72,18 @@ public sealed class DesignerAuthorizationCodeService(
                      value.RevokedAt == null &&
                      value.ExpiresAt > now,
             cancellationToken);
-        var membershipIsActive = await dbContext.OrganizationMemberships.AsNoTracking().AnyAsync(
+        var membershipId = await dbContext.OrganizationMemberships.AsNoTracking()
+            .Where(
             value => value.UserId == userId &&
                      value.OrganizationId == organizationId &&
-                     value.Status == OrganizationMembershipStatus.Active,
-            cancellationToken);
+                     value.Status == OrganizationMembershipStatus.Active)
+            .Select(value => (Guid?)value.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        var designerAccessAllowed = membershipId is { } activeMembershipId &&
+            await MembershipHasPermissionAsync(
+                activeMembershipId,
+                PxaDesignerPermissions.Access,
+                cancellationToken);
         var entitlement = await entitlementService.EvaluateAsync(
             organizationId, "designer", cancellationToken: cancellationToken);
         var legalReviewRequired = false;
@@ -92,7 +99,8 @@ public sealed class DesignerAuthorizationCodeService(
         if (user is not { IsActive: true, EmailConfirmed: true } ||
             userIsLocked ||
             sourceSession is null ||
-            !membershipIsActive ||
+            membershipId is null ||
+            !designerAccessAllowed ||
             !entitlement.Allowed ||
             legalReviewRequired)
         {
@@ -111,7 +119,13 @@ public sealed class DesignerAuthorizationCodeService(
                     "Review the current legal documents in PXA Account before opening Designer.");
             }
             var denial = ResolveAccessDenial(
-                user, userIsLocked, sourceSession is not null, membershipIsActive, true, entitlement);
+                user,
+                userIsLocked,
+                sourceSession is not null,
+                membershipId is not null,
+                designerAccessAllowed,
+                true,
+                entitlement);
             AddAudit(
                 organizationId,
                 userId,
@@ -215,10 +229,16 @@ public sealed class DesignerAuthorizationCodeService(
             cancellationToken);
         var entitlement = await entitlementService.EvaluateAsync(
             entity.OrganizationId, "designer", cancellationToken: cancellationToken);
+        var designerAccessAllowed = membership is not null &&
+            await MembershipHasPermissionAsync(
+                membership.Id,
+                PxaDesignerPermissions.Access,
+                cancellationToken);
         if (user is not { IsActive: true, EmailConfirmed: true } ||
             userIsLocked ||
             !sourceSessionIsActive ||
             membership is null ||
+            !designerAccessAllowed ||
             !organizationIsActive ||
             !entitlement.Allowed)
         {
@@ -227,6 +247,7 @@ public sealed class DesignerAuthorizationCodeService(
                 userIsLocked,
                 sourceSessionIsActive,
                 membership is not null,
+                designerAccessAllowed,
                 organizationIsActive,
                 entitlement);
             AddAudit(
@@ -323,6 +344,7 @@ public sealed class DesignerAuthorizationCodeService(
         bool userIsLocked,
         bool sessionIsActive,
         bool membershipIsActive,
+        bool designerAccessAllowed,
         bool organizationIsActive,
         PxaEntitlementDecision entitlement)
     {
@@ -336,9 +358,27 @@ public sealed class DesignerAuthorizationCodeService(
             return ("PXA_DESIGNER_SESSION_EXPIRED", "The Account session is expired or revoked.");
         if (!membershipIsActive)
             return ("PXA_DESIGNER_MEMBERSHIP_INACTIVE", "The organization membership is not active.");
+        if (!designerAccessAllowed)
+            return ("PXA_DESIGNER_PERMISSION_REQUIRED", "Your organization role does not allow Designer access.");
         if (!organizationIsActive)
             return ("PXA_ORGANIZATION_INACTIVE", "The organization is not active.");
         return (entitlement.Code, entitlement.Reason);
+    }
+
+    private async Task<bool> MembershipHasPermissionAsync(
+        Guid membershipId,
+        string permission,
+        CancellationToken cancellationToken)
+    {
+        var roles = await (
+                from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
+                join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
+                where membershipRole.OrganizationMembershipId == membershipId
+                select role.Name!)
+            .ToArrayAsync(cancellationToken);
+        return roles
+            .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
+            .Contains(permission, StringComparer.Ordinal);
     }
 
     private void AddAudit(

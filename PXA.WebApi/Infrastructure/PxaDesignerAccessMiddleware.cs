@@ -32,6 +32,19 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
             return;
         }
 
+        if (!context.User.Claims.Any(claim =>
+                claim.Type == PxaClaimTypes.Permission &&
+                claim.Value.StartsWith("designer.", StringComparison.Ordinal)))
+        {
+            await WriteProblemAsync(
+                context,
+                StatusCodes.Status401Unauthorized,
+                "Designer session refresh required",
+                "Sign in through PXA Account again to refresh Designer permissions.",
+                "PXA_DESIGNER_SESSION_EXPIRED");
+            return;
+        }
+
         var isOrganizationSwitch = IsDesignerOrganizationSwitch(context.Request.Path);
         var organizationId = Guid.Empty;
         if (!isOrganizationSwitch &&
@@ -82,6 +95,40 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
                     entitlement.Code);
                 return;
             }
+
+            var requiredPermission = PxaDesignerPermissionResolver.Resolve(
+                context.Request.Path,
+                context.Request.Method);
+            if (!context.User.HasClaim(PxaClaimTypes.Permission, requiredPermission))
+            {
+                dbContext.AuditEvents.Add(new AuditEvent
+                {
+                    OrganizationId = organizationId,
+                    ActorUserId = Guid.TryParse(
+                        context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
+                        ? userId
+                        : null,
+                    Action = "security.designer-permission.denied",
+                    TargetType = "permission",
+                    TargetId = requiredPermission,
+                    Outcome = "rejected",
+                    DetailsJson = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        Permission = requiredPermission,
+                        Method = context.Request.Method,
+                        Path = context.Request.Path.Value,
+                    }),
+                });
+                await dbContext.SaveChangesAsync(context.RequestAborted);
+                await WriteProblemAsync(
+                    context,
+                    StatusCodes.Status403Forbidden,
+                    "Designer permission required",
+                    "Your organization role does not allow this Designer operation.",
+                    "PXA_DESIGNER_PERMISSION_REQUIRED",
+                    requiredPermission);
+                return;
+            }
         }
 
         if (!HttpMethods.IsGet(context.Request.Method) &&
@@ -128,12 +175,14 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
         int status,
         string title,
         string detail,
-        string code)
+        string code,
+        string? requiredPermission = null)
     {
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/problem+json";
-        await context.Response.WriteAsJsonAsync(
-            PxaApiProblems.Create(context, status, title, detail, code),
-            cancellationToken: context.RequestAborted);
+        var problem = PxaApiProblems.Create(context, status, title, detail, code);
+        if (requiredPermission is not null)
+            problem.Extensions["requiredPermission"] = requiredPermission;
+        await context.Response.WriteAsJsonAsync(problem, cancellationToken: context.RequestAborted);
     }
 }

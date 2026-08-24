@@ -724,9 +724,12 @@ public sealed class AuthController : ControllerBase
                 memberships.Add(activeMembership);
         }
         var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
+        var visiblePermissions = IsDesignerRequest()
+            ? PxaDesignerPermissions.All
+            : PxaAccountPermissions.All;
         var permissions = roles
             .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
-            .Where(PxaAccountPermissions.All.Contains)
+            .Where(visiblePermissions.Contains)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(permission => permission, StringComparer.Ordinal)
             .ToArray();

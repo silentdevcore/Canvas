@@ -18,6 +18,11 @@
     "sectionNav": "Bereichsnavigation",
     "comingSoon": "Demnächst verfügbar"
   },
+  "permissions": {
+    "requiredTitle": "Berechtigung erforderlich",
+    "requiredMessage": "Ihre Organisationsrolle erlaubt diese Designer-Funktion nicht.",
+    "sidebarRequired": "Berechtigung erforderlich"
+  },
   "pdfSidebar": {
     "createPdf": "PDF erstellen",
     "editPdf": "PDF mit Code",

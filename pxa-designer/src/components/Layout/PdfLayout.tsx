@@ -15,11 +15,15 @@ import HubSidebar, { type HubSidebarItem } from './HubSidebar';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
+import { useDesignerAuth } from '@/auth/DesignerAuthGate';
+import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
   const [collapsed, toggleCollapsed] = useSidebarCollapsed('pxa-designer:pdf-sidebar-collapsed');
   const { features } = useProductExperience();
+  const { user } = useDesignerAuth();
+  const permissionRequired = t('permissions.sidebarRequired');
   const pdfViewerFeature = features.find(feature => feature.id === 'designer.pdf-viewer');
 
   const pdfSidebarItems: HubSidebarItem[] = [
@@ -27,6 +31,8 @@ const PdfLayout: React.FC = () => {
       path: '/pdf/create',
       label: t('pdfSidebar.createPdf'),
       icon: FiFilePlus,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfCreate),
+      disabledReason: permissionRequired,
       // /pdf/create and /pdf/edit both land on the same route (?mode=code
       // just switches CreatePage's internal view), so pathname-only matching
       // would always highlight this item — check the query string too.
@@ -36,19 +42,30 @@ const PdfLayout: React.FC = () => {
       path: '/pdf/edit',
       label: t('pdfSidebar.editPdf'),
       icon: FiCode,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfEdit),
+      disabledReason: permissionRequired,
       isActive: (location) => location.pathname === '/pdf/create' && new URLSearchParams(location.search).get('mode') === 'code',
     },
-    { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon },
-    { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload },
-    { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye },
+    { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfTemplatesRead), disabledReason: permissionRequired },
+    { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport), disabledReason: permissionRequired },
+    { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfConvert), disabledReason: permissionRequired },
     {
       path: '/pdf/viewer',
       label: t('pdfSidebar.pdfViewer'),
       icon: FiFileText,
       badge: pdfViewerFeature ? <FeatureBadge feature={pdfViewerFeature} /> : undefined,
-      disabled: pdfViewerFeature ? !pdfViewerFeature.enabled : false,
+      disabled: (pdfViewerFeature ? !pdfViewerFeature.enabled : false)
+        || !hasDesignerPermission(user, designerPermissions.pdfViewerRead),
+      disabledReason: !hasDesignerPermission(user, designerPermissions.pdfViewerRead)
+        ? permissionRequired
+        : undefined,
     },
-    { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge },
+    { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge,
+      disabled: !hasDesignerPermission(user, designerPermissions.migrationPdfExecute)
+        && !hasDesignerPermission(user, designerPermissions.migrationReportExecute), disabledReason: permissionRequired },
   ];
 
   return (

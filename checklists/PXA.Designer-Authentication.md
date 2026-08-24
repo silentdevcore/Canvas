@@ -90,6 +90,53 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Never authorize a request from organization identifiers supplied by the client.
 - [x] Audit successful and rejected handoffs plus Designer entitlement denials without storing raw codes or PKCE values.
 
+## Designer Role-Based Access Control
+
+- [x] Define one stable `designer.*` permission catalog covering access, templates, assets, code workspaces, preferences, notifications, background jobs, rendering, experimental features, document editing, import, export, migration, Spreadsheet, and PDF Viewer operations.
+- [x] Require `designer.access` during Account-to-Designer handoff creation and exchange in addition to the effective Designer entitlement.
+- [x] Keep tenant membership mandatory: a System Administrator receives no implicit access to an organization workspace without an active organization membership.
+- [x] Assign all Designer permissions to Organization Administrator.
+- [x] Allow Manager to manage and publish templates, execute migrations, and perform PDF redaction while reserving organization feature-policy changes for Organization Administrator.
+- [x] Allow Editor to create and edit documents, assets, code, imports, exports, migrations, spreadsheets, annotations, and forms without template publication, archive, feature-policy, or redaction rights.
+- [x] Keep Viewer read-only for templates, code, spreadsheets, PDF viewing, migration discovery, and exports.
+- [x] Register every permission as an ASP.NET Core authorization policy and expose effective Designer permissions through `/api/pxa/v1/auth/me`.
+- [x] Treat pre-RBAC Designer cookies as expired so users receive a fresh permission-bearing session through the normal Account handoff.
+- [x] Protect dedicated Designer controllers with action-level policies.
+- [x] Resolve and enforce permissions for shared import, export, migration, Spreadsheet, PDF Viewer, document, and legacy template routes when invoked by the Designer.
+- [x] Audit denied Designer operations with permission, method, route, actor, and organization without document content.
+- [x] Disable inaccessible Designer navigation and show a localized permission-required state for protected routes.
+- [x] Publish the Designer permission vocabulary in the Admin role catalog.
+- [x] Separate PDF workspace access, creation, editing, template browsing, import, conversion, export, and print permissions instead of inferring them from generic template permissions.
+- [x] Separate Spreadsheet workspace access and creation from general Spreadsheet read/edit permissions.
+- [x] Separate PDF code, Spreadsheet code, and Report Designer migration permissions.
+- [x] Define and enforce one stable provider execution permission for every supported PDF, Spreadsheet, and Report migration framework.
+- [x] Return the required provider permission in migration metadata and denied-operation responses.
+
+### Built-In Role Matrix
+
+| Capability | Organization Administrator | Manager | Editor | Viewer |
+| --- | --- | --- | --- | --- |
+| Enter Designer and PDF workspace | Yes | Yes | Yes | Yes |
+| Read templates and code | Yes | Yes | Yes | Yes |
+| Create and edit templates | Yes | Yes | Yes | No |
+| Archive, version, and publish templates | Yes | Yes | No | No |
+| Manage assets and execute/apply code | Yes | Yes | Yes | No |
+| Create, edit, import, convert, export, and print PDFs | Yes | Yes | Yes | Export and print only |
+| Execute PDF, Spreadsheet, and Report migrations | Yes | Yes | Yes | No |
+| Execute provider-scoped migrations | Yes | Yes | Yes | No |
+| Export documents and spreadsheets | Yes | Yes | Yes | Yes |
+| Edit spreadsheets | Yes | Yes | Yes | No |
+| Annotate and fill PDF forms | Yes | Yes | Yes | No |
+| Permanently redact PDF content | Yes | Yes | No | No |
+| Change organization feature policy | Yes | No | No | No |
+
+### Migration Provider Permissions
+
+- PDF providers: ActivePDF, Apryse, Aspose.PDF, DevExpress PDF, DsPdf, Foxit PDF, GemBox.Pdf, IronPDF, iText 7, LEADTOOLS PDF, PDFKit.NET, PDF Tools, PDF Tools Toolbox, Spire.PDF, and Syncfusion PDF.
+- Spreadsheet providers: Aspose.Cells, ClosedXML, EPPlus, GemBox Spreadsheet, NPOI, Spire.XLS, SpreadsheetLight, and Syncfusion XlsIO.
+- Report providers: ActiveReportsJS, DevExpress Reports, FastReport, JasperReports, RDL, RPX, Stimulsoft, and Telerik Reporting.
+- Provider permissions use `designer.migration.<domain>.provider.<provider-id>.execute` and are checked in addition to the corresponding domain execution permission.
+
 ## Tests
 
 - [x] Unit-test return URL and Designer-origin allowlists.
@@ -105,6 +152,9 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Test antiforgery enforcement on state-changing Designer requests.
 - [x] Test callback URL cleanup and redirect-loop prevention.
 - [x] Run Designer desktop and mobile authentication smoke tests.
+- [x] Contract-test permission uniqueness, built-in role boundaries, and shared Designer API route resolution.
+- [x] Test a limited effective role that allows only Syncfusion PDF and Aspose.Cells migrations while denying Aspose.PDF and ClosedXML in both API and Designer UI.
+- [x] Type-check permission-aware navigation and protected routes in all six Designer locales.
 
 ## Acceptance Criteria
 
@@ -118,6 +168,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 ## Deferred Work
 
+- [ ] Implement Admin-managed custom roles and persisted permission selection before exposing arbitrary limited-role creation in production; the current Admin role workspace manages protected built-in roles only (`PXA.Admin.md` P2).
 - [ ] Add enterprise OIDC and SAML providers.
 - [ ] Add coordinated global sign-out across PXA applications.
 - [ ] Add MFA step-up policies for selected Designer operations.

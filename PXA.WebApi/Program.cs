@@ -381,6 +381,8 @@ builder.Services.AddAuthorization(options =>
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
     foreach (var permission in PxaAccountPermissions.All)
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
+    foreach (var permission in PxaDesignerPermissions.All)
+        options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
 });
 builder.Services.AddAntiforgery(options =>
 {

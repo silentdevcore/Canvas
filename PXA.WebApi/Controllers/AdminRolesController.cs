@@ -26,7 +26,11 @@ public sealed class AdminRolesController : ControllerBase
     ];
 
     private static readonly IReadOnlyDictionary<string, PermissionDefinition> PermissionDefinitions =
-        new Dictionary<string, PermissionDefinition>(StringComparer.Ordinal)
+        BuildPermissionDefinitions();
+
+    private static IReadOnlyDictionary<string, PermissionDefinition> BuildPermissionDefinitions()
+    {
+        var definitions = new Dictionary<string, PermissionDefinition>(StringComparer.Ordinal)
         {
             [PxaPermissions.UsersRead] = new("Users", "View organization users and membership state."),
             [PxaPermissions.UsersCreate] = new("Users", "Invite and create organization users."),
@@ -47,7 +51,69 @@ public sealed class AdminRolesController : ControllerBase
             [PxaPermissions.LegalRead] = new("Legal", "Read legal documents and publication history."),
             [PxaPermissions.LegalAuthor] = new("Legal", "Create and edit legal document drafts."),
             [PxaPermissions.LegalApprove] = new("Legal", "Review and publish legal document versions."),
+            [PxaDesignerPermissions.Access] = new("Designer access", "Open PXA Designer in the active organization."),
+            [PxaDesignerPermissions.TemplatesRead] = new("Designer templates", "View templates and immutable versions."),
+            [PxaDesignerPermissions.TemplatesCreate] = new("Designer templates", "Create organization templates."),
+            [PxaDesignerPermissions.TemplatesEdit] = new("Designer templates", "Edit template drafts and metadata."),
+            [PxaDesignerPermissions.TemplatesArchive] = new("Designer templates", "Archive and restore templates."),
+            [PxaDesignerPermissions.TemplatesVersion] = new("Designer templates", "Create immutable template versions."),
+            [PxaDesignerPermissions.TemplatesPublish] = new("Designer templates", "Publish an approved template version."),
+            [PxaDesignerPermissions.AssetsRead] = new("Designer assets", "View and use organization-bound Designer assets."),
+            [PxaDesignerPermissions.AssetsManage] = new("Designer assets", "Upload and delete Designer assets."),
+            [PxaDesignerPermissions.CodeRead] = new("Designer code", "View code workspaces and source maps."),
+            [PxaDesignerPermissions.CodeEdit] = new("Designer code", "Edit, validate, convert, and restore code drafts."),
+            [PxaDesignerPermissions.CodeExecute] = new("Designer code", "Execute supported code in the isolated worker."),
+            [PxaDesignerPermissions.CodeApply] = new("Designer code", "Apply a code result to a template draft."),
+            [PxaDesignerPermissions.PreferencesManage] = new("Designer preferences", "Manage personal Designer preferences and favorites."),
+            [PxaDesignerPermissions.NotificationsRead] = new("Designer notifications", "Read and dismiss personal Designer notifications."),
+            [PxaDesignerPermissions.JobsRead] = new("Designer jobs", "View tenant-scoped background job status and results."),
+            [PxaDesignerPermissions.JobsCancel] = new("Designer jobs", "Cancel pending Designer background jobs."),
+            [PxaDesignerPermissions.SymbolsRender] = new("Designer rendering", "Render supported symbols and codes in the Designer."),
+            [PxaDesignerPermissions.ExperimentalFeatures] = new("Designer features", "Opt in to organization-approved experimental features."),
+            [PxaDesignerPermissions.FeaturesManage] = new("Designer features", "Manage organization-wide feature policies."),
+            [PxaDesignerPermissions.PdfAccess] = new("Designer PDF", "Open the PDF workspace."),
+            [PxaDesignerPermissions.PdfCreate] = new("Designer PDF", "Create PDF documents."),
+            [PxaDesignerPermissions.PdfEdit] = new("Designer PDF", "Edit PDF designs and PDF code workspaces."),
+            [PxaDesignerPermissions.PdfTemplatesRead] = new("Designer PDF", "Browse and use PDF templates."),
+            [PxaDesignerPermissions.PdfImport] = new("Designer PDF", "Import source documents into PDF designs."),
+            [PxaDesignerPermissions.PdfConvert] = new("Designer PDF", "Convert supported files into PDF."),
+            [PxaDesignerPermissions.PdfExport] = new("Designer PDF", "Export PDF designs in supported formats."),
+            [PxaDesignerPermissions.PdfPrint] = new("Designer PDF", "Render and print PDF documents."),
+            [PxaDesignerPermissions.DocumentEdit] = new("Designer documents", "Run document editing and transformation operations."),
+            [PxaDesignerPermissions.Import] = new("Designer documents", "Import supported document and image formats."),
+            [PxaDesignerPermissions.Export] = new("Designer documents", "Render and export documents in supported formats."),
+            [PxaDesignerPermissions.MigrationRead] = new("Designer migration", "View supported migration providers and coverage."),
+            [PxaDesignerPermissions.MigrationExecute] = new("Designer migration", "Execute and preview code or report migrations."),
+            [PxaDesignerPermissions.MigrationPdfRead] = new("Designer PDF migration", "View PDF code migration providers."),
+            [PxaDesignerPermissions.MigrationPdfExecute] = new("Designer PDF migration", "Execute PDF code migrations for allowed providers."),
+            [PxaDesignerPermissions.MigrationSpreadsheetRead] = new("Designer Spreadsheet migration", "View Spreadsheet code migration providers."),
+            [PxaDesignerPermissions.MigrationSpreadsheetExecute] = new("Designer Spreadsheet migration", "Execute Spreadsheet code migrations for allowed providers."),
+            [PxaDesignerPermissions.MigrationReportRead] = new("Designer Report migration", "View report Designer migration providers."),
+            [PxaDesignerPermissions.MigrationReportExecute] = new("Designer Report migration", "Execute report Designer migrations for allowed providers."),
+            [PxaDesignerPermissions.SpreadsheetAccess] = new("Designer spreadsheet", "Open the Spreadsheet workspace."),
+            [PxaDesignerPermissions.SpreadsheetCreate] = new("Designer spreadsheet", "Create Spreadsheet documents."),
+            [PxaDesignerPermissions.SpreadsheetRead] = new("Designer spreadsheet", "View and validate Spreadsheet documents."),
+            [PxaDesignerPermissions.SpreadsheetEdit] = new("Designer spreadsheet", "Create, calculate, fill, sort, and edit Spreadsheets."),
+            [PxaDesignerPermissions.SpreadsheetImport] = new("Designer spreadsheet", "Import supported Spreadsheet formats."),
+            [PxaDesignerPermissions.SpreadsheetExport] = new("Designer spreadsheet", "Render and export Spreadsheet documents."),
+            [PxaDesignerPermissions.PdfViewerRead] = new("Designer PDF Viewer", "View PDFs, forms, and annotation data."),
+            [PxaDesignerPermissions.PdfViewerAnnotate] = new("Designer PDF Viewer", "Create, embed, flatten, and remove PDF annotations."),
+            [PxaDesignerPermissions.PdfViewerForms] = new("Designer PDF Viewer", "Fill PDF form fields."),
+            [PxaDesignerPermissions.PdfViewerRedact] = new("Designer PDF Viewer", "Apply irreversible PDF redactions."),
         };
+
+        foreach (var permission in PxaDesignerMigrationPermissions.All)
+        {
+            var segments = permission.Split('.');
+            var domain = segments[2];
+            var provider = segments[4];
+            definitions[permission] = new PermissionDefinition(
+                $"Designer {domain} migration providers",
+                $"Execute {provider} migrations in the {domain} domain.");
+        }
+
+        return definitions;
+    }
 
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;

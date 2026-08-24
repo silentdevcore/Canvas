@@ -25,6 +25,7 @@ public sealed class DesignerCodeWorkspacesController(
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
 
     [HttpGet]
+    [Authorize(Policy = PxaDesignerPermissions.CodeRead)]
     public async Task<ActionResult<CodeWorkspaceDocument>> Get(Guid templateId, CancellationToken cancellationToken)
     {
         if (!TryTenant(out var organizationId, out var userId)) return Unauthorized();
@@ -62,6 +63,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPut]
+    [Authorize(Policy = PxaDesignerPermissions.CodeEdit)]
     public async Task<ActionResult<CodeWorkspaceDocument>> Save(
         Guid templateId, SaveCodeWorkspaceRequest request, CancellationToken cancellationToken)
     {
@@ -96,6 +98,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPost("validate")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeEdit)]
     public async Task<ActionResult<object>> Validate(
         Guid templateId, CodeOperationRequest request, CancellationToken cancellationToken)
     {
@@ -116,6 +119,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPost("convert")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeEdit)]
     public async Task<ActionResult<PxaCodeConversionResultDto>> Convert(
         Guid templateId, ConvertCodeWorkspaceRequest request, CancellationToken cancellationToken)
     {
@@ -132,6 +136,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPost("execute")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeExecute)]
     public async Task<ActionResult<PxaCodeWorkerResponse>> Execute(
         Guid templateId, CodeOperationRequest request, CancellationToken cancellationToken)
     {
@@ -179,6 +184,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPost("apply")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeApply)]
     public async Task<ActionResult<ApplyCodeWorkspaceResponse>> Apply(
         Guid templateId, ApplyCodeWorkspaceRequest request, CancellationToken cancellationToken)
     {
@@ -227,6 +233,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpGet("source-map")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeRead)]
     public async Task<ActionResult<IReadOnlyList<PxaCodeSourceMapEntryDto>>> SourceMap(
         Guid templateId, CancellationToken cancellationToken)
     {
@@ -238,6 +245,7 @@ public sealed class DesignerCodeWorkspacesController(
     }
 
     [HttpPost("restore")]
+    [Authorize(Policy = PxaDesignerPermissions.CodeEdit)]
     public async Task<ActionResult<CodeWorkspaceDocument>> Restore(
         Guid templateId, RestoreCodeWorkspaceRequest request, CancellationToken cancellationToken)
     {

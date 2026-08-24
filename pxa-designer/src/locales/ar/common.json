@@ -18,6 +18,11 @@
     "sectionNav": "التنقل بين الأقسام",
     "comingSoon": "قريبًا"
   },
+  "permissions": {
+    "requiredTitle": "الإذن مطلوب",
+    "requiredMessage": "دورك في المؤسسة لا يسمح باستخدام هذه الوظيفة في المصمم.",
+    "sidebarRequired": "الإذن مطلوب"
+  },
   "pdfSidebar": {
     "createPdf": "إنشاء PDF",
     "editPdf": "PDF باستخدام الكود",

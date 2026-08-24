@@ -8,6 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from '@/App';
 import i18n from '@/i18n';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
+import { designerPermissions } from '@/auth/designerPermissions';
 
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
 globalWithAct.IS_REACT_ACT_ENVIRONMENT = true;
@@ -18,6 +19,7 @@ const authenticatedDesignerUser = {
   email: 'designer@example.test',
   displayName: 'Designer User',
   roles: ['Editor'],
+  permissions: Object.values(designerPermissions),
   organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
   activeOrganizationId: 'org-1',
   lastLoginAt: null,

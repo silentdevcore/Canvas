@@ -18,6 +18,11 @@
     "sectionNav": "Navigazione sezione",
     "comingSoon": "Prossimamente"
   },
+  "permissions": {
+    "requiredTitle": "Autorizzazione richiesta",
+    "requiredMessage": "Il ruolo nell'organizzazione non consente questa funzione del Designer.",
+    "sidebarRequired": "Autorizzazione richiesta"
+  },
   "pdfSidebar": {
     "createPdf": "Crea PDF",
     "editPdf": "PDF con codice",

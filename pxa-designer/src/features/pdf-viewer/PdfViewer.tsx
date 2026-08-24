@@ -69,6 +69,11 @@ export interface PdfSource {
 
 interface PdfViewerProps {
   initialSource?: PdfSource | null;
+  canDownload?: boolean;
+  canPrint?: boolean;
+  canAnnotate?: boolean;
+  canFillForms?: boolean;
+  canRedact?: boolean;
 }
 
 interface SearchResult {
@@ -215,7 +220,14 @@ const annotationBoundsFromQuads = (quadPoints: MarkupQuadPoint[]): Pick<PdfAnnot
   };
 };
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
+const PdfViewer: React.FC<PdfViewerProps> = ({
+  initialSource = null,
+  canDownload = true,
+  canPrint = true,
+  canAnnotate = true,
+  canFillForms = true,
+  canRedact = true,
+}) => {
   const [source, setSource] = useState<PdfSource | null>(initialSource);
   const [urlInput, setUrlInput] = useState(initialSource?.url ?? '');
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
@@ -1455,20 +1467,28 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <FiColumns />
               <span>{labels.fitWidth}</span>
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => void downloadCurrentPdf()} disabled={!source || downloadPending} title={downloadError ?? labels.download} aria-busy={downloadPending}>
-              <FiDownload />
-            </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title={labels.print}>
-              <FiPrinter />
-            </button>
-            <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source}>
-              <FiEdit3 />
-              <span>{labels.review}</span>
-            </button>
-            <button className={formPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setFormPanelOpen(value => !value)} disabled={!source}>
-              <FiFileText />
-              <span>{labels.forms}</span>
-            </button>
+            {canDownload && (
+              <button className="pdfv-icon-button" type="button" onClick={() => void downloadCurrentPdf()} disabled={!source || downloadPending} title={downloadError ?? labels.download} aria-busy={downloadPending}>
+                <FiDownload />
+              </button>
+            )}
+            {canPrint && (
+              <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title={labels.print}>
+                <FiPrinter />
+              </button>
+            )}
+            {(canAnnotate || canRedact) && (
+              <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source}>
+                <FiEdit3 />
+                <span>{labels.review}</span>
+              </button>
+            )}
+            {canFillForms && (
+              <button className={formPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setFormPanelOpen(value => !value)} disabled={!source}>
+                <FiFileText />
+                <span>{labels.forms}</span>
+              </button>
+            )}
             <label className="pdfv-stamp-select">
               <span>{labels.language}</span>
               <select value={i18n.language} onChange={event => i18n.changeLanguage(event.target.value)}>
@@ -1526,7 +1546,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           </section>
         )}
 
-        {printDialogOpen && (
+        {canPrint && printDialogOpen && (
           <section className="pdfv-print-panel" aria-label="Print options">
             <div className="pdfv-print-options">
               <strong>{labels.print}</strong>
@@ -1561,7 +1581,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           </section>
         )}
 
-        {formPanelOpen && (
+        {canFillForms && formPanelOpen && (
           <section className="pdfv-form-panel" aria-label={labels.formFields}>
             <div className="pdfv-form-header">
               <strong>{labels.formFields}</strong>
@@ -1650,7 +1670,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           </section>
         )}
 
-        {reviewPanelOpen && (
+        {(canAnnotate || canRedact) && reviewPanelOpen && (
           <section className="pdfv-review-panel" aria-label="Review annotations">
             <div className="pdfv-review-tools">
               <strong>{labels.review}</strong>
@@ -1714,10 +1734,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiMinus />
                 <span>{labels.strike}</span>
               </button>
-              <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')}>
+              {canRedact && <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')}>
                 <FiEyeOff />
                 <span>{labels.redact}</span>
-              </button>
+              </button>}
               {reviewTool === 'stamp' && (
                 <>
                   <label className="pdfv-stamp-select">
@@ -1748,7 +1768,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               </label>
               <span className="pdfv-result-summary">{annotations.length} {annotations.length === 1 ? labels.annotation : labels.annotations}</span>
             </div>
-            {selectedAnnotation && (
+            {selectedAnnotation && (selectedAnnotation.type === 'redaction' ? canRedact : canAnnotate) && (
               <div className="pdfv-annotation-controls">
                 <strong>{labels.selected}</strong>
                 <label className="pdfv-color-input">
@@ -1936,10 +1956,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiFileText />
                 <span>{labels.embedAnnotations}</span>
               </button>
-              <button className="pdfv-button" type="button" onClick={() => void downloadRedactedPdf()} disabled={!source || redactionAnnotations.length === 0}>
+              {canRedact && <button className="pdfv-button" type="button" onClick={() => void downloadRedactedPdf()} disabled={!source || redactionAnnotations.length === 0}>
                 <FiEyeOff />
                 <span>{labels.applyRedactions}</span>
-              </button>
+              </button>}
               <button className="pdfv-button" type="button" onClick={() => void saveAnnotationSidecar()} disabled={annotations.length === 0}>
                 <FiDownload />
                 <span>{labels.save}</span>

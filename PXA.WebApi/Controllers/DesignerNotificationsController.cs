@@ -17,6 +17,7 @@ public sealed class DesignerNotificationsController(
     PxaDesignerProductMetadata metadata) : ControllerBase
 {
     [HttpGet("releases")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<ActionResult<DesignerReleaseFeedResponse>> Releases(
         CancellationToken cancellationToken)
     {
@@ -30,6 +31,7 @@ public sealed class DesignerNotificationsController(
     }
 
     [HttpPut("releases/{version}/read")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<IActionResult> MarkReleaseRead(string version, CancellationToken cancellationToken)
     {
         if (!TryGetContext(out _, out var userId))
@@ -65,6 +67,7 @@ public sealed class DesignerNotificationsController(
     }
 
     [HttpGet("notifications")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<ActionResult<DesignerNotificationPage>> List(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
@@ -116,6 +119,7 @@ public sealed class DesignerNotificationsController(
     }
 
     [HttpGet("notifications/unread-count")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<ActionResult<DesignerUnreadCountResponse>> UnreadCount(
         CancellationToken cancellationToken)
     {
@@ -144,14 +148,17 @@ public sealed class DesignerNotificationsController(
     }
 
     [HttpPut("notifications/{id:guid}/read")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<IActionResult> MarkRead(Guid id, CancellationToken cancellationToken) =>
         await MutateState(id, dismiss: false, cancellationToken);
 
     [HttpPut("notifications/{id:guid}/dismiss")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<IActionResult> Dismiss(Guid id, CancellationToken cancellationToken) =>
         await MutateState(id, dismiss: true, cancellationToken);
 
     [HttpPut("notifications/read-all")]
+    [Authorize(Policy = PxaDesignerPermissions.NotificationsRead)]
     public async Task<IActionResult> MarkAllRead(CancellationToken cancellationToken)
     {
         if (!TryGetContext(out var organizationId, out var userId))

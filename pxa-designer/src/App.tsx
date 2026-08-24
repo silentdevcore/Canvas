@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import IndexPage from '@/pages/IndexPage';
 import TemplatePage from '@/pages/TemplatePage';
 import CreatePage from '@/pages/CreatePage';
@@ -13,6 +13,8 @@ import SpreadsheetLayout from '@/components/Layout/SpreadsheetLayout';
 import LocaleProvider from '@/components/Layout/LocaleProvider';
 import DesignerAuthGate from '@/auth/DesignerAuthGate';
 import ProductExperienceProvider from '@/product/ProductExperienceProvider';
+import RequireDesignerPermission from '@/auth/RequireDesignerPermission';
+import { designerPermissions } from '@/auth/designerPermissions';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
@@ -21,6 +23,18 @@ const visualParityEnabled = typeof __PXA_VISUAL_PARITY_ENABLED__ !== 'undefined'
 const VisualParityPage = visualParityEnabled
   ? React.lazy(() => import('@/pages/VisualParityPage'))
   : null;
+
+const PdfCreateRoute: React.FC = () => {
+  const location = useLocation();
+  const permission = new URLSearchParams(location.search).get('mode') === 'code'
+    ? designerPermissions.pdfEdit
+    : designerPermissions.pdfCreate;
+  return (
+    <RequireDesignerPermission permission={permission}>
+      <CreatePage />
+    </RequireDesignerPermission>
+  );
+};
 
 const App: React.FC = () => {
   if (visualParityEnabled && VisualParityPage && location.pathname === '/__visual-parity') {
@@ -39,42 +53,86 @@ const App: React.FC = () => {
       <Route path="/" element={<IndexPage />} />
       <Route path="/docs" element={<DocsPage />} />
 
-      <Route path="/pdf" element={<PdfLayout />}>
+      <Route path="/pdf" element={(
+        <RequireDesignerPermission permission={designerPermissions.pdfAccess}>
+          <PdfLayout />
+        </RequireDesignerPermission>
+      )}>
         <Route index element={<Navigate to="template" replace />} />
-        <Route path="create" element={<CreatePage />} />
+        <Route path="create" element={<PdfCreateRoute />} />
         <Route path="edit" element={<Navigate to="/pdf/create?mode=code" replace />} />
-        <Route path="template" element={<TemplatePage />} />
-        <Route path="import" element={<ImporterPage />} />
-        <Route path="convert" element={<ConvertToPdfPage />} />
+        <Route path="template" element={(
+          <RequireDesignerPermission permission={designerPermissions.pdfTemplatesRead}>
+            <TemplatePage />
+          </RequireDesignerPermission>
+        )} />
+        <Route path="import" element={(
+          <RequireDesignerPermission permission={designerPermissions.pdfImport}>
+            <ImporterPage />
+          </RequireDesignerPermission>
+        )} />
+        <Route path="convert" element={(
+          <RequireDesignerPermission permission={designerPermissions.pdfConvert}>
+            <ConvertToPdfPage />
+          </RequireDesignerPermission>
+        )} />
         <Route
           path="viewer"
           element={(
-            <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
-              <PdfViewerPage />
-            </Suspense>
+            <RequireDesignerPermission permission={designerPermissions.pdfViewerRead}>
+              <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
+                <PdfViewerPage />
+              </Suspense>
+            </RequireDesignerPermission>
           )}
         />
         {/* Distinct `key` per route forces a fresh MigrationsPage instance so each
             sub-tab is its own view (no cross-route state bleed). */}
         <Route path="migrations" element={<Navigate to="/pdf/migrations/code" replace />} />
-        <Route path="migrations/code" element={<MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />} />
-        <Route path="migrations/designer" element={<MigrationsPage key="pdf-designer" mode="designer" />} />
+        <Route path="migrations/code" element={(
+          <RequireDesignerPermission permission={designerPermissions.migrationPdfExecute}>
+            <MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />
+          </RequireDesignerPermission>
+        )} />
+        <Route path="migrations/designer" element={(
+          <RequireDesignerPermission permission={designerPermissions.migrationReportExecute}>
+            <MigrationsPage key="pdf-designer" mode="designer" />
+          </RequireDesignerPermission>
+        )} />
       </Route>
 
-      <Route path="/spreadsheet" element={<SpreadsheetLayout />}>
+      <Route path="/spreadsheet" element={(
+        <RequireDesignerPermission permission={designerPermissions.spreadsheetAccess}>
+          <SpreadsheetLayout />
+        </RequireDesignerPermission>
+      )}>
         <Route index element={<Navigate to="create" replace />} />
         <Route
           path="create"
           element={(
-            <Suspense fallback={<div className="route-loading">Loading spreadsheet...</div>}>
-              <SpreadsheetEditorPage />
-            </Suspense>
+            <RequireDesignerPermission permission={designerPermissions.spreadsheetCreate}>
+              <Suspense fallback={<div className="route-loading">Loading spreadsheet...</div>}>
+                <SpreadsheetEditorPage />
+              </Suspense>
+            </RequireDesignerPermission>
           )}
         />
-        <Route path="edit" element={<SpreadsheetImportPage variant="edit" />} />
-        <Route path="import" element={<SpreadsheetImportPage variant="import" />} />
+        <Route path="edit" element={(
+          <RequireDesignerPermission permission={designerPermissions.spreadsheetEdit}>
+            <SpreadsheetImportPage variant="edit" />
+          </RequireDesignerPermission>
+        )} />
+        <Route path="import" element={(
+          <RequireDesignerPermission permission={designerPermissions.spreadsheetImport}>
+            <SpreadsheetImportPage variant="import" />
+          </RequireDesignerPermission>
+        )} />
         <Route path="migrations" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
-        <Route path="migrations/code" element={<MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />} />
+        <Route path="migrations/code" element={(
+          <RequireDesignerPermission permission={designerPermissions.migrationSpreadsheetExecute}>
+            <MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />
+          </RequireDesignerPermission>
+        )} />
       </Route>
 
       {/* Back-compat redirects from the old flat route tree */}

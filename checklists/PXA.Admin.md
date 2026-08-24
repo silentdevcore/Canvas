@@ -201,6 +201,15 @@ Current role administration implementation:
 - [x] Rotate the affected user's security stamp after every role change so stale claims cannot remain active.
 - [x] Audit role assignment and revocation with actor, role, target user, tenant, and outcome metadata.
 
+Deferred custom-role administration (P2):
+
+- [ ] Create, clone, edit, archive, and restore organization-owned custom roles while keeping protected built-in roles immutable.
+- [ ] Select persisted Account, Admin, Designer, PDF, Spreadsheet, and provider-specific migration permissions for each custom role.
+- [ ] Resolve effective session permissions from persisted role claims as well as protected built-in role defaults.
+- [ ] Preview permission changes, affected users, and required session revocation before saving.
+- [ ] Test a persisted limited role that permits only Syncfusion PDF and Aspose.Cells migrations and denies all other providers.
+- [ ] Audit custom-role lifecycle and permission changes with tenant, actor, before/after values, and affected memberships.
+
 Current invitation and recovery implementation:
 
 - [x] Add a CSRF-protected administrator invitation endpoint for the active organization.

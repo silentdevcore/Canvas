@@ -6,6 +6,8 @@ import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
+import { useDesignerAuth } from '@/auth/DesignerAuthGate';
+import { migrationProviderPermission } from '@/auth/designerPermissions';
 
 // Framework ids for the report → PXA Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -27,7 +29,20 @@ interface Framework {
   status: string;
   description: string;
   kind?: string; // "pdf" (default) | "spreadsheet"
+  requiredPermission?: string;
 }
+
+const MIGRATION_PROVIDER_KEYS: Record<string, string> = {
+  ActivePdf: 'active-pdf', Apryse: 'apryse', Aspose: 'aspose-pdf', DevExpress: 'devexpress-pdf',
+  DsPdf: 'dspdf', Foxit: 'foxit-pdf', GemBox: 'gembox-pdf', IronPdf: 'iron-pdf', iText7: 'itext7',
+  Leadtools: 'leadtools-pdf', PdfKitNet: 'pdfkitnet', PdfTools: 'pdftools',
+  PdfToolsToolbox: 'pdftools-toolbox', Spire: 'spire-pdf', Syncfusion: 'syncfusion-pdf',
+  AsposeCells: 'aspose-cells', ClosedXmlSpreadsheet: 'closedxml', EpplusSpreadsheet: 'epplus',
+  GemBoxSpreadsheet: 'gembox-spreadsheet', Npoi: 'npoi', SpireXls: 'spire-xls',
+  SpreadsheetLight: 'spreadsheetlight', SyncfusionXlsIo: 'syncfusion-xlsio',
+  ActiveReportsJsReport: 'activereports-js', DevExpressReport: 'devexpress-report', FrxReport: 'fastreport',
+  JrxmlReport: 'jasperreports', RdlReport: 'rdl', RpxReport: 'rpx', MrtReport: 'stimulsoft', TrdxReport: 'telerik',
+};
 
 interface Diagnostic {
   code: string;
@@ -878,6 +893,7 @@ type MigrationMode = 'code' | 'designer';
 
 const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spreadsheet' }> = ({ mode, codeKind }) => {
   const { t } = useTranslation('migrations');
+  const { user } = useDesignerAuth();
   const isDesigner = mode === 'designer';
   // Code Migration sub-tab (PDF | Spreadsheet) is driven by the route (codeKind prop).
   const kindFilter: 'pdf' | 'spreadsheet' = codeKind ?? 'pdf';
@@ -927,7 +943,15 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
   }, [isDesigner]);
 
-  const current = frameworks.find(f => f.id === selectedId);
+  const canUseFramework = useCallback((framework: Framework) => {
+    const providerKey = MIGRATION_PROVIDER_KEYS[framework.id];
+    const domain = isDesigner ? 'report' : framework.kind === 'spreadsheet' ? 'spreadsheet' : 'pdf';
+    const permission = framework.requiredPermission
+      ?? (providerKey ? migrationProviderPermission(domain, providerKey) : null);
+    return permission === null || user.permissions.includes(permission);
+  }, [isDesigner, user.permissions]);
+  const availableFrameworks = frameworks.filter(canUseFramework);
+  const current = availableFrameworks.find(f => f.id === selectedId);
 
   const handleFrameworkChange = (id: string) => {
     setSelectedId(id);
@@ -951,11 +975,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
   // Keep the selected framework valid for the active Code sub-tab (PDF vs Spreadsheet).
   useEffect(() => {
-    if (isDesigner) return;
-    const visible = frameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+    const visible = availableFrameworks.filter(f => isDesigner
+      || (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
     if (visible.length > 0 && !visible.some(f => f.id === selectedId)) handleFrameworkChange(visible[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codeKind, frameworks]);
+  }, [codeKind, frameworks, user.permissions]);
 
   const applyConvertResult = (data: { pxaCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
     const diags = data.diagnostics ?? [];
@@ -1279,8 +1303,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               const opt = (f: Framework) => <option key={f.id} value={f.id}>{label(f)}</option>;
               // Code mode: the PDF | Spreadsheet sub-tab filters by kind. Designer mode: show all.
               const visible = isDesigner
-                ? frameworks
-                : frameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+                ? availableFrameworks
+                : availableFrameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
               return visible.map(opt);
             })()}
           </select>

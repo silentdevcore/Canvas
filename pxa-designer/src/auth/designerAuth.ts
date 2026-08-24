@@ -12,6 +12,7 @@ export interface DesignerUser {
   email: string;
   displayName: string;
   roles: string[];
+  permissions: string[];
   organizations: DesignerOrganization[];
   activeOrganizationId: string | null;
   lastLoginAt: string | null;
@@ -104,6 +105,13 @@ export function describeDesignerAuthError(error: DesignerAuthError): DesignerAcc
       return {
         title: 'Designer access not included',
         message: error.message,
+        retry: false,
+        openAccount: true,
+      };
+    case 'PXA_DESIGNER_PERMISSION_REQUIRED':
+      return {
+        title: 'Designer permission required',
+        message: 'Your organization role does not allow this Designer operation.',
         retry: false,
         openAccount: true,
       };

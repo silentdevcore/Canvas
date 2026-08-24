@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-granular-permissions",
+  "impact": "minor",
+  "components": [
+    "admin",
+    "api",
+    "designer"
+  ],
+  "category": "added",
+  "summary": "PXA Designer now enforces granular role-based permissions across PDF and Spreadsheet workflows, templates, code, assets, exports, viewer tools, and every supported migration provider.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Designer-Authentication.md"
+  ],
+  "breaking": false
+}

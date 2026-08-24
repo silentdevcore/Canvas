@@ -24,6 +24,7 @@ public sealed class DesignerTemplatesController(
     private readonly PxaDesignerTemplateOptions settings = options.Value;
 
     [HttpGet]
+    [Authorize(Policy = PxaDesignerPermissions.PdfTemplatesRead)]
     public async Task<ActionResult<DesignerTemplatePage>> List(
         [FromQuery] string? search = null,
         [FromQuery] string? tag = null,
@@ -77,6 +78,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPost]
+    [Authorize(Policy = PxaDesignerPermissions.PdfCreate)]
     public async Task<ActionResult<DesignerTemplateDocument>> Create(
         CreateDesignerTemplateRequest request,
         CancellationToken cancellationToken)
@@ -113,6 +115,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfTemplatesRead)]
     public async Task<ActionResult<DesignerTemplateDocument>> Get(
         Guid id,
         CancellationToken cancellationToken)
@@ -127,6 +130,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPut("{id:guid}/metadata")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfEdit)]
     public async Task<ActionResult<DesignerTemplateDocument>> UpdateMetadata(
         Guid id,
         UpdateDesignerTemplateMetadataRequest request,
@@ -158,6 +162,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPut("{id:guid}/draft")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfEdit)]
     public async Task<ActionResult<DesignerTemplateDocument>> UpdateDraft(
         Guid id,
         UpdateDesignerTemplateDraftRequest request,
@@ -195,6 +200,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPost("{id:guid}/archive")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesArchive)]
     public Task<ActionResult<DesignerTemplateDocument>> Archive(
         Guid id,
         TemplateRevisionRequest request,
@@ -202,6 +208,7 @@ public sealed class DesignerTemplatesController(
         ChangeArchiveStateAsync(id, request.Revision, true, cancellationToken);
 
     [HttpPost("{id:guid}/restore")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesArchive)]
     public Task<ActionResult<DesignerTemplateDocument>> Restore(
         Guid id,
         TemplateRevisionRequest request,
@@ -209,6 +216,7 @@ public sealed class DesignerTemplatesController(
         ChangeArchiveStateAsync(id, request.Revision, false, cancellationToken);
 
     [HttpGet("{id:guid}/versions")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesRead)]
     public async Task<ActionResult<IReadOnlyList<DesignerTemplateVersionInfo>>> ListVersions(
         Guid id,
         CancellationToken cancellationToken)
@@ -234,6 +242,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpGet("{id:guid}/versions/{versionNumber:long}")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesRead)]
     public async Task<ActionResult<DesignerTemplateVersionDocument>> GetVersion(
         Guid id,
         long versionNumber,
@@ -251,6 +260,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPost("{id:guid}/versions")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesVersion)]
     public async Task<ActionResult<CreateDesignerTemplateVersionResponse>> CreateVersion(
         Guid id,
         CreateDesignerTemplateVersionRequest request,
@@ -276,6 +286,7 @@ public sealed class DesignerTemplatesController(
     }
 
     [HttpPost("{id:guid}/publish")]
+    [Authorize(Policy = PxaDesignerPermissions.TemplatesPublish)]
     public async Task<ActionResult<DesignerTemplateDocument>> Publish(
         Guid id,
         PublishDesignerTemplateRequest request,

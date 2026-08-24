@@ -31,6 +31,8 @@ import {
   PdfSignatureRenderer,
 } from '@/components/Rendering/PdfControlRenderer';
 import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
+import { useDesignerAuth } from '@/auth/DesignerAuthGate';
+import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
 import {
   PdfCommentRenderer,
   PdfContentControlRenderer,
@@ -86,6 +88,9 @@ const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProp
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel, visualParityMode = false, autoFitWidth = false }) => {
   const { t } = useTranslation('preview');
   const navigate = useNavigate();
+  const { user } = useDesignerAuth();
+  const canExport = hasDesignerPermission(user, designerPermissions.pdfExport);
+  const canPrint = hasDesignerPermission(user, designerPermissions.pdfPrint) && canExport;
   const [zoom, setZoom] = useState(1);
   const previewPagesRef = useRef<HTMLDivElement>(null);
   const documentPageSettings = React.useMemo(() => normalizePageSettings(pageSettings), [pageSettings]);
@@ -146,6 +151,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   }, []);
 
   const handleExport = async (format: ExportFormat) => {
+    if ((format === 'print' && !canPrint) || (format !== 'print' && !canExport)) return;
     if (exportLockRef.current) return;
     exportLockRef.current = true;
     setMenuOpen(false);
@@ -749,7 +755,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
             <button onClick={handleResetZoom} aria-label={t('resetZoom')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 14, marginInlineStart: 4 }}>⟲</button>
           </div>
           {/* Export dropdown */}
-          <div ref={menuRef} style={{ position: 'relative' }}>
+          {(canExport || canPrint) && <div ref={menuRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setMenuOpen(o => !o)}
               disabled={exportingFormat !== null}
@@ -776,7 +782,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                   { format: 'image' as ExportFormat, icon: <FiLayers   size={14} />, label: t('exportMenu.image.label'), sub: t('exportMenu.image.sub') },
                   { format: 'json'  as ExportFormat, icon: <FiFileText size={14} />, label: t('exportMenu.json.label'),  sub: t('exportMenu.json.sub') },
                   { format: 'print' as ExportFormat, icon: <FiPrinter  size={14} />, label: t('exportMenu.print.label'), sub: t('exportMenu.print.sub') },
-                ] as const).map(({ format, icon, label, sub }) => (
+                ] as const)
+                  .filter(({ format }) => format === 'print' ? canPrint : canExport)
+                  .map(({ format, icon, label, sub }) => (
                   <button
                     key={format}
                     onClick={() => handleExport(format)}
@@ -795,7 +803,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                     </span>
                   </button>
                 ))}
-                <button
+                {canExport && <button
                   onClick={() => { setMenuOpen(false); setExportModalOpen(true); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, width: '100%',
@@ -811,10 +819,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>{t('exportMenu.more.label')}</div>
                     <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>{t('exportMenu.more.sub')}</div>
                   </span>
-                </button>
+                </button>}
               </div>
             )}
-          </div>
+          </div>}
 
           {viewerPdfDataUrl && (
             <button
@@ -868,7 +876,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       </div>
     </div>
 
-    {exportModalOpen && (
+    {exportModalOpen && canExport && (
       <ExportModal
         template={template}
         pages={pages}

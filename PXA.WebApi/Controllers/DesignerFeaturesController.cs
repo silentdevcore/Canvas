@@ -19,6 +19,7 @@ public sealed class DesignerFeaturesController(
     IPxaDesignerFeatureGate featureGate) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Policy = PxaDesignerPermissions.Access)]
     public async Task<ActionResult<IReadOnlyList<DesignerFeatureResponse>>> List(
         CancellationToken cancellationToken)
     {
@@ -37,6 +38,7 @@ public sealed class DesignerFeaturesController(
     }
 
     [HttpPut("{featureId}/preference")]
+    [Authorize(Policy = PxaDesignerPermissions.ExperimentalFeatures)]
     public async Task<ActionResult<DesignerFeatureResponse>> SetPreference(
         string featureId,
         SetDesignerFeaturePreferenceRequest request,
@@ -90,7 +92,7 @@ public sealed class DesignerFeaturesController(
     }
 
     [HttpPut("{featureId}/organization-policy")]
-    [Authorize(Roles = $"{PxaRoles.SystemAdministrator},{PxaRoles.OrganizationAdministrator}")]
+    [Authorize(Policy = PxaDesignerPermissions.FeaturesManage)]
     public async Task<ActionResult<DesignerFeatureResponse>> SetOrganizationPolicy(
         string featureId,
         SetDesignerFeaturePolicyRequest request,

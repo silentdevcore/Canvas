@@ -8,6 +8,7 @@ export interface HubSidebarItem {
   label: string;
   icon: React.ElementType;
   disabled?: boolean;
+  disabledReason?: string;
   badge?: React.ReactNode;
   // Overrides the default pathname-only active check. Needed for items whose
   // `path` is really just a redirect alias into another route's query string
@@ -49,7 +50,7 @@ const HubSidebar: React.FC<HubSidebarProps> = ({ items, collapsed, onToggle }) =
                 <Icon className="hub-sidebar-link-icon" />
                 <span className="hub-sidebar-link-label">
                   <span>{item.label}{item.badge}</span>
-                  <small>{t('sidebar.comingSoon')}</small>
+                  <small>{item.disabledReason ?? t('sidebar.comingSoon')}</small>
                 </span>
               </span>
             ) : (

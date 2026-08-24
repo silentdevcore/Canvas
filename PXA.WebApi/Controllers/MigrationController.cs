@@ -1,6 +1,7 @@
 using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using PXA.Migration.Report;
+using PXA.WebApi.Security;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaMigrationDiagnostic = PXA.Migration.Abstractions.MigrationDiagnostic;
 
@@ -23,7 +24,9 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<object>), 200)]
     public IActionResult GetFrameworks()
     {
-        var frameworks = _service.GetFrameworks().Select(f => new
+        var frameworks = _service.GetFrameworks()
+            .Where(CanReadFramework)
+            .Select(f => new
         {
             id = f.Id,
             name = f.Name,
@@ -32,7 +35,8 @@ public class MigrationController : ControllerBase
             kind = f.Kind,
             domain = f.Domain,
             migrationKind = f.MigrationKind,
-            provider = f.Provider
+            provider = f.Provider,
+            requiredPermission = PxaDesignerMigrationPermissions.ResolveCodeProvider(f.Id, f.Domain)
         });
         return Ok(frameworks);
     }
@@ -47,6 +51,8 @@ public class MigrationController : ControllerBase
             return BadRequest(new { error = "Field 'framework' is required." });
         if (string.IsNullOrWhiteSpace(request.SourceCode))
             return BadRequest(new { error = "Field 'sourceCode' is required." });
+        if (AuthorizeCodeMigration(request.Framework) is { } permissionError)
+            return permissionError;
 
         try
         {
@@ -120,6 +126,9 @@ public class MigrationController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(sourceCode))
             return BadRequest(new { error = "Field 'sourceCode' (or 'sourceBase64') is required." });
+        var reportProvider = DetectReportProvider(sourceCode);
+        if (AuthorizeReportMigration(reportProvider) is { } permissionError)
+            return permissionError;
 
         try
         {
@@ -205,6 +214,8 @@ public class MigrationController : ControllerBase
             return BadRequest(new { error = "Field 'framework' is required." });
         if (string.IsNullOrWhiteSpace(request.SourceCode))
             return BadRequest(new { error = "Field 'sourceCode' is required." });
+        if (AuthorizeCodeMigration(request.Framework) is { } permissionError)
+            return permissionError;
 
         try
         {
@@ -228,6 +239,70 @@ public class MigrationController : ControllerBase
         || JasperReportsMigration.LooksLike(content)
         || ActiveReportsJsMigration.LooksLike(content)
         || StimulsoftReportMigration.LooksLike(content);
+
+    private bool CanReadFramework(FrameworkInfo framework)
+    {
+        if (!IsDesignerRequest()) return true;
+        var domainPermission = string.Equals(framework.Domain, "spreadsheet", StringComparison.OrdinalIgnoreCase)
+            ? PxaDesignerPermissions.MigrationSpreadsheetRead
+            : PxaDesignerPermissions.MigrationPdfRead;
+        return HasPermission(domainPermission);
+    }
+
+    private IActionResult? AuthorizeCodeMigration(string framework)
+    {
+        if (!IsDesignerRequest()) return null;
+        var domain = _service.GetKind(framework);
+        var domainPermission = string.Equals(domain, "spreadsheet", StringComparison.OrdinalIgnoreCase)
+            ? PxaDesignerPermissions.MigrationSpreadsheetExecute
+            : PxaDesignerPermissions.MigrationPdfExecute;
+        var providerPermission = PxaDesignerMigrationPermissions.ResolveCodeProvider(framework, domain);
+        if (!HasPermission(domainPermission)) return PermissionDenied(domainPermission);
+        return providerPermission is null || HasPermission(providerPermission)
+            ? null
+            : PermissionDenied(providerPermission);
+    }
+
+    private IActionResult? AuthorizeReportMigration(string provider)
+    {
+        if (!IsDesignerRequest()) return null;
+        if (!HasPermission(PxaDesignerPermissions.MigrationReportExecute))
+            return PermissionDenied(PxaDesignerPermissions.MigrationReportExecute);
+        var providerPermission = PxaDesignerMigrationPermissions.ResolveReportProvider(provider);
+        return providerPermission is null || HasPermission(providerPermission)
+            ? null
+            : PermissionDenied(providerPermission);
+    }
+
+    private IActionResult PermissionDenied(string permission) => StatusCode(
+        StatusCodes.Status403Forbidden,
+        new
+        {
+            title = "Designer migration permission required",
+            detail = "Your organization role does not allow this migration provider.",
+            code = "PXA_DESIGNER_PERMISSION_REQUIRED",
+            requiredPermission = permission,
+        });
+
+    private bool IsDesignerRequest() => string.Equals(
+        Request.Headers["X-PXA-Application"].ToString(),
+        "designer",
+        StringComparison.OrdinalIgnoreCase);
+
+    private bool HasPermission(string permission) =>
+        User.HasClaim(PxaClaimTypes.Permission, permission);
+
+    private static string DetectReportProvider(string sourceCode)
+    {
+        if (RdlReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Rdl;
+        if (RpxReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Rpx;
+        if (FastReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.FastReport;
+        if (TelerikReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Telerik;
+        if (JasperReportsMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.JasperReports;
+        if (ActiveReportsJsMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.ActiveReportsJs;
+        if (StimulsoftReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Stimulsoft;
+        return ReportMigrationProviderKeys.DevExpressReport;
+    }
 
     private static IReadOnlyDictionary<string, string>? MergeReportResources(
         string? resourceXml,

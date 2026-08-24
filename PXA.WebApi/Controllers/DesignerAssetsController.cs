@@ -18,6 +18,7 @@ public sealed class DesignerAssetsController(
     public const string AssetPurpose = "designer-image";
 
     [HttpPost]
+    [Authorize(Policy = PxaDesignerPermissions.AssetsManage)]
     [Consumes("multipart/form-data")]
     [ProducesResponseType<DesignerAssetResponse>(StatusCodes.Status201Created)]
     public async Task<ActionResult<DesignerAssetResponse>> Upload(
@@ -53,6 +54,7 @@ public sealed class DesignerAssetsController(
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = PxaDesignerPermissions.AssetsRead)]
     public async Task<ActionResult<DesignerAssetResponse>> GetMetadata(
         Guid id,
         CancellationToken cancellationToken)
@@ -67,6 +69,7 @@ public sealed class DesignerAssetsController(
     }
 
     [HttpGet("{id:guid}/content")]
+    [Authorize(Policy = PxaDesignerPermissions.AssetsRead)]
     public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
     {
         if (tenantContext.OrganizationId is not { } organizationId)
@@ -80,6 +83,7 @@ public sealed class DesignerAssetsController(
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = PxaDesignerPermissions.AssetsManage)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         if (tenantContext.OrganizationId is not { } organizationId)

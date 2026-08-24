@@ -13,6 +13,7 @@ namespace PXA.WebApi.Controllers;
 public sealed class DesignerSymbolsController : ControllerBase
 {
     [HttpPost("render")]
+    [Authorize(Policy = PxaDesignerPermissions.SymbolsRender)]
     [Produces("image/png")]
     public ActionResult Render(DesignerSymbolRequest request)
     {

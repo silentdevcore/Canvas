@@ -16,6 +16,7 @@ public sealed class DesignerElementFavoritesController(
     IPxaTenantContext tenantContext) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Policy = PxaDesignerPermissions.PreferencesManage)]
     public async Task<ActionResult<DesignerElementFavoritesResponse>> List(
         CancellationToken cancellationToken)
     {
@@ -32,6 +33,7 @@ public sealed class DesignerElementFavoritesController(
     }
 
     [HttpPut]
+    [Authorize(Policy = PxaDesignerPermissions.PreferencesManage)]
     public async Task<ActionResult<DesignerElementFavoritesResponse>> Replace(
         ReplaceDesignerElementFavoritesRequest request,
         CancellationToken cancellationToken)

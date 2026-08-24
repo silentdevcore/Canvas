@@ -7,6 +7,8 @@ import HubSidebar, { type HubSidebarItem } from './HubSidebar';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
+import { useDesignerAuth } from '@/auth/DesignerAuthGate';
+import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
 
 // "Use Template" and "Viewer" are intentionally absent: neither a spreadsheet
 // template gallery nor a standalone read-only spreadsheet viewer exists today
@@ -17,6 +19,8 @@ const SpreadsheetLayout: React.FC = () => {
   const { t } = useTranslation('common');
   const [collapsed, toggleCollapsed] = useSidebarCollapsed('pxa-designer:spreadsheet-sidebar-collapsed');
   const { features } = useProductExperience();
+  const { user } = useDesignerAuth();
+  const permissionRequired = t('permissions.sidebarRequired');
   const spreadsheetFeature = features.find(feature => feature.id === 'designer.spreadsheet');
 
   const spreadsheetSidebarItems: HubSidebarItem[] = [
@@ -25,12 +29,19 @@ const SpreadsheetLayout: React.FC = () => {
       label: t('spreadsheetSidebar.createSpreadsheet'),
       icon: FiGrid,
       badge: spreadsheetFeature ? <FeatureBadge feature={spreadsheetFeature} /> : undefined,
-      disabled: spreadsheetFeature ? !spreadsheetFeature.enabled : false,
+      disabled: (spreadsheetFeature ? !spreadsheetFeature.enabled : false)
+        || !hasDesignerPermission(user, designerPermissions.spreadsheetCreate),
+      disabledReason: !hasDesignerPermission(user, designerPermissions.spreadsheetCreate)
+        ? permissionRequired
+        : undefined,
     },
-    { path: '/spreadsheet/edit', label: t('spreadsheetSidebar.editSpreadsheet'), icon: FiCode },
-    { path: '/spreadsheet/import', label: t('spreadsheetSidebar.importSpreadsheet'), icon: FiUpload },
+    { path: '/spreadsheet/edit', label: t('spreadsheetSidebar.editSpreadsheet'), icon: FiCode,
+      disabled: !hasDesignerPermission(user, designerPermissions.spreadsheetEdit), disabledReason: permissionRequired },
+    { path: '/spreadsheet/import', label: t('spreadsheetSidebar.importSpreadsheet'), icon: FiUpload,
+      disabled: !hasDesignerPermission(user, designerPermissions.spreadsheetImport), disabledReason: permissionRequired },
     { path: '/spreadsheet/convert', label: t('spreadsheetSidebar.convertToSpreadsheet'), icon: FiRefreshCw, disabled: true },
-    { path: '/spreadsheet/migrations', label: t('spreadsheetSidebar.migrations'), icon: FiGitMerge },
+    { path: '/spreadsheet/migrations', label: t('spreadsheetSidebar.migrations'), icon: FiGitMerge,
+      disabled: !hasDesignerPermission(user, designerPermissions.migrationSpreadsheetExecute), disabledReason: permissionRequired },
   ];
 
   return (

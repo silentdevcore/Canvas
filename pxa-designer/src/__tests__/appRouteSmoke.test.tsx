@@ -8,6 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from '@/App';
 import { DEFAULT_PAGE_SETTINGS, useEditorStore } from '@/store';
 import { ExportService } from '@/services/ExportService';
+import { designerPermissions, migrationProviderPermission } from '@/auth/designerPermissions';
 
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
 globalWithAct.IS_REACT_ACT_ENVIRONMENT = true;
@@ -18,6 +19,7 @@ const authenticatedDesignerUser = {
   email: 'designer@example.test',
   displayName: 'Designer User',
   roles: ['Editor'],
+  permissions: Object.values(designerPermissions),
   organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
   activeOrganizationId: 'org-1',
   lastLoginAt: null,
@@ -272,6 +274,37 @@ describe('app route smoke tests', () => {
       expect(getByText(container, /PDF Viewer/)).toBeTruthy();
       expect(getByText(container, 'Migrations')).toBeTruthy();
     });
+  });
+
+  test('limited migration role keeps unrelated PDF actions disabled', async () => {
+    const limitedUser = {
+      ...authenticatedDesignerUser,
+      roles: ['Limited Migration Tester'],
+      permissions: [
+        designerPermissions.access,
+        designerPermissions.pdfAccess,
+        designerPermissions.migrationPdfRead,
+        designerPermissions.migrationPdfExecute,
+        migrationProviderPermission('pdf', 'syncfusion-pdf'),
+      ],
+    };
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => limitedUser })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => [] });
+
+    root = await renderRoute(container, '/pdf/migrations/code');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'PDF Code Migration')).toBeTruthy();
+    });
+    for (const label of ['Create PDF', 'PDF with Code', 'Use Template', 'Import PDF', 'Convert to PDF']) {
+      const item = getByText(container, label).closest('.hub-sidebar-link');
+      expect(item?.tagName).toBe('SPAN');
+      expect(item?.className).toContain('is-disabled');
+    }
+    const migrationItem = getByText(container, 'Migrations').closest('.hub-sidebar-link');
+    expect(migrationItem?.tagName).toBe('A');
+    expect(migrationItem?.className).not.toContain('is-disabled');
   });
 
   test('PDF sidebar switches cleanly between Create PDF and PDF with Code, back and forth', async () => {

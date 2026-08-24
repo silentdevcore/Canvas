@@ -18,6 +18,11 @@
     "sectionNav": "Section navigation",
     "comingSoon": "Coming soon"
   },
+  "permissions": {
+    "requiredTitle": "Permission required",
+    "requiredMessage": "Your organization role does not allow this Designer function.",
+    "sidebarRequired": "Permission required"
+  },
   "pdfSidebar": {
     "createPdf": "Create PDF",
     "editPdf": "PDF with Code",

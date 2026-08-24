@@ -4,6 +4,7 @@ import SimplePxaSurface from '@/components/Editor/SimplePxaSurface';
 import { normalizePageSettings, useEditorStore } from '@/store';
 import type { Page, PageSettings, SimpleElement, Template } from '@/types';
 import { DesignerAuthContextProvider } from '@/auth/DesignerAuthGate';
+import { designerPermissions } from '@/auth/designerPermissions';
 import allElementsFixture from '../../../test-assets/visual-parity/all-elements.json';
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
 
@@ -24,6 +25,7 @@ const parityUser = {
   email: 'visual-parity@localhost.invalid',
   displayName: 'Visual parity',
   roles: ['Designer'],
+  permissions: Object.values(designerPermissions),
   organizations: [],
   activeOrganizationId: null,
   lastLoginAt: null,
