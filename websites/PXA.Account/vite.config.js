@@ -17,6 +17,14 @@ export default {
         target: 'http://localhost:5086',
         changeOrigin: true,
       },
+      '/connect': {
+        target: 'http://localhost:5086',
+        changeOrigin: false,
+      },
+      '/.well-known': {
+        target: 'http://localhost:5086',
+        changeOrigin: false,
+      },
     },
     fs: {
       allow: ['..'],

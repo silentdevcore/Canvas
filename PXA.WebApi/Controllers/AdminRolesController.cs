@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,18 @@ public sealed class AdminRolesController : ControllerBase
             [PxaPermissions.LegalRead] = new("Legal", "Read legal documents and publication history."),
             [PxaPermissions.LegalAuthor] = new("Legal", "Create and edit legal document drafts."),
             [PxaPermissions.LegalApprove] = new("Legal", "Review and publish legal document versions."),
+            [PxaAccountPermissions.ProfileManage] = new("Account", "Manage the user's own Account profile."),
+            [PxaAccountPermissions.OrganizationRead] = new("Account", "View the active organization in PXA Account."),
+            [PxaAccountPermissions.OrganizationManage] = new("Account", "Manage active organization settings."),
+            [PxaAccountPermissions.MembersRead] = new("Account", "View organization members."),
+            [PxaAccountPermissions.MembersInvite] = new("Account", "Invite organization members."),
+            [PxaAccountPermissions.MembersRemove] = new("Account", "Remove organization members."),
+            [PxaAccountPermissions.SubscriptionRead] = new("Account", "View subscription and usage information."),
+            [PxaAccountPermissions.LicensesRead] = new("Account", "View organization license information."),
+            [PxaAccountPermissions.ServiceAccountsRead] = new("Account", "View service accounts and API keys."),
+            [PxaAccountPermissions.ServiceAccountsManage] = new("Account", "Create and revoke service accounts and API keys."),
+            [PxaAccountPermissions.SessionsManage] = new("Account", "View and revoke Account sessions."),
+            [PxaAccountPermissions.ClosureRequest] = new("Account", "Request Account closure."),
             [PxaDesignerPermissions.Access] = new("Designer access", "Open PXA Designer in the active organization."),
             [PxaDesignerPermissions.TemplatesRead] = new("Designer templates", "View templates and immutable versions."),
             [PxaDesignerPermissions.TemplatesCreate] = new("Designer templates", "Create organization templates."),
@@ -138,12 +151,26 @@ public sealed class AdminRolesController : ControllerBase
                 join role in dbContext.Roles.AsNoTracking() on assignment.RoleId equals role.Id
                 where membership.OrganizationId == organizationId &&
                       membership.Status != OrganizationMembershipStatus.Removed &&
-                      roleNames.Contains(role.Name!)
-                group assignment by role.Name into grouped
-                select new { Name = grouped.Key!, Count = grouped.Count() })
-            .ToDictionaryAsync(value => value.Name, value => value.Count, cancellationToken);
+                      (roleNames.Contains(role.Name!) || role.OrganizationId == organizationId)
+                group assignment by role.Id into grouped
+                select new { Id = grouped.Key, Count = grouped.Count() })
+            .ToDictionaryAsync(value => value.Id, value => value.Count, cancellationToken);
+        var systemRoles = await dbContext.Roles.AsNoTracking()
+            .Where(value => value.IsSystemRole && roleNames.Contains(value.Name!))
+            .ToDictionaryAsync(value => value.Name!, cancellationToken);
+        var customRoles = await dbContext.Roles.AsNoTracking()
+            .Where(value => value.OrganizationId == organizationId && !value.IsSystemRole)
+            .OrderBy(value => value.DisplayName)
+            .ToArrayAsync(cancellationToken);
+        var customClaims = await LoadPermissionClaimsAsync(customRoles.Select(value => value.Id), cancellationToken);
+        var roles = RoleDefinitions
+            .Select(value => ToRole(value, systemRoles.TryGetValue(value.Name, out var role)
+                ? counts.GetValueOrDefault(role.Id) : 0))
+            .Concat(customRoles.Select(value => ToRole(value, counts.GetValueOrDefault(value.Id),
+                customClaims.GetValueOrDefault(value.Id, []))))
+            .ToArray();
         return Ok(new AdminRoleCatalogResponse(
-            RoleDefinitions.Select(value => ToRole(value, counts.GetValueOrDefault(value.Name))).ToArray(),
+            roles,
             PermissionDefinitions.Select(value => new AdminPermissionResponse(
                     value.Key, value.Value.Group, value.Value.Description))
                 .OrderBy(value => value.Group).ThenBy(value => value.Key).ToArray()));
@@ -159,8 +186,8 @@ public sealed class AdminRolesController : ControllerBase
     {
         if (tenantContext.OrganizationId is not { } organizationId)
             return MissingOrganization();
-        var definition = FindRole(roleKey);
-        if (definition is null)
+        var resolved = await ResolveRoleAsync(roleKey, organizationId, cancellationToken);
+        if (resolved is null)
             return NotFound();
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
@@ -172,7 +199,7 @@ public sealed class AdminRolesController : ControllerBase
             join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
             where membership.OrganizationId == organizationId &&
                   membership.Status != OrganizationMembershipStatus.Removed &&
-                  role.Name == definition.Name
+                  role.Id == resolved.RoleId
             orderby user.DisplayName, user.Email
             select new RoleMemberRecord(
                 user.Id, membership.Id, user.DisplayName, user.Email ?? string.Empty,
@@ -184,7 +211,7 @@ public sealed class AdminRolesController : ControllerBase
         var assigners = await dbContext.Users.AsNoTracking().Where(value => assignerIds.Contains(value.Id))
             .ToDictionaryAsync(value => value.Id, value => value.DisplayName, cancellationToken);
         return Ok(new AdminRoleDetailResponse(
-            ToRole(definition, total),
+            resolved.Response with { MemberCount = total },
             records.Select(value => new AdminRoleMemberResponse(
                 value.UserId,
                 value.MembershipId,
@@ -214,8 +241,8 @@ public sealed class AdminRolesController : ControllerBase
             return MissingOrganization();
         if (userId == actorUserId)
             return ConflictProblem("Administrators cannot change their own active role assignment.");
-        var definition = FindRole(roleKey);
-        if (definition is null)
+        var resolved = await ResolveRoleAsync(roleKey, organizationId, cancellationToken);
+        if (resolved is null || resolved.Response.IsArchived)
             return NotFound();
         var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
             value.OrganizationId == organizationId && value.UserId == userId &&
@@ -224,7 +251,7 @@ public sealed class AdminRolesController : ControllerBase
         if (membership is null || user is null)
             return NotFound();
         var role = await dbContext.Roles.SingleOrDefaultAsync(value =>
-            value.Name == definition.Name && value.IsSystemRole, cancellationToken);
+            value.Id == resolved.RoleId, cancellationToken);
         if (role is null)
             return ConflictProblem("The protected role definition has not been initialized.");
         if (await dbContext.OrganizationMembershipRoles.AnyAsync(value =>
@@ -238,7 +265,7 @@ public sealed class AdminRolesController : ControllerBase
             AssignedByUserId = actorUserId,
         });
         RevokeSessions(user);
-        AddAudit(organizationId, actorUserId, "roles.member.assign", roleKey, userId, definition.Name);
+        AddAudit(organizationId, actorUserId, "roles.member.assign", roleKey, userId, resolved.Response.Name);
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
@@ -256,8 +283,8 @@ public sealed class AdminRolesController : ControllerBase
             return MissingOrganization();
         if (userId == actorUserId)
             return ConflictProblem("Administrators cannot change their own active role assignment.");
-        var definition = FindRole(roleKey);
-        if (definition is null)
+        var resolved = await ResolveRoleAsync(roleKey, organizationId, cancellationToken);
+        if (resolved is null)
             return NotFound();
         var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
             value.OrganizationId == organizationId && value.UserId == userId &&
@@ -265,22 +292,148 @@ public sealed class AdminRolesController : ControllerBase
         var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
         if (membership is null || user is null)
             return NotFound();
-        var roleId = await dbContext.Roles.Where(value => value.Name == definition.Name && value.IsSystemRole)
-            .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
-        if (roleId is null)
-            return NotFound();
         var assignment = await dbContext.OrganizationMembershipRoles.SingleOrDefaultAsync(value =>
-            value.OrganizationMembershipId == membership.Id && value.RoleId == roleId, cancellationToken);
+            value.OrganizationMembershipId == membership.Id && value.RoleId == resolved.RoleId, cancellationToken);
         if (assignment is null)
             return NoContent();
-        if (definition.Name == PxaRoles.OrganizationAdministrator &&
+        if (resolved.SystemRoleName == PxaRoles.OrganizationAdministrator &&
             membership.Status == OrganizationMembershipStatus.Active && user.IsActive &&
-            await IsLastActiveAdministratorAsync(organizationId, roleId.Value, cancellationToken))
+            await IsLastActiveAdministratorAsync(organizationId, resolved.RoleId, cancellationToken))
             return ConflictProblem("The last active Organization Administrator role cannot be removed.");
 
         dbContext.OrganizationMembershipRoles.Remove(assignment);
         RevokeSessions(user);
-        AddAudit(organizationId, actorUserId, "roles.member.revoke", roleKey, userId, definition.Name);
+        AddAudit(organizationId, actorUserId, "roles.member.revoke", roleKey, userId, resolved.Response.Name);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost]
+    [Authorize(Policy = PxaPermissions.RolesAssign)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.custom.create")]
+    public async Task<ActionResult<AdminRoleResponse>> CreateRole(
+        [FromBody] AdminRoleWriteRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
+            return MissingOrganization();
+        var validation = ValidateWriteRequest(request);
+        if (validation is not null)
+            return validation;
+        var key = NormalizeKey(request.Key ?? request.Name);
+        if (FindRole(key) is not null || await dbContext.Roles.AnyAsync(value =>
+                value.OrganizationId == organizationId && value.CustomKey == key, cancellationToken))
+            return ConflictProblem("A role with this key already exists in the active organization.");
+
+        var role = new PXA.Infrastructure.Persistence.Identity.PxaIdentityRole
+        {
+            Id = Guid.NewGuid(),
+            Name = $"custom:{organizationId:N}:{key}",
+            NormalizedName = $"CUSTOM:{organizationId:N}:{key}".ToUpperInvariant(),
+            OrganizationId = organizationId,
+            CustomKey = key,
+            DisplayName = request.Name.Trim(),
+            Description = (request.Description ?? string.Empty).Trim(),
+            IsSystemRole = false,
+        };
+        dbContext.Roles.Add(role);
+        AddPermissionClaims(role.Id, request.Permissions);
+        AddRoleAudit(organizationId, actorUserId, "roles.custom.create", key, [], request.Permissions, 0);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return CreatedAtAction(nameof(GetRole), new { roleKey = key }, ToRole(role, 0, request.Permissions));
+    }
+
+    [HttpPost("{roleKey}/clone")]
+    [Authorize(Policy = PxaPermissions.RolesAssign)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.custom.clone")]
+    public async Task<ActionResult<AdminRoleResponse>> CloneRole(
+        string roleKey,
+        [FromBody] AdminRoleCloneRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
+            return MissingOrganization();
+        var source = await ResolveRoleAsync(roleKey, organizationId, cancellationToken);
+        if (source is null)
+            return NotFound();
+        var result = await CreateRole(new AdminRoleWriteRequest(
+            request.Key, request.Name, request.Description, source.Response.Permissions.Select(value => value.Key).ToArray()),
+            cancellationToken);
+        if (result.Result is CreatedAtActionResult { Value: AdminRoleResponse created })
+        {
+            AddRoleAudit(organizationId, actorUserId, "roles.custom.clone", created.Key,
+                source.Response.Permissions.Select(value => value.Key),
+                created.Permissions.Select(value => value.Key), 0);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        return result;
+    }
+
+    [HttpPut("{roleKey}")]
+    [Authorize(Policy = PxaPermissions.RolesAssign)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.custom.update")]
+    public async Task<ActionResult<AdminRoleResponse>> UpdateRole(
+        string roleKey,
+        [FromBody] AdminRoleWriteRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
+            return MissingOrganization();
+        var validation = ValidateWriteRequest(request);
+        if (validation is not null)
+            return validation;
+        var role = await FindCustomRoleAsync(roleKey, organizationId, cancellationToken);
+        if (role is null)
+            return NotFound();
+        role.DisplayName = request.Name.Trim();
+        role.Description = (request.Description ?? string.Empty).Trim();
+        var existingClaims = await dbContext.RoleClaims.Where(value =>
+            value.RoleId == role.Id && value.ClaimType == PxaClaimTypes.Permission).ToArrayAsync(cancellationToken);
+        var previousPermissions = existingClaims.Where(value => value.ClaimValue is not null)
+            .Select(value => value.ClaimValue!).ToArray();
+        dbContext.RoleClaims.RemoveRange(existingClaims);
+        AddPermissionClaims(role.Id, request.Permissions);
+        var affectedMemberships = await dbContext.OrganizationMembershipRoles.CountAsync(
+            value => value.RoleId == role.Id, cancellationToken);
+        await RevokeAssignedSessionsAsync(role.Id, cancellationToken);
+        AddRoleAudit(organizationId, actorUserId, "roles.custom.update", roleKey,
+            previousPermissions, request.Permissions, affectedMemberships);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var memberCount = await dbContext.OrganizationMembershipRoles.CountAsync(value => value.RoleId == role.Id, cancellationToken);
+        return Ok(ToRole(role, memberCount, request.Permissions));
+    }
+
+    [HttpPost("{roleKey}/archive")]
+    [Authorize(Policy = PxaPermissions.RolesAssign)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.custom.archive")]
+    public Task<IActionResult> ArchiveRole(string roleKey, CancellationToken cancellationToken) =>
+        SetArchiveStateAsync(roleKey, true, cancellationToken);
+
+    [HttpPost("{roleKey}/restore")]
+    [Authorize(Policy = PxaPermissions.RolesAssign)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.custom.restore")]
+    public Task<IActionResult> RestoreRole(string roleKey, CancellationToken cancellationToken) =>
+        SetArchiveStateAsync(roleKey, false, cancellationToken);
+
+    private async Task<IActionResult> SetArchiveStateAsync(
+        string roleKey, bool archived, CancellationToken cancellationToken)
+    {
+        if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
+            return MissingOrganization();
+        var role = await FindCustomRoleAsync(roleKey, organizationId, cancellationToken);
+        if (role is null)
+            return NotFound();
+        role.IsArchived = archived;
+        var affectedMemberships = await dbContext.OrganizationMembershipRoles.CountAsync(
+            value => value.RoleId == role.Id, cancellationToken);
+        await RevokeAssignedSessionsAsync(role.Id, cancellationToken);
+        AddRoleAudit(organizationId, actorUserId, archived ? "roles.custom.archive" : "roles.custom.restore",
+            roleKey, [], [], affectedMemberships);
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
@@ -302,6 +455,92 @@ public sealed class AdminRolesController : ControllerBase
     private static RoleDefinition? FindRole(string roleKey) =>
         RoleDefinitions.SingleOrDefault(value => string.Equals(value.Key, roleKey, StringComparison.OrdinalIgnoreCase));
 
+    private async Task<ResolvedRole?> ResolveRoleAsync(
+        string roleKey, Guid organizationId, CancellationToken cancellationToken)
+    {
+        var definition = FindRole(roleKey);
+        if (definition is not null)
+        {
+            var roleId = await dbContext.Roles.AsNoTracking()
+                .Where(value => value.IsSystemRole && value.Name == definition.Name)
+                .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
+            return roleId is null ? null : new ResolvedRole(
+                roleId.Value, definition.Name, ToRole(definition, 0));
+        }
+        var role = await FindCustomRoleAsync(roleKey, organizationId, cancellationToken, true);
+        if (role is null)
+            return null;
+        var claims = await dbContext.RoleClaims.AsNoTracking().Where(value =>
+                value.RoleId == role.Id && value.ClaimType == PxaClaimTypes.Permission && value.ClaimValue != null)
+            .Select(value => value.ClaimValue!).ToArrayAsync(cancellationToken);
+        return new ResolvedRole(role.Id, null, ToRole(role, 0, claims));
+    }
+
+    private Task<PXA.Infrastructure.Persistence.Identity.PxaIdentityRole?> FindCustomRoleAsync(
+        string roleKey, Guid organizationId, CancellationToken cancellationToken, bool noTracking = false)
+    {
+        var query = noTracking ? dbContext.Roles.AsNoTracking() : dbContext.Roles.AsQueryable();
+        return query.SingleOrDefaultAsync(value => !value.IsSystemRole &&
+            value.OrganizationId == organizationId && value.CustomKey == roleKey.ToLower(), cancellationToken);
+    }
+
+    private async Task<Dictionary<Guid, IReadOnlyList<string>>> LoadPermissionClaimsAsync(
+        IEnumerable<Guid> roleIds, CancellationToken cancellationToken)
+    {
+        var ids = roleIds.ToArray();
+        if (ids.Length == 0)
+            return [];
+        var claims = await dbContext.RoleClaims.AsNoTracking()
+            .Where(value => ids.Contains(value.RoleId) && value.ClaimType == PxaClaimTypes.Permission && value.ClaimValue != null)
+            .Select(value => new { value.RoleId, value.ClaimValue })
+            .ToArrayAsync(cancellationToken);
+        return claims.GroupBy(value => value.RoleId).ToDictionary(group => group.Key,
+            group => (IReadOnlyList<string>)group.Select(value => value.ClaimValue!).ToArray());
+    }
+
+    private ActionResult? ValidateWriteRequest(AdminRoleWriteRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 200)
+            return BadRequestProblem("Role name must contain between 1 and 200 characters.");
+        if (NormalizeKey(request.Key ?? request.Name).Length == 0)
+            return BadRequestProblem("Role key must contain at least one ASCII letter or number.");
+        if (request.Description?.Trim().Length > 500)
+            return BadRequestProblem("Role description cannot exceed 500 characters.");
+        var unknown = request.Permissions.Distinct(StringComparer.Ordinal)
+            .Where(value => !PermissionDefinitions.ContainsKey(value)).ToArray();
+        return unknown.Length == 0
+            ? null
+            : BadRequestProblem($"Unknown permissions: {string.Join(", ", unknown)}");
+    }
+
+    private static string NormalizeKey(string value)
+    {
+        var key = Regex.Replace(value.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
+        return key.Length <= 80 ? key : key[..80].TrimEnd('-');
+    }
+
+    private void AddPermissionClaims(Guid roleId, IEnumerable<string> permissions)
+    {
+        foreach (var permission in permissions.Distinct(StringComparer.Ordinal))
+            dbContext.RoleClaims.Add(new Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>
+            {
+                RoleId = roleId,
+                ClaimType = PxaClaimTypes.Permission,
+                ClaimValue = permission,
+            });
+    }
+
+    private async Task RevokeAssignedSessionsAsync(Guid roleId, CancellationToken cancellationToken)
+    {
+        var users = await (from assignment in dbContext.OrganizationMembershipRoles
+                           join membership in dbContext.OrganizationMemberships on assignment.OrganizationMembershipId equals membership.Id
+                           join user in dbContext.Users on membership.UserId equals user.Id
+                           where assignment.RoleId == roleId
+                           select user).Distinct().ToArrayAsync(cancellationToken);
+        foreach (var user in users)
+            RevokeSessions(user);
+    }
+
     private static AdminRoleResponse ToRole(RoleDefinition definition, int memberCount)
     {
         var permissions = PxaRoles.Permissions[definition.Name]
@@ -310,7 +549,21 @@ public sealed class AdminRolesController : ControllerBase
                 : new AdminPermissionResponse(key, "Other", key))
             .OrderBy(value => value.Group).ThenBy(value => value.Key).ToArray();
         return new AdminRoleResponse(
-            definition.Key, definition.Name, definition.Description, true, memberCount, permissions);
+            definition.Key, definition.Name, definition.Description, true, false, memberCount, permissions);
+    }
+
+    private static AdminRoleResponse ToRole(
+        PXA.Infrastructure.Persistence.Identity.PxaIdentityRole role,
+        int memberCount,
+        IEnumerable<string> permissionKeys)
+    {
+        var permissions = permissionKeys.Distinct(StringComparer.Ordinal)
+            .Select(key => PermissionDefinitions.TryGetValue(key, out var metadata)
+                ? new AdminPermissionResponse(key, metadata.Group, metadata.Description)
+                : new AdminPermissionResponse(key, "Other", key))
+            .OrderBy(value => value.Group).ThenBy(value => value.Key).ToArray();
+        return new AdminRoleResponse(role.CustomKey!, role.DisplayName!, role.Description ?? string.Empty,
+            false, role.IsArchived, memberCount, permissions);
     }
 
     private static void RevokeSessions(PXA.Infrastructure.Persistence.Identity.PxaIdentityUser user)
@@ -337,14 +590,37 @@ public sealed class AdminRolesController : ControllerBase
             DetailsJson = JsonSerializer.Serialize(new { UserId = userId, Role = roleName }),
         });
 
+    private void AddRoleAudit(Guid organizationId, Guid actorUserId, string action,
+        string roleKey, IEnumerable<string> previousPermissions, IEnumerable<string> permissions,
+        int affectedMemberships) =>
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            Action = action,
+            TargetType = "role",
+            TargetId = roleKey,
+            Outcome = "succeeded",
+            DetailsJson = JsonSerializer.Serialize(new
+            {
+                PreviousPermissions = previousPermissions.Order(StringComparer.Ordinal),
+                Permissions = permissions.Order(StringComparer.Ordinal),
+                AffectedMemberships = affectedMemberships,
+            }),
+        });
+
     private ObjectResult MissingOrganization() => Problem(
         statusCode: StatusCodes.Status403Forbidden, title: "Organization context required");
 
     private ObjectResult ConflictProblem(string detail) => Problem(
         statusCode: StatusCodes.Status409Conflict, title: "Role operation rejected", detail: detail);
 
+    private ObjectResult BadRequestProblem(string detail) => Problem(
+        statusCode: StatusCodes.Status400BadRequest, title: "Invalid role definition", detail: detail);
+
     private sealed record RoleDefinition(string Key, string Name, string Description);
     private sealed record PermissionDefinition(string Group, string Description);
+    private sealed record ResolvedRole(Guid RoleId, string? SystemRoleName, AdminRoleResponse Response);
     private sealed record RoleMemberRecord(
         Guid UserId,
         Guid MembershipId,
@@ -364,6 +640,7 @@ public sealed record AdminRoleResponse(
     string Name,
     string Description,
     bool IsProtected,
+    bool IsArchived,
     int MemberCount,
     IReadOnlyList<AdminPermissionResponse> Permissions);
 public sealed record AdminPermissionResponse(string Key, string Group, string Description);
@@ -383,3 +660,9 @@ public sealed record AdminRoleMemberResponse(
     DateTimeOffset AssignedAt,
     Guid? AssignedByUserId,
     string AssignedByName);
+public sealed record AdminRoleWriteRequest(
+    string? Key,
+    string Name,
+    string Description,
+    IReadOnlyList<string> Permissions);
+public sealed record AdminRoleCloneRequest(string? Key, string Name, string Description);

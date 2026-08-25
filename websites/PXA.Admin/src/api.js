@@ -377,6 +377,22 @@ export async function getAdminRole(roleKey, { page = 1, pageSize = 25 } = {}) {
   return request(`${adminRolesBase}/${encodeURIComponent(roleKey)}?${query}`);
 }
 
+export async function createAdminRole(role) {
+  return adminMutation(adminRolesBase, 'POST', role);
+}
+
+export async function updateAdminRole(roleKey, role) {
+  return adminMutation(`${adminRolesBase}/${encodeURIComponent(roleKey)}`, 'PUT', role);
+}
+
+export async function cloneAdminRole(roleKey, role) {
+  return adminMutation(`${adminRolesBase}/${encodeURIComponent(roleKey)}/clone`, 'POST', role);
+}
+
+export async function setAdminRoleArchived(roleKey, archived) {
+  return adminMutation(`${adminRolesBase}/${encodeURIComponent(roleKey)}/${archived ? 'archive' : 'restore'}`, 'POST');
+}
+
 export async function assignAdminRoleMember(roleKey, userId) {
   return adminMutation(`${adminRolesBase}/${encodeURIComponent(roleKey)}/members/${encodeURIComponent(userId)}`, 'PUT');
 }

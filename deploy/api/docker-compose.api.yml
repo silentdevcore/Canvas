@@ -1,4 +1,22 @@
 services:
+  pxa-database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: pxa
+      POSTGRES_USER: pxa
+      POSTGRES_PASSWORD: ${PXA_DATABASE_PASSWORD:-pxa-local}
+    volumes:
+      - pxa-database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pxa -d pxa"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - default
+    restart: unless-stopped
+
   pxa-webapi:
     build:
       context: ../..
@@ -12,8 +30,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${PXA_API_ENVIRONMENT:-Production}
       ConnectionStrings__PxaDatabase: Host=pxa-database;Port=5432;Database=pxa;Username=pxa;Password=${PXA_DATABASE_PASSWORD:-pxa-local}
       Mail__Transport: ${PXA_API_MAIL_TRANSPORT:-Disabled}
-      Observability__Enabled: "true"
-      Observability__OtlpEndpoint: http://pxa-otel-collector:4317
+      Observability__Enabled: ${PXA_OBSERVABILITY_ENABLED:-false}
+      Observability__OtlpEndpoint: ${PXA_OTLP_ENDPOINT:-http://host.docker.internal:4317}
       DataProtection__KeysDirectory: /app/data/data-protection-keys
       Storage__RootPath: /app/data/objects
       PdfViewer__AnnotationStoragePath: /app/data/pdf-viewer
@@ -24,6 +42,13 @@ services:
       CodeWorker__Enabled: ${PXA_CODE_WORKER_ENABLED:-false}
       CodeWorker__Hardened: ${PXA_CODE_WORKER_HARDENED:-false}
       CodeWorker__WorkerPath: ${PXA_CODE_WORKER_PATH:-/app/code-worker}
+      OAuth__Enabled: ${PXA_OAUTH_ENABLED:-false}
+      OAuth__Issuer: ${PXA_OAUTH_ISSUER:-http://localhost:5178}
+      OAuth__McpResource: ${PXA_MCP_RESOURCE_URI:-http://localhost:8080/mcp}
+      OAuth__DynamicClientRegistrationEnabled: ${PXA_OAUTH_DYNAMIC_CLIENT_REGISTRATION_ENABLED:-true}
+      OAuth__McpDelegationSecret: ${PXA_MCP_DELEGATION_SECRET:-}
+      OAuth__SigningCertificatePath: ${PXA_OAUTH_SIGNING_CERTIFICATE_PATH:-}
+      OAuth__SigningCertificatePassword: ${PXA_OAUTH_SIGNING_CERTIFICATE_PASSWORD:-}
       Licensing__PrivateKeyPath: /run/secrets/pxa_license_private_key
       Licensing__PublicKeyPath: /run/secrets/pxa_license_public_key
     ports:
@@ -44,12 +69,10 @@ services:
     depends_on:
       pxa-database:
         condition: service_healthy
-      pxa-otel-collector:
-        condition: service_started
     networks:
       - default
-      - pxa-observability
       - pxa-api-host
+      - pxa-mcp-internal
     deploy:
       resources:
         limits:
@@ -57,6 +80,76 @@ services:
           memory: ${PXA_API_MEMORY_LIMIT:-2G}
           pids: ${PXA_API_PID_LIMIT:-256}
     stop_grace_period: 30s
+    restart: unless-stopped
+
+  pxa-mcp:
+    profiles: ["mcp"]
+    build:
+      context: ../..
+      dockerfile: tools/PXA.Mcp/Dockerfile
+    environment:
+      PXA_MCP_RESOURCE_URI: ${PXA_MCP_RESOURCE_URI:-http://localhost:8080/mcp}
+      PXA_MCP_OAUTH_ISSUER: ${PXA_OAUTH_ISSUER:-http://localhost:5178}
+      PXA_MCP_JWKS_URI: http://pxa-webapi:8080/.well-known/jwks.json
+      PXA_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES: "true"
+      PXA_MCP_ALLOWED_HOSTS: ${PXA_MCP_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      PXA_MCP_ALLOWED_ORIGINS: ${PXA_MCP_ALLOWED_ORIGINS:-}
+      PXA_MCP_REQUESTS_PER_MINUTE: ${PXA_MCP_REQUESTS_PER_MINUTE:-120}
+      PXA_MCP_READINESS_TIMEOUT_MS: ${PXA_MCP_READINESS_TIMEOUT_MS:-3000}
+      PXA_API_URL: http://pxa-webapi:8080
+      PXA_API_KEY: ${PXA_MCP_API_KEY:-}
+      PXA_MCP_DELEGATION_SECRET: ${PXA_MCP_DELEGATION_SECRET:-}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      pxa-webapi:
+        condition: service_healthy
+    networks:
+      - pxa-mcp-internal
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_MCP_CPU_LIMIT:-0.5}"
+          memory: ${PXA_MCP_MEMORY_LIMIT:-256M}
+          pids: ${PXA_MCP_PID_LIMIT:-128}
+    restart: unless-stopped
+
+  pxa-mcp-gateway:
+    image: nginx:1.29-alpine
+    profiles: ["mcp"]
+    environment:
+      PXA_MCP_SERVER_NAME: ${PXA_MCP_SERVER_NAME:-localhost}
+      NGINX_ENVSUBST_FILTER: ^PXA_
+    ports:
+      - "${PXA_MCP_HOST_IP:-127.0.0.1}:${PXA_MCP_HOST_PORT:-8080}:8080"
+    volumes:
+      - ./mcp-gateway.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      pxa-mcp:
+        condition: service_healthy
+      pxa-webapi:
+        condition: service_healthy
+    networks:
+      - pxa-mcp-internal
+    read_only: true
+    tmpfs:
+      - /etc/nginx/conf.d:rw,noexec,nosuid,nodev,size=1m
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=16m
+      - /var/run:rw,noexec,nosuid,nodev,size=1m
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
 secrets:
@@ -67,6 +160,9 @@ secrets:
 
 volumes:
   pxa-api-data:
+  pxa-database-data:
 
 networks:
   pxa-api-host:
+  pxa-mcp-internal:
+    internal: true

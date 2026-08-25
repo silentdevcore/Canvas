@@ -73,6 +73,15 @@ public sealed class PxaDbContextModelTests
                     nameof(OrganizationMembershipRole.RoleId),
                 ]));
         Assert.True(uniqueIndex.IsUnique);
+
+        var role = context.Model.FindEntityType(typeof(PxaIdentityRole));
+        Assert.NotNull(role?.FindProperty(nameof(PxaIdentityRole.OrganizationId)));
+        Assert.NotNull(role?.FindProperty(nameof(PxaIdentityRole.CustomKey)));
+        Assert.NotNull(role?.FindProperty(nameof(PxaIdentityRole.DisplayName)));
+        Assert.Contains(role!.GetIndexes(), index => index.IsUnique &&
+            index.Properties.Select(property => property.Name).SequenceEqual([
+                nameof(PxaIdentityRole.OrganizationId), nameof(PxaIdentityRole.CustomKey),
+            ]));
     }
 
     [Fact]

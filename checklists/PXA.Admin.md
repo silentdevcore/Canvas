@@ -201,14 +201,14 @@ Current role administration implementation:
 - [x] Rotate the affected user's security stamp after every role change so stale claims cannot remain active.
 - [x] Audit role assignment and revocation with actor, role, target user, tenant, and outcome metadata.
 
-Deferred custom-role administration (P2):
+Current custom-role administration:
 
-- [ ] Create, clone, edit, archive, and restore organization-owned custom roles while keeping protected built-in roles immutable.
-- [ ] Select persisted Account, Admin, Designer, PDF, Spreadsheet, and provider-specific migration permissions for each custom role.
-- [ ] Resolve effective session permissions from persisted role claims as well as protected built-in role defaults.
+- [x] Create, clone, edit, archive, and restore organization-owned custom roles while keeping protected built-in roles immutable.
+- [x] Select persisted Account, Admin, Designer, PDF, Spreadsheet, and provider-specific migration permissions for each custom role.
+- [x] Resolve effective session permissions from persisted role claims as well as protected built-in role defaults.
 - [ ] Preview permission changes, affected users, and required session revocation before saving.
-- [ ] Test a persisted limited role that permits only Syncfusion PDF and Aspose.Cells migrations and denies all other providers.
-- [ ] Audit custom-role lifecycle and permission changes with tenant, actor, before/after values, and affected memberships.
+- [x] Test a persisted limited role that permits only Syncfusion PDF and Aspose.Cells migrations and denies all other providers.
+- [x] Audit custom-role lifecycle and permission changes with tenant, actor, before/after values, and affected memberships.
 
 Current invitation and recovery implementation:
 
@@ -246,7 +246,7 @@ Current audit administration implementation:
 
 Current privileged-mutation audit contract:
 
-- [x] Declare the expected audit action on all 32 Admin `POST`, `PUT`, `PATCH`, and `DELETE` endpoints.
+- [x] Declare the expected audit action on all 49 Admin `POST`, `PUT`, `PATCH`, and `DELETE` endpoints.
 - [x] Require authorization, CSRF validation, and audit metadata for every discovered Admin mutation through a reflection contract test.
 - [x] Keep audit action keys stable and grouped by resource, including explicit alternatives and dynamic bulk-action families.
 - [x] Exercise successful user, session, role, organization, membership, invitation, subscription, seat, license, service-account, API-key, mail, and audit-export mutations against PostgreSQL.

@@ -638,8 +638,10 @@ public sealed class AdminUsersController : ControllerBase
         if (roleEntities.Count != requestedRoles.Length)
             return ConflictProblem("Built-in organization roles have not been initialized.");
 
-        var existing = await dbContext.OrganizationMembershipRoles
-            .Where(value => value.OrganizationMembershipId == membership.Id)
+        var existing = await (from assignment in dbContext.OrganizationMembershipRoles
+                              join role in dbContext.Roles on assignment.RoleId equals role.Id
+                              where assignment.OrganizationMembershipId == membership.Id && role.IsSystemRole
+                              select assignment)
             .ToListAsync(cancellationToken);
         dbContext.OrganizationMembershipRoles.RemoveRange(existing);
         dbContext.OrganizationMembershipRoles.AddRange(roleEntities.Select(role =>
@@ -694,7 +696,9 @@ public sealed class AdminUsersController : ControllerBase
                     on membershipRole.OrganizationMembershipId equals membership.Id
                 join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
                 where membership.OrganizationId == organizationId && userIds.Contains(membership.UserId)
-                select new { UserId = membership.UserId, Role = role.Name! })
+                where role.IsSystemRole ||
+                      (role.OrganizationId == organizationId && !role.IsArchived)
+                select new { UserId = membership.UserId, Role = role.DisplayName ?? role.Name! })
             .ToListAsync(cancellationToken);
 
         return globalRoles.Concat(organizationRoles)

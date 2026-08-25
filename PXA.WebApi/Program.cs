@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization.Policy;
+using OpenIddict.Validation.AspNetCore;
 using System.Threading.RateLimiting;
 using PXA.Core.Contracts;
 using PXA.FileImporter;
@@ -57,6 +58,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
+builder.Services.AddPxaOAuthServer(builder.Configuration, builder.Environment);
 var requireSecureCookies = !builder.Environment.IsDevelopment();
 builder.Services.AddAuthentication(options =>
     {
@@ -67,18 +69,27 @@ builder.Services.AddAuthentication(options =>
     .AddPolicyScheme(PxaAuthenticationSchemes.Combined, PxaAuthenticationSchemes.Combined, options =>
     {
         options.ForwardDefaultSelector = context =>
-            context.Request.Headers.ContainsKey("X-PXA-API-Key") ||
-            context.Request.Headers.Authorization.ToString().StartsWith("Bearer pxa_", StringComparison.Ordinal)
-                ? PxaAuthenticationSchemes.ApiKey
-                : string.Equals(
+        {
+            var authorization = context.Request.Headers.Authorization.ToString();
+            if (context.Request.Headers.ContainsKey("X-PXA-API-Key") ||
+                authorization.StartsWith("Bearer pxa_", StringComparison.Ordinal))
+                return PxaAuthenticationSchemes.ApiKey;
+            if (authorization.StartsWith("PXA-MCP ", StringComparison.Ordinal))
+                return PxaAuthenticationSchemes.McpDelegation;
+            if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+            return string.Equals(
                     context.Request.Headers["X-PXA-Application"].ToString(),
                     "designer",
                     StringComparison.OrdinalIgnoreCase)
                     ? PxaAuthenticationSchemes.DesignerCookie
                     : IdentityConstants.ApplicationScheme;
+        };
     })
     .AddScheme<AuthenticationSchemeOptions, PxaApiKeyAuthenticationHandler>(
         PxaAuthenticationSchemes.ApiKey, _ => { })
+    .AddScheme<AuthenticationSchemeOptions, PxaMcpDelegationAuthenticationHandler>(
+        PxaAuthenticationSchemes.McpDelegation, _ => { })
     .AddCookie(IdentityConstants.ApplicationScheme, options =>
     {
         options.Cookie.Name = requireSecureCookies ? "__Host-PXA.Session" : "PXA.Session.Development";
@@ -221,6 +232,14 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 5,
+            Window = TimeSpan.FromHours(1),
+            QueueLimit = 0,
+        }));
+    options.AddPolicy("oauth-client-registration", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
             Window = TimeSpan.FromHours(1),
             QueueLimit = 0,
         }));
@@ -383,6 +402,12 @@ builder.Services.AddAuthorization(options =>
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
     foreach (var permission in PxaDesignerPermissions.All)
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
+    options.AddPolicy(PxaOAuthPolicies.TemplatesRead, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context =>
+            PxaOAuthPolicies.HasScope(context.User, PxaOAuthScopes.TemplatesRead));
+    });
 });
 builder.Services.AddAntiforgery(options =>
 {
@@ -507,6 +532,7 @@ builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();
 
 var app = builder.Build();
 
+await PxaOAuthBootstrapper.InitializeAsync(app);
 await PxaDevelopmentIdentityBootstrapper.InitializeAsync(app);
 
 // Configure the HTTP request pipeline.

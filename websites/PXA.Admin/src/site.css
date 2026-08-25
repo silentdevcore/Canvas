@@ -860,6 +860,14 @@ tbody tr:hover { background: #f8fafc; }
   border-top: 1px solid var(--pxa-color-border);
 }
 .admin-role-permission p { margin: 0; color: var(--pxa-color-muted); font-size: var(--pxa-text-sm); }
+.admin-permission-editor { display: grid; gap: var(--pxa-space-4); max-height: 620px; overflow: auto; border: 1px solid var(--pxa-color-border); }
+.admin-permission-editor fieldset { display: grid; gap: 0; margin: 0; padding: 0; border: 0; }
+.admin-permission-editor legend { width: 100%; padding: var(--pxa-space-3) var(--pxa-space-4); background: var(--pxa-color-surface-muted); color: var(--pxa-color-ink); font-weight: 700; }
+.admin-permission-editor label { display: grid; grid-template-columns: 20px 1fr; gap: var(--pxa-space-3); align-items: start; padding: var(--pxa-space-3) var(--pxa-space-4); border-top: 1px solid var(--pxa-color-border); cursor: pointer; }
+.admin-permission-editor label input { margin-top: 3px; }
+.admin-permission-editor label span { display: grid; gap: 2px; min-width: 0; }
+.admin-permission-editor label strong { overflow-wrap: anywhere; font-size: var(--pxa-text-sm); }
+.admin-permission-editor label small { color: var(--pxa-color-muted); }
 .admin-subscription-create { margin-bottom: var(--pxa-space-5); }
 .admin-subscription-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pxa-space-4); }
 .admin-capability-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pxa-space-2); padding: var(--pxa-space-4); border: 1px solid var(--pxa-color-border); border-radius: var(--pxa-radius-md); }

@@ -12,42 +12,28 @@
 
   <ItemGroup>
     <Content Remove="AdminDocumentation/**/*" />
-    <Content Include="AdminDocumentation/**/*"
-             CopyToOutputDirectory="PreserveNewest"
-             CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="../operator-docs/*.md"
-             Link="OperatorDocumentation/%(Filename)%(Extension)"
-             CopyToOutputDirectory="PreserveNewest"
-             CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="../assets/fonts/liberation/*"
-             Link="fonts/%(Filename)%(Extension)"
-             CopyToOutputDirectory="PreserveNewest"
-             CopyToPublishDirectory="PreserveNewest" />
-    <EmbeddedResource Include="../product-metadata/designer-features.json"
-                      LogicalName="PXA.ProductMetadata.designer-features.json" />
-    <EmbeddedResource Include="../product-metadata/pxa-releases.json"
-                      LogicalName="PXA.ProductMetadata.pxa-releases.json" />
-    <EmbeddedResource Include="../product-metadata/data-processing-inventory.json"
-                      LogicalName="PXA.ProductMetadata.data-processing-inventory.json" />
-    <EmbeddedResource Include="../product-metadata/dependency-compliance.json"
-                      LogicalName="PXA.ProductMetadata.dependency-compliance.json" />
-    <EmbeddedResource Include="../product-metadata/global-commerce-catalog.json"
-                      LogicalName="PXA.ProductMetadata.global-commerce-catalog.json" />
-    <EmbeddedResource Include="../product-metadata/country-readiness.json"
-                      LogicalName="PXA.ProductMetadata.country-readiness.json" />
-    <EmbeddedResource Include="../product-metadata/legal-documents/en/*"
-                      LogicalName="PXA.LegalContent.%(Filename)%(Extension)" />
+    <Content Include="AdminDocumentation/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../operator-docs/*.md" Link="OperatorDocumentation/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../assets/fonts/liberation/*" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="../product-metadata/designer-features.json" LogicalName="PXA.ProductMetadata.designer-features.json" />
+    <EmbeddedResource Include="../product-metadata/pxa-releases.json" LogicalName="PXA.ProductMetadata.pxa-releases.json" />
+    <EmbeddedResource Include="../product-metadata/data-processing-inventory.json" LogicalName="PXA.ProductMetadata.data-processing-inventory.json" />
+    <EmbeddedResource Include="../product-metadata/dependency-compliance.json" LogicalName="PXA.ProductMetadata.dependency-compliance.json" />
+    <EmbeddedResource Include="../product-metadata/global-commerce-catalog.json" LogicalName="PXA.ProductMetadata.global-commerce-catalog.json" />
+    <EmbeddedResource Include="../product-metadata/country-readiness.json" LogicalName="PXA.ProductMetadata.country-readiness.json" />
+    <EmbeddedResource Include="../product-metadata/legal-documents/en/*" LogicalName="PXA.LegalContent.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.OpenTelemetry" Version="10.0.3" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="7.6.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />

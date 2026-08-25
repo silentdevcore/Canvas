@@ -90,6 +90,15 @@ jobs:
           --no-build
           --filter "FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances|FullyQualifiedName~AdminSystemControllerTests"
           -p:SkipOcrWorkerPackaging=true
+      - name: Test PostgreSQL MCP OAuth and tenant delegation contracts
+        env:
+          PXA_RUN_POSTGRES_TESTS: "1"
+        run: >
+          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once"
+          -p:SkipOcrWorkerPackaging=true
       - name: Test isolated Legal backup and restore
         env:
           PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"
@@ -206,6 +215,61 @@ jobs:
         run: |
           npm ci
           npm run typecheck
+          npm test
+          npm run build
+          npm run smoke:dist
+          npm pack --dry-run
+
+  mcp-beta:
+    runs-on: ubuntu-latest
+    needs: version-policy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/PXA.Mcp/package-lock.json
+      - name: Install MCP client dependencies
+        working-directory: tools/PXA.Mcp
+        run: npm ci
+      - name: Validate PXA Server Compose contract
+        working-directory: deploy/api
+        env:
+          PXA_LICENSE_PRIVATE_KEY_FILE: ./secrets/license-private.pem
+          PXA_LICENSE_PUBLIC_KEY_FILE: ./secrets/license-public.pem
+        run: docker compose -f docker-compose.api.yml --profile mcp config --quiet
+      - name: Test MCP TLS, dependency failure, and graceful shutdown
+        run: deploy/api/mcp-tls-smoke-test.sh
+      - name: Scan MCP container image
+        run: |
+          mkdir -p artifacts/mcp-security
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v pxa-mcp-trivy-cache:/root/.cache/ \
+            aquasec/trivy:0.74.0 image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity HIGH,CRITICAL \
+            --scanners vuln,secret \
+            mcp-smoke-pxa-mcp:latest
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v pxa-mcp-trivy-cache:/root/.cache/ \
+            -v "$PWD/artifacts/mcp-security:/output" \
+            aquasec/trivy:0.74.0 image \
+            --format cyclonedx \
+            --output /output/pxa-mcp.cdx.json \
+            mcp-smoke-pxa-mcp:latest
+      - name: Check MCP repository diff
+        run: git diff --check
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0 # v7.0.1
+        if: always()
+        with:
+          name: pxa-mcp-security-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/mcp-security
+          if-no-files-found: warn
+          retention-days: 30
 
   visual-parity:
     runs-on: ubuntu-latest

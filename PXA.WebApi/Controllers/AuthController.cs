@@ -727,8 +727,16 @@ public sealed class AuthController : ControllerBase
         var visiblePermissions = IsDesignerRequest()
             ? PxaDesignerPermissions.All
             : PxaAccountPermissions.All;
+        var membershipPermissions = activeMembership is null || activeMembership.MembershipId == Guid.Empty
+            ? Array.Empty<string>()
+            : (await PxaMembershipPermissionResolver.ResolveAsync(
+                dbContext,
+                activeMembership.MembershipId,
+                activeMembership.OrganizationId,
+                cancellationToken)).Permissions;
         var permissions = roles
             .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
+            .Concat(membershipPermissions)
             .Where(visiblePermissions.Contains)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(permission => permission, StringComparer.Ordinal)
@@ -796,8 +804,12 @@ public sealed class AuthController : ControllerBase
             ? []
             : await (from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
                      join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
+                     join membership in dbContext.OrganizationMemberships.AsNoTracking()
+                         on membershipRole.OrganizationMembershipId equals membership.Id
                      where membershipRole.OrganizationMembershipId == membershipId
-                     select role.Name!)
+                     where role.IsSystemRole ||
+                           (role.OrganizationId == membership.OrganizationId && !role.IsArchived)
+                     select role.DisplayName ?? role.Name!)
                 .ToListAsync(cancellationToken);
 
         return globalRoles.Concat(organizationRoles)

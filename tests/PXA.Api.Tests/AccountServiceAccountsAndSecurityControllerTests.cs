@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -9,8 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
@@ -18,6 +22,75 @@ namespace PXA.Api.Tests;
 
 public sealed class AccountServiceAccountsAndSecurityControllerTests
 {
+    [PostgreSqlFact]
+    public async Task OAuth_discovery_and_public_PKCE_authorization_are_available()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        await SeedRolesAsync(factory.Services);
+        await PxaOAuthBootstrapper.InitializeStoreAsync(factory.Services);
+        using var client = CreateClient(factory);
+
+        var discoveryResponse = await client.GetAsync("/.well-known/openid-configuration");
+        Assert.Equal(HttpStatusCode.OK, discoveryResponse.StatusCode);
+        var discovery = await discoveryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("http://localhost:5178/", discovery.GetProperty("issuer").GetString());
+        Assert.Contains("authorization_code", discovery.GetProperty("grant_types_supported")
+            .EnumerateArray().Select(value => value.GetString()));
+        Assert.Equal(
+            "http://localhost:5178/connect/register",
+            discovery.GetProperty("registration_endpoint").GetString());
+
+        var registrationResponse = await client.PostAsJsonAsync("/connect/register", new
+        {
+            client_name = "MCP interoperability test",
+            redirect_uris = new[] { "http://127.0.0.1:45678/oauth/callback" },
+            token_endpoint_auth_method = "none",
+            grant_types = new[] { "authorization_code" },
+            response_types = new[] { "code" },
+        });
+        Assert.Equal(HttpStatusCode.Created, registrationResponse.StatusCode);
+        var registration = await registrationResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var dynamicClientId = registration.GetProperty("client_id").GetString();
+        Assert.StartsWith("pxa-mcp-dcr-", dynamicClientId);
+        Assert.Equal("none", registration.GetProperty("token_endpoint_auth_method").GetString());
+
+        var unsafeRegistration = await client.PostAsJsonAsync("/connect/register", new
+        {
+            client_name = "Unsafe client",
+            redirect_uris = new[] { "http://attacker.example.test/oauth/callback" },
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, unsafeRegistration.StatusCode);
+        var unsafeProblem = await unsafeRegistration.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("invalid_client_metadata", unsafeProblem.GetProperty("error").GetString());
+
+        var verifier = string.Concat(Enumerable.Repeat("pkce-verifier-", 4));
+        var challenge = Convert.ToBase64String(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var authorizePath = "/connect/authorize?" + string.Join('&', new Dictionary<string, string>
+        {
+            ["client_id"] = dynamicClientId!,
+            ["redirect_uri"] = "http://127.0.0.1:45678/oauth/callback",
+            ["response_type"] = "code",
+            ["scope"] = "pxa.docs.read",
+            ["code_challenge"] = challenge,
+            ["code_challenge_method"] = "S256",
+            ["state"] = "oauth-test-state",
+        }.Select(value => $"{value.Key}={Uri.EscapeDataString(value.Value)}"));
+        var authorizeResponse = await client.GetAsync(authorizePath);
+        Assert.Equal(HttpStatusCode.Redirect, authorizeResponse.StatusCode);
+        Assert.StartsWith(
+            "http://localhost:5178/login?returnUrl=",
+            authorizeResponse.Headers.Location?.ToString(),
+            StringComparison.Ordinal);
+
+        var missingPkce = await client.GetAsync(
+            authorizePath.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
+                .Replace("&code_challenge_method=S256", string.Empty));
+        Assert.Equal(HttpStatusCode.BadRequest, missingPkce.StatusCode);
+    }
+
     [PostgreSqlFact]
     public async Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once()
     {
@@ -45,6 +118,72 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var secret = key.GetProperty("secret").GetString();
         Assert.False(string.IsNullOrWhiteSpace(secret));
         var keyId = key.GetProperty("id").GetGuid();
+        var oauthClientId = key.GetProperty("oAuthClientId").GetString();
+        Assert.Equal($"pxa-sa-{keyId:N}", oauthClientId);
+
+        using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "client_credentials",
+                ["client_id"] = oauthClientId!,
+                ["client_secret"] = secret!,
+                ["scope"] = "pxa.docs.read pxa.templates.read",
+            }),
+        };
+        var tokenResponse = await client.SendAsync(tokenRequest);
+        Assert.Equal(HttpStatusCode.OK, tokenResponse.StatusCode);
+        var token = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Bearer", token.GetProperty("token_type").GetString(), ignoreCase: true);
+        var accessToken = token.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        await using var delegationScope = factory.Services.CreateAsyncScope();
+        var organizationId = await delegationScope.ServiceProvider.GetRequiredService<PxaDbContext>()
+            .ServiceAccounts.Where(value => value.Id == accountId)
+            .Select(value => value.OrganizationId)
+            .SingleAsync();
+        var delegationDb = delegationScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var ownerId = await delegationDb.OrganizationMemberships
+            .Where(value => value.OrganizationId == organizationId)
+            .Select(value => value.UserId)
+            .SingleAsync();
+        var foreignOrganization = new Organization
+        {
+            Name = "Foreign tenant",
+            Slug = $"foreign-{Guid.NewGuid():N}",
+        };
+        delegationDb.Organizations.Add(foreignOrganization);
+        var ownedTemplate = CreateTemplate(organizationId, ownerId, "Owned template");
+        var foreignTemplate = CreateTemplate(foreignOrganization.Id, ownerId, "Foreign template");
+        delegationDb.DesignerTemplates.AddRange(ownedTemplate, foreignTemplate);
+        await delegationDb.SaveChangesAsync();
+
+        using var templateRequest = new HttpRequestMessage(
+            HttpMethod.Get, "/api/pxa/v1/mcp/templates");
+        templateRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "PXA-MCP",
+                CreateMcpDelegation(accountId, organizationId));
+        var templateResponse = await client.SendAsync(templateRequest);
+        Assert.Equal(HttpStatusCode.OK, templateResponse.StatusCode);
+        var templates = await templateResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, templates.GetProperty("total").GetInt32());
+        Assert.Equal(ownedTemplate.Id, templates.GetProperty("items")[0].GetProperty("id").GetGuid());
+
+        using var foreignTemplateRequest = new HttpRequestMessage(
+            HttpMethod.Get, $"/api/pxa/v1/mcp/templates/{foreignTemplate.Id}");
+        foreignTemplateRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "PXA-MCP",
+                CreateMcpDelegation(accountId, organizationId));
+        Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(foreignTemplateRequest)).StatusCode);
+
+        using var rawTokenRequest = new HttpRequestMessage(
+            HttpMethod.Get, "/api/pxa/v1/mcp/templates");
+        rawTokenRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(rawTokenRequest)).StatusCode);
 
         var accounts = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/account/service-accounts");
         var listedKey = accounts[0].GetProperty("keys")[0];
@@ -54,6 +193,18 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             HttpMethod.Post, $"/api/pxa/v1/account/service-accounts/{accountId}/keys/{keyId}/revoke",
             await GetCsrfAsync(client), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeKey)).StatusCode);
+
+        using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "client_credentials",
+                ["client_id"] = oauthClientId!,
+                ["client_secret"] = secret!,
+                ["scope"] = "pxa.docs.read",
+            }),
+        };
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(revokedTokenRequest)).StatusCode);
 
         using var revokeAccount = CreateCsrfRequest(
             HttpMethod.Post, $"/api/pxa/v1/account/service-accounts/{accountId}/revoke",
@@ -194,6 +345,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
                     ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["OAuth:McpDelegationSecret"] = "test-delegation-secret-at-least-32-bytes",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -247,6 +399,42 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         request.Headers.Add("X-PXA-CSRF", token);
         return request;
     }
+
+    private static string CreateMcpDelegation(Guid subjectId, Guid organizationId)
+    {
+        const string secret = "test-delegation-secret-at-least-32-bytes";
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var payload = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            iss = "pxa-mcp-server",
+            aud = "pxa-api",
+            sub = subjectId.ToString(),
+            org = organizationId.ToString(),
+            scope = new[] { "pxa.templates.read" },
+            iat = now,
+            exp = now + 30,
+            jti = Guid.NewGuid().ToString(),
+        });
+        var payloadPart = Convert.ToBase64String(payload)
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var signature = HMACSHA256.HashData(
+            Encoding.UTF8.GetBytes(secret), Encoding.ASCII.GetBytes(payloadPart));
+        var signaturePart = Convert.ToBase64String(signature)
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        return $"{payloadPart}.{signaturePart}";
+    }
+
+    private static DesignerTemplate CreateTemplate(Guid organizationId, Guid userId, string name) => new()
+    {
+        OrganizationId = organizationId,
+        CreatedByUserId = userId,
+        UpdatedByUserId = userId,
+        Name = name,
+        DraftJson = "{}",
+        DraftChecksum = new string('0', 64),
+        SchemaVersion = "1.0",
+        DesignerVersion = "1.0",
+    };
 
     private static string GetToken(string body)
     {

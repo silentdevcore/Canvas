@@ -108,7 +108,7 @@
           "title": "Roles and permissions",
           "group": "Identity",
           "permission": "Organization Administrator",
-          "summary": "Assign protected organization roles while keeping product access separate.",
+          "summary": "Assign protected roles or build tenant-owned roles from precise Account, Admin, Designer, PDF, Spreadsheet, and migration permissions.",
           "prerequisites": [
             "Use an active, email-verified account.",
             "Select the intended organization.",
@@ -117,20 +117,25 @@
           "steps": [
             "Open Roles & permissions.",
             "Inspect the permission matrix.",
-            "Open Manager, Editor, Viewer, or Organization Administrator.",
-            "Assign or revoke the role for an active membership."
+            "Open a protected role and clone it, or create an empty custom role.",
+            "Select the exact permissions and save the custom role.",
+            "Assign or revoke the role for an active membership.",
+            "Archive a custom role to disable its permissions without deleting its history."
           ],
-          "result": "The affected user receives updated organization permissions after session refresh.",
+          "result": "The affected user's sessions are revoked and the next login receives the updated organization permissions.",
           "failures": [
             "System Administrator is never assignable through tenant role APIs.",
-            "Self-role changes and removal of the last administrator are blocked."
+            "Self-role changes and removal of the last administrator are blocked.",
+            "Unknown permissions and roles owned by another organization are rejected."
           ],
-          "audit": "Every assignment and revocation records actor, role, target user, tenant, and outcome.",
-          "endpoint": "GET /api/pxa/v1/admin/roles",
+          "audit": "Role creation, cloning, permission changes, archival, restoration, assignment, and revocation record the actor, tenant, before/after state, and affected memberships.",
+          "endpoint": "GET/POST/PUT /api/pxa/v1/admin/roles",
           "screenshot": "roles.png",
           "notes": [
             "System Administrator is an operator role and is never assignable from an organization role screen.",
             "Organization roles grant permissions; product entitlements and seat assignments are evaluated independently.",
+            "Protected roles are immutable; custom roles are owned by the active organization.",
+            "Archived custom roles retain assignments but grant no effective permissions.",
             "Role changes revoke stale sessions so refreshed claims become authoritative."
           ],
           "references": [],

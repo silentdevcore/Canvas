@@ -17,15 +17,18 @@ public sealed class AdminServiceAccountsController : ControllerBase
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
     private readonly OrganizationNotificationService notifications;
+    private readonly IPxaOAuthClientRegistry oauthClients;
 
     public AdminServiceAccountsController(
         PxaDbContext dbContext,
         IPxaTenantContext tenantContext,
-        OrganizationNotificationService notifications)
+        OrganizationNotificationService notifications,
+        IPxaOAuthClientRegistry oauthClients)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
         this.notifications = notifications;
+        this.oauthClients = oauthClients;
     }
 
     [HttpGet]
@@ -53,7 +56,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
             .OrderByDescending(value => value.CreatedAt)
             .Select(value => new ApiKeyResponse(
                 value.Id, value.ServiceAccountId, value.Name, value.Prefix, value.ExpiresAt,
-                value.LastUsedAt, value.CreatedAt, value.RevokedAt))
+                value.LastUsedAt, value.CreatedAt, value.RevokedAt, value.OAuthClientId))
             .ToListAsync(cancellationToken);
         return Ok(accounts.Select(value => new ServiceAccountResponse(
             value.Id, value.Name, value.IsActive, value.CreatedAt, value.RevokedAt,
@@ -116,13 +119,16 @@ public sealed class AdminServiceAccountsController : ControllerBase
             return ValidationProblem("The API-key expiry must be in the future.");
 
         var generated = PxaApiKeySecret.Create();
+        var apiKeyId = Guid.NewGuid();
         var apiKey = new ApiKey
         {
+            Id = apiKeyId,
             OrganizationId = account.OrganizationId,
             ServiceAccountId = account.Id,
             Name = name,
             Prefix = generated.Prefix,
             SecretHash = generated.Hash,
+            OAuthClientId = oauthClients.GetServiceAccountClientId(apiKeyId),
             ExpiresAt = request.ExpiresAt,
         };
         dbContext.ApiKeys.Add(apiKey);
@@ -132,10 +138,12 @@ public sealed class AdminServiceAccountsController : ControllerBase
             $"api-key-created:{apiKey.Id}",
             $"API key \"{apiKey.Name}\" was created for service account \"{account.Name}\".",
             cancellationToken);
+        await oauthClients.RegisterServiceAccountClientAsync(
+            apiKey.Id, generated.Secret, $"{account.Name} / {apiKey.Name}", cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(GetAll), new CreateApiKeyResponse(
             apiKey.Id, account.Id, apiKey.Name, apiKey.Prefix, generated.Secret,
-            apiKey.ExpiresAt, apiKey.CreatedAt));
+            apiKey.ExpiresAt, apiKey.CreatedAt, oauthClients.GetServiceAccountClientId(apiKey.Id)));
     }
 
     [HttpPost("{accountId:guid}/keys/{keyId:guid}/revoke")]
@@ -157,6 +165,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
         if (key.RevokedAt is null)
         {
             key.RevokedAt = DateTimeOffset.UtcNow;
+            await oauthClients.RevokeServiceAccountClientAsync(key.Id, cancellationToken);
             AddAudit(new ServiceAccount { Id = accountId, OrganizationId = organizationId, Name = string.Empty },
                 "api_keys.revoke", new { key.Id, key.Name, key.Prefix });
             await notifications.QueueAdministratorsAsync(
@@ -192,7 +201,10 @@ public sealed class AdminServiceAccountsController : ControllerBase
                 .Where(value => value.ServiceAccountId == account.Id && value.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var key in activeKeys)
+            {
                 key.RevokedAt = now;
+                await oauthClients.RevokeServiceAccountClientAsync(key.Id, cancellationToken);
+            }
             AddAudit(account, "service_accounts.revoke");
             await QueueSecurityNotification(
                 account,
@@ -251,7 +263,8 @@ public sealed record ServiceAccountResponse(
     IReadOnlyList<ApiKeyResponse> Keys);
 public sealed record ApiKeyResponse(
     Guid Id, Guid ServiceAccountId, string Name, string Prefix, DateTimeOffset? ExpiresAt,
-    DateTimeOffset? LastUsedAt, DateTimeOffset CreatedAt, DateTimeOffset? RevokedAt);
+    DateTimeOffset? LastUsedAt, DateTimeOffset CreatedAt, DateTimeOffset? RevokedAt,
+    string? OAuthClientId);
 public sealed record CreateApiKeyResponse(
     Guid Id, Guid ServiceAccountId, string Name, string Prefix, string Secret,
-    DateTimeOffset? ExpiresAt, DateTimeOffset CreatedAt);
+    DateTimeOffset? ExpiresAt, DateTimeOffset CreatedAt, string OAuthClientId);

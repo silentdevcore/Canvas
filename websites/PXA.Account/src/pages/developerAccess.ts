@@ -58,11 +58,17 @@ function keyRow(serviceAccountId: string, key: AccountApiKeyResponse, canManage:
   const revealed = state.revealedSecret?.keyId === key.id ? state.revealedSecret.secret : null;
   return `
     <tr>
-      <td>${escapeHtml(key.name)}<br><small>${escapeHtml(key.prefix)}…</small></td>
+      <td>
+        ${escapeHtml(key.name)}<br>
+        <small>${escapeHtml(key.prefix)}…</small><br>
+        ${key.oAuthClientId
+          ? `<small>OAuth client: <code>${escapeHtml(key.oAuthClientId)}</code></small>`
+          : '<small>OAuth requires a newly rotated key.</small>'}
+      </td>
       <td>${key.revokedAt ? 'Revoked' : key.expiresAt && new Date(key.expiresAt) < new Date() ? 'Expired' : 'Active'}</td>
       <td>${key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : 'Never'}</td>
       <td>
-        ${revealed ? `<code class="account-secret-reveal">${escapeHtml(revealed)}</code><p><small>Copy this now — it will not be shown again.</small></p>` : ''}
+        ${revealed ? `<code class="account-secret-reveal">${escapeHtml(revealed)}</code><p><small>Copy this secret now. The OAuth client ID remains visible; the secret will not be shown again.</small></p>` : ''}
         ${canManage && !key.revokedAt ? `<button class="pxa-button pxa-button--secondary account-key-revoke" type="button" data-service-account-id="${escapeHtml(serviceAccountId)}" data-key-id="${escapeHtml(key.id)}">Revoke</button>` : ''}
       </td>
     </tr>

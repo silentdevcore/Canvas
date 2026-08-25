@@ -8,6 +8,7 @@ public sealed class ApiKey
     public required string Name { get; set; }
     public required string Prefix { get; set; }
     public required string SecretHash { get; set; }
+    public string? OAuthClientId { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
     public DateTimeOffset? LastUsedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

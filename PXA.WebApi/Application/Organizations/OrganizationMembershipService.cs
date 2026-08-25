@@ -195,8 +195,10 @@ public sealed class OrganizationMembershipService(PxaDbContext dbContext)
         Guid actorUserId,
         CancellationToken cancellationToken)
     {
-        var existing = await dbContext.OrganizationMembershipRoles
-            .Where(value => value.OrganizationMembershipId == membership.Id)
+        var existing = await (from assignment in dbContext.OrganizationMembershipRoles
+                              join role in dbContext.Roles on assignment.RoleId equals role.Id
+                              where assignment.OrganizationMembershipId == membership.Id && role.IsSystemRole
+                              select assignment)
             .ToListAsync(cancellationToken);
         dbContext.OrganizationMembershipRoles.RemoveRange(existing);
         var roleEntities = await dbContext.Roles.Where(role => roles.Contains(role.Name!)).ToListAsync(cancellationToken);
@@ -236,9 +238,13 @@ public sealed class OrganizationMembershipService(PxaDbContext dbContext)
     {
         var roles = await (
                 from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
+                join membership in dbContext.OrganizationMemberships.AsNoTracking()
+                    on membershipRole.OrganizationMembershipId equals membership.Id
                 join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
                 where membershipIds.Contains(membershipRole.OrganizationMembershipId)
-                select new { membershipRole.OrganizationMembershipId, Role = role.Name! })
+                where role.IsSystemRole ||
+                      (role.OrganizationId == membership.OrganizationId && !role.IsArchived)
+                select new { membershipRole.OrganizationMembershipId, Role = role.DisplayName ?? role.Name! })
             .ToListAsync(cancellationToken);
         return roles.GroupBy(value => value.OrganizationMembershipId)
             .ToDictionary(

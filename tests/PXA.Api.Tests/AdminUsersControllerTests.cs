@@ -364,7 +364,7 @@ public sealed class AdminUsersControllerTests
         Assert.Equal(HttpStatusCode.OK, (await administratorClient.SendAsync(disableUser)).StatusCode);
 
         using var suspendedClient = CreateClient(factory);
-        Assert.Equal(HttpStatusCode.Unauthorized, await LoginAsync(
+        Assert.Equal(HttpStatusCode.Forbidden, await LoginAsync(
             suspendedClient,
             "member@pxa.test",
             "Pxa-Member-Integration-42!"));
@@ -384,6 +384,67 @@ public sealed class AdminUsersControllerTests
         var unapprovedAdminResponse = await unapprovedOperatorClient.GetAsync("/api/pxa/v1/admin/users");
         Assert.Equal(HttpStatusCode.Forbidden, unapprovedAdminResponse.StatusCode);
         await AssertProblemCodeAsync(unapprovedAdminResponse, PxaApiProblems.PermissionDenied);
+    }
+
+    [PostgreSqlFact]
+    public async Task Custom_roles_are_tenant_scoped_persist_claims_and_revoke_sessions()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedAsync(factory.Services);
+        using var client = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(client,
+            "system-admin@pxa.test", "Pxa-Admin-Integration-42!"));
+        var csrf = await GetCsrfAsync(client);
+        var syncfusion = PxaDesignerMigrationPermissions.PdfProviders["syncfusion-pdf"];
+        var asposeCells = PxaDesignerMigrationPermissions.SpreadsheetProviders["aspose-cells"];
+        var permissions = new[]
+        {
+            PxaDesignerPermissions.Access,
+            PxaDesignerPermissions.MigrationRead,
+            PxaDesignerPermissions.MigrationExecute,
+            PxaDesignerPermissions.MigrationPdfRead,
+            PxaDesignerPermissions.MigrationPdfExecute,
+            syncfusion,
+            PxaDesignerPermissions.MigrationSpreadsheetRead,
+            PxaDesignerPermissions.MigrationSpreadsheetExecute,
+            asposeCells,
+        };
+        using var clearBuiltInRoles = CreateCsrfRequest(HttpMethod.Put,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/roles", csrf, new { roles = Array.Empty<string>() });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(clearBuiltInRoles)).StatusCode);
+        using var create = CreateCsrfRequest(HttpMethod.Post, "/api/pxa/v1/admin/roles", csrf,
+            new { key = "limited-migrator", name = "Limited migrator", description = "Two providers only", permissions });
+        Assert.Equal(HttpStatusCode.Created, (await client.SendAsync(create)).StatusCode);
+        using var assign = CreateCsrfRequest(HttpMethod.Put,
+            $"/api/pxa/v1/admin/roles/limited-migrator/members/{seeded.ManagedUserId}", csrf, new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(assign)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var membership = await dbContext.OrganizationMemberships.SingleAsync(value =>
+            value.OrganizationId == seeded.OrganizationId && value.UserId == seeded.ManagedUserId);
+        var snapshot = await PxaMembershipPermissionResolver.ResolveAsync(
+            dbContext, membership.Id, seeded.OrganizationId, CancellationToken.None);
+        Assert.Contains(syncfusion, snapshot.Permissions);
+        Assert.Contains(asposeCells, snapshot.Permissions);
+        Assert.DoesNotContain(PxaDesignerMigrationPermissions.PdfProviders["aspose-pdf"], snapshot.Permissions);
+        Assert.DoesNotContain(PxaDesignerMigrationPermissions.SpreadsheetProviders["syncfusion-xlsio"], snapshot.Permissions);
+
+        var role = await dbContext.Roles.SingleAsync(value => value.CustomKey == "limited-migrator");
+        Assert.Equal(seeded.OrganizationId, role.OrganizationId);
+        Assert.False(role.IsSystemRole);
+        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value =>
+            value.Action == "roles.custom.create" && value.TargetId == "limited-migrator");
+
+        using var archive = CreateCsrfRequest(HttpMethod.Post,
+            "/api/pxa/v1/admin/roles/limited-migrator/archive", csrf, new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(archive)).StatusCode);
+        dbContext.ChangeTracker.Clear();
+        snapshot = await PxaMembershipPermissionResolver.ResolveAsync(
+            dbContext, membership.Id, seeded.OrganizationId, CancellationToken.None);
+        Assert.DoesNotContain(syncfusion, snapshot.Permissions);
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
@@ -504,7 +565,13 @@ public sealed class AdminUsersControllerTests
             OrganizationId = foreignOrganization.Id,
             UserId = foreignUser.Id,
         };
-        dbContext.OrganizationMemberships.AddRange(adminMembership, managedMembership, foreignMembership);
+        var unapprovedOperatorMembership = new OrganizationMembership
+        {
+            OrganizationId = foreignOrganization.Id,
+            UserId = unapprovedOperator.Id,
+        };
+        dbContext.OrganizationMemberships.AddRange(
+            adminMembership, managedMembership, foreignMembership, unapprovedOperatorMembership);
         await dbContext.SaveChangesAsync();
 
         var roleIds = await dbContext.Roles

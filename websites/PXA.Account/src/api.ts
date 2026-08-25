@@ -197,6 +197,7 @@ export interface AccountApiKeyResponse {
   lastUsedAt: string | null;
   createdAt: string;
   revokedAt: string | null;
+  oAuthClientId: string | null;
 }
 
 export interface AccountServiceAccountResponse {

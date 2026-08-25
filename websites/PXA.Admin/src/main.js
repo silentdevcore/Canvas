@@ -15,6 +15,7 @@ import {
   createAdminServiceAccount,
   createAdminApiKey,
   createAdminInvitation,
+  createAdminRole,
   cancelAdminMail,
   getAdminOrganization,
   getAdminOrganizationMembers,
@@ -72,6 +73,9 @@ import {
   getAdminDocumentation,
   getAdminRole,
   getAdminRoles,
+  updateAdminRole,
+  cloneAdminRole,
+  setAdminRoleArchived,
   revokeAdminRoleMember,
   validateAdminLicense,
   getAdminLegalDocuments,
@@ -1935,9 +1939,9 @@ function auditPage() {
 
 function rolesPage() {
   const roles = state.roles;
-  const roleRows = roles.items.map((role) => `<tr><td><a class="admin-table-link" href="/roles/${role.key}"><strong>${escapeHtml(role.name)}</strong></a><small>${escapeHtml(role.description)}</small></td><td><span class="admin-status admin-status--ready">Protected</span></td><td>${role.memberCount}</td><td>${role.permissions.length}</td><td><a href="/roles/${role.key}">View role</a></td></tr>`).join('');
+  const roleRows = roles.items.map((role) => `<tr><td><a class="admin-table-link" href="/roles/${role.key}"><strong>${escapeHtml(role.name)}</strong></a><small>${escapeHtml(role.description)}</small></td><td><span class="admin-status ${role.isArchived ? 'admin-status--inactive' : 'admin-status--ready'}">${role.isProtected ? 'Protected' : role.isArchived ? 'Archived' : 'Custom'}</span></td><td>${role.memberCount}</td><td>${role.permissions.length}</td><td><a href="/roles/${role.key}">View role</a></td></tr>`).join('');
   const permissionRows = roles.permissions.map((permission) => `<tr><td><strong>${escapeHtml(permission.key)}</strong><small>${escapeHtml(permission.description)}</small></td><td>${escapeHtml(permission.group)}</td>${roles.items.map((role) => `<td class="admin-permission-cell"><span class="${role.permissions.some((item) => item.key === permission.key) ? 'admin-permission-granted' : 'admin-permission-none'}" aria-label="${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : 'Not granted'}">${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : '—'}</span></td>`).join('')}</tr>`).join('');
-  return `<header class="admin-page-header"><div><p class="pxa-kicker">Identity</p><h1>Roles & permissions</h1><p>Review protected organization roles and the exact Admin permissions they grant inside the active tenant.</p></div><span class="admin-record-count">${roles.items.length} protected roles</span></header>${roles.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(roles.error)}</div>` : ''}${roles.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading roles...</p></div>' : `<section class="admin-table-section"><div class="admin-table-scroll"><table><thead><tr><th>Role</th><th>Definition</th><th>Members</th><th>Permissions</th><th></th></tr></thead><tbody>${roleRows}</tbody></table></div></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Permission matrix</h2><p>Product entitlements remain separate and cannot be granted by an application role.</p></div><div class="admin-table-scroll"><table class="admin-permission-matrix"><thead><tr><th>Permission</th><th>Area</th>${roles.items.map((role) => `<th>${escapeHtml(role.name)}</th>`).join('')}</tr></thead><tbody>${permissionRows}</tbody></table></div></section>`}`;
+  return `<header class="admin-page-header"><div><p class="pxa-kicker">Identity</p><h1>Roles & permissions</h1><p>Build tenant-owned roles from explicit permissions. Product entitlements remain separate.</p></div><span class="admin-record-count">${roles.items.length} roles</span></header>${roles.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(roles.error)}</div>` : ''}${roles.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading roles...</p></div>' : `<section class="admin-section"><div class="admin-section-heading"><h2>Create custom role</h2><p>Start with no permissions, then configure the exact PDF, Spreadsheet, migration, and administration access.</p></div><form id="custom-role-create-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Name</span><input name="name" maxlength="200" required placeholder="PDF migration specialist"></label><label class="admin-field"><span>Stable key (optional)</span><input name="key" maxlength="80" pattern="[a-z0-9-]+" placeholder="pdf-migration-specialist"></label></div><label class="admin-field"><span>Description</span><textarea name="description" maxlength="500" required></textarea></label><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit">Create role</button></div></form></section><section class="admin-table-section admin-members-section"><div class="admin-table-scroll"><table><thead><tr><th>Role</th><th>Definition</th><th>Members</th><th>Permissions</th><th></th></tr></thead><tbody>${roleRows}</tbody></table></div></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Permission matrix</h2><p>Permissions authorize actions; subscriptions still determine whether the product is licensed.</p></div><div class="admin-table-scroll"><table class="admin-permission-matrix"><thead><tr><th>Permission</th><th>Area</th>${roles.items.map((role) => `<th>${escapeHtml(role.name)}</th>`).join('')}</tr></thead><tbody>${permissionRows}</tbody></table></div></section>`}`;
 }
 
 function roleDetailPage() {
@@ -1955,8 +1959,13 @@ function roleDetailPage() {
     return groups;
   }, {}));
   const permissionSections = groupedPermissions.map(([group, permissions]) => `<section><h3>${escapeHtml(group)}</h3>${permissions.map((permission) => `<div class="admin-role-permission"><strong>${escapeHtml(permission.key)}</strong><p>${escapeHtml(permission.description)}</p></div>`).join('')}</section>`).join('');
+  const editablePermissionSections = Object.entries(state.roles.permissions.reduce((groups, permission) => {
+    (groups[permission.group] ||= []).push(permission);
+    return groups;
+  }, {})).map(([group, permissions]) => `<fieldset><legend>${escapeHtml(group)}</legend>${permissions.map((permission) => `<label><input type="checkbox" name="permissions" value="${escapeHtml(permission.key)}" ${role.permissions.some((item) => item.key === permission.key) ? 'checked' : ''}><span><strong>${escapeHtml(permission.key)}</strong><small>${escapeHtml(permission.description)}</small></span></label>`).join('')}</fieldset>`).join('');
   const memberRows = members.map((member) => `<tr><td><a class="admin-table-link" href="/users/${member.userId}"><strong>${escapeHtml(member.displayName)}</strong></a><small>${escapeHtml(member.email)}</small></td><td><span class="admin-status ${member.isActive && member.membershipStatus === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td><td>${escapeHtml(formatDate(member.assignedAt))}<small>by ${escapeHtml(member.assignedByName)}</small></td><td><button class="role-member-revoke" data-user-id="${member.userId}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button></td></tr>`).join('');
-  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/roles">Roles & permissions</a><h1>${escapeHtml(role.name)}</h1><p>${escapeHtml(role.description)}</p></div><span class="admin-status admin-status--ready">Protected definition</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<div class="admin-detail-grid"><section class="admin-section"><div class="admin-section-heading"><h2>Granted permissions</h2><p>${role.permissions.length} explicit Admin permissions. Subscription entitlements are evaluated separately.</p></div><div class="admin-role-permission-groups">${permissionSections || '<div class="admin-empty-state"><strong>No Admin permissions</strong><p>This role only participates in licensed product workflows.</p></div>'}</div></section><section class="admin-section"><div class="admin-section-heading"><h2>Assign member</h2><p>Role changes revoke the user’s active sessions so new claims take effect immediately.</p></div><form id="role-member-assign-form" class="admin-form-stack"><label class="admin-field"><span>Organization user</span><select name="userId" required><option value="">Select user</option>${eligibleUsers.map((user) => `<option value="${user.id}">${escapeHtml(user.displayName)} (${escapeHtml(user.email)})</option>`).join('')}</select></label><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving || !eligibleUsers.length ? 'disabled' : ''}>Assign role</button></div></form></section></div><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Role members</h2><p>${total} assignments in the active organization.</p></div><div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Membership</th><th>Assigned</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${memberRows ? '' : '<div class="admin-empty-state"><strong>No role members</strong><p>Assign an organization user to this protected role.</p></div>'}<footer class="admin-pagination"><span>Page ${detail.page} of ${totalPages}</span><div><button id="role-members-previous" type="button" ${detail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="role-members-next" type="button" ${detail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer></section>`;
+  const definitionPanel = role.isProtected ? `<section class="admin-section"><div class="admin-section-heading"><h2>Granted permissions</h2><p>This protected role is immutable. Clone it to create a tenant-owned variant.</p></div><div class="admin-role-permission-groups">${permissionSections}</div><div class="admin-form-actions"><button id="role-clone" type="button">Clone as custom role</button></div></section>` : `<section class="admin-section"><div class="admin-section-heading"><h2>Custom role definition</h2><p>Select only the actions this role should authorize.</p></div><form id="custom-role-edit-form" class="admin-form-stack"><label class="admin-field"><span>Name</span><input name="name" value="${escapeHtml(role.name)}" maxlength="200" required></label><label class="admin-field"><span>Description</span><textarea name="description" maxlength="500" required>${escapeHtml(role.description)}</textarea></label><div class="admin-permission-editor">${editablePermissionSections}</div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save role</button><button id="role-archive-toggle" type="button">${role.isArchived ? 'Restore role' : 'Archive role'}</button></div></form></section>`;
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/roles">Roles & permissions</a><h1>${escapeHtml(role.name)}</h1><p>${escapeHtml(role.description)}</p></div><span class="admin-status ${role.isArchived ? 'admin-status--inactive' : 'admin-status--ready'}">${role.isProtected ? 'Protected definition' : role.isArchived ? 'Archived custom role' : 'Custom role'}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<div class="admin-detail-grid">${definitionPanel}<section class="admin-section"><div class="admin-section-heading"><h2>Assign member</h2><p>Role changes revoke active sessions so new claims take effect immediately.</p></div><form id="role-member-assign-form" class="admin-form-stack"><label class="admin-field"><span>Organization user</span><select name="userId" required ${role.isArchived ? 'disabled' : ''}><option value="">Select user</option>${eligibleUsers.map((user) => `<option value="${user.id}">${escapeHtml(user.displayName)} (${escapeHtml(user.email)})</option>`).join('')}</select></label><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving || !eligibleUsers.length || role.isArchived ? 'disabled' : ''}>Assign role</button></div></form></section></div><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Role members</h2><p>${total} assignments in the active organization.</p></div><div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Membership</th><th>Assigned</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${memberRows ? '' : '<div class="admin-empty-state"><strong>No role members</strong></div>'}<footer class="admin-pagination"><span>Page ${detail.page} of ${totalPages}</span><div><button id="role-members-previous" type="button" ${detail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="role-members-next" type="button" ${detail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer></section>`;
 }
 
 function dataPage(path) {
@@ -2756,10 +2765,13 @@ async function loadRoleDetail(roleKey) {
   Object.assign(state.roleDetail, { key: roleKey, page, data: null, users: [], loading: true, error: null });
   render();
   try {
-    const [data, users] = await Promise.all([
+    const [data, users, catalog] = await Promise.all([
       getAdminRole(roleKey, state.roleDetail),
       getAdminUsers({ pageSize: 100 }),
+      state.roles.loaded ? Promise.resolve(null) : getAdminRoles(),
     ]);
+    if (catalog)
+      Object.assign(state.roles, { items: catalog.roles, permissions: catalog.permissions, loaded: true });
     Object.assign(state.roleDetail, { data, users: users.items, page: data.page, pageSize: data.pageSize });
   } catch (error) {
     state.roleDetail.error = error.message;
@@ -2783,7 +2795,55 @@ async function runRoleMutation(operation) {
   }
 }
 
+function bindRolesEvents() {
+  document.querySelector('#custom-role-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    Object.assign(state.roles, { loading: true, error: null });
+    render();
+    try {
+      const role = await createAdminRole({
+        key: data.get('key') || null,
+        name: data.get('name'),
+        description: data.get('description'),
+        permissions: [],
+      });
+      state.roles.loaded = false;
+      navigate(`/roles/${role.key}`);
+    } catch (error) {
+      Object.assign(state.roles, { loading: false, error: error.message });
+      render();
+    }
+  });
+}
+
 function bindRoleDetailEvents() {
+  document.querySelector('#custom-role-edit-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runRoleMutation(() => updateAdminRole(state.roleDetail.key, {
+      key: state.roleDetail.key,
+      name: data.get('name'),
+      description: data.get('description'),
+      permissions: data.getAll('permissions'),
+    }));
+  });
+  document.querySelector('#role-clone')?.addEventListener('click', () => {
+    const source = state.roleDetail.data.role;
+    const name = window.prompt('Name for the custom role', `${source.name} copy`);
+    if (!name) return;
+    runRoleMutation(async () => {
+      const role = await cloneAdminRole(state.roleDetail.key, {
+        key: null, name, description: source.description,
+      });
+      navigate(`/roles/${role.key}`);
+    });
+  });
+  document.querySelector('#role-archive-toggle')?.addEventListener('click', () => {
+    const role = state.roleDetail.data.role;
+    if (window.confirm(`${role.isArchived ? 'Restore' : 'Archive'} this custom role?`))
+      runRoleMutation(() => setAdminRoleArchived(state.roleDetail.key, !role.isArchived));
+  });
   document.querySelector('#role-member-assign-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
     const userId = new FormData(event.currentTarget).get('userId');
@@ -3147,11 +3207,12 @@ function render() {
 
   if (location.pathname === '/roles') {
     renderShell(rolesPage(), 'Roles & permissions');
+    bindRolesEvents();
     if (!state.roles.loaded && !state.roles.loading) loadRoles();
     return;
   }
 
-  const roleDetailMatch = location.pathname.match(/^\/roles\/([a-z-]+)$/i);
+  const roleDetailMatch = location.pathname.match(/^\/roles\/([a-z0-9-]+)$/i);
   if (roleDetailMatch) {
     renderShell(roleDetailPage(), state.roleDetail.data?.role?.name || 'Role');
     bindRoleDetailEvents();

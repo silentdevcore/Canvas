@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence.Identity;
+using OpenIddict.EntityFrameworkCore.Models;
 
 namespace PXA.Infrastructure.Persistence;
 
@@ -68,6 +69,7 @@ public sealed class PxaDbContext
     {
         base.OnModelCreating(builder);
 
+        builder.UseOpenIddict();
         ConfigureIdentityTables(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(PxaDbContext).Assembly);
     }
@@ -81,6 +83,14 @@ public sealed class PxaDbContext
         builder.Entity<IdentityUserLogin<Guid>>().ToTable("user_logins", DatabaseSchemas.Identity);
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims", DatabaseSchemas.Identity);
         builder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreApplication>()
+            .ToTable("oauth_applications", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreAuthorization>()
+            .ToTable("oauth_authorizations", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreScope>()
+            .ToTable("oauth_scopes", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreToken>()
+            .ToTable("oauth_tokens", DatabaseSchemas.Identity);
 
         builder.Entity<PxaIdentityUser>(user =>
         {
@@ -99,6 +109,10 @@ public sealed class PxaDbContext
         {
             role.Property(value => value.Description).HasMaxLength(500);
             role.Property(value => value.IsSystemRole).IsRequired();
+            role.Property(value => value.CustomKey).HasMaxLength(80);
+            role.Property(value => value.DisplayName).HasMaxLength(200);
+            role.Property(value => value.IsArchived).IsRequired();
+            role.HasIndex(value => new { value.OrganizationId, value.CustomKey }).IsUnique();
         });
     }
 

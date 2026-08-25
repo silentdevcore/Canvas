@@ -333,7 +333,9 @@ public sealed class AccountProfileController : ControllerBase
         return await (from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
                       join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
                       where membershipRole.OrganizationMembershipId == membershipId
-                      select role.Name!)
+                      where role.IsSystemRole ||
+                            (role.OrganizationId == organizationId && !role.IsArchived)
+                      select role.DisplayName ?? role.Name!)
             .ToListAsync(cancellationToken);
     }
 

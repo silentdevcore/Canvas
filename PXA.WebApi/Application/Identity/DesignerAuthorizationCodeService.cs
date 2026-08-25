@@ -304,14 +304,9 @@ public sealed class DesignerAuthorizationCodeService(
         identity.AddClaim(new Claim(PxaClaimTypes.Organization, organizationId.ToString()));
         identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, organizationId.ToString()));
         identity.AddClaim(new Claim(PxaClaimTypes.Session, sessionId.ToString()));
-        var roles = await (from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
-                           join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
-                           where membershipRole.OrganizationMembershipId == membershipId
-                           select role.Name!)
-            .ToListAsync(cancellationToken);
-        foreach (var permission in roles
-                     .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
-                     .Distinct(StringComparer.Ordinal))
+        var authorization = await PxaMembershipPermissionResolver.ResolveAsync(
+            dbContext, membershipId, organizationId, cancellationToken);
+        foreach (var permission in authorization.Permissions)
         {
             identity.AddClaim(new Claim(PxaClaimTypes.Permission, permission));
         }
@@ -370,15 +365,13 @@ public sealed class DesignerAuthorizationCodeService(
         string permission,
         CancellationToken cancellationToken)
     {
-        var roles = await (
-                from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
-                join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
-                where membershipRole.OrganizationMembershipId == membershipId
-                select role.Name!)
-            .ToArrayAsync(cancellationToken);
-        return roles
-            .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
-            .Contains(permission, StringComparer.Ordinal);
+        var organizationId = await dbContext.OrganizationMemberships.AsNoTracking()
+            .Where(value => value.Id == membershipId)
+            .Select(value => value.OrganizationId)
+            .SingleAsync(cancellationToken);
+        var authorization = await PxaMembershipPermissionResolver.ResolveAsync(
+            dbContext, membershipId, organizationId, cancellationToken);
+        return authorization.Permissions.Contains(permission, StringComparer.Ordinal);
     }
 
     private void AddAudit(

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using OpenIddict.Abstractions;
 
 namespace PXA.WebApi.Security;
 
@@ -17,7 +18,8 @@ public sealed class PxaTenantContext : IPxaTenantContext
         this.httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid? UserId => ParseClaim(ClaimTypes.NameIdentifier);
+    public Guid? UserId =>
+        ParseClaim(ClaimTypes.NameIdentifier) ?? ParseClaim(OpenIddictConstants.Claims.Subject);
 
     public Guid? OrganizationId => ParseClaim(PxaClaimTypes.ActiveOrganization);
 

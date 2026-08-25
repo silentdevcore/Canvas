@@ -21,11 +21,14 @@ public static class PersistenceServiceCollectionExtensions
         };
         services.AddSingleton(dataSourceBuilder.Build());
         services.AddDbContext<PxaDbContext>((serviceProvider, options) =>
+        {
             options.UseNpgsql(
                 serviceProvider.GetRequiredService<NpgsqlDataSource>(),
                 postgres => postgres.MigrationsHistoryTable(
                     "__ef_migrations_history",
-                    DatabaseSchemas.Administration)));
+                    DatabaseSchemas.Administration));
+            options.UseOpenIddict();
+        });
 
         services.AddIdentityCore<PxaIdentityUser>(options =>
             {
