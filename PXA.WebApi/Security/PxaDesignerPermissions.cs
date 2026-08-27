@@ -30,6 +30,7 @@ public static class PxaDesignerPermissions
     public const string PdfConvert = "designer.pdf.convert";
     public const string PdfExport = "designer.pdf.export";
     public const string PdfPrint = "designer.pdf.print";
+    public const string PdfTrustInspect = "designer.pdf.trust.inspect";
     public const string DocumentEdit = "designer.document.edit";
     public const string Import = "designer.import";
     public const string Export = "designer.export";
@@ -82,6 +83,7 @@ public static class PxaDesignerPermissions
         PdfConvert,
         PdfExport,
         PdfPrint,
+        PdfTrustInspect,
         DocumentEdit,
         Import,
         Export,
@@ -134,6 +136,9 @@ public static class PxaDesignerPermissionResolver
 
         if (StartsWith(value, "/api/pxa/v1/migrations/pdf/viewer"))
             return PxaDesignerPermissions.MigrationPdfExecute;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/trust"))
+            return PxaDesignerPermissions.PdfTrustInspect;
 
         if (StartsWith(value, "/api/document") || StartsWith(value, "/api/pxa/document"))
         {

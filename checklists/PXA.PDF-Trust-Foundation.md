@@ -85,14 +85,14 @@ Reference material:
 
 ### Unified Trust Report
 
-- [ ] Add `IPdfTrustInspector` returning document structure, encryption, signatures,
+- [x] Add `IPdfTrustInspector` returning document structure, encryption, signatures,
   timestamps, revisions, PDF/A, PDF/UA, tagging, redaction evidence, risky actions,
   attachments, and parser warnings.
-- [ ] Represent every check as `valid`, `invalid`, `indeterminate`, `unsupported`, or
+- [x] Represent every check as `valid`, `invalid`, `indeterminate`, `unsupported`, or
   `notApplicable`; never collapse unknown into valid.
 - [ ] Include document and revision SHA-256 hashes so audit events can be correlated
   without storing document content.
-- [ ] Expose `POST /api/pxa/v1/pdf/trust/inspect` as an authenticated, entitled,
+- [x] Expose `POST /api/pxa/v1/pdf/trust/inspect` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
 - [ ] Enforce tenant-scoped jobs, file limits, cancellation, short retention, and
   audit events for trust inspections.

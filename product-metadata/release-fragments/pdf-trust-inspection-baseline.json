@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-inspection-baseline",
+  "impact": "minor",
+  "components": [
+    "api",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PXA adds an authenticated PDF Trust inspection baseline that inventories document structure, revisions, encryption, signature candidates, and declared PDF/A or PDF/UA profiles without overstating validation results.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}
