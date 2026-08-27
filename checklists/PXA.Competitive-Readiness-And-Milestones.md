@@ -45,6 +45,8 @@ PDF provider.
 
 ### 1. PDF Trust Foundation
 
+Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.md)
+
 This is the most important technical gap:
 
 - PDF digital signatures and validation.

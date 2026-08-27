@@ -435,6 +435,8 @@ Official reference baseline:
 
 ## Deferred to the PDF Trust Foundation
 
+Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.md)
+
 - [ ] Native PXA digital signatures, PAdES, timestamps, and LTV validation.
 - [ ] Irreversible content redaction with sanitization guarantees.
 - [ ] PDF/A and PDF/UA generation, validation, and repair.

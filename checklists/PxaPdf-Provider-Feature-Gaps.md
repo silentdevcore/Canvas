@@ -62,6 +62,11 @@ The comparison is based on repository checklists and known provider capability c
 
 ## Implementation Order
 
+The security, signature, compliance, accessibility, and irreversible-redaction
+work is consolidated in
+[PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.md). That checklist is the
+implementation tracker for those trust-sensitive capabilities.
+
 1. Existing PDF editing bridge: define where `PXA.Importer` editing ends and `PXA.Pdf` regeneration begins.
 2. PDF digital signatures: add signing model and writer integration for generated PDFs.
 3. PDF/A/compliance: define target profiles and validation strategy.
