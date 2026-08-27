@@ -11,6 +11,7 @@
     <ProjectReference Include="../PXA.Migration.Pdf.Code.GemBox/PXA.Migration.Pdf.Code.GemBox.csproj" />
     <ProjectReference Include="../PXA.Migration.Pdf.Code.IronPdf/PXA.Migration.Pdf.Code.IronPdf.csproj" />
     <ProjectReference Include="../PXA.Migration.Pdf.Code.Leadtools/PXA.Migration.Pdf.Code.Leadtools.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Nutrient/PXA.Migration.Pdf.Code.Nutrient.csproj" />
     <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfKitNet/PXA.Migration.Pdf.Code.PdfKitNet.csproj" />
     <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfTools/PXA.Migration.Pdf.Code.PdfTools.csproj" />
     <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfToolsToolbox/PXA.Migration.Pdf.Code.PdfToolsToolbox.csproj" />

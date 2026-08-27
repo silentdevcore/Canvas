@@ -59,6 +59,7 @@
     <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
     <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/Migrations/PDF/PXA.Migration.Pdf/PXA.Migration.Pdf.csproj" />
+    <ProjectReference Include="../src/Migrations/PDF/PXA.Migration.Pdf.Viewer.Nutrient/PXA.Migration.Pdf.Viewer.Nutrient.csproj" />
     <ProjectReference Include="../src/Migrations/Report/PXA.Migration.Report/PXA.Migration.Report.csproj" />
     <ProjectReference Include="../src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
   </ItemGroup>

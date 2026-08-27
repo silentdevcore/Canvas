@@ -34,9 +34,10 @@ const MigrationTabs: React.FC<{ tabs: MigrationTab[] }> = ({ tabs }) => {
 };
 
 /** PDF Migration sub-tabs. */
-export const pdfTabs = (active: 'code' | 'designer', t: TFunction): MigrationTab[] => [
+export const pdfTabs = (active: 'code' | 'designer' | 'viewer', t: TFunction): MigrationTab[] => [
   { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/migrations/pdf/code', active: active === 'code' },
   { label: t('tabs.reportDesignerMigration', { ns: 'migrations' }), to: '/migrations/pdf/designer', active: active === 'designer' },
+  { label: t('tabs.viewerMigration', { ns: 'migrations' }), to: '/pdf/migrations/viewer', active: active === 'viewer' },
 ];
 
 /** Spreadsheet Migration sub-tabs. */

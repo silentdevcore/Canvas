@@ -19,6 +19,9 @@ public sealed class MigrationService
             [PdfMigrationProviderKeys.IronPdf] = "IronPdf",
             [PdfMigrationProviderKeys.IText7] = "iText7",
             [PdfMigrationProviderKeys.LeadtoolsPdf] = "Leadtools",
+            [PdfMigrationProviderKeys.Nutrient] = "Nutrient",
+            ["GdPicture"] = "Nutrient",
+            ["GdPicture.NET"] = "Nutrient",
             [PdfMigrationProviderKeys.PdfKitNet] = "PdfKitNet",
             [PdfMigrationProviderKeys.PdfTools] = "PdfTools",
             [PdfMigrationProviderKeys.PdfToolsToolbox] = "PdfToolsToolbox",
@@ -50,6 +53,7 @@ public sealed class MigrationService
             new IronPdfConverter(),
             new ActivePdfConverter(),
             new LeadtoolsPdfConverter(),
+            new NutrientPdfConverter(),
             new PdfToolsConverter(),
             new PdfToolsToolboxConverter(),
             new PdfKitNetConverter(),
@@ -68,8 +72,9 @@ public sealed class MigrationService
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }
 
-    public IEnumerable<FrameworkInfo> GetFrameworks() =>
-        _converters.Values.Select(c =>
+    public IEnumerable<FrameworkInfo> GetFrameworks()
+    {
+        var codeFrameworks = _converters.Values.Select(c =>
         {
             var taxonomy = GetTaxonomy(c);
             return new FrameworkInfo(
@@ -82,6 +87,17 @@ public sealed class MigrationService
                 taxonomy.MigrationKind,
                 taxonomy.Provider);
         });
+
+        return codeFrameworks.Append(new FrameworkInfo(
+            "nutrient-viewer",
+            "Nutrient Web SDK / PSPDFKit Viewer",
+            "beta",
+            "Migrates JavaScript, TypeScript, Viewer configuration, and Instant JSON to PXA Viewer artifacts.",
+            "pdf",
+            "pdf",
+            "viewer",
+            "Nutrient"));
+    }
 
     /// <summary>Migration target kind for a framework ("pdf" | "spreadsheet"); defaults to "pdf".</summary>
     public string GetKind(string frameworkId) =>
@@ -133,6 +149,7 @@ public sealed class MigrationService
             "GemBox" or "GemBoxSpreadsheet" => "GemBox",
             "iText7" => "IText7",
             "Leadtools" => "Leadtools",
+            "Nutrient" => "Nutrient",
             "Spire" or "SpireXls" => "Spire",
             "Syncfusion" or "SyncfusionXlsIo" => "Syncfusion",
             _ => frameworkId

@@ -15,6 +15,7 @@ public static class PxaDesignerMigrationPermissions
             ("iron-pdf", new[] { "IronPdf" }),
             ("itext7", new[] { "iText7" }),
             ("leadtools-pdf", new[] { "Leadtools" }),
+            ("nutrient", new[] { "Nutrient", "GdPicture", "GdPicture.NET", "gdpicture" }),
             ("pdfkitnet", new[] { "PdfKitNet" }),
             ("pdftools", new[] { "PdfTools" }),
             ("pdftools-toolbox", new[] { "PdfToolsToolbox" }),
@@ -35,6 +36,12 @@ public static class PxaDesignerMigrationPermissions
             ("syncfusion-xlsio", new[] { "SyncfusionXlsIo" }),
         ]);
 
+    public static IReadOnlyDictionary<string, string> ViewerProviders { get; } =
+        CreateProviderMap("pdf",
+        [
+            ("nutrient-viewer", new[] { "NutrientViewer", "PSPDFKit", "pspdfkit-web" }),
+        ]);
+
     public static IReadOnlyDictionary<string, string> ReportProviders { get; } =
         CreateProviderMap("report",
         [
@@ -51,6 +58,7 @@ public static class PxaDesignerMigrationPermissions
     public static IReadOnlyList<string> All { get; } = PdfProviders.Values
         .Concat(SpreadsheetProviders.Values)
         .Concat(ReportProviders.Values)
+        .Concat(ViewerProviders.Values)
         .Distinct(StringComparer.Ordinal)
         .Order(StringComparer.Ordinal)
         .ToArray();
@@ -61,6 +69,8 @@ public static class PxaDesignerMigrationPermissions
             : Resolve(PdfProviders, framework);
 
     public static string? ResolveReportProvider(string provider) => Resolve(ReportProviders, provider);
+
+    public static string? ResolveViewerProvider(string provider) => Resolve(ViewerProviders, provider);
 
     private static string? Resolve(IReadOnlyDictionary<string, string> providers, string value) =>
         providers.TryGetValue(value, out var permission) ? permission : null;

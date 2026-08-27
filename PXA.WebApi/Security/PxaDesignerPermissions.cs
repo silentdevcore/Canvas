@@ -132,6 +132,9 @@ public static class PxaDesignerPermissionResolver
                 ? PxaDesignerPermissions.JobsCancel
                 : PxaDesignerPermissions.JobsRead;
 
+        if (StartsWith(value, "/api/pxa/v1/migrations/pdf/viewer"))
+            return PxaDesignerPermissions.MigrationPdfExecute;
+
         if (StartsWith(value, "/api/document") || StartsWith(value, "/api/pxa/document"))
         {
             if (value.Contains("/import-", StringComparison.Ordinal) ||

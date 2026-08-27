@@ -19,7 +19,10 @@ const authenticatedDesignerUser = {
   email: 'designer@example.test',
   displayName: 'Designer User',
   roles: ['Editor'],
-  permissions: Object.values(designerPermissions),
+  permissions: [
+    ...Object.values(designerPermissions),
+    migrationProviderPermission('pdf', 'nutrient-viewer'),
+  ],
   organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
   activeOrganizationId: 'org-1',
   lastLoginAt: null,
@@ -505,6 +508,16 @@ describe('app route smoke tests', () => {
 
     await waitUntil(() => {
       expect(getByText(container, 'Open PDF')).toBeTruthy();
+    });
+  });
+
+  test('opens the protected Nutrient Viewer migration workspace', async () => {
+    root = await renderRoute(container, '/pdf/migrations/viewer');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Nutrient Viewer Migration')).toBeTruthy();
+      expect(getByText(container, 'JavaScript configuration')).toBeTruthy();
+      expect(getByText(container, 'Instant JSON')).toBeTruthy();
     });
   });
 });

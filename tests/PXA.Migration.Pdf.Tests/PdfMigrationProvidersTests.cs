@@ -14,6 +14,7 @@ public sealed class PdfMigrationProvidersTests
         { PdfMigrationProviderKeys.IronPdf, "PXA.Migration.Pdf.Code.IronPdf.IronPdfMigration" },
         { PdfMigrationProviderKeys.IText7, "PXA.Migration.Pdf.Code.IText7.IText7Migration" },
         { PdfMigrationProviderKeys.LeadtoolsPdf, "PXA.Migration.Pdf.Code.Leadtools.LeadtoolsPdfMigration" },
+        { PdfMigrationProviderKeys.Nutrient, "PXA.Migration.Pdf.Code.Nutrient.NutrientMigration" },
         { PdfMigrationProviderKeys.PdfKitNet, "PXA.Migration.Pdf.Code.PdfKitNet.PdfKitNetMigration" },
         { PdfMigrationProviderKeys.PdfTools, "PXA.Migration.Pdf.Code.PdfTools.PdfToolsMigration" },
         { PdfMigrationProviderKeys.PdfToolsToolbox, "PXA.Migration.Pdf.Code.PdfToolsToolbox.PdfToolsToolboxMigration" },

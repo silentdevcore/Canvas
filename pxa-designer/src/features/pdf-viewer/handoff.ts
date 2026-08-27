@@ -2,10 +2,20 @@ import type { PdfSource } from './PdfViewer';
 
 const PDF_VIEWER_HANDOFF_KEY = 'pdf_viewer_handoff';
 
-interface PdfViewerHandoff {
+export type PdfViewerInitialFitMode = 'page' | 'width';
+
+export interface PdfViewerHandoff {
   dataUrl?: string;
   url?: string;
   name?: string;
+  initialPageNumber?: number;
+  initialFitMode?: PdfViewerInitialFitMode;
+}
+
+export interface PdfViewerLaunchConfig {
+  source: PdfSource | null;
+  initialPageNumber: number;
+  initialFitMode: PdfViewerInitialFitMode;
 }
 
 export const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
@@ -43,28 +53,40 @@ const readHandoff = (): PdfViewerHandoff | null => {
   }
 };
 
-export const resolvePdfViewerInitialSource = (search = window.location.search): PdfSource | null => {
+export const resolvePdfViewerLaunchConfig = (search = window.location.search): PdfViewerLaunchConfig => {
   const params = new URLSearchParams(search);
   const handoff = params.get('handoff') === 'session' ? readHandoff() : null;
   if (handoff?.dataUrl || handoff?.url) {
     const file = handoff.dataUrl || handoff.url || '';
     return {
-      file,
-      kind: 'url',
-      name: handoff.name || sourceNameFromUrl(file),
-      url: file,
+      source: {
+        file,
+        kind: 'url',
+        name: handoff.name || sourceNameFromUrl(file),
+        url: file,
+      },
+      initialPageNumber: Math.max(1, Math.trunc(handoff.initialPageNumber ?? 1)),
+      initialFitMode: handoff.initialFitMode === 'width' ? 'width' : 'page',
     };
   }
 
   const src = params.get('src');
   if (!src) {
-    return null;
+    return { source: null, initialPageNumber: 1, initialFitMode: 'page' };
   }
 
   return {
-    file: src,
-    kind: 'url',
-    name: params.get('name') || sourceNameFromUrl(src),
-    url: src,
+    source: {
+      file: src,
+      kind: 'url',
+      name: params.get('name') || sourceNameFromUrl(src),
+      url: src,
+    },
+    initialPageNumber: Math.max(1, Number.parseInt(params.get('page') ?? '1', 10) || 1),
+    initialFitMode: params.get('fit') === 'width' ? 'width' : 'page',
   };
 };
+
+export const resolvePdfViewerInitialSource = (search = window.location.search): PdfSource | null => (
+  resolvePdfViewerLaunchConfig(search).source
+);

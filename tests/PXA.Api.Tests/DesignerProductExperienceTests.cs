@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -228,6 +229,7 @@ public sealed class DesignerProductExperienceTests
             return Task.CompletedTask;
         });
         var context = new DefaultHttpContext();
+        context.User = AuthenticatedUser();
         context.Request.Path = "/api/pdf-viewer/forms";
         context.Request.Headers["X-PXA-Application"] = "designer";
         context.Response.Body = new MemoryStream();
@@ -251,7 +253,31 @@ public sealed class DesignerProductExperienceTests
             return Task.CompletedTask;
         });
         var context = new DefaultHttpContext();
+        context.User = AuthenticatedUser();
         context.Request.Path = "/api/document/import-pdf-engine";
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(
+            context,
+            new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()),
+            new DenyFeatureGate());
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Nutrient_viewer_migration_is_server_side_gated()
+    {
+        var nextCalled = false;
+        var middleware = new PxaDesignerFeatureGateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var context = new DefaultHttpContext();
+        context.User = AuthenticatedUser();
+        context.Request.Path = "/api/pxa/v1/migrations/pdf/viewer/convert";
         context.Response.Body = new MemoryStream();
 
         await middleware.InvokeAsync(
@@ -270,6 +296,9 @@ public sealed class DesignerProductExperienceTests
             .Options;
         return new PxaDbContext(options);
     }
+
+    private static ClaimsPrincipal AuthenticatedUser() => new(
+        new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())], "test"));
 
     private static DesignerNotification Notification(
         Guid? organizationId,

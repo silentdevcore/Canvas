@@ -2,7 +2,8 @@
   "tabs": {
     "codeMigration": "Migración de código",
     "reportDesignerMigration": "Migración del diseñador de informes",
-    "datasourceMigration": "Migración de origen de datos"
+    "datasourceMigration": "Migración de origen de datos",
+    "viewerMigration": "Migración del visor"
   },
   "heading": {
     "designer": "Migración del diseñador de informes",
@@ -75,6 +76,30 @@
     "openInPdfViewer": "Abrir en el visor de PDF",
     "emptyPromptGrid": "Haz clic en <strong>{{action}}</strong> para renderizar el libro convertido como una cuadrícula",
     "emptyPromptPdf": "Haz clic en <strong>{{action}}</strong> para renderizar el PDF convertido"
+  },
+  "viewerMigration": {
+    "title": "Migración del visor Nutrient",
+    "description": "Convierte configuraciones de Nutrient Web SDK o PSPDFKit e Instant JSON en artefactos de PXA Viewer sin ejecutar código fuente.",
+    "inputType": "Tipo de entrada",
+    "javascript": "Configuración JavaScript",
+    "typescript": "Configuración TypeScript",
+    "instantJson": "Instant JSON",
+    "loadComprehensiveExample": "Cargar ejemplo completo",
+    "exampleFailed": "No se pudo cargar el ejemplo completo.",
+    "source": "Fuente Nutrient",
+    "pageGeometry": "Geometría de páginas PDF (JSON)",
+    "module": "Módulo de integración",
+    "settings": "Configuración del visor",
+    "annotations": "Anotaciones",
+    "forms": "Valores de formulario",
+    "openViewer": "Abrir visor",
+    "sourceLine": "Línea de origen {{line}}",
+    "checksums": "Sumas de comprobación deterministas",
+    "capabilitySummary": "Migrados: {{migrated}}, aproximados: {{approximated}}, omitidos: {{omitted}}, para revisar: {{reviewRequired}}, no compatibles: {{unsupported}}",
+    "conversionFailed": "La migración del visor falló.",
+    "openFailed": "No se pudo abrir el PDF migrado.",
+    "permissionTitle": "Se requiere acceso a la migración del visor",
+    "permissionMessage": "Su cuenta no tiene permiso para ejecutar la migración del visor Nutrient."
   },
   "errors": {
     "resourceJsonMustBeObject": "El JSON de recursos debe ser un objeto como { \"logo.ImageSource\": \"...\" }.",

@@ -65,6 +65,19 @@
       "documentationPath": "/#pdf-chart-recognition"
     },
     {
+      "id": "designer.nutrient-viewer-migration",
+      "titleKey": "features.nutrientViewerMigration.title",
+      "descriptionKey": "features.nutrientViewerMigration.description",
+      "fallbackTitle": "Nutrient Viewer migration",
+      "fallbackDescription": "Convert Nutrient and PSPDFKit Viewer integrations and Instant JSON into reviewable PXA Viewer artifacts.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#nutrient-viewer-migration"
+    },
+    {
       "id": "designer.code-workspace",
       "titleKey": "features.codeWorkspace.title",
       "descriptionKey": "features.codeWorkspace.description",

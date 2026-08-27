@@ -9,6 +9,7 @@ Tracker for restructuring migration projects and namespaces so that each provide
 Examples:
 
 - `PXA.Migration.Pdf.Code.Aspose`
+- `PXA.Migration.Pdf.Viewer.Nutrient`
 - `PXA.Migration.Report.Designer.DevExpress`
 - `PXA.Migration.Spreadsheet.Code.Aspose`
 - `PXA.Migration.Spreadsheet.Datasource.Aspose` when a real datasource/file-format provider exists
@@ -24,6 +25,7 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 - [x] Use `Datasource`.
 - [x] Use `Code` for source-code migration from third-party APIs to PXA APIs.
 - [x] Use `Designer` for report/designer layout migration into editable PXA design JSON.
+- [x] Use `Viewer` for migration of third-party viewer integrations and interchange data into PXA Viewer contracts.
 - [x] Use `Datasource` for file/data import migration flows only when a concrete backend provider exists.
 - [x] Keep shared abstractions outside provider-specific taxonomy.
 
@@ -39,11 +41,19 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 - [x] `PXA.Migration.IronPdf` -> `PXA.Migration.Pdf.Code.IronPdf`
 - [x] `PXA.Migration.iText7` -> `PXA.Migration.Pdf.Code.IText7`
 - [x] `PXA.Migration.LeadtoolsPdf` -> `PXA.Migration.Pdf.Code.Leadtools`
+- [x] Add `PXA.Migration.Pdf.Code.Nutrient` for Nutrient .NET and legacy GdPicture.NET code migration.
 - [x] `PXA.Migration.PdfKitNet` -> `PXA.Migration.Pdf.Code.PdfKitNet`
 - [x] `PXA.Migration.PdfTools` -> `PXA.Migration.Pdf.Code.PdfTools`
 - [x] `PXA.Migration.PdfToolsToolbox` -> `PXA.Migration.Pdf.Code.PdfToolsToolbox`
 - [x] `PXA.Migration.SpirePdf` -> `PXA.Migration.Pdf.Code.Spire`
 - [x] `PXA.Migration.SyncfusionPdf` -> `PXA.Migration.Pdf.Code.Syncfusion`
+
+## PDF Viewer Migration Targets
+
+- [x] Add `PXA.Migration.Pdf.Viewer.Nutrient` for Nutrient Web SDK and legacy PSPDFKit Viewer migration.
+- [x] Use canonical code provider key `nutrient` and Viewer provider key `nutrient-viewer`.
+- [x] Keep Nutrient/PSPDFKit separate from Apryse/PDFTron; they are unrelated provider families.
+- [x] Accept historical product names only as input aliases and return canonical Nutrient metadata.
 
 ## Spreadsheet Code Migration Targets
 
@@ -90,6 +100,7 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
   - `PXA.Migration.Abstractions`
   - `PXA.Migration.Roslyn`
 - [x] Move PDF code migration projects to `src/Migrations/PDF`.
+- [x] Keep PDF Viewer migration projects under `src/Migrations/PDF` using the `.Viewer.<Provider>` namespace segment.
 - [x] Move report designer migration projects to `src/Migrations/Report`.
 - [x] Move spreadsheet code migration projects to `src/Migrations/Spreadsheet`.
 - [x] Keep project names and namespaces stable while changing physical folders.
@@ -124,6 +135,7 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
   - `devexpress-report`
   - `aspose-cells`
   - all other current PDF, spreadsheet, and report provider IDs
+  - `gdpicture` and `GdPicture.NET` as aliases for `nutrient`
 - [x] Existing endpoints remain compatible:
   - `POST /api/migration/convert`
   - `POST /api/migration/preview`

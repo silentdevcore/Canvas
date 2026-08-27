@@ -7,6 +7,7 @@ import DocsPage from '@/pages/DocsPage';
 import MigrationsPage from '@/pages/MigrationsPage';
 import ImporterPage from '@/pages/ImporterPage';
 import ConvertToPdfPage from '@/pages/ConvertToPdfPage';
+import NutrientViewerMigrationPage from '@/pages/NutrientViewerMigrationPage';
 import SpreadsheetImportPage from '@/pages/SpreadsheetImportPage';
 import PdfLayout from '@/components/Layout/PdfLayout';
 import SpreadsheetLayout from '@/components/Layout/SpreadsheetLayout';
@@ -99,6 +100,11 @@ const App: React.FC = () => {
             <MigrationsPage key="pdf-designer" mode="designer" />
           </RequireDesignerPermission>
         )} />
+        <Route path="migrations/viewer" element={(
+          <RequireDesignerPermission permission={designerPermissions.migrationPdfExecute}>
+            <NutrientViewerMigrationPage />
+          </RequireDesignerPermission>
+        )} />
       </Route>
 
       <Route path="/spreadsheet" element={(
@@ -144,6 +150,7 @@ const App: React.FC = () => {
       <Route path="/migrations/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
       <Route path="/migrations/pdf/code" element={<Navigate to="/pdf/migrations/code" replace />} />
       <Route path="/migrations/pdf/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
+      <Route path="/migrations/pdf/viewer" element={<Navigate to="/pdf/migrations/viewer" replace />} />
       <Route path="/migrations/spreadsheet" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
       <Route path="/migrations/spreadsheet/code" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
       <Route path="/migrations/spreadsheet/datasource" element={<Navigate to="/spreadsheet/import" replace />} />

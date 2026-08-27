@@ -12,6 +12,7 @@ public static class PdfMigrationProviderKeys
     public const string IronPdf = "iron-pdf";
     public const string IText7 = "itext7";
     public const string LeadtoolsPdf = "leadtools-pdf";
+    public const string Nutrient = "nutrient";
     public const string PdfKitNet = "pdfkitnet";
     public const string PdfTools = "pdftools";
     public const string PdfToolsToolbox = "pdftools-toolbox";

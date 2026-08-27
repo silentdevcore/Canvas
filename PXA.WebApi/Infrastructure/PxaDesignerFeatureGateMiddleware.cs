@@ -18,6 +18,7 @@ public sealed class PxaDesignerFeatureGateMiddleware(RequestDelegate next)
         ("/api/pxa/v1/designer/templates", "designer.code-workspace"),
         ("/api/document/import-pdf-engine", "designer.pdf-chart-recognition"),
         ("/api/pxa/document/import-pdf-engine", "designer.pdf-chart-recognition"),
+        ("/api/pxa/v1/migrations/pdf/viewer", "designer.nutrient-viewer-migration"),
         ("/api/pdf-viewer", "designer.pdf-viewer"),
         ("/api/pxa/pdf-viewer", "designer.pdf-viewer"),
         ("/api/spreadsheet", "designer.spreadsheet"),
@@ -31,6 +32,12 @@ public sealed class PxaDesignerFeatureGateMiddleware(RequestDelegate next)
     {
         var featureId = ResolveFeature(context);
         if (featureId is null)
+        {
+            await next(context);
+            return;
+        }
+
+        if (context.User.Identity?.IsAuthenticated != true)
         {
             await next(context);
             return;
@@ -74,7 +81,7 @@ public sealed class PxaDesignerFeatureGateMiddleware(RequestDelegate next)
         var match = ProtectedPrefixes.FirstOrDefault(item =>
             value.Equals(item.Prefix, StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith($"{item.Prefix}/", StringComparison.OrdinalIgnoreCase));
-        if (match.FeatureId is "designer.pdf-chart-recognition" or "designer.code-workspace")
+        if (match.FeatureId is "designer.pdf-chart-recognition" or "designer.code-workspace" or "designer.nutrient-viewer-migration")
         {
             if (match.FeatureId == "designer.code-workspace" &&
                 value.StartsWith("/api/pxa/v1/designer/templates", StringComparison.OrdinalIgnoreCase) &&

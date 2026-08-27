@@ -5,6 +5,15 @@ namespace PXA.Api.Tests;
 public sealed class MigrationServiceTests
 {
     [Fact]
+    public void GetFrameworks_ExposesNutrientCodeAndViewerAsSeparateMigrationKinds()
+    {
+        var frameworks = new MigrationService().GetFrameworks().Where(item => item.Provider == "Nutrient").ToArray();
+
+        Assert.Contains(frameworks, item => item.Id == "Nutrient" && item.MigrationKind == "code");
+        Assert.Contains(frameworks, item => item.Id == "nutrient-viewer" && item.MigrationKind == "viewer" && item.Status == "beta");
+    }
+
+    [Fact]
     public void Convert_ShouldUseAsposeRoslynPilotAndReturnSummary()
     {
         var source = """
@@ -56,6 +65,37 @@ public sealed class MigrationServiceTests
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE004");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
+
+    [Theory]
+    [InlineData("Nutrient")]
+    [InlineData("nutrient")]
+    [InlineData("GdPicture.NET")]
+    public void Convert_ShouldUseNutrientRoslynConverterAndReturnSummary(string framework)
+    {
+        var source = """
+            using GdPicture;
+
+            var document = new GdPicturePDF();
+            document.NewPDF();
+            document.NewPage(PdfPageSizes.PdfPageSizeA4);
+            var font = document.AddStandardFont(PdfStandardFonts.PdfStandardFontHelvetica);
+            document.SetTextSize(12);
+            document.DrawText(font, 40, 40, "Nutrient migration");
+            document.SaveToFile(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert(framework, source);
+
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage(PdfPagePreset.A4);", result.PxaCode);
+        Assert.Contains("page.DrawText(\"Nutrient migration\"", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGNUTNET001");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
 

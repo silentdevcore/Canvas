@@ -2754,6 +2754,11 @@ const migrationGuides = [
     text: 'Map third-party PDF SDK calls into PXA code patterns and track missing API parity explicitly.',
   },
   {
+    title: 'Nutrient Viewer Migration',
+    status: 'Beta',
+    text: 'Convert Nutrient Web SDK and legacy PSPDFKit bootstrap code, Instant JSON annotations, and supported form values into PXA Viewer artifacts.',
+  },
+  {
     title: 'Report Designer Migration',
     status: 'Ready',
     text: 'Convert DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik, JasperReports, and Stimulsoft reports into editable PXA designs.',
@@ -2785,6 +2790,7 @@ const migrationWorkflowSteps = [
 ];
 
 const pdfCodeMigrationProviders = [
+  ['Nutrient .NET (formerly GdPicture.NET)', 'pilot', 'Document creation, pages, standard fonts, measurement units, text, save, and disposal.', 'Editing, annotations, forms, signatures, OCR, conversion, and advanced security.'],
   ['Syncfusion PDF', 'full', 'Document/page/text/line/rectangle/image/save with top-left coordinate adapter.', 'Complex tables, forms, signatures, existing-PDF editing.'],
   ['iText7', 'full', 'PdfWriter/PdfDocument/Document, Paragraph, ShowTextAligned, PdfCanvas text/line/rectangle.', 'Advanced layout renderer model, forms, tagged PDF, signatures.'],
   ['Apryse (PDFTron)', 'full', 'PDFDoc creation, PageCreate/PagePushBack, document save.', 'ElementBuilder rich graphics, editing workflows, annotations.'],
@@ -2826,11 +2832,51 @@ const spreadsheetCodeMigrationProviders = [
 
 const taxonomyRows = [
   ['PDF code migration', 'PXA.Migration.Pdf.Code.<Provider>', 'Provider-specific C# PDF SDK code to PXA PDF generator code.'],
+  ['PDF Viewer migration', 'PXA.Migration.Pdf.Viewer.<Provider>', 'Viewer configuration and interchange data to PXA Viewer integration artifacts.'],
   ['Report designer migration', 'PXA.Migration.Report.Designer.<Provider>', 'Report designer files/classes to editable PXA design JSON.'],
   ['Spreadsheet code migration', 'PXA.Migration.Spreadsheet.Code.<Provider>', 'Spreadsheet library C# code to PXA spreadsheet API code.'],
   ['Reserved spreadsheet datasource migration', 'PXA.Migration.Spreadsheet.Datasource.<Provider>', 'Reserved for concrete datasource/file migration providers; not fake-created.'],
   ['Shared abstractions', 'PXA.Migration.Abstractions', 'Common contracts and migration result shape.'],
   ['Roslyn infrastructure', 'PXA.Migration.Roslyn', 'Shared C# source rewriting infrastructure.'],
+];
+
+const nutrientViewerConfigurationMappings = [
+  ['NutrientViewer.load / PSPDFKit.load', 'Generated typed PXA Viewer adapter', 'JavaScript is parsed as source and is never executed.'],
+  ['container', 'mountSelector', 'Literal CSS selectors are preserved. Dynamic expressions require review.'],
+  ['document', 'documentSource', 'Safe application-owned paths are retained. Local paths and remote customer URLs are removed.'],
+  ['initialViewState.currentPageIndex', 'initialPageNumber', 'The zero-based Nutrient index becomes a one-based PXA page number.'],
+  ['initialViewState.zoom / FIT_TO_WIDTH', 'fit', 'Supported literal fit values are normalized to the typed Viewer handoff.'],
+  ['locale / theme', 'normalized settings', 'Literal values are retained for application integration.'],
+  ['toolbarItems', 'requested toolbar capabilities', 'PXA permissions and entitlements remain authoritative.'],
+  ['licenseKey / jwt / authPayload / serverUrl', 'omitted', 'Secrets and Document Engine authentication are never copied.'],
+  ['event callbacks and custom UI', 'review diagnostic', 'Application-owned callback logic is not regenerated.'],
+];
+
+const nutrientAnnotationMappings = [
+  ['note, free text, stamp, image', 'Mapped', 'Bounds, page, identity, author, dates, opacity, lock state, and safe metadata are retained where valid.'],
+  ['line, rectangle, ellipse', 'Mapped', 'Stroke, fill, width, opacity, and supported line caps are normalized.'],
+  ['ink', 'Mapped', 'Independent point lines are retained with bounded point counts. Signature ink is omitted.'],
+  ['highlight, underline, strikeout', 'Mapped', 'Text rectangles are converted to page-relative quad geometry.'],
+  ['redaction mark', 'Review required', 'The visual mark is retained; PXA does not claim that source content was irreversibly removed.'],
+  ['comments, attachments, actions', 'Omitted with diagnostic', 'Threading, binary attachments, URI, launch, form, and JavaScript actions are not copied.'],
+  ['unknown annotation types', 'Omitted with diagnostic', 'The result never reports exact fidelity for omitted behavior.'],
+];
+
+const nutrientFormMappings = [
+  ['Text / multiline text', 'Mapped', 'String values plus required, read-only, and default-value metadata.'],
+  ['Checkbox', 'Mapped with review for groups', 'Boolean values are supported; multi-widget checkbox groups are reduced explicitly.'],
+  ['Radio button', 'Mapped', 'Selected option values and option metadata are retained.'],
+  ['Combo box', 'Mapped as dropdown', 'String value, options, required, read-only, and default value are retained.'],
+  ['List box', 'Mapped as list', 'String or string-array values and options are retained.'],
+  ['Signature / push button', 'Omitted with diagnostic', 'Saved signatures, biometric data, credentials, and active button behavior are never exported.'],
+];
+
+const nutrientDiagnosticRows = [
+  ['CANMIGNUTWEB002-006', 'Source size, language, syntax, and Viewer bootstrap validation.'],
+  ['CANMIGNUTWEB020-035', 'Dynamic values, unsafe document sources, removed credentials, toolbar requests, events, and configuration review.'],
+  ['CANMIGNUTJSON001-013', 'Instant JSON size, format, page, annotation, geometry, and identifier validation.'],
+  ['CANMIGNUTJSON020-037', 'Redaction, signature ink, actions, comments, attachments, ink limits, quad geometry, and line-cap review.'],
+  ['CANMIGNUTJSON040-048', 'Form metadata, values, unsupported fields, duplicates, and checkbox-group review.'],
 ];
 
 const diagnosticRows = [
@@ -3854,6 +3900,51 @@ function renderMigrationDetails() {
       ${renderMigrationProviderTable(['Provider', 'Status', 'Mapped patterns', 'Manual / diagnostic areas'], pdfCodeMigrationProviders)}
     </section>
 
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="nutrient-viewer-migration">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--preview">Beta</span>
+        <h3>Nutrient Viewer Migration</h3>
+        <p>Convert Nutrient Web SDK and legacy PSPDFKit Viewer bootstrap code without executing it. A separate Instant JSON mode converts supported annotations and form values into bounded PXA sidecars.</p>
+      </div>
+      <div class="pxa-doc-detail__grid">
+        <article><h4>Prerequisites</h4><ul><li>An authenticated PXA Designer session.</li><li>An active organization and Nutrient Viewer migration permission.</li><li>JavaScript, TypeScript, or Instant JSON plus page geometry.</li></ul></article>
+        <article><h4>Workflow</h4><ol><li>Open PDF &gt; Viewer Migration.</li><li>Select JavaScript, TypeScript, or Instant JSON.</li><li>Convert and inspect fidelity, capability counts, source map, and diagnostics.</li><li>Copy the generated adapter or review the annotation and form sidecars.</li><li>Open the safe Viewer result in PXA Viewer.</li></ol></article>
+        <article><h4>Security boundary</h4><ul><li>Uploaded source is parsed, never executed.</li><li>License keys, JWTs, server authentication, unsafe paths, and remote customer URLs are removed.</li><li>Signature material and active annotation actions are never migrated.</li></ul></article>
+      </div>
+      <h4>Viewer configuration</h4>
+      ${renderMigrationProviderTable(['Nutrient input', 'PXA output', 'Behavior'], nutrientViewerConfigurationMappings)}
+      <h4>Instant JSON annotations</h4>
+      ${renderMigrationProviderTable(['Input', 'Outcome', 'Notes'], nutrientAnnotationMappings)}
+      <h4>Instant JSON forms</h4>
+      ${renderMigrationProviderTable(['Field', 'Outcome', 'Notes'], nutrientFormMappings)}
+      <h4>API</h4>
+      <pre class="pxa-code"><code>POST /api/pxa/v1/migrations/pdf/viewer/convert
+Content-Type: application/json
+
+{
+  "inputType": "javascript",
+  "source": "NutrientViewer.load({ container: '#viewer', document: '/documents/sample.pdf' })"
+}</code></pre>
+      <p>For TypeScript, PXA Designer compiles the source with the TypeScript Compiler API and submits both the original source and non-executed JavaScript compiler output. API clients must provide <code>transpiledSource</code> themselves; the migration API never executes either representation.</p>
+      <h4>Comprehensive synthetic example</h4>
+      <p>Use <strong>Load comprehensive example</strong> in Designer or request <code>GET /api/pxa/v1/migrations/pdf/viewer/examples/comprehensive</code>. The package contains TypeScript Viewer bootstrap, callbacks, toolbar and layout requests, two-page Instant JSON with portrait/rotated geometry, annotations, forms, a visual redaction mark, a deliberately unsupported attachment, and GdPicture C# with trust operations.</p>
+      <ol>
+        <li>Load the example and convert the TypeScript source. Confirm the document source, initial page, fit mode, toolbar request, event warning, and deterministic checksums.</li>
+        <li>Switch to Instant JSON, paste the supplied payload and page geometry, then confirm note, highlight, rectangle, and form conversion.</li>
+        <li>Confirm that signature material and the unsupported attachment are absent, and that visual redaction is explicitly marked as non-destructive.</li>
+        <li>Submit the GdPicture sample through PDF Code Migration. Confirm license removal and review markers for OCR, annotations, forms, signatures, and irreversible redaction.</li>
+      </ol>
+      <div class="pxa-callout pxa-callout--warning"><strong>Synthetic data only.</strong> The example contains no Nutrient binaries, valid license keys, customer URLs, certificates, or customer documents.</div>
+      <p>The response contains detected product family, normalized settings, generated files, fidelity, source preservation, checksums, source mappings, capability coverage, and stable diagnostics. Instant JSON responses additionally contain annotation and form-value payloads.</p>
+      <h4>Troubleshooting</h4>
+      ${renderMigrationProviderTable(['Diagnostic family', 'Meaning'], nutrientDiagnosticRows)}
+      <div class="pxa-doc-related-links">
+        <a href="../../checklists/PXA.Migration-Nutrient-Code-And-Viewer.md">Nutrient migration roadmap</a>
+        <a href="#provider-taxonomy">Provider taxonomy</a>
+        <a href="#migration-diagnostics">Migration diagnostics</a>
+      </div>
+    </section>
+
     <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="report-designer-migration">
       <div class="pxa-doc-detail__header">
         <span class="pxa-status pxa-status--ready">Ready</span>
@@ -3892,6 +3983,7 @@ function renderMigrationDetails() {
       <pre class="pxa-code"><code>PXA.Migration.&lt;Domain&gt;.&lt;Kind&gt;.&lt;Provider&gt;
 
 PXA.Migration.Pdf.Code.Aspose
+PXA.Migration.Pdf.Viewer.Nutrient
 PXA.Migration.Report.Designer.Rdl
 PXA.Migration.Spreadsheet.Code.Syncfusion</code></pre>
     </section>

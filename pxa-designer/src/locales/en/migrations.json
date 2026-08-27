@@ -2,7 +2,8 @@
   "tabs": {
     "codeMigration": "Code Migration",
     "reportDesignerMigration": "Report Designer Migration",
-    "datasourceMigration": "Datasource Migration"
+    "datasourceMigration": "Datasource Migration",
+    "viewerMigration": "Viewer Migration"
   },
   "heading": {
     "designer": "Report Designer Migration",
@@ -75,6 +76,30 @@
     "openInPdfViewer": "Open in PDF Viewer",
     "emptyPromptGrid": "Click <strong>{{action}}</strong> to render the converted workbook as a grid",
     "emptyPromptPdf": "Click <strong>{{action}}</strong> to render the converted PDF"
+  },
+  "viewerMigration": {
+    "title": "Nutrient Viewer Migration",
+    "description": "Convert Nutrient Web SDK or PSPDFKit configuration and Instant JSON into PXA Viewer integration artifacts without executing source code.",
+    "inputType": "Input type",
+    "javascript": "JavaScript configuration",
+    "typescript": "TypeScript configuration",
+    "instantJson": "Instant JSON",
+    "loadComprehensiveExample": "Load comprehensive example",
+    "exampleFailed": "The comprehensive example could not be loaded.",
+    "source": "Nutrient source",
+    "pageGeometry": "PDF page geometry (JSON)",
+    "module": "Integration module",
+    "settings": "Viewer settings",
+    "annotations": "Annotations",
+    "forms": "Form values",
+    "openViewer": "Open Viewer",
+    "sourceLine": "Source line {{line}}",
+    "checksums": "Deterministic checksums",
+    "capabilitySummary": "Migrated: {{migrated}}, approximated: {{approximated}}, omitted: {{omitted}}, review: {{reviewRequired}}, unsupported: {{unsupported}}",
+    "conversionFailed": "Viewer migration failed.",
+    "openFailed": "The migrated PDF could not be opened.",
+    "permissionTitle": "Viewer migration access required",
+    "permissionMessage": "Your account does not have permission to run the Nutrient Viewer migration."
   },
   "errors": {
     "resourceJsonMustBeObject": "Resource JSON must be an object like { \"logo.ImageSource\": \"...\" }.",

@@ -17,6 +17,9 @@ export interface PdfFormFieldInfo {
   originalValue: PdfFormFieldValue;
   options: string[];
   multiline?: boolean;
+  required?: boolean;
+  readOnly?: boolean;
+  defaultValue?: PdfFormFieldValue | null;
 }
 
 interface BackendFormFieldsResponse {

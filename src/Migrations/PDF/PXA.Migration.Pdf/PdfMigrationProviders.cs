@@ -9,6 +9,7 @@ using GemBoxPdfMigration = PXA.Migration.Pdf.Code.GemBox.GemBoxPdfMigration;
 using IronPdfMigration = PXA.Migration.Pdf.Code.IronPdf.IronPdfMigration;
 using IText7Migration = PXA.Migration.Pdf.Code.IText7.IText7Migration;
 using LeadtoolsPdfMigration = PXA.Migration.Pdf.Code.Leadtools.LeadtoolsPdfMigration;
+using NutrientMigration = PXA.Migration.Pdf.Code.Nutrient.NutrientMigration;
 using PdfKitNetMigration = PXA.Migration.Pdf.Code.PdfKitNet.PdfKitNetMigration;
 using PdfToolsMigration = PXA.Migration.Pdf.Code.PdfTools.PdfToolsMigration;
 using PdfToolsToolboxMigration = PXA.Migration.Pdf.Code.PdfToolsToolbox.PdfToolsToolboxMigration;
@@ -32,6 +33,7 @@ public static class PdfMigrationProviders
             [PdfMigrationProviderKeys.IronPdf] = static () => new IronPdfMigration(),
             [PdfMigrationProviderKeys.IText7] = static () => new IText7Migration(),
             [PdfMigrationProviderKeys.LeadtoolsPdf] = static () => new LeadtoolsPdfMigration(),
+            [PdfMigrationProviderKeys.Nutrient] = static () => new NutrientMigration(),
             [PdfMigrationProviderKeys.PdfKitNet] = static () => new PdfKitNetMigration(),
             [PdfMigrationProviderKeys.PdfTools] = static () => new PdfToolsMigration(),
             [PdfMigrationProviderKeys.PdfToolsToolbox] = static () => new PdfToolsToolboxMigration(),

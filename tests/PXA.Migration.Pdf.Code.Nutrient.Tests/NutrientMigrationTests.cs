@@ -1,0 +1,171 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using PXA.Migration.Abstractions;
+using PXA.Migration.Pdf.Code.Nutrient;
+
+namespace PXA.Migration.Pdf.Code.Nutrient.Tests;
+
+public sealed class NutrientMigrationTests
+{
+    [Fact]
+    public void Migrate_ConvertsOfficialStyleGenerationLifecycle()
+    {
+        var source = """
+            using GdPicture14;
+
+            using GdPicturePDF gdpicturePDF = new GdPicturePDF();
+            gdpicturePDF.SetMeasurementUnit(PdfMeasurementUnit.PdfMeasurementUnitPoint);
+            gdpicturePDF.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            gdpicturePDF.NewPDF();
+            gdpicturePDF.NewPage(PdfPageSizes.PdfPageSizeA4);
+            var fontHelvetica = gdpicturePDF.AddStandardFont(PdfStandardFont.PdfStandardFontHelvetica);
+            gdpicturePDF.SetTextSize(30);
+            gdpicturePDF.DrawText(fontHelvetica, 15, 40, "Name");
+            gdpicturePDF.SaveToFile(outputPath);
+            gdpicturePDF.Dispose();
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("using PXA.Pdf;", result.MigratedCode);
+        Assert.DoesNotContain("GdPicture14", result.MigratedCode);
+        Assert.Contains("var gdpicturePDF = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = gdpicturePDF.AddPage(PdfPagePreset.A4);", result.MigratedCode);
+        Assert.Contains("var fontHelvetica = PdfStandardFont.Helvetica;", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Name\", 15, 40", result.MigratedCode);
+        Assert.Contains("FontSize = 30", result.MigratedCode);
+        Assert.Contains("gdpicturePDF.Save(outputPath);", result.MigratedCode);
+        Assert.DoesNotContain("NewPDF", result.MigratedCode);
+        Assert.DoesNotContain("Dispose", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET001");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET011");
+    }
+
+    [Fact]
+    public void Migrate_NormalizesMillimetersToPdfPoints()
+    {
+        var source = """
+            using GdPicture14;
+
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            pdf.SetMeasurementUnit(PdfMeasurementUnit.PdfMeasurementUnitMillimeter);
+            var font = pdf.AddStandardFont(PdfStandardFont.PdfStandardFontHelveticaBold);
+            pdf.SetTextSize(10);
+            pdf.DrawText(font, 10, 20, "Invoice");
+            pdf.SaveToFile("invoice.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("PdfStandardFont.HelveticaBold", result.MigratedCode);
+        Assert.Contains("28.3465", result.MigratedCode);
+        Assert.Contains("56.6929", result.MigratedCode);
+        Assert.Contains("FontSize = 28.3465", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_UsesBottomLeftDrawTextByDefault()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(500, 500);
+            var font = pdf.AddStandardFont(PdfStandardFont.PdfStandardFontCourier);
+            pdf.DrawText(font, 200, 250, "Hello World");
+            pdf.SaveToFile(path);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("var page = pdf.AddPage(500, 500);", result.MigratedCode);
+        Assert.Contains("page.DrawText(\"Hello World\", 200, 250", result.MigratedCode);
+        Assert.Contains("PdfStandardFont.Courier", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_WarnsWithoutRemovingTrustOperations()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.LoadFromFile(inputPath);
+            pdf.AddRedactionRegion(10, 10, 20, 20);
+            pdf.ApplyRedaction();
+            pdf.SignDocument(certificate);
+            pdf.SaveToFile(outputPath);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("LoadFromFile", result.MigratedCode);
+        Assert.Contains("ApplyRedaction", result.MigratedCode);
+        Assert.Contains("SignDocument", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGNUTNET020" && d.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET021");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET022");
+    }
+
+    [Fact]
+    public void Migrate_WarnsWhenPdfAConformanceWouldBeLost()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF(PdfConformance.PDF_A_1a);
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.SaveToFile(outputPath);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.DoesNotContain("NewPDF", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGNUTNET006" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Migrate_ProducesCompilableCodeForSupportedFixture()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeLetter);
+            var font = pdf.AddStandardFont(PdfStandardFont.PdfStandardFontHelvetica);
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            pdf.DrawText(font, 40, 50, "Migrated");
+            pdf.SaveToFile("output.pdf");
+            """;
+        var migrated = new NutrientMigration().Migrate(source).MigratedCode;
+        var syntaxTree = CSharpSyntaxTree.ParseText(migrated);
+
+        var errors = syntaxTree.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+
+        Assert.Empty(errors);
+        Assert.Contains("PdfPagePreset.Letter", migrated);
+    }
+
+    [Fact]
+    public void ComprehensiveFixture_RemovesLicenseAndMarksUnsupportedTrustOperations()
+    {
+        var result = new NutrientMigration().Migrate(NutrientCodeExamples.ComprehensiveGdPictureCSharp);
+
+        Assert.DoesNotContain("SYNTHETIC-LICENSE", result.MigratedCode);
+        Assert.DoesNotContain("certificate.pfx", result.MigratedCode);
+        Assert.Contains("Migrate Nutrient ApplyRedaction", result.MigratedCode);
+        Assert.Contains("Migrate Nutrient SignPDF", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET026");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET021");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET022");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET024");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET025");
+
+        var syntaxTree = CSharpSyntaxTree.ParseText(result.MigratedCode);
+        Assert.DoesNotContain(syntaxTree.GetDiagnostics(), item => item.Severity == DiagnosticSeverity.Error);
+    }
+}

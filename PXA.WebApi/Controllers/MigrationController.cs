@@ -36,7 +36,9 @@ public class MigrationController : ControllerBase
             domain = f.Domain,
             migrationKind = f.MigrationKind,
             provider = f.Provider,
-            requiredPermission = PxaDesignerMigrationPermissions.ResolveCodeProvider(f.Id, f.Domain)
+            requiredPermission = string.Equals(f.MigrationKind, "viewer", StringComparison.OrdinalIgnoreCase)
+                ? PxaDesignerMigrationPermissions.ResolveViewerProvider(f.Id)
+                : PxaDesignerMigrationPermissions.ResolveCodeProvider(f.Id, f.Domain)
         });
         return Ok(frameworks);
     }

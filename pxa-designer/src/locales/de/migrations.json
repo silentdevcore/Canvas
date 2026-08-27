@@ -2,7 +2,8 @@
   "tabs": {
     "codeMigration": "Code-Migration",
     "reportDesignerMigration": "Report-Designer-Migration",
-    "datasourceMigration": "Datenquellen-Migration"
+    "datasourceMigration": "Datenquellen-Migration",
+    "viewerMigration": "Viewer-Migration"
   },
   "heading": {
     "designer": "Report-Designer-Migration",
@@ -75,6 +76,30 @@
     "openInPdfViewer": "Im PDF-Betrachter öffnen",
     "emptyPromptGrid": "Klicken Sie auf <strong>{{action}}</strong>, um die konvertierte Arbeitsmappe als Raster darzustellen",
     "emptyPromptPdf": "Klicken Sie auf <strong>{{action}}</strong>, um das konvertierte PDF darzustellen"
+  },
+  "viewerMigration": {
+    "title": "Nutrient-Viewer-Migration",
+    "description": "Konvertiert Nutrient Web SDK- oder PSPDFKit-Konfigurationen und Instant JSON in PXA-Viewer-Artefakte, ohne Quellcode auszuführen.",
+    "inputType": "Eingabetyp",
+    "javascript": "JavaScript-Konfiguration",
+    "typescript": "TypeScript-Konfiguration",
+    "instantJson": "Instant JSON",
+    "loadComprehensiveExample": "Vollständiges Beispiel laden",
+    "exampleFailed": "Das vollständige Beispiel konnte nicht geladen werden.",
+    "source": "Nutrient-Quelle",
+    "pageGeometry": "PDF-Seitengeometrie (JSON)",
+    "module": "Integrationsmodul",
+    "settings": "Viewer-Einstellungen",
+    "annotations": "Annotationen",
+    "forms": "Formularwerte",
+    "openViewer": "Viewer öffnen",
+    "sourceLine": "Quellzeile {{line}}",
+    "checksums": "Deterministische Prüfsummen",
+    "capabilitySummary": "Migriert: {{migrated}}, angenähert: {{approximated}}, ausgelassen: {{omitted}}, Prüfung: {{reviewRequired}}, nicht unterstützt: {{unsupported}}",
+    "conversionFailed": "Viewer-Migration fehlgeschlagen.",
+    "openFailed": "Die migrierte PDF-Datei konnte nicht geöffnet werden.",
+    "permissionTitle": "Zugriff auf Viewer-Migration erforderlich",
+    "permissionMessage": "Ihr Konto darf die Nutrient-Viewer-Migration nicht ausführen."
   },
   "errors": {
     "resourceJsonMustBeObject": "Die Ressourcen-JSON muss ein Objekt sein, z. B. { \"logo.ImageSource\": \"...\" }.",

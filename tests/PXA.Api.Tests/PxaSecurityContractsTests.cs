@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.RateLimiting;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services;
@@ -12,6 +13,34 @@ namespace PXA.Api.Tests;
 
 public sealed class PxaSecurityContractsTests
 {
+    [Fact]
+    public void Nutrient_viewer_migration_requires_domain_provider_and_rate_limit_policies()
+    {
+        var controllerType = typeof(NutrientViewerMigrationController);
+        var policies = controllerType.GetCustomAttributes<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .ToArray();
+        var rateLimit = controllerType.GetCustomAttribute<EnableRateLimitingAttribute>();
+
+        Assert.Contains(PxaDesignerPermissions.MigrationPdfExecute, policies);
+        Assert.Contains("designer.migration.pdf.provider.nutrient-viewer.execute", policies);
+        Assert.NotNull(rateLimit);
+        Assert.Equal("designer-code", rateLimit.PolicyName);
+    }
+
+    [Fact]
+    public void Nutrient_code_example_requires_domain_provider_and_rate_limit_policies()
+    {
+        var controllerType = typeof(NutrientCodeMigrationController);
+        var policies = controllerType.GetCustomAttributes<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .ToArray();
+
+        Assert.Contains(PxaDesignerPermissions.MigrationPdfExecute, policies);
+        Assert.Contains("designer.migration.pdf.provider.nutrient.execute", policies);
+        Assert.Equal("designer-code", controllerType.GetCustomAttribute<EnableRateLimitingAttribute>()?.PolicyName);
+    }
+
     [Fact]
     public void Tenant_context_resolves_only_valid_authenticated_identifiers()
     {
@@ -127,16 +156,19 @@ public sealed class PxaSecurityContractsTests
     [Fact]
     public void Migration_permissions_cover_every_supported_provider_by_domain()
     {
-        Assert.Equal(15, PxaDesignerMigrationPermissions.PdfProviders.Values.Distinct().Count());
+        Assert.Equal(16, PxaDesignerMigrationPermissions.PdfProviders.Values.Distinct().Count());
         Assert.Equal(8, PxaDesignerMigrationPermissions.SpreadsheetProviders.Values.Distinct().Count());
         Assert.Equal(8, PxaDesignerMigrationPermissions.ReportProviders.Values.Distinct().Count());
-        Assert.Equal(31, PxaDesignerMigrationPermissions.All.Count);
+        Assert.Single(PxaDesignerMigrationPermissions.ViewerProviders.Values.Distinct());
+        Assert.Equal(33, PxaDesignerMigrationPermissions.All.Count);
         Assert.All(PxaDesignerMigrationPermissions.PdfProviders.Values,
             permission => Assert.StartsWith("designer.migration.pdf.provider.", permission, StringComparison.Ordinal));
         Assert.All(PxaDesignerMigrationPermissions.SpreadsheetProviders.Values,
             permission => Assert.StartsWith("designer.migration.spreadsheet.provider.", permission, StringComparison.Ordinal));
         Assert.All(PxaDesignerMigrationPermissions.ReportProviders.Values,
             permission => Assert.StartsWith("designer.migration.report.provider.", permission, StringComparison.Ordinal));
+        Assert.All(PxaDesignerMigrationPermissions.ViewerProviders.Values,
+            permission => Assert.StartsWith("designer.migration.pdf.provider.nutrient-viewer", permission, StringComparison.Ordinal));
     }
 
     [Theory]
@@ -160,6 +192,7 @@ public sealed class PxaSecurityContractsTests
     [InlineData("/api/pxa/v1/document-jobs/import", "POST", PxaDesignerPermissions.PdfImport)]
     [InlineData("/api/pxa/v1/document-jobs/export", "POST", PxaDesignerPermissions.PdfExport)]
     [InlineData("/api/pxa/v1/document-jobs/code-migration", "POST", PxaDesignerPermissions.MigrationExecute)]
+    [InlineData("/api/pxa/v1/migrations/pdf/viewer/convert", "POST", PxaDesignerPermissions.MigrationPdfExecute)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006", "GET", PxaDesignerPermissions.JobsRead)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006/cancel", "POST", PxaDesignerPermissions.JobsCancel)]
     public void Designer_shared_api_routes_resolve_to_the_required_permission(
@@ -201,6 +234,8 @@ public sealed class PxaSecurityContractsTests
     [Theory]
     [InlineData("Syncfusion", "pdf", "designer.migration.pdf.provider.syncfusion-pdf.execute")]
     [InlineData("syncfusion-pdf", "pdf", "designer.migration.pdf.provider.syncfusion-pdf.execute")]
+    [InlineData("Nutrient", "pdf", "designer.migration.pdf.provider.nutrient.execute")]
+    [InlineData("GdPicture.NET", "pdf", "designer.migration.pdf.provider.nutrient.execute")]
     [InlineData("AsposeCells", "spreadsheet", "designer.migration.spreadsheet.provider.aspose-cells.execute")]
     [InlineData("closedxml", "spreadsheet", "designer.migration.spreadsheet.provider.closedxml.execute")]
     public void Migration_framework_aliases_resolve_to_stable_provider_permissions(
@@ -220,6 +255,17 @@ public sealed class PxaSecurityContractsTests
         string expected)
     {
         Assert.Equal(expected, PxaDesignerMigrationPermissions.ResolveReportProvider(provider));
+    }
+
+    [Theory]
+    [InlineData("nutrient-viewer")]
+    [InlineData("NutrientViewer")]
+    [InlineData("PSPDFKit")]
+    public void Viewer_migration_aliases_resolve_to_stable_provider_permissions(string provider)
+    {
+        Assert.Equal(
+            "designer.migration.pdf.provider.nutrient-viewer.execute",
+            PxaDesignerMigrationPermissions.ResolveViewerProvider(provider));
     }
 
     [Fact]

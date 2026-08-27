@@ -2,7 +2,8 @@
   "tabs": {
     "codeMigration": "ترحيل الكود",
     "reportDesignerMigration": "ترحيل مصمم التقارير",
-    "datasourceMigration": "ترحيل مصدر البيانات"
+    "datasourceMigration": "ترحيل مصدر البيانات",
+    "viewerMigration": "ترحيل العارض"
   },
   "heading": {
     "designer": "ترحيل مصمم التقارير",
@@ -75,6 +76,30 @@
     "openInPdfViewer": "فتح في عارض PDF",
     "emptyPromptGrid": "انقر فوق <strong>{{action}}</strong> لعرض المصنّف المحوَّل كشبكة",
     "emptyPromptPdf": "انقر فوق <strong>{{action}}</strong> لعرض ملف PDF المحوَّل"
+  },
+  "viewerMigration": {
+    "title": "ترحيل عارض Nutrient",
+    "description": "يحوّل إعدادات Nutrient Web SDK أو PSPDFKit وInstant JSON إلى مخرجات عارض PXA دون تنفيذ الشفرة المصدرية.",
+    "inputType": "نوع الإدخال",
+    "javascript": "إعداد JavaScript",
+    "typescript": "إعداد TypeScript",
+    "instantJson": "Instant JSON",
+    "loadComprehensiveExample": "تحميل المثال الشامل",
+    "exampleFailed": "تعذّر تحميل المثال الشامل.",
+    "source": "مصدر Nutrient",
+    "pageGeometry": "هندسة صفحات PDF (JSON)",
+    "module": "وحدة التكامل",
+    "settings": "إعدادات العارض",
+    "annotations": "التعليقات التوضيحية",
+    "forms": "قيم النموذج",
+    "openViewer": "فتح العارض",
+    "sourceLine": "سطر المصدر {{line}}",
+    "checksums": "قيم تحقق حتمية",
+    "capabilitySummary": "تم ترحيل: {{migrated}}، تقريبي: {{approximated}}، محذوف: {{omitted}}، يحتاج مراجعة: {{reviewRequired}}، غير مدعوم: {{unsupported}}",
+    "conversionFailed": "فشل ترحيل العارض.",
+    "openFailed": "تعذّر فتح ملف PDF المُرحّل.",
+    "permissionTitle": "يلزم إذن ترحيل العارض",
+    "permissionMessage": "لا يملك حسابك إذن تشغيل ترحيل عارض Nutrient."
   },
   "errors": {
     "resourceJsonMustBeObject": "يجب أن يكون JSON الموارد كائنًا مثل { \"logo.ImageSource\": \"...\" }.",

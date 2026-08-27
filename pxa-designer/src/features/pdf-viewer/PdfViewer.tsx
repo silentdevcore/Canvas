@@ -56,7 +56,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 
 configurePdfWorker();
 
-type FitMode = 'page' | 'width' | 'custom';
+export type PdfViewerFitMode = 'page' | 'width' | 'custom';
 type PdfSourceKind = 'file' | 'url';
 type PrintMode = 'all' | 'current' | 'range';
 
@@ -67,8 +67,10 @@ export interface PdfSource {
   url?: string;
 }
 
-interface PdfViewerProps {
+export interface PdfViewerProps {
   initialSource?: PdfSource | null;
+  initialPageNumber?: number;
+  initialFitMode?: Exclude<PdfViewerFitMode, 'custom'>;
   canDownload?: boolean;
   canPrint?: boolean;
   canAnnotate?: boolean;
@@ -222,6 +224,8 @@ const annotationBoundsFromQuads = (quadPoints: MarkupQuadPoint[]): Pick<PdfAnnot
 
 const PdfViewer: React.FC<PdfViewerProps> = ({
   initialSource = null,
+  initialPageNumber = 1,
+  initialFitMode = 'page',
   canDownload = true,
   canPrint = true,
   canAnnotate = true,
@@ -232,10 +236,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [urlInput, setUrlInput] = useState(initialSource?.url ?? '');
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageInput, setPageInput] = useState('1');
+  const [currentPage, setCurrentPage] = useState(Math.max(1, Math.trunc(initialPageNumber)));
+  const [pageInput, setPageInput] = useState(String(Math.max(1, Math.trunc(initialPageNumber))));
   const [zoom, setZoom] = useState(1);
-  const [fitMode, setFitMode] = useState<FitMode>('page');
+  const [fitMode, setFitMode] = useState<PdfViewerFitMode>(initialFitMode);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -394,10 +398,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   useEffect(() => {
     setSource(initialSource);
     setUrlInput(initialSource?.url ?? '');
+    setCurrentPage(Math.max(1, Math.trunc(initialPageNumber)));
+    setFitMode(initialFitMode);
     if (initialSource) {
       emitViewerEvent('open:initial', { name: initialSource.name });
     }
-  }, [emitViewerEvent, initialSource]);
+  }, [emitViewerEvent, initialFitMode, initialPageNumber, initialSource]);
 
   useEffect(() => {
     setPageInput(String(currentPage));
@@ -409,7 +415,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     emitViewerEvent('zoom:changed', { zoom: Number(zoom.toFixed(2)), fitMode });
   }, [fitMode, zoom, emitViewerEvent]);
 
-  const applyFitMode = useCallback(async (mode: FitMode) => {
+  const applyFitMode = useCallback(async (mode: PdfViewerFitMode) => {
     if (!pdfDoc || mode === 'custom') {
       return;
     }
@@ -538,7 +544,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const onDocumentLoaded = (document: PDFDocumentProxy) => {
     setPdfDoc(document);
     setNumPages(document.numPages);
-    setCurrentPage(1);
+    setCurrentPage(previous => clamp(previous, 1, document.numPages));
     setLoadError(null);
     emitViewerEvent('document:loaded', { pages: document.numPages });
   };
@@ -2053,15 +2059,17 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     <div className="pdfv-annotation-layer" aria-label="Annotation sidecar layer">
                       {currentPageInkAnnotations.length > 0 && (
                         <svg className="pdfv-ink-layer" viewBox="0 0 100 100" preserveAspectRatio="none">
-                          {currentPageInkAnnotations.map(annotation => (
+                          {currentPageInkAnnotations.flatMap(annotation => {
+                            const lines = annotation.pointLines?.length ? annotation.pointLines : [annotation.points ?? []];
+                            return lines.map((points, lineIndex) => (
                             <polyline
-                              key={annotation.id}
+                              key={`${annotation.id}-${lineIndex}`}
                               className={[
                                 selectedAnnotationId === annotation.id ? 'is-selected' : '',
                                 reviewTool === 'inkEraser' && !annotation.locked ? 'is-erasable' : '',
                                 annotation.locked ? 'is-locked' : '',
                               ].filter(Boolean).join(' ')}
-                              points={(annotation.points ?? []).map(point => `${point.xPct},${point.yPct}`).join(' ')}
+                              points={points.map(point => `${point.xPct},${point.yPct}`).join(' ')}
                               stroke={annotation.color}
                               strokeOpacity={annotationOpacity(annotation) / 100}
                               strokeWidth={annotationStrokeWidth(annotation)}
@@ -2080,7 +2088,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                                 }
                               }}
                             />
-                          ))}
+                            ));
+                          })}
                         </svg>
                       )}
                       {currentPageBoxAnnotations.map(annotation => (

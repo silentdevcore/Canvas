@@ -59,9 +59,11 @@ export interface PdfAnnotation {
   text: string;
   author: string;
   createdAt: string;
+  updatedAt?: string;
   color: string;
   locked?: boolean;
   points?: InkPoint[];
+  pointLines?: InkPoint[][];
   imageDataUrl?: string;
   opacity?: number;
   strokeWidth?: number;
@@ -70,6 +72,11 @@ export interface PdfAnnotation {
   lineEndingStart?: LineEnding;
   lineEndingEnd?: LineEnding;
   quadPoints?: MarkupQuadPoint[];
+  metadata?: {
+    subject?: string;
+    note?: string;
+    sourceName?: string;
+  };
 }
 
 export interface PdfAnnotationSidecar {

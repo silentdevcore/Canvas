@@ -1,0 +1,22 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "nutrient-code-viewer-migration",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "PXA adds Nutrient and legacy GdPicture .NET code migration, non-executing JavaScript and TypeScript Viewer analysis, Instant JSON conversion, localized review reports, and a comprehensive synthetic migration example.",
+  "featureIds": [
+    "designer.nutrient-viewer-migration"
+  ],
+  "documentation": [
+    "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md",
+    "/checklists/Migration-Namespace-Taxonomy.md",
+    "/#nutrient-viewer-migration"
+  ],
+  "breaking": false
+}

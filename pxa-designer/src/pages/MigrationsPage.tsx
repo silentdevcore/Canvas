@@ -29,6 +29,7 @@ interface Framework {
   status: string;
   description: string;
   kind?: string; // "pdf" (default) | "spreadsheet"
+  migrationKind?: string;
   requiredPermission?: string;
 }
 
@@ -36,6 +37,7 @@ const MIGRATION_PROVIDER_KEYS: Record<string, string> = {
   ActivePdf: 'active-pdf', Apryse: 'apryse', Aspose: 'aspose-pdf', DevExpress: 'devexpress-pdf',
   DsPdf: 'dspdf', Foxit: 'foxit-pdf', GemBox: 'gembox-pdf', IronPdf: 'iron-pdf', iText7: 'itext7',
   Leadtools: 'leadtools-pdf', PdfKitNet: 'pdfkitnet', PdfTools: 'pdftools',
+  Nutrient: 'nutrient',
   PdfToolsToolbox: 'pdftools-toolbox', Spire: 'spire-pdf', Syncfusion: 'syncfusion-pdf',
   AsposeCells: 'aspose-cells', ClosedXmlSpreadsheet: 'closedxml', EpplusSpreadsheet: 'epplus',
   GemBoxSpreadsheet: 'gembox-spreadsheet', Npoi: 'npoi', SpireXls: 'spire-xls',
@@ -973,10 +975,28 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setReportDesign(null);
   };
 
+  const loadSelectedExample = async () => {
+    if (selectedId !== 'Nutrient') {
+      setSourceCode(EXAMPLES[selectedId] ?? '');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/pxa/v1/migrations/pdf/code/nutrient/examples/comprehensive');
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.detail ?? body.title ?? `HTTP ${response.status}`);
+      setSourceCode(body.gdPictureCSharp ?? '');
+      setError(null);
+    } catch (exampleError) {
+      setError(exampleError instanceof Error ? exampleError.message : t('viewerMigration.exampleFailed'));
+    }
+  };
+
   // Keep the selected framework valid for the active Code sub-tab (PDF vs Spreadsheet).
   useEffect(() => {
     const visible = availableFrameworks.filter(f => isDesigner
-      || (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+      || (f.migrationKind !== 'viewer'
+        && (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet')));
     if (visible.length > 0 && !visible.some(f => f.id === selectedId)) handleFrameworkChange(visible[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codeKind, frameworks, user.permissions]);
@@ -1304,7 +1324,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               // Code mode: the PDF | Spreadsheet sub-tab filters by kind. Designer mode: show all.
               const visible = isDesigner
                 ? availableFrameworks
-                : availableFrameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+                : availableFrameworks.filter(f => f.migrationKind !== 'viewer'
+                  && (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
               return visible.map(opt);
             })()}
           </select>
@@ -1320,10 +1341,10 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           {current?.status === 'skeleton' && (
             <span className="mgr-badge mgr-badge-skeleton">{t('status.skeleton')}</span>
           )}
-          {EXAMPLES[selectedId] && (
+          {(EXAMPLES[selectedId] || selectedId === 'Nutrient') && (
             <button
               className="mgr-example-btn"
-              onClick={() => setSourceCode(EXAMPLES[selectedId])}
+              onClick={loadSelectedExample}
               title={t('loadExampleTitle', { name: current?.name ?? selectedId })}
             >
               {t('loadExample')}
