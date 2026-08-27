@@ -32,7 +32,8 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
             return;
         }
 
-        if (!context.User.Claims.Any(claim =>
+        var isOrganizationSwitch = IsDesignerOrganizationSwitch(context.Request.Path);
+        if (!isOrganizationSwitch && !context.User.Claims.Any(claim =>
                 claim.Type == PxaClaimTypes.Permission &&
                 claim.Value.StartsWith("designer.", StringComparison.Ordinal)))
         {
@@ -45,7 +46,6 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
             return;
         }
 
-        var isOrganizationSwitch = IsDesignerOrganizationSwitch(context.Request.Path);
         var organizationId = Guid.Empty;
         if (!isOrganizationSwitch &&
             !Guid.TryParse(

@@ -247,7 +247,20 @@ export class ApiError extends Error {
   override cause?: unknown;
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T | null> {
+export function isJsonResponseContentType(contentType: string): boolean {
+  const normalized = contentType.toLowerCase();
+  return normalized.includes('application/json') || normalized.includes('+json');
+}
+
+interface RequestBehavior {
+  broadcastAccessDenied?: boolean;
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  behavior: RequestBehavior = {},
+): Promise<T | null> {
   let response: Response;
   try {
     response = await fetch(path, {
@@ -269,7 +282,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T | 
   }
 
   const contentType = response.headers.get('content-type') || '';
-  const body = contentType.includes('application/json') ? await response.json() : null;
+  const body = isJsonResponseContentType(contentType) ? await response.json() : null;
   if (!response.ok) {
     const error = new ApiError(body?.detail || body?.title || `Request failed with status ${response.status}.`);
     error.status = response.status;
@@ -278,7 +291,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T | 
     error.traceId = body?.traceId;
     if (response.status === 401)
       window.dispatchEvent(new CustomEvent('pxa:session-expired', { detail: error }));
-    else if (response.status === 403 && error.code !== 'PXAAPI010')
+    else if (response.status === 403 && error.code !== 'PXAAPI010' &&
+      behavior.broadcastAccessDenied !== false)
       window.dispatchEvent(new CustomEvent('pxa:access-denied', { detail: error }));
     throw error;
   }
@@ -292,12 +306,17 @@ async function csrf(): Promise<string> {
   return response!.token;
 }
 
-async function mutation<T>(path: string, body: unknown, method = 'POST'): Promise<T | null> {
+async function mutation<T>(
+  path: string,
+  body: unknown,
+  method = 'POST',
+  behavior: RequestBehavior = {},
+): Promise<T | null> {
   return request<T>(path, {
     method,
     headers: { 'Content-Type': 'application/json', 'X-PXA-CSRF': await csrf() },
     body: JSON.stringify(body),
-  });
+  }, behavior);
 }
 
 export const currentUser = () => request<UserInfo>(`${authBase}/me`);
@@ -317,7 +336,8 @@ export const resendVerification = (email: string, returnUrl: string | null = nul
 export const acceptInvitation = (token: string, password: string | null, displayName: string | null = null) =>
   mutation(`${authBase}/accept-invitation`, { token, password, displayName });
 export const createDesignerHandoff = (values: DesignerHandoffValues) =>
-  mutation<{ redirectUrl: string }>(`${authBase}/designer-handoff`, values);
+  mutation<{ redirectUrl: string }>(
+    `${authBase}/designer-handoff`, values, 'POST', { broadcastAccessDenied: false });
 export const requestPasswordReset = (email: string) =>
   mutation(`${authBase}/password-reset/request`, { email });
 export const confirmPasswordReset = (token: string, newPassword: string) =>

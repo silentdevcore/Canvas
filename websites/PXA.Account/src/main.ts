@@ -39,6 +39,11 @@ import { initializeStorageNotice } from '../../shared/storageNotice.js';
 import { subscriptionPage } from './pages/subscription';
 import { supportPage } from './pages/support';
 import { usagePage } from './pages/usage';
+import {
+  describeDesignerAccessError,
+  designerAccessActionLabel,
+  type DesignerAccessAction,
+} from './designerAccessPresentation';
 
 initializeBrowserTelemetry({ application: 'account' });
 
@@ -617,8 +622,36 @@ async function runDesignerAuthorization(): Promise<void> {
     window.location.replace(response!.redirectUrl);
   } catch (error) {
     const apiError = error as ApiError;
-    result.innerHTML = `<p class="pxa-kicker">Designer unavailable</p><h2>Access could not be transferred</h2><p>${escapeHtml(apiError.message)}</p><a class="pxa-button pxa-button--secondary" href="/dashboard">Back to Account</a>`;
+    const presentation = describeDesignerAccessError(apiError, accountLocale());
+    const action = (value: DesignerAccessAction, primary: boolean): string => {
+      const buttonClass = primary ? 'pxa-button--primary' : 'pxa-button--secondary';
+      const actions: Record<DesignerAccessAction, { href?: string }> = {
+        subscription: { href: '/subscription' },
+        legalReview: { href: '/legal-review' },
+        support: { href: '/support' },
+        dashboard: { href: '/dashboard' },
+        retry: {},
+      };
+      const item = actions[value];
+      const label = designerAccessActionLabel(value, accountLocale());
+      return item.href
+        ? `<a class="pxa-button ${buttonClass}" href="${item.href}">${escapeHtml(label)}</a>`
+        : `<button class="pxa-button ${buttonClass}" id="retry-designer-authorization" type="button">${escapeHtml(label)}</button>`;
+    };
+    result.innerHTML = `
+      <p class="pxa-kicker">${escapeHtml(presentation.kicker)}</p>
+      <h2>${escapeHtml(presentation.title)}</h2>
+      <p>${escapeHtml(presentation.message)}</p>
+      ${apiError.code ? `<p class="account-diagnostic-code">Diagnostic code: <code>${escapeHtml(apiError.code)}</code></p>` : ''}
+      <div class="account-access-actions">
+        ${action(presentation.primaryAction, true)}
+        ${presentation.secondaryAction ? action(presentation.secondaryAction, false) : ''}
+      </div>`;
     bindEvents();
+    document.querySelector('#retry-designer-authorization')?.addEventListener('click', () => {
+      state.designerAuthorizationStarted = false;
+      render();
+    });
   }
 }
 

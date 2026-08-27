@@ -123,7 +123,21 @@ public sealed class AdminSubscriptionsControllerTests
         var extendedResponse = await systemClient.SendAsync(extendTrial);
         Assert.Equal(HttpStatusCode.OK, extendedResponse.StatusCode);
         var extended = await extendedResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.True(extended.GetProperty("trialEndsAt").GetDateTimeOffset() > trialEndsAt);
+        var extendedTrialEndsAt = extended.GetProperty("trialEndsAt").GetDateTimeOffset();
+        Assert.True(extendedTrialEndsAt > trialEndsAt);
+        var extendedEntitlements = extended.GetProperty("entitlements").EnumerateArray().ToArray();
+        Assert.Equal(
+            extendedTrialEndsAt,
+            extendedEntitlements.Single(value => value.GetProperty("capability").GetString() == "generator")
+                .GetProperty("expiresAt").GetDateTimeOffset());
+        Assert.Equal(
+            extendedTrialEndsAt,
+            extendedEntitlements.Single(value => value.GetProperty("capability").GetString() == "api")
+                .GetProperty("expiresAt").GetDateTimeOffset());
+        Assert.Equal(
+            trialEndsAt,
+            extendedEntitlements.Single(value => value.GetProperty("capability").GetString() == "preview.experimental")
+                .GetProperty("expiresAt").GetDateTimeOffset());
 
         using var assignSeat = CreateCsrfRequest(HttpMethod.Post,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/seats/{seeded.OrganizationAdminMembershipId}",

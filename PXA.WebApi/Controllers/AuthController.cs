@@ -634,9 +634,6 @@ public sealed class AuthController : ControllerBase
             identity.AddClaim(new Claim(PxaClaimTypes.Session, sessionId.Value.ToString()));
         var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
 
-        foreach (var membership in memberships)
-            identity.AddClaim(new Claim(PxaClaimTypes.Organization, membership.OrganizationId.ToString()));
-
         var activeMembership = requestedOrganizationId is null
             ? memberships.FirstOrDefault()
             : memberships.FirstOrDefault(value => value.OrganizationId == requestedOrganizationId);
@@ -647,14 +644,6 @@ public sealed class AuthController : ControllerBase
         }
         if (activeMembership is not null)
             identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, activeMembership.OrganizationId.ToString()));
-
-        var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
-        foreach (var permission in roles
-                     .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
-                     .Distinct(StringComparer.Ordinal))
-        {
-            identity.AddClaim(new Claim(PxaClaimTypes.Permission, permission));
-        }
 
         return principal;
     }

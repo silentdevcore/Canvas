@@ -301,15 +301,8 @@ public sealed class DesignerAuthorizationCodeService(
             identity.RemoveClaim(systemRole);
         }
 
-        identity.AddClaim(new Claim(PxaClaimTypes.Organization, organizationId.ToString()));
         identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, organizationId.ToString()));
         identity.AddClaim(new Claim(PxaClaimTypes.Session, sessionId.ToString()));
-        var authorization = await PxaMembershipPermissionResolver.ResolveAsync(
-            dbContext, membershipId, organizationId, cancellationToken);
-        foreach (var permission in authorization.Permissions)
-        {
-            identity.AddClaim(new Claim(PxaClaimTypes.Permission, permission));
-        }
         return principal;
     }
 

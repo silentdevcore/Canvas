@@ -71,6 +71,7 @@ public sealed class AuthControllerTests
         Assert.Contains("httponly", sessionCookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("secure", sessionCookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("samesite=strict", sessionCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.True(sessionCookie.Length < 4096, $"Authentication cookie was {sessionCookie.Length} bytes.");
 
         var loginBody = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
         var user = loginBody.GetProperty("user");

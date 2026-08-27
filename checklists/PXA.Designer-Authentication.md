@@ -74,6 +74,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
 - [x] Prevent protected route content from rendering before bootstrap completes.
 - [x] Add explicit route states for verification, disabled accounts, suspended organizations, expired subscriptions, missing entitlements, offline access, and incompatible API versions.
+- [x] Preserve Designer handoff denials as dedicated Account states with localized explanations, diagnostic codes, and subscription, legal-review, support, or retry actions.
 - [x] Add guarded error handling around authentication and callback processing.
 - [x] Add a user menu with Account, Subscription, Organization, Security, and Sign out actions.
 - [x] Allow organization switching only through the authenticated API.

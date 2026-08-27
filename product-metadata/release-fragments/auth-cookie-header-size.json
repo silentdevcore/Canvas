@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "auth-cookie-header-size",
+  "impact": "patch",
+  "components": [
+    "account",
+    "api",
+    "designer"
+  ],
+  "category": "fixed",
+  "summary": "Account and Designer sign-in now completes reliably with granular permissions and explains expired subscriptions, missing access, and other denied handoffs with clear next actions.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

@@ -68,6 +68,18 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
             session.LastSeenAt = now;
             await dbContext.SaveChangesAsync(context.HttpContext.RequestAborted);
         }
+
+        if (context.Principal?.Identity is ClaimsIdentity identity)
+        {
+            var storedPermissions = identity.FindAll(PxaClaimTypes.Permission).ToArray();
+            var storedOrganizations = identity.FindAll(PxaClaimTypes.Organization).ToArray();
+            if (storedPermissions.Length > 0 || storedOrganizations.Length > 0)
+            {
+                foreach (var claim in storedPermissions.Concat(storedOrganizations))
+                    identity.RemoveClaim(claim);
+                context.ShouldRenew = true;
+            }
+        }
     }
 
     private async Task<bool> HasValidOrganizationAccessAsync(

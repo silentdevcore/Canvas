@@ -370,9 +370,24 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             subscription.Status is SubscriptionStatus.Cancelled or SubscriptionStatus.Expired)
             return ConflictProblem("Only a current Trial subscription can be extended.");
         var previousEnd = subscription.TrialEndsAt;
-        var baseline = previousEnd > DateTimeOffset.UtcNow ? previousEnd.Value : DateTimeOffset.UtcNow;
+        var now = DateTimeOffset.UtcNow;
+        var baseline = previousEnd > now ? previousEnd.Value : now;
         subscription.TrialEndsAt = baseline.AddDays(request.Days);
-        subscription.UpdatedAt = DateTimeOffset.UtcNow;
+        subscription.UpdatedAt = now;
+        if (previousEnd is not null)
+        {
+            var coupledEntitlements = await dbContext.SubscriptionEntitlements
+                .Where(value =>
+                    value.SubscriptionId == subscription.Id &&
+                    value.Source == EntitlementSource.EditionDefault &&
+                    value.ExpiresAt == previousEnd)
+                .ToListAsync(cancellationToken);
+            foreach (var entitlement in coupledEntitlements)
+            {
+                entitlement.ExpiresAt = subscription.TrialEndsAt;
+                entitlement.UpdatedAt = now;
+            }
+        }
         RecordLifecycleMutation(subscription, "subscription.trial.extended", subscription.Status,
             new { request.Days, PreviousEnd = previousEnd, subscription.TrialEndsAt });
         await QueueSubscriptionNotification(

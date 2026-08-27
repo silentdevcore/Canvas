@@ -117,6 +117,7 @@ builder.Services.AddAuthentication(options =>
         options.EventsType = typeof(PxaCookieAuthenticationEvents);
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
+builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformation>();
 builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))
