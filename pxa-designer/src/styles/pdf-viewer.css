@@ -34,6 +34,103 @@
   padding: 12px 20px;
 }
 
+.pdfv-trust-panel {
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid rgba(28, 25, 23, 0.1);
+  background: #fff;
+  padding: 14px 20px;
+}
+
+.pdfv-trust-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdfv-trust-header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.pdfv-trust-header span {
+  color: #57534e;
+  font-size: 0.78rem;
+}
+
+.pdfv-trust-content {
+  display: grid;
+  gap: 12px;
+}
+
+.pdfv-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.pdfv-trust-grid > div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(28, 25, 23, 0.12);
+  border-radius: 8px;
+  background: #fafaf9;
+  padding: 9px 10px;
+}
+
+.pdfv-trust-grid dt {
+  color: #57534e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdfv-trust-grid dd {
+  margin: 0;
+  color: #292524;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.pdfv-trust-grid dd[data-status='0'] { color: #137333; }
+.pdfv-trust-grid dd[data-status='1'] { color: #b42318; }
+.pdfv-trust-grid dd[data-status='2'],
+.pdfv-trust-grid dd[data-status='3'] { color: #b45309; }
+
+.pdfv-trust-diagnostics {
+  display: grid;
+  gap: 6px;
+  max-height: 150px;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.pdfv-trust-diagnostics li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: start;
+  border-inline-start: 3px solid #78716c;
+  background: #fafaf9;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.pdfv-trust-diagnostics li[data-severity='1'] { border-inline-start-color: #d97706; }
+.pdfv-trust-diagnostics li[data-severity='2'] { border-inline-start-color: #b42318; }
+
+.pdfv-trust-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
 .pdfv-source-group,
 .pdfv-tool-group,
 .pdfv-url-form,

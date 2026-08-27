@@ -4,10 +4,11 @@
   "impact": "minor",
   "components": [
     "api",
+    "designer",
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds an authenticated PDF Trust inspection baseline that inventories document structure, revisions, encryption, signature candidates, and declared PDF/A or PDF/UA profiles without overstating validation results.",
+  "summary": "PXA adds an authenticated PDF Trust inspection baseline and localized Viewer panel that inventory document structure, revisions, encryption, signature candidates, and declared PDF/A or PDF/UA profiles without overstating validation results.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

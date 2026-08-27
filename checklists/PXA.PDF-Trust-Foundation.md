@@ -240,6 +240,9 @@ Reference material:
 
 - [ ] Add a `Trust` panel showing encryption, signatures, revisions, timestamps,
   PDF/A, PDF/UA, tagging, risky content, and trust-report diagnostics.
+  - [x] Baseline panel shows structure, revisions, encryption, signature candidates,
+    PDF/A/PDF/UA metadata claims, hashes, and diagnostics; cryptographic validation,
+    timestamps, risky content, and attachments remain open.
 - [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
 - [ ] Show signature field location, signer/certificate details, signed revision,

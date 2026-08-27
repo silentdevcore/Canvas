@@ -23,6 +23,7 @@ import {
   FiPrinter,
   FiCircle,
   FiSearch,
+  FiShield,
   FiSidebar,
   FiSquare,
   FiUnderline,
@@ -51,6 +52,7 @@ import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativ
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
+import { inspectPdfTrust, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -73,6 +75,7 @@ export interface PdfViewerProps {
   initialFitMode?: Exclude<PdfViewerFitMode, 'custom'>;
   canDownload?: boolean;
   canPrint?: boolean;
+  canInspectTrust?: boolean;
   canAnnotate?: boolean;
   canFillForms?: boolean;
   canRedact?: boolean;
@@ -228,6 +231,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   initialFitMode = 'page',
   canDownload = true,
   canPrint = true,
+  canInspectTrust = true,
   canAnnotate = true,
   canFillForms = true,
   canRedact = true,
@@ -255,6 +259,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [printError, setPrintError] = useState<string | null>(null);
   const [downloadPending, setDownloadPending] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [trustPanelOpen, setTrustPanelOpen] = useState(false);
+  const [trustReport, setTrustReport] = useState<PdfTrustReport | null>(null);
+  const [trustLoading, setTrustLoading] = useState(false);
+  const [trustError, setTrustError] = useState<string | null>(null);
   const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
   const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
   const [annotations, setAnnotations] = useState<PdfAnnotation[]>([]);
@@ -305,6 +313,17 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     preparingPrint: t('preparingPrint'),
     review: t('review'),
     forms: t('forms'),
+    trust: t('trust'),
+    inspectTrust: t('inspectTrust'),
+    trustLoading: t('trustLoading'),
+    trustEmpty: t('trustEmpty'),
+    trustFailed: t('trustFailed'),
+    structure: t('structure'),
+    encryption: t('encryption'),
+    signatures: t('signatures'),
+    revisions: t('revisions'),
+    objects: t('objects'),
+    notDetected: t('notDetected'),
     language: t('language'),
     searchDocumentText: t('searchDocumentText'),
     caseSensitive: t('caseSensitive'),
@@ -653,6 +672,47 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     }
 
     return response.arrayBuffer();
+  }, [source]);
+
+  const trustStatusLabel = useCallback((status: PdfTrustStatus): string => {
+    const keys = ['valid', 'invalid', 'indeterminate', 'unsupported', 'notApplicable'] as const;
+    return t(`trustStatus.${keys[status] ?? 'indeterminate'}`);
+  }, [t]);
+
+  const runTrustInspection = useCallback(async () => {
+    if (!source) {
+      return;
+    }
+
+    setTrustLoading(true);
+    setTrustError(null);
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) {
+        throw new Error(labels.invalidPdf);
+      }
+      const file = source.file instanceof File
+        ? source.file
+        : new File([bytes], source.name || 'document.pdf', { type: 'application/pdf' });
+      const report = await inspectPdfTrust(file);
+      setTrustReport(report);
+      emitViewerEvent('trust:inspected', {
+        status: report.status,
+        signatures: report.signatures.length,
+        encrypted: report.encryption.isEncrypted,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : labels.trustFailed;
+      setTrustError(message);
+      emitViewerEvent('trust:inspection-failed', { message });
+    } finally {
+      setTrustLoading(false);
+    }
+  }, [emitViewerEvent, getSourceBytes, labels.invalidPdf, labels.trustFailed, source]);
+
+  useEffect(() => {
+    setTrustReport(null);
+    setTrustError(null);
   }, [source]);
 
   useEffect(() => {
@@ -1495,6 +1555,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <span>{labels.forms}</span>
               </button>
             )}
+            {canInspectTrust && (
+              <button className={trustPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setTrustPanelOpen(value => !value)} disabled={!source}>
+                <FiShield />
+                <span>{labels.trust}</span>
+              </button>
+            )}
             <label className="pdfv-stamp-select">
               <span>{labels.language}</span>
               <select value={i18n.language} onChange={event => i18n.changeLanguage(event.target.value)}>
@@ -1506,6 +1572,44 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             {downloadError && <span className="pdfv-action-error" role="alert">{downloadError}</span>}
           </div>
         </section>
+
+        {trustPanelOpen && (
+          <section className="pdfv-trust-panel" aria-label={labels.trust}>
+            <div className="pdfv-trust-header">
+              <div>
+                <strong>{labels.trust}</strong>
+                <span>{trustReport ? `SHA-256 ${trustReport.sha256.slice(0, 16)}...` : labels.trustEmpty}</span>
+              </div>
+              <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()} disabled={!source || trustLoading}>
+                <FiShield />
+                <span>{trustLoading ? labels.trustLoading : labels.inspectTrust}</span>
+              </button>
+            </div>
+            {trustError && <p className="pdfv-trust-error" role="alert">{trustError}</p>}
+            {trustReport && (
+              <div className="pdfv-trust-content">
+                <dl className="pdfv-trust-grid">
+                  <div><dt>{labels.structure}</dt><dd data-status={trustReport.structureStatus}>{trustStatusLabel(trustReport.structureStatus)}</dd></div>
+                  <div><dt>{labels.encryption}</dt><dd data-status={trustReport.encryption.status}>{trustReport.encryption.isEncrypted ? `${trustReport.encryption.algorithm ?? labels.encryption} · ${trustStatusLabel(trustReport.encryption.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>{labels.signatures}</dt><dd>{trustReport.signatures.length || labels.notDetected}</dd></div>
+                  <div><dt>PDF/A</dt><dd data-status={trustReport.pdfA.status}>{trustReport.pdfA.isClaimed ? `${trustReport.pdfA.profile} · ${trustStatusLabel(trustReport.pdfA.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>PDF/UA</dt><dd data-status={trustReport.pdfUa.status}>{trustReport.pdfUa.isClaimed ? `${trustReport.pdfUa.profile} · ${trustStatusLabel(trustReport.pdfUa.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>{labels.revisions}</dt><dd>{trustReport.revisionCount}</dd></div>
+                  <div><dt>{labels.objects}</dt><dd>{trustReport.objectCount}</dd></div>
+                  <div><dt>PDF</dt><dd>{trustReport.pdfVersion ?? labels.notDetected}</dd></div>
+                </dl>
+                <ul className="pdfv-trust-diagnostics">
+                  {trustReport.diagnostics.map((diagnostic, index) => (
+                    <li key={`${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>
+                      <code>{diagnostic.code}</code>
+                      <span>{diagnostic.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
 
         {searchPanelOpen && (
           <section className="pdfv-search-panel" aria-label="PDF text search">

@@ -29,6 +29,7 @@ export const designerPermissions = {
   pdfConvert: 'designer.pdf.convert',
   pdfExport: 'designer.pdf.export',
   pdfPrint: 'designer.pdf.print',
+  pdfTrustInspect: 'designer.pdf.trust.inspect',
   documentEdit: 'designer.document.edit',
   import: 'designer.import',
   export: 'designer.export',
