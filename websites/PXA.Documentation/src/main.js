@@ -317,18 +317,51 @@ const editorDocs = [
     title: 'PDF Viewer',
     status: 'Preview',
     purpose:
-      'The PDF Viewer supports browser-side review workflows for generated or imported PDFs, including forms, annotations, and inspection scenarios.',
+      'The PDF Viewer supports browser-side review workflows for generated or imported PDFs, including forms, annotations, signature validation, timestamps, certificate trust, and explicit revocation results.',
     whenToUse: [
       'You need to review generated PDF output before release.',
       'You want to inspect forms and annotations in a browser workflow.',
+      'You need to distinguish cryptographic integrity from signer trust and revocation evidence.',
       'You are tracking viewer parity against established PDF viewer products.',
     ],
-    concepts: ['PDF preview', 'Forms', 'Annotations', 'Review tools', 'Viewer parity'],
-    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Review annotation workflows', 'Track viewer feature gaps'],
+    concepts: ['PDF preview', 'Forms', 'Annotations', 'PAdES B-B and B-T', 'Certificate trust', 'Revocation policy', 'Review tools', 'Viewer parity'],
+    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Validate signatures and timestamps', 'Interpret trust and revocation separately', 'Review annotation workflows', 'Track viewer feature gaps'],
     related: [
       { label: 'PDF Viewer product page', href: companyPage('products/pdf-viewer') },
       { label: 'Viewer demo', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
       { label: 'Feature gaps checklist', href: '../../checklists/PdfTools-WebViewer-Feature-Gaps.md' },
+      { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
+    ],
+    examples: [
+      {
+        title: 'On-Premise trust policy',
+        json: `{
+  "PdfTrust": {
+    "ValidationPolicy": {
+      "UseSystemTrustStore": true,
+      "CustomTrustAnchorPaths": ["App_Data/trust/company-root.pem"],
+      "IntermediateCertificatePaths": ["App_Data/trust/company-intermediates.pem"],
+      "RevocationMode": "Offline",
+      "RevocationFlag": "ExcludeRoot",
+      "AllowCertificateDownloads": false,
+      "NetworkTimeoutSeconds": 10
+    }
+  }
+}`,
+        note: 'Custom anchors are server configuration, never request input. NoCheck is the default. Offline uses locally available revocation evidence; Online must be enabled explicitly and may contact certificate-declared endpoints.',
+      },
+      {
+        title: 'Interpret validation results',
+        json: `{
+  "integrityStatus": 0,
+  "certificateStatus": 0,
+  "revocationStatus": 2,
+  "padesProfile": "B-T",
+  "timestampStatus": 0,
+  "timestampRevocationStatus": 2
+}`,
+        note: 'Status values are valid=0, invalid=1, indeterminate=2, unsupported=3, and notApplicable=4. Valid integrity proves that signed bytes were not changed. It does not by itself prove signer identity or non-revocation. Indeterminate revocation must never be presented as valid.',
+      },
     ],
   },
   {

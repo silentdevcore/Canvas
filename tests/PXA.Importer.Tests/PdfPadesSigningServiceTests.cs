@@ -100,6 +100,92 @@ public sealed class PdfPadesSigningServiceTests
     }
 
     [Fact]
+    public async Task Inspect_ShouldTrustSignerFromCustomTrustStoreAlongsideSystemStore()
+    {
+        using var fixture = SigningFixture.Create();
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { SigningTime = fixture.SigningTime });
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(
+            stream,
+            new PdfTrustInspectionOptions
+            {
+                SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                {
+                    UseSystemTrustStore = true,
+                    CustomTrustAnchors = [fixture.Key.Certificate]
+                }
+            });
+
+        var signature = Assert.Single(report.Signatures);
+        Assert.Equal(PdfTrustStatus.Valid, signature.CertificateStatus);
+        Assert.Equal(PdfTrustStatus.NotApplicable, signature.RevocationStatus);
+        Assert.Equal(PdfTrustStatus.Valid, signature.Status);
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldReportIndeterminateWhenOfflineRevocationEvidenceIsUnavailable()
+    {
+        var now = DateTimeOffset.UtcNow;
+        using var rootKey = RSA.Create(2048);
+        var rootRequest = new CertificateRequest(
+            "CN=PXA Offline Revocation Root",
+            rootKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+            true));
+        using var root = rootRequest.CreateSelfSigned(now.AddDays(-1), now.AddDays(2));
+
+        using var leafKey = RSA.Create(2048);
+        var leafRequest = new CertificateRequest(
+            "CN=PXA Offline Revocation Signer",
+            leafKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+        leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation,
+            true));
+        using var leafPublic = leafRequest.Create(
+            root,
+            now.AddHours(-1),
+            now.AddDays(1),
+            RandomNumberGenerator.GetBytes(16));
+        using var leaf = leafPublic.CopyWithPrivateKey(leafKey);
+        using var signingKey = new PdfPkcs12SigningKey(
+            leaf.Export(X509ContentType.Pkcs12, "test-password"),
+            "test-password");
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            signingKey,
+            new PdfSigningOptions { SigningTime = now });
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(
+            stream,
+            new PdfTrustInspectionOptions
+            {
+                SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                {
+                    UseSystemTrustStore = false,
+                    CustomTrustAnchors = [root],
+                    RevocationMode = PdfCertificateRevocationMode.Offline
+                }
+            });
+
+        var signature = Assert.Single(report.Signatures);
+        Assert.Equal(PdfTrustStatus.Valid, signature.CertificateStatus);
+        Assert.Equal(PdfTrustStatus.Indeterminate, signature.RevocationStatus);
+        Assert.Equal(PdfTrustStatus.Indeterminate, signature.Status);
+    }
+
+    [Fact]
     public async Task Sign_ShouldAppendSecondSignatureWithoutChangingFirstRevisionBytes()
     {
         using var fixture = SigningFixture.Create();

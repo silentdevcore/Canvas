@@ -146,11 +146,18 @@ Reference material:
   incremental revisions, and disallowed changes after certification signatures.
 - [x] Return signer identity and certificate metadata without treating a valid
   cryptographic signature as a trusted identity unless chain policy succeeds.
-- [ ] Support configurable trust stores for Cloud and On-Premise deployments.
+- [x] Support configurable system and custom PEM/DER trust anchors plus intermediate
+  certificate stores for Cloud and On-Premise deployments.
 - [ ] Support offline validation with supplied trust anchors, CRLs, OCSP responses,
   and embedded LTV material.
+- [x] Support explicit `NoCheck`, platform-cache `Offline`, and opt-in `Online`
+  revocation modes with separate signer and TSA revocation outcomes; supplied
+  CRL/OCSP evidence and embedded LTV material remain open.
 - [ ] Make network retrieval of OCSP, CRL, AIA, and TSA data explicit, bounded,
   allowlisted, cached, and disableable for isolated installations.
+- [x] Keep certificate downloads disabled by default and make online revocation an
+  explicit server policy with a bounded retrieval timeout; endpoint allowlists and
+  an application-owned revocation cache remain open.
 - [x] Add `POST /api/pxa/v1/pdf/signatures/sign` and
   `POST /api/pxa/v1/pdf/signatures/validate` with streaming binary responses and
   structured validation reports.
@@ -263,7 +270,8 @@ Reference material:
     PDF/A/PDF/UA metadata claims, hashes, and diagnostics.
   - [x] Signature cards show cryptographic integrity, revision coverage, certificate
     trust, signer, digest, PAdES profile, timestamp status, timestamp time, and TSA
-    identity; revocation, risky content, and attachments remain open.
+    identity plus separate signer/TSA revocation states; risky content and
+    attachments remain open.
 - [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
 - [ ] Show signature field location, signer/certificate details, signed revision,

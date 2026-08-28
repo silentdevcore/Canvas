@@ -169,7 +169,8 @@ public sealed class PdfSignaturesControllerTests
     private static PdfSignaturesController CreateController() => new(
         new PdfPadesSigningService(),
         new PdfTrustInspector(),
-        new EmptyTimestampAuthorityFactory())
+        new EmptyTimestampAuthorityFactory(),
+        new TestTrustPolicyProvider())
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -177,6 +178,11 @@ public sealed class PdfSignaturesControllerTests
     private sealed class EmptyTimestampAuthorityFactory : IPxaPdfTimestampAuthorityFactory
     {
         public IPdfTimestampAuthority? Create() => null;
+    }
+
+    private sealed class TestTrustPolicyProvider : IPxaPdfTrustPolicyProvider
+    {
+        public PdfSignatureValidationPolicy Policy { get; } = new();
     }
 
     private static FormFile CreateFile(byte[] bytes, string fieldName, string fileName, string contentType) =>

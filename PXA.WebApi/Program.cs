@@ -136,6 +136,20 @@ builder.Services.AddHttpClient(PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityF
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTimestampAuthorityFactory,
     PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityFactory>();
+builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions>()
+    .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions.SectionName))
+    .Validate(
+        options => options.CustomTrustAnchorPaths.All(path => !string.IsNullOrWhiteSpace(path)) &&
+                   options.IntermediateCertificatePaths.All(path => !string.IsNullOrWhiteSpace(path)),
+        "PDF trust-store certificate paths must not be empty.")
+    .Validate(
+        options => Enum.IsDefined(options.RevocationMode) &&
+                   Enum.IsDefined(options.RevocationFlag) &&
+                   options.NetworkTimeoutSeconds is >= 1 and <= 60,
+        "PDF revocation settings or network timeout are invalid.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTrustPolicyProvider,
+    PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyProvider>();
 builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))

@@ -6,6 +6,7 @@ using PXA.Importer.Trust;
 using PXA.Pdf;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.Api.Tests;
 
@@ -24,7 +25,7 @@ public sealed class PdfTrustControllerTests
             ContentType = "application/pdf"
         };
 
-        var response = await new PdfTrustController(new PdfTrustInspector()).Inspect(file, CancellationToken.None);
+        var response = await CreateController().Inspect(file, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(response.Result);
         var report = Assert.IsType<PdfTrustReport>(ok.Value);
@@ -37,7 +38,7 @@ public sealed class PdfTrustControllerTests
     [Fact]
     public async Task Inspect_RejectsMissingFileWithStableDiagnostic()
     {
-        var controller = new PdfTrustController(new PdfTrustInspector());
+        var controller = CreateController();
 
         var response = await controller.Inspect(null, CancellationToken.None);
 
@@ -57,5 +58,14 @@ public sealed class PdfTrustControllerTests
         Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, authorization.Policy);
         Assert.Equal("designer-code", rateLimit.PolicyName);
         Assert.Contains(PxaDesignerPermissions.PdfTrustInspect, PxaRoles.Permissions[PxaRoles.Viewer]);
+    }
+
+    private static PdfTrustController CreateController() => new(
+        new PdfTrustInspector(),
+        new TestTrustPolicyProvider());
+
+    private sealed class TestTrustPolicyProvider : IPxaPdfTrustPolicyProvider
+    {
+        public PdfSignatureValidationPolicy Policy { get; } = new();
     }
 }

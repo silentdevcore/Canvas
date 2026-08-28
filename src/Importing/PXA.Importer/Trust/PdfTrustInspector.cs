@@ -23,6 +23,18 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 "The maximum PDF inspection size must be between 1 byte and 2 GiB.");
         }
 
+        var signaturePolicy = options.SignatureValidationPolicy ??
+            throw new ArgumentException("A signature validation policy is required.", nameof(options));
+        if (!Enum.IsDefined(signaturePolicy.RevocationMode) ||
+            !Enum.IsDefined(signaturePolicy.RevocationFlag) ||
+            signaturePolicy.NetworkTimeout <= TimeSpan.Zero ||
+            signaturePolicy.NetworkTimeout > TimeSpan.FromMinutes(1))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "The signature revocation policy or network timeout is invalid.");
+        }
+
         var source = await ReadBoundedAsync(
             pdfStream,
             checked((int)options.MaximumFileSizeBytes),
@@ -67,7 +79,12 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         var encryption = InspectEncryption(graph, diagnostics);
-        var signatures = InspectSignatures(source, graph, xref?.Revisions ?? [], diagnostics);
+        var signatures = InspectSignatures(
+            source,
+            graph,
+            xref?.Revisions ?? [],
+            signaturePolicy,
+            diagnostics);
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
@@ -100,7 +117,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         diagnostics.Add(new PdfTrustDiagnostic(
             "PXAPDFTRUST010",
             PdfTrustDiagnosticSeverity.Info,
-            "Signature integrity and revision coverage are validated when supported; revocation, timestamps, and PDF/A or PDF/UA conformance still require dedicated policy validators."));
+            "Signature integrity, revision coverage, certificate trust, timestamps, and configured revocation policy are evaluated separately; PDF/A and PDF/UA metadata claims still require dedicated conformance validators."));
 
         var status = structureStatus == PdfTrustStatus.Invalid ||
                      signatures.Any(signature => signature.Status == PdfTrustStatus.Invalid)
@@ -214,6 +231,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         ReadOnlySpan<byte> source,
         PdfObjectGraph? graph,
         IReadOnlyList<PdfCrossReferenceRevision> revisions,
+        PdfSignatureValidationPolicy validationPolicy,
         ICollection<PdfTrustDiagnostic> diagnostics)
     {
         if (graph is null)
@@ -233,7 +251,8 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 source,
                 indirectObject.Id,
                 dictionary,
-                revisions);
+                revisions,
+                validationPolicy);
             signatures.Add(result.Inspection);
             foreach (var diagnostic in result.Diagnostics)
             {

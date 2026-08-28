@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PXA.Importer.Trust;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.WebApi.Controllers;
 
@@ -10,7 +11,9 @@ namespace PXA.WebApi.Controllers;
 [Route("api/pxa/v1/pdf/trust")]
 [Authorize(Policy = PxaDesignerPermissions.PdfTrustInspect)]
 [EnableRateLimiting("designer-code")]
-public sealed class PdfTrustController(IPdfTrustInspector inspector) : ControllerBase
+public sealed class PdfTrustController(
+    IPdfTrustInspector inspector,
+    IPxaPdfTrustPolicyProvider trustPolicyProvider) : ControllerBase
 {
     private const long MaximumUploadBytes = PdfTrustInspectionOptions.DefaultMaximumFileSizeBytes;
 
@@ -57,7 +60,11 @@ public sealed class PdfTrustController(IPdfTrustInspector inspector) : Controlle
             await using var stream = file.OpenReadStream();
             return Ok(await inspector.InspectAsync(
                 stream,
-                new PdfTrustInspectionOptions { MaximumFileSizeBytes = MaximumUploadBytes },
+                new PdfTrustInspectionOptions
+                {
+                    MaximumFileSizeBytes = MaximumUploadBytes,
+                    SignatureValidationPolicy = trustPolicyProvider.Policy
+                },
                 cancellationToken));
         }
         catch (InvalidDataException)

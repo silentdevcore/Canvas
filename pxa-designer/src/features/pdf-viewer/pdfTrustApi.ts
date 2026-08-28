@@ -35,12 +35,14 @@ export interface PdfTrustReport {
     integrityStatus: PdfTrustStatus;
     coverageStatus: PdfTrustStatus;
     certificateStatus: PdfTrustStatus;
+    revocationStatus: PdfTrustStatus;
     padesProfile?: string | null;
     digestAlgorithm?: string | null;
     signerSubject?: string | null;
     signerThumbprint?: string | null;
     signingTime?: string | null;
     timestampStatus: PdfTrustStatus;
+    timestampRevocationStatus: PdfTrustStatus;
     timestampTime?: string | null;
     timestampAuthoritySubject?: string | null;
     coversWholeDocument: boolean;

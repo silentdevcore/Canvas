@@ -15,7 +15,8 @@ namespace PXA.WebApi.Controllers;
 public sealed class PdfSignaturesController(
     IPdfPadesSigningService signingService,
     IPdfTrustInspector trustInspector,
-    IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory) : ControllerBase
+    IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory,
+    IPxaPdfTrustPolicyProvider trustPolicyProvider) : ControllerBase
 {
     private const long MaximumPdfBytes = 100L * 1024 * 1024;
     private const long MaximumCertificateBytes = 10L * 1024 * 1024;
@@ -177,7 +178,11 @@ public sealed class PdfSignaturesController(
             await using var stream = file.OpenReadStream();
             return Ok(await trustInspector.InspectAsync(
                 stream,
-                new PdfTrustInspectionOptions { MaximumFileSizeBytes = MaximumPdfBytes },
+                new PdfTrustInspectionOptions
+                {
+                    MaximumFileSizeBytes = MaximumPdfBytes,
+                    SignatureValidationPolicy = trustPolicyProvider.Policy
+                },
                 cancellationToken));
         }
         catch (InvalidDataException)

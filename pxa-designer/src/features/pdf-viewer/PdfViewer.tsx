@@ -325,10 +325,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     integrity: t('integrity'),
     coverage: t('coverage'),
     certificateTrust: t('certificateTrust'),
+    revocation: t('revocation'),
     signer: t('signer'),
     timestamp: t('timestamp'),
     timestampAuthority: t('timestampAuthority'),
     timestampTime: t('timestampTime'),
+    timestampRevocation: t('timestampRevocation'),
     wholeDocument: t('wholeDocument'),
     earlierRevision: t('earlierRevision'),
     revisions: t('revisions'),
@@ -1620,10 +1622,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           <div><dt>{labels.integrity}</dt><dd data-status={signature.integrityStatus}>{trustStatusLabel(signature.integrityStatus)}</dd></div>
                           <div><dt>{labels.coverage}</dt><dd data-status={signature.coverageStatus}>{signature.coversWholeDocument ? labels.wholeDocument : labels.earlierRevision}</dd></div>
                           <div><dt>{labels.certificateTrust}</dt><dd data-status={signature.certificateStatus}>{trustStatusLabel(signature.certificateStatus)}</dd></div>
+                          <div><dt>{labels.revocation}</dt><dd data-status={signature.revocationStatus}>{trustStatusLabel(signature.revocationStatus)}</dd></div>
                           <div><dt>PAdES</dt><dd>{signature.padesProfile ?? labels.notDetected}</dd></div>
                           <div><dt>Digest</dt><dd>{signature.digestAlgorithm ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.signer}</dt><dd title={signature.signerSubject ?? undefined}>{signature.signerSubject ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.timestamp}</dt><dd data-status={signature.timestampStatus}>{trustStatusLabel(signature.timestampStatus)}</dd></div>
+                          <div><dt>{labels.timestampRevocation}</dt><dd data-status={signature.timestampRevocationStatus}>{trustStatusLabel(signature.timestampRevocationStatus)}</dd></div>
                           {signature.timestampTime && (
                             <div><dt>{labels.timestampTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.timestampTime))}</dd></div>
                           )}

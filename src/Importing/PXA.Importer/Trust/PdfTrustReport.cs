@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 namespace PXA.Importer.Trust;
 
 public enum PdfTrustStatus
@@ -14,6 +16,24 @@ public enum PdfTrustDiagnosticSeverity
     Info,
     Warning,
     Error
+}
+
+public enum PdfCertificateRevocationMode
+{
+    NoCheck,
+    Offline,
+    Online
+}
+
+public sealed record PdfSignatureValidationPolicy
+{
+    public bool UseSystemTrustStore { get; init; } = true;
+    public IReadOnlyList<X509Certificate2> CustomTrustAnchors { get; init; } = [];
+    public IReadOnlyList<X509Certificate2> IntermediateCertificates { get; init; } = [];
+    public PdfCertificateRevocationMode RevocationMode { get; init; } = PdfCertificateRevocationMode.NoCheck;
+    public X509RevocationFlag RevocationFlag { get; init; } = X509RevocationFlag.ExcludeRoot;
+    public bool AllowCertificateDownloads { get; init; }
+    public TimeSpan NetworkTimeout { get; init; } = TimeSpan.FromSeconds(10);
 }
 
 public sealed record PdfTrustDiagnostic(
@@ -51,7 +71,9 @@ public sealed record PdfSignatureInspection(
     long? SignedRevisionEndOffset = null,
     PdfTrustStatus TimestampStatus = PdfTrustStatus.NotApplicable,
     DateTimeOffset? TimestampTime = null,
-    string? TimestampAuthoritySubject = null);
+    string? TimestampAuthoritySubject = null,
+    PdfTrustStatus RevocationStatus = PdfTrustStatus.NotApplicable,
+    PdfTrustStatus TimestampRevocationStatus = PdfTrustStatus.NotApplicable);
 
 public sealed record PdfComplianceClaim(
     string Standard,
@@ -88,6 +110,7 @@ public sealed record PdfTrustInspectionOptions
     public const long DefaultMaximumFileSizeBytes = 100L * 1024 * 1024;
 
     public long MaximumFileSizeBytes { get; init; } = DefaultMaximumFileSizeBytes;
+    public PdfSignatureValidationPolicy SignatureValidationPolicy { get; init; } = new();
 }
 
 public interface IPdfTrustInspector
