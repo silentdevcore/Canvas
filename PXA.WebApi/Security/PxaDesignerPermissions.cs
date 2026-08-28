@@ -31,6 +31,8 @@ public static class PxaDesignerPermissions
     public const string PdfExport = "designer.pdf.export";
     public const string PdfPrint = "designer.pdf.print";
     public const string PdfTrustInspect = "designer.pdf.trust.inspect";
+    public const string PdfSignaturesValidate = "designer.pdf.signatures.validate";
+    public const string PdfSignaturesSign = "designer.pdf.signatures.sign";
     public const string DocumentEdit = "designer.document.edit";
     public const string Import = "designer.import";
     public const string Export = "designer.export";
@@ -84,6 +86,8 @@ public static class PxaDesignerPermissions
         PdfExport,
         PdfPrint,
         PdfTrustInspect,
+        PdfSignaturesValidate,
+        PdfSignaturesSign,
         DocumentEdit,
         Import,
         Export,
@@ -139,6 +143,11 @@ public static class PxaDesignerPermissionResolver
 
         if (StartsWith(value, "/api/pxa/v1/pdf/trust"))
             return PxaDesignerPermissions.PdfTrustInspect;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/signatures"))
+            return value.EndsWith("/validate", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfSignaturesValidate
+                : PxaDesignerPermissions.PdfSignaturesSign;
 
         if (StartsWith(value, "/api/document") || StartsWith(value, "/api/pxa/document"))
         {

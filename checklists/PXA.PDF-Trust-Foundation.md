@@ -76,10 +76,15 @@ Reference material:
 ### Save Strategies
 
 - [ ] Implement full rewrite and incremental update as explicit save strategies.
-- [ ] Use incremental updates for signatures and preservation-sensitive operations.
+- [x] Centralize the existing append paths in a deterministic incremental-update
+  writer that validates the source revision chain, preserves original bytes, and
+  reparses the saved result before returning it.
+- [x] Reject incremental mutation of encrypted PDFs until appended objects can be
+  serialized through the active security handler.
+- [x] Use incremental updates for signatures and preservation-sensitive operations.
 - [ ] Rebuild xref data, `/Prev`, `/Size`, object generations, stream lengths, and
   document IDs deterministically.
-- [ ] Add a change-impact analyzer showing which existing signatures and compliance
+- [x] Add a change-impact analyzer showing which existing signatures and compliance
   claims a planned mutation will affect.
 - [ ] Make post-save parse and validation mandatory before returning trusted output.
 
@@ -90,7 +95,7 @@ Reference material:
   attachments, and parser warnings.
 - [x] Represent every check as `valid`, `invalid`, `indeterminate`, `unsupported`, or
   `notApplicable`; never collapse unknown into valid.
-- [ ] Include document and revision SHA-256 hashes so audit events can be correlated
+- [x] Include document and revision SHA-256 hashes so audit events can be correlated
   without storing document content.
 - [x] Expose `POST /api/pxa/v1/pdf/trust/inspect` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
@@ -106,39 +111,48 @@ Reference material:
 - [ ] Add typed signing options for certificate source, signature field, page and
   appearance, reason, location, contact, signing time, digest, PAdES profile, TSA,
   revocation data, and validation policy.
-- [ ] Support PKCS#12/PFX input through secret streams and platform/remote key
+- [x] Support PKCS#12/PFX input through secret streams and platform/remote key
   providers through an `IPdfSigningKey` abstraction.
-- [ ] Never persist raw private-key bytes or passwords in template JSON, jobs, logs,
+- [x] Never persist raw private-key bytes or passwords in template JSON, jobs, logs,
   telemetry, or audit payloads.
 - [ ] Support visible and invisible signature fields and preserve existing AcroForm
   fields and appearances.
-- [ ] Implement detached CMS signatures with correct `/ByteRange`, `/Contents`,
+- [x] Preserve existing AcroForm fields and support standards-compatible invisible
+  signature widgets; visible signature appearances remain open.
+- [x] Implement detached CMS signatures with correct `/ByteRange`, `/Contents`,
   digest calculation, placeholder sizing, and incremental save.
-- [ ] Support SHA-256 or stronger digests only for new signatures.
+- [x] Support SHA-256 or stronger digests only for new signatures.
 - [ ] Produce PAdES B-B first, then B-T with RFC 3161 timestamps, B-LT with embedded
   validation material, and B-LTA with archive timestamps.
+- [x] Produce interoperable PAdES Baseline B-B signatures validated independently by
+  OpenSSL CAdES verification and Poppler `pdfsig`.
 - [ ] Add document timestamps independently from approval signatures.
-- [ ] Support multiple sequential signatures without invalidating earlier revisions.
+- [x] Support multiple sequential signatures without invalidating earlier revisions.
 
 ### Signature Validation
 
 - [ ] Validate CMS integrity, signed byte ranges, certificate chain, key usage,
   signing time, timestamp token, revocation evidence, PAdES profile, and post-sign
   changes separately.
+- [x] Validate detached CMS integrity, SHA-256/384/512 document digest, signed byte
+  ranges, complete revision boundaries, SigningCertificateV2 binding, RSA signature,
+  signing time, host certificate chain, and PAdES B-B profile as separate statuses.
 - [ ] Detect unsigned bytes, overlapping ranges, wrapping/shadow attacks, invalid
   incremental revisions, and disallowed changes after certification signatures.
-- [ ] Return signer identity and certificate metadata without treating a valid
+- [x] Return signer identity and certificate metadata without treating a valid
   cryptographic signature as a trusted identity unless chain policy succeeds.
 - [ ] Support configurable trust stores for Cloud and On-Premise deployments.
 - [ ] Support offline validation with supplied trust anchors, CRLs, OCSP responses,
   and embedded LTV material.
 - [ ] Make network retrieval of OCSP, CRL, AIA, and TSA data explicit, bounded,
   allowlisted, cached, and disableable for isolated installations.
-- [ ] Add `POST /api/pxa/v1/pdf/signatures/sign` and
+- [x] Add `POST /api/pxa/v1/pdf/signatures/sign` and
   `POST /api/pxa/v1/pdf/signatures/validate` with streaming binary responses and
   structured validation reports.
 - [ ] Add separate permissions for signature inspection, signing, trust-policy
   management, and use of organization key providers.
+- [x] Add separate permissions for signature inspection, validation, and signing;
+  trust-policy and organization key-provider permissions remain open.
 
 ## P0 - Secure and Irreversible Redaction
 
@@ -241,8 +255,10 @@ Reference material:
 - [ ] Add a `Trust` panel showing encryption, signatures, revisions, timestamps,
   PDF/A, PDF/UA, tagging, risky content, and trust-report diagnostics.
   - [x] Baseline panel shows structure, revisions, encryption, signature candidates,
-    PDF/A/PDF/UA metadata claims, hashes, and diagnostics; cryptographic validation,
-    timestamps, risky content, and attachments remain open.
+    PDF/A/PDF/UA metadata claims, hashes, and diagnostics.
+  - [x] Signature cards show cryptographic integrity, revision coverage, certificate
+    trust, signer, digest, and PAdES profile; timestamps, revocation, risky content,
+    and attachments remain open.
 - [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
 - [ ] Show signature field location, signer/certificate details, signed revision,

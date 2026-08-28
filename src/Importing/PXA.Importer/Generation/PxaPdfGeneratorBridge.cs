@@ -7,8 +7,8 @@ using PXA.Importer.Document;
 using PXA.Importer.Graphics;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
+using PXA.Importer.Saving;
 using PXA.Importer.Streams;
-using PXA.Importer.Tokenizer;
 using PXA.Importer.Xref;
 using PXA.Infrastructure.Pdf;
 using PXA.Pdf;
@@ -253,7 +253,9 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             return basePdfBytes;
         }
 
-        return AppendIncrementalUpdate(basePdfBytes, generatedGraph.Trailer, appendedObjects);
+        return new PdfIncrementalUpdateWriter().Append(
+            basePdfBytes,
+            appendedObjects.Select(static update => new PdfIncrementalObjectUpdate(update.Id, update.Value))).Bytes;
     }
 
     private static bool ContainsShading(PdfGraphicsElement element)
@@ -438,192 +440,6 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             PdfObject contents => new PdfArray([contents, shadingReference]),
             null => shadingReference
         };
-    }
-
-    private static byte[] AppendIncrementalUpdate(byte[] basePdfBytes, PdfDictionary? trailer, IReadOnlyList<(PdfObjectId Id, PdfObject Value)> appendedObjects)
-    {
-        if (trailer is null || trailer["Root"] is null)
-        {
-            throw new InvalidOperationException("Generated PDF trailer is missing /Root for incremental update.");
-        }
-
-        var existingStartXref = FindStartXrefOffset(basePdfBytes);
-        using var stream = new MemoryStream();
-        stream.Write(basePdfBytes, 0, basePdfBytes.Length);
-        if (basePdfBytes.Length > 0 && basePdfBytes[^1] != (byte)'\n')
-        {
-            WriteAscii(stream, "\n");
-        }
-
-        var offsets = new SortedDictionary<PdfObjectId, long>(Comparer<PdfObjectId>.Create(static (left, right) => left.Number != right.Number ? left.Number.CompareTo(right.Number) : left.Generation.CompareTo(right.Generation)));
-        foreach (var appendedObject in appendedObjects.OrderBy(static entry => entry.Id.Number).ThenBy(static entry => entry.Id.Generation))
-        {
-            offsets[appendedObject.Id] = stream.Position;
-            WriteIndirectObject(stream, appendedObject.Id, appendedObject.Value);
-        }
-
-        var xrefOffset = stream.Position;
-        WriteAscii(stream, "xref\n");
-        foreach (var subsection in GroupSubsections(offsets))
-        {
-            WriteAscii(stream, $"{subsection.Start} {subsection.Entries.Count}\n");
-            foreach (var entry in subsection.Entries)
-            {
-                WriteAscii(stream, $"{entry.Offset:0000000000} {entry.Generation:00000} n \n");
-            }
-        }
-
-        var size = Math.Max((trailer["Size"] as PdfInteger)?.Value ?? 0, offsets.Keys.Max(static id => (long)id.Number) + 1);
-        var trailerDictionary = new PdfDictionary();
-        trailerDictionary["Size"] = new PdfInteger(size);
-        trailerDictionary["Root"] = trailer["Root"]!;
-        if (trailer["Info"] is { } info)
-        {
-            trailerDictionary["Info"] = info;
-        }
-
-        if (trailer["ID"] is { } id)
-        {
-            trailerDictionary["ID"] = id;
-        }
-
-        trailerDictionary["Prev"] = new PdfInteger(existingStartXref);
-
-        WriteAscii(stream, "trailer\n");
-        WriteObject(stream, trailerDictionary);
-        WriteAscii(stream, "\nstartxref\n");
-        WriteAscii(stream, xrefOffset.ToString(CultureInfo.InvariantCulture));
-        WriteAscii(stream, "\n%%EOF\n");
-        return stream.ToArray();
-    }
-
-    private static long FindStartXrefOffset(ReadOnlySpan<byte> bytes)
-    {
-        var marker = Encoding.ASCII.GetBytes("startxref");
-        for (var index = bytes.Length - marker.Length; index >= 0; index--)
-        {
-            if (!bytes.Slice(index, marker.Length).SequenceEqual(marker))
-            {
-                continue;
-            }
-
-            var tokenizer = new PdfTokenizer(bytes[(index + marker.Length)..]);
-            var token = tokenizer.ReadToken();
-            if (long.TryParse(token.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
-            {
-                return value;
-            }
-        }
-
-        throw new InvalidOperationException("Unable to find startxref in generated PDF bytes.");
-    }
-
-    private static IReadOnlyList<(int Start, List<(long Offset, int Generation)> Entries)> GroupSubsections(SortedDictionary<PdfObjectId, long> offsets)
-    {
-        var subsections = new List<(int Start, List<(long Offset, int Generation)> Entries)>();
-        List<(long Offset, int Generation)>? currentEntries = null;
-        var currentStart = -1;
-        var expectedNumber = -1;
-
-        foreach (var entry in offsets)
-        {
-            if (currentEntries is null || entry.Key.Number != expectedNumber)
-            {
-                currentEntries = [];
-                currentStart = entry.Key.Number;
-                subsections.Add((currentStart, currentEntries));
-            }
-
-            currentEntries.Add((entry.Value, entry.Key.Generation));
-            expectedNumber = entry.Key.Number + 1;
-        }
-
-        return subsections;
-    }
-
-    private static void WriteIndirectObject(Stream stream, PdfObjectId id, PdfObject value)
-    {
-        WriteAscii(stream, $"{id.Number} {id.Generation} obj\n");
-        WriteObject(stream, value);
-        WriteAscii(stream, "\nendobj\n");
-    }
-
-    private static void WriteObject(Stream stream, PdfObject value)
-    {
-        switch (value)
-        {
-            case PdfName name:
-                WriteAscii(stream, "/");
-                WriteAscii(stream, name.Value);
-                break;
-            case PdfInteger integer:
-                WriteAscii(stream, integer.Value.ToString(CultureInfo.InvariantCulture));
-                break;
-            case PdfNumber number:
-                WriteAscii(stream, number.Value.ToString("0.###", CultureInfo.InvariantCulture));
-                break;
-            case PdfString text:
-                WriteAscii(stream, "<");
-                foreach (var current in text.GetDecodedBytes().Span)
-                {
-                    WriteAscii(stream, current.ToString("X2", CultureInfo.InvariantCulture));
-                }
-
-                WriteAscii(stream, ">");
-                break;
-            case PdfBoolean boolean:
-                WriteAscii(stream, boolean.Value ? "true" : "false");
-                break;
-            case PdfNull:
-                WriteAscii(stream, "null");
-                break;
-            case PdfReference reference:
-                WriteAscii(stream, $"{reference.Id.Number} {reference.Id.Generation} R");
-                break;
-            case PdfArray array:
-                WriteAscii(stream, "[");
-                for (var index = 0; index < array.Items.Count; index++)
-                {
-                    if (index > 0)
-                    {
-                        WriteAscii(stream, " ");
-                    }
-
-                    WriteObject(stream, array.Items[index]);
-                }
-
-                WriteAscii(stream, "]");
-                break;
-            case PdfDictionary dictionary:
-                WriteAscii(stream, "<<");
-                foreach (var entry in dictionary.Values)
-                {
-                    WriteAscii(stream, " ");
-                    WriteAscii(stream, "/");
-                    WriteAscii(stream, entry.Key);
-                    WriteAscii(stream, " ");
-                    WriteObject(stream, entry.Value);
-                }
-
-                WriteAscii(stream, " >>");
-                break;
-            case PdfStreamObject streamObject:
-                var streamDictionary = CloneDictionary(streamObject.Dictionary);
-                streamDictionary["Length"] = new PdfInteger(streamObject.EncodedBytes.Length);
-                WriteObject(stream, streamDictionary);
-                WriteAscii(stream, "\nstream\n");
-                stream.Write(streamObject.EncodedBytes.Span);
-                WriteAscii(stream, "\nendstream");
-                break;
-            default:
-                throw new NotSupportedException($"PDF object type '{value.GetType().Name}' cannot be serialized for shading preservation.");
-        }
-    }
-
-    private static void WriteAscii(Stream stream, string value)
-    {
-        var bytes = Encoding.ASCII.GetBytes(value);
-        stream.Write(bytes, 0, bytes.Length);
     }
 
     private static void RenderText(PxaPdfPage page, PdfTextElement text)

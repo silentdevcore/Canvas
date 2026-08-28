@@ -321,6 +321,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     structure: t('structure'),
     encryption: t('encryption'),
     signatures: t('signatures'),
+    signature: t('signature'),
+    integrity: t('integrity'),
+    coverage: t('coverage'),
+    certificateTrust: t('certificateTrust'),
+    signer: t('signer'),
+    wholeDocument: t('wholeDocument'),
+    earlierRevision: t('earlierRevision'),
     revisions: t('revisions'),
     objects: t('objects'),
     notDetected: t('notDetected'),
@@ -1598,6 +1605,26 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                   <div><dt>{labels.objects}</dt><dd>{trustReport.objectCount}</dd></div>
                   <div><dt>PDF</dt><dd>{trustReport.pdfVersion ?? labels.notDetected}</dd></div>
                 </dl>
+                {trustReport.signatures.length > 0 && (
+                  <div className="pdfv-signature-list">
+                    {trustReport.signatures.map((signature, index) => (
+                      <section key={`${signature.objectNumber}-${signature.generation}`} className="pdfv-signature-item">
+                        <header>
+                          <strong>{labels.signature} {index + 1}</strong>
+                          <span data-status={signature.status}>{trustStatusLabel(signature.status)}</span>
+                        </header>
+                        <dl>
+                          <div><dt>{labels.integrity}</dt><dd data-status={signature.integrityStatus}>{trustStatusLabel(signature.integrityStatus)}</dd></div>
+                          <div><dt>{labels.coverage}</dt><dd data-status={signature.coverageStatus}>{signature.coversWholeDocument ? labels.wholeDocument : labels.earlierRevision}</dd></div>
+                          <div><dt>{labels.certificateTrust}</dt><dd data-status={signature.certificateStatus}>{trustStatusLabel(signature.certificateStatus)}</dd></div>
+                          <div><dt>PAdES</dt><dd>{signature.padesProfile ?? labels.notDetected}</dd></div>
+                          <div><dt>Digest</dt><dd>{signature.digestAlgorithm ?? labels.notDetected}</dd></div>
+                          <div><dt>{labels.signer}</dt><dd title={signature.signerSubject ?? undefined}>{signature.signerSubject ?? labels.notDetected}</dd></div>
+                        </dl>
+                      </section>
+                    ))}
+                  </div>
+                )}
                 <ul className="pdfv-trust-diagnostics">
                   {trustReport.diagnostics.map((diagnostic, index) => (
                     <li key={`${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>

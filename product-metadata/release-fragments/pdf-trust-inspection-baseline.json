@@ -8,7 +8,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds an authenticated PDF Trust inspection baseline and localized Viewer panel that inventory document structure, revisions, encryption, signature candidates, and declared PDF/A or PDF/UA profiles without overstating validation results.",
+  "summary": "PXA adds interoperable PAdES B-B signing, cryptographic PDF signature validation, revision hashes, conservative change-impact reporting, and a localized Viewer trust panel with separate integrity, coverage, and certificate-trust results.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

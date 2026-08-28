@@ -15,6 +15,7 @@ const report: PdfTrustReport = {
   signatures: [],
   pdfA: { standard: 'PDF/A', isClaimed: false, status: 4, evidence: 'none' },
   pdfUa: { standard: 'PDF/UA', isClaimed: false, status: 4, evidence: 'none' },
+  revisions: [],
   diagnostics: [],
 };
 

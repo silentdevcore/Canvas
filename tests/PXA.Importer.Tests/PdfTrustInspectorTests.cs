@@ -19,6 +19,8 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal("1.4", report.PdfVersion);
         Assert.Equal(64, report.Sha256.Length);
         Assert.True(report.ObjectCount > 0);
+        Assert.Equal(report.RevisionCount, report.Revisions.Count);
+        Assert.All(report.Revisions, revision => Assert.Equal(64, revision.Sha256.Length));
         Assert.False(report.Encryption.IsEncrypted);
         Assert.Empty(report.Signatures);
         Assert.False(report.PdfA.IsClaimed);
@@ -82,7 +84,7 @@ public sealed class PdfTrustInspectorTests
     }
 
     [Fact]
-    public async Task InspectAsync_DoesNotTreatSignatureDictionaryAsValidated()
+    public async Task InspectAsync_RejectsMalformedSignatureByteRange()
     {
         var document = new PdfDocument();
         document.AddPage().DrawText("Unsigned signature fixture", 40, 40);
@@ -95,10 +97,12 @@ public sealed class PdfTrustInspectorTests
 
         var signature = Assert.Single(report.Signatures);
         Assert.Equal(999, signature.ObjectNumber);
-        Assert.Equal(PdfTrustStatus.Indeterminate, signature.Status);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal("adbe.pkcs7.detached", signature.SubFilter);
         Assert.Equal([0L, 10L, 20L, 30L], signature.ByteRange);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST101");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
     }
 
     private static async Task<PdfTrustReport> InspectAsync(byte[] bytes)

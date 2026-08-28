@@ -119,6 +119,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformation>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
+builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
 builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))

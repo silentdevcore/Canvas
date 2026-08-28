@@ -32,6 +32,16 @@ export interface PdfTrustReport {
     subFilter?: string | null;
     byteRange: number[];
     contentsLengthBytes?: number | null;
+    integrityStatus: PdfTrustStatus;
+    coverageStatus: PdfTrustStatus;
+    certificateStatus: PdfTrustStatus;
+    padesProfile?: string | null;
+    digestAlgorithm?: string | null;
+    signerSubject?: string | null;
+    signerThumbprint?: string | null;
+    signingTime?: string | null;
+    coversWholeDocument: boolean;
+    signedRevisionEndOffset?: number | null;
   }>;
   pdfA: {
     standard: string;
@@ -47,6 +57,14 @@ export interface PdfTrustReport {
     status: PdfTrustStatus;
     evidence: string;
   };
+  revisions: Array<{
+    sequenceNumber: number;
+    kind: string;
+    crossReferenceOffset: number;
+    endOffset: number;
+    sha256: string;
+    entryCount: number;
+  }>;
   diagnostics: PdfTrustDiagnostic[];
 }
 

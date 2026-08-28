@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Streams;
@@ -12,6 +13,25 @@ public enum PdfCrossReferenceEntryKind
     Compressed
 }
 
+public enum PdfCrossReferenceSectionKind
+{
+    ClassicTable,
+    CrossReferenceStream
+}
+
+public sealed record PdfCrossReferenceRevision(
+    int SequenceNumber,
+    int DistanceFromLatest,
+    long CrossReferenceOffset,
+    long? PreviousCrossReferenceOffset,
+    PdfCrossReferenceSectionKind Kind,
+    long EndOffset,
+    string Sha256,
+    int EntryCount,
+    PdfDictionary Trailer);
+
+public sealed record PdfCrossReferenceDiagnostic(string Code, string Message, long? Offset = null);
+
 public sealed record PdfCrossReferenceEntry(
     PdfObjectId Id,
     long Offset,
@@ -25,8 +45,12 @@ public sealed record PdfCrossReferenceEntry(
 public sealed class PdfCrossReferenceTable
 {
     private readonly Dictionary<PdfObjectId, PdfCrossReferenceEntry> _entries = [];
+    private readonly List<PdfCrossReferenceRevision> _revisions = [];
+    private readonly List<PdfCrossReferenceDiagnostic> _diagnostics = [];
 
     public IReadOnlyDictionary<PdfObjectId, PdfCrossReferenceEntry> Entries => _entries;
+    public IReadOnlyList<PdfCrossReferenceRevision> Revisions => _revisions;
+    public IReadOnlyList<PdfCrossReferenceDiagnostic> Diagnostics => _diagnostics;
     public PdfDictionary? Trailer { get; set; }
 
     public void Add(PdfCrossReferenceEntry entry, bool overwrite = true)
@@ -36,6 +60,14 @@ public sealed class PdfCrossReferenceTable
             _entries[entry.Id] = entry;
         }
     }
+
+    internal void SetRevisions(IEnumerable<PdfCrossReferenceRevision> revisions)
+    {
+        _revisions.Clear();
+        _revisions.AddRange(revisions);
+    }
+
+    internal void AddDiagnostic(PdfCrossReferenceDiagnostic diagnostic) => _diagnostics.Add(diagnostic);
 }
 
 public sealed class PdfCrossReferenceParser
@@ -69,25 +101,107 @@ public sealed class PdfCrossReferenceParser
         }
 
         var visited = new HashSet<long>();
+        var parsedRevisions = new List<ParsedRevision>();
         var revision = 0;
-        while (visited.Add(xrefOffset))
+        while (true)
         {
-            var trailer = ParseClassicSection(context, table, checked((int)xrefOffset), revision, preserveExistingEntries: true);
+            if (!visited.Add(xrefOffset))
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF003",
+                    "The incremental revision chain contains a cyclic /Prev reference.",
+                    xrefOffset));
+                break;
+            }
+
+            var kind = PdfCrossReferenceSectionKind.ClassicTable;
+            var trailer = ParseClassicSection(
+                context,
+                table,
+                checked((int)xrefOffset),
+                revision,
+                preserveExistingEntries: true,
+                out _,
+                out var sectionEntryCount);
             if (trailer is null)
             {
-                trailer = ParseXrefStreamSection(context, table, checked((int)xrefOffset), revision, preserveExistingEntries: true);
+                kind = PdfCrossReferenceSectionKind.CrossReferenceStream;
+                trailer = ParseXrefStreamSection(
+                    context,
+                    table,
+                    checked((int)xrefOffset),
+                    revision,
+                    preserveExistingEntries: true,
+                    out sectionEntryCount);
+            }
+
+            if (trailer is null)
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF001",
+                    "A cross-reference revision could not be parsed at the referenced offset.",
+                    xrefOffset));
+                break;
             }
 
             table.Trailer ??= trailer;
 
-            if (!TryGetInteger(trailer?["Prev"], out var previousOffset))
+            var previousValue = trailer["Prev"];
+            var previousOffset = TryGetInteger(previousValue, out var parsedPreviousOffset)
+                ? parsedPreviousOffset
+                : (long?)null;
+            if (previousValue is not null && previousOffset is null)
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF004",
+                    "The incremental revision trailer contains a non-integer /Prev reference.",
+                    xrefOffset));
+            }
+            parsedRevisions.Add(new ParsedRevision(
+                revision,
+                xrefOffset,
+                previousOffset,
+                kind,
+                FindRevisionEnd(source, checked((int)xrefOffset)),
+                sectionEntryCount,
+                trailer));
+
+            if (previousOffset is null)
             {
                 break;
             }
 
-            xrefOffset = previousOffset;
+            if (previousOffset < 0 || previousOffset >= source.Length)
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF002",
+                    "The incremental revision chain contains an out-of-range /Prev reference.",
+                    previousOffset));
+                break;
+            }
+
+            xrefOffset = previousOffset.Value;
             revision++;
         }
+
+        var revisions = new List<PdfCrossReferenceRevision>(parsedRevisions.Count);
+        parsedRevisions.Reverse();
+        for (var index = 0; index < parsedRevisions.Count; index++)
+        {
+            var item = parsedRevisions[index];
+            revisions.Add(new PdfCrossReferenceRevision(
+                index,
+                item.DistanceFromLatest,
+                item.CrossReferenceOffset,
+                item.PreviousCrossReferenceOffset,
+                item.Kind,
+                item.EndOffset,
+                Convert.ToHexStringLower(SHA256.HashData(source[..checked((int)item.EndOffset)])),
+                item.EntryCount,
+                item.Trailer));
+        }
+
+        table.SetRevisions(revisions);
 
         return table.Entries.Count > 0;
     }
@@ -106,7 +220,14 @@ public sealed class PdfCrossReferenceParser
             }
 
             offset += found;
-            var trailer = ParseClassicSection(context, table, offset, revision: 0, preserveExistingEntries: false, out var nextOffset);
+            var trailer = ParseClassicSection(
+                context,
+                table,
+                offset,
+                revision: 0,
+                preserveExistingEntries: false,
+                out var nextOffset,
+                out _);
             table.Trailer = trailer ?? table.Trailer;
             offset = nextOffset;
         }
@@ -119,7 +240,7 @@ public sealed class PdfCrossReferenceParser
         int revision,
         bool preserveExistingEntries)
     {
-        return ParseClassicSection(context, table, xrefOffset, revision, preserveExistingEntries, out _);
+        return ParseClassicSection(context, table, xrefOffset, revision, preserveExistingEntries, out _, out _);
     }
 
     private static PdfDictionary? ParseClassicSection(
@@ -128,10 +249,12 @@ public sealed class PdfCrossReferenceParser
         int xrefOffset,
         int revision,
         bool preserveExistingEntries,
-        out int nextOffset)
+        out int nextOffset,
+        out int entryCount)
     {
         var source = context.Source.Span;
         nextOffset = Math.Min(xrefOffset + 1, source.Length);
+        entryCount = 0;
 
         if (xrefOffset < 0 || xrefOffset >= source.Length || !source[xrefOffset..].StartsWith("xref"u8))
         {
@@ -181,6 +304,7 @@ public sealed class PdfCrossReferenceParser
                         revision,
                         status.Text == "f" ? PdfCrossReferenceEntryKind.Free : PdfCrossReferenceEntryKind.InUse),
                     overwrite: !preserveExistingEntries);
+                entryCount++;
             }
         }
 
@@ -193,8 +317,10 @@ public sealed class PdfCrossReferenceParser
         PdfCrossReferenceTable table,
         int objectOffset,
         int revision,
-        bool preserveExistingEntries)
+        bool preserveExistingEntries,
+        out int entryCount)
     {
+        entryCount = 0;
         var parser = new PdfObjectParser(context, table);
         var indirectObject = parser.TryParseIndirectObjectAt(objectOffset);
         if (indirectObject?.Value is not PdfStreamObject stream ||
@@ -249,6 +375,7 @@ public sealed class PdfCrossReferenceParser
                 if (entry is not null)
                 {
                     table.Add(entry, overwrite: !preserveExistingEntries);
+                    entryCount++;
                 }
             }
         }
@@ -312,6 +439,23 @@ public sealed class PdfCrossReferenceParser
         return -1;
     }
 
+    private static long FindRevisionEnd(ReadOnlySpan<byte> source, int crossReferenceOffset)
+    {
+        var relativeEof = source[crossReferenceOffset..].IndexOf("%%EOF"u8);
+        if (relativeEof < 0)
+        {
+            return source.Length;
+        }
+
+        var end = crossReferenceOffset + relativeEof + "%%EOF"u8.Length;
+        while (end < source.Length && source[end] is (byte)'\r' or (byte)'\n')
+        {
+            end++;
+        }
+
+        return end;
+    }
+
     private static bool TryGetInteger(PdfObject? value, out long integer)
     {
         switch (value)
@@ -368,4 +512,13 @@ public sealed class PdfCrossReferenceParser
 
         return index == 0 ? 0 : index + 1;
     }
+
+    private sealed record ParsedRevision(
+        int DistanceFromLatest,
+        long CrossReferenceOffset,
+        long? PreviousCrossReferenceOffset,
+        PdfCrossReferenceSectionKind Kind,
+        long EndOffset,
+        int EntryCount,
+        PdfDictionary Trailer);
 }

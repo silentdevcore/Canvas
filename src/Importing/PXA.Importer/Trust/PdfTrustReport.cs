@@ -38,7 +38,17 @@ public sealed record PdfSignatureInspection(
     PdfTrustStatus Status,
     string? SubFilter,
     IReadOnlyList<long> ByteRange,
-    int? ContentsLengthBytes);
+    int? ContentsLengthBytes,
+    PdfTrustStatus IntegrityStatus = PdfTrustStatus.Indeterminate,
+    PdfTrustStatus CoverageStatus = PdfTrustStatus.Indeterminate,
+    PdfTrustStatus CertificateStatus = PdfTrustStatus.Indeterminate,
+    string? PadesProfile = null,
+    string? DigestAlgorithm = null,
+    string? SignerSubject = null,
+    string? SignerThumbprint = null,
+    DateTimeOffset? SigningTime = null,
+    bool CoversWholeDocument = false,
+    long? SignedRevisionEndOffset = null);
 
 public sealed record PdfComplianceClaim(
     string Standard,
@@ -46,6 +56,14 @@ public sealed record PdfComplianceClaim(
     bool IsClaimed,
     PdfTrustStatus Status,
     string Evidence);
+
+public sealed record PdfRevisionInspection(
+    int SequenceNumber,
+    string Kind,
+    long CrossReferenceOffset,
+    long EndOffset,
+    string Sha256,
+    int EntryCount);
 
 public sealed record PdfTrustReport(
     PdfTrustStatus Status,
@@ -59,6 +77,7 @@ public sealed record PdfTrustReport(
     IReadOnlyList<PdfSignatureInspection> Signatures,
     PdfComplianceClaim PdfA,
     PdfComplianceClaim PdfUa,
+    IReadOnlyList<PdfRevisionInspection> Revisions,
     IReadOnlyList<PdfTrustDiagnostic> Diagnostics);
 
 public sealed record PdfTrustInspectionOptions

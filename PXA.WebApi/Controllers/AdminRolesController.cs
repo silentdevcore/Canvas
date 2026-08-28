@@ -93,6 +93,8 @@ public sealed class AdminRolesController : ControllerBase
             [PxaDesignerPermissions.PdfExport] = new("Designer PDF", "Export PDF designs in supported formats."),
             [PxaDesignerPermissions.PdfPrint] = new("Designer PDF", "Render and print PDF documents."),
             [PxaDesignerPermissions.PdfTrustInspect] = new("Designer PDF trust", "Inspect PDF structure, encryption, signatures, and declared compliance profiles."),
+            [PxaDesignerPermissions.PdfSignaturesValidate] = new("Designer PDF signatures", "Validate PDF signature integrity, revision coverage, and certificate trust."),
+            [PxaDesignerPermissions.PdfSignaturesSign] = new("Designer PDF signatures", "Apply organization-approved PAdES signatures to PDF documents."),
             [PxaDesignerPermissions.DocumentEdit] = new("Designer documents", "Run document editing and transformation operations."),
             [PxaDesignerPermissions.Import] = new("Designer documents", "Import supported document and image formats."),
             [PxaDesignerPermissions.Export] = new("Designer documents", "Render and export documents in supported formats."),

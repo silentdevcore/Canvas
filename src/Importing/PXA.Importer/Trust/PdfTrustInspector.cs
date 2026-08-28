@@ -67,20 +67,43 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         var encryption = InspectEncryption(graph, diagnostics);
-        var signatures = InspectSignatures(graph, diagnostics);
+        var signatures = InspectSignatures(source, graph, xref?.Revisions ?? [], diagnostics);
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
-        var revisionCount = xref?.Entries.Count == 0
-            ? 0
-            : xref!.Entries.Values.Max(entry => entry.Revision) + 1;
+        var revisions = xref?.Revisions.Select(revision => new PdfRevisionInspection(
+                revision.SequenceNumber,
+                revision.Kind.ToString(),
+                revision.CrossReferenceOffset,
+                revision.EndOffset,
+                revision.Sha256,
+                revision.EntryCount))
+            .ToArray() ?? [];
+        var revisionCount = revisions.Length > 0
+            ? revisions.Length
+            : xref?.Entries.Count == 0
+                ? 0
+                : xref!.Entries.Values.Max(entry => entry.Revision) + 1;
+
+        if (xref is not null)
+        {
+            diagnostics.AddRange(xref.Diagnostics.Select(diagnostic => new PdfTrustDiagnostic(
+                diagnostic.Code,
+                PdfTrustDiagnosticSeverity.Error,
+                diagnostic.Message)));
+            if (xref.Diagnostics.Count > 0)
+            {
+                structureStatus = PdfTrustStatus.Invalid;
+            }
+        }
 
         diagnostics.Add(new PdfTrustDiagnostic(
             "PXAPDFTRUST010",
             PdfTrustDiagnosticSeverity.Info,
-            "This baseline report inventories trust-related structures but does not yet certify cryptographic validity or standards conformance."));
+            "Signature integrity and revision coverage are validated when supported; revocation, timestamps, and PDF/A or PDF/UA conformance still require dedicated policy validators."));
 
-        var status = structureStatus == PdfTrustStatus.Invalid
+        var status = structureStatus == PdfTrustStatus.Invalid ||
+                     signatures.Any(signature => signature.Status == PdfTrustStatus.Invalid)
             ? PdfTrustStatus.Invalid
             : PdfTrustStatus.Indeterminate;
 
@@ -96,6 +119,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             signatures,
             pdfA,
             pdfUa,
+            revisions,
             diagnostics);
     }
 
@@ -187,7 +211,9 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
     }
 
     private static IReadOnlyList<PdfSignatureInspection> InspectSignatures(
+        ReadOnlySpan<byte> source,
         PdfObjectGraph? graph,
+        IReadOnlyList<PdfCrossReferenceRevision> revisions,
         ICollection<PdfTrustDiagnostic> diagnostics)
     {
         if (graph is null)
@@ -203,21 +229,16 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 continue;
             }
 
-            var byteRange = ReadIntegerArray(graph, dictionary["ByteRange"]);
-            var contents = Resolve(graph, dictionary["Contents"]) as PdfString;
-            signatures.Add(new PdfSignatureInspection(
-                indirectObject.Id.Number,
-                indirectObject.Id.Generation,
-                PdfTrustStatus.Indeterminate,
-                ReadName(graph, dictionary["SubFilter"]),
-                byteRange,
-                contents?.GetDecodedBytes().Length));
-            diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST101",
-                PdfTrustDiagnosticSeverity.Warning,
-                "A signature dictionary was found, but its byte range, CMS value, certificate chain, timestamp, and revision changes have not yet been validated.",
-                indirectObject.Id.Number,
-                indirectObject.Id.Generation));
+            var result = PdfSignatureValidator.Validate(
+                source,
+                indirectObject.Id,
+                dictionary,
+                revisions);
+            signatures.Add(result.Inspection);
+            foreach (var diagnostic in result.Diagnostics)
+            {
+                diagnostics.Add(diagnostic);
+            }
         }
 
         return signatures;
@@ -262,7 +283,6 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
     private static bool IsSignatureDictionary(PdfObjectGraph graph, PdfDictionary dictionary) =>
         string.Equals(ReadName(graph, dictionary["Type"]), "Sig", StringComparison.Ordinal) ||
-        string.Equals(ReadName(graph, dictionary["FT"]), "Sig", StringComparison.Ordinal) ||
         dictionary["ByteRange"] is not null && dictionary["Contents"] is not null;
 
     private static string? DescribeEncryptionAlgorithm(
@@ -310,26 +330,6 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             PdfNumber number when number.Value is >= int.MinValue and <= int.MaxValue => (int)number.Value,
             _ => null
         };
-
-    private static IReadOnlyList<long> ReadIntegerArray(PdfObjectGraph graph, PdfObject? value)
-    {
-        if (Resolve(graph, value) is not PdfArray array)
-        {
-            return [];
-        }
-
-        return array.Items
-            .Select(item => Resolve(graph, item))
-            .Select(item => item switch
-            {
-                PdfInteger integer => (long?)integer.Value,
-                PdfNumber number when number.Value >= long.MinValue && number.Value <= long.MaxValue => (long?)number.Value,
-                _ => null
-            })
-            .Where(item => item.HasValue)
-            .Select(item => item!.Value)
-            .ToArray();
-    }
 
     [GeneratedRegex(@"<\s*pdfaid:part\s*>\s*([1-4])\s*<\s*/\s*pdfaid:part\s*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PdfAPartRegex();

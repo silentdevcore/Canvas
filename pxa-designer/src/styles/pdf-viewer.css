@@ -99,6 +99,57 @@
 .pdfv-trust-grid dd[data-status='2'],
 .pdfv-trust-grid dd[data-status='3'] { color: #b45309; }
 
+.pdfv-signature-list {
+  display: grid;
+  gap: 8px;
+}
+
+.pdfv-signature-item {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(28, 25, 23, 0.12);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.pdfv-signature-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdfv-signature-item dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.pdfv-signature-item dl > div {
+  min-width: 0;
+}
+
+.pdfv-signature-item dt {
+  color: #57534e;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pdfv-signature-item dd {
+  overflow: hidden;
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdfv-signature-item [data-status='0'] { color: #137333; }
+.pdfv-signature-item [data-status='1'] { color: #b42318; }
+.pdfv-signature-item [data-status='2'],
+.pdfv-signature-item [data-status='3'] { color: #b45309; }
+
 .pdfv-trust-diagnostics {
   display: grid;
   gap: 6px;

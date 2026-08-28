@@ -30,6 +30,8 @@ public sealed class PdfTrustControllerTests
         var report = Assert.IsType<PdfTrustReport>(ok.Value);
         Assert.Equal(PdfTrustStatus.Valid, report.StructureStatus);
         Assert.Equal(bytes.Length, report.FileSizeBytes);
+        Assert.Equal(report.RevisionCount, report.Revisions.Count);
+        Assert.All(report.Revisions, revision => Assert.Equal(64, revision.Sha256.Length));
     }
 
     [Fact]
