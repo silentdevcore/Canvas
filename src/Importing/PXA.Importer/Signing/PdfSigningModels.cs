@@ -5,7 +5,18 @@ namespace PXA.Importer.Signing;
 
 public enum PdfPadesProfile
 {
-    BaselineB
+    BaselineB,
+    BaselineT
+}
+
+public sealed record PdfSignatureAppearanceOptions
+{
+    public int PageNumber { get; init; } = 1;
+    public double X { get; init; } = 36;
+    public double Y { get; init; } = 36;
+    public double Width { get; init; } = 180;
+    public double Height { get; init; } = 64;
+    public string? Title { get; init; }
 }
 
 public sealed record PdfSigningOptions
@@ -16,6 +27,7 @@ public sealed record PdfSigningOptions
     public string? ContactInfo { get; init; }
     public DateTimeOffset? SigningTime { get; init; }
     public PdfPadesProfile Profile { get; init; } = PdfPadesProfile.BaselineB;
+    public PdfSignatureAppearanceOptions? Appearance { get; init; }
     public int ContentsPlaceholderBytes { get; init; } = 32 * 1024;
 }
 
@@ -27,7 +39,26 @@ public sealed record PdfSigningResult(
     string SignerSubject,
     string CertificateThumbprint,
     DateTimeOffset SigningTime,
-    int RevisionCount);
+    int RevisionCount,
+    DateTimeOffset? TimestampTime = null,
+    string? TimestampAuthoritySubject = null);
+
+public sealed record PdfTimestampToken(
+    byte[] Cms,
+    DateTimeOffset Timestamp,
+    string AuthoritySubject,
+    string AuthorityThumbprint);
+
+public sealed class PdfTimestampAuthorityException(string message, Exception innerException)
+    : Exception(message, innerException);
+
+public interface IPdfTimestampAuthority
+{
+    Task<PdfTimestampToken> GetTimestampTokenAsync(
+        ReadOnlyMemory<byte> signatureDigest,
+        HashAlgorithmName digestAlgorithm,
+        CancellationToken cancellationToken = default);
+}
 
 public interface IPdfSigningKey
 {

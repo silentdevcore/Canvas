@@ -40,6 +40,9 @@ export interface PdfTrustReport {
     signerSubject?: string | null;
     signerThumbprint?: string | null;
     signingTime?: string | null;
+    timestampStatus: PdfTrustStatus;
+    timestampTime?: string | null;
+    timestampAuthoritySubject?: string | null;
     coversWholeDocument: boolean;
     signedRevisionEndOffset?: number | null;
   }>;

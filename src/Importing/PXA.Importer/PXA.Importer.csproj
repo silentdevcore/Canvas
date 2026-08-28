@@ -8,6 +8,10 @@
     <ProjectReference Include="../../Infrastructure/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.8" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

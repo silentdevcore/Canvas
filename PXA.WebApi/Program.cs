@@ -120,6 +120,22 @@ builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformation>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
+builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityOptions>()
+    .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityOptions.SectionName))
+    .Validate(
+        options => string.IsNullOrWhiteSpace(options.Endpoint) ||
+                   Uri.TryCreate(options.Endpoint, UriKind.Absolute, out var endpoint) &&
+                   endpoint.Scheme == Uri.UriSchemeHttps,
+        "The PDF timestamp authority endpoint must be an absolute HTTPS URI.")
+    .Validate(
+        options => options.MaximumResponseBytes is >= 1024 and <= 16 * 1024 * 1024,
+        "The PDF timestamp response limit must be between 1 KiB and 16 MiB.")
+    .ValidateOnStart();
+builder.Services.AddHttpClient(PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityFactory.HttpClientName, client =>
+    client.Timeout = TimeSpan.FromSeconds(20))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTimestampAuthorityFactory,
+    PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityFactory>();
 builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))

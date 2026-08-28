@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using PXA.Importer.Signing;
 using PXA.Importer.Trust;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.WebApi.Controllers;
 
@@ -13,7 +14,8 @@ namespace PXA.WebApi.Controllers;
 [EnableRateLimiting("designer-code")]
 public sealed class PdfSignaturesController(
     IPdfPadesSigningService signingService,
-    IPdfTrustInspector trustInspector) : ControllerBase
+    IPdfTrustInspector trustInspector,
+    IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory) : ControllerBase
 {
     private const long MaximumPdfBytes = 100L * 1024 * 1024;
     private const long MaximumCertificateBytes = 10L * 1024 * 1024;
@@ -63,20 +65,54 @@ public sealed class PdfSignaturesController(
             var pdfBytes = await ReadFileAsync(request.Pdf, MaximumPdfBytes, cancellationToken);
             certificateBytes = await ReadFileAsync(request.Certificate, MaximumCertificateBytes, cancellationToken);
             using var signingKey = new PdfPkcs12SigningKey(certificateBytes, request.CertificatePassword);
-            var result = signingService.Sign(
+            var timestampAuthority = request.Profile == PdfPadesProfile.BaselineT
+                ? timestampAuthorityFactory.Create()
+                : null;
+            if (request.Profile == PdfPadesProfile.BaselineT && timestampAuthority is null)
+            {
+                return SigningProblem(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "PXAPDFTRUSTAPI105",
+                    "PAdES B-T signing is unavailable",
+                    "The server does not have an RFC 3161 timestamp authority configured.");
+            }
+
+            var result = await signingService.SignAsync(
                 pdfBytes,
                 signingKey,
                 new PdfSigningOptions
                 {
+                    Profile = request.Profile,
                     FieldName = request.FieldName ?? "Signature1",
                     Reason = request.Reason,
                     Location = request.Location,
-                    ContactInfo = request.ContactInfo
-                });
+                    ContactInfo = request.ContactInfo,
+                    Appearance = request.Visible
+                        ? new PdfSignatureAppearanceOptions
+                        {
+                            PageNumber = request.PageNumber ?? 1,
+                            X = request.X ?? 36,
+                            Y = request.Y ?? 36,
+                            Width = request.Width ?? 180,
+                            Height = request.Height ?? 64,
+                            Title = request.AppearanceTitle
+                        }
+                        : null
+                },
+                timestampAuthority,
+                cancellationToken);
             var baseName = Path.GetFileNameWithoutExtension(request.Pdf.FileName);
             var downloadName = $"{(string.IsNullOrWhiteSpace(baseName) ? "document" : baseName)}.signed.pdf";
-            Response.Headers["X-PXA-PAdES-Profile"] = "B-B";
+            Response.Headers["X-PXA-PAdES-Profile"] = result.Profile == PdfPadesProfile.BaselineT ? "B-T" : "B-B";
             return File(result.Bytes, "application/pdf", downloadName);
+        }
+        catch (PdfTimestampAuthorityException)
+        {
+            return SigningProblem(
+                StatusCodes.Status502BadGateway,
+                "PXAPDFTRUSTAPI106",
+                "The PDF timestamp could not be obtained",
+                "The configured RFC 3161 timestamp authority did not return a valid trusted response.");
         }
         catch (Exception exception) when (exception is
             CryptographicException or InvalidDataException or ArgumentException or
@@ -200,4 +236,12 @@ public sealed class PdfSignatureSignRequest
     public string? Reason { get; init; }
     public string? Location { get; init; }
     public string? ContactInfo { get; init; }
+    public bool Visible { get; init; }
+    public int? PageNumber { get; init; }
+    public double? X { get; init; }
+    public double? Y { get; init; }
+    public double? Width { get; init; }
+    public double? Height { get; init; }
+    public string? AppearanceTitle { get; init; }
+    public PdfPadesProfile Profile { get; init; } = PdfPadesProfile.BaselineB;
 }

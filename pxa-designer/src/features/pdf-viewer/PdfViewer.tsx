@@ -326,6 +326,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     coverage: t('coverage'),
     certificateTrust: t('certificateTrust'),
     signer: t('signer'),
+    timestamp: t('timestamp'),
+    timestampAuthority: t('timestampAuthority'),
+    timestampTime: t('timestampTime'),
     wholeDocument: t('wholeDocument'),
     earlierRevision: t('earlierRevision'),
     revisions: t('revisions'),
@@ -1620,6 +1623,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           <div><dt>PAdES</dt><dd>{signature.padesProfile ?? labels.notDetected}</dd></div>
                           <div><dt>Digest</dt><dd>{signature.digestAlgorithm ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.signer}</dt><dd title={signature.signerSubject ?? undefined}>{signature.signerSubject ?? labels.notDetected}</dd></div>
+                          <div><dt>{labels.timestamp}</dt><dd data-status={signature.timestampStatus}>{trustStatusLabel(signature.timestampStatus)}</dd></div>
+                          {signature.timestampTime && (
+                            <div><dt>{labels.timestampTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.timestampTime))}</dd></div>
+                          )}
+                          {signature.timestampAuthoritySubject && (
+                            <div><dt>{labels.timestampAuthority}</dt><dd title={signature.timestampAuthoritySubject}>{signature.timestampAuthoritySubject}</dd></div>
+                          )}
                         </dl>
                       </section>
                     ))}

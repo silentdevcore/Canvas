@@ -1,6 +1,8 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Signing;
@@ -162,6 +164,97 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Contains("already exists", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task Sign_ShouldCreateVisibleWidgetAppearanceOnRequestedPage()
+    {
+        using var fixture = SigningFixture.Create();
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Page one", 40, 40);
+        document.AddPage().DrawText("Page two", 40, 40);
+
+        var result = new PdfPadesSigningService().Sign(
+            document.ToBytes(),
+            fixture.Key,
+            new PdfSigningOptions
+            {
+                FieldName = "VisibleApproval",
+                Reason = "Approved for release",
+                SigningTime = fixture.SigningTime,
+                Appearance = new PdfSignatureAppearanceOptions
+                {
+                    PageNumber = 2,
+                    X = 72,
+                    Y = 80,
+                    Width = 220,
+                    Height = 72,
+                    Title = "PXA approval"
+                }
+            });
+
+        var widget = ParseWidget(result.Bytes, "VisibleApproval");
+        Assert.Equal([72d, 80d, 292d, 152d], widget.Rectangle);
+        Assert.Equal("Page", widget.PageType);
+        Assert.Contains("PXA approval", widget.AppearanceContent, StringComparison.Ordinal);
+        Assert.Contains("PXA PDF Signing Test", widget.AppearanceContent, StringComparison.Ordinal);
+        Assert.Contains("Approved for release", widget.AppearanceContent, StringComparison.Ordinal);
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(stream)).Signatures);
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+    }
+
+    [Fact]
+    public async Task SignAsync_ShouldCreatePadesBaselineTWithRfc3161Timestamp()
+    {
+        using var fixture = SigningFixture.Create();
+        using var timestampAuthority = TestTimestampAuthority.Create(fixture.SigningTime.AddSeconds(5));
+
+        var result = await new PdfPadesSigningService().SignAsync(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions
+            {
+                FieldName = "TimestampedApproval",
+                Profile = PdfPadesProfile.BaselineT,
+                SigningTime = fixture.SigningTime
+            },
+            timestampAuthority);
+
+        Assert.Equal(PdfPadesProfile.BaselineT, result.Profile);
+        Assert.Equal(timestampAuthority.Timestamp, result.TimestampTime);
+        await using var stream = new MemoryStream(result.Bytes);
+        var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(stream)).Signatures);
+        Assert.Equal("B-T", signature.PadesProfile);
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Indeterminate, signature.TimestampStatus);
+        Assert.Equal(timestampAuthority.Timestamp, signature.TimestampTime);
+        Assert.Contains("PXA Test TSA", signature.TimestampAuthoritySubject, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SignAsync_ShouldRejectTimestampCertificateWithoutExclusiveTimestampingEkuOnValidation()
+    {
+        using var fixture = SigningFixture.Create();
+        using var timestampAuthority = TestTimestampAuthority.Create(
+            fixture.SigningTime.AddSeconds(5),
+            includeTimestampingEku: false);
+
+        var result = await new PdfPadesSigningService().SignAsync(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions
+            {
+                Profile = PdfPadesProfile.BaselineT,
+                SigningTime = fixture.SigningTime
+            },
+            timestampAuthority);
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(stream)).Signatures);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.TimestampStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
+    }
+
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
@@ -185,6 +278,46 @@ public sealed class PdfPadesSigningServiceTests
             .OfType<PdfDictionary>()
             .Any(field => field["V"] is PdfReference reference && reference.Id == signatureId);
         return new ParsedSignature(contents, referencesSignature);
+    }
+
+    private static ParsedWidget ParseWidget(byte[] bytes, string fieldName)
+    {
+        var context = new PdfParseContext(bytes, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var catalog = Assert.IsType<PdfDictionary>(Resolve(graph, graph.Trailer?["Root"]));
+        var acroForm = Assert.IsType<PdfDictionary>(Resolve(graph, catalog["AcroForm"]));
+        var fields = Assert.IsType<PdfArray>(Resolve(graph, acroForm["Fields"]));
+        var widgets = fields.Items
+            .Select(field => Resolve(graph, field))
+            .OfType<PdfDictionary>();
+        var widget = Assert.Single(
+            widgets,
+            field => field["T"] is PdfString name && DecodePdfString(name) == fieldName);
+        var rectangle = Assert.IsType<PdfArray>(widget["Rect"])
+            .Items
+            .Select(item => item switch
+            {
+                PdfNumber number => number.Value,
+                PdfInteger integer => integer.Value,
+                _ => double.NaN
+            })
+            .ToArray();
+        var page = Assert.IsType<PdfDictionary>(Resolve(graph, widget["P"]));
+        var appearance = Assert.IsType<PdfDictionary>(widget["AP"]);
+        var appearanceStream = Assert.IsType<PdfStreamObject>(Resolve(graph, appearance["N"]));
+        return new ParsedWidget(
+            rectangle,
+            Assert.IsType<PdfName>(page["Type"]).Value,
+            Encoding.ASCII.GetString(appearanceStream.EncodedBytes.Span));
+    }
+
+    private static string DecodePdfString(PdfString value)
+    {
+        var content = value.GetDecodedBytes().Span;
+        return content.Length >= 2 && content[0] == 0xFE && content[1] == 0xFF
+            ? Encoding.BigEndianUnicode.GetString(content[2..])
+            : Encoding.Latin1.GetString(content);
     }
 
     private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value)
@@ -298,6 +431,8 @@ public sealed class PdfPadesSigningServiceTests
 
     private sealed record ParsedSignature(byte[] Contents, bool IsReferencedByAcroForm);
 
+    private sealed record ParsedWidget(double[] Rectangle, string PageType, string AppearanceContent);
+
     private sealed record CmsData(byte[] SignedAttributes, byte[] Signature, byte[] MessageDigest);
 
     private sealed class SigningFixture : IDisposable
@@ -329,5 +464,95 @@ public sealed class PdfPadesSigningServiceTests
         }
 
         public void Dispose() => Key.Dispose();
+    }
+
+    private sealed class TestTimestampAuthority : IPdfTimestampAuthority, IDisposable
+    {
+        private const string TimestampInfoOid = "1.2.840.113549.1.9.16.1.4";
+        private const string TimestampingExtendedKeyUsageOid = "1.3.6.1.5.5.7.3.8";
+        private readonly X509Certificate2 _certificate;
+
+        private TestTimestampAuthority(X509Certificate2 certificate, DateTimeOffset timestamp)
+        {
+            _certificate = certificate;
+            Timestamp = timestamp;
+        }
+
+        public DateTimeOffset Timestamp { get; }
+
+        public static TestTimestampAuthority Create(
+            DateTimeOffset timestamp,
+            bool includeTimestampingEku = true)
+        {
+            using var rsa = RSA.Create(2048);
+            var request = new CertificateRequest(
+                "CN=PXA Test TSA",
+                rsa,
+                HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1);
+            request.CertificateExtensions.Add(new X509KeyUsageExtension(
+                X509KeyUsageFlags.DigitalSignature,
+                critical: true));
+            if (includeTimestampingEku)
+            {
+                var usages = new OidCollection { new(TimestampingExtendedKeyUsageOid) };
+                request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(usages, critical: true));
+            }
+            return new TestTimestampAuthority(
+                request.CreateSelfSigned(timestamp.AddDays(-1), timestamp.AddDays(1)),
+                timestamp);
+        }
+
+        public Task<PdfTimestampToken> GetTimestampTokenAsync(
+            ReadOnlyMemory<byte> signatureDigest,
+            HashAlgorithmName digestAlgorithm,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Assert.Equal(HashAlgorithmName.SHA256, digestAlgorithm);
+            var tokenInfo = new Rfc3161TimestampTokenInfo(
+                new Oid("1.2.3.4.5"),
+                new Oid("2.16.840.1.101.3.4.2.1"),
+                signatureDigest,
+                new byte[] { 1 },
+                Timestamp,
+                accuracyInMicroseconds: null,
+                isOrdering: false,
+                nonce: null,
+                timestampAuthorityName: null,
+                extensions: null);
+            var cms = new SignedCms(
+                new ContentInfo(new Oid(TimestampInfoOid), tokenInfo.Encode()),
+                detached: false);
+            var signer = new CmsSigner(SubjectIdentifierType.IssuerAndSerialNumber, _certificate)
+            {
+                IncludeOption = X509IncludeOption.EndCertOnly,
+                DigestAlgorithm = new Oid("2.16.840.1.101.3.4.2.1")
+            };
+            signer.SignedAttributes.Add(new AsnEncodedData(
+                new Oid("1.2.840.113549.1.9.16.2.47"),
+                BuildSigningCertificateV2(_certificate)));
+            cms.ComputeSignature(signer);
+            return Task.FromResult(new PdfTimestampToken(
+                cms.Encode(),
+                Timestamp,
+                _certificate.Subject,
+                _certificate.Thumbprint));
+        }
+
+        public void Dispose() => _certificate.Dispose();
+
+        private static byte[] BuildSigningCertificateV2(X509Certificate2 certificate)
+        {
+            var writer = new AsnWriter(AsnEncodingRules.DER);
+            writer.PushSequence();
+            writer.PushSequence();
+            writer.PushSequence();
+            writer.WriteOctetString(SHA256.HashData(certificate.RawData));
+            writer.PopSequence();
+            writer.PopSequence();
+            writer.PopSequence();
+            return writer.Encode();
+        }
     }
 }

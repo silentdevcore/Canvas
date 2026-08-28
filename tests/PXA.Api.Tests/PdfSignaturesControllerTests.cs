@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using PXA.Importer.Trust;
 using PXA.Pdf;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.Api.Tests;
 
@@ -59,6 +61,53 @@ public sealed class PdfSignaturesControllerTests
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
         Assert.Equal("PXAPDFTRUSTAPI104", details.Extensions["code"]);
+    }
+
+    [Fact]
+    public async Task Sign_CreatesVisibleAppearanceWhenRequested()
+    {
+        var controller = CreateController();
+        var response = await controller.Sign(
+            new PdfSignatureSignRequest
+            {
+                Pdf = CreateFile(CreatePdf(), "pdf", "visible.pdf", "application/pdf"),
+                Certificate = CreateFile(CreatePkcs12("test-password"), "certificate", "signer.pfx", "application/x-pkcs12"),
+                CertificatePassword = "test-password",
+                Visible = true,
+                PageNumber = 1,
+                X = 48,
+                Y = 52,
+                Width = 210,
+                Height = 70,
+                AppearanceTitle = "Release signature"
+            },
+            CancellationToken.None);
+
+        var file = Assert.IsType<FileContentResult>(response);
+        var pdfText = Encoding.Latin1.GetString(file.FileContents);
+        Assert.Contains("/Subtype /Widget", pdfText, StringComparison.Ordinal);
+        Assert.Contains("/AP", pdfText, StringComparison.Ordinal);
+        Assert.Contains("Release signature", pdfText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Sign_ReturnsServiceUnavailableWhenBaselineTIsNotConfigured()
+    {
+        var controller = CreateController();
+        var response = await controller.Sign(
+            new PdfSignatureSignRequest
+            {
+                Pdf = CreateFile(CreatePdf(), "pdf", "timestamped.pdf", "application/pdf"),
+                Certificate = CreateFile(CreatePkcs12("test-password"), "certificate", "signer.pfx", "application/x-pkcs12"),
+                CertificatePassword = "test-password",
+                Profile = PdfPadesProfile.BaselineT
+            },
+            CancellationToken.None);
+
+        var problem = Assert.IsType<ObjectResult>(response);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(problem.Value);
+        Assert.Equal("PXAPDFTRUSTAPI105", details.Extensions["code"]);
     }
 
     [Fact]
@@ -119,10 +168,16 @@ public sealed class PdfSignaturesControllerTests
 
     private static PdfSignaturesController CreateController() => new(
         new PdfPadesSigningService(),
-        new PdfTrustInspector())
+        new PdfTrustInspector(),
+        new EmptyTimestampAuthorityFactory())
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
+
+    private sealed class EmptyTimestampAuthorityFactory : IPxaPdfTimestampAuthorityFactory
+    {
+        public IPdfTimestampAuthority? Create() => null;
+    }
 
     private static FormFile CreateFile(byte[] bytes, string fieldName, string fileName, string contentType) =>
         new(new MemoryStream(bytes), 0, bytes.Length, fieldName, fileName)

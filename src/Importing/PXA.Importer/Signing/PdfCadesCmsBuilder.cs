@@ -8,7 +8,8 @@ internal sealed record PdfCadesCmsResult(
     byte[] Cms,
     byte[] SignedAttributes,
     byte[] Signature,
-    byte[] DocumentDigest);
+    byte[] DocumentDigest,
+    PdfTimestampToken? TimestampToken = null);
 
 internal static class PdfCadesCmsBuilder
 {
@@ -18,6 +19,7 @@ internal static class PdfCadesCmsBuilder
     private const string MessageDigestAttributeOid = "1.2.840.113549.1.9.4";
     private const string SigningTimeAttributeOid = "1.2.840.113549.1.9.5";
     private const string SigningCertificateV2AttributeOid = "1.2.840.113549.1.9.16.2.47";
+    private const string SignatureTimestampTokenAttributeOid = "1.2.840.113549.1.9.16.2.14";
     private const string Sha256Oid = "2.16.840.1.101.3.4.2.1";
     private const string RsaEncryptionOid = "1.2.840.113549.1.1.1";
 
@@ -36,7 +38,7 @@ internal static class PdfCadesCmsBuilder
         var signedAttributes = BuildSignedAttributes(documentDigest, certificate, signingTime);
         var attributesDigest = SHA256.HashData(signedAttributes);
         var signature = signingKey.SignHash(attributesDigest, HashAlgorithmName.SHA256);
-        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature);
+        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, timestampToken: null);
         var signedData = BuildSignedData(certificate, signerInfo);
         var contentInfo = new AsnWriter(AsnEncodingRules.DER);
         contentInfo.PushSequence();
@@ -51,6 +53,51 @@ internal static class PdfCadesCmsBuilder
             signedAttributes,
             signature,
             documentDigest.ToArray());
+    }
+
+    public static async Task<PdfCadesCmsResult> CreateDetachedWithTimestampAsync(
+        ReadOnlyMemory<byte> documentDigest,
+        IPdfSigningKey signingKey,
+        DateTimeOffset signingTime,
+        IPdfTimestampAuthority timestampAuthority,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(signingKey);
+        ArgumentNullException.ThrowIfNull(timestampAuthority);
+        if (documentDigest.Length != SHA256.HashSizeInBytes)
+        {
+            throw new ArgumentException("PAdES Baseline T requires a SHA-256 document digest.", nameof(documentDigest));
+        }
+
+        var certificate = signingKey.Certificate;
+        var signedAttributes = BuildSignedAttributes(documentDigest.Span, certificate, signingTime);
+        var attributesDigest = SHA256.HashData(signedAttributes);
+        var signature = signingKey.SignHash(attributesDigest, HashAlgorithmName.SHA256);
+        var timestampToken = await timestampAuthority.GetTimestampTokenAsync(
+            SHA256.HashData(signature),
+            HashAlgorithmName.SHA256,
+            cancellationToken).ConfigureAwait(false);
+        if (timestampToken.Cms.Length == 0)
+        {
+            throw new CryptographicException("The timestamp authority returned an empty RFC 3161 token.");
+        }
+
+        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, timestampToken.Cms);
+        var signedData = BuildSignedData(certificate, signerInfo);
+        var contentInfo = new AsnWriter(AsnEncodingRules.DER);
+        contentInfo.PushSequence();
+        contentInfo.WriteObjectIdentifier(SignedDataOid);
+        contentInfo.PushSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
+        contentInfo.WriteEncodedValue(signedData);
+        contentInfo.PopSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
+        contentInfo.PopSequence();
+
+        return new PdfCadesCmsResult(
+            contentInfo.Encode(),
+            signedAttributes,
+            signature,
+            documentDigest.ToArray(),
+            timestampToken);
     }
 
     private static byte[] BuildSignedAttributes(
@@ -96,7 +143,8 @@ internal static class PdfCadesCmsBuilder
     private static byte[] BuildSignerInfo(
         X509Certificate2 certificate,
         byte[] signedAttributes,
-        byte[] signature)
+        byte[] signature,
+        byte[]? timestampToken)
     {
         var writer = new AsnWriter(AsnEncodingRules.DER);
         writer.PushSequence();
@@ -115,6 +163,19 @@ internal static class PdfCadesCmsBuilder
 
         WriteAlgorithmIdentifier(writer, RsaEncryptionOid);
         writer.WriteOctetString(signature);
+        if (timestampToken is not null)
+        {
+            var unsignedAttributes = new AsnWriter(AsnEncodingRules.DER);
+            unsignedAttributes.PushSetOf();
+            unsignedAttributes.WriteEncodedValue(BuildAttribute(
+                SignatureTimestampTokenAttributeOid,
+                values => values.WriteEncodedValue(timestampToken)));
+            unsignedAttributes.PopSetOf();
+            var implicitUnsignedAttributes = unsignedAttributes.Encode();
+            implicitUnsignedAttributes[0] = 0xA1;
+            writer.WriteEncodedValue(implicitUnsignedAttributes);
+        }
+
         writer.PopSequence();
         return writer.Encode();
     }

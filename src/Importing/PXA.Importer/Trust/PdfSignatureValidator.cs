@@ -1,5 +1,6 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using PXA.Importer.Objects;
 using PXA.Importer.Xref;
@@ -16,6 +17,7 @@ internal static class PdfSignatureValidator
     private const string MessageDigestAttributeOid = "1.2.840.113549.1.9.4";
     private const string SigningTimeAttributeOid = "1.2.840.113549.1.9.5";
     private const string SigningCertificateV2AttributeOid = "1.2.840.113549.1.9.16.2.47";
+    private const string SignatureTimestampTokenAttributeOid = "1.2.840.113549.1.9.16.2.14";
     private const string Sha256Oid = "2.16.840.1.101.3.4.2.1";
     private const string Sha384Oid = "2.16.840.1.101.3.4.2.2";
     private const string Sha512Oid = "2.16.840.1.101.3.4.2.3";
@@ -23,6 +25,7 @@ internal static class PdfSignatureValidator
     private const string Sha256WithRsaOid = "1.2.840.113549.1.1.11";
     private const string Sha384WithRsaOid = "1.2.840.113549.1.1.12";
     private const string Sha512WithRsaOid = "1.2.840.113549.1.1.13";
+    private const string TimestampingExtendedKeyUsageOid = "1.3.6.1.5.5.7.3.8";
 
     public static PdfSignatureValidationResult Validate(
         ReadOnlySpan<byte> source,
@@ -114,7 +117,9 @@ internal static class PdfSignatureValidator
                      parsed.SigningCertificateV2Hash));
             var signatureMatches = certificate is not null &&
                 VerifySignature(certificate, parsed, hashAlgorithm);
-            var integrityStatus = messageDigestMatches && signingCertificateMatches && signatureMatches
+            var timestamp = ValidateTimestamp(parsed);
+            var integrityStatus = messageDigestMatches && signingCertificateMatches && signatureMatches &&
+                                  timestamp.Status != PdfTrustStatus.Invalid
                 ? PdfTrustStatus.Valid
                 : PdfTrustStatus.Invalid;
             var certificateStatus = certificate is null
@@ -153,6 +158,24 @@ internal static class PdfSignatureValidator
                     signatureId));
             }
 
+            if (timestamp.Status != PdfTrustStatus.NotApplicable)
+            {
+                diagnostics.Add(Diagnostic(
+                    timestamp.Status == PdfTrustStatus.Invalid ? "PXAPDFTRUST114" : "PXAPDFTRUST113",
+                    timestamp.Status == PdfTrustStatus.Invalid
+                        ? PdfTrustDiagnosticSeverity.Error
+                        : timestamp.Status == PdfTrustStatus.Valid
+                            ? PdfTrustDiagnosticSeverity.Info
+                            : PdfTrustDiagnosticSeverity.Warning,
+                    timestamp.Status switch
+                    {
+                        PdfTrustStatus.Valid => "The RFC 3161 signature timestamp and TSA certificate chain are valid.",
+                        PdfTrustStatus.Indeterminate => "The RFC 3161 signature timestamp is cryptographically valid, but its TSA chain is not trusted by the current host trust store.",
+                        _ => "The RFC 3161 signature timestamp token or message imprint is invalid."
+                    },
+                    signatureId));
+            }
+
             return new PdfSignatureValidationResult(
                 baseInspection with
                 {
@@ -166,7 +189,10 @@ internal static class PdfSignatureValidator
                     SignerThumbprint = certificate?.Thumbprint,
                     SigningTime = parsed.SigningTime,
                     CoversWholeDocument = coversWholeDocument,
-                    SignedRevisionEndOffset = signedRevisionEnd
+                    SignedRevisionEndOffset = signedRevisionEnd,
+                    TimestampStatus = timestamp.Status,
+                    TimestampTime = timestamp.Time,
+                    TimestampAuthoritySubject = timestamp.AuthoritySubject
                 },
                 diagnostics);
         }
@@ -300,6 +326,15 @@ internal static class PdfSignatureValidator
         var attributes = ReadAttributes(signedAttributes);
         var signatureAlgorithmOid = ReadAlgorithmIdentifier(signerInfo.ReadSequence());
         var signatureValue = signerInfo.ReadOctetString();
+        byte[]? timestampToken = null;
+        var unsignedAttributesTag = new Asn1Tag(TagClass.ContextSpecific, 1, true);
+        if (signerInfo.HasData && signerInfo.PeekTag().HasSameClassAndValue(unsignedAttributesTag))
+        {
+            var encodedUnsignedAttributes = signerInfo.ReadEncodedValue().ToArray();
+            encodedUnsignedAttributes[0] = 0x31;
+            timestampToken = ReadTimestampToken(encodedUnsignedAttributes);
+        }
+
         return new ParsedCms(
             signerDigestOid ?? digestAlgorithmOid,
             signatureAlgorithmOid,
@@ -308,7 +343,25 @@ internal static class PdfSignatureValidator
             attributes.MessageDigest,
             attributes.SigningCertificateV2Hash,
             attributes.SigningTime,
-            certificates);
+            certificates,
+            timestampToken);
+    }
+
+    private static byte[]? ReadTimestampToken(byte[] encodedUnsignedAttributes)
+    {
+        var attributes = new AsnReader(encodedUnsignedAttributes, AsnEncodingRules.BER).ReadSetOf();
+        while (attributes.HasData)
+        {
+            var attribute = attributes.ReadSequence();
+            var oid = attribute.ReadObjectIdentifier();
+            var values = attribute.ReadSetOf();
+            if (oid == SignatureTimestampTokenAttributeOid)
+            {
+                return values.ReadEncodedValue().ToArray();
+            }
+        }
+
+        return null;
     }
 
     private static ParsedAttributes ReadAttributes(byte[] encodedAttributes)
@@ -412,6 +465,65 @@ internal static class PdfSignatureValidator
         return onlyTrustAnchorMissing ? PdfTrustStatus.Indeterminate : PdfTrustStatus.Invalid;
     }
 
+    private static TimestampValidation ValidateTimestamp(ParsedCms cms)
+    {
+        if (cms.TimestampToken is null)
+        {
+            return new TimestampValidation(PdfTrustStatus.NotApplicable, null, null);
+        }
+
+        try
+        {
+            if (!Rfc3161TimestampToken.TryDecode(cms.TimestampToken, out var token, out var bytesConsumed) ||
+                token is null || bytesConsumed != cms.TimestampToken.Length ||
+                !TryGetHashAlgorithm(token.TokenInfo.HashAlgorithmId.Value ?? string.Empty, out var hashAlgorithm, out _))
+            {
+                return new TimestampValidation(PdfTrustStatus.Invalid, null, null);
+            }
+
+            var tokenCms = token.AsSignedCms();
+            if (!token.VerifySignatureForHash(
+                    HashData(hashAlgorithm, cms.Signature),
+                    hashAlgorithm,
+                    out var timestampCertificate,
+                    tokenCms.Certificates) ||
+                timestampCertificate is null)
+            {
+                return new TimestampValidation(PdfTrustStatus.Invalid, token.TokenInfo.Timestamp, null);
+            }
+
+            using (timestampCertificate)
+            {
+                var enhancedKeyUsage = timestampCertificate.Extensions
+                    .OfType<X509EnhancedKeyUsageExtension>()
+                    .FirstOrDefault();
+                if (enhancedKeyUsage is null ||
+                    !enhancedKeyUsage.Critical ||
+                    enhancedKeyUsage.EnhancedKeyUsages.Count != 1 ||
+                    enhancedKeyUsage.EnhancedKeyUsages[0].Value != TimestampingExtendedKeyUsageOid)
+                {
+                    return new TimestampValidation(
+                        PdfTrustStatus.Invalid,
+                        token.TokenInfo.Timestamp,
+                        timestampCertificate.Subject);
+                }
+
+                var certificateStatus = ValidateCertificate(
+                    timestampCertificate,
+                    tokenCms.Certificates.Cast<X509Certificate2>().ToArray(),
+                    token.TokenInfo.Timestamp);
+                return new TimestampValidation(
+                    certificateStatus,
+                    token.TokenInfo.Timestamp,
+                    timestampCertificate.Subject);
+            }
+        }
+        catch (CryptographicException)
+        {
+            return new TimestampValidation(PdfTrustStatus.Invalid, null, null);
+        }
+    }
+
     private static bool TryGetHashAlgorithm(
         string oid,
         out HashAlgorithmName algorithm,
@@ -439,7 +551,7 @@ internal static class PdfSignatureValidator
     private static string? DescribePadesProfile(string? subFilter, ParsedCms cms) =>
         string.Equals(subFilter, "ETSI.CAdES.detached", StringComparison.Ordinal) &&
         cms.SigningCertificateV2Hash is not null
-            ? "B-B"
+            ? cms.TimestampToken is null ? "B-B" : "B-T"
             : null;
 
     private static string ReadAlgorithmIdentifier(AsnReader algorithmIdentifier)
@@ -520,5 +632,11 @@ internal static class PdfSignatureValidator
         byte[]? MessageDigest,
         byte[]? SigningCertificateV2Hash,
         DateTimeOffset? SigningTime,
-        IReadOnlyList<X509Certificate2> Certificates);
+        IReadOnlyList<X509Certificate2> Certificates,
+        byte[]? TimestampToken);
+
+    private sealed record TimestampValidation(
+        PdfTrustStatus Status,
+        DateTimeOffset? Time,
+        string? AuthoritySubject);
 }

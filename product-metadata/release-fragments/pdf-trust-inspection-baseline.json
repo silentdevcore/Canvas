@@ -8,7 +8,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds interoperable PAdES B-B signing, cryptographic PDF signature validation, revision hashes, conservative change-impact reporting, and a localized Viewer trust panel with separate integrity, coverage, and certificate-trust results.",
+  "summary": "PXA adds interoperable PAdES B-B and B-T signing, visible and invisible signature appearances, RFC 3161 timestamp validation, revision hashes, conservative change-impact reporting, and localized Viewer trust details for integrity, coverage, certificate trust, and timestamps.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

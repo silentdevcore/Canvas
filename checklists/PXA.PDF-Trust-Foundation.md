@@ -115,10 +115,10 @@ Reference material:
   providers through an `IPdfSigningKey` abstraction.
 - [x] Never persist raw private-key bytes or passwords in template JSON, jobs, logs,
   telemetry, or audit payloads.
-- [ ] Support visible and invisible signature fields and preserve existing AcroForm
+- [x] Support visible and invisible signature fields and preserve existing AcroForm
   fields and appearances.
 - [x] Preserve existing AcroForm fields and support standards-compatible invisible
-  signature widgets; visible signature appearances remain open.
+  signature widgets and visible signature appearances on a selected page.
 - [x] Implement detached CMS signatures with correct `/ByteRange`, `/Contents`,
   digest calculation, placeholder sizing, and incremental save.
 - [x] Support SHA-256 or stronger digests only for new signatures.
@@ -126,6 +126,9 @@ Reference material:
   validation material, and B-LTA with archive timestamps.
 - [x] Produce interoperable PAdES Baseline B-B signatures validated independently by
   OpenSSL CAdES verification and Poppler `pdfsig`.
+- [x] Produce PAdES Baseline B-T signatures with a bounded, HTTPS-only RFC 3161 TSA
+  client, validate nonce, message imprint, TSA EKU, token signature, and configured
+  host trust, and expose B-T only when a server-side TSA is configured.
 - [ ] Add document timestamps independently from approval signatures.
 - [x] Support multiple sequential signatures without invalidating earlier revisions.
 
@@ -137,6 +140,8 @@ Reference material:
 - [x] Validate detached CMS integrity, SHA-256/384/512 document digest, signed byte
   ranges, complete revision boundaries, SigningCertificateV2 binding, RSA signature,
   signing time, host certificate chain, and PAdES B-B profile as separate statuses.
+- [x] Validate embedded RFC 3161 signature timestamps separately from approval
+  signature integrity and report timestamp time, TSA identity, and B-T profile.
 - [ ] Detect unsigned bytes, overlapping ranges, wrapping/shadow attacks, invalid
   incremental revisions, and disallowed changes after certification signatures.
 - [x] Return signer identity and certificate metadata without treating a valid
@@ -257,8 +262,8 @@ Reference material:
   - [x] Baseline panel shows structure, revisions, encryption, signature candidates,
     PDF/A/PDF/UA metadata claims, hashes, and diagnostics.
   - [x] Signature cards show cryptographic integrity, revision coverage, certificate
-    trust, signer, digest, and PAdES profile; timestamps, revocation, risky content,
-    and attachments remain open.
+    trust, signer, digest, PAdES profile, timestamp status, timestamp time, and TSA
+    identity; revocation, risky content, and attachments remain open.
 - [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
 - [ ] Show signature field location, signer/certificate details, signed revision,

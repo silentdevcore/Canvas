@@ -48,7 +48,10 @@ public sealed record PdfSignatureInspection(
     string? SignerThumbprint = null,
     DateTimeOffset? SigningTime = null,
     bool CoversWholeDocument = false,
-    long? SignedRevisionEndOffset = null);
+    long? SignedRevisionEndOffset = null,
+    PdfTrustStatus TimestampStatus = PdfTrustStatus.NotApplicable,
+    DateTimeOffset? TimestampTime = null,
+    string? TimestampAuthoritySubject = null);
 
 public sealed record PdfComplianceClaim(
     string Standard,

@@ -12,6 +12,13 @@ namespace PXA.Importer.Signing;
 public interface IPdfPadesSigningService
 {
     PdfSigningResult Sign(ReadOnlyMemory<byte> source, IPdfSigningKey signingKey, PdfSigningOptions? options = null);
+
+    Task<PdfSigningResult> SignAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfSigningKey signingKey,
+        PdfSigningOptions? options = null,
+        IPdfTimestampAuthority? timestampAuthority = null,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class PdfPadesSigningService : IPdfPadesSigningService
@@ -26,14 +33,48 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null)
     {
+        if (options?.Profile == PdfPadesProfile.BaselineT)
+        {
+            throw new InvalidOperationException("PAdES Baseline T requires SignAsync and a timestamp authority.");
+        }
+
+        return SignCoreAsync(source, signingKey, options, timestampAuthority: null, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+    }
+
+    public Task<PdfSigningResult> SignAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfSigningKey signingKey,
+        PdfSigningOptions? options = null,
+        IPdfTimestampAuthority? timestampAuthority = null,
+        CancellationToken cancellationToken = default) =>
+        SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+
+    private static async Task<PdfSigningResult> SignCoreAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfSigningKey signingKey,
+        PdfSigningOptions? options,
+        IPdfTimestampAuthority? timestampAuthority,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(signingKey);
         options ??= new PdfSigningOptions();
         ValidateOptions(options);
+        if (options.Profile == PdfPadesProfile.BaselineT && timestampAuthority is null)
+        {
+            throw new InvalidOperationException("PAdES Baseline T requires a configured RFC 3161 timestamp authority.");
+        }
 
         var signingTime = options.SigningTime ?? DateTimeOffset.UtcNow;
         ValidateCertificate(signingKey.Certificate, signingTime);
         var parsed = Parse(source);
-        var updates = CreateSignatureUpdates(parsed.Graph, options, signingTime, out var signatureObjectId);
+        var updates = CreateSignatureUpdates(
+            parsed.Graph,
+            signingKey.Certificate,
+            options,
+            signingTime,
+            out var signatureObjectId);
         var incrementalResult = new PdfIncrementalUpdateWriter().Append(source, updates);
         var signedBytes = incrementalResult.Bytes;
 
@@ -54,7 +95,16 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         documentHash.AppendData(signedBytes.AsSpan(0, contentsStart));
         documentHash.AppendData(signedBytes.AsSpan(contentsEnd));
         var digest = documentHash.GetHashAndReset();
-        var cms = PdfCadesCmsBuilder.CreateDetached(digest, signingKey, signingTime).Cms;
+        cancellationToken.ThrowIfCancellationRequested();
+        var cmsResult = options.Profile == PdfPadesProfile.BaselineT
+            ? await PdfCadesCmsBuilder.CreateDetachedWithTimestampAsync(
+                digest,
+                signingKey,
+                signingTime,
+                timestampAuthority!,
+                cancellationToken).ConfigureAwait(false)
+            : PdfCadesCmsBuilder.CreateDetached(digest, signingKey, signingTime);
+        var cms = cmsResult.Cms;
         if (cms.Length > options.ContentsPlaceholderBytes)
         {
             throw new InvalidOperationException(
@@ -82,11 +132,14 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             signingKey.Certificate.Subject,
             signingKey.Certificate.Thumbprint,
             signingTime,
-            finalDocument.Table.Revisions.Count);
+            finalDocument.Table.Revisions.Count,
+            cmsResult.TimestampToken?.Timestamp,
+            cmsResult.TimestampToken?.AuthoritySubject);
     }
 
     private static IReadOnlyList<PdfIncrementalObjectUpdate> CreateSignatureUpdates(
         PdfObjectGraph graph,
+        X509Certificate2 certificate,
         PdfSigningOptions options,
         DateTimeOffset signingTime,
         out PdfObjectId signatureObjectId)
@@ -105,8 +158,11 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
 
         EnsureFieldNameIsAvailable(graph, catalog, options.FieldName.Trim());
 
-        var pageReference = FindFirstPageReference(graph, catalog)
-            ?? throw new InvalidDataException("The PDF does not contain an indirect page object for the signature widget.");
+        var requestedPageNumber = options.Appearance?.PageNumber ?? 1;
+        var pageReference = FindPageReference(graph, catalog, requestedPageNumber)
+            ?? throw new ArgumentOutOfRangeException(
+                nameof(options),
+                $"The PDF does not contain page {requestedPageNumber} for the signature widget.");
         if (graph.Resolve(pageReference.Id)?.Value is not PdfDictionary pageDictionary)
         {
             throw new InvalidDataException("The PDF signature page could not be resolved.");
@@ -114,7 +170,10 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
 
         var nextObjectNumber = graph.Objects.Keys.Max(static id => id.Number) + 1;
         signatureObjectId = new PdfObjectId(nextObjectNumber++, 0);
-        var fieldObjectId = new PdfObjectId(nextObjectNumber, 0);
+        var fieldObjectId = new PdfObjectId(nextObjectNumber++, 0);
+        var appearanceObjectId = options.Appearance is null
+            ? (PdfObjectId?)null
+            : new PdfObjectId(nextObjectNumber, 0);
         var signatureDictionary = new PdfDictionary
         {
             ["Type"] = new PdfName("Sig"),
@@ -135,6 +194,14 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         AddOptionalString(signatureDictionary, "Location", options.Location);
         AddOptionalString(signatureDictionary, "ContactInfo", options.ContactInfo);
 
+        var rectangle = options.Appearance is null
+            ? new PdfArray([
+                new PdfInteger(0),
+                new PdfInteger(0),
+                new PdfInteger(1),
+                new PdfInteger(1)
+            ])
+            : CreateRectangle(options.Appearance);
         var fieldDictionary = new PdfDictionary
         {
             ["Type"] = new PdfName("Annot"),
@@ -142,15 +209,17 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             ["FT"] = new PdfName("Sig"),
             ["T"] = EncodePdfString(options.FieldName.Trim()),
             ["V"] = new PdfReference(signatureObjectId),
-            ["Rect"] = new PdfArray([
-                new PdfInteger(0),
-                new PdfInteger(0),
-                new PdfInteger(1),
-                new PdfInteger(1)
-            ]),
-            ["F"] = new PdfInteger(34),
+            ["Rect"] = rectangle,
+            ["F"] = new PdfInteger(options.Appearance is null ? 34 : 4),
             ["P"] = pageReference
         };
+        if (appearanceObjectId is { } appearanceId)
+        {
+            fieldDictionary["AP"] = new PdfDictionary
+            {
+                ["N"] = new PdfReference(appearanceId)
+            };
+        }
         var fieldReference = new PdfReference(fieldObjectId);
         var pageWithWidget = CloneDictionary(pageDictionary);
         var annotations = Resolve(graph, pageDictionary["Annots"]) switch
@@ -168,6 +237,12 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             new(fieldObjectId, fieldDictionary),
             new(pageReference.Id, pageWithWidget)
         };
+        if (appearanceObjectId is { } appearanceReference && options.Appearance is { } appearance)
+        {
+            updates.Add(new PdfIncrementalObjectUpdate(
+                appearanceReference,
+                CreateAppearance(certificate, options, appearance, signingTime)));
+        }
 
         switch (catalog["AcroForm"])
         {
@@ -194,13 +269,116 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         return updates;
     }
 
-    private static PdfReference? FindFirstPageReference(PdfObjectGraph graph, PdfDictionary catalog)
+    private static PdfArray CreateRectangle(PdfSignatureAppearanceOptions appearance) =>
+        new([
+            new PdfNumber(appearance.X),
+            new PdfNumber(appearance.Y),
+            new PdfNumber(appearance.X + appearance.Width),
+            new PdfNumber(appearance.Y + appearance.Height)
+        ]);
+
+    private static PdfStreamObject CreateAppearance(
+        X509Certificate2 certificate,
+        PdfSigningOptions options,
+        PdfSignatureAppearanceOptions appearance,
+        DateTimeOffset signingTime)
+    {
+        var signer = certificate.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
+        if (string.IsNullOrWhiteSpace(signer))
+        {
+            signer = certificate.Subject;
+        }
+
+        var lines = new List<string>
+        {
+            string.IsNullOrWhiteSpace(appearance.Title) ? "Digitally signed" : appearance.Title.Trim(),
+            signer,
+            signingTime.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture)
+        };
+        if (!string.IsNullOrWhiteSpace(options.Reason))
+        {
+            lines.Add(options.Reason.Trim());
+        }
+
+        var fontSize = Math.Clamp(appearance.Height / Math.Max(lines.Count * 1.45, 5), 6, 11);
+        var leading = fontSize * 1.25;
+        var content = new StringBuilder()
+            .AppendLine("q")
+            .AppendLine("0.98 0.98 0.97 rg")
+            .AppendFormat(CultureInfo.InvariantCulture, "0 0 {0:0.###} {1:0.###} re f\n", appearance.Width, appearance.Height)
+            .AppendLine("0.25 0.29 0.33 RG")
+            .AppendLine("0.8 w")
+            .AppendFormat(CultureInfo.InvariantCulture, "0.4 0.4 {0:0.###} {1:0.###} re S\n", appearance.Width - 0.8, appearance.Height - 0.8)
+            .AppendLine("BT")
+            .AppendFormat(CultureInfo.InvariantCulture, "/F1 {0:0.###} Tf\n", fontSize)
+            .AppendFormat(CultureInfo.InvariantCulture, "7 {0:0.###} Td\n", appearance.Height - fontSize - 6);
+        for (var index = 0; index < lines.Count; index++)
+        {
+            if (index > 0)
+            {
+                content.AppendFormat(CultureInfo.InvariantCulture, "0 -{0:0.###} Td\n", leading);
+            }
+
+            content.Append('(').Append(EscapeAppearanceText(lines[index])).AppendLine(") Tj");
+        }
+
+        content.AppendLine("ET").AppendLine("Q");
+        var font = new PdfDictionary
+        {
+            ["Type"] = new PdfName("Font"),
+            ["Subtype"] = new PdfName("Type1"),
+            ["BaseFont"] = new PdfName("Helvetica"),
+            ["Encoding"] = new PdfName("WinAnsiEncoding")
+        };
+        var resources = new PdfDictionary
+        {
+            ["Font"] = new PdfDictionary { ["F1"] = font }
+        };
+        var dictionary = new PdfDictionary
+        {
+            ["Type"] = new PdfName("XObject"),
+            ["Subtype"] = new PdfName("Form"),
+            ["FormType"] = new PdfInteger(1),
+            ["BBox"] = new PdfArray([
+                new PdfInteger(0),
+                new PdfInteger(0),
+                new PdfNumber(appearance.Width),
+                new PdfNumber(appearance.Height)
+            ]),
+            ["Resources"] = resources
+        };
+        return new PdfStreamObject(dictionary, Encoding.ASCII.GetBytes(content.ToString()));
+    }
+
+    private static string EscapeAppearanceText(string value)
+    {
+        var result = new StringBuilder(value.Length);
+        foreach (var character in value)
+        {
+            result.Append(character switch
+            {
+                '\\' => "\\\\",
+                '(' => "\\(",
+                ')' => "\\)",
+                >= ' ' and <= '~' => character.ToString(),
+                _ => "?"
+            });
+        }
+
+        return result.ToString();
+    }
+
+    private static PdfReference? FindPageReference(
+        PdfObjectGraph graph,
+        PdfDictionary catalog,
+        int pageNumber)
     {
         var visited = new HashSet<PdfObjectId>();
-        var fromTree = FindFirstPageReference(graph, catalog["Pages"], visited);
-        if (fromTree is not null)
+        var pages = new List<PdfReference>();
+        CollectPageReferences(graph, catalog["Pages"], visited, pages);
+        if (pageNumber >= 1 && pageNumber <= pages.Count)
         {
-            return fromTree;
+            return pages[pageNumber - 1];
         }
 
         var fallback = graph.Objects.Values
@@ -208,41 +386,38 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 dictionary["Type"] is PdfName { Value: "Page" })
             .OrderBy(static item => item.Id.Number)
             .ThenBy(static item => item.Id.Generation)
-            .FirstOrDefault();
-        return fallback is null ? null : new PdfReference(fallback.Id);
+            .Select(static item => new PdfReference(item.Id))
+            .ToArray();
+        return pageNumber >= 1 && pageNumber <= fallback.Length ? fallback[pageNumber - 1] : null;
     }
 
-    private static PdfReference? FindFirstPageReference(
+    private static void CollectPageReferences(
         PdfObjectGraph graph,
         PdfObject? candidate,
-        HashSet<PdfObjectId> visited)
+        HashSet<PdfObjectId> visited,
+        ICollection<PdfReference> pages)
     {
         if (candidate is not PdfReference reference || !visited.Add(reference.Id) ||
             graph.Resolve(reference.Id)?.Value is not PdfDictionary dictionary)
         {
-            return null;
+            return;
         }
 
         if (dictionary["Type"] is PdfName { Value: "Page" })
         {
-            return reference;
+            pages.Add(reference);
+            return;
         }
 
         if (Resolve(graph, dictionary["Kids"]) is not PdfArray kids)
         {
-            return null;
+            return;
         }
 
         foreach (var kid in kids.Items)
         {
-            var page = FindFirstPageReference(graph, kid, visited);
-            if (page is not null)
-            {
-                return page;
-            }
+            CollectPageReferences(graph, kid, visited, pages);
         }
-
-        return null;
     }
 
     private static PdfDictionary AddSignatureField(
@@ -344,7 +519,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
 
     private static void ValidateOptions(PdfSigningOptions options)
     {
-        if (options.Profile != PdfPadesProfile.BaselineB)
+        if (options.Profile is not (PdfPadesProfile.BaselineB or PdfPadesProfile.BaselineT))
         {
             throw new NotSupportedException($"PAdES profile '{options.Profile}' is not supported yet.");
         }
@@ -357,6 +532,19 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         if (options.ContentsPlaceholderBytes is < 8 * 1024 or > 1024 * 1024)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "The CMS placeholder must be between 8 KiB and 1 MiB.");
+        }
+
+        if (options.Appearance is { } appearance &&
+            (appearance.PageNumber < 1 ||
+             !double.IsFinite(appearance.X) || appearance.X < 0 ||
+             !double.IsFinite(appearance.Y) || appearance.Y < 0 ||
+             !double.IsFinite(appearance.Width) || appearance.Width < 24 || appearance.Width > 2000 ||
+             !double.IsFinite(appearance.Height) || appearance.Height < 24 || appearance.Height > 2000 ||
+             appearance.Title?.Length > 200))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "Visible signature appearance values or page number are outside the supported range.");
         }
     }
 
