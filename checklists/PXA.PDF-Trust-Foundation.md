@@ -122,14 +122,22 @@ Reference material:
 - [x] Implement detached CMS signatures with correct `/ByteRange`, `/Contents`,
   digest calculation, placeholder sizing, and incremental save.
 - [x] Support SHA-256 or stronger digests only for new signatures.
-- [ ] Produce PAdES B-B first, then B-T with RFC 3161 timestamps, B-LT with embedded
-  validation material, and B-LTA with archive timestamps.
+- [ ] Produce PAdES B-B, B-T, B-LT, and B-LTA as independently verified profiles.
+  - [x] Produce PAdES B-B signatures with signed attributes and incremental updates.
+  - [x] Produce PAdES B-T signatures with a validated RFC 3161 timestamp token.
+  - [x] Produce PAdES B-LT signatures with a bounded, deduplicated DSS and
+    signature-specific VRI revision assembled from server-owned trust and revocation
+    policy; fail closed unless the completed document validates back as B-LT.
+  - [x] Produce PAdES B-LTA signatures by extending a validated B-LT revision with
+    a trusted RFC 3161 document timestamp; fail closed unless the final document
+    validates back as B-LTA.
 - [x] Produce interoperable PAdES Baseline B-B signatures validated independently by
   OpenSSL CAdES verification and Poppler `pdfsig`.
 - [x] Produce PAdES Baseline B-T signatures with a bounded, HTTPS-only RFC 3161 TSA
   client, validate nonce, message imprint, TSA EKU, token signature, and configured
   host trust, and expose B-T only when a server-side TSA is configured.
-- [ ] Add document timestamps independently from approval signatures.
+- [x] Add independent RFC 3161 document timestamps that protect the complete current
+  PDF revision and remain separately visible in trust reports and the Viewer.
 - [x] Support multiple sequential signatures without invalidating earlier revisions.
 
 ### Signature Validation

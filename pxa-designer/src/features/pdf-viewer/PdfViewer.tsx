@@ -333,6 +333,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     timestampRevocation: t('timestampRevocation'),
     historicalRevocation: t('historicalRevocation'),
     timestampHistoricalRevocation: t('timestampHistoricalRevocation'),
+    documentTimestamp: t('documentTimestamp'),
+    archiveTimestamp: t('archiveTimestamp'),
+    archiveTimestampTime: t('archiveTimestampTime'),
+    archiveTimestampAuthority: t('archiveTimestampAuthority'),
     revocationEvidence: t('revocationEvidence'),
     embeddedValidationMaterial: t('embeddedValidationMaterial'),
     certificates: t('certificates'),
@@ -1633,7 +1637,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     {trustReport.signatures.map((signature, index) => (
                       <section key={`${signature.objectNumber}-${signature.generation}`} className="pdfv-signature-item">
                         <header>
-                          <strong>{labels.signature} {index + 1}</strong>
+                          <strong>{signature.isDocumentTimestamp ? labels.documentTimestamp : labels.signature} {index + 1}</strong>
                           <span data-status={signature.status}>{trustStatusLabel(signature.status)}</span>
                         </header>
                         <dl>
@@ -1679,6 +1683,15 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           )}
                           {signature.timestampAuthoritySubject && (
                             <div><dt>{labels.timestampAuthority}</dt><dd title={signature.timestampAuthoritySubject}>{signature.timestampAuthoritySubject}</dd></div>
+                          )}
+                          {!signature.isDocumentTimestamp && signature.archiveTimestampStatus !== 4 && (
+                            <div><dt>{labels.archiveTimestamp}</dt><dd data-status={signature.archiveTimestampStatus}>{trustStatusLabel(signature.archiveTimestampStatus)}</dd></div>
+                          )}
+                          {signature.archiveTimestampTime && (
+                            <div><dt>{labels.archiveTimestampTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.archiveTimestampTime))}</dd></div>
+                          )}
+                          {signature.archiveTimestampAuthoritySubject && (
+                            <div><dt>{labels.archiveTimestampAuthority}</dt><dd title={signature.archiveTimestampAuthoritySubject}>{signature.archiveTimestampAuthoritySubject}</dd></div>
                           )}
                         </dl>
                       </section>

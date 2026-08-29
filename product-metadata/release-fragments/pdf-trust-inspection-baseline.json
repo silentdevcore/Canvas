@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds interoperable PAdES B-B and B-T signing, RFC 3161 timestamps, configurable trust stores, validated CRL and OCSP evidence with allowlisted encrypted caching, historical B-LT DSS/VRI validation, revision hashes, and localized Viewer trust details.",
+  "summary": "PXA adds interoperable PAdES B-B, B-T, fail-closed B-LT and B-LTA signing, independent RFC 3161 document timestamps, configurable trust stores, validated CRL and OCSP evidence with allowlisted encrypted caching, historical DSS/VRI validation, revision hashes, and localized Viewer trust details.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

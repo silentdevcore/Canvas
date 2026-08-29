@@ -93,7 +93,11 @@ public sealed record PdfSignatureInspection(
     IReadOnlyList<PdfRevocationEvidenceInspection>? TimestampRevocationEvidence = null,
     PdfSignatureEmbeddedValidationMaterialInspection? EmbeddedValidationMaterial = null,
     PdfTrustStatus HistoricalRevocationStatus = PdfTrustStatus.NotApplicable,
-    PdfTrustStatus TimestampHistoricalRevocationStatus = PdfTrustStatus.NotApplicable);
+    PdfTrustStatus TimestampHistoricalRevocationStatus = PdfTrustStatus.NotApplicable,
+    bool IsDocumentTimestamp = false,
+    PdfTrustStatus ArchiveTimestampStatus = PdfTrustStatus.NotApplicable,
+    DateTimeOffset? ArchiveTimestampTime = null,
+    string? ArchiveTimestampAuthoritySubject = null);
 
 public sealed record PdfComplianceClaim(
     string Standard,

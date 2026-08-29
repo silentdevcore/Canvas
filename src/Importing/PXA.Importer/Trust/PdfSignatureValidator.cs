@@ -86,6 +86,20 @@ internal static class PdfSignatureValidator
                 diagnostics);
         }
 
+        if (string.Equals(subFilter, "ETSI.RFC3161", StringComparison.Ordinal))
+        {
+            return await ValidateDocumentTimestampAsync(
+                cms.ToArray(),
+                signedContent,
+                signatureId,
+                baseInspection,
+                coversWholeDocument,
+                signedRevisionEnd,
+                validationPolicy,
+                embeddedValidationMaterial?.FindForSignature(cms),
+                cancellationToken).ConfigureAwait(false);
+        }
+
         try
         {
             var parsed = ParseCms(cms);
@@ -324,6 +338,145 @@ internal static class PdfSignatureValidator
                     CoverageStatus = PdfTrustStatus.Valid,
                     CoversWholeDocument = coversWholeDocument,
                     SignedRevisionEndOffset = signedRevisionEnd
+                },
+                diagnostics);
+        }
+    }
+
+    private static async Task<PdfSignatureValidationResult> ValidateDocumentTimestampAsync(
+        byte[] encodedToken,
+        byte[] signedContent,
+        PdfObjectId signatureId,
+        PdfSignatureInspection baseInspection,
+        bool coversWholeDocument,
+        long? signedRevisionEnd,
+        PdfSignatureValidationPolicy validationPolicy,
+        PdfEmbeddedVriMaterial? embeddedVri,
+        CancellationToken cancellationToken)
+    {
+        var diagnostics = new List<PdfTrustDiagnostic>();
+        try
+        {
+            if (!Rfc3161TimestampToken.TryDecode(encodedToken, out var token, out var consumed) ||
+                token is null || consumed != encodedToken.Length ||
+                !TryGetHashAlgorithm(token.TokenInfo.HashAlgorithmId.Value ?? string.Empty, out var hashAlgorithm, out var digestName))
+            {
+                throw new CryptographicException("The RFC 3161 document timestamp cannot be decoded.");
+            }
+
+            var tokenCms = token.AsSignedCms();
+            if (!token.VerifySignatureForHash(
+                    HashData(hashAlgorithm, signedContent),
+                    hashAlgorithm,
+                    out var timestampCertificate,
+                    tokenCms.Certificates) ||
+                timestampCertificate is null)
+            {
+                throw new CryptographicException("The RFC 3161 document timestamp signature or message imprint is invalid.");
+            }
+
+            using (timestampCertificate)
+            {
+                var enhancedKeyUsage = timestampCertificate.Extensions
+                    .OfType<X509EnhancedKeyUsageExtension>()
+                    .FirstOrDefault();
+                var timestampEkuValid = enhancedKeyUsage is not null &&
+                    enhancedKeyUsage.Critical &&
+                    enhancedKeyUsage.EnhancedKeyUsages.Count == 1 &&
+                    enhancedKeyUsage.EnhancedKeyUsages[0].Value == TimestampingExtendedKeyUsageOid;
+                if (!timestampEkuValid)
+                {
+                    throw new CryptographicException("The document timestamp certificate lacks the exclusive timestamping EKU.");
+                }
+
+                var certificateValidation = await ValidateCertificateAsync(
+                    timestampCertificate,
+                    tokenCms.Certificates.Cast<X509Certificate2>().ToArray(),
+                    token.TokenInfo.Timestamp,
+                    validationPolicy,
+                    embeddedVri,
+                    token.TokenInfo.Timestamp,
+                    cancellationToken).ConfigureAwait(false);
+                var timestampStatus = certificateValidation.TrustStatus == PdfTrustStatus.Invalid ||
+                                      certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
+                    ? PdfTrustStatus.Invalid
+                    : certificateValidation.TrustStatus == PdfTrustStatus.Valid &&
+                      certificateValidation.RevocationStatus is PdfTrustStatus.Valid or PdfTrustStatus.NotApplicable
+                        ? PdfTrustStatus.Valid
+                        : PdfTrustStatus.Indeterminate;
+                var status = timestampStatus == PdfTrustStatus.Invalid
+                    ? PdfTrustStatus.Invalid
+                    : timestampStatus == PdfTrustStatus.Valid
+                        ? PdfTrustStatus.Valid
+                        : PdfTrustStatus.Indeterminate;
+                diagnostics.Add(Diagnostic(
+                    "PXAPDFTRUST126",
+                    PdfTrustDiagnosticSeverity.Info,
+                    "The RFC 3161 document timestamp message imprint and signed PDF byte ranges are cryptographically valid.",
+                    signatureId));
+                if (!coversWholeDocument)
+                {
+                    diagnostics.Add(Diagnostic(
+                        "PXAPDFTRUST127",
+                        PdfTrustDiagnosticSeverity.Info,
+                        "The document timestamp protects an earlier complete PDF revision; later incremental revisions exist.",
+                        signatureId));
+                }
+                if (timestampStatus != PdfTrustStatus.Valid)
+                {
+                    diagnostics.Add(Diagnostic(
+                        "PXAPDFTRUST128",
+                        timestampStatus == PdfTrustStatus.Invalid
+                            ? PdfTrustDiagnosticSeverity.Error
+                            : PdfTrustDiagnosticSeverity.Warning,
+                        timestampStatus == PdfTrustStatus.Invalid
+                            ? "The document timestamp TSA certificate or configured revocation result is invalid."
+                            : "The document timestamp is cryptographically valid, but its TSA chain or revocation state is not trusted by the current policy.",
+                        signatureId));
+                }
+
+                return new PdfSignatureValidationResult(
+                    baseInspection with
+                    {
+                        Status = status,
+                        IntegrityStatus = PdfTrustStatus.Valid,
+                        CoverageStatus = PdfTrustStatus.Valid,
+                        CertificateStatus = certificateValidation.TrustStatus,
+                        PadesProfile = "DocTimeStamp",
+                        DigestAlgorithm = digestName,
+                        SignerSubject = timestampCertificate.Subject,
+                        SignerThumbprint = timestampCertificate.Thumbprint,
+                        CoversWholeDocument = coversWholeDocument,
+                        SignedRevisionEndOffset = signedRevisionEnd,
+                        TimestampStatus = timestampStatus,
+                        TimestampRevocationStatus = certificateValidation.RevocationStatus,
+                        TimestampRevocationEvidence = ToInspection(certificateValidation.Evidence),
+                        TimestampTime = token.TokenInfo.Timestamp,
+                        TimestampAuthoritySubject = timestampCertificate.Subject,
+                        TimestampHistoricalRevocationStatus = certificateValidation.HistoricalRevocationStatus,
+                        IsDocumentTimestamp = true
+                    },
+                    diagnostics);
+            }
+        }
+        catch (Exception exception) when (exception is CryptographicException or AsnContentException)
+        {
+            diagnostics.Add(Diagnostic(
+                "PXAPDFTRUST129",
+                PdfTrustDiagnosticSeverity.Error,
+                $"The RFC 3161 document timestamp could not be verified: {exception.GetType().Name}.",
+                signatureId));
+            return new PdfSignatureValidationResult(
+                baseInspection with
+                {
+                    Status = PdfTrustStatus.Invalid,
+                    IntegrityStatus = PdfTrustStatus.Invalid,
+                    CoverageStatus = PdfTrustStatus.Valid,
+                    CoversWholeDocument = coversWholeDocument,
+                    SignedRevisionEndOffset = signedRevisionEnd,
+                    PadesProfile = "DocTimeStamp",
+                    TimestampStatus = PdfTrustStatus.Invalid,
+                    IsDocumentTimestamp = true
                 },
                 diagnostics);
         }

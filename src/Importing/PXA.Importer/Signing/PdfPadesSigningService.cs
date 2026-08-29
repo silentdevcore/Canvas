@@ -1,10 +1,12 @@
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Saving;
+using PXA.Importer.Trust;
 using PXA.Importer.Xref;
 
 namespace PXA.Importer.Signing;
@@ -33,9 +35,9 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null)
     {
-        if (options?.Profile == PdfPadesProfile.BaselineT)
+        if (options?.Profile is PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA)
         {
-            throw new InvalidOperationException("PAdES Baseline T requires SignAsync and a timestamp authority.");
+            throw new InvalidOperationException("PAdES Baseline T, LT, and LTA require SignAsync and a timestamp authority.");
         }
 
         return SignCoreAsync(source, signingKey, options, timestampAuthority: null, CancellationToken.None)
@@ -61,9 +63,10 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         ArgumentNullException.ThrowIfNull(signingKey);
         options ??= new PdfSigningOptions();
         ValidateOptions(options);
-        if (options.Profile == PdfPadesProfile.BaselineT && timestampAuthority is null)
+        if (options.Profile is (PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA) &&
+            timestampAuthority is null)
         {
-            throw new InvalidOperationException("PAdES Baseline T requires a configured RFC 3161 timestamp authority.");
+            throw new InvalidOperationException("PAdES Baseline T, LT, and LTA require a configured RFC 3161 timestamp authority.");
         }
 
         var signingTime = options.SigningTime ?? DateTimeOffset.UtcNow;
@@ -96,7 +99,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         documentHash.AppendData(signedBytes.AsSpan(contentsEnd));
         var digest = documentHash.GetHashAndReset();
         cancellationToken.ThrowIfCancellationRequested();
-        var cmsResult = options.Profile == PdfPadesProfile.BaselineT
+        var cmsResult = options.Profile is PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA
             ? await PdfCadesCmsBuilder.CreateDetachedWithTimestampAsync(
                 digest,
                 signingKey,
@@ -124,6 +127,53 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             signedBytes.Length,
             cms.Length);
 
+        DateTimeOffset? archiveTimestampTime = null;
+        string? archiveTimestampAuthoritySubject = null;
+        if (options.Profile is PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA)
+        {
+            var suppliedMaterial = options.LongTermValidation ??
+                await options.LongTermValidationProvider!.GetMaterialAsync(
+                    new PdfLongTermValidationContext(
+                        signingKey.Certificate,
+                        cmsResult.TimestampToken!,
+                        signingTime),
+                    cancellationToken).ConfigureAwait(false);
+            var validationMaterial = BuildLongTermValidationMaterial(
+                suppliedMaterial,
+                signingKey.Certificate,
+                cmsResult.TimestampToken!);
+            var longTermResult = PdfLongTermValidationWriter.Append(signedBytes, cms, validationMaterial);
+            await ValidateLongTermResultAsync(
+                longTermResult.Bytes,
+                signatureObjectId,
+                validationMaterial,
+                "B-LT",
+                cancellationToken).ConfigureAwait(false);
+            signedBytes = longTermResult.Bytes;
+            finalDocument = Parse(signedBytes);
+            if (options.Profile == PdfPadesProfile.BaselineLTA)
+            {
+                var archiveTimestamp = await new PdfDocumentTimestampService().AddAsync(
+                    signedBytes,
+                    timestampAuthority!,
+                    new PdfDocumentTimestampOptions
+                    {
+                        FieldName = $"{options.FieldName.Trim()}.ArchiveTimestamp"
+                    },
+                    cancellationToken).ConfigureAwait(false);
+                await ValidateLongTermResultAsync(
+                    archiveTimestamp.Bytes,
+                    signatureObjectId,
+                    validationMaterial,
+                    "B-LTA",
+                    cancellationToken).ConfigureAwait(false);
+                signedBytes = archiveTimestamp.Bytes;
+                finalDocument = Parse(signedBytes);
+                archiveTimestampTime = archiveTimestamp.Timestamp;
+                archiveTimestampAuthoritySubject = archiveTimestamp.TimestampAuthoritySubject;
+            }
+        }
+
         return new PdfSigningResult(
             signedBytes,
             options.Profile,
@@ -134,7 +184,9 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             signingTime,
             finalDocument.Table.Revisions.Count,
             cmsResult.TimestampToken?.Timestamp,
-            cmsResult.TimestampToken?.AuthoritySubject);
+            cmsResult.TimestampToken?.AuthoritySubject,
+            archiveTimestampTime,
+            archiveTimestampAuthoritySubject);
     }
 
     private static IReadOnlyList<PdfIncrementalObjectUpdate> CreateSignatureUpdates(
@@ -519,9 +571,22 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
 
     private static void ValidateOptions(PdfSigningOptions options)
     {
-        if (options.Profile is not (PdfPadesProfile.BaselineB or PdfPadesProfile.BaselineT))
+        if (options.Profile is not (PdfPadesProfile.BaselineB or PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA))
         {
             throw new NotSupportedException($"PAdES profile '{options.Profile}' is not supported yet.");
+        }
+
+        if (options.Profile is (PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA) &&
+            (options.LongTermValidation is null) == (options.LongTermValidationProvider is null))
+        {
+            throw new InvalidOperationException(
+                "PAdES Baseline LT and LTA require exactly one explicit validation material source.");
+        }
+
+        if (options.Profile is not (PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA) &&
+            (options.LongTermValidation is not null || options.LongTermValidationProvider is not null))
+        {
+            throw new InvalidOperationException("Long-term validation material can only be supplied for PAdES Baseline LT or LTA.");
         }
 
         if (string.IsNullOrWhiteSpace(options.FieldName) || options.FieldName.Trim().Length > 200)
@@ -546,6 +611,92 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 nameof(options),
                 "Visible signature appearance values or page number are outside the supported range.");
         }
+    }
+
+    private static PdfLongTermValidationMaterial BuildLongTermValidationMaterial(
+        PdfLongTermValidationMaterial supplied,
+        X509Certificate2 signerCertificate,
+        PdfTimestampToken timestampToken)
+    {
+        var certificates = supplied.Certificates
+            .Concat([signerCertificate.RawData])
+            .Concat(ReadTimestampCertificates(timestampToken.Cms))
+            .DistinctBy(static bytes => Convert.ToHexString(SHA256.HashData(bytes)), StringComparer.Ordinal)
+            .Select(static bytes => bytes.ToArray())
+            .ToArray();
+        return supplied with { Certificates = certificates };
+    }
+
+    private static IReadOnlyList<byte[]> ReadTimestampCertificates(byte[] encodedToken)
+    {
+        if (!Rfc3161TimestampToken.TryDecode(encodedToken, out var token, out var consumed) ||
+            token is null || consumed != encodedToken.Length)
+        {
+            throw new CryptographicException("The RFC 3161 timestamp token cannot be decoded for PAdES Baseline LT.");
+        }
+
+        var cms = token.AsSignedCms();
+        return cms.Certificates
+            .Cast<X509Certificate2>()
+            .Select(static certificate => certificate.RawData)
+            .ToArray();
+    }
+
+    private static async Task ValidateLongTermResultAsync(
+        byte[] signedPdf,
+        PdfObjectId signatureObjectId,
+        PdfLongTermValidationMaterial material,
+        string expectedProfile,
+        CancellationToken cancellationToken)
+    {
+        var ownedCertificates = new List<X509Certificate2>();
+        try
+        {
+            var trustAnchors = material.TrustAnchors
+                .Select(bytes => LoadCertificate(bytes, ownedCertificates))
+                .ToArray();
+            var intermediates = material.Certificates
+                .Select(bytes => LoadCertificate(bytes, ownedCertificates))
+                .ToArray();
+            await using var stream = new MemoryStream(signedPdf, writable: false);
+            var report = await new PdfTrustInspector().InspectAsync(
+                stream,
+                new PdfTrustInspectionOptions
+                {
+                    MaximumFileSizeBytes = Math.Max(PdfTrustInspectionOptions.DefaultMaximumFileSizeBytes, signedPdf.LongLength),
+                    SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                    {
+                        UseSystemTrustStore = false,
+                        CustomTrustAnchors = trustAnchors,
+                        IntermediateCertificates = intermediates,
+                        RevocationMode = PdfCertificateRevocationMode.NoCheck
+                    }
+                },
+                cancellationToken).ConfigureAwait(false);
+            var signature = report.Signatures.SingleOrDefault(item =>
+                item.ObjectNumber == signatureObjectId.Number && item.Generation == signatureObjectId.Generation);
+            if (signature?.PadesProfile != expectedProfile ||
+                signature.IntegrityStatus != PdfTrustStatus.Valid ||
+                signature.EmbeddedValidationMaterial?.Status != PdfTrustStatus.Valid)
+            {
+                throw new CryptographicException(
+                    "The supplied validation material did not produce a verifiable PAdES Baseline LT signature.");
+            }
+        }
+        finally
+        {
+            foreach (var certificate in ownedCertificates)
+            {
+                certificate.Dispose();
+            }
+        }
+    }
+
+    private static X509Certificate2 LoadCertificate(byte[] bytes, ICollection<X509Certificate2> ownedCertificates)
+    {
+        var certificate = X509CertificateLoader.LoadCertificate(bytes);
+        ownedCertificates.Add(certificate);
+        return certificate;
     }
 
     private static void ValidateCertificate(X509Certificate2 certificate, DateTimeOffset signingTime)

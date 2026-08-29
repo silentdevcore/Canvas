@@ -66,6 +66,10 @@ export interface PdfTrustReport {
     } | null;
     historicalRevocationStatus: PdfTrustStatus;
     timestampHistoricalRevocationStatus: PdfTrustStatus;
+    isDocumentTimestamp: boolean;
+    archiveTimestampStatus: PdfTrustStatus;
+    archiveTimestampTime?: string | null;
+    archiveTimestampAuthoritySubject?: string | null;
   }>;
   pdfA: {
     standard: string;

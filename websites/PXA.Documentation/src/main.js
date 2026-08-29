@@ -324,8 +324,8 @@ const editorDocs = [
       'You need to distinguish cryptographic integrity from signer trust and revocation evidence.',
       'You are tracking viewer parity against established PDF viewer products.',
     ],
-    concepts: ['PDF preview', 'Forms', 'Annotations', 'PAdES B-B and B-T', 'Certificate trust', 'Revocation policy', 'Review tools', 'Viewer parity'],
-    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Validate signatures and timestamps', 'Interpret trust and revocation separately', 'Review annotation workflows', 'Track viewer feature gaps'],
+    concepts: ['PDF preview', 'Forms', 'Annotations', 'PAdES B-B, B-T, B-LT, and B-LTA', 'Document timestamps', 'Certificate trust', 'Revocation policy', 'Review tools', 'Viewer parity'],
+    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Create or validate long-term signatures', 'Add an independent document timestamp', 'Interpret trust and revocation separately', 'Review annotation workflows', 'Track viewer feature gaps'],
     related: [
       { label: 'PDF Viewer product page', href: companyPage('products/pdf-viewer') },
       { label: 'Viewer demo', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
@@ -366,11 +366,15 @@ const editorDocs = [
   "integrityStatus": 0,
   "certificateStatus": 0,
   "revocationStatus": 2,
-  "padesProfile": "B-LT",
+  "padesProfile": "B-LTA",
   "timestampStatus": 0,
   "timestampRevocationStatus": 2,
   "historicalRevocationStatus": 0,
   "timestampHistoricalRevocationStatus": 0,
+  "isDocumentTimestamp": false,
+  "archiveTimestampStatus": 0,
+  "archiveTimestampTime": "2026-08-28T08:05:00Z",
+  "archiveTimestampAuthoritySubject": "CN=PXA Example TSA",
   "revocationEvidence": [{
     "kind": 0,
     "status": 0,
@@ -383,10 +387,10 @@ const editorDocs = [
     "crlCount": 1,
     "ocspResponseCount": 2,
     "vriEntryCount": 1,
-    "status": 2
+    "status": 0
   }
 }`,
-        note: 'Status values are valid=0, invalid=1, indeterminate=2, unsupported=3, and notApplicable=4. Evidence kind 0 is CRL and 1 is OCSP. Valid integrity proves that signed bytes were not changed. It does not by itself prove signer identity or non-revocation. Indeterminate revocation must never be presented as valid. PXA reports B-LT only when a valid VRI key binds to the exact CMS signature value, the RFC 3161 timestamp is trusted, and embedded evidence validates every non-root signer and TSA certificate at that trusted time. Creating new B-LT signatures remains a separate roadmap item.',
+        note: 'Status values are valid=0, invalid=1, indeterminate=2, unsupported=3, and notApplicable=4. Evidence kind 0 is CRL and 1 is OCSP. Valid integrity proves that signed bytes were not changed. It does not by itself prove signer identity or non-revocation. Indeterminate revocation must never be presented as valid. PXA reports or creates B-LT only when a valid VRI key binds to the exact CMS signature value, the RFC 3161 signature timestamp is trusted, and embedded evidence validates every non-root signer and TSA certificate at that trusted time. B-LTA additionally requires a later trusted RFC 3161 document timestamp covering the B-LT revision. Independent document timestamps are created through POST /api/pxa/v1/pdf/signatures/timestamp and appear as separate DocTimeStamp entries in the Viewer. Long-term signing uses the server trust policy and fails closed when complete evidence is unavailable.',
       },
     ],
   },

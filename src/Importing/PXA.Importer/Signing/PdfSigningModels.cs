@@ -6,7 +6,29 @@ namespace PXA.Importer.Signing;
 public enum PdfPadesProfile
 {
     BaselineB,
-    BaselineT
+    BaselineT,
+    BaselineLT,
+    BaselineLTA
+}
+
+public sealed record PdfLongTermValidationMaterial
+{
+    public IReadOnlyList<byte[]> Certificates { get; init; } = [];
+    public IReadOnlyList<byte[]> Crls { get; init; } = [];
+    public IReadOnlyList<byte[]> OcspResponses { get; init; } = [];
+    public IReadOnlyList<byte[]> TrustAnchors { get; init; } = [];
+}
+
+public sealed record PdfLongTermValidationContext(
+    X509Certificate2 SignerCertificate,
+    PdfTimestampToken TimestampToken,
+    DateTimeOffset SigningTime);
+
+public interface IPdfLongTermValidationMaterialProvider
+{
+    Task<PdfLongTermValidationMaterial> GetMaterialAsync(
+        PdfLongTermValidationContext context,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record PdfSignatureAppearanceOptions
@@ -29,6 +51,8 @@ public sealed record PdfSigningOptions
     public PdfPadesProfile Profile { get; init; } = PdfPadesProfile.BaselineB;
     public PdfSignatureAppearanceOptions? Appearance { get; init; }
     public int ContentsPlaceholderBytes { get; init; } = 32 * 1024;
+    public PdfLongTermValidationMaterial? LongTermValidation { get; init; }
+    public IPdfLongTermValidationMaterialProvider? LongTermValidationProvider { get; init; }
 }
 
 public sealed record PdfSigningResult(
@@ -41,7 +65,9 @@ public sealed record PdfSigningResult(
     DateTimeOffset SigningTime,
     int RevisionCount,
     DateTimeOffset? TimestampTime = null,
-    string? TimestampAuthoritySubject = null);
+    string? TimestampAuthoritySubject = null,
+    DateTimeOffset? ArchiveTimestampTime = null,
+    string? ArchiveTimestampAuthoritySubject = null);
 
 public sealed record PdfTimestampToken(
     byte[] Cms,

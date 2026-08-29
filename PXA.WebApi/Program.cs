@@ -120,6 +120,8 @@ builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformation>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
+builder.Services.AddScoped<PXA.Importer.Signing.IPdfDocumentTimestampService,
+    PXA.Importer.Signing.PdfDocumentTimestampService>();
 builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityOptions>()
     .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityOptions.SectionName))
     .Validate(
@@ -171,6 +173,8 @@ builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTrustPolicyProvider,
     PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyProvider>();
+builder.Services.AddSingleton<PXA.Importer.Signing.IPdfLongTermValidationMaterialProvider,
+    PXA.WebApi.Services.Pdf.PxaPdfLongTermValidationMaterialProvider>();
 builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))

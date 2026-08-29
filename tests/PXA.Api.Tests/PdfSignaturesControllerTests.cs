@@ -90,8 +90,12 @@ public sealed class PdfSignaturesControllerTests
         Assert.Contains("Release signature", pdfText, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task Sign_ReturnsServiceUnavailableWhenBaselineTIsNotConfigured()
+    [Theory]
+    [InlineData(PdfPadesProfile.BaselineT)]
+    [InlineData(PdfPadesProfile.BaselineLT)]
+    [InlineData(PdfPadesProfile.BaselineLTA)]
+    public async Task Sign_ReturnsServiceUnavailableWhenTimestampedProfileIsNotConfigured(
+        PdfPadesProfile profile)
     {
         var controller = CreateController();
         var response = await controller.Sign(
@@ -100,7 +104,7 @@ public sealed class PdfSignaturesControllerTests
                 Pdf = CreateFile(CreatePdf(), "pdf", "timestamped.pdf", "application/pdf"),
                 Certificate = CreateFile(CreatePkcs12("test-password"), "certificate", "signer.pfx", "application/x-pkcs12"),
                 CertificatePassword = "test-password",
-                Profile = PdfPadesProfile.BaselineT
+                Profile = profile
             },
             CancellationToken.None);
 
@@ -108,6 +112,24 @@ public sealed class PdfSignaturesControllerTests
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
         Assert.Equal("PXAPDFTRUSTAPI105", details.Extensions["code"]);
+    }
+
+    [Fact]
+    public async Task Timestamp_ReturnsServiceUnavailableWhenTimestampAuthorityIsNotConfigured()
+    {
+        var controller = CreateController();
+
+        var response = await controller.Timestamp(
+            new PdfDocumentTimestampRequest
+            {
+                Pdf = CreateFile(CreatePdf(), "pdf", "archive.pdf", "application/pdf")
+            },
+            CancellationToken.None);
+
+        var problem = Assert.IsType<ObjectResult>(response);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(problem.Value);
+        Assert.Equal("PXAPDFTRUSTAPI124", details.Extensions["code"]);
     }
 
     [Fact]
@@ -150,9 +172,14 @@ public sealed class PdfSignaturesControllerTests
             .GetMethod(nameof(PdfSignaturesController.Validate))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true)
             .Cast<AuthorizeAttribute>());
+        var timestampAuthorization = Assert.Single(typeof(PdfSignaturesController)
+            .GetMethod(nameof(PdfSignaturesController.Timestamp))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>());
 
         Assert.Equal(PxaDesignerPermissions.PdfSignaturesSign, signAuthorization.Policy);
         Assert.Equal(PxaDesignerPermissions.PdfSignaturesValidate, validateAuthorization.Policy);
+        Assert.Equal(PxaDesignerPermissions.PdfSignaturesSign, timestampAuthorization.Policy);
         Assert.Equal("designer-code", rateLimit.PolicyName);
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Manager]);
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Editor]);
@@ -164,13 +191,18 @@ public sealed class PdfSignaturesControllerTests
         Assert.Equal(
             PxaDesignerPermissions.PdfSignaturesValidate,
             PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/signatures/validate", "POST"));
+        Assert.Equal(
+            PxaDesignerPermissions.PdfSignaturesSign,
+            PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/signatures/timestamp", "POST"));
     }
 
     private static PdfSignaturesController CreateController() => new(
         new PdfPadesSigningService(),
         new PdfTrustInspector(),
         new EmptyTimestampAuthorityFactory(),
-        new TestTrustPolicyProvider())
+        new TestTrustPolicyProvider(),
+        new RejectingLongTermValidationMaterialProvider(),
+        new PdfDocumentTimestampService())
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -183,6 +215,14 @@ public sealed class PdfSignaturesControllerTests
     private sealed class TestTrustPolicyProvider : IPxaPdfTrustPolicyProvider
     {
         public PdfSignatureValidationPolicy Policy { get; } = new();
+    }
+
+    private sealed class RejectingLongTermValidationMaterialProvider : IPdfLongTermValidationMaterialProvider
+    {
+        public Task<PdfLongTermValidationMaterial> GetMaterialAsync(
+            PdfLongTermValidationContext context,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("The test does not configure PAdES B-LT material.");
     }
 
     private static FormFile CreateFile(byte[] bytes, string fieldName, string fileName, string contentType) =>

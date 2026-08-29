@@ -91,6 +91,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             embeddedValidationMaterialSource,
             diagnostics,
             cancellationToken).ConfigureAwait(false);
+        signatures = PromoteBaselineLta(signatures, diagnostics);
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
@@ -170,7 +171,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             diagnostics.Add(new PdfTrustDiagnostic(
                 "PXAPDFTRUST121",
                 PdfTrustDiagnosticSeverity.Info,
-                $"Embedded PAdES validation material was found ({material.Certificates.Count} certificate(s), {material.Crls.Count} CRL(s), {material.OcspResponses.Count} OCSP response(s), {material.VriEntryCount} VRI entry/entries). Cryptographic B-LT validation is not yet applied."));
+                $"Embedded PAdES validation material was found ({material.Certificates.Count} certificate(s), {material.Crls.Count} CRL(s), {material.OcspResponses.Count} OCSP response(s), {material.VriEntryCount} VRI entry/entries). Signature-bound B-LT validation is reported for each matching signature."));
             return new PdfEmbeddedValidationMaterialInspection(
                 material.Certificates.Count,
                 material.Crls.Count,
@@ -314,6 +315,53 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         return signatures;
+    }
+
+    private static IReadOnlyList<PdfSignatureInspection> PromoteBaselineLta(
+        IReadOnlyList<PdfSignatureInspection> signatures,
+        ICollection<PdfTrustDiagnostic> diagnostics)
+    {
+        var archiveTimestamps = signatures
+            .Where(static signature =>
+                signature.IsDocumentTimestamp &&
+                signature.IntegrityStatus == PdfTrustStatus.Valid &&
+                signature.TimestampStatus == PdfTrustStatus.Valid &&
+                signature.SignedRevisionEndOffset is not null)
+            .OrderBy(static signature => signature.SignedRevisionEndOffset)
+            .ToArray();
+        if (archiveTimestamps.Length == 0)
+        {
+            return signatures;
+        }
+
+        return signatures.Select(signature =>
+        {
+            if (signature.IsDocumentTimestamp || signature.PadesProfile != "B-LT" ||
+                signature.EmbeddedValidationMaterial?.Status != PdfTrustStatus.Valid ||
+                signature.SignedRevisionEndOffset is not { } signatureRevisionEnd)
+            {
+                return signature;
+            }
+            var archiveTimestamp = archiveTimestamps.LastOrDefault(candidate =>
+                candidate.SignedRevisionEndOffset > signatureRevisionEnd);
+            if (archiveTimestamp is null)
+            {
+                return signature;
+            }
+            diagnostics.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST130",
+                PdfTrustDiagnosticSeverity.Info,
+                "A trusted RFC 3161 document timestamp protects the signature-bound B-LT validation material.",
+                signature.ObjectNumber,
+                signature.Generation));
+            return signature with
+            {
+                PadesProfile = "B-LTA",
+                ArchiveTimestampStatus = PdfTrustStatus.Valid,
+                ArchiveTimestampTime = archiveTimestamp.TimestampTime,
+                ArchiveTimestampAuthoritySubject = archiveTimestamp.TimestampAuthoritySubject
+            };
+        }).ToArray();
     }
 
     private static PdfComplianceClaim InspectPdfAClaim(
