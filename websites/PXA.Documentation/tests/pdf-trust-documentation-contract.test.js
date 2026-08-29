@@ -15,6 +15,10 @@ test('PDF Trust documentation separates integrity, trust, and revocation', () =>
   assert.match(source, /AllowCertificateDownloads/);
   assert.match(source, /Valid integrity proves that signed bytes were not changed/);
   assert.match(source, /Indeterminate revocation must never be presented as valid/);
+  assert.match(source, /certificate-declared HTTPS CRL and OCSP endpoints/);
+  assert.match(source, /reports B-LT only when a valid VRI key/);
+  assert.match(source, /Creating new B-LT signatures remains a separate roadmap item/);
+  assert.match(source, /embeddedValidationMaterial/);
 });
 
 test('PDF Trust documentation keeps trust policy server-owned', () => {

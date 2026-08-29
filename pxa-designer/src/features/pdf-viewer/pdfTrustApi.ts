@@ -1,5 +1,13 @@
 export type PdfTrustStatus = 0 | 1 | 2 | 3 | 4;
 
+export interface PdfRevocationEvidenceInspection {
+  kind: 0 | 1;
+  status: PdfTrustStatus;
+  source: string;
+  thisUpdate: string;
+  nextUpdate?: string | null;
+}
+
 export interface PdfTrustDiagnostic {
   code: string;
   severity: 0 | 1 | 2;
@@ -36,6 +44,7 @@ export interface PdfTrustReport {
     coverageStatus: PdfTrustStatus;
     certificateStatus: PdfTrustStatus;
     revocationStatus: PdfTrustStatus;
+    revocationEvidence?: PdfRevocationEvidenceInspection[] | null;
     padesProfile?: string | null;
     digestAlgorithm?: string | null;
     signerSubject?: string | null;
@@ -43,10 +52,20 @@ export interface PdfTrustReport {
     signingTime?: string | null;
     timestampStatus: PdfTrustStatus;
     timestampRevocationStatus: PdfTrustStatus;
+    timestampRevocationEvidence?: PdfRevocationEvidenceInspection[] | null;
     timestampTime?: string | null;
     timestampAuthoritySubject?: string | null;
     coversWholeDocument: boolean;
     signedRevisionEndOffset?: number | null;
+    embeddedValidationMaterial?: {
+      vriMatched: boolean;
+      certificateCount: number;
+      crlCount: number;
+      ocspResponseCount: number;
+      status: PdfTrustStatus;
+    } | null;
+    historicalRevocationStatus: PdfTrustStatus;
+    timestampHistoricalRevocationStatus: PdfTrustStatus;
   }>;
   pdfA: {
     standard: string;
@@ -70,6 +89,14 @@ export interface PdfTrustReport {
     sha256: string;
     entryCount: number;
   }>;
+  embeddedValidationMaterial?: {
+    certificateCount: number;
+    crlCount: number;
+    ocspResponseCount: number;
+    vriEntryCount: number;
+    totalBytes: number;
+    status: PdfTrustStatus;
+  } | null;
   diagnostics: PdfTrustDiagnostic[];
 }
 

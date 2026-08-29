@@ -27,12 +27,14 @@ internal static class PdfSignatureValidator
     private const string Sha512WithRsaOid = "1.2.840.113549.1.1.13";
     private const string TimestampingExtendedKeyUsageOid = "1.3.6.1.5.5.7.3.8";
 
-    public static PdfSignatureValidationResult Validate(
-        ReadOnlySpan<byte> source,
+    public static async Task<PdfSignatureValidationResult> ValidateAsync(
+        byte[] source,
         PdfObjectId signatureId,
         PdfDictionary signature,
         IReadOnlyList<PdfCrossReferenceRevision> revisions,
-        PdfSignatureValidationPolicy validationPolicy)
+        PdfSignatureValidationPolicy validationPolicy,
+        PdfEmbeddedValidationMaterial? embeddedValidationMaterial,
+        CancellationToken cancellationToken)
     {
         var diagnostics = new List<PdfTrustDiagnostic>();
         var subFilter = ReadName(signature["SubFilter"]);
@@ -87,6 +89,7 @@ internal static class PdfSignatureValidator
         try
         {
             var parsed = ParseCms(cms);
+            var embeddedVri = embeddedValidationMaterial?.FindForSignature(cms);
             if (!TryGetHashAlgorithm(parsed.DigestAlgorithmOid, out var hashAlgorithm, out var digestName))
             {
                 diagnostics.Add(Diagnostic(
@@ -118,14 +121,31 @@ internal static class PdfSignatureValidator
                      parsed.SigningCertificateV2Hash));
             var signatureMatches = certificate is not null &&
                 VerifySignature(certificate, parsed, hashAlgorithm);
-            var timestamp = ValidateTimestamp(parsed, validationPolicy);
+            var timestamp = await ValidateTimestampAsync(
+                    parsed,
+                    validationPolicy,
+                    embeddedVri,
+                    cancellationToken)
+                .ConfigureAwait(false);
             var integrityStatus = messageDigestMatches && signingCertificateMatches && signatureMatches &&
                                   timestamp.Status != PdfTrustStatus.Invalid
                 ? PdfTrustStatus.Valid
                 : PdfTrustStatus.Invalid;
             var certificateValidation = certificate is null
-                ? new CertificateValidation(PdfTrustStatus.Invalid, PdfTrustStatus.NotApplicable)
-                : ValidateCertificate(certificate, parsed.Certificates, parsed.SigningTime, validationPolicy);
+                ? new CertificateValidation(
+                    PdfTrustStatus.Invalid,
+                    PdfTrustStatus.NotApplicable,
+                    [],
+                    PdfTrustStatus.NotApplicable,
+                    [])
+                : await ValidateCertificateAsync(
+                    certificate,
+                    parsed.Certificates,
+                    parsed.SigningTime,
+                    validationPolicy,
+                    embeddedVri,
+                    timestamp.Time,
+                    cancellationToken).ConfigureAwait(false);
             var certificateStatus = certificateValidation.TrustStatus;
             var status = integrityStatus == PdfTrustStatus.Invalid ||
                          certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
@@ -224,15 +244,47 @@ internal static class PdfSignatureValidator
                     signatureId));
             }
 
+            var embeddedStatus = EvaluateEmbeddedValidationStatus(
+                embeddedVri,
+                certificateValidation,
+                timestamp);
+            var finalStatus = embeddedStatus == PdfTrustStatus.Invalid
+                ? PdfTrustStatus.Invalid
+                : status;
+            if (embeddedVri is not null)
+            {
+                diagnostics.Add(Diagnostic(
+                    embeddedStatus == PdfTrustStatus.Valid
+                        ? "PXAPDFTRUST123"
+                        : embeddedStatus == PdfTrustStatus.Invalid
+                            ? "PXAPDFTRUST124"
+                            : "PXAPDFTRUST125",
+                    embeddedStatus == PdfTrustStatus.Valid
+                        ? PdfTrustDiagnosticSeverity.Info
+                        : embeddedStatus == PdfTrustStatus.Invalid
+                            ? PdfTrustDiagnosticSeverity.Error
+                            : PdfTrustDiagnosticSeverity.Warning,
+                    embeddedStatus switch
+                    {
+                        PdfTrustStatus.Valid => "The signature-bound DSS/VRI material validates the complete signer and timestamp certificate chains at the trusted RFC 3161 time.",
+                        PdfTrustStatus.Invalid => "The signature-bound DSS/VRI material proves a revoked certificate or contains invalid historical evidence.",
+                        _ => "The signature-bound DSS/VRI material is incomplete or cannot establish historical validity for every non-root certificate."
+                    },
+                    signatureId));
+            }
+
             return new PdfSignatureValidationResult(
                 baseInspection with
                 {
-                    Status = status,
+                    Status = finalStatus,
                     IntegrityStatus = integrityStatus,
                     CoverageStatus = PdfTrustStatus.Valid,
                     CertificateStatus = certificateStatus,
                     RevocationStatus = certificateValidation.RevocationStatus,
-                    PadesProfile = DescribePadesProfile(subFilter, parsed),
+                    RevocationEvidence = ToInspection(certificateValidation.Evidence),
+                    PadesProfile = embeddedStatus == PdfTrustStatus.Valid
+                        ? "B-LT"
+                        : DescribePadesProfile(subFilter, parsed),
                     DigestAlgorithm = digestName,
                     SignerSubject = certificate?.Subject,
                     SignerThumbprint = certificate?.Thumbprint,
@@ -241,8 +293,19 @@ internal static class PdfSignatureValidator
                     SignedRevisionEndOffset = signedRevisionEnd,
                     TimestampStatus = timestamp.Status,
                     TimestampRevocationStatus = timestamp.RevocationStatus,
+                    TimestampRevocationEvidence = ToInspection(timestamp.Evidence),
                     TimestampTime = timestamp.Time,
-                    TimestampAuthoritySubject = timestamp.AuthoritySubject
+                    TimestampAuthoritySubject = timestamp.AuthoritySubject,
+                    EmbeddedValidationMaterial = embeddedVri is null
+                        ? null
+                        : new PdfSignatureEmbeddedValidationMaterialInspection(
+                            true,
+                            embeddedVri.Certificates.Count,
+                            embeddedVri.Crls.Count,
+                            embeddedVri.OcspResponses.Count,
+                            embeddedStatus),
+                    HistoricalRevocationStatus = certificateValidation.HistoricalRevocationStatus,
+                    TimestampHistoricalRevocationStatus = timestamp.HistoricalRevocationStatus
                 },
                 diagnostics);
         }
@@ -483,17 +546,29 @@ internal static class PdfSignatureValidator
             RSASignaturePadding.Pkcs1);
     }
 
-    private static CertificateValidation ValidateCertificate(
+    private static async Task<CertificateValidation> ValidateCertificateAsync(
         X509Certificate2 certificate,
         IReadOnlyList<X509Certificate2> certificates,
         DateTimeOffset? signingTime,
-        PdfSignatureValidationPolicy policy)
+        PdfSignatureValidationPolicy policy,
+        PdfEmbeddedVriMaterial? embeddedVri,
+        DateTimeOffset? trustedHistoricalReferenceTime,
+        CancellationToken cancellationToken)
     {
+        var embeddedCertificates = LoadEmbeddedCertificates(embeddedVri);
+        var allCertificates = certificates.Concat(embeddedCertificates).ToArray();
+        try
+        {
         var validationTime = signingTime ?? DateTimeOffset.UtcNow;
         if (validationTime.UtcDateTime < certificate.NotBefore.ToUniversalTime() ||
             validationTime.UtcDateTime > certificate.NotAfter.ToUniversalTime())
         {
-            return new CertificateValidation(PdfTrustStatus.Invalid, PdfTrustStatus.NotApplicable);
+            return new CertificateValidation(
+                PdfTrustStatus.Invalid,
+                PdfTrustStatus.NotApplicable,
+                [],
+                PdfTrustStatus.NotApplicable,
+                []);
         }
 
         var trustModes = GetTrustModes(policy);
@@ -502,7 +577,7 @@ internal static class PdfSignatureValidator
             using var chain = CreateChain(
                 policy,
                 certificate,
-                certificates,
+                allCertificates,
                 validationTime,
                 X509RevocationMode.NoCheck,
                 useCustomTrust);
@@ -515,9 +590,39 @@ internal static class PdfSignatureValidator
             : trustStatuses.Contains(PdfTrustStatus.Indeterminate)
                 ? PdfTrustStatus.Indeterminate
                 : PdfTrustStatus.Invalid;
+        var historicalValidation = ValidateEmbeddedHistoricalEvidence(
+            certificate,
+            allCertificates,
+            policy,
+            embeddedVri,
+            trustedHistoricalReferenceTime,
+            trustStatus);
         if (policy.RevocationMode == PdfCertificateRevocationMode.NoCheck)
         {
-            return new CertificateValidation(trustStatus, PdfTrustStatus.NotApplicable);
+            return new CertificateValidation(
+                trustStatus,
+                PdfTrustStatus.NotApplicable,
+                [],
+                historicalValidation.Status,
+                historicalValidation.Evidence);
+        }
+
+        if (policy.RevocationEvidenceProvider is not null &&
+            TryResolveIssuer(certificate, allCertificates, policy, out var issuer))
+        {
+            var evidence = await policy.RevocationEvidenceProvider.GetEvidenceAsync(
+                new PdfRevocationEvidenceRequest(
+                    certificate,
+                    issuer,
+                    DateTimeOffset.UtcNow,
+                    policy.RevocationMode),
+                cancellationToken).ConfigureAwait(false);
+            return new CertificateValidation(
+                trustStatus,
+                evidence.Status,
+                evidence.Evidence,
+                historicalValidation.Status,
+                historicalValidation.Evidence);
         }
 
         var revocationMode = policy.RevocationMode == PdfCertificateRevocationMode.Online
@@ -528,7 +633,7 @@ internal static class PdfSignatureValidator
             using var chain = CreateChain(
                 policy,
                 certificate,
-                certificates,
+                allCertificates,
                 validationTime,
                 revocationMode,
                 useCustomTrust);
@@ -541,7 +646,127 @@ internal static class PdfSignatureValidator
             : revocationStatuses.Contains(PdfTrustStatus.Valid)
                 ? PdfTrustStatus.Valid
                 : PdfTrustStatus.Indeterminate;
-        return new CertificateValidation(trustStatus, revocationStatus);
+        return new CertificateValidation(
+            trustStatus,
+            revocationStatus,
+            [],
+            historicalValidation.Status,
+            historicalValidation.Evidence);
+        }
+        finally
+        {
+            foreach (var embeddedCertificate in embeddedCertificates)
+            {
+                embeddedCertificate.Dispose();
+            }
+        }
+    }
+
+    private static PdfRevocationEvidenceResult ValidateEmbeddedHistoricalEvidence(
+        X509Certificate2 certificate,
+        IReadOnlyList<X509Certificate2> certificates,
+        PdfSignatureValidationPolicy policy,
+        PdfEmbeddedVriMaterial? embeddedVri,
+        DateTimeOffset? trustedReferenceTime,
+        PdfTrustStatus trustStatus)
+    {
+        if (embeddedVri is null)
+        {
+            return new PdfRevocationEvidenceResult(PdfTrustStatus.NotApplicable, []);
+        }
+        if (trustedReferenceTime is null || trustStatus != PdfTrustStatus.Valid)
+        {
+            return PdfRevocationEvidenceResult.Unavailable(
+                "A trusted certificate chain and RFC 3161 reference time are required for historical validation.");
+        }
+
+        foreach (var useCustomTrust in GetTrustModes(policy))
+        {
+            using var chain = CreateChain(
+                policy,
+                certificate,
+                certificates,
+                trustedReferenceTime.Value,
+                X509RevocationMode.NoCheck,
+                useCustomTrust);
+            if (!chain.Build(certificate))
+            {
+                continue;
+            }
+
+            var evidence = new List<PdfRevocationEvidence>();
+            var status = PdfTrustStatus.NotApplicable;
+            for (var index = 0; index < chain.ChainElements.Count - 1; index++)
+            {
+                var current = chain.ChainElements[index].Certificate;
+                var issuer = chain.ChainElements[index + 1].Certificate;
+                if (!embeddedVri.Certificates.Any(raw => raw.AsSpan().SequenceEqual(current.RawData)))
+                {
+                    return PdfRevocationEvidenceResult.Unavailable(
+                        "The VRI entry does not contain every non-root certificate in the validated chain.");
+                }
+
+                var certificateResult = PdfEmbeddedRevocationEvidenceValidator.Validate(
+                    embeddedVri,
+                    current,
+                    issuer,
+                    trustedReferenceTime.Value);
+                evidence.AddRange(certificateResult.Evidence);
+                if (certificateResult.Status == PdfTrustStatus.Invalid)
+                {
+                    return new PdfRevocationEvidenceResult(PdfTrustStatus.Invalid, evidence);
+                }
+                if (certificateResult.Status != PdfTrustStatus.Valid)
+                {
+                    status = PdfTrustStatus.Indeterminate;
+                }
+                else if (status == PdfTrustStatus.NotApplicable)
+                {
+                    status = PdfTrustStatus.Valid;
+                }
+            }
+            return new PdfRevocationEvidenceResult(status, evidence);
+        }
+
+        return PdfRevocationEvidenceResult.Unavailable("The embedded certificate chain could not be rebuilt.");
+    }
+
+    private static IReadOnlyList<X509Certificate2> LoadEmbeddedCertificates(
+        PdfEmbeddedVriMaterial? embeddedVri)
+    {
+        if (embeddedVri is null)
+        {
+            return [];
+        }
+
+        var certificates = new List<X509Certificate2>();
+        foreach (var raw in embeddedVri.Certificates)
+        {
+            try
+            {
+                certificates.Add(X509CertificateLoader.LoadCertificate(raw));
+            }
+            catch (CryptographicException)
+            {
+                // Malformed certificate entries do not invalidate the signed byte ranges.
+            }
+        }
+        return certificates;
+    }
+
+    private static bool TryResolveIssuer(
+        X509Certificate2 certificate,
+        IReadOnlyList<X509Certificate2> certificates,
+        PdfSignatureValidationPolicy policy,
+        out X509Certificate2 issuer)
+    {
+        issuer = certificates
+            .Concat(policy.IntermediateCertificates)
+            .Concat(policy.CustomTrustAnchors)
+            .FirstOrDefault(candidate =>
+                !string.Equals(candidate.Thumbprint, certificate.Thumbprint, StringComparison.OrdinalIgnoreCase) &&
+                candidate.SubjectName.RawData.AsSpan().SequenceEqual(certificate.IssuerName.RawData))!;
+        return issuer is not null;
     }
 
     private static IReadOnlyList<bool> GetTrustModes(PdfSignatureValidationPolicy policy)
@@ -612,13 +837,22 @@ internal static class PdfSignatureValidator
         return PdfTrustStatus.Indeterminate;
     }
 
-    private static TimestampValidation ValidateTimestamp(
+    private static async Task<TimestampValidation> ValidateTimestampAsync(
         ParsedCms cms,
-        PdfSignatureValidationPolicy validationPolicy)
+        PdfSignatureValidationPolicy validationPolicy,
+        PdfEmbeddedVriMaterial? embeddedVri,
+        CancellationToken cancellationToken)
     {
         if (cms.TimestampToken is null)
         {
-            return new TimestampValidation(PdfTrustStatus.NotApplicable, PdfTrustStatus.NotApplicable, null, null);
+            return new TimestampValidation(
+                PdfTrustStatus.NotApplicable,
+                PdfTrustStatus.NotApplicable,
+                null,
+                null,
+                [],
+                PdfTrustStatus.NotApplicable,
+                []);
         }
 
         try
@@ -627,7 +861,7 @@ internal static class PdfSignatureValidator
                 token is null || bytesConsumed != cms.TimestampToken.Length ||
                 !TryGetHashAlgorithm(token.TokenInfo.HashAlgorithmId.Value ?? string.Empty, out var hashAlgorithm, out _))
             {
-                return new TimestampValidation(PdfTrustStatus.Invalid, PdfTrustStatus.NotApplicable, null, null);
+                return InvalidTimestamp();
             }
 
             var tokenCms = token.AsSignedCms();
@@ -638,7 +872,7 @@ internal static class PdfSignatureValidator
                     tokenCms.Certificates) ||
                 timestampCertificate is null)
             {
-                return new TimestampValidation(PdfTrustStatus.Invalid, PdfTrustStatus.NotApplicable, token.TokenInfo.Timestamp, null);
+                return InvalidTimestamp(token.TokenInfo.Timestamp);
             }
 
             using (timestampCertificate)
@@ -655,14 +889,20 @@ internal static class PdfSignatureValidator
                         PdfTrustStatus.Invalid,
                         PdfTrustStatus.NotApplicable,
                         token.TokenInfo.Timestamp,
-                        timestampCertificate.Subject);
+                        timestampCertificate.Subject,
+                        [],
+                        PdfTrustStatus.NotApplicable,
+                        []);
                 }
 
-                var certificateValidation = ValidateCertificate(
+                var certificateValidation = await ValidateCertificateAsync(
                     timestampCertificate,
                     tokenCms.Certificates.Cast<X509Certificate2>().ToArray(),
                     token.TokenInfo.Timestamp,
-                    validationPolicy);
+                    validationPolicy,
+                    embeddedVri,
+                    token.TokenInfo.Timestamp,
+                    cancellationToken).ConfigureAwait(false);
                 var timestampStatus = certificateValidation.TrustStatus == PdfTrustStatus.Invalid ||
                                       certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
                     ? PdfTrustStatus.Invalid
@@ -674,13 +914,51 @@ internal static class PdfSignatureValidator
                     timestampStatus,
                     certificateValidation.RevocationStatus,
                     token.TokenInfo.Timestamp,
-                    timestampCertificate.Subject);
+                    timestampCertificate.Subject,
+                    certificateValidation.Evidence,
+                    certificateValidation.HistoricalRevocationStatus,
+                    certificateValidation.HistoricalEvidence);
             }
         }
         catch (CryptographicException)
         {
-            return new TimestampValidation(PdfTrustStatus.Invalid, PdfTrustStatus.NotApplicable, null, null);
+            return InvalidTimestamp();
         }
+    }
+
+    private static TimestampValidation InvalidTimestamp(DateTimeOffset? time = null) => new(
+        PdfTrustStatus.Invalid,
+        PdfTrustStatus.NotApplicable,
+        time,
+        null,
+        [],
+        PdfTrustStatus.NotApplicable,
+        []);
+
+    private static PdfTrustStatus EvaluateEmbeddedValidationStatus(
+        PdfEmbeddedVriMaterial? embeddedVri,
+        CertificateValidation signer,
+        TimestampValidation timestamp)
+    {
+        if (embeddedVri is null)
+        {
+            return PdfTrustStatus.NotApplicable;
+        }
+        if (signer.HistoricalRevocationStatus == PdfTrustStatus.Invalid ||
+            timestamp.HistoricalRevocationStatus == PdfTrustStatus.Invalid)
+        {
+            return PdfTrustStatus.Invalid;
+        }
+        var signerHistoryValid = signer.HistoricalRevocationStatus is
+            PdfTrustStatus.Valid or PdfTrustStatus.NotApplicable;
+        var timestampHistoryValid = timestamp.HistoricalRevocationStatus is
+            PdfTrustStatus.Valid or PdfTrustStatus.NotApplicable;
+        return signer.TrustStatus == PdfTrustStatus.Valid &&
+               timestamp.Status == PdfTrustStatus.Valid &&
+               signerHistoryValid &&
+               timestampHistoryValid
+            ? PdfTrustStatus.Valid
+            : PdfTrustStatus.Indeterminate;
     }
 
     private static bool TryGetHashAlgorithm(
@@ -712,6 +990,15 @@ internal static class PdfSignatureValidator
         cms.SigningCertificateV2Hash is not null
             ? cms.TimestampToken is null ? "B-B" : "B-T"
             : null;
+
+    private static IReadOnlyList<PdfRevocationEvidenceInspection> ToInspection(
+        IReadOnlyList<PdfRevocationEvidence> evidence) => evidence.Select(item =>
+        new PdfRevocationEvidenceInspection(
+            item.Kind,
+            item.Status,
+            item.Source,
+            item.ThisUpdate,
+            item.NextUpdate)).ToArray();
 
     private static string ReadAlgorithmIdentifier(AsnReader algorithmIdentifier)
     {
@@ -796,11 +1083,17 @@ internal static class PdfSignatureValidator
 
     private sealed record CertificateValidation(
         PdfTrustStatus TrustStatus,
-        PdfTrustStatus RevocationStatus);
+        PdfTrustStatus RevocationStatus,
+        IReadOnlyList<PdfRevocationEvidence> Evidence,
+        PdfTrustStatus HistoricalRevocationStatus,
+        IReadOnlyList<PdfRevocationEvidence> HistoricalEvidence);
 
     private sealed record TimestampValidation(
         PdfTrustStatus Status,
         PdfTrustStatus RevocationStatus,
         DateTimeOffset? Time,
-        string? AuthoritySubject);
+        string? AuthoritySubject,
+        IReadOnlyList<PdfRevocationEvidence> Evidence,
+        PdfTrustStatus HistoricalRevocationStatus,
+        IReadOnlyList<PdfRevocationEvidence> HistoricalEvidence);
 }

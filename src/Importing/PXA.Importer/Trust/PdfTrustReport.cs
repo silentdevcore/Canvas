@@ -34,7 +34,22 @@ public sealed record PdfSignatureValidationPolicy
     public X509RevocationFlag RevocationFlag { get; init; } = X509RevocationFlag.ExcludeRoot;
     public bool AllowCertificateDownloads { get; init; }
     public TimeSpan NetworkTimeout { get; init; } = TimeSpan.FromSeconds(10);
+    public IPdfRevocationEvidenceProvider? RevocationEvidenceProvider { get; init; }
 }
+
+public sealed record PdfRevocationEvidenceInspection(
+    PdfRevocationEvidenceKind Kind,
+    PdfTrustStatus Status,
+    string Source,
+    DateTimeOffset ThisUpdate,
+    DateTimeOffset? NextUpdate);
+
+public sealed record PdfSignatureEmbeddedValidationMaterialInspection(
+    bool VriMatched,
+    int CertificateCount,
+    int CrlCount,
+    int OcspResponseCount,
+    PdfTrustStatus Status);
 
 public sealed record PdfTrustDiagnostic(
     string Code,
@@ -73,7 +88,12 @@ public sealed record PdfSignatureInspection(
     DateTimeOffset? TimestampTime = null,
     string? TimestampAuthoritySubject = null,
     PdfTrustStatus RevocationStatus = PdfTrustStatus.NotApplicable,
-    PdfTrustStatus TimestampRevocationStatus = PdfTrustStatus.NotApplicable);
+    PdfTrustStatus TimestampRevocationStatus = PdfTrustStatus.NotApplicable,
+    IReadOnlyList<PdfRevocationEvidenceInspection>? RevocationEvidence = null,
+    IReadOnlyList<PdfRevocationEvidenceInspection>? TimestampRevocationEvidence = null,
+    PdfSignatureEmbeddedValidationMaterialInspection? EmbeddedValidationMaterial = null,
+    PdfTrustStatus HistoricalRevocationStatus = PdfTrustStatus.NotApplicable,
+    PdfTrustStatus TimestampHistoricalRevocationStatus = PdfTrustStatus.NotApplicable);
 
 public sealed record PdfComplianceClaim(
     string Standard,
@@ -90,6 +110,14 @@ public sealed record PdfRevisionInspection(
     string Sha256,
     int EntryCount);
 
+public sealed record PdfEmbeddedValidationMaterialInspection(
+    int CertificateCount,
+    int CrlCount,
+    int OcspResponseCount,
+    int VriEntryCount,
+    long TotalBytes,
+    PdfTrustStatus Status);
+
 public sealed record PdfTrustReport(
     PdfTrustStatus Status,
     PdfTrustStatus StructureStatus,
@@ -103,7 +131,8 @@ public sealed record PdfTrustReport(
     PdfComplianceClaim PdfA,
     PdfComplianceClaim PdfUa,
     IReadOnlyList<PdfRevisionInspection> Revisions,
-    IReadOnlyList<PdfTrustDiagnostic> Diagnostics);
+    IReadOnlyList<PdfTrustDiagnostic> Diagnostics,
+    PdfEmbeddedValidationMaterialInspection? EmbeddedValidationMaterial = null);
 
 public sealed record PdfTrustInspectionOptions
 {

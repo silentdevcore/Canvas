@@ -331,6 +331,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     timestampAuthority: t('timestampAuthority'),
     timestampTime: t('timestampTime'),
     timestampRevocation: t('timestampRevocation'),
+    historicalRevocation: t('historicalRevocation'),
+    timestampHistoricalRevocation: t('timestampHistoricalRevocation'),
+    revocationEvidence: t('revocationEvidence'),
+    embeddedValidationMaterial: t('embeddedValidationMaterial'),
+    certificates: t('certificates'),
+    crls: t('crls'),
+    ocspResponses: t('ocspResponses'),
+    vriEntries: t('vriEntries'),
+    vriMatched: t('vriMatched'),
+    validUntil: t('validUntil'),
     wholeDocument: t('wholeDocument'),
     earlierRevision: t('earlierRevision'),
     revisions: t('revisions'),
@@ -1609,6 +1619,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                   <div><dt>{labels.revisions}</dt><dd>{trustReport.revisionCount}</dd></div>
                   <div><dt>{labels.objects}</dt><dd>{trustReport.objectCount}</dd></div>
                   <div><dt>PDF</dt><dd>{trustReport.pdfVersion ?? labels.notDetected}</dd></div>
+                  {trustReport.embeddedValidationMaterial && (
+                    <div>
+                      <dt>{labels.embeddedValidationMaterial}</dt>
+                      <dd data-status={trustReport.embeddedValidationMaterial.status}>
+                        {labels.certificates}: {trustReport.embeddedValidationMaterial.certificateCount} · {labels.crls}: {trustReport.embeddedValidationMaterial.crlCount} · {labels.ocspResponses}: {trustReport.embeddedValidationMaterial.ocspResponseCount} · {labels.vriEntries}: {trustReport.embeddedValidationMaterial.vriEntryCount}
+                      </dd>
+                    </div>
+                  )}
                 </dl>
                 {trustReport.signatures.length > 0 && (
                   <div className="pdfv-signature-list">
@@ -1623,11 +1641,39 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           <div><dt>{labels.coverage}</dt><dd data-status={signature.coverageStatus}>{signature.coversWholeDocument ? labels.wholeDocument : labels.earlierRevision}</dd></div>
                           <div><dt>{labels.certificateTrust}</dt><dd data-status={signature.certificateStatus}>{trustStatusLabel(signature.certificateStatus)}</dd></div>
                           <div><dt>{labels.revocation}</dt><dd data-status={signature.revocationStatus}>{trustStatusLabel(signature.revocationStatus)}</dd></div>
+                          <div><dt>{labels.historicalRevocation}</dt><dd data-status={signature.historicalRevocationStatus}>{trustStatusLabel(signature.historicalRevocationStatus)}</dd></div>
+                          {signature.revocationEvidence?.map((evidence, evidenceIndex) => (
+                            <div key={`signer-evidence-${evidenceIndex}`}>
+                              <dt>{labels.revocationEvidence}</dt>
+                              <dd title={evidence.source}>
+                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} · {trustStatusLabel(evidence.status)}
+                                {evidence.nextUpdate ? ` · ${labels.validUntil} ${new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(evidence.nextUpdate))}` : ''}
+                              </dd>
+                            </div>
+                          ))}
                           <div><dt>PAdES</dt><dd>{signature.padesProfile ?? labels.notDetected}</dd></div>
+                          {signature.embeddedValidationMaterial && (
+                            <div>
+                              <dt>{labels.vriMatched}</dt>
+                              <dd data-status={signature.embeddedValidationMaterial.status}>
+                                {labels.certificates}: {signature.embeddedValidationMaterial.certificateCount} · {labels.crls}: {signature.embeddedValidationMaterial.crlCount} · {labels.ocspResponses}: {signature.embeddedValidationMaterial.ocspResponseCount}
+                              </dd>
+                            </div>
+                          )}
                           <div><dt>Digest</dt><dd>{signature.digestAlgorithm ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.signer}</dt><dd title={signature.signerSubject ?? undefined}>{signature.signerSubject ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.timestamp}</dt><dd data-status={signature.timestampStatus}>{trustStatusLabel(signature.timestampStatus)}</dd></div>
                           <div><dt>{labels.timestampRevocation}</dt><dd data-status={signature.timestampRevocationStatus}>{trustStatusLabel(signature.timestampRevocationStatus)}</dd></div>
+                          <div><dt>{labels.timestampHistoricalRevocation}</dt><dd data-status={signature.timestampHistoricalRevocationStatus}>{trustStatusLabel(signature.timestampHistoricalRevocationStatus)}</dd></div>
+                          {signature.timestampRevocationEvidence?.map((evidence, evidenceIndex) => (
+                            <div key={`timestamp-evidence-${evidenceIndex}`}>
+                              <dt>{labels.revocationEvidence}</dt>
+                              <dd title={evidence.source}>
+                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} · {trustStatusLabel(evidence.status)}
+                                {evidence.nextUpdate ? ` · ${labels.validUntil} ${new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(evidence.nextUpdate))}` : ''}
+                              </dd>
+                            </div>
+                          ))}
                           {signature.timestampTime && (
                             <div><dt>{labels.timestampTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.timestampTime))}</dd></div>
                           )}

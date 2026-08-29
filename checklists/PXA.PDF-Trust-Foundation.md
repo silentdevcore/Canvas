@@ -148,16 +148,33 @@ Reference material:
   cryptographic signature as a trusted identity unless chain policy succeeds.
 - [x] Support configurable system and custom PEM/DER trust anchors plus intermediate
   certificate stores for Cloud and On-Premise deployments.
-- [ ] Support offline validation with supplied trust anchors, CRLs, OCSP responses,
+- [x] Support offline validation with supplied trust anchors, CRLs, OCSP responses,
   and embedded LTV material.
+  - [x] Validate server-supplied and application-cached CRLs offline, including CRL
+    issuer, signature, validity window, and certificate serial status.
+  - [x] Validate supplied and cached OCSP responses, including CertID binding,
+    responder authorization, response signature, status, and freshness.
+  - [x] Validate embedded PAdES DSS/VRI evidence.
+    - [x] Discover, decode, bound, and deduplicate embedded certificates, CRLs, and
+      OCSP responses from document-level DSS arrays and signature-related VRI entries.
+    - [x] Bind each valid VRI key to the exact trimmed CMS signature value and expose
+      the signature-specific certificate, CRL, and OCSP inventory separately.
+    - [x] Validate every non-root certificate in the trusted signer and TSA chains
+      at the RFC 3161 reference time, including later evidence and revocation times,
+      without treating discovery or VRI binding alone as conformance.
 - [x] Support explicit `NoCheck`, platform-cache `Offline`, and opt-in `Online`
-  revocation modes with separate signer and TSA revocation outcomes; supplied
-  CRL/OCSP evidence and embedded LTV material remain open.
+  revocation modes with separate signer and TSA revocation outcomes, including
+  supplied CRL/OCSP evidence and signature-bound embedded LTV material.
 - [ ] Make network retrieval of OCSP, CRL, AIA, and TSA data explicit, bounded,
   allowlisted, cached, and disableable for isolated installations.
+  - [x] Retrieve certificate-declared CRLs only through exact-host HTTPS allowlists,
+    without redirects, with bounded responses and a Data-Protection-encrypted cache.
+  - [x] Add application-owned OCSP POST requests and certificate-specific encrypted
+    response caching under the same HTTPS allowlist and response limits.
+  - [ ] Add bounded AIA issuer retrieval under the same policy.
 - [x] Keep certificate downloads disabled by default and make online revocation an
-  explicit server policy with a bounded retrieval timeout; endpoint allowlists and
-  an application-owned revocation cache remain open.
+  explicit server policy with bounded retrieval, exact-host CRL allowlists, and a
+  validated Data-Protection-encrypted CRL and certificate-specific OCSP cache.
 - [x] Add `POST /api/pxa/v1/pdf/signatures/sign` and
   `POST /api/pxa/v1/pdf/signatures/validate` with streaming binary responses and
   structured validation reports.
@@ -272,6 +289,10 @@ Reference material:
     trust, signer, digest, PAdES profile, timestamp status, timestamp time, and TSA
     identity plus separate signer/TSA revocation states; risky content and
     attachments remain open.
+  - [x] Show validated signer and TSA revocation evidence kind, status, source, and
+    expiry without exposing raw CRL bytes.
+  - [x] Show bounded DSS/VRI certificate, CRL, OCSP, and VRI counts plus matched
+    per-signature VRI inventory and the resulting historical B-LT validation state.
 - [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
 - [ ] Show signature field location, signer/certificate details, signed revision,

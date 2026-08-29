@@ -28,7 +28,8 @@ public sealed class PxaPdfTrustPolicyProvider : IPxaPdfTrustPolicyProvider, IDis
 
     public PxaPdfTrustPolicyProvider(
         IOptions<PxaPdfTrustPolicyOptions> options,
-        IHostEnvironment environment)
+        IHostEnvironment environment,
+        IPdfRevocationEvidenceProvider? revocationEvidenceProvider = null)
     {
         var configured = options.Value;
         var trustAnchors = LoadCertificates(
@@ -49,7 +50,8 @@ public sealed class PxaPdfTrustPolicyProvider : IPxaPdfTrustPolicyProvider, IDis
             RevocationMode = configured.RevocationMode,
             RevocationFlag = configured.RevocationFlag,
             AllowCertificateDownloads = configured.AllowCertificateDownloads,
-            NetworkTimeout = TimeSpan.FromSeconds(configured.NetworkTimeoutSeconds)
+            NetworkTimeout = TimeSpan.FromSeconds(configured.NetworkTimeoutSeconds),
+            RevocationEvidenceProvider = revocationEvidenceProvider
         };
     }
 

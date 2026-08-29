@@ -136,6 +136,27 @@ builder.Services.AddHttpClient(PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityF
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTimestampAuthorityFactory,
     PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityFactory>();
+builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceOptions>()
+    .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceOptions.SectionName))
+    .Validate(
+        options => options.AllowedHosts.All(host => !string.IsNullOrWhiteSpace(host)) &&
+                   options.CrlPaths.All(path => !string.IsNullOrWhiteSpace(path)) &&
+                   options.OcspResponsePaths.All(path => !string.IsNullOrWhiteSpace(path)) &&
+                   !string.IsNullOrWhiteSpace(options.CacheDirectory),
+        "PDF revocation evidence hosts, CRL paths, and cache directory must not be empty.")
+    .Validate(
+        options => options.MaximumResponseBytes is >= 1024 and <= 16 * 1024 * 1024 &&
+                   options.NetworkTimeoutSeconds is >= 1 and <= 60 &&
+                   options.MaximumOcspAgeHours is >= 1 and <= 168,
+        "PDF revocation evidence response limit or timeout is invalid.")
+    .ValidateOnStart();
+builder.Services.AddHttpClient(PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceProvider.HttpClientName, (services, client) =>
+    client.Timeout = TimeSpan.FromSeconds(
+        services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceOptions>>()
+            .Value.NetworkTimeoutSeconds))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddSingleton<PXA.Importer.Trust.IPdfRevocationEvidenceProvider,
+    PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceProvider>();
 builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions>()
     .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions.SectionName))
     .Validate(

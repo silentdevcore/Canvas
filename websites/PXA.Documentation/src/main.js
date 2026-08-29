@@ -337,6 +337,16 @@ const editorDocs = [
         title: 'On-Premise trust policy',
         json: `{
   "PdfTrust": {
+    "RevocationEvidence": {
+      "Enabled": false,
+      "AllowedHosts": ["pki.example.com"],
+      "CrlPaths": ["App_Data/trust/company-root.crl"],
+      "OcspResponsePaths": ["App_Data/trust/signer.ocsp"],
+      "CacheDirectory": "App_Data/pdf-trust/revocation-cache",
+      "MaximumResponseBytes": 4194304,
+      "NetworkTimeoutSeconds": 10,
+      "MaximumOcspAgeHours": 24
+    },
     "ValidationPolicy": {
       "UseSystemTrustStore": true,
       "CustomTrustAnchorPaths": ["App_Data/trust/company-root.pem"],
@@ -348,7 +358,7 @@ const editorDocs = [
     }
   }
 }`,
-        note: 'Custom anchors are server configuration, never request input. NoCheck is the default. Offline uses locally available revocation evidence; Online must be enabled explicitly and may contact certificate-declared endpoints.',
+        note: 'Custom anchors are server configuration, never request input. Supplied CRLs and OCSP responses are server-owned configuration as well. NoCheck is the default. Offline uses configured or cached evidence. Online retrieval is disabled by default and accepts only certificate-declared HTTPS CRL and OCSP endpoints whose exact host is allowlisted. Redirects are rejected, responses are bounded, signatures, certificate binding, responder authorization, and validity windows are verified, and certificate-specific cache bytes are protected with ASP.NET Core Data Protection.',
       },
       {
         title: 'Interpret validation results',
@@ -356,11 +366,27 @@ const editorDocs = [
   "integrityStatus": 0,
   "certificateStatus": 0,
   "revocationStatus": 2,
-  "padesProfile": "B-T",
+  "padesProfile": "B-LT",
   "timestampStatus": 0,
-  "timestampRevocationStatus": 2
+  "timestampRevocationStatus": 2,
+  "historicalRevocationStatus": 0,
+  "timestampHistoricalRevocationStatus": 0,
+  "revocationEvidence": [{
+    "kind": 0,
+    "status": 0,
+    "source": "cache:pki.example.com",
+    "thisUpdate": "2026-08-28T08:00:00Z",
+    "nextUpdate": "2026-08-29T08:00:00Z"
+  }],
+  "embeddedValidationMaterial": {
+    "certificateCount": 3,
+    "crlCount": 1,
+    "ocspResponseCount": 2,
+    "vriEntryCount": 1,
+    "status": 2
+  }
 }`,
-        note: 'Status values are valid=0, invalid=1, indeterminate=2, unsupported=3, and notApplicable=4. Valid integrity proves that signed bytes were not changed. It does not by itself prove signer identity or non-revocation. Indeterminate revocation must never be presented as valid.',
+        note: 'Status values are valid=0, invalid=1, indeterminate=2, unsupported=3, and notApplicable=4. Evidence kind 0 is CRL and 1 is OCSP. Valid integrity proves that signed bytes were not changed. It does not by itself prove signer identity or non-revocation. Indeterminate revocation must never be presented as valid. PXA reports B-LT only when a valid VRI key binds to the exact CMS signature value, the RFC 3161 timestamp is trusted, and embedded evidence validates every non-root signer and TSA certificate at that trusted time. Creating new B-LT signatures remains a separate roadmap item.',
       },
     ],
   },

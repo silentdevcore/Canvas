@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
+using PXA.Importer.Saving;
 using PXA.Importer.Signing;
 using PXA.Importer.Trust;
 using PXA.Importer.Xref;
@@ -186,6 +187,67 @@ public sealed class PdfPadesSigningServiceTests
     }
 
     [Fact]
+    public async Task Inspect_ShouldExposeValidatedApplicationRevocationEvidence()
+    {
+        var now = DateTimeOffset.UtcNow;
+        using var rootKey = RSA.Create(2048);
+        var rootRequest = new CertificateRequest(
+            "CN=PXA Evidence Root",
+            rootKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+            true));
+        using var root = rootRequest.CreateSelfSigned(now.AddDays(-1), now.AddDays(2));
+
+        using var leafKey = RSA.Create(2048);
+        var leafRequest = new CertificateRequest(
+            "CN=PXA Evidence Signer",
+            leafKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+        leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, true));
+        using var leafPublic = leafRequest.Create(root, now.AddHours(-1), now.AddDays(1), RandomNumberGenerator.GetBytes(16));
+        using var leaf = leafPublic.CopyWithPrivateKey(leafKey);
+        using var signingKey = new PdfPkcs12SigningKey(
+            leaf.Export(X509ContentType.Pkcs12, "test-password"),
+            "test-password");
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            signingKey,
+            new PdfSigningOptions { SigningTime = now });
+        var provider = new TestEvidenceProvider(new PdfRevocationEvidence(
+            PdfRevocationEvidenceKind.Crl,
+            PdfTrustStatus.Valid,
+            "configured:test.crl",
+            now.AddHours(-1),
+            now.AddHours(1),
+            [0x30, 0x00]));
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(stream, new PdfTrustInspectionOptions
+        {
+            SignatureValidationPolicy = new PdfSignatureValidationPolicy
+            {
+                UseSystemTrustStore = false,
+                CustomTrustAnchors = [root],
+                RevocationMode = PdfCertificateRevocationMode.Offline,
+                RevocationEvidenceProvider = provider
+            }
+        });
+
+        var signature = Assert.Single(report.Signatures);
+        Assert.Equal(PdfTrustStatus.Valid, signature.RevocationStatus);
+        var evidence = Assert.Single(signature.RevocationEvidence!);
+        Assert.Equal(PdfRevocationEvidenceKind.Crl, evidence.Kind);
+        Assert.Equal("configured:test.crl", evidence.Source);
+        Assert.Equal(1, provider.CallCount);
+    }
+
+    [Fact]
     public async Task Sign_ShouldAppendSecondSignatureWithoutChangingFirstRevisionBytes()
     {
         using var fixture = SigningFixture.Create();
@@ -318,6 +380,49 @@ public sealed class PdfPadesSigningServiceTests
     }
 
     [Fact]
+    public async Task Inspect_ShouldPromoteTrustedTimestampedSignatureWithMatchedVriToBaselineLt()
+    {
+        using var fixture = SigningFixture.Create();
+        using var timestampAuthority = TestTimestampAuthority.Create(fixture.SigningTime.AddSeconds(5));
+        var signed = await new PdfPadesSigningService().SignAsync(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions
+            {
+                FieldName = "LongTermApproval",
+                Profile = PdfPadesProfile.BaselineT,
+                SigningTime = fixture.SigningTime
+            },
+            timestampAuthority);
+        var parsedSignature = ParseSignature(signed.Bytes, signedFieldName: "LongTermApproval");
+        var cms = parsedSignature.Contents[..ReadDerLength(parsedSignature.Contents)];
+        var baselineLt = AppendDssRevision(
+            signed.Bytes,
+            cms,
+            [fixture.Key.Certificate.RawData, timestampAuthority.CertificateBytes]);
+
+        await using var stream = new MemoryStream(baselineLt);
+        var report = await new PdfTrustInspector().InspectAsync(
+            stream,
+            new PdfTrustInspectionOptions
+            {
+                SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                {
+                    UseSystemTrustStore = false,
+                    CustomTrustAnchors = [fixture.Key.Certificate, timestampAuthority.Certificate]
+                }
+            });
+
+        var signature = Assert.Single(report.Signatures);
+        Assert.Equal("B-LT", signature.PadesProfile);
+        Assert.Equal(PdfTrustStatus.Valid, signature.EmbeddedValidationMaterial?.Status);
+        Assert.Equal(PdfTrustStatus.NotApplicable, signature.HistoricalRevocationStatus);
+        Assert.Equal(PdfTrustStatus.NotApplicable, signature.TimestampHistoricalRevocationStatus);
+        Assert.False(signature.CoversWholeDocument);
+        Assert.Equal(2, report.EmbeddedValidationMaterial?.CertificateCount);
+    }
+
+    [Fact]
     public async Task SignAsync_ShouldRejectTimestampCertificateWithoutExclusiveTimestampingEkuOnValidation()
     {
         using var fixture = SigningFixture.Create();
@@ -364,6 +469,71 @@ public sealed class PdfPadesSigningServiceTests
             .OfType<PdfDictionary>()
             .Any(field => field["V"] is PdfReference reference && reference.Id == signatureId);
         return new ParsedSignature(contents, referencesSignature);
+    }
+
+    private static ParsedSignature ParseSignature(byte[] bytes, string signedFieldName)
+    {
+        var context = new PdfParseContext(bytes, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var signature = graph.Objects.Values
+            .Select(static item => item.Value)
+            .OfType<PdfDictionary>()
+            .Single(dictionary => dictionary["Type"] is PdfName { Value: "Sig" });
+        var contents = Assert.IsType<PdfString>(signature["Contents"]).GetDecodedBytes().ToArray();
+        var catalog = Assert.IsType<PdfDictionary>(Resolve(graph, graph.Trailer?["Root"]));
+        var acroForm = Assert.IsType<PdfDictionary>(Resolve(graph, catalog["AcroForm"]));
+        var fields = Assert.IsType<PdfArray>(Resolve(graph, acroForm["Fields"]));
+        var namedFieldExists = fields.Items
+            .Select(field => Resolve(graph, field))
+            .OfType<PdfDictionary>()
+            .Any(field => Assert.IsType<PdfString>(field["T"]).ToLatin1String() == signedFieldName);
+        return new ParsedSignature(contents, namedFieldExists);
+    }
+
+    private static byte[] AppendDssRevision(
+        byte[] signedPdf,
+        byte[] cms,
+        IReadOnlyList<byte[]> certificates)
+    {
+        var context = new PdfParseContext(signedPdf, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var rootReference = Assert.IsType<PdfReference>(graph.Trailer?["Root"]);
+        var catalog = Assert.IsType<PdfDictionary>(graph.Resolve(rootReference.Id)?.Value);
+        var nextObjectNumber = graph.Objects.Keys.Max(static id => id.Number) + 1;
+        var certificateReferences = new List<PdfObject>();
+        var updates = new List<PdfIncrementalObjectUpdate>();
+        foreach (var certificate in certificates)
+        {
+            var id = new PdfObjectId(nextObjectNumber++, 0);
+            certificateReferences.Add(new PdfReference(id));
+            updates.Add(new PdfIncrementalObjectUpdate(
+                id,
+                new PdfStreamObject(new PdfDictionary(), certificate)));
+        }
+
+        var vri = new PdfDictionary
+        {
+            ["Cert"] = new PdfArray(certificateReferences)
+        };
+        var dssId = new PdfObjectId(nextObjectNumber, 0);
+        var dss = new PdfDictionary
+        {
+            ["Certs"] = new PdfArray(certificateReferences),
+            ["VRI"] = new PdfDictionary
+            {
+                [Convert.ToHexString(SHA1.HashData(cms))] = vri
+            }
+        };
+        updates.Add(new PdfIncrementalObjectUpdate(dssId, dss));
+        var catalogWithDss = new PdfDictionary(
+            catalog.Values.ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal))
+        {
+            ["DSS"] = new PdfReference(dssId)
+        };
+        updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, catalogWithDss));
+        return new PdfIncrementalUpdateWriter().Append(signedPdf, updates).Bytes;
     }
 
     private static ParsedWidget ParseWidget(byte[] bytes, string fieldName)
@@ -552,6 +722,20 @@ public sealed class PdfPadesSigningServiceTests
         public void Dispose() => Key.Dispose();
     }
 
+    private sealed class TestEvidenceProvider(PdfRevocationEvidence evidence) : IPdfRevocationEvidenceProvider
+    {
+        public int CallCount { get; private set; }
+
+        public Task<PdfRevocationEvidenceResult> GetEvidenceAsync(
+            PdfRevocationEvidenceRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            CallCount++;
+            return Task.FromResult(new PdfRevocationEvidenceResult(evidence.Status, [evidence]));
+        }
+    }
+
     private sealed class TestTimestampAuthority : IPdfTimestampAuthority, IDisposable
     {
         private const string TimestampInfoOid = "1.2.840.113549.1.9.16.1.4";
@@ -565,6 +749,8 @@ public sealed class PdfPadesSigningServiceTests
         }
 
         public DateTimeOffset Timestamp { get; }
+        public byte[] CertificateBytes => _certificate.RawData;
+        public X509Certificate2 Certificate => _certificate;
 
         public static TestTimestampAuthority Create(
             DateTimeOffset timestamp,

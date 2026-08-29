@@ -79,12 +79,18 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         var encryption = InspectEncryption(graph, diagnostics);
-        var signatures = InspectSignatures(
+        var embeddedValidationMaterial = InspectEmbeddedValidationMaterial(
+            graph,
+            diagnostics,
+            out var embeddedValidationMaterialSource);
+        var signatures = await InspectSignaturesAsync(
             source,
             graph,
             xref?.Revisions ?? [],
             signaturePolicy,
-            diagnostics);
+            embeddedValidationMaterialSource,
+            diagnostics,
+            cancellationToken).ConfigureAwait(false);
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
@@ -137,7 +143,50 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             pdfA,
             pdfUa,
             revisions,
-            diagnostics);
+            diagnostics,
+            embeddedValidationMaterial);
+    }
+
+    private static PdfEmbeddedValidationMaterialInspection? InspectEmbeddedValidationMaterial(
+        PdfObjectGraph? graph,
+        ICollection<PdfTrustDiagnostic> diagnostics,
+        out PdfEmbeddedValidationMaterial? material)
+    {
+        material = null;
+        if (graph is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            material = PdfEmbeddedValidationMaterialExtractor.Extract(graph);
+            if (material.Certificates.Count == 0 && material.Crls.Count == 0 &&
+                material.OcspResponses.Count == 0 && material.VriEntryCount == 0)
+            {
+                return null;
+            }
+
+            diagnostics.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST121",
+                PdfTrustDiagnosticSeverity.Info,
+                $"Embedded PAdES validation material was found ({material.Certificates.Count} certificate(s), {material.Crls.Count} CRL(s), {material.OcspResponses.Count} OCSP response(s), {material.VriEntryCount} VRI entry/entries). Cryptographic B-LT validation is not yet applied."));
+            return new PdfEmbeddedValidationMaterialInspection(
+                material.Certificates.Count,
+                material.Crls.Count,
+                material.OcspResponses.Count,
+                material.VriEntryCount,
+                material.TotalBytes,
+                PdfTrustStatus.Indeterminate);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or CryptographicException)
+        {
+            diagnostics.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST122",
+                PdfTrustDiagnosticSeverity.Warning,
+                $"Embedded PAdES validation material could not be inspected: {exception.GetType().Name}."));
+            return new PdfEmbeddedValidationMaterialInspection(0, 0, 0, 0, 0, PdfTrustStatus.Unsupported);
+        }
     }
 
     private static async Task<byte[]> ReadBoundedAsync(
@@ -227,12 +276,14 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             length);
     }
 
-    private static IReadOnlyList<PdfSignatureInspection> InspectSignatures(
-        ReadOnlySpan<byte> source,
+    private static async Task<IReadOnlyList<PdfSignatureInspection>> InspectSignaturesAsync(
+        byte[] source,
         PdfObjectGraph? graph,
         IReadOnlyList<PdfCrossReferenceRevision> revisions,
         PdfSignatureValidationPolicy validationPolicy,
-        ICollection<PdfTrustDiagnostic> diagnostics)
+        PdfEmbeddedValidationMaterial? embeddedValidationMaterial,
+        ICollection<PdfTrustDiagnostic> diagnostics,
+        CancellationToken cancellationToken)
     {
         if (graph is null)
         {
@@ -247,12 +298,14 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 continue;
             }
 
-            var result = PdfSignatureValidator.Validate(
+            var result = await PdfSignatureValidator.ValidateAsync(
                 source,
                 indirectObject.Id,
                 dictionary,
                 revisions,
-                validationPolicy);
+                validationPolicy,
+                embeddedValidationMaterial,
+                cancellationToken).ConfigureAwait(false);
             signatures.Add(result.Inspection);
             foreach (var diagnostic in result.Diagnostics)
             {
