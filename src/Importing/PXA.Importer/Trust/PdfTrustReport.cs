@@ -51,6 +51,20 @@ public sealed record PdfSignatureEmbeddedValidationMaterialInspection(
     int OcspResponseCount,
     PdfTrustStatus Status);
 
+public enum PdfCertificationTransform
+{
+    DocMdp,
+    FieldMdp
+}
+
+public sealed record PdfCertificationInspection(
+    int Level,
+    PdfTrustStatus Status,
+    PdfTrustStatus FieldLockStatus,
+    int DisallowedChangeCount,
+    IReadOnlyList<string> DisallowedChanges,
+    IReadOnlyList<string> LockedFields);
+
 public sealed record PdfTrustDiagnostic(
     string Code,
     PdfTrustDiagnosticSeverity Severity,
@@ -97,7 +111,10 @@ public sealed record PdfSignatureInspection(
     bool IsDocumentTimestamp = false,
     PdfTrustStatus ArchiveTimestampStatus = PdfTrustStatus.NotApplicable,
     DateTimeOffset? ArchiveTimestampTime = null,
-    string? ArchiveTimestampAuthoritySubject = null);
+    string? ArchiveTimestampAuthoritySubject = null,
+    bool IsCertification = false,
+    PdfTrustStatus CertificationStatus = PdfTrustStatus.NotApplicable,
+    PdfCertificationInspection? Certification = null);
 
 public sealed record PdfComplianceClaim(
     string Standard,

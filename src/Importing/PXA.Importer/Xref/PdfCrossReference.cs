@@ -84,7 +84,20 @@ public sealed class PdfCrossReferenceParser
             ParseClassicTables(context, table);
         }
 
-        ParseIndirectObjectFallback(context.Source.Span, table);
+        if (table.Entries.Count == 0)
+        {
+            // Only scan when there is no usable cross-reference data. Scanning a well-formed
+            // document would surface objects that a conforming viewer never resolves, and the
+            // trust layer would then judge a document by bytes the reader does not see.
+            ParseIndirectObjectFallback(context.Source.Span, table);
+            if (table.Entries.Count > 0)
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF008",
+                    "The document has no usable cross-reference data; objects were recovered by scanning."));
+            }
+        }
+
         return table;
     }
 
@@ -146,6 +159,11 @@ public sealed class PdfCrossReferenceParser
                     "A cross-reference revision could not be parsed at the referenced offset.",
                     xrefOffset));
                 break;
+            }
+
+            if (kind == PdfCrossReferenceSectionKind.ClassicTable)
+            {
+                sectionEntryCount += MergeHybridCrossReferenceStream(context, table, trailer, revision);
             }
 
             table.Trailer ??= trailer;
@@ -217,6 +235,81 @@ public sealed class PdfCrossReferenceParser
         }
 
         return table.Entries.Count > 0;
+    }
+
+    /// <summary>
+    /// Reads the cross-reference stream referenced by a hybrid-reference file's trailer
+    /// <c>/XRefStm</c>. A conforming PDF 1.5+ reader prefers these entries, so PXA must read
+    /// them too; where the classic table claims a different location for the same in-use
+    /// object, the file is ambiguous and that is reported rather than silently resolved.
+    /// </summary>
+    private static int MergeHybridCrossReferenceStream(
+        PdfParseContext context,
+        PdfCrossReferenceTable table,
+        PdfDictionary trailer,
+        int revision)
+    {
+        if (!TryGetInteger(trailer["XRefStm"], out var hybridOffset))
+        {
+            return 0;
+        }
+
+        if (hybridOffset < 0 || hybridOffset >= context.Source.Length)
+        {
+            table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                "PXAPDFXREF009",
+                "The trailer /XRefStm offset of a hybrid-reference file is out of range.",
+                hybridOffset));
+            return 0;
+        }
+
+        var hybridTable = new PdfCrossReferenceTable();
+        if (ParseXrefStreamSection(
+                context,
+                hybridTable,
+                checked((int)hybridOffset),
+                revision,
+                preserveExistingEntries: false,
+                out var hybridEntryCount) is null)
+        {
+            table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                "PXAPDFXREF009",
+                "The trailer /XRefStm of a hybrid-reference file does not reference a cross-reference stream.",
+                hybridOffset));
+            return 0;
+        }
+
+        var classicEntries = table.RevisionEntries
+            .Where(entry => entry.Revision == revision)
+            .GroupBy(static entry => entry.Id)
+            .ToDictionary(static group => group.Key, static group => group.First());
+
+        foreach (var entry in hybridTable.Entries.Values)
+        {
+            if (classicEntries.TryGetValue(entry.Id, out var classic) &&
+                !classic.IsFree &&
+                !entry.IsFree &&
+                (classic.Kind != entry.Kind ||
+                    classic.Offset != entry.Offset ||
+                    classic.ObjectStreamNumber != entry.ObjectStreamNumber ||
+                    classic.ObjectStreamIndex != entry.ObjectStreamIndex))
+            {
+                table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                    "PXAPDFXREF010",
+                    $"Object {entry.Id.Number} {entry.Id.Generation} R is defined differently by the classic table and the /XRefStm of a hybrid-reference file.",
+                    hybridOffset));
+            }
+
+            // A hybrid file marks compressed objects free in the classic table on purpose, so
+            // the stream is the authoritative source for this revision.
+            table.RecordRevisionEntry(entry);
+            if (!table.Entries.TryGetValue(entry.Id, out var existing) || existing.Revision >= revision)
+            {
+                table.Add(entry);
+            }
+        }
+
+        return hybridEntryCount;
     }
 
     private static void ParseClassicTables(PdfParseContext context, PdfCrossReferenceTable table)

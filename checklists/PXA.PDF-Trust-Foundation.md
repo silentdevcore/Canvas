@@ -63,30 +63,68 @@ Reference material:
 - [ ] Introduce a typed low-level object model for dictionaries, arrays, names,
   strings, numbers, references, streams, cross-reference tables/streams, trailers,
   object streams, and incremental revisions.
-- [ ] Preserve unknown objects and byte ranges when an operation does not need to
+- [x] Preserve unknown objects and byte ranges when an operation does not need to
   modify them.
-- [ ] Support classic xref tables, xref streams, object streams, hybrid-reference
+  - [x] Carry objects of unknown type, their dictionary entries, and their stream
+    payloads through a full rewrite unchanged, recomputing only `/Length`.
+  - [x] Keep every object reachable from the trailer, including unknown extension entries,
+    while pruning orphaned payloads that no conforming reader resolves.
+- [x] Support classic xref tables, xref streams, object streams, hybrid-reference
   files, inherited page properties, rotated pages, and malformed-but-recoverable
   inputs with diagnostics.
-- [ ] Add bounded parsing for recursion, object count, stream size, decompression
+  - [x] Read the trailer `/XRefStm` of a hybrid-reference file and prefer its entries,
+    as a conforming PDF 1.5+ reader does, instead of reading only the classic table.
+  - [x] Report `PXAPDFXREF010` when the classic table and the `/XRefStm` claim
+    different locations for the same in-use object.
+  - [x] Report `PXAPDFXREF008` when a document has no usable cross-reference data and
+    objects were recovered by scanning.
+- [x] Add bounded parsing for recursion, object count, stream size, decompression
   ratio, page count, nesting, and cancellation.
-- [ ] Reject ambiguous or dangerous duplicate-object and shadow-object structures
+  - [x] Add a typed `PdfParseLimits` model on `PdfImporterOptions` covering nesting
+    depth, array and dictionary sizes, indirect object count, object-stream entry
+    count, decoded stream bytes, decompression ratio, predictor row length, reference
+    resolution depth, and page count.
+  - [x] Enforce decompression bounds during decoding rather than after it, with a
+    floor so that small streams which legitimately expand are not rejected.
+  - [x] Break cyclic indirect-reference chains during resolution.
+  - [x] Thread `CancellationToken` through document graph parsing.
+  - [x] Surface `PXAPDFPARSE` diagnostics in the trust report and refuse a `valid`
+    structure status for any document that tripped a limit.
+  - [x] See `PXA.PDF-Parser-Hardening.md` for the confirmed defects and corpus.
+- [x] Reject ambiguous or dangerous duplicate-object and shadow-object structures
   rather than validating a different revision than a PDF viewer displays.
+  - [x] Restrict the raw object scan to documents with no usable cross-reference data,
+    so a well-formed document is never judged by objects a reader cannot resolve.
+  - [x] Report `PXAPDFTRUST150` for any object definition that no cross-reference
+    revision references, excluding candidates that fall inside parsed stream bytes.
+  - [x] Refuse a `valid` structure status for a document containing such definitions.
 
 ### Save Strategies
 
-- [ ] Implement full rewrite and incremental update as explicit save strategies.
+- [x] Implement full rewrite and incremental update as explicit save strategies.
+  - [x] Add `PdfDocumentSaver` so a caller states the strategy it needs, and share one
+    object serializer between both writers.
+  - [x] Refuse a full rewrite of a signed document unless the caller opts in, and report
+    which signatures the rewrite invalidates.
 - [x] Centralize the existing append paths in a deterministic incremental-update
   writer that validates the source revision chain, preserves original bytes, and
   reparses the saved result before returning it.
 - [x] Reject incremental mutation of encrypted PDFs until appended objects can be
   serialized through the active security handler.
 - [x] Use incremental updates for signatures and preservation-sensitive operations.
-- [ ] Rebuild xref data, `/Prev`, `/Size`, object generations, stream lengths, and
+- [x] Rebuild xref data, `/Prev`, `/Size`, object generations, stream lengths, and
   document IDs deterministically.
+  - [x] Renumber retained objects compactly to generation 0 and rebuild the classic
+    cross-reference table, `/Size`, and `/Root`.
+  - [x] Derive `/ID` from the written body rather than randomly, so that rewriting the
+    same document twice produces identical bytes.
+  - [x] Drop cross-reference and object-stream containers, whose contents are re-emitted
+    as plain indirect objects.
 - [x] Add a change-impact analyzer showing which existing signatures and compliance
   claims a planned mutation will affect.
-- [ ] Make post-save parse and validation mandatory before returning trusted output.
+- [x] Make post-save parse and validation mandatory before returning trusted output.
+  - [x] Reparse a full rewrite and assert exactly one revision, the expected object
+    count, a resolvable catalog, and no parser or cross-reference diagnostics.
 
 ### Unified Trust Report
 
@@ -150,7 +188,7 @@ Reference material:
   signing time, host certificate chain, and PAdES B-B profile as separate statuses.
 - [x] Validate embedded RFC 3161 signature timestamps separately from approval
   signature integrity and report timestamp time, TSA identity, and B-T profile.
-- [ ] Detect unsigned bytes, overlapping ranges, wrapping/shadow attacks, invalid
+- [x] Detect unsigned bytes, overlapping ranges, wrapping/shadow attacks, invalid
   incremental revisions, and disallowed changes after certification signatures.
   - [x] Reject non-zero, negative, overlapping, overflowing, out-of-file, malformed,
     and non-revision-aligned signature byte ranges.
@@ -160,7 +198,16 @@ Reference material:
     links through stable cross-reference diagnostics.
   - [x] Detect object-shadowing and signature-wrapping attacks across valid-looking
     incremental revisions.
-  - [ ] Enforce DocMDP/FieldMDP certification permissions for post-signature changes.
+  - [x] Enforce DocMDP/FieldMDP certification permissions for post-signature changes.
+    - [x] Bind the DocMDP transform to the catalog `/Perms` entry and require the
+      certification signature to cover the first signed revision.
+    - [x] Classify every object changed after the certified revision and reject changes
+      that the declared permission level does not allow, keeping document timestamps and
+      DSS long-term validation material permitted at every level.
+    - [x] Enforce FieldMDP `/All`, `/Include`, and `/Exclude` field locks as a status
+      separate from the DocMDP permission level.
+    - [x] Produce certified signatures with DocMDP and FieldMDP transforms so the
+      enforcement is verified end to end.
 - [x] Return signer identity and certificate metadata without treating a valid
   cryptographic signature as a trusted identity unless chain policy succeeds.
 - [x] Support configurable system and custom PEM/DER trust anchors plus intermediate
@@ -204,28 +251,87 @@ Reference material:
 
 - [ ] Distinguish redaction marks, preview overlays, and applied irreversible
   redaction in models, APIs, UI, diagnostics, and documentation.
+  - [x] Separate preflight, apply, and verify in the backend model, the API surface, the
+    permissions, and the documentation.
+  - [x] Route the Viewer redaction endpoint through the gated applier and remove the
+    former ungated regenerate-the-whole-document path, so one implementation remains.
+  - [x] Add `POST /api/pdf-viewer/annotations/redact/preflight` so the Viewer can show
+    coverage before a redaction is committed.
+  - [ ] Present preflight, apply, and verify as distinct steps in the Viewer UI itself.
 - [ ] Build a content-intersection analyzer for text glyphs, paths, images, masks,
   clipping paths, patterns, nested Form XObjects, transparency groups, annotations,
   AcroForm appearances, optional content, and rotated/cropped pages.
-- [ ] Remove covered text operators and associated extractable text, not only paint
+  - [x] Classify text, path, image, shading, and nested group elements as not
+    intersecting, partially overlapping, or fully contained, and report partial overlap
+    as `reviewRequired` because whole elements are the smallest removable unit.
+  - [x] Report overlapping annotations, form-field widgets, and optional content, which
+    are not interpreted scene-graph content.
+  - [ ] Extend to masks, clipping paths, patterns, and transparency groups as distinct
+    intersection cases rather than through their containing element.
+- [x] Remove covered text operators and associated extractable text, not only paint
   a black rectangle.
+  - [x] Reserialize only the pages carrying a region through the content-stream rewriter,
+    leaving every other page and object byte-faithful.
+  - [x] Empty any additional content streams on a rewritten page so no original operator
+    survives elsewhere in that page.
 - [ ] Remove or irreversibly transform covered image pixels and reusable resources
   without leaking the hidden original through an unused object or alternate stream.
 - [ ] Sanitize metadata, XMP, attachments, embedded files, comments, form values,
   actions, JavaScript, thumbnails, previous revisions, and incremental history when
   requested by the redaction policy.
-- [ ] Force a full rewrite when prior revisions could retain redacted content.
-- [ ] Detect content that cannot be confidently removed and block `Apply redaction`
+  - [x] Add a typed sanitization policy covering document metadata and XMP, embedded
+    files, actions and JavaScript, overlapping annotations and field values, and page
+    thumbnails, with every option defaulting to on.
+  - [x] Clear removed annotation objects themselves, not only their page references.
+  - [x] Prune objects made unreachable by sanitization during the full rewrite so
+    detached XMP, attachment, annotation, and resource payloads do not remain in the file.
+  - [ ] Traverse and sanitize actions, comments, form values, and alternate carriers
+    outside the catalog and overlapping page annotations.
+- [x] Force a full rewrite when prior revisions could retain redacted content.
+  - [x] Save every applied redaction through `PdfFullRewriteWriter`, and verify the result
+    contains exactly one revision.
+- [x] Detect content that cannot be confidently removed and block `Apply redaction`
   instead of returning a visually redacted file.
-- [ ] Add preflight, apply, and verify stages with separate reports and hashes.
+  - [x] Detect and report pages that carry content streams but produced no interpreted
+    content, deferred stream filters, encrypted input, and unparseable documents.
+  - [x] Block the apply stage on a `reviewRequired` or `unsupported` preflight result,
+    treating only document-level carriers that sanitization actually removes as resolved
+    and always blocking on geometric ambiguity.
+- [x] Add preflight, apply, and verify stages with separate reports and hashes.
+  - [x] Add a preflight stage that mutates nothing and reports per-region coverage with
+    the document hash.
+  - [x] Add an apply stage that returns the preflight report, the rewritten pages, and
+    source and result hashes.
+  - [x] Add a verify stage that reparses the result and fails the operation rather than
+    returning an unverified file.
 - [ ] Verify that removed text cannot be extracted, searched, copied, recovered from
   objects, or revealed by disabling overlays/layers.
-- [ ] Add a tamper-evident redaction audit record containing document hashes,
+  - [x] Reparse the result, re-run region intersection, and re-extract text across the
+    whole document, not only the redacted pages.
+  - [x] Verify through regression fixtures that detached XMP and annotation payloads are
+    absent from both the rewritten object graph and raw output bytes.
+  - [ ] Extend verification to image extraction, thumbnails, and layer removal as
+    separate checks.
+- [x] Add a tamper-evident redaction audit record containing document hashes,
   non-sensitive regions, reason, actor, policy, timestamp, and verification result.
-- [ ] Replace the current importer-supported redaction claim with capability-specific
+  - [x] Hash the record's canonical form so a later change to it is detectable, and keep
+    removed content out of it.
+  - [ ] Sign the audit record; hashing alone detects change but does not prove origin.
+- [x] Replace the current importer-supported redaction claim with capability-specific
   evidence and retain `reviewRequired` for unsupported structures.
-- [ ] Add `POST /api/pxa/v1/pdf/redactions/preflight` and
+  - [x] Report `removable`, `reviewRequired`, or `unsupported` per region and for the
+    document, deriving the document capability from the worst finding.
+  - [x] Correct `PdfTools-WebViewer-Feature-Gaps.md`, which ticked `Secure redaction
+    workflow`, to agree with `PxaPdf-Provider-Feature-Gaps.md`, which records it as
+    missing.
+- [x] Add `POST /api/pxa/v1/pdf/redactions/preflight` and
   `POST /api/pxa/v1/pdf/redactions/apply` with privileged permission checks.
+  - [x] Add `POST /api/pxa/v1/pdf/redactions/preflight` behind a dedicated
+    `designer.pdf.redactions.inspect` permission, rate limited and size bounded, and
+    withheld from the read-only Viewer role.
+  - [x] Add `POST /api/pxa/v1/pdf/redactions/apply` behind a separate
+    `designer.pdf.redactions.apply` permission, withheld from the Editor role because the
+    operation destroys content irreversibly.
 
 ## P1 - AES-256 and Modern PDF Security
 

@@ -6,6 +6,9 @@ public sealed record PdfImporterOptions
     public bool DeferredStreamDecoding { get; init; } = true;
     public bool ParsePagesInParallel { get; init; } = true;
     public int MaxParallelPageParsers { get; init; } = Environment.ProcessorCount;
+
+    /// <summary>Bounds applied while parsing untrusted input.</summary>
+    public Parsing.PdfParseLimits Limits { get; init; } = new();
 }
 
 public sealed class PdfImporter
@@ -20,12 +23,15 @@ public sealed class PdfImporter
     public async Task<Document.PdfDocumentModel> LoadAsync(Stream pdfStream, CancellationToken cancellationToken = default)
     {
         using var owner = await Infrastructure.PdfBuffer.FromStreamAsync(pdfStream, cancellationToken).ConfigureAwait(false);
-        var context = new Parsing.PdfParseContext(owner.Memory, _options);
+        var context = new Parsing.PdfParseContext(owner.Memory, _options, cancellationToken);
         var xref = new Xref.PdfCrossReferenceParser().Parse(context);
         var objectParser = new Parsing.PdfObjectParser(context, xref);
         var graph = objectParser.ParseDocumentGraph();
 
-        return new Document.PdfDocumentBuilder(new Content.PdfContentStreamParser(), new Graphics.PdfGraphicsInterpreter())
+        return new Document.PdfDocumentBuilder(
+                new Content.PdfContentStreamParser(),
+                new Graphics.PdfGraphicsInterpreter(),
+                limits: _options.Limits)
             .Build(graph);
     }
 }

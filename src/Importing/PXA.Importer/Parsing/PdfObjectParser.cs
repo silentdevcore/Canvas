@@ -9,13 +9,16 @@ public sealed class PdfObjectParser
 {
     private readonly PdfParseContext _context;
     private readonly PdfCrossReferenceTable _xref;
-    private readonly PdfStreamDecoderRegistry _streamDecoders = new();
+    private readonly PdfStreamDecoderRegistry _streamDecoders;
+    private readonly HashSet<PdfObjectId> _resolving = [];
     private long _activeBaseOffset;
+    private int _parsedObjectCount;
 
     public PdfObjectParser(PdfParseContext context, PdfCrossReferenceTable xref)
     {
         _context = context;
         _xref = xref;
+        _streamDecoders = new PdfStreamDecoderRegistry(context.Limits);
     }
 
     public PdfObjectGraph ParseDocumentGraph()
@@ -24,14 +27,24 @@ public sealed class PdfObjectParser
 
         foreach (var entry in _xref.Entries.Values)
         {
+            _context.CancellationToken.ThrowIfCancellationRequested();
             if (entry.IsFree || entry.Kind == PdfCrossReferenceEntryKind.Compressed || entry.Offset < 0 || entry.Offset >= _context.Source.Length)
             {
                 continue;
             }
 
+            if (_parsedObjectCount >= _context.Limits.MaxIndirectObjectCount)
+            {
+                _context.AddDiagnostic(new PdfParseDiagnostic(
+                    "PXAPDFPARSE005",
+                    $"The document exceeds the maximum of {_context.Limits.MaxIndirectObjectCount} indirect objects; the remaining objects were not parsed."));
+                break;
+            }
+
             var indirectObject = TryParseIndirectObject(entry);
             if (indirectObject is not null)
             {
+                _parsedObjectCount++;
                 graph.Add(indirectObject);
                 _context.ObjectCache[indirectObject.Id] = indirectObject;
             }
@@ -46,7 +59,7 @@ public sealed class PdfObjectParser
     {
         _activeBaseOffset = baseOffset;
         var reader = new PdfTokenReader(_context.Source.Span[offset..]);
-        return ParseObject(ref reader);
+        return ParseObject(ref reader, depth: 0);
     }
 
     public PdfIndirectObject? TryParseIndirectObjectAt(long offset)
@@ -73,8 +86,28 @@ public sealed class PdfObjectParser
             return null;
         }
 
-        var value = ParseObject(ref reader);
-        var id = new PdfObjectId(int.Parse(number.Text), int.Parse(generation.Text));
+        if (!int.TryParse(number.Text, out var objectNumber) ||
+            !int.TryParse(generation.Text, out var objectGeneration))
+        {
+            return null;
+        }
+
+        PdfObject value;
+        try
+        {
+            value = ParseObject(ref reader, depth: 0);
+        }
+        catch (PdfParseLimitExceededException exception)
+        {
+            _context.AddDiagnostic(new PdfParseDiagnostic(
+                exception.Code,
+                exception.Message,
+                objectNumber,
+                objectGeneration));
+            return null;
+        }
+
+        var id = new PdfObjectId(objectNumber, objectGeneration);
         var length = FindEndObjectLength(entry.Offset, reader.Position);
         return new PdfIndirectObject(id, value, new PdfSourceSpan(entry.Offset, length));
     }
@@ -83,21 +116,30 @@ public sealed class PdfObjectParser
     {
         var reader = new PdfTokenReader(_context.Source.Span[checked((int)_activeBaseOffset)..]);
         reader.Seek(tokenizer.Position);
-        var parsed = ParseObject(ref reader);
+        var parsed = ParseObject(ref reader, depth: 0);
         tokenizer.Seek(reader.Position);
         return parsed;
     }
 
-    internal PdfObject ParseObject(ref PdfTokenReader reader)
+    internal PdfObject ParseObject(ref PdfTokenReader reader) => ParseObject(ref reader, depth: 0);
+
+    private PdfObject ParseObject(ref PdfTokenReader reader, int depth)
     {
+        if (depth > _context.Limits.MaxNestingDepth)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE001",
+                $"The object exceeds the maximum nesting depth of {_context.Limits.MaxNestingDepth}.");
+        }
+
         var token = reader.Read();
         return token.Kind switch
         {
             PdfTokenKind.Name => new PdfName(token.Text[1..]) { SourceSpan = Span(token) },
             PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], IsHex: false) { SourceSpan = Span(token) },
             PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], IsHex: true) { SourceSpan = Span(token) },
-            PdfTokenKind.ArrayStart => ParseArray(ref reader, _activeBaseOffset + token.Offset),
-            PdfTokenKind.DictionaryStart => ParseDictionaryOrStream(ref reader, _activeBaseOffset + token.Offset),
+            PdfTokenKind.ArrayStart => ParseArray(ref reader, _activeBaseOffset + token.Offset, depth),
+            PdfTokenKind.DictionaryStart => ParseDictionaryOrStream(ref reader, _activeBaseOffset + token.Offset, depth),
             PdfTokenKind.Number => ParseNumberOrReference(ref reader, token),
             PdfTokenKind.Keyword when token.Text == "true" => new PdfBoolean(true) { SourceSpan = Span(token) },
             PdfTokenKind.Keyword when token.Text == "false" => new PdfBoolean(false) { SourceSpan = Span(token) },
@@ -106,7 +148,7 @@ public sealed class PdfObjectParser
         };
     }
 
-    private PdfArray ParseArray(ref PdfTokenReader reader, long offset)
+    private PdfArray ParseArray(ref PdfTokenReader reader, long offset, int depth)
     {
         var values = new List<PdfObject>();
         while (true)
@@ -118,13 +160,20 @@ public sealed class PdfObjectParser
                 break;
             }
 
-            values.Add(ParseObject(ref reader));
+            if (values.Count >= _context.Limits.MaxArrayItemCount)
+            {
+                throw new PdfParseLimitExceededException(
+                    "PXAPDFPARSE002",
+                    $"An array exceeds the maximum of {_context.Limits.MaxArrayItemCount} elements.");
+            }
+
+            values.Add(ParseObject(ref reader, depth + 1));
         }
 
         return new PdfArray(values) { SourceSpan = new PdfSourceSpan(offset, checked((int)(_activeBaseOffset + reader.Position - offset))) };
     }
 
-    private PdfObject ParseDictionaryOrStream(ref PdfTokenReader reader, long offset)
+    private PdfObject ParseDictionaryOrStream(ref PdfTokenReader reader, long offset, int depth)
     {
         var dictionary = new PdfDictionary();
         while (true)
@@ -140,7 +189,14 @@ public sealed class PdfObjectParser
                 continue;
             }
 
-            dictionary[key.Text[1..]] = ParseObject(ref reader);
+            if (dictionary.Values.Count >= _context.Limits.MaxDictionaryEntryCount)
+            {
+                throw new PdfParseLimitExceededException(
+                    "PXAPDFPARSE003",
+                    $"A dictionary exceeds the maximum of {_context.Limits.MaxDictionaryEntryCount} entries.");
+            }
+
+            dictionary[key.Text[1..]] = ParseObject(ref reader, depth + 1);
         }
 
         var maybeStream = reader.Peek();
@@ -178,10 +234,12 @@ public sealed class PdfObjectParser
         {
             reader.Read();
             var third = reader.Peek();
-            if (third.Text == "R")
+            if (third.Text == "R" &&
+                int.TryParse(first.Text, out var referenceNumber) &&
+                int.TryParse(second.Text, out var referenceGeneration))
             {
                 reader.Read();
-                return new PdfReference(new PdfObjectId(int.Parse(first.Text), int.Parse(second.Text)))
+                return new PdfReference(new PdfObjectId(referenceNumber, referenceGeneration))
                 {
                     SourceSpan = new PdfSourceSpan(_activeBaseOffset + first.Offset, (int)(third.Offset - first.Offset) + third.Length)
                 };
@@ -195,10 +253,9 @@ public sealed class PdfObjectParser
             return new PdfInteger(integer) { SourceSpan = Span(first) };
         }
 
-        return new PdfNumber(double.Parse(first.Text, System.Globalization.CultureInfo.InvariantCulture))
-        {
-            SourceSpan = Span(first)
-        };
+        return double.TryParse(first.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var real)
+            ? new PdfNumber(real) { SourceSpan = Span(first) }
+            : new PdfInteger(0) { SourceSpan = Span(first) };
     }
 
     private ReadOnlyMemory<byte> ReadUntilEndStream(int streamStart)
@@ -236,9 +293,40 @@ public sealed class PdfObjectParser
             return null;
         }
 
+        // The cache is only populated after a successful parse, so a cyclic /Length chain
+        // would otherwise re-enter this method forever.
+        if (!_resolving.Add(id))
+        {
+            _context.AddDiagnostic(new PdfParseDiagnostic(
+                "PXAPDFPARSE006",
+                "An indirect reference chain is cyclic and was not resolved.",
+                id.Number,
+                id.Generation));
+            return null;
+        }
+
+        if (_resolving.Count > _context.Limits.MaxReferenceResolutionDepth)
+        {
+            _context.AddDiagnostic(new PdfParseDiagnostic(
+                "PXAPDFPARSE007",
+                $"An indirect reference chain exceeds the maximum resolution depth of {_context.Limits.MaxReferenceResolutionDepth}.",
+                id.Number,
+                id.Generation));
+            _resolving.Remove(id);
+            return null;
+        }
+
         var previousBaseOffset = _activeBaseOffset;
-        var parsed = TryParseIndirectObject(entry);
-        _activeBaseOffset = previousBaseOffset;
+        PdfIndirectObject? parsed;
+        try
+        {
+            parsed = TryParseIndirectObject(entry);
+        }
+        finally
+        {
+            _resolving.Remove(id);
+            _activeBaseOffset = previousBaseOffset;
+        }
 
         if (parsed is null)
         {
@@ -253,6 +341,7 @@ public sealed class PdfObjectParser
     {
         foreach (var entry in _xref.Entries.Values.Where(entry => entry.Kind == PdfCrossReferenceEntryKind.Compressed))
         {
+            _context.CancellationToken.ThrowIfCancellationRequested();
             var objectStreamId = new PdfObjectId(entry.ObjectStreamNumber, 0);
             if (graph.Resolve(entry.Id) is not null)
             {
@@ -287,7 +376,25 @@ public sealed class PdfObjectParser
             return [];
         }
 
-        var bytes = stream.IsDecoded ? stream.DecodedBytes : _streamDecoders.Decode(stream);
+        if (objectCount > _context.Limits.MaxObjectStreamEntryCount)
+        {
+            _context.AddDiagnostic(new PdfParseDiagnostic(
+                "PXAPDFPARSE004",
+                $"An object stream declares {objectCount} entries, above the maximum of {_context.Limits.MaxObjectStreamEntryCount}."));
+            return [];
+        }
+
+        ReadOnlyMemory<byte> bytes;
+        try
+        {
+            bytes = stream.IsDecoded ? stream.DecodedBytes : _streamDecoders.Decode(stream);
+        }
+        catch (PdfParseLimitExceededException exception)
+        {
+            _context.AddDiagnostic(new PdfParseDiagnostic(exception.Code, exception.Message));
+            return [];
+        }
+
         stream.SetDecodedBytes(bytes);
 
         var headerReader = new PdfTokenReader(bytes.Span);
@@ -314,9 +421,21 @@ public sealed class PdfObjectParser
                 continue;
             }
 
-            var objectContext = new PdfParseContext(bytes, _context.Options);
+            var objectContext = new PdfParseContext(bytes, _context.Options, _context.CancellationToken);
             var objectParser = new PdfObjectParser(objectContext, _xref);
-            objects[objectNumber] = objectParser.ParseObjectAt(objectOffset, baseOffset: 0);
+            try
+            {
+                objects[objectNumber] = objectParser.ParseObjectAt(objectOffset, baseOffset: 0);
+            }
+            catch (PdfParseLimitExceededException exception)
+            {
+                _context.AddDiagnostic(new PdfParseDiagnostic(exception.Code, exception.Message, objectNumber));
+            }
+
+            foreach (var diagnostic in objectContext.Diagnostics)
+            {
+                _context.AddDiagnostic(diagnostic);
+            }
         }
 
         return objects;

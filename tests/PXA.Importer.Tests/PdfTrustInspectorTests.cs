@@ -1,5 +1,9 @@
 using System.Text;
+using PXA.Importer.Objects;
+using PXA.Importer.Parsing;
+using PXA.Importer.Saving;
 using PXA.Importer.Trust;
+using PXA.Importer.Xref;
 using PXA.Pdf;
 
 namespace PXA.Importer.Tests;
@@ -89,20 +93,61 @@ public sealed class PdfTrustInspectorTests
         var document = new PdfDocument();
         document.AddPage().DrawText("Unsigned signature fixture", 40, 40);
         var source = document.ToBytes();
-        var signatureObject = Encoding.ASCII.GetBytes(
-            "\n999 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [0 10 20 30] /Contents <01020304> >>\nendobj\n");
-        var bytes = source.Concat(signatureObject).ToArray();
+        // The signature object is appended through a real incremental update so that the
+        // cross-reference data points at it; an object a reader cannot resolve is covered by
+        // InspectAsync_RejectsObjectDefinitionsNoRevisionReferences instead.
+        var signatureId = new PdfObjectId(NextObjectNumber(source), 0);
+        var bytes = new PdfIncrementalUpdateWriter().Append(source, [
+            new PdfIncrementalObjectUpdate(signatureId, new PdfDictionary
+            {
+                ["Type"] = new PdfName("Sig"),
+                ["Filter"] = new PdfName("Adobe.PPKLite"),
+                ["SubFilter"] = new PdfName("adbe.pkcs7.detached"),
+                ["ByteRange"] = new PdfArray([
+                    new PdfInteger(0), new PdfInteger(10), new PdfInteger(20), new PdfInteger(30)
+                ]),
+                ["Contents"] = new PdfString("01020304"u8.ToArray(), IsHex: true)
+            })
+        ]).Bytes;
 
         var report = await InspectAsync(bytes);
 
         var signature = Assert.Single(report.Signatures);
-        Assert.Equal(999, signature.ObjectNumber);
+        Assert.Equal(signatureId.Number, signature.ObjectNumber);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal("adbe.pkcs7.detached", signature.SubFilter);
         Assert.Equal([0L, 10L, 20L, 30L], signature.ByteRange);
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+    }
+
+    [Fact]
+    public async Task InspectAsync_RejectsObjectDefinitionsNoRevisionReferences()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Unsigned signature fixture", 40, 40);
+        var source = document.ToBytes();
+        var shadowObject = Encoding.ASCII.GetBytes(
+            "\n999 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [0 10 20 30] /Contents <01020304> >>\nendobj\n");
+
+        var report = await InspectAsync(source.Concat(shadowObject).ToArray());
+
+        // A reader resolves nothing here, so PXA must not present the appended bytes as a
+        // signature; it reports them as an unreferenced definition instead.
+        Assert.Empty(report.Signatures);
+        Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
+        var diagnostic = Assert.Single(
+            report.Diagnostics,
+            candidate => candidate.Code == "PXAPDFTRUST150");
+        Assert.Equal(999, diagnostic.ObjectNumber);
+    }
+
+    private static int NextObjectNumber(byte[] source)
+    {
+        var context = new PdfParseContext(source, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        return table.Entries.Keys.Max(static id => id.Number) + 1;
     }
 
     private static async Task<PdfTrustReport> InspectAsync(byte[] bytes)

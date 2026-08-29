@@ -39,7 +39,7 @@ The comparison is based on repository checklists and known provider capability c
 - [ ] **[high] PDF digital signatures** - Sign PDFs with certificates, create/use signature fields, timestamp, validate signatures, and preserve existing signatures. Seen in: iText 7, Aspose.PDF, DevExpress, Foxit, DsPdf, PDFTools. PXA.Pdf status: `missing`; DOCX signing exists separately.
 - [ ] **[high] PDF/A and compliance workflows** - Produce PDF/A, validate conformance, convert to archival profiles, and repair invalid documents. Seen in: Syncfusion, DsPdf, Aspose.PDF, Apryse, PDFTools. PXA.Pdf status: `missing`.
 - [ ] **[high] HTML/CSS/URL/Razor to PDF rendering** - Render HTML strings, files, URLs, Razor/views, and CSS layout directly to PDF. Seen in: IronPDF, ActivePDF, Aspose.PDF, Syncfusion. PXA.Pdf status: `missing`; current migration emits manual diagnostics for this category.
-- [ ] **[high] Secure redaction** - Remove redacted text/graphics from content streams and related resources, not just draw visual overlays. Seen in: Aspose.PDF, Foxit, DsPdf, Apryse. PXA.Pdf status: `missing`.
+- [ ] **[high] Secure redaction** - Remove redacted text/graphics from content streams and related resources, not just draw visual overlays. Seen in: Aspose.PDF, Foxit, DsPdf, Apryse. PXA.Pdf status: `missing`. The Viewer workflow drops covered scene-graph elements and regenerates the document, which is sound for drawn content but is not yet evidenced as irreversible removal; `POST /api/pxa/v1/pdf/redactions/preflight` now reports coverage and blind spots. Tracked in `PXA.PDF-Redaction-Preflight.md`.
 
 ## Medium Priority
 

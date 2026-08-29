@@ -245,6 +245,11 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         AddOptionalString(signatureDictionary, "Reason", options.Reason);
         AddOptionalString(signatureDictionary, "Location", options.Location);
         AddOptionalString(signatureDictionary, "ContactInfo", options.ContactInfo);
+        if (options.Certification != PdfCertificationLevel.None)
+        {
+            EnsureNoExistingSignature(graph);
+            signatureDictionary["Reference"] = CreateSignatureReferences(options, rootReference);
+        }
 
         var rectangle = options.Appearance is null
             ? new PdfArray([
@@ -296,6 +301,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 CreateAppearance(certificate, options, appearance, signingTime)));
         }
 
+        PdfDictionary? updatedCatalog = null;
         switch (catalog["AcroForm"])
         {
             case PdfReference acroFormReference
@@ -305,20 +311,107 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                     AddSignatureField(acroForm, graph, fieldReference)));
                 break;
             case PdfDictionary directAcroForm:
-                var catalogWithDirectForm = CloneDictionary(catalog);
-                catalogWithDirectForm["AcroForm"] = AddSignatureField(directAcroForm, graph, fieldReference);
-                updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, catalogWithDirectForm));
+                updatedCatalog = CloneDictionary(catalog);
+                updatedCatalog["AcroForm"] = AddSignatureField(directAcroForm, graph, fieldReference);
                 break;
             case null:
-                var catalogWithNewForm = CloneDictionary(catalog);
-                catalogWithNewForm["AcroForm"] = AddSignatureField(new PdfDictionary(), graph, fieldReference);
-                updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, catalogWithNewForm));
+                updatedCatalog = CloneDictionary(catalog);
+                updatedCatalog["AcroForm"] = AddSignatureField(new PdfDictionary(), graph, fieldReference);
                 break;
             default:
                 throw new InvalidDataException("The existing /AcroForm entry is not a supported dictionary or reference.");
         }
 
+        if (options.Certification != PdfCertificationLevel.None)
+        {
+            updatedCatalog ??= CloneDictionary(catalog);
+            var permissions = Resolve(graph, catalog["Perms"]) is PdfDictionary existingPermissions
+                ? CloneDictionary(existingPermissions)
+                : new PdfDictionary();
+            permissions["DocMDP"] = new PdfReference(signatureObjectId);
+            updatedCatalog["Perms"] = permissions;
+        }
+
+        if (options.FieldLock is { Action: not PdfSignatureFieldLockAction.None } fieldLock)
+        {
+            fieldDictionary["Lock"] = CreateFieldLock(fieldLock);
+        }
+
+        if (updatedCatalog is not null)
+        {
+            updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, updatedCatalog));
+        }
+
         return updates;
+    }
+
+    private static void EnsureNoExistingSignature(PdfObjectGraph graph)
+    {
+        foreach (var indirectObject in graph.Objects.Values)
+        {
+            if (indirectObject.Value is PdfDictionary dictionary &&
+                (dictionary["Type"] is PdfName { Value: "Sig" or "DocTimeStamp" } ||
+                    dictionary["ByteRange"] is not null && dictionary["Contents"] is not null))
+            {
+                throw new InvalidDataException(
+                    "A DocMDP certification signature must be the first signature applied to the document.");
+            }
+        }
+    }
+
+    private static PdfArray CreateSignatureReferences(PdfSigningOptions options, PdfReference rootReference)
+    {
+        var references = new PdfArray([
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("SigRef"),
+                ["TransformMethod"] = new PdfName("DocMDP"),
+                ["TransformParams"] = new PdfDictionary
+                {
+                    ["Type"] = new PdfName("TransformParams"),
+                    ["P"] = new PdfInteger((int)options.Certification),
+                    ["V"] = new PdfName("1.2")
+                },
+                ["DigestMethod"] = new PdfName("SHA256")
+            }
+        ]);
+
+        if (options.FieldLock is { Action: not PdfSignatureFieldLockAction.None } fieldLock)
+        {
+            references.Add(new PdfDictionary
+            {
+                ["Type"] = new PdfName("SigRef"),
+                ["TransformMethod"] = new PdfName("FieldMDP"),
+                ["TransformParams"] = CreateFieldLock(fieldLock),
+                ["Data"] = rootReference,
+                ["DigestMethod"] = new PdfName("SHA256")
+            });
+        }
+
+        return references;
+    }
+
+    private static PdfDictionary CreateFieldLock(PdfSignatureFieldLock fieldLock)
+    {
+        var parameters = new PdfDictionary
+        {
+            ["Type"] = new PdfName("TransformParams"),
+            ["Action"] = new PdfName(fieldLock.Action.ToString()),
+            ["V"] = new PdfName("1.2")
+        };
+        if (fieldLock.Action is PdfSignatureFieldLockAction.Include or PdfSignatureFieldLockAction.Exclude)
+        {
+            if (fieldLock.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    "A FieldMDP /Include or /Exclude lock requires at least one field name.",
+                    nameof(fieldLock));
+            }
+
+            parameters["Fields"] = new PdfArray(fieldLock.Fields.Select(field => (PdfObject)EncodePdfString(field)));
+        }
+
+        return parameters;
     }
 
     private static PdfArray CreateRectangle(PdfSignatureAppearanceOptions appearance) =>

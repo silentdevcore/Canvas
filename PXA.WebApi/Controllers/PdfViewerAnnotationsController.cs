@@ -1,5 +1,7 @@
 using System.Text.Json;
+using PXA.Importer.Redaction;
 using PXA.WebApi.Services;
+using PXA.WebApi.Services.Pdf;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PXA.WebApi.Controllers;
@@ -12,15 +14,24 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
     private readonly PdfViewerAnnotationStore _store;
     private readonly PdfViewerAnnotationFlatteningService _flatteningService;
     private readonly PdfViewerNativeAnnotationExtractionService _extractionService;
+    private readonly IPdfRedactionPreflight _redactionPreflight;
+    private readonly IPdfRedactionApplier _redactionApplier;
+    private readonly PdfViewerRedactionRegionMapper _redactionRegions;
 
     public PdfViewerAnnotationsController(
         PdfViewerAnnotationStore store,
         PdfViewerAnnotationFlatteningService flatteningService,
-        PdfViewerNativeAnnotationExtractionService extractionService)
+        PdfViewerNativeAnnotationExtractionService extractionService,
+        IPdfRedactionPreflight redactionPreflight,
+        IPdfRedactionApplier redactionApplier,
+        PdfViewerRedactionRegionMapper redactionRegions)
     {
         _store = store;
         _flatteningService = flatteningService;
         _extractionService = extractionService;
+        _redactionPreflight = redactionPreflight;
+        _redactionApplier = redactionApplier;
+        _redactionRegions = redactionRegions;
     }
 
     [HttpPost]
@@ -107,44 +118,153 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         }
     }
 
-    [HttpPost("redact")]
+    /// <summary>
+    /// Reports what the Viewer's redaction marks would remove and what PXA cannot account
+    /// for, without changing the document.
+    /// </summary>
+    [HttpPost("redact/preflight")]
     [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(typeof(PdfRedactionPreflightReport), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> Redact(
+    public async Task<IActionResult> RedactPreflight(
         IFormFile? file,
         [FromForm] string? sidecar,
         CancellationToken cancellationToken)
     {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
-            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Only PDF files are accepted." });
-        if (string.IsNullOrWhiteSpace(sidecar))
-            return BadRequest(new { error = "sidecar is required." });
+        if (!TryValidateRedactionRequest(file, sidecar, out var annotations, out var error))
+            return BadRequest(new { error });
 
         try
         {
-            using var sidecarDocument = JsonDocument.Parse(sidecar);
-            var annotations = GetAnnotationsArray(sidecarDocument.RootElement);
+            var pdfBytes = await ReadAsync(file!, cancellationToken);
+            var regions = await _redactionRegions.MapAsync(pdfBytes, annotations, cancellationToken);
+            await using var stream = new MemoryStream(pdfBytes, writable: false);
+            return Ok(await _redactionPreflight.PreflightAsync(stream, regions, null, cancellationToken));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 
-            if (annotations.ValueKind != JsonValueKind.Array)
-                return BadRequest(new { error = "sidecar must contain an annotations array." });
+    /// <summary>
+    /// Applies the Viewer's redaction marks. Fails closed: when preflight reports content
+    /// that cannot be confidently removed, no file is produced.
+    /// </summary>
+    [HttpPost("redact")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(409)]
+    public async Task<IActionResult> Redact(
+        IFormFile? file,
+        [FromForm] string? sidecar,
+        [FromForm] string? reason,
+        CancellationToken cancellationToken)
+    {
+        if (!TryValidateRedactionRequest(file, sidecar, out var annotations, out var error))
+            return BadRequest(new { error });
 
-            await using var pdfStream = file.OpenReadStream();
-            var pdfBytes = await _flatteningService.RedactAsync(pdfStream, annotations, cancellationToken);
-            var safeName = Path.GetFileNameWithoutExtension(file.FileName);
-            return File(pdfBytes, "application/pdf", $"{safeName}-redacted.pdf");
+        byte[] pdfBytes;
+        IReadOnlyList<PdfRedactionRegion> regions;
+        try
+        {
+            pdfBytes = await ReadAsync(file!, cancellationToken);
+            regions = await _redactionRegions.MapAsync(pdfBytes, annotations, cancellationToken);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+
+        try
+        {
+            await using var pdfStream = new MemoryStream(pdfBytes, writable: false);
+            var result = await _redactionApplier.ApplyAsync(
+                pdfStream,
+                regions,
+                new PdfRedactionApplyOptions { Reason = reason, Actor = User.Identity?.Name },
+                cancellationToken);
+
+            if (!result.Verification.Passed)
+            {
+                return Conflict(new
+                {
+                    error = "The redaction could not be verified, so no file was produced.",
+                    code = "PXAPDFREDACTVIEWER002",
+                    verification = result.Verification
+                });
+            }
+
+            Response.Headers["PXA-Redaction-Audit"] = result.Audit.RecordSha256;
+            Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;
+            var safeName = Path.GetFileNameWithoutExtension(file!.FileName);
+            return File(result.Bytes, "application/pdf", $"{safeName}-redacted.pdf");
+        }
+        catch (PdfRedactionBlockedException ex)
+        {
+            return Conflict(new
+            {
+                error = ex.Message,
+                code = "PXAPDFREDACTVIEWER001",
+                preflight = ex.Preflight
+            });
+        }
+    }
+
+    private bool TryValidateRedactionRequest(
+        IFormFile? file,
+        string? sidecar,
+        out JsonElement annotations,
+        out string error)
+    {
+        annotations = default;
+        error = string.Empty;
+        if (file is null || file.Length == 0)
+        {
+            error = "A PDF file is required.";
+            return false;
+        }
+
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            error = "Only PDF files are accepted.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(sidecar))
+        {
+            error = "sidecar is required.";
+            return false;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(sidecar);
+            var parsed = GetAnnotationsArray(document.RootElement);
+            if (parsed.ValueKind != JsonValueKind.Array)
+            {
+                error = "sidecar must contain an annotations array.";
+                return false;
+            }
+
+            annotations = parsed.Clone();
+            return true;
         }
         catch (JsonException)
         {
-            return BadRequest(new { error = "sidecar must be valid JSON." });
+            error = "sidecar must be valid JSON.";
+            return false;
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = $"Could not apply redactions: {ex.Message}" });
-        }
+    }
+
+    private static async Task<byte[]> ReadAsync(IFormFile file, CancellationToken cancellationToken)
+    {
+        await using var source = file.OpenReadStream();
+        using var buffer = new MemoryStream();
+        await source.CopyToAsync(buffer, cancellationToken);
+        return buffer.ToArray();
     }
 
     [HttpPost("embed")]

@@ -31,6 +31,28 @@ public interface IPdfLongTermValidationMaterialProvider
         CancellationToken cancellationToken = default);
 }
 
+public enum PdfCertificationLevel
+{
+    None = 0,
+    NoChangesAllowed = 1,
+    FormFillingAndSignatures = 2,
+    FormFillingAnnotationsAndSignatures = 3
+}
+
+public enum PdfSignatureFieldLockAction
+{
+    None,
+    All,
+    Include,
+    Exclude
+}
+
+public sealed record PdfSignatureFieldLock
+{
+    public PdfSignatureFieldLockAction Action { get; init; } = PdfSignatureFieldLockAction.None;
+    public IReadOnlyList<string> Fields { get; init; } = [];
+}
+
 public sealed record PdfSignatureAppearanceOptions
 {
     public int PageNumber { get; init; } = 1;
@@ -53,6 +75,8 @@ public sealed record PdfSigningOptions
     public int ContentsPlaceholderBytes { get; init; } = 32 * 1024;
     public PdfLongTermValidationMaterial? LongTermValidation { get; init; }
     public IPdfLongTermValidationMaterialProvider? LongTermValidationProvider { get; init; }
+    public PdfCertificationLevel Certification { get; init; } = PdfCertificationLevel.None;
+    public PdfSignatureFieldLock? FieldLock { get; init; }
 }
 
 public sealed record PdfSigningResult(

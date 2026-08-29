@@ -63,12 +63,28 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 ParsePagesInParallel = false,
                 MaxParallelPageParsers = 1
             };
-            var context = new PdfParseContext(source, importerOptions);
+            var context = new PdfParseContext(source, importerOptions, cancellationToken);
             xref = new PdfCrossReferenceParser().Parse(context);
             graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
             structureStatus = version is null || graph.Objects.Count == 0
                 ? PdfTrustStatus.Invalid
                 : PdfTrustStatus.Valid;
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                diagnostics.Add(new PdfTrustDiagnostic(
+                    diagnostic.Code,
+                    PdfTrustDiagnosticSeverity.Error,
+                    diagnostic.Message,
+                    diagnostic.ObjectNumber,
+                    diagnostic.Generation));
+            }
+
+            // A document that tripped a parse limit was not read in full, so its structure
+            // can never be reported as valid.
+            if (context.Diagnostics.Count > 0)
+            {
+                structureStatus = PdfTrustStatus.Invalid;
+            }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -76,6 +92,12 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 "PXAPDFTRUST002",
                 PdfTrustDiagnosticSeverity.Error,
                 $"The PDF object graph could not be inspected: {exception.GetType().Name}."));
+        }
+
+        PdfShadowObjectAnalyzer.Analyze(source, xref, graph, diagnostics);
+        if (diagnostics.Any(static diagnostic => diagnostic.Code is "PXAPDFTRUST150" or "PXAPDFTRUST151"))
+        {
+            structureStatus = PdfTrustStatus.Invalid;
         }
 
         var encryption = InspectEncryption(graph, diagnostics);
@@ -92,6 +114,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             diagnostics,
             cancellationToken).ConfigureAwait(false);
         signatures = PromoteBaselineLta(signatures, diagnostics);
+        signatures = PdfCertificationPolicyValidator.Apply(source, graph, xref, signatures, diagnostics);
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);

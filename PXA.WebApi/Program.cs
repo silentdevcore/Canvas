@@ -119,6 +119,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformation>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
+builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionPreflight, PXA.Importer.Redaction.PdfRedactionPreflight>();
+builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionApplier, PXA.Importer.Redaction.PdfRedactionApplier>();
+builder.Services.AddScoped<PXA.WebApi.Services.Pdf.PdfViewerRedactionRegionMapper>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfDocumentTimestampService,
     PXA.Importer.Signing.PdfDocumentTimestampService>();

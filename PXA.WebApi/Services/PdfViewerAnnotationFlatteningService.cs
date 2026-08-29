@@ -41,41 +41,6 @@ public sealed class PdfViewerAnnotationFlatteningService
         return output.ToArray();
     }
 
-    public async Task<byte[]> RedactAsync(
-        Stream pdfStream,
-        JsonElement annotations,
-        CancellationToken cancellationToken = default)
-    {
-        if (annotations.ValueKind != JsonValueKind.Array)
-            throw new ArgumentException("annotations must be an array.", nameof(annotations));
-
-        var redactions = annotations
-            .EnumerateArray()
-            .Select(PdfViewerAnnotation.FromJson)
-            .Where(static annotation => annotation?.Type == "redaction")
-            .Cast<PdfViewerAnnotation>()
-            .ToArray();
-
-        if (redactions.Length == 0)
-            throw new ArgumentException("At least one redaction annotation is required.", nameof(annotations));
-
-        var document = await new PdfImporter().LoadAsync(pdfStream, cancellationToken).ConfigureAwait(false);
-        ApplyRedactionsToModel(document, redactions);
-
-        await using var output = new MemoryStream();
-        await _bridge.RegenerateAsync(
-            document,
-            output,
-            canvasDocument =>
-            {
-                ApplyAnnotations(canvasDocument, redactions);
-                ApplyRedactionAuditMetadata(canvasDocument, redactions);
-            },
-            cancellationToken).ConfigureAwait(false);
-
-        return output.ToArray();
-    }
-
     public async Task<byte[]> EmbedNativeAnnotationsAsync(
         Stream pdfStream,
         JsonElement annotations,
@@ -106,52 +71,6 @@ public sealed class PdfViewerAnnotationFlatteningService
         return output.ToArray();
     }
 
-    private void ApplyRedactionsToModel(PdfDocumentModel document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
-    {
-        foreach (var pageWithRedactions in redactions.GroupBy(static item => item.PageNumber))
-        {
-            var page = document.Pages.ElementAtOrDefault(pageWithRedactions.Key - 1);
-            if (page is null)
-                continue;
-
-            var redactionBounds = pageWithRedactions
-                .Select(annotation => ToImporterRectangle(page, annotation))
-                .ToArray();
-
-            foreach (var element in page.GraphicsObjects)
-            {
-                RedactElement(element, redactionBounds);
-            }
-        }
-    }
-
-    private void RedactElement(PdfGraphicsElement element, IReadOnlyCollection<PdfRectangle> redactionBounds)
-    {
-        if (element.IsDeleted)
-            return;
-
-        if (element is PdfGroupElement group)
-        {
-            foreach (var child in group.Children)
-            {
-                RedactElement(child, redactionBounds);
-            }
-
-            if (group.Children.Count > 0 && group.Children.All(static child => child.IsDeleted))
-            {
-                group.IsDeleted = true;
-            }
-
-            return;
-        }
-
-        var bounds = element.Bounds ?? _bounds.ComputeElementBounds(element);
-        if (redactionBounds.Any(redaction => redaction.Intersects(bounds)))
-        {
-            element.IsDeleted = true;
-        }
-    }
-
     private static void ApplyAnnotations(PxaPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
     {
         foreach (var annotation in annotations.OrderBy(static item => item.PageNumber))
@@ -162,51 +81,6 @@ public sealed class PdfViewerAnnotationFlatteningService
 
             DrawAnnotation(page, annotation);
         }
-    }
-
-    private static void ApplyRedactionAuditMetadata(PxaPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
-    {
-        var audit = new
-        {
-            version = 1,
-            generatedAt = DateTimeOffset.UtcNow,
-            count = redactions.Count,
-            items = redactions
-                .OrderBy(static item => item.PageNumber)
-                .ThenBy(static item => item.YPct)
-                .ThenBy(static item => item.XPct)
-                .Select(static item => new
-                {
-                    pageNumber = item.PageNumber,
-                    xPct = Math.Round(item.XPct, 3),
-                    yPct = Math.Round(item.YPct, 3),
-                    widthPct = Math.Round(item.WidthPct, 3),
-                    heightPct = Math.Round(item.HeightPct, 3),
-                    reason = item.RedactionReason,
-                    author = item.Author,
-                    createdAt = item.CreatedAt,
-                }),
-        };
-
-        document.Info.CustomProperties["RedactionAudit"] = JsonSerializer.Serialize(audit);
-        document.Info.Keywords = MergeKeywords(document.Info.Keywords, "redacted", "redaction-audit");
-        document.Info.ModificationDate = DateTimeOffset.UtcNow;
-    }
-
-    private static string MergeKeywords(string? current, params string[] additions)
-    {
-        var keywords = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var keyword in (current ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            keywords.Add(keyword);
-        }
-
-        foreach (var addition in additions)
-        {
-            keywords.Add(addition);
-        }
-
-        return string.Join("; ", keywords);
     }
 
     private static void DrawAnnotation(PdfPage page, PdfViewerAnnotation annotation)
@@ -464,16 +338,6 @@ public sealed class PdfViewerAnnotationFlatteningService
             .ToArray();
     }
 
-    private static PdfRectangle ToImporterRectangle(PdfPageModel page, PdfViewerAnnotation annotation)
-    {
-        var mediaBox = page.MediaBox ?? new PdfRectangle(0, 0, PdfPageSizes.A4Width, PdfPageSizes.A4Height);
-        var x = Percent(annotation.XPct, mediaBox.Width);
-        var topY = Percent(annotation.YPct, mediaBox.Height);
-        var width = Math.Max(1, Percent(annotation.WidthPct, mediaBox.Width));
-        var height = Math.Max(1, Percent(annotation.HeightPct, mediaBox.Height));
-        return new PdfRectangle(mediaBox.X + x, mediaBox.Y + mediaBox.Height - topY - height, width, height);
-    }
-
     private static void DrawStamp(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, PxaPdfColor color)
     {
         page.DrawRoundedRectangleFromTop(x, topY, width, height, cornerRadius: 4, lineWidth: 2, fill: false, strokeColor: color);
@@ -565,10 +429,6 @@ public sealed class PdfViewerAnnotationFlatteningService
         string? Reason,
         IReadOnlyList<PdfViewerMarkupQuadPoint> QuadPoints)
     {
-        public string RedactionReason => !string.IsNullOrWhiteSpace(Reason)
-            ? Reason.Trim()
-            : Text.Trim();
-
         public static PdfViewerAnnotation? FromJson(JsonElement element)
         {
             if (element.ValueKind != JsonValueKind.Object)

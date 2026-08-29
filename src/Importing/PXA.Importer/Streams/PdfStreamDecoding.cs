@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using PXA.Importer.Objects;
+using PXA.Importer.Parsing;
 
 namespace PXA.Importer.Streams;
 
@@ -27,14 +28,26 @@ public sealed class PdfStreamDecoderRegistry
         ["JPXDecode"] = "Deferred until a JPEG2000 decoder dependency is selected."
     };
 
-    private readonly List<IPdfStreamDecoder> _decoders =
-    [
-        new FlateDecodeStreamDecoder(),
-        new AsciiHexStreamDecoder(),
-        new Ascii85StreamDecoder(),
-        new LzwStreamDecoder(),
-        new CcittFaxStreamDecoder()
-    ];
+    private readonly List<IPdfStreamDecoder> _decoders;
+    private readonly PdfParseLimits _limits;
+
+    public PdfStreamDecoderRegistry()
+        : this(new PdfParseLimits())
+    {
+    }
+
+    public PdfStreamDecoderRegistry(PdfParseLimits limits)
+    {
+        _limits = limits;
+        _decoders =
+        [
+            new FlateDecodeStreamDecoder(limits),
+            new AsciiHexStreamDecoder(),
+            new Ascii85StreamDecoder(),
+            new LzwStreamDecoder(limits),
+            new CcittFaxStreamDecoder(limits)
+        ];
+    }
 
     public void Add(IPdfStreamDecoder decoder) => _decoders.Add(decoder);
 
@@ -77,7 +90,9 @@ public sealed class PdfStreamDecoderRegistry
         var decoder = _decoders.FirstOrDefault(candidate => candidate.CanDecode(filterName));
         if (decoder is not null)
         {
-            return decoder.Decode(encodedBytes, CreateFilterDictionary(dictionary, filterIndex));
+            var decoded = decoder.Decode(encodedBytes, CreateFilterDictionary(dictionary, filterIndex));
+            PdfStreamBudget.EnsureWithinLimits(_limits, encodedBytes.Length, decoded.Length);
+            return decoded;
         }
 
         var support = EvaluateOne(filterName);
@@ -114,8 +129,69 @@ public sealed class PdfStreamDecoderRegistry
     }
 }
 
+/// <summary>
+/// Shared decompression bounds. Applied while decoding rather than after it, because an
+/// unbounded expansion exhausts memory before any post-hoc check could run.
+/// </summary>
+internal static class PdfStreamBudget
+{
+    public static long MaximumDecodedBytes(PdfParseLimits limits, long encodedLength)
+    {
+        var ratioAllowance = encodedLength <= 0
+            ? limits.MinimumDecodedStreamBytes
+            : Math.Max(limits.MinimumDecodedStreamBytes, encodedLength * (long)limits.MaxDecompressionRatio);
+        return Math.Min(limits.MaxDecodedStreamBytes, ratioAllowance);
+    }
+
+    public static void EnsureWithinLimits(PdfParseLimits limits, long encodedLength, long decodedLength)
+    {
+        var budget = MaximumDecodedBytes(limits, encodedLength);
+        if (decodedLength > budget)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE008",
+                $"A stream decodes to {decodedLength} bytes, above the permitted {budget} bytes.");
+        }
+    }
+
+    public static byte[] ReadBounded(Stream source, PdfParseLimits limits, long encodedLength)
+    {
+        var budget = MaximumDecodedBytes(limits, encodedLength);
+        using var output = new MemoryStream();
+        var buffer = new byte[81920];
+        while (true)
+        {
+            var read = source.Read(buffer, 0, buffer.Length);
+            if (read <= 0)
+            {
+                break;
+            }
+
+            if (output.Length + read > budget)
+            {
+                throw new PdfParseLimitExceededException(
+                    "PXAPDFPARSE008",
+                    $"A stream decodes to more than the permitted {budget} bytes.");
+            }
+
+            output.Write(buffer, 0, read);
+        }
+
+        return output.ToArray();
+    }
+}
+
 public sealed class FlateDecodeStreamDecoder : IPdfStreamDecoder
 {
+    private readonly PdfParseLimits _limits;
+
+    public FlateDecodeStreamDecoder()
+        : this(new PdfParseLimits())
+    {
+    }
+
+    public FlateDecodeStreamDecoder(PdfParseLimits limits) => _limits = limits;
+
     public string FilterName => "FlateDecode";
 
     public bool CanDecode(PdfName filterName) => filterName.Value is "FlateDecode" or "Fl";
@@ -124,9 +200,8 @@ public sealed class FlateDecodeStreamDecoder : IPdfStreamDecoder
     {
         using var input = new MemoryStream(encodedBytes.ToArray());
         using var zlib = new ZLibStream(input, CompressionMode.Decompress);
-        using var output = new MemoryStream();
-        zlib.CopyTo(output);
-        return PdfPredictor.Decode(output.ToArray(), streamDictionary);
+        var decoded = PdfStreamBudget.ReadBounded(zlib, _limits, encodedBytes.Length);
+        return PdfPredictor.Decode(decoded, streamDictionary, _limits);
     }
 }
 
@@ -265,7 +340,13 @@ public sealed class Ascii85StreamDecoder : IPdfStreamDecoder
 
 internal static class PdfPredictor
 {
-    public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> decodedBytes, PdfDictionary streamDictionary)
+    public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> decodedBytes, PdfDictionary streamDictionary) =>
+        Decode(decodedBytes, streamDictionary, new PdfParseLimits());
+
+    public static ReadOnlyMemory<byte> Decode(
+        ReadOnlyMemory<byte> decodedBytes,
+        PdfDictionary streamDictionary,
+        PdfParseLimits limits)
     {
         var parameters = streamDictionary["DecodeParms"] as PdfDictionary;
         if (parameters is null || !TryGetInteger(parameters["Predictor"], out var predictor) || predictor <= 1)
@@ -276,7 +357,25 @@ internal static class PdfPredictor
         var colors = GetInteger(parameters["Colors"], 1);
         var bitsPerComponent = GetInteger(parameters["BitsPerComponent"], 8);
         var columns = GetInteger(parameters["Columns"], 1);
-        var rowLength = Math.Max(1, (colors * bitsPerComponent * columns + 7) / 8);
+        if (colors is <= 0 or > 32 || bitsPerComponent is <= 0 or > 32 || columns <= 0)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE010",
+                "A stream predictor declares out-of-range /Colors, /BitsPerComponent, or /Columns values.");
+        }
+
+        // Computed in 64-bit so that hostile parameters cannot overflow into a small
+        // positive row length before the bound is applied.
+        var rowLengthBits = (long)colors * bitsPerComponent * columns;
+        var rowLength64 = Math.Max(1, (rowLengthBits + 7) / 8);
+        if (rowLength64 > limits.MaxPredictorRowLength)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE010",
+                $"A stream predictor declares a row length of {rowLength64} bytes, above the permitted {limits.MaxPredictorRowLength}.");
+        }
+
+        var rowLength = checked((int)rowLength64);
         var bytesPerPixel = Math.Max(1, (colors * bitsPerComponent + 7) / 8);
 
         return predictor switch
@@ -417,6 +516,8 @@ internal static class PdfPredictor
 
 public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
 {
+    private readonly PdfParseLimits _limits;
+
     private readonly record struct HuffmanCode(uint Value, int Length, int Run);
 
     private static readonly HuffmanCode[] WhiteTermCodes =
@@ -530,6 +631,13 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         _blackLookup = BuildLookup(BlackTermCodes, BlackMakeUpCodes);
     }
 
+    public CcittFaxStreamDecoder()
+        : this(new PdfParseLimits())
+    {
+    }
+
+    public CcittFaxStreamDecoder(PdfParseLimits limits) => _limits = limits;
+
     private static Dictionary<uint, (int Run, bool IsTerminating)>[] BuildLookup(
         HuffmanCode[] terminating, HuffmanCode[] makeUp)
     {
@@ -564,9 +672,32 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         var endOfBlock = GetBool(parms, "EndOfBlock", true);
         var blackIs1 = GetBool(parms, "BlackIs1", false);
 
+        if (columns <= 0 || columns > _limits.MaxCcittColumns)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE011",
+                $"CCITT /Columns is {columns}, outside the permitted range 1..{_limits.MaxCcittColumns}.");
+        }
+
+        if (rows < 0 || rows > _limits.MaxCcittRows)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE011",
+                $"CCITT /Rows is {rows}, outside the permitted range 0..{_limits.MaxCcittRows}.");
+        }
+
         var reader = new CcittBitReader(encodedBytes.Span);
-        var rowBytes = (columns + 7) / 8;
-        var output = new List<byte>(rowBytes * Math.Max(1, rows));
+        var rowBytes = checked((columns + 7) / 8);
+        var budget = PdfStreamBudget.MaximumDecodedBytes(_limits, encodedBytes.Length);
+        var declaredBytes = checked((long)rowBytes * Math.Max(1, rows));
+        if (rows > 0 && declaredBytes > budget)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE011",
+                $"The declared CCITT image requires {declaredBytes} bytes, above the permitted {budget} bytes.");
+        }
+
+        var output = new List<byte>(checked((int)Math.Min(declaredBytes, Math.Min(budget, 1024 * 1024))));
         var decodedRows = 0;
 
         if (k < 0)
@@ -576,6 +707,7 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
             {
                 if (endOfBlock && IsEofb(ref reader)) break;
                 var row = DecodeRow2D(ref reader, refRow, columns);
+                EnsureRowFits(output.Count, rowBytes, budget);
                 AppendPackedRow(output, row, rowBytes, blackIs1);
                 Array.Copy(row, refRow, columns);
                 decodedRows++;
@@ -595,6 +727,7 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
                 }
                 if (reader.IsEnd) break;
                 var row = DecodeRow1D(ref reader, columns);
+                EnsureRowFits(output.Count, rowBytes, budget);
                 AppendPackedRow(output, row, rowBytes, blackIs1);
                 decodedRows++;
                 if (rows > 0 && decodedRows >= rows) break;
@@ -602,6 +735,16 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         }
 
         return output.ToArray();
+    }
+
+    private static void EnsureRowFits(int currentBytes, int rowBytes, long budget)
+    {
+        if ((long)currentBytes + rowBytes > budget)
+        {
+            throw new PdfParseLimitExceededException(
+                "PXAPDFPARSE011",
+                $"A CCITT stream decodes to more than the permitted {budget} bytes.");
+        }
     }
 
     private static bool[] DecodeRow1D(ref CcittBitReader reader, int columns)
@@ -845,15 +988,25 @@ internal ref struct CcittBitReader
 
 public sealed class LzwStreamDecoder : IPdfStreamDecoder
 {
+    private readonly PdfParseLimits _limits;
+
+    public LzwStreamDecoder()
+        : this(new PdfParseLimits())
+    {
+    }
+
+    public LzwStreamDecoder(PdfParseLimits limits) => _limits = limits;
+
     public string FilterName => "LZWDecode";
 
     public bool CanDecode(PdfName filterName) => filterName.Value is "LZWDecode" or "LZW";
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        var budget = PdfStreamBudget.MaximumDecodedBytes(_limits, encodedBytes.Length);
         var reader = new MostSignificantBitReader(encodedBytes.Span);
         var table = CreateInitialTable();
-        var output = new List<byte>(encodedBytes.Length * 2);
+        var output = new List<byte>(Math.Min(encodedBytes.Length * 2, 1024 * 1024));
         var codeSize = 9;
         var nextCode = 258;
         byte[]? previous = null;
@@ -886,6 +1039,13 @@ public sealed class LzwStreamDecoder : IPdfStreamDecoder
             else
             {
                 break;
+            }
+
+            if (output.Count + entry.Length > budget)
+            {
+                throw new PdfParseLimitExceededException(
+                    "PXAPDFPARSE009",
+                    $"An LZW stream decodes to more than the permitted {budget} bytes.");
             }
 
             output.AddRange(entry);

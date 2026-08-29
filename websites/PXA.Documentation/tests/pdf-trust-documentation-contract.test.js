@@ -26,6 +26,35 @@ test('PDF Trust documentation separates integrity, trust, and revocation', () =>
   assert.match(source, /Long-term signing uses the server trust policy and fails closed/);
   assert.match(source, /embeddedValidationMaterial/);
   assert.match(source, /archiveTimestampStatus/);
+  assert.match(source, /certificationStatus/);
+  assert.match(source, /must cover the first signed revision/);
+  assert.match(source, /level 1 allows no changes/);
+  assert.match(source, /FieldMDP locks are enforced separately/);
+  assert.match(source, /reads the trailer \/XRefStm of hybrid-reference files/);
+  assert.match(source, /object definitions that no cross-reference revision references/);
+  assert.match(source, /Parse limits bound nesting/);
+  assert.match(source, /Saving is an explicit choice between two strategies/);
+  assert.match(source, /objects reachable from the trailer and removes orphaned payloads/);
+  assert.match(source, /Malformed, duplicate, mismatched, or late DocMDP declarations invalidate certification/);
+  assert.match(source, /CCITT dimensions/);
+  assert.match(source, /refuses to run on a signed document unless the caller accepts/);
+});
+
+test('PDF redaction documentation separates preflight from applied redaction', () => {
+  assert.match(source, /Redaction preflight is separate from applying a redaction/);
+  assert.match(source, /POST \/api\/pxa\/v1\/pdf\/redactions\/preflight never changes the uploaded document/);
+  assert.match(source, /removable, reviewRequired, or unsupported/);
+  assert.match(source, /covered text is never echoed back/);
+  assert.match(source, /a removable result is not a claim that a document has been redacted/);
+  assert.match(source, /any covered image whose reusable pixels cannot yet be purged/);
+  assert.match(source, /geometric ambiguity, images, layers, and unsupported structures block/);
+  assert.match(source, /Apply is a bounded edit, not a regeneration/);
+  assert.match(source, /a failed verification returns an error instead of the file/);
+  assert.match(source, /the removed content never appears in it/);
+  assert.match(source, /The Viewer uses the same gated path/);
+  assert.match(source, /maps marks through each page CropBox and rotation/);
+  assert.match(source, /fails closed with 409 and the preflight report/);
+  assert.match(source, /rather than written into the redacted document/);
 });
 
 test('PDF Trust documentation keeps trust policy server-owned', () => {

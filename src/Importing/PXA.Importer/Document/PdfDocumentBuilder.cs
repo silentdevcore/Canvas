@@ -13,12 +13,14 @@ public sealed class PdfDocumentBuilder
     private readonly PdfGraphicsInterpreter _graphicsInterpreter;
     private readonly PdfStreamDecoderRegistry _streamDecoders;
     private readonly IPdfFontParser _fontParser;
+    private readonly PdfParseLimits _limits;
 
-    public PdfDocumentBuilder(PdfContentStreamParser contentParser, PdfGraphicsInterpreter graphicsInterpreter, PdfStreamDecoderRegistry? streamDecoders = null, IPdfFontParser? fontParser = null)
+    public PdfDocumentBuilder(PdfContentStreamParser contentParser, PdfGraphicsInterpreter graphicsInterpreter, PdfStreamDecoderRegistry? streamDecoders = null, IPdfFontParser? fontParser = null, PdfParseLimits? limits = null)
     {
         _contentParser = contentParser;
         _graphicsInterpreter = graphicsInterpreter;
-        _streamDecoders = streamDecoders ?? new PdfStreamDecoderRegistry();
+        _limits = limits ?? new PdfParseLimits();
+        _streamDecoders = streamDecoders ?? new PdfStreamDecoderRegistry(_limits);
         _fontParser = fontParser ?? new PdfSimpleFontParser(_streamDecoders);
     }
 
@@ -61,6 +63,11 @@ public sealed class PdfDocumentBuilder
 
                 if (dictionary["Type"] is PdfName { Value: "Page" })
                 {
+                    if (document.Pages.Count >= _limits.MaxPageCount)
+                    {
+                        break;
+                    }
+
                     document.AddPage(BuildPage(indirectObject, graph, PdfInheritedPageAttributes.Empty));
                 }
             }
@@ -80,6 +87,11 @@ public sealed class PdfDocumentBuilder
         var added = 0;
         foreach (var page in WalkPageTree(pagesRoot, pagesDictionary, graph, PdfInheritedPageAttributes.Empty, visited: []))
         {
+            if (added >= _limits.MaxPageCount)
+            {
+                break;
+            }
+
             document.AddPage(page);
             added++;
         }

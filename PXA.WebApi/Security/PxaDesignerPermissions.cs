@@ -33,6 +33,8 @@ public static class PxaDesignerPermissions
     public const string PdfTrustInspect = "designer.pdf.trust.inspect";
     public const string PdfSignaturesValidate = "designer.pdf.signatures.validate";
     public const string PdfSignaturesSign = "designer.pdf.signatures.sign";
+    public const string PdfRedactionsInspect = "designer.pdf.redactions.inspect";
+    public const string PdfRedactionsApply = "designer.pdf.redactions.apply";
     public const string DocumentEdit = "designer.document.edit";
     public const string Import = "designer.import";
     public const string Export = "designer.export";
@@ -88,6 +90,8 @@ public static class PxaDesignerPermissions
         PdfTrustInspect,
         PdfSignaturesValidate,
         PdfSignaturesSign,
+        PdfRedactionsInspect,
+        PdfRedactionsApply,
         DocumentEdit,
         Import,
         Export,
@@ -144,6 +148,11 @@ public static class PxaDesignerPermissionResolver
         if (StartsWith(value, "/api/pxa/v1/pdf/trust"))
             return PxaDesignerPermissions.PdfTrustInspect;
 
+        if (StartsWith(value, "/api/pxa/v1/pdf/redactions"))
+            return value.EndsWith("/apply", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfRedactionsApply
+                : PxaDesignerPermissions.PdfRedactionsInspect;
+
         if (StartsWith(value, "/api/pxa/v1/pdf/signatures"))
             return value.EndsWith("/validate", StringComparison.Ordinal)
                 ? PxaDesignerPermissions.PdfSignaturesValidate
@@ -178,7 +187,7 @@ public static class PxaDesignerPermissionResolver
 
         if (StartsWith(value, "/api/pdf-viewer") || StartsWith(value, "/api/pxa/pdf-viewer"))
         {
-            if (value.EndsWith("/redact", StringComparison.Ordinal))
+            if (value.Contains("/redact", StringComparison.Ordinal))
                 return PxaDesignerPermissions.PdfViewerRedact;
             if (value.Contains("/forms/fill", StringComparison.Ordinal))
                 return PxaDesignerPermissions.PdfViewerForms;

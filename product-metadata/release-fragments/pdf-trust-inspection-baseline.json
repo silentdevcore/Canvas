@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds PAdES B-B through B-LTA signing, independent RFC 3161 document timestamps, strict signed-revision boundaries, configurable trust stores, validated CRL and OCSP evidence, historical DSS/VRI validation, and localized Viewer trust details.",
+  "summary": "PXA adds PAdES B-B through B-LTA signing, RFC 3161 timestamps, hardened PDF parsing, enforced DocMDP and FieldMDP permissions, and redaction preflight with verified full-rewrite apply.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

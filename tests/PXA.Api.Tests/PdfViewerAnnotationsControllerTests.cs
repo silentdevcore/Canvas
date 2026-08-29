@@ -431,12 +431,17 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
 
+        // The audit record travels out of band. It is deliberately not written into the
+        // redacted document: the reason and the actor would otherwise be disclosed to every
+        // downstream recipient of a file that was redacted precisely to limit disclosure.
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")).Length);
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Result-Sha256")).Length);
+
         var bytes = await response.Content.ReadAsByteArrayAsync();
         var content = System.Text.Encoding.ASCII.GetString(bytes);
-        Assert.Contains("/RedactionAudit", content, StringComparison.Ordinal);
-        Assert.Contains("Privacy request", content, StringComparison.Ordinal);
-        Assert.Contains("Reviewer", content, StringComparison.Ordinal);
-        Assert.Contains("2026-06-25T10:00:00", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("/RedactionAudit", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Privacy request", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Reviewer", content, StringComparison.Ordinal);
 
         await using var output = new MemoryStream(bytes);
         var document = await new PdfImporter().LoadAsync(output);

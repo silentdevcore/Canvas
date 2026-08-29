@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Xref;
@@ -63,14 +62,14 @@ public sealed class PdfIncrementalUpdateWriter
         stream.Write(source.Span);
         if (source.Span[^1] != (byte)'\n')
         {
-            WriteAscii(stream, "\n");
+            PdfObjectSerializer.WriteAscii(stream, "\n");
         }
 
-        var offsets = new SortedDictionary<PdfObjectId, long>(PdfObjectIdComparer.Instance);
+        var offsets = new SortedDictionary<PdfObjectId, long>(PdfObjectSerializer.PdfObjectIdComparer.Instance);
         foreach (var update in updates)
         {
             offsets[update.Id] = stream.Position;
-            WriteIndirectObject(stream, update.Id, update.Value);
+            PdfObjectSerializer.WriteIndirectObject(stream, update.Id, update.Value);
         }
 
         var crossReferenceOffset = stream.Position;
@@ -79,13 +78,13 @@ public sealed class PdfIncrementalUpdateWriter
             throw new NotSupportedException("Classic cross-reference output supports offsets up to ten decimal digits.");
         }
 
-        WriteAscii(stream, "xref\n");
-        foreach (var subsection in GroupSubsections(offsets))
+        PdfObjectSerializer.WriteAscii(stream, "xref\n");
+        foreach (var subsection in PdfObjectSerializer.GroupSubsections(offsets))
         {
-            WriteAscii(stream, $"{subsection.Start} {subsection.Entries.Count}\n");
+            PdfObjectSerializer.WriteAscii(stream, $"{subsection.Start} {subsection.Entries.Count}\n");
             foreach (var entry in subsection.Entries)
             {
-                WriteAscii(stream, $"{entry.Offset:0000000000} {entry.Generation:00000} n \n");
+                PdfObjectSerializer.WriteAscii(stream, $"{entry.Offset:0000000000} {entry.Generation:00000} n \n");
             }
         }
 
@@ -106,11 +105,11 @@ public sealed class PdfIncrementalUpdateWriter
             incrementalTrailer["ID"] = id;
         }
 
-        WriteAscii(stream, "trailer\n");
-        WriteObject(stream, incrementalTrailer);
-        WriteAscii(stream, "\nstartxref\n");
-        WriteAscii(stream, crossReferenceOffset.ToString(CultureInfo.InvariantCulture));
-        WriteAscii(stream, "\n%%EOF\n");
+        PdfObjectSerializer.WriteAscii(stream, "trailer\n");
+        PdfObjectSerializer.WriteObject(stream, incrementalTrailer);
+        PdfObjectSerializer.WriteAscii(stream, "\nstartxref\n");
+        PdfObjectSerializer.WriteAscii(stream, crossReferenceOffset.ToString(CultureInfo.InvariantCulture));
+        PdfObjectSerializer.WriteAscii(stream, "\n%%EOF\n");
 
         var result = stream.ToArray();
         var resultTable = ParseAndValidate(
@@ -173,140 +172,4 @@ public sealed class PdfIncrementalUpdateWriter
         PdfNumber number when number.Value >= 0 && number.Value <= long.MaxValue => (long)number.Value,
         _ => 0
     };
-
-    private static IReadOnlyList<(int Start, List<(long Offset, int Generation)> Entries)> GroupSubsections(
-        SortedDictionary<PdfObjectId, long> offsets)
-    {
-        var subsections = new List<(int Start, List<(long Offset, int Generation)> Entries)>();
-        List<(long Offset, int Generation)>? currentEntries = null;
-        var expectedNumber = -1;
-        foreach (var entry in offsets)
-        {
-            if (currentEntries is null || entry.Key.Number != expectedNumber)
-            {
-                currentEntries = [];
-                subsections.Add((entry.Key.Number, currentEntries));
-            }
-
-            currentEntries.Add((entry.Value, entry.Key.Generation));
-            expectedNumber = entry.Key.Number + 1;
-        }
-
-        return subsections;
-    }
-
-    private static void WriteIndirectObject(Stream stream, PdfObjectId id, PdfObject value)
-    {
-        WriteAscii(stream, $"{id.Number} {id.Generation} obj\n");
-        WriteObject(stream, value);
-        WriteAscii(stream, "\nendobj\n");
-    }
-
-    private static void WriteObject(Stream stream, PdfObject value)
-    {
-        switch (value)
-        {
-            case PdfName name:
-                WriteName(stream, name.Value);
-                break;
-            case PdfInteger integer:
-                WriteAscii(stream, integer.Value.ToString(CultureInfo.InvariantCulture));
-                break;
-            case PdfNumber number:
-                WriteAscii(stream, number.Value.ToString("0.###############", CultureInfo.InvariantCulture));
-                break;
-            case PdfString text:
-                WriteAscii(stream, "<");
-                foreach (var current in text.GetDecodedBytes().Span)
-                {
-                    WriteAscii(stream, current.ToString("X2", CultureInfo.InvariantCulture));
-                }
-
-                WriteAscii(stream, ">");
-                break;
-            case PdfBoolean boolean:
-                WriteAscii(stream, boolean.Value ? "true" : "false");
-                break;
-            case PdfNull:
-                WriteAscii(stream, "null");
-                break;
-            case PdfReference reference:
-                WriteAscii(stream, $"{reference.Id.Number} {reference.Id.Generation} R");
-                break;
-            case PdfArray array:
-                WriteAscii(stream, "[");
-                for (var index = 0; index < array.Items.Count; index++)
-                {
-                    if (index > 0)
-                    {
-                        WriteAscii(stream, " ");
-                    }
-
-                    WriteObject(stream, array.Items[index]);
-                }
-
-                WriteAscii(stream, "]");
-                break;
-            case PdfDictionary dictionary:
-                WriteAscii(stream, "<<");
-                foreach (var entry in dictionary.Values.OrderBy(static entry => entry.Key, StringComparer.Ordinal))
-                {
-                    WriteAscii(stream, " ");
-                    WriteName(stream, entry.Key);
-                    WriteAscii(stream, " ");
-                    WriteObject(stream, entry.Value);
-                }
-
-                WriteAscii(stream, " >>");
-                break;
-            case PdfStreamObject streamObject:
-                var streamDictionary = new PdfDictionary(
-                    new Dictionary<string, PdfObject>(streamObject.Dictionary.Values, StringComparer.Ordinal));
-                streamDictionary["Length"] = new PdfInteger(streamObject.EncodedBytes.Length);
-                WriteObject(stream, streamDictionary);
-                WriteAscii(stream, "\nstream\n");
-                stream.Write(streamObject.EncodedBytes.Span);
-                WriteAscii(stream, "\nendstream");
-                break;
-            default:
-                throw new NotSupportedException($"PDF object type '{value.GetType().Name}' cannot be serialized incrementally.");
-        }
-    }
-
-    private static void WriteName(Stream stream, string value)
-    {
-        WriteAscii(stream, "/");
-        foreach (var current in Encoding.UTF8.GetBytes(value))
-        {
-            if (current is >= 33 and <= 126 && current is not (byte)'#' && !IsDelimiter(current))
-            {
-                stream.WriteByte(current);
-            }
-            else
-            {
-                WriteAscii(stream, $"#{current:X2}");
-            }
-        }
-    }
-
-    private static bool IsDelimiter(byte value) => value is
-        (byte)'(' or (byte)')' or (byte)'<' or (byte)'>' or (byte)'[' or (byte)']' or
-        (byte)'{' or (byte)'}' or (byte)'/' or (byte)'%';
-
-    private static void WriteAscii(Stream stream, string value)
-    {
-        var bytes = Encoding.ASCII.GetBytes(value);
-        stream.Write(bytes);
-    }
-
-    private sealed class PdfObjectIdComparer : IComparer<PdfObjectId>
-    {
-        public static PdfObjectIdComparer Instance { get; } = new();
-
-        public int Compare(PdfObjectId left, PdfObjectId right)
-        {
-            var objectComparison = left.Number.CompareTo(right.Number);
-            return objectComparison != 0 ? objectComparison : left.Generation.CompareTo(right.Generation);
-        }
-    }
 }
