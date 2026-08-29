@@ -65,6 +65,28 @@ public sealed class PdfRevisionAndChangeImpactTests
     }
 
     [Fact]
+    public void CrossReferenceParser_ShouldRejectNonWhitespaceAfterFinalRevision()
+    {
+        var bytes = BuildIncrementalPdf().Concat("shadow-data"u8.ToArray()).ToArray();
+
+        var table = new PdfCrossReferenceParser().Parse(
+            new PdfParseContext(bytes, new PdfImporterOptions()));
+
+        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
+    }
+
+    [Fact]
+    public void CrossReferenceParser_ShouldAllowWhitespaceAfterFinalRevision()
+    {
+        var bytes = BuildIncrementalPdf().Concat(" \t\r\n\0\f"u8.ToArray()).ToArray();
+
+        var table = new PdfCrossReferenceParser().Parse(
+            new PdfParseContext(bytes, new PdfImporterOptions()));
+
+        Assert.DoesNotContain(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
+    }
+
+    [Fact]
     public void ChangeImpactAnalyzer_ShouldRequireValidationForIncrementalMutation()
     {
         var report = CreateTrustReport();

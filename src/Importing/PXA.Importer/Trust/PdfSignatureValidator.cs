@@ -40,6 +40,7 @@ internal static class PdfSignatureValidator
         var subFilter = ReadName(signature["SubFilter"]);
         var byteRange = ReadIntegerArray(signature["ByteRange"]);
         var contents = signature["Contents"] as PdfString;
+        var contentsBytes = contents?.GetDecodedBytes().ToArray();
         var baseInspection = new PdfSignatureInspection(
             signatureId.Number,
             signatureId.Generation,
@@ -48,7 +49,7 @@ internal static class PdfSignatureValidator
             byteRange,
             contents?.GetDecodedBytes().Length);
 
-        if (!TryValidateByteRange(source, byteRange, revisions, out var signedContent, out var coversWholeDocument,
+        if (!TryValidateByteRange(source, byteRange, revisions, contentsBytes, out var signedContent, out var coversWholeDocument,
                 out var signedRevisionEnd, out var coverageMessage))
         {
             diagnostics.Add(Diagnostic(
@@ -67,7 +68,7 @@ internal static class PdfSignatureValidator
                 diagnostics);
         }
 
-        if (contents is null || !TryTrimDer(contents.GetDecodedBytes().Span, out var cms))
+        if (contentsBytes is null || !TryTrimDer(contentsBytes, out var cms))
         {
             diagnostics.Add(Diagnostic(
                 "PXAPDFTRUST103",
@@ -486,6 +487,7 @@ internal static class PdfSignatureValidator
         ReadOnlySpan<byte> source,
         IReadOnlyList<long> byteRange,
         IReadOnlyList<PdfCrossReferenceRevision> revisions,
+        ReadOnlySpan<byte> expectedContents,
         out byte[] signedContent,
         out bool coversWholeDocument,
         out long? signedRevisionEnd,
@@ -510,6 +512,14 @@ internal static class PdfSignatureValidator
             return false;
         }
 
+        if (revisions.Count > 0 &&
+            revisions[^1].EndOffset < source.Length &&
+            ContainsNonWhitespace(source[checked((int)revisions[^1].EndOffset)..]))
+        {
+            message = "The PDF contains unsigned bytes after the final complete revision.";
+            return false;
+        }
+
         signedRevisionEnd = secondEnd;
         coversWholeDocument = secondEnd == source.Length;
         var matchesRevisionBoundary = coversWholeDocument || revisions.Any(revision => revision.EndOffset == secondEnd);
@@ -520,9 +530,15 @@ internal static class PdfSignatureValidator
         }
 
         var gap = source.Slice(checked((int)firstLength), checked((int)(secondStart - firstLength)));
-        if (gap.Length < 2 || gap[0] != (byte)'<' || gap[^1] != (byte)'>')
+        if (!TryDecodeHexString(gap, out var decodedGap))
         {
-            message = "The unsigned /ByteRange gap is not limited to one hexadecimal signature value.";
+            message = "The unsigned /ByteRange gap is not one valid hexadecimal signature value.";
+            return false;
+        }
+
+        if (!expectedContents.IsEmpty && !decodedGap.AsSpan().SequenceEqual(expectedContents))
+        {
+            message = "The unsigned /ByteRange gap does not match the signature /Contents value.";
             return false;
         }
 
@@ -533,6 +549,63 @@ internal static class PdfSignatureValidator
         second.CopyTo(signedContent.AsSpan(first.Length));
         message = string.Empty;
         return true;
+    }
+
+    private static bool TryDecodeHexString(ReadOnlySpan<byte> source, out byte[] decoded)
+    {
+        decoded = [];
+        if (source.Length < 2 || source[0] != (byte)'<' || source[^1] != (byte)'>')
+        {
+            return false;
+        }
+
+        var nibbles = new List<byte>(source.Length - 2);
+        foreach (var value in source[1..^1])
+        {
+            if (value is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n' or 0 or 12)
+            {
+                continue;
+            }
+
+            var nibble = value switch
+            {
+                >= (byte)'0' and <= (byte)'9' => value - (byte)'0',
+                >= (byte)'A' and <= (byte)'F' => value - (byte)'A' + 10,
+                >= (byte)'a' and <= (byte)'f' => value - (byte)'a' + 10,
+                _ => -1
+            };
+            if (nibble < 0)
+            {
+                return false;
+            }
+
+            nibbles.Add(checked((byte)nibble));
+        }
+
+        decoded = new byte[(nibbles.Count + 1) / 2];
+        for (var index = 0; index < nibbles.Count; index += 2)
+        {
+            decoded[index / 2] = checked((byte)(nibbles[index] << 4));
+            if (index + 1 < nibbles.Count)
+            {
+                decoded[index / 2] |= nibbles[index + 1];
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsNonWhitespace(ReadOnlySpan<byte> source)
+    {
+        foreach (var value in source)
+        {
+            if (value is not ((byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n' or 0 or 12))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ParsedCms ParseCms(ReadOnlySpan<byte> cms)

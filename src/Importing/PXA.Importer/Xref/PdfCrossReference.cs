@@ -202,6 +202,15 @@ public sealed class PdfCrossReferenceParser
         }
 
         table.SetRevisions(revisions);
+        if (revisions.Count > 0 &&
+            revisions[^1].EndOffset < source.Length &&
+            ContainsNonWhitespace(source[checked((int)revisions[^1].EndOffset)..]))
+        {
+            table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
+                "PXAPDFXREF005",
+                "The PDF contains non-whitespace bytes after the final complete revision.",
+                revisions[^1].EndOffset));
+        }
 
         return table.Entries.Count > 0;
     }
@@ -437,6 +446,19 @@ public sealed class PdfCrossReferenceParser
         }
 
         return -1;
+    }
+
+    private static bool ContainsNonWhitespace(ReadOnlySpan<byte> source)
+    {
+        foreach (var value in source)
+        {
+            if (value is not ((byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n' or 0 or 12))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static long FindRevisionEnd(ReadOnlySpan<byte> source, int crossReferenceOffset)

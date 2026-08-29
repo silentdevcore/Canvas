@@ -185,8 +185,13 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Indeterminate, signature.Status);
     }
 
-    [Fact]
-    public async Task Inspect_ShouldExposeValidatedApplicationRevocationEvidence()
+    [Theory]
+    [InlineData(PdfTrustStatus.Valid, PdfTrustStatus.Valid, "PXAPDFTRUST115")]
+    [InlineData(PdfTrustStatus.Invalid, PdfTrustStatus.Invalid, "PXAPDFTRUST116")]
+    public async Task Inspect_ShouldApplyValidatedApplicationRevocationEvidence(
+        PdfTrustStatus evidenceStatus,
+        PdfTrustStatus expectedSignatureStatus,
+        string expectedDiagnostic)
     {
         var now = DateTimeOffset.UtcNow;
         using var rootKey = RSA.Create(2048);
@@ -220,7 +225,7 @@ public sealed class PdfPadesSigningServiceTests
             new PdfSigningOptions { SigningTime = now });
         var provider = new TestEvidenceProvider(new PdfRevocationEvidence(
             PdfRevocationEvidenceKind.Crl,
-            PdfTrustStatus.Valid,
+            evidenceStatus,
             "configured:test.crl",
             now.AddHours(-1),
             now.AddHours(1),
@@ -239,11 +244,13 @@ public sealed class PdfPadesSigningServiceTests
         });
 
         var signature = Assert.Single(report.Signatures);
-        Assert.Equal(PdfTrustStatus.Valid, signature.RevocationStatus);
+        Assert.Equal(evidenceStatus, signature.RevocationStatus);
+        Assert.Equal(expectedSignatureStatus, signature.Status);
         var evidence = Assert.Single(signature.RevocationEvidence!);
         Assert.Equal(PdfRevocationEvidenceKind.Crl, evidence.Kind);
         Assert.Equal("configured:test.crl", evidence.Source);
         Assert.Equal(1, provider.CallCount);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == expectedDiagnostic);
     }
 
     [Fact]
@@ -291,6 +298,59 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldRejectUnsignedBytesAfterFinalSignedRevision()
+    {
+        using var fixture = SigningFixture.Create();
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var modified = result.Bytes.Concat("shadow-update"u8.ToArray()).ToArray();
+
+        await using var stream = new MemoryStream(modified);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+    }
+
+    [Theory]
+    [InlineData("nonzero-start")]
+    [InlineData("overlap")]
+    [InlineData("outside-file")]
+    [InlineData("unknown-revision")]
+    [InlineData("invalid-gap")]
+    public async Task Inspect_ShouldRejectUnsafeByteRangeMutations(string mutation)
+    {
+        using var fixture = SigningFixture.Create();
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var modified = RewriteByteRange(result.Bytes, values => mutation switch
+        {
+            "nonzero-start" => [1, values[1], values[2], values[3]],
+            "overlap" => [0, values[2] + 1, values[2], values[3]],
+            "outside-file" => [0, values[1], values[2], result.Bytes.LongLength],
+            "unknown-revision" => [0, values[1], values[2], values[3] - 1],
+            "invalid-gap" => [0, values[1] + 1, values[2], values[3]],
+            _ => throw new ArgumentOutOfRangeException(nameof(mutation))
+        });
+
+        await using var stream = new MemoryStream(modified);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
     }
 
     [Fact]
@@ -623,6 +683,27 @@ public sealed class PdfPadesSigningServiceTests
         var document = new PdfDocument();
         document.AddPage().DrawText("PXA PAdES fixture", 40, 40);
         return document.ToBytes();
+    }
+
+    private static byte[] RewriteByteRange(byte[] source, Func<long[], long[]> mutation)
+    {
+        var result = source.ToArray();
+        var markerOffset = result.AsSpan().IndexOf("/ByteRange ["u8);
+        Assert.True(markerOffset >= 0);
+        var valuesOffset = markerOffset + "/ByteRange ["u8.Length;
+        var valuesEnd = result.AsSpan(valuesOffset).IndexOf((byte)']');
+        Assert.True(valuesEnd > 0);
+        var originalText = Encoding.ASCII.GetString(result, valuesOffset, valuesEnd);
+        var tokens = originalText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(4, tokens.Length);
+        var values = tokens.Select(long.Parse).ToArray();
+        var replacements = mutation(values);
+        Assert.Equal(4, replacements.Length);
+        var replacementText = string.Join(' ', replacements.Select((value, index) =>
+            value.ToString($"D{tokens[index].Length}", System.Globalization.CultureInfo.InvariantCulture)));
+        Assert.Equal(originalText.Length, replacementText.Length);
+        Encoding.ASCII.GetBytes(replacementText, result.AsSpan(valuesOffset, valuesEnd));
+        return result;
     }
 
     private static ParsedSignature ParseSignature(byte[] bytes, int objectNumber, int generation)

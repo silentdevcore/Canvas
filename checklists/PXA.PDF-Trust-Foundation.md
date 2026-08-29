@@ -152,6 +152,15 @@ Reference material:
   signature integrity and report timestamp time, TSA identity, and B-T profile.
 - [ ] Detect unsigned bytes, overlapping ranges, wrapping/shadow attacks, invalid
   incremental revisions, and disallowed changes after certification signatures.
+  - [x] Reject non-zero, negative, overlapping, overflowing, out-of-file, malformed,
+    and non-revision-aligned signature byte ranges.
+  - [x] Bind the unsigned byte-range gap to one valid hexadecimal `/Contents` value
+    and reject non-whitespace bytes after the final complete PDF revision.
+  - [x] Reject cyclic, out-of-range, non-integer, and unparseable incremental revision
+    links through stable cross-reference diagnostics.
+  - [ ] Detect object-shadowing and signature-wrapping attacks across valid-looking
+    incremental revisions.
+  - [ ] Enforce DocMDP/FieldMDP certification permissions for post-signature changes.
 - [x] Return signer identity and certificate metadata without treating a valid
   cryptographic signature as a trusted identity unless chain policy succeeds.
 - [x] Support configurable system and custom PEM/DER trust anchors plus intermediate
