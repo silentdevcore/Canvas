@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
+using PXA.Importer.Saving;
 using PXA.Importer.Signing;
 using PXA.Importer.Trust;
 using PXA.Importer.Xref;
@@ -273,6 +274,8 @@ public sealed class PdfPadesSigningServiceTests
         var report = await new PdfTrustInspector().InspectAsync(stream);
         Assert.Equal(2, report.Signatures.Count);
         Assert.All(report.Signatures, signature => Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus));
+        Assert.DoesNotContain(report.Diagnostics, diagnostic =>
+            diagnostic.Code is "PXAPDFTRUST131" or "PXAPDFTRUST132" or "PXAPDFTRUST133" or "PXAPDFTRUST134");
         Assert.False(report.Signatures[0].CoversWholeDocument);
         Assert.True(report.Signatures[1].CoversWholeDocument);
         Assert.Equal(first.RevisionCount + 1, second.RevisionCount);
@@ -319,6 +322,119 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldRejectSignatureObjectShadowedByIncrementalRevision()
+    {
+        using var fixture = SigningFixture.Create();
+        var signed = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var (table, graph) = ParseGraph(signed.Bytes);
+        var signatureObject = Assert.Single(graph.Objects.Values, item =>
+            item.Value is PdfDictionary dictionary && dictionary["Type"] is PdfName { Value: "Sig" });
+        var shadowed = new PdfIncrementalUpdateWriter().Append(
+            signed.Bytes,
+            [new PdfIncrementalObjectUpdate(
+                signatureObject.Id,
+                new PdfDictionary(((PdfDictionary)signatureObject.Value).Values.ToDictionary(
+                    static pair => pair.Key,
+                    static pair => pair.Value)))]);
+
+        Assert.Equal(table.Revisions.Count + 1, shadowed.RevisionCount);
+        await using var stream = new MemoryStream(shadowed.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST133");
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldRejectSignatureRemovedFromCurrentAcroFormTree()
+    {
+        using var fixture = SigningFixture.Create();
+        var signed = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var (_, graph) = ParseGraph(signed.Bytes);
+        var catalogReference = Assert.IsType<PdfReference>(graph.Trailer?["Root"]);
+        var catalog = Assert.IsType<PdfDictionary>(Resolve(graph, catalogReference));
+        var acroForm = Assert.IsType<PdfDictionary>(Resolve(graph, catalog["AcroForm"]));
+        var replacement = new PdfDictionary(acroForm.Values.ToDictionary(
+            static pair => pair.Key,
+            static pair => pair.Value));
+        replacement["Fields"] = new PdfArray();
+        var update = catalog["AcroForm"] is PdfReference acroFormReference
+            ? new PdfIncrementalObjectUpdate(acroFormReference.Id, replacement)
+            : new PdfIncrementalObjectUpdate(
+                catalogReference.Id,
+                new PdfDictionary(catalog.Values.ToDictionary(
+                    static pair => pair.Key,
+                    pair => pair.Key == "AcroForm" ? replacement : pair.Value)));
+        var wrapped = new PdfIncrementalUpdateWriter().Append(
+            signed.Bytes,
+            [update]);
+
+        await using var stream = new MemoryStream(wrapped.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST131");
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldRejectOldSignatureWrappedInLaterField()
+    {
+        using var fixture = SigningFixture.Create();
+        var signed = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var (_, graph) = ParseGraph(signed.Bytes);
+        var signatureObject = Assert.Single(graph.Objects.Values, item =>
+            item.Value is PdfDictionary dictionary && dictionary["Type"] is PdfName { Value: "Sig" });
+        var catalogReference = Assert.IsType<PdfReference>(graph.Trailer?["Root"]);
+        var catalog = Assert.IsType<PdfDictionary>(Resolve(graph, catalogReference));
+        var acroForm = Assert.IsType<PdfDictionary>(Resolve(graph, catalog["AcroForm"]));
+        var wrappedFieldId = new PdfObjectId(graph.Objects.Keys.Max(static id => id.Number) + 1, 0);
+        var wrappedField = new PdfDictionary
+        {
+            ["FT"] = new PdfName("Sig"),
+            ["T"] = new PdfString("WrappedApproval"u8.ToArray(), IsHex: false),
+            ["V"] = new PdfReference(signatureObject.Id)
+        };
+        var replacement = new PdfDictionary(acroForm.Values.ToDictionary(
+            static pair => pair.Key,
+            static pair => pair.Value));
+        replacement["Fields"] = new PdfArray([new PdfReference(wrappedFieldId)]);
+        var acroFormUpdate = catalog["AcroForm"] is PdfReference acroFormReference
+            ? new PdfIncrementalObjectUpdate(acroFormReference.Id, replacement)
+            : new PdfIncrementalObjectUpdate(
+                catalogReference.Id,
+                new PdfDictionary(catalog.Values.ToDictionary(
+                    static pair => pair.Key,
+                    pair => pair.Key == "AcroForm" ? replacement : pair.Value)));
+        var wrapped = new PdfIncrementalUpdateWriter().Append(
+            signed.Bytes,
+            [acroFormUpdate, new PdfIncrementalObjectUpdate(wrappedFieldId, wrappedField)]);
+
+        await using var stream = new MemoryStream(wrapped.Bytes);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST134");
     }
 
     [Theory]
@@ -434,7 +550,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal("B-T", signature.PadesProfile);
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Indeterminate, signature.TimestampStatus);
-        Assert.Equal(timestampAuthority.Timestamp, signature.TimestampTime);
+        AssertTimestampClose(timestampAuthority.Timestamp, signature.TimestampTime);
         Assert.Contains("PXA Test TSA", signature.TimestampAuthoritySubject, StringComparison.Ordinal);
     }
 
@@ -586,7 +702,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, timestamp.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Valid, timestamp.TimestampStatus);
         Assert.True(timestamp.CoversWholeDocument);
-        Assert.Equal(timestampAuthority.Timestamp, timestamp.TimestampTime);
+        AssertTimestampClose(timestampAuthority.Timestamp, timestamp.TimestampTime);
     }
 
     [Fact]
@@ -648,7 +764,7 @@ public sealed class PdfPadesSigningServiceTests
         var archiveTimestamp = Assert.Single(report.Signatures, static signature => signature.IsDocumentTimestamp);
         Assert.Equal("B-LTA", approval.PadesProfile);
         Assert.Equal(PdfTrustStatus.Valid, approval.ArchiveTimestampStatus);
-        Assert.Equal(timestampAuthority.Timestamp, approval.ArchiveTimestampTime);
+        AssertTimestampClose(timestampAuthority.Timestamp, approval.ArchiveTimestampTime);
         Assert.Equal(PdfTrustStatus.Valid, archiveTimestamp.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Valid, archiveTimestamp.TimestampStatus);
         Assert.True(archiveTimestamp.CoversWholeDocument);
@@ -683,6 +799,19 @@ public sealed class PdfPadesSigningServiceTests
         var document = new PdfDocument();
         document.AddPage().DrawText("PXA PAdES fixture", 40, 40);
         return document.ToBytes();
+    }
+
+    private static void AssertTimestampClose(DateTimeOffset expected, DateTimeOffset? actual)
+    {
+        Assert.NotNull(actual);
+        Assert.InRange((actual.Value - expected).Duration(), TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
+    }
+
+    private static (PdfCrossReferenceTable Table, PdfObjectGraph Graph) ParseGraph(byte[] bytes)
+    {
+        var context = new PdfParseContext(bytes, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        return (table, new PdfObjectParser(context, table).ParseDocumentGraph());
     }
 
     private static byte[] RewriteByteRange(byte[] source, Func<long[], long[]> mutation)

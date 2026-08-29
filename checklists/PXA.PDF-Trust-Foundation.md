@@ -158,7 +158,7 @@ Reference material:
     and reject non-whitespace bytes after the final complete PDF revision.
   - [x] Reject cyclic, out-of-range, non-integer, and unparseable incremental revision
     links through stable cross-reference diagnostics.
-  - [ ] Detect object-shadowing and signature-wrapping attacks across valid-looking
+  - [x] Detect object-shadowing and signature-wrapping attacks across valid-looking
     incremental revisions.
   - [ ] Enforce DocMDP/FieldMDP certification permissions for post-signature changes.
 - [x] Return signer identity and certificate metadata without treating a valid

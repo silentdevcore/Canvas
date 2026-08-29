@@ -17,6 +17,8 @@ test('PDF Trust documentation separates integrity, trust, and revocation', () =>
   assert.match(source, /Indeterminate revocation must never be presented as valid/);
   assert.match(source, /rejects malformed or overlapping byte ranges/);
   assert.match(source, /non-whitespace bytes after the final complete revision/);
+  assert.match(source, /later revisions that redefine a signature object/);
+  assert.match(source, /wrap an older signature in a newly introduced field/);
   assert.match(source, /certificate-declared HTTPS CRL and OCSP endpoints/);
   assert.match(source, /reports or creates B-LT only when a valid VRI key/);
   assert.match(source, /B-LTA additionally requires a later trusted RFC 3161 document timestamp/);

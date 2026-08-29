@@ -86,7 +86,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         var signatures = await InspectSignaturesAsync(
             source,
             graph,
-            xref?.Revisions ?? [],
+            xref,
             signaturePolicy,
             embeddedValidationMaterialSource,
             diagnostics,
@@ -280,7 +280,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
     private static async Task<IReadOnlyList<PdfSignatureInspection>> InspectSignaturesAsync(
         byte[] source,
         PdfObjectGraph? graph,
-        IReadOnlyList<PdfCrossReferenceRevision> revisions,
+        PdfCrossReferenceTable? xref,
         PdfSignatureValidationPolicy validationPolicy,
         PdfEmbeddedValidationMaterial? embeddedValidationMaterial,
         ICollection<PdfTrustDiagnostic> diagnostics,
@@ -292,6 +292,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         var signatures = new List<PdfSignatureInspection>();
+        var bindings = FindSignatureFieldBindings(graph);
         foreach (var indirectObject in graph.Objects.Values.OrderBy(value => value.Id.Number))
         {
             if (indirectObject.Value is not PdfDictionary dictionary || !IsSignatureDictionary(graph, dictionary))
@@ -303,18 +304,168 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 source,
                 indirectObject.Id,
                 dictionary,
-                revisions,
+                xref?.Revisions ?? [],
                 validationPolicy,
                 embeddedValidationMaterial,
                 cancellationToken).ConfigureAwait(false);
-            signatures.Add(result.Inspection);
+            var inspection = ValidateSignatureBinding(
+                result.Inspection,
+                indirectObject.Id,
+                bindings,
+                xref,
+                out var bindingDiagnostics);
+            signatures.Add(inspection);
             foreach (var diagnostic in result.Diagnostics)
+            {
+                diagnostics.Add(diagnostic);
+            }
+            foreach (var diagnostic in bindingDiagnostics)
             {
                 diagnostics.Add(diagnostic);
             }
         }
 
         return signatures;
+    }
+
+    private static PdfSignatureInspection ValidateSignatureBinding(
+        PdfSignatureInspection inspection,
+        PdfObjectId signatureId,
+        IReadOnlyDictionary<PdfObjectId, IReadOnlyList<PdfObjectId?>> bindings,
+        PdfCrossReferenceTable? xref,
+        out IReadOnlyList<PdfTrustDiagnostic> diagnostics)
+    {
+        var findings = new List<PdfTrustDiagnostic>();
+        if (!bindings.TryGetValue(signatureId, out var fields) || fields.Count == 0)
+        {
+            findings.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST131",
+                PdfTrustDiagnosticSeverity.Error,
+                "The signature dictionary is not reachable from the current AcroForm field tree.",
+                signatureId.Number,
+                signatureId.Generation));
+        }
+        else if (fields.Count > 1)
+        {
+            findings.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST132",
+                PdfTrustDiagnosticSeverity.Error,
+                "Multiple current AcroForm fields reference the same signature dictionary.",
+                signatureId.Number,
+                signatureId.Generation));
+        }
+
+        if (xref is not null)
+        {
+            var signatureDefinitions = xref.RevisionEntries
+                .Where(entry => entry.Id == signatureId && !entry.IsFree)
+                .Select(static entry => (entry.Revision, entry.Offset, entry.Kind, entry.ObjectStreamNumber, entry.ObjectStreamIndex))
+                .Distinct()
+                .Count();
+            if (signatureDefinitions > 1)
+            {
+                findings.Add(new PdfTrustDiagnostic(
+                    "PXAPDFTRUST133",
+                    PdfTrustDiagnosticSeverity.Error,
+                    "The signature object was redefined by a later incremental revision.",
+                    signatureId.Number,
+                    signatureId.Generation));
+            }
+
+            if (inspection.SignedRevisionEndOffset is { } signedRevisionEnd && fields is not null)
+            {
+                foreach (var fieldId in fields.OfType<PdfObjectId>())
+                {
+                    if (!xref.Entries.TryGetValue(fieldId, out var fieldEntry))
+                    {
+                        continue;
+                    }
+
+                    var fieldRevision = xref.Revisions.FirstOrDefault(
+                        revision => revision.DistanceFromLatest == fieldEntry.Revision);
+                    if (fieldRevision is not null && fieldRevision.EndOffset > signedRevisionEnd)
+                    {
+                        findings.Add(new PdfTrustDiagnostic(
+                            "PXAPDFTRUST134",
+                            PdfTrustDiagnosticSeverity.Error,
+                            "The current signature field was introduced or replaced after the signed revision.",
+                            signatureId.Number,
+                            signatureId.Generation));
+                        break;
+                    }
+                }
+            }
+        }
+
+        diagnostics = findings;
+        return findings.Count == 0
+            ? inspection
+            : inspection with
+            {
+                Status = PdfTrustStatus.Invalid,
+                CoverageStatus = PdfTrustStatus.Invalid
+            };
+    }
+
+    private static IReadOnlyDictionary<PdfObjectId, IReadOnlyList<PdfObjectId?>> FindSignatureFieldBindings(
+        PdfObjectGraph graph)
+    {
+        var result = new Dictionary<PdfObjectId, List<PdfObjectId?>>();
+        if (Resolve(graph, graph.Trailer?["Root"]) is not PdfDictionary catalog ||
+            Resolve(graph, catalog["AcroForm"]) is not PdfDictionary acroForm ||
+            Resolve(graph, acroForm["Fields"]) is not PdfArray fields)
+        {
+            return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<PdfObjectId?>)pair.Value);
+        }
+
+        var visited = new HashSet<PdfObjectId>();
+        foreach (var field in fields.Items)
+        {
+            CollectSignatureFieldBindings(graph, field, null, visited, result);
+        }
+
+        return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<PdfObjectId?>)pair.Value);
+    }
+
+    private static void CollectSignatureFieldBindings(
+        PdfObjectGraph graph,
+        PdfObject fieldObject,
+        PdfObjectId? inheritedFieldId,
+        ISet<PdfObjectId> visited,
+        IDictionary<PdfObjectId, List<PdfObjectId?>> result)
+    {
+        var fieldId = fieldObject is PdfReference reference ? reference.Id : inheritedFieldId;
+        if (fieldId is { } id && !visited.Add(id))
+        {
+            return;
+        }
+
+        if (Resolve(graph, fieldObject) is not PdfDictionary field)
+        {
+            return;
+        }
+
+        if (field["V"] is PdfReference signatureReference &&
+            Resolve(graph, signatureReference) is PdfDictionary signature &&
+            IsSignatureDictionary(graph, signature))
+        {
+            if (!result.TryGetValue(signatureReference.Id, out var boundFields))
+            {
+                boundFields = [];
+                result[signatureReference.Id] = boundFields;
+            }
+            boundFields.Add(fieldId);
+        }
+
+        if (Resolve(graph, field["Kids"]) is not PdfArray kids)
+        {
+            return;
+        }
+
+        foreach (var kid in kids.Items)
+        {
+            CollectSignatureFieldBindings(graph, kid, fieldId, visited, result);
+        }
     }
 
     private static IReadOnlyList<PdfSignatureInspection> PromoteBaselineLta(

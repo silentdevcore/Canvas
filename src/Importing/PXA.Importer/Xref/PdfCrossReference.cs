@@ -45,10 +45,12 @@ public sealed record PdfCrossReferenceEntry(
 public sealed class PdfCrossReferenceTable
 {
     private readonly Dictionary<PdfObjectId, PdfCrossReferenceEntry> _entries = [];
+    private readonly List<PdfCrossReferenceEntry> _revisionEntries = [];
     private readonly List<PdfCrossReferenceRevision> _revisions = [];
     private readonly List<PdfCrossReferenceDiagnostic> _diagnostics = [];
 
     public IReadOnlyDictionary<PdfObjectId, PdfCrossReferenceEntry> Entries => _entries;
+    public IReadOnlyList<PdfCrossReferenceEntry> RevisionEntries => _revisionEntries;
     public IReadOnlyList<PdfCrossReferenceRevision> Revisions => _revisions;
     public IReadOnlyList<PdfCrossReferenceDiagnostic> Diagnostics => _diagnostics;
     public PdfDictionary? Trailer { get; set; }
@@ -68,6 +70,8 @@ public sealed class PdfCrossReferenceTable
     }
 
     internal void AddDiagnostic(PdfCrossReferenceDiagnostic diagnostic) => _diagnostics.Add(diagnostic);
+
+    internal void RecordRevisionEntry(PdfCrossReferenceEntry entry) => _revisionEntries.Add(entry);
 }
 
 public sealed class PdfCrossReferenceParser
@@ -304,15 +308,15 @@ public sealed class PdfCrossReferenceParser
                 }
 
                 var id = new PdfObjectId(startObject + i, parsedGeneration);
-                table.Add(
-                    new PdfCrossReferenceEntry(
+                var entry = new PdfCrossReferenceEntry(
                         id,
                         parsedOffset,
                         parsedGeneration,
                         status.Text == "f",
                         revision,
-                        status.Text == "f" ? PdfCrossReferenceEntryKind.Free : PdfCrossReferenceEntryKind.InUse),
-                    overwrite: !preserveExistingEntries);
+                        status.Text == "f" ? PdfCrossReferenceEntryKind.Free : PdfCrossReferenceEntryKind.InUse);
+                table.RecordRevisionEntry(entry);
+                table.Add(entry, overwrite: !preserveExistingEntries);
                 entryCount++;
             }
         }
@@ -383,8 +387,9 @@ public sealed class PdfCrossReferenceParser
 
                 if (entry is not null)
                 {
-                    table.Add(entry, overwrite: !preserveExistingEntries);
-                    entryCount++;
+                table.RecordRevisionEntry(entry);
+                table.Add(entry, overwrite: !preserveExistingEntries);
+                entryCount++;
                 }
             }
         }
