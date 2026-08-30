@@ -9,6 +9,7 @@ import { applyVerticalWheelToHorizontalScroll } from '@/utils/editorScrolling';
 import { updateLanguageSelection } from '@/utils/languageSelection';
 import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 import { effectivePageSettings } from '@/utils/pageLayout';
+import { assessPasswordStrength } from '@/utils/passwordStrength';
 import { designerAssetContentUrl } from '@/services/designerAssetApi';
 import { motion } from 'framer-motion';
 import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
@@ -78,6 +79,29 @@ import {
 import CodeViewer from './CodeViewer';
 import { ElementBoundary } from './ElementBoundary';
 import FindReplaceModal from './FindReplaceModal';
+
+const PasswordStrengthHint: React.FC<{ password: string }> = ({ password }) => {
+  const { t } = useTranslation();
+  const assessment = assessPasswordStrength(password);
+  if (!assessment) return null;
+
+  const suggestions = [
+    assessment.needsLength ? t('pageSettings.encryption.passwordStrength.useMoreCharacters') : null,
+    assessment.needsVariety ? t('pageSettings.encryption.passwordStrength.mixCharacters') : null,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <small
+      className="editor-password-strength"
+      data-strength={assessment.level}
+      aria-live="polite"
+    >
+      {t('pageSettings.encryption.passwordStrength.label')}: {' '}
+      {t(`pageSettings.encryption.passwordStrength.${assessment.level}`)}
+      {suggestions ? ` · ${suggestions}` : ''}
+    </small>
+  );
+};
 import ContentLibraryPanel from './ContentLibraryPanel';
 import { ELEMENT_GROUP_ORDER, ELEMENT_REGISTRY, registryEntry, type ElementGroupId } from '@/data/elementRegistry';
 import { CONTENT_LIBRARY, buildContentPages, type ContentLibraryEntry } from '@/data/contentLibrary';
@@ -4853,6 +4877,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                               encryption: { ...pageSettings.encryption!, userPassword: e.target.value },
                             })}
                           />
+                          <PasswordStrengthHint password={pageSettings.encryption.userPassword} />
                         </label>
                         <label>
                           <span>{t('pageSettings.encryption.ownerPassword')}</span>
@@ -4870,6 +4895,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                               encryption: { ...pageSettings.encryption!, ownerPassword: e.target.value },
                             })}
                           />
+                          <PasswordStrengthHint password={pageSettings.encryption.ownerPassword} />
                           {pageSettings.encryption.algorithm !== 'Rc4_128' &&
                             Object.values(pageSettings.encryption.permissions).some((allowed) => !allowed) &&
                             (!pageSettings.encryption.ownerPassword ||

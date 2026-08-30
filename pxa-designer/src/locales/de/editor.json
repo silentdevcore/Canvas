@@ -894,6 +894,14 @@
       "ownerPassword": "Eigentümerpasswort (Berechtigungen)",
       "ownerPasswordPlaceholder": "Standardmäßig das Benutzerpasswort",
       "ownerPasswordRequired": "Bei eingeschränkten Berechtigungen ist ein separates Eigentümerpasswort erforderlich.",
+      "passwordStrength": {
+        "label": "Passwortstärke",
+        "weak": "Schwach",
+        "fair": "Mittel",
+        "strong": "Stark",
+        "useMoreCharacters": "Verwenden Sie mindestens 16 Zeichen.",
+        "mixCharacters": "Kombinieren Sie Buchstaben, Zahlen und Sonderzeichen."
+      },
       "algorithm": "Algorithmus",
       "algorithmAes256": "AES 256-Bit (empfohlen)",
       "algorithmRc4": "RC4 128-Bit (Legacy)",

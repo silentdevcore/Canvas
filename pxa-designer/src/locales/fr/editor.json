@@ -894,6 +894,14 @@
       "ownerPassword": "Mot de passe propriétaire (autorisations)",
       "ownerPasswordPlaceholder": "Par défaut, le mot de passe utilisateur",
       "ownerPasswordRequired": "Un mot de passe propriétaire distinct est requis lorsque les autorisations sont limitées.",
+      "passwordStrength": {
+        "label": "Robustesse du mot de passe",
+        "weak": "Faible",
+        "fair": "Moyenne",
+        "strong": "Forte",
+        "useMoreCharacters": "Utilisez au moins 16 caractères.",
+        "mixCharacters": "Mélangez lettres, chiffres et symboles."
+      },
       "algorithm": "Algorithme",
       "algorithmAes256": "AES 256 bits (recommandé)",
       "algorithmRc4": "RC4 128 bits (hérité)",

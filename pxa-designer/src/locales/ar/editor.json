@@ -894,6 +894,14 @@
       "ownerPassword": "كلمة مرور المالك (الأذونات)",
       "ownerPasswordPlaceholder": "تُستخدم كلمة مرور المستخدم افتراضيًا",
       "ownerPasswordRequired": "يلزم استخدام كلمة مرور مالك منفصلة عند تقييد الأذونات.",
+      "passwordStrength": {
+        "label": "قوة كلمة المرور",
+        "weak": "ضعيفة",
+        "fair": "متوسطة",
+        "strong": "قوية",
+        "useMoreCharacters": "استخدم 16 حرفًا على الأقل.",
+        "mixCharacters": "امزج بين الحروف والأرقام والرموز."
+      },
       "algorithm": "الخوارزمية",
       "algorithmAes256": "AES 256-بت (موصى به)",
       "algorithmRc4": "RC4 128-بت (قديم)",

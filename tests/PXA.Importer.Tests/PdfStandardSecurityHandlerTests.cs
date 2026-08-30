@@ -189,6 +189,34 @@ public sealed class PdfStandardSecurityHandlerTests
     }
 
     [Fact]
+    public void NormalizePassword_ShouldApplySaslPrepMappings()
+    {
+        Assert.Equal(
+            PdfStandardSecurityHandler.NormalizePassword("space here"),
+            PdfStandardSecurityHandler.NormalizePassword("space\u00A0here"));
+        Assert.Equal(
+            PdfStandardSecurityHandler.NormalizePassword("soft-hyphen"),
+            PdfStandardSecurityHandler.NormalizePassword("soft\u00AD-hyphen"));
+    }
+
+    [Theory]
+    [InlineData("control\u0007")]
+    [InlineData("private\uE000")]
+    [InlineData("unassigned\u0221")]
+    [InlineData("invalid\uD800")]
+    [InlineData("a\u05D0")]
+    public void NormalizePassword_ShouldRejectProhibitedAndBidirectionalInput(string password) =>
+        Assert.Throws<ArgumentException>(() => PdfStandardSecurityHandler.NormalizePassword(password));
+
+    [Fact]
+    public void NormalizePassword_ShouldAcceptAWellFormedRightToLeftPassword()
+    {
+        var normalized = PdfStandardSecurityHandler.NormalizePassword("\u05D0-123-\u05D1");
+
+        Assert.NotEmpty(normalized);
+    }
+
+    [Fact]
     public void Open_ShouldAuthenticateAPasswordLongerThanTheLimitByItsTruncatedForm()
     {
         var password = new string('a', 200);

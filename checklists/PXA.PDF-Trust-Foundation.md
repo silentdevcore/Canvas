@@ -353,24 +353,26 @@ Reference material:
 - [x] Use reviewed platform cryptography; do not hand-roll AES, hashing, random
   generation, or constant-time secret comparison.
 - [x] Zero or dispose password/key buffers where runtime APIs permit it.
-- [ ] Support Unicode password normalization exactly as required by the selected PDF
+- [x] Support Unicode password normalization exactly as required by the selected PDF
   standard revision and test maximum password length behavior.
   - [x] Normalize to NFKC, encode as UTF-8, and truncate at 127 bytes after encoding.
-  - [ ] Implement the SASLprep character-prohibition and bidirectional tables; the current
-    handler accepts passwords a strict implementation would reject.
-- [ ] Implement encrypted existing-PDF open, permission inspection, owner/user
+  - [x] Implement SASLprep mapping, Unicode 3.2 unassigned/prohibited tables, NFKC,
+    and bidirectional checks from RFC 4013/RFC 3454 in the shared writer/reader path.
+- [x] Implement encrypted existing-PDF open, permission inspection, owner/user
   authentication, mutation, and re-save without leaking decrypted temporary files.
   - [x] Open an AES-256 document with either password, decrypt strings and streams on the
     typed model, and report the password kind and decoded permissions.
   - [x] Open AES-256 object streams through a two-stage parse/decrypt/expand pipeline.
   - [x] Decrypt in memory only; nothing is written to disk.
-  - [ ] Mutate and re-save an encrypted document, which needs encrypted serialization on
-    the incremental path as well.
+  - [x] Mutate and re-save password-protected documents through a one-revision full rewrite;
+    require owner authentication and replacement encryption, and fail closed rather than
+    emitting plaintext. Encrypted incremental append remains intentionally unsupported.
   - [x] Open legacy RC4 and AES-128 documents.
 - [x] Add certificate/public-key encryption as a separate Adobe.PubSec AESV2 profile.
 - [x] Update Designer Page Settings and export flows to offer safe algorithms only;
   legacy RC4 must be hidden behind an explicit compatibility option.
-- [ ] Add password-strength guidance without logging or transmitting the password.
+- [x] Add local password-strength guidance in all six Designer languages without logging
+  or transmitting the password.
 - [x] Validate output with Acrobat, qpdf, Poppler, and PdfPig.
 
 ## P1 - PDF/A Generation, Conversion, and Validation

@@ -1729,6 +1729,22 @@ html[data-visual-parity="true"] #root {
   font-size: 14px;
 }
 
+.editor-password-strength {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.editor-password-strength[data-strength='weak'] {
+  color: var(--color-danger, #b42318);
+}
+
+.editor-password-strength[data-strength='strong'] {
+  color: var(--color-success, #087443);
+}
+
 .editor-form-stack .editor-checkbox-control {
   display: flex;
   grid-template-columns: none;

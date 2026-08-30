@@ -69,6 +69,11 @@ test('PDF encryption documentation states the implemented revision and its limit
   assert.match(source, /\/Perms integrity mismatch rejects the document/);
   assert.match(source, /restricted permissions require a distinct owner password/);
   assert.match(source, /rejected without indicating which password check was closer/);
+  assert.match(source, /RFC 4013 SASLprep mappings/);
+  assert.match(source, /evaluates password-strength guidance locally/);
+  assert.match(source, /owner password and replacement encryption settings/);
+  assert.match(source, /refuses missing output encryption rather than returning plaintext/);
+  assert.match(source, /encrypted incremental updates remain unsupported/);
   assert.match(source, /required signature-value exemption is not implemented/);
 });
 

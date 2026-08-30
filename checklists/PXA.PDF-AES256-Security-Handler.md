@@ -61,6 +61,8 @@ transactionally and leave the source bytes untouched.
 - [x] Accept an empty user password, which yields a document that opens without a prompt.
 - [x] Require a distinct owner password whenever permissions are restricted, including when
   the user password is empty.
+- [x] Apply the complete RFC 4013 profile used by revision 6: mappings, Unicode 3.2
+  prohibited/unassigned tables, NFKC, bidirectional checks, UTF-8, and the 127-byte cap.
 
 ## Reading Encrypted Documents
 
@@ -78,6 +80,10 @@ transactionally and leave the source bytes untouched.
 - [x] Refuse to encrypt a signed document, since encrypting changes every signed byte.
 - [x] Make AES-256 the normal Generator and WebApi export path, then move RC4 behind an explicit
   legacy compatibility choice.
+- [x] Mutate password-protected input in memory and re-encrypt it as one fresh revision;
+  require the owner password and explicit replacement encryption settings.
+- [x] Fail closed when source credentials or output encryption are missing, and keep
+  encrypted incremental append unsupported until it can preserve its security semantics.
 
 ## Compatibility Profiles
 
@@ -101,6 +107,12 @@ transactionally and leave the source bytes untouched.
 - [x] Prove a failed decrypt does not leave a partially decrypted object graph.
 - [x] Prove ciphertext differs across runs for the same input, since salts and IVs are random.
 - [x] Prove no plaintext string or stream payload survives in the encrypted bytes.
+- [x] Test SASLprep mappings, prohibited and unassigned characters, bidirectional rules,
+  Unicode equivalence, and the post-encoding password limit.
+- [x] Prove encrypted mutation produces one encrypted revision, rotates credentials, rejects
+  user-only authority, and never exposes credentials through option string representations.
+- [x] Show local password-strength guidance for user and owner passwords in all six Designer
+  languages without network or telemetry use.
 - [x] Validate one generated PDF independently with Poppler `pdfinfo`; it reports PDF 2.0,
   AES-256, and the expected print/copy/change permissions.
 - [x] Open Generator AES-256 output with PdfPig and round-trip it through the typed PXA Importer.

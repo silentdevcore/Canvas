@@ -6,6 +6,7 @@ using PXA.Importer.Parsing;
 using PXA.Importer.Saving;
 using PXA.Importer.Security;
 using PXA.Importer.Signing;
+using PXA.Importer.Trust;
 using PXA.Importer.Xref;
 using PXA.Pdf;
 
@@ -316,6 +317,101 @@ public sealed class PdfEncryptedDocumentTests
         Assert.Equal(
             originalCatalogCiphertext,
             Assert.IsType<PdfString>(catalog["PxaMarker"]).GetDecodedBytes().ToArray());
+    }
+
+    [Fact]
+    public void FullRewrite_ShouldMutateAndReencryptAnEncryptedDocument()
+    {
+        var encrypted = Encrypt(AddCatalogString(CreatePdf(), "before"), "reader", "owner");
+        var sourceContext = new PdfParseContext(encrypted, new PdfImporterOptions());
+        var sourceTable = new PdfCrossReferenceParser().Parse(sourceContext);
+        var sourceGraph = PdfDocumentDecryptor.ParseAndDecrypt(sourceContext, sourceTable, "reader").Graph;
+        var rootId = Assert.IsType<PdfReference>(sourceGraph.Trailer!["Root"]).Id;
+        var sourceCatalog = Assert.IsType<PdfDictionary>(sourceGraph.Resolve(rootId)!.Value);
+        var updatedCatalog = new PdfDictionary(sourceCatalog.Values.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value))
+        {
+            ["PxaMarker"] = new PdfString("after"u8.ToArray(), IsHex: false)
+        };
+
+        var saved = new PdfDocumentSaver().Save(encrypted, new PdfSaveRequest
+        {
+            Strategy = PdfSaveStrategy.FullRewrite,
+            Updates = [new PdfIncrementalObjectUpdate(rootId, updatedCatalog)],
+            FullRewriteOptions = new PdfFullRewriteOptions
+            {
+                SourcePassword = "owner",
+                Encryption = new PdfDocumentEncryptionOptions
+                {
+                    UserPassword = "new-reader",
+                    OwnerPassword = "new-owner"
+                }
+            }
+        });
+
+        Assert.Equal([rootId], saved.ChangedObjects);
+        Assert.DoesNotContain("after", Encoding.Latin1.GetString(saved.Bytes), StringComparison.Ordinal);
+        var resultContext = new PdfParseContext(saved.Bytes, new PdfImporterOptions());
+        var resultTable = new PdfCrossReferenceParser().Parse(resultContext);
+        Assert.Single(resultTable.Revisions);
+        var resultGraph = PdfDocumentDecryptor.ParseAndDecrypt(resultContext, resultTable, "new-reader").Graph;
+        var resultRoot = Assert.IsType<PdfReference>(resultGraph.Trailer!["Root"]);
+        var resultCatalog = Assert.IsType<PdfDictionary>(resultGraph.Resolve(resultRoot.Id)!.Value);
+        Assert.Equal("after", Assert.IsType<PdfString>(resultCatalog["PxaMarker"]).ToLatin1String());
+
+        var oldPasswordContext = new PdfParseContext(saved.Bytes, new PdfImporterOptions());
+        var oldPasswordTable = new PdfCrossReferenceParser().Parse(oldPasswordContext);
+        Assert.Throws<PdfPasswordException>(() =>
+            PdfDocumentDecryptor.ParseAndDecrypt(oldPasswordContext, oldPasswordTable, "reader"));
+    }
+
+    [Fact]
+    public void FullRewrite_ShouldFailClosedWhenEncryptedSourceCredentialsAreIncomplete()
+    {
+        var encrypted = Encrypt(CreatePdf(), "reader", "owner");
+
+        Assert.Throws<PdfPasswordException>(() => new PdfFullRewriteWriter().Rewrite(encrypted));
+        Assert.Throws<InvalidOperationException>(() => new PdfFullRewriteWriter().Rewrite(
+            encrypted,
+            new PdfFullRewriteOptions { SourcePassword = "reader" }));
+    }
+
+    [Fact]
+    public void FullRewrite_ShouldRequireTheOwnerPasswordBeforeReplacingSecuritySettings()
+    {
+        var encrypted = Encrypt(CreatePdf(), "reader", "owner");
+
+        Assert.Throws<UnauthorizedAccessException>(() => new PdfFullRewriteWriter().Rewrite(
+            encrypted,
+            new PdfFullRewriteOptions
+            {
+                SourcePassword = "reader",
+                Encryption = new PdfDocumentEncryptionOptions
+                {
+                    UserPassword = "replacement-reader",
+                    OwnerPassword = "replacement-owner"
+                }
+            }));
+    }
+
+    [Fact]
+    public void EncryptionOptions_ShouldRedactPasswordsFromStringRepresentations()
+    {
+        var encryption = new PdfDocumentEncryptionOptions
+        {
+            UserPassword = "reader-secret",
+            OwnerPassword = "owner-secret"
+        };
+        var rewrite = new PdfFullRewriteOptions
+        {
+            SourcePassword = "source-secret",
+            Encryption = encryption
+        };
+
+        Assert.DoesNotContain("reader-secret", encryption.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("owner-secret", encryption.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("source-secret", rewrite.ToString(), StringComparison.Ordinal);
     }
 
     private static byte[] Encrypt(

@@ -10,7 +10,6 @@ internal sealed class Aes256SecurityHandler : IPdfSecurityHandler
     private const int FileKeyLength = 32;
     private const int HashLength = 32;
     private const int SaltLength = 8;
-    private const int PasswordByteLimit = 127;
     private static readonly byte[] StreamMarker = Encoding.ASCII.GetBytes("stream\n");
     private static readonly byte[] LengthMarker = Encoding.ASCII.GetBytes("/Length ");
 
@@ -58,8 +57,8 @@ internal sealed class Aes256SecurityHandler : IPdfSecurityHandler
             throw new NotSupportedException("The PDF 2.0 handler supports only PdfEncryptionAlgorithm.Aes256.");
         }
 
-        var userPassword = NormalizePassword(options.UserPassword);
-        var ownerPassword = NormalizePassword(options.OwnerPassword ?? options.UserPassword);
+        var userPassword = PdfPasswordPreparation.Prepare(options.UserPassword);
+        var ownerPassword = PdfPasswordPreparation.Prepare(options.OwnerPassword ?? options.UserPassword);
         if (options.Permissions != PdfPermissions.All &&
             (string.IsNullOrEmpty(options.OwnerPassword) ||
              CryptographicOperations.FixedTimeEquals(userPassword, ownerPassword)))
@@ -348,13 +347,6 @@ internal sealed class Aes256SecurityHandler : IPdfSecurityHandler
             Zero(repeated);
             Zero(encrypted);
         }
-    }
-
-    private static byte[] NormalizePassword(string? password)
-    {
-        if (string.IsNullOrEmpty(password)) return [];
-        var bytes = Encoding.UTF8.GetBytes(password.Normalize(NormalizationForm.FormKC));
-        return bytes.Length <= PasswordByteLimit ? bytes : bytes.AsSpan(0, PasswordByteLimit).ToArray();
     }
 
     private static byte[] AesNoPadding(byte[] key, byte[] data) =>

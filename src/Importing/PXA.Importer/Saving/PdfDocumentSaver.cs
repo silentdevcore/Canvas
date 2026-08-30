@@ -7,7 +7,10 @@ public sealed record PdfSaveRequest
 {
     public required PdfSaveStrategy Strategy { get; init; }
 
-    /// <summary>Objects to append. Required for an incremental update, ignored by a full rewrite.</summary>
+    /// <summary>
+    /// Objects to change. Incremental saves append them; full rewrites apply them to the
+    /// resolved graph before serializing one fresh revision.
+    /// </summary>
     public IReadOnlyList<PdfIncrementalObjectUpdate> Updates { get; init; } = [];
 
     public PdfFullRewriteOptions? FullRewriteOptions { get; init; }
@@ -52,12 +55,14 @@ public sealed class PdfDocumentSaver
                     []);
 
             case PdfSaveStrategy.FullRewrite:
-                var rewritten = _fullRewriteWriter.Rewrite(source, request.FullRewriteOptions);
+                var rewritten = request.Updates.Count == 0
+                    ? _fullRewriteWriter.Rewrite(source, request.FullRewriteOptions)
+                    : _fullRewriteWriter.RewriteWithUpdates(source, request.Updates, request.FullRewriteOptions);
                 return new PdfSaveResult(
                     rewritten.Bytes,
                     PdfSaveStrategy.FullRewrite,
                     1,
-                    [],
+                    request.Updates.Select(static update => update.Id).Distinct().ToArray(),
                     rewritten.InvalidatedSignatures);
 
             default:

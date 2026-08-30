@@ -22,11 +22,23 @@ public sealed record PdfFullRewriteOptions
     public PdfParseLimits Limits { get; init; } = new();
 
     /// <summary>
+    /// Password used only in memory to open an encrypted source. It is never copied into a
+    /// result or diagnostic. Encrypted sources also require <see cref="Encryption"/>, so a
+    /// rewrite cannot accidentally emit decrypted content.
+    /// </summary>
+    public string? SourcePassword { get; init; }
+
+    /// <summary>
     /// When set, the rewritten document is encrypted with the Standard Security Handler.
     /// Encryption is applied at the object-model level, before serialization, so stream
     /// lengths are computed from the ciphertext.
     /// </summary>
     public PdfDocumentEncryptionOptions? Encryption { get; init; }
+
+    public override string ToString() =>
+        $"{nameof(PdfFullRewriteOptions)} {{ AllowSignatureInvalidation = {AllowSignatureInvalidation}, " +
+        $"PdfVersion = {PdfVersion}, SourcePassword = [REDACTED], Encryption = " +
+        $"{(Encryption is null ? "null" : "[REDACTED]")} }}";
 }
 
 public sealed record PdfFullRewriteResult(
@@ -46,7 +58,23 @@ public sealed record PdfFullRewriteResult(
 /// </summary>
 public sealed class PdfFullRewriteWriter
 {
-    public PdfFullRewriteResult Rewrite(ReadOnlyMemory<byte> source, PdfFullRewriteOptions? options = null)
+    public PdfFullRewriteResult Rewrite(ReadOnlyMemory<byte> source, PdfFullRewriteOptions? options = null) =>
+        RewriteCore(source, [], options);
+
+    /// <summary>
+    /// Applies typed object changes and emits one fresh revision. Password-encrypted input is
+    /// decrypted only in memory and must be encrypted again in the same operation.
+    /// </summary>
+    public PdfFullRewriteResult RewriteWithUpdates(
+        ReadOnlyMemory<byte> source,
+        IEnumerable<PdfIncrementalObjectUpdate> objectUpdates,
+        PdfFullRewriteOptions? options = null) =>
+        RewriteCore(source, NormalizeUpdates(objectUpdates), options);
+
+    private static PdfFullRewriteResult RewriteCore(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<PdfIncrementalObjectUpdate> updates,
+        PdfFullRewriteOptions? options)
     {
         options ??= new PdfFullRewriteOptions();
         if (source.IsEmpty)
@@ -61,13 +89,36 @@ public sealed class PdfFullRewriteWriter
             throw new InvalidDataException($"The source PDF cross-reference data is invalid: {table.Diagnostics[0].Code}.");
         }
 
-        if (table.Trailer?["Encrypt"] is not null)
+        var sourceEncryptId = (table.Trailer?["Encrypt"] as PdfReference)?.Id;
+        var sourceIsEncrypted = table.Trailer?["Encrypt"] is not null;
+        if (sourceIsEncrypted && options.SourcePassword is null)
         {
-            throw new NotSupportedException(
-                "Rewriting encrypted PDFs requires encrypted object serialization and is not enabled yet.");
+            throw new PdfPasswordException(
+                "A source password is required to rewrite an encrypted PDF.");
         }
 
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        if (sourceIsEncrypted && options.Encryption is null)
+        {
+            throw new InvalidOperationException(
+                "An encrypted source must be re-encrypted during a full rewrite. Supply output encryption options.");
+        }
+
+        PdfObjectGraph graph;
+        if (sourceIsEncrypted)
+        {
+            var decrypted = PdfDocumentDecryptor.ParseAndDecrypt(context, table, options.SourcePassword!);
+            if (decrypted.Result.PasswordKind != PdfPasswordKind.Owner)
+            {
+                throw new UnauthorizedAccessException(
+                    "Rewriting and re-encrypting a password-protected PDF requires the owner password.");
+            }
+
+            graph = decrypted.Graph;
+        }
+        else
+        {
+            graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        }
         if (context.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The source PDF could not be parsed in full: {context.Diagnostics[0].Code}.");
@@ -96,6 +147,15 @@ public sealed class PdfFullRewriteWriter
                 "A full rewrite invalidates the existing signatures in this document. " +
                 "Set AllowSignatureInvalidation to proceed.");
         }
+
+        if (sourceIsEncrypted)
+        {
+            // The old security dictionary belongs to the old file key. It must not remain
+            // reachable after decrypted objects are serialized with a fresh key.
+            graph.Trailer!["Encrypt"] = null;
+        }
+
+        ApplyUpdates(graph, updates, sourceEncryptId);
 
         // Only objects reachable from the trailer survive. Keeping every current xref entry
         // would retain orphaned attachments, metadata and image streams after a sanitizing
@@ -215,6 +275,51 @@ public sealed class PdfFullRewriteWriter
         var result = stream.ToArray();
         ValidateRewrite(result, entryCount, options.Limits, options.Encryption is not null);
         return new PdfFullRewriteResult(result, entryCount, crossReferenceOffset, signatures, removed);
+    }
+
+    private static IReadOnlyList<PdfIncrementalObjectUpdate> NormalizeUpdates(
+        IEnumerable<PdfIncrementalObjectUpdate> objectUpdates)
+    {
+        ArgumentNullException.ThrowIfNull(objectUpdates);
+        var updates = objectUpdates
+            .Select((update, index) => (Update: update, Index: index))
+            .GroupBy(static item => item.Update.Id)
+            .Select(static group => group.MaxBy(static item => item.Index).Update)
+            .OrderBy(static update => update.Id.Number)
+            .ThenBy(static update => update.Id.Generation)
+            .ToArray();
+        if (updates.Any(static update => update.Id.Number <= 0 || update.Id.Generation < 0))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(objectUpdates),
+                "PDF object numbers must be positive and generations cannot be negative.");
+        }
+
+        return updates;
+    }
+
+    private static void ApplyUpdates(
+        PdfObjectGraph graph,
+        IReadOnlyList<PdfIncrementalObjectUpdate> updates,
+        PdfObjectId? sourceEncryptId)
+    {
+        foreach (var update in updates)
+        {
+            if (sourceEncryptId is { } encryptId && update.Id == encryptId)
+            {
+                throw new InvalidOperationException("The source /Encrypt dictionary cannot be mutated directly.");
+            }
+
+            var existing = graph.Resolve(update.Id);
+            if (existing is null)
+            {
+                graph.Add(new PdfIndirectObject(update.Id, update.Value, new PdfSourceSpan(0, 0)));
+            }
+            else
+            {
+                existing.Value = update.Value with { OriginalId = update.Id };
+            }
+        }
     }
 
     /// <summary>

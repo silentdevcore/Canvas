@@ -894,6 +894,14 @@
       "ownerPassword": "Contraseña de propietario (permisos)",
       "ownerPasswordPlaceholder": "Usa la contraseña de usuario de forma predeterminada",
       "ownerPasswordRequired": "Se requiere una contraseña de propietario distinta cuando se restringen los permisos.",
+      "passwordStrength": {
+        "label": "Seguridad de la contraseña",
+        "weak": "Débil",
+        "fair": "Media",
+        "strong": "Fuerte",
+        "useMoreCharacters": "Usa al menos 16 caracteres.",
+        "mixCharacters": "Combina letras, números y símbolos."
+      },
       "algorithm": "Algoritmo",
       "algorithmAes256": "AES de 256 bits (recomendado)",
       "algorithmRc4": "RC4 de 128 bits (heredado)",

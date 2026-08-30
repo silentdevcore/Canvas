@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using PXA.Importer.Objects;
+using PXA.Pdf.Serialization.Security;
 
 namespace PXA.Importer.Security;
 
@@ -19,7 +20,6 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
     private const int FileKeyLength = 32;
     private const int SaltLength = 8;
     private const int HashLength = 32;
-    private const int PasswordByteLimit = 127;
 
     private readonly byte[] _fileKey;
     private bool _disposed;
@@ -507,30 +507,12 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
     }
 
     /// <summary>
-    /// Revision 6 takes the password as UTF-8 after Unicode normalization, capped at 127
-    /// bytes. This implements the normalization and the cap; it does not implement the full
-    /// SASLprep character-prohibition tables, so a password containing prohibited or
-    /// bidirectional-conflicting characters is accepted here where a strict implementation
-    /// would reject it.
+    /// Revision 6 prepares the password with SASLprep, encodes it as UTF-8, and caps it at
+    /// 127 bytes. Generator and Importer share the same implementation so authentication
+    /// cannot diverge for Unicode passwords.
     /// </summary>
-    internal static byte[] NormalizePassword(string? password)
-    {
-        if (string.IsNullOrEmpty(password))
-        {
-            return [];
-        }
-
-        var normalized = password.Normalize(NormalizationForm.FormKC);
-        var bytes = Encoding.UTF8.GetBytes(normalized);
-        if (bytes.Length <= PasswordByteLimit)
-        {
-            return bytes;
-        }
-
-        // Truncation happens after encoding, as the standard requires, so the limit is on
-        // bytes rather than characters.
-        return bytes.AsSpan(0, PasswordByteLimit).ToArray();
-    }
+    internal static byte[] NormalizePassword(string? password) =>
+        PdfPasswordPreparation.Prepare(password);
 
     private static void EnsureSupported(PdfDictionary encrypt)
     {

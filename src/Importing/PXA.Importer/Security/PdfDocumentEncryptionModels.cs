@@ -55,6 +55,11 @@ public sealed record PdfDocumentEncryptionOptions
 
     /// <summary>When false, document metadata streams are left in clear text.</summary>
     public bool EncryptMetadata { get; init; } = true;
+
+    public override string ToString() =>
+        $"{nameof(PdfDocumentEncryptionOptions)} {{ UserPassword = [REDACTED], " +
+        $"OwnerPassword = [REDACTED], Permissions = {Permissions}, Algorithm = {Algorithm}, " +
+        $"EncryptMetadata = {EncryptMetadata} }}";
 }
 
 /// <summary>The outcome of authenticating against an encrypted document.</summary>

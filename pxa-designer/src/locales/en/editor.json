@@ -923,6 +923,14 @@
       "ownerPassword": "Owner password (permissions)",
       "ownerPasswordPlaceholder": "Defaults to the user password",
       "ownerPasswordRequired": "A distinct owner password is required when permissions are restricted.",
+      "passwordStrength": {
+        "label": "Password strength",
+        "weak": "Weak",
+        "fair": "Fair",
+        "strong": "Strong",
+        "useMoreCharacters": "Use at least 16 characters.",
+        "mixCharacters": "Mix letters, numbers, and symbols."
+      },
       "algorithm": "Algorithm",
       "algorithmAes256": "AES 256-bit (recommended)",
       "algorithmRc4": "RC4 128-bit (legacy)",

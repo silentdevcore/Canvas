@@ -10,7 +10,7 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA protects new PDFs with modern encryption, supports compatibility encryption for older readers, adds recipient-certificate protection, and securely opens protected legacy documents.",
+  "summary": "PXA protects new PDFs with modern encryption, securely opens and rewrites password-protected documents, applies strict Unicode password preparation, provides local password guidance, and supports compatibility and recipient-certificate profiles.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-AES256-Security-Handler.md",
