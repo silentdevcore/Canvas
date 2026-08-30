@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-aes256-security-handler",
+  "impact": "minor",
+  "components": [
+    "documentation",
+    "importer"
+  ],
+  "category": "security",
+  "summary": "PXA adds reviewed 256-bit PDF 2.0 encryption for typed full-rewrite output and password-protected import, with fail-closed permission and crypt-filter validation.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-AES256-Security-Handler.md",
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
+using PXA.Importer.Security;
 using PXA.Importer.Xref;
 
 namespace PXA.Importer.Saving;
@@ -19,6 +20,13 @@ public sealed record PdfFullRewriteOptions
     public string? PdfVersion { get; init; }
 
     public PdfParseLimits Limits { get; init; } = new();
+
+    /// <summary>
+    /// When set, the rewritten document is encrypted with the Standard Security Handler.
+    /// Encryption is applied at the object-model level, before serialization, so stream
+    /// lengths are computed from the ciphertext.
+    /// </summary>
+    public PdfDocumentEncryptionOptions? Encryption { get; init; }
 }
 
 public sealed record PdfFullRewriteResult(
@@ -71,6 +79,17 @@ public sealed class PdfFullRewriteWriter
         }
 
         var signatures = FindSignatures(graph);
+        if (signatures.Count > 0 && options.Encryption is not null)
+        {
+            // The standard exempts signature /Contents from encryption. PXA does not implement
+            // that exemption, so encrypting here would produce a document whose signature value
+            // is wrongly encrypted. This is a capability gap, not a consent question, so
+            // AllowSignatureInvalidation does not override it.
+            throw new NotSupportedException(
+                "Encrypting a document that contains signatures is not supported: the signature " +
+                "value must be exempt from encryption and that exemption is not implemented.");
+        }
+
         if (signatures.Count > 0 && !options.AllowSignatureInvalidation)
         {
             throw new InvalidOperationException(
@@ -113,7 +132,20 @@ public sealed class PdfFullRewriteWriter
             mapping[retained[index].Id] = new PdfObjectId(index + 1, 0);
         }
 
-        var version = options.PdfVersion ?? ReadPdfVersion(source.Span) ?? "1.7";
+        using var security = options.Encryption is { } encryptionOptions
+            ? PdfStandardSecurityHandler.Create(encryptionOptions)
+            : null;
+        PdfObjectId? encryptId = null;
+        if (security is not null)
+        {
+            // The /Encrypt dictionary is itself never encrypted, and it needs an object number
+            // that the renumbering below will not reuse.
+            encryptId = new PdfObjectId(retained.Count + 1, 0);
+        }
+
+        var version = options.Encryption is not null
+            ? "2.0"
+            : options.PdfVersion ?? ReadPdfVersion(source.Span) ?? "1.7";
         using var stream = new MemoryStream(source.Length + 4096);
         PdfObjectSerializer.WriteAscii(stream, $"%PDF-{version}\n");
         // Marks the file as binary for tools that sniff the first bytes.
@@ -124,7 +156,19 @@ public sealed class PdfFullRewriteWriter
         {
             var id = mapping[indirectObject.Id];
             offsets[id] = stream.Position;
-            PdfObjectSerializer.WriteIndirectObject(stream, id, Remap(indirectObject.Value, mapping, depth: 0));
+            var value = Remap(indirectObject.Value, mapping, depth: 0);
+            if (security is not null)
+            {
+                value = Encrypt(value, security, security.EncryptMetadata, depth: 0);
+            }
+
+            PdfObjectSerializer.WriteIndirectObject(stream, id, value);
+        }
+
+        if (security is not null && encryptId is { } encryptObjectId)
+        {
+            offsets[encryptObjectId] = stream.Position;
+            PdfObjectSerializer.WriteIndirectObject(stream, encryptObjectId, security.BuildEncryptDictionary());
         }
 
         var crossReferenceOffset = stream.Position;
@@ -133,8 +177,9 @@ public sealed class PdfFullRewriteWriter
             throw new NotSupportedException("Classic cross-reference output supports offsets up to ten decimal digits.");
         }
 
+        var entryCount = retained.Count + (security is null ? 0 : 1);
         PdfObjectSerializer.WriteAscii(stream, "xref\n");
-        PdfObjectSerializer.WriteAscii(stream, $"0 {retained.Count + 1}\n");
+        PdfObjectSerializer.WriteAscii(stream, $"0 {entryCount + 1}\n");
         PdfObjectSerializer.WriteAscii(stream, "0000000000 65535 f \n");
         foreach (var entry in offsets)
         {
@@ -144,7 +189,7 @@ public sealed class PdfFullRewriteWriter
         var documentId = CreateDocumentId(stream.GetBuffer().AsSpan(0, checked((int)crossReferenceOffset)));
         var trailer = new PdfDictionary
         {
-            ["Size"] = new PdfInteger(retained.Count + 1),
+            ["Size"] = new PdfInteger(entryCount + 1),
             ["Root"] = new PdfReference(mapping[rootReference.Id]),
             ["ID"] = new PdfArray([
                 new PdfString(documentId, IsHex: false),
@@ -156,6 +201,11 @@ public sealed class PdfFullRewriteWriter
             trailer["Info"] = new PdfReference(mappedInfo);
         }
 
+        if (encryptId is { } trailerEncryptId)
+        {
+            trailer["Encrypt"] = new PdfReference(trailerEncryptId);
+        }
+
         PdfObjectSerializer.WriteAscii(stream, "trailer\n");
         PdfObjectSerializer.WriteObject(stream, trailer);
         PdfObjectSerializer.WriteAscii(stream, "\nstartxref\n");
@@ -163,11 +213,59 @@ public sealed class PdfFullRewriteWriter
         PdfObjectSerializer.WriteAscii(stream, "\n%%EOF\n");
 
         var result = stream.ToArray();
-        ValidateRewrite(result, retained.Count, options.Limits);
-        return new PdfFullRewriteResult(result, retained.Count, crossReferenceOffset, signatures, removed);
+        ValidateRewrite(result, entryCount, options.Limits, options.Encryption is not null);
+        return new PdfFullRewriteResult(result, entryCount, crossReferenceOffset, signatures, removed);
     }
 
-    private static void ValidateRewrite(byte[] result, int expectedObjectCount, PdfParseLimits limits)
+    /// <summary>
+    /// Encrypts every string and stream payload in an object. The <c>/Encrypt</c> dictionary
+    /// and the trailer <c>/ID</c> are written separately and never pass through here.
+    /// </summary>
+    private static PdfObject Encrypt(
+        PdfObject value,
+        PdfStandardSecurityHandler security,
+        bool encryptMetadata,
+        int depth)
+    {
+        if (depth > 256)
+        {
+            throw new InvalidDataException("The document nests objects too deeply to encrypt.");
+        }
+
+        switch (value)
+        {
+            case PdfString text:
+                return new PdfString(security.EncryptValue(text.GetDecodedBytes().Span), IsHex: false);
+            case PdfArray array:
+                return new PdfArray(array.Items.Select(item => Encrypt(item, security, encryptMetadata, depth + 1)));
+            case PdfDictionary dictionary:
+                var values = new Dictionary<string, PdfObject>(dictionary.Values.Count, StringComparer.Ordinal);
+                foreach (var entry in dictionary.Values)
+                {
+                    values[entry.Key] = Encrypt(entry.Value, security, encryptMetadata, depth + 1);
+                }
+
+                return new PdfDictionary(values);
+            case PdfStreamObject streamObject:
+                var encryptedDictionary = (PdfDictionary)Encrypt(streamObject.Dictionary, security, encryptMetadata, depth + 1);
+                if (!encryptMetadata && streamObject.Dictionary["Type"] is PdfName { Value: "Metadata" })
+                {
+                    return new PdfStreamObject(encryptedDictionary, streamObject.EncodedBytes);
+                }
+
+                return new PdfStreamObject(
+                    encryptedDictionary,
+                    security.EncryptValue(streamObject.EncodedBytes.Span));
+            default:
+                return value;
+        }
+    }
+
+    private static void ValidateRewrite(
+        byte[] result,
+        int expectedObjectCount,
+        PdfParseLimits limits,
+        bool encrypted)
     {
         var context = new PdfParseContext(result, new PdfImporterOptions { Limits = limits });
         var table = new PdfCrossReferenceParser().Parse(context);
@@ -197,6 +295,11 @@ public sealed class PdfFullRewriteWriter
         if (graph.Trailer?["Root"] is not PdfReference root || graph.Resolve(root.Id)?.Value is not PdfDictionary)
         {
             throw new InvalidDataException("Post-save validation could not resolve the rewritten document catalog.");
+        }
+
+        if (encrypted && graph.Trailer["Encrypt"] is not PdfReference)
+        {
+            throw new InvalidDataException("Post-save validation could not resolve the /Encrypt dictionary.");
         }
     }
 

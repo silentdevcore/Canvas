@@ -57,6 +57,17 @@ test('PDF redaction documentation separates preflight from applied redaction', (
   assert.match(source, /rather than written into the redacted document/);
 });
 
+test('PDF encryption documentation states the implemented revision and its limits', () => {
+  assert.match(source, /typed existing-PDF security layer/);
+  assert.match(source, /selected AESV3 crypt filters/);
+  assert.match(source, /normal PXA\.Pdf Generator and Designer export path still use the legacy RC4/);
+  assert.match(source, /decrypts object streams before expanding compressed objects/);
+  assert.match(source, /\/Perms integrity mismatch rejects the document/);
+  assert.match(source, /restricted permissions require a distinct owner password/);
+  assert.match(source, /rejected without indicating which password check was closer/);
+  assert.match(source, /required signature-value exemption is not implemented/);
+});
+
 test('PDF Trust documentation keeps trust policy server-owned', () => {
   assert.match(source, /Custom anchors are server configuration, never request input/);
   assert.doesNotMatch(source, /"trustAnchor":\s*"-----BEGIN CERTIFICATE-----/);

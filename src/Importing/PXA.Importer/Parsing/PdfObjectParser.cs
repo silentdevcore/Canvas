@@ -21,7 +21,7 @@ public sealed class PdfObjectParser
         _streamDecoders = new PdfStreamDecoderRegistry(context.Limits);
     }
 
-    public PdfObjectGraph ParseDocumentGraph()
+    public PdfObjectGraph ParseDocumentGraph(bool parseCompressedObjects = true)
     {
         var graph = new PdfObjectGraph { Trailer = _xref.Trailer };
 
@@ -50,7 +50,10 @@ public sealed class PdfObjectParser
             }
         }
 
-        ParseCompressedObjectStreams(graph);
+        if (parseCompressedObjects)
+        {
+            ParseCompressedObjects(graph);
+        }
 
         return graph;
     }
@@ -337,7 +340,7 @@ public sealed class PdfObjectParser
         return parsed.Value;
     }
 
-    private void ParseCompressedObjectStreams(PdfObjectGraph graph)
+    internal void ParseCompressedObjects(PdfObjectGraph graph)
     {
         foreach (var entry in _xref.Entries.Values.Where(entry => entry.Kind == PdfCrossReferenceEntryKind.Compressed))
         {

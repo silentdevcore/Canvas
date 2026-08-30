@@ -19,6 +19,24 @@ public static class Pdf
 
         return new PdfImporter(options?.ToPxaOptions()).LoadAsync(pdfStream, cancellationToken);
     }
+
+    /// <summary>
+    /// Loads a password-protected PDF without retaining the password in importer options.
+    /// </summary>
+    public static Task<PdfDocumentModel> LoadEncryptedAsync(
+        Stream pdfStream,
+        string password,
+        PdfImportOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(pdfStream);
+        ArgumentNullException.ThrowIfNull(password);
+
+        return new PdfImporter(options?.ToPxaOptions()).LoadAsync(
+            pdfStream,
+            password,
+            cancellationToken);
+    }
 }
 
 /// <summary>

@@ -337,17 +337,36 @@ Reference material:
 
 - [ ] Deprecate RC4 for new production documents while retaining explicit legacy
   read compatibility.
+  - [x] The new handler offers AES-256 only; RC4 is not reachable through it.
+  - [ ] Deprecate `PXA.Pdf`'s RC4 default for generated documents and route generation
+    through the new handler.
 - [ ] Implement AES-128 only as an interoperability bridge where required.
-- [ ] Implement the PDF 2.0 Standard Security Handler with AES-256 and the required
+- [x] Implement the PDF 2.0 Standard Security Handler with AES-256 and the required
   revision-6 password processing, crypt filters, permissions, metadata behavior,
   random salts, and secure random generation.
-- [ ] Use reviewed platform cryptography; do not hand-roll AES, hashing, random
+  - [x] Implement Algorithms 2.A, 2.B, 8, 9, and 10, and write `/V 5 /R 6` with an
+    `/AESV3` crypt filter, `/StmF`, `/StrF`, and `/EncryptMetadata`.
+  - [x] Verify `/Perms` after authentication and report a mismatch rather than trusting it.
+  - [x] Fail closed on `/Perms` mismatch, validate selected string, stream, and embedded-file
+    crypt filters, and decrypt encrypted object streams before expanding compressed objects.
+  - [x] See `PXA.PDF-AES256-Security-Handler.md`.
+- [x] Use reviewed platform cryptography; do not hand-roll AES, hashing, random
   generation, or constant-time secret comparison.
 - [ ] Zero or dispose password/key buffers where runtime APIs permit it.
 - [ ] Support Unicode password normalization exactly as required by the selected PDF
   standard revision and test maximum password length behavior.
+  - [x] Normalize to NFKC, encode as UTF-8, and truncate at 127 bytes after encoding.
+  - [ ] Implement the SASLprep character-prohibition and bidirectional tables; the current
+    handler accepts passwords a strict implementation would reject.
 - [ ] Implement encrypted existing-PDF open, permission inspection, owner/user
   authentication, mutation, and re-save without leaking decrypted temporary files.
+  - [x] Open an AES-256 document with either password, decrypt strings and streams on the
+    typed model, and report the password kind and decoded permissions.
+  - [x] Open AES-256 object streams through a two-stage parse/decrypt/expand pipeline.
+  - [x] Decrypt in memory only; nothing is written to disk.
+  - [ ] Mutate and re-save an encrypted document, which needs encrypted serialization on
+    the incremental path as well.
+  - [ ] Open legacy RC4 and AES-128 documents.
 - [ ] Add certificate/public-key encryption as a later, separately gated profile.
 - [ ] Update Designer Page Settings and export flows to offer safe algorithms only;
   legacy RC4 must be hidden behind an explicit compatibility option.
