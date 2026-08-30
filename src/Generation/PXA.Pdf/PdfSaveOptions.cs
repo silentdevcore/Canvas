@@ -13,4 +13,11 @@ public sealed class PdfSaveOptions
     /// When null (the default), the document is written unencrypted.
     /// </summary>
     public PdfEncryptionOptions? Encryption { get; init; }
+
+    /// <summary>
+    /// When set, the document is encrypted for the listed X.509 recipients using the
+    /// interoperable <c>Adobe.PubSec</c> AES-128 certificate profile. This option is mutually
+    /// exclusive with <see cref="Encryption"/>.
+    /// </summary>
+    public PdfCertificateEncryptionOptions? CertificateEncryption { get; init; }
 }

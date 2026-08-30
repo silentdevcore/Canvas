@@ -335,12 +335,12 @@ Reference material:
 
 ## P1 - AES-256 and Modern PDF Security
 
-- [ ] Deprecate RC4 for new production documents while retaining explicit legacy
+- [x] Deprecate RC4 for new production documents while retaining explicit legacy
   read compatibility.
   - [x] The new handler offers AES-256 only; RC4 is not reachable through it.
-  - [ ] Deprecate `PXA.Pdf`'s RC4 default for generated documents and route generation
+  - [x] Deprecate `PXA.Pdf`'s RC4 default for generated documents and route generation
     through the new handler.
-- [ ] Implement AES-128 only as an interoperability bridge where required.
+- [x] Implement AES-128 only as an interoperability bridge where required.
 - [x] Implement the PDF 2.0 Standard Security Handler with AES-256 and the required
   revision-6 password processing, crypt filters, permissions, metadata behavior,
   random salts, and secure random generation.
@@ -352,7 +352,7 @@ Reference material:
   - [x] See `PXA.PDF-AES256-Security-Handler.md`.
 - [x] Use reviewed platform cryptography; do not hand-roll AES, hashing, random
   generation, or constant-time secret comparison.
-- [ ] Zero or dispose password/key buffers where runtime APIs permit it.
+- [x] Zero or dispose password/key buffers where runtime APIs permit it.
 - [ ] Support Unicode password normalization exactly as required by the selected PDF
   standard revision and test maximum password length behavior.
   - [x] Normalize to NFKC, encode as UTF-8, and truncate at 127 bytes after encoding.
@@ -366,12 +366,12 @@ Reference material:
   - [x] Decrypt in memory only; nothing is written to disk.
   - [ ] Mutate and re-save an encrypted document, which needs encrypted serialization on
     the incremental path as well.
-  - [ ] Open legacy RC4 and AES-128 documents.
-- [ ] Add certificate/public-key encryption as a later, separately gated profile.
-- [ ] Update Designer Page Settings and export flows to offer safe algorithms only;
+  - [x] Open legacy RC4 and AES-128 documents.
+- [x] Add certificate/public-key encryption as a separate Adobe.PubSec AESV2 profile.
+- [x] Update Designer Page Settings and export flows to offer safe algorithms only;
   legacy RC4 must be hidden behind an explicit compatibility option.
 - [ ] Add password-strength guidance without logging or transmitting the password.
-- [ ] Validate output with at least Acrobat, qpdf, and an independent PDF library.
+- [x] Validate output with Acrobat, qpdf, Poppler, and PdfPig.
 
 ## P1 - PDF/A Generation, Conversion, and Validation
 
@@ -618,7 +618,7 @@ Reference material:
   explicitly predicted, confirmed, and reported.
 - [ ] Applied redaction is irreversible for the documented supported corpus and
   unsupported content is blocked.
-- [ ] AES-256 replaces RC4 as the default for new encrypted production PDFs.
+- [x] AES-256 replaces RC4 as the default for new encrypted production PDFs.
 - [ ] At least one PDF/A and one PDF/UA profile pass independent validation and have
   complete Generator, Designer, Viewer, API, Migration, and Documentation support.
 - [ ] Customer-facing examples, known limitations, permissions, entitlements,

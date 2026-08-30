@@ -12,7 +12,7 @@ namespace PXA.Importer.Security;
 /// fixed-time comparison. The only thing implemented here is the sequencing the standard
 /// prescribes.
 /// </summary>
-public sealed class PdfStandardSecurityHandler : IDisposable
+public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
 {
     private const int Version = 5;
     private const int Revision = 6;
@@ -280,6 +280,8 @@ public sealed class PdfStandardSecurityHandler : IDisposable
 
     internal bool ShouldDecryptString => EncryptStrings;
 
+    bool IPdfDocumentSecurityHandler.ShouldDecryptString => ShouldDecryptString;
+
     internal bool ShouldDecryptStream(PdfDictionary dictionary)
     {
         if (dictionary["Type"] is PdfName { Value: "XRef" })
@@ -297,6 +299,9 @@ public sealed class PdfStandardSecurityHandler : IDisposable
             ? EncryptEmbeddedFiles
             : EncryptStreams;
     }
+
+    bool IPdfDocumentSecurityHandler.ShouldDecryptStream(PdfDictionary dictionary) =>
+        ShouldDecryptStream(dictionary);
 
     /// <summary>
     /// Encrypts one string or stream payload. Revision 6 uses the file key directly, so there
@@ -333,6 +338,11 @@ public sealed class PdfStandardSecurityHandler : IDisposable
         aes.Mode = CipherMode.CBC;
         return aes.DecryptCbc(ciphertext[16..], ciphertext[..16], PaddingMode.PKCS7);
     }
+
+    byte[] IPdfDocumentSecurityHandler.DecryptValue(
+        ReadOnlySpan<byte> ciphertext,
+        int objectNumber,
+        int generation) => DecryptValue(ciphertext);
 
     /// <summary>Builds the <c>/Encrypt</c> dictionary for a newly encrypted document.</summary>
     public PdfDictionary BuildEncryptDictionary()

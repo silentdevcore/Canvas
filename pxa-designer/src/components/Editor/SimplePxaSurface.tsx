@@ -4830,7 +4830,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                                 enabled: true,
                                 userPassword: '',
                                 ownerPassword: '',
-                                algorithm: 'Rc4_128',
+                                algorithm: 'Aes256',
                                 permissions: {
                                   print: true, modify: true, copy: true, annotate: true,
                                   fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
@@ -4860,10 +4860,22 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             type="password"
                             placeholder={t('pageSettings.encryption.ownerPasswordPlaceholder')}
                             value={pageSettings.encryption.ownerPassword}
+                            required={pageSettings.encryption.algorithm !== 'Rc4_128' &&
+                              Object.values(pageSettings.encryption.permissions).some((allowed) => !allowed)}
+                            aria-invalid={pageSettings.encryption.algorithm !== 'Rc4_128' &&
+                              Object.values(pageSettings.encryption.permissions).some((allowed) => !allowed) &&
+                              (!pageSettings.encryption.ownerPassword ||
+                                pageSettings.encryption.ownerPassword === pageSettings.encryption.userPassword)}
                             onChange={(e) => updatePageSettings({
                               encryption: { ...pageSettings.encryption!, ownerPassword: e.target.value },
                             })}
                           />
+                          {pageSettings.encryption.algorithm !== 'Rc4_128' &&
+                            Object.values(pageSettings.encryption.permissions).some((allowed) => !allowed) &&
+                            (!pageSettings.encryption.ownerPassword ||
+                              pageSettings.encryption.ownerPassword === pageSettings.encryption.userPassword) && (
+                              <small>{t('pageSettings.encryption.ownerPasswordRequired')}</small>
+                            )}
                         </label>
                         <label>
                           <span>{t('pageSettings.encryption.algorithm')}</span>
@@ -4873,8 +4885,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                               encryption: { ...pageSettings.encryption!, algorithm: e.target.value as PdfEncryption['algorithm'] },
                             })}
                           >
+                            <option value="Aes256">{t('pageSettings.encryption.algorithmAes256')}</option>
                             <option value="Rc4_128">{t('pageSettings.encryption.algorithmRc4')}</option>
-                            <option value="Aes128" disabled>{t('pageSettings.encryption.algorithmAes128')}</option>
+                            <option value="Aes128">{t('pageSettings.encryption.algorithmAes128')}</option>
                           </select>
                         </label>
                         <div className="editor-settings-subheading" style={{ marginTop: 4 }}>{t('pageSettings.encryption.permissionsHeading')}</div>

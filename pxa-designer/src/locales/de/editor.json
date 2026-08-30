@@ -893,9 +893,11 @@
       "userPasswordPlaceholder": "Leer lassen, um ohne Aufforderung zu öffnen",
       "ownerPassword": "Eigentümerpasswort (Berechtigungen)",
       "ownerPasswordPlaceholder": "Standardmäßig das Benutzerpasswort",
+      "ownerPasswordRequired": "Bei eingeschränkten Berechtigungen ist ein separates Eigentümerpasswort erforderlich.",
       "algorithm": "Algorithmus",
-      "algorithmRc4": "RC4 128-Bit",
-      "algorithmAes128": "AES 128-Bit (demnächst verfügbar)",
+      "algorithmAes256": "AES 256-Bit (empfohlen)",
+      "algorithmRc4": "RC4 128-Bit (Legacy)",
+      "algorithmAes128": "AES 128-Bit (Kompatibilität)",
       "permissionsHeading": "Berechtigungen",
       "permissions": {
         "print": "Drucken",

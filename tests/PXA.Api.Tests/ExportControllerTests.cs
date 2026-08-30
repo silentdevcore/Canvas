@@ -92,6 +92,74 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
         Assert.StartsWith("text/markdown", response.Content.Headers.ContentType?.MediaType);
     }
 
+    [Fact]
+    public async Task Export_PdfWithoutLanguage_ReturnsARealPdf()
+    {
+        var response = await PostExport("pdf");
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.True(bytes.AsSpan().StartsWith("%PDF-"u8));
+        Assert.EndsWith(".pdf", response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Export_PdfWithDefaultEncryption_UsesAes256()
+    {
+        var design = new DesignExportDto
+        {
+            Id = SampleDesign.Id,
+            Name = "Encrypted API Export",
+            Pages = SampleDesign.Pages,
+            PageSettings = new PageSettingsDto
+            {
+                Width = 595,
+                Height = 842,
+                Encryption = new PdfEncryptionDto
+                {
+                    Enabled = true,
+                    UserPassword = "open"
+                }
+            }
+        };
+
+        var response = await PostExport("pdf", design: design);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        var text = Encoding.ASCII.GetString(bytes);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.StartsWith("%PDF-2.0", text);
+        Assert.Contains("/CFM /AESV3", text);
+        Assert.DoesNotContain("Hello", text);
+    }
+
+    [Fact]
+    public async Task Export_PdfWithRestrictedPermissionsAndNoOwnerPassword_Returns400()
+    {
+        var design = new DesignExportDto
+        {
+            Id = SampleDesign.Id,
+            Name = "Invalid Encryption",
+            Pages = SampleDesign.Pages,
+            PageSettings = new PageSettingsDto
+            {
+                Encryption = new PdfEncryptionDto
+                {
+                    Enabled = true,
+                    UserPassword = "reader",
+                    Permissions = new PdfEncryptionPermissionsDto { Print = true, Copy = false }
+                }
+            }
+        };
+
+        var response = await PostExport("pdf", design: design);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("owner password", await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+    }
+
     // ─── POST /api/export?format=word ─────────────────────────────────────────
 
     [Fact]
@@ -242,7 +310,8 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(formats);
-        Assert.Equal(11, formats!.Length);
+        Assert.Equal(12, formats!.Length);
+        Assert.Contains(formats, format => format.GetProperty("key").GetString() == "pdf");
     }
 
     [Fact]
@@ -253,7 +322,7 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(formats);
-        Assert.Equal(11, formats!.Length);
+        Assert.Equal(12, formats!.Length);
     }
 
     [Fact]

@@ -922,9 +922,11 @@
       "userPasswordPlaceholder": "Leave blank to open without a prompt",
       "ownerPassword": "Owner password (permissions)",
       "ownerPasswordPlaceholder": "Defaults to the user password",
+      "ownerPasswordRequired": "A distinct owner password is required when permissions are restricted.",
       "algorithm": "Algorithm",
-      "algorithmRc4": "RC4 128-bit",
-      "algorithmAes128": "AES 128-bit (coming soon)",
+      "algorithmAes256": "AES 256-bit (recommended)",
+      "algorithmRc4": "RC4 128-bit (legacy)",
+      "algorithmAes128": "AES 128-bit (compatibility)",
       "permissionsHeading": "Permissions",
       "permissions": {
         "print": "Printing",

@@ -32,9 +32,14 @@ public static class DesignJsonMapper
         if (p.Assemble) permissions |= PdfPermissions.Assemble;
         if (p.PrintHighResolution) permissions |= PdfPermissions.PrintHighResolution;
 
-        var algorithm = string.Equals(enc.Algorithm, "Aes128", StringComparison.OrdinalIgnoreCase)
-            ? PdfEncryptionAlgorithm.Aes128
-            : PdfEncryptionAlgorithm.Rc4_128;
+        var algorithm = enc.Algorithm?.Trim().ToUpperInvariant() switch
+        {
+            "AES256" => PdfEncryptionAlgorithm.Aes256,
+            "RC4_128" => PdfEncryptionAlgorithm.Rc4_128,
+            "AES128" => PdfEncryptionAlgorithm.Aes128,
+            _ => throw new InvalidDataException(
+                $"Unsupported PDF encryption algorithm '{enc.Algorithm}'. Use Aes256, Aes128 compatibility, or explicit legacy Rc4_128.")
+        };
 
         return new PdfSaveOptions
         {

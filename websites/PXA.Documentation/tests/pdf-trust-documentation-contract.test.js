@@ -58,9 +58,13 @@ test('PDF redaction documentation separates preflight from applied redaction', (
 });
 
 test('PDF encryption documentation states the implemented revision and its limits', () => {
-  assert.match(source, /typed existing-PDF security layer/);
+  assert.match(source, /typed existing-PDF reader/);
   assert.match(source, /selected AESV3 crypt filters/);
-  assert.match(source, /normal PXA\.Pdf Generator and Designer export path still use the legacy RC4/);
+  assert.match(source, /Designer, and the WebApi defaults to the PDF 2\.0 Standard Security Handler/);
+  assert.match(source, /RC4-128 remains available only through the explicit Rc4_128 legacy option/);
+  assert.match(source, /AES-128 is available as an interoperability bridge/);
+  assert.match(source, /X\.509 recipient encryption uses Adobe\.PubSec/);
+  assert.match(source, /opens legacy RC4 and AES-128 documents/);
   assert.match(source, /decrypts object streams before expanding compressed objects/);
   assert.match(source, /\/Perms integrity mismatch rejects the document/);
   assert.match(source, /restricted permissions require a distinct owner password/);

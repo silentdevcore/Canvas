@@ -893,9 +893,11 @@
       "userPasswordPlaceholder": "اتركه فارغًا للفتح دون طلب",
       "ownerPassword": "كلمة مرور المالك (الأذونات)",
       "ownerPasswordPlaceholder": "تُستخدم كلمة مرور المستخدم افتراضيًا",
+      "ownerPasswordRequired": "يلزم استخدام كلمة مرور مالك منفصلة عند تقييد الأذونات.",
       "algorithm": "الخوارزمية",
-      "algorithmRc4": "RC4 128-بت",
-      "algorithmAes128": "AES 128-بت (قريبًا)",
+      "algorithmAes256": "AES 256-بت (موصى به)",
+      "algorithmRc4": "RC4 128-بت (قديم)",
+      "algorithmAes128": "AES 128-بت (للتوافق)",
       "permissionsHeading": "الأذونات",
       "permissions": {
         "print": "الطباعة",

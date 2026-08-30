@@ -3,11 +3,14 @@
   "id": "pdf-aes256-security-handler",
   "impact": "minor",
   "components": [
+    "api",
+    "designer",
     "documentation",
+    "generator",
     "importer"
   ],
   "category": "security",
-  "summary": "PXA adds reviewed 256-bit PDF 2.0 encryption for typed full-rewrite output and password-protected import, with fail-closed permission and crypt-filter validation.",
+  "summary": "PXA protects new PDFs with modern encryption, supports compatibility encryption for older readers, adds recipient-certificate protection, and securely opens protected legacy documents.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-AES256-Security-Handler.md",

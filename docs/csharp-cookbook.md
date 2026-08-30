@@ -153,16 +153,36 @@ var tocPages = document.AddTableOfContents(new PdfTableOfContentsOptions { /* ti
 
 ## Encryption
 
+AES-256 is the default and recommended password-security profile for new documents:
+
 ```csharp
 var bytes = document.ToBytes(new PdfSaveOptions {
     Encryption = new PdfEncryptionOptions {
         UserPassword = "open-me",
         OwnerPassword = "owner",
-        Algorithm = PdfEncryptionAlgorithm.Aes128,
+        Algorithm = PdfEncryptionAlgorithm.Aes256,
         Permissions = PdfPermissions.Print,
     },
 });
 ```
+
+Use `PdfEncryptionAlgorithm.Aes128` only as a compatibility bridge for older PDF readers.
+`PdfEncryptionAlgorithm.Rc4_128` is the explicit legacy option and should not be selected for
+new workflows.
+
+To encrypt for one or more X.509 recipients instead of using passwords:
+
+```csharp
+var bytes = document.ToBytes(new PdfSaveOptions {
+    CertificateEncryption = new PdfCertificateEncryptionOptions {
+        Recipients = [recipientCertificate],
+        Permissions = PdfPermissions.Print,
+    },
+});
+```
+
+The matching private key is required to open a certificate-encrypted PDF. Password and certificate
+encryption are mutually exclusive.
 
 ## Metadata
 

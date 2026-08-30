@@ -2,6 +2,12 @@
 
 ## Status
 
+> Legacy milestone record. The current implementation supersedes the V1 decisions below:
+> new encrypted Generator, Designer, and WebApi output defaults to PDF 2.0 AES-256 revision 6;
+> `Rc4_128` is an explicit legacy option, AES-128 is an interoperability bridge, and X.509
+> recipient encryption is available through `PdfCertificateEncryptionOptions`. See
+> `PXA.PDF-AES256-Security-Handler.md` for the current security contract.
+
 **V1 shipped (RC4-128).** `PdfSaveOptions.Encryption` encrypts strings and streams with the Standard
 Security Handler (`/V 2 /R 3`). Verified end-to-end: PdfPig opens the output with the password and
 recovers the text. **AES-128 (`/V 4 /R 4`) is deferred to V2** — RC4 was chosen first because, as a
@@ -88,7 +94,7 @@ opaque strings, this is the most invasive part.
 - [x] `Rc4` round-trip and known-answer vector.
 - [x] `StandardSecurityHandler` `/O`, `/U`, file-key against PDF-spec known answers.
 - [x] Save with user password → file has `/Encrypt`, `/ID`; strings/streams are not plaintext-readable.
-- [ ] Save with AES-128 vs RC4-128 → correct `/V`/`/R`/`/CF` values.
+- [x] Save with AES-128 vs RC4-128 → correct `/V`/`/R`/`/CF` values.
 - [x] Permission flags serialize to the correct signed `/P` bit pattern.
 - [x] **Interop:** open an encrypted output with an existing reader (e.g. PdfPig / qpdf) using the
       password to confirm real-world decryptability — the key correctness gate.
@@ -110,6 +116,6 @@ opaque strings, this is the most invasive part.
 
 ## V2 follow-ups
 
-- [ ] AES-128 (`/V 4 /R 4`, `/AESV2`): per-object AES-CBC with random IV, `/CF` crypt filter, and
+- [x] AES-128 (`/V 4 /R 4`, `/AESV2`): per-object AES-CBC with random IV, `/CF` crypt filter, and
       `/Length` rewrite for the IV+padding growth.
 - [ ] Full DevExpress encryption auto-rewrite (see migration wire-back above).

@@ -893,9 +893,11 @@
       "userPasswordPlaceholder": "Laisser vide pour ouvrir sans invite",
       "ownerPassword": "Mot de passe propriétaire (autorisations)",
       "ownerPasswordPlaceholder": "Par défaut, le mot de passe utilisateur",
+      "ownerPasswordRequired": "Un mot de passe propriétaire distinct est requis lorsque les autorisations sont limitées.",
       "algorithm": "Algorithme",
-      "algorithmRc4": "RC4 128 bits",
-      "algorithmAes128": "AES 128 bits (bientôt disponible)",
+      "algorithmAes256": "AES 256 bits (recommandé)",
+      "algorithmRc4": "RC4 128 bits (hérité)",
+      "algorithmAes128": "AES 128 bits (compatibilité)",
       "permissionsHeading": "Autorisations",
       "permissions": {
         "print": "Impression",

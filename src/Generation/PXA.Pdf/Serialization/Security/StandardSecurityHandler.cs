@@ -9,7 +9,7 @@ namespace PXA.Pdf.Serialization.Security;
 /// keys (Algorithm 1), and encrypts the strings and streams inside each indirect object.
 /// AES-128 (<c>/V 4 /R 4</c>) is reserved for a future revision.
 /// </summary>
-internal sealed class StandardSecurityHandler
+internal sealed class StandardSecurityHandler : IPdfSecurityHandler
 {
     private const int Revision = 3;
     private const int Version = 2;
@@ -41,15 +41,17 @@ internal sealed class StandardSecurityHandler
 
     public byte[] DocumentId { get; }
 
+    public string PdfVersion => "1.4";
+
     public static StandardSecurityHandler Create(PdfEncryptionOptions options, byte[] documentId)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(documentId);
 
-        if (options.Algorithm == PdfEncryptionAlgorithm.Aes128)
+        if (options.Algorithm != PdfEncryptionAlgorithm.Rc4_128)
         {
             throw new NotSupportedException(
-                "AES-128 encryption is not yet implemented. Use PdfEncryptionAlgorithm.Rc4_128.");
+                "The legacy handler supports only PdfEncryptionAlgorithm.Rc4_128.");
         }
 
         var userPad = PadPassword(options.UserPassword);
@@ -237,18 +239,10 @@ internal sealed class StandardSecurityHandler
     /// <summary>Builds the (unencrypted) <c>/Encrypt</c> dictionary object body.</summary>
     public byte[] BuildEncryptDictionary()
     {
-        var sb = new StringBuilder();
-        sb.Append("<< /Filter /Standard /V ").Append(Version)
-          .Append(" /R ").Append(Revision)
-          .Append(" /Length ").Append(KeyLengthBytes * 8)
-          .Append(" /P ").Append(Permissions)
-          .Append(" /O (");
-        var bytes = new List<byte>(Encoding.ASCII.GetBytes(sb.ToString()));
-        bytes.AddRange(Escape(OwnerEntry));
-        bytes.AddRange(Encoding.ASCII.GetBytes(") /U ("));
-        bytes.AddRange(Escape(UserEntry));
-        bytes.AddRange(Encoding.ASCII.GetBytes(") >>\n"));
-        return bytes.ToArray();
+        return Encoding.ASCII.GetBytes(
+            $"<< /Filter /Standard /V {Version} /R {Revision} /Length {KeyLengthBytes * 8} " +
+            $"/P {Permissions} /O <{Convert.ToHexString(OwnerEntry)}> " +
+            $"/U <{Convert.ToHexString(UserEntry)}> >>\n");
     }
 
     /// <summary>Generates a 16-byte document identifier for the trailer <c>/ID</c> and key derivation.</summary>
@@ -264,6 +258,8 @@ internal sealed class StandardSecurityHandler
 
         return md5.GetHashAndReset();
     }
+
+    public void Dispose() => CryptographicOperations.ZeroMemory(_encryptionKey);
 
     private static int ComputePermissionValue(PdfPermissions permissions)
     {

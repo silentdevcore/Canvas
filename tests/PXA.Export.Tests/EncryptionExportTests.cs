@@ -78,6 +78,67 @@ public sealed class EncryptionExportTests
     }
 
     [Fact]
+    public void BuildSaveOptions_DefaultsToAes256()
+    {
+        var design = DesignWithEncryption(new PdfEncryptionDto
+        {
+            Enabled = true,
+            UserPassword = "open"
+        });
+
+        var options = DesignJsonMapper.BuildSaveOptions(design);
+
+        Assert.Equal(PdfEncryptionAlgorithm.Aes256, options!.Encryption!.Algorithm);
+    }
+
+    [Fact]
+    public void BuildSaveOptions_MapsAes128CompatibilityProfile()
+    {
+        var design = DesignWithEncryption(new PdfEncryptionDto
+        {
+            Enabled = true,
+            UserPassword = "reader",
+            OwnerPassword = "owner",
+            Algorithm = "Aes128"
+        });
+
+        var options = DesignJsonMapper.BuildSaveOptions(design);
+
+        Assert.Equal(PdfEncryptionAlgorithm.Aes128, options!.Encryption!.Algorithm);
+    }
+
+    [Fact]
+    public void BuildSaveOptions_RejectsUnknownAlgorithmInsteadOfFallingBackToRc4()
+    {
+        var design = DesignWithEncryption(new PdfEncryptionDto
+        {
+            Enabled = true,
+            Algorithm = "UnknownCipher"
+        });
+
+        Assert.Throws<InvalidDataException>(() => DesignJsonMapper.BuildSaveOptions(design));
+    }
+
+    [Fact]
+    public void Export_WithAes256_ProducesPdf20Encryption()
+    {
+        var design = DesignWithEncryption(new PdfEncryptionDto
+        {
+            Enabled = true,
+            UserPassword = "open",
+            Algorithm = "Aes256"
+        });
+
+        var document = DesignJsonMapper.MapToPdfDocument(design);
+        var bytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+        var text = Encoding.ASCII.GetString(bytes);
+
+        Assert.StartsWith("%PDF-2.0", text);
+        Assert.Contains("/CFM /AESV3", text);
+        Assert.DoesNotContain("Confidential", text);
+    }
+
+    [Fact]
     public void Export_WithEncryption_ProducesEncryptedPdf()
     {
         var design = DesignWithEncryption(new PdfEncryptionDto

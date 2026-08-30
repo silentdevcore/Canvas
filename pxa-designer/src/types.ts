@@ -253,8 +253,8 @@ export interface PdfEncryptionPermissions {
 export interface PdfEncryption {
   enabled: boolean;
   userPassword: string;   // open-document password (empty = opens without a prompt)
-  ownerPassword: string;  // permissions password (empty = uses the user password)
-  algorithm: 'Rc4_128' | 'Aes128';
+  ownerPassword: string;  // required and distinct from userPassword when AES permissions are restricted
+  algorithm: 'Aes256' | 'Rc4_128' | 'Aes128';
   permissions: PdfEncryptionPermissions;
 }
 

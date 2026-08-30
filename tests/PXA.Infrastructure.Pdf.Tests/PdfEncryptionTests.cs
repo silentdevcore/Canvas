@@ -1,4 +1,6 @@
 using System.Text;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using PXA.Pdf;
 using PXA.Pdf.Serialization.Security;
 using PigDocument = UglyToad.PdfPig.PdfDocument;
@@ -29,7 +31,7 @@ public sealed class PdfEncryptionTests
     }
 
     [Fact]
-    public void Save_WithEncryption_EmitsStandardEncryptDictionaryAndId()
+    public void Save_WithDefaultEncryption_EmitsPdf20Aes256DictionaryAndId()
     {
         var document = new PdfDocument();
         document.AddPage().DrawText("content", 40, 40);
@@ -40,11 +42,13 @@ public sealed class PdfEncryptionTests
         });
 
         var text = Encoding.ASCII.GetString(bytes);
+        Assert.StartsWith("%PDF-2.0", text);
         Assert.Contains("/Encrypt", text);
         Assert.Contains("/Filter /Standard", text);
-        Assert.Contains("/V 2", text);
-        Assert.Contains("/R 3", text);
-        Assert.Contains("/Length 128", text);
+        Assert.Contains("/V 5", text);
+        Assert.Contains("/R 6", text);
+        Assert.Contains("/CFM /AESV3", text);
+        Assert.Contains("/Length 256", text);
         Assert.Contains("/ID [<", text);
     }
 
@@ -99,21 +103,114 @@ public sealed class PdfEncryptionTests
     }
 
     [Fact]
-    public void Save_WithAes128_ThrowsNotSupported()
+    public void Save_RejectsPasswordAndCertificateEncryptionTogether()
     {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=PXA Recipient",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        using var certificate = request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddMinutes(-5),
+            DateTimeOffset.UtcNow.AddDays(1));
         var document = new PdfDocument();
         document.AddPage().DrawText("content", 40, 40);
 
-        var exception = Assert.Throws<NotSupportedException>(() => document.ToBytes(new PdfSaveOptions
+        Assert.Throws<ArgumentException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions { UserPassword = "password" },
+            CertificateEncryption = new PdfCertificateEncryptionOptions
+            {
+                Recipients = [certificate]
+            }
+        }));
+    }
+
+    [Fact]
+    public void Save_WithAes128_EmitsAesV2AndOpensInIndependentReader()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Aes128EncryptedWorld", 40, 700);
+
+        var bytes = document.ToBytes(new PdfSaveOptions
         {
             Encryption = new PdfEncryptionOptions
             {
                 UserPassword = "open",
+                OwnerPassword = "owner",
                 Algorithm = PdfEncryptionAlgorithm.Aes128
+            }
+        });
+
+        var text = Encoding.ASCII.GetString(bytes);
+        Assert.StartsWith("%PDF-1.6", text);
+        Assert.Contains("/V 4", text);
+        Assert.Contains("/R 4", text);
+        Assert.Contains("/CFM /AESV2", text);
+        Assert.DoesNotContain("Aes128EncryptedWorld", text);
+        using var pig = PigDocument.Open(bytes, new PigParsingOptions { Password = "open" });
+        Assert.Contains("Aes128EncryptedWorld", pig.GetPage(1).Text);
+    }
+
+    [Fact]
+    public void Save_WithExplicitLegacyRc4_RemainsCompatible()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("LegacyEncryptedWorld", 40, 700);
+
+        var bytes = document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = "legacy",
+                Algorithm = PdfEncryptionAlgorithm.Rc4_128
+            }
+        });
+
+        var text = Encoding.ASCII.GetString(bytes);
+        Assert.StartsWith("%PDF-1.4", text);
+        Assert.Contains("/V 2", text);
+        Assert.Contains("/R 3", text);
+        using var pig = PigDocument.Open(bytes, new PigParsingOptions { Password = "legacy" });
+        Assert.Contains("LegacyEncryptedWorld", pig.GetPage(1).Text);
+    }
+
+    [Fact]
+    public void Save_WithRestrictedAes256Permissions_RequiresDistinctOwnerPassword()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Restricted", 40, 700);
+
+        var exception = Assert.Throws<ArgumentException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = "reader",
+                Permissions = PdfPermissions.Print
             }
         }));
 
-        Assert.Contains("AES-128", exception.Message);
+        Assert.Contains("owner password", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Save_WithRestrictedAes128Permissions_RequiresDistinctOwnerPassword()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Restricted", 40, 700);
+
+        var exception = Assert.Throws<ArgumentException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = "reader",
+                Algorithm = PdfEncryptionAlgorithm.Aes128,
+                Permissions = PdfPermissions.Print
+            }
+        }));
+
+        Assert.Contains("owner password", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

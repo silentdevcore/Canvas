@@ -135,7 +135,7 @@ public sealed class PdfEncryptionDto
     public bool Enabled { get; set; }
     public string? UserPassword { get; set; }
     public string? OwnerPassword { get; set; }
-    public string Algorithm { get; set; } = "Rc4_128"; // Rc4_128 | Aes128
+    public string Algorithm { get; set; } = "Aes256"; // Aes256 | Rc4_128 (legacy) | Aes128 (compatibility)
     public PdfEncryptionPermissionsDto? Permissions { get; set; }
 }
 

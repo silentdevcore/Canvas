@@ -41,7 +41,8 @@ public sealed class PdfTrustInspectorTests
             Encryption = new PdfEncryptionOptions
             {
                 UserPassword = "reader",
-                OwnerPassword = "owner"
+                OwnerPassword = "owner",
+                Algorithm = PdfEncryptionAlgorithm.Rc4_128
             }
         });
 
@@ -54,6 +55,26 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal(2, report.Encryption.Version);
         Assert.Equal(3, report.Encryption.Revision);
         Assert.Equal(128, report.Encryption.KeyLengthBits);
+    }
+
+    [Fact]
+    public async Task InspectAsync_ReportsModernAes256Encryption()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Encrypted", 40, 40);
+        var bytes = document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions { UserPassword = "reader" }
+        });
+
+        var report = await InspectAsync(bytes);
+
+        Assert.True(report.Encryption.IsEncrypted);
+        Assert.Equal("AES-256", report.Encryption.Algorithm);
+        Assert.Equal(5, report.Encryption.Version);
+        Assert.Equal(6, report.Encryption.Revision);
+        Assert.Equal(256, report.Encryption.KeyLengthBits);
+        Assert.Equal("2.0", report.PdfVersion);
     }
 
     [Fact]

@@ -32,7 +32,8 @@ public enum PdfPasswordKind
 {
     None,
     User,
-    Owner
+    Owner,
+    Certificate
 }
 
 public sealed record PdfDocumentEncryptionOptions

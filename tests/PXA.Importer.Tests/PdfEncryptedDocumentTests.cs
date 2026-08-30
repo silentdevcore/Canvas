@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
@@ -13,6 +14,122 @@ namespace PXA.Importer.Tests;
 public sealed class PdfEncryptedDocumentTests
 {
     private const string Secret = "PXA-ENCRYPTION-PROBE-71923";
+
+    [Fact]
+    public async Task GeneratorAes256_ShouldRoundTripThroughTheImporterFacade()
+    {
+#pragma warning disable PXA0001
+        var document = new PdfDocument();
+#pragma warning restore PXA0001
+        document.Info.Title = "Generator AES interoperability";
+        document.AddPage().DrawText(Secret, 40, 700);
+        var encrypted = document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = "reader",
+                OwnerPassword = "owner",
+                Permissions = PdfPermissions.Print
+            }
+        });
+
+        await using var stream = new MemoryStream(encrypted);
+        var loaded = await Pdf.LoadEncryptedAsync(stream, "reader");
+
+        Assert.Single(loaded.Pages);
+        Assert.Contains(loaded.Pages[0].TextObjects, text =>
+            text.Text.Contains(Secret, StringComparison.Ordinal));
+        Assert.Contains(Secret, ExtractStreamText(loaded.ObjectGraph), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(PdfEncryptionAlgorithm.Rc4_128)]
+    [InlineData(PdfEncryptionAlgorithm.Aes128)]
+    public async Task GeneratorLegacyEncryption_ShouldRoundTripThroughTheImporterFacade(
+        PdfEncryptionAlgorithm algorithm)
+    {
+#pragma warning disable PXA0001
+        var document = new PdfDocument();
+#pragma warning restore PXA0001
+        document.Info.Title = $"Generator {algorithm} interoperability";
+        document.AddPage().DrawText(Secret, 40, 700);
+        var encrypted = document.ToBytes(new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = "reader",
+                OwnerPassword = "owner",
+                Algorithm = algorithm
+            }
+        });
+
+        await using var stream = new MemoryStream(encrypted);
+        var loaded = await Pdf.LoadEncryptedAsync(stream, "reader");
+
+        Assert.Single(loaded.Pages);
+        Assert.Contains(loaded.Pages[0].TextObjects, text =>
+            text.Text.Contains(Secret, StringComparison.Ordinal));
+        Assert.Contains(Secret, ExtractStreamText(loaded.ObjectGraph), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GeneratorCertificateEncryption_ShouldRoundTripThroughTheImporterFacade()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=PXA PDF Recipient",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.KeyEncipherment,
+            critical: true));
+        using var certificate = request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddMinutes(-5),
+            DateTimeOffset.UtcNow.AddDays(1));
+#pragma warning disable PXA0001
+        var document = new PdfDocument();
+#pragma warning restore PXA0001
+        document.AddPage().DrawText(Secret, 40, 700);
+        var encrypted = document.ToBytes(new PdfSaveOptions
+        {
+            CertificateEncryption = new PdfCertificateEncryptionOptions
+            {
+                Recipients = [certificate],
+                Permissions = PdfPermissions.Print
+            }
+        });
+
+        Assert.Contains("/Filter /Adobe.PubSec", Encoding.ASCII.GetString(encrypted));
+        Assert.DoesNotContain(Secret, Encoding.Latin1.GetString(encrypted), StringComparison.Ordinal);
+        await using var stream = new MemoryStream(encrypted);
+        var loaded = await Pdf.LoadEncryptedAsync(stream, certificate);
+
+        Assert.Single(loaded.Pages);
+        Assert.Contains(loaded.Pages[0].TextObjects, text =>
+            text.Text.Contains(Secret, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task CertificateEncryption_ShouldRejectAnUnrelatedCertificate()
+    {
+        using var recipient = CreateRecipientCertificate("PXA Intended Recipient");
+        using var unrelated = CreateRecipientCertificate("PXA Unrelated Recipient");
+#pragma warning disable PXA0001
+        var document = new PdfDocument();
+#pragma warning restore PXA0001
+        document.AddPage().DrawText(Secret, 40, 700);
+        var encrypted = document.ToBytes(new PdfSaveOptions
+        {
+            CertificateEncryption = new PdfCertificateEncryptionOptions
+            {
+                Recipients = [recipient]
+            }
+        });
+
+        await Assert.ThrowsAsync<PdfPasswordException>(async () =>
+            await Pdf.LoadEncryptedAsync(new MemoryStream(encrypted), unrelated));
+    }
 
     [Fact]
     public void Encrypt_ShouldRemoveThePlaintextFromTheFileBytes()
@@ -221,6 +338,22 @@ public sealed class PdfEncryptedDocumentTests
         var document = new PdfDocument();
         document.AddPage().DrawText(Secret, 40, 40);
         return document.ToBytes();
+    }
+
+    private static X509Certificate2 CreateRecipientCertificate(string subject)
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            $"CN={subject}",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.KeyEncipherment,
+            critical: true));
+        return request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddMinutes(-5),
+            DateTimeOffset.UtcNow.AddDays(1));
     }
 
     private static byte[] AddCatalogString(byte[] source, string marker)

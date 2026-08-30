@@ -893,9 +893,11 @@
       "userPasswordPlaceholder": "Lascia vuoto per aprire senza richiesta",
       "ownerPassword": "Password proprietario (autorizzazioni)",
       "ownerPasswordPlaceholder": "Per impostazione predefinita la password utente",
+      "ownerPasswordRequired": "Quando le autorizzazioni sono limitate è richiesta una password proprietario distinta.",
       "algorithm": "Algoritmo",
-      "algorithmRc4": "RC4 a 128 bit",
-      "algorithmAes128": "AES a 128 bit (in arrivo)",
+      "algorithmAes256": "AES a 256 bit (consigliato)",
+      "algorithmRc4": "RC4 a 128 bit (legacy)",
+      "algorithmAes128": "AES a 128 bit (compatibilità)",
       "permissionsHeading": "Autorizzazioni",
       "permissions": {
         "print": "Stampa",

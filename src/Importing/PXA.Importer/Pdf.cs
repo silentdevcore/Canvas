@@ -1,4 +1,5 @@
 using PXA.Importer.Document;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PXA.Importer;
 
@@ -35,6 +36,21 @@ public static class Pdf
         return new PdfImporter(options?.ToPxaOptions()).LoadAsync(
             pdfStream,
             password,
+            cancellationToken);
+    }
+
+    /// <summary>Loads a certificate-protected PDF using a certificate with its private key.</summary>
+    public static Task<PdfDocumentModel> LoadEncryptedAsync(
+        Stream pdfStream,
+        X509Certificate2 certificate,
+        PdfImportOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(pdfStream);
+        ArgumentNullException.ThrowIfNull(certificate);
+        return new PdfImporter(options?.ToPxaOptions()).LoadAsync(
+            pdfStream,
+            certificate,
             cancellationToken);
     }
 }

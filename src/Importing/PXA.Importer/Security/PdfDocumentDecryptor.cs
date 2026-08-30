@@ -1,6 +1,7 @@
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Xref;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PXA.Importer.Security;
 
@@ -41,28 +42,31 @@ public static class PdfDocumentDecryptor
                 "Compressed objects were expanded before decryption. Use ParseAndDecrypt so object streams are decrypted first.");
         }
 
-        using var handler = PdfStandardSecurityHandler.Open(encrypt, password, out var result);
-        var replacements = new Dictionary<PdfObjectId, PdfObject>(graph.Objects.Count);
-        foreach (var indirectObject in graph.Objects.Values)
-        {
-            // The /Encrypt dictionary itself is never encrypted.
-            if (encryptId is { } id && indirectObject.Id == id)
-            {
-                continue;
-            }
+        PdfDecryptionResult result;
+        using IPdfDocumentSecurityHandler handler = PdfStandardSecurityHandler.IsSupported(encrypt)
+            ? PdfStandardSecurityHandler.Open(encrypt, password, out result)
+            : PdfLegacyStandardSecurityHandler.Open(encrypt, ReadDocumentId(xref), password, out result);
+        ApplyDecryption(graph, encryptId, handler, result);
+        return result;
+    }
 
-            replacements[indirectObject.Id] = DecryptValue(
-                indirectObject.Value,
-                handler,
-                result.EncryptMetadata,
-                depth: 0);
-        }
-
-        foreach (var replacement in replacements)
-        {
-            graph.Resolve(replacement.Key)!.Value = replacement.Value;
-        }
-
+    /// <summary>Decrypts an Adobe.PubSec document using the matching X.509 private key.</summary>
+    public static PdfDecryptionResult Decrypt(
+        PdfCrossReferenceTable xref,
+        PdfObjectGraph graph,
+        X509Certificate2 certificate)
+    {
+        ArgumentNullException.ThrowIfNull(xref);
+        ArgumentNullException.ThrowIfNull(graph);
+        ArgumentNullException.ThrowIfNull(certificate);
+        var encryptReference = xref.Trailer?["Encrypt"]
+            ?? throw new InvalidOperationException("The document does not declare an /Encrypt dictionary.");
+        var encryptId = (encryptReference as PdfReference)?.Id;
+        var encrypt = Resolve(graph, encryptReference) as PdfDictionary
+            ?? throw new InvalidDataException("The /Encrypt entry does not resolve to a dictionary.");
+        using IPdfDocumentSecurityHandler handler =
+            PdfPublicKeySecurityHandler.Open(encrypt, certificate, out var result);
+        ApplyDecryption(graph, encryptId, handler, result);
         return result;
     }
 
@@ -85,10 +89,50 @@ public static class PdfDocumentDecryptor
         return (graph, result);
     }
 
+    public static (PdfObjectGraph Graph, PdfDecryptionResult Result) ParseAndDecrypt(
+        PdfParseContext context,
+        PdfCrossReferenceTable xref,
+        X509Certificate2 certificate)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(xref);
+        ArgumentNullException.ThrowIfNull(certificate);
+        var parser = new PdfObjectParser(context, xref);
+        var graph = parser.ParseDocumentGraph(parseCompressedObjects: false);
+        var result = Decrypt(xref, graph, certificate);
+        parser.ParseCompressedObjects(graph);
+        return (graph, result);
+    }
+
+    private static void ApplyDecryption(
+        PdfObjectGraph graph,
+        PdfObjectId? encryptId,
+        IPdfDocumentSecurityHandler handler,
+        PdfDecryptionResult result)
+    {
+        var replacements = new Dictionary<PdfObjectId, PdfObject>(graph.Objects.Count);
+        foreach (var indirectObject in graph.Objects.Values)
+        {
+            if (encryptId is { } id && indirectObject.Id == id) continue;
+            replacements[indirectObject.Id] = DecryptValue(
+                indirectObject.Value,
+                handler,
+                result.EncryptMetadata,
+                indirectObject.Id,
+                depth: 0);
+        }
+
+        foreach (var replacement in replacements)
+        {
+            graph.Resolve(replacement.Key)!.Value = replacement.Value;
+        }
+    }
+
     private static PdfObject DecryptValue(
         PdfObject value,
-        PdfStandardSecurityHandler handler,
+        IPdfDocumentSecurityHandler handler,
         bool encryptMetadata,
+        PdfObjectId objectId,
         int depth)
     {
         if (depth > 256)
@@ -100,15 +144,18 @@ public static class PdfDocumentDecryptor
         {
             case PdfString text:
                 return handler.ShouldDecryptString
-                    ? new PdfString(handler.DecryptValue(text.GetDecodedBytes().Span), IsHex: false)
+                    ? new PdfString(handler.DecryptValue(
+                        text.GetDecodedBytes().Span, objectId.Number, objectId.Generation), IsHex: false)
                     : text;
             case PdfArray array:
-                return new PdfArray(array.Items.Select(item => DecryptValue(item, handler, encryptMetadata, depth + 1)));
+                return new PdfArray(array.Items.Select(item =>
+                    DecryptValue(item, handler, encryptMetadata, objectId, depth + 1)));
             case PdfDictionary dictionary:
                 var values = new Dictionary<string, PdfObject>(dictionary.Values.Count, StringComparer.Ordinal);
                 foreach (var entry in dictionary.Values)
                 {
-                    values[entry.Key] = DecryptValue(entry.Value, handler, encryptMetadata, depth + 1);
+                    values[entry.Key] = DecryptValue(
+                        entry.Value, handler, encryptMetadata, objectId, depth + 1);
                 }
 
                 return new PdfDictionary(values);
@@ -121,7 +168,7 @@ public static class PdfDocumentDecryptor
                 }
 
                 var dictionaryValue = (PdfDictionary)DecryptValue(
-                    streamObject.Dictionary, handler, encryptMetadata, depth + 1);
+                    streamObject.Dictionary, handler, encryptMetadata, objectId, depth + 1);
                 if (!encryptMetadata && streamObject.Dictionary["Type"] is PdfName { Value: "Metadata" })
                 {
                     return new PdfStreamObject(dictionaryValue, streamObject.EncodedBytes);
@@ -132,7 +179,14 @@ public static class PdfDocumentDecryptor
                     return new PdfStreamObject(dictionaryValue, streamObject.EncodedBytes);
                 }
 
-                var decoded = handler.DecryptValue(streamObject.EncodedBytes.Span);
+                var decoded = handler is PdfLegacyStandardSecurityHandler legacy
+                    ? legacy.DecryptStreamValue(
+                        streamObject.EncodedBytes.Span,
+                        objectId.Number,
+                        objectId.Generation,
+                        streamObject.Dictionary)
+                    : handler.DecryptValue(
+                        streamObject.EncodedBytes.Span, objectId.Number, objectId.Generation);
                 dictionaryValue["Length"] = new PdfInteger(decoded.Length);
                 return new PdfStreamObject(dictionaryValue, decoded);
             default:
@@ -149,5 +203,16 @@ public static class PdfDocumentDecryptor
         }
 
         return value;
+    }
+
+    private static byte[] ReadDocumentId(PdfCrossReferenceTable xref)
+    {
+        if (xref.Trailer?["ID"] is PdfArray { Items.Count: > 0 } ids &&
+            ids.Items[0] is PdfString id)
+        {
+            return id.GetDecodedBytes().ToArray();
+        }
+
+        return [];
     }
 }

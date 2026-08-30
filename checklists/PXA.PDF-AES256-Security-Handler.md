@@ -2,11 +2,11 @@
 
 ## Purpose
 
-PXA still ships RC4-128 through its normal Generator path. `PdfEncryptionAlgorithm.Aes128`
-exists but throws. The typed Importer security layer can now write and open AES-256 revision-6
-documents, but this checklist is not complete until Generator, Designer, Viewer, API, and
-independent interoperability work use that layer safely. This contributes to the P1 AES-256
-section of `PXA.PDF-Trust-Foundation.md`; it does not complete that section.
+PXA defaults new encrypted Generator, Designer, and WebApi output to AES-256 revision 6.
+`Aes128` is an explicit interoperability bridge and `Rc4_128` remains an explicit legacy choice.
+The typed Importer opens revision-6 AES-256, revision-4 AES-128, and revision-3 RC4 documents
+without writing decrypted content to disk. PXA also supports X.509 recipient encryption through
+the interoperable Adobe.PubSec `adbe.pkcs7.s5` AESV2 profile.
 
 ## Why not extend the existing handler
 
@@ -16,10 +16,9 @@ a stream cipher and preserves length, while AES does not, so every `/Length` wou
 rewritten in text that has already been produced.
 
 The typed object model and serializer added for the full-rewrite save strategy remove that
-constraint. Encrypting at the object-model level, before serialization, lets the serializer
-compute `/Length` from the ciphertext it is handed. The new handler therefore lives in
-`PXA.Importer` alongside the model, and serves both directions: encrypting on write and
-decrypting on parse.
+constraint. Generator security handlers encrypt before final serialization so stream lengths can
+be recomputed. The Importer has matching, read-only security handlers that decrypt parsed objects
+transactionally and leave the source bytes untouched.
 
 ## Cryptographic Rules
 
@@ -77,17 +76,18 @@ decrypting on parse.
 
 - [x] Encrypt through the full-rewrite save strategy, which already recomputes lengths.
 - [x] Refuse to encrypt a signed document, since encrypting changes every signed byte.
-- [ ] Make AES-256 the normal Generator and WebApi export path, then move RC4 behind an explicit
-  legacy compatibility choice. `PXA.Pdf` and `DesignJsonMapper` still default to RC4 today.
+- [x] Make AES-256 the normal Generator and WebApi export path, then move RC4 behind an explicit
+  legacy compatibility choice.
 
-## Deferred
+## Compatibility Profiles
 
-- [ ] AES-128 (`/V 4 /R 4`, `/AESV2`) as an interoperability bridge.
-- [ ] Decrypting legacy RC4 and AES-128 documents.
-- [ ] Certificate and public-key security handlers.
-- [ ] Designer Page Settings and export-flow changes.
-- [ ] Generator and WebApi integration using the typed AES-256 writer.
-- [ ] Independent validation against Acrobat, qpdf, and a third library.
+- [x] AES-128 (`/V 4 /R 4`, `/AESV2`) as an interoperability bridge.
+- [x] Decrypting legacy RC4 and AES-128 documents.
+- [x] Certificate and public-key security handlers using Adobe.PubSec `adbe.pkcs7.s5`, CMS
+  recipient envelopes, and AESV2 object encryption.
+- [x] Designer Page Settings and export-flow changes.
+- [x] Generator and WebApi integration using PDF 2.0 AES-256 output.
+- [x] Independent validation against Acrobat, qpdf, and a third library.
 
 ## Verification
 
@@ -103,8 +103,14 @@ decrypting on parse.
 - [x] Prove no plaintext string or stream payload survives in the encrypted bytes.
 - [x] Validate one generated PDF independently with Poppler `pdfinfo`; it reports PDF 2.0,
   AES-256, and the expected print/copy/change permissions.
-- [x] Validate the current foundation with `dotnet build PXA.sln`, 346 Importer tests,
-  450 passing API tests with 65 environment-gated skips, Documentation tests/build,
-  release-fragment validation, and `git diff --check`.
-- [ ] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check` after
+- [x] Open Generator AES-256 output with PdfPig and round-trip it through the typed PXA Importer.
+- [x] Validate AES-256, AES-128, and RC4 output with qpdf 12.4.1 and Poppler, including
+  password authentication, permissions, algorithms, syntax, decryption, and extracted text.
+- [x] Open AES-256 output through Adobe Acrobat's `app.openDoc` interface and verify the
+  returned document identity.
+- [x] Round-trip X.509 recipient encryption with the matching private key and reject an
+  unrelated certificate.
+- [x] Validate the current foundation with the full solution, Importer, API, Generator,
+  Documentation, Designer, and release-fragment test suites.
+- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check` after
   Generator/API integration and independent interoperability fixtures are complete.

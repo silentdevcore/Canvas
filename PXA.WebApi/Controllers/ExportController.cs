@@ -46,12 +46,28 @@ public class ExportController : ControllerBase
 
         // For PDF: query-param language takes precedence; fall back to targetLanguage in the JSON body.
         var effectiveLang = language ?? design.PageSettings?.TargetLanguage;
-        if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(effectiveLang))
+        if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase))
         {
-            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
-            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
-            var safeName = ExportFileNameSanitizer.Sanitize(design.Name);
-            return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
+            try
+            {
+                var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
+                var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+                var safeName = ExportFileNameSanitizer.Sanitize(design.Name);
+                var languageSuffix = string.IsNullOrWhiteSpace(effectiveLang) ? string.Empty : $"-{effectiveLang}";
+                return File(bytes, "application/pdf", $"{safeName}{languageSuffix}.pdf");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (NotSupportedException ex)
+            {
+                return StatusCode(415, new { error = ex.Message });
+            }
         }
 
         var options = (dpi.HasValue || quality.HasValue) ? new PxaExportOptions(dpi, quality) : null;
@@ -98,7 +114,23 @@ public class ExportController : ControllerBase
             foreach (var lang in langs)
             {
                 var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, lang);
-                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+                byte[] pdfBytes;
+                try
+                {
+                    pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+                }
+                catch (ArgumentException ex)
+                {
+                    return BadRequest(new { error = ex.Message });
+                }
+                catch (InvalidDataException ex)
+                {
+                    return BadRequest(new { error = ex.Message });
+                }
+                catch (NotSupportedException ex)
+                {
+                    return StatusCode(415, new { error = ex.Message });
+                }
                 var entry = archive.CreateEntry($"{safeName}-{lang}.pdf", CompressionLevel.Fastest);
                 using var entryStream = entry.Open();
                 entryStream.Write(pdfBytes);
@@ -128,7 +160,19 @@ public class ExportController : ControllerBase
                 supportsRichText   = f.Capabilities.SupportsRichText,
                 supportsFormFields = f.Capabilities.SupportsFormFields,
                 multiPagePackaging = f.Key is "png" or "jpeg" or "tiff" or "svg" ? "zip" : "native",
-            });
+            })
+            .Append(new
+            {
+                key = "pdf",
+                mimeType = "application/pdf",
+                extension = ".pdf",
+                supportsMultiPage = true,
+                supportsImages = true,
+                supportsRichText = true,
+                supportsFormFields = true,
+                multiPagePackaging = "native"
+            })
+            .OrderBy(format => format.key);
 
         return Ok(formats);
     }

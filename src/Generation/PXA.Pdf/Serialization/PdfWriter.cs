@@ -709,17 +709,46 @@ internal sealed class PdfWriter
             objects.Add(new PdfIndirectObject(actualInfoObjectId, BuildInfoObject(document.Info)));
         }
 
-        Security.StandardSecurityHandler? security = null;
+        if (options.Encryption is not null && options.CertificateEncryption is not null)
+        {
+            throw new ArgumentException(
+                "Password and certificate encryption cannot be enabled for the same PDF save operation.",
+                nameof(options));
+        }
+
+        Security.IPdfSecurityHandler? security = null;
         int? encryptObjectId = null;
         if (options.Encryption is { } encryptionOptions)
         {
             var documentId = Security.StandardSecurityHandler.GenerateDocumentId(document);
-            security = Security.StandardSecurityHandler.Create(encryptionOptions, documentId);
+            security = encryptionOptions.Algorithm switch
+            {
+                PdfEncryptionAlgorithm.Aes256 => Security.Aes256SecurityHandler.Create(encryptionOptions, documentId),
+                PdfEncryptionAlgorithm.Rc4_128 => Security.StandardSecurityHandler.Create(encryptionOptions, documentId),
+                PdfEncryptionAlgorithm.Aes128 => Security.Aes128SecurityHandler.Create(encryptionOptions, documentId),
+                _ => throw new NotSupportedException($"Unsupported PDF encryption algorithm '{encryptionOptions.Algorithm}'.")
+            };
+            encryptObjectId = objects.Max(static o => o.Id) + 1;
+            objects.Add(new PdfIndirectObject(encryptObjectId.Value, security.BuildEncryptDictionary()));
+        }
+        else if (options.CertificateEncryption is { } certificateOptions)
+        {
+            var documentId = Security.StandardSecurityHandler.GenerateDocumentId(document);
+            security = Security.PublicKeySecurityHandler.Create(certificateOptions, documentId);
             encryptObjectId = objects.Max(static o => o.Id) + 1;
             objects.Add(new PdfIndirectObject(encryptObjectId.Value, security.BuildEncryptDictionary()));
         }
 
-        var bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId);
+        byte[] bytes;
+        try
+        {
+            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId);
+        }
+        finally
+        {
+            security?.Dispose();
+        }
+
         var webLinkCount = document.Pages
             .SelectMany(static page => page.LinkAnnotations)
             .Count(static link => link.Url is { Length: > 0 });
@@ -1208,7 +1237,7 @@ internal sealed class PdfWriter
         List<PdfIndirectObject> objects,
         int rootObjectId,
         int? infoObjectId,
-        Security.StandardSecurityHandler? security = null,
+        Security.IPdfSecurityHandler? security = null,
         int? encryptObjectId = null)
     {
         objects.Sort(static (x, y) => x.Id.CompareTo(y.Id));
@@ -1221,7 +1250,7 @@ internal sealed class PdfWriter
             destination.Write(bytes, 0, bytes.Length);
         }
 
-        WriteAscii(stream, "%PDF-1.4\n");
+        WriteAscii(stream, $"%PDF-{security?.PdfVersion ?? "1.4"}\n");
 
         var offsets = new Dictionary<int, long>();
 
