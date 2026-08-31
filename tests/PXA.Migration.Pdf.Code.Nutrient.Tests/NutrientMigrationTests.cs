@@ -129,6 +129,24 @@ public sealed class NutrientMigrationTests
     }
 
     [Fact]
+    public void Migrate_MapsPdfA2bSaveOptions()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF(PdfConformance.PDF_A_2b);
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.SaveToFile(outputPath);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("ComplianceProfile = PdfComplianceProfile.PdfA2B", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET032");
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGNUTNET023");
+    }
+
+    [Fact]
     public void Migrate_ProducesCompilableCodeForSupportedFixture()
     {
         var source = """

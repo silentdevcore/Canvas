@@ -886,6 +886,13 @@
       "passwordHash": "تجزئة كلمة المرور (اختياري)",
       "passwordHashPlaceholder": "اتركه فارغًا لعدم وجود كلمة مرور"
     },
+    "compliance": {
+      "heading": "أرشفة PDF",
+      "profile": "ملف التوافق",
+      "none": "PDF قياسي",
+      "description": "يقوم PDF/A-2b بتضمين الخطوط والبيانات الوصفية وملف إخراج RGB. يمنع المحتوى غير المدعوم التصدير بدلاً من إصدار ادعاء توافق غير صحيح.",
+      "encryptionDisabled": "التشفير غير متاح لأن ملفات PDF/A يجب أن تبقى غير مشفرة."
+    },
     "encryption": {
       "heading": "تشفير PDF",
       "enable": "تشفير PDF بكلمة مرور",

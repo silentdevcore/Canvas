@@ -116,7 +116,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         signatures = PromoteBaselineLta(signatures, diagnostics);
         signatures = PdfCertificationPolicyValidator.Apply(source, graph, xref, signatures, diagnostics);
         var sourceText = Encoding.Latin1.GetString(source);
-        var pdfA = InspectPdfAClaim(sourceText, diagnostics);
+        var pdfA = InspectPdfAClaim(sourceText, graph, encryption.IsEncrypted, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
         var revisions = xref?.Revisions.Select(revision => new PdfRevisionInspection(
                 revision.SequenceNumber,
@@ -147,7 +147,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         diagnostics.Add(new PdfTrustDiagnostic(
             "PXAPDFTRUST010",
             PdfTrustDiagnosticSeverity.Info,
-            "Signature integrity, revision coverage, certificate trust, timestamps, and configured revocation policy are evaluated separately; PDF/A and PDF/UA metadata claims still require dedicated conformance validators."));
+            "Signature integrity, revision coverage, certificate trust, timestamps, and configured revocation policy are evaluated separately. PDF/A uses the PXA structural validator; independent release validation and dedicated PDF/UA validation remain separate."));
 
         var status = structureStatus == PdfTrustStatus.Invalid ||
                      signatures.Any(signature => signature.Status == PdfTrustStatus.Invalid)
@@ -540,6 +540,8 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
     private static PdfComplianceClaim InspectPdfAClaim(
         string sourceText,
+        PdfObjectGraph? graph,
+        bool isEncrypted,
         ICollection<PdfTrustDiagnostic> diagnostics)
     {
         var part = PdfAPartRegex().Match(sourceText);
@@ -550,11 +552,27 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
         var conformance = PdfAConformanceRegex().Match(sourceText);
         var profile = $"PDF/A-{part.Groups[1].Value}{(conformance.Success ? conformance.Groups[1].Value.ToLowerInvariant() : string.Empty)}";
-        diagnostics.Add(new PdfTrustDiagnostic(
-            "PXAPDFTRUST301",
-            PdfTrustDiagnosticSeverity.Warning,
-            $"The document claims {profile} in metadata; this is not a conformance validation result."));
-        return new PdfComplianceClaim("PDF/A", profile, true, PdfTrustStatus.Indeterminate, "XMP pdfaid identification metadata");
+        if (!string.Equals(profile, "PDF/A-2b", StringComparison.OrdinalIgnoreCase) ||
+            graph is null ||
+            !PdfA2bConformanceValidator.CanValidate(graph))
+        {
+            diagnostics.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST301",
+                PdfTrustDiagnosticSeverity.Warning,
+                $"The document claims {profile}; this profile is not validated by the current PXA PDF/A-2b validator."));
+            return new PdfComplianceClaim("PDF/A", profile, true, PdfTrustStatus.Indeterminate, "XMP pdfaid identification metadata");
+        }
+
+        var validatedAt = DateTimeOffset.UtcNow;
+        var isValid = PdfA2bConformanceValidator.Validate(graph, isEncrypted, diagnostics);
+        return new PdfComplianceClaim(
+            "PDF/A",
+            profile,
+            true,
+            isValid ? PdfTrustStatus.Valid : PdfTrustStatus.Invalid,
+            "XMP identification, catalog OutputIntent, ICC header, encryption, font embedding, actions, and annotation restrictions",
+            PdfA2bConformanceValidator.Name,
+            validatedAt);
     }
 
     private static PdfComplianceClaim InspectPdfUaClaim(

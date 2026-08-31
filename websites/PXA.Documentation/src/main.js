@@ -324,8 +324,8 @@ const editorDocs = [
       'You need to distinguish cryptographic integrity from signer trust and revocation evidence.',
       'You are tracking viewer parity against established PDF viewer products.',
     ],
-    concepts: ['PDF preview', 'Forms', 'Annotations', 'PAdES B-B, B-T, B-LT, and B-LTA', 'Document timestamps', 'Certificate trust', 'Revocation policy', 'Review tools', 'Viewer parity'],
-    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Create or validate long-term signatures', 'Add an independent document timestamp', 'Interpret trust and revocation separately', 'Review annotation workflows', 'Track viewer feature gaps'],
+    concepts: ['PDF preview', 'Forms', 'Annotations', 'PAdES B-B, B-T, B-LT, and B-LTA', 'PDF/A-2b', 'Document timestamps', 'Certificate trust', 'Revocation policy', 'Review tools', 'Viewer parity'],
+    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Generate and validate PDF/A-2b', 'Create or validate long-term signatures', 'Add an independent document timestamp', 'Interpret trust and revocation separately', 'Review annotation workflows', 'Track viewer feature gaps'],
     related: [
       { label: 'PDF Viewer product page', href: companyPage('products/pdf-viewer') },
       { label: 'Viewer demo', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
@@ -333,6 +333,28 @@ const editorDocs = [
       { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
     ],
     examples: [
+      {
+        title: 'Generate PDF/A-2b',
+        json: `var document = Pdf.CreateDocument();
+document.FontLoader = new PdfFontLoader("fonts");
+document.Info.Title = "Archive copy";
+document.AddPage().DrawText("Archived content", 40, 800, new PdfDrawTextOptions {
+  Language = "en"
+});
+
+document.Save("archive.pdf", new PdfSaveOptions {
+  ComplianceProfile = PdfComplianceProfile.PdfA2B
+});`,
+        note: 'PDF/A-2b output uses PDF 1.7, catalog-referenced XMP identification, an embedded RGB ICC output intent, ToUnicode mappings, and embedded fonts. Generation fails closed for encryption, unembedded text fonts, interactive form fields, and review annotations. Arbitrary attachments belong to a later PDF/A-3 workflow and are not accepted by this PDF/A-2b generator. PDF/A conversion of an existing PDF is a separate operation and is not implemented by this generation option.',
+      },
+      {
+        title: 'Validate a PDF/A claim',
+        json: `POST /api/pxa/v1/pdf/compliance/validate
+Content-Type: multipart/form-data
+
+file=@archive.pdf`,
+        note: 'The Viewer and API report the exact profile, status, validator name, validation time, evidence, and stable PXAPDFTRUST rule diagnostics. A metadata string outside the catalog is only an unverified claim. The current PXA validator is structural; independently validate release fixtures with veraPDF and a second standards-based or commercial validator before making a production conformance claim.',
+      },
       {
         title: 'On-Premise trust policy',
         json: `{

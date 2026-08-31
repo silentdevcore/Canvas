@@ -886,6 +886,13 @@
       "passwordHash": "Hachage du mot de passe (facultatif)",
       "passwordHashPlaceholder": "Laisser vide pour aucun mot de passe"
     },
+    "compliance": {
+      "heading": "Archivage PDF",
+      "profile": "Profil de conformité",
+      "none": "PDF standard",
+      "description": "PDF/A-2b incorpore les polices, les métadonnées et un profil de sortie RVB. Un contenu non pris en charge bloque l'export au lieu de produire une fausse déclaration.",
+      "encryptionDisabled": "Le chiffrement est indisponible car les fichiers PDF/A doivent rester non chiffrés."
+    },
     "encryption": {
       "heading": "Chiffrement PDF",
       "enable": "Chiffrer le PDF avec un mot de passe",

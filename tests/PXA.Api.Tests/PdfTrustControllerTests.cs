@@ -58,6 +58,12 @@ public sealed class PdfTrustControllerTests
         Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, authorization.Policy);
         Assert.Equal("designer-code", rateLimit.PolicyName);
         Assert.Contains(PxaDesignerPermissions.PdfTrustInspect, PxaRoles.Permissions[PxaRoles.Viewer]);
+        var postRoutes = type.GetMethod(nameof(PdfTrustController.Inspect))!
+            .GetCustomAttributes(typeof(HttpPostAttribute), true)
+            .Cast<HttpPostAttribute>()
+            .Select(attribute => attribute.Template)
+            .ToArray();
+        Assert.Contains("/api/pxa/v1/pdf/compliance/validate", postRoutes);
     }
 
     private static PdfTrustController CreateController() => new(

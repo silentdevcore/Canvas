@@ -9,6 +9,13 @@ public sealed class PdfSaveOptions
     public bool CollectDiagnostics { get; init; }
 
     /// <summary>
+    /// Optional archival compliance profile. Compliance output is validated before it is written;
+    /// unsupported document features cause <see cref="PdfComplianceException"/> instead of a
+    /// misleading conformance claim.
+    /// </summary>
+    public PdfComplianceProfile ComplianceProfile { get; init; } = PdfComplianceProfile.None;
+
+    /// <summary>
     /// When set, the document is encrypted with the Standard Security Handler using these settings.
     /// When null (the default), the document is written unencrypted.
     /// </summary>

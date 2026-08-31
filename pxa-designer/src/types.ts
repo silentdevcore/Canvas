@@ -343,6 +343,8 @@ export interface PageSettings {
   protection?: DocumentProtection;
   // PDF encryption (password protection + permissions)
   encryption?: PdfEncryption;
+  // Archival PDF output. Encryption is incompatible with PDF/A.
+  complianceProfile?: 'None' | 'PdfA2B';
   // Custom document properties
   customProperties?: CustomDocumentProperty[];
   // Track changes

@@ -121,7 +121,9 @@ public sealed record PdfComplianceClaim(
     string? Profile,
     bool IsClaimed,
     PdfTrustStatus Status,
-    string Evidence);
+    string Evidence,
+    string? Validator = null,
+    DateTimeOffset? ValidatedAtUtc = null);
 
 public sealed record PdfRevisionInspection(
     int SequenceNumber,

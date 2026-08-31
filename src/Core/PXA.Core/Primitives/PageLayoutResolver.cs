@@ -104,6 +104,7 @@ public static class PageLayoutResolver
             PageNumbering = source.PageNumbering,
             GlobalWatermark = source.GlobalWatermark,
             Encryption = source.Encryption,
+            ComplianceProfile = source.ComplianceProfile,
             Extensions = source.Extensions,
         };
     }

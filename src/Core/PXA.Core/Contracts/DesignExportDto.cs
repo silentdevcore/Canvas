@@ -63,6 +63,7 @@ public sealed class PageSettingsDto
     public List<NamedStyleDto>? NamedStyles { get; set; }
     public DocumentProtectionDto? Protection { get; set; }
     public PdfEncryptionDto? Encryption { get; set; }
+    public string? ComplianceProfile { get; set; }
     public List<CustomDocumentPropertyDto>? CustomProperties { get; set; }
     public bool TrackChanges { get; set; }
     // Multi-language localization

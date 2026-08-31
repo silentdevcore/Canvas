@@ -886,6 +886,13 @@
       "passwordHash": "Passwort-Hash (optional)",
       "passwordHashPlaceholder": "Leer lassen für kein Passwort"
     },
+    "compliance": {
+      "heading": "PDF-Archivierung",
+      "profile": "Konformitätsprofil",
+      "none": "Standard-PDF",
+      "description": "PDF/A-2b bettet Schriften, Metadaten und ein RGB-Ausgabeprofil ein. Nicht unterstützte Inhalte brechen den Export ab, statt eine falsche Konformität zu behaupten.",
+      "encryptionDisabled": "Verschlüsselung ist deaktiviert, weil PDF/A-Dateien unverschlüsselt bleiben müssen."
+    },
     "encryption": {
       "heading": "PDF-Verschlüsselung",
       "enable": "PDF mit Passwort verschlüsseln",

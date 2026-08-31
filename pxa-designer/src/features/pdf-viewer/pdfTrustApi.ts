@@ -77,6 +77,8 @@ export interface PdfTrustReport {
     isClaimed: boolean;
     status: PdfTrustStatus;
     evidence: string;
+    validator?: string | null;
+    validatedAtUtc?: string | null;
   };
   pdfUa: {
     standard: string;

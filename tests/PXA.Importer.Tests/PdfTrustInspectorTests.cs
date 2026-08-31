@@ -98,6 +98,93 @@ public sealed class PdfTrustInspectorTests
     }
 
     [Fact]
+    public async Task InspectAsync_ValidatesGeneratedPdfA2bStructure()
+    {
+        var document = new PdfDocument
+        {
+            FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
+        };
+        document.Info.Title = "Archival fixture";
+        document.Info.Author = "PXA QA";
+        document.Info.Subject = "PDF/A-2b interoperability fixture";
+        document.Info.Keywords = "PXA, PDF/A";
+        document.Info.Creator = "PXA tests";
+        document.Info.Producer = "PXA";
+        document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
+        document.Info.ModificationDate = new DateTimeOffset(2026, 8, 31, 10, 30, 0, TimeSpan.Zero);
+        document.AddPage().DrawText("Embedded archival text", 40, 40, new PdfDrawTextOptions
+        {
+            Language = "en"
+        });
+
+        var bytes = document.ToBytes(new PdfSaveOptions
+        {
+            ComplianceProfile = PdfComplianceProfile.PdfA2B
+        });
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is { Length: > 0 } artifactDirectory)
+        {
+            Directory.CreateDirectory(artifactDirectory);
+            await File.WriteAllBytesAsync(
+                Path.Combine(artifactDirectory, "pxa-pdfa2b-fixture.pdf"),
+                bytes);
+        }
+        var report = await InspectAsync(bytes);
+
+        Assert.Equal("1.7", report.PdfVersion);
+        Assert.Equal("%PDF-1.7\n%\u00e2\u00e3\u00cf\u00d3\n", Encoding.Latin1.GetString(bytes, 0, 15));
+        Assert.Contains("/CIDToGIDMap /Identity", Encoding.Latin1.GetString(bytes));
+        Assert.Contains("/ID [<", Encoding.Latin1.GetString(bytes));
+        Assert.True(report.PdfA.IsClaimed);
+        Assert.Equal("PDF/A-2b", report.PdfA.Profile);
+        Assert.Equal(PdfTrustStatus.Valid, report.PdfA.Status);
+        Assert.Equal("PXA PDF/A-2b structural validator 1.0", report.PdfA.Validator);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST300");
+    }
+
+    [Fact]
+    public void PdfA2bGeneration_FailsClosedForUnembeddedFonts()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Standard font", 40, 40);
+
+        var exception = Assert.Throws<PdfComplianceException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            ComplianceProfile = PdfComplianceProfile.PdfA2B
+        }));
+
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA003");
+    }
+
+    [Fact]
+    public void PdfA2bGeneration_FailsClosedForCustomDocumentProperties()
+    {
+        var document = new PdfDocument();
+        document.Info.CustomProperties["Customer"] = "Example";
+
+        var exception = Assert.Throws<PdfComplianceException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            ComplianceProfile = PdfComplianceProfile.PdfA2B
+        }));
+
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA006");
+    }
+
+    [Fact]
+    public void PdfA2bGeneration_FailsClosedForEncryption()
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+
+        var exception = Assert.Throws<PdfComplianceException>(() => document.ToBytes(new PdfSaveOptions
+        {
+            ComplianceProfile = PdfComplianceProfile.PdfA2B,
+            Encryption = new PdfEncryptionOptions { UserPassword = "reader" }
+        }));
+
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA002");
+    }
+
+    [Fact]
     public async Task InspectAsync_RejectsInputAboveConfiguredLimit()
     {
         await using var stream = new MemoryStream("%PDF-1.7 oversized"u8.ToArray());

@@ -38,6 +38,15 @@ describe('convertElementsToTemplate', () => {
     expect(payload.pageSettings.width).toBe(595);
   });
 
+  test('canonical export payload preserves PDF/A-2b compliance', () => {
+    const settings: PageSettings = { ...DEFAULT_PAGE_SETTINGS, complianceProfile: 'PdfA2B' };
+
+    const payload = ExportService.buildDesignPayload(mockTemplate, [makePage()], [], settings);
+
+    expect(payload.pageSettings.complianceProfile).toBe('PdfA2B');
+    expect(payload.pageSettings.encryption).toBeNull();
+  });
+
   test('includes template metadata fields', () => {
     const out = ExportService.convertElementsToTemplate([], mockTemplate);
     expect(out.id).toBe('tpl-1');

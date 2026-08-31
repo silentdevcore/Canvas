@@ -1619,6 +1619,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                   <div><dt>{labels.encryption}</dt><dd data-status={trustReport.encryption.status}>{trustReport.encryption.isEncrypted ? `${trustReport.encryption.algorithm ?? labels.encryption} · ${trustStatusLabel(trustReport.encryption.status)}` : labels.notDetected}</dd></div>
                   <div><dt>{labels.signatures}</dt><dd>{trustReport.signatures.length || labels.notDetected}</dd></div>
                   <div><dt>PDF/A</dt><dd data-status={trustReport.pdfA.status}>{trustReport.pdfA.isClaimed ? `${trustReport.pdfA.profile} · ${trustStatusLabel(trustReport.pdfA.status)}` : labels.notDetected}</dd></div>
+                  {trustReport.pdfA.isClaimed && trustReport.pdfA.validator && (
+                    <div><dt>PDF/A validator</dt><dd title={trustReport.pdfA.evidence}>{trustReport.pdfA.validator}</dd></div>
+                  )}
                   <div><dt>PDF/UA</dt><dd data-status={trustReport.pdfUa.status}>{trustReport.pdfUa.isClaimed ? `${trustReport.pdfUa.profile} · ${trustStatusLabel(trustReport.pdfUa.status)}` : labels.notDetected}</dd></div>
                   <div><dt>{labels.revisions}</dt><dd>{trustReport.revisionCount}</dd></div>
                   <div><dt>{labels.objects}</dt><dd>{trustReport.objectCount}</dd></div>

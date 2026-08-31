@@ -377,16 +377,18 @@ Reference material:
 
 ## P1 - PDF/A Generation, Conversion, and Validation
 
-- [ ] Ship one narrow, independently validated profile first: PDF/A-2b for generated
+- [x] Ship one narrow, independently validated profile first: PDF/A-2b for generated
   documents.
 - [ ] Add PDF/A-3b for workflows requiring arbitrary embedded source documents.
 - [ ] Add PDF/A-4 only after the PDF 2.0 writer and validator policy are production
   ready.
-- [ ] Define a typed compliance profile rather than a free-form string.
-- [ ] Embed all required fonts and fail when embedding or Unicode mapping is not
+- [x] Define a typed compliance profile rather than a free-form string.
+- [x] Embed all required fonts and fail when embedding or Unicode mapping is not
   possible.
 - [ ] Add output intents and ICC profiles with deterministic color conversion.
-- [ ] Produce required XMP identification and document metadata and synchronize it
+- [x] Emit an sRGB output intent and embedded ICC profile for generated PDF/A-2b;
+  deterministic conversion of non-sRGB source colors remains open.
+- [x] Produce required XMP identification and document metadata and synchronize it
   with the information dictionary.
 - [ ] Enforce profile restrictions for encryption, actions, JavaScript, multimedia,
   annotations, transparency, attachments, and external dependencies.
@@ -395,10 +397,20 @@ Reference material:
 - [ ] Preserve the original when conversion reports `reviewRequired` or fails.
 - [ ] Integrate veraPDF as one independent validator and compare against at least one
   additional commercial or standards-based validator before claiming support.
-- [ ] Store validator name, version, profile, rule IDs, and machine-readable evidence
+  - [x] Validate the deterministic generated fixture as PDF/A-2b with the official
+    `ghcr.io/verapdf/cli:v1.31.166` image; all 144 evaluated rules pass.
+  - [ ] Add a second commercial or standards-based validator before the production
+    support claim.
+- [x] Store validator name, version, profile, rule IDs, and machine-readable evidence
   in the compliance report.
+- [x] Add the structural PDF/A-2b validation path to the Viewer and expose
+  `POST /api/pxa/v1/pdf/compliance/validate`; keep independent release validation
+  and conversion as explicit open work.
 - [ ] Add `POST /api/pxa/v1/pdf/compliance/validate` and
   `POST /api/pxa/v1/pdf/compliance/convert`.
+  - [x] Expose `POST /api/pxa/v1/pdf/compliance/validate` as an authenticated alias
+    of the structural trust inspection pipeline.
+  - [ ] Implement explicit conversion with loss and review diagnostics.
 
 ## P1 - PDF/UA and Tagged PDF
 
@@ -522,7 +534,7 @@ Reference material:
   invalidating changes with runnable examples.
 - [ ] Document redaction mark versus applied redaction, preflight, sanitization,
   verification, audit evidence, and unsupported-content behavior.
-- [ ] Document PDF/A profiles, conversion loss risks, validation reports, attachments,
+- [x] Document PDF/A profiles, conversion loss risks, validation reports, attachments,
   and incompatibility with encryption.
 - [ ] Document Tagged PDF, PDF/UA semantics, Designer remediation, and the limits of
   automated accessibility validation.
@@ -552,6 +564,8 @@ Reference material:
   all permission combinations, metadata options, wrong passwords, and tampering.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
+  - [x] Provide a deterministic generated PDF/A-2b fixture and verify it locally with
+    veraPDF; CI report publication and PDF/UA validation remain open.
 - [ ] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.

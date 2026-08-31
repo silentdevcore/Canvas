@@ -4837,6 +4837,33 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </div>
                 </div>
 
+                {/* PDF archival compliance */}
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiFileText />
+                    <span>{t('pageSettings.compliance.heading')}</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <label>
+                      <span>{t('pageSettings.compliance.profile')}</span>
+                      <select
+                        value={pageSettings.complianceProfile ?? 'None'}
+                        onChange={(e) => {
+                          const complianceProfile = e.target.value as PageSettings['complianceProfile'];
+                          updatePageSettings({
+                            complianceProfile,
+                            encryption: complianceProfile === 'PdfA2B' ? undefined : pageSettings.encryption,
+                          });
+                        }}
+                      >
+                        <option value="None">{t('pageSettings.compliance.none')}</option>
+                        <option value="PdfA2B">PDF/A-2b</option>
+                      </select>
+                    </label>
+                    <small>{t('pageSettings.compliance.description')}</small>
+                  </div>
+                </div>
+
                 {/* PDF Encryption */}
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
@@ -4848,6 +4875,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       <input
                         type="checkbox"
                         checked={pageSettings.encryption?.enabled ?? false}
+                        disabled={pageSettings.complianceProfile === 'PdfA2B'}
                         onChange={(e) => updatePageSettings({
                           encryption: e.target.checked
                             ? {
@@ -4865,6 +4893,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                       <span>{t('pageSettings.encryption.enable')}</span>
                     </label>
+                    {pageSettings.complianceProfile === 'PdfA2B' && (
+                      <small>{t('pageSettings.compliance.encryptionDisabled')}</small>
+                    )}
                     {pageSettings.encryption?.enabled && (
                       <>
                         <label>

@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Security;
 using System.Text;
 using PXA.Pdf.Layout;
 using PXA.Pdf.Rendering;
@@ -24,14 +26,26 @@ internal sealed class PdfWriter
             document.AddPage();
         }
 
+        var compliance = PdfCompliancePreflight.Validate(document, options);
+        if (!compliance.IsValid)
+        {
+            throw new PdfComplianceException(compliance);
+        }
+
+        var isPdfA2B = options.ComplianceProfile == PdfComplianceProfile.PdfA2B;
+
         var nextObjectId = 1;
         var catalogObjectId = nextObjectId++;
         var pagesObjectId = nextObjectId++;
         var infoObjectId = document.Info.HasValues ? nextObjectId++ : (int?)null;
+        var metadataObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
+        var outputIntentObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
+        var iccProfileObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
 
         var usedFonts = document.Pages
             .SelectMany(static page => page.Elements)
             .OfType<TextElement>()
+            .Where(static element => element.EmbeddedFont is null)
             .Select(static element => element.Font)
             .Distinct()
             .ToList();
@@ -55,11 +69,6 @@ internal sealed class PdfWriter
             .SelectMany(static page => page.Elements)
             .OfType<ImageElement>()
             .Count();
-
-        if (usedFonts.Count == 0)
-        {
-            usedFonts.Add(document.DefaultFont);
-        }
 
         var fontObjects = new Dictionary<PdfStandardFont, (string ResourceName, int ObjectId)>();
 
@@ -155,7 +164,8 @@ internal sealed class PdfWriter
             objects.Add(new PdfIndirectObject(ids.CidFontId,
                 $"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /{ef.BaseFontName} " +
                 $"/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> " +
-                $"/DW 1000 /W {widthsArray} /FontDescriptor {ids.DescriptorId} 0 R >>\n"));
+                $"/DW 1000 /W {widthsArray} /CIDToGIDMap /Identity " +
+                $"/FontDescriptor {ids.DescriptorId} 0 R >>\n"));
 
             // 5. Type0 composite font
             objects.Add(new PdfIndirectObject(ids.Type0Id,
@@ -291,14 +301,10 @@ internal sealed class PdfWriter
 
             var pageFonts = page.Elements
                 .OfType<TextElement>()
+                .Where(static element => element.EmbeddedFont is null)
                 .Select(static element => element.Font)
                 .Distinct()
                 .ToList();
-
-            if (pageFonts.Count == 0)
-            {
-                pageFonts.Add(page.DefaultFont);
-            }
 
             var pageFontResources = pageFonts.ToDictionary(
                 static font => font,
@@ -697,10 +703,28 @@ internal sealed class PdfWriter
               $" /DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> >>"
             : string.Empty;
 
+        if (isPdfA2B)
+        {
+            var iccBytes = PdfSrgbIccProfile.Create();
+            objects.Add(new PdfIndirectObject(
+                iccProfileObjectId!.Value,
+                BuildBinaryStreamObject(iccBytes, $"/N 3 /Alternate /DeviceRGB /Range [0 1 0 1 0 1]")));
+            objects.Add(new PdfIndirectObject(
+                outputIntentObjectId!.Value,
+                $"<< /Type /OutputIntent /S /GTS_PDFA1 /OutputConditionIdentifier (sRGB IEC61966-2.1) " +
+                $"/RegistryName (http://www.color.org) /Info (PXA sRGB output intent) " +
+                $"/DestOutputProfile {iccProfileObjectId.Value} 0 R >>\n"));
+            objects.Add(new PdfIndirectObject(
+                metadataObjectId!.Value,
+                BuildBinaryStreamObject(BuildPdfA2bXmp(document.Info), "/Type /Metadata /Subtype /XML")));
+        }
+
+        var metadataSegment = isPdfA2B ? $" /Metadata {metadataObjectId!.Value} 0 R" : string.Empty;
+        var outputIntentSegment = isPdfA2B ? $" /OutputIntents [{outputIntentObjectId!.Value} 0 R]" : string.Empty;
         var openAction = BuildOpenAction(document, pageObjectIds);
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
-            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n"
-            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n";
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment} >>\n";
 
         objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
 
@@ -742,7 +766,7 @@ internal sealed class PdfWriter
         byte[] bytes;
         try
         {
-            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId);
+            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId, isPdfA2B ? "1.7" : null);
         }
         finally
         {
@@ -1238,7 +1262,8 @@ internal sealed class PdfWriter
         int rootObjectId,
         int? infoObjectId,
         Security.IPdfSecurityHandler? security = null,
-        int? encryptObjectId = null)
+        int? encryptObjectId = null,
+        string? pdfVersion = null)
     {
         objects.Sort(static (x, y) => x.Id.CompareTo(y.Id));
 
@@ -1250,7 +1275,8 @@ internal sealed class PdfWriter
             destination.Write(bytes, 0, bytes.Length);
         }
 
-        WriteAscii(stream, $"%PDF-{security?.PdfVersion ?? "1.4"}\n");
+        WriteAscii(stream, $"%PDF-{pdfVersion ?? security?.PdfVersion ?? "1.4"}\n");
+        stream.Write([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]);
 
         var offsets = new Dictionary<int, long>();
 
@@ -1308,7 +1334,9 @@ internal sealed class PdfWriter
         }
         else
         {
-            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} >>\n");
+            var idHex = Convert.ToHexString(CreateDocumentId(objects, rootObjectId, infoObjectId));
+            WriteAscii(stream,
+                $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} /ID [<{idHex}> <{idHex}>] >>\n");
         }
 
         WriteAscii(stream, "startxref\n");
@@ -1316,6 +1344,24 @@ internal sealed class PdfWriter
         WriteAscii(stream, "%%EOF\n");
 
         return stream.ToArray();
+    }
+
+    private static byte[] CreateDocumentId(
+        IReadOnlyList<PdfIndirectObject> objects,
+        int rootObjectId,
+        int? infoObjectId)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        hash.AppendData(BitConverter.GetBytes(rootObjectId));
+        hash.AppendData(BitConverter.GetBytes(infoObjectId ?? 0));
+
+        foreach (var obj in objects)
+        {
+            hash.AppendData(BitConverter.GetBytes(obj.Id));
+            hash.AppendData(obj.ContentBytes);
+        }
+
+        return hash.GetHashAndReset()[..16];
     }
 
     private static string FormatNumber(double value)
@@ -1366,6 +1412,61 @@ internal sealed class PdfWriter
         }
 
         return $"<< {string.Join(" ", entries)} >>\n";
+    }
+
+    private static byte[] BuildBinaryStreamObject(byte[] bytes, string dictionaryEntries)
+    {
+        using var memory = new MemoryStream();
+        var header = $"<< {dictionaryEntries} /Length {bytes.Length} >>\nstream\n";
+        memory.Write(Encoding.ASCII.GetBytes(header));
+        memory.Write(bytes);
+        memory.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        return memory.ToArray();
+    }
+
+    private static byte[] BuildPdfA2bXmp(PdfDocumentInfo info)
+    {
+        static string Xml(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
+        static string OptionalElement(string name, string? value) => string.IsNullOrWhiteSpace(value)
+            ? string.Empty
+            : $"<{name}>{Xml(value)}</{name}>";
+        static string OptionalDate(string name, DateTimeOffset? value) => value is null
+            ? string.Empty
+            : $"<{name}>{value.Value.ToUniversalTime():yyyy-MM-dd'T'HH:mm:ss'Z'}</{name}>";
+
+        var title = string.IsNullOrWhiteSpace(info.Title)
+            ? string.Empty
+            : $"<dc:title><rdf:Alt><rdf:li xml:lang=\"x-default\">{Xml(info.Title)}</rdf:li></rdf:Alt></dc:title>";
+        var author = string.IsNullOrWhiteSpace(info.Author)
+            ? string.Empty
+            : $"<dc:creator><rdf:Seq><rdf:li>{Xml(info.Author)}</rdf:li></rdf:Seq></dc:creator>";
+        var subject = string.IsNullOrWhiteSpace(info.Subject)
+            ? string.Empty
+            : $"<dc:description><rdf:Alt><rdf:li xml:lang=\"x-default\">{Xml(info.Subject)}</rdf:li></rdf:Alt></dc:description>";
+
+        var xmp = $"""
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+              <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
+                  <pdfaid:part>2</pdfaid:part>
+                  <pdfaid:conformance>B</pdfaid:conformance>
+                </rdf:Description>
+                <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                  {title}{author}{subject}
+                </rdf:Description>
+                <rdf:Description rdf:about="" xmlns:pdf="http://ns.adobe.com/pdf/1.3/">
+                  {OptionalElement("pdf:Keywords", info.Keywords)}{OptionalElement("pdf:Producer", info.Producer)}
+                </rdf:Description>
+                <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/">
+                  {OptionalElement("xmp:CreatorTool", info.Creator)}{OptionalDate("xmp:CreateDate", info.CreationDate)}{OptionalDate("xmp:ModifyDate", info.ModificationDate)}
+                </rdf:Description>
+              </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+            """;
+
+        return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(xmp);
     }
 
     private static void AppendIfValue(List<string> entries, string key, string? value)

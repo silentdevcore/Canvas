@@ -86,12 +86,13 @@ public sealed class NutrientMigration : CSharpSourceMigration
         }
 
         if (methodNames.Any(static name =>
-                name.Contains("PdfA", StringComparison.OrdinalIgnoreCase)
+                !string.Equals(name, "ConvertToPDFA", StringComparison.Ordinal) &&
+                (name.Contains("PdfA", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("PdfUA", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Conformance", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Linear", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Encrypt", StringComparison.OrdinalIgnoreCase)
-                || name.Contains("Security", StringComparison.OrdinalIgnoreCase)))
+                || name.Contains("Security", StringComparison.OrdinalIgnoreCase))))
         {
             yield return Warning("CANMIGNUTNET023",
                 "PDF/A, PDF/UA, encryption, security, conformance, and linearization require review until equivalent PXA trust capabilities are available.");
@@ -170,6 +171,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
         private double _unitScale = 1;
         private bool _topLeftOrigin;
         private string _fontSize = "12";
+        private bool _pdfA2b;
 
         public NutrientRewriter(HashSet<string> documentVariables)
         {
@@ -210,7 +212,13 @@ public sealed class NutrientMigration : CSharpSourceMigration
             switch (method)
             {
                 case "NewPDF":
-                    if (arguments.Count > 0 && !arguments[0].ToString().EndsWith(".PDF", StringComparison.Ordinal))
+                    if (arguments.Count > 0 && arguments[0].ToString().Contains("PDF_A_2b", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _pdfA2b = true;
+                        _diagnostics.Add(Warning("CANMIGNUTNET032",
+                            "Nutrient PDF/A-2b was mapped to PdfComplianceProfile.PdfA2B. Configure PdfFontLoader and review unsupported annotations before export."));
+                    }
+                    else if (arguments.Count > 0 && !arguments[0].ToString().EndsWith(".PDF", StringComparison.Ordinal))
                     {
                         _diagnostics.Add(Warning("CANMIGNUTNET006",
                             "NewPDF conformance was removed from generated code because PXA does not yet provide equivalent PDF/A or PDF/UA guarantees."));
@@ -220,6 +228,19 @@ public sealed class NutrientMigration : CSharpSourceMigration
                         _diagnostics.Add(Info("CANMIGNUTNET002",
                             "NewPDF() removed because new PdfDocument() already creates an empty document."));
                     }
+                    return null;
+
+                case "ConvertToPDFA":
+                    if (arguments.Count > 0 && arguments[0].ToString().Contains("PDF_A_2b", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _pdfA2b = true;
+                        _diagnostics.Add(Warning("CANMIGNUTNET032",
+                            "Nutrient PDF/A-2b conversion was mapped to PDF/A-2b generation. This does not preserve an existing source PDF; verify the regenerated document."));
+                        return null;
+                    }
+
+                    _diagnostics.Add(Warning("CANMIGNUTNET006",
+                        "Only Nutrient PDF/A-2b is mapped automatically; this conformance conversion requires review."));
                     return null;
 
                 case "SetLicenseNumber":
@@ -236,7 +257,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     if (arguments.Count == 0)
                         return base.VisitExpressionStatement(node);
                     _diagnostics.Add(Info("CANMIGNUTNET005", "SaveToFile(path) converted to PdfDocument.Save(path)."));
-                    return ParseStatement($"{member.Expression}.Save({arguments[0]});", node);
+                    return ParseStatement(_pdfA2b
+                        ? $"{member.Expression}.Save({arguments[0]}, new PdfSaveOptions {{ ComplianceProfile = PdfComplianceProfile.PdfA2B }});"
+                        : $"{member.Expression}.Save({arguments[0]});", node);
 
                 case "SetOrigin":
                     _topLeftOrigin = arguments.Count > 0

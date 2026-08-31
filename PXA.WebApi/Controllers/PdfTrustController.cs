@@ -18,6 +18,7 @@ public sealed class PdfTrustController(
     private const long MaximumUploadBytes = PdfTrustInspectionOptions.DefaultMaximumFileSizeBytes;
 
     [HttpPost("inspect")]
+    [HttpPost("/api/pxa/v1/pdf/compliance/validate")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(typeof(PdfTrustReport), StatusCodes.Status200OK)]

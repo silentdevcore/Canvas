@@ -440,6 +440,8 @@ Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.m
 - [ ] Native PXA digital signatures, PAdES, timestamps, and LTV validation.
 - [ ] Irreversible content redaction with sanitization guarantees.
 - [ ] PDF/A and PDF/UA generation, validation, and repair.
+- [x] Map Nutrient `PDF_A_2b` generation requests to
+  `PdfComplianceProfile.PdfA2B` with explicit font, regeneration, and review warnings.
 - [ ] AES-256 and certificate-based PDF security.
 - [ ] Advanced signature and compliance Viewer UI.
 

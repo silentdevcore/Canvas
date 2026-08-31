@@ -886,6 +886,13 @@
       "passwordHash": "Hash password (facoltativo)",
       "passwordHashPlaceholder": "Lascia vuoto per nessuna password"
     },
+    "compliance": {
+      "heading": "Archiviazione PDF",
+      "profile": "Profilo di conformità",
+      "none": "PDF standard",
+      "description": "PDF/A-2b incorpora font, metadati e un profilo di output RGB. I contenuti non supportati bloccano l'esportazione invece di creare una dichiarazione falsa.",
+      "encryptionDisabled": "La crittografia non è disponibile perché i file PDF/A devono rimanere non crittografati."
+    },
     "encryption": {
       "heading": "Crittografia PDF",
       "enable": "Crittografa PDF con una password",

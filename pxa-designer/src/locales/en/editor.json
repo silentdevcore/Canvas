@@ -915,6 +915,13 @@
       "passwordHash": "Password hash (optional)",
       "passwordHashPlaceholder": "Leave blank for no password"
     },
+    "compliance": {
+      "heading": "PDF Archiving",
+      "profile": "Compliance profile",
+      "none": "Standard PDF",
+      "description": "PDF/A-2b embeds fonts, metadata and an RGB output intent. Unsupported content blocks export instead of producing a false claim.",
+      "encryptionDisabled": "Encryption is unavailable because PDF/A files must remain unencrypted."
+    },
     "encryption": {
       "heading": "PDF Encryption",
       "enable": "Encrypt PDF with a password",

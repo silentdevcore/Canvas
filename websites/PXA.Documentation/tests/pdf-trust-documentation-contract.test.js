@@ -40,6 +40,15 @@ test('PDF Trust documentation separates integrity, trust, and revocation', () =>
   assert.match(source, /refuses to run on a signed document unless the caller accepts/);
 });
 
+test('PDF/A documentation states the exact generated profile and validation boundary', () => {
+  assert.match(source, /ComplianceProfile = PdfComplianceProfile\.PdfA2B/);
+  assert.match(source, /POST \/api\/pxa\/v1\/pdf\/compliance\/validate/);
+  assert.match(source, /Generation fails closed for encryption, unembedded text fonts/);
+  assert.match(source, /PDF\/A conversion of an existing PDF is a separate operation/);
+  assert.match(source, /independently validate release fixtures with veraPDF/);
+  assert.match(source, /metadata string outside the catalog is only an unverified claim/);
+});
+
 test('PDF redaction documentation separates preflight from applied redaction', () => {
   assert.match(source, /Redaction preflight is separate from applying a redaction/);
   assert.match(source, /POST \/api\/pxa\/v1\/pdf\/redactions\/preflight never changes the uploaded document/);

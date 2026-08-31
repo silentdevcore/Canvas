@@ -1,0 +1,21 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-a2b-generation-validation",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "PXA adds fail-closed PDF/A-2b generation with embedded fonts, XMP and RGB output intent, structural validation in the Viewer and API, and Nutrient PDF/A-2b migration guidance.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md",
+    "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md"
+  ],
+  "breaking": false
+}

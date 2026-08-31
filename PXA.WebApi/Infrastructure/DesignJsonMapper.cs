@@ -12,14 +12,31 @@ public static class DesignJsonMapper
 {
     private static readonly IChartRenderer ChartRenderer = new PxaChartPdfRenderer();
     /// <summary>
-    /// Builds the <see cref="PdfSaveOptions"/> for a design — currently the PDF encryption settings —
-    /// or null when the design requests no encryption. Pass the result to <c>document.ToBytes(options)</c>.
+    /// Builds PDF security and archival-compliance save options for a design.
     /// </summary>
     public static PdfSaveOptions? BuildSaveOptions(DesignExportDto design)
     {
-        var enc = design.PageSettings?.Encryption;
-        if (enc is null || !enc.Enabled)
+        var settings = design.PageSettings;
+        var enc = settings?.Encryption;
+        var complianceProfile = settings?.ComplianceProfile?.Trim() switch
+        {
+            null or "" or "None" => PdfComplianceProfile.None,
+            "PdfA2B" => PdfComplianceProfile.PdfA2B,
+            var value => throw new InvalidDataException($"Unsupported PDF compliance profile '{value}'.")
+        };
+
+        if (complianceProfile != PdfComplianceProfile.None && enc?.Enabled == true)
+        {
+            throw new InvalidDataException("PDF/A output and PDF encryption cannot be enabled together.");
+        }
+
+        if ((enc is null || !enc.Enabled) && complianceProfile == PdfComplianceProfile.None)
             return null;
+
+        if (enc is null || !enc.Enabled)
+        {
+            return new PdfSaveOptions { ComplianceProfile = complianceProfile };
+        }
 
         var p = enc.Permissions ?? new PdfEncryptionPermissionsDto();
         var permissions = PdfPermissions.None;
@@ -43,6 +60,7 @@ public static class DesignJsonMapper
 
         return new PdfSaveOptions
         {
+            ComplianceProfile = complianceProfile,
             Encryption = new PdfEncryptionOptions
             {
                 UserPassword = enc.UserPassword,

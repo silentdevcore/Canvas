@@ -82,6 +82,7 @@ export class ExportService {
         namedStyles: settings.namedStyles ?? [],
         protection: settings.protection ?? null,
         encryption: settings.encryption?.enabled ? settings.encryption : null,
+        complianceProfile: settings.complianceProfile ?? 'None',
         customProperties: settings.customProperties ?? [],
         trackChanges: settings.trackChanges ?? false,
         systemLanguage: settings.systemLanguage ?? navigator.language.split('-')[0],
