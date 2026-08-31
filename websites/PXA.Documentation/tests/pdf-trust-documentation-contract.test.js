@@ -43,8 +43,13 @@ test('PDF Trust documentation separates integrity, trust, and revocation', () =>
 test('PDF/A documentation states the exact generated profile and validation boundary', () => {
   assert.match(source, /ComplianceProfile = PdfComplianceProfile\.PdfA2B/);
   assert.match(source, /POST \/api\/pxa\/v1\/pdf\/compliance\/validate/);
+  assert.match(source, /POST \/api\/pxa\/v1\/pdf\/compliance\/preflight/);
+  assert.match(source, /POST \/api\/pxa\/v1\/pdf\/compliance\/convert/);
   assert.match(source, /Generation fails closed for encryption, unembedded text fonts/);
-  assert.match(source, /PDF\/A conversion of an existing PDF is a separate operation/);
+  assert.match(source, /Preflight returns ready, reviewRequired, or unsupported/);
+  assert.match(source, /original remains unchanged/);
+  assert.match(source, /full rewrite invalidates and removes those signatures/);
+  assert.match(source, /Visible signature appearances remain unsupported/);
   assert.match(source, /independently validate release fixtures with veraPDF/);
   assert.match(source, /metadata string outside the catalog is only an unverified claim/);
 });

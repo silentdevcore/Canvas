@@ -345,7 +345,7 @@ document.AddPage().DrawText("Archived content", 40, 800, new PdfDrawTextOptions 
 document.Save("archive.pdf", new PdfSaveOptions {
   ComplianceProfile = PdfComplianceProfile.PdfA2B
 });`,
-        note: 'PDF/A-2b output uses PDF 1.7, catalog-referenced XMP identification, an embedded RGB ICC output intent, ToUnicode mappings, and embedded fonts. Generation fails closed for encryption, unembedded text fonts, interactive form fields, and review annotations. Arbitrary attachments belong to a later PDF/A-3 workflow and are not accepted by this PDF/A-2b generator. PDF/A conversion of an existing PDF is a separate operation and is not implemented by this generation option.',
+        note: 'PDF/A-2b output uses PDF 1.7, catalog-referenced XMP identification, an embedded RGB ICC output intent, ToUnicode mappings, and embedded fonts. Generation fails closed for encryption, unembedded text fonts, interactive form fields, and review annotations. Arbitrary attachments belong to a later PDF/A-3 workflow and are not accepted by this PDF/A-2b generator. Existing PDFs use the separate preflight and conversion workflow below.',
       },
       {
         title: 'Validate a PDF/A claim',
@@ -354,6 +354,20 @@ Content-Type: multipart/form-data
 
 file=@archive.pdf`,
         note: 'The Viewer and API report the exact profile, status, validator name, validation time, evidence, and stable PXAPDFTRUST rule diagnostics. A metadata string outside the catalog is only an unverified claim. The current PXA validator is structural; independently validate release fixtures with veraPDF and a second standards-based or commercial validator before making a production conformance claim.',
+      },
+      {
+        title: 'Preflight and convert an existing PDF',
+        json: `POST /api/pxa/v1/pdf/compliance/preflight
+Content-Type: multipart/form-data
+
+file=@source.pdf
+
+POST /api/pxa/v1/pdf/compliance/convert
+Content-Type: multipart/form-data
+
+file=@source.pdf
+allowSignatureInvalidation=false`,
+        note: 'Preflight returns ready, reviewRequired, or unsupported without changing the source. The initial converter preserves visible PDF objects and only replaces PDF/A identification metadata and the RGB output intent. It blocks encryption, unembedded fonts, unsupported color spaces, forms, attachments, risky actions, and metadata that cannot be synchronized safely. A source with invisible signature fields is reviewRequired because the required full rewrite invalidates and removes those signatures; conversion proceeds only after explicit approval. Visible signature appearances remain unsupported until they can be flattened without visual loss. A blocked or failed conversion returns no PDF and the original remains unchanged.',
       },
       {
         title: 'On-Premise trust policy',

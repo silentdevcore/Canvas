@@ -64,6 +64,38 @@
   gap: 12px;
 }
 
+.pdfv-compliance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(28, 25, 23, 0.12);
+  border-radius: 8px;
+  background: #fafaf9;
+  padding: 10px;
+}
+
+.pdfv-compliance-actions > span {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pdfv-compliance-actions > span[data-status='0'] { color: #137333; }
+.pdfv-compliance-actions > span[data-status='1'] { color: #b42318; }
+.pdfv-compliance-actions > span[data-status='2'] { color: #b45309; }
+
+.pdfv-compliance-actions label {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.pdfv-compliance-actions .pdfv-trust-diagnostics {
+  flex-basis: 100%;
+  width: 100%;
+}
+
 .pdfv-trust-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

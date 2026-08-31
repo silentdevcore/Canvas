@@ -392,25 +392,29 @@ Reference material:
   with the information dictionary.
 - [ ] Enforce profile restrictions for encryption, actions, JavaScript, multimedia,
   annotations, transparency, attachments, and external dependencies.
-- [ ] Add `generate`, `convert`, `validate`, and `preflight` operations with distinct
+- [x] Add `generate`, `convert`, `validate`, and `preflight` operations with distinct
   results; conversion must never silently discard unsupported content.
-- [ ] Preserve the original when conversion reports `reviewRequired` or fails.
+- [x] Preserve the original when conversion reports `reviewRequired` or fails.
 - [ ] Integrate veraPDF as one independent validator and compare against at least one
   additional commercial or standards-based validator before claiming support.
   - [x] Validate the deterministic generated fixture as PDF/A-2b with the official
     `ghcr.io/verapdf/cli:v1.31.166` image; all 144 evaluated rules pass.
+  - [x] Validate unsigned and explicitly signature-stripped existing-PDF conversion
+    fixtures with `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS` for profile
+    `2b`, while visible signature appearances remain fail-closed.
   - [ ] Add a second commercial or standards-based validator before the production
     support claim.
 - [x] Store validator name, version, profile, rule IDs, and machine-readable evidence
   in the compliance report.
 - [x] Add the structural PDF/A-2b validation path to the Viewer and expose
-  `POST /api/pxa/v1/pdf/compliance/validate`; keep independent release validation
-  and conversion as explicit open work.
-- [ ] Add `POST /api/pxa/v1/pdf/compliance/validate` and
+  validate, preflight, and conversion actions; keep a second independent validator
+  and production support policy as explicit open work.
+- [x] Add `POST /api/pxa/v1/pdf/compliance/validate` and
+  `POST /api/pxa/v1/pdf/compliance/preflight` plus
   `POST /api/pxa/v1/pdf/compliance/convert`.
   - [x] Expose `POST /api/pxa/v1/pdf/compliance/validate` as an authenticated alias
     of the structural trust inspection pipeline.
-  - [ ] Implement explicit conversion with loss and review diagnostics.
+  - [x] Implement explicit conversion with loss and review diagnostics.
 
 ## P1 - PDF/UA and Tagged PDF
 
@@ -566,6 +570,8 @@ Reference material:
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture and verify it locally with
     veraPDF; CI report publication and PDF/UA validation remain open.
+  - [x] Verify the conservative existing-PDF conversion fixture locally with veraPDF;
+    CI report publication and a second validator remain open.
 - [ ] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.

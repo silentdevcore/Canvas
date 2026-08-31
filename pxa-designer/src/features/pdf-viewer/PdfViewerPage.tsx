@@ -17,6 +17,7 @@ const PdfViewerPage: React.FC = () => {
         canDownload={hasDesignerPermission(user, designerPermissions.pdfExport)}
         canPrint={hasDesignerPermission(user, designerPermissions.pdfPrint)}
         canInspectTrust={hasDesignerPermission(user, designerPermissions.pdfTrustInspect)}
+        canConvertCompliance={hasDesignerPermission(user, designerPermissions.pdfConvert)}
         canAnnotate={hasDesignerPermission(user, designerPermissions.pdfViewerAnnotate)}
         canFillForms={hasDesignerPermission(user, designerPermissions.pdfViewerForms)}
         canRedact={hasDesignerPermission(user, designerPermissions.pdfViewerRedact)}

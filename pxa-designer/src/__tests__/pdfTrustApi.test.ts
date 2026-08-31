@@ -1,7 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import { inspectPdfTrust, type PdfTrustReport } from '@/features/pdf-viewer/pdfTrustApi';
+import {
+  convertPdfA2b,
+  inspectPdfTrust,
+  preflightPdfA2b,
+  type PdfTrustReport,
+} from '@/features/pdf-viewer/pdfTrustApi';
 
 const report: PdfTrustReport = {
   status: 2,
@@ -53,5 +58,56 @@ describe('PDF Trust API', () => {
 
     await expect(inspectPdfTrust(new File(['%PDF-1.7'], 'trust.pdf')))
       .rejects.toThrow('PDF inspection is not permitted.');
+  });
+
+  test('returns the machine-readable PDF/A preflight report', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        targetProfile: 'PDF/A-2b',
+        capability: 0,
+        sourceSha256: 'b'.repeat(64),
+        fileSizeBytes: 128,
+        objectCount: 5,
+        signatureCount: 0,
+        invalidatesSignatures: false,
+        originalPreserved: true,
+        findings: [],
+      }),
+    } as Response);
+    const file = new File(['%PDF-1.7'], 'source.pdf', { type: 'application/pdf' });
+
+    const result = await preflightPdfA2b(file);
+
+    expect(result.capability).toBe(0);
+    expect(result.originalPreserved).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/pxa/v1/pdf/compliance/preflight');
+  });
+
+  test('passes explicit signature invalidation approval to conversion', async () => {
+    const converted = new Blob(['%PDF-1.7'], { type: 'application/pdf' });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      blob: async () => converted,
+    } as Response);
+    const file = new File(['%PDF-1.7'], 'source.pdf', { type: 'application/pdf' });
+
+    await expect(convertPdfA2b(file, true)).resolves.toBe(converted);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect((init?.body as FormData).get('allowSignatureInvalidation')).toBe('true');
+  });
+
+  test('surfaces the server reason when PDF/A conversion is blocked', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ detail: 'An embedded font is missing.' }),
+    } as Response);
+
+    await expect(convertPdfA2b(new File(['%PDF-1.7'], 'source.pdf'), false))
+      .rejects.toThrow('An embedded font is missing.');
   });
 });

@@ -106,6 +106,26 @@ export interface PdfTrustReport {
   diagnostics: PdfTrustDiagnostic[];
 }
 
+export type PdfComplianceConversionCapability = 0 | 1 | 2;
+
+export interface PdfA2bConversionPreflightReport {
+  targetProfile: string;
+  capability: PdfComplianceConversionCapability;
+  sourceSha256: string;
+  fileSizeBytes: number;
+  objectCount: number;
+  signatureCount: number;
+  invalidatesSignatures: boolean;
+  originalPreserved: boolean;
+  findings: Array<{
+    code: string;
+    severity: 0 | 1 | 2;
+    message: string;
+    objectNumber?: number | null;
+    generation?: number | null;
+  }>;
+}
+
 export async function inspectPdfTrust(file: File): Promise<PdfTrustReport> {
   const form = new FormData();
   form.append('file', file);
@@ -120,4 +140,31 @@ export async function inspectPdfTrust(file: File): Promise<PdfTrustReport> {
   }
 
   return response.json() as Promise<PdfTrustReport>;
+}
+
+export async function preflightPdfA2b(file: File): Promise<PdfA2bConversionPreflightReport> {
+  const form = new FormData();
+  form.append('file', file);
+  const response = await fetch('/api/pxa/v1/pdf/compliance/preflight', { method: 'POST', body: form });
+  if (!response.ok) {
+    const problem = await response.json().catch(() => ({}));
+    throw new Error(problem.detail || problem.title || `PDF/A preflight failed (${response.status}).`);
+  }
+  return response.json() as Promise<PdfA2bConversionPreflightReport>;
+}
+
+export async function convertPdfA2b(file: File, allowSignatureInvalidation: boolean): Promise<Blob> {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('allowSignatureInvalidation', String(allowSignatureInvalidation));
+  const response = await fetch('/api/pxa/v1/pdf/compliance/convert', { method: 'POST', body: form });
+  if (!response.ok) {
+    const problem = await response.json().catch(() => ({}));
+    throw new Error(problem.detail || problem.title || `PDF/A conversion failed (${response.status}).`);
+  }
+  const blob = await response.blob();
+  if (blob.type && !blob.type.includes('pdf')) {
+    throw new Error('PDF/A conversion returned an unexpected file type.');
+  }
+  return blob;
 }

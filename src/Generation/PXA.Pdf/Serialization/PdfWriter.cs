@@ -705,7 +705,7 @@ internal sealed class PdfWriter
 
         if (isPdfA2B)
         {
-            var iccBytes = PdfSrgbIccProfile.Create();
+            var iccBytes = PdfComplianceResources.CreateSrgbIccProfile();
             objects.Add(new PdfIndirectObject(
                 iccProfileObjectId!.Value,
                 BuildBinaryStreamObject(iccBytes, $"/N 3 /Alternate /DeviceRGB /Range [0 1 0 1 0 1]")));

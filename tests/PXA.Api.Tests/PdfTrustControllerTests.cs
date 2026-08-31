@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -64,14 +65,87 @@ public sealed class PdfTrustControllerTests
             .Select(attribute => attribute.Template)
             .ToArray();
         Assert.Contains("/api/pxa/v1/pdf/compliance/validate", postRoutes);
+
+        var convertAuthorization = Assert.Single(typeof(PdfTrustController)
+            .GetMethod(nameof(PdfTrustController.ConvertPdfA2b))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfConvert, convertAuthorization.Policy);
+    }
+
+    [Fact]
+    public async Task PreflightPdfA2b_ReturnsMachineReadableConversionReport()
+    {
+        var response = await CreateController().PreflightPdfA2b(CreateFile(), CancellationToken.None);
+
+        var ok = Assert.IsType<OkObjectResult>(response.Result);
+        var report = Assert.IsType<PdfA2bConversionPreflightReport>(ok.Value);
+        Assert.Equal(PdfComplianceConversionCapability.Ready, report.Capability);
+        Assert.True(report.OriginalPreserved);
+    }
+
+    [Fact]
+    public async Task ConvertPdfA2b_ReturnsOnePdfAndComplianceHeaders()
+    {
+        var controller = CreateController();
+
+        var response = await controller.ConvertPdfA2b(CreateFile(), false, CancellationToken.None);
+
+        var file = Assert.IsType<FileContentResult>(response);
+        Assert.Equal("application/pdf", file.ContentType);
+        Assert.Equal("trust-pdfa2b.pdf", file.FileDownloadName);
+        Assert.Equal("PDF/A-2b", controller.Response.Headers["PXA-Compliance-Profile"]);
     }
 
     private static PdfTrustController CreateController() => new(
         new PdfTrustInspector(),
-        new TestTrustPolicyProvider());
+        new TestPdfA2bConverter(),
+        new TestTrustPolicyProvider())
+    {
+        ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+    };
+
+    private static FormFile CreateFile()
+    {
+        var bytes = Encoding.ASCII.GetBytes("%PDF-1.7\n%%EOF\n");
+        return new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "trust.pdf")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
+    }
 
     private sealed class TestTrustPolicyProvider : IPxaPdfTrustPolicyProvider
     {
         public PdfSignatureValidationPolicy Policy { get; } = new();
+    }
+
+    private sealed class TestPdfA2bConverter : IPdfA2bConverter
+    {
+        private static readonly PdfA2bConversionPreflightReport Report = new(
+            "PDF/A-2b",
+            PdfComplianceConversionCapability.Ready,
+            new string('a', 64),
+            16,
+            1,
+            0,
+            false,
+            true,
+            []);
+
+        public Task<PdfA2bConversionPreflightReport> PreflightAsync(
+            Stream pdfStream,
+            PdfA2bConversionOptions? options = null,
+            CancellationToken cancellationToken = default) => Task.FromResult(Report);
+
+        public Task<PdfA2bConversionResult> ConvertAsync(
+            Stream pdfStream,
+            PdfA2bConversionOptions? options = null,
+            CancellationToken cancellationToken = default) => Task.FromResult(new PdfA2bConversionResult(
+                Encoding.ASCII.GetBytes("%PDF-1.7\n%%EOF\n"),
+                Report.SourceSha256,
+                new string('b', 64),
+                Report,
+                new PdfComplianceClaim("PDF/A", "PDF/A-2b", true, PdfTrustStatus.Valid, "test")));
     }
 }
