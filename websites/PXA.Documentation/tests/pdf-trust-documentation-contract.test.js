@@ -55,6 +55,10 @@ test('PDF/A documentation states the exact generated profile and validation boun
   assert.match(source, /second standards-based or commercial validator/);
   assert.match(source, /merely opening a PDF in a reader is not validation evidence/);
   assert.match(source, /metadata string outside the catalog is only an unverified claim/);
+  assert.match(source, /bounded 8-bit samples in losslessly decodable image XObjects/);
+  assert.match(source, /JPEG, JPX, colour-key masks, oversized images, unsupported bit depths/);
+  assert.match(source, /Colored tiling Pattern streams are traversed/);
+  assert.match(source, /Missing, malformed, uncolored, and shading patterns remain blocked/);
 });
 
 test('PDF redaction documentation separates preflight from applied redaction', () => {

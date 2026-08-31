@@ -410,9 +410,24 @@ Reference material:
     is disturbed.
   - [x] Document the DeviceCMYK conversion as the ISO 32000-1 8.6.4.4 approximation:
     reproducible, not colorimetrically exact.
-  - [ ] Convert colour carried by image samples; images in a device-dependent space are
-    still blocked rather than passed through.
-  - [ ] Convert Pattern colour spaces, which remain blocked.
+  - [x] Convert bounded 8-bit colour carried by losslessly decodable DeviceCMYK, Indexed,
+    Separation, and DeviceN image samples to DeviceRGB. Preserve stencil and soft masks;
+    block JPEG/JPX and unknown filters, colour-key masks, oversized images, unsupported bit
+    depths, and colour spaces without a complete deterministic path rather than passing
+    them through or rewriting encoded bytes approximately.
+    - [x] Validate the converted CMYK image fixture independently as PDF/A-2b with the
+      pinned official veraPDF container and retain its machine-readable XML report.
+  - [ ] Complete Pattern colour-space conversion.
+    - [x] Traverse colored tiling pattern resources and convert deterministic colour in
+      their content streams while preserving the page's Pattern selection semantics.
+      Reject missing, malformed, uncolored, and shading patterns with an object-level
+      diagnostic instead of silently flattening or recoloring them.
+      - [x] Validate the converted colored-tiling-pattern fixture independently as
+        PDF/A-2b with the pinned official veraPDF container.
+    - [ ] Convert uncolored tiling patterns by safely remapping their underlying colour
+      space and every `scn`/`SCN` use without changing pattern identity.
+    - [ ] Convert shading patterns only after their functions, meshes, and sample domains
+      can be transformed without visual or semantic loss.
   - [ ] Replace the specified CMYK approximation with an ICC transform through the output
     intent profile.
   - [ ] Implement complete CalGray, CalRGB, Lab, and embedded ICC profile conversion before

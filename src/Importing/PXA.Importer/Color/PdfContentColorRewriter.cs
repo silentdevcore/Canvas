@@ -22,13 +22,16 @@ public sealed class PdfContentColorRewriter
 {
     private readonly Func<PdfObject?, PdfObject?> _resolve;
     private readonly IReadOnlyDictionary<string, PdfObject> _colorSpaceResources;
+    private readonly IReadOnlyDictionary<string, PdfObject> _patternResources;
 
     public PdfContentColorRewriter(
         Func<PdfObject?, PdfObject?> resolve,
-        IReadOnlyDictionary<string, PdfObject> colorSpaceResources)
+        IReadOnlyDictionary<string, PdfObject> colorSpaceResources,
+        IReadOnlyDictionary<string, PdfObject>? patternResources = null)
     {
         _resolve = resolve;
         _colorSpaceResources = colorSpaceResources;
+        _patternResources = patternResources ?? new Dictionary<string, PdfObject>(StringComparer.Ordinal);
     }
 
     public PdfColorRewriteResult Rewrite(ReadOnlyMemory<byte> content)
@@ -79,7 +82,13 @@ public sealed class PdfContentColorRewriter
 
                     // A selection of a convertible space is replaced by /DeviceRGB; the
                     // following sc/scn supplies the converted components.
-                    if (space is not null && space.IsConvertible && space.Family != PdfColorSpaceFamily.DeviceRgb)
+                    if (space is { Family: PdfColorSpaceFamily.Pattern })
+                    {
+                        // Pattern selection remains a Pattern colour space. The selected
+                        // coloured tiling pattern is validated below and its own content
+                        // stream is converted independently.
+                    }
+                    else if (space is not null && space.IsConvertible && space.Family != PdfColorSpaceFamily.DeviceRgb)
                     {
                         edits.Add((SpanStart(command), SpanEnd(command), stroke ? "/DeviceRGB CS" : "/DeviceRGB cs"));
                         converted++;
@@ -126,6 +135,19 @@ public sealed class PdfContentColorRewriter
                     var spaceName = stroke ? strokeSpaceName : fillSpaceName;
                     if (space is null)
                     {
+                        break;
+                    }
+
+                    if (space.Family == PdfColorSpaceFamily.Pattern)
+                    {
+                        var patternName = command.Operands.OfType<PdfName>().LastOrDefault()?.Value;
+                        if (!IsSupportedColoredTilingPattern(patternName) && spaceName is not null)
+                        {
+                            unconvertible.Add(patternName is null
+                                ? spaceName
+                                : $"Pattern:{patternName}");
+                        }
+
                         break;
                     }
 
@@ -225,6 +247,25 @@ public sealed class PdfContentColorRewriter
             ? PdfSrgbColorConverter.Resolve(resource, _resolve)
             : null;
     }
+
+    private bool IsSupportedColoredTilingPattern(string? name)
+    {
+        if (name is null || !_patternResources.TryGetValue(name, out var resource) ||
+            _resolve(resource) is not PdfStreamObject pattern)
+        {
+            return false;
+        }
+
+        return ReadInteger(_resolve(pattern.Dictionary["PatternType"])) == 1 &&
+            ReadInteger(_resolve(pattern.Dictionary["PaintType"])) == 1;
+    }
+
+    private static int? ReadInteger(PdfObject? value) => value switch
+    {
+        PdfInteger integer when integer.Value is >= int.MinValue and <= int.MaxValue => (int)integer.Value,
+        PdfNumber number when number.Value is >= int.MinValue and <= int.MaxValue => (int)number.Value,
+        _ => null
+    };
 
     private static byte[] Splice(ReadOnlySpan<byte> content, List<(int Start, int End, string Replacement)> edits)
     {

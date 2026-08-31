@@ -9,6 +9,8 @@ public sealed record PdfColorConversionAnalysis(
     IReadOnlyList<PdfComplianceConversionFinding> Blocking,
     IReadOnlyList<PdfIncrementalObjectUpdate> Updates)
 {
+    public int ConvertibleImageCount { get; init; }
+
     public bool IsBlocked => Blocking.Count > 0;
 }
 
@@ -16,9 +18,8 @@ public sealed record PdfColorConversionAnalysis(
 /// Converts device-dependent colour in page and form content to sRGB so that a document can
 /// meet a PDF/A output intent.
 ///
-/// Colour used by content-stream operators is converted. Colour carried by image samples is
-/// not: rewriting pixel data is a different capability, so images in a device-dependent space
-/// still block conversion rather than being silently passed through.
+/// Colour used by content-stream operators and bounded losslessly decoded image samples is
+/// converted. Encoded image formats and unsupported image semantics remain fail-closed.
 /// </summary>
 internal static class PdfComplianceColorConversion
 {
@@ -27,34 +28,33 @@ internal static class PdfComplianceColorConversion
         var blocking = new List<PdfComplianceConversionFinding>();
         var updates = new List<PdfIncrementalObjectUpdate>();
         var converted = 0;
+        var convertedImages = 0;
         var resolve = CreateResolver(graph);
 
         foreach (var indirectObject in EnumerateReachableImages(graph, resolve))
         {
             var stream = (PdfStreamObject)indirectObject.Value;
-            var subtype = ReadName(resolve, stream.Dictionary["Subtype"]);
-            if (subtype == "Image")
+            var conversion = PdfImageColorConverter.Convert(stream, resolve);
+            if (conversion.BlockingReason is { } reason)
             {
                 var imageSpace = PdfSrgbColorConverter.Resolve(stream.Dictionary["ColorSpace"], resolve);
-                if (imageSpace.Family is not (PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.DeviceRgb
-                    or PdfColorSpaceFamily.CalGray or PdfColorSpaceFamily.CalRgb) &&
-                    stream.Dictionary["ColorSpace"] is not null)
-                {
-                    blocking.Add(new PdfComplianceConversionFinding(
-                        "PXAPDFACONVERT010",
-                        PdfTrustDiagnosticSeverity.Error,
-                        $"Image XObject uses the {Describe(imageSpace)} colour space. Converting image samples is not implemented, so the document cannot be converted deterministically.",
-                        indirectObject.Id.Number,
-                        indirectObject.Id.Generation));
-                }
-
-                continue;
+                blocking.Add(new PdfComplianceConversionFinding(
+                    "PXAPDFACONVERT010",
+                    PdfTrustDiagnosticSeverity.Error,
+                    $"Image XObject uses the {Describe(imageSpace)} colour space. {reason}",
+                    indirectObject.Id.Number,
+                    indirectObject.Id.Generation));
+            }
+            else if (conversion is { Converted: true, Stream: not null })
+            {
+                convertedImages++;
+                updates.Add(new PdfIncrementalObjectUpdate(indirectObject.Id, conversion.Stream));
             }
         }
 
         foreach (var holder in EnumerateContentHolders(graph, resolve))
         {
-            var rewriter = new PdfContentColorRewriter(resolve, holder.ColorSpaces);
+            var rewriter = new PdfContentColorRewriter(resolve, holder.ColorSpaces, holder.Patterns);
             byte[] decoded;
             try
             {
@@ -90,9 +90,11 @@ internal static class PdfComplianceColorConversion
             {
                 var message = name.StartsWith("Shading", StringComparison.Ordinal)
                     ? "Content uses a shading resource whose colour samples cannot yet be converted safely."
+                    : name.StartsWith("Pattern:", StringComparison.Ordinal)
+                        ? "Content selects an uncolored, shading, missing, or malformed pattern. Only colored tiling pattern streams can currently be converted safely."
                     : name == "InlineImage"
                         ? "Content contains an inline image without a demonstrably safe DeviceGray or DeviceRGB colour space."
-                        : $"Content uses the colour space resource '/{name}', which cannot be converted to sRGB deterministically. Pattern colour spaces are not converted.";
+                        : $"Content uses the colour space resource '/{name}', which cannot be converted to sRGB deterministically.";
                 blocking.Add(new PdfComplianceConversionFinding(
                     "PXAPDFACONVERT012",
                     PdfTrustDiagnosticSeverity.Error,
@@ -117,7 +119,10 @@ internal static class PdfComplianceColorConversion
                 new PdfStreamObject(dictionary, result.Content)));
         }
 
-        return new PdfColorConversionAnalysis(converted, blocking, updates);
+        return new PdfColorConversionAnalysis(converted, blocking, updates)
+        {
+            ConvertibleImageCount = convertedImages
+        };
     }
 
     private static IEnumerable<ContentHolder> EnumerateContentHolders(
@@ -134,11 +139,12 @@ internal static class PdfComplianceColorConversion
 
             var resources = ReadInheritedResources(graph, resolve, page);
             var colorSpaces = ReadColorSpaceResources(resolve, resources);
+            var patterns = ReadPatternResources(resolve, resources);
             foreach (var contentId in ReadContentStreamIds(page))
             {
                 if (graph.Resolve(contentId)?.Value is PdfStreamObject content)
                 {
-                    yield return new ContentHolder(contentId, content, colorSpaces);
+                    yield return new ContentHolder(contentId, content, colorSpaces, patterns);
                 }
             }
         }
@@ -150,7 +156,22 @@ internal static class PdfComplianceColorConversion
                 yield return new ContentHolder(
                     indirectObject.Id,
                     form,
-                    ReadColorSpaceResources(resolve, form.Dictionary["Resources"]));
+                    ReadColorSpaceResources(resolve, form.Dictionary["Resources"]),
+                    ReadPatternResources(resolve, form.Dictionary["Resources"]));
+            }
+        }
+
+        foreach (var indirectObject in EnumerateReachablePatterns(graph, resolve))
+        {
+            if (indirectObject.Value is PdfStreamObject pattern &&
+                ReadInteger(resolve, pattern.Dictionary["PatternType"]) == 1 &&
+                ReadInteger(resolve, pattern.Dictionary["PaintType"]) == 1)
+            {
+                yield return new ContentHolder(
+                    indirectObject.Id,
+                    pattern,
+                    ReadColorSpaceResources(resolve, pattern.Dictionary["Resources"]),
+                    ReadPatternResources(resolve, pattern.Dictionary["Resources"]));
             }
         }
     }
@@ -164,6 +185,11 @@ internal static class PdfComplianceColorConversion
         PdfObjectGraph graph,
         Func<PdfObject?, PdfObject?> resolve) =>
         EnumerateReachableXObjects(graph, resolve, "Form");
+
+    private static IEnumerable<PdfIndirectObject> EnumerateReachablePatterns(
+        PdfObjectGraph graph,
+        Func<PdfObject?, PdfObject?> resolve) =>
+        EnumerateReachableXObjects(graph, resolve, "Pattern");
 
     private static IEnumerable<PdfIndirectObject> EnumerateReachableXObjects(
         PdfObjectGraph graph,
@@ -183,13 +209,45 @@ internal static class PdfComplianceColorConversion
 
         void VisitResources(PdfObject? resources)
         {
-            if (resolve(resources) is not PdfDictionary resourceDictionary ||
-                resolve(resourceDictionary["XObject"]) is not PdfDictionary xObjects)
+            if (resolve(resources) is not PdfDictionary resourceDictionary)
             {
                 return;
             }
 
-            foreach (var reference in xObjects.Values.Values.OfType<PdfReference>())
+            if (resolve(resourceDictionary["XObject"]) is PdfDictionary xObjects)
+            {
+                foreach (var reference in xObjects.Values.Values.OfType<PdfReference>())
+                {
+                    if (!visited.Add(reference.Id))
+                    {
+                        continue;
+                    }
+
+                    var indirectObject = graph.Resolve(reference.Id);
+                    if (indirectObject?.Value is not PdfStreamObject stream)
+                    {
+                        continue;
+                    }
+
+                    var subtype = ReadName(resolve, stream.Dictionary["Subtype"]);
+                    if (subtype == requestedSubtype)
+                    {
+                        matches.Add(indirectObject);
+                    }
+
+                    if (subtype == "Form")
+                    {
+                        VisitResources(stream.Dictionary["Resources"] ?? resources);
+                    }
+                }
+            }
+
+            if (resolve(resourceDictionary["Pattern"]) is not PdfDictionary patterns)
+            {
+                return;
+            }
+
+            foreach (var reference in patterns.Values.Values.OfType<PdfReference>())
             {
                 if (!visited.Add(reference.Id))
                 {
@@ -197,21 +255,17 @@ internal static class PdfComplianceColorConversion
                 }
 
                 var indirectObject = graph.Resolve(reference.Id);
-                if (indirectObject?.Value is not PdfStreamObject stream)
+                if (indirectObject?.Value is not PdfStreamObject pattern)
                 {
                     continue;
                 }
 
-                var subtype = ReadName(resolve, stream.Dictionary["Subtype"]);
-                if (subtype == requestedSubtype)
+                if (requestedSubtype == "Pattern")
                 {
                     matches.Add(indirectObject);
                 }
 
-                if (subtype == "Form")
-                {
-                    VisitResources(stream.Dictionary["Resources"] ?? resources);
-                }
+                VisitResources(pattern.Dictionary["Resources"]);
             }
         }
     }
@@ -256,6 +310,22 @@ internal static class PdfComplianceColorConversion
             StringComparer.Ordinal);
     }
 
+    private static IReadOnlyDictionary<string, PdfObject> ReadPatternResources(
+        Func<PdfObject?, PdfObject?> resolve,
+        PdfObject? resources)
+    {
+        if (resolve(resources) is not PdfDictionary resourceDictionary ||
+            resolve(resourceDictionary["Pattern"]) is not PdfDictionary patterns)
+        {
+            return new Dictionary<string, PdfObject>(StringComparer.Ordinal);
+        }
+
+        return patterns.Values.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value,
+            StringComparer.Ordinal);
+    }
+
     private static IEnumerable<PdfObjectId> ReadContentStreamIds(PdfDictionary page) =>
         page["Contents"] switch
         {
@@ -295,11 +365,20 @@ internal static class PdfComplianceColorConversion
     private static string? ReadName(Func<PdfObject?, PdfObject?> resolve, PdfObject? value) =>
         resolve(value) is PdfName name ? name.Value : null;
 
+    private static int? ReadInteger(Func<PdfObject?, PdfObject?> resolve, PdfObject? value) =>
+        resolve(value) switch
+        {
+            PdfInteger integer when integer.Value is >= int.MinValue and <= int.MaxValue => (int)integer.Value,
+            PdfNumber number when number.Value is >= int.MinValue and <= int.MaxValue => (int)number.Value,
+            _ => null
+        };
+
     private static PdfDictionary Clone(PdfDictionary source) =>
         new(new Dictionary<string, PdfObject>(source.Values, StringComparer.Ordinal));
 
     private sealed record ContentHolder(
         PdfObjectId Id,
         PdfStreamObject Stream,
-        IReadOnlyDictionary<string, PdfObject> ColorSpaces);
+        IReadOnlyDictionary<string, PdfObject> ColorSpaces,
+        IReadOnlyDictionary<string, PdfObject> Patterns);
 }

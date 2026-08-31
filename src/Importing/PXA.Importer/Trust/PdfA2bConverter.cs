@@ -118,6 +118,14 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 $"{color.ConvertibleOperatorCount} device-dependent colour operator(s) will be converted to sRGB deterministically."));
         }
 
+        if (color.ConvertibleImageCount > 0 && !color.IsBlocked)
+        {
+            findings.Add(new PdfComplianceConversionFinding(
+                "PXAPDFACONVERT015",
+                PdfTrustDiagnosticSeverity.Info,
+                $"{color.ConvertibleImageCount} losslessly decoded image XObject(s) will be converted to sRGB deterministically."));
+        }
+
         if (HasUnsupportedInteractiveForm(parsed.Graph))
         {
             findings.Add(new PdfComplianceConversionFinding(

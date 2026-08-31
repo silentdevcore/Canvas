@@ -208,8 +208,56 @@ public sealed class PdfColorConversionTests
         var result = new PdfContentColorRewriter(Direct, resources).Rewrite(content);
 
         Assert.Equal(0, result.ConvertedOperatorCount);
-        Assert.Contains("P0", result.UnconvertibleColorSpaceNames);
+        Assert.Contains("Pattern:Pat0", result.UnconvertibleColorSpaceNames);
         Assert.Equal(content, result.Content);
+    }
+
+    [Fact]
+    public void Rewriter_ShouldAcceptAColoredTilingPatternSelection()
+    {
+        var pattern = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(1),
+                ["PaintType"] = new PdfInteger(1)
+            },
+            "0 0 0 1 k"u8.ToArray());
+        var rewriter = new PdfContentColorRewriter(
+            Direct,
+            new Dictionary<string, PdfObject> { ["P0"] = new PdfName("Pattern") },
+            new Dictionary<string, PdfObject> { ["Pat0"] = pattern });
+        var content = "/P0 cs /Pat0 scn 0 0 10 10 re f"u8.ToArray();
+
+        var result = rewriter.Rewrite(content);
+
+        Assert.Empty(result.UnconvertibleColorSpaceNames);
+        Assert.Equal(0, result.ConvertedOperatorCount);
+        Assert.Equal(content, result.Content);
+    }
+
+    [Theory]
+    [InlineData(2, 1)]
+    [InlineData(1, 2)]
+    public void Rewriter_ShouldBlockUnsupportedPatternKinds(int patternType, int paintType)
+    {
+        var pattern = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(patternType),
+                ["PaintType"] = new PdfInteger(paintType)
+            },
+            ReadOnlyMemory<byte>.Empty);
+        var rewriter = new PdfContentColorRewriter(
+            Direct,
+            new Dictionary<string, PdfObject> { ["P0"] = new PdfName("Pattern") },
+            new Dictionary<string, PdfObject> { ["Pat0"] = pattern });
+
+        var result = rewriter.Rewrite("/P0 cs /Pat0 scn 0 0 10 10 re f"u8.ToArray());
+
+        Assert.Contains("Pattern:Pat0", result.UnconvertibleColorSpaceNames);
+        Assert.Equal(0, result.ConvertedOperatorCount);
     }
 
     [Fact]

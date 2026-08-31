@@ -50,15 +50,128 @@ public sealed class PdfA3bAndColorConversionTests
     }
 
     [Fact]
-    public async Task Preflight_ShouldStillBlockACmykImage()
+    public async Task Preflight_ShouldConvertColorsInsideAColoredTilingPattern()
+    {
+        var source = WithColoredTilingPattern(CreateBaseDocument());
+
+        var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
+
+        Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFACONVERT004");
+        Assert.DoesNotContain(report.Findings, static item => item.Code == "PXAPDFACONVERT012");
+    }
+
+    [Fact]
+    public async Task Convert_ShouldRewriteAColoredTilingPatternWithoutChangingItsSelection()
+    {
+        var result = await new PdfA2bConverter(new PdfTrustInspector()).ConvertAsync(
+            Stream(WithColoredTilingPattern(CreateBaseDocument())));
+
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is { Length: > 0 } artifactDirectory)
+        {
+            Directory.CreateDirectory(artifactDirectory);
+            await File.WriteAllBytesAsync(
+                Path.Combine(artifactDirectory, "pxa-pdfa2b-colored-pattern-fixture.pdf"),
+                result.Bytes);
+        }
+
+        var (_, graph) = ParseGraph(result.Bytes);
+        var pattern = graph.Objects.Values
+            .Select(static item => item.Value)
+            .OfType<PdfStreamObject>()
+            .Single(static stream => stream.Dictionary["PatternType"] is PdfInteger { Value: 1 });
+        var patternContent = Encoding.ASCII.GetString(Decode(pattern));
+        Assert.Contains("0 0 0 rg", patternContent, StringComparison.Ordinal);
+        Assert.DoesNotContain(" k", patternContent, StringComparison.Ordinal);
+        Assert.Contains("/CSPat cs /Pat0 scn", DecodeContent(result.Bytes), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldConvertALosslessCmykImage()
     {
         var source = WithCmykImage(CreateBaseDocument());
 
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
+        Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT015");
+        Assert.Contains("converted to sRGB", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Convert_ShouldReplaceCmykImageSamplesWithDeviceRgb()
+    {
+        var result = await new PdfA2bConverter(new PdfTrustInspector()).ConvertAsync(
+            Stream(WithCmykImage(CreateBaseDocument())));
+
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is { Length: > 0 } artifactDirectory)
+        {
+            Directory.CreateDirectory(artifactDirectory);
+            await File.WriteAllBytesAsync(
+                Path.Combine(artifactDirectory, "pxa-pdfa2b-cmyk-image-fixture.pdf"),
+                result.Bytes);
+        }
+
+        var (_, graph) = ParseGraph(result.Bytes);
+        var image = graph.Objects.Values
+            .Select(static item => item.Value)
+            .OfType<PdfStreamObject>()
+            .Single(static stream => stream.Dictionary["Subtype"] is PdfName { Value: "Image" });
+        Assert.Equal("DeviceRGB", Assert.IsType<PdfName>(image.Dictionary["ColorSpace"]).Value);
+        Assert.Equal(8, Assert.IsType<PdfInteger>(image.Dictionary["BitsPerComponent"]).Value);
+        Assert.Equal(new byte[] { 0, 0, 0 }, Decode(image));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldBlockALossyCmykImage()
+    {
+        var source = WithCmykImage(
+            CreateBaseDocument(),
+            static dictionary => dictionary["Filter"] = new PdfName("DCTDecode"));
+
+        var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
+
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
         var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT010");
-        Assert.Contains("DeviceCMYK", finding.Message, StringComparison.Ordinal);
+        Assert.Contains("encoded or unknown filter", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldBlockAColourKeyMaskedCmykImage()
+    {
+        var source = WithCmykImage(
+            CreateBaseDocument(),
+            static dictionary => dictionary["Mask"] = new PdfArray([
+                new PdfInteger(0), new PdfInteger(0),
+                new PdfInteger(0), new PdfInteger(0),
+                new PdfInteger(0), new PdfInteger(0),
+                new PdfInteger(255), new PdfInteger(255)
+            ]));
+
+        var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
+
+        Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT010");
+        Assert.Contains("Colour-key image masks", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldLeaveAStencilImageMaskUnchanged()
+    {
+        var source = WithCmykImage(
+            CreateBaseDocument(),
+            static dictionary =>
+            {
+                dictionary["ImageMask"] = new PdfBoolean(true);
+                dictionary["ColorSpace"] = null;
+                dictionary["BitsPerComponent"] = new PdfInteger(1);
+            },
+            [0x80]);
+
+        var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
+
+        Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
+        Assert.DoesNotContain(report.Findings, static item => item.Code == "PXAPDFACONVERT010");
     }
 
     [Fact]
@@ -217,21 +330,66 @@ public sealed class PdfA3bAndColorConversionTests
         ]);
     }
 
-    private static byte[] WithCmykImage(byte[] source)
+    private static byte[] WithColoredTilingPattern(byte[] source)
+    {
+        var (table, graph) = ParseGraph(source);
+        var patternId = new PdfObjectId(table.Entries.Keys.Max(static id => id.Number) + 1, 0);
+        var patternContent = "0 0 0 1 k 0 0 10 10 re f"u8.ToArray();
+        var pattern = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(1),
+                ["PaintType"] = new PdfInteger(1),
+                ["TilingType"] = new PdfInteger(1),
+                ["BBox"] = new PdfArray([
+                    new PdfInteger(0), new PdfInteger(0), new PdfInteger(10), new PdfInteger(10)
+                ]),
+                ["XStep"] = new PdfInteger(10),
+                ["YStep"] = new PdfInteger(10),
+                ["Resources"] = new PdfDictionary(),
+                ["Length"] = new PdfInteger(patternContent.Length)
+            },
+            patternContent);
+        var (pageId, page) = FindPage(graph);
+        var contentId = ((PdfReference)page["Contents"]!).Id;
+        var content = (PdfStreamObject)graph.Resolve(contentId)!.Value;
+        var resources = Resolve(graph, page["Resources"]) is PdfDictionary existingResources
+            ? Clone(existingResources)
+            : new PdfDictionary();
+        resources["ColorSpace"] = new PdfDictionary { ["CSPat"] = new PdfName("Pattern") };
+        resources["Pattern"] = new PdfDictionary { ["Pat0"] = new PdfReference(patternId) };
+        var updatedPage = Clone(page);
+        updatedPage["Resources"] = resources;
+        var updatedContent = Encoding.ASCII.GetBytes("/CSPat cs /Pat0 scn 10 10 50 50 re f\n")
+            .Concat(Decode(content))
+            .ToArray();
+
+        return Append(source, [
+            new PdfIncrementalObjectUpdate(patternId, pattern),
+            new PdfIncrementalObjectUpdate(pageId, updatedPage),
+            Replace(contentId, content, updatedContent)
+        ]);
+    }
+
+    private static byte[] WithCmykImage(
+        byte[] source,
+        Action<PdfDictionary>? configure = null,
+        byte[]? samples = null)
     {
         var (table, graph) = ParseGraph(source);
         var imageId = new PdfObjectId(table.Entries.Keys.Max(static id => id.Number) + 1, 0);
-        var image = new PdfStreamObject(
-            new PdfDictionary
-            {
-                ["Type"] = new PdfName("XObject"),
-                ["Subtype"] = new PdfName("Image"),
-                ["Width"] = new PdfInteger(1),
-                ["Height"] = new PdfInteger(1),
-                ["BitsPerComponent"] = new PdfInteger(8),
-                ["ColorSpace"] = new PdfName("DeviceCMYK")
-            },
-            new byte[] { 0, 0, 0, 255 });
+        var imageDictionary = new PdfDictionary
+        {
+            ["Type"] = new PdfName("XObject"),
+            ["Subtype"] = new PdfName("Image"),
+            ["Width"] = new PdfInteger(1),
+            ["Height"] = new PdfInteger(1),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["ColorSpace"] = new PdfName("DeviceCMYK")
+        };
+        configure?.Invoke(imageDictionary);
+        var image = new PdfStreamObject(imageDictionary, samples ?? new byte[] { 0, 0, 0, 255 });
         var (pageId, page) = FindPage(graph);
         var contentId = ((PdfReference)page["Contents"]!).Id;
         var content = (PdfStreamObject)graph.Resolve(contentId)!.Value;
