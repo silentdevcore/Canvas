@@ -33,7 +33,7 @@
   "pdfAReviewRequired": "المراجعة مطلوبة",
   "pdfAUnsupported": "تم حظر التحويل",
   "pdfAAllowSignatureInvalidation": "أفهم أن التحويل يبطل التواقيع الموجودة ويزيلها.",
-  "pdfAConverted": "تم إنشاء ملف PDF/A-2b.",
+  "pdfAConverted": "تم إنشاء ملف PDF/A المحدد:",
   "structure": "البنية",
   "encryption": "التشفير",
   "signatures": "التوقيعات",

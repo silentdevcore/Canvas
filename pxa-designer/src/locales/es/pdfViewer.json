@@ -33,7 +33,7 @@
   "pdfAReviewRequired": "Revisión necesaria",
   "pdfAUnsupported": "Conversión bloqueada",
   "pdfAAllowSignatureInvalidation": "Entiendo que la conversión invalida y elimina las firmas existentes.",
-  "pdfAConverted": "Se creó el archivo PDF/A-2b.",
+  "pdfAConverted": "Se creó el archivo PDF/A seleccionado:",
   "structure": "Estructura",
   "encryption": "Cifrado",
   "signatures": "Firmas",

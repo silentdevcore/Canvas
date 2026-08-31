@@ -53,6 +53,7 @@ import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldI
 import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
 import { convertPdfA2b, inspectPdfTrust, preflightPdfA2b, type PdfA2bConversionPreflightReport, type PdfArchiveProfile, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
+import { notify } from '@/notifications/toast';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -786,6 +787,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       link.download = (source?.name || 'document.pdf').replace(/\.pdf$/i, `-${profileSuffix}.pdf`);
       link.click();
       URL.revokeObjectURL(url);
+      notify.success(`${labels.pdfAConverted} ${complianceProfile}`, { id: 'pdf-a-converted' });
       emitViewerEvent('compliance:converted', { profile: complianceProfile });
     } catch (error) {
       setTrustError(error instanceof Error ? error.message : labels.trustFailed);
@@ -1715,7 +1717,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     </button>
                     <ul className="pdfv-trust-diagnostics">
                       {compliancePreflight.findings.map((finding, index) => (
-                        <li key={`${finding.code}-${index}`} data-severity={finding.severity}><code>{finding.code}</code><span>{finding.message}</span></li>
+                        <li key={`${finding.code}-${index}`} data-severity={finding.severity}>
+                          <code>{finding.code}</code>
+                          <span>
+                            {finding.message}
+                            {finding.objectNumber != null && <small> #{finding.objectNumber} {finding.generation ?? 0} obj</small>}
+                          </span>
+                        </li>
                       ))}
                     </ul>
                   </>

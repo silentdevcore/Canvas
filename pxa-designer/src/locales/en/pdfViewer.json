@@ -33,7 +33,7 @@
   "pdfAReviewRequired": "Review required",
   "pdfAUnsupported": "Conversion blocked",
   "pdfAAllowSignatureInvalidation": "I understand that conversion invalidates and removes existing signatures.",
-  "pdfAConverted": "The PDF/A-2b file was created.",
+  "pdfAConverted": "The selected PDF/A file was created:",
   "structure": "Structure",
   "encryption": "Encryption",
   "signatures": "Signatures",

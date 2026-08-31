@@ -90,10 +90,11 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         var findings = new List<PdfComplianceConversionFinding>();
         var validatorDiagnostics = new List<PdfTrustDiagnostic>();
         PdfA2bConformanceValidator.Validate(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics, profile);
-        foreach (var diagnostic in validatorDiagnostics.Where(static item =>
+        foreach (var diagnostic in validatorDiagnostics.Where(item =>
                      item.Severity == PdfTrustDiagnosticSeverity.Error &&
                      item.Code is not ("PXAPDFTRUST312" or "PXAPDFTRUST313" or
-                         "PXAPDFTRUST318" or "PXAPDFTRUST319" or "PXAPDFTRUST320" or "PXAPDFTRUST322")))
+                         "PXAPDFTRUST318" or "PXAPDFTRUST319" or "PXAPDFTRUST320" or "PXAPDFTRUST322") &&
+                     !(parsed.SignatureCount > 0 && item.Code == "PXAPDFTRUST332")))
         {
             findings.Add(new PdfComplianceConversionFinding(
                 diagnostic.Code,

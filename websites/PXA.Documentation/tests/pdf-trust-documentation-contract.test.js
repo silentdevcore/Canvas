@@ -50,7 +50,10 @@ test('PDF/A documentation states the exact generated profile and validation boun
   assert.match(source, /original remains unchanged/);
   assert.match(source, /full rewrite invalidates and removes those signatures/);
   assert.match(source, /Visible signature appearances remain unsupported/);
-  assert.match(source, /independently validate release fixtures with veraPDF/);
+  assert.match(source, /tools\/pdfa\/validate-pdfa\.sh/);
+  assert.match(source, /machine-readable report from the pinned official veraPDF container/);
+  assert.match(source, /second standards-based or commercial validator/);
+  assert.match(source, /merely opening a PDF in a reader is not validation evidence/);
   assert.match(source, /metadata string outside the catalog is only an unverified claim/);
 });
 

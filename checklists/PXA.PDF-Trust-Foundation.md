@@ -421,8 +421,19 @@ Reference material:
   deterministic conversion of non-sRGB source colors remains open.
 - [x] Produce required XMP identification and document metadata and synchronize it
   with the information dictionary.
-- [ ] Enforce profile restrictions for encryption, actions, JavaScript, multimedia,
+- [x] Enforce profile restrictions for encryption, actions, JavaScript, multimedia,
   annotations, transparency, attachments, and external dependencies.
+  - [x] Reject encryption, JavaScript name trees and actions, additional-action
+    dictionaries, forbidden action types, multimedia structures, non-printing or hidden
+    annotations, profile-incompatible attachment annotations, external stream/XObject
+    dependencies, and non-default transfer functions with stable object-level diagnostics.
+  - [x] Keep URI, GoTo, and GoToR actions available instead of incorrectly treating every
+    external hyperlink as an archival dependency.
+  - [x] Traverse indirect objects, stream dictionaries, nested direct dictionaries, and
+    nested arrays with bounded depth so forbidden structures cannot bypass preflight.
+  - [ ] Complete the exhaustive ISO 19005-2/3 annotation appearance, optional-content,
+    transparency-group, soft-mask, blend-space, and rendering-intent rule matrix before
+    presenting the PXA structural validator as a complete standards validator.
 - [x] Add `generate`, `convert`, `validate`, and `preflight` operations with distinct
   results; conversion must never silently discard unsupported content.
 - [x] Preserve the original when conversion reports `reviewRequired` or fails.
@@ -435,13 +446,20 @@ Reference material:
     `2b`, while visible signature appearances remain fail-closed.
   - [x] Validate generated and attachment-bearing converted PDF/A-3b fixtures with
     `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS` for profile `3b`.
+  - [x] Add `tools/pdfa/validate-pdfa.sh` as a pinned, reproducible validator wrapper that
+    accepts only `2b` or `3b`, fails on non-conformance, and retains machine-readable XML
+    evidence for local and CI runs.
   - [ ] Add a second commercial or standards-based validator before the production
-    support claim.
+    support claim. Adobe Acrobat Preflight is installed locally but has no supported
+    headless CLI; a recorded manual Preflight result is still required.
 - [x] Store validator name, version, profile, rule IDs, and machine-readable evidence
   in the compliance report.
 - [x] Add the structural PDF/A-2b validation path to the Viewer and expose
   validate, preflight, and conversion actions; keep a second independent validator
   and production support policy as explicit open work.
+  - [x] Let the Viewer select PDF/A-2b or PDF/A-3b, display stable findings with affected
+    object numbers, and report successful conversion using the selected profile in all six
+    Designer languages.
 - [x] Add `POST /api/pxa/v1/pdf/compliance/validate` and
   `POST /api/pxa/v1/pdf/compliance/preflight` plus
   `POST /api/pxa/v1/pdf/compliance/convert`.

@@ -5,21 +5,27 @@ namespace PXA.Importer.Trust;
 
 internal static class PdfA2bConformanceValidator
 {
-    public const string Name = "PXA PDF/A-2b/3b structural validator 1.1";
+    public const string Name = "PXA PDF/A-2b/3b structural validator 1.2";
 
     private static readonly HashSet<string> AllowedAfRelationships = new(StringComparer.Ordinal)
     {
         "Source", "Data", "Alternative", "Supplement", "Unspecified"
     };
 
-    private static readonly HashSet<string> ForbiddenDictionaryKeys = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> ForbiddenActionTypes = new(StringComparer.Ordinal)
     {
-        "JS", "JavaScript", "Launch", "RichMediaContent", "RichMediaSettings"
+        "JavaScript", "Launch", "Sound", "Movie", "ResetForm", "ImportData", "Hide",
+        "Rendition", "Trans", "SetOCGState", "GoTo3DView", "SetState", "NoOp"
     };
 
     private static readonly HashSet<string> ForbiddenAnnotationSubtypes = new(StringComparer.Ordinal)
     {
-        "RichMedia", "Movie", "Sound", "FileAttachment"
+        "RichMedia", "Movie", "Sound", "Screen", "3D"
+    };
+
+    private static readonly HashSet<string> ForbiddenMultimediaKeys = new(StringComparer.Ordinal)
+    {
+        "RichMediaContent", "RichMediaSettings", "3DD", "3DV", "Movie", "Sound"
     };
 
     public static bool CanValidate(PdfObjectGraph graph, PdfArchiveProfile profile)
@@ -59,9 +65,15 @@ internal static class PdfA2bConformanceValidator
 
         foreach (var indirectObject in graph.Objects.Values)
         {
-            if (indirectObject.Value is PdfDictionary dictionary)
+            var dictionary = indirectObject.Value switch
             {
-                ValidateDictionary(dictionary, indirectObject.Id);
+                PdfDictionary value => value,
+                PdfStreamObject stream => stream.Dictionary,
+                _ => null
+            };
+            if (dictionary is not null)
+            {
+                ValidateDictionary(dictionary, indirectObject.Id, indirectObject.Value is PdfStreamObject);
                 if (string.Equals(ReadName(graph, dictionary["Type"]), "Font", StringComparison.Ordinal) &&
                     !HasEmbeddedFontProgram(graph, dictionary))
                 {
@@ -85,26 +97,110 @@ internal static class PdfA2bConformanceValidator
 
         return valid;
 
-        void ValidateDictionary(PdfDictionary dictionary, PdfObjectId objectId)
+        void ValidateDictionary(
+            PdfDictionary dictionary,
+            PdfObjectId objectId,
+            bool isStreamDictionary = false,
+            int depth = 0)
         {
-            foreach (var key in dictionary.Values.Keys)
+            if (depth > 64)
             {
-                if (ForbiddenDictionaryKeys.Contains(key))
+                Error("PXAPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
+                return;
+            }
+
+            if (dictionary["JS"] is not null || dictionary["JavaScript"] is not null)
+            {
+                Error("PXAPDFTRUST315", "PDF/A-2 and PDF/A-3 do not permit JavaScript actions or name trees.", objectId);
+            }
+
+            if (dictionary["AA"] is not null)
+            {
+                Error("PXAPDFTRUST324", "Additional-action dictionaries are not accepted by the PXA PDF/A-2b/3b profile policy.", objectId);
+            }
+
+            if (ReadName(graph, dictionary["S"]) is { } actionType &&
+                ForbiddenActionTypes.Contains(actionType))
+            {
+                Error("PXAPDFTRUST325", $"Action type '/{actionType}' is forbidden by PDF/A-2 and PDF/A-3.", objectId);
+            }
+
+            foreach (var key in dictionary.Values.Keys.Where(ForbiddenMultimediaKeys.Contains))
+            {
+                Error("PXAPDFTRUST326", $"Multimedia key '/{key}' is not permitted by the supported PDF/A profiles.", objectId);
+            }
+
+            var annotationSubtype = ReadName(graph, dictionary["Subtype"]);
+            var isAnnotation = string.Equals(ReadName(graph, dictionary["Type"]), "Annot", StringComparison.Ordinal) ||
+                               annotationSubtype is "Widget" or "Text" or "Link" or "FreeText" or "Line" or "Square" or
+                                   "Circle" or "Polygon" or "PolyLine" or "Highlight" or "Underline" or "Squiggly" or
+                                   "StrikeOut" or "Stamp" or "Caret" or "Ink" or "Popup" or "FileAttachment" or
+                                   "Sound" or "Movie" or "Screen" or "3D" or "RichMedia";
+            if (isAnnotation && annotationSubtype is { } subtype)
+            {
+                if (ForbiddenAnnotationSubtypes.Contains(subtype) ||
+                    profile == PdfArchiveProfile.PdfA2b && subtype == "FileAttachment")
                 {
-                    Error("PXAPDFTRUST315", $"Forbidden PDF/A action or multimedia key '/{key}' was found.", objectId);
+                    Error("PXAPDFTRUST316", $"Annotation subtype '/{subtype}' is not accepted for {PdfA2bConverter.ProfileName(profile)}.", objectId);
+                }
+                else if (subtype == "FileAttachment" &&
+                         (Resolve(graph, dictionary["FS"]) is not PdfDictionary specification ||
+                          Resolve(graph, specification["EF"]) is not PdfDictionary))
+                {
+                    Error("PXAPDFTRUST331", "A PDF/A-3 file-attachment annotation must reference an embedded file specification through /FS.", objectId);
+                }
+
+                var flags = ReadInteger(graph, dictionary["F"]) ?? 0;
+                if ((flags & 1) != 0 || (flags & 2) != 0 || (flags & 32) != 0 || (flags & 4) == 0)
+                {
+                    var code = subtype == "Widget" && ResolveFieldType(graph, dictionary) == "Sig"
+                        ? "PXAPDFTRUST332"
+                        : "PXAPDFTRUST328";
+                    Error(code, "PDF/A annotations must be printable and must not be Invisible, Hidden, or NoView.", objectId);
                 }
             }
 
-            if (string.Equals(ReadName(graph, dictionary["Type"]), "Annot", StringComparison.Ordinal) &&
-                ReadName(graph, dictionary["Subtype"]) is { } subtype &&
-                ForbiddenAnnotationSubtypes.Contains(subtype))
+            if ((isStreamDictionary && dictionary["F"] is not null) ||
+                dictionary["OPI"] is not null ||
+                string.Equals(ReadName(graph, dictionary["Type"]), "XObject", StringComparison.Ordinal) && dictionary["Ref"] is not null)
             {
-                Error("PXAPDFTRUST316", $"Annotation subtype '/{subtype}' is not accepted by the PXA PDF/A-2b validator.", objectId);
+                Error("PXAPDFTRUST327", "The document depends on external stream or reference content that is not self-contained.", objectId);
             }
 
-            foreach (var nested in dictionary.Values.Values.OfType<PdfDictionary>())
+            if (dictionary["TR"] is { } transfer && ReadName(graph, transfer) is not ("Identity" or "Default") ||
+                dictionary["TR2"] is { } transfer2 && ReadName(graph, transfer2) is not ("Identity" or "Default"))
             {
-                ValidateDictionary(nested, objectId);
+                Error("PXAPDFTRUST329", "A non-default transfer function is not permitted by the supported PDF/A profiles.", objectId);
+            }
+
+            foreach (var nested in dictionary.Values.Values)
+            {
+                ValidateNested(nested, objectId, depth + 1);
+            }
+        }
+
+        void ValidateNested(PdfObject value, PdfObjectId objectId, int depth)
+        {
+            if (depth > 64)
+            {
+                Error("PXAPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
+                return;
+            }
+
+            switch (value)
+            {
+                case PdfDictionary nested:
+                    ValidateDictionary(nested, objectId, depth: depth);
+                    break;
+                case PdfStreamObject stream:
+                    ValidateDictionary(stream.Dictionary, objectId, isStreamDictionary: true, depth: depth);
+                    break;
+                case PdfArray array:
+                    foreach (var item in array.Items)
+                    {
+                        ValidateNested(item, objectId, depth + 1);
+                    }
+                    break;
             }
         }
 
@@ -315,6 +411,30 @@ internal static class PdfA2bConformanceValidator
         }
 
         return descriptor["FontFile"] is not null || descriptor["FontFile2"] is not null || descriptor["FontFile3"] is not null;
+    }
+
+    private static string? ResolveFieldType(PdfObjectGraph graph, PdfDictionary field)
+    {
+        var visited = new HashSet<PdfObjectId>();
+        PdfDictionary? current = field;
+        while (current is not null)
+        {
+            if (ReadName(graph, current["FT"]) is { } fieldType)
+            {
+                return fieldType;
+            }
+
+            if (current["Parent"] is not PdfReference parent ||
+                !visited.Add(parent.Id) ||
+                graph.Resolve(parent.Id)?.Value is not PdfDictionary parentField)
+            {
+                return null;
+            }
+
+            current = parentField;
+        }
+
+        return null;
     }
 
     private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value)

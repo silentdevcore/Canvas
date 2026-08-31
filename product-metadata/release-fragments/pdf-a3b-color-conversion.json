@@ -10,7 +10,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds independently validated PDF/A-3b generation and attachment-preserving conversion, selectable Viewer workflows, and fail-closed deterministic color conversion for supported PDF color spaces.",
+  "summary": "PXA adds independently validated PDF/A-3b generation and attachment-preserving conversion, selectable Viewer workflows, fail-closed color conversion, profile-aware restricted-content diagnostics, and reproducible XML validation evidence.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"
