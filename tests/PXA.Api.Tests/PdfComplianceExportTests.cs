@@ -7,6 +7,20 @@ namespace PXA.Api.Tests;
 public sealed class PdfComplianceExportTests
 {
     [Fact]
+    public void BuildPdfSaveOptions_MapsPdfA3bComplianceProfile()
+    {
+        var design = new DesignExportDto
+        {
+            PageSettings = new PageSettingsDto { ComplianceProfile = "PdfA3B" }
+        };
+
+        var options = DesignJsonMapper.BuildSaveOptions(design);
+
+        Assert.NotNull(options);
+        Assert.Equal(PdfComplianceProfile.PdfA3B, options.ComplianceProfile);
+    }
+
+    [Fact]
     public void BuildSaveOptions_MapsPdfA2bProfile()
     {
         var design = new DesignExportDto

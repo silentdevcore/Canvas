@@ -138,7 +138,7 @@ public sealed class PdfObjectParser
         var token = reader.Read();
         return token.Kind switch
         {
-            PdfTokenKind.Name => new PdfName(token.Text[1..]) { SourceSpan = Span(token) },
+            PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
             PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], IsHex: false) { SourceSpan = Span(token) },
             PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], IsHex: true) { SourceSpan = Span(token) },
             PdfTokenKind.ArrayStart => ParseArray(ref reader, _activeBaseOffset + token.Offset, depth),
@@ -199,7 +199,7 @@ public sealed class PdfObjectParser
                     $"A dictionary exceeds the maximum of {_context.Limits.MaxDictionaryEntryCount} entries.");
             }
 
-            dictionary[key.Text[1..]] = ParseObject(ref reader, depth + 1);
+            dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseObject(ref reader, depth + 1);
         }
 
         var maybeStream = reader.Peek();

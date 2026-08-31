@@ -4852,12 +4852,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           const complianceProfile = e.target.value as PageSettings['complianceProfile'];
                           updatePageSettings({
                             complianceProfile,
-                            encryption: complianceProfile === 'PdfA2B' ? undefined : pageSettings.encryption,
+                            encryption: complianceProfile === 'PdfA2B' || complianceProfile === 'PdfA3B'
+                              ? undefined
+                              : pageSettings.encryption,
                           });
                         }}
                       >
                         <option value="None">{t('pageSettings.compliance.none')}</option>
                         <option value="PdfA2B">PDF/A-2b</option>
+                        <option value="PdfA3B">PDF/A-3b</option>
                       </select>
                     </label>
                     <small>{t('pageSettings.compliance.description')}</small>
@@ -4875,7 +4878,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       <input
                         type="checkbox"
                         checked={pageSettings.encryption?.enabled ?? false}
-                        disabled={pageSettings.complianceProfile === 'PdfA2B'}
+                        disabled={pageSettings.complianceProfile === 'PdfA2B' || pageSettings.complianceProfile === 'PdfA3B'}
                         onChange={(e) => updatePageSettings({
                           encryption: e.target.checked
                             ? {
@@ -4893,7 +4896,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                       <span>{t('pageSettings.encryption.enable')}</span>
                     </label>
-                    {pageSettings.complianceProfile === 'PdfA2B' && (
+                    {(pageSettings.complianceProfile === 'PdfA2B' || pageSettings.complianceProfile === 'PdfA3B') && (
                       <small>{t('pageSettings.compliance.encryptionDisabled')}</small>
                     )}
                     {pageSettings.encryption?.enabled && (

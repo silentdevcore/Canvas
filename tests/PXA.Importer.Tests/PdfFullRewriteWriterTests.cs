@@ -14,6 +14,42 @@ namespace PXA.Importer.Tests;
 public sealed class PdfFullRewriteWriterTests
 {
     [Fact]
+    public void Rewrite_ShouldDecodeAndReencodeEscapedPdfNamesExactlyOnce()
+    {
+        var source = CreatePdf();
+        var (_, graph) = ParseGraph(source);
+        var rootId = ((PdfReference)graph.Trailer!["Root"]!).Id;
+        var catalog = (PdfDictionary)graph.Resolve(rootId)!.Value;
+        var markerId = new PdfObjectId(NextObjectNumber(source), 0);
+        var updatedCatalog = new PdfDictionary(catalog.Values.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value))
+        {
+            ["PxaName"] = new PdfReference(markerId)
+        };
+        var appended = new PdfIncrementalUpdateWriter().Append(source, [
+            new PdfIncrementalObjectUpdate(markerId, new PdfDictionary
+            {
+                ["Subtype"] = new PdfName("text/plain"),
+                ["Key With Space"] = new PdfName("value#fragment")
+            }),
+            new PdfIncrementalObjectUpdate(rootId, updatedCatalog)
+        ]).Bytes;
+
+        var rewritten = new PdfFullRewriteWriter().Rewrite(appended).Bytes;
+        var (_, rewrittenGraph) = ParseGraph(rewritten);
+        var marker = Assert.IsType<PdfDictionary>(rewrittenGraph.Objects.Values
+            .Single(item => item.Value is PdfDictionary dictionary && dictionary["Subtype"] is PdfName { Value: "text/plain" })
+            .Value);
+
+        Assert.Equal("value#fragment", Assert.IsType<PdfName>(marker["Key With Space"]).Value);
+        var serialized = Encoding.Latin1.GetString(rewritten);
+        Assert.Contains("/Subtype /text#2Fplain", serialized, StringComparison.Ordinal);
+        Assert.Contains("/Key#20With#20Space /value#23fragment", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("text#232Fplain", serialized, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Rewrite_ShouldProduceASingleRevisionThatStillParses()
     {
         var source = CreatePdf();

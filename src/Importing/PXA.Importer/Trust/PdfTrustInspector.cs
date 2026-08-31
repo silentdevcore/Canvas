@@ -552,25 +552,28 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
         var conformance = PdfAConformanceRegex().Match(sourceText);
         var profile = $"PDF/A-{part.Groups[1].Value}{(conformance.Success ? conformance.Groups[1].Value.ToLowerInvariant() : string.Empty)}";
-        if (!string.Equals(profile, "PDF/A-2b", StringComparison.OrdinalIgnoreCase) ||
-            graph is null ||
-            !PdfA2bConformanceValidator.CanValidate(graph))
+        var archiveProfile = string.Equals(profile, "PDF/A-2b", StringComparison.OrdinalIgnoreCase)
+            ? PdfArchiveProfile.PdfA2b
+            : string.Equals(profile, "PDF/A-3b", StringComparison.OrdinalIgnoreCase)
+                ? PdfArchiveProfile.PdfA3b
+                : (PdfArchiveProfile?)null;
+        if (archiveProfile is null || graph is null || !PdfA2bConformanceValidator.CanValidate(graph, archiveProfile.Value))
         {
             diagnostics.Add(new PdfTrustDiagnostic(
                 "PXAPDFTRUST301",
                 PdfTrustDiagnosticSeverity.Warning,
-                $"The document claims {profile}; this profile is not validated by the current PXA PDF/A-2b validator."));
+                $"The document claims {profile}; this profile is not validated by the current PXA PDF/A validator."));
             return new PdfComplianceClaim("PDF/A", profile, true, PdfTrustStatus.Indeterminate, "XMP pdfaid identification metadata");
         }
 
         var validatedAt = DateTimeOffset.UtcNow;
-        var isValid = PdfA2bConformanceValidator.Validate(graph, isEncrypted, diagnostics);
+        var isValid = PdfA2bConformanceValidator.Validate(graph, isEncrypted, diagnostics, archiveProfile.Value);
         return new PdfComplianceClaim(
             "PDF/A",
             profile,
             true,
             isValid ? PdfTrustStatus.Valid : PdfTrustStatus.Invalid,
-            "XMP identification, catalog OutputIntent, ICC header, encryption, font embedding, actions, and annotation restrictions",
+            "XMP identification, catalog OutputIntent, ICC header, encryption, font embedding, actions, annotations, and profile-specific embedded-file rules",
             PdfA2bConformanceValidator.Name,
             validatedAt);
     }

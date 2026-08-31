@@ -11,6 +11,31 @@ namespace PXA.Importer.Tests;
 public sealed class PdfTrustInspectorTests
 {
     [Fact]
+    public async Task InspectAsync_ValidatesGeneratedPdfA3bStructure()
+    {
+        var document = new PdfDocument
+        {
+            FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
+        };
+        document.AddPage().DrawText("PDF/A-3b", 40, 40, new PdfDrawTextOptions { Language = "en" });
+        var bytes = document.ToBytes(new PdfSaveOptions
+        {
+            ComplianceProfile = PdfComplianceProfile.PdfA3B
+        });
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is { Length: > 0 } artifactDirectory)
+        {
+            Directory.CreateDirectory(artifactDirectory);
+            await File.WriteAllBytesAsync(Path.Combine(artifactDirectory, "pxa-generated-pdfa3b-fixture.pdf"), bytes);
+        }
+
+        var report = await InspectAsync(bytes);
+
+        Assert.Equal("PDF/A-3b", report.PdfA.Profile);
+        Assert.Equal(PdfTrustStatus.Valid, report.PdfA.Status);
+        Assert.Contains("<pdfaid:part>3</pdfaid:part>", Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task InspectAsync_ReportsStructureHashAndNoTrustClaimsForGeneratedPdf()
     {
         var document = new PdfDocument();
@@ -137,7 +162,7 @@ public sealed class PdfTrustInspectorTests
         Assert.True(report.PdfA.IsClaimed);
         Assert.Equal("PDF/A-2b", report.PdfA.Profile);
         Assert.Equal(PdfTrustStatus.Valid, report.PdfA.Status);
-        Assert.Equal("PXA PDF/A-2b structural validator 1.0", report.PdfA.Validator);
+        Assert.Equal("PXA PDF/A-2b/3b structural validator 1.1", report.PdfA.Validator);
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST300");
     }
 

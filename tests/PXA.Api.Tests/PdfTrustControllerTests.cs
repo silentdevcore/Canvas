@@ -76,7 +76,7 @@ public sealed class PdfTrustControllerTests
     [Fact]
     public async Task PreflightPdfA2b_ReturnsMachineReadableConversionReport()
     {
-        var response = await CreateController().PreflightPdfA2b(CreateFile(), CancellationToken.None);
+        var response = await CreateController().PreflightPdfA2b(CreateFile(), null, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(response.Result);
         var report = Assert.IsType<PdfA2bConversionPreflightReport>(ok.Value);
@@ -85,11 +85,31 @@ public sealed class PdfTrustControllerTests
     }
 
     [Fact]
+    public async Task PreflightPdfA2b_AcceptsThePdfA3bProfile()
+    {
+        var response = await CreateController().PreflightPdfA2b(CreateFile(), "PDF/A-3b", CancellationToken.None);
+
+        var ok = Assert.IsType<OkObjectResult>(response.Result);
+        Assert.Equal("PDF/A-3b", Assert.IsType<PdfA2bConversionPreflightReport>(ok.Value).TargetProfile);
+    }
+
+    [Fact]
+    public async Task PreflightPdfA2b_RejectsAnUnsupportedProfile()
+    {
+        var response = await CreateController().PreflightPdfA2b(CreateFile(), "PDF/A-4", CancellationToken.None);
+
+        var problem = Assert.IsType<ObjectResult>(response.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
+        var details = Assert.IsAssignableFrom<ProblemDetails>(problem.Value);
+        Assert.Equal("PXAPDFACONVERTAPI006", Assert.Contains("code", details.Extensions)?.ToString());
+    }
+
+    [Fact]
     public async Task ConvertPdfA2b_ReturnsOnePdfAndComplianceHeaders()
     {
         var controller = CreateController();
 
-        var response = await controller.ConvertPdfA2b(CreateFile(), false, CancellationToken.None);
+        var response = await controller.ConvertPdfA2b(CreateFile(), false, null, CancellationToken.None);
 
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
@@ -122,8 +142,10 @@ public sealed class PdfTrustControllerTests
 
     private sealed class TestPdfA2bConverter : IPdfA2bConverter
     {
-        private static readonly PdfA2bConversionPreflightReport Report = new(
-            "PDF/A-2b",
+        // Echoes the requested profile so the controller's profile plumbing is under test
+        // rather than a constant.
+        private static PdfA2bConversionPreflightReport ReportFor(PdfA2bConversionOptions? options) => new(
+            options?.Profile == PdfArchiveProfile.PdfA3b ? "PDF/A-3b" : "PDF/A-2b",
             PdfComplianceConversionCapability.Ready,
             new string('a', 64),
             16,
@@ -136,16 +158,20 @@ public sealed class PdfTrustControllerTests
         public Task<PdfA2bConversionPreflightReport> PreflightAsync(
             Stream pdfStream,
             PdfA2bConversionOptions? options = null,
-            CancellationToken cancellationToken = default) => Task.FromResult(Report);
+            CancellationToken cancellationToken = default) => Task.FromResult(ReportFor(options));
 
         public Task<PdfA2bConversionResult> ConvertAsync(
             Stream pdfStream,
             PdfA2bConversionOptions? options = null,
-            CancellationToken cancellationToken = default) => Task.FromResult(new PdfA2bConversionResult(
+            CancellationToken cancellationToken = default)
+        {
+            var report = ReportFor(options);
+            return Task.FromResult(new PdfA2bConversionResult(
                 Encoding.ASCII.GetBytes("%PDF-1.7\n%%EOF\n"),
-                Report.SourceSha256,
+                report.SourceSha256,
                 new string('b', 64),
-                Report,
-                new PdfComplianceClaim("PDF/A", "PDF/A-2b", true, PdfTrustStatus.Valid, "test")));
+                report,
+                new PdfComplianceClaim("PDF/A", report.TargetProfile, true, PdfTrustStatus.Valid, "test")));
+        }
     }
 }

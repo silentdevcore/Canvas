@@ -87,6 +87,7 @@ public sealed class PdfTrustController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status413PayloadTooLarge)]
     public async Task<ActionResult<PdfA2bConversionPreflightReport>> PreflightPdfA2b(
         IFormFile? file,
+        [FromForm] string? profile,
         CancellationToken cancellationToken)
     {
         if (ValidateFile(file) is { } problem)
@@ -94,10 +95,22 @@ public sealed class PdfTrustController(
             return problem;
         }
 
+        if (!TryReadProfile(profile, out var archiveProfile))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "The requested archival profile is not supported",
+                detail: "Use 'PDF/A-2b' or 'PDF/A-3b'.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI006" });
+        }
+
         try
         {
             await using var stream = file!.OpenReadStream();
-            return Ok(await pdfA2bConverter.PreflightAsync(stream, null, cancellationToken));
+            return Ok(await pdfA2bConverter.PreflightAsync(
+                stream,
+                new PdfA2bConversionOptions { Profile = archiveProfile },
+                cancellationToken));
         }
         catch (InvalidDataException exception)
         {
@@ -120,6 +133,7 @@ public sealed class PdfTrustController(
     public async Task<IActionResult> ConvertPdfA2b(
         IFormFile? file,
         [FromForm] bool allowSignatureInvalidation,
+        [FromForm] string? profile,
         CancellationToken cancellationToken)
     {
         if (ValidateFile(file) is { } problem)
@@ -127,23 +141,36 @@ public sealed class PdfTrustController(
             return problem;
         }
 
+        if (!TryReadProfile(profile, out var archiveProfile))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "The requested archival profile is not supported",
+                detail: "Use 'PDF/A-2b' or 'PDF/A-3b'.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI006" });
+        }
+
         try
         {
             await using var stream = file!.OpenReadStream();
             var result = await pdfA2bConverter.ConvertAsync(
                 stream,
-                new PdfA2bConversionOptions { AllowSignatureInvalidation = allowSignatureInvalidation },
+                new PdfA2bConversionOptions
+                {
+                    AllowSignatureInvalidation = allowSignatureInvalidation,
+                    Profile = archiveProfile
+                },
                 cancellationToken);
             Response.Headers["PXA-Source-SHA256"] = result.SourceSha256;
             Response.Headers["PXA-Result-SHA256"] = result.ResultSha256;
             Response.Headers["PXA-Compliance-Profile"] = result.Validation.Profile ?? "PDF/A-2b";
-            return File(result.Bytes, "application/pdf", PdfA2bFileName(file.FileName));
+            return File(result.Bytes, "application/pdf", PdfAFileName(file.FileName, result.Preflight.TargetProfile));
         }
         catch (PdfA2bConversionBlockedException exception)
         {
             return Problem(
                 statusCode: StatusCodes.Status409Conflict,
-                title: "PDF/A-2b conversion was blocked",
+                title: $"{exception.Preflight.TargetProfile} conversion was blocked",
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?>
                 {
@@ -158,6 +185,30 @@ public sealed class PdfTrustController(
                 title: "The PDF could not be converted",
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI004" });
+        }
+    }
+
+    /// <summary>Defaults to PDF/A-2b so an existing caller keeps its current behaviour.</summary>
+    private static bool TryReadProfile(string? value, out PdfArchiveProfile profile)
+    {
+        profile = PdfArchiveProfile.PdfA2b;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        var normalized = value.Trim().Replace("/", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal);
+        switch (normalized.ToUpperInvariant())
+        {
+            case "PDFA2B":
+                profile = PdfArchiveProfile.PdfA2b;
+                return true;
+            case "PDFA3B":
+                profile = PdfArchiveProfile.PdfA3b;
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -194,9 +245,12 @@ public sealed class PdfTrustController(
         return null;
     }
 
-    private static string PdfA2bFileName(string sourceName)
+    private static string PdfAFileName(string sourceName, string targetProfile)
     {
         var stem = Path.GetFileNameWithoutExtension(sourceName);
-        return $"{(string.IsNullOrWhiteSpace(stem) ? "document" : stem)}-pdfa2b.pdf";
+        var suffix = targetProfile.Replace("/", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .ToLowerInvariant();
+        return $"{(string.IsNullOrWhiteSpace(stem) ? "document" : stem)}-{suffix}.pdf";
     }
 }

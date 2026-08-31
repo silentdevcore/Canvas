@@ -52,7 +52,7 @@ import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativ
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
-import { convertPdfA2b, inspectPdfTrust, preflightPdfA2b, type PdfA2bConversionPreflightReport, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
+import { convertPdfA2b, inspectPdfTrust, preflightPdfA2b, type PdfA2bConversionPreflightReport, type PdfArchiveProfile, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -267,6 +267,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [trustError, setTrustError] = useState<string | null>(null);
   const [compliancePreflight, setCompliancePreflight] = useState<PdfA2bConversionPreflightReport | null>(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
+  const [complianceProfile, setComplianceProfile] = useState<PdfArchiveProfile>('PDF/A-2b');
   const [allowSignatureInvalidation, setAllowSignatureInvalidation] = useState(false);
   const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
   const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
@@ -324,6 +325,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     trustEmpty: t('trustEmpty'),
     trustFailed: t('trustFailed'),
     pdfAPreflight: t('pdfAPreflight'),
+    pdfAProfile: t('pdfAProfile'),
     pdfAConvert: t('pdfAConvert'),
     pdfAConverting: t('pdfAConverting'),
     pdfAReady: t('pdfAReady'),
@@ -761,7 +763,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     setComplianceLoading(true);
     setTrustError(null);
     try {
-      const report = await preflightPdfA2b(await sourceFile());
+      const report = await preflightPdfA2b(await sourceFile(), complianceProfile);
       setCompliancePreflight(report);
       setAllowSignatureInvalidation(false);
       emitViewerEvent('compliance:preflighted', { capability: report.capability });
@@ -770,26 +772,27 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     } finally {
       setComplianceLoading(false);
     }
-  }, [emitViewerEvent, labels.trustFailed, sourceFile]);
+  }, [complianceProfile, emitViewerEvent, labels.trustFailed, sourceFile]);
 
   const runComplianceConversion = useCallback(async () => {
     setComplianceLoading(true);
     setTrustError(null);
     try {
-      const blob = await convertPdfA2b(await sourceFile(), allowSignatureInvalidation);
+      const blob = await convertPdfA2b(await sourceFile(), allowSignatureInvalidation, complianceProfile);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = (source?.name || 'document.pdf').replace(/\.pdf$/i, '-pdfa2b.pdf');
+      const profileSuffix = complianceProfile === 'PDF/A-3b' ? 'pdfa3b' : 'pdfa2b';
+      link.download = (source?.name || 'document.pdf').replace(/\.pdf$/i, `-${profileSuffix}.pdf`);
       link.click();
       URL.revokeObjectURL(url);
-      emitViewerEvent('compliance:converted', { profile: 'PDF/A-2b' });
+      emitViewerEvent('compliance:converted', { profile: complianceProfile });
     } catch (error) {
       setTrustError(error instanceof Error ? error.message : labels.trustFailed);
     } finally {
       setComplianceLoading(false);
     }
-  }, [allowSignatureInvalidation, emitViewerEvent, labels.trustFailed, source, sourceFile]);
+  }, [allowSignatureInvalidation, complianceProfile, emitViewerEvent, labels.trustFailed, source, sourceFile]);
 
   useEffect(() => {
     setTrustReport(null);
@@ -1671,6 +1674,21 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             {trustError && <p className="pdfv-trust-error" role="alert">{trustError}</p>}
             {canConvertCompliance && (
               <div className="pdfv-compliance-actions">
+                <label>
+                  <span>{labels.pdfAProfile}</span>
+                  <select
+                    value={complianceProfile}
+                    onChange={event => {
+                      setComplianceProfile(event.target.value as PdfArchiveProfile);
+                      setCompliancePreflight(null);
+                      setAllowSignatureInvalidation(false);
+                    }}
+                    disabled={complianceLoading}
+                  >
+                    <option value="PDF/A-2b">PDF/A-2b</option>
+                    <option value="PDF/A-3b">PDF/A-3b</option>
+                  </select>
+                </label>
                 <button className="pdfv-button" type="button" onClick={() => void runCompliancePreflight()} disabled={!source || complianceLoading}>
                   <FiShield />
                   <span>{labels.pdfAPreflight}</span>

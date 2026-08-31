@@ -94,10 +94,11 @@ describe('PDF Trust API', () => {
     } as Response);
     const file = new File(['%PDF-1.7'], 'source.pdf', { type: 'application/pdf' });
 
-    await expect(convertPdfA2b(file, true)).resolves.toBe(converted);
+    await expect(convertPdfA2b(file, true, 'PDF/A-3b')).resolves.toBe(converted);
 
     const [, init] = fetchMock.mock.calls[0];
     expect((init?.body as FormData).get('allowSignatureInvalidation')).toBe('true');
+    expect((init?.body as FormData).get('profile')).toBe('PDF/A-3b');
   });
 
   test('surfaces the server reason when PDF/A conversion is blocked', async () => {

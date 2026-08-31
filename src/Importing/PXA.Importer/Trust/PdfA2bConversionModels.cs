@@ -1,5 +1,15 @@
 namespace PXA.Importer.Trust;
 
+/// <summary>Archival profile targeted by a conversion.</summary>
+public enum PdfArchiveProfile
+{
+    /// <summary>PDF/A-2b. Embedded files are not permitted.</summary>
+    PdfA2b,
+
+    /// <summary>PDF/A-3b. Arbitrary embedded source files and attachments are permitted.</summary>
+    PdfA3b
+}
+
 public enum PdfComplianceConversionCapability
 {
     Ready,
@@ -31,6 +41,9 @@ public sealed record PdfA2bConversionOptions
 
     public long MaximumFileSizeBytes { get; init; } = DefaultMaximumFileSizeBytes;
     public bool AllowSignatureInvalidation { get; init; }
+
+    /// <summary>Target profile. PDF/A-3b additionally permits embedded files.</summary>
+    public PdfArchiveProfile Profile { get; init; } = PdfArchiveProfile.PdfA2b;
 }
 
 public sealed record PdfA2bConversionResult(

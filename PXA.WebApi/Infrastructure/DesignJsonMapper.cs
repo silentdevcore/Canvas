@@ -22,6 +22,7 @@ public static class DesignJsonMapper
         {
             null or "" or "None" => PdfComplianceProfile.None,
             "PdfA2B" => PdfComplianceProfile.PdfA2B,
+            "PdfA3B" => PdfComplianceProfile.PdfA3B,
             var value => throw new InvalidDataException($"Unsupported PDF compliance profile '{value}'.")
         };
 

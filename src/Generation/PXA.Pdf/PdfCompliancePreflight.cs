@@ -5,7 +5,7 @@ namespace PXA.Pdf;
 /// <summary>Validates generator input before a PDF/A conformance claim is emitted.</summary>
 public static class PdfCompliancePreflight
 {
-    public const string ValidatorName = "PXA PDF/A-2b generator preflight 1.0";
+    public const string ValidatorName = "PXA PDF/A-2b/3b generator preflight 1.1";
 
     public static PdfComplianceValidationReport Validate(PdfDocument document, PdfSaveOptions options)
     {
@@ -22,7 +22,7 @@ public static class PdfCompliancePreflight
                 diagnostics);
         }
 
-        if (options.ComplianceProfile != PdfComplianceProfile.PdfA2B)
+        if (options.ComplianceProfile is not (PdfComplianceProfile.PdfA2B or PdfComplianceProfile.PdfA3B))
         {
             diagnostics.Add(new PdfComplianceDiagnostic(
                 "PXAPDFA001",
@@ -43,7 +43,7 @@ public static class PdfCompliancePreflight
             diagnostics.Add(new PdfComplianceDiagnostic(
                 "PXAPDFA006",
                 PdfComplianceDiagnosticSeverity.Error,
-                "Custom document properties require a declared XMP extension schema and are not supported by the initial PXA PDF/A-2b writer."));
+                "Custom document properties require a declared XMP extension schema and are not supported by the PXA PDF/A writer."));
         }
 
         for (var pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
@@ -66,7 +66,7 @@ public static class PdfCompliancePreflight
                 diagnostics.Add(new PdfComplianceDiagnostic(
                     "PXAPDFA004",
                     PdfComplianceDiagnosticSeverity.Error,
-                    "Interactive form fields are not supported by the initial PXA PDF/A-2b writer because their appearance fonts are not embedded.",
+                    "Interactive form fields are not supported by the PXA PDF/A writer because their appearance fonts are not embedded.",
                     pageIndex + 1));
             }
 
@@ -75,7 +75,7 @@ public static class PdfCompliancePreflight
                 diagnostics.Add(new PdfComplianceDiagnostic(
                     "PXAPDFA005",
                     PdfComplianceDiagnosticSeverity.Error,
-                    "Review annotations are not supported by the initial PXA PDF/A-2b writer.",
+                    "Review annotations are not supported by the PXA PDF/A writer.",
                     pageIndex + 1));
             }
         }
@@ -85,7 +85,7 @@ public static class PdfCompliancePreflight
             diagnostics.Add(new PdfComplianceDiagnostic(
                 "PXAPDFA000",
                 PdfComplianceDiagnosticSeverity.Information,
-                "The document satisfies the PXA generator preflight for PDF/A-2b."));
+                $"The document satisfies the PXA generator preflight for {ProfileName(options.ComplianceProfile)}."));
         }
 
         return new PdfComplianceValidationReport(
@@ -94,4 +94,7 @@ public static class PdfCompliancePreflight
             ValidatorName,
             diagnostics);
     }
+
+    private static string ProfileName(PdfComplianceProfile profile) =>
+        profile == PdfComplianceProfile.PdfA3B ? "PDF/A-3b" : "PDF/A-2b";
 }

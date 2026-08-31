@@ -379,13 +379,44 @@ Reference material:
 
 - [x] Ship one narrow, independently validated profile first: PDF/A-2b for generated
   documents.
-- [ ] Add PDF/A-3b for workflows requiring arbitrary embedded source documents.
+- [x] Add PDF/A-3b for workflows requiring arbitrary embedded source documents.
+  - [x] Add a target profile to the conversion options and API, defaulting to PDF/A-2b so
+    existing callers are unaffected.
+  - [x] Retain embedded files and attachments, write `pdfaid:part 3`, and give every file
+    specification the `/AFRelationship` and catalog `/AF` association PDF/A-3 requires.
+  - [x] Keep embedded files blocked for PDF/A-2b, where they are not permitted.
+  - [x] Decode escaped PDF names exactly once, repair invalid attachment MIME subtypes,
+    validate profile-specific attachment rules, and independently validate generated and
+    converted PDF/A-3b fixtures with veraPDF.
+  - [x] Expose PDF/A-3b as a typed Generator profile and as a selectable Viewer preflight
+    and conversion target; attachment authoring remains in the existing-PDF conversion path.
 - [ ] Add PDF/A-4 only after the PDF 2.0 writer and validator policy are production
   ready.
+  - [ ] Precondition not met. The writer emits classic cross-reference tables only, and
+    the PXA validator has no PDF/A-4 rules and no PDF/A-4 output has been corroborated by
+    veraPDF. Emitting `pdfaid:part 4` on that basis would be a metadata-only
+    conformance claim, which the Delivery Principles forbid.
 - [x] Define a typed compliance profile rather than a free-form string.
 - [x] Embed all required fonts and fail when embedding or Unicode mapping is not
   possible.
 - [ ] Add output intents and ICC profiles with deterministic color conversion.
+  - [x] Convert DeviceCMYK and Indexed content-stream colour to sRGB, plus Separation and
+    DeviceN when their tint transform and alternate space are supported. Evaluate sampled
+    functions with multilinear interpolation and reject unknown Type 4 operators.
+  - [x] Fail closed for unknown named spaces, unsafe inline-image and shading colour,
+    ICCBased without an explicit supported alternate, and CalGray, CalRGB, and Lab until
+    their complete colorimetric parameters are implemented.
+  - [x] Rewrite colour operators by splicing only their byte ranges, so no other content
+    is disturbed.
+  - [x] Document the DeviceCMYK conversion as the ISO 32000-1 8.6.4.4 approximation:
+    reproducible, not colorimetrically exact.
+  - [ ] Convert colour carried by image samples; images in a device-dependent space are
+    still blocked rather than passed through.
+  - [ ] Convert Pattern colour spaces, which remain blocked.
+  - [ ] Replace the specified CMYK approximation with an ICC transform through the output
+    intent profile.
+  - [ ] Implement complete CalGray, CalRGB, Lab, and embedded ICC profile conversion before
+    advertising those colour families as converted.
 - [x] Emit an sRGB output intent and embedded ICC profile for generated PDF/A-2b;
   deterministic conversion of non-sRGB source colors remains open.
 - [x] Produce required XMP identification and document metadata and synchronize it
@@ -402,6 +433,8 @@ Reference material:
   - [x] Validate unsigned and explicitly signature-stripped existing-PDF conversion
     fixtures with `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS` for profile
     `2b`, while visible signature appearances remain fail-closed.
+  - [x] Validate generated and attachment-bearing converted PDF/A-3b fixtures with
+    `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS` for profile `3b`.
   - [ ] Add a second commercial or standards-based validator before the production
     support claim.
 - [x] Store validator name, version, profile, rule IDs, and machine-readable evidence

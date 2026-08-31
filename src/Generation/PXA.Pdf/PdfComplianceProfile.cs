@@ -4,5 +4,6 @@ namespace PXA.Pdf;
 public enum PdfComplianceProfile
 {
     None = 0,
-    PdfA2B = 1
+    PdfA2B = 1,
+    PdfA3B = 2
 }

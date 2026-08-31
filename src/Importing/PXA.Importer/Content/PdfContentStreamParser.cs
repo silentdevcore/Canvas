@@ -70,7 +70,7 @@ public sealed class PdfContentStreamParser
 
             if (token.Kind == PdfTokenKind.Name)
             {
-                dictionary[token.Text[1..]] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(token.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
             }
         }
 
@@ -95,7 +95,7 @@ public sealed class PdfContentStreamParser
     {
         return token.Kind switch
         {
-            PdfTokenKind.Name => new PdfName(token.Text[1..]) { SourceSpan = Span(token) },
+            PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
             PdfTokenKind.Number when long.TryParse(token.Text, out var integer) => new PdfInteger(integer) { SourceSpan = Span(token) },
             PdfTokenKind.Number when double.TryParse(token.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) => new PdfNumber(number) { SourceSpan = Span(token) },
             PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], false) { SourceSpan = Span(token) },
@@ -144,7 +144,7 @@ public sealed class PdfContentStreamParser
 
             if (key.Kind == PdfTokenKind.Name)
             {
-                dictionary[key.Text[1..]] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
             }
         }
     }

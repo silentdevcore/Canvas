@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-a3b-color-conversion",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PXA adds independently validated PDF/A-3b generation and attachment-preserving conversion, selectable Viewer workflows, and fail-closed deterministic color conversion for supported PDF color spaces.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

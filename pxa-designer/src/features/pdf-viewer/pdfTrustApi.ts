@@ -142,9 +142,15 @@ export async function inspectPdfTrust(file: File): Promise<PdfTrustReport> {
   return response.json() as Promise<PdfTrustReport>;
 }
 
-export async function preflightPdfA2b(file: File): Promise<PdfA2bConversionPreflightReport> {
+export type PdfArchiveProfile = 'PDF/A-2b' | 'PDF/A-3b';
+
+export async function preflightPdfA2b(
+  file: File,
+  profile: PdfArchiveProfile = 'PDF/A-2b',
+): Promise<PdfA2bConversionPreflightReport> {
   const form = new FormData();
   form.append('file', file);
+  form.append('profile', profile);
   const response = await fetch('/api/pxa/v1/pdf/compliance/preflight', { method: 'POST', body: form });
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));
@@ -153,10 +159,15 @@ export async function preflightPdfA2b(file: File): Promise<PdfA2bConversionPrefl
   return response.json() as Promise<PdfA2bConversionPreflightReport>;
 }
 
-export async function convertPdfA2b(file: File, allowSignatureInvalidation: boolean): Promise<Blob> {
+export async function convertPdfA2b(
+  file: File,
+  allowSignatureInvalidation: boolean,
+  profile: PdfArchiveProfile = 'PDF/A-2b',
+): Promise<Blob> {
   const form = new FormData();
   form.append('file', file);
   form.append('allowSignatureInvalidation', String(allowSignatureInvalidation));
+  form.append('profile', profile);
   const response = await fetch('/api/pxa/v1/pdf/compliance/convert', { method: 'POST', body: form });
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));

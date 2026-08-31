@@ -32,15 +32,16 @@ internal sealed class PdfWriter
             throw new PdfComplianceException(compliance);
         }
 
-        var isPdfA2B = options.ComplianceProfile == PdfComplianceProfile.PdfA2B;
+        var isPdfA = options.ComplianceProfile is PdfComplianceProfile.PdfA2B or PdfComplianceProfile.PdfA3B;
+        var pdfAPart = options.ComplianceProfile == PdfComplianceProfile.PdfA3B ? 3 : 2;
 
         var nextObjectId = 1;
         var catalogObjectId = nextObjectId++;
         var pagesObjectId = nextObjectId++;
         var infoObjectId = document.Info.HasValues ? nextObjectId++ : (int?)null;
-        var metadataObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
-        var outputIntentObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
-        var iccProfileObjectId = isPdfA2B ? nextObjectId++ : (int?)null;
+        var metadataObjectId = isPdfA ? nextObjectId++ : (int?)null;
+        var outputIntentObjectId = isPdfA ? nextObjectId++ : (int?)null;
+        var iccProfileObjectId = isPdfA ? nextObjectId++ : (int?)null;
 
         var usedFonts = document.Pages
             .SelectMany(static page => page.Elements)
@@ -703,7 +704,7 @@ internal sealed class PdfWriter
               $" /DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> >>"
             : string.Empty;
 
-        if (isPdfA2B)
+        if (isPdfA)
         {
             var iccBytes = PdfComplianceResources.CreateSrgbIccProfile();
             objects.Add(new PdfIndirectObject(
@@ -716,11 +717,11 @@ internal sealed class PdfWriter
                 $"/DestOutputProfile {iccProfileObjectId.Value} 0 R >>\n"));
             objects.Add(new PdfIndirectObject(
                 metadataObjectId!.Value,
-                BuildBinaryStreamObject(BuildPdfA2bXmp(document.Info), "/Type /Metadata /Subtype /XML")));
+                BuildBinaryStreamObject(BuildPdfAXmp(document.Info, pdfAPart), "/Type /Metadata /Subtype /XML")));
         }
 
-        var metadataSegment = isPdfA2B ? $" /Metadata {metadataObjectId!.Value} 0 R" : string.Empty;
-        var outputIntentSegment = isPdfA2B ? $" /OutputIntents [{outputIntentObjectId!.Value} 0 R]" : string.Empty;
+        var metadataSegment = isPdfA ? $" /Metadata {metadataObjectId!.Value} 0 R" : string.Empty;
+        var outputIntentSegment = isPdfA ? $" /OutputIntents [{outputIntentObjectId!.Value} 0 R]" : string.Empty;
         var openAction = BuildOpenAction(document, pageObjectIds);
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
             ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment} >>\n"
@@ -766,7 +767,7 @@ internal sealed class PdfWriter
         byte[] bytes;
         try
         {
-            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId, isPdfA2B ? "1.7" : null);
+            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId, isPdfA ? "1.7" : null);
         }
         finally
         {
@@ -1424,7 +1425,7 @@ internal sealed class PdfWriter
         return memory.ToArray();
     }
 
-    private static byte[] BuildPdfA2bXmp(PdfDocumentInfo info)
+    private static byte[] BuildPdfAXmp(PdfDocumentInfo info, int part)
     {
         static string Xml(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
         static string OptionalElement(string name, string? value) => string.IsNullOrWhiteSpace(value)
@@ -1449,7 +1450,7 @@ internal sealed class PdfWriter
             <x:xmpmeta xmlns:x="adobe:ns:meta/">
               <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                 <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-                  <pdfaid:part>2</pdfaid:part>
+                  <pdfaid:part>{part}</pdfaid:part>
                   <pdfaid:conformance>B</pdfaid:conformance>
                 </rdf:Description>
                 <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">

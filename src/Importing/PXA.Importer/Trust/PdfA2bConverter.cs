@@ -23,8 +23,9 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConversionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
-        return BuildPreflight(parsed);
+        return BuildPreflight(parsed, options.Profile);
     }
 
     public async Task<PdfA2bConversionResult> ConvertAsync(
@@ -34,22 +35,27 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
     {
         options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
-        var preflight = BuildPreflight(parsed);
+        var preflight = BuildPreflight(parsed, options.Profile);
         if (preflight.Capability == PdfComplianceConversionCapability.Unsupported)
         {
             throw new PdfA2bConversionBlockedException(
-                "PDF/A-2b conversion is blocked because the source contains unsupported content.",
+                $"{ProfileName(options.Profile)} conversion is blocked because the source contains unsupported content.",
                 preflight);
         }
 
         if (preflight.InvalidatesSignatures && !options.AllowSignatureInvalidation)
         {
             throw new PdfA2bConversionBlockedException(
-                "PDF/A-2b conversion requires a full rewrite and would invalidate existing signatures.",
+                $"{ProfileName(options.Profile)} conversion requires a full rewrite and would invalidate existing signatures.",
                 preflight);
         }
 
-        var updates = BuildUpdates(parsed.Graph, parsed.SignatureCount > 0);
+        var updates = BuildUpdates(parsed.Graph, parsed.SignatureCount > 0, options.Profile).ToList();
+        updates.AddRange(PdfComplianceColorConversion.Analyze(parsed.Graph).Updates);
+        if (options.Profile == PdfArchiveProfile.PdfA3b)
+        {
+            AddEmbeddedFileAssociationUpdates(parsed.Graph, updates);
+        }
         var rewritten = new PdfFullRewriteWriter().RewriteWithUpdates(
             parsed.Source,
             updates,
@@ -68,7 +74,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (trust.PdfA.Status != PdfTrustStatus.Valid)
         {
             throw new InvalidDataException(
-                "The converted document did not pass the PXA PDF/A-2b structural validator; the original remains unchanged.");
+                $"The converted document did not pass the PXA {ProfileName(options.Profile)} structural validator; the original remains unchanged.");
         }
 
         return new PdfA2bConversionResult(
@@ -79,14 +85,15 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             trust.PdfA);
     }
 
-    private static PdfA2bConversionPreflightReport BuildPreflight(ParsedPdf parsed)
+    private static PdfA2bConversionPreflightReport BuildPreflight(ParsedPdf parsed, PdfArchiveProfile profile)
     {
         var findings = new List<PdfComplianceConversionFinding>();
         var validatorDiagnostics = new List<PdfTrustDiagnostic>();
-        PdfA2bConformanceValidator.Validate(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics);
+        PdfA2bConformanceValidator.Validate(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics, profile);
         foreach (var diagnostic in validatorDiagnostics.Where(static item =>
                      item.Severity == PdfTrustDiagnosticSeverity.Error &&
-                     item.Code is not ("PXAPDFTRUST312" or "PXAPDFTRUST313")))
+                     item.Code is not ("PXAPDFTRUST312" or "PXAPDFTRUST313" or
+                         "PXAPDFTRUST318" or "PXAPDFTRUST319" or "PXAPDFTRUST320" or "PXAPDFTRUST322")))
         {
             findings.Add(new PdfComplianceConversionFinding(
                 diagnostic.Code,
@@ -96,12 +103,18 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 diagnostic.Generation));
         }
 
-        if (HasUnsupportedColorSpace(parsed.Graph))
+        var color = PdfComplianceColorConversion.Analyze(parsed.Graph);
+        foreach (var finding in color.Blocking)
+        {
+            findings.Add(finding);
+        }
+
+        if (color.ConvertibleOperatorCount > 0 && !color.IsBlocked)
         {
             findings.Add(new PdfComplianceConversionFinding(
                 "PXAPDFACONVERT004",
-                PdfTrustDiagnosticSeverity.Error,
-                "The source uses a CMYK, Separation, DeviceN, or otherwise unsupported color space. Deterministic color conversion is required before PDF/A-2b conversion."));
+                PdfTrustDiagnosticSeverity.Info,
+                $"{color.ConvertibleOperatorCount} device-dependent colour operator(s) will be converted to sRGB deterministically."));
         }
 
         if (HasUnsupportedInteractiveForm(parsed.Graph))
@@ -112,12 +125,18 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 "Interactive form fields are not supported by the initial PDF/A-2b conversion path."));
         }
 
-        if (HasEmbeddedFiles(parsed.Graph))
+        var embeddedFileCount = CountEmbeddedFiles(parsed.Graph);
+        if (embeddedFileCount > 0)
         {
-            findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT006",
-                PdfTrustDiagnosticSeverity.Error,
-                "Embedded files and associated-file relationships require an explicit PDF/A-3 workflow and are not converted to PDF/A-2b."));
+            findings.Add(profile == PdfArchiveProfile.PdfA3b
+                ? new PdfComplianceConversionFinding(
+                    "PXAPDFACONVERT013",
+                    PdfTrustDiagnosticSeverity.Info,
+                    $"{embeddedFileCount} embedded file specification(s) will be retained and given the /AFRelationship and /AF associations PDF/A-3 requires.")
+                : new PdfComplianceConversionFinding(
+                    "PXAPDFACONVERT006",
+                    PdfTrustDiagnosticSeverity.Error,
+                    "Embedded files are not permitted by PDF/A-2b. Target PDF/A-3b to retain them."));
         }
 
         if (HasUnsupportedInfoProperties(parsed.Graph))
@@ -149,7 +168,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             findings.Add(new PdfComplianceConversionFinding(
                 "PXAPDFACONVERT000",
                 PdfTrustDiagnosticSeverity.Info,
-                "The source can be converted without discarding visible content. PXA will replace PDF/A identification metadata and the output intent."));
+                $"The source can be converted to {ProfileName(profile)} without discarding visible content. PXA will replace PDF/A identification metadata and the output intent."));
         }
 
         var capability = findings.Any(static item => item.Severity == PdfTrustDiagnosticSeverity.Error)
@@ -159,7 +178,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 : PdfComplianceConversionCapability.Ready;
 
         return new PdfA2bConversionPreflightReport(
-            "PDF/A-2b",
+            ProfileName(profile),
             capability,
             Convert.ToHexStringLower(SHA256.HashData(parsed.Source)),
             parsed.Source.Length,
@@ -170,7 +189,10 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             findings);
     }
 
-    private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildUpdates(PdfObjectGraph graph, bool removeSignatures)
+    private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildUpdates(
+        PdfObjectGraph graph,
+        bool removeSignatures,
+        PdfArchiveProfile archiveProfile)
     {
         if (graph.Trailer?["Root"] is not PdfReference rootReference ||
             graph.Resolve(rootReference.Id)?.Value is not PdfDictionary catalog)
@@ -188,7 +210,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 ["Type"] = new PdfName("Metadata"),
                 ["Subtype"] = new PdfName("XML")
             },
-            BuildXmp(graph));
+            BuildXmp(graph, archiveProfile));
         var profile = new PdfStreamObject(
             new PdfDictionary
             {
@@ -261,7 +283,145 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         }
     }
 
-    private static byte[] BuildXmp(PdfObjectGraph graph)
+    private static int CountEmbeddedFiles(PdfObjectGraph graph) =>
+        graph.Objects.Values.Count(item =>
+            item.Value is PdfDictionary dictionary &&
+            Resolve(graph, dictionary["EF"]) is PdfDictionary);
+
+    /// <summary>
+    /// PDF/A-3 requires every embedded file to declare its relationship to the document and to
+    /// be reachable from an /AF array. A file specification that declares neither is given
+    /// /Unspecified and associated with the catalog, which is the remediation the standard
+    /// allows; nothing about the embedded bytes changes.
+    /// </summary>
+    private static void AddEmbeddedFileAssociationUpdates(
+        PdfObjectGraph graph,
+        List<PdfIncrementalObjectUpdate> updates)
+    {
+        var fileSpecifications = graph.Objects.Values
+            .Where(item => item.Value is PdfDictionary dictionary &&
+                Resolve(graph, dictionary["EF"]) is PdfDictionary)
+            .OrderBy(static item => item.Id.Number)
+            .ToArray();
+        if (fileSpecifications.Length == 0)
+        {
+            return;
+        }
+
+        foreach (var indirectObject in fileSpecifications)
+        {
+            var specification = (PdfDictionary)indirectObject.Value;
+            var updated = Clone(specification);
+            updated["Type"] ??= new PdfName("Filespec");
+            updated["AFRelationship"] ??= new PdfName("Unspecified");
+            // /UF is required alongside /F so the name survives non-ASCII round trips.
+            if (updated["UF"] is null && specification["F"] is PdfString fileName)
+            {
+                updated["UF"] = fileName;
+            }
+
+            if (updated["F"] is null && specification["UF"] is PdfString unicodeFileName)
+            {
+                updated["F"] = unicodeFileName;
+            }
+
+            updates.Add(new PdfIncrementalObjectUpdate(indirectObject.Id, updated));
+
+            if (Resolve(graph, specification["EF"]) is not PdfDictionary embeddedFiles)
+            {
+                continue;
+            }
+
+            foreach (var reference in embeddedFiles.Values.Values.OfType<PdfReference>().DistinctBy(static item => item.Id))
+            {
+                if (graph.Resolve(reference.Id)?.Value is not PdfStreamObject embeddedStream)
+                {
+                    continue;
+                }
+
+                var subtype = ReadName(graph, embeddedStream.Dictionary["Subtype"]);
+                if (IsMimeTypeName(subtype))
+                {
+                    continue;
+                }
+
+                var streamDictionary = Clone(embeddedStream.Dictionary);
+                streamDictionary["Subtype"] = new PdfName("application/octet-stream");
+                updates.Add(new PdfIncrementalObjectUpdate(
+                    reference.Id,
+                    new PdfStreamObject(streamDictionary, embeddedStream.EncodedBytes)));
+            }
+        }
+
+        if (graph.Trailer?["Root"] is not PdfReference rootReference)
+        {
+            return;
+        }
+
+        // Build on the catalog the conversion has already staged, not the original one. Both
+        // target the same object, and the writer keeps only the last update, so cloning the
+        // original here would silently discard the new /Metadata and /OutputIntents.
+        var catalog = updates
+            .LastOrDefault(update => update.Id == rootReference.Id)?.Value as PdfDictionary
+            ?? graph.Resolve(rootReference.Id)?.Value as PdfDictionary;
+        if (catalog is null)
+        {
+            return;
+        }
+
+        var existing = Resolve(graph, catalog["AF"]) as PdfArray;
+        var associated = new HashSet<PdfObjectId>(
+            existing?.Items.OfType<PdfReference>().Select(static item => item.Id) ?? []);
+        var items = new List<PdfObject>(existing?.Items ?? []);
+        foreach (var indirectObject in fileSpecifications.Where(item => !associated.Contains(item.Id)))
+        {
+            items.Add(new PdfReference(indirectObject.Id));
+        }
+
+        if (existing is not null && items.Count == existing.Items.Count)
+        {
+            return;
+        }
+
+        var updatedCatalog = Clone(catalog);
+        updatedCatalog["AF"] = new PdfArray(items);
+        updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, updatedCatalog));
+    }
+
+    private static bool IsMimeTypeName(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var slash = value.IndexOf('/');
+        return slash > 0 && slash == value.LastIndexOf('/') && slash < value.Length - 1 &&
+               IsMimeToken(value.AsSpan(0, slash)) && IsMimeToken(value.AsSpan(slash + 1));
+    }
+
+    private static bool IsMimeToken(ReadOnlySpan<char> value)
+    {
+        if (value.Length == 0 || value.IndexOfAny("()<>@,;:\\\"/[]?= \t\r\n".AsSpan()) >= 0)
+        {
+            return false;
+        }
+
+        foreach (var current in value)
+        {
+            if (current is <= '\u001f' or >= '\u007f')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    internal static string ProfileName(PdfArchiveProfile profile) =>
+        profile == PdfArchiveProfile.PdfA3b ? "PDF/A-3b" : "PDF/A-2b";
+
+    private static byte[] BuildXmp(PdfObjectGraph graph, PdfArchiveProfile profile)
     {
         var info = Resolve(graph, graph.Trailer?["Info"]) as PdfDictionary;
         var title = ReadText(info?["Title"]);
@@ -282,7 +442,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
             <x:xmpmeta xmlns:x="adobe:ns:meta/">
               <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"><pdfaid:part>2</pdfaid:part><pdfaid:conformance>B</pdfaid:conformance></rdf:Description>
+                <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"><pdfaid:part>{(profile == PdfArchiveProfile.PdfA3b ? 3 : 2)}</pdfaid:part><pdfaid:conformance>B</pdfaid:conformance></rdf:Description>
                 <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">{Alt("dc:title", title)}{Seq("dc:creator", author)}{Alt("dc:description", subject)}</rdf:Description>
                 <rdf:Description rdf:about="" xmlns:pdf="http://ns.adobe.com/pdf/1.3/">{Element("pdf:Keywords", keywords)}{Element("pdf:Producer", producer)}</rdf:Description>
                 <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/">{Element("xmp:CreatorTool", creator)}{Element("xmp:CreateDate", PdfDateToXmp(creationDate))}{Element("xmp:ModifyDate", PdfDateToXmp(modificationDate))}</rdf:Description>
