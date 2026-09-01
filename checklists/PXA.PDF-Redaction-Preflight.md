@@ -30,10 +30,10 @@ is invisible to the redaction decision. Preflight exists to make that visible.
   before analysing.
 - [x] Walk the full scene graph, including nested groups, and classify every element
   against every region as not intersecting, partially overlapping, or fully contained.
-- [x] Report fully contained text and paths as removable; keep images as
-  `reviewRequired` until reusable XObject pixels and resources can be purged safely.
-- [x] Report partial overlap as `reviewRequired`, because removing the whole element
-  over-redacts and removing part of one is not supported.
+- [x] Report fully contained text, paths, and images as removable. Report partially covered
+  images as removable only when their bounded samples can be decoded and rewritten safely.
+- [x] Report partial text and path overlap as `reviewRequired`; supported image samples are
+  rewritten by pixel while masked, unsupported, or undecodable images remain blocked.
 - [x] Report the covered text run count and character count as evidence without echoing
   the covered text into the report.
 
@@ -85,4 +85,6 @@ silently passed over.
 
 - [x] Applied irreversible redaction, verification, and audit evidence — delivered, and
   now tracked in the Milestone 3 section of `PXA.PDF-Trust-Foundation.md`.
-- [ ] Partial removal within a single text run or image.
+- [ ] Partial removal within a single text run.
+- [x] Partial removal within supported raw, lossless, DCT/JPEG, and inline images, with
+  shared XObject cloning and post-write pixel verification.

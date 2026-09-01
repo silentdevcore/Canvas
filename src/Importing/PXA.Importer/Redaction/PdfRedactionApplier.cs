@@ -78,6 +78,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         var updates = new List<PdfIncrementalObjectUpdate>();
         var rewrittenPages = new List<int>();
         var rewriter = new PdfContentStreamRewriter();
+        var nextObjectNumber = graph.Objects.Keys.Max(static id => id.Number) + 1;
 
         foreach (var (pageNumber, pageRegions) in regionsByPage.OrderBy(static entry => entry.Key))
         {
@@ -88,7 +89,23 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 continue;
             }
 
-            var removedOnPage = 0;
+            PdfDictionary? resourceOverride = null;
+            var originalImageResources = CollectImageResourceNames(page.GraphicsObjects, includeDeleted: true);
+            var removedOnPage = RedactImages(
+                graph,
+                page,
+                pageRegions,
+                updates,
+                ref nextObjectNumber,
+                ref resourceOverride,
+                page.GraphicsObjects,
+                depth: 0,
+                []);
+            PruneUnusedImageResources(
+                graph,
+                page,
+                originalImageResources,
+                ref resourceOverride);
             foreach (var element in page.GraphicsObjects)
             {
                 removedOnPage += MarkCovered(element, pageRegions, removedText, depth: 0, []);
@@ -101,7 +118,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             removedElements += removedOnPage;
             rewrittenPages.Add(pageNumber);
-            AppendContentStreamUpdates(graph, page, rewriter.Rewrite(page), updates);
+            AppendContentStreamUpdates(graph, page, rewriter.Rewrite(page), resourceOverride, updates);
         }
 
         var removedAnnotations = 0;
@@ -203,6 +220,13 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             return removedInGroup;
         }
 
+        // Images are handled before content rewriting. A contained image is already marked
+        // deleted; a partial image points at a newly scrubbed resource and must remain.
+        if (element is PdfImageElement)
+        {
+            return 0;
+        }
+
         var bounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out _);
         if (!regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None))
         {
@@ -222,7 +246,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         PdfObjectGraph graph,
         PdfPageModel page,
         ReadOnlyMemory<byte> content,
-        ICollection<PdfIncrementalObjectUpdate> updates)
+        PdfDictionary? resourceOverride,
+        List<PdfIncrementalObjectUpdate> updates)
     {
         if (page.OriginalReference is not { } pageId ||
             graph.Resolve(pageId)?.Value is not PdfDictionary pageDictionary)
@@ -238,22 +263,179 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
         // The first stream carries the rewritten page; the rest are emptied so that no original
         // operator survives anywhere in the page's content.
-        updates.Add(new PdfIncrementalObjectUpdate(
+        UpsertUpdate(updates, new PdfIncrementalObjectUpdate(
             streamIds[0],
             new PdfStreamObject(new PdfDictionary(), content)));
         for (var index = 1; index < streamIds.Count; index++)
         {
-            updates.Add(new PdfIncrementalObjectUpdate(
+            UpsertUpdate(updates, new PdfIncrementalObjectUpdate(
                 streamIds[index],
                 new PdfStreamObject(new PdfDictionary(), ReadOnlyMemory<byte>.Empty)));
         }
 
-        if (streamIds.Count > 1)
+        if (streamIds.Count > 1 || resourceOverride is not null)
         {
-            var updated = Clone(pageDictionary);
-            updated["Contents"] = new PdfReference(streamIds[0]);
-            updates.Add(new PdfIncrementalObjectUpdate(pageId, updated));
+            var updated = CurrentDictionary(graph, pageId, updates, pageDictionary);
+            if (streamIds.Count > 1)
+            {
+                updated["Contents"] = new PdfReference(streamIds[0]);
+            }
+
+            if (resourceOverride is not null)
+            {
+                updated["Resources"] = resourceOverride;
+            }
+
+            UpsertUpdate(updates, new PdfIncrementalObjectUpdate(pageId, updated));
         }
+    }
+
+    private int RedactImages(
+        PdfObjectGraph graph,
+        PdfPageModel page,
+        IReadOnlyList<PdfRectangle> regions,
+        List<PdfIncrementalObjectUpdate> updates,
+        ref int nextObjectNumber,
+        ref PdfDictionary? resourceOverride,
+        IEnumerable<PdfGraphicsElement> elements,
+        int depth,
+        IReadOnlyList<PdfGroupElement> ancestors)
+    {
+        if (depth > 64)
+        {
+            throw new InvalidDataException("Image redaction content exceeds the maximum nesting depth.");
+        }
+
+        var changed = 0;
+        foreach (var element in elements)
+        {
+            if (element.IsDeleted)
+            {
+                continue;
+            }
+
+            if (element is PdfGroupElement group)
+            {
+                var nested = ancestors.Append(group).ToArray();
+                changed += RedactImages(
+                    graph, page, regions, updates, ref nextObjectNumber, ref resourceOverride,
+                    group.Children, depth + 1, nested);
+                continue;
+            }
+
+            if (element is not PdfImageElement image)
+            {
+                continue;
+            }
+
+            var bounds = PdfRedactionVisibility.EffectiveBounds(image, _bounds, ancestors, out _);
+            var coverage = regions
+                .Select(region => PdfRedactionGeometry.Classify(bounds, region))
+                .DefaultIfEmpty(PdfRedactionCoverage.None)
+                .Max();
+            if (coverage == PdfRedactionCoverage.None)
+            {
+                continue;
+            }
+
+            if (coverage == PdfRedactionCoverage.Contained)
+            {
+                image.IsDeleted = true;
+                changed++;
+                continue;
+            }
+
+            if (!PdfImageRedactionEngine.TryCreateRedactedStream(
+                    graph, page.Resources, image, regions, out var redacted, out var reason))
+            {
+                throw new InvalidDataException(
+                    $"A preflight-approved image could not be redacted safely during apply. {reason}");
+            }
+
+            if (string.IsNullOrEmpty(image.ResourceName))
+            {
+                image.ReplacementStream = PdfImageRedactionEngine.MakeInlineSafe(redacted);
+            }
+            else
+            {
+                resourceOverride ??= Clone(page.Resources);
+                var xObjects = Resolve(graph, resourceOverride["XObject"]) is PdfDictionary existing
+                    ? Clone(existing)
+                    : new PdfDictionary();
+                var name = NextResourceName(xObjects, image.ResourceName);
+                var id = new PdfObjectId(nextObjectNumber++, 0);
+                xObjects[name] = new PdfReference(id);
+                resourceOverride["XObject"] = xObjects;
+                image.ResourceName = name;
+                updates.Add(new PdfIncrementalObjectUpdate(id, redacted));
+            }
+
+            changed++;
+        }
+
+        return changed;
+    }
+
+    private static string NextResourceName(PdfDictionary resources, string original)
+    {
+        for (var index = 1; ; index++)
+        {
+            var candidate = $"{original}_PXARedacted{index}";
+            if (resources[candidate] is null)
+            {
+                return candidate;
+            }
+        }
+    }
+
+    private static HashSet<string> CollectImageResourceNames(
+        IEnumerable<PdfGraphicsElement> elements,
+        bool includeDeleted)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var element in elements)
+        {
+            if (element is PdfGroupElement group)
+            {
+                names.UnionWith(CollectImageResourceNames(group.Children, includeDeleted));
+            }
+            else if (element is PdfImageElement image &&
+                     (includeDeleted || !image.IsDeleted) &&
+                     !string.IsNullOrEmpty(image.ResourceName))
+            {
+                names.Add(image.ResourceName);
+            }
+        }
+
+        return names;
+    }
+
+    private static void PruneUnusedImageResources(
+        PdfObjectGraph graph,
+        PdfPageModel page,
+        IReadOnlySet<string> originalNames,
+        ref PdfDictionary? resourceOverride)
+    {
+        var activeNames = CollectImageResourceNames(page.GraphicsObjects, includeDeleted: false);
+        var unusedNames = originalNames.Where(name => !activeNames.Contains(name)).ToArray();
+        if (unusedNames.Length == 0)
+        {
+            return;
+        }
+
+        resourceOverride ??= Clone(page.Resources);
+        if (Resolve(graph, resourceOverride["XObject"]) is not PdfDictionary existing)
+        {
+            return;
+        }
+
+        var xObjects = Clone(existing);
+        foreach (var name in unusedNames)
+        {
+            xObjects[name] = null;
+        }
+
+        resourceOverride["XObject"] = xObjects;
     }
 
     private static List<PdfObjectId> ReadContentStreamIds(PdfDictionary pageDictionary) =>
@@ -268,7 +450,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         PdfObjectGraph graph,
         PdfPageModel page,
         IReadOnlyList<PdfRectangle> regions,
-        ICollection<PdfIncrementalObjectUpdate> updates)
+        List<PdfIncrementalObjectUpdate> updates)
     {
         if (page.OriginalReference is not { } pageId ||
             graph.Resolve(pageId)?.Value is not PdfDictionary pageDictionary ||
@@ -290,7 +472,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 {
                     // Clear the object as well, so a removed field value cannot be recovered
                     // from an object that the annotation array no longer references.
-                    updates.Add(new PdfIncrementalObjectUpdate(reference.Id, PdfNull.Value));
+                    UpsertUpdate(updates, new PdfIncrementalObjectUpdate(reference.Id, PdfNull.Value));
                 }
 
                 continue;
@@ -304,16 +486,16 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             return 0;
         }
 
-        var updated = Clone(pageDictionary);
+        var updated = CurrentDictionary(graph, pageId, updates, pageDictionary);
         updated["Annots"] = new PdfArray(retained);
-        updates.Add(new PdfIncrementalObjectUpdate(pageId, updated));
+        UpsertUpdate(updates, new PdfIncrementalObjectUpdate(pageId, updated));
         return removed;
     }
 
     private static void RemovePageThumbnails(
         PdfObjectGraph graph,
         PdfDocumentModel document,
-        ICollection<PdfIncrementalObjectUpdate> updates)
+        List<PdfIncrementalObjectUpdate> updates)
     {
         foreach (var page in document.Pages)
         {
@@ -324,9 +506,9 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 continue;
             }
 
-            var updated = Clone(pageDictionary);
+            var updated = CurrentDictionary(graph, pageId, updates, pageDictionary);
             updated["Thumb"] = null;
-            updates.Add(new PdfIncrementalObjectUpdate(pageId, updated));
+            UpsertUpdate(updates, new PdfIncrementalObjectUpdate(pageId, updated));
         }
     }
 
@@ -446,7 +628,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             foreach (var element in page.GraphicsObjects)
             {
-                residualElements += CountCovered(element, regions, depth: 0, []);
+                residualElements += CountCovered(graph, page.Resources, element, regions, depth: 0, []);
             }
         }
 
@@ -502,6 +684,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
     }
 
     private int CountCovered(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
         PdfGraphicsElement element,
         IReadOnlyList<PdfRectangle> regions,
         int depth,
@@ -515,7 +699,13 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         if (element is PdfGroupElement group)
         {
             var nested = ancestors.Append(group).ToArray();
-            return group.Children.Sum(child => CountCovered(child, regions, depth + 1, nested));
+            return group.Children.Sum(child => CountCovered(graph, resources, child, regions, depth + 1, nested));
+        }
+
+        if (element is PdfImageElement image &&
+            PdfImageRedactionEngine.IsSecurelyRedacted(graph, resources, image, regions, out _))
+        {
+            return 0;
         }
 
         var bounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out _);
@@ -586,6 +776,23 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
     private static PdfDictionary Clone(PdfDictionary source) =>
         new(new Dictionary<string, PdfObject>(source.Values, StringComparer.Ordinal));
+
+    private static PdfDictionary CurrentDictionary(
+        PdfObjectGraph graph,
+        PdfObjectId id,
+        IReadOnlyList<PdfIncrementalObjectUpdate> updates,
+        PdfDictionary fallback) =>
+        Clone(updates.LastOrDefault(update => update.Id == id)?.Value as PdfDictionary ??
+              graph.Resolve(id)?.Value as PdfDictionary ??
+              fallback);
+
+    private static void UpsertUpdate(
+        List<PdfIncrementalObjectUpdate> updates,
+        PdfIncrementalObjectUpdate update)
+    {
+        updates.RemoveAll(candidate => candidate.Id == update.Id);
+        updates.Add(update);
+    }
 
     private static PdfRectangle? ReadRectangle(PdfObjectGraph graph, PdfObject? value)
     {

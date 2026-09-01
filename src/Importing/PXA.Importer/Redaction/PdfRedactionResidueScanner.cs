@@ -19,7 +19,7 @@ internal static class PdfRedactionResidueScanner
         IReadOnlyDictionary<int, PdfRectangle[]> regionsByPage,
         ICollection<PdfRedactionFinding> findings)
     {
-        var coveredImages = CountCoveredImages(document, regionsByPage);
+        var coveredImages = CountCoveredImages(graph, document, regionsByPage);
         if (coveredImages > 0)
         {
             findings.Add(new PdfRedactionFinding(
@@ -58,6 +58,7 @@ internal static class PdfRedactionResidueScanner
     }
 
     private static int CountCoveredImages(
+        PdfObjectGraph graph,
         PdfDocumentModel document,
         IReadOnlyDictionary<int, PdfRectangle[]> regionsByPage)
     {
@@ -72,7 +73,7 @@ internal static class PdfRedactionResidueScanner
 
             foreach (var element in page.GraphicsObjects)
             {
-                count += CountCoveredImages(element, regions, depth: 0, []);
+                count += CountCoveredImages(graph, page.Resources, element, regions, depth: 0, []);
             }
         }
 
@@ -80,6 +81,8 @@ internal static class PdfRedactionResidueScanner
     }
 
     private static int CountCoveredImages(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
         PdfGraphicsElement element,
         IReadOnlyList<PdfRectangle> regions,
         int depth,
@@ -93,10 +96,15 @@ internal static class PdfRedactionResidueScanner
         if (element is PdfGroupElement group)
         {
             var nested = ancestors.Append(group).ToArray();
-            return group.Children.Sum(child => CountCoveredImages(child, regions, depth + 1, nested));
+            return group.Children.Sum(child => CountCoveredImages(graph, resources, child, regions, depth + 1, nested));
         }
 
-        if (element is not PdfImageElement)
+        if (element is not PdfImageElement image)
+        {
+            return 0;
+        }
+
+        if (PdfImageRedactionEngine.IsSecurelyRedacted(graph, resources, image, regions, out _))
         {
             return 0;
         }

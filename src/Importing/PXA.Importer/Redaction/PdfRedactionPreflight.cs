@@ -162,7 +162,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         var accumulator = new CoverageAccumulator();
         foreach (var element in page.GraphicsObjects)
         {
-            Accumulate(element, region.Bounds, accumulator, findings, region.PageNumber, index, depth: 0, []);
+            Accumulate(graph, page.Resources, element, region.Bounds, accumulator, findings, region.PageNumber, index, depth: 0, []);
         }
 
         accumulator.Fill(covered);
@@ -176,6 +176,8 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
     }
 
     private void Accumulate(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
         PdfGraphicsElement element,
         PdfRectangle region,
         CoverageAccumulator accumulator,
@@ -215,7 +217,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             var nested = ancestors.Append(group).ToArray();
             foreach (var child in group.Children)
             {
-                Accumulate(child, region, accumulator, findings, pageNumber, regionIndex, depth + 1, nested);
+                Accumulate(graph, resources, child, region, accumulator, findings, pageNumber, regionIndex, depth + 1, nested);
             }
 
             return;
@@ -253,16 +255,24 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 }
 
                 break;
-            case PdfImageElement:
-                accumulator.Add("image", coverage, 1);
-                findings.Add(new PdfRedactionFinding(
-                    coverage == PdfRedactionCoverage.Partial ? "PXAPDFREDACT204" : "PXAPDFREDACT208",
-                    PdfRedactionCapability.ReviewRequired,
-                    coverage == PdfRedactionCoverage.Partial
-                        ? "An image only partially overlaps the region; PXA cannot remove only the covered pixels."
-                        : "An image is covered, but its reusable XObject pixels cannot yet be removed without a resource-leak risk.",
-                    pageNumber,
-                    regionIndex));
+            case PdfImageElement image:
+                var imageCapability = PdfRedactionCapability.Removable;
+                if (coverage == PdfRedactionCoverage.Partial &&
+                    !PdfImageRedactionEngine.CanRedactPartial(graph, resources, image, out var reason))
+                {
+                    imageCapability = PdfRedactionCapability.ReviewRequired;
+                    var masked = PdfImageRedactionEngine.RequiresMaskReconstruction(graph, resources, image);
+                    findings.Add(new PdfRedactionFinding(
+                        masked ? "PXAPDFREDACT209" : "PXAPDFREDACT204",
+                        PdfRedactionCapability.ReviewRequired,
+                        masked
+                            ? $"The image only partially overlaps the region and its mask cannot be reconstructed safely. {reason}"
+                            : $"The image only partially overlaps the region and cannot be rewritten safely. {reason}",
+                        pageNumber,
+                        regionIndex));
+                }
+
+                accumulator.Add("image", coverage, 1, capability: imageCapability);
 
                 break;
             case PdfShadingElement:
@@ -481,13 +491,22 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
 
     private sealed class CoverageAccumulator
     {
-        private readonly Dictionary<(string Kind, PdfRedactionCoverage Coverage), (int Elements, int Characters)> _items = [];
+        private readonly Dictionary<(string Kind, PdfRedactionCoverage Coverage), (int Elements, int Characters, PdfRedactionCapability Capability)> _items = [];
 
-        public void Add(string kind, PdfRedactionCoverage coverage, int elements, int characters = 0)
+        public void Add(
+            string kind,
+            PdfRedactionCoverage coverage,
+            int elements,
+            int characters = 0,
+            PdfRedactionCapability? capability = null)
         {
             var key = (kind, coverage);
             var current = _items.GetValueOrDefault(key);
-            _items[key] = (current.Elements + elements, current.Characters + characters);
+            var effective = capability ?? DefaultCapability(kind, coverage);
+            _items[key] = (
+                current.Elements + elements,
+                current.Characters + characters,
+                current.Elements == 0 ? effective : (PdfRedactionCapability)Math.Max((int)current.Capability, (int)effective));
         }
 
         public void Fill(ICollection<PdfRedactionCoveredContent> target)
@@ -495,17 +514,19 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             foreach (var entry in _items.OrderBy(static item => item.Key.Kind, StringComparer.Ordinal)
                          .ThenBy(static item => item.Key.Coverage))
             {
-                var capability = entry.Key.Coverage == PdfRedactionCoverage.Contained &&
-                    entry.Key.Kind is "text" or "path"
-                    ? PdfRedactionCapability.Removable
-                    : PdfRedactionCapability.ReviewRequired;
                 target.Add(new PdfRedactionCoveredContent(
                     entry.Key.Kind,
                     entry.Key.Coverage,
-                    capability,
+                    entry.Value.Capability,
                     entry.Value.Elements,
                     entry.Value.Characters));
             }
         }
+
+        private static PdfRedactionCapability DefaultCapability(string kind, PdfRedactionCoverage coverage) =>
+            kind == "image" ||
+            (coverage == PdfRedactionCoverage.Contained && kind is "text" or "path")
+                ? PdfRedactionCapability.Removable
+                : PdfRedactionCapability.ReviewRequired;
     }
 }

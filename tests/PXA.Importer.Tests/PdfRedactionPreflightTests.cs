@@ -43,7 +43,7 @@ public sealed class PdfRedactionPreflightTests
     }
 
     [Fact]
-    public async Task Preflight_ShouldRequireReviewForAContainedImageUntilPixelsCanBeRemoved()
+    public async Task Preflight_ShouldReportAContainedImageAsRemovable()
     {
         var document = new PdfDocument();
         document.AddPage().DrawImage(
@@ -57,11 +57,11 @@ public sealed class PdfRedactionPreflightTests
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, WholePage));
 
         var region = Assert.Single(report.Regions);
-        Assert.Equal(PdfRedactionCapability.ReviewRequired, region.Capability);
-        Assert.Contains(region.Findings, static finding => finding.Code == "PXAPDFREDACT208");
+        Assert.Equal(PdfRedactionCapability.Removable, region.Capability);
+        Assert.DoesNotContain(region.Findings, static finding => finding.Code == "PXAPDFREDACT208");
         Assert.Contains(
             region.Covered,
-            static item => item.Kind == "image" && item.Capability == PdfRedactionCapability.ReviewRequired);
+            static item => item.Kind == "image" && item.Capability == PdfRedactionCapability.Removable);
     }
 
     [Fact]

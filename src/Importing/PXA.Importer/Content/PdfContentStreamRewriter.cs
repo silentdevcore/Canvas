@@ -51,7 +51,9 @@ public sealed class PdfContentStreamRewriter
                         return;
                     }
 
-                    if (image.SourceCommand.Operands.FirstOrDefault() is PdfStreamObject inlineImage)
+                    var inlineImage = image.ReplacementStream ??
+                        image.SourceCommand.Operands.FirstOrDefault() as PdfStreamObject;
+                    if (inlineImage is not null)
                     {
                         WriteInlineImage(wrappedStream, inlineImage);
                     }

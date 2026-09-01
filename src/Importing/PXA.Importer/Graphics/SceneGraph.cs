@@ -67,6 +67,7 @@ public sealed class PdfImageElement : PdfGraphicsElement
 
     public string ResourceName { get; set; }
     public ReadOnlyMemory<byte> ImageBytes { get; set; }
+    public PdfStreamObject? ReplacementStream { get; set; }
 }
 
 public sealed class PdfShadingElement : PdfGraphicsElement

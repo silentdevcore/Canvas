@@ -277,8 +277,9 @@ Reference material:
     - [x] Narrow coverage by the clipping paths in force, including those inherited from
       enclosing groups, so a clipped element is not reported as covered where it never
       paints.
-    - [x] Report soft and stencil masks on image XObjects, soft masks set in the graphics
-      state, tiling and shading pattern resources, and page or form transparency groups.
+    - [x] Report soft and stencil masks when a partially covered image would require pixel
+      reconstruction, plus soft masks set in the graphics state, tiling and shading pattern
+      resources, and page or form transparency groups. Unused image resources do not block.
     - [ ] Resolve pattern content streams and mask pixels to a per-region answer instead of
       reporting them as `reviewRequired`.
 - [x] Remove covered text operators and associated extractable text, not only paint
@@ -292,10 +293,17 @@ Reference material:
   - [x] Remove optional content, non-normal appearance streams, and image alternates, so
     a viewer cannot reveal covered content the rendered page does not show.
   - [x] Remove page thumbnails.
-  - [ ] Zero covered pixels inside image XObjects, cloning a shared XObject before editing
+  - [x] Zero covered pixels inside supported image XObjects, cloning a shared XObject before editing
     so a redaction on one page cannot alter or leak through another.
-  - [ ] Decode DCT, JPX, and JBIG2 images, which PXA cannot currently read at all, so
-    documents containing them stay blocked rather than partially redacted.
+    - [x] Support bounded 8-bit DeviceGray, DeviceRGB, and DeviceCMYK samples in raw,
+      Flate, LZW, RunLength, DCT/JPEG, and safely delimited inline images.
+    - [x] Remove fully contained image operations and prune their now-unreachable payloads.
+    - [x] Re-decode the result and verify that every covered sample is zero; never trust the
+      internal redaction marker by itself.
+  - [ ] Add deterministic JPX and JBIG2 decoding. JPX is attempted through the local Skia
+    codec when available; unsupported JPX and all JBIG2 images remain blocked.
+  - [ ] Reconstruct soft masks, stencil masks, colour-key masks, non-8-bit samples, and
+    calibrated or custom image colour spaces for partial image redaction.
 - [x] Sanitize metadata, XMP, attachments, embedded files, comments, form values,
   actions, JavaScript, thumbnails, previous revisions, and incremental history when
   requested by the redaction policy.
@@ -340,6 +348,8 @@ Reference material:
     separate checks.
     - [x] Report residual covered images, retained thumbnails, retained optional content,
       and retained non-normal appearance streams under distinct diagnostic codes.
+    - [x] Verify pixel-redacted images by decoding the rewritten stream and checking the
+      mapped sample range, including inline and shared-resource cases.
     - [x] Do not use global raw-string equality as proof of residue: PDF encodings can hide
       matching text and an equal string outside the region is not a redaction failure.
     - [x] Prove each check fires on a result that still carries the residue it looks for.

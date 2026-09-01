@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-image-pixel-redaction",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "security",
+  "summary": "PXA can now irreversibly redact supported PDF image pixels, safely clone shared image resources, remove contained images, and verify the rewritten samples before returning a document.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

@@ -568,7 +568,46 @@ if (pdfTrustValidationExample) {
     .replace(
       'The audit record is returned in the PXA-Redaction-Audit and PXA-Redaction-Result-Sha256 response headers rather than written into the redacted document, because the reason and the actor would otherwise be disclosed to everyone who receives a file that was redacted to limit disclosure.',
       'The response returns the audit-record and result hashes plus signed status rather than writing audit data into the redacted document. Authenticated delivery or persistence of the complete signed record remains required before external audit verification is complete.',
+    )
+    .replace(
+      'any covered image whose reusable pixels cannot yet be purged',
+      'partially covered images whose samples, masks, filters, or colour spaces cannot be decoded and rewritten safely',
+    )
+    .replace(
+      'while geometric ambiguity, images, layers, and unsupported structures block',
+      'while geometric ambiguity, unsupported image encodings, masks, layers, and unsupported structures block',
+    )
+    .replace(
+      'It reports soft and stencil masks on images, soft masks set in the graphics state, pattern resources, and page or form transparency groups, because none of those can be resolved to a per-region answer without evaluating pixels.',
+      'It evaluates image masks only for images that actually intersect a region. Partial soft-mask, stencil-mask, colour-key-mask, unsupported colour-space, JPX-without-a-local-codec, and JBIG2 cases remain blocked, as do unresolved graphics-state masks, pattern resources, and page or form transparency groups.',
+    )
+    .replace(
+      'Covered image pixels are still not removed, so a document whose region covers an image remains blocked rather than partially redacted.',
+      'Fully contained images are removed with their unreachable resources. For bounded 8-bit DeviceGray, DeviceRGB, and DeviceCMYK images using raw, Flate, LZW, RunLength, or DCT/JPEG data, PXA clones shared resources and zeroes only covered samples; inline replacements use an unambiguous ASCIIHex payload. Verification decodes the result and checks the covered samples rather than trusting a marker. Unsupported image cases fail closed.',
     );
+}
+
+if (pdfTrustDocumentation?.examples) {
+  pdfTrustDocumentation.examples.push({
+    title: 'Understand image redaction boundaries',
+    json: `{
+  "supportedPartialImages": [
+    "Raw 8-bit DeviceGray, DeviceRGB, DeviceCMYK",
+    "Flate, LZW, RunLength",
+    "DCT/JPEG",
+    "Inline images"
+  ],
+  "blockedUnlessLocallyDecodable": ["JPX"],
+  "blocked": [
+    "JBIG2",
+    "soft masks and stencil masks",
+    "colour-key masks",
+    "non-8-bit samples",
+    "unsupported colour spaces"
+  ]
+}`,
+    note: 'A fully contained image is removed. A supported partially covered image is decoded locally, copied when its resource is shared, rewritten with zero-valued covered samples, and decoded again during verification. PXA blocks apply when it cannot prove that the covered pixels can be removed safely.',
+  });
 }
 
 const designerWorkflowSteps = [

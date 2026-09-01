@@ -5,8 +5,7 @@ namespace PXA.Importer.Redaction;
 
 /// <summary>
 /// Inspects the page resources that decide what is actually painted but that the interpreted
-/// scene graph does not carry: soft and stencil masks, tiling and shading patterns, and
-/// transparency groups.
+/// scene graph does not carry: tiling and shading patterns and transparency groups.
 ///
 /// None of these can be resolved to a per-pixel answer here, so each is reported rather than
 /// silently treated as absent.
@@ -21,17 +20,6 @@ internal static class PdfRedactionResourceInspector
         ICollection<PdfRedactionFinding> findings)
     {
         var resources = Resolve(graph, page.PageDictionary["Resources"]) as PdfDictionary;
-
-        var maskedImages = CountMaskedImages(graph, resources);
-        if (maskedImages > 0)
-        {
-            findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT209",
-                PdfRedactionCapability.ReviewRequired,
-                $"{maskedImages} image XObject(s) on this page carry a soft or stencil mask; what the mask reveals cannot be determined without evaluating pixels.",
-                pageNumber,
-                regionIndex));
-        }
 
         if (Resolve(graph, resources?["Pattern"]) is PdfDictionary { Values.Count: > 0 } patterns)
         {
@@ -64,27 +52,6 @@ internal static class PdfRedactionResourceInspector
                 pageNumber,
                 regionIndex));
         }
-    }
-
-    private static int CountMaskedImages(PdfObjectGraph graph, PdfDictionary? resources)
-    {
-        if (Resolve(graph, resources?["XObject"]) is not PdfDictionary xObjects)
-        {
-            return 0;
-        }
-
-        var count = 0;
-        foreach (var entry in xObjects.Values)
-        {
-            if (Resolve(graph, entry.Value) is PdfStreamObject stream &&
-                ReadName(graph, stream.Dictionary["Subtype"]) == "Image" &&
-                (stream.Dictionary["SMask"] is not null || stream.Dictionary["Mask"] is not null))
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
 
     private static int CountTransparencyGroups(

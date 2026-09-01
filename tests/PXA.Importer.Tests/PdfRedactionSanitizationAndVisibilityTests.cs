@@ -16,7 +16,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
     // Item 1: masks, patterns, transparency groups, clipping.
 
     [Fact]
-    public async Task Preflight_ShouldReportASoftMaskedImage()
+    public async Task Preflight_ShouldIgnoreAnUnusedSoftMaskedImageResource()
     {
         var pdf = WithPageResource("XObject", "Im0", new PdfStreamObject(
             new PdfDictionary
@@ -31,8 +31,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
 
         var report = await PreflightAsync(pdf);
 
-        Assert.Contains(Findings(report), f => f.Code == "PXAPDFREDACT209");
-        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.DoesNotContain(Findings(report), f => f.Code == "PXAPDFREDACT209");
     }
 
     [Fact]
