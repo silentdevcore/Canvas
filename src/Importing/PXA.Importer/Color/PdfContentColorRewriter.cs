@@ -8,7 +8,10 @@ namespace PXA.Importer.Color;
 public sealed record PdfColorRewriteResult(
     byte[] Content,
     int ConvertedOperatorCount,
-    IReadOnlyList<string> UnconvertibleColorSpaceNames);
+    IReadOnlyList<string> UnconvertibleColorSpaceNames)
+{
+    public IReadOnlyList<string> ConvertedUncoloredPatternColorSpaceNames { get; init; } = [];
+}
 
 /// <summary>
 /// Rewrites colour operators in a content stream to DeviceRGB.
@@ -23,15 +26,18 @@ public sealed class PdfContentColorRewriter
     private readonly Func<PdfObject?, PdfObject?> _resolve;
     private readonly IReadOnlyDictionary<string, PdfObject> _colorSpaceResources;
     private readonly IReadOnlyDictionary<string, PdfObject> _patternResources;
+    private readonly IReadOnlyDictionary<string, PdfObject> _shadingResources;
 
     public PdfContentColorRewriter(
         Func<PdfObject?, PdfObject?> resolve,
         IReadOnlyDictionary<string, PdfObject> colorSpaceResources,
-        IReadOnlyDictionary<string, PdfObject>? patternResources = null)
+        IReadOnlyDictionary<string, PdfObject>? patternResources = null,
+        IReadOnlyDictionary<string, PdfObject>? shadingResources = null)
     {
         _resolve = resolve;
         _colorSpaceResources = colorSpaceResources;
         _patternResources = patternResources ?? new Dictionary<string, PdfObject>(StringComparer.Ordinal);
+        _shadingResources = shadingResources ?? new Dictionary<string, PdfObject>(StringComparer.Ordinal);
     }
 
     public PdfColorRewriteResult Rewrite(ReadOnlyMemory<byte> content)
@@ -39,6 +45,7 @@ public sealed class PdfContentColorRewriter
         var commands = new PdfContentStreamParser().Parse(content);
         var edits = new List<(int Start, int End, string Replacement)>();
         var unconvertible = new SortedSet<string>(StringComparer.Ordinal);
+        var convertedPatternSpaces = new SortedSet<string>(StringComparer.Ordinal);
         var converted = 0;
 
         PdfResolvedColorSpace? fillSpace = new(PdfColorSpaceFamily.DeviceGray, 1);
@@ -124,7 +131,10 @@ public sealed class PdfContentColorRewriter
                 case "sh":
                 {
                     var name = (command.Operands.FirstOrDefault() as PdfName)?.Value;
-                    unconvertible.Add(name is null ? "Shading" : $"Shading:{name}");
+                    if (!IsSafeShading(name))
+                    {
+                        unconvertible.Add(name is null ? "Shading" : $"Shading:{name}");
+                    }
                     break;
                 }
 
@@ -141,7 +151,34 @@ public sealed class PdfContentColorRewriter
                     if (space.Family == PdfColorSpaceFamily.Pattern)
                     {
                         var patternName = command.Operands.OfType<PdfName>().LastOrDefault()?.Value;
-                        if (!IsSupportedColoredTilingPattern(patternName) && spaceName is not null)
+                        var paintType = ReadPatternPaintType(patternName);
+                        if (paintType == 1)
+                        {
+                            break;
+                        }
+
+                        if (paintType == 2 && space.Alternate is { IsConvertible: true } baseSpace &&
+                            spaceName is not null && patternName is not null)
+                        {
+                            var patternRgb = PdfSrgbColorConverter.ToSrgb(baseSpace, ReadNumbers(command.Operands));
+                            if (patternRgb is not null)
+                            {
+                                edits.Add((
+                                    SpanStart(command),
+                                    SpanEnd(command),
+                                    FormatPattern(patternRgb, patternName, stroke ? "SCN" : "scn")));
+                                convertedPatternSpaces.Add(spaceName);
+                                converted++;
+                                break;
+                            }
+                        }
+
+                        if (paintType == 3)
+                        {
+                            break;
+                        }
+
+                        if (spaceName is not null)
                         {
                             unconvertible.Add(patternName is null
                                 ? spaceName
@@ -228,7 +265,10 @@ public sealed class PdfContentColorRewriter
             }
         }
 
-        return new PdfColorRewriteResult(Splice(content.Span, edits), converted, unconvertible.ToArray());
+        return new PdfColorRewriteResult(Splice(content.Span, edits), converted, unconvertible.ToArray())
+        {
+            ConvertedUncoloredPatternColorSpaceNames = convertedPatternSpaces.ToArray()
+        };
     }
 
     private PdfResolvedColorSpace? ResolveNamed(string? name)
@@ -248,17 +288,66 @@ public sealed class PdfContentColorRewriter
             : null;
     }
 
-    private bool IsSupportedColoredTilingPattern(string? name)
+    private int? ReadPatternPaintType(string? name)
     {
-        if (name is null || !_patternResources.TryGetValue(name, out var resource) ||
-            _resolve(resource) is not PdfStreamObject pattern)
+        if (name is null || !_patternResources.TryGetValue(name, out var resource))
+        {
+            return null;
+        }
+
+        var dictionary = _resolve(resource) switch
+        {
+            PdfStreamObject stream => stream.Dictionary,
+            PdfDictionary direct => direct,
+            _ => null
+        };
+        if (dictionary is null)
+        {
+            return null;
+        }
+
+        return ReadInteger(_resolve(dictionary["PatternType"])) switch
+        {
+            1 => ReadInteger(_resolve(dictionary["PaintType"])),
+            2 when IsSafeShadingObject(dictionary["Shading"]) => 3,
+            _ => null
+        };
+    }
+
+    private bool IsSafeShading(string? name) =>
+        name is not null && _shadingResources.TryGetValue(name, out var shading) &&
+        IsSafeShadingObject(shading);
+
+    private bool IsSafeShadingObject(PdfObject? value)
+    {
+        var dictionary = _resolve(value) switch
+        {
+            PdfDictionary direct => direct,
+            PdfStreamObject stream => stream.Dictionary,
+            _ => null
+        };
+        if (dictionary is null || ReadInteger(_resolve(dictionary["ShadingType"])) is not (1 or 2 or 3 or 4 or 5 or 6 or 7))
         {
             return false;
         }
 
-        return ReadInteger(_resolve(pattern.Dictionary["PatternType"])) == 1 &&
-            ReadInteger(_resolve(pattern.Dictionary["PaintType"])) == 1;
+        var colorValue = dictionary["ColorSpace"];
+        var colorSpace = _resolve(colorValue) is PdfName name &&
+            !IsStandardColorSpaceName(name.Value) && _colorSpaceResources.TryGetValue(name.Value, out var resource)
+                ? PdfSrgbColorConverter.Resolve(resource, _resolve)
+                : PdfSrgbColorConverter.Resolve(colorValue, _resolve);
+        return colorSpace.Family switch
+        {
+            PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.DeviceRgb => true,
+            PdfColorSpaceFamily.CalGray or PdfColorSpaceFamily.CalRgb or PdfColorSpaceFamily.Lab =>
+                colorSpace.ParametersValid,
+            PdfColorSpaceFamily.IccBased => colorSpace.IsConvertible,
+            _ => false
+        };
     }
+
+    private static bool IsStandardColorSpaceName(string name) =>
+        name is "DeviceGray" or "DeviceRGB" or "DeviceCMYK" or "G" or "RGB" or "CMYK";
 
     private static int? ReadInteger(PdfObject? value) => value switch
     {
@@ -335,6 +424,15 @@ public sealed class PdfContentColorRewriter
         Math.Clamp(rgb[0], 0d, 1d),
         Math.Clamp(rgb[1], 0d, 1d),
         Math.Clamp(rgb[2], 0d, 1d),
+        op);
+
+    private static string FormatPattern(double[] rgb, string patternName, string op) => string.Format(
+        CultureInfo.InvariantCulture,
+        "{0:0.#####} {1:0.#####} {2:0.#####} /{3} {4}",
+        Math.Clamp(rgb[0], 0d, 1d),
+        Math.Clamp(rgb[1], 0d, 1d),
+        Math.Clamp(rgb[2], 0d, 1d),
+        patternName,
         op);
 
     private sealed record ColorGraphicsState(

@@ -399,13 +399,14 @@ Reference material:
 - [x] Define a typed compliance profile rather than a free-form string.
 - [x] Embed all required fonts and fail when embedding or Unicode mapping is not
   possible.
-- [ ] Add output intents and ICC profiles with deterministic color conversion.
+- [x] Add output intents and ICC profiles with deterministic color conversion for the
+  documented supported paths, and fail closed for source colour that cannot be transformed
+  without a valid profile or without visual loss.
   - [x] Convert DeviceCMYK and Indexed content-stream colour to sRGB, plus Separation and
     DeviceN when their tint transform and alternate space are supported. Evaluate sampled
     functions with multilinear interpolation and reject unknown Type 4 operators.
-  - [x] Fail closed for unknown named spaces, unsafe inline-image and shading colour,
-    ICCBased without an explicit supported alternate, and CalGray, CalRGB, and Lab until
-    their complete colorimetric parameters are implemented.
+  - [x] Fail closed for unknown named spaces, unsafe inline-image and unsupported shading
+    colour, malformed ICCBased profiles, and invalid CalGray, CalRGB, or Lab parameters.
   - [x] Rewrite colour operators by splicing only their byte ranges, so no other content
     is disturbed.
   - [x] Document the DeviceCMYK conversion as the ISO 32000-1 8.6.4.4 approximation:
@@ -417,23 +418,44 @@ Reference material:
     them through or rewriting encoded bytes approximately.
     - [x] Validate the converted CMYK image fixture independently as PDF/A-2b with the
       pinned official veraPDF container and retain its machine-readable XML report.
-  - [ ] Complete Pattern colour-space conversion.
+  - [x] Complete safe Pattern colour-space handling for the documented conversion scope.
     - [x] Traverse colored tiling pattern resources and convert deterministic colour in
       their content streams while preserving the page's Pattern selection semantics.
-      Reject missing, malformed, uncolored, and shading patterns with an object-level
-      diagnostic instead of silently flattening or recoloring them.
+      Reject missing and malformed patterns with an object-level diagnostic instead of
+      silently flattening or recoloring them.
       - [x] Validate the converted colored-tiling-pattern fixture independently as
         PDF/A-2b with the pinned official veraPDF container.
-    - [ ] Convert uncolored tiling patterns by safely remapping their underlying colour
+    - [x] Convert uncolored tiling patterns by safely remapping their underlying colour
       space and every `scn`/`SCN` use without changing pattern identity.
-    - [ ] Convert shading patterns only after their functions, meshes, and sample domains
-      can be transformed without visual or semantic loss.
-  - [ ] Replace the specified CMYK approximation with an ICC transform through the output
-    intent profile.
-  - [ ] Implement complete CalGray, CalRGB, Lab, and embedded ICC profile conversion before
+      - [x] Validate the converted uncolored-tiling-pattern fixture independently as
+        PDF/A-2b with the pinned official veraPDF container.
+    - [x] Handle shading patterns without making a lossy conformance claim.
+      - [x] Preserve DeviceGray, DeviceRGB, valid CalGray/CalRGB/Lab, and embedded ICC
+        shadings because these are already deterministic or device independent under the
+        RGB output policy.
+      - [x] Fail closed for DeviceCMYK, Separation, DeviceN, and mesh shading samples rather
+        than changing interpolation, domains, or visual output. Native conversion remains a
+        future capability expansion, not a gap in the supported PDF/A contract.
+  - [x] Use LittleCMS for embedded Gray, RGB, and CMYK ICC source-profile transforms to
+    sRGB. Keep the documented ISO 32000 DeviceCMYK approximation only for untagged CMYK,
+    because an output-intent destination profile cannot reconstruct a missing source
+    profile; never describe that path as colorimetrically exact.
+  - [x] Implement complete CalGray, CalRGB, Lab, and embedded ICC profile conversion before
     advertising those colour families as converted.
-- [x] Emit an sRGB output intent and embedded ICC profile for generated PDF/A-2b;
-  deterministic conversion of non-sRGB source colors remains open.
+    - [x] Validate required white points, black points, gamma, matrices, Lab ranges, ICC
+      headers, channel counts, and native LittleCMS availability; fail closed otherwise.
+    - [x] Validate a converted CalRGB fixture as PDF/A-2b with the pinned official veraPDF
+      container and retain its machine-readable XML report.
+    - [x] Exercise both ICC outcomes: transform through an architecture-compatible
+      LittleCMS runtime, and reject conversion when the native runtime or profile cannot be
+      opened. The Linux WebApi image installs `liblcms2-2`; platform-specific local builds
+      must provide a native library matching the .NET process architecture.
+    - [x] Run the required-runtime contract in a native Linux .NET 10 container with
+      `liblcms2-2`, convert an embedded-ICC fixture, and validate the result as PDF/A-2b
+      with the pinned veraPDF container.
+- [x] Emit an sRGB output intent and embedded ICC profile for generated PDF/A-2b and
+  deterministically convert every non-sRGB source-colour path in the documented support
+  boundary.
 - [x] Produce required XMP identification and document metadata and synchronize it
   with the information dictionary.
 - [x] Enforce profile restrictions for encryption, actions, JavaScript, multimedia,
@@ -461,6 +483,9 @@ Reference material:
     `2b`, while visible signature appearances remain fail-closed.
   - [x] Validate generated and attachment-bearing converted PDF/A-3b fixtures with
     `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS` for profile `3b`.
+  - [x] Validate converted colored/uncolored tiling-pattern, lossless CMYK-image, CalRGB,
+    and embedded-ICC fixtures with `ghcr.io/verapdf/cli:v1.31.166`; veraPDF reports `PASS`
+    for profile `2b` and retains XML evidence for each fixture.
   - [x] Add `tools/pdfa/validate-pdfa.sh` as a pinned, reproducible validator wrapper that
     accepts only `2b` or `3b`, fails on non-conformance, and retains machine-readable XML
     evidence for local and CI runs.

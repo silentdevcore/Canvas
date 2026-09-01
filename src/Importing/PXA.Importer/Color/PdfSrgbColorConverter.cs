@@ -27,17 +27,23 @@ public sealed record PdfResolvedColorSpace(
     byte[]? IndexedLookup = null,
     int IndexedHighValue = 0,
     IReadOnlyList<double>? LabRange = null,
-    IReadOnlyList<double>? LabWhitePoint = null)
+    IReadOnlyList<double>? WhitePoint = null,
+    IReadOnlyList<double>? BlackPoint = null,
+    IReadOnlyList<double>? Gamma = null,
+    IReadOnlyList<double>? Matrix = null,
+    byte[]? IccProfile = null,
+    bool ParametersValid = true)
 {
     /// <summary>True when every colour in this space can be mapped to sRGB deterministically.</summary>
     public bool IsConvertible => Family switch
     {
-        PdfColorSpaceFamily.Pattern or PdfColorSpaceFamily.Unsupported or
-            PdfColorSpaceFamily.CalGray or PdfColorSpaceFamily.CalRgb or PdfColorSpaceFamily.Lab => false,
+        PdfColorSpaceFamily.Pattern or PdfColorSpaceFamily.Unsupported => false,
+        PdfColorSpaceFamily.CalGray or PdfColorSpaceFamily.CalRgb or PdfColorSpaceFamily.Lab => ParametersValid,
         PdfColorSpaceFamily.Separation or PdfColorSpaceFamily.DeviceN =>
             TintTransform is not null && Alternate is { IsConvertible: true },
         PdfColorSpaceFamily.Indexed => Alternate is { IsConvertible: true } && IndexedLookup is not null,
-        PdfColorSpaceFamily.IccBased => Alternate is { IsConvertible: true },
+        PdfColorSpaceFamily.IccBased => IccProfile is { Length: >= 128 } profile &&
+            ComponentCount is 1 or 3 or 4 && PdfIccColorTransform.IsValidProfile(profile),
         _ => true
     };
 }
@@ -85,9 +91,42 @@ public static class PdfSrgbColorConverter
             case "DeviceCMYK" or "CMYK":
                 return new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceCmyk, 4);
             case "CalGray":
-                return new PdfResolvedColorSpace(PdfColorSpaceFamily.CalGray, 1);
+            {
+                var parameters = resolve(array.Items.ElementAtOrDefault(1)) as PdfDictionary;
+                var whitePoint = ReadRequiredWhitePoint(parameters, resolve);
+                var blackPoint = ReadBlackPoint(parameters, resolve);
+                var gamma = PdfFunction.ReadNumber(parameters?["Gamma"], resolve, 1d);
+                return new PdfResolvedColorSpace(
+                    PdfColorSpaceFamily.CalGray,
+                    1,
+                    WhitePoint: whitePoint,
+                    BlackPoint: blackPoint,
+                    Gamma: [gamma],
+                    ParametersValid: IsValidWhitePoint(whitePoint) &&
+                        IsValidBlackPoint(blackPoint) && gamma > 0d && double.IsFinite(gamma));
+            }
             case "CalRGB":
-                return new PdfResolvedColorSpace(PdfColorSpaceFamily.CalRgb, 3);
+            {
+                var parameters = resolve(array.Items.ElementAtOrDefault(1)) as PdfDictionary;
+                var whitePoint = ReadRequiredWhitePoint(parameters, resolve);
+                var blackPoint = ReadBlackPoint(parameters, resolve);
+                var gamma = ReadWithDefault(parameters?["Gamma"], resolve, [1d, 1d, 1d]);
+                var matrix = ReadWithDefault(
+                    parameters?["Matrix"],
+                    resolve,
+                    [1d, 0d, 0d, 0d, 1d, 0d, 0d, 0d, 1d]);
+                return new PdfResolvedColorSpace(
+                    PdfColorSpaceFamily.CalRgb,
+                    3,
+                    WhitePoint: whitePoint,
+                    BlackPoint: blackPoint,
+                    Gamma: gamma,
+                    Matrix: matrix,
+                    ParametersValid: IsValidWhitePoint(whitePoint) &&
+                        IsValidBlackPoint(blackPoint) && gamma.Count == 3 &&
+                        gamma.All(static value => value > 0d && double.IsFinite(value)) &&
+                        matrix.Count == 9 && matrix.All(double.IsFinite));
+            }
             case "Lab":
             {
                 var parameters = resolve(array.Items.ElementAtOrDefault(1)) as PdfDictionary;
@@ -95,7 +134,9 @@ public static class PdfSrgbColorConverter
                     PdfColorSpaceFamily.Lab,
                     3,
                     LabRange: PdfFunction.ReadNumbers(parameters?["Range"], resolve),
-                    LabWhitePoint: PdfFunction.ReadNumbers(parameters?["WhitePoint"], resolve));
+                    WhitePoint: ReadRequiredWhitePoint(parameters, resolve),
+                    BlackPoint: ReadBlackPoint(parameters, resolve),
+                    ParametersValid: IsValidLab(parameters, resolve));
             }
 
             case "ICCBased":
@@ -110,7 +151,8 @@ public static class PdfSrgbColorConverter
                 return new PdfResolvedColorSpace(
                     PdfColorSpaceFamily.IccBased,
                     components,
-                    alternate);
+                    alternate,
+                    IccProfile: stream is null ? null : TryDecode(stream));
             }
 
             case "Indexed" or "I":
@@ -144,7 +186,15 @@ public static class PdfSrgbColorConverter
             }
 
             case "Pattern":
-                return new PdfResolvedColorSpace(PdfColorSpaceFamily.Pattern, 1);
+            {
+                var alternate = array.Items.Count > 1
+                    ? Resolve(array.Items[1], resolve, depth + 1)
+                    : null;
+                return new PdfResolvedColorSpace(
+                    PdfColorSpaceFamily.Pattern,
+                    (alternate?.ComponentCount ?? 0) + 1,
+                    alternate);
+            }
             default:
                 return new PdfResolvedColorSpace(PdfColorSpaceFamily.Unsupported, 0);
         }
@@ -163,14 +213,20 @@ public static class PdfSrgbColorConverter
 
         switch (space.Family)
         {
-            case PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.CalGray:
+            case PdfColorSpaceFamily.DeviceGray:
             {
                 var gray = Clamp(Component(components, 0));
                 return [gray, gray, gray];
             }
 
-            case PdfColorSpaceFamily.DeviceRgb or PdfColorSpaceFamily.CalRgb:
+            case PdfColorSpaceFamily.DeviceRgb:
                 return [Clamp(Component(components, 0)), Clamp(Component(components, 1)), Clamp(Component(components, 2))];
+
+            case PdfColorSpaceFamily.CalGray:
+                return CalGrayToSrgb(space, components);
+
+            case PdfColorSpaceFamily.CalRgb:
+                return CalRgbToSrgb(space, components);
 
             case PdfColorSpaceFamily.DeviceCmyk:
             {
@@ -186,9 +242,9 @@ public static class PdfSrgbColorConverter
                 return LabToSrgb(space, components);
 
             case PdfColorSpaceFamily.IccBased:
-                return space.Alternate is null
+                return space.IccProfile is null
                     ? null
-                    : ToSrgb(space.Alternate, components, depth + 1);
+                    : PdfIccColorTransform.ToSrgb(space.IccProfile, space.ComponentCount, components);
 
             case PdfColorSpaceFamily.Indexed:
             {
@@ -232,12 +288,17 @@ public static class PdfSrgbColorConverter
 
     private static double[]? LabToSrgb(PdfResolvedColorSpace space, IReadOnlyList<double> components)
     {
-        var white = space.LabWhitePoint is { Count: >= 3 }
-            ? space.LabWhitePoint
-            : new[] { 0.9505d, 1.0d, 1.089d };
+        if (!space.ParametersValid || space.WhitePoint is not { Count: 3 } white)
+        {
+            return null;
+        }
+
         var lightness = Math.Clamp(Component(components, 0), 0, 100);
-        var a = Component(components, 1);
-        var b = Component(components, 2);
+        var range = space.LabRange is { Count: 4 } configuredRange
+            ? configuredRange
+            : new[] { -100d, 100d, -100d, 100d };
+        var a = Math.Clamp(Component(components, 1), range[0], range[1]);
+        var b = Math.Clamp(Component(components, 2), range[2], range[3]);
 
         var m = (lightness + 16d) / 116d;
         var l = m + a / 500d;
@@ -251,13 +312,69 @@ public static class PdfSrgbColorConverter
         var y = white[1] * Inverse(m);
         var z = white[2] * Inverse(n);
 
-        // XYZ (D50) to linear sRGB, then the sRGB transfer function.
-        var red = 3.1339d * x - 1.6169d * y - 0.4906d * z;
-        var green = -0.9785d * x + 1.9160d * y + 0.0333d * z;
-        var blue = 0.0720d * x - 0.2290d * y + 1.4057d * z;
-        return [Gamma(red), Gamma(green), Gamma(blue)];
+        return XyzToSrgb(x, y, z, white);
+    }
 
-        static double Gamma(double value)
+    private static double[]? CalGrayToSrgb(PdfResolvedColorSpace space, IReadOnlyList<double> components)
+    {
+        if (!space.ParametersValid || space.WhitePoint is not { Count: 3 } white ||
+            space.Gamma is not { Count: 1 } gamma)
+        {
+            return null;
+        }
+
+        var value = Math.Pow(Clamp(Component(components, 0)), gamma[0]);
+        return XyzToSrgb(white[0] * value, white[1] * value, white[2] * value, white);
+    }
+
+    private static double[]? CalRgbToSrgb(PdfResolvedColorSpace space, IReadOnlyList<double> components)
+    {
+        if (!space.ParametersValid || space.WhitePoint is not { Count: 3 } white ||
+            space.Gamma is not { Count: 3 } gamma || space.Matrix is not { Count: 9 } matrix)
+        {
+            return null;
+        }
+
+        var a = Math.Pow(Clamp(Component(components, 0)), gamma[0]);
+        var b = Math.Pow(Clamp(Component(components, 1)), gamma[1]);
+        var c = Math.Pow(Clamp(Component(components, 2)), gamma[2]);
+        var x = matrix[0] * a + matrix[3] * b + matrix[6] * c;
+        var y = matrix[1] * a + matrix[4] * b + matrix[7] * c;
+        var z = matrix[2] * a + matrix[5] * b + matrix[8] * c;
+        return XyzToSrgb(x, y, z, white);
+    }
+
+    private static double[] XyzToSrgb(double x, double y, double z, IReadOnlyList<double> sourceWhite)
+    {
+        // Bradford chromatic adaptation from the calibrated source white to sRGB D65.
+        var sourceCone = MultiplyBradford(sourceWhite[0], sourceWhite[1], sourceWhite[2]);
+        var targetCone = MultiplyBradford(0.95047d, 1d, 1.08883d);
+        var cone = MultiplyBradford(x, y, z);
+        var adapted = MultiplyBradfordInverse(
+            cone[0] * targetCone[0] / sourceCone[0],
+            cone[1] * targetCone[1] / sourceCone[1],
+            cone[2] * targetCone[2] / sourceCone[2]);
+
+        var red = 3.2406d * adapted[0] - 1.5372d * adapted[1] - 0.4986d * adapted[2];
+        var green = -0.9689d * adapted[0] + 1.8758d * adapted[1] + 0.0415d * adapted[2];
+        var blue = 0.0557d * adapted[0] - 0.2040d * adapted[1] + 1.0570d * adapted[2];
+        return [EncodeSrgb(red), EncodeSrgb(green), EncodeSrgb(blue)];
+
+        static double[] MultiplyBradford(double x, double y, double z) =>
+        [
+            0.8951d * x + 0.2664d * y - 0.1614d * z,
+            -0.7502d * x + 1.7135d * y + 0.0367d * z,
+            0.0389d * x - 0.0685d * y + 1.0296d * z
+        ];
+
+        static double[] MultiplyBradfordInverse(double l, double m, double s) =>
+        [
+            0.9869929d * l - 0.1470543d * m + 0.1599627d * s,
+            0.4323053d * l + 0.5183603d * m + 0.0492912d * s,
+            -0.0085287d * l + 0.0400428d * m + 0.9684867d * s
+        ];
+
+        static double EncodeSrgb(double value)
         {
             var linear = Math.Clamp(value, 0d, 1d);
             return linear <= 0.0031308d
@@ -266,10 +383,49 @@ public static class PdfSrgbColorConverter
         }
     }
 
+    private static IReadOnlyList<double>? ReadRequiredWhitePoint(
+        PdfDictionary? parameters,
+        Func<PdfObject?, PdfObject?> resolve) =>
+        parameters?["WhitePoint"] is null
+            ? null
+            : PdfFunction.ReadNumbers(parameters["WhitePoint"], resolve);
+
+    private static IReadOnlyList<double> ReadBlackPoint(
+        PdfDictionary? parameters,
+        Func<PdfObject?, PdfObject?> resolve) =>
+        parameters?["BlackPoint"] is null
+            ? [0d, 0d, 0d]
+            : PdfFunction.ReadNumbers(parameters["BlackPoint"], resolve);
+
+    private static IReadOnlyList<double> ReadWithDefault(
+        PdfObject? value,
+        Func<PdfObject?, PdfObject?> resolve,
+        IReadOnlyList<double> fallback) =>
+        value is null ? fallback : PdfFunction.ReadNumbers(value, resolve);
+
+    private static bool IsValidWhitePoint(IReadOnlyList<double>? value) =>
+        value is { Count: 3 } && value.All(double.IsFinite) &&
+        value[0] > 0d && Math.Abs(value[1] - 1d) <= 0.000001d && value[2] > 0d;
+
+    private static bool IsValidBlackPoint(IReadOnlyList<double>? value) =>
+        value is { Count: 3 } && value.All(static component => component >= 0d && double.IsFinite(component));
+
+    private static bool IsValidLab(PdfDictionary? parameters, Func<PdfObject?, PdfObject?> resolve)
+    {
+        var whitePoint = ReadRequiredWhitePoint(parameters, resolve);
+        var blackPoint = ReadBlackPoint(parameters, resolve);
+        var range = parameters?["Range"] is null
+            ? new[] { -100d, 100d, -100d, 100d }
+            : PdfFunction.ReadNumbers(parameters["Range"], resolve);
+        return IsValidWhitePoint(whitePoint) && IsValidBlackPoint(blackPoint) &&
+            range.Count == 4 && range.All(double.IsFinite) &&
+            range[0] < range[1] && range[2] < range[3];
+    }
+
     private static PdfResolvedColorSpace FromName(string name) => name switch
     {
-        "DeviceGray" or "G" or "CalGray" => new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceGray, 1),
-        "DeviceRGB" or "RGB" or "CalRGB" => new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceRgb, 3),
+        "DeviceGray" or "G" => new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceGray, 1),
+        "DeviceRGB" or "RGB" => new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceRgb, 3),
         "DeviceCMYK" or "CMYK" => new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceCmyk, 4),
         "Pattern" => new PdfResolvedColorSpace(PdfColorSpaceFamily.Pattern, 1),
         _ => new PdfResolvedColorSpace(PdfColorSpaceFamily.Unsupported, 0)

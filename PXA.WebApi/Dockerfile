@@ -35,6 +35,7 @@ LABEL org.opencontainers.image.title="PXA WebApi" \
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         fonts-dejavu-core \
+        liblcms2-2 \
         tesseract-ocr \
         tesseract-ocr-deu \
         tesseract-ocr-eng \

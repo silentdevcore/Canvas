@@ -51,7 +51,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         }
 
         var updates = BuildUpdates(parsed.Graph, parsed.SignatureCount > 0, options.Profile).ToList();
-        updates.AddRange(PdfComplianceColorConversion.Analyze(parsed.Graph).Updates);
+        updates.AddRange(PdfComplianceColorConversion.Analyze(parsed.Graph, updates).Updates);
         if (options.Profile == PdfArchiveProfile.PdfA3b)
         {
             AddEmbeddedFileAssociationUpdates(parsed.Graph, updates);

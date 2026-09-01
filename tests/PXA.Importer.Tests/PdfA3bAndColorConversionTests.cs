@@ -1,4 +1,5 @@
 using System.Text;
+using PXA.Importer.Color;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Saving;
@@ -84,6 +85,63 @@ public sealed class PdfA3bAndColorConversionTests
         Assert.Contains("0 0 0 rg", patternContent, StringComparison.Ordinal);
         Assert.DoesNotContain(" k", patternContent, StringComparison.Ordinal);
         Assert.Contains("/CSPat cs /Pat0 scn", DecodeContent(result.Bytes), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Convert_ShouldRemapAnUncoloredTilingPatternAndItsBaseColor()
+    {
+        var result = await new PdfA2bConverter(new PdfTrustInspector()).ConvertAsync(
+            Stream(WithUncoloredTilingPattern(CreateBaseDocument())));
+
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is { Length: > 0 } artifactDirectory)
+        {
+            Directory.CreateDirectory(artifactDirectory);
+            await File.WriteAllBytesAsync(
+                Path.Combine(artifactDirectory, "pxa-pdfa2b-uncolored-pattern-fixture.pdf"),
+                result.Bytes);
+        }
+
+        var (_, graph) = ParseGraph(result.Bytes);
+        var (_, page) = FindPage(graph);
+        var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
+        var colorSpaces = Assert.IsType<PdfDictionary>(Resolve(graph, resources["ColorSpace"]));
+        var patternSpace = Assert.IsType<PdfArray>(Resolve(graph, colorSpaces["CSPat"]));
+        Assert.Equal("Pattern", Assert.IsType<PdfName>(Resolve(graph, patternSpace.Items[0])).Value);
+        Assert.Equal("DeviceRGB", Assert.IsType<PdfName>(Resolve(graph, patternSpace.Items[1])).Value);
+        Assert.Contains("0 1 1 /Pat0 scn", DecodeContent(result.Bytes), StringComparison.Ordinal);
+        Assert.DoesNotContain("1 0 0 0 /Pat0 scn", DecodeContent(result.Bytes), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Convert_ShouldRewriteCalRgbContentToDeviceRgb()
+    {
+        var result = await new PdfA2bConverter(new PdfTrustInspector()).ConvertAsync(
+            Stream(WithCalRgbContent(CreateBaseDocument())));
+
+        await WriteArtifactAsync("pxa-pdfa2b-calrgb-fixture.pdf", result.Bytes);
+
+        var content = DecodeContent(result.Bytes);
+        Assert.Contains("/DeviceRGB cs", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("/CSCal cs", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Convert_ShouldRewriteIccBasedContentThroughLittleCmsWhenAvailable()
+    {
+        var source = WithIccRgbContent(CreateBaseDocument());
+        var converter = new PdfA2bConverter(new PdfTrustInspector());
+        if (!PdfIccColorTransform.IsAvailable)
+        {
+            var unavailable = await converter.PreflightAsync(Stream(source));
+            Assert.Equal(PdfComplianceConversionCapability.Unsupported, unavailable.Capability);
+            return;
+        }
+
+        var result = await converter.ConvertAsync(Stream(source));
+        await WriteArtifactAsync("pxa-pdfa2b-icc-fixture.pdf", result.Bytes);
+        var content = DecodeContent(result.Bytes);
+        Assert.Contains("/DeviceRGB cs", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("/CSIcc cs", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -310,6 +368,66 @@ public sealed class PdfA3bAndColorConversionTests
         return Append(source, [Replace(contentId, existing, content)]);
     }
 
+    private static byte[] WithCalRgbContent(byte[] source)
+    {
+        var calRgb = new PdfArray([
+            new PdfName("CalRGB"),
+            new PdfDictionary
+            {
+                ["WhitePoint"] = Numbers(0.95047, 1, 1.08883),
+                ["Gamma"] = Numbers(1, 1, 1),
+                ["Matrix"] = Numbers(
+                    0.4124564, 0.2126729, 0.0193339,
+                    0.3575761, 0.7151522, 0.119192,
+                    0.1804375, 0.072175, 0.9503041)
+            }
+        ]);
+        return WithNamedColorContent(source, "CSCal", calRgb, "1 0 0");
+    }
+
+    private static byte[] WithIccRgbContent(byte[] source)
+    {
+        var (table, _) = ParseGraph(source);
+        var profileId = new PdfObjectId(table.Entries.Keys.Max(static id => id.Number) + 1, 0);
+        var profile = new PdfStreamObject(
+            new PdfDictionary { ["N"] = new PdfInteger(3) },
+            CreateSrgbIccProfile());
+        return WithNamedColorContent(
+            Append(source, [new PdfIncrementalObjectUpdate(profileId, profile)]),
+            "CSIcc",
+            new PdfArray([new PdfName("ICCBased"), new PdfReference(profileId)]),
+            "1 0 0");
+    }
+
+    private static byte[] WithNamedColorContent(
+        byte[] source,
+        string name,
+        PdfObject colorSpace,
+        string components)
+    {
+        var (_, graph) = ParseGraph(source);
+        var (pageId, page) = FindPage(graph);
+        var contentId = ((PdfReference)page["Contents"]!).Id;
+        var existing = (PdfStreamObject)graph.Resolve(contentId)!.Value;
+        var resources = Resolve(graph, page["Resources"]) is PdfDictionary existingResources
+            ? Clone(existingResources)
+            : new PdfDictionary();
+        var colorSpaces = Resolve(graph, resources["ColorSpace"]) is PdfDictionary existingColorSpaces
+            ? Clone(existingColorSpaces)
+            : new PdfDictionary();
+        colorSpaces[name] = colorSpace;
+        resources["ColorSpace"] = colorSpaces;
+        var updatedPage = Clone(page);
+        updatedPage["Resources"] = resources;
+        var content = Encoding.ASCII.GetBytes($"/{name} cs {components} scn 10 10 50 50 re f\n")
+            .Concat(Decode(existing))
+            .ToArray();
+        return Append(source, [
+            new PdfIncrementalObjectUpdate(pageId, updatedPage),
+            Replace(contentId, existing, content)
+        ]);
+    }
+
     private static byte[] WithPatternColorSpace(byte[] source)
     {
         var (_, graph) = ParseGraph(source);
@@ -372,6 +490,51 @@ public sealed class PdfA3bAndColorConversionTests
         ]);
     }
 
+    private static byte[] WithUncoloredTilingPattern(byte[] source)
+    {
+        var (table, graph) = ParseGraph(source);
+        var patternId = new PdfObjectId(table.Entries.Keys.Max(static id => id.Number) + 1, 0);
+        var patternContent = "0 0 10 10 re f"u8.ToArray();
+        var pattern = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(1),
+                ["PaintType"] = new PdfInteger(2),
+                ["TilingType"] = new PdfInteger(1),
+                ["BBox"] = new PdfArray([
+                    new PdfInteger(0), new PdfInteger(0), new PdfInteger(10), new PdfInteger(10)
+                ]),
+                ["XStep"] = new PdfInteger(10),
+                ["YStep"] = new PdfInteger(10),
+                ["Resources"] = new PdfDictionary(),
+                ["Length"] = new PdfInteger(patternContent.Length)
+            },
+            patternContent);
+        var (pageId, page) = FindPage(graph);
+        var contentId = ((PdfReference)page["Contents"]!).Id;
+        var content = (PdfStreamObject)graph.Resolve(contentId)!.Value;
+        var resources = Resolve(graph, page["Resources"]) is PdfDictionary existingResources
+            ? Clone(existingResources)
+            : new PdfDictionary();
+        resources["ColorSpace"] = new PdfDictionary
+        {
+            ["CSPat"] = new PdfArray([new PdfName("Pattern"), new PdfName("DeviceCMYK")])
+        };
+        resources["Pattern"] = new PdfDictionary { ["Pat0"] = new PdfReference(patternId) };
+        var updatedPage = Clone(page);
+        updatedPage["Resources"] = resources;
+        var updatedContent = Encoding.ASCII.GetBytes("/CSPat cs 1 0 0 0 /Pat0 scn 10 10 50 50 re f\n")
+            .Concat(Decode(content))
+            .ToArray();
+
+        return Append(source, [
+            new PdfIncrementalObjectUpdate(patternId, pattern),
+            new PdfIncrementalObjectUpdate(pageId, updatedPage),
+            Replace(contentId, content, updatedContent)
+        ]);
+    }
+
     private static byte[] WithCmykImage(
         byte[] source,
         Action<PdfDictionary>? configure = null,
@@ -412,6 +575,29 @@ public sealed class PdfA3bAndColorConversionTests
             new PdfIncrementalObjectUpdate(pageId, updatedPage),
             Replace(contentId, content, updatedContent)
         ]);
+    }
+
+    private static PdfArray Numbers(params double[] values) =>
+        new(values.Select(static value => (PdfObject)new PdfNumber(value)));
+
+    private static byte[] CreateSrgbIccProfile()
+    {
+        var type = typeof(PdfDocument).Assembly.GetType("PXA.Pdf.PdfComplianceResources", throwOnError: true)!;
+        var method = type.GetMethod(
+            "CreateSrgbIccProfile",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+        return (byte[])method.Invoke(null, null)!;
+    }
+
+    private static async Task WriteArtifactAsync(string fileName, byte[] bytes)
+    {
+        if (Environment.GetEnvironmentVariable("PXA_PDFA_ARTIFACT_DIR") is not { Length: > 0 } directory)
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(directory);
+        await File.WriteAllBytesAsync(Path.Combine(directory, fileName), bytes);
     }
 
     private static byte[] WithEmbeddedFile(byte[] source)

@@ -1,11 +1,21 @@
 using System.Text;
 using PXA.Importer.Color;
 using PXA.Importer.Objects;
+using PXA.Pdf;
 
 namespace PXA.Importer.Tests;
 
 public sealed class PdfColorConversionTests
 {
+    [Fact]
+    public void LittleCms_ShouldBeAvailableWhenRequiredByTheDeployment()
+    {
+        if (Environment.GetEnvironmentVariable("PXA_REQUIRE_LCMS2") == "1")
+        {
+            Assert.True(PdfIccColorTransform.IsAvailable, PdfIccColorTransform.LoadError);
+        }
+    }
+
     [Fact]
     public void ContentRewriter_ShouldRestoreColorSpaceAcrossGraphicsState()
     {
@@ -40,6 +50,47 @@ public sealed class PdfColorConversionTests
         var result = rewriter.Rewrite(Encoding.ASCII.GetBytes("/Sh1 sh"));
 
         Assert.Contains("Shading:Sh1", result.UnconvertibleColorSpaceNames);
+    }
+
+    [Fact]
+    public void ContentRewriter_ShouldAcceptAnRgbShadingResource()
+    {
+        var shading = new PdfDictionary
+        {
+            ["ShadingType"] = new PdfInteger(2),
+            ["ColorSpace"] = new PdfName("DeviceRGB")
+        };
+        var rewriter = new PdfContentColorRewriter(
+            Direct,
+            new Dictionary<string, PdfObject>(),
+            shadingResources: new Dictionary<string, PdfObject> { ["Sh1"] = shading });
+
+        var result = rewriter.Rewrite(Encoding.ASCII.GetBytes("/Sh1 sh"));
+
+        Assert.Empty(result.UnconvertibleColorSpaceNames);
+    }
+
+    [Fact]
+    public void ContentRewriter_ShouldAcceptAnRgbShadingPattern()
+    {
+        var shadingPattern = new PdfDictionary
+        {
+            ["Type"] = new PdfName("Pattern"),
+            ["PatternType"] = new PdfInteger(2),
+            ["Shading"] = new PdfDictionary
+            {
+                ["ShadingType"] = new PdfInteger(3),
+                ["ColorSpace"] = new PdfName("DeviceRGB")
+            }
+        };
+        var rewriter = new PdfContentColorRewriter(
+            Direct,
+            new Dictionary<string, PdfObject> { ["P0"] = new PdfName("Pattern") },
+            new Dictionary<string, PdfObject> { ["Pat0"] = shadingPattern });
+
+        var result = rewriter.Rewrite("/P0 cs /Pat0 scn"u8.ToArray());
+
+        Assert.Empty(result.UnconvertibleColorSpaceNames);
     }
 
     private static readonly Func<PdfObject?, PdfObject?> Direct = static value => value;
@@ -114,6 +165,129 @@ public sealed class PdfColorConversionTests
         Assert.False(space.IsConvertible);
         Assert.Null(space.Alternate);
         Assert.Null(PdfSrgbColorConverter.ToSrgb(space, [0, 0, 0, 1]));
+    }
+
+    [Fact]
+    public void IccBased_ShouldUseLittleCmsForARealProfileTransform()
+    {
+        var icc = new PdfArray([
+            new PdfName("ICCBased"),
+            new PdfStreamObject(
+                new PdfDictionary { ["N"] = new PdfInteger(3) },
+                CreateSrgbIccProfile())
+        ]);
+
+        var space = PdfSrgbColorConverter.Resolve(icc, Direct);
+        if (!PdfIccColorTransform.IsAvailable)
+        {
+            Assert.False(space.IsConvertible);
+            return;
+        }
+
+        var red = PdfSrgbColorConverter.ToSrgb(space, [1, 0, 0]);
+        Assert.True(space.IsConvertible);
+        Assert.NotNull(red);
+        Assert.InRange(red[0], 0.99, 1);
+        Assert.InRange(red[1], 0, 0.01);
+        Assert.InRange(red[2], 0, 0.01);
+    }
+
+    [Fact]
+    public void CalGray_ShouldConvertAValidCalibratedWhitePoint()
+    {
+        var calGray = new PdfArray([
+            new PdfName("CalGray"),
+            new PdfDictionary
+            {
+                ["WhitePoint"] = Numbers(0.95047, 1, 1.08883),
+                ["Gamma"] = new PdfNumber(2.2)
+            }
+        ]);
+
+        var space = PdfSrgbColorConverter.Resolve(calGray, Direct);
+        var white = PdfSrgbColorConverter.ToSrgb(space, [1]);
+
+        Assert.True(space.IsConvertible);
+        Assert.NotNull(white);
+        Assert.All(white, static component => Assert.InRange(component, 0.999, 1));
+    }
+
+    [Fact]
+    public void IccBased_ShouldRejectAProfileThatLittleCmsCannotOpen()
+    {
+        var invalidProfile = new byte[256];
+        var icc = new PdfArray([
+            new PdfName("ICCBased"),
+            new PdfStreamObject(
+                new PdfDictionary { ["N"] = new PdfInteger(3) },
+                invalidProfile)
+        ]);
+
+        var space = PdfSrgbColorConverter.Resolve(icc, Direct);
+
+        Assert.False(space.IsConvertible);
+        Assert.Null(PdfSrgbColorConverter.ToSrgb(space, [1, 0, 0]));
+    }
+
+    [Fact]
+    public void CalRgb_ShouldApplyGammaAndMatrix()
+    {
+        var calRgb = new PdfArray([
+            new PdfName("CalRGB"),
+            new PdfDictionary
+            {
+                ["WhitePoint"] = Numbers(0.95047, 1, 1.08883),
+                ["Gamma"] = Numbers(1, 1, 1),
+                ["Matrix"] = Numbers(
+                    0.4124564, 0.2126729, 0.0193339,
+                    0.3575761, 0.7151522, 0.119192,
+                    0.1804375, 0.072175, 0.9503041)
+            }
+        ]);
+
+        var space = PdfSrgbColorConverter.Resolve(calRgb, Direct);
+        var red = PdfSrgbColorConverter.ToSrgb(space, [1, 0, 0]);
+
+        Assert.True(space.IsConvertible);
+        Assert.NotNull(red);
+        Assert.InRange(red[0], 0.999, 1);
+        Assert.InRange(red[1], 0, 0.002);
+        Assert.InRange(red[2], 0, 0.002);
+    }
+
+    [Fact]
+    public void Lab_ShouldRespectItsConfiguredComponentRange()
+    {
+        var lab = new PdfArray([
+            new PdfName("Lab"),
+            new PdfDictionary
+            {
+                ["WhitePoint"] = Numbers(0.9642, 1, 0.8249),
+                ["Range"] = Numbers(-50, 50, -40, 40)
+            }
+        ]);
+
+        var space = PdfSrgbColorConverter.Resolve(lab, Direct);
+        var clamped = PdfSrgbColorConverter.ToSrgb(space, [50, 80, -80]);
+        var boundary = PdfSrgbColorConverter.ToSrgb(space, [50, 50, -40]);
+
+        Assert.True(space.IsConvertible);
+        Assert.NotNull(clamped);
+        Assert.Equal(boundary!, clamped!);
+    }
+
+    [Theory]
+    [InlineData("CalGray")]
+    [InlineData("CalRGB")]
+    [InlineData("Lab")]
+    public void CalibratedSpaces_ShouldRejectMissingWhitePoint(string family)
+    {
+        var space = PdfSrgbColorConverter.Resolve(
+            new PdfArray([new PdfName(family), new PdfDictionary()]),
+            Direct);
+
+        Assert.False(space.IsConvertible);
+        Assert.Null(PdfSrgbColorConverter.ToSrgb(space, [0.5, 0, 0]));
     }
 
     [Fact]
@@ -236,6 +410,32 @@ public sealed class PdfColorConversionTests
         Assert.Equal(content, result.Content);
     }
 
+    [Fact]
+    public void Rewriter_ShouldConvertAnUncoloredTilingPatternBaseColor()
+    {
+        var pattern = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(1),
+                ["PaintType"] = new PdfInteger(2)
+            },
+            "0 0 10 10 re f"u8.ToArray());
+        var rewriter = new PdfContentColorRewriter(
+            Direct,
+            new Dictionary<string, PdfObject>
+            {
+                ["P0"] = new PdfArray([new PdfName("Pattern"), new PdfName("DeviceCMYK")])
+            },
+            new Dictionary<string, PdfObject> { ["Pat0"] = pattern });
+
+        var result = rewriter.Rewrite("/P0 cs 1 0 0 0 /Pat0 scn 0 0 10 10 re f"u8.ToArray());
+
+        Assert.Empty(result.UnconvertibleColorSpaceNames);
+        Assert.Equal(["P0"], result.ConvertedUncoloredPatternColorSpaceNames);
+        Assert.Contains("0 1 1 /Pat0 scn", Encoding.ASCII.GetString(result.Content), StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(2, 1)]
     [InlineData(1, 2)]
@@ -352,6 +552,18 @@ public sealed class PdfColorConversionTests
 
     private static PdfObject Separation(string name, PdfObject tint) =>
         new PdfArray([new PdfName("Separation"), new PdfName(name), new PdfName("DeviceCMYK"), tint]);
+
+    private static PdfArray Numbers(params double[] values) =>
+        new(values.Select(static value => (PdfObject)new PdfNumber(value)));
+
+    private static byte[] CreateSrgbIccProfile()
+    {
+        var type = typeof(PdfDocument).Assembly.GetType("PXA.Pdf.PdfComplianceResources", throwOnError: true)!;
+        var method = type.GetMethod(
+            "CreateSrgbIccProfile",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+        return (byte[])method.Invoke(null, null)!;
+    }
 
     private static PdfObject ExponentialToCmyk() => ExponentialFunction(1, [0, 0, 0, 0], [1, 0, 0, 0]);
 

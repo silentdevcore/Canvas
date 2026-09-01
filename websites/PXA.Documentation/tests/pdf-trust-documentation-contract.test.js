@@ -58,7 +58,11 @@ test('PDF/A documentation states the exact generated profile and validation boun
   assert.match(source, /bounded 8-bit samples in losslessly decodable image XObjects/);
   assert.match(source, /JPEG, JPX, colour-key masks, oversized images, unsupported bit depths/);
   assert.match(source, /Colored tiling Pattern streams are traversed/);
-  assert.match(source, /Missing, malformed, uncolored, and shading patterns remain blocked/);
+  assert.match(source, /uncolored tiling patterns retain their identity/);
+  assert.match(source, /Embedded Gray, RGB, and CMYK ICC source profiles use LittleCMS/);
+  assert.match(source, /mesh, missing, and malformed shadings remain blocked/);
+  assert.match(source, /resource declaration are converted atomically/);
+  assert.match(source, /transformed through LittleCMS/);
 });
 
 test('PDF redaction documentation separates preflight from applied redaction', () => {

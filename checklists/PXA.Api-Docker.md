@@ -16,7 +16,9 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 - [ ] Stabilize the public API contract tracked in `PXA.SDK-Roadmap.md`.
 - [ ] Replace the in-memory template repository with a persistent implementation.
 - [x] Define the signed offline-license format and local signature/validity validation policy.
-- [ ] Inventory native OCR, font, image, and PDF runtime dependencies.
+- [ ] Complete the native OCR, font, image, and PDF runtime dependency inventory.
+  LittleCMS 2 is already identified and packaged for ICC-managed archival colour
+  conversion.
 
 ## Container Image
 
@@ -25,6 +27,7 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 - [ ] Run as a dedicated non-root user and listen on port `8080`.
 - [ ] Copy the existing OCR executable into the application-owned `ocr-worker/` directory.
 - [ ] Include or mount compatible Tesseract and Leptonica libraries.
+- [x] Include the LittleCMS 2 runtime required by ICCBased PDF/A conversion.
 - [ ] Support mounted OCR language data and font directories.
 - [ ] Configure writable temporary, data, and job directories explicitly.
 - [ ] Add deterministic image labels for product, version, revision, and license.

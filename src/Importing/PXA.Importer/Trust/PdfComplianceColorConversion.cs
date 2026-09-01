@@ -23,10 +23,13 @@ public sealed record PdfColorConversionAnalysis(
 /// </summary>
 internal static class PdfComplianceColorConversion
 {
-    public static PdfColorConversionAnalysis Analyze(PdfObjectGraph graph)
+    public static PdfColorConversionAnalysis Analyze(
+        PdfObjectGraph graph,
+        IReadOnlyList<PdfIncrementalObjectUpdate>? existingUpdates = null)
     {
         var blocking = new List<PdfComplianceConversionFinding>();
-        var updates = new List<PdfIncrementalObjectUpdate>();
+        var updates = new Dictionary<PdfObjectId, PdfObject>();
+        var existing = existingUpdates?.ToDictionary(static update => update.Id, static update => update.Value) ?? [];
         var converted = 0;
         var convertedImages = 0;
         var resolve = CreateResolver(graph);
@@ -48,13 +51,17 @@ internal static class PdfComplianceColorConversion
             else if (conversion is { Converted: true, Stream: not null })
             {
                 convertedImages++;
-                updates.Add(new PdfIncrementalObjectUpdate(indirectObject.Id, conversion.Stream));
+                updates[indirectObject.Id] = conversion.Stream;
             }
         }
 
         foreach (var holder in EnumerateContentHolders(graph, resolve))
         {
-            var rewriter = new PdfContentColorRewriter(resolve, holder.ColorSpaces, holder.Patterns);
+            var rewriter = new PdfContentColorRewriter(
+                resolve,
+                holder.ColorSpaces,
+                holder.Patterns,
+                holder.Shadings);
             byte[] decoded;
             try
             {
@@ -114,12 +121,27 @@ internal static class PdfComplianceColorConversion
             dictionary["Filter"] = null;
             dictionary["DecodeParms"] = null;
             dictionary["Length"] = new PdfInteger(result.Content.Length);
-            updates.Add(new PdfIncrementalObjectUpdate(
-                holder.Id,
-                new PdfStreamObject(dictionary, result.Content)));
+            updates[holder.Id] = new PdfStreamObject(dictionary, result.Content);
+
+            if (result.ConvertedUncoloredPatternColorSpaceNames.Count > 0)
+            {
+                UpdatePatternColorSpaceResources(
+                    graph,
+                    resolve,
+                    holder,
+                    result.ConvertedUncoloredPatternColorSpaceNames,
+                    existing,
+                    updates);
+            }
         }
 
-        return new PdfColorConversionAnalysis(converted, blocking, updates)
+        return new PdfColorConversionAnalysis(
+            converted,
+            blocking,
+            updates.OrderBy(static item => item.Key.Number)
+                .ThenBy(static item => item.Key.Generation)
+                .Select(static item => new PdfIncrementalObjectUpdate(item.Key, item.Value))
+                .ToArray())
         {
             ConvertibleImageCount = convertedImages
         };
@@ -137,14 +159,22 @@ internal static class PdfComplianceColorConversion
                 continue;
             }
 
-            var resources = ReadInheritedResources(graph, resolve, page);
-            var colorSpaces = ReadColorSpaceResources(resolve, resources);
-            var patterns = ReadPatternResources(resolve, resources);
+            var resourceContext = ReadInheritedResourceContext(graph, page, indirectObject.Id);
+            var colorSpaces = ReadColorSpaceResources(resolve, resourceContext.Resources);
+            var patterns = ReadPatternResources(resolve, resourceContext.Resources);
+            var shadings = ReadShadingResources(resolve, resourceContext.Resources);
             foreach (var contentId in ReadContentStreamIds(page))
             {
                 if (graph.Resolve(contentId)?.Value is PdfStreamObject content)
                 {
-                    yield return new ContentHolder(contentId, content, colorSpaces, patterns);
+                    yield return new ContentHolder(
+                        contentId,
+                        content,
+                        colorSpaces,
+                        patterns,
+                        shadings,
+                        resourceContext.OwnerId,
+                        resourceContext.Resources);
                 }
             }
         }
@@ -157,7 +187,10 @@ internal static class PdfComplianceColorConversion
                     indirectObject.Id,
                     form,
                     ReadColorSpaceResources(resolve, form.Dictionary["Resources"]),
-                    ReadPatternResources(resolve, form.Dictionary["Resources"]));
+                    ReadPatternResources(resolve, form.Dictionary["Resources"]),
+                    ReadShadingResources(resolve, form.Dictionary["Resources"]),
+                    indirectObject.Id,
+                    form.Dictionary["Resources"]);
             }
         }
 
@@ -171,7 +204,10 @@ internal static class PdfComplianceColorConversion
                     indirectObject.Id,
                     pattern,
                     ReadColorSpaceResources(resolve, pattern.Dictionary["Resources"]),
-                    ReadPatternResources(resolve, pattern.Dictionary["Resources"]));
+                    ReadPatternResources(resolve, pattern.Dictionary["Resources"]),
+                    ReadShadingResources(resolve, pattern.Dictionary["Resources"]),
+                    indirectObject.Id,
+                    pattern.Dictionary["Resources"]);
             }
         }
     }
@@ -202,7 +238,7 @@ internal static class PdfComplianceColorConversion
                      .Where(item => item.Value is PdfDictionary dictionary && ReadName(resolve, dictionary["Type"]) == "Page")
                      .OrderBy(static item => item.Id.Number))
         {
-            VisitResources(ReadInheritedResources(graph, resolve, (PdfDictionary)page.Value));
+            VisitResources(ReadInheritedResourceContext(graph, (PdfDictionary)page.Value, page.Id).Resources);
         }
 
         return matches;
@@ -270,28 +306,96 @@ internal static class PdfComplianceColorConversion
         }
     }
 
-    private static PdfObject? ReadInheritedResources(
+    private static ResourceContext ReadInheritedResourceContext(
         PdfObjectGraph graph,
-        Func<PdfObject?, PdfObject?> resolve,
-        PdfDictionary page)
+        PdfDictionary page,
+        PdfObjectId pageId)
     {
         var current = page;
+        var currentId = pageId;
         var visited = new HashSet<PdfObjectId>();
         while (true)
         {
             if (current["Resources"] is { } resources)
             {
-                return resources;
+                return new ResourceContext(currentId, resources);
             }
 
             if (current["Parent"] is not PdfReference parent || !visited.Add(parent.Id) ||
                 graph.Resolve(parent.Id)?.Value is not PdfDictionary parentDictionary)
             {
-                return null;
+                return new ResourceContext(currentId, null);
             }
 
             current = parentDictionary;
+            currentId = parent.Id;
         }
+    }
+
+    private static void UpdatePatternColorSpaceResources(
+        PdfObjectGraph graph,
+        Func<PdfObject?, PdfObject?> resolve,
+        ContentHolder holder,
+        IReadOnlyList<string> names,
+        IReadOnlyDictionary<PdfObjectId, PdfObject> existing,
+        IDictionary<PdfObjectId, PdfObject> updates)
+    {
+        if (resolve(holder.Resources) is not PdfDictionary resources ||
+            resolve(resources["ColorSpace"]) is not PdfDictionary colorSpaces)
+        {
+            return;
+        }
+
+        var updatedColorSpaces = Clone(colorSpaces);
+        foreach (var name in names)
+        {
+            updatedColorSpaces[name] = new PdfArray([new PdfName("Pattern"), new PdfName("DeviceRGB")]);
+        }
+
+        if (resources["ColorSpace"] is PdfReference colorSpaceReference)
+        {
+            updates[colorSpaceReference.Id] = updatedColorSpaces;
+            return;
+        }
+
+        var updatedResources = Clone(resources);
+        updatedResources["ColorSpace"] = updatedColorSpaces;
+        if (holder.Resources is PdfReference resourcesReference)
+        {
+            updates[resourcesReference.Id] = updatedResources;
+            return;
+        }
+
+        updates.TryGetValue(holder.ResourceOwnerId, out var pendingOwner);
+        var owner = pendingOwner ??
+            existing.GetValueOrDefault(holder.ResourceOwnerId) ??
+            graph.Resolve(holder.ResourceOwnerId)?.Value;
+        updates[holder.ResourceOwnerId] = owner switch
+        {
+            PdfDictionary dictionary => WithResources(dictionary, updatedResources),
+            PdfStreamObject stream => WithResources(stream, updatedResources),
+            _ => throw new InvalidDataException("The owner of a direct PDF resource dictionary is invalid.")
+        };
+    }
+
+    private static PdfDictionary WithResources(PdfDictionary owner, PdfDictionary resources)
+    {
+        var updated = Clone(owner);
+        updated["Resources"] = resources;
+        return updated;
+    }
+
+    private static PdfStreamObject WithResources(PdfStreamObject owner, PdfDictionary resources)
+    {
+        var dictionary = Clone(owner.Dictionary);
+        dictionary["Resources"] = resources;
+        var updated = new PdfStreamObject(dictionary, owner.EncodedBytes);
+        if (owner.IsDecoded)
+        {
+            updated.SetDecodedBytes(owner.DecodedBytes);
+        }
+
+        return updated;
     }
 
     private static IReadOnlyDictionary<string, PdfObject> ReadColorSpaceResources(
@@ -321,6 +425,22 @@ internal static class PdfComplianceColorConversion
         }
 
         return patterns.Values.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value,
+            StringComparer.Ordinal);
+    }
+
+    private static IReadOnlyDictionary<string, PdfObject> ReadShadingResources(
+        Func<PdfObject?, PdfObject?> resolve,
+        PdfObject? resources)
+    {
+        if (resolve(resources) is not PdfDictionary resourceDictionary ||
+            resolve(resourceDictionary["Shading"]) is not PdfDictionary shadings)
+        {
+            return new Dictionary<string, PdfObject>(StringComparer.Ordinal);
+        }
+
+        return shadings.Values.ToDictionary(
             static entry => entry.Key,
             static entry => entry.Value,
             StringComparer.Ordinal);
@@ -380,5 +500,10 @@ internal static class PdfComplianceColorConversion
         PdfObjectId Id,
         PdfStreamObject Stream,
         IReadOnlyDictionary<string, PdfObject> ColorSpaces,
-        IReadOnlyDictionary<string, PdfObject> Patterns);
+        IReadOnlyDictionary<string, PdfObject> Patterns,
+        IReadOnlyDictionary<string, PdfObject> Shadings,
+        PdfObjectId ResourceOwnerId,
+        PdfObject? Resources);
+
+    private sealed record ResourceContext(PdfObjectId OwnerId, PdfObject? Resources);
 }
