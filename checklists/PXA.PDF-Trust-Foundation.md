@@ -249,7 +249,7 @@ Reference material:
 
 ## P0 - Secure and Irreversible Redaction
 
-- [ ] Distinguish redaction marks, preview overlays, and applied irreversible
+- [x] Distinguish redaction marks, preview overlays, and applied irreversible
   redaction in models, APIs, UI, diagnostics, and documentation.
   - [x] Separate preflight, apply, and verify in the backend model, the API surface, the
     permissions, and the documentation.
@@ -257,7 +257,13 @@ Reference material:
     former ungated regenerate-the-whole-document path, so one implementation remains.
   - [x] Add `POST /api/pdf-viewer/annotations/redact/preflight` so the Viewer can show
     coverage before a redaction is committed.
-  - [ ] Present preflight, apply, and verify as distinct steps in the Viewer UI itself.
+  - [x] Present preflight, apply, and verify as distinct steps in the Viewer UI itself.
+    - [x] Add a preflight action that reports coverage and findings without changing the
+      document, and keep apply disabled until preflight reports the marks as removable.
+    - [x] Surface a refusal as the structured preflight report rather than a message
+      string, so the user is told which content blocked the redaction.
+    - [x] Show the verification outcome and whether the audit record was signed.
+    - [x] Localize the workflow in all six Designer languages.
 - [ ] Build a content-intersection analyzer for text glyphs, paths, images, masks,
   clipping paths, patterns, nested Form XObjects, transparency groups, annotations,
   AcroForm appearances, optional content, and rotated/cropped pages.
@@ -266,8 +272,15 @@ Reference material:
     as `reviewRequired` because whole elements are the smallest removable unit.
   - [x] Report overlapping annotations, form-field widgets, and optional content, which
     are not interpreted scene-graph content.
-  - [ ] Extend to masks, clipping paths, patterns, and transparency groups as distinct
+  - [x] Extend to masks, clipping paths, patterns, and transparency groups as distinct
     intersection cases rather than through their containing element.
+    - [x] Narrow coverage by the clipping paths in force, including those inherited from
+      enclosing groups, so a clipped element is not reported as covered where it never
+      paints.
+    - [x] Report soft and stencil masks on image XObjects, soft masks set in the graphics
+      state, tiling and shading pattern resources, and page or form transparency groups.
+    - [ ] Resolve pattern content streams and mask pixels to a per-region answer instead of
+      reporting them as `reviewRequired`.
 - [x] Remove covered text operators and associated extractable text, not only paint
   a black rectangle.
   - [x] Reserialize only the pages carrying a region through the content-stream rewriter,
@@ -276,7 +289,14 @@ Reference material:
     survives elsewhere in that page.
 - [ ] Remove or irreversibly transform covered image pixels and reusable resources
   without leaking the hidden original through an unused object or alternate stream.
-- [ ] Sanitize metadata, XMP, attachments, embedded files, comments, form values,
+  - [x] Remove optional content, non-normal appearance streams, and image alternates, so
+    a viewer cannot reveal covered content the rendered page does not show.
+  - [x] Remove page thumbnails.
+  - [ ] Zero covered pixels inside image XObjects, cloning a shared XObject before editing
+    so a redaction on one page cannot alter or leak through another.
+  - [ ] Decode DCT, JPX, and JBIG2 images, which PXA cannot currently read at all, so
+    documents containing them stay blocked rather than partially redacted.
+- [x] Sanitize metadata, XMP, attachments, embedded files, comments, form values,
   actions, JavaScript, thumbnails, previous revisions, and incremental history when
   requested by the redaction policy.
   - [x] Add a typed sanitization policy covering document metadata and XMP, embedded
@@ -285,8 +305,14 @@ Reference material:
   - [x] Clear removed annotation objects themselves, not only their page references.
   - [x] Prune objects made unreachable by sanitization during the full rewrite so
     detached XMP, attachment, annotation, and resource payloads do not remain in the file.
-  - [ ] Traverse and sanitize actions, comments, form values, and alternate carriers
+  - [x] Traverse and sanitize actions, comments, form values, and alternate carriers
     outside the catalog and overlapping page annotations.
+    - [x] Traverse direct dictionaries, arrays, and stream dictionaries recursively with
+      a bounded depth so nested carriers cannot bypass sanitization.
+    - [x] Clear `/A`, `/AA`, and `/OpenAction` wherever they occur, not only on the catalog.
+    - [x] Clear `/V`, `/DV`, and `/RV` on every object declaring a field type, including
+      fields that do not overlap a region.
+    - [x] Clear `/Alt`, `/ActualText`, `/TU`, `/Alternates`, and `/AlternatePresentations`.
 - [x] Force a full rewrite when prior revisions could retain redacted content.
   - [x] Save every applied redaction through `PdfFullRewriteWriter`, and verify the result
     contains exactly one revision.
@@ -306,17 +332,38 @@ Reference material:
     returning an unverified file.
 - [ ] Verify that removed text cannot be extracted, searched, copied, recovered from
   objects, or revealed by disabling overlays/layers.
-  - [x] Reparse the result, re-run region intersection, and re-extract text across the
-    whole document, not only the redacted pages.
+  - [x] Reparse the result, re-run region intersection, and re-extract text inside every
+    redacted region without treating an equal, legitimate string elsewhere as residue.
   - [x] Verify through regression fixtures that detached XMP and annotation payloads are
     absent from both the rewritten object graph and raw output bytes.
-  - [ ] Extend verification to image extraction, thumbnails, and layer removal as
+  - [x] Extend verification to image extraction, thumbnails, and layer removal as
     separate checks.
+    - [x] Report residual covered images, retained thumbnails, retained optional content,
+      and retained non-normal appearance streams under distinct diagnostic codes.
+    - [x] Do not use global raw-string equality as proof of residue: PDF encodings can hide
+      matching text and an equal string outside the region is not a redaction failure.
+    - [x] Prove each check fires on a result that still carries the residue it looks for.
+  - [ ] Add an independently maintained recovery corpus for encoded glyphs, compressed and
+    malformed streams, reusable resources, images, and external extraction tools before
+    making a broad no-recovery claim.
 - [x] Add a tamper-evident redaction audit record containing document hashes,
   non-sensitive regions, reason, actor, policy, timestamp, and verification result.
   - [x] Hash the record's canonical form so a later change to it is detectable, and keep
     removed content out of it.
-  - [ ] Sign the audit record; hashing alone detects change but does not prove origin.
+  - [x] Sign the audit record; hashing alone detects change but does not prove origin.
+    - [x] Sign the record's canonical hash with a detached CMS signature, and record the
+      algorithm, signer subject, thumbprint, and signing time.
+    - [x] Verify the canonical record hash, detached CMS signature, signer metadata, and
+      signed timestamp, including tamper tests.
+    - [x] Use a dedicated audit key configured per deployment, separate from any document
+      signing key, so a compromise of one cannot forge the other.
+    - [x] Leave the record hash-only when no key is configured, and say so in the response
+      rather than implying provenance that is not there.
+    - [x] Fail startup when an audit key is explicitly configured but missing or invalid;
+      do not silently downgrade that deployment to unsigned records.
+    - [ ] Persist or return the complete signed audit record through an authenticated,
+      bounded API; the binary download currently exposes hashes and signed status only.
+    - [ ] Timestamp the audit signature so its validity survives certificate expiry.
 - [x] Replace the current importer-supported redaction claim with capability-specific
   evidence and retain `reviewRequired` for unsupported structures.
   - [x] Report `removable`, `reviewRequired`, or `unsupported` per region and for the
@@ -572,6 +619,8 @@ Reference material:
   keys must never enter browser storage.
 - [ ] Add redaction mark, preflight, apply, verification, compare-original, and
   download-result steps.
+  - [x] Add the mark, preflight, apply, verification, and download-result steps.
+  - [ ] Add a compare-original view.
 - [ ] Require explicit confirmation that applying redaction creates a new document
   and may invalidate signatures.
 - [ ] Add compliance and accessibility issue navigation from a report item to the

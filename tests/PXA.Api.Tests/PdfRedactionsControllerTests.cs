@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PXA.Importer.Redaction;
+using PXA.Importer.Signing;
 using PXA.Pdf;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.Api.Tests;
 
@@ -156,7 +158,7 @@ public sealed class PdfRedactionsControllerTests
     private static PdfRedactionsController CreateController()
     {
         var preflight = new PdfRedactionPreflight();
-        return new PdfRedactionsController(preflight, new PdfRedactionApplier(preflight))
+        return new PdfRedactionsController(preflight, new PdfRedactionApplier(preflight), new TestAuditKeyProvider())
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -180,5 +182,10 @@ public sealed class PdfRedactionsControllerTests
         Assert.Equal(statusCode, problem.StatusCode);
         var details = Assert.IsAssignableFrom<ProblemDetails>(problem.Value);
         Assert.Equal(code, Assert.Contains("code", details.Extensions)?.ToString());
+    }
+
+    private sealed class TestAuditKeyProvider(IPdfSigningKey? key = null) : IPxaRedactionAuditKeyProvider
+    {
+        public IPdfSigningKey? Key { get; } = key;
     }
 }

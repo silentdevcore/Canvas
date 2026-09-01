@@ -32,7 +32,9 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         ["PXAPDFREDACT104"] = static policy => policy.RemoveDocumentMetadata,
         ["PXAPDFREDACT107"] = static policy => policy.RemoveActionsAndJavaScript,
         ["PXAPDFREDACT202"] = static policy => policy.RemoveOverlappingAnnotations,
-        ["PXAPDFREDACT207"] = static policy => policy.RemoveOverlappingAnnotations
+        ["PXAPDFREDACT207"] = static policy => policy.RemoveOverlappingAnnotations,
+        ["PXAPDFREDACT108"] = static policy => policy.RemoveHiddenRepresentations,
+        ["PXAPDFREDACT203"] = static policy => policy.RemoveHiddenRepresentations
     };
 
     private readonly BoundingBoxCalculator _bounds = new();
@@ -89,7 +91,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             var removedOnPage = 0;
             foreach (var element in page.GraphicsObjects)
             {
-                removedOnPage += MarkCovered(element, pageRegions, removedText, depth: 0);
+                removedOnPage += MarkCovered(element, pageRegions, removedText, depth: 0, []);
             }
 
             if (removedOnPage == 0)
@@ -120,7 +122,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             RemovePageThumbnails(graph, document, updates);
         }
 
-        var appliedSanitizations = SanitizeCatalog(graph, options.Sanitization, updates);
+        var appliedSanitizations = SanitizeCatalog(graph, options.Sanitization, updates).ToList();
+        appliedSanitizations.AddRange(PdfRedactionSanitizer.Sanitize(graph, options.Sanitization, updates));
 
         var edited = updates.Count == 0
             ? source
@@ -175,7 +178,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         PdfGraphicsElement element,
         IReadOnlyList<PdfRectangle> regions,
         ICollection<string> removedText,
-        int depth)
+        int depth,
+        IReadOnlyList<PdfGroupElement> ancestors)
     {
         if (depth > 64 || element.IsDeleted)
         {
@@ -185,9 +189,10 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         if (element is PdfGroupElement group)
         {
             var removedInGroup = 0;
+            var nested = ancestors.Append(group).ToArray();
             foreach (var child in group.Children)
             {
-                removedInGroup += MarkCovered(child, regions, removedText, depth + 1);
+                removedInGroup += MarkCovered(child, regions, removedText, depth + 1, nested);
             }
 
             if (group.Children.Count > 0 && group.Children.All(static child => child.IsDeleted))
@@ -198,7 +203,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             return removedInGroup;
         }
 
-        var bounds = element.Bounds ?? _bounds.ComputeElementBounds(element);
+        var bounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out _);
         if (!regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None))
         {
             return 0;
@@ -441,7 +446,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             foreach (var element in page.GraphicsObjects)
             {
-                residualElements += CountCovered(element, regions, depth: 0);
+                residualElements += CountCovered(element, regions, depth: 0, []);
             }
         }
 
@@ -453,15 +458,24 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 $"{residualElements} element(s) still intersect a redaction region after apply."));
         }
 
-        // Extraction is checked across the whole document, not only the redacted pages: content
-        // moved elsewhere would still be a leak.
-        var extracted = string.Join(
-            '\n',
-            document.Pages.SelectMany(static page => page.TextObjects).Select(static text => text.Text));
-        var residualMatches = removedText
-            .Where(text => text.Trim().Length > 0 && extracted.Contains(text, StringComparison.Ordinal))
-            .Distinct(StringComparer.Ordinal)
-            .Count();
+        // Match extracted text only inside the redacted regions. The same text may legitimately
+        // occur elsewhere in a document and must not turn a successful redaction into a false
+        // failure merely because its string value is equal.
+        var removedSet = removedText
+            .Where(static text => text.Trim().Length > 0)
+            .ToHashSet(StringComparer.Ordinal);
+        var residualMatches = 0;
+        foreach (var (pageNumber, regions) in regionsByPage)
+        {
+            var page = document.Pages.ElementAtOrDefault(pageNumber - 1);
+            if (page is null)
+            {
+                continue;
+            }
+
+            residualMatches += page.GraphicsObjects.Sum(element =>
+                CountCoveredTextMatches(element, regions, removedSet, depth: 0, []));
+        }
         if (residualMatches > 0)
         {
             findings.Add(new PdfRedactionFinding(
@@ -469,6 +483,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 PdfRedactionCapability.Unsupported,
                 $"{residualMatches} removed text run(s) are still extractable from the result."));
         }
+
+        PdfRedactionResidueScanner.Scan(graph, document, regionsByPage, findings);
 
         if (table.Revisions.Count != 1)
         {
@@ -485,7 +501,11 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             findings);
     }
 
-    private int CountCovered(PdfGraphicsElement element, IReadOnlyList<PdfRectangle> regions, int depth)
+    private int CountCovered(
+        PdfGraphicsElement element,
+        IReadOnlyList<PdfRectangle> regions,
+        int depth,
+        IReadOnlyList<PdfGroupElement> ancestors)
     {
         if (depth > 64 || element.IsDeleted)
         {
@@ -494,10 +514,39 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
         if (element is PdfGroupElement group)
         {
-            return group.Children.Sum(child => CountCovered(child, regions, depth + 1));
+            var nested = ancestors.Append(group).ToArray();
+            return group.Children.Sum(child => CountCovered(child, regions, depth + 1, nested));
         }
 
-        var bounds = element.Bounds ?? _bounds.ComputeElementBounds(element);
+        var bounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out _);
+        return regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None) ? 1 : 0;
+    }
+
+    private int CountCoveredTextMatches(
+        PdfGraphicsElement element,
+        IReadOnlyList<PdfRectangle> regions,
+        IReadOnlySet<string> removedText,
+        int depth,
+        IReadOnlyList<PdfGroupElement> ancestors)
+    {
+        if (depth > 64 || element.IsDeleted)
+        {
+            return 0;
+        }
+
+        if (element is PdfGroupElement group)
+        {
+            var nested = ancestors.Append(group).ToArray();
+            return group.Children.Sum(child =>
+                CountCoveredTextMatches(child, regions, removedText, depth + 1, nested));
+        }
+
+        if (element is not PdfTextElement text || !removedText.Contains(text.Text))
+        {
+            return 0;
+        }
+
+        var bounds = PdfRedactionVisibility.EffectiveBounds(text, _bounds, ancestors, out _);
         return regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None) ? 1 : 0;
     }
 
@@ -512,18 +561,15 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         var sourceSha = Convert.ToHexStringLower(SHA256.HashData(source));
         var resultSha = Convert.ToHexStringLower(SHA256.HashData(result));
         var appliedAt = DateTimeOffset.UtcNow;
-        var canonical = new StringBuilder()
-            .Append(sourceSha).Append('\n')
-            .Append(resultSha).Append('\n')
-            .Append(appliedAt.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)).Append('\n')
-            .Append(options.Actor ?? string.Empty).Append('\n')
-            .Append(options.Reason ?? string.Empty).Append('\n')
-            .Append(string.Join(',', appliedSanitizations)).Append('\n')
-            .Append(verification.Passed).Append('\n');
-        foreach (var region in regions)
-        {
-            canonical.Append(CultureInfo.InvariantCulture, $"{region.PageNumber}:{region.Bounds.X},{region.Bounds.Y},{region.Bounds.Width},{region.Bounds.Height}\n");
-        }
+        var recordSha = PdfRedactionAuditSigner.ComputeRecordHash(
+            sourceSha,
+            resultSha,
+            appliedAt,
+            options.Actor,
+            options.Reason,
+            regions,
+            appliedSanitizations,
+            verification.Passed);
 
         return new PdfRedactionAuditRecord(
             sourceSha,
@@ -534,7 +580,8 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             regions,
             appliedSanitizations,
             verification.Passed,
-            Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical.ToString()))));
+            recordSha,
+            PdfRedactionAuditSigner.Sign(recordSha, options.AuditSigningKey));
     }
 
     private static PdfDictionary Clone(PdfDictionary source) =>

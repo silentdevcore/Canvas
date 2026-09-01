@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PXA.Importer.Redaction;
+using PXA.Importer.Signing;
 using PXA.Pdf;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
@@ -134,7 +135,8 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
             new PdfViewerNativeAnnotationExtractionService(),
             preflight,
             new PdfRedactionApplier(preflight),
-            new PdfViewerRedactionRegionMapper())
+            new PdfViewerRedactionRegionMapper(),
+            new TestAuditKeyProvider())
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -180,5 +182,10 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
         {
             Directory.Delete(_storageRoot, recursive: true);
         }
+    }
+
+    private sealed class TestAuditKeyProvider(IPdfSigningKey? key = null) : IPxaRedactionAuditKeyProvider
+    {
+        public IPdfSigningKey? Key { get; } = key;
     }
 }

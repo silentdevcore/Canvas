@@ -162,11 +162,12 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         var accumulator = new CoverageAccumulator();
         foreach (var element in page.GraphicsObjects)
         {
-            Accumulate(element, region.Bounds, accumulator, findings, region.PageNumber, index, depth: 0);
+            Accumulate(element, region.Bounds, accumulator, findings, region.PageNumber, index, depth: 0, []);
         }
 
         accumulator.Fill(covered);
         InspectPageAnnotations(graph, page, region, index, findings);
+        PdfRedactionResourceInspector.Inspect(graph, page, region.PageNumber, index, findings);
 
         var capability = Worst(
             findings.Select(static finding => finding.Capability)
@@ -181,7 +182,8 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         ICollection<PdfRedactionFinding> findings,
         int pageNumber,
         int regionIndex,
-        int depth)
+        int depth,
+        IReadOnlyList<PdfGroupElement> ancestors)
     {
         if (depth > 64)
         {
@@ -210,19 +212,30 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 }
             }
 
+            var nested = ancestors.Append(group).ToArray();
             foreach (var child in group.Children)
             {
-                Accumulate(child, region, accumulator, findings, pageNumber, regionIndex, depth + 1);
+                Accumulate(child, region, accumulator, findings, pageNumber, regionIndex, depth + 1, nested);
             }
 
             return;
         }
 
-        var elementBounds = element.Bounds ?? _bounds.ComputeElementBounds(element);
+        var elementBounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out var isClipped);
         var coverage = PdfRedactionGeometry.Classify(elementBounds, region);
         if (coverage == PdfRedactionCoverage.None)
         {
             return;
+        }
+
+        if (isClipped)
+        {
+            findings.Add(new PdfRedactionFinding(
+                "PXAPDFREDACT213",
+                PdfRedactionCapability.ReviewRequired,
+                "Covered content is clipped; PXA narrows coverage by the clipping path bounds, which is an approximation of the real clip shape.",
+                pageNumber,
+                regionIndex));
         }
 
         switch (element)

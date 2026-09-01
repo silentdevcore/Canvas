@@ -1,4 +1,9 @@
 import type { PdfAnnotation, PdfAnnotationSidecar } from './annotations';
+import {
+  RedactionBlockedError,
+  type RedactionApplyOutcome,
+  type RedactionPreflightReport,
+} from './redaction';
 
 interface SaveAnnotationsRequest {
   documentId: string;
@@ -76,20 +81,62 @@ export const flattenAnnotations = async (
   return response.blob();
 };
 
-export const applyRedactions = async (
+/** Reports what would be removed. Never changes the uploaded document. */
+export const preflightRedactions = async (
   pdfFile: File,
   sidecar: PdfAnnotationSidecar,
-): Promise<Blob> => {
+): Promise<RedactionPreflightReport> => {
   const form = new FormData();
   form.append('file', pdfFile);
   form.append('sidecar', JSON.stringify(sidecar));
+
+  const response = await fetch(`${API_BASE}/redact/preflight`, {
+    method: 'POST',
+    body: form,
+  });
+  await assertOk(response);
+  return response.json() as Promise<RedactionPreflightReport>;
+};
+
+/**
+ * Applies the redaction. A 409 means the backend refused rather than returning a file it
+ * cannot stand behind, so the structured report is surfaced instead of being flattened into
+ * a message string.
+ */
+export const applyRedactions = async (
+  pdfFile: File,
+  sidecar: PdfAnnotationSidecar,
+  reason?: string,
+): Promise<RedactionApplyOutcome> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+  form.append('sidecar', JSON.stringify(sidecar));
+  if (reason) {
+    form.append('reason', reason);
+  }
 
   const response = await fetch(`${API_BASE}/redact`, {
     method: 'POST',
     body: form,
   });
+
+  if (response.status === 409) {
+    const body = await response.json().catch(() => ({}));
+    throw new RedactionBlockedError(
+      body.error || 'The redaction was refused.',
+      body.code ?? null,
+      body.preflight ?? null,
+      body.verification ?? null,
+    );
+  }
+
   await assertOk(response);
-  return response.blob();
+  return {
+    blob: await response.blob(),
+    resultSha256: response.headers.get('PXA-Redaction-Result-Sha256'),
+    auditRecordSha256: response.headers.get('PXA-Redaction-Audit'),
+    auditSigned: response.headers.get('PXA-Redaction-Audit-Signed') === 'true',
+  };
 };
 
 export const embedAnnotations = async (

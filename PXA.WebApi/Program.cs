@@ -122,6 +122,11 @@ builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.T
 builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionPreflight, PXA.Importer.Redaction.PdfRedactionPreflight>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfA2bConverter, PXA.Importer.Trust.PdfA2bConverter>();
 builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionApplier, PXA.Importer.Redaction.PdfRedactionApplier>();
+builder.Services.Configure<PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyOptions>(
+    builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyOptions.SectionName));
+builder.Services.AddSingleton<
+    PXA.WebApi.Services.Pdf.IPxaRedactionAuditKeyProvider,
+    PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyProvider>();
 builder.Services.AddScoped<PXA.WebApi.Services.Pdf.PdfViewerRedactionRegionMapper>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfDocumentTimestampService,
@@ -593,6 +598,11 @@ builder.Services.AddScoped<PXA.Application.UseCases.CloneTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();
 
 var app = builder.Build();
+
+// Resolve the optional audit signer during startup. An absent configuration is valid, but
+// an explicitly configured key must load successfully instead of downgrading redaction
+// audit records to unsigned output on the first request.
+_ = app.Services.GetRequiredService<PXA.WebApi.Services.Pdf.IPxaRedactionAuditKeyProvider>();
 
 await PxaOAuthBootstrapper.InitializeAsync(app);
 await PxaDevelopmentIdentityBootstrapper.InitializeAsync(app);

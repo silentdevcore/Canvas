@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using PXA.Importer.Graphics;
 using PXA.Importer.Redaction;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Pdf;
 
 namespace PXA.WebApi.Controllers;
 
@@ -14,7 +15,8 @@ namespace PXA.WebApi.Controllers;
 [EnableRateLimiting("designer-code")]
 public sealed class PdfRedactionsController(
     IPdfRedactionPreflight preflight,
-    IPdfRedactionApplier applier) : ControllerBase
+    IPdfRedactionApplier applier,
+    IPxaRedactionAuditKeyProvider auditKeyProvider) : ControllerBase
 {
     private const long MaximumUploadBytes = PdfRedactionPreflightOptions.DefaultMaximumFileSizeBytes;
 
@@ -127,7 +129,8 @@ public sealed class PdfRedactionsController(
                 new PdfRedactionApplyOptions
                 {
                     Reason = reason,
-                    Actor = User.Identity?.Name
+                    Actor = User.Identity?.Name,
+                    AuditSigningKey = auditKeyProvider.Key
                 },
                 cancellationToken);
 
@@ -146,6 +149,13 @@ public sealed class PdfRedactionsController(
 
             Response.Headers["PXA-Redaction-Audit"] = result.Audit.RecordSha256;
             Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;
+            // States plainly whether the record carries provenance or only tamper evidence.
+            Response.Headers["PXA-Redaction-Audit-Signed"] =
+                result.Audit.Signature is null ? "false" : "true";
+            if (result.Audit.Signature is { } signature)
+            {
+                Response.Headers["PXA-Redaction-Audit-Signer"] = signature.SignerThumbprint;
+            }
             return File(result.Bytes, "application/pdf", "redacted.pdf");
         }
         catch (PdfRedactionBlockedException exception)

@@ -111,3 +111,25 @@ test('PDF Trust documentation keeps trust policy server-owned', () => {
   assert.doesNotMatch(source, /"ocspUrl":/);
   assert.doesNotMatch(source, /"crlUrl":/);
 });
+
+test('Redaction documentation states what is detected and what is sanitized', () => {
+  assert.match(source, /narrows coverage by the clipping paths in force/);
+  assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);
+  assert.match(source, /form field values on every field rather than only overlapping widgets/);
+  assert.match(source, /non-normal appearance streams such as down and rollover states/);
+  assert.match(source, /Covered image pixels are still not removed/);
+});
+
+test('Redaction verification and audit signing are described with their limits', () => {
+  assert.match(source, /each recovery route as its own named check/);
+  assert.match(source, /never reports residue that is not there/);
+  assert.match(source, /dedicated audit key configured per deployment/);
+  assert.match(source, /PXA-Redaction-Audit-Signed as false/);
+});
+
+test('Viewer redaction workflow is described as three separate steps', () => {
+  assert.match(source, /The Viewer presents the same three steps separately/);
+  assert.match(source, /apply stays disabled until preflight reports the marks as removable/);
+  assert.match(source, /rather than as a message string/);
+  assert.match(source, /localized in all six Designer languages/);
+});

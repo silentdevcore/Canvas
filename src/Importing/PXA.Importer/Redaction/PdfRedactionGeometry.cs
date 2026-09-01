@@ -10,6 +10,11 @@ internal static class PdfRedactionGeometry
 {
     public static PdfRedactionCoverage Classify(PdfRectangle element, PdfRectangle region)
     {
+        if (element.Width <= 0 || element.Height <= 0 || region.Width <= 0 || region.Height <= 0)
+        {
+            return PdfRedactionCoverage.None;
+        }
+
         if (!element.Intersects(region))
         {
             return PdfRedactionCoverage.None;

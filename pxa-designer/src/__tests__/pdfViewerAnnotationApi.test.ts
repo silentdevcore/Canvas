@@ -1,5 +1,6 @@
 import { createAnnotationSidecar, type PdfAnnotation } from '../features/pdf-viewer/annotations';
-import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from '../features/pdf-viewer/annotationApi';
+import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, preflightRedactions, saveAnnotations } from '../features/pdf-viewer/annotationApi';
+import { RedactionBlockedError, isApplyAllowed } from '../features/pdf-viewer/redaction';
 
 const sampleAnnotation = (): PdfAnnotation => ({
   id: 'annotation-1',
@@ -22,12 +23,13 @@ const jsonResponse = (status: number, body: unknown): Response => ({
   json: async () => body,
 } as Response);
 
-const blobResponse = (status: number, body: Blob): Response => ({
+const blobResponse = (status: number, body: Blob, headers: Record<string, string> = {}): Response => ({
   ok: status >= 200 && status < 300,
   status,
   json: async () => ({}),
   blob: async () => body,
-} as Response);
+  headers: { get: (name: string) => headers[name] ?? null },
+} as unknown as Response);
 
 describe('pdf viewer annotation API client', () => {
   const fetchMock = jest.fn();
@@ -161,7 +163,7 @@ describe('pdf viewer annotation API client', () => {
 
     const response = await applyRedactions(file, sidecar);
 
-    expect(response).toBe(redacted);
+    expect(response.blob).toBe(redacted);
     expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/annotations/redact', {
       method: 'POST',
       body: expect.any(FormData),
@@ -170,6 +172,89 @@ describe('pdf viewer annotation API client', () => {
     const form = fetchMock.mock.calls[0][1].body as FormData;
     expect(form.get('file')).toBe(file);
     expect(form.get('sidecar')).toBe(JSON.stringify(sidecar));
+  });
+
+  test('applyRedactions surfaces the audit headers alongside the file', async () => {
+    const annotation = { ...sampleAnnotation(), type: 'redaction' as const };
+    const sidecar = createAnnotationSidecar('review.pdf', [annotation]);
+    const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
+    fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), {
+      'PXA-Redaction-Result-Sha256': 'a'.repeat(64),
+      'PXA-Redaction-Audit': 'b'.repeat(64),
+      'PXA-Redaction-Audit-Signed': 'true',
+    }));
+
+    const response = await applyRedactions(file, sidecar, 'Privacy request');
+
+    expect(response.resultSha256).toBe('a'.repeat(64));
+    expect(response.auditRecordSha256).toBe('b'.repeat(64));
+    expect(response.auditSigned).toBe(true);
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('reason')).toBe('Privacy request');
+  });
+
+  test('applyRedactions reports an unsigned audit record as unsigned', async () => {
+    const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
+    const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
+    fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), {
+      'PXA-Redaction-Audit-Signed': 'false',
+    }));
+
+    const response = await applyRedactions(file, sidecar);
+
+    expect(response.auditSigned).toBe(false);
+  });
+
+  test('preflightRedactions posts to the preflight route and returns the report', async () => {
+    const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
+    const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
+    const report = {
+      capability: 'Removable',
+      sha256: 'c'.repeat(64),
+      fileSizeBytes: 10,
+      pageCount: 1,
+      revisionCount: 1,
+      regions: [],
+      documentFindings: [],
+    };
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, report));
+
+    const response = await preflightRedactions(file, sidecar);
+
+    expect(response).toEqual(report);
+    expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/annotations/redact/preflight', {
+      method: 'POST',
+      body: expect.any(FormData),
+    });
+    expect(isApplyAllowed(response)).toBe(true);
+  });
+
+  test('applyRedactions raises a blocked error carrying the preflight report', async () => {
+    const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
+    const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
+    const preflight = {
+      capability: 'ReviewRequired',
+      sha256: 'd'.repeat(64),
+      fileSizeBytes: 10,
+      pageCount: 1,
+      revisionCount: 1,
+      regions: [],
+      documentFindings: [{ code: 'PXAPDFREDACT201', capability: 'ReviewRequired', message: 'Partial run.' }],
+    };
+    fetchMock.mockResolvedValueOnce(jsonResponse(409, {
+      error: 'The redaction was blocked by preflight.',
+      code: 'PXAPDFREDACTVIEWER001',
+      preflight,
+    }));
+
+    // A refusal must stay structured; flattening it to a string would hide why.
+    const error = await applyRedactions(file, sidecar).catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(RedactionBlockedError);
+    const blocked = error as RedactionBlockedError;
+    expect(blocked.code).toBe('PXAPDFREDACTVIEWER001');
+    expect(blocked.preflight?.documentFindings[0].code).toBe('PXAPDFREDACT201');
+    expect(isApplyAllowed(blocked.preflight)).toBe(false);
   });
 
   test('throws API error message when request fails', async () => {

@@ -17,6 +17,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
     private readonly IPdfRedactionPreflight _redactionPreflight;
     private readonly IPdfRedactionApplier _redactionApplier;
     private readonly PdfViewerRedactionRegionMapper _redactionRegions;
+    private readonly IPxaRedactionAuditKeyProvider _auditKeyProvider;
 
     public PdfViewerAnnotationsController(
         PdfViewerAnnotationStore store,
@@ -24,7 +25,8 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         PdfViewerNativeAnnotationExtractionService extractionService,
         IPdfRedactionPreflight redactionPreflight,
         IPdfRedactionApplier redactionApplier,
-        PdfViewerRedactionRegionMapper redactionRegions)
+        PdfViewerRedactionRegionMapper redactionRegions,
+        IPxaRedactionAuditKeyProvider auditKeyProvider)
     {
         _store = store;
         _flatteningService = flatteningService;
@@ -32,6 +34,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         _redactionPreflight = redactionPreflight;
         _redactionApplier = redactionApplier;
         _redactionRegions = redactionRegions;
+        _auditKeyProvider = auditKeyProvider;
     }
 
     [HttpPost]
@@ -183,7 +186,12 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
             var result = await _redactionApplier.ApplyAsync(
                 pdfStream,
                 regions,
-                new PdfRedactionApplyOptions { Reason = reason, Actor = User.Identity?.Name },
+                new PdfRedactionApplyOptions
+                {
+                    Reason = reason,
+                    Actor = User.Identity?.Name,
+                    AuditSigningKey = _auditKeyProvider.Key
+                },
                 cancellationToken);
 
             if (!result.Verification.Passed)
@@ -198,6 +206,8 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
 
             Response.Headers["PXA-Redaction-Audit"] = result.Audit.RecordSha256;
             Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;
+            Response.Headers["PXA-Redaction-Audit-Signed"] =
+                result.Audit.Signature is null ? "false" : "true";
             var safeName = Path.GetFileNameWithoutExtension(file!.FileName);
             return File(result.Bytes, "application/pdf", $"{safeName}-redacted.pdf");
         }

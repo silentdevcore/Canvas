@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-redaction-hardening",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "security",
+  "summary": "PXA strengthens irreversible PDF redaction with nested carrier sanitization, signed audit verification, fail-closed key configuration, region-bound verification, and stale-preflight protection in the Viewer.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

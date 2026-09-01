@@ -83,7 +83,7 @@ public sealed class PdfRedactionApplierTests
     }
 
     [Fact]
-    public async Task Apply_ShouldBlockOnOptionalContentThatSanitizationCannotResolve()
+    public async Task Apply_ShouldRemoveOptionalContentRatherThanBlocking()
     {
         var pdf = AddCatalogEntry(
             CreatePdf(("Public heading", 40, 700), (Secret, 40, 400)),
@@ -91,7 +91,33 @@ public sealed class PdfRedactionApplierTests
             new PdfDictionary { ["OCGs"] = new PdfArray() });
         var region = await RegionCoveringAsync(pdf, Secret);
 
-        var exception = await Assert.ThrowsAsync<PdfRedactionBlockedException>(() => ApplyAsync(pdf, region));
+        var result = await ApplyAsync(pdf, region);
+
+        // Layers decide visibility at view time, so covered content behind them must not
+        // survive a redaction that assumed the page as rendered.
+        Assert.True(result.Verification.Passed);
+        Assert.Contains("hiddenRepresentations", result.Audit.AppliedSanitizations);
+        var (_, graph) = ParseGraph(result.Bytes);
+        var catalog = (PdfDictionary)graph.Resolve(((PdfReference)graph.Trailer!["Root"]!).Id)!.Value;
+        Assert.Null(catalog["OCProperties"]);
+    }
+
+    [Fact]
+    public async Task Apply_ShouldBlockOnOptionalContentWhenHiddenRepresentationsAreKept()
+    {
+        var pdf = AddCatalogEntry(
+            CreatePdf(("Public heading", 40, 700), (Secret, 40, 400)),
+            "OCProperties",
+            new PdfDictionary { ["OCGs"] = new PdfArray() });
+        var region = await RegionCoveringAsync(pdf, Secret);
+
+        var exception = await Assert.ThrowsAsync<PdfRedactionBlockedException>(() => ApplyAsync(
+            pdf,
+            region,
+            new PdfRedactionApplyOptions
+            {
+                Sanitization = new PdfRedactionSanitizationPolicy { RemoveHiddenRepresentations = false }
+            }));
 
         Assert.Contains("PXAPDFREDACT108", exception.Message, StringComparison.Ordinal);
     }

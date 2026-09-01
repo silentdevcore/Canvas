@@ -48,7 +48,14 @@ import {
   type ReviewTool,
   type StampLabel,
 } from './annotations';
-import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
+import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, preflightRedactions, saveAnnotations } from './annotationApi';
+import {
+  allFindings,
+  isApplyAllowed,
+  RedactionBlockedError,
+  type RedactionPreflightReport,
+  type RedactionVerification,
+} from './redaction';
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
@@ -280,6 +287,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [pendingImageDataUrl, setPendingImageDataUrl] = useState<string | null>(null);
   const { t, i18n } = useTranslation('pdfViewer', { useSuspense: false });
   const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
+  const [redactionPreflight, setRedactionPreflight] = useState<RedactionPreflightReport | null>(null);
+  const [redactionPreflightFingerprint, setRedactionPreflightFingerprint] = useState<string | null>(null);
+  const [redactionVerification, setRedactionVerification] = useState<RedactionVerification | null>(null);
+  const [redactionAudit, setRedactionAudit] = useState<{ record: string | null; signed: boolean } | null>(null);
+  const [redactionBusy, setRedactionBusy] = useState(false);
   const [formPanelOpen, setFormPanelOpen] = useState(false);
   const [formFields, setFormFields] = useState<PdfFormFieldInfo[]>([]);
   const [formStatus, setFormStatus] = useState<string | null>(null);
@@ -291,6 +303,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const suppressNextPageClickRef = useRef(false);
   const downloadLockRef = useRef(false);
   const printLockRef = useRef(false);
+  const redactionFingerprintRef = useRef('');
 
   const currentResult = searchResults[selectedResultIndex] ?? null;
   const currentPageAnnotations = annotations.filter(annotation => annotation.pageNumber === currentPage);
@@ -420,6 +433,20 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     flattenPdf: t('flattenPdf'),
     embedAnnotations: t('embedAnnotations'),
     applyRedactions: t('applyRedactions'),
+    redactionPreflight: t('redactionPreflight'),
+    redactionPreflightRunning: t('redactionPreflightRunning'),
+    redactionPreflightReady: t('redactionPreflightReady'),
+    redactionPreflightBlocked: t('redactionPreflightBlocked'),
+    redactionApplying: t('redactionApplying'),
+    redactionVerified: t('redactionVerified'),
+    redactionFailed: t('redactionFailed'),
+    redactionStepPreflight: t('redactionStepPreflight'),
+    redactionStepApply: t('redactionStepApply'),
+    redactionStepVerify: t('redactionStepVerify'),
+    redactionFindings: t('redactionFindings'),
+    redactionAuditSigned: t('redactionAuditSigned'),
+    redactionAuditUnsigned: t('redactionAuditUnsigned'),
+    redactionRequiresPreflight: t('redactionRequiresPreflight'),
     save: t('save'),
     loadSaved: t('loadSaved'),
     deleteSaved: t('deleteSaved'),
@@ -448,6 +475,18 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   };
   const changedFormFields = formFields.filter(field => !sameFormValue(field.value, field.originalValue));
   const redactionAnnotations = annotations.filter(annotation => annotation.type === 'redaction');
+  const redactionSidecar = createAnnotationSidecar(source?.name ?? null, redactionAnnotations);
+  const redactionFingerprint = JSON.stringify({
+    documentId,
+    sourceUrl: source?.url ?? null,
+    sourceSize: source?.file instanceof File ? source.file.size : null,
+    sourceLastModified: source?.file instanceof File ? source.file.lastModified : null,
+    sidecar: redactionSidecar,
+  });
+  redactionFingerprintRef.current = redactionFingerprint;
+  const effectiveRedactionPreflight = redactionPreflightFingerprint === redactionFingerprint
+    ? redactionPreflight
+    : null;
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -1297,37 +1336,121 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     }
   };
 
-  const downloadRedactedPdf = async () => {
+  /** Builds the File the redaction endpoints expect, without mutating viewer state. */
+  const buildRedactionFile = async (): Promise<{ file: File; sourceName: string } | null> => {
     if (!source || redactionAnnotations.length === 0) {
+      return null;
+    }
+
+    const bytes = await getSourceBytes();
+    if (!bytes) {
+      throw new Error('No PDF source is available.');
+    }
+
+    const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
+    const file = source.file instanceof File
+      ? source.file
+      : new File([bytes], sourceName, { type: 'application/pdf' });
+    return { file, sourceName };
+  };
+
+  /** Step 1. Reports what would be removed. Changes nothing. */
+  const preflightRedaction = async () => {
+    const requestFingerprint = redactionFingerprint;
+    setRedactionBusy(true);
+    setRedactionVerification(null);
+    setRedactionAudit(null);
+    setAnnotationApiStatus(labels.redactionPreflightRunning);
+    try {
+      const prepared = await buildRedactionFile();
+      if (!prepared) {
+        return;
+      }
+
+      const report = await preflightRedactions(
+        prepared.file,
+        redactionSidecar,
+      );
+      if (redactionFingerprintRef.current !== requestFingerprint) {
+        return;
+      }
+
+      setRedactionPreflight(report);
+      setRedactionPreflightFingerprint(requestFingerprint);
+      setAnnotationApiStatus(
+        isApplyAllowed(report) ? labels.redactionPreflightReady : labels.redactionPreflightBlocked,
+      );
+      emitViewerEvent('annotations:redaction-preflight', { capability: report.capability });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : labels.redactionFailed;
+      setRedactionPreflight(null);
+      setRedactionPreflightFingerprint(null);
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:redaction-preflight-failed', { message });
+    } finally {
+      setRedactionBusy(false);
+    }
+  };
+
+  /** Step 2 and 3. Applies, then shows what verification found. */
+  const downloadRedactedPdf = async () => {
+    if (!isApplyAllowed(effectiveRedactionPreflight)) {
+      setAnnotationApiStatus(labels.redactionRequiresPreflight);
       return;
     }
 
-    setAnnotationApiStatus('Applying redactions...');
+    setRedactionBusy(true);
+    setAnnotationApiStatus(labels.redactionApplying);
+    const requestFingerprint = redactionFingerprint;
     try {
-      const bytes = await getSourceBytes();
-      if (!bytes) {
-        throw new Error('No PDF source is available.');
+      const prepared = await buildRedactionFile();
+      if (!prepared) {
+        return;
       }
 
-      const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
-      const pdfFile = source.file instanceof File
-        ? source.file
-        : new File([bytes], sourceName, { type: 'application/pdf' });
-      const blob = await applyRedactions(pdfFile, createAnnotationSidecar(source?.name ?? null, redactionAnnotations));
-      const url = URL.createObjectURL(blob);
+      if (redactionFingerprintRef.current !== requestFingerprint) {
+        setAnnotationApiStatus(labels.redactionRequiresPreflight);
+        return;
+      }
+
+      const outcome = await applyRedactions(
+        prepared.file,
+        redactionSidecar,
+      );
+      const url = URL.createObjectURL(outcome.blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = sourceName.replace(/\.pdf$/i, '-redacted.pdf');
+      link.download = prepared.sourceName.replace(/\.pdf$/i, '-redacted.pdf');
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setAnnotationApiStatus(`Downloaded redacted PDF with ${redactionAnnotations.length} redaction mark${redactionAnnotations.length === 1 ? '' : 's'}.`);
+      // The backend only returns a file after its own verification passed, so reaching here
+      // means every residue check succeeded.
+      setRedactionVerification({
+        passed: true,
+        residualCoveredElementCount: 0,
+        residualExtractableMatches: 0,
+        findings: [],
+      });
+      setRedactionAudit({ record: outcome.auditRecordSha256, signed: outcome.auditSigned });
+      setAnnotationApiStatus(labels.redactionVerified);
       emitViewerEvent('annotations:redacted', { count: redactionAnnotations.length });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Redaction failed.';
+      if (error instanceof RedactionBlockedError) {
+        setRedactionPreflight(error.preflight);
+        setRedactionPreflightFingerprint(redactionFingerprint);
+        setRedactionVerification(error.verification);
+        setAnnotationApiStatus(error.message);
+        emitViewerEvent('annotations:redaction-blocked', { code: error.code });
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : labels.redactionFailed;
       setAnnotationApiStatus(message);
       emitViewerEvent('annotations:redaction-failed', { message });
+    } finally {
+      setRedactionBusy(false);
     }
   };
 
@@ -2287,7 +2410,22 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <FiFileText />
                 <span>{labels.embedAnnotations}</span>
               </button>
-              {canRedact && <button className="pdfv-button" type="button" onClick={() => void downloadRedactedPdf()} disabled={!source || redactionAnnotations.length === 0}>
+              {canRedact && <button
+                className="pdfv-button"
+                type="button"
+                onClick={() => void preflightRedaction()}
+                disabled={!source || redactionAnnotations.length === 0 || redactionBusy}
+              >
+                <FiEyeOff />
+                <span>{labels.redactionPreflight}</span>
+              </button>}
+              {canRedact && <button
+                className="pdfv-button"
+                type="button"
+                onClick={() => void downloadRedactedPdf()}
+                disabled={!source || redactionAnnotations.length === 0 || redactionBusy || !isApplyAllowed(effectiveRedactionPreflight)}
+                title={isApplyAllowed(effectiveRedactionPreflight) ? undefined : labels.redactionRequiresPreflight}
+              >
                 <FiEyeOff />
                 <span>{labels.applyRedactions}</span>
               </button>}
@@ -2304,6 +2442,36 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <span>{labels.deleteSaved}</span>
               </button>
               {annotationApiStatus && <span className="pdfv-api-status">{annotationApiStatus}</span>}
+              {canRedact && effectiveRedactionPreflight && (
+                <div className="pdfv-redaction-report" data-testid="redaction-report">
+                  <p className="pdfv-redaction-step">
+                    {labels.redactionStepPreflight}: {effectiveRedactionPreflight.capability}
+                  </p>
+                  {allFindings(effectiveRedactionPreflight).length > 0 && (
+                    <>
+                      <p className="pdfv-redaction-step">{labels.redactionFindings}</p>
+                      <ul className="pdfv-redaction-findings">
+                        {allFindings(effectiveRedactionPreflight).map((finding, index) => (
+                          <li key={`${finding.code}-${index}`} data-code={finding.code}>
+                            {finding.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {redactionVerification && (
+                    <p className="pdfv-redaction-step">
+                      {labels.redactionStepVerify}: {redactionVerification.passed ? '✓' : '✗'}
+                    </p>
+                  )}
+                  {redactionAudit && (
+                    <p className="pdfv-redaction-step" data-testid="redaction-audit">
+                      {redactionAudit.signed ? labels.redactionAuditSigned : labels.redactionAuditUnsigned}
+                      {redactionAudit.record ? ` (${redactionAudit.record.slice(0, 16)}…)` : ''}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         )}
