@@ -468,9 +468,25 @@ Reference material:
     external hyperlink as an archival dependency.
   - [x] Traverse indirect objects, stream dictionaries, nested direct dictionaries, and
     nested arrays with bounded depth so forbidden structures cannot bypass preflight.
-  - [ ] Complete the exhaustive ISO 19005-2/3 annotation appearance, optional-content,
-    transparency-group, soft-mask, blend-space, and rendering-intent rule matrix before
-    presenting the PXA structural validator as a complete standards validator.
+  - [x] Complete the ISO 19005-2/3 structural rule matrix for annotation appearances,
+    optional content, transparency, soft masks, blend modes, blend colour, and rendering
+    intents within the supported PDF/A-2b/3b policy.
+    - [x] Require valid annotation subtypes, flags, normal appearances, button appearance
+      states, and static AcroForm/XFA behavior with stable `PXAPDFTRUST333`-`335`
+      diagnostics.
+    - [x] Require named, uniquely identified optional-content configurations, reject `/AS`,
+      and verify that `/Order` includes every OCG reference with stable
+      `PXAPDFTRUST336`-`339` diagnostics.
+    - [x] Validate dictionary and content-stream rendering intents and extended graphics
+      state blend modes against the ISO 32000-1 value sets with stable
+      `PXAPDFTRUST340`-`341` diagnostics.
+    - [x] Preserve PDF/A-2/3 transparency and soft masks instead of applying a false
+      blanket prohibition. Traverse their Form content, require the document RGB output
+      intent as the default blending colour space, and fail closed when a relevant content
+      stream cannot be decoded for structural inspection (`PXAPDFTRUST343`).
+    - [x] Keep the PXA result labelled as a bounded structural validator. The pinned
+      veraPDF profile remains the standards-level release evidence rather than treating
+      this first-party matrix as a replacement for all 144 external rules.
 - [x] Add `generate`, `convert`, `validate`, and `preflight` operations with distinct
   results; conversion must never silently discard unsupported content.
 - [x] Preserve the original when conversion reports `reviewRequired` or fails.
@@ -489,9 +505,13 @@ Reference material:
   - [x] Add `tools/pdfa/validate-pdfa.sh` as a pinned, reproducible validator wrapper that
     accepts only `2b` or `3b`, fails on non-conformance, and retains machine-readable XML
     evidence for local and CI runs.
+  - [x] Add `tools/pdfa/validate-pdfa-secondary.sh` for a licensed 3-Heights PDF Validator
+    Shell run, retaining the detailed report plus validator version, profile, input hash,
+    timestamp, and exit code. Missing binaries and license exit code 10 fail closed.
   - [ ] Add a second commercial or standards-based validator before the production
-    support claim. Adobe Acrobat Preflight is installed locally but has no supported
-    headless CLI; a recorded manual Preflight result is still required.
+    support claim. The installed Adobe application reports `Reader:Full`, so its Pro-only
+    Preflight API is unavailable. 3-Heights requires a separately supplied executable and
+    valid license; a recorded pass from either product is still required.
 - [x] Store validator name, version, profile, rule IDs, and machine-readable evidence
   in the compliance report.
 - [x] Add the structural PDF/A-2b validation path to the Viewer and expose

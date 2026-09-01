@@ -131,6 +131,248 @@ public sealed class PdfAProfileRestrictionTests
     }
 
     [Fact]
+    public async Task Preflight_ShouldRequireANormalAnnotationAppearance()
+    {
+        var report = await Preflight(AppendObject(CreateBaseDocument(), Annotation("Text")));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST333");
+    }
+
+    [Theory]
+    [InlineData("Popup", false)]
+    [InlineData("Link", true)]
+    public async Task Preflight_ShouldAllowAppearanceExceptions(string subtype, bool includeFlags)
+    {
+        var annotation = Annotation(subtype);
+        if (!includeFlags)
+        {
+            annotation["F"] = null;
+        }
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
+
+        Assert.DoesNotContain(report.Findings, static item => item.Code is "PXAPDFTRUST328" or "PXAPDFTRUST333" or "PXAPDFTRUST334");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectNonNormalAppearanceEntries()
+    {
+        var annotation = Annotation("Text");
+        annotation["AP"] = new PdfDictionary
+        {
+            ["N"] = AppearanceStream(),
+            ["R"] = AppearanceStream()
+        };
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST334");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRequireButtonAppearanceStates()
+    {
+        var annotation = Annotation("Widget");
+        annotation["FT"] = new PdfName("Btn");
+        annotation["AP"] = new PdfDictionary { ["N"] = AppearanceStream() };
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST334");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldAcceptACompleteButtonAppearanceStateDictionary()
+    {
+        var annotation = Annotation("Widget");
+        annotation["FT"] = new PdfName("Btn");
+        annotation["AP"] = new PdfDictionary
+        {
+            ["N"] = new PdfDictionary
+            {
+                ["Off"] = AppearanceStream(),
+                ["On"] = AppearanceStream()
+            }
+        };
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
+
+        Assert.DoesNotContain(report.Findings, static item => item.Code is "PXAPDFTRUST333" or "PXAPDFTRUST334");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectUnknownAnnotationSubtypesAndToggleNoView()
+    {
+        var unknown = Annotation("FutureAnnotation");
+        var toggleNoView = Annotation("Text");
+        toggleNoView["F"] = new PdfInteger(4 | 256);
+        toggleNoView["AP"] = new PdfDictionary { ["N"] = AppearanceStream() };
+
+        var report = await Preflight(AppendObjects(CreateBaseDocument(), unknown, toggleNoView));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST316");
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST328");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectDynamicFormAppearanceAndXfaFlags()
+    {
+        var source = UpdateCatalog(CreateBaseDocument(), catalog =>
+        {
+            catalog["NeedsRendering"] = new PdfBoolean(true);
+            catalog["AcroForm"] = new PdfDictionary
+            {
+                ["NeedAppearances"] = new PdfBoolean(true),
+                ["XFA"] = new PdfString("dynamic"u8.ToArray(), IsHex: false)
+            };
+        });
+
+        var report = await Preflight(source);
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST335");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectWidgetActions()
+    {
+        var annotation = Annotation("Widget");
+        annotation["FT"] = new PdfName("Tx");
+        annotation["A"] = new PdfDictionary { ["S"] = new PdfName("URI") };
+        annotation["AP"] = new PdfDictionary { ["N"] = AppearanceStream() };
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST335");
+    }
+
+    [Theory]
+    [InlineData("CustomIntent", "Normal", "PXAPDFTRUST340")]
+    [InlineData("RelativeColorimetric", "CustomBlend", "PXAPDFTRUST341")]
+    public async Task Preflight_ShouldRejectUnknownRenderingIntentsAndBlendModes(
+        string renderingIntent,
+        string blendMode,
+        string expectedCode)
+    {
+        var report = await Preflight(AppendObject(CreateBaseDocument(), new PdfDictionary
+        {
+            ["Type"] = new PdfName("ExtGState"),
+            ["RI"] = new PdfName(renderingIntent),
+            ["BM"] = new PdfName(blendMode)
+        }));
+
+        Assert.Contains(report.Findings, item => item.Code == expectedCode);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldInspectRenderingIntentOperatorsInContentStreams()
+    {
+        var form = new PdfStreamObject(
+            new PdfDictionary
+            {
+                ["Type"] = new PdfName("XObject"),
+                ["Subtype"] = new PdfName("Form"),
+                ["Length"] = new PdfInteger(16)
+            },
+            "/CustomIntent ri"u8.ToArray());
+
+        var report = await Preflight(AppendObject(CreateBaseDocument(), form));
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST340");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldAcceptStandardRenderingIntentsAndBlendModes()
+    {
+        var report = await Preflight(AppendObject(CreateBaseDocument(), new PdfDictionary
+        {
+            ["Type"] = new PdfName("ExtGState"),
+            ["RI"] = new PdfName("RelativeColorimetric"),
+            ["BM"] = new PdfArray([
+                new PdfName("Normal"),
+                new PdfName("Multiply")
+            ])
+        }));
+
+        Assert.DoesNotContain(report.Findings, static item => item.Code is "PXAPDFTRUST340" or "PXAPDFTRUST341");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldPreserveAValidSoftMaskInsteadOfBlockingTransparency()
+    {
+        var report = await Preflight(AppendObject(CreateBaseDocument(), new PdfDictionary
+        {
+            ["Type"] = new PdfName("ExtGState"),
+            ["BM"] = new PdfName("Normal"),
+            ["SMask"] = new PdfDictionary
+            {
+                ["S"] = new PdfName("Luminosity"),
+                ["G"] = AppearanceStream()
+            }
+        }));
+
+        Assert.DoesNotContain(report.Findings, static item => item.Code is
+            "PXAPDFTRUST340" or "PXAPDFTRUST341" or "PXAPDFTRUST343");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldValidateOptionalContentConfigurations()
+    {
+        var source = UpdateCatalog(CreateBaseDocument(), catalog =>
+        {
+            catalog["OCProperties"] = new PdfDictionary
+            {
+                ["OCGs"] = new PdfArray([new PdfReference(new PdfObjectId(900, 0))]),
+                ["D"] = new PdfDictionary
+                {
+                    ["Name"] = new PdfString("Default"u8.ToArray(), IsHex: false),
+                    ["Order"] = new PdfArray()
+                },
+                ["Configs"] = new PdfArray([
+                    new PdfDictionary
+                    {
+                        ["Name"] = new PdfString("Default"u8.ToArray(), IsHex: false),
+                        ["AS"] = new PdfArray()
+                    }
+                ])
+            };
+        });
+
+        var report = await Preflight(source);
+
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST337");
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST338");
+        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST339");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldAcceptACompleteOptionalContentConfiguration()
+    {
+        var source = UpdateCatalog(CreateBaseDocument(), catalog =>
+        {
+            catalog["OCProperties"] = new PdfDictionary
+            {
+                ["OCGs"] = new PdfArray(),
+                ["D"] = new PdfDictionary
+                {
+                    ["Name"] = new PdfString("Default"u8.ToArray(), IsHex: false),
+                    ["Order"] = new PdfArray()
+                },
+                ["Configs"] = new PdfArray([
+                    new PdfDictionary
+                    {
+                        ["Name"] = new PdfString("Print"u8.ToArray(), IsHex: false)
+                    }
+                ])
+            };
+        });
+
+        var report = await Preflight(source);
+
+        Assert.DoesNotContain(report.Findings, static item => item.Code is
+            "PXAPDFTRUST336" or "PXAPDFTRUST337" or "PXAPDFTRUST338" or "PXAPDFTRUST339");
+    }
+
+    [Fact]
     public async Task Preflight_ShouldInspectActionsNestedInsideArrays()
     {
         var source = AppendObject(CreateBaseDocument(), new PdfDictionary
@@ -194,10 +436,51 @@ public sealed class PdfAProfileRestrictionTests
     }
 
     private static byte[] AppendObject(byte[] source, PdfObject value)
+        => AppendObjects(source, value);
+
+    private static byte[] AppendObjects(byte[] source, params PdfObject[] values)
     {
         var context = new PdfParseContext(source, new PdfImporterOptions());
         var table = new PdfCrossReferenceParser().Parse(context);
-        var id = new PdfObjectId(table.Entries.Keys.Max(static item => item.Number) + 1, 0);
-        return new PdfIncrementalUpdateWriter().Append(source, [new PdfIncrementalObjectUpdate(id, value)]).Bytes;
+        var nextId = table.Entries.Keys.Max(static item => item.Number) + 1;
+        var updates = values.Select((value, index) =>
+            new PdfIncrementalObjectUpdate(new PdfObjectId(nextId + index, 0), value));
+        return new PdfIncrementalUpdateWriter().Append(source, updates).Bytes;
     }
+
+    private static byte[] UpdateCatalog(byte[] source, Action<PdfDictionary> update)
+    {
+        var context = new PdfParseContext(source, new PdfImporterOptions());
+        var table = new PdfCrossReferenceParser().Parse(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var rootReference = Assert.IsType<PdfReference>(graph.Trailer!["Root"]);
+        var catalog = Assert.IsType<PdfDictionary>(graph.Resolve(rootReference.Id)!.Value);
+        var updated = new PdfDictionary(catalog.Values.ToDictionary(static item => item.Key, static item => item.Value));
+        update(updated);
+        return new PdfIncrementalUpdateWriter().Append(
+            source,
+            [new PdfIncrementalObjectUpdate(rootReference.Id, updated)]).Bytes;
+    }
+
+    private static PdfDictionary Annotation(string subtype) => new()
+    {
+        ["Type"] = new PdfName("Annot"),
+        ["Subtype"] = new PdfName(subtype),
+        ["F"] = new PdfInteger(4),
+        ["Rect"] = new PdfArray([
+            new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(20)
+        ])
+    };
+
+    private static PdfStreamObject AppearanceStream() => new(
+        new PdfDictionary
+        {
+            ["Type"] = new PdfName("XObject"),
+            ["Subtype"] = new PdfName("Form"),
+            ["BBox"] = new PdfArray([
+                new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(20)
+            ]),
+            ["Length"] = new PdfInteger(0)
+        },
+        Array.Empty<byte>());
 }

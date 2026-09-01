@@ -552,6 +552,10 @@ if (pdfTrustValidationExample) {
     .replace(
       'ICCBased without an explicit supported alternate, CalGray, CalRGB, Lab, unsafe inline images, shading resources, and unknown named spaces remain blocked.',
       'Valid CalGray, CalRGB, and Lab spaces use their complete calibration parameters, and embedded Gray, RGB, and CMYK ICC profiles are transformed through LittleCMS. Invalid profiles, an unavailable native runtime, unsafe inline images, and unknown named spaces fail closed.',
+    )
+    .replace(
+      'PXA does not yet claim an exhaustive ISO rule implementation for every annotation appearance, optional-content, transparency-group, soft-mask, blend-space, and rendering-intent combination.',
+      'The bounded PXA structural validator checks annotation normal appearances, static AcroForm behavior, optional-content configuration names and order, ISO rendering intents, ISO blend modes, and decodable Form content used by transparency and soft masks. PDF/A-2 and PDF/A-3 transparency is preserved rather than incorrectly prohibited, and the required RGB output intent supplies the document blending colour space. Standards-level release evidence still comes from the pinned veraPDF profile and a recorded second independent validator, not from the first-party structural result alone.',
     );
 }
 

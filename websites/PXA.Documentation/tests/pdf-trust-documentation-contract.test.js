@@ -63,6 +63,9 @@ test('PDF/A documentation states the exact generated profile and validation boun
   assert.match(source, /mesh, missing, and malformed shadings remain blocked/);
   assert.match(source, /resource declaration are converted atomically/);
   assert.match(source, /transformed through LittleCMS/);
+  assert.match(source, /checks annotation normal appearances, static AcroForm behavior/);
+  assert.match(source, /transparency is preserved rather than incorrectly prohibited/);
+  assert.match(source, /standards-level release evidence still comes from the pinned veraPDF profile/i);
 });
 
 test('PDF redaction documentation separates preflight from applied redaction', () => {

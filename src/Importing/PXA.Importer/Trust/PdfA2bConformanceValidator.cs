@@ -1,11 +1,14 @@
 using System.Text;
+using PXA.Importer.Content;
 using PXA.Importer.Objects;
+using PXA.Importer.Parsing;
+using PXA.Importer.Streams;
 
 namespace PXA.Importer.Trust;
 
 internal static class PdfA2bConformanceValidator
 {
-    public const string Name = "PXA PDF/A-2b/3b structural validator 1.2";
+    public const string Name = "PXA PDF/A-2b/3b structural validator 1.3";
 
     private static readonly HashSet<string> AllowedAfRelationships = new(StringComparer.Ordinal)
     {
@@ -21,6 +24,25 @@ internal static class PdfA2bConformanceValidator
     private static readonly HashSet<string> ForbiddenAnnotationSubtypes = new(StringComparer.Ordinal)
     {
         "RichMedia", "Movie", "Sound", "Screen", "3D"
+    };
+
+    private static readonly HashSet<string> AllowedAnnotationSubtypes = new(StringComparer.Ordinal)
+    {
+        "Text", "Link", "FreeText", "Line", "Square", "Circle", "Polygon", "PolyLine",
+        "Highlight", "Underline", "Squiggly", "StrikeOut", "Stamp", "Caret", "Ink", "Popup",
+        "FileAttachment", "Widget", "PrinterMark", "TrapNet", "Watermark", "Redact"
+    };
+
+    private static readonly HashSet<string> AllowedBlendModes = new(StringComparer.Ordinal)
+    {
+        "Normal", "Compatible", "Multiply", "Screen", "Overlay", "Darken", "Lighten",
+        "ColorDodge", "ColorBurn", "HardLight", "SoftLight", "Difference", "Exclusion",
+        "Hue", "Saturation", "Color", "Luminosity"
+    };
+
+    private static readonly HashSet<string> AllowedRenderingIntents = new(StringComparer.Ordinal)
+    {
+        "RelativeColorimetric", "AbsoluteColorimetric", "Perceptual", "Saturation"
     };
 
     private static readonly HashSet<string> ForbiddenMultimediaKeys = new(StringComparer.Ordinal)
@@ -63,6 +85,9 @@ internal static class PdfA2bConformanceValidator
             Error("PXAPDFTRUST313", "A valid RGB PDF/A output intent with an ICC profile was not found.");
         }
 
+        ValidateOptionalContent(catalog);
+        ValidateInteractiveForms(catalog);
+
         foreach (var indirectObject in graph.Objects.Values)
         {
             var dictionary = indirectObject.Value switch
@@ -84,6 +109,9 @@ internal static class PdfA2bConformanceValidator
                 }
             }
         }
+
+
+        ValidateContentRenderingIntents();
 
         ValidateEmbeddedFiles(catalog);
 
@@ -125,6 +153,10 @@ internal static class PdfA2bConformanceValidator
                 Error("PXAPDFTRUST325", $"Action type '/{actionType}' is forbidden by PDF/A-2 and PDF/A-3.", objectId);
             }
 
+
+            ValidateRenderingIntent(dictionary["RI"], objectId);
+            ValidateBlendModes(dictionary["BM"], objectId);
+
             foreach (var key in dictionary.Values.Keys.Where(ForbiddenMultimediaKeys.Contains))
             {
                 Error("PXAPDFTRUST326", $"Multimedia key '/{key}' is not permitted by the supported PDF/A profiles.", objectId);
@@ -136,9 +168,18 @@ internal static class PdfA2bConformanceValidator
                                    "Circle" or "Polygon" or "PolyLine" or "Highlight" or "Underline" or "Squiggly" or
                                    "StrikeOut" or "Stamp" or "Caret" or "Ink" or "Popup" or "FileAttachment" or
                                    "Sound" or "Movie" or "Screen" or "3D" or "RichMedia";
+            if (isAnnotation && annotationSubtype is null)
+            {
+                Error("PXAPDFTRUST316", "An annotation dictionary has no recognized /Subtype.", objectId);
+            }
             if (isAnnotation && annotationSubtype is { } subtype)
             {
-                if (ForbiddenAnnotationSubtypes.Contains(subtype) ||
+                if (subtype == "Widget" && (dictionary["A"] is not null || dictionary["AA"] is not null))
+                {
+                    Error("PXAPDFTRUST335", "A Widget annotation must not contain /A or /AA actions.", objectId);
+                }
+
+                if (ForbiddenAnnotationSubtypes.Contains(subtype) || !AllowedAnnotationSubtypes.Contains(subtype) ||
                     profile == PdfArchiveProfile.PdfA2b && subtype == "FileAttachment")
                 {
                     Error("PXAPDFTRUST316", $"Annotation subtype '/{subtype}' is not accepted for {PdfA2bConverter.ProfileName(profile)}.", objectId);
@@ -150,14 +191,25 @@ internal static class PdfA2bConformanceValidator
                     Error("PXAPDFTRUST331", "A PDF/A-3 file-attachment annotation must reference an embedded file specification through /FS.", objectId);
                 }
 
-                var flags = ReadInteger(graph, dictionary["F"]) ?? 0;
-                if ((flags & 1) != 0 || (flags & 2) != 0 || (flags & 32) != 0 || (flags & 4) == 0)
+                var flags = ReadInteger(graph, dictionary["F"]);
+                if (subtype != "Popup" && flags is null ||
+                    flags is { } annotationFlags &&
+                    ((annotationFlags & 1) != 0 || (annotationFlags & 2) != 0 ||
+                     (annotationFlags & 32) != 0 || (annotationFlags & 256) != 0 ||
+                     (annotationFlags & 4) == 0))
                 {
                     var code = subtype == "Widget" && ResolveFieldType(graph, dictionary) == "Sig"
                         ? "PXAPDFTRUST332"
                         : "PXAPDFTRUST328";
                     Error(code, "PDF/A annotations must be printable and must not be Invisible, Hidden, or NoView.", objectId);
                 }
+
+                ValidateAnnotationAppearance(dictionary, subtype, objectId);
+            }
+
+            if (dictionary["FT"] is not null && (dictionary["A"] is not null || dictionary["AA"] is not null))
+            {
+                Error("PXAPDFTRUST335", "A form field dictionary must not contain /A or /AA actions.", objectId);
             }
 
             if ((isStreamDictionary && dictionary["F"] is not null) ||
@@ -176,6 +228,217 @@ internal static class PdfA2bConformanceValidator
             foreach (var nested in dictionary.Values.Values)
             {
                 ValidateNested(nested, objectId, depth + 1);
+            }
+        }
+
+
+        void ValidateAnnotationAppearance(PdfDictionary annotation, string subtype, PdfObjectId objectId)
+        {
+            var fieldType = subtype == "Widget" ? ResolveFieldType(graph, annotation) : null;
+            var appearanceRequired = subtype is not ("Popup" or "Link") && !HasZeroAreaRectangle(annotation["Rect"]);
+            var appearance = Resolve(graph, annotation["AP"]) as PdfDictionary;
+            if (appearanceRequired && appearance is null)
+            {
+                var code = fieldType == "Sig" ? "PXAPDFTRUST332" : "PXAPDFTRUST333";
+                Error(code, "The annotation requires a normal appearance dictionary.", objectId);
+                return;
+            }
+
+            if (annotation["AP"] is not null && appearance is null)
+            {
+                Error("PXAPDFTRUST333", "The annotation /AP entry is not an appearance dictionary.", objectId);
+                return;
+            }
+
+            if (appearance is null)
+            {
+                return;
+            }
+
+            var unsupportedKeys = appearance.Values.Keys.Where(static key => key != "N").ToArray();
+            if (unsupportedKeys.Length > 0)
+            {
+                Error("PXAPDFTRUST334", $"The annotation appearance dictionary contains entries other than /N: {string.Join(", ", unsupportedKeys.Select(static key => $"/{key}"))}.", objectId);
+            }
+
+            var normal = Resolve(graph, appearance["N"]);
+            if (subtype == "Widget" && fieldType == "Btn")
+            {
+                if (normal is not PdfDictionary states || states.Values.Count == 0 ||
+                    states.Values.Values.Any(value => Resolve(graph, value) is not PdfStreamObject))
+                {
+                    Error("PXAPDFTRUST334", "A button Widget /N appearance must be a non-empty state dictionary containing only appearance streams.", objectId);
+                }
+            }
+            else if (normal is not PdfStreamObject)
+            {
+                Error("PXAPDFTRUST334", "The annotation /N entry must resolve to an appearance stream.", objectId);
+            }
+        }
+
+        void ValidateInteractiveForms(PdfDictionary rootCatalog)
+        {
+            if (ReadBoolean(graph, rootCatalog["NeedsRendering"]) == true)
+            {
+                Error("PXAPDFTRUST335", "The document catalog must not require dynamic XFA rendering.", ObjectId(rootCatalog));
+            }
+
+            if (Resolve(graph, rootCatalog["AcroForm"]) is not PdfDictionary acroForm)
+            {
+                return;
+            }
+
+            var acroFormId = ObjectId(acroForm) ?? ObjectId(rootCatalog);
+            if (ReadBoolean(graph, acroForm["NeedAppearances"]) == true)
+            {
+                Error("PXAPDFTRUST335", "The AcroForm /NeedAppearances flag must be absent or false.", acroFormId);
+            }
+
+            if (acroForm["XFA"] is not null)
+            {
+                Error("PXAPDFTRUST335", "PDF/A-2 and PDF/A-3 do not permit XFA form content.", acroFormId);
+            }
+        }
+
+        void ValidateOptionalContent(PdfDictionary rootCatalog)
+        {
+            if (Resolve(graph, rootCatalog["OCProperties"]) is not PdfDictionary properties)
+            {
+                return;
+            }
+
+            var ownerId = ObjectId(properties) ?? ObjectId(rootCatalog);
+            var groups = Resolve(graph, properties["OCGs"]) as PdfArray;
+            var ocgIds = groups is not null
+                ? groups.Items.OfType<PdfReference>().Select(static item => item.Id).ToHashSet()
+                : [];
+            if (groups is null || groups.Items.Any(static item => item is not PdfReference))
+            {
+                Error("PXAPDFTRUST338", "The optional-content /OCGs entry must be an array of indirect OCG references.", ownerId);
+            }
+
+            var configurations = new List<PdfDictionary>();
+            if (Resolve(graph, properties["D"]) is PdfDictionary defaultConfiguration)
+            {
+                configurations.Add(defaultConfiguration);
+            }
+            else
+            {
+                Error("PXAPDFTRUST336", "The optional-content properties require a default /D configuration dictionary.", ownerId);
+            }
+
+            if (Resolve(graph, properties["Configs"]) is PdfArray additionalConfigurations)
+            {
+                foreach (var item in additionalConfigurations.Items)
+                {
+                    if (Resolve(graph, item) is PdfDictionary configuration)
+                    {
+                        configurations.Add(configuration);
+                    }
+                    else
+                    {
+                        Error("PXAPDFTRUST336", "Every /Configs item must resolve to an optional-content configuration dictionary.", ownerId);
+                    }
+                }
+            }
+
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var configuration in configurations)
+            {
+                var configurationId = ObjectId(configuration) ?? ownerId;
+                var name = ReadText(graph, configuration["Name"]);
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    Error("PXAPDFTRUST336", "Every optional-content configuration requires a non-empty /Name.", configurationId);
+                }
+                else if (!names.Add(name))
+                {
+                    Error("PXAPDFTRUST337", $"Optional-content configuration name '{name}' is duplicated.", configurationId);
+                }
+
+                if (configuration["AS"] is not null)
+                {
+                    Error("PXAPDFTRUST339", "The /AS key is not permitted in an optional-content configuration.", configurationId);
+                }
+
+                if (configuration["Order"] is not null)
+                {
+                    if (Resolve(graph, configuration["Order"]) is not PdfArray order)
+                    {
+                        Error("PXAPDFTRUST338", "The optional-content /Order entry must be an array.", configurationId);
+                    }
+                    else
+                    {
+                        var ordered = EnumerateReferences(order).ToHashSet();
+                        if (!ocgIds.IsSubsetOf(ordered))
+                        {
+                            Error("PXAPDFTRUST338", "The optional-content /Order entry does not contain every OCG reference.", configurationId);
+                        }
+                    }
+                }
+            }
+        }
+
+        void ValidateRenderingIntent(PdfObject? value, PdfObjectId objectId)
+        {
+            if (value is null)
+            {
+                return;
+            }
+
+            var intent = ReadName(graph, value);
+            if (intent is null || !AllowedRenderingIntents.Contains(intent))
+            {
+                Error("PXAPDFTRUST340", $"Rendering intent '{intent ?? "<invalid>"}' is not one of the four ISO 32000-1 values.", objectId);
+            }
+        }
+
+        void ValidateBlendModes(PdfObject? value, PdfObjectId objectId)
+        {
+            if (value is null)
+            {
+                return;
+            }
+
+            var values = Resolve(graph, value) switch
+            {
+                PdfName name => new[] { name.Value },
+                PdfArray array => array.Items.Select(item => ReadName(graph, item)).ToArray(),
+                _ => [null]
+            };
+            foreach (var mode in values)
+            {
+                if (mode is null || !AllowedBlendModes.Contains(mode))
+                {
+                    Error("PXAPDFTRUST341", $"Blend mode '{mode ?? "<invalid>"}' is not defined by ISO 32000-1.", objectId);
+                }
+            }
+        }
+
+        void ValidateContentRenderingIntents()
+        {
+            var decoder = new PdfStreamDecoderRegistry(new PdfParseLimits());
+            foreach (var (objectId, stream) in EnumerateContentStreams(graph))
+            {
+                try
+                {
+                    var support = decoder.Evaluate(stream.Dictionary["Filter"]);
+                    if (support.Any(static item => item.Status != PdfStreamDecoderSupportStatus.Supported))
+                    {
+                        Error("PXAPDFTRUST343", "A content stream uses a filter that the structural validator cannot decode safely.", objectId);
+                        continue;
+                    }
+
+                    var content = stream.IsDecoded ? stream.DecodedBytes : decoder.Decode(stream);
+                    foreach (var command in new PdfContentStreamParser().Parse(content).Where(static item => item.Operator.Name == "ri"))
+                    {
+                        ValidateRenderingIntent(command.Operands.LastOrDefault(), objectId);
+                    }
+                }
+                catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or OverflowException)
+                {
+                    Error("PXAPDFTRUST343", "A content stream could not be decoded and inspected for PDF/A graphics-state rules.", objectId);
+                }
             }
         }
 
@@ -412,6 +675,102 @@ internal static class PdfA2bConformanceValidator
 
         return descriptor["FontFile"] is not null || descriptor["FontFile2"] is not null || descriptor["FontFile3"] is not null;
     }
+
+    private static bool HasZeroAreaRectangle(PdfObject? value)
+    {
+        if (value is not PdfArray { Items.Count: >= 4 } rectangle)
+        {
+            return false;
+        }
+
+        var values = rectangle.Items.Take(4).Select(ReadNumber).ToArray();
+        return values.All(static item => item is not null) &&
+               values[0] == values[2] && values[1] == values[3];
+    }
+
+    private static IEnumerable<PdfObjectId> EnumerateReferences(PdfArray array)
+    {
+        foreach (var item in array.Items)
+        {
+            switch (item)
+            {
+                case PdfReference reference:
+                    yield return reference.Id;
+                    break;
+                case PdfArray nested:
+                    foreach (var nestedReference in EnumerateReferences(nested))
+                    {
+                        yield return nestedReference;
+                    }
+                    break;
+            }
+        }
+    }
+
+    private static IEnumerable<(PdfObjectId Id, PdfStreamObject Stream)> EnumerateContentStreams(PdfObjectGraph graph)
+    {
+        var emitted = new HashSet<PdfObjectId>();
+        foreach (var indirectObject in graph.Objects.Values)
+        {
+            if (indirectObject.Value is PdfDictionary page && ReadName(graph, page["Type"]) == "Page")
+            {
+                foreach (var reference in EnumerateContentReferences(page["Contents"]))
+                {
+                    if (emitted.Add(reference.Id) && graph.Resolve(reference.Id)?.Value is PdfStreamObject content)
+                    {
+                        yield return (reference.Id, content);
+                    }
+                }
+
+                if (page["Contents"] is PdfStreamObject directContent)
+                {
+                    yield return (indirectObject.Id, directContent);
+                }
+            }
+
+            if (indirectObject.Value is PdfStreamObject stream &&
+                (ReadName(graph, stream.Dictionary["Subtype"]) == "Form" ||
+                 ReadInteger(graph, stream.Dictionary["PatternType"]) == 1) &&
+                emitted.Add(indirectObject.Id))
+            {
+                yield return (indirectObject.Id, stream);
+            }
+        }
+
+        static IEnumerable<PdfReference> EnumerateContentReferences(PdfObject? value)
+        {
+            switch (value)
+            {
+                case PdfReference reference:
+                    yield return reference;
+                    break;
+                case PdfArray array:
+                    foreach (var item in array.Items)
+                    {
+                        foreach (var reference in EnumerateContentReferences(item))
+                        {
+                            yield return reference;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    private static PdfObjectId? ObjectId(PdfObject value) => value.OriginalId;
+
+    private static bool? ReadBoolean(PdfObjectGraph graph, PdfObject? value) =>
+        Resolve(graph, value) is PdfBoolean boolean ? boolean.Value : null;
+
+    private static string? ReadText(PdfObjectGraph graph, PdfObject? value) =>
+        Resolve(graph, value) is PdfString text ? text.ToLatin1String() : null;
+
+    private static double? ReadNumber(PdfObject value) => value switch
+    {
+        PdfInteger integer => integer.Value,
+        PdfNumber number => number.Value,
+        _ => null
+    };
 
     private static string? ResolveFieldType(PdfObjectGraph graph, PdfDictionary field)
     {

@@ -162,7 +162,7 @@ public sealed class PdfTrustInspectorTests
         Assert.True(report.PdfA.IsClaimed);
         Assert.Equal("PDF/A-2b", report.PdfA.Profile);
         Assert.Equal(PdfTrustStatus.Valid, report.PdfA.Status);
-        Assert.Equal("PXA PDF/A-2b/3b structural validator 1.2", report.PdfA.Validator);
+        Assert.Equal("PXA PDF/A-2b/3b structural validator 1.3", report.PdfA.Validator);
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST300");
     }
 
