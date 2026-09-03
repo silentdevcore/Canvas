@@ -144,6 +144,7 @@ public sealed class PdfDocumentBuilder
         var dictionary = (PdfDictionary)pageObject.Value;
         var resources = ResolveDictionary(dictionary["Resources"], graph) ?? inherited.Resources ?? new PdfDictionary();
         var fontResources = ResolveFontResources(resources, graph);
+        var colorSpaceResources = ResolveColorSpaceResources(resources, graph);
         var imageResources = ResolveImageResources(resources, graph);
         var page = new PdfPageModel(pageObject.Id, dictionary)
         {
@@ -162,7 +163,7 @@ public sealed class PdfDocumentBuilder
             page.ContentStreams.Add(stream);
             DecodeIfPossible(stream);
             var commands = _contentParser.Parse(stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes);
-            var graphicsObjects = _graphicsInterpreter.Interpret(commands, fontResources);
+            var graphicsObjects = _graphicsInterpreter.Interpret(commands, fontResources, colorSpaceResources);
             AttachImageResources(graphicsObjects, imageResources);
             page.GraphicsObjects.AddRange(graphicsObjects);
         }
@@ -303,6 +304,41 @@ public sealed class PdfDocumentBuilder
         }
 
         return fonts;
+    }
+
+    private static IReadOnlyDictionary<string, PdfColorSpace> ResolveColorSpaceResources(
+        PdfDictionary resources,
+        PdfObjectGraph graph)
+    {
+        if (ResolveObject(resources["ColorSpace"], graph) is not PdfDictionary colorSpaces)
+        {
+            return new Dictionary<string, PdfColorSpace>(StringComparer.Ordinal);
+        }
+
+        var resolved = new Dictionary<string, PdfColorSpace>(StringComparer.Ordinal);
+        foreach (var entry in colorSpaces.Values)
+        {
+            var value = ResolveObject(entry.Value, graph);
+            var family = value switch
+            {
+                PdfName name => name.Value,
+                PdfArray { Items.Count: > 0 } array when ResolveObject(array.Items[0], graph) is PdfName name => name.Value,
+                _ => null
+            };
+            resolved[entry.Key] = family switch
+            {
+                "Pattern" => PdfColorSpace.Pattern,
+                "Indexed" or "I" => PdfColorSpace.Indexed,
+                "ICCBased" => PdfColorSpace.IccBased,
+                "Separation" => PdfColorSpace.Separation,
+                "DeviceN" => PdfColorSpace.DeviceN,
+                "DeviceRGB" or "RGB" => PdfColorSpace.DeviceRgb,
+                "DeviceCMYK" or "CMYK" => PdfColorSpace.DeviceCmyk,
+                _ => PdfColorSpace.DeviceGray
+            };
+        }
+
+        return resolved;
     }
 
     private IReadOnlyDictionary<string, ReadOnlyMemory<byte>> ResolveImageResources(PdfDictionary resources, PdfObjectGraph graph)

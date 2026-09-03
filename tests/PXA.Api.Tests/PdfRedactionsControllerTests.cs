@@ -97,10 +97,10 @@ public sealed class PdfRedactionsControllerTests
     [Fact]
     public async Task Apply_ReturnsConflictWhenPreflightBlocks()
     {
-        // A region that clips the text run only partially cannot be applied.
+        // The document has only one page, so this region cannot be verified or applied.
         var response = await CreateController().Apply(
             CreateFile(out _),
-            """[{"pageNumber":1,"x":0,"y":0,"width":60,"height":1000}]""",
+            """[{"pageNumber":2,"x":0,"y":0,"width":60,"height":1000}]""",
             null,
             CancellationToken.None);
 

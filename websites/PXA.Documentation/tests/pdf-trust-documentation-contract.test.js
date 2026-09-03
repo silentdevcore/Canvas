@@ -83,6 +83,14 @@ test('PDF redaction documentation separates preflight from applied redaction', (
   assert.match(source, /maps marks through each page CropBox and rotation/);
   assert.match(source, /fails closed with 409 and the preflight report/);
   assert.match(source, /rather than written into the redacted document/);
+  assert.match(source, /original glyph bytes and positions cannot be resolved safely/);
+  assert.match(source, /1-, 2-, 4-, 8-, and 16-bit images/);
+  assert.match(source, /Attached mask streams are cloned and scrubbed in the same region/);
+  assert.match(source, /Stencil, colour-key, soft-mask, and explicit-mask images/);
+  assert.match(source, /Valid tiling and shading pattern uses are removed with the containing paint element/);
+  assert.match(source, /Unused patterns and uses outside the region do not block/);
+  assert.match(source, /JPX without a local codec, JBIG2/);
+  assert.match(source, /pdftotext, pdfimages, and strings/);
 });
 
 test('PDF encryption documentation states the implemented revision and its limits', () => {

@@ -167,7 +167,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
 
         accumulator.Fill(covered);
         InspectPageAnnotations(graph, page, region, index, findings);
-        PdfRedactionResourceInspector.Inspect(graph, page, region.PageNumber, index, findings);
+        PdfRedactionResourceInspector.Inspect(graph, page, region.Bounds, region.PageNumber, index, findings);
 
         var capability = Worst(
             findings.Select(static finding => finding.Capability)
@@ -243,16 +243,20 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         switch (element)
         {
             case PdfTextElement text:
-                accumulator.Add("text", coverage, 1, text.Text.Length);
-                if (coverage == PdfRedactionCoverage.Partial)
+                var textCapability = PdfRedactionCapability.Removable;
+                if (coverage == PdfRedactionCoverage.Partial &&
+                    !PdfTextRedactionEngine.CanRedactPartial(text, [region], out var textReason))
                 {
+                    textCapability = PdfRedactionCapability.ReviewRequired;
                     findings.Add(new PdfRedactionFinding(
                         "PXAPDFREDACT201",
                         PdfRedactionCapability.ReviewRequired,
-                        "A text run only partially overlaps the region; PXA removes whole runs and cannot split one.",
+                        $"A text run only partially overlaps the region and cannot be split safely. {textReason}",
                         pageNumber,
                         regionIndex));
                 }
+
+                accumulator.Add("text", coverage, 1, text.Text.Length, textCapability);
 
                 break;
             case PdfImageElement image:
@@ -284,8 +288,15 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                     pageNumber,
                     regionIndex));
                 break;
-            case PdfPathElement:
-                accumulator.Add("path", coverage, 1);
+            case PdfPathElement path:
+                var usesPattern =
+                    (PathUsesFill(path) && !string.IsNullOrEmpty(path.FillPatternResourceName)) ||
+                    (PathUsesStroke(path) && !string.IsNullOrEmpty(path.StrokePatternResourceName));
+                accumulator.Add(
+                    "path",
+                    coverage,
+                    1,
+                    capability: usesPattern ? PdfRedactionCapability.Removable : null);
                 break;
             default:
                 accumulator.Add("other", coverage, 1);
@@ -298,6 +309,12 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 break;
         }
     }
+
+    private static bool PathUsesFill(PdfPathElement path) =>
+        path.SourceCommand.Operator.Name is "f" or "F" or "f*" or "B" or "B*" or "b" or "b*";
+
+    private static bool PathUsesStroke(PdfPathElement path) =>
+        path.SourceCommand.Operator.Name is "S" or "s" or "B" or "B*" or "b" or "b*";
 
     private static void InspectPageAnnotations(
         PdfObjectGraph graph,

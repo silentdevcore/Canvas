@@ -7,7 +7,11 @@ public sealed class BoundingBoxCalculator
     public TextGeometry ComputeTextGeometry(PdfTextElement text)
     {
         var fontSize = Math.Max(text.FontSize, 1d);
-        var width = Math.Max(fontSize * 0.35d, text.Text.Length * fontSize * 0.5d);
+        var glyphWidth = text.Glyphs.Count == 0
+            ? 0d
+            : text.Glyphs.Max(static glyph => glyph.Offset + glyph.Advance) -
+              text.Glyphs.Min(static glyph => glyph.Offset);
+        var width = Math.Max(fontSize * 0.35d, glyphWidth > 0 ? glyphWidth : text.Text.Length * fontSize * 0.5d);
         var height = fontSize;
         var localBounds = new PdfRectangle(0, -height * 0.2d, width, height);
         var bounds = MatrixEngine.TransformBounds(localBounds, text.Transform);

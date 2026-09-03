@@ -27,7 +27,7 @@ public sealed class PdfRedactionPreflightTests
     }
 
     [Fact]
-    public async Task Preflight_ShouldReportPartiallyCoveredTextAsReviewRequired()
+    public async Task Preflight_ShouldReportPartiallyCoveredSplittableTextAsRemovable()
     {
         var pdf = CreatePdf();
         var bounds = await FindFirstTextBoundsAsync(pdf);
@@ -37,8 +37,8 @@ public sealed class PdfRedactionPreflightTests
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, half));
 
         var region = Assert.Single(report.Regions);
-        Assert.Equal(PdfRedactionCapability.ReviewRequired, region.Capability);
-        Assert.Contains(region.Findings, static finding => finding.Code == "PXAPDFREDACT201");
+        Assert.Equal(PdfRedactionCapability.Removable, region.Capability);
+        Assert.DoesNotContain(region.Findings, static finding => finding.Code == "PXAPDFREDACT201");
         Assert.Contains(region.Covered, static item => item.Coverage == PdfRedactionCoverage.Partial);
     }
 

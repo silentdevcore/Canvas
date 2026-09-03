@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PXA.Importer.Redaction;
@@ -23,20 +22,21 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
         Path.Combine(Path.GetTempPath(), "pxa-viewer-redaction-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public async Task Redact_FailsClosedWhenCoverageIsOnlyPartial()
+    public async Task Redact_SplitsAPartiallyCoveredTextRun()
     {
         // 20% of a 300pt page is 60pt, which cuts through the run starting at x=24 rather
         // than containing it.
-        var response = await CreateController().Redact(
+        var controller = CreateController();
+        var response = await controller.Redact(
             CreateFile(),
             Sidecar(widthPct: 20),
             "Privacy request",
             CancellationToken.None);
 
-        var conflict = Assert.IsType<ConflictObjectResult>(response);
-        var body = JsonSerializer.Serialize(conflict.Value);
-        Assert.Contains("PXAPDFREDACTVIEWER001", body, StringComparison.Ordinal);
-        Assert.Contains("PXAPDFREDACT201", body, StringComparison.Ordinal);
+        var file = Assert.IsType<FileContentResult>(response);
+        Assert.Equal("application/pdf", file.ContentType);
+        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
+        Assert.DoesNotContain("Source PDF", System.Text.Encoding.Latin1.GetString(file.FileContents), StringComparison.Ordinal);
     }
 
     [Fact]

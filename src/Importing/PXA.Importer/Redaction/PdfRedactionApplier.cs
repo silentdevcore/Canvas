@@ -91,6 +91,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             PdfDictionary? resourceOverride = null;
             var originalImageResources = CollectImageResourceNames(page.GraphicsObjects, includeDeleted: true);
+            var originalPatternResources = CollectPatternResourceNames(page.GraphicsObjects, includeDeleted: true);
             var removedOnPage = RedactImages(
                 graph,
                 page,
@@ -110,6 +111,11 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             {
                 removedOnPage += MarkCovered(element, pageRegions, removedText, depth: 0, []);
             }
+            PruneUnusedPatternResources(
+                graph,
+                page,
+                originalPatternResources,
+                ref resourceOverride);
 
             if (removedOnPage == 0)
             {
@@ -228,9 +234,24 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         }
 
         var bounds = PdfRedactionVisibility.EffectiveBounds(element, _bounds, ancestors, out _);
-        if (!regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None))
+        var coverage = regions
+            .Select(region => PdfRedactionGeometry.Classify(bounds, region))
+            .DefaultIfEmpty(PdfRedactionCoverage.None)
+            .Max();
+        if (coverage == PdfRedactionCoverage.None)
         {
             return 0;
+        }
+
+        if (coverage == PdfRedactionCoverage.Partial && element is PdfTextElement partialText)
+        {
+            if (!PdfTextRedactionEngine.TryRedactPartial(partialText, regions, removedText, out var reason))
+            {
+                throw new InvalidDataException(
+                    $"A preflight-approved text run could not be redacted safely during apply. {reason}");
+            }
+
+            return 1;
         }
 
         element.IsDeleted = true;
@@ -346,7 +367,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             }
 
             if (!PdfImageRedactionEngine.TryCreateRedactedStream(
-                    graph, page.Resources, image, regions, out var redacted, out var reason))
+                    graph, page.Resources, image, regions, out var redactedResult, out var reason))
             {
                 throw new InvalidDataException(
                     $"A preflight-approved image could not be redacted safely during apply. {reason}");
@@ -354,10 +375,18 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             if (string.IsNullOrEmpty(image.ResourceName))
             {
-                image.ReplacementStream = PdfImageRedactionEngine.MakeInlineSafe(redacted);
+                image.ReplacementStream = PdfImageRedactionEngine.MakeInlineSafe(redactedResult.Image);
             }
             else
             {
+                var redacted = redactedResult.Image;
+                foreach (var mask in redactedResult.Masks)
+                {
+                    var maskId = new PdfObjectId(nextObjectNumber++, 0);
+                    redacted.Dictionary[mask.DictionaryKey] = new PdfReference(maskId);
+                    updates.Add(new PdfIncrementalObjectUpdate(maskId, mask.Stream));
+                }
+
                 resourceOverride ??= Clone(page.Resources);
                 var xObjects = Resolve(graph, resourceOverride["XObject"]) is PdfDictionary existing
                     ? Clone(existing)
@@ -436,6 +465,80 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         }
 
         resourceOverride["XObject"] = xObjects;
+    }
+
+    private static HashSet<string> CollectPatternResourceNames(
+        IEnumerable<PdfGraphicsElement> elements,
+        bool includeDeleted)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var element in elements)
+        {
+            if (element is PdfGroupElement group)
+            {
+                names.UnionWith(CollectPatternResourceNames(group.Children, includeDeleted));
+                continue;
+            }
+
+            if (!includeDeleted && element.IsDeleted)
+            {
+                continue;
+            }
+
+            if (UsesPatternFill(element) && !string.IsNullOrEmpty(element.FillPatternResourceName))
+            {
+                names.Add(element.FillPatternResourceName);
+            }
+
+            if (UsesPatternStroke(element) && !string.IsNullOrEmpty(element.StrokePatternResourceName))
+            {
+                names.Add(element.StrokePatternResourceName);
+            }
+        }
+
+        return names;
+    }
+
+    private static bool UsesPatternFill(PdfGraphicsElement element) => element switch
+    {
+        PdfTextElement => true,
+        PdfPathElement path => path.SourceCommand.Operator.Name is "f" or "F" or "f*" or "B" or "B*" or "b" or "b*",
+        _ => false
+    };
+
+    private static bool UsesPatternStroke(PdfGraphicsElement element) => element switch
+    {
+        PdfTextElement => true,
+        PdfPathElement path => path.SourceCommand.Operator.Name is "S" or "s" or "B" or "B*" or "b" or "b*",
+        _ => false
+    };
+
+    private static void PruneUnusedPatternResources(
+        PdfObjectGraph graph,
+        PdfPageModel page,
+        IReadOnlySet<string> originalNames,
+        ref PdfDictionary? resourceOverride)
+    {
+        var activeNames = CollectPatternResourceNames(page.GraphicsObjects, includeDeleted: false);
+        var unusedNames = originalNames.Where(name => !activeNames.Contains(name)).ToArray();
+        if (unusedNames.Length == 0)
+        {
+            return;
+        }
+
+        resourceOverride ??= Clone(page.Resources);
+        if (Resolve(graph, resourceOverride["Pattern"]) is not PdfDictionary existing)
+        {
+            return;
+        }
+
+        var patterns = Clone(existing);
+        foreach (var name in unusedNames)
+        {
+            patterns[name] = null;
+        }
+
+        resourceOverride["Pattern"] = patterns;
     }
 
     private static List<PdfObjectId> ReadContentStreamIds(PdfDictionary pageDictionary) =>

@@ -18,6 +18,12 @@ public abstract class PdfGraphicsElement
     public PdfContentCommand SourceCommand { get; }
     public bool IsDeleted { get; set; }
     public PdfClippingPath? ClippingPath { get; set; }
+    public string? FillColorSpaceResourceName { get; set; }
+    public string? StrokeColorSpaceResourceName { get; set; }
+    public string? FillPatternResourceName { get; set; }
+    public string? StrokePatternResourceName { get; set; }
+    public IReadOnlyList<double> FillPatternComponents { get; set; } = [];
+    public IReadOnlyList<double> StrokePatternComponents { get; set; } = [];
 }
 
 public sealed class PdfTextElement : PdfGraphicsElement
@@ -41,7 +47,20 @@ public sealed class PdfTextElement : PdfGraphicsElement
     public double FontSize { get; set; }
     public PdfColor FillColor { get; set; }
     public PdfColor StrokeColor { get; set; }
+    public IReadOnlyList<PdfTextGlyph> Glyphs { get; set; } = [];
+    public IReadOnlyList<PdfTextReplacementRun>? ReplacementRuns { get; set; }
 }
+
+public sealed record PdfTextGlyph(
+    ReadOnlyMemory<byte> Bytes,
+    string Text,
+    double Offset,
+    double Advance);
+
+public sealed record PdfTextReplacementRun(
+    ReadOnlyMemory<byte> Bytes,
+    string Text,
+    PdfMatrix Transform);
 
 public sealed class PdfPathElement : PdfGraphicsElement
 {

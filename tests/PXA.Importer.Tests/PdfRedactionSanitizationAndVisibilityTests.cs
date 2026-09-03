@@ -12,6 +12,7 @@ namespace PXA.Importer.Tests;
 public sealed class PdfRedactionSanitizationAndVisibilityTests
 {
     private const string Secret = "CONFIDENTIAL-CARRIER-55018";
+    private const string PatternSecret = "CONFIDENTIAL-PATTERN-77142";
 
     // Item 1: masks, patterns, transparency groups, clipping.
 
@@ -35,7 +36,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
     }
 
     [Fact]
-    public async Task Preflight_ShouldReportPatternResources()
+    public async Task Preflight_ShouldIgnoreUnusedPatternResources()
     {
         var pdf = WithPageResource("Pattern", "P0", new PdfDictionary
         {
@@ -44,7 +45,77 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
 
         var report = await PreflightAsync(pdf);
 
+        Assert.DoesNotContain(Findings(report), f => f.Code == "PXAPDFREDACT210");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldResolveAValidPatternPaintInsideTheRegion()
+    {
+        var report = await PreflightAsync(WithPatternPaint(overlapsRegion: true));
+
+        Assert.DoesNotContain(Findings(report), f => f.Code == "PXAPDFREDACT210");
+        var region = Assert.Single(report.Regions);
+        Assert.True(
+            region.Capability == PdfRedactionCapability.Removable,
+            string.Join(" | ", region.Findings.Select(static finding => $"{finding.Code}: {finding.Message}")) +
+            " covered=" + string.Join(",", region.Covered.Select(static item => $"{item.Kind}:{item.Capability}")));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldResolveAShadingPatternPaintInsideTheRegion()
+    {
+        var report = await PreflightAsync(WithPatternPaint(overlapsRegion: true, shadingPattern: true));
+
+        Assert.DoesNotContain(Findings(report), f => f.Code == "PXAPDFREDACT210");
+        Assert.Equal(PdfRedactionCapability.Removable, Assert.Single(report.Regions).Capability);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldIgnoreAValidPatternPaintOutsideTheRegion()
+    {
+        var report = await PreflightAsync(WithPatternPaint(overlapsRegion: false));
+
+        Assert.DoesNotContain(Findings(report), f => f.Code == "PXAPDFREDACT210");
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldReportAMalformedPatternPaintInsideTheRegion()
+    {
+        var report = await PreflightAsync(WithPatternPaint(overlapsRegion: true, malformed: true));
+
         Assert.Contains(Findings(report), f => f.Code == "PXAPDFREDACT210");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Apply_ShouldPruneTheLastPatternUseAndItsStream(bool customColorSpace)
+    {
+        var result = await ApplyAsync(WithPatternPaint(overlapsRegion: true, customColorSpace: customColorSpace));
+
+        Assert.True(result.Verification.Passed);
+        Assert.DoesNotContain(PatternSecret, Latin1(result.Bytes), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Apply_ShouldPreserveAPatternUsedOutsideTheRegion(bool customColorSpace)
+    {
+        var result = await ApplyAsync(WithPatternPaint(overlapsRegion: false, customColorSpace: customColorSpace));
+
+        Assert.True(result.Verification.Passed);
+        Assert.Contains(PatternSecret, Latin1(result.Bytes), StringComparison.Ordinal);
+        Assert.Contains("/P0", Latin1(result.Bytes), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Apply_ShouldPruneTheLastShadingPatternUse()
+    {
+        var result = await ApplyAsync(WithPatternPaint(overlapsRegion: true, shadingPattern: true));
+
+        Assert.True(result.Verification.Passed);
+        Assert.DoesNotContain(PatternSecret, Latin1(result.Bytes), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -322,6 +393,85 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
         return Append(source, [new PdfIncrementalObjectUpdate(pageId, updatedPage)]);
     }
 
+    private static byte[] WithPatternPaint(
+        bool overlapsRegion,
+        bool malformed = false,
+        bool customColorSpace = false,
+        bool shadingPattern = false)
+    {
+        var source = CreatePdf();
+        var (table, graph) = ParseGraph(source);
+        var (pageId, page) = FindPage(graph);
+        var contentReference = Assert.IsType<PdfReference>(page["Contents"]);
+        var content = Assert.IsType<PdfStreamObject>(graph.Resolve(contentReference.Id)!.Value);
+        var decoded = content.IsDecoded ? content.DecodedBytes : new PdfStreamDecoderRegistry().Decode(content);
+        var patternId = new PdfObjectId(table.Entries.Keys.Max(static id => id.Number) + 1, 0);
+        var patternDictionary = new PdfDictionary
+        {
+            ["Type"] = new PdfName("Pattern"),
+            ["PatternType"] = new PdfInteger(1),
+            ["PaintType"] = new PdfInteger(1),
+            ["TilingType"] = new PdfInteger(1),
+            ["BBox"] = Rect(0, 0, 10, 10),
+            ["XStep"] = new PdfInteger(10),
+            ["YStep"] = new PdfInteger(10),
+            ["Resources"] = new PdfDictionary()
+        };
+        if (malformed)
+        {
+            patternDictionary["XStep"] = null;
+        }
+
+        PdfObject pattern = new PdfStreamObject(
+            patternDictionary,
+            Encoding.ASCII.GetBytes($"BT ({PatternSecret}) Tj ET"));
+        if (shadingPattern)
+        {
+            pattern = new PdfDictionary
+            {
+                ["Type"] = new PdfName("Pattern"),
+                ["PatternType"] = new PdfInteger(2),
+                ["Shading"] = new PdfDictionary
+                {
+                    ["ShadingType"] = new PdfInteger(2),
+                    ["ColorSpace"] = new PdfName("DeviceRGB"),
+                    ["Coords"] = new PdfArray([
+                        new PdfInteger(0), new PdfInteger(0), new PdfInteger(10), new PdfInteger(10)])
+                },
+                ["PrivateData"] = Text(PatternSecret)
+            };
+        }
+
+        var resources = Resolve(graph, page["Resources"]) is PdfDictionary currentResources
+            ? Clone(currentResources)
+            : new PdfDictionary();
+        resources["Pattern"] = new PdfDictionary { ["P0"] = new PdfReference(patternId) };
+        var colorSelection = "/Pattern cs /P0 scn";
+        if (customColorSpace)
+        {
+            resources["ColorSpace"] = new PdfDictionary
+            {
+                ["CsPattern"] = new PdfArray([new PdfName("Pattern"), new PdfName("DeviceRGB")])
+            };
+            colorSelection = "/CsPattern cs 1 0 0 /P0 scn";
+        }
+
+        var updatedPage = Clone(page);
+        updatedPage["Resources"] = resources;
+        var x = overlapsRegion ? 35 : 400;
+        var y = overlapsRegion ? 390 : 600;
+        var paint = Encoding.ASCII.GetBytes($"\nq {colorSelection} {x} {y} 220 30 re f Q\n");
+        var updatedContent = new byte[decoded.Length + paint.Length];
+        decoded.Span.CopyTo(updatedContent);
+        paint.CopyTo(updatedContent, decoded.Length);
+
+        return Append(source, [
+            new PdfIncrementalObjectUpdate(patternId, pattern),
+            new PdfIncrementalObjectUpdate(contentReference.Id, new PdfStreamObject(new PdfDictionary(), updatedContent)),
+            new PdfIncrementalObjectUpdate(pageId, updatedPage)
+        ]);
+    }
+
     private static byte[] WrapPageContentInClip(byte[] source, string clippingOperators)
     {
         var (_, graph) = ParseGraph(source);
@@ -385,6 +535,12 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
 
     private static PdfDictionary Clone(PdfDictionary source) =>
         new(new Dictionary<string, PdfObject>(source.Values, StringComparer.Ordinal));
+
+    private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value) => value switch
+    {
+        PdfReference reference => graph.Resolve(reference.Id)?.Value,
+        _ => value
+    };
 
     private static (PdfCrossReferenceTable Table, PdfObjectGraph Graph) ParseGraph(byte[] bytes)
     {

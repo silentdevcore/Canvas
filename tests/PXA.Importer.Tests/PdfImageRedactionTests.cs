@@ -138,6 +138,152 @@ public sealed class PdfImageRedactionTests
         Assert.Contains(decoded.Skip(6), value => value != 0);
     }
 
+    [Theory]
+    [InlineData(1, new byte[] { 0xF0, 0xA0 }, new byte[] { 0x30, 0x20 })]
+    [InlineData(2, new byte[] { 0x1B, 0xE4 }, new byte[] { 0x0B, 0x04 })]
+    public async Task Apply_ShouldRedactPackedGraySamples(
+        int bitsPerComponent,
+        byte[] samples,
+        byte[] expected)
+    {
+        var pdf = CreateImagePdf(
+            samples,
+            bitsPerComponent: bitsPerComponent,
+            colorSpace: new PdfName("DeviceGray"));
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        Assert.Equal(expected, ReadRedactedImageSamples(result.Bytes));
+    }
+
+    [Fact]
+    public async Task Apply_ShouldRedactFourBitRgbSamplesWithoutChangingUncoveredNibbles()
+    {
+        var samples = new byte[] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC };
+        var pdf = CreateImagePdf(
+            samples,
+            width: 2,
+            bitsPerComponent: 4,
+            colorSpace: new PdfName("DeviceRGB"));
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        Assert.Equal(new byte[] { 0x00, 0x04, 0x56, 0x00, 0x0A, 0xBC }, ReadRedactedImageSamples(result.Bytes));
+    }
+
+    [Fact]
+    public async Task Apply_ShouldRedactSixteenBitRgbSamples()
+    {
+        var samples = Enumerable.Range(1, 24).Select(value => (byte)value).ToArray();
+        var pdf = CreateImagePdf(
+            samples,
+            width: 2,
+            bitsPerComponent: 16,
+            colorSpace: new PdfName("DeviceRGB"));
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        var decoded = ReadRedactedImageSamples(result.Bytes);
+        Assert.All(decoded.Take(6), value => Assert.Equal(0, value));
+        Assert.Equal(samples.Skip(6).Take(6), decoded.Skip(6).Take(6));
+        Assert.All(decoded.Skip(12).Take(6), value => Assert.Equal(0, value));
+        Assert.Equal(samples.Skip(18).Take(6), decoded.Skip(18).Take(6));
+    }
+
+    [Fact]
+    public async Task Apply_ShouldResolveNamedIndexedColorSpaceWithoutConvertingUncoveredSamples()
+    {
+        var lookup = new PdfString(new byte[]
+        {
+            0, 0, 0,
+            255, 0, 0,
+            0, 255, 0,
+            0, 0, 255
+        }, IsHex: true);
+        var colorSpaces = new PdfDictionary
+        {
+            ["Palette"] = new PdfArray([
+                new PdfName("Indexed"), new PdfName("DeviceRGB"), new PdfInteger(3), lookup])
+        };
+        var pdf = CreateImagePdf(
+            [0x1B, 0xE4],
+            bitsPerComponent: 2,
+            colorSpace: new PdfName("Palette"),
+            colorSpaces: colorSpaces);
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        Assert.Equal(new byte[] { 0x0B, 0x04 }, ReadRedactedImageSamples(result.Bytes));
+    }
+
+    [Fact]
+    public async Task Apply_ShouldRedactAStencilImageMask()
+    {
+        var pdf = CreateImagePdf(
+            [0xF0, 0xA0],
+            bitsPerComponent: 1,
+            colorSpace: null,
+            imageMask: true);
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        Assert.Equal(new byte[] { 0x30, 0x20 }, ReadRedactedImageSamples(result.Bytes));
+    }
+
+    [Fact]
+    public async Task Apply_ShouldPreserveAColorKeyMaskWhileRemovingCoveredSamples()
+    {
+        var colorKeyMask = new PdfArray([
+            new PdfInteger(0), new PdfInteger(0),
+            new PdfInteger(0), new PdfInteger(0),
+            new PdfInteger(0), new PdfInteger(0)]);
+        var pdf = CreateImagePdf(Samples, mask: colorKeyMask);
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        var (_, graph) = ParseGraph(result.Bytes);
+        var (_, page) = FindPage(graph);
+        var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
+        var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
+        Assert.IsType<PdfArray>(stream.Dictionary["Mask"]);
+    }
+
+    [Theory]
+    [InlineData("SMask")]
+    [InlineData("Mask")]
+    public async Task Apply_ShouldRedactMainAndAttachedMaskSamplesTogether(string maskKey)
+    {
+        var maskSamples = new byte[] { 201, 202, 203, 204, 211, 212, 213, 214 };
+        var pdf = CreateSoftMaskedImagePdf(Samples, maskSamples, maskKey);
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed, string.Join("; ", result.Verification.Findings.Select(finding =>
+            $"{finding.Code}: {finding.Message}")));
+        var (_, graph) = ParseGraph(result.Bytes);
+        var (_, page) = FindPage(graph);
+        var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
+        var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var image = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
+        var mask = Assert.IsType<PdfStreamObject>(Resolve(graph, image.Dictionary[maskKey]));
+        var decodedMask = new PdfStreamDecoderRegistry().Decode(mask).ToArray();
+
+        Assert.All(decodedMask.Take(2), value => Assert.Equal(0, value));
+        Assert.Equal(maskSamples.Skip(2).Take(2), decodedMask.Skip(2).Take(2));
+        Assert.All(decodedMask.Skip(4).Take(2), value => Assert.Equal(0, value));
+        Assert.Equal(maskSamples.Skip(6).Take(2), decodedMask.Skip(6).Take(2));
+        Assert.True(Assert.IsType<PdfBoolean>(mask.Dictionary["PXARedacted"]).Value);
+    }
+
     [Fact]
     public async Task Apply_ShouldPreserveResourceAndAnnotationUpdatesOnTheSamePage()
     {
@@ -234,7 +380,14 @@ public sealed class PdfImageRedactionTests
         bool drawTwice = false,
         string? filter = null,
         bool softMask = false,
-        bool markedRedacted = false)
+        bool markedRedacted = false,
+        int width = 4,
+        int height = 2,
+        int bitsPerComponent = 8,
+        PdfObject? colorSpace = null,
+        PdfDictionary? colorSpaces = null,
+        bool imageMask = false,
+        PdfObject? mask = null)
     {
         var document = new PdfDocument();
         document.AddPage();
@@ -247,11 +400,23 @@ public sealed class PdfImageRedactionTests
         {
             ["Type"] = new PdfName("XObject"),
             ["Subtype"] = new PdfName("Image"),
-            ["Width"] = new PdfInteger(4),
-            ["Height"] = new PdfInteger(2),
-            ["BitsPerComponent"] = new PdfInteger(8),
-            ["ColorSpace"] = new PdfName("DeviceRGB")
+            ["Width"] = new PdfInteger(width),
+            ["Height"] = new PdfInteger(height),
+            ["BitsPerComponent"] = new PdfInteger(bitsPerComponent)
         };
+        if (!imageMask)
+        {
+            dictionary["ColorSpace"] = colorSpace ?? new PdfName("DeviceRGB");
+        }
+        else
+        {
+            dictionary["ImageMask"] = new PdfBoolean(true);
+        }
+
+        if (mask is not null)
+        {
+            dictionary["Mask"] = mask;
+        }
         if (filter is not null)
         {
             dictionary["Filter"] = new PdfName(filter);
@@ -271,10 +436,16 @@ public sealed class PdfImageRedactionTests
             ? "q 200 0 0 200 50 50 cm /Im0 Do Q q 200 0 0 200 300 50 cm /Im0 Do Q"
             : "q 200 0 0 200 50 50 cm /Im0 Do Q";
         var updatedPage = Clone(page);
-        updatedPage["Resources"] = new PdfDictionary
+        var resources = new PdfDictionary
         {
             ["XObject"] = new PdfDictionary { ["Im0"] = new PdfReference(imageId) }
         };
+        if (colorSpaces is not null)
+        {
+            resources["ColorSpace"] = colorSpaces;
+        }
+
+        updatedPage["Resources"] = resources;
         updatedPage["Contents"] = new PdfReference(contentId);
 
         return new PdfIncrementalUpdateWriter().Append(source, [
@@ -308,6 +479,54 @@ public sealed class PdfImageRedactionTests
         ]).Bytes;
     }
 
+    private static byte[] CreateSoftMaskedImagePdf(
+        byte[] samples,
+        byte[] maskSamples,
+        string maskKey = "SMask")
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+        var source = document.ToBytes();
+        var (table, graph) = ParseGraph(source);
+        var (pageId, page) = FindPage(graph);
+        var imageId = new PdfObjectId(table.Entries.Keys.Max(id => id.Number) + 1, 0);
+        var maskId = new PdfObjectId(imageId.Number + 1, 0);
+        var contentId = new PdfObjectId(maskId.Number + 1, 0);
+        var imageDictionary = new PdfDictionary
+        {
+            ["Type"] = new PdfName("XObject"),
+            ["Subtype"] = new PdfName("Image"),
+            ["Width"] = new PdfInteger(4),
+            ["Height"] = new PdfInteger(2),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["ColorSpace"] = new PdfName("DeviceRGB")
+        };
+        imageDictionary[maskKey] = new PdfReference(maskId);
+        var maskDictionary = new PdfDictionary
+        {
+            ["Type"] = new PdfName("XObject"),
+            ["Subtype"] = new PdfName("Image"),
+            ["Width"] = new PdfInteger(4),
+            ["Height"] = new PdfInteger(2),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["ColorSpace"] = new PdfName("DeviceGray")
+        };
+        var updatedPage = Clone(page);
+        updatedPage["Resources"] = new PdfDictionary
+        {
+            ["XObject"] = new PdfDictionary { ["Im0"] = new PdfReference(imageId) }
+        };
+        updatedPage["Contents"] = new PdfReference(contentId);
+
+        return new PdfIncrementalUpdateWriter().Append(source, [
+            new PdfIncrementalObjectUpdate(imageId, new PdfStreamObject(imageDictionary, samples)),
+            new PdfIncrementalObjectUpdate(maskId, new PdfStreamObject(maskDictionary, maskSamples)),
+            new PdfIncrementalObjectUpdate(contentId, new PdfStreamObject(
+                new PdfDictionary(), "q 200 0 0 200 50 50 cm /Im0 Do Q"u8.ToArray())),
+            new PdfIncrementalObjectUpdate(pageId, updatedPage)
+        ]).Bytes;
+    }
+
     private static byte[] Compress(byte[] samples)
     {
         using var output = new MemoryStream();
@@ -320,6 +539,17 @@ public sealed class PdfImageRedactionTests
         }
 
         return output.ToArray();
+    }
+
+    private static byte[] ReadRedactedImageSamples(byte[] pdf)
+    {
+        var (_, graph) = ParseGraph(pdf);
+        var (_, page) = FindPage(graph);
+        var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
+        var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
+        return new PdfStreamDecoderRegistry().Decode(stream).ToArray();
     }
 
     private static byte[] CreateJpeg()

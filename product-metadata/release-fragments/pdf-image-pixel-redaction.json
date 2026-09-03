@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA can now irreversibly redact supported PDF image pixels, safely clone shared image resources, remove contained images, and verify the rewritten samples before returning a document.",
+  "summary": "PXA now removes covered PDF glyphs, bounded image pixels, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths before returning a document.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

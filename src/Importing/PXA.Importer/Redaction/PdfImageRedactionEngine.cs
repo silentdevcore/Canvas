@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text;
+using PXA.Importer.Color;
 using PXA.Importer.Graphics;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
@@ -7,6 +8,12 @@ using PXA.Importer.Streams;
 using SkiaSharp;
 
 namespace PXA.Importer.Redaction;
+
+internal sealed record PdfRedactedImage(
+    PdfStreamObject Image,
+    IReadOnlyList<PdfRedactedImageMask> Masks);
+
+internal sealed record PdfRedactedImageMask(string DictionaryKey, PdfStreamObject Stream);
 
 /// <summary>
 /// Irreversibly replaces covered image samples. Supported sources are decoded completely and
@@ -36,7 +43,27 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
-        return TryDecode(graph, stream, out _, out reason);
+        if (string.IsNullOrEmpty(image.ResourceName) && EnumerateMaskStreams(graph, stream).Any())
+        {
+            reason = "Inline images with external mask streams cannot be rewritten atomically.";
+            return false;
+        }
+
+        if (!TryDecode(graph, resources, stream, ignoreAttachedMasks: true, out _, out reason))
+        {
+            return false;
+        }
+
+        foreach (var mask in EnumerateMaskStreams(graph, stream))
+        {
+            if (!TryDecode(graph, resources, mask.Stream, ignoreAttachedMasks: false, out _, out reason))
+            {
+                return false;
+            }
+        }
+
+        reason = string.Empty;
+        return true;
     }
 
     public static bool RequiresMaskReconstruction(
@@ -53,7 +80,7 @@ internal static class PdfImageRedactionEngine
         PdfDictionary resources,
         PdfImageElement image,
         IReadOnlyList<PdfRectangle> regions,
-        out PdfStreamObject redacted,
+        out PdfRedactedImage redacted,
         out string reason)
     {
         redacted = null!;
@@ -63,7 +90,7 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
-        if (!TryDecode(graph, source, out var pixels, out reason))
+        if (!TryDecode(graph, resources, source, ignoreAttachedMasks: true, out var pixels, out reason))
         {
             return false;
         }
@@ -75,20 +102,49 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
+        var imageStream = CreateRedactedStream(source, pixels);
+        var masks = new List<PdfRedactedImageMask>();
+        foreach (var mask in EnumerateMaskStreams(graph, source))
+        {
+            if (!TryDecode(graph, resources, mask.Stream, ignoreAttachedMasks: false, out var maskPixels, out reason))
+            {
+                return false;
+            }
+
+            if (ZeroCoveredSamples(maskPixels, image.Transform, regions) == 0)
+            {
+                reason = $"No {mask.DictionaryKey} samples intersected the requested redaction regions.";
+                return false;
+            }
+
+            masks.Add(new PdfRedactedImageMask(mask.DictionaryKey, CreateRedactedStream(mask.Stream, maskPixels)));
+        }
+
+        redacted = new PdfRedactedImage(imageStream, masks);
+        reason = string.Empty;
+        return true;
+    }
+
+    private static PdfStreamObject CreateRedactedStream(PdfStreamObject source, PixelBuffer pixels)
+    {
         var dictionary = new PdfDictionary(
             new Dictionary<string, PdfObject>(source.Dictionary.Values, StringComparer.Ordinal));
         dictionary["Type"] = new PdfName("XObject");
         dictionary["Subtype"] = new PdfName("Image");
         dictionary["Width"] = new PdfInteger(pixels.Width);
         dictionary["Height"] = new PdfInteger(pixels.Height);
-        dictionary["BitsPerComponent"] = new PdfInteger(8);
-        dictionary["ColorSpace"] = new PdfName(pixels.Components switch
+        dictionary["BitsPerComponent"] = new PdfInteger(pixels.BitsPerComponent);
+        if (pixels.StandardizedToRgb)
         {
-            1 => "DeviceGray",
-            3 => "DeviceRGB",
-            4 => "DeviceCMYK",
-            _ => throw new InvalidOperationException("Unsupported redaction sample layout.")
-        });
+            dictionary["ColorSpace"] = new PdfName("DeviceRGB");
+            dictionary["Decode"] = null;
+            dictionary["Mask"] = null;
+            dictionary["SMask"] = null;
+        }
+        else if ((source.Dictionary["ColorSpace"] ?? source.Dictionary["CS"]) is { } colorSpace)
+        {
+            dictionary["ColorSpace"] = colorSpace;
+        }
         dictionary["Filter"] = new PdfName("FlateDecode");
         foreach (var abbreviation in new[] { "W", "H", "BPC", "CS", "F", "DP", "D", "IM" })
         {
@@ -96,12 +152,9 @@ internal static class PdfImageRedactionEngine
         }
 
         dictionary["DecodeParms"] = null;
-        dictionary["Decode"] = null;
         dictionary["Length"] = null;
         dictionary["PXARedacted"] = new PdfBoolean(true);
-        redacted = new PdfStreamObject(dictionary, Compress(pixels.Samples));
-        reason = string.Empty;
-        return true;
+        return new PdfStreamObject(dictionary, Compress(pixels.Samples));
     }
 
     public static bool IsSecurelyRedacted(
@@ -118,15 +171,37 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
-        if (!TryDecode(graph, stream, out var pixels, out reason))
+        if (!TryDecode(graph, resources, stream, ignoreAttachedMasks: true, out var pixels, out reason) ||
+            !CoveredPixelsAreZero(pixels, image.Transform, regions, out reason))
         {
             return false;
         }
 
+        foreach (var mask in EnumerateMaskStreams(graph, stream))
+        {
+            if (!IsTruthy(Resolve(graph, mask.Stream.Dictionary["PXARedacted"])) ||
+                !TryDecode(graph, resources, mask.Stream, ignoreAttachedMasks: false, out var maskPixels, out reason) ||
+                !CoveredPixelsAreZero(maskPixels, image.Transform, regions, out reason))
+            {
+                reason = $"The {mask.DictionaryKey} stream is not securely pixel-redacted. {reason}";
+                return false;
+            }
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool CoveredPixelsAreZero(
+        PixelBuffer pixels,
+        PdfMatrix transform,
+        IReadOnlyList<PdfRectangle> regions,
+        out string reason)
+    {
         var inspected = 0;
         foreach (var region in regions)
         {
-            if (!TryGetPixelRange(pixels, image.Transform, region, out var range))
+            if (!TryGetPixelRange(pixels, transform, region, out var range))
             {
                 continue;
             }
@@ -135,8 +210,7 @@ internal static class PdfImageRedactionEngine
             {
                 for (var column = range.FirstColumn; column <= range.LastColumn; column++)
                 {
-                    var offset = checked((row * pixels.Width + column) * pixels.Components);
-                    if (pixels.Samples.AsSpan(offset, pixels.Components).IndexOfAnyExcept((byte)0) >= 0)
+                    if (!IsPixelZero(pixels, row, column))
                     {
                         reason = "At least one covered image sample still contains non-zero data.";
                         return false;
@@ -147,10 +221,14 @@ internal static class PdfImageRedactionEngine
             }
         }
 
-        reason = inspected > 0
-            ? string.Empty
-            : "No image samples could be mapped to the requested redaction regions.";
-        return inspected > 0;
+        if (inspected == 0)
+        {
+            reason = "No image samples could be mapped to the requested redaction regions.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
     }
 
     public static PdfStreamObject MakeInlineSafe(PdfStreamObject redacted)
@@ -193,20 +271,33 @@ internal static class PdfImageRedactionEngine
 
     private static bool TryDecode(
         PdfObjectGraph graph,
+        PdfDictionary resources,
         PdfStreamObject stream,
+        bool ignoreAttachedMasks,
         out PixelBuffer pixels,
         out string reason)
     {
         pixels = default;
-        if (IsTruthy(Resolve(graph, stream.Dictionary["ImageMask"] ?? stream.Dictionary["IM"])) ||
-            stream.Dictionary["Mask"] is not null ||
-            stream.Dictionary["SMask"] is not null)
+        var isImageMask = IsTruthy(Resolve(graph, stream.Dictionary["ImageMask"] ?? stream.Dictionary["IM"]));
+        var mask = Resolve(graph, stream.Dictionary["Mask"]);
+        if (ignoreAttachedMasks && !HasValidAttachedMaskEntries(graph, stream, out reason))
         {
-            reason = "Image masks and soft masks require mask-aware pixel reconstruction.";
+            return false;
+        }
+
+        if (!ignoreAttachedMasks && ((mask is not null && mask is not PdfArray) || stream.Dictionary["SMask"] is not null))
+        {
+            reason = "Explicit mask streams and soft masks require coupled pixel reconstruction.";
             return false;
         }
 
         var filter = ReadSingleFilter(graph, stream.Dictionary["Filter"] ?? stream.Dictionary["F"]);
+        if (filter is "JPXDecode" or "DCTDecode" && mask is PdfArray)
+        {
+            reason = $"{filter} images with a color-key mask require mask-aware color reconstruction.";
+            return false;
+        }
+
         if (filter is "JBIG2Decode")
         {
             reason = "JBIG2 image decoding is not available.";
@@ -236,21 +327,23 @@ internal static class PdfImageRedactionEngine
 
         var bits = TryReadInteger(graph, stream.Dictionary["BitsPerComponent"] ?? stream.Dictionary["BPC"], out var bpc)
             ? bpc
-            : 8;
-        if (bits != 8)
+            : isImageMask ? 1 : 8;
+        if (bits is not (1 or 2 or 4 or 8 or 16))
         {
-            reason = $"Only 8-bit image samples are currently redacted; this image uses {bits} bits.";
+            reason = $"Image samples with {bits} bits per component cannot be redacted deterministically.";
             return false;
         }
 
-        var components = ResolveComponents(graph, stream.Dictionary["ColorSpace"] ?? stream.Dictionary["CS"]);
-        if (components is not (1 or 3 or 4))
+        var components = isImageMask
+            ? 1
+            : ResolveComponents(graph, resources, stream.Dictionary["ColorSpace"] ?? stream.Dictionary["CS"]);
+        if (components is < 1 or > 32)
         {
-            reason = "Only DeviceGray, DeviceRGB, and DeviceCMYK images are currently redacted.";
+            reason = "The image color space does not expose a bounded component count.";
             return false;
         }
 
-        if (!TryValidateSize(width, height, components, out var byteCount, out reason))
+        if (!TryValidatePackedSize(width, height, components, bits, out var byteCount, out reason))
         {
             return false;
         }
@@ -280,7 +373,7 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
-        pixels = new PixelBuffer(width, height, components, decoded.ToArray());
+        pixels = new PixelBuffer(width, height, components, bits, decoded.ToArray(), StandardizedToRgb: false);
         reason = string.Empty;
         return true;
     }
@@ -328,7 +421,7 @@ internal static class PdfImageRedactionEngine
             }
         }
 
-        pixels = new PixelBuffer(info.Width, info.Height, 3, samples);
+        pixels = new PixelBuffer(info.Width, info.Height, 3, 8, samples, StandardizedToRgb: true);
         reason = string.Empty;
         return true;
     }
@@ -350,8 +443,7 @@ internal static class PdfImageRedactionEngine
             {
                 for (var column = range.FirstColumn; column <= range.LastColumn; column++)
                 {
-                    var offset = checked((row * pixels.Width + column) * pixels.Components);
-                    pixels.Samples.AsSpan(offset, pixels.Components).Clear();
+                    ZeroPixel(pixels, row, column);
                     touched++;
                 }
             }
@@ -422,6 +514,65 @@ internal static class PdfImageRedactionEngine
         return true;
     }
 
+    private static bool TryValidatePackedSize(
+        int width,
+        int height,
+        int components,
+        int bitsPerComponent,
+        out int byteCount,
+        out string reason)
+    {
+        byteCount = 0;
+        if (width <= 0 || height <= 0 || (long)width * height > MaximumPixels)
+        {
+            reason = $"The image dimensions exceed the {MaximumPixels} pixel redaction limit.";
+            return false;
+        }
+
+        var rowBits = checked((long)width * components * bitsPerComponent);
+        var length = checked(((rowBits + 7) / 8) * height);
+        if (length > MaximumSampleBytes || length > int.MaxValue)
+        {
+            reason = $"The decoded image exceeds the {MaximumSampleBytes} byte redaction limit.";
+            return false;
+        }
+
+        byteCount = (int)length;
+        reason = string.Empty;
+        return true;
+    }
+
+    private static void ZeroPixel(PixelBuffer pixels, int row, int column)
+    {
+        var rowBits = checked(pixels.Width * pixels.Components * pixels.BitsPerComponent);
+        var rowOffset = checked(row * ((rowBits + 7) / 8));
+        var firstBit = checked(column * pixels.Components * pixels.BitsPerComponent);
+        var bitCount = checked(pixels.Components * pixels.BitsPerComponent);
+        for (var bit = 0; bit < bitCount; bit++)
+        {
+            var absolute = checked(rowOffset * 8 + firstBit + bit);
+            pixels.Samples[absolute / 8] &= (byte)~(1 << (7 - absolute % 8));
+        }
+    }
+
+    private static bool IsPixelZero(PixelBuffer pixels, int row, int column)
+    {
+        var rowBits = checked(pixels.Width * pixels.Components * pixels.BitsPerComponent);
+        var rowOffset = checked(row * ((rowBits + 7) / 8));
+        var firstBit = checked(column * pixels.Components * pixels.BitsPerComponent);
+        var bitCount = checked(pixels.Components * pixels.BitsPerComponent);
+        for (var bit = 0; bit < bitCount; bit++)
+        {
+            var absolute = checked(rowOffset * 8 + firstBit + bit);
+            if ((pixels.Samples[absolute / 8] & (1 << (7 - absolute % 8))) != 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static ReadOnlyMemory<byte> Compress(ReadOnlySpan<byte> samples)
     {
         using var output = new MemoryStream();
@@ -463,16 +614,18 @@ internal static class PdfImageRedactionEngine
         };
     }
 
-    private static int ResolveComponents(PdfObjectGraph graph, PdfObject? value)
+    private static int ResolveComponents(PdfObjectGraph graph, PdfDictionary resources, PdfObject? value)
     {
         var resolved = Resolve(graph, value);
-        return resolved switch
+        if (resolved is PdfName name &&
+            name.Value is not ("DeviceGray" or "G" or "DeviceRGB" or "RGB" or "DeviceCMYK" or "CMYK") &&
+            Resolve(graph, resources["ColorSpace"]) is PdfDictionary colorSpaces &&
+            colorSpaces[name.Value] is { } named)
         {
-            PdfName { Value: "DeviceGray" or "G" } => 1,
-            PdfName { Value: "DeviceRGB" or "RGB" } => 3,
-            PdfName { Value: "DeviceCMYK" or "CMYK" } => 4,
-            _ => 0
-        };
+            resolved = Resolve(graph, named);
+        }
+
+        return PdfSrgbColorConverter.Resolve(resolved, valueToResolve => Resolve(graph, valueToResolve)).ComponentCount;
     }
 
     private static bool TryReadPositiveInteger(
@@ -504,6 +657,40 @@ internal static class PdfImageRedactionEngine
         _ => false
     };
 
+    private static IEnumerable<PdfRedactedImageMask> EnumerateMaskStreams(
+        PdfObjectGraph graph,
+        PdfStreamObject image)
+    {
+        foreach (var key in new[] { "SMask", "Mask" })
+        {
+            if (Resolve(graph, image.Dictionary[key]) is PdfStreamObject stream)
+            {
+                yield return new PdfRedactedImageMask(key, stream);
+            }
+        }
+    }
+
+    private static bool HasValidAttachedMaskEntries(
+        PdfObjectGraph graph,
+        PdfStreamObject image,
+        out string reason)
+    {
+        if (image.Dictionary["SMask"] is { } softMask && Resolve(graph, softMask) is not PdfStreamObject)
+        {
+            reason = "The soft-mask entry does not resolve to an image stream.";
+            return false;
+        }
+
+        if (image.Dictionary["Mask"] is { } mask && Resolve(graph, mask) is not (PdfStreamObject or PdfArray))
+        {
+            reason = "The mask entry is neither an image stream nor a color-key array.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
     private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value)
     {
         var visited = new HashSet<PdfObjectId>();
@@ -515,7 +702,13 @@ internal static class PdfImageRedactionEngine
         return value;
     }
 
-    private readonly record struct PixelBuffer(int Width, int Height, int Components, byte[] Samples);
+    private readonly record struct PixelBuffer(
+        int Width,
+        int Height,
+        int Components,
+        int BitsPerComponent,
+        byte[] Samples,
+        bool StandardizedToRgb);
 
     private readonly record struct PixelRange(int FirstColumn, int LastColumn, int FirstRow, int LastRow);
 }

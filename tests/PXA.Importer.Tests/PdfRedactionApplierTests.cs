@@ -69,17 +69,22 @@ public sealed class PdfRedactionApplierTests
     }
 
     [Fact]
-    public async Task Apply_ShouldBlockWhenCoverageIsOnlyPartial()
+    public async Task Apply_ShouldRemoveCoveredGlyphsAndRetainUncoveredGlyphs()
     {
         var pdf = CreatePdf(("Public heading", 40, 700), (Secret, 40, 400));
         var full = await RegionCoveringAsync(pdf, Secret);
         var half = new PdfRedactionRegion(1, new PdfRectangle(
             full.Bounds.Left - 5, full.Bounds.Bottom - 2, full.Bounds.Width / 2, full.Bounds.Height + 4));
 
-        var exception = await Assert.ThrowsAsync<PdfRedactionBlockedException>(() => ApplyAsync(pdf, half));
+        var result = await ApplyAsync(pdf, half);
+        var extracted = ExtractText(result.Bytes);
+        var compact = string.Concat(extracted.Where(static character => !char.IsWhiteSpace(character)));
 
-        Assert.Equal(PdfRedactionCapability.ReviewRequired, exception.Preflight.Capability);
-        Assert.Contains("PXAPDFREDACT201", exception.Message, StringComparison.Ordinal);
+        Assert.True(result.Verification.Passed, string.Join("; ", result.Verification.Findings.Select(finding =>
+            $"{finding.Code}: {finding.Message}")));
+        Assert.DoesNotContain(Secret, extracted, StringComparison.Ordinal);
+        Assert.Contains("Public heading", extracted, StringComparison.Ordinal);
+        Assert.Contains(Secret[^3..], compact, StringComparison.Ordinal);
     }
 
     [Fact]

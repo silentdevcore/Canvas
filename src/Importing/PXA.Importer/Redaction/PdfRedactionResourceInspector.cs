@@ -1,34 +1,48 @@
+using PXA.Importer.Analysis;
 using PXA.Importer.Document;
+using PXA.Importer.Graphics;
 using PXA.Importer.Objects;
 
 namespace PXA.Importer.Redaction;
 
 /// <summary>
-/// Inspects the page resources that decide what is actually painted but that the interpreted
-/// scene graph does not carry: tiling and shading patterns and transparency groups.
-///
-/// None of these can be resolved to a per-pixel answer here, so each is reported rather than
-/// silently treated as absent.
+/// Inspects resources that affect what a page paints. Pattern findings are scoped to actual
+/// paint operations intersecting the requested region; merely declaring an unused resource
+/// is not a redaction blocker.
 /// </summary>
 internal static class PdfRedactionResourceInspector
 {
     public static void Inspect(
         PdfObjectGraph graph,
         PdfPageModel page,
+        PdfRectangle region,
         int pageNumber,
         int regionIndex,
         ICollection<PdfRedactionFinding> findings)
     {
-        var resources = Resolve(graph, page.PageDictionary["Resources"]) as PdfDictionary;
+        var resources = page.Resources;
 
-        if (Resolve(graph, resources?["Pattern"]) is PdfDictionary { Values.Count: > 0 } patterns)
+        var patternUses = CollectPatternUses(page.GraphicsObjects, region);
+        if (patternUses.Count > 0)
         {
-            findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT210",
-                PdfRedactionCapability.ReviewRequired,
-                $"The page paints with {patterns.Values.Count} pattern resource(s); pattern content is drawn from a separate stream that PXA does not intersect with the region.",
-                pageNumber,
-                regionIndex));
+            var patterns = Resolve(graph, resources?["Pattern"]) as PdfDictionary;
+            foreach (var name in patternUses.Order(StringComparer.Ordinal))
+            {
+                var reason = patterns is null || !patterns.Values.TryGetValue(name, out var pattern)
+                    ? "The selected pattern is not present in the page resources."
+                    : IsSupportedPattern(graph, pattern, out var validationReason)
+                        ? null
+                        : validationReason;
+                if (reason is not null)
+                {
+                    findings.Add(new PdfRedactionFinding(
+                        "PXAPDFREDACT210",
+                        PdfRedactionCapability.ReviewRequired,
+                        $"Pattern '{name}' paints inside the region but cannot be removed safely. {reason}",
+                        pageNumber,
+                        regionIndex));
+                }
+            }
         }
 
         var transparencyGroups = CountTransparencyGroups(graph, page, resources);
@@ -53,6 +67,132 @@ internal static class PdfRedactionResourceInspector
                 regionIndex));
         }
     }
+
+    private static HashSet<string> CollectPatternUses(
+        IEnumerable<PdfGraphicsElement> elements,
+        PdfRectangle region)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        var bounds = new BoundingBoxCalculator();
+        Visit(elements, [], depth: 0);
+        return names;
+
+        void Visit(
+            IEnumerable<PdfGraphicsElement> candidates,
+            IReadOnlyList<PdfGroupElement> ancestors,
+            int depth)
+        {
+            if (depth > 64)
+            {
+                return;
+            }
+
+            foreach (var element in candidates)
+            {
+                if (element is PdfGroupElement group)
+                {
+                    Visit(group.Children, ancestors.Append(group).ToArray(), depth + 1);
+                    continue;
+                }
+
+                var effectiveBounds = PdfRedactionVisibility.EffectiveBounds(element, bounds, ancestors, out _);
+                if (!effectiveBounds.Intersects(region))
+                {
+                    continue;
+                }
+
+                if (UsesFill(element) && !string.IsNullOrEmpty(element.FillPatternResourceName))
+                {
+                    names.Add(element.FillPatternResourceName);
+                }
+
+                if (UsesStroke(element) && !string.IsNullOrEmpty(element.StrokePatternResourceName))
+                {
+                    names.Add(element.StrokePatternResourceName);
+                }
+            }
+        }
+    }
+
+    private static bool UsesFill(PdfGraphicsElement element) => element switch
+    {
+        PdfTextElement => true,
+        PdfPathElement path => path.SourceCommand.Operator.Name is "f" or "F" or "f*" or "B" or "B*" or "b" or "b*",
+        _ => false
+    };
+
+    private static bool UsesStroke(PdfGraphicsElement element) => element switch
+    {
+        PdfTextElement => true,
+        PdfPathElement path => path.SourceCommand.Operator.Name is "S" or "s" or "B" or "B*" or "b" or "b*",
+        _ => false
+    };
+
+    private static bool IsSupportedPattern(PdfObjectGraph graph, PdfObject value, out string reason)
+    {
+        var resolved = Resolve(graph, value);
+        var dictionary = resolved switch
+        {
+            PdfStreamObject stream => stream.Dictionary,
+            PdfDictionary direct => direct,
+            _ => null
+        };
+        if (dictionary is null)
+        {
+            reason = "The pattern resource is missing or is not a dictionary or stream.";
+            return false;
+        }
+
+        switch (ReadInteger(graph, dictionary["PatternType"]))
+        {
+            case 1 when resolved is PdfStreamObject &&
+                             ReadInteger(graph, dictionary["PaintType"]) is 1 or 2 &&
+                             ReadRectangle(graph, dictionary["BBox"]) is not null &&
+                             ReadNumber(graph, dictionary["XStep"]) is { } xStep && Math.Abs(xStep) > double.Epsilon &&
+                             ReadNumber(graph, dictionary["YStep"]) is { } yStep && Math.Abs(yStep) > double.Epsilon:
+                reason = string.Empty;
+                return true;
+            case 2 when dictionary["Shading"] is not null:
+                reason = string.Empty;
+                return true;
+            case 1:
+                reason = "The tiling pattern is malformed or lacks its required stream geometry.";
+                return false;
+            case 2:
+                reason = "The shading pattern has no shading definition.";
+                return false;
+            default:
+                reason = "The pattern type is missing or unsupported.";
+                return false;
+        }
+    }
+
+    private static PdfRectangle? ReadRectangle(PdfObjectGraph graph, PdfObject? value)
+    {
+        if (Resolve(graph, value) is not PdfArray { Items.Count: >= 4 } array)
+        {
+            return null;
+        }
+
+        var values = array.Items.Take(4).Select(item => ReadNumber(graph, item)).ToArray();
+        return values.Any(static number => number is null)
+            ? null
+            : new PdfRectangle(
+                values[0]!.Value,
+                values[1]!.Value,
+                values[2]!.Value - values[0]!.Value,
+                values[3]!.Value - values[1]!.Value);
+    }
+
+    private static int? ReadInteger(PdfObjectGraph graph, PdfObject? value) =>
+        ReadNumber(graph, value) is { } number ? (int)number : null;
+
+    private static double? ReadNumber(PdfObjectGraph graph, PdfObject? value) => Resolve(graph, value) switch
+    {
+        PdfInteger integer => integer.Value,
+        PdfNumber number => number.Value,
+        _ => null
+    };
 
     private static int CountTransparencyGroups(
         PdfObjectGraph graph,

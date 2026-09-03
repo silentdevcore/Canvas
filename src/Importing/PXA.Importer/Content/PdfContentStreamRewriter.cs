@@ -34,8 +34,10 @@ public sealed class PdfContentStreamRewriter
             case PdfPathElement path:
                 WriteWrappedGraphicsElement(stream, path.Transform, path.ClippingPath, wrappedStream =>
                 {
-                    WriteColor(wrappedStream, path.FillColor, stroke: false);
-                    WriteColor(wrappedStream, path.StrokeColor, stroke: true);
+                    WriteColor(wrappedStream, path.FillColor, stroke: false,
+                        path.FillColorSpaceResourceName, path.FillPatternResourceName, path.FillPatternComponents);
+                    WriteColor(wrappedStream, path.StrokeColor, stroke: true,
+                        path.StrokeColorSpaceResourceName, path.StrokePatternResourceName, path.StrokePatternComponents);
                     WriteNumberOperator(wrappedStream, path.LineWidth, "w");
                     WritePathSegments(wrappedStream, path.Segments);
                     WriteOperator(wrappedStream, path.SourceCommand.Operator.Name);
@@ -74,6 +76,27 @@ public sealed class PdfContentStreamRewriter
 
     private static void WriteTextElement(Stream stream, PdfTextElement text)
     {
+        if (text.ReplacementRuns is { } replacementRuns)
+        {
+            foreach (var run in replacementRuns)
+            {
+                // Glyph bytes are already decoded from the source string token. The writer
+                // serializes them as a new hexadecimal token below.
+                WriteTextRun(stream, text, run.Transform, new PdfString(run.Bytes, IsHex: false));
+            }
+
+            return;
+        }
+
+        WriteTextRun(stream, text, text.Transform, null);
+    }
+
+    private static void WriteTextRun(
+        Stream stream,
+        PdfTextElement text,
+        PdfMatrix transform,
+        PdfString? replacement)
+    {
         WriteAscii(stream, "BT\n");
         if (!string.IsNullOrEmpty(text.FontResourceName))
         {
@@ -83,10 +106,21 @@ public sealed class PdfContentStreamRewriter
             WriteOperator(stream, "Tf");
         }
 
-        WriteColor(stream, text.FillColor, stroke: false);
-        WriteColor(stream, text.StrokeColor, stroke: true);
-        WriteMatrixOperator(stream, text.Transform, "Tm");
-        WriteString(stream, text.Text);
+        WriteColor(stream, text.FillColor, stroke: false,
+            text.FillColorSpaceResourceName, text.FillPatternResourceName, text.FillPatternComponents);
+        WriteColor(stream, text.StrokeColor, stroke: true,
+            text.StrokeColorSpaceResourceName, text.StrokePatternResourceName, text.StrokePatternComponents);
+        WriteMatrixOperator(stream, transform, "Tm");
+        if (replacement is null)
+        {
+            WriteString(stream, text.Text);
+        }
+        else
+        {
+            WriteObject(stream, replacement);
+            WriteAscii(stream, " ");
+        }
+
         WriteOperator(stream, "Tj");
         WriteAscii(stream, "ET\n");
     }
@@ -224,8 +258,29 @@ public sealed class PdfContentStreamRewriter
         }
     }
 
-    private static void WriteColor(Stream stream, PdfColor color, bool stroke)
+    private static void WriteColor(
+        Stream stream,
+        PdfColor color,
+        bool stroke,
+        string? colorSpaceResourceName,
+        string? patternResourceName,
+        IReadOnlyList<double> patternComponents)
     {
+        if (color.ColorSpace == PdfColorSpace.Pattern && !string.IsNullOrEmpty(patternResourceName))
+        {
+            WriteName(stream, string.IsNullOrEmpty(colorSpaceResourceName) ? "Pattern" : colorSpaceResourceName);
+            WriteOperator(stream, stroke ? "CS" : "cs");
+            foreach (var component in patternComponents)
+            {
+                WriteNumber(stream, component);
+                WriteAscii(stream, " ");
+            }
+
+            WriteName(stream, patternResourceName);
+            WriteOperator(stream, stroke ? "SCN" : "scn");
+            return;
+        }
+
         switch (color.ColorSpace)
         {
             case PdfColorSpace.DeviceGray:

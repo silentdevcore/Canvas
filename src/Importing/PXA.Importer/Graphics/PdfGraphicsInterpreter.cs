@@ -1,3 +1,4 @@
+using System.Text;
 using PXA.Importer.Content;
 using PXA.Importer.Fonts;
 using PXA.Importer.Objects;
@@ -11,7 +12,10 @@ public sealed class PdfGraphicsInterpreter
         return Interpret(commands, null);
     }
 
-    public IReadOnlyList<PdfGraphicsElement> Interpret(IReadOnlyList<PdfContentCommand> commands, IReadOnlyDictionary<string, PdfFontResource>? fontResources)
+    public IReadOnlyList<PdfGraphicsElement> Interpret(
+        IReadOnlyList<PdfContentCommand> commands,
+        IReadOnlyDictionary<string, PdfFontResource>? fontResources,
+        IReadOnlyDictionary<string, PdfColorSpace>? colorSpaceResources = null)
     {
         var state = new GraphicsStateStack();
         var elements = new List<PdfGraphicsElement>();
@@ -37,40 +41,64 @@ public sealed class PdfGraphicsInterpreter
                     state.Update(s => s with { LineWidth = Number(command.Operands, 0) });
                     break;
                 case "G":
-                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceGray, StrokeColor = GrayColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceGray, StrokeColor = GrayColor(command.Operands), StrokeColorSpaceResourceName = null, StrokePatternResourceName = null, StrokePatternComponents = [] });
                     break;
                 case "g":
-                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceGray, FillColor = GrayColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceGray, FillColor = GrayColor(command.Operands), FillColorSpaceResourceName = null, FillPatternResourceName = null, FillPatternComponents = [] });
                     break;
                 case "RG":
-                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceRgb, StrokeColor = RgbColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceRgb, StrokeColor = RgbColor(command.Operands), StrokeColorSpaceResourceName = null, StrokePatternResourceName = null, StrokePatternComponents = [] });
                     break;
                 case "rg":
-                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceRgb, FillColor = RgbColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceRgb, FillColor = RgbColor(command.Operands), FillColorSpaceResourceName = null, FillPatternResourceName = null, FillPatternComponents = [] });
                     break;
                 case "CS":
-                    state.Update(s => s with { StrokeColorSpace = ReadColorSpace(command.Operands) });
+                    var strokeSpaceName = Name(command.Operands, 0);
+                    state.Update(s => s with
+                    {
+                        StrokeColorSpace = ReadColorSpace(command.Operands, colorSpaceResources),
+                        StrokeColorSpaceResourceName = strokeSpaceName,
+                        StrokePatternResourceName = null,
+                        StrokePatternComponents = []
+                    });
                     break;
                 case "cs":
-                    state.Update(s => s with { FillColorSpace = ReadColorSpace(command.Operands) });
+                    var fillSpaceName = Name(command.Operands, 0);
+                    state.Update(s => s with
+                    {
+                        FillColorSpace = ReadColorSpace(command.Operands, colorSpaceResources),
+                        FillColorSpaceResourceName = fillSpaceName,
+                        FillPatternResourceName = null,
+                        FillPatternComponents = []
+                    });
                     break;
                 case "SC":
                     state.Update(s => s with { StrokeColor = GeneralColor(command.Operands, s.StrokeColorSpace, s.StrokeColor) });
                     break;
                 case "SCN":
-                    state.Update(s => s with { StrokeColor = GeneralColor(command.Operands, s.StrokeColorSpace, s.StrokeColor) });
+                    state.Update(s => s with
+                    {
+                        StrokeColor = GeneralColor(command.Operands, s.StrokeColorSpace, s.StrokeColor),
+                        StrokePatternResourceName = s.StrokeColorSpace == PdfColorSpace.Pattern ? PatternName(command.Operands) : null,
+                        StrokePatternComponents = s.StrokeColorSpace == PdfColorSpace.Pattern ? NumericComponents(command.Operands) : []
+                    });
                     break;
                 case "sc":
                     state.Update(s => s with { FillColor = GeneralColor(command.Operands, s.FillColorSpace, s.FillColor) });
                     break;
                 case "scn":
-                    state.Update(s => s with { FillColor = GeneralColor(command.Operands, s.FillColorSpace, s.FillColor) });
+                    state.Update(s => s with
+                    {
+                        FillColor = GeneralColor(command.Operands, s.FillColorSpace, s.FillColor),
+                        FillPatternResourceName = s.FillColorSpace == PdfColorSpace.Pattern ? PatternName(command.Operands) : null,
+                        FillPatternComponents = s.FillColorSpace == PdfColorSpace.Pattern ? NumericComponents(command.Operands) : []
+                    });
                     break;
                 case "K":
-                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceCmyk, StrokeColor = CmykColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceCmyk, StrokeColor = CmykColor(command.Operands), StrokeColorSpaceResourceName = null, StrokePatternResourceName = null, StrokePatternComponents = [] });
                     break;
                 case "k":
-                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceCmyk, FillColor = CmykColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceCmyk, FillColor = CmykColor(command.Operands), FillColorSpaceResourceName = null, FillPatternResourceName = null, FillPatternComponents = [] });
                     break;
                 case "Tf":
                     var fontName = Name(command.Operands, 0);
@@ -194,6 +222,12 @@ public sealed class PdfGraphicsInterpreter
                     {
                         FillColor = state.Current.FillColor,
                         StrokeColor = state.Current.StrokeColor,
+                        FillColorSpaceResourceName = state.Current.FillColorSpaceResourceName,
+                        StrokeColorSpaceResourceName = state.Current.StrokeColorSpaceResourceName,
+                        FillPatternResourceName = state.Current.FillPatternResourceName,
+                        StrokePatternResourceName = state.Current.StrokePatternResourceName,
+                        FillPatternComponents = state.Current.FillPatternComponents,
+                        StrokePatternComponents = state.Current.StrokePatternComponents,
                         LineWidth = state.Current.LineWidth,
                         ClippingPath = state.Current.ClippingPath
                     });
@@ -287,8 +321,77 @@ public sealed class PdfGraphicsInterpreter
             IsSubsetFont = state.CurrentFont?.IsSubset ?? false,
             FillColor = state.FillColor,
             StrokeColor = state.StrokeColor,
-            ClippingPath = state.ClippingPath
+            FillColorSpaceResourceName = state.FillColorSpaceResourceName,
+            StrokeColorSpaceResourceName = state.StrokeColorSpaceResourceName,
+            FillPatternResourceName = state.FillPatternResourceName,
+            StrokePatternResourceName = state.StrokePatternResourceName,
+            FillPatternComponents = state.FillPatternComponents,
+            StrokePatternComponents = state.StrokePatternComponents,
+            ClippingPath = state.ClippingPath,
+            Glyphs = CreateGlyphs(command, state)
         });
+    }
+
+    private static IReadOnlyList<PdfTextGlyph> CreateGlyphs(PdfContentCommand command, GraphicsState state)
+    {
+        var operand = command.Operator.Name == "TJ"
+            ? command.Operands.FirstOrDefault()
+            : command.Operands.LastOrDefault();
+        var items = operand is PdfArray array ? array.Items : operand is null ? [] : [operand];
+        var glyphs = new List<PdfTextGlyph>();
+        var offset = 0d;
+        foreach (var item in items)
+        {
+            if (item is PdfInteger integer)
+            {
+                offset -= integer.Value / 1000d * state.FontSize * state.HorizontalScaling;
+                continue;
+            }
+
+            if (item is PdfNumber number)
+            {
+                offset -= number.Value / 1000d * state.FontSize * state.HorizontalScaling;
+                continue;
+            }
+
+            if (item is not PdfString text)
+            {
+                continue;
+            }
+
+            var bytes = text.GetDecodedBytes();
+            var byteLength = Math.Max(1, state.CurrentFont?.CodeByteLength ?? 1);
+            for (var index = 0; index < bytes.Length; index += byteLength)
+            {
+                var length = Math.Min(byteLength, bytes.Length - index);
+                var glyphBytes = bytes.Slice(index, length).ToArray();
+                var code = 0;
+                foreach (var value in glyphBytes)
+                {
+                    code = (code << 8) | value;
+                }
+
+                var width = state.CurrentFont?.GetGlyphWidth(code) ?? 0d;
+                if (width <= 0)
+                {
+                    width = 500d;
+                }
+
+                var advance = width / 1000d * state.FontSize;
+                advance += state.CharacterSpacing;
+                if (code == 32)
+                {
+                    advance += state.WordSpacing;
+                }
+
+                advance *= state.HorizontalScaling;
+                var decoded = state.CurrentFont?.Decode(glyphBytes) ?? Encoding.Latin1.GetString(glyphBytes);
+                glyphs.Add(new PdfTextGlyph(glyphBytes, decoded, offset, advance));
+                offset += advance;
+            }
+        }
+
+        return glyphs;
     }
 
     private static void AdvanceTextMatrix(GraphicsStateStack state, double tx)
@@ -466,9 +569,17 @@ public sealed class PdfGraphicsInterpreter
         return new PdfColor(Number(operands, 0), Number(operands, 1), Number(operands, 2), Number(operands, 3), PdfColorSpace.DeviceCmyk);
     }
 
-    private static PdfColorSpace ReadColorSpace(IReadOnlyList<PdfObject> operands)
+    private static PdfColorSpace ReadColorSpace(
+        IReadOnlyList<PdfObject> operands,
+        IReadOnlyDictionary<string, PdfColorSpace>? resources)
     {
-        return Name(operands, 0) switch
+        var name = Name(operands, 0);
+        if (resources is not null && resources.TryGetValue(name, out var resolved))
+        {
+            return resolved;
+        }
+
+        return name switch
         {
             "DeviceGray" or "G" => PdfColorSpace.DeviceGray,
             "DeviceRGB" or "RGB" => PdfColorSpace.DeviceRgb,
@@ -481,6 +592,9 @@ public sealed class PdfGraphicsInterpreter
             _ => PdfColorSpace.DeviceGray
         };
     }
+
+    private static string? PatternName(IReadOnlyList<PdfObject> operands) =>
+        operands.OfType<PdfName>().LastOrDefault()?.Value;
 
     private static PdfColor GeneralColor(IReadOnlyList<PdfObject> operands, PdfColorSpace colorSpace, PdfColor current)
     {

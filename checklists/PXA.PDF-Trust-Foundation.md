@@ -264,12 +264,12 @@ Reference material:
       string, so the user is told which content blocked the redaction.
     - [x] Show the verification outcome and whether the audit record was signed.
     - [x] Localize the workflow in all six Designer languages.
-- [ ] Build a content-intersection analyzer for text glyphs, paths, images, masks,
+- [x] Build a content-intersection analyzer for text glyphs, paths, images, masks,
   clipping paths, patterns, nested Form XObjects, transparency groups, annotations,
   AcroForm appearances, optional content, and rotated/cropped pages.
   - [x] Classify text, path, image, shading, and nested group elements as not
-    intersecting, partially overlapping, or fully contained, and report partial overlap
-    as `reviewRequired` because whole elements are the smallest removable unit.
+    intersecting, partially overlapping, or fully contained; supported text runs are split
+    at glyph boundaries while unsupported partial elements remain `reviewRequired`.
   - [x] Report overlapping annotations, form-field widgets, and optional content, which
     are not interpreted scene-graph content.
   - [x] Extend to masks, clipping paths, patterns, and transparency groups as distinct
@@ -280,8 +280,10 @@ Reference material:
     - [x] Report soft and stencil masks when a partially covered image would require pixel
       reconstruction, plus soft masks set in the graphics state, tiling and shading pattern
       resources, and page or form transparency groups. Unused image resources do not block.
-    - [ ] Resolve pattern content streams and mask pixels to a per-region answer instead of
-      reporting them as `reviewRequired`.
+    - [x] Resolve selected tiling and shading pattern paint operations and attached image-mask
+      pixels per region instead of blocking on every declared resource. Remove an intersecting
+      pattern-painted element as one safe paint unit, prune its stream after the last use, retain
+      uses outside the region, and keep malformed selected patterns `reviewRequired`.
 - [x] Remove covered text operators and associated extractable text, not only paint
   a black rectangle.
   - [x] Reserialize only the pages carrying a region through the content-stream rewriter,
@@ -295,15 +297,17 @@ Reference material:
   - [x] Remove page thumbnails.
   - [x] Zero covered pixels inside supported image XObjects, cloning a shared XObject before editing
     so a redaction on one page cannot alter or leak through another.
-    - [x] Support bounded 8-bit DeviceGray, DeviceRGB, and DeviceCMYK samples in raw,
-      Flate, LZW, RunLength, DCT/JPEG, and safely delimited inline images.
+    - [x] Support bounded 1-, 2-, 4-, 8-, and 16-bit samples with resolvable named or
+      custom colour spaces in raw, Flate, LZW, RunLength, DCT/JPEG, and safely delimited
+      inline images.
     - [x] Remove fully contained image operations and prune their now-unreachable payloads.
     - [x] Re-decode the result and verify that every covered sample is zero; never trust the
       internal redaction marker by itself.
   - [ ] Add deterministic JPX and JBIG2 decoding. JPX is attempted through the local Skia
     codec when available; unsupported JPX and all JBIG2 images remain blocked.
-  - [ ] Reconstruct soft masks, stencil masks, colour-key masks, non-8-bit samples, and
-    calibrated or custom image colour spaces for partial image redaction.
+  - [x] Reconstruct bounded, decodable soft-mask and explicit-mask streams together with the
+    main image; preserve colour-key arrays; and securely rewrite stencil images, 1/2/4/16-bit
+    samples, and named or custom colour spaces without changing uncovered sample values.
 - [x] Sanitize metadata, XMP, attachments, embedded files, comments, form values,
   actions, JavaScript, thumbnails, previous revisions, and incremental history when
   requested by the redaction policy.
@@ -356,6 +360,9 @@ Reference material:
   - [ ] Add an independently maintained recovery corpus for encoded glyphs, compressed and
     malformed streams, reusable resources, images, and external extraction tools before
     making a broad no-recovery claim.
+    - [x] Add an opt-in synthetic recovery harness that checks partial glyph redaction and
+      masked-image redaction through Poppler `pdftotext`, Poppler `pdfimages`, and POSIX
+      `strings`, independently of the PXA parser.
 - [x] Add a tamper-evident redaction audit record containing document hashes,
   non-sensitive regions, reason, actor, policy, timestamp, and verification result.
   - [x] Hash the record's canonical form so a later change to it is detectable, and keep

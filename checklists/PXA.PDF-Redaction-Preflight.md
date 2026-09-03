@@ -32,8 +32,10 @@ is invisible to the redaction decision. Preflight exists to make that visible.
   against every region as not intersecting, partially overlapping, or fully contained.
 - [x] Report fully contained text, paths, and images as removable. Report partially covered
   images as removable only when their bounded samples can be decoded and rewritten safely.
-- [x] Report partial text and path overlap as `reviewRequired`; supported image samples are
-  rewritten by pixel while masked, unsupported, or undecodable images remain blocked.
+- [x] Report unsupported partial text and path overlap as `reviewRequired`; split supported
+  text runs by original glyph bytes, and rewrite supported image and mask samples by pixel
+  while unsupported or undecodable content remains blocked. Pattern-painted paths are removed
+  as complete paint units when their selected tiling or shading resource is valid.
 - [x] Report the covered text run count and character count as evidence without echoing
   the covered text into the report.
 
@@ -47,6 +49,8 @@ silently passed over.
 - [x] Annotations and form-field widgets overlapping a region, whose values and appearance
   streams are not scene-graph content.
 - [x] Optional content groups, where visibility depends on viewer state.
+- [x] Pattern resources are inspected only when an intersecting paint operation selects them;
+  unused and out-of-region patterns do not block, while malformed selected patterns do.
 - [x] Deferred or undecodable stream filters, where coverage cannot be assessed.
 - [x] Document-level carriers of the same text: metadata, XMP, embedded files, and
   attachments.
@@ -74,8 +78,8 @@ silently passed over.
 
 ## Verification
 
-- [x] Prove a fully covered text run reports removable and a partially covered one reports
-  `reviewRequired`.
+- [x] Prove a fully covered text run reports removable and a partially covered run is split
+  into retained and removed glyphs without shifting retained content.
 - [x] Prove each blind spot produces its diagnostic on a fixture that contains it.
 - [x] Prove preflight never mutates the input bytes.
 - [x] Prove the report contains no covered text.
@@ -85,6 +89,7 @@ silently passed over.
 
 - [x] Applied irreversible redaction, verification, and audit evidence — delivered, and
   now tracked in the Milestone 3 section of `PXA.PDF-Trust-Foundation.md`.
-- [ ] Partial removal within a single text run.
+- [x] Partial removal within a single text run, preserving original glyph bytes and positions
+  for retained glyphs.
 - [x] Partial removal within supported raw, lossless, DCT/JPEG, and inline images, with
   shared XObject cloning and post-write pixel verification.

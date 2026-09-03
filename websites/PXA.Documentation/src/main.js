@@ -546,6 +546,10 @@ const pdfTrustValidationExample = pdfTrustDocumentation?.examples?.find(
 if (pdfTrustValidationExample) {
   pdfTrustValidationExample.note = pdfTrustValidationExample.note
     .replace(
+      'partially covered text runs',
+      'partially covered text runs whose original glyph bytes and positions cannot be resolved safely',
+    )
+    .replace(
       'Missing, malformed, uncolored, and shading patterns remain blocked because flattening or remapping them could change appearance or semantics.',
       'Uncolored tiling patterns retain their identity while their base color operands and resource declaration are converted atomically. DeviceGray, DeviceRGB, calibrated, and embedded-ICC shadings are preserved; DeviceCMYK, Separation, DeviceN, mesh, missing, and malformed shadings remain blocked.',
     )
@@ -575,15 +579,15 @@ if (pdfTrustValidationExample) {
     )
     .replace(
       'while geometric ambiguity, images, layers, and unsupported structures block',
-      'while geometric ambiguity, unsupported image encodings, masks, layers, and unsupported structures block',
+      'while unsupported image codecs, unresolved graphics-state masks, malformed selected patterns, layers, and unsupported structures block',
     )
     .replace(
       'It reports soft and stencil masks on images, soft masks set in the graphics state, pattern resources, and page or form transparency groups, because none of those can be resolved to a per-region answer without evaluating pixels.',
-      'It evaluates image masks only for images that actually intersect a region. Partial soft-mask, stencil-mask, colour-key-mask, unsupported colour-space, JPX-without-a-local-codec, and JBIG2 cases remain blocked, as do unresolved graphics-state masks, pattern resources, and page or form transparency groups.',
+      'It evaluates image masks and pattern selections only for paint operations that intersect a region. Bounded, decodable soft-mask and explicit-mask streams are cloned and scrubbed together with the main image; stencil images and colour-key masks are preserved safely. Valid tiling and shading pattern uses are removed with the containing paint element, and a pattern stream is pruned when its last use is removed. Unused patterns and uses outside the region do not block. JPX without a local codec, JBIG2, unresolved graphics-state masks, malformed selected patterns, and page or form transparency groups remain blocked.',
     )
     .replace(
       'Covered image pixels are still not removed, so a document whose region covers an image remains blocked rather than partially redacted.',
-      'Fully contained images are removed with their unreachable resources. For bounded 8-bit DeviceGray, DeviceRGB, and DeviceCMYK images using raw, Flate, LZW, RunLength, or DCT/JPEG data, PXA clones shared resources and zeroes only covered samples; inline replacements use an unambiguous ASCIIHex payload. Verification decodes the result and checks the covered samples rather than trusting a marker. Unsupported image cases fail closed.',
+      'Fully contained images are removed with their unreachable resources. For bounded 1-, 2-, 4-, 8-, and 16-bit images in resolvable named or custom colour spaces using raw, Flate, LZW, RunLength, or DCT/JPEG data, PXA clones shared resources and zeroes only covered samples. Attached mask streams are cloned and scrubbed in the same region; inline replacements use an unambiguous ASCIIHex payload. Verification decodes the image and every attached mask and checks covered samples rather than trusting a marker. Unsupported codec cases fail closed.',
     );
 }
 
@@ -592,21 +596,22 @@ if (pdfTrustDocumentation?.examples) {
     title: 'Understand image redaction boundaries',
     json: `{
   "supportedPartialImages": [
-    "Raw 8-bit DeviceGray, DeviceRGB, DeviceCMYK",
+    "Raw 1-, 2-, 4-, 8-, and 16-bit samples",
+    "Resolvable named and custom colour spaces",
     "Flate, LZW, RunLength",
     "DCT/JPEG",
-    "Inline images"
+    "Inline images without external mask streams",
+    "Stencil, colour-key, soft-mask, and explicit-mask images"
   ],
   "blockedUnlessLocallyDecodable": ["JPX"],
   "blocked": [
     "JBIG2",
-    "soft masks and stencil masks",
-    "colour-key masks",
-    "non-8-bit samples",
-    "unsupported colour spaces"
+    "unresolvable colour spaces",
+    "inline images with external mask streams",
+    "recursive or malformed masks"
   ]
 }`,
-    note: 'A fully contained image is removed. A supported partially covered image is decoded locally, copied when its resource is shared, rewritten with zero-valued covered samples, and decoded again during verification. PXA blocks apply when it cannot prove that the covered pixels can be removed safely.',
+    note: 'A fully contained image is removed. A supported partially covered image is decoded locally, copied when its resource is shared, rewritten with zero-valued covered samples, and decoded again during verification. Attached mask streams are rewritten atomically and verified separately. The opt-in recovery harness also checks synthetic text and masked images with pdftotext, pdfimages, and strings. PXA blocks apply when it cannot prove that the covered pixels can be removed safely.',
   });
 }
 
