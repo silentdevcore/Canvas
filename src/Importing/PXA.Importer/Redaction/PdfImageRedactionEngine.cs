@@ -1,5 +1,7 @@
 using System.IO.Compression;
 using System.Text;
+using CoreJ2K;
+using JBig2Decoder.NETStandard;
 using PXA.Importer.Color;
 using PXA.Importer.Graphics;
 using PXA.Importer.Objects;
@@ -24,6 +26,9 @@ internal static class PdfImageRedactionEngine
 {
     private const long MaximumPixels = 32_000_000;
     private const long MaximumSampleBytes = 64L * 1024 * 1024;
+    private const int MaximumEncodedCodecBytes = 16 * 1024 * 1024;
+    private const uint MaximumJbig2Symbols = 100_000;
+    private const uint MaximumJbig2SymbolInstances = 100_000;
 
     public static bool CanRedactPartial(
         PdfObjectGraph graph,
@@ -291,8 +296,15 @@ internal static class PdfImageRedactionEngine
             return false;
         }
 
+        if (!TryReadPositiveInteger(graph, stream.Dictionary, "Width", "W", out var width) ||
+            !TryReadPositiveInteger(graph, stream.Dictionary, "Height", "H", out var height))
+        {
+            reason = "The image has no valid width and height.";
+            return false;
+        }
+
         var filter = ReadSingleFilter(graph, stream.Dictionary["Filter"] ?? stream.Dictionary["F"]);
-        if (filter is "JPXDecode" or "DCTDecode" && mask is PdfArray)
+        if (filter is ("JPXDecode" or "DCTDecode" or "JBIG2Decode") && mask is PdfArray)
         {
             reason = $"{filter} images with a color-key mask require mask-aware color reconstruction.";
             return false;
@@ -300,13 +312,17 @@ internal static class PdfImageRedactionEngine
 
         if (filter is "JBIG2Decode")
         {
-            reason = "JBIG2 image decoding is not available.";
-            return false;
+            return TryDecodeJbig2(graph, stream, width, height, out pixels, out reason);
         }
 
-        if (filter is "JPXDecode" or "DCTDecode")
+        if (filter is "JPXDecode")
         {
-            return TryDecodeWithSkia(stream.EncodedBytes, filter, out pixels, out reason);
+            return TryDecodeJpx(stream.EncodedBytes, width, height, out pixels, out reason);
+        }
+
+        if (filter is "DCTDecode")
+        {
+            return TryDecodeWithSkia(stream.EncodedBytes, filter, width, height, out pixels, out reason);
         }
 
         if (filter is not null and not "FlateDecode" and not "Fl" and
@@ -315,13 +331,6 @@ internal static class PdfImageRedactionEngine
             not "LZWDecode" and not "LZW" and not "RunLengthDecode" and not "RL")
         {
             reason = $"Image filter '{filter}' cannot be decoded for secure pixel redaction.";
-            return false;
-        }
-
-        if (!TryReadPositiveInteger(graph, stream.Dictionary, "Width", "W", out var width) ||
-            !TryReadPositiveInteger(graph, stream.Dictionary, "Height", "H", out var height))
-        {
-            reason = "The image has no valid width and height.";
             return false;
         }
 
@@ -381,6 +390,8 @@ internal static class PdfImageRedactionEngine
     private static bool TryDecodeWithSkia(
         ReadOnlyMemory<byte> encoded,
         string filter,
+        int expectedWidth,
+        int expectedHeight,
         out PixelBuffer pixels,
         out string reason)
     {
@@ -394,6 +405,12 @@ internal static class PdfImageRedactionEngine
         }
 
         var info = codec.Info;
+        if (info.Width != expectedWidth || info.Height != expectedHeight)
+        {
+            reason = $"The {filter} dimensions {info.Width}x{info.Height} do not match the PDF image dictionary {expectedWidth}x{expectedHeight}.";
+            return false;
+        }
+
         if (!TryValidateSize(info.Width, info.Height, 3, out var byteCount, out reason))
         {
             return false;
@@ -425,6 +442,675 @@ internal static class PdfImageRedactionEngine
         reason = string.Empty;
         return true;
     }
+
+    private static bool TryDecodeJpx(
+        ReadOnlyMemory<byte> encoded,
+        int expectedWidth,
+        int expectedHeight,
+        out PixelBuffer pixels,
+        out string reason)
+    {
+        pixels = default;
+        if (encoded.Length is 0 or > MaximumEncodedCodecBytes)
+        {
+            reason = $"The JPX stream exceeds the {MaximumEncodedCodecBytes} byte codec-input limit.";
+            return false;
+        }
+        if (!TryReadJpxDimensions(encoded.Span, out var encodedWidth, out var encodedHeight, out reason) ||
+            encodedWidth != expectedWidth || encodedHeight != expectedHeight)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                reason = $"The JPX dimensions {encodedWidth}x{encodedHeight} do not match the PDF image dictionary {expectedWidth}x{expectedHeight}.";
+            }
+            return false;
+        }
+        if (!TryValidateSize(expectedWidth, expectedHeight, 3, out var byteCount, out reason))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var image = J2kImage.FromBytes(encoded);
+            if (image.Width != expectedWidth || image.Height != expectedHeight)
+            {
+                reason = $"The JPX dimensions {image.Width}x{image.Height} do not match the PDF image dictionary {expectedWidth}x{expectedHeight}.";
+                return false;
+            }
+
+            if (image.NumberOfComponents is not (1 or 3))
+            {
+                reason = $"The JPX image has {image.NumberOfComponents} components; secure redaction currently requires grayscale or RGB samples.";
+                return false;
+            }
+
+            var components = Enumerable.Range(0, image.NumberOfComponents)
+                .Select(image.GetComponentBytes)
+                .ToArray();
+            var pixelCount = checked(expectedWidth * expectedHeight);
+            if (components.Any(component => component.Length != pixelCount))
+            {
+                reason = "The JPX decoder returned an unexpected component length.";
+                return false;
+            }
+
+            var samples = new byte[byteCount];
+            for (var index = 0; index < pixelCount; index++)
+            {
+                if (components.Length == 1)
+                {
+                    samples[index * 3] = components[0][index];
+                    samples[index * 3 + 1] = components[0][index];
+                    samples[index * 3 + 2] = components[0][index];
+                }
+                else
+                {
+                    samples[index * 3] = components[0][index];
+                    samples[index * 3 + 1] = components[1][index];
+                    samples[index * 3 + 2] = components[2][index];
+                }
+            }
+
+            pixels = new PixelBuffer(expectedWidth, expectedHeight, 3, 8, samples, StandardizedToRgb: true);
+            reason = string.Empty;
+            return true;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            reason = $"The bundled JPEG-2000 codec could not decode JPX safely: {exception.Message}";
+            return false;
+        }
+    }
+
+    private static bool TryReadJpxDimensions(
+        ReadOnlySpan<byte> data,
+        out int width,
+        out int height,
+        out string reason)
+    {
+        width = 0;
+        height = 0;
+        var codestream = data;
+        if (data.Length >= 12 && data[4..8].SequenceEqual("jP  "u8))
+        {
+            var offset = 0;
+            codestream = default;
+            while (data.Length - offset >= 8)
+            {
+                var boxLength = ReadUInt32BigEndian(data[offset..]);
+                var type = data.Slice(offset + 4, 4);
+                var headerLength = 8;
+                ulong resolvedLength = boxLength;
+                if (boxLength == 1)
+                {
+                    if (data.Length - offset < 16)
+                    {
+                        reason = "The JPX extended box header is truncated.";
+                        return false;
+                    }
+                    resolvedLength = ReadUInt64BigEndian(data[(offset + 8)..]);
+                    headerLength = 16;
+                }
+                else if (boxLength == 0)
+                {
+                    resolvedLength = (ulong)(data.Length - offset);
+                }
+                if (resolvedLength < (ulong)headerLength || resolvedLength > (ulong)(data.Length - offset))
+                {
+                    reason = "The JPX box length exceeds the stream boundary.";
+                    return false;
+                }
+                if (type.SequenceEqual("jp2c"u8))
+                {
+                    codestream = data.Slice(offset + headerLength, (int)resolvedLength - headerLength);
+                    break;
+                }
+                offset += (int)resolvedLength;
+            }
+            if (codestream.IsEmpty)
+            {
+                reason = "The JPX container contains no JPEG-2000 codestream box.";
+                return false;
+            }
+        }
+
+        if (codestream.Length < 4 || codestream[0] != 0xFF || codestream[1] != 0x4F)
+        {
+            reason = "The JPX payload has no valid JPEG-2000 start-of-codestream marker.";
+            return false;
+        }
+        var markerOffset = 2;
+        while (codestream.Length - markerOffset >= 4)
+        {
+            if (codestream[markerOffset] != 0xFF)
+            {
+                reason = "The JPX codestream contains an invalid marker boundary.";
+                return false;
+            }
+            var marker = codestream[markerOffset + 1];
+            markerOffset += 2;
+            if (marker == 0x51)
+            {
+                if (codestream.Length - markerOffset < 38)
+                {
+                    reason = "The JPX size marker is truncated.";
+                    return false;
+                }
+                var segmentLength = ReadUInt16BigEndian(codestream[markerOffset..]);
+                if (segmentLength < 38 || segmentLength > codestream.Length - markerOffset)
+                {
+                    reason = "The JPX size marker has an invalid length.";
+                    return false;
+                }
+                var xSize = ReadUInt32BigEndian(codestream[(markerOffset + 4)..]);
+                var ySize = ReadUInt32BigEndian(codestream[(markerOffset + 8)..]);
+                var xOrigin = ReadUInt32BigEndian(codestream[(markerOffset + 12)..]);
+                var yOrigin = ReadUInt32BigEndian(codestream[(markerOffset + 16)..]);
+                var tileWidth = ReadUInt32BigEndian(codestream[(markerOffset + 20)..]);
+                var tileHeight = ReadUInt32BigEndian(codestream[(markerOffset + 24)..]);
+                var components = ReadUInt16BigEndian(codestream[(markerOffset + 36)..]);
+                if (xSize <= xOrigin || ySize <= yOrigin ||
+                    xSize - xOrigin > int.MaxValue || ySize - yOrigin > int.MaxValue)
+                {
+                    reason = "The JPX size marker contains invalid dimensions.";
+                    return false;
+                }
+                if (components is not (1 or 3) || segmentLength < 38 + (3 * components))
+                {
+                    reason = "The JPX size marker must describe complete grayscale or RGB components.";
+                    return false;
+                }
+                if (tileWidth == 0 || tileHeight == 0 || (ulong)tileWidth * tileHeight > MaximumPixels)
+                {
+                    reason = $"A JPX tile exceeds the {MaximumPixels} pixel redaction limit.";
+                    return false;
+                }
+                width = (int)(xSize - xOrigin);
+                height = (int)(ySize - yOrigin);
+                reason = string.Empty;
+                return true;
+            }
+            if (marker is 0x93 or 0xD9)
+            {
+                break;
+            }
+            var length = ReadUInt16BigEndian(codestream[markerOffset..]);
+            if (length < 2 || length > codestream.Length - markerOffset)
+            {
+                reason = "The JPX marker segment exceeds the codestream boundary.";
+                return false;
+            }
+            markerOffset += length;
+        }
+
+        reason = "The JPX codestream contains no size marker.";
+        return false;
+    }
+
+    private static bool TryDecodeJbig2(
+        PdfObjectGraph graph,
+        PdfStreamObject stream,
+        int expectedWidth,
+        int expectedHeight,
+        out PixelBuffer pixels,
+        out string reason)
+    {
+        pixels = default;
+        if (stream.EncodedBytes.Length is 0 or > MaximumEncodedCodecBytes)
+        {
+            reason = $"The JBIG2 stream exceeds the {MaximumEncodedCodecBytes} byte codec-input limit.";
+            return false;
+        }
+
+        if (!TryReadJbig2PageDimensions(stream.EncodedBytes.Span, out var encodedWidth, out var encodedHeight, out reason) ||
+            encodedWidth != expectedWidth || encodedHeight != expectedHeight)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                reason = $"The JBIG2 dimensions {encodedWidth}x{encodedHeight} do not match the PDF image dictionary {expectedWidth}x{expectedHeight}.";
+            }
+            return false;
+        }
+
+        if (!TryValidateSize(expectedWidth, expectedHeight, 3, out var byteCount, out reason))
+        {
+            return false;
+        }
+
+        try
+        {
+            var decoder = new JBIG2StreamDecoder { TolerateMissingSegments = false };
+            if (!TryReadJbig2Globals(graph, stream, out var globals, out reason))
+            {
+                return false;
+            }
+            if (!globals.IsEmpty)
+            {
+                decoder.SetGlobalData(globals.ToArray());
+            }
+
+            var samples = decoder.DecodeJBIG2(stream.EncodedBytes.ToArray(), out var width, out var height);
+            if (width != expectedWidth || height != expectedHeight || samples.Length != byteCount)
+            {
+                reason = "The JBIG2 decoder result does not match the validated PDF image dimensions.";
+                return false;
+            }
+
+            pixels = new PixelBuffer(width, height, 3, 8, samples, StandardizedToRgb: true);
+            reason = string.Empty;
+            return true;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            reason = $"The bundled JBIG2 codec could not decode the image safely: {exception.Message}";
+            return false;
+        }
+    }
+
+    private static bool TryReadJbig2Globals(
+        PdfObjectGraph graph,
+        PdfStreamObject stream,
+        out ReadOnlyMemory<byte> globals,
+        out string reason)
+    {
+        globals = ReadOnlyMemory<byte>.Empty;
+        var parameters = Resolve(graph, stream.Dictionary["DecodeParms"] ?? stream.Dictionary["DP"]);
+        if (parameters is PdfArray { Items.Count: 1 } array)
+        {
+            parameters = Resolve(graph, array.Items[0]);
+        }
+        if (parameters is null)
+        {
+            reason = string.Empty;
+            return true;
+        }
+        if (parameters is not PdfDictionary dictionary)
+        {
+            reason = "The JBIG2 DecodeParms entry is not a dictionary.";
+            return false;
+        }
+        if (dictionary["JBIG2Globals"] is null)
+        {
+            reason = string.Empty;
+            return true;
+        }
+        if (Resolve(graph, dictionary["JBIG2Globals"]) is not PdfStreamObject globalStream)
+        {
+            reason = "The JBIG2Globals entry does not resolve to a stream.";
+            return false;
+        }
+
+        try
+        {
+            globals = globalStream.Dictionary["Filter"] is null
+                ? globalStream.EncodedBytes
+                : new PdfStreamDecoderRegistry(new PdfParseLimits
+                {
+                    MaxDecodedStreamBytes = MaximumEncodedCodecBytes,
+                    MaxDecompressionRatio = 1_024
+                }).Decode(globalStream);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or PdfParseLimitExceededException)
+        {
+            reason = $"The JBIG2Globals stream could not be decoded safely: {exception.Message}";
+            return false;
+        }
+
+        if (globals.Length > MaximumEncodedCodecBytes)
+        {
+            reason = $"The JBIG2Globals stream exceeds the {MaximumEncodedCodecBytes} byte codec-input limit.";
+            return false;
+        }
+        if (!globals.IsEmpty && !TryValidateJbig2SegmentBoundaries(globals.Span, out reason))
+        {
+            reason = $"The JBIG2Globals stream is malformed: {reason}";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadJbig2PageDimensions(
+        ReadOnlySpan<byte> data,
+        out int width,
+        out int height,
+        out string reason)
+    {
+        width = 0;
+        height = 0;
+        if (data.Length >= 8 && data[..8].SequenceEqual(new byte[] { 0x97, 0x4A, 0x42, 0x32, 0x0D, 0x0A, 0x1A, 0x0A }))
+        {
+            reason = "A PDF JBIG2 stream must use embedded organization without a standalone file header.";
+            return false;
+        }
+
+        var offset = 0;
+        var foundPageInformation = false;
+        while (offset < data.Length)
+        {
+            if (!TryReadJbig2Segment(data, ref offset, out var type, out var payload, out reason))
+            {
+                return false;
+            }
+            if (!TryValidateJbig2SegmentPayload(type, payload, out var payloadReason))
+            {
+                reason = payloadReason;
+                return false;
+            }
+            if (type != 48)
+            {
+                continue;
+            }
+            if (foundPageInformation)
+            {
+                reason = "The JBIG2 stream contains multiple page-information segments.";
+                return false;
+            }
+            if (payload.Length < 8)
+            {
+                reason = "The JBIG2 page-information segment is truncated.";
+                return false;
+            }
+
+            var parsedWidth = ReadUInt32BigEndian(payload);
+            var parsedHeight = ReadUInt32BigEndian(payload[4..]);
+            if (parsedWidth is 0 or > int.MaxValue || parsedHeight is 0 or > int.MaxValue ||
+                (ulong)parsedWidth * parsedHeight > MaximumPixels)
+            {
+                reason = $"The JBIG2 page-information segment exceeds the {MaximumPixels} pixel redaction limit.";
+                return false;
+            }
+            width = (int)parsedWidth;
+            height = (int)parsedHeight;
+            foundPageInformation = true;
+        }
+
+        reason = foundPageInformation ? string.Empty : "The JBIG2 stream contains no page-information segment.";
+        return foundPageInformation;
+    }
+
+    private static bool TryValidateJbig2SegmentBoundaries(ReadOnlySpan<byte> data, out string reason)
+    {
+        var offset = 0;
+        while (offset < data.Length)
+        {
+            if (!TryReadJbig2Segment(data, ref offset, out var type, out var payload, out reason))
+            {
+                return false;
+            }
+            if (!TryValidateJbig2SegmentPayload(type, payload, out reason))
+            {
+                return false;
+            }
+        }
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool IsJbig2RegionSegment(int type) => type is 4 or 6 or 7 or 20 or 22 or 23 or 36 or 38 or 39 or 40 or 42 or 43;
+
+    private static bool TryValidateJbig2SegmentPayload(int type, ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (IsJbig2RegionSegment(type) && !TryReadBoundedJbig2Region(payload, out reason))
+        {
+            return false;
+        }
+        if (type == 0 && !TryReadBoundedJbig2SymbolDictionary(payload, out reason))
+        {
+            return false;
+        }
+        if (type == 16 && !TryReadBoundedJbig2PatternDictionary(payload, out reason))
+        {
+            return false;
+        }
+        if (type is 4 or 6 or 7 && !TryReadBoundedJbig2TextRegion(payload, out reason))
+        {
+            return false;
+        }
+        if (type is 20 or 22 or 23 && !TryReadBoundedJbig2HalftoneGrid(payload, out reason))
+        {
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadBoundedJbig2Region(ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (payload.Length < 8)
+        {
+            reason = "A JBIG2 region segment is truncated.";
+            return false;
+        }
+        var width = ReadUInt32BigEndian(payload);
+        var height = ReadUInt32BigEndian(payload[4..]);
+        if (width is 0 or > int.MaxValue || height is 0 or > int.MaxValue ||
+            (ulong)width * height > MaximumPixels)
+        {
+            reason = $"A JBIG2 region exceeds the {MaximumPixels} pixel redaction limit.";
+            return false;
+        }
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadBoundedJbig2SymbolDictionary(ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (payload.Length < 10)
+        {
+            reason = "A JBIG2 symbol-dictionary segment is truncated.";
+            return false;
+        }
+
+        var flags = ReadUInt16BigEndian(payload);
+        var usesHuffman = (flags & 0x0001) != 0;
+        var usesRefinementAggregation = (flags & 0x0002) != 0;
+        var template = (flags >> 10) & 0x0003;
+        var refinementTemplate = (flags >> 12) & 0x0001;
+        var countOffset = 2;
+        if (!usesHuffman)
+        {
+            countOffset += template == 0 ? 8 : 2;
+        }
+        if (usesRefinementAggregation && refinementTemplate == 0)
+        {
+            countOffset += 4;
+        }
+        if (payload.Length - countOffset < 8)
+        {
+            reason = "A JBIG2 symbol-dictionary segment has truncated adaptive-template or symbol-count fields.";
+            return false;
+        }
+
+        var exportedSymbols = ReadUInt32BigEndian(payload[countOffset..]);
+        var newSymbols = ReadUInt32BigEndian(payload[(countOffset + 4)..]);
+        if (exportedSymbols > MaximumJbig2Symbols || newSymbols > MaximumJbig2Symbols ||
+            (ulong)exportedSymbols + newSymbols > MaximumJbig2Symbols)
+        {
+            reason = $"A JBIG2 symbol dictionary exceeds the {MaximumJbig2Symbols} symbol redaction limit.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadBoundedJbig2PatternDictionary(ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (payload.Length < 7)
+        {
+            reason = "A JBIG2 pattern-dictionary segment is truncated.";
+            return false;
+        }
+
+        var patternWidth = payload[1];
+        var patternHeight = payload[2];
+        var grayMax = ReadUInt32BigEndian(payload[3..]);
+        var patternCount = (ulong)grayMax + 1;
+        if (patternWidth == 0 || patternHeight == 0 || patternCount > MaximumJbig2Symbols ||
+            patternCount * patternWidth * patternHeight > MaximumPixels)
+        {
+            reason = $"A JBIG2 pattern dictionary exceeds the {MaximumJbig2Symbols} pattern or {MaximumPixels} pixel redaction limit.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadBoundedJbig2TextRegion(ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (payload.Length < 23)
+        {
+            reason = "A JBIG2 text-region segment is truncated.";
+            return false;
+        }
+
+        var flags = ReadUInt16BigEndian(payload[17..]);
+        var countOffset = 19;
+        if ((flags & 0x0001) != 0)
+        {
+            countOffset += 2;
+        }
+        if ((flags & 0x0002) != 0 && (flags & 0x8000) == 0)
+        {
+            countOffset += 4;
+        }
+        if (payload.Length - countOffset < 4)
+        {
+            reason = "A JBIG2 text-region segment has truncated flags or symbol-instance fields.";
+            return false;
+        }
+
+        var instances = ReadUInt32BigEndian(payload[countOffset..]);
+        if (instances > MaximumJbig2SymbolInstances)
+        {
+            reason = $"A JBIG2 text region exceeds the {MaximumJbig2SymbolInstances} symbol-instance redaction limit.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadBoundedJbig2HalftoneGrid(ReadOnlySpan<byte> payload, out string reason)
+    {
+        if (payload.Length < 26)
+        {
+            reason = "A JBIG2 halftone-region segment is truncated.";
+            return false;
+        }
+
+        var gridWidth = ReadUInt32BigEndian(payload[18..]);
+        var gridHeight = ReadUInt32BigEndian(payload[22..]);
+        if (gridWidth is 0 or > int.MaxValue || gridHeight is 0 or > int.MaxValue ||
+            (ulong)gridWidth * gridHeight > MaximumPixels)
+        {
+            reason = $"A JBIG2 halftone grid exceeds the {MaximumPixels} cell redaction limit.";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
+    }
+
+    private static bool TryReadJbig2Segment(
+        ReadOnlySpan<byte> data,
+        ref int offset,
+        out int type,
+        out ReadOnlySpan<byte> payload,
+        out string reason)
+    {
+        type = 0;
+        payload = default;
+        if (data.Length - offset < 6)
+        {
+            reason = "The JBIG2 segment header is truncated.";
+            return false;
+        }
+
+        var segmentNumber = ReadUInt32BigEndian(data[offset..]);
+        offset += 4;
+        var flags = data[offset++];
+        type = flags & 0x3F;
+        var shortRetention = data[offset++];
+        long referredCount = shortRetention >> 5;
+        if (referredCount == 7)
+        {
+            if (data.Length - offset < 3)
+            {
+                reason = "The JBIG2 extended retention header is truncated.";
+                return false;
+            }
+            referredCount = ((long)(shortRetention & 0x1F) << 24) |
+                            ((long)data[offset] << 16) |
+                            ((long)data[offset + 1] << 8) |
+                            data[offset + 2];
+            offset += 3;
+            var retentionBytes = (referredCount + 1 + 7) / 8;
+            if (retentionBytes > data.Length - offset)
+            {
+                reason = "The JBIG2 retention flags exceed the stream boundary.";
+                return false;
+            }
+            offset += (int)retentionBytes;
+        }
+        else if (referredCount is 5 or 6)
+        {
+            reason = "The JBIG2 segment uses a reserved referred-segment count.";
+            return false;
+        }
+
+        var referenceSize = segmentNumber <= 256 ? 1 : segmentNumber <= 65_536 ? 2 : 4;
+        var referenceBytes = referredCount * referenceSize;
+        var pageAssociationBytes = (flags & 0x40) == 0 ? 1 : 4;
+        var dataLengthBytes = type == 51 ? 0 : 4;
+        if (referenceBytes > data.Length - offset ||
+            data.Length - offset - referenceBytes < pageAssociationBytes + dataLengthBytes)
+        {
+            reason = "The JBIG2 segment references exceed the stream boundary.";
+            return false;
+        }
+        offset += (int)referenceBytes + pageAssociationBytes;
+
+        if (type == 51)
+        {
+            var trailingBytes = data[offset..];
+            if (trailingBytes.Length > 4 || trailingBytes.ContainsAnyExcept((byte)0))
+            {
+                reason = "The JBIG2 end-of-file segment is followed by unexpected data.";
+                return false;
+            }
+            offset = data.Length;
+            payload = ReadOnlySpan<byte>.Empty;
+            reason = string.Empty;
+            return true;
+        }
+
+        var payloadLength = ReadUInt32BigEndian(data[offset..]);
+        offset += 4;
+        if (payloadLength == uint.MaxValue || payloadLength > data.Length - offset)
+        {
+            reason = "The JBIG2 segment has an unknown or out-of-bounds payload length.";
+            return false;
+        }
+        payload = data.Slice(offset, (int)payloadLength);
+        offset += (int)payloadLength;
+        reason = string.Empty;
+        return true;
+    }
+
+    private static uint ReadUInt32BigEndian(ReadOnlySpan<byte> value) =>
+        ((uint)value[0] << 24) | ((uint)value[1] << 16) | ((uint)value[2] << 8) | value[3];
+
+    private static ushort ReadUInt16BigEndian(ReadOnlySpan<byte> value) =>
+        (ushort)((value[0] << 8) | value[1]);
+
+    private static ulong ReadUInt64BigEndian(ReadOnlySpan<byte> value) =>
+        ((ulong)ReadUInt32BigEndian(value) << 32) | ReadUInt32BigEndian(value[4..]);
 
     private static int ZeroCoveredSamples(
         PixelBuffer pixels,

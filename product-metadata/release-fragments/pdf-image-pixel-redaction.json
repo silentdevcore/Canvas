@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA now removes covered PDF glyphs, bounded image pixels, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths before returning a document.",
+  "summary": "PXA now removes covered PDF glyphs, bounded image pixels including managed JPX and embedded JBIG2 data, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

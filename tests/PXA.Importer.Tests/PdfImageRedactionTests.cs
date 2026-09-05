@@ -138,6 +138,188 @@ public sealed class PdfImageRedactionTests
         Assert.Contains(decoded.Skip(6), value => value != 0);
     }
 
+    [Fact]
+    public async Task Apply_ShouldDecodeJpxAndEmitLosslessRedactedPixels()
+    {
+        var jpx = Convert.FromBase64String(
+            "AAAADGpQICANCocKAAAAFGZ0eXBqcDIgAAAAAGpwMiAAAAAtanAyaAAAABZpaGRyAAAABAAAAAQAAw8HAAAAAAAPY29scgEAAAAAABAAAADSanAyY/9P/1EALwAAAAAABAAAAAQAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAw8BAQ8BAQ8BAf9SAAwAAAABAQAEBAAB/1wABECA/2QAJQABQ3JlYXRlZCBieSBPcGVuSlBFRyB2ZXJzaW9uIDIuNS40/5AACgAAAAAAWgAB/5PP/DAoEVBJmehQAAAAX9/4kNgI4XWhtfLJvF9OgM5LjKXKM3FFCrfOfWvNwg3f+JDYE4xBXaUm50urMuBda3Zc5UpRW8Eo3d6TvOcJ/9k=");
+        var pdf = CreateImagePdf(jpx, filter: "JPXDecode", width: 4, height: 4);
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed, string.Join("; ", result.Verification.Findings.Select(finding =>
+            $"{finding.Code}: {finding.Message}")));
+        var decoded = ReadRedactedImageSamples(result.Bytes);
+        Assert.Equal(4 * 4 * 3, decoded.Length);
+        Assert.Contains(decoded, value => value == 0);
+        Assert.Contains(decoded, value => value != 0);
+    }
+
+    [Fact]
+    public async Task Apply_ShouldDecodeEmbeddedJbig2AndEmitLosslessRedactedPixels()
+    {
+        // BSD/MIT fixture derived from JBig2Decoder.NETStandard's examplepicture_nl.jb2;
+        // the 13-byte standalone header is omitted as required for a PDF JBIG2 stream.
+        var jbig2 = Convert.FromBase64String(
+            "AAAAADAAAQAAABMAAABgAAAAYAAAAGAAAABgAQAAAAAAASYAAQAAAPsAAABgAAAAYAAAAAAAAAAAAAAD//3/Av7+/qU0eJn1XJxNSolaxuKNOzYqBM4UGoeUcEys/EoevXF9sKz7lnXleKpfpS/cOA9hJWalEvifoO0fv6nozzYcu0Z3KrqRIWToh/BBYPvzjGgLBbtel4AATnDUqXh0W/F/5/9oyLjtCUtxkDascTvCEH6O4/XLhFhIQi/7kchSLf3cFXHX+TdMgUHFB3vvgyBnSxgetHtFMuSjWuMVASEH0meSBm0JoRUyEw8XnMbIjVq5PkLR+92r/FGiMPE1bf1mHT24XCnVjkPLR/gqGRW9dpBsOaWVnRBj/M/+Dp19vGf/rAAAAAIxAAEAAAAAAAAAAzMAAQAAAAA=");
+        var pdf = CreateImagePdf(
+            jbig2,
+            filter: "JBIG2Decode",
+            width: 96,
+            height: 96,
+            bitsPerComponent: 1,
+            colorSpace: new PdfName("DeviceGray"));
+
+        var result = await ApplyAsync(pdf, new PdfRectangle(50, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed, string.Join("; ", result.Verification.Findings.Select(finding =>
+            $"{finding.Code}: {finding.Message}")));
+        var decoded = ReadRedactedImageSamples(result.Bytes);
+        Assert.Equal(96 * 96 * 3, decoded.Length);
+        Assert.Contains(decoded, value => value == 0);
+        Assert.Contains(decoded, value => value != 0);
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectJpxWhenEncodedDimensionsDoNotMatchDictionary()
+    {
+        var jpx = Convert.FromBase64String(
+            "AAAADGpQICANCocKAAAAFGZ0eXBqcDIgAAAAAGpwMiAAAAAtanAyaAAAABZpaGRyAAAABAAAAAQAAw8HAAAAAAAPY29scgEAAAAAABAAAADSanAyY/9P/1EALwAAAAAABAAAAAQAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAw8BAQ8BAQ8BAf9SAAwAAAABAQAEBAAB/1wABECA/2QAJQABQ3JlYXRlZCBieSBPcGVuSlBFRyB2ZXJzaW9uIDIuNS40/5AACgAAAAAAWgAB/5PP/DAoEVBJmehQAAAAX9/4kNgI4XWhtfLJvF9OgM5LjKXKM3FFCrfOfWvNwg3f+JDYE4xBXaUm50urMuBda3Zc5UpRW8Eo3d6TvOcJ/9k=");
+        var pdf = CreateImagePdf(jpx, filter: "JPXDecode", width: 5, height: 4);
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("do not match", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectJpxWithUnsupportedComponentCountBeforeDecode()
+    {
+        var jpx = Convert.FromBase64String(
+            "AAAADGpQICANCocKAAAAFGZ0eXBqcDIgAAAAAGpwMiAAAAAtanAyaAAAABZpaGRyAAAABAAAAAQAAw8HAAAAAAAPY29scgEAAAAAABAAAADSanAyY/9P/1EALwAAAAAABAAAAAQAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAw8BAQ8BAQ8BAf9SAAwAAAABAQAEBAAB/1wABECA/2QAJQABQ3JlYXRlZCBieSBPcGVuSlBFRyB2ZXJzaW9uIDIuNS40/5AACgAAAAAAWgAB/5PP/DAoEVBJmehQAAAAX9/4kNgI4XWhtfLJvF9OgM5LjKXKM3FFCrfOfWvNwg3f+JDYE4xBXaUm50urMuBda3Zc5UpRW8Eo3d6TvOcJ/9k=");
+        var sizeMarker = FindBytes(jpx, [0xFF, 0x51]);
+        Assert.True(sizeMarker >= 0);
+        jpx[sizeMarker + 38] = 0;
+        jpx[sizeMarker + 39] = 4;
+        var pdf = CreateImagePdf(jpx, filter: "JPXDecode", width: 4, height: 4);
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("components", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectStandaloneJbig2FileOrganization()
+    {
+        var standalone = Convert.FromBase64String(
+            "l0pCMg0KGgoBAAAAAQAAAAAwAAEAAAATAAAAYAAAAGAAAABgAAAAYAEAAAAAAAEmAAEAAAD7AAAAYAAAAGAAAAAAAAAAAAAAA//9/wL+/v6lNHiZ9VycTUqJWsbijTs2KgTOFBqHlHBMrPxKHr1xfbCs+5Z15XiqX6Uv3DgPYSVmpRL4n6DtH7+p6M82HLtGdyq6kSFk6IfwQWD784xoCwW7XpeAAE5w1Kl4dFvxf+f/aMi47QlLcZA2rHE7whB+juP1y4RYSEIv+5HIUi393BVx1/k3TIFBxQd774MgZ0sYHrR7RTLko1rjFQEhB9JnkgZtCaEVMhMPF5zGyI1auT5C0fvdq/xRojDxNW39Zh09uFwp1Y5Dy0f4KhkVvXaQbDmllZ0QY/zP/g6dfbxn/6wAAAACMQABAAAAAAAAAAMzAAEAAAAA");
+        var pdf = CreateImagePdf(
+            standalone,
+            filter: "JBIG2Decode",
+            width: 96,
+            height: 96,
+            bitsPerComponent: 1,
+            colorSpace: new PdfName("DeviceGray"));
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("standalone file header", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectMultipleJbig2PageInformationSegments()
+    {
+        var jbig2 = CreateEmbeddedJbig2Fixture();
+        var duplicatePageInformation = jbig2[..30].Concat(jbig2).ToArray();
+        var pdf = CreateImagePdf(
+            duplicatePageInformation,
+            filter: "JBIG2Decode",
+            width: 96,
+            height: 96,
+            bitsPerComponent: 1,
+            colorSpace: new PdfName("DeviceGray"));
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("multiple page-information", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectOversizedJbig2SymbolDictionaryBeforeDecode()
+    {
+        var jbig2 = CreateEmbeddedJbig2Fixture();
+        byte[] oversizedDictionary =
+        [
+            0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 10,
+            0, 1, 0, 1, 0x86, 0xA1, 0, 0, 0, 0
+        ];
+        var guardedStream = jbig2[..30].Concat(oversizedDictionary).Concat(jbig2[30..]).ToArray();
+        var pdf = CreateImagePdf(
+            guardedStream,
+            filter: "JBIG2Decode",
+            width: 96,
+            height: 96,
+            bitsPerComponent: 1,
+            colorSpace: new PdfName("DeviceGray"));
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("symbol dictionary", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Preflight_ShouldRejectOversizedJbig2PatternDictionaryBeforeDecode()
+    {
+        var jbig2 = CreateEmbeddedJbig2Fixture();
+        byte[] oversizedDictionary =
+        [
+            0, 0, 0, 4, 16, 0, 0, 0, 0, 0, 7,
+            0, 255, 255, 0, 1, 0x86, 0xA0
+        ];
+        var guardedStream = jbig2[..30].Concat(oversizedDictionary).Concat(jbig2[30..]).ToArray();
+        var pdf = CreateImagePdf(
+            guardedStream,
+            filter: "JBIG2Decode",
+            width: 96,
+            height: 96,
+            bitsPerComponent: 1,
+            colorSpace: new PdfName("DeviceGray"));
+
+        await using var source = new MemoryStream(pdf);
+        var report = await new PdfRedactionPreflight().PreflightAsync(
+            source,
+            [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
+
+        Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
+            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("pattern dictionary", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData(1, new byte[] { 0xF0, 0xA0 }, new byte[] { 0x30, 0x20 })]
     [InlineData(2, new byte[] { 0x1B, 0xE4 }, new byte[] { 0x0B, 0x04 })]
@@ -318,7 +500,6 @@ public sealed class PdfImageRedactionTests
     }
 
     [Theory]
-    [InlineData("JBIG2Decode")]
     [InlineData("UnknownFilter")]
     public async Task Preflight_ShouldBlockPartialImagesWithUnsupportedFilters(string filter)
     {
@@ -373,6 +554,21 @@ public sealed class PdfImageRedactionTests
         await using var source = new MemoryStream(pdf);
         return await new PdfRedactionApplier(new PdfRedactionPreflight())
             .ApplyAsync(source, [new PdfRedactionRegion(1, bounds)]);
+    }
+
+    private static byte[] CreateEmbeddedJbig2Fixture() => Convert.FromBase64String(
+        "AAAAADAAAQAAABMAAABgAAAAYAAAAGAAAABgAQAAAAAAASYAAQAAAPsAAABgAAAAYAAAAAAAAAAAAAAD//3/Av7+/qU0eJn1XJxNSolaxuKNOzYqBM4UGoeUcEys/EoevXF9sKz7lnXleKpfpS/cOA9hJWalEvifoO0fv6nozzYcu0Z3KrqRIWToh/BBYPvzjGgLBbtel4AATnDUqXh0W/F/5/9oyLjtCUtxkDascTvCEH6O4/XLhFhIQi/7kchSLf3cFXHX+TdMgUHFB3vvgyBnSxgetHtFMuSjWuMVASEH0meSBm0JoRUyEw8XnMbIjVq5PkLR+92r/FGiMPE1bf1mHT24XCnVjkPLR/gqGRW9dpBsOaWVnRBj/M/+Dp19vGf/rAAAAAIxAAEAAAAAAAAAAzMAAQAAAAA=");
+
+    private static int FindBytes(byte[] haystack, byte[] needle)
+    {
+        for (var index = 0; index <= haystack.Length - needle.Length; index++)
+        {
+            if (haystack.AsSpan(index, needle.Length).SequenceEqual(needle))
+            {
+                return index;
+            }
+        }
+        return -1;
     }
 
     private static byte[] CreateImagePdf(

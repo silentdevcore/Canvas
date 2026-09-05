@@ -89,7 +89,8 @@ test('PDF redaction documentation separates preflight from applied redaction', (
   assert.match(source, /Stencil, colour-key, soft-mask, and explicit-mask images/);
   assert.match(source, /Valid tiling and shading pattern uses are removed with the containing paint element/);
   assert.match(source, /Unused patterns and uses outside the region do not block/);
-  assert.match(source, /JPX without a local codec, JBIG2/);
+  assert.match(source, /bounded grayscale\/RGB JPX and embedded JBIG2 streams/i);
+  assert.match(source, /validates dimensions, segment boundaries, and JBIG2Globals/);
   assert.match(source, /pdftotext, pdfimages, and strings/);
 });
 
@@ -125,7 +126,7 @@ test('Redaction documentation states what is detected and what is sanitized', ()
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);
   assert.match(source, /form field values on every field rather than only overlapping widgets/);
   assert.match(source, /non-normal appearance streams such as down and rollover states/);
-  assert.match(source, /Covered image pixels are still not removed/);
+  assert.match(source, /bounded grayscale\/RGB JPX or embedded JBIG2 data/);
 });
 
 test('Redaction verification and audit signing are described with their limits', () => {

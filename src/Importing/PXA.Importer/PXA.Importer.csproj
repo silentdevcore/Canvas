@@ -9,6 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CoreJ2K" Version="2.3.3.91" />
+    <PackageReference Include="JBig2Decoder.NETStandard" Version="1.5.2" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.8" />
   </ItemGroup>

@@ -93,3 +93,6 @@ silently passed over.
   for retained glyphs.
 - [x] Partial removal within supported raw, lossless, DCT/JPEG, and inline images, with
   shared XObject cloning and post-write pixel verification.
+- [x] Partial removal within bounded grayscale/RGB JPX and embedded JBIG2 images, including
+  safe `/JBIG2Globals` resolution, deterministic lossless replacement, and post-write
+  sample verification. Unsupported component layouts and malformed codec data fail closed.

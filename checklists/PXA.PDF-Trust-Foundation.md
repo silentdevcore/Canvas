@@ -290,7 +290,7 @@ Reference material:
     leaving every other page and object byte-faithful.
   - [x] Empty any additional content streams on a rewritten page so no original operator
     survives elsewhere in that page.
-- [ ] Remove or irreversibly transform covered image pixels and reusable resources
+- [x] Remove or irreversibly transform covered image pixels and reusable resources
   without leaking the hidden original through an unused object or alternate stream.
   - [x] Remove optional content, non-normal appearance streams, and image alternates, so
     a viewer cannot reveal covered content the rendered page does not show.
@@ -303,8 +303,12 @@ Reference material:
     - [x] Remove fully contained image operations and prune their now-unreachable payloads.
     - [x] Re-decode the result and verify that every covered sample is zero; never trust the
       internal redaction marker by itself.
-  - [ ] Add deterministic JPX and JBIG2 decoding. JPX is attempted through the local Skia
-    codec when available; unsupported JPX and all JBIG2 images remain blocked.
+  - [x] Add deterministic JPX and JBIG2 decoding. PXA now uses the bundled, managed
+    CoreJ2K and JBig2Decoder.NETStandard codecs, validates encoded dimensions and bounded
+    input before decoding, resolves bounded `/JBIG2Globals`, requires embedded JBIG2
+    organization, and rewrites covered grayscale/RGB output as lossless Flate data.
+    Unsupported component layouts, malformed segments, mismatched dimensions, colour-key
+    masks, and oversized inputs continue to fail closed.
   - [x] Reconstruct bounded, decodable soft-mask and explicit-mask streams together with the
     main image; preserve colour-key arrays; and securely rewrite stencil images, 1/2/4/16-bit
     samples, and named or custom colour spaces without changing uncovered sample values.

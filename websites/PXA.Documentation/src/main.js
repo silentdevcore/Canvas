@@ -579,15 +579,15 @@ if (pdfTrustValidationExample) {
     )
     .replace(
       'while geometric ambiguity, images, layers, and unsupported structures block',
-      'while unsupported image codecs, unresolved graphics-state masks, malformed selected patterns, layers, and unsupported structures block',
+      'while malformed or oversized image codecs, unsupported JPX component layouts, unresolved graphics-state masks, malformed selected patterns, layers, and unsupported structures block',
     )
     .replace(
       'It reports soft and stencil masks on images, soft masks set in the graphics state, pattern resources, and page or form transparency groups, because none of those can be resolved to a per-region answer without evaluating pixels.',
-      'It evaluates image masks and pattern selections only for paint operations that intersect a region. Bounded, decodable soft-mask and explicit-mask streams are cloned and scrubbed together with the main image; stencil images and colour-key masks are preserved safely. Valid tiling and shading pattern uses are removed with the containing paint element, and a pattern stream is pruned when its last use is removed. Unused patterns and uses outside the region do not block. JPX without a local codec, JBIG2, unresolved graphics-state masks, malformed selected patterns, and page or form transparency groups remain blocked.',
+      'It evaluates image masks and pattern selections only for paint operations that intersect a region. Bounded, decodable soft-mask and explicit-mask streams are cloned and scrubbed together with the main image; stencil images and colour-key masks are preserved safely. Valid tiling and shading pattern uses are removed with the containing paint element, and a pattern stream is pruned when its last use is removed. Unused patterns and uses outside the region do not block. Bounded grayscale/RGB JPX and embedded JBIG2 streams are decoded by bundled managed codecs; PXA validates dimensions, segment boundaries, and JBIG2Globals before rewriting them as lossless data. Unsupported JPX component layouts, malformed codec data, unresolved graphics-state masks, malformed selected patterns, and page or form transparency groups remain blocked.',
     )
     .replace(
       'Covered image pixels are still not removed, so a document whose region covers an image remains blocked rather than partially redacted.',
-      'Fully contained images are removed with their unreachable resources. For bounded 1-, 2-, 4-, 8-, and 16-bit images in resolvable named or custom colour spaces using raw, Flate, LZW, RunLength, or DCT/JPEG data, PXA clones shared resources and zeroes only covered samples. Attached mask streams are cloned and scrubbed in the same region; inline replacements use an unambiguous ASCIIHex payload. Verification decodes the image and every attached mask and checks covered samples rather than trusting a marker. Unsupported codec cases fail closed.',
+      'Fully contained images are removed with their unreachable resources. For bounded 1-, 2-, 4-, 8-, and 16-bit images in resolvable named or custom colour spaces using raw, Flate, LZW, RunLength, or DCT/JPEG data, and for bounded grayscale/RGB JPX or embedded JBIG2 data, PXA clones shared resources and zeroes only covered samples. Attached mask streams are cloned and scrubbed in the same region; inline replacements use an unambiguous ASCIIHex payload. Verification decodes the image and every attached mask and checks covered samples rather than trusting a marker. Malformed, mismatched, oversized, or unsupported codec cases fail closed.',
     );
 }
 
@@ -600,18 +600,20 @@ if (pdfTrustDocumentation?.examples) {
     "Resolvable named and custom colour spaces",
     "Flate, LZW, RunLength",
     "DCT/JPEG",
+    "JPX with grayscale or RGB components",
+    "Embedded JBIG2, including bounded JBIG2Globals",
     "Inline images without external mask streams",
     "Stencil, colour-key, soft-mask, and explicit-mask images"
   ],
-  "blockedUnlessLocallyDecodable": ["JPX"],
   "blocked": [
-    "JBIG2",
+    "JPX with unsupported component layouts",
+    "standalone, malformed, or oversized JBIG2 data",
     "unresolvable colour spaces",
     "inline images with external mask streams",
     "recursive or malformed masks"
   ]
 }`,
-    note: 'A fully contained image is removed. A supported partially covered image is decoded locally, copied when its resource is shared, rewritten with zero-valued covered samples, and decoded again during verification. Attached mask streams are rewritten atomically and verified separately. The opt-in recovery harness also checks synthetic text and masked images with pdftotext, pdfimages, and strings. PXA blocks apply when it cannot prove that the covered pixels can be removed safely.',
+    note: 'A fully contained image is removed. A supported partially covered image is decoded locally, copied when its resource is shared, rewritten with zero-valued covered samples, and decoded again during verification. JPX and JBIG2 input is bounded and structurally checked before the managed codecs run; the original compressed payload is never copied into the replacement. Attached mask streams are rewritten atomically and verified separately. The opt-in recovery harness also checks synthetic text and masked images with pdftotext, pdfimages, and strings. PXA blocks apply when it cannot prove that the covered pixels can be removed safely.',
   });
 }
 
