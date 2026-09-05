@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds PAdES B-B through B-LTA signing, RFC 3161 timestamps, hardened PDF parsing, enforced DocMDP and FieldMDP permissions, and redaction preflight with verified full-rewrite apply.",
+  "summary": "PXA adds typed PAdES B-B through B-LTA signing with strong configurable digests, trusted timestamps, controlled certificate-status retrieval, hardened parsing, and verified redaction.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

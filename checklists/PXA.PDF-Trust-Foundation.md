@@ -146,7 +146,7 @@ Reference material:
 
 ### Signing Model
 
-- [ ] Add typed signing options for certificate source, signature field, page and
+- [x] Add typed signing options for certificate source, signature field, page and
   appearance, reason, location, contact, signing time, digest, PAdES profile, TSA,
   revocation data, and validation policy.
 - [x] Support PKCS#12/PFX input through secret streams and platform/remote key
@@ -169,6 +169,10 @@ Reference material:
   - [x] Produce PAdES B-LTA signatures by extending a validated B-LT revision with
     a trusted RFC 3161 document timestamp; fail closed unless the final document
     validates back as B-LTA.
+  - [ ] Validate B-T, B-LT, and B-LTA profile classification with an independent
+    licensed or standards-backed validator and retain its machine-readable report.
+    OpenSSL and Poppler already corroborate CMS/PDF integrity, but do not independently
+    classify every PAdES long-term profile.
 - [x] Produce interoperable PAdES Baseline B-B signatures validated independently by
   OpenSSL CAdES verification and Poppler `pdfsig`.
 - [x] Produce PAdES Baseline B-T signatures with a bounded, HTTPS-only RFC 3161 TSA
@@ -180,7 +184,7 @@ Reference material:
 
 ### Signature Validation
 
-- [ ] Validate CMS integrity, signed byte ranges, certificate chain, key usage,
+- [x] Validate CMS integrity, signed byte ranges, certificate chain, key usage,
   signing time, timestamp token, revocation evidence, PAdES profile, and post-sign
   changes separately.
 - [x] Validate detached CMS integrity, SHA-256/384/512 document digest, signed byte
@@ -229,23 +233,26 @@ Reference material:
 - [x] Support explicit `NoCheck`, platform-cache `Offline`, and opt-in `Online`
   revocation modes with separate signer and TSA revocation outcomes, including
   supplied CRL/OCSP evidence and signature-bound embedded LTV material.
-- [ ] Make network retrieval of OCSP, CRL, AIA, and TSA data explicit, bounded,
+- [x] Make network retrieval of OCSP, CRL, AIA, and TSA data explicit, bounded,
   allowlisted, cached, and disableable for isolated installations.
   - [x] Retrieve certificate-declared CRLs only through exact-host HTTPS allowlists,
     without redirects, with bounded responses and a Data-Protection-encrypted cache.
   - [x] Add application-owned OCSP POST requests and certificate-specific encrypted
     response caching under the same HTTPS allowlist and response limits.
-  - [ ] Add bounded AIA issuer retrieval under the same policy.
+  - [x] Add bounded AIA issuer retrieval under the same policy, including exact-host
+    HTTPS allowlisting, response validation, encrypted caching, and disabled platform
+    certificate downloads.
 - [x] Keep certificate downloads disabled by default and make online revocation an
   explicit server policy with bounded retrieval, exact-host CRL allowlists, and a
   validated Data-Protection-encrypted CRL and certificate-specific OCSP cache.
 - [x] Add `POST /api/pxa/v1/pdf/signatures/sign` and
   `POST /api/pxa/v1/pdf/signatures/validate` with streaming binary responses and
   structured validation reports.
-- [ ] Add separate permissions for signature inspection, signing, trust-policy
+- [x] Add separate permissions for signature inspection, signing, trust-policy
   management, and use of organization key providers.
-- [x] Add separate permissions for signature inspection, validation, and signing;
-  trust-policy and organization key-provider permissions remain open.
+- [x] Add separate permissions for signature inspection, validation, signing,
+  trust-policy management, and organization key-provider use. Only administrator
+  role aggregates receive the two policy/provider permissions by default.
 
 ## P0 - Secure and Irreversible Redaction
 

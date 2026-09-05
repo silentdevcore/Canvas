@@ -11,6 +11,43 @@ public enum PdfPadesProfile
     BaselineLTA
 }
 
+public enum PdfSignatureDigestAlgorithm
+{
+    Sha256,
+    Sha384,
+    Sha512
+}
+
+public enum PdfSigningCertificateSourceKind
+{
+    ExternalSigningKey,
+    Pkcs12Upload,
+    OrganizationKeyProvider
+}
+
+public sealed record PdfSigningCertificateSource
+{
+    public PdfSigningCertificateSourceKind Kind { get; init; } = PdfSigningCertificateSourceKind.ExternalSigningKey;
+    public string? ProviderId { get; init; }
+    public string? KeyId { get; init; }
+}
+
+public sealed record PdfTimestampPolicy
+{
+    public bool? Required { get; init; }
+}
+
+public enum PdfRevocationDataPolicy
+{
+    None,
+    EmbedForLongTermValidation
+}
+
+public sealed record PdfPostSignValidationPolicy
+{
+    public bool RequireRequestedPadesProfile { get; init; } = true;
+}
+
 public sealed record PdfLongTermValidationMaterial
 {
     public IReadOnlyList<byte[]> Certificates { get; init; } = [];
@@ -65,12 +102,17 @@ public sealed record PdfSignatureAppearanceOptions
 
 public sealed record PdfSigningOptions
 {
+    public PdfSigningCertificateSource CertificateSource { get; init; } = new();
     public string FieldName { get; init; } = "Signature1";
     public string? Reason { get; init; }
     public string? Location { get; init; }
     public string? ContactInfo { get; init; }
     public DateTimeOffset? SigningTime { get; init; }
+    public PdfSignatureDigestAlgorithm DigestAlgorithm { get; init; } = PdfSignatureDigestAlgorithm.Sha256;
     public PdfPadesProfile Profile { get; init; } = PdfPadesProfile.BaselineB;
+    public PdfTimestampPolicy Timestamp { get; init; } = new();
+    public PdfRevocationDataPolicy? RevocationData { get; init; }
+    public PdfPostSignValidationPolicy Validation { get; init; } = new();
     public PdfSignatureAppearanceOptions? Appearance { get; init; }
     public int ContentsPlaceholderBytes { get; init; } = 32 * 1024;
     public PdfLongTermValidationMaterial? LongTermValidation { get; init; }

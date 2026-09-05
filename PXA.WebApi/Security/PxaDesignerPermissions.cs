@@ -33,6 +33,8 @@ public static class PxaDesignerPermissions
     public const string PdfTrustInspect = "designer.pdf.trust.inspect";
     public const string PdfSignaturesValidate = "designer.pdf.signatures.validate";
     public const string PdfSignaturesSign = "designer.pdf.signatures.sign";
+    public const string PdfSignatureTrustPoliciesManage = "designer.pdf.signatures.trust-policies.manage";
+    public const string PdfSignatureKeyProvidersUse = "designer.pdf.signatures.key-providers.use";
     public const string PdfRedactionsInspect = "designer.pdf.redactions.inspect";
     public const string PdfRedactionsApply = "designer.pdf.redactions.apply";
     public const string DocumentEdit = "designer.document.edit";
@@ -90,6 +92,8 @@ public static class PxaDesignerPermissions
         PdfTrustInspect,
         PdfSignaturesValidate,
         PdfSignaturesSign,
+        PdfSignatureTrustPoliciesManage,
+        PdfSignatureKeyProvidersUse,
         PdfRedactionsInspect,
         PdfRedactionsApply,
         DocumentEdit,

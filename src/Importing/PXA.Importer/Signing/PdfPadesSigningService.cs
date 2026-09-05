@@ -94,7 +94,8 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         PatchFixedWidthInteger(signedBytes, ByteRangeMarker2, contentsEnd, source.Length);
         PatchFixedWidthInteger(signedBytes, ByteRangeMarker3, signedBytes.Length - contentsEnd, source.Length);
 
-        using var documentHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        var digestAlgorithm = ResolveDigestAlgorithm(options.DigestAlgorithm);
+        using var documentHash = IncrementalHash.CreateHash(digestAlgorithm);
         documentHash.AppendData(signedBytes.AsSpan(0, contentsStart));
         documentHash.AppendData(signedBytes.AsSpan(contentsEnd));
         var digest = documentHash.GetHashAndReset();
@@ -105,8 +106,9 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 signingKey,
                 signingTime,
                 timestampAuthority!,
+                digestAlgorithm,
                 cancellationToken).ConfigureAwait(false)
-            : PdfCadesCmsBuilder.CreateDetached(digest, signingKey, signingTime);
+            : PdfCadesCmsBuilder.CreateDetached(digest, signingKey, signingTime, digestAlgorithm);
         var cms = cmsResult.Cms;
         if (cms.Length > options.ContentsPlaceholderBytes)
         {
@@ -174,11 +176,21 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             }
         }
 
+        if (options.Validation.RequireRequestedPadesProfile &&
+            options.Profile is PdfPadesProfile.BaselineB or PdfPadesProfile.BaselineT)
+        {
+            await ValidateRequestedProfileAsync(
+                signedBytes,
+                signatureObjectId,
+                options.Profile,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         return new PdfSigningResult(
             signedBytes,
             options.Profile,
             options.FieldName.Trim(),
-            "SHA-256",
+            digestAlgorithm.Name?.Replace("SHA", "SHA-", StringComparison.Ordinal) ?? "unknown",
             signingKey.Certificate.Subject,
             signingKey.Certificate.Thumbprint,
             signingTime,
@@ -664,9 +676,44 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
 
     private static void ValidateOptions(PdfSigningOptions options)
     {
+        ArgumentNullException.ThrowIfNull(options.CertificateSource);
+        ArgumentNullException.ThrowIfNull(options.Timestamp);
+        ArgumentNullException.ThrowIfNull(options.Validation);
+        if (!Enum.IsDefined(options.CertificateSource.Kind))
+        {
+            throw new NotSupportedException(
+                $"Certificate source '{options.CertificateSource.Kind}' is not supported.");
+        }
+
         if (options.Profile is not (PdfPadesProfile.BaselineB or PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA))
         {
             throw new NotSupportedException($"PAdES profile '{options.Profile}' is not supported yet.");
+        }
+
+        var timestampRequiredByProfile = options.Profile is not PdfPadesProfile.BaselineB;
+        if (options.Timestamp.Required is { } timestampRequired && timestampRequired != timestampRequiredByProfile)
+        {
+            throw new InvalidOperationException(
+                timestampRequiredByProfile
+                    ? "The selected PAdES profile requires timestamp policy 'Required'."
+                    : "PAdES Baseline B cannot require a timestamp; select Baseline T, LT, or LTA.");
+        }
+
+        var revocationRequiredByProfile = options.Profile is PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA;
+        if (options.RevocationData is { } revocationData &&
+            (revocationData == PdfRevocationDataPolicy.EmbedForLongTermValidation) != revocationRequiredByProfile)
+        {
+            throw new InvalidOperationException(
+                revocationRequiredByProfile
+                    ? "The selected PAdES profile requires embedded long-term validation data."
+                    : "Embedded long-term validation data requires PAdES Baseline LT or LTA.");
+        }
+
+        if (options.CertificateSource.Kind == PdfSigningCertificateSourceKind.OrganizationKeyProvider &&
+            (string.IsNullOrWhiteSpace(options.CertificateSource.ProviderId) ||
+             string.IsNullOrWhiteSpace(options.CertificateSource.KeyId)))
+        {
+            throw new ArgumentException("Organization key providers require both provider and key identifiers.", nameof(options));
         }
 
         if (options.Profile is (PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA) &&
@@ -703,6 +750,44 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             throw new ArgumentOutOfRangeException(
                 nameof(options),
                 "Visible signature appearance values or page number are outside the supported range.");
+        }
+    }
+
+    private static HashAlgorithmName ResolveDigestAlgorithm(PdfSignatureDigestAlgorithm algorithm) => algorithm switch
+    {
+        PdfSignatureDigestAlgorithm.Sha256 => HashAlgorithmName.SHA256,
+        PdfSignatureDigestAlgorithm.Sha384 => HashAlgorithmName.SHA384,
+        PdfSignatureDigestAlgorithm.Sha512 => HashAlgorithmName.SHA512,
+        _ => throw new NotSupportedException($"Digest algorithm '{algorithm}' is not supported.")
+    };
+
+    private static async Task ValidateRequestedProfileAsync(
+        byte[] signedPdf,
+        PdfObjectId signatureObjectId,
+        PdfPadesProfile profile,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = new MemoryStream(signedPdf, writable: false);
+        var report = await new PdfTrustInspector().InspectAsync(
+            stream,
+            new PdfTrustInspectionOptions(),
+            cancellationToken).ConfigureAwait(false);
+        var signature = report.Signatures.FirstOrDefault(candidate =>
+            candidate.ObjectNumber == signatureObjectId.Number &&
+            candidate.Generation == signatureObjectId.Generation);
+        var expected = profile switch
+        {
+            PdfPadesProfile.BaselineLTA => "B-LTA",
+            PdfPadesProfile.BaselineLT => "B-LT",
+            PdfPadesProfile.BaselineT => "B-T",
+            _ => "B-B"
+        };
+        if (signature is null ||
+            signature.IntegrityStatus != PdfTrustStatus.Valid ||
+            !string.Equals(signature.PadesProfile, expected, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"Post-sign validation did not confirm the requested PAdES {expected} profile.");
         }
     }
 

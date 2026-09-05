@@ -1,5 +1,6 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
 using PXA.Importer.Trust;
@@ -20,7 +21,7 @@ public sealed class PxaPdfRevocationEvidenceOptions
     public int MaximumOcspAgeHours { get; init; } = 24;
 }
 
-public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidenceProvider
+public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidenceProvider, IPdfIssuerCertificateProvider
 {
     public const string HttpClientName = "PxaPdfRevocationEvidence";
 
@@ -98,7 +99,7 @@ public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidencePro
                 continue;
             }
 
-            var downloaded = await DownloadAsync(endpoint, cancellationToken).ConfigureAwait(false);
+            var downloaded = await DownloadAsync(endpoint, cancellationToken, "CRL").ConfigureAwait(false);
             if (downloaded is null || !TryValidate(downloaded, $"network:{endpoint.Host}", request, out evidence))
             {
                 continue;
@@ -152,6 +153,40 @@ public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidencePro
             ? $"{blockedCount} revocation endpoint(s) were rejected by the HTTPS allowlist."
             : "No valid supplied, cached, or allowlisted CRL/OCSP evidence was available.";
         return PdfRevocationEvidenceResult.Unavailable(detail);
+    }
+
+    public async Task<PdfIssuerCertificateResult> GetIssuerCertificatesAsync(
+        PdfIssuerCertificateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var endpoints = PdfCertificateEvidenceLocator.GetIssuerCertificateUris(request.Certificate);
+        var certificates = new List<byte[]>();
+        foreach (var endpoint in endpoints.Where(IsAllowedEndpoint))
+        {
+            var cacheKey = GetIssuerCacheKey(endpoint, request.Certificate);
+            var encoded = await ReadCacheAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+            if (encoded is null && _options.Enabled && request.Mode == PdfCertificateRevocationMode.Online)
+            {
+                encoded = await DownloadCertificateAsync(endpoint, cancellationToken).ConfigureAwait(false);
+                if (encoded is not null)
+                {
+                    await WriteCacheAsync(cacheKey, encoded, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            if (encoded is not null && IsIssuerCertificate(encoded, request.Certificate))
+            {
+                certificates.Add(encoded);
+            }
+        }
+
+        var blockedCount = endpoints.Count(endpoint => !IsAllowedEndpoint(endpoint));
+        var detail = certificates.Count > 0
+            ? null
+            : blockedCount > 0
+                ? $"{blockedCount} AIA issuer endpoint(s) were rejected by the HTTPS allowlist."
+                : "No valid supplied, cached, or allowlisted AIA issuer certificate was available.";
+        return new PdfIssuerCertificateResult(certificates, detail);
     }
 
     internal static PdfRevocationEvidenceResult AggregateResult(
@@ -227,7 +262,10 @@ public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidencePro
         string.IsNullOrEmpty(endpoint.UserInfo) &&
         _allowedHosts.Contains(endpoint.IdnHost.TrimEnd('.'));
 
-    private async Task<byte[]?> DownloadAsync(Uri endpoint, CancellationToken cancellationToken)
+    private async Task<byte[]?> DownloadAsync(
+        Uri endpoint,
+        CancellationToken cancellationToken,
+        string resourceKind)
     {
         try
         {
@@ -252,7 +290,31 @@ public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidencePro
             {
                 throw;
             }
-            _logger.LogWarning("PDF CRL retrieval failed for {Host}: {Reason}", endpoint.Host, exception.GetType().Name);
+            _logger.LogWarning(
+                "PDF {ResourceKind} retrieval failed for {Host}: {Reason}",
+                resourceKind,
+                endpoint.Host,
+                exception.GetType().Name);
+            return null;
+        }
+    }
+
+    private async Task<byte[]?> DownloadCertificateAsync(Uri endpoint, CancellationToken cancellationToken)
+    {
+        var encoded = await DownloadAsync(endpoint, cancellationToken, "AIA certificate").ConfigureAwait(false);
+        if (encoded is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var certificate = X509CertificateLoader.LoadCertificate(encoded);
+            return certificate.RawData;
+        }
+        catch (CryptographicException)
+        {
+            _logger.LogWarning("Rejected malformed PDF AIA certificate from {Host}.", endpoint.Host);
             return null;
         }
     }
@@ -340,6 +402,23 @@ public sealed class PxaPdfRevocationEvidenceProvider : IPdfRevocationEvidencePro
 
     private static string GetOcspCacheKey(Uri endpoint, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate) =>
         $"ocsp|{endpoint.AbsoluteUri}|{certificate.Thumbprint}";
+
+    private static string GetIssuerCacheKey(Uri endpoint, X509Certificate2 certificate) =>
+        $"aia|{endpoint.AbsoluteUri}|{certificate.IssuerName.Name}";
+
+    private static bool IsIssuerCertificate(byte[] encoded, X509Certificate2 certificate)
+    {
+        try
+        {
+            using var candidate = X509CertificateLoader.LoadCertificate(encoded);
+            return candidate.SubjectName.RawData.AsSpan().SequenceEqual(certificate.IssuerName.RawData) &&
+                   !string.Equals(candidate.Thumbprint, certificate.Thumbprint, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+    }
 
     private static byte[] ReadCrlBytes(string path)
     {

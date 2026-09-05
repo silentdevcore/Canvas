@@ -100,6 +100,31 @@ public sealed class PdfPadesSigningServiceTests
         }
     }
 
+    [Theory]
+    [InlineData(PdfSignatureDigestAlgorithm.Sha384, "SHA-384")]
+    [InlineData(PdfSignatureDigestAlgorithm.Sha512, "SHA-512")]
+    public async Task Sign_ShouldUseRequestedStrongDigest(
+        PdfSignatureDigestAlgorithm digestAlgorithm,
+        string expectedName)
+    {
+        using var fixture = SigningFixture.Create();
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions
+            {
+                DigestAlgorithm = digestAlgorithm,
+                SigningTime = fixture.SigningTime
+            });
+
+        await using var stream = new MemoryStream(result.Bytes);
+        var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(stream)).Signatures);
+
+        Assert.Equal(expectedName, result.DigestAlgorithm);
+        Assert.Equal(expectedName, signature.DigestAlgorithm);
+        Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+    }
+
     [Fact]
     public async Task Inspect_ShouldTrustSignerFromCustomTrustStoreAlongsideSystemStore()
     {
@@ -125,6 +150,54 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.CertificateStatus);
         Assert.Equal(PdfTrustStatus.NotApplicable, signature.RevocationStatus);
         Assert.Equal(PdfTrustStatus.Valid, signature.Status);
+    }
+
+    [Fact]
+    public async Task Inspect_ShouldBuildChainWithIssuerFromBoundedProvider()
+    {
+        var now = DateTimeOffset.UtcNow;
+        using var rootKey = RSA.Create(2048);
+        var rootRequest = new CertificateRequest("CN=PXA AIA Root", rootKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 1, true));
+        rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
+        using var root = rootRequest.CreateSelfSigned(now.AddDays(-1), now.AddDays(2));
+
+        using var intermediateKey = RSA.Create(2048);
+        var intermediateRequest = new CertificateRequest("CN=PXA AIA Intermediate", intermediateKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
+        using var intermediatePublic = intermediateRequest.Create(root, now.AddHours(-1), now.AddDays(1), RandomNumberGenerator.GetBytes(16));
+        using var intermediate = intermediatePublic.CopyWithPrivateKey(intermediateKey);
+
+        using var leafKey = RSA.Create(2048);
+        var leafRequest = new CertificateRequest("CN=PXA AIA Signer", leafKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+        leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, true));
+        using var leafPublic = leafRequest.Create(intermediate, now.AddHours(-1), now.AddHours(12), RandomNumberGenerator.GetBytes(16));
+        using var leaf = leafPublic.CopyWithPrivateKey(leafKey);
+        using var signingKey = new PdfPkcs12SigningKey(leaf.Export(X509ContentType.Pkcs12, "test"), "test");
+        var signed = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            signingKey,
+            new PdfSigningOptions { SigningTime = now });
+        var issuerProvider = new TestIssuerCertificateProvider(intermediate.RawData);
+
+        await using var stream = new MemoryStream(signed.Bytes);
+        var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(
+            stream,
+            new PdfTrustInspectionOptions
+            {
+                SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                {
+                    UseSystemTrustStore = false,
+                    CustomTrustAnchors = [root],
+                    AllowCertificateDownloads = true,
+                    IssuerCertificateProvider = issuerProvider
+                }
+            })).Signatures);
+
+        Assert.Equal(1, issuerProvider.CallCount);
+        Assert.Equal(PdfTrustStatus.Valid, signature.CertificateStatus);
     }
 
     [Fact]
@@ -784,7 +857,11 @@ public sealed class PdfPadesSigningServiceTests
             new PdfSigningOptions
             {
                 Profile = PdfPadesProfile.BaselineT,
-                SigningTime = fixture.SigningTime
+                SigningTime = fixture.SigningTime,
+                Validation = new PdfPostSignValidationPolicy
+                {
+                    RequireRequestedPadesProfile = false
+                }
             },
             timestampAuthority);
 
@@ -1070,6 +1147,20 @@ public sealed class PdfPadesSigningServiceTests
             cancellationToken.ThrowIfCancellationRequested();
             CallCount++;
             return Task.FromResult(new PdfRevocationEvidenceResult(evidence.Status, [evidence]));
+        }
+    }
+
+    private sealed class TestIssuerCertificateProvider(byte[] certificate) : IPdfIssuerCertificateProvider
+    {
+        public int CallCount { get; private set; }
+
+        public Task<PdfIssuerCertificateResult> GetIssuerCertificatesAsync(
+            PdfIssuerCertificateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            CallCount++;
+            return Task.FromResult(new PdfIssuerCertificateResult([certificate]));
         }
     }
 

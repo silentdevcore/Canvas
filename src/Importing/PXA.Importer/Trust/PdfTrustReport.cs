@@ -35,6 +35,7 @@ public sealed record PdfSignatureValidationPolicy
     public bool AllowCertificateDownloads { get; init; }
     public TimeSpan NetworkTimeout { get; init; } = TimeSpan.FromSeconds(10);
     public IPdfRevocationEvidenceProvider? RevocationEvidenceProvider { get; init; }
+    public IPdfIssuerCertificateProvider? IssuerCertificateProvider { get; init; }
 }
 
 public sealed record PdfRevocationEvidenceInspection(

@@ -40,6 +40,22 @@ public interface IPdfRevocationEvidenceProvider
         CancellationToken cancellationToken = default);
 }
 
+public sealed record PdfIssuerCertificateRequest(
+    X509Certificate2 Certificate,
+    DateTimeOffset ValidationTime,
+    PdfCertificateRevocationMode Mode);
+
+public sealed record PdfIssuerCertificateResult(
+    IReadOnlyList<byte[]> Certificates,
+    string? Detail = null);
+
+public interface IPdfIssuerCertificateProvider
+{
+    Task<PdfIssuerCertificateResult> GetIssuerCertificatesAsync(
+        PdfIssuerCertificateRequest request,
+        CancellationToken cancellationToken = default);
+}
+
 public static class PdfCertificateEvidenceLocator
 {
     private const string CrlDistributionPointsOid = "2.5.29.31";
@@ -70,6 +86,25 @@ public static class PdfCertificateEvidenceLocator
             rawExtension.RawData,
             rawExtension.Critical);
         return extension.EnumerateOcspUris()
+            .Select(static value => Uri.TryCreate(value, UriKind.Absolute, out var uri) ? uri : null)
+            .Where(static uri => uri is not null)
+            .Cast<Uri>()
+            .ToArray();
+    }
+
+    public static IReadOnlyList<Uri> GetIssuerCertificateUris(X509Certificate2 certificate)
+    {
+        const string authorityInformationAccessOid = "1.3.6.1.5.5.7.1.1";
+        var rawExtension = certificate.Extensions[authorityInformationAccessOid];
+        if (rawExtension is null)
+        {
+            return [];
+        }
+
+        var extension = new X509AuthorityInformationAccessExtension(
+            rawExtension.RawData,
+            rawExtension.Critical);
+        return extension.EnumerateCAIssuersUris()
             .Select(static value => Uri.TryCreate(value, UriKind.Absolute, out var uri) ? uri : null)
             .Where(static uri => uri is not null)
             .Cast<Uri>()

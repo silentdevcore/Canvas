@@ -782,7 +782,7 @@ internal static class PdfSignatureValidator
         CancellationToken cancellationToken)
     {
         var embeddedCertificates = LoadEmbeddedCertificates(embeddedVri);
-        var allCertificates = certificates.Concat(embeddedCertificates).ToArray();
+        var downloadedCertificates = new List<X509Certificate2>();
         try
         {
         var validationTime = signingTime ?? DateTimeOffset.UtcNow;
@@ -796,6 +796,32 @@ internal static class PdfSignatureValidator
                 PdfTrustStatus.NotApplicable,
                 []);
         }
+
+        if (policy.AllowCertificateDownloads && policy.IssuerCertificateProvider is not null)
+        {
+            var issuerResult = await policy.IssuerCertificateProvider.GetIssuerCertificatesAsync(
+                new PdfIssuerCertificateRequest(
+                    certificate,
+                    validationTime,
+                    policy.RevocationMode),
+                cancellationToken).ConfigureAwait(false);
+            foreach (var encoded in issuerResult.Certificates)
+            {
+                try
+                {
+                    downloadedCertificates.Add(X509CertificateLoader.LoadCertificate(encoded));
+                }
+                catch (CryptographicException)
+                {
+                    // Providers are untrusted boundaries; malformed certificates are ignored.
+                }
+            }
+        }
+
+        var allCertificates = certificates
+            .Concat(embeddedCertificates)
+            .Concat(downloadedCertificates)
+            .ToArray();
 
         var trustModes = GetTrustModes(policy);
         var trustStatuses = trustModes.Select(useCustomTrust =>
@@ -884,6 +910,10 @@ internal static class PdfSignatureValidator
             foreach (var embeddedCertificate in embeddedCertificates)
             {
                 embeddedCertificate.Dispose();
+            }
+            foreach (var downloadedCertificate in downloadedCertificates)
+            {
+                downloadedCertificate.Dispose();
             }
         }
     }
@@ -1023,7 +1053,8 @@ internal static class PdfSignatureValidator
         chain.ChainPolicy.RevocationMode = revocationMode;
         chain.ChainPolicy.RevocationFlag = policy.RevocationFlag;
         chain.ChainPolicy.VerificationTime = validationTime.UtcDateTime;
-        chain.ChainPolicy.DisableCertificateDownloads = !policy.AllowCertificateDownloads;
+        // Certificate downloads are handled by the bounded PXA provider before chain building.
+        chain.ChainPolicy.DisableCertificateDownloads = true;
         chain.ChainPolicy.UrlRetrievalTimeout = policy.NetworkTimeout;
         foreach (var candidate in certificates
                      .Concat(policy.IntermediateCertificates)

@@ -168,6 +168,9 @@ builder.Services.AddHttpClient(PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceP
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddSingleton<PXA.Importer.Trust.IPdfRevocationEvidenceProvider,
     PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceProvider>();
+builder.Services.AddSingleton<PXA.Importer.Trust.IPdfIssuerCertificateProvider>(services =>
+    (PXA.WebApi.Services.Pdf.PxaPdfRevocationEvidenceProvider)services
+        .GetRequiredService<PXA.Importer.Trust.IPdfRevocationEvidenceProvider>());
 builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions>()
     .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions.SectionName))
     .Validate(

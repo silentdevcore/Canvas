@@ -30,7 +30,8 @@ public sealed class PdfSignaturesControllerTests
                 Certificate = CreateFile(certificate, "certificate", "signer.pfx", "application/x-pkcs12"),
                 CertificatePassword = "test-password",
                 FieldName = "Approval",
-                Reason = "Approved"
+                Reason = "Approved",
+                DigestAlgorithm = PdfSignatureDigestAlgorithm.Sha384
             },
             CancellationToken.None);
 
@@ -40,7 +41,7 @@ public sealed class PdfSignaturesControllerTests
         Assert.True(file.FileContents.AsSpan(0, pdf.Length).SequenceEqual(pdf));
         await using var stream = new MemoryStream(file.FileContents);
         var trust = await new PdfTrustInspector().InspectAsync(stream);
-        Assert.Single(trust.Signatures);
+        Assert.Equal("SHA-384", Assert.Single(trust.Signatures).DigestAlgorithm);
         Assert.Equal("B-B", controller.Response.Headers["X-PXA-PAdES-Profile"]);
     }
 
@@ -185,6 +186,10 @@ public sealed class PdfSignaturesControllerTests
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Editor]);
         Assert.DoesNotContain(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Viewer]);
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesValidate, PxaRoles.Permissions[PxaRoles.Viewer]);
+        Assert.Contains(PxaDesignerPermissions.PdfSignatureTrustPoliciesManage, PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
+        Assert.Contains(PxaDesignerPermissions.PdfSignatureKeyProvidersUse, PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
+        Assert.DoesNotContain(PxaDesignerPermissions.PdfSignatureTrustPoliciesManage, PxaRoles.Permissions[PxaRoles.Manager]);
+        Assert.DoesNotContain(PxaDesignerPermissions.PdfSignatureKeyProvidersUse, PxaRoles.Permissions[PxaRoles.Editor]);
         Assert.Equal(
             PxaDesignerPermissions.PdfSignaturesSign,
             PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/signatures/sign", "POST"));

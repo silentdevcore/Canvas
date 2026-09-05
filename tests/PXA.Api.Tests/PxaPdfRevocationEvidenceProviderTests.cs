@@ -130,6 +130,66 @@ public sealed class PxaPdfRevocationEvidenceProviderTests
         }
     }
 
+    [Fact]
+    public async Task GetIssuerCertificates_ShouldDownloadValidateAndReuseEncryptedAiaCache()
+    {
+        var directory = Directory.CreateTempSubdirectory("pxa-aia-cache-");
+        try
+        {
+            using var fixture = CrlFixture.Create(
+                issuerEndpoint: "https://aia.example.test/issuer.cer");
+            var handler = new CountingHandler(fixture.Issuer.RawData);
+            var provider = CreateProvider(directory.FullName, handler, ["aia.example.test"]);
+            var request = new PdfIssuerCertificateRequest(
+                fixture.Certificate,
+                fixture.Now,
+                PdfCertificateRevocationMode.Online);
+
+            var downloaded = await provider.GetIssuerCertificatesAsync(request);
+            var cached = await provider.GetIssuerCertificatesAsync(request with
+            {
+                Mode = PdfCertificateRevocationMode.Offline
+            });
+
+            Assert.Single(downloaded.Certificates);
+            Assert.Single(cached.Certificates);
+            Assert.Equal(fixture.Issuer.RawData, downloaded.Certificates[0]);
+            Assert.Equal(1, handler.CallCount);
+            var cacheFile = Assert.Single(Directory.GetFiles(Path.Combine(directory.FullName, "cache")));
+            Assert.NotEqual(fixture.Issuer.RawData, await File.ReadAllBytesAsync(cacheFile));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task GetIssuerCertificates_ShouldRejectAiaOutsideAllowlist()
+    {
+        var directory = Directory.CreateTempSubdirectory("pxa-aia-cache-");
+        try
+        {
+            using var fixture = CrlFixture.Create(
+                issuerEndpoint: "https://blocked.example.test/issuer.cer");
+            var handler = new CountingHandler(fixture.Issuer.RawData);
+            var provider = CreateProvider(directory.FullName, handler, ["allowed.example.test"]);
+
+            var result = await provider.GetIssuerCertificatesAsync(new PdfIssuerCertificateRequest(
+                fixture.Certificate,
+                fixture.Now,
+                PdfCertificateRevocationMode.Online));
+
+            Assert.Empty(result.Certificates);
+            Assert.Equal(0, handler.CallCount);
+            Assert.Contains("allowlist", result.Detail, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
     private static PxaPdfRevocationEvidenceProvider CreateProvider(
         string contentRoot,
         HttpMessageHandler handler,
@@ -192,7 +252,10 @@ public sealed class PxaPdfRevocationEvidenceProviderTests
         public X509Certificate2 Issuer { get; }
         public X509Certificate2 Certificate { get; }
 
-        public static CrlFixture Create(string? crlEndpoint = null, string? ocspEndpoint = null)
+        public static CrlFixture Create(
+            string? crlEndpoint = null,
+            string? ocspEndpoint = null,
+            string? issuerEndpoint = null)
         {
             var now = DateTimeOffset.UtcNow;
             using var issuerKey = RSA.Create(2048);
@@ -220,11 +283,11 @@ public sealed class PxaPdfRevocationEvidenceProviderTests
                 leafRequest.CertificateExtensions.Add(
                     CertificateRevocationListBuilder.BuildCrlDistributionPointExtension([crlEndpoint], false));
             }
-            if (ocspEndpoint is not null)
+            if (ocspEndpoint is not null || issuerEndpoint is not null)
             {
                 leafRequest.CertificateExtensions.Add(new X509AuthorityInformationAccessExtension(
-                    [ocspEndpoint],
-                    [],
+                    ocspEndpoint is null ? [] : [ocspEndpoint],
+                    issuerEndpoint is null ? [] : [issuerEndpoint],
                     false));
             }
             var certificate = leafRequest.Create(

@@ -21,25 +21,34 @@ internal static class PdfCadesCmsBuilder
     private const string SigningCertificateV2AttributeOid = "1.2.840.113549.1.9.16.2.47";
     private const string SignatureTimestampTokenAttributeOid = "1.2.840.113549.1.9.16.2.14";
     private const string Sha256Oid = "2.16.840.1.101.3.4.2.1";
+    private const string Sha384Oid = "2.16.840.1.101.3.4.2.2";
+    private const string Sha512Oid = "2.16.840.1.101.3.4.2.3";
     private const string RsaEncryptionOid = "1.2.840.113549.1.1.1";
 
     public static PdfCadesCmsResult CreateDetached(
         ReadOnlySpan<byte> documentDigest,
         IPdfSigningKey signingKey,
-        DateTimeOffset signingTime)
+        DateTimeOffset signingTime) =>
+        CreateDetached(documentDigest, signingKey, signingTime, HashAlgorithmName.SHA256);
+
+    public static PdfCadesCmsResult CreateDetached(
+        ReadOnlySpan<byte> documentDigest,
+        IPdfSigningKey signingKey,
+        DateTimeOffset signingTime,
+        HashAlgorithmName digestAlgorithm)
     {
         ArgumentNullException.ThrowIfNull(signingKey);
-        if (documentDigest.Length != SHA256.HashSizeInBytes)
+        if (documentDigest.Length != GetDigestSize(digestAlgorithm))
         {
-            throw new ArgumentException("PAdES Baseline B requires a SHA-256 document digest.", nameof(documentDigest));
+            throw new ArgumentException("The document digest length does not match the requested algorithm.", nameof(documentDigest));
         }
 
         var certificate = signingKey.Certificate;
         var signedAttributes = BuildSignedAttributes(documentDigest, certificate, signingTime);
-        var attributesDigest = SHA256.HashData(signedAttributes);
-        var signature = signingKey.SignHash(attributesDigest, HashAlgorithmName.SHA256);
-        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, timestampToken: null);
-        var signedData = BuildSignedData(certificate, signerInfo);
+        var attributesDigest = HashData(digestAlgorithm, signedAttributes);
+        var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
+        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, digestAlgorithm, timestampToken: null);
+        var signedData = BuildSignedData(certificate, signerInfo, digestAlgorithm);
         var contentInfo = new AsnWriter(AsnEncodingRules.DER);
         contentInfo.PushSequence();
         contentInfo.WriteObjectIdentifier(SignedDataOid);
@@ -60,30 +69,31 @@ internal static class PdfCadesCmsBuilder
         IPdfSigningKey signingKey,
         DateTimeOffset signingTime,
         IPdfTimestampAuthority timestampAuthority,
+        HashAlgorithmName digestAlgorithm,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(signingKey);
         ArgumentNullException.ThrowIfNull(timestampAuthority);
-        if (documentDigest.Length != SHA256.HashSizeInBytes)
+        if (documentDigest.Length != GetDigestSize(digestAlgorithm))
         {
-            throw new ArgumentException("PAdES Baseline T requires a SHA-256 document digest.", nameof(documentDigest));
+            throw new ArgumentException("The document digest length does not match the requested algorithm.", nameof(documentDigest));
         }
 
         var certificate = signingKey.Certificate;
         var signedAttributes = BuildSignedAttributes(documentDigest.Span, certificate, signingTime);
-        var attributesDigest = SHA256.HashData(signedAttributes);
-        var signature = signingKey.SignHash(attributesDigest, HashAlgorithmName.SHA256);
+        var attributesDigest = HashData(digestAlgorithm, signedAttributes);
+        var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
         var timestampToken = await timestampAuthority.GetTimestampTokenAsync(
-            SHA256.HashData(signature),
-            HashAlgorithmName.SHA256,
+            HashData(digestAlgorithm, signature),
+            digestAlgorithm,
             cancellationToken).ConfigureAwait(false);
         if (timestampToken.Cms.Length == 0)
         {
             throw new CryptographicException("The timestamp authority returned an empty RFC 3161 token.");
         }
 
-        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, timestampToken.Cms);
-        var signedData = BuildSignedData(certificate, signerInfo);
+        var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, digestAlgorithm, timestampToken.Cms);
+        var signedData = BuildSignedData(certificate, signerInfo, digestAlgorithm);
         var contentInfo = new AsnWriter(AsnEncodingRules.DER);
         contentInfo.PushSequence();
         contentInfo.WriteObjectIdentifier(SignedDataOid);
@@ -99,6 +109,20 @@ internal static class PdfCadesCmsBuilder
             documentDigest.ToArray(),
             timestampToken);
     }
+
+    public static Task<PdfCadesCmsResult> CreateDetachedWithTimestampAsync(
+        ReadOnlyMemory<byte> documentDigest,
+        IPdfSigningKey signingKey,
+        DateTimeOffset signingTime,
+        IPdfTimestampAuthority timestampAuthority,
+        CancellationToken cancellationToken = default) =>
+        CreateDetachedWithTimestampAsync(
+            documentDigest,
+            signingKey,
+            signingTime,
+            timestampAuthority,
+            HashAlgorithmName.SHA256,
+            cancellationToken);
 
     private static byte[] BuildSignedAttributes(
         ReadOnlySpan<byte> documentDigest,
@@ -144,6 +168,7 @@ internal static class PdfCadesCmsBuilder
         X509Certificate2 certificate,
         byte[] signedAttributes,
         byte[] signature,
+        HashAlgorithmName digestAlgorithm,
         byte[]? timestampToken)
     {
         var writer = new AsnWriter(AsnEncodingRules.DER);
@@ -155,7 +180,7 @@ internal static class PdfCadesCmsBuilder
         Array.Reverse(serialNumber);
         writer.WriteIntegerUnsigned(serialNumber);
         writer.PopSequence();
-        WriteAlgorithmIdentifier(writer, Sha256Oid, includeNullParameter: false);
+        WriteAlgorithmIdentifier(writer, GetDigestOid(digestAlgorithm), includeNullParameter: false);
 
         var implicitAttributes = signedAttributes.ToArray();
         implicitAttributes[0] = 0xA0;
@@ -180,13 +205,16 @@ internal static class PdfCadesCmsBuilder
         return writer.Encode();
     }
 
-    private static byte[] BuildSignedData(X509Certificate2 certificate, byte[] signerInfo)
+    private static byte[] BuildSignedData(
+        X509Certificate2 certificate,
+        byte[] signerInfo,
+        HashAlgorithmName digestAlgorithm)
     {
         var writer = new AsnWriter(AsnEncodingRules.DER);
         writer.PushSequence();
         writer.WriteInteger(1);
         writer.PushSetOf();
-        WriteAlgorithmIdentifier(writer, Sha256Oid, includeNullParameter: false);
+        WriteAlgorithmIdentifier(writer, GetDigestOid(digestAlgorithm), includeNullParameter: false);
         writer.PopSetOf();
         writer.PushSequence();
         writer.WriteObjectIdentifier(DataOid);
@@ -218,4 +246,28 @@ internal static class PdfCadesCmsBuilder
 
         writer.PopSequence();
     }
+
+    private static int GetDigestSize(HashAlgorithmName algorithm) => algorithm.Name switch
+    {
+        "SHA256" => SHA256.HashSizeInBytes,
+        "SHA384" => SHA384.HashSizeInBytes,
+        "SHA512" => SHA512.HashSizeInBytes,
+        _ => throw new NotSupportedException($"Digest algorithm '{algorithm.Name}' is not supported.")
+    };
+
+    private static string GetDigestOid(HashAlgorithmName algorithm) => algorithm.Name switch
+    {
+        "SHA256" => Sha256Oid,
+        "SHA384" => Sha384Oid,
+        "SHA512" => Sha512Oid,
+        _ => throw new NotSupportedException($"Digest algorithm '{algorithm.Name}' is not supported.")
+    };
+
+    private static byte[] HashData(HashAlgorithmName algorithm, ReadOnlySpan<byte> value) => algorithm.Name switch
+    {
+        "SHA256" => SHA256.HashData(value),
+        "SHA384" => SHA384.HashData(value),
+        "SHA512" => SHA512.HashData(value),
+        _ => throw new NotSupportedException($"Digest algorithm '{algorithm.Name}' is not supported.")
+    };
 }

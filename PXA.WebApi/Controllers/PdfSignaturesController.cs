@@ -86,11 +86,36 @@ public sealed class PdfSignaturesController(
                 signingKey,
                 new PdfSigningOptions
                 {
+                    CertificateSource = new PdfSigningCertificateSource
+                    {
+                        Kind = PdfSigningCertificateSourceKind.Pkcs12Upload
+                    },
                     Profile = request.Profile,
+                    DigestAlgorithm = request.DigestAlgorithm,
                     FieldName = request.FieldName ?? "Signature1",
                     Reason = request.Reason,
                     Location = request.Location,
                     ContactInfo = request.ContactInfo,
+                    SigningTime = request.SigningTime,
+                    Timestamp = new PdfTimestampPolicy
+                    {
+                        Required = request.Profile is not PdfPadesProfile.BaselineB
+                    },
+                    RevocationData = request.Profile is PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA
+                        ? PdfRevocationDataPolicy.EmbedForLongTermValidation
+                        : PdfRevocationDataPolicy.None,
+                    Validation = new PdfPostSignValidationPolicy
+                    {
+                        RequireRequestedPadesProfile = true
+                    },
+                    Certification = request.Certification,
+                    FieldLock = request.FieldLockAction == PdfSignatureFieldLockAction.None
+                        ? null
+                        : new PdfSignatureFieldLock
+                        {
+                            Action = request.FieldLockAction,
+                            Fields = request.LockedFields ?? []
+                        },
                     LongTermValidationProvider = request.Profile is PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA
                         ? longTermValidationMaterialProvider
                         : null,
@@ -336,6 +361,11 @@ public sealed class PdfSignatureSignRequest
     public string? Reason { get; init; }
     public string? Location { get; init; }
     public string? ContactInfo { get; init; }
+    public DateTimeOffset? SigningTime { get; init; }
+    public PdfSignatureDigestAlgorithm DigestAlgorithm { get; init; } = PdfSignatureDigestAlgorithm.Sha256;
+    public PdfCertificationLevel Certification { get; init; } = PdfCertificationLevel.None;
+    public PdfSignatureFieldLockAction FieldLockAction { get; init; } = PdfSignatureFieldLockAction.None;
+    public string[]? LockedFields { get; init; }
     public bool Visible { get; init; }
     public int? PageNumber { get; init; }
     public double? X { get; init; }

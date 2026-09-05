@@ -394,7 +394,7 @@ allowSignatureInvalidation=false`,
     }
   }
 }`,
-        note: 'Custom anchors are server configuration, never request input. Supplied CRLs and OCSP responses are server-owned configuration as well. NoCheck is the default. Offline uses configured or cached evidence. Online retrieval is disabled by default and accepts only certificate-declared HTTPS CRL and OCSP endpoints whose exact host is allowlisted. Redirects are rejected, responses are bounded, signatures, certificate binding, responder authorization, and validity windows are verified, and certificate-specific cache bytes are protected with ASP.NET Core Data Protection.',
+        note: 'Custom anchors are server configuration, never request input. Supplied CRLs and OCSP responses are server-owned configuration as well. NoCheck is the default. Offline uses configured or cached evidence. Online retrieval is disabled by default and accepts only certificate-declared HTTPS CRL and OCSP endpoints whose exact host is allowlisted. AIA issuer certificates use the same exact-host HTTPS policy. Redirects are rejected, responses are bounded, signatures, certificate binding, responder authorization, and validity windows are verified, and cache bytes are protected with ASP.NET Core Data Protection. Operating-system certificate downloads remain disabled; PXA resolves AIA intermediates only through this controlled provider.',
       },
       {
         title: 'Interpret validation results',
