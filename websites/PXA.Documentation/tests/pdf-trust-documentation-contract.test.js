@@ -83,6 +83,11 @@ test('PDF redaction documentation separates preflight from applied redaction', (
   assert.match(source, /maps marks through each page CropBox and rotation/);
   assert.match(source, /fails closed with 409 and the preflight report/);
   assert.match(source, /rather than written into the redacted document/);
+  assert.match(source, /GET \/api\/pxa\/v1\/pdf\/redactions\/audits\/\{recordSha256\}/);
+  assert.match(source, /append-only tenant evidence/);
+  assert.match(source, /responses are never cached/);
+  assert.match(source, /RFC 3161 authority is configured/);
+  assert.match(source, /timestamp imprint, TSA signature, timestamping EKU/);
   assert.match(source, /original glyph bytes and positions cannot be resolved safely/);
   assert.match(source, /1-, 2-, 4-, 8-, and 16-bit images/);
   assert.match(source, /Attached mask streams are cloned and scrubbed in the same region/);

@@ -571,7 +571,7 @@ if (pdfTrustValidationExample) {
     )
     .replace(
       'The audit record is returned in the PXA-Redaction-Audit and PXA-Redaction-Result-Sha256 response headers rather than written into the redacted document, because the reason and the actor would otherwise be disclosed to everyone who receives a file that was redacted to limit disclosure.',
-      'The response returns the audit-record and result hashes plus signed status rather than writing audit data into the redacted document. Authenticated delivery or persistence of the complete signed record remains required before external audit verification is complete.',
+      'The response returns the audit-record and result hashes, signed and timestamped status, and an authenticated retrieval location rather than writing audit data into the redacted document. PXA persists the complete bounded record as append-only tenant evidence. When an RFC 3161 authority is configured, it timestamps the audit CMS signature and a timestamp failure prevents delivery of the redacted PDF. GET /api/pxa/v1/pdf/redactions/audits/{recordSha256} returns the evidence only within the active organization after rechecking its canonical hash, CMS signature, timestamp imprint, TSA signature, timestamping EKU, and recorded TSA identity; responses are never cached.',
     )
     .replace(
       'any covered image whose reusable pixels cannot yet be purged',

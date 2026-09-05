@@ -96,3 +96,7 @@ silently passed over.
 - [x] Partial removal within bounded grayscale/RGB JPX and embedded JBIG2 images, including
   safe `/JBIG2Globals` resolution, deterministic lossless replacement, and post-write
   sample verification. Unsupported component layouts and malformed codec data fail closed.
+- [x] Append-only tenant persistence and authenticated retrieval of the complete bounded
+  redaction audit record, including integrity verification before delivery.
+- [x] RFC 3161 timestamping for signed audit records, with fail-closed behavior when a
+  configured timestamp authority cannot produce valid evidence.

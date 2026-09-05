@@ -1,8 +1,13 @@
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using PXA.Domain.Entities;
+using PXA.Infrastructure.Persistence;
 using PXA.Importer.Redaction;
 using PXA.Importer.Signing;
 using PXA.Pdf;
@@ -12,8 +17,10 @@ using PXA.WebApi.Services.Pdf;
 
 namespace PXA.Api.Tests;
 
-public sealed class PdfRedactionsControllerTests
+public sealed class PdfRedactionsControllerTests : IDisposable
 {
+    private readonly List<PxaDbContext> contexts = [];
+
     [Fact]
     public async Task Preflight_ReturnsCoverageEvidenceForARegion()
     {
@@ -92,6 +99,130 @@ public sealed class PdfRedactionsControllerTests
         Assert.NotEmpty(file.FileContents);
         Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
         Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString().Length);
+        Assert.StartsWith(
+            "/api/pxa/v1/pdf/redactions/audits/",
+            controller.Response.Headers["PXA-Redaction-Audit-Location"].ToString(),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Apply_PersistsCompleteTenantScopedAuditEvidenceThatCanBeRetrieved()
+    {
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var dbContext = CreateDbContext();
+        using var auditKey = CreateAuditKey();
+        var controller = CreateController(
+            dbContext,
+            new TestTenantContext(userId, organizationId),
+            auditKey);
+
+        var response = await controller.Apply(
+            CreateFile(out _),
+            """[{"pageNumber":1,"x":0,"y":0,"width":1000,"height":1000}]""",
+            "Personal data",
+            CancellationToken.None);
+
+        Assert.IsType<FileContentResult>(response);
+        var stored = Assert.Single(dbContext.AuditEvents);
+        Assert.Equal(organizationId, stored.OrganizationId);
+        Assert.Equal(userId, stored.ActorUserId);
+        Assert.Equal("pdf.redaction.applied", stored.Action);
+        Assert.Equal("pdf-redaction-audit", stored.TargetType);
+        Assert.False(string.IsNullOrWhiteSpace(stored.DetailsJson));
+
+        var retrieved = await controller.GetAudit(stored.TargetId, CancellationToken.None);
+        var ok = Assert.IsType<OkObjectResult>(retrieved.Result);
+        var audit = Assert.IsType<PdfRedactionAuditRecord>(ok.Value);
+        Assert.Equal(stored.TargetId, audit.RecordSha256);
+        Assert.Equal(userId.ToString(), audit.Actor);
+        Assert.Equal("Personal data", audit.Reason);
+        Assert.True(audit.VerificationPassed);
+        Assert.NotNull(audit.Signature);
+        Assert.True(PdfRedactionAuditVerifier.Verify(audit, requireSignature: true));
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+    }
+
+    [Fact]
+    public async Task GetAudit_DoesNotRevealAnotherOrganizationsRecord()
+    {
+        var dbContext = CreateDbContext();
+        var writer = CreateController(
+            dbContext,
+            new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()));
+        await writer.Apply(
+            CreateFile(out _),
+            """[{"pageNumber":1,"x":0,"y":0,"width":1000,"height":1000}]""",
+            null,
+            CancellationToken.None);
+        var recordHash = Assert.Single(dbContext.AuditEvents).TargetId;
+        var otherTenant = CreateController(
+            dbContext,
+            new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()));
+
+        var response = await otherTenant.GetAudit(recordHash, CancellationToken.None);
+
+        AssertProblem(response.Result, StatusCodes.Status404NotFound, "PXAPDFREDACTAPI010");
+    }
+
+    [Fact]
+    public async Task GetAudit_RejectsAnInvalidRecordIdentifier()
+    {
+        var response = await CreateController().GetAudit("not-a-sha256", CancellationToken.None);
+
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI009");
+    }
+
+    [Fact]
+    public async Task GetAudit_FailsClosedWhenStoredEvidenceIsMalformed()
+    {
+        var organizationId = Guid.NewGuid();
+        var hash = new string('a', 64);
+        var dbContext = CreateDbContext();
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = organizationId,
+            Action = "pdf.redaction.applied",
+            TargetType = "pdf-redaction-audit",
+            TargetId = hash,
+            Outcome = "succeeded",
+            DetailsJson = "{\"recordSha256\":\"" + hash + "\"}"
+        });
+        await dbContext.SaveChangesAsync();
+        var controller = CreateController(
+            dbContext,
+            new TestTenantContext(Guid.NewGuid(), organizationId));
+
+        var response = await controller.GetAudit(hash, CancellationToken.None);
+
+        AssertProblem(response.Result, StatusCodes.Status500InternalServerError, "PXAPDFREDACTAPI011");
+    }
+
+    [Fact]
+    public async Task Apply_RejectsAnUnboundedReasonBeforeProcessing()
+    {
+        var response = await CreateController().Apply(
+            CreateFile(out _),
+            """[{"pageNumber":1,"x":0,"y":0,"width":1000,"height":1000}]""",
+            new string('x', 2_001),
+            CancellationToken.None);
+
+        AssertProblem(response, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+    }
+
+    [Fact]
+    public async Task Apply_FailsClosedWhenConfiguredTimestampAuthorityFails()
+    {
+        using var auditKey = CreateAuditKey();
+        var response = await CreateController(
+            auditKey: auditKey,
+            timestampAuthorityFactory: new FailingTimestampAuthorityFactory()).Apply(
+                CreateFile(out _),
+                """[{"pageNumber":1,"x":0,"y":0,"width":1000,"height":1000}]""",
+                null,
+                CancellationToken.None);
+
+        AssertProblem(response, StatusCodes.Status503ServiceUnavailable, "PXAPDFREDACTAPI012");
     }
 
     [Fact]
@@ -155,13 +286,64 @@ public sealed class PdfRedactionsControllerTests
             PxaDesignerPermissions.PdfRedactionsInspect,
             PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/redactions/preflight", HttpMethods.Post));
 
-    private static PdfRedactionsController CreateController()
+    [Fact]
+    public void AuditRetrieval_ResolvesToTheRedactionInspectPermission() =>
+        Assert.Equal(
+            PxaDesignerPermissions.PdfRedactionsInspect,
+            PxaDesignerPermissionResolver.Resolve(
+                $"/api/pxa/v1/pdf/redactions/audits/{new string('a', 64)}",
+                HttpMethods.Get));
+
+    private PdfRedactionsController CreateController(
+        PxaDbContext? dbContext = null,
+        IPxaTenantContext? tenantContext = null,
+        IPdfSigningKey? auditKey = null,
+        IPxaPdfTimestampAuthorityFactory? timestampAuthorityFactory = null)
     {
         var preflight = new PdfRedactionPreflight();
-        return new PdfRedactionsController(preflight, new PdfRedactionApplier(preflight), new TestAuditKeyProvider())
+        return new PdfRedactionsController(
+            preflight,
+            new PdfRedactionApplier(preflight),
+            new TestAuditKeyProvider(auditKey),
+            timestampAuthorityFactory ?? new EmptyTimestampAuthorityFactory(),
+            dbContext ?? CreateDbContext(),
+            tenantContext ?? new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()))
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
+    }
+
+    private PxaDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<PxaDbContext>()
+            .UseInMemoryDatabase($"pdf-redaction-audit-{Guid.NewGuid():N}")
+            .Options;
+        var context = new PxaDbContext(options);
+        contexts.Add(context);
+        return context;
+    }
+
+    private static PdfPkcs12SigningKey CreateAuditKey()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=PXA Redaction Audit API Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        var now = DateTimeOffset.UtcNow;
+        using var certificate = request.CreateSelfSigned(now.AddDays(-1), now.AddDays(2));
+        return new PdfPkcs12SigningKey(
+            certificate.Export(X509ContentType.Pkcs12, "test-password"),
+            "test-password");
+    }
+
+    public void Dispose()
+    {
+        foreach (var context in contexts)
+        {
+            context.Dispose();
+        }
     }
 
     private static IFormFile CreateFile(out byte[] bytes)
@@ -188,4 +370,27 @@ public sealed class PdfRedactionsControllerTests
     {
         public IPdfSigningKey? Key { get; } = key;
     }
+
+    private sealed class EmptyTimestampAuthorityFactory : IPxaPdfTimestampAuthorityFactory
+    {
+        public IPdfTimestampAuthority? Create() => null;
+    }
+
+    private sealed class FailingTimestampAuthorityFactory : IPxaPdfTimestampAuthorityFactory
+    {
+        public IPdfTimestampAuthority? Create() => new FailingTimestampAuthority();
+    }
+
+    private sealed class FailingTimestampAuthority : IPdfTimestampAuthority
+    {
+        public Task<PdfTimestampToken> GetTimestampTokenAsync(
+            ReadOnlyMemory<byte> signatureDigest,
+            HashAlgorithmName digestAlgorithm,
+            CancellationToken cancellationToken = default) =>
+            throw new PdfTimestampAuthorityException(
+                "Timestamp service unavailable.",
+                new HttpRequestException("Synthetic test failure."));
+    }
+
+    private sealed record TestTenantContext(Guid? UserId, Guid? OrganizationId) : IPxaTenantContext;
 }

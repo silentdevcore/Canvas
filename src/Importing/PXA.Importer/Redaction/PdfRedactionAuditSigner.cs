@@ -15,7 +15,11 @@ namespace PXA.Importer.Redaction;
 /// </summary>
 internal static class PdfRedactionAuditSigner
 {
-    public static PdfRedactionAuditSignature? Sign(string recordSha256, IPdfSigningKey? key)
+    public static async Task<PdfRedactionAuditSignature?> SignAsync(
+        string recordSha256,
+        IPdfSigningKey? key,
+        IPdfTimestampAuthority? timestampAuthority,
+        CancellationToken cancellationToken)
     {
         if (key is null)
         {
@@ -28,14 +32,24 @@ internal static class PdfRedactionAuditSigner
         // The CMS builder expects a SHA-256 digest; hashing the canonical hash string binds
         // the signature to exactly the value the record publishes.
         var digest = SHA256.HashData(Encoding.ASCII.GetBytes(recordSha256));
-        var cms = PdfCadesCmsBuilder.CreateDetached(digest, key, signedAt);
+        var cms = timestampAuthority is null
+            ? PdfCadesCmsBuilder.CreateDetached(digest, key, signedAt)
+            : await PdfCadesCmsBuilder.CreateDetachedWithTimestampAsync(
+                digest,
+                key,
+                signedAt,
+                timestampAuthority,
+                cancellationToken).ConfigureAwait(false);
         var certificate = key.Certificate;
         return new PdfRedactionAuditSignature(
             "CMS/SHA-256",
             certificate.Subject,
             certificate.Thumbprint,
             signedAt,
-            Convert.ToBase64String(cms.Cms));
+            Convert.ToBase64String(cms.Cms),
+            cms.TimestampToken?.Timestamp,
+            cms.TimestampToken?.AuthoritySubject,
+            cms.TimestampToken?.AuthorityThumbprint);
     }
 
     /// <summary>

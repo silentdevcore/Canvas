@@ -45,6 +45,13 @@ public sealed record PdfRedactionApplyOptions
     /// prove origin.
     /// </summary>
     public IPdfSigningKey? AuditSigningKey { get; init; }
+
+    /// <summary>
+    /// Optional trusted RFC 3161 authority used to timestamp the audit signature. A
+    /// configured authority is fail-closed: the redacted document is not returned when a
+    /// valid token cannot be obtained.
+    /// </summary>
+    public IPdfTimestampAuthority? AuditTimestampAuthority { get; init; }
 }
 
 public sealed record PdfRedactionVerificationReport(
@@ -81,7 +88,10 @@ public sealed record PdfRedactionAuditSignature(
     string SignerSubject,
     string SignerThumbprint,
     DateTimeOffset SignedAt,
-    string Cms);
+    string Cms,
+    DateTimeOffset? TimestampTime = null,
+    string? TimestampAuthoritySubject = null,
+    string? TimestampAuthorityThumbprint = null);
 
 public sealed record PdfRedactionApplyResult(
     byte[] Bytes,

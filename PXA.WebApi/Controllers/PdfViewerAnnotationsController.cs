@@ -1,5 +1,6 @@
 using System.Text.Json;
 using PXA.Importer.Redaction;
+using PXA.Importer.Signing;
 using PXA.WebApi.Services;
 using PXA.WebApi.Services.Pdf;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
     private readonly IPdfRedactionApplier _redactionApplier;
     private readonly PdfViewerRedactionRegionMapper _redactionRegions;
     private readonly IPxaRedactionAuditKeyProvider _auditKeyProvider;
+    private readonly IPxaPdfTimestampAuthorityFactory _timestampAuthorityFactory;
 
     public PdfViewerAnnotationsController(
         PdfViewerAnnotationStore store,
@@ -26,7 +28,8 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         IPdfRedactionPreflight redactionPreflight,
         IPdfRedactionApplier redactionApplier,
         PdfViewerRedactionRegionMapper redactionRegions,
-        IPxaRedactionAuditKeyProvider auditKeyProvider)
+        IPxaRedactionAuditKeyProvider auditKeyProvider,
+        IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory)
     {
         _store = store;
         _flatteningService = flatteningService;
@@ -35,6 +38,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         _redactionApplier = redactionApplier;
         _redactionRegions = redactionRegions;
         _auditKeyProvider = auditKeyProvider;
+        _timestampAuthorityFactory = timestampAuthorityFactory;
     }
 
     [HttpPost]
@@ -190,7 +194,8 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
                 {
                     Reason = reason,
                     Actor = User.Identity?.Name,
-                    AuditSigningKey = _auditKeyProvider.Key
+                    AuditSigningKey = _auditKeyProvider.Key,
+                    AuditTimestampAuthority = _timestampAuthorityFactory.Create()
                 },
                 cancellationToken);
 
@@ -208,6 +213,8 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
             Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;
             Response.Headers["PXA-Redaction-Audit-Signed"] =
                 result.Audit.Signature is null ? "false" : "true";
+            Response.Headers["PXA-Redaction-Audit-Timestamped"] =
+                result.Audit.Signature?.TimestampTime is null ? "false" : "true";
             var safeName = Path.GetFileNameWithoutExtension(file!.FileName);
             return File(result.Bytes, "application/pdf", $"{safeName}-redacted.pdf");
         }
@@ -218,6 +225,14 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
                 error = ex.Message,
                 code = "PXAPDFREDACTVIEWER001",
                 preflight = ex.Preflight
+            });
+        }
+        catch (Exception ex) when (ex is PdfTimestampAuthorityException or System.Security.Cryptography.CryptographicException)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                error = "The redaction audit signature could not be timestamped, so no file was produced.",
+                code = "PXAPDFREDACTVIEWER003"
             });
         }
     }

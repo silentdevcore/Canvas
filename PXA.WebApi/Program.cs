@@ -505,6 +505,15 @@ builder.Services.AddCors(options =>
                   "http://localhost:4173")
               .AllowAnyHeader()
               .AllowAnyMethod()
+              .WithExposedHeaders(
+                  "Content-Disposition",
+                  "Link",
+                  "PXA-Redaction-Audit",
+                  "PXA-Redaction-Audit-Location",
+                  "PXA-Redaction-Audit-Signed",
+                  "PXA-Redaction-Audit-Signer",
+                  "PXA-Redaction-Audit-Timestamped",
+                  "PXA-Redaction-Result-Sha256")
               .AllowCredentials());
 });
 

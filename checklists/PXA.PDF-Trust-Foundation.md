@@ -382,9 +382,14 @@ Reference material:
       rather than implying provenance that is not there.
     - [x] Fail startup when an audit key is explicitly configured but missing or invalid;
       do not silently downgrade that deployment to unsigned records.
-    - [ ] Persist or return the complete signed audit record through an authenticated,
-      bounded API; the binary download currently exposes hashes and signed status only.
-    - [ ] Timestamp the audit signature so its validity survives certificate expiry.
+    - [x] Persist and return the complete signed audit record through an authenticated,
+      bounded API. Apply stores append-only tenant evidence, returns its retrieval location,
+      and `GET /api/pxa/v1/pdf/redactions/audits/{recordSha256}` verifies size, canonical
+      hash, CMS signature when present, and tenant ownership before returning the record.
+    - [x] Timestamp the audit signature so its validity survives certificate expiry.
+      The configured RFC 3161 authority timestamps the CMS signature value; verification
+      checks the token imprint, TSA signature, exclusive timestamping EKU, timestamp, and
+      recorded TSA identity. A configured TSA failure returns no redacted document.
 - [x] Replace the current importer-supported redaction claim with capability-specific
   evidence and retain `reviewRequired` for unsupported structures.
   - [x] Report `removable`, `reviewRequired`, or `unsupported` per region and for the

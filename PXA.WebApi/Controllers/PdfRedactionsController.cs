@@ -1,9 +1,15 @@
+using System.Text;
 using System.Text.Json;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using PXA.Domain.Entities;
+using PXA.Infrastructure.Persistence;
 using PXA.Importer.Graphics;
 using PXA.Importer.Redaction;
+using PXA.Importer.Signing;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Pdf;
 
@@ -16,9 +22,16 @@ namespace PXA.WebApi.Controllers;
 public sealed class PdfRedactionsController(
     IPdfRedactionPreflight preflight,
     IPdfRedactionApplier applier,
-    IPxaRedactionAuditKeyProvider auditKeyProvider) : ControllerBase
+    IPxaRedactionAuditKeyProvider auditKeyProvider,
+    IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory,
+    PxaDbContext dbContext,
+    IPxaTenantContext tenantContext) : ControllerBase
 {
     private const long MaximumUploadBytes = PdfRedactionPreflightOptions.DefaultMaximumFileSizeBytes;
+    private const int MaximumReasonCharacters = 2_000;
+    private const int MaximumAuditRecordBytes = 256 * 1024;
+    private const string AuditTargetType = "pdf-redaction-audit";
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>
     /// Reports what an applied redaction would remove and what PXA cannot account for.
@@ -101,6 +114,15 @@ public sealed class PdfRedactionsController(
         [FromForm] string? reason,
         CancellationToken cancellationToken)
     {
+        if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Organization context required",
+                detail: "An active organization and authenticated user are required to retain redaction evidence.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI008" });
+        }
+
         if (file is null || file.Length == 0)
         {
             return ProblemFor("A PDF file is required", "Upload a non-empty PDF in the 'file' multipart field.", "PXAPDFREDACTAPI001");
@@ -119,6 +141,13 @@ public sealed class PdfRedactionsController(
         {
             return ProblemFor("The redaction regions are invalid", regionError, "PXAPDFREDACTAPI004");
         }
+        if (reason?.Length > MaximumReasonCharacters)
+        {
+            return ProblemFor(
+                "The redaction reason is too long",
+                $"The reason may contain at most {MaximumReasonCharacters} characters.",
+                "PXAPDFREDACTAPI004");
+        }
 
         try
         {
@@ -129,8 +158,9 @@ public sealed class PdfRedactionsController(
                 new PdfRedactionApplyOptions
                 {
                     Reason = reason,
-                    Actor = User.Identity?.Name,
-                    AuditSigningKey = auditKeyProvider.Key
+                    Actor = actorUserId.ToString(),
+                    AuditSigningKey = auditKeyProvider.Key,
+                    AuditTimestampAuthority = timestampAuthorityFactory.Create()
                 },
                 cancellationToken);
 
@@ -147,15 +177,43 @@ public sealed class PdfRedactionsController(
                     });
             }
 
+            var auditJson = JsonSerializer.Serialize(result.Audit, JsonOptions);
+            if (Encoding.UTF8.GetByteCount(auditJson) > MaximumAuditRecordBytes)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    title: "The redaction audit record exceeds its safety limit",
+                    detail: "The redacted PDF was not returned because its complete audit evidence could not be retained safely.",
+                    extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+            }
+
+            dbContext.AuditEvents.Add(new AuditEvent
+            {
+                OrganizationId = organizationId,
+                ActorUserId = actorUserId,
+                Action = "pdf.redaction.applied",
+                TargetType = AuditTargetType,
+                TargetId = result.Audit.RecordSha256,
+                Outcome = "succeeded",
+                DetailsJson = auditJson,
+                CreatedAt = result.Audit.AppliedAt
+            });
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             Response.Headers["PXA-Redaction-Audit"] = result.Audit.RecordSha256;
             Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;
             // States plainly whether the record carries provenance or only tamper evidence.
             Response.Headers["PXA-Redaction-Audit-Signed"] =
                 result.Audit.Signature is null ? "false" : "true";
+            Response.Headers["PXA-Redaction-Audit-Timestamped"] =
+                result.Audit.Signature?.TimestampTime is null ? "false" : "true";
             if (result.Audit.Signature is { } signature)
             {
                 Response.Headers["PXA-Redaction-Audit-Signer"] = signature.SignerThumbprint;
             }
+            var auditLocation = $"/api/pxa/v1/pdf/redactions/audits/{result.Audit.RecordSha256}";
+            Response.Headers["PXA-Redaction-Audit-Location"] = auditLocation;
+            Response.Headers.Append("Link", $"<{auditLocation}>; rel=\"redaction-audit\"");
             return File(result.Bytes, "application/pdf", "redacted.pdf");
         }
         catch (PdfRedactionBlockedException exception)
@@ -174,6 +232,92 @@ public sealed class PdfRedactionsController(
         {
             return ProblemFor("The redaction request is invalid", exception.Message, "PXAPDFREDACTAPI004");
         }
+        catch (DbUpdateException)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "The redaction audit record could not be retained",
+                detail: "The redacted PDF was not returned because its audit evidence could not be stored.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+        }
+        catch (Exception exception) when (exception is PdfTimestampAuthorityException or CryptographicException)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "The redaction audit signature could not be timestamped",
+                detail: "The redacted PDF was not returned because the configured timestamp authority did not produce valid audit evidence.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI012" });
+        }
+    }
+
+    /// <summary>
+    /// Returns the complete immutable audit evidence for an applied redaction. The lookup is
+    /// restricted to the active organization and never falls back to another tenant.
+    /// </summary>
+    [HttpGet("audits/{recordSha256}")]
+    [ProducesResponseType(typeof(PdfRedactionAuditRecord), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PdfRedactionAuditRecord>> GetAudit(
+        string recordSha256,
+        CancellationToken cancellationToken)
+    {
+        if (tenantContext.OrganizationId is not { } organizationId)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Organization context required",
+                detail: "Select an active organization before reading redaction evidence.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI008" });
+        }
+        if (!IsSha256(recordSha256))
+        {
+            return ProblemFor(
+                "The redaction audit identifier is invalid",
+                "Use the 64-character SHA-256 identifier returned by the apply operation.",
+                "PXAPDFREDACTAPI009");
+        }
+
+        var normalizedHash = recordSha256.ToLowerInvariant();
+        var auditJson = await dbContext.AuditEvents.AsNoTracking()
+            .Where(value => value.OrganizationId == organizationId &&
+                            value.TargetType == AuditTargetType &&
+                            value.TargetId == normalizedHash &&
+                            value.Outcome == "succeeded")
+            .Select(value => value.DetailsJson)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(auditJson))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Redaction audit record not found",
+                detail: "No redaction audit record with that identifier exists in the active organization.",
+                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI010" });
+        }
+        if (Encoding.UTF8.GetByteCount(auditJson) > MaximumAuditRecordBytes)
+        {
+            return AuditRecordUnavailable();
+        }
+
+        PdfRedactionAuditRecord? audit;
+        try
+        {
+            audit = JsonSerializer.Deserialize<PdfRedactionAuditRecord>(auditJson, JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return AuditRecordUnavailable();
+        }
+        if (audit is null ||
+            !string.Equals(audit.RecordSha256, normalizedHash, StringComparison.Ordinal) ||
+            !PdfRedactionAuditVerifier.Verify(audit))
+        {
+            return AuditRecordUnavailable();
+        }
+
+        Response.Headers.CacheControl = "no-store";
+        return Ok(audit);
     }
 
     private static bool TryReadRegions(
@@ -239,6 +383,16 @@ public sealed class PdfRedactionsController(
             title: title,
             detail: detail,
             extensions: new Dictionary<string, object?> { ["code"] = code });
+
+    private ObjectResult AuditRecordUnavailable() => Problem(
+        statusCode: StatusCodes.Status500InternalServerError,
+        title: "The redaction audit record is unavailable",
+        detail: "The stored audit evidence did not pass its integrity and size checks.",
+        extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+
+    private static bool IsSha256(string value) =>
+        value.Length == 64 && value.All(static character =>
+            character is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F');
 
     private sealed record RegionRequest(int PageNumber, double X, double Y, double Width, double Height);
 }

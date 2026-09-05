@@ -158,7 +158,14 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             new PdfFullRewriteOptions { AllowSignatureInvalidation = true });
 
         var verification = Verify(rewritten.Bytes, regionsByPage, removedText, cancellationToken);
-        var audit = CreateAuditRecord(source, rewritten.Bytes, regions, appliedSanitizations, verification, options);
+        var audit = await CreateAuditRecordAsync(
+            source,
+            rewritten.Bytes,
+            regions,
+            appliedSanitizations,
+            verification,
+            options,
+            cancellationToken).ConfigureAwait(false);
         return new PdfRedactionApplyResult(
             rewritten.Bytes,
             report,
@@ -843,13 +850,14 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         return regions.Any(region => PdfRedactionGeometry.Classify(bounds, region) != PdfRedactionCoverage.None) ? 1 : 0;
     }
 
-    private static PdfRedactionAuditRecord CreateAuditRecord(
+    private static async Task<PdfRedactionAuditRecord> CreateAuditRecordAsync(
         byte[] source,
         byte[] result,
         IReadOnlyList<PdfRedactionRegion> regions,
         IReadOnlyList<string> appliedSanitizations,
         PdfRedactionVerificationReport verification,
-        PdfRedactionApplyOptions options)
+        PdfRedactionApplyOptions options,
+        CancellationToken cancellationToken)
     {
         var sourceSha = Convert.ToHexStringLower(SHA256.HashData(source));
         var resultSha = Convert.ToHexStringLower(SHA256.HashData(result));
@@ -874,7 +882,11 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             appliedSanitizations,
             verification.Passed,
             recordSha,
-            PdfRedactionAuditSigner.Sign(recordSha, options.AuditSigningKey));
+            await PdfRedactionAuditSigner.SignAsync(
+                recordSha,
+                options.AuditSigningKey,
+                options.AuditTimestampAuthority,
+                cancellationToken).ConfigureAwait(false));
     }
 
     private static PdfDictionary Clone(PdfDictionary source) =>

@@ -136,7 +136,8 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
             preflight,
             new PdfRedactionApplier(preflight),
             new PdfViewerRedactionRegionMapper(),
-            new TestAuditKeyProvider())
+            new TestAuditKeyProvider(),
+            new EmptyTimestampAuthorityFactory())
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -187,5 +188,10 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
     private sealed class TestAuditKeyProvider(IPdfSigningKey? key = null) : IPxaRedactionAuditKeyProvider
     {
         public IPdfSigningKey? Key { get; } = key;
+    }
+
+    private sealed class EmptyTimestampAuthorityFactory : IPxaPdfTimestampAuthorityFactory
+    {
+        public IPdfTimestampAuthority? Create() => null;
     }
 }
