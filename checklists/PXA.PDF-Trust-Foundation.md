@@ -346,7 +346,7 @@ Reference material:
     source and result hashes.
   - [x] Add a verify stage that reparses the result and fails the operation rather than
     returning an unverified file.
-- [ ] Verify that removed text cannot be extracted, searched, copied, recovered from
+- [x] Verify that removed text cannot be extracted, searched, copied, recovered from
   objects, or revealed by disabling overlays/layers.
   - [x] Reparse the result, re-run region intersection, and re-extract text inside every
     redacted region without treating an equal, legitimate string elsewhere as residue.
@@ -361,9 +361,13 @@ Reference material:
     - [x] Do not use global raw-string equality as proof of residue: PDF encodings can hide
       matching text and an equal string outside the region is not a redaction failure.
     - [x] Prove each check fires on a result that still carries the residue it looks for.
-  - [ ] Add an independently maintained recovery corpus for encoded glyphs, compressed and
+  - [x] Add an independently maintained recovery corpus for encoded glyphs, compressed and
     malformed streams, reusable resources, images, and external extraction tools before
     making a broad no-recovery claim.
+    - [x] Commit immutable Chrome and LibreOffice fixtures with reviewed source files,
+      producer versions, expected outcomes, and SHA-256 hashes. Encoded clipping groups,
+      reusable resources, and malformed Flate payloads fail closed instead of producing a
+      redacted file.
     - [x] Add an opt-in synthetic recovery harness that checks partial glyph redaction and
       masked-image redaction through Poppler `pdftotext`, Poppler `pdfimages`, and POSIX
       `strings`, independently of the PXA parser.

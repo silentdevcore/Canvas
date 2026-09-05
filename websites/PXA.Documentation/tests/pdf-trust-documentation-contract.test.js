@@ -97,6 +97,9 @@ test('PDF redaction documentation separates preflight from applied redaction', (
   assert.match(source, /bounded grayscale\/RGB JPX and embedded JBIG2 streams/i);
   assert.match(source, /validates dimensions, segment boundaries, and JBIG2Globals/);
   assert.match(source, /pdftotext, pdfimages, and strings/);
+  assert.match(source, /independently maintained recovery corpus/);
+  assert.match(source, /Chrome and LibreOffice PDFs by SHA-256/);
+  assert.match(source, /no-recovery guarantee applies only to the documented supported corpus/);
 });
 
 test('PDF encryption documentation states the implemented revision and its limits', () => {

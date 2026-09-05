@@ -9,7 +9,7 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA strengthens irreversible PDF redaction with nested carrier sanitization, RFC 3161-timestamped audit verification, authenticated tenant-scoped audit retrieval, region-bound verification, and stale-preflight protection in the Viewer.",
+  "summary": "PXA strengthens irreversible PDF redaction with timestamped audit evidence, tenant-scoped retrieval, region-bound verification, stale-preflight protection, and a hash-pinned external recovery corpus that verifies supported output and fail-closed boundaries.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

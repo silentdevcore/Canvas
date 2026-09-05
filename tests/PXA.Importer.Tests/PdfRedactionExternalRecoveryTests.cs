@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using PXA.Importer.Content;
 using PXA.Importer.Document;
 using PXA.Importer.Graphics;
@@ -19,13 +21,78 @@ public sealed class PdfRedactionExternalRecoveryTests
     private const string MaskSecret = "PXA-RECOVERY-MASK-91AF30";
 
     [Fact]
+    public async Task CommittedCorpus_ShouldMatchItsManifestAndSources()
+    {
+        var (root, manifest) = await ReadCorpusAsync();
+
+        Assert.Equal(1, manifest.SchemaVersion);
+        Assert.Equal(3, manifest.Fixtures.Count);
+        Assert.Equal(manifest.Fixtures.Count, manifest.Fixtures.Select(item => item.Id).Distinct().Count());
+        foreach (var fixture in manifest.Fixtures)
+        {
+            var pdfPath = Path.Combine(root, fixture.File);
+            var sourcePath = Path.Combine(root, fixture.Source);
+            Assert.True(File.Exists(pdfPath), $"Missing corpus PDF: {fixture.File}");
+            Assert.True(File.Exists(sourcePath), $"Missing corpus source: {fixture.Source}");
+            Assert.False(string.IsNullOrWhiteSpace(fixture.Producer));
+            Assert.Equal(
+                fixture.Sha256,
+                Convert.ToHexStringLower(SHA256.HashData(await File.ReadAllBytesAsync(pdfPath))));
+            Assert.Contains(fixture.Expectation, new[] { "redact", "block" });
+        }
+    }
+
+    [Theory]
+    [InlineData("chromium-encoded-glyphs")]
+    [InlineData("libreoffice-reusable-resources")]
+    [InlineData("malformed-compressed-stream")]
+    [Trait("Category", "ExternalPdfTools")]
+    public async Task CommittedCorpus_ShouldEitherResistRecoveryOrFailClosed(string fixtureId)
+    {
+        if (!ExternalRecoveryEnabled())
+        {
+            return;
+        }
+
+        var pdftotext = RequireTool("pdftotext");
+        var pdfimages = RequireTool("pdfimages");
+        var strings = RequireTool("strings");
+        var (root, manifest) = await ReadCorpusAsync();
+        var directory = Path.Combine(Path.GetTempPath(), $"pxa-redaction-corpus-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var fixture = Assert.Single(manifest.Fixtures, item => item.Id == fixtureId);
+            var source = await File.ReadAllBytesAsync(Path.Combine(root, fixture.File));
+            if (fixture.Expectation == "block")
+            {
+                await AssertBlockedAsync(source, fixture.Region, fixture.Id);
+                return;
+            }
+
+            var result = await RedactFixtureTextAsync(source, Assert.IsType<CorpusRegion>(fixture.Region));
+            var outputPath = Path.Combine(directory, $"{fixture.Id}-redacted.pdf");
+            await File.WriteAllBytesAsync(outputPath, result.Bytes);
+            var extractedText = Run(pdftotext, [outputPath, "-"]).StandardOutput;
+            Assert.DoesNotContain(fixture.Secret!, extractedText, StringComparison.Ordinal);
+            Assert.Contains(fixture.ControlText!, extractedText, StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                fixture.Secret!,
+                Run(strings, [outputPath]).StandardOutput,
+                StringComparison.Ordinal);
+            Run(pdfimages, ["-list", outputPath]);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
     [Trait("Category", "ExternalPdfTools")]
     public async Task AppliedRedaction_ShouldNotBeRecoverableWithPopplerOrStrings()
     {
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable("PXA_RUN_PDF_RECOVERY_TESTS"),
-                "1",
-                StringComparison.Ordinal))
+        if (!ExternalRecoveryEnabled())
         {
             return;
         }
@@ -69,6 +136,62 @@ public sealed class PdfRedactionExternalRecoveryTests
         {
             Directory.Delete(directory, recursive: true);
         }
+    }
+
+    private static bool ExternalRecoveryEnabled() => string.Equals(
+        Environment.GetEnvironmentVariable("PXA_RUN_PDF_RECOVERY_TESTS"),
+        "1",
+        StringComparison.Ordinal);
+
+    private static async Task<(string Root, CorpusManifest Manifest)> ReadCorpusAsync()
+    {
+        var root = Path.Combine(AppContext.BaseDirectory, "Fixtures", "RedactionRecovery");
+        var json = await File.ReadAllTextAsync(Path.Combine(root, "corpus.json"));
+        var manifest = JsonSerializer.Deserialize<CorpusManifest>(
+            json,
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        return (root, Assert.IsType<CorpusManifest>(manifest));
+    }
+
+    private static async Task<PdfRedactionApplyResult> RedactFixtureTextAsync(
+        byte[] source,
+        CorpusRegion region)
+    {
+        await using var stream = new MemoryStream(source, writable: false);
+        return await new PdfRedactionApplier(new PdfRedactionPreflight()).ApplyAsync(
+            stream,
+            [new PdfRedactionRegion(region.PageNumber, new PdfRectangle(
+                region.X,
+                region.Y,
+                region.Width,
+                region.Height))]);
+    }
+
+    private static async Task AssertBlockedAsync(
+        byte[] source,
+        CorpusRegion? configuredRegion,
+        string fixtureId)
+    {
+        await using var preflightStream = new MemoryStream(source, writable: false);
+        var preflight = new PdfRedactionPreflight();
+        var region = configuredRegion is null
+            ? new PdfRedactionRegion(1, new PdfRectangle(0, 0, 1000, 1000))
+            : new PdfRedactionRegion(configuredRegion.PageNumber, new PdfRectangle(
+                configuredRegion.X,
+                configuredRegion.Y,
+                configuredRegion.Width,
+                configuredRegion.Height));
+        var report = await preflight.PreflightAsync(preflightStream, [region]);
+        Assert.True(
+            report.Capability is PdfRedactionCapability.ReviewRequired or PdfRedactionCapability.Unsupported,
+            $"Corpus fixture '{fixtureId}' unexpectedly reported removable.");
+
+        await using var applyStream = new MemoryStream(source, writable: false);
+        var exception = await Record.ExceptionAsync(() =>
+            new PdfRedactionApplier(preflight).ApplyAsync(applyStream, [region]));
+        Assert.True(
+            exception is PdfRedactionBlockedException,
+            $"Corpus fixture '{fixtureId}' did not fail closed; actual exception: {exception?.GetType().Name ?? "none"}.");
     }
 
     private static async Task<PdfRedactionApplyResult> RedactTextAsync()
@@ -191,4 +314,24 @@ public sealed class PdfRedactionExternalRecoveryTests
     }
 
     private sealed record ProcessResult(string StandardOutput, string StandardError);
+
+    private sealed record CorpusManifest(int SchemaVersion, IReadOnlyList<CorpusFixture> Fixtures);
+
+    private sealed record CorpusFixture(
+        string Id,
+        string File,
+        string Sha256,
+        string Producer,
+        string Source,
+        string Expectation,
+        string? Secret,
+        string? ControlText,
+        CorpusRegion? Region);
+
+    private sealed record CorpusRegion(
+        int PageNumber,
+        double X,
+        double Y,
+        double Width,
+        double Height);
 }

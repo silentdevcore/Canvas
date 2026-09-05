@@ -100,3 +100,7 @@ silently passed over.
   redaction audit record, including integrity verification before delivery.
 - [x] RFC 3161 timestamping for signed audit records, with fail-closed behavior when a
   configured timestamp authority cannot produce valid evidence.
+- [x] Immutable external recovery corpus with Chrome and LibreOffice provenance, SHA-256
+  pinning, malformed-Flate coverage, and separate Poppler and POSIX recovery checks. The
+  documented guarantee remains limited to supported inputs; unresolved clipping and
+  reusable-resource cases fail closed.
