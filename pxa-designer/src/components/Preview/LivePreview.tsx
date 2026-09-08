@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiCheck, FiChevronDown, FiDownload, FiExternalLink, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
-import ExportService from '../../services/ExportService';
+import ExportService, { DesignerAccessibilityPreflightError } from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
 import { normalizePageSettings } from '@/store';
@@ -214,7 +214,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       setTimeout(() => setExportDone(null), 2500);
     } catch (err) {
       setExportingFormat(null);
-      setExportError(err instanceof Error ? err.message : t('exportFailed'));
+      setExportError(err instanceof DesignerAccessibilityPreflightError
+        ? t('editor:accessibility.exportBlocked')
+        : err instanceof Error ? err.message : t('exportFailed'));
     } finally {
       exportLockRef.current = false;
     }

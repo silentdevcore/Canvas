@@ -32,14 +32,19 @@ internal sealed class PdfWriter
             throw new PdfComplianceException(compliance);
         }
 
+        var accessibility = PdfAccessibilityPreflight.Validate(document, options);
+        if (!accessibility.IsValid)
+            throw new PdfAccessibilityException(accessibility);
+
         var isPdfA = options.ComplianceProfile is PdfComplianceProfile.PdfA2B or PdfComplianceProfile.PdfA3B;
+        var isPdfUa = options.AccessibilityProfile == PdfAccessibilityProfile.PdfUa1;
         var pdfAPart = options.ComplianceProfile == PdfComplianceProfile.PdfA3B ? 3 : 2;
 
         var nextObjectId = 1;
         var catalogObjectId = nextObjectId++;
         var pagesObjectId = nextObjectId++;
         var infoObjectId = document.Info.HasValues ? nextObjectId++ : (int?)null;
-        var metadataObjectId = isPdfA ? nextObjectId++ : (int?)null;
+        var metadataObjectId = isPdfA || isPdfUa ? nextObjectId++ : (int?)null;
         var outputIntentObjectId = isPdfA ? nextObjectId++ : (int?)null;
         var iccProfileObjectId = isPdfA ? nextObjectId++ : (int?)null;
 
@@ -282,6 +287,59 @@ internal sealed class PdfWriter
             pageObjects.Add(pageObjectIds[i]);
         }
 
+        var nextStructureParentKey = pageCount;
+        var accessibleAnnotations = new List<AccessibleAnnotationReference>();
+        if (isPdfUa)
+        {
+            for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
+            {
+                RegisterAnnotations(document.Pages[pageIndex].LinkAnnotations, pageAnnotationObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].ComboBoxAnnotations, pageComboAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].MultilineTextFields, pageMultilineAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].TextFields, pageTextFieldAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].CheckBoxAnnotations, pageCheckBoxAnnotObjectIds[pageIndex], pageIndex);
+            }
+        }
+
+        void RegisterAnnotations<T>(IReadOnlyList<T> annotations, IReadOnlyList<int> objectIds, int pageIndex)
+            where T : IPdfAccessibleAnnotation
+        {
+            for (var annotationIndex = 0; annotationIndex < annotations.Count; annotationIndex++)
+            {
+                var annotation = annotations[annotationIndex];
+                if (annotation.Accessibility is null)
+                    continue;
+                accessibleAnnotations.Add(new AccessibleAnnotationReference(
+                    pageIndex, annotation, objectIds[annotationIndex], nextStructureParentKey++));
+            }
+        }
+        var accessibleAnnotationMap = accessibleAnnotations.ToDictionary(
+            reference => reference.Annotation,
+            (IEqualityComparer<IPdfAccessibleAnnotation>)ReferenceEqualityComparer.Instance);
+
+        var structureTreeRootObjectId = isPdfUa ? nextObjectId++ : (int?)null;
+        var parentTreeObjectId = isPdfUa ? nextObjectId++ : (int?)null;
+        var documentStructureObjectId = isPdfUa ? nextObjectId++ : (int?)null;
+        var structureObjectIds = new Dictionary<PdfAccessibilityProperties, int>(ReferenceEqualityComparer.Instance);
+        var pageMarkedContentIds = new Dictionary<PdfPageElement, int>[pageCount];
+        for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
+        {
+            var markedContentIds = new Dictionary<PdfPageElement, int>(ReferenceEqualityComparer.Instance);
+            var markedContentId = 0;
+            foreach (var semantic in document.Pages[pageIndex].SemanticElements)
+            {
+                if (!structureObjectIds.ContainsKey(semantic))
+                    structureObjectIds[semantic] = nextObjectId++;
+            }
+            foreach (var element in document.Pages[pageIndex].Elements.Where(element => element.Accessibility is not null))
+            {
+                markedContentIds[element] = markedContentId++;
+                if (!structureObjectIds.ContainsKey(element.Accessibility!))
+                    structureObjectIds[element.Accessibility!] = nextObjectId++;
+            }
+            pageMarkedContentIds[pageIndex] = markedContentIds;
+        }
+
         var outlinesRootObjectId = document.Bookmarks.Count > 0 ? nextObjectId++ : (int?)null;
         var bookmarkObjectIds = new List<int>();
 
@@ -347,7 +405,8 @@ internal sealed class PdfWriter
                 opacity => opacityObjects[opacity].ResourceName);
 
             var contentStream = PdfPageContentRenderer.RenderPage(
-                page, pageFontResources, pageImageResources, pageOpacityResources, pageEmbeddedFontResources);
+                page, pageFontResources, pageImageResources, pageOpacityResources, pageEmbeddedFontResources,
+                isPdfUa ? pageMarkedContentIds[pageIndex] : null, isPdfUa);
             var contentBytes = Encoding.ASCII.GetBytes(contentStream);
 
             if (options.CompressContentStreams)
@@ -361,6 +420,8 @@ internal sealed class PdfWriter
             {
                 var link = page.LinkAnnotations[i];
                 var annotationObjectId = pageLinkAnnotationIds[i];
+                var linkStructure = BuildAnnotationStructureSegment(link, accessibleAnnotationMap);
+                var linkDescription = BuildAnnotationDescriptionSegment(link.Accessibility);
                 var rect = string.Format(
                     CultureInfo.InvariantCulture,
                     "[{0} {1} {2} {3}]",
@@ -373,7 +434,7 @@ internal sealed class PdfWriter
 
                 if (link.Url is { Length: > 0 } url)
                 {
-                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /A << /S /URI /URI ({EscapeLiteralString(url)}) >> >>\n";
+                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /A << /S /URI /URI ({EscapeLiteralString(url)}) >>{linkDescription}{linkStructure} >>\n";
                 }
                 else if (link.TargetPageNumber is { } targetPageNumber)
                 {
@@ -383,7 +444,7 @@ internal sealed class PdfWriter
                     }
 
                     var targetPageObjectId = pageObjectIds[targetPageNumber - 1];
-                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit] >>\n";
+                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit]{linkDescription}{linkStructure} >>\n";
                 }
                 else if (link.NamedDestination is { Length: > 0 } destinationName)
                 {
@@ -401,8 +462,8 @@ internal sealed class PdfWriter
 
                     var targetPageObjectId = pageObjectIds[destinationPageNumber - 1];
                     annotationObject = destination.Y is { } y
-                        ? $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /XYZ null {FormatNumber(y)} null] >>\n"
-                        : $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit] >>\n";
+                        ? $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /XYZ null {FormatNumber(y)} null]{linkDescription}{linkStructure} >>\n"
+                        : $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit]{linkDescription}{linkStructure} >>\n";
                 }
                 else
                 {
@@ -430,6 +491,8 @@ internal sealed class PdfWriter
                 var selectedVal = combo.SelectedValue is { Length: > 0 } sv
                     ? sv
                     : (combo.Options.Count > 0 ? combo.Options[0] : string.Empty);
+                var comboStructure = BuildAnnotationStructureSegment(combo, accessibleAnnotationMap);
+                var comboDescription = OptionalHexEntry("TU", AccessibleDescription(combo.Accessibility, combo.FieldName));
 
                 var widgetObject =
                     $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 " +
@@ -441,7 +504,7 @@ internal sealed class PdfWriter
                     $"/DA (/Helv {FormatNumber(combo.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
                     $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
-                    $"/BS << /W 1 /S /S >> >>\n";
+                    $"/BS << /W 1 /S /S >>{comboDescription}{comboStructure} >>\n";
 
                 objects.Add(new PdfIndirectObject(comboObjectId, widgetObject));
             }
@@ -459,6 +522,8 @@ internal sealed class PdfWriter
                     FormatNumber(ml.Y),
                     FormatNumber(ml.X + ml.Width),
                     FormatNumber(ml.Y + ml.Height));
+                var multilineStructure = BuildAnnotationStructureSegment(ml, accessibleAnnotationMap);
+                var multilineDescription = OptionalHexEntry("TU", AccessibleDescription(ml.Accessibility, ml.FieldName));
 
                 var mlWidgetObject =
                     $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 4096 " +
@@ -469,7 +534,7 @@ internal sealed class PdfWriter
                     $"/DA (/Helv {FormatNumber(ml.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
                     $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
-                    $"/BS << /W 1 /S /S >> >>\n";
+                    $"/BS << /W 1 /S /S >>{multilineDescription}{multilineStructure} >>\n";
 
                 objects.Add(new PdfIndirectObject(mlObjectId, mlWidgetObject));
             }
@@ -487,6 +552,8 @@ internal sealed class PdfWriter
                     FormatNumber(tf.Y),
                     FormatNumber(tf.X + tf.Width),
                     FormatNumber(tf.Y + tf.Height));
+                var textFieldStructure = BuildAnnotationStructureSegment(tf, accessibleAnnotationMap);
+                var textFieldDescription = OptionalHexEntry("TU", AccessibleDescription(tf.Accessibility, tf.FieldName));
 
                 var tfWidgetObject =
                     $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 0 " +
@@ -497,7 +564,7 @@ internal sealed class PdfWriter
                     $"/DA (/Helv {FormatNumber(tf.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
                     $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
-                    $"/BS << /W 1 /S /S >> >>\n";
+                    $"/BS << /W 1 /S /S >>{textFieldDescription}{textFieldStructure} >>\n";
 
                 objects.Add(new PdfIndirectObject(tfObjectId, tfWidgetObject));
             }
@@ -517,6 +584,8 @@ internal sealed class PdfWriter
                     FormatNumber(cb.Y + cb.Height));
 
                 var cbValue = cb.IsChecked ? "/Yes" : "/Off";
+                var checkBoxStructure = BuildAnnotationStructureSegment(cb, accessibleAnnotationMap);
+                var checkBoxDescription = OptionalHexEntry("TU", AccessibleDescription(cb.Accessibility, cb.FieldName));
                 var cbWidgetObject =
                     $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 0 " +
                     $"/T ({EscapeLiteralString(cb.FieldName)}) " +
@@ -526,7 +595,7 @@ internal sealed class PdfWriter
                     $"/DA (/Helv 0 Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
                     $"/MK << /BC [0 0 0] /BG [1 1 1] /CA (8) >> " +
-                    $"/BS << /W 1 /S /S >> >>\n";
+                    $"/BS << /W 1 /S /S >>{checkBoxDescription}{checkBoxStructure} >>\n";
 
                 objects.Add(new PdfIndirectObject(cbObjectId, cbWidgetObject));
             }
@@ -578,9 +647,10 @@ internal sealed class PdfWriter
             var trimBoxSegment = BuildPageBoxSegment("TrimBox", page.TrimBoxLowerLeft, page.TrimBoxUpperRight);
             var artBoxSegment = BuildPageBoxSegment("ArtBox", page.ArtBoxLowerLeft, page.ArtBoxUpperRight);
 
+            var structureParentsSegment = isPdfUa ? $" /StructParents {pageIndex} /Tabs /S" : string.Empty;
             var pageObject = string.Format(
                 CultureInfo.InvariantCulture,
-                "<< /Type /Page /Parent {0} 0 R /MediaBox [0 0 {1} {2}] /Resources {3} /Contents {4} 0 R{5}{6}{7}{8}{9}{10} >>\n",
+                "<< /Type /Page /Parent {0} 0 R /MediaBox [0 0 {1} {2}] /Resources {3} /Contents {4} 0 R{5}{6}{7}{8}{9}{10}{11} >>\n",
                 pagesObjectId,
                 FormatNumber(page.Width),
                 FormatNumber(page.Height),
@@ -591,7 +661,8 @@ internal sealed class PdfWriter
                 cropBoxSegment,
                 bleedBoxSegment,
                 trimBoxSegment,
-                artBoxSegment);
+                artBoxSegment,
+                structureParentsSegment);
 
             objects.Add(new PdfIndirectObject(pageObjectId, pageObject));
         }
@@ -600,6 +671,94 @@ internal sealed class PdfWriter
 
         objects.Add(new PdfIndirectObject(pagesObjectId,
             $"<< /Type /Pages /Kids [{kids}] /Count {pageObjects.Count} >>\n"));
+
+        if (isPdfUa)
+        {
+            var taggedOperations = document.Pages
+                .SelectMany((page, pageIndex) => page.Elements.Select((element, drawIndex) => (element, pageIndex, drawIndex)))
+                .Where(item => item.element.Accessibility is not null)
+                .ToList();
+            var logicalElements = document.Pages
+                .SelectMany((page, pageIndex) => page.SemanticElements.Select((semantic, semanticIndex) => (semantic, pageIndex, semanticIndex)))
+                .GroupBy(item => item.semantic, (IEqualityComparer<PdfAccessibilityProperties>)ReferenceEqualityComparer.Instance)
+                .Select(group => new
+                {
+                    Semantic = group.Key,
+                    First = group.OrderBy(item => item.pageIndex).ThenBy(item => item.semanticIndex).First(),
+                    Operations = taggedOperations
+                        .Where(operation => ReferenceEquals(operation.element.Accessibility, group.Key))
+                        .OrderBy(operation => operation.pageIndex)
+                        .ThenBy(operation => operation.drawIndex)
+                        .ToList(),
+                    Annotations = accessibleAnnotations
+                        .Where(reference => ReferenceEquals(reference.Annotation.Accessibility, group.Key))
+                        .OrderBy(reference => reference.PageIndex)
+                        .ThenBy(reference => reference.StructParentKey)
+                        .ToList()
+                })
+                .OrderBy(item => item.First.pageIndex)
+                .ThenBy(item => item.Semantic.ReadingOrder ?? int.MaxValue)
+                .ThenBy(item => item.First.semanticIndex)
+                .ToList();
+            var logicalById = logicalElements
+                .Where(item => item.Semantic.ElementId is { Length: > 0 })
+                .ToDictionary(item => item.Semantic.ElementId!, StringComparer.Ordinal);
+
+            foreach (var item in logicalElements)
+            {
+                var semantic = item.Semantic;
+                var tableAttributes = new List<string>();
+                if (semantic.Role == PdfStructureRole.TH)
+                    tableAttributes.Add($"/Scope /{semantic.TableHeaderScope}");
+                if (semantic.TableHeaderIds is { Count: > 0 })
+                    tableAttributes.Add($"/Headers [{string.Join(" ", semantic.TableHeaderIds.Select(PdfHexString))}]");
+                var attributes = tableAttributes.Count > 0
+                    ? $" /A << /O /Table {string.Join(" ", tableAttributes)} >>"
+                    : string.Empty;
+                var markedContentReferences = item.Operations.Select(operation =>
+                    $"<< /Type /MCR /Pg {pageObjectIds[operation.pageIndex]} 0 R /MCID {pageMarkedContentIds[operation.pageIndex][operation.element]} >>").ToList();
+                var childReferences = logicalElements
+                    .Where(candidate => string.Equals(candidate.Semantic.ParentElementId, semantic.ElementId, StringComparison.Ordinal))
+                    .Select(candidate => $"{structureObjectIds[candidate.Semantic]} 0 R")
+                    .ToList();
+                var annotationReferences = item.Annotations
+                    .Select(reference => $"<< /Type /OBJR /Pg {pageObjectIds[reference.PageIndex]} 0 R /Obj {reference.ObjectId} 0 R >>")
+                    .ToList();
+                var allKids = markedContentReferences.Concat(childReferences).Concat(annotationReferences).ToList();
+                var structureKids = item.Operations.Count == 1 && childReferences.Count == 0 && annotationReferences.Count == 0
+                    ? pageMarkedContentIds[item.Operations[0].pageIndex][item.Operations[0].element].ToString(CultureInfo.InvariantCulture)
+                    : $"[{string.Join(" ", allKids)}]";
+                var parentObjectId = semantic.ParentElementId is { Length: > 0 } parentId
+                    ? structureObjectIds[logicalById[parentId].Semantic]
+                    : documentStructureObjectId!.Value;
+                var structureObject = $"<< /Type /StructElem /S /{semantic.Role} /P {parentObjectId} 0 R " +
+                    $"/Pg {pageObjectIds[item.First.pageIndex]} 0 R /K {structureKids}" +
+                    OptionalHexEntry("ID", semantic.ElementId) + OptionalHexEntry("Lang", semantic.Language) +
+                    OptionalHexEntry("Alt", semantic.AlternateText) + OptionalHexEntry("ActualText", semantic.ActualText) +
+                    attributes + " >>\n";
+                objects.Add(new PdfIndirectObject(structureObjectIds[semantic], structureObject));
+            }
+
+            var pageParentTreeNumbers = Enumerable.Range(0, pageCount).Select(pageIndex =>
+            {
+                var refs = document.Pages[pageIndex].Elements
+                    .Where(element => pageMarkedContentIds[pageIndex].ContainsKey(element))
+                    .OrderBy(element => pageMarkedContentIds[pageIndex][element])
+                    .Select(element => $"{structureObjectIds[element.Accessibility!]} 0 R");
+                return $"{pageIndex} [{string.Join(" ", refs)}]";
+            });
+            var annotationParentTreeNumbers = accessibleAnnotations.Select(reference =>
+                $"{reference.StructParentKey} {structureObjectIds[reference.Annotation.Accessibility!]} 0 R");
+            var parentTreeNumbers = string.Join(" ", pageParentTreeNumbers.Concat(annotationParentTreeNumbers));
+            objects.Add(new PdfIndirectObject(parentTreeObjectId!.Value, $"<< /Nums [{parentTreeNumbers}] >>\n"));
+            var rootKids = string.Join(" ", logicalElements
+                .Where(item => string.IsNullOrWhiteSpace(item.Semantic.ParentElementId))
+                .Select(item => $"{structureObjectIds[item.Semantic]} 0 R"));
+            objects.Add(new PdfIndirectObject(documentStructureObjectId!.Value,
+                $"<< /Type /StructElem /S /Document /P {structureTreeRootObjectId} 0 R /Lang {PdfHexString(document.Language!)} /K [{rootKids}] >>\n"));
+            objects.Add(new PdfIndirectObject(structureTreeRootObjectId!.Value,
+                $"<< /Type /StructTreeRoot /K [{documentStructureObjectId.Value} 0 R] /ParentTree {parentTreeObjectId.Value} 0 R /ParentTreeNextKey {nextStructureParentKey} >>\n"));
+        }
 
         if (outlinesRootObjectId is { } outlinesId)
         {
@@ -693,7 +852,7 @@ internal sealed class PdfWriter
                 "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\n"));
         }
 
-        var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences);
+        var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences, isPdfUa);
         var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
         var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
 
@@ -715,17 +874,21 @@ internal sealed class PdfWriter
                 $"<< /Type /OutputIntent /S /GTS_PDFA1 /OutputConditionIdentifier (sRGB IEC61966-2.1) " +
                 $"/RegistryName (http://www.color.org) /Info (PXA sRGB output intent) " +
                 $"/DestOutputProfile {iccProfileObjectId.Value} 0 R >>\n"));
-            objects.Add(new PdfIndirectObject(
-                metadataObjectId!.Value,
-                BuildBinaryStreamObject(BuildPdfAXmp(document.Info, pdfAPart), "/Type /Metadata /Subtype /XML")));
         }
 
-        var metadataSegment = isPdfA ? $" /Metadata {metadataObjectId!.Value} 0 R" : string.Empty;
+        if (metadataObjectId is { } actualMetadataObjectId)
+            objects.Add(new PdfIndirectObject(actualMetadataObjectId,
+                BuildBinaryStreamObject(BuildComplianceXmp(document.Info, isPdfA ? pdfAPart : null, isPdfUa), "/Type /Metadata /Subtype /XML")));
+
+        var metadataSegment = metadataObjectId is not null ? $" /Metadata {metadataObjectId.Value} 0 R" : string.Empty;
         var outputIntentSegment = isPdfA ? $" /OutputIntents [{outputIntentObjectId!.Value} 0 R]" : string.Empty;
         var openAction = BuildOpenAction(document, pageObjectIds);
+        var accessibilitySegment = isPdfUa
+            ? $" /StructTreeRoot {structureTreeRootObjectId} 0 R /MarkInfo << /Marked true >> /Lang {PdfHexString(document.Language!)}"
+            : string.Empty;
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
-            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment} >>\n"
-            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment} >>\n";
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{accessibilitySegment} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{accessibilitySegment} >>\n";
 
         objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
 
@@ -767,7 +930,7 @@ internal sealed class PdfWriter
         byte[] bytes;
         try
         {
-            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId, isPdfA ? "1.7" : null);
+            bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId, isPdfA || isPdfUa ? "1.7" : null);
         }
         finally
         {
@@ -1425,7 +1588,7 @@ internal sealed class PdfWriter
         return memory.ToArray();
     }
 
-    private static byte[] BuildPdfAXmp(PdfDocumentInfo info, int part)
+    private static byte[] BuildComplianceXmp(PdfDocumentInfo info, int? pdfAPart, bool isPdfUa)
     {
         static string Xml(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
         static string OptionalElement(string name, string? value) => string.IsNullOrWhiteSpace(value)
@@ -1445,14 +1608,23 @@ internal sealed class PdfWriter
             ? string.Empty
             : $"<dc:description><rdf:Alt><rdf:li xml:lang=\"x-default\">{Xml(info.Subject)}</rdf:li></rdf:Alt></dc:description>";
 
+        var pdfAIdentification = pdfAPart is null ? string.Empty : $"""
+                <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
+                  <pdfaid:part>{pdfAPart}</pdfaid:part>
+                  <pdfaid:conformance>B</pdfaid:conformance>
+                </rdf:Description>
+            """;
+        var pdfUaIdentification = isPdfUa ? """
+                <rdf:Description rdf:about="" xmlns:pdfuaid="http://www.aiim.org/pdfua/ns/id/">
+                  <pdfuaid:part>1</pdfuaid:part>
+                </rdf:Description>
+            """ : string.Empty;
+
         var xmp = $"""
             <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
             <x:xmpmeta xmlns:x="adobe:ns:meta/">
               <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-                  <pdfaid:part>{part}</pdfaid:part>
-                  <pdfaid:conformance>B</pdfaid:conformance>
-                </rdf:Description>
+                {pdfAIdentification}{pdfUaIdentification}
                 <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
                   {title}{author}{subject}
                 </rdf:Description>
@@ -1494,6 +1666,32 @@ internal sealed class PdfWriter
         return $"D:{value:yyyyMMddHHmmss}{sign}{absolute.Hours:00}'{absolute.Minutes:00}'";
     }
 
+    private static string OptionalHexEntry(string key, string? value) =>
+        string.IsNullOrWhiteSpace(value) ? string.Empty : $" /{key} {PdfHexString(value)}";
+
+    private static string BuildAnnotationStructureSegment(
+        IPdfAccessibleAnnotation annotation,
+        IReadOnlyDictionary<IPdfAccessibleAnnotation, AccessibleAnnotationReference> references) =>
+        references.TryGetValue(annotation, out var reference)
+            ? $" /StructParent {reference.StructParentKey}"
+            : string.Empty;
+
+    private static string BuildAnnotationDescriptionSegment(PdfAccessibilityProperties? accessibility) =>
+        OptionalHexEntry("Contents", AccessibleDescription(accessibility, null));
+
+    private static string? AccessibleDescription(PdfAccessibilityProperties? accessibility, string? fallback) =>
+        !string.IsNullOrWhiteSpace(accessibility?.AlternateText)
+            ? accessibility.AlternateText
+            : !string.IsNullOrWhiteSpace(accessibility?.ActualText)
+                ? accessibility.ActualText
+                : fallback;
+
+    private static string PdfHexString(string value)
+    {
+        var bytes = Encoding.BigEndianUnicode.GetBytes(value);
+        return $"<FEFF{Convert.ToHexString(bytes)}>";
+    }
+
     private static string SanitizeInfoKey(string value)
     {
         var builder = new StringBuilder(value.Length);
@@ -1508,7 +1706,7 @@ internal sealed class PdfWriter
         return builder.ToString();
     }
 
-    private static string BuildViewerPreferences(PdfViewerPreferencesOptions options)
+    private static string BuildViewerPreferences(PdfViewerPreferencesOptions options, bool requireDocumentTitle = false)
     {
         var entries = new List<string>();
 
@@ -1537,7 +1735,7 @@ internal sealed class PdfWriter
             entries.Add("/CenterWindow true");
         }
 
-        if (options.DisplayDocTitle)
+        if (options.DisplayDocTitle || requireDocumentTitle)
         {
             entries.Add("/DisplayDocTitle true");
         }
@@ -1738,4 +1936,10 @@ internal sealed class PdfWriter
         int ToUnicodeId,
         int CidFontId,
         int Type0Id);
+
+    private sealed record AccessibleAnnotationReference(
+        int PageIndex,
+        IPdfAccessibleAnnotation Annotation,
+        int ObjectId,
+        int StructParentKey);
 }

@@ -1,6 +1,6 @@
 namespace PXA.Pdf;
 
-internal sealed class PdfMultilineTextFieldAnnotation
+internal sealed class PdfMultilineTextFieldAnnotation : IPdfAccessibleAnnotation
 {
     public required string FieldName { get; init; }
     public required double X { get; init; }
@@ -9,4 +9,5 @@ internal sealed class PdfMultilineTextFieldAnnotation
     public required double Height { get; init; }
     public string DefaultValue { get; init; } = "";
     public double FontSize { get; init; } = 10;
+    public PdfAccessibilityProperties? Accessibility { get; init; }
 }

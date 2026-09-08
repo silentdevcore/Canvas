@@ -588,6 +588,28 @@
     "patternRegex": "Patrón (regex)",
     "patternPlaceholder": "p. ej. \\d{5}"
   },
+  "accessibility": {
+    "heading": "Accesibilidad", "profile": "Perfil PDF accesible", "profileNone": "Sin perfil de accesibilidad",
+    "role": "Rol de estructura", "selectRole": "Seleccionar un rol", "decorative": "Artefacto decorativo (ignorado por tecnologías de asistencia)",
+    "readingOrder": "Orden de lectura", "language": "Idioma del elemento", "languagePlaceholder": "p. ej. es-ES",
+    "parent": "Elemento superior lógico", "noParent": "Raíz del documento", "alternateText": "Texto alternativo", "actualText": "Texto de sustitución",
+    "headerScope": "Ámbito del encabezado de tabla", "headerIds": "ID de encabezados asociados", "headerIdsPlaceholder": "header-1, header-2",
+    "useSuggested": "Usar semántica sugerida", "applySuggestions": "Aplicar semántica sugerida al documento",
+    "suggestionsApplied": "Se aplicó la semántica de accesibilidad sugerida.", "elementReady": "No se detectaron errores de accesibilidad en este elemento.",
+    "preflightReady": "La comprobación PDF/UA se superó.", "preflightErrors": "La comprobación PDF/UA encontró {{count}} problema(s).",
+    "exportBlocked": "Corrija los errores PDF/UA antes de exportar.",
+    "scopes": { "None": "Ninguno", "Row": "Fila", "Column": "Columna", "Both": "Fila y columna" },
+    "diagnostics": {
+      "PXAPDFUA002": "Defina un título en los metadatos de exportación.", "PXAPDFUA003": "Seleccione un idioma del documento.",
+      "PXAPDFUA004": "El cifrado aún no es compatible con la exportación PDF/UA.", "PXAPDFUA005": "Asigne semántica o marque el elemento como decorativo.",
+      "PXAPDFUA007": "Añada un texto alternativo significativo.", "PXAPDFUA009": "Seleccione el ámbito de fila o columna del encabezado.",
+      "PXAPDFUA010": "Este enlace o campo de formulario no tiene una anotación PDF interactiva compatible.", "PXAPDFUA011": "No existe un ID de encabezado asociado.",
+      "PXAPDFUA013": "El elemento superior lógico ya no existe.", "PXAPDFUA014": "La jerarquía lógica contiene un ciclo.", "PXAPDFUA015": "Use una etiqueta de idioma BCP 47 válida.",
+      "PXAPDFUA016": "El orden de lectura no puede ser negativo.", "PXAPDFUA017": "Añada un texto de enlace significativo.",
+      "PXAPDFUA018": "Añada una etiqueta de formulario accesible.", "PXAPDFUA019": "Marque la primera fila como encabezado.",
+      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura."
+    }
+  },
   "layers": {
     "allPagesHeaderFooter": "Todas las páginas (encabezado / pie de página)",
     "pageHeading": "Página {{number}}",

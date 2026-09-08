@@ -11,12 +11,27 @@ internal static class PdfPageContentRenderer
         IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames,
         IReadOnlyDictionary<string, string> imageResourceNames,
         IReadOnlyDictionary<double, string>? opacityResourceNames = null,
-        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames = null)
+        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames = null,
+        IReadOnlyDictionary<PdfPageElement, int>? markedContentIds = null,
+        bool emitArtifacts = false)
     {
         var sb = new StringBuilder();
 
         foreach (var element in page.Elements)
         {
+            if (markedContentIds is not null && markedContentIds.TryGetValue(element, out var markedContentId))
+            {
+                sb.Append('/');
+                sb.Append(element.Accessibility!.Role);
+                sb.Append(" <</MCID ");
+                sb.Append(markedContentId.ToString(CultureInfo.InvariantCulture));
+                sb.Append(">> BDC\n");
+            }
+            else if (emitArtifacts && element.IsArtifact)
+            {
+                sb.Append("/Artifact BMC\n");
+            }
+
             sb.Append("q\n");
 
             switch (element)
@@ -58,6 +73,9 @@ internal static class PdfPageContentRenderer
             }
 
             sb.Append("Q\n");
+
+            if ((markedContentIds is not null && markedContentIds.ContainsKey(element)) || (emitArtifacts && element.IsArtifact))
+                sb.Append("EMC\n");
         }
 
         return sb.ToString();

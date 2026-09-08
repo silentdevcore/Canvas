@@ -9,6 +9,18 @@ import { ELEMENT_TYPES, type RegisteredElementType } from './data/elementRegistr
 export { ELEMENT_TYPES };
 export type ElementType = RegisteredElementType;
 
+export interface AccessibilityProperties {
+  role: 'Document' | 'Part' | 'Sect' | 'Div' | 'P' | 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6' | 'L' | 'LI' | 'Lbl' | 'LBody' | 'Table' | 'TR' | 'TH' | 'TD' | 'Span' | 'Link' | 'Figure' | 'Form';
+  isArtifact?: boolean;
+  parentElementId?: string;
+  readingOrder?: number;
+  language?: string;
+  alternateText?: string;
+  actualText?: string;
+  tableHeaderScope?: 'None' | 'Row' | 'Column' | 'Both';
+  tableHeaderIds?: string[];
+}
+
 export interface CellBorderSide {
   color?: string;
   width?: number;
@@ -42,6 +54,7 @@ export interface SimpleElement {
   y: number;
   width: number;
   height: number;
+  accessibility?: AccessibilityProperties;
   content?: string;
   style?: Record<string, any>;
   // Data binding (template engine)
@@ -345,6 +358,8 @@ export interface PageSettings {
   encryption?: PdfEncryption;
   // Archival PDF output. Encryption is incompatible with PDF/A.
   complianceProfile?: 'None' | 'PdfA2B' | 'PdfA3B';
+  // Accessible PDF output. Export is blocked until required semantics are complete.
+  accessibilityProfile?: 'None' | 'PdfUa1';
   // Custom document properties
   customProperties?: CustomDocumentProperty[];
   // Track changes

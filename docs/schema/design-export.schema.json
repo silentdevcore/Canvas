@@ -53,7 +53,9 @@
             "left": { "type": "number", "minimum": 0 }
           }
         },
-        "bleedSize": { "type": "number", "minimum": 0 }
+        "bleedSize": { "type": "number", "minimum": 0 },
+        "complianceProfile": { "enum": ["None", "PdfA2B", "PdfA3B"] },
+        "accessibilityProfile": { "enum": ["None", "PdfUa1"] }
       },
       "additionalProperties": true
     },
@@ -100,11 +102,29 @@
         "binding": { "type": "string", "description": "Data path whose value replaces the content at render time." },
         "expression": { "type": "string", "description": "Template expression ($iif/$sum/$concat/...) evaluated at render time." },
         "visibleExpression": { "type": "string", "description": "Boolean expression gating visibility." },
+        "accessibility": { "$ref": "#/$defs/accessibilityProperties" },
         "chart": { "$ref": "#/$defs/chartDefinition" },
         "chartType": { "type": "string", "description": "Legacy chart type; read for compatibility." },
         "chartData": { "type": "object", "description": "Legacy labels/datasets payload; read for compatibility." }
       },
       "additionalProperties": true
+    },
+    "accessibilityProperties": {
+      "type": "object",
+      "description": "Explicit logical semantics used for tagged PDF and PDF/UA output.",
+      "required": ["role"],
+      "properties": {
+        "role": { "enum": ["Document", "Part", "Sect", "Div", "P", "H1", "H2", "H3", "H4", "H5", "H6", "L", "LI", "Lbl", "LBody", "Table", "TR", "TH", "TD", "Span", "Link", "Figure", "Form"] },
+        "isArtifact": { "type": "boolean" },
+        "parentElementId": { "type": "string" },
+        "readingOrder": { "type": "integer", "minimum": 0 },
+        "language": { "type": "string" },
+        "alternateText": { "type": "string" },
+        "actualText": { "type": "string" },
+        "tableHeaderScope": { "enum": ["None", "Row", "Column", "Both"] },
+        "tableHeaderIds": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+      },
+      "additionalProperties": false
     },
     "chartDefinition": {
       "type": "object",

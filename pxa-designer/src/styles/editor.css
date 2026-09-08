@@ -1694,6 +1694,62 @@ html[data-visual-parity="true"] #root {
   line-height: 1.35;
 }
 
+.editor-accessibility-fields {
+  padding: 10px 12px;
+}
+
+.editor-accessibility-issues,
+.editor-accessibility-summary,
+.export-accessibility-preflight {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #166534;
+  background: #f0fdf4;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.editor-accessibility-issues,
+.editor-accessibility-summary.has-errors,
+.export-accessibility-preflight.has-errors {
+  border-color: #fecaca;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.editor-accessibility-issues p {
+  margin: 0;
+}
+
+.editor-accessibility-valid {
+  color: #166534;
+}
+
+.editor-accessibility-summary button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.editor-accessibility-summary button:disabled {
+  cursor: default;
+}
+
+.editor-accessibility-summary button span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 800;
+}
+
 .editor-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

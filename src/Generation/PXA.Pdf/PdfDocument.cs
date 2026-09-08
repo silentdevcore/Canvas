@@ -67,6 +67,9 @@ public sealed class PdfDocument
     /// <summary>Document metadata (Title, Author, Subject, Keywords, dates, custom properties).</summary>
     public PdfDocumentInfo Info { get; } = new();
 
+    /// <summary>BCP 47 language used for the document catalog and tagged content fallback.</summary>
+    public string? Language { get; set; }
+
     public PdfGenerationDiagnostics? LastDiagnostics => _lastDiagnostics;
 
     /// <summary>

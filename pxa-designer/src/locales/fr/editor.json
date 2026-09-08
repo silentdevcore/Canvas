@@ -588,6 +588,28 @@
     "patternRegex": "Modèle (regex)",
     "patternPlaceholder": "ex. \\d{5}"
   },
+  "accessibility": {
+    "heading": "Accessibilité", "profile": "Profil PDF accessible", "profileNone": "Aucun profil d’accessibilité",
+    "role": "Rôle de structure", "selectRole": "Sélectionner un rôle", "decorative": "Artefact décoratif (ignoré par les technologies d’assistance)",
+    "readingOrder": "Ordre de lecture", "language": "Langue de l’élément", "languagePlaceholder": "p. ex. fr-CH",
+    "parent": "Parent logique", "noParent": "Racine du document", "alternateText": "Texte alternatif", "actualText": "Texte de remplacement",
+    "headerScope": "Portée de l’en-tête de tableau", "headerIds": "ID d’en-têtes associés", "headerIdsPlaceholder": "header-1, header-2",
+    "useSuggested": "Utiliser la sémantique suggérée", "applySuggestions": "Appliquer la sémantique suggérée au document",
+    "suggestionsApplied": "La sémantique d’accessibilité suggérée a été appliquée.", "elementReady": "Aucune erreur d’accessibilité détectée pour cet élément.",
+    "preflightReady": "Contrôle PDF/UA réussi.", "preflightErrors": "Le contrôle PDF/UA a trouvé {{count}} problème(s).",
+    "exportBlocked": "Corrigez les erreurs PDF/UA avant l’export.",
+    "scopes": { "None": "Aucune", "Row": "Ligne", "Column": "Colonne", "Both": "Ligne et colonne" },
+    "diagnostics": {
+      "PXAPDFUA002": "Définissez un titre dans les métadonnées d’export.", "PXAPDFUA003": "Sélectionnez une langue de document.",
+      "PXAPDFUA004": "Le chiffrement n’est pas encore pris en charge pour l’export PDF/UA.", "PXAPDFUA005": "Attribuez une sémantique ou marquez cet élément comme décoratif.",
+      "PXAPDFUA007": "Ajoutez un texte alternatif significatif.", "PXAPDFUA009": "Sélectionnez la portée de ligne ou de colonne de cet en-tête.",
+      "PXAPDFUA010": "Ce lien ou ce champ de formulaire ne possède aucune annotation PDF interactive prise en charge.", "PXAPDFUA011": "Un ID d’en-tête associé n’existe pas.",
+      "PXAPDFUA013": "Le parent logique sélectionné n’existe plus.", "PXAPDFUA014": "La hiérarchie logique contient un cycle.", "PXAPDFUA015": "Utilisez une balise de langue BCP 47 valide.",
+      "PXAPDFUA016": "L’ordre de lecture ne peut pas être négatif.", "PXAPDFUA017": "Ajoutez un texte de lien significatif.",
+      "PXAPDFUA018": "Ajoutez une étiquette de formulaire accessible.", "PXAPDFUA019": "Marquez la première ligne comme en-tête.",
+      "PXAPDFUA020": "Le tableau nécessite une structure complète de lignes et de cellules.", "PXAPDFUA021": "Sélectionnez un rôle de structure."
+    }
+  },
   "layers": {
     "allPagesHeaderFooter": "Toutes les pages (en-tête / pied de page)",
     "pageHeading": "Page {{number}}",

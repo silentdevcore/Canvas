@@ -25,18 +25,25 @@ public static class DesignJsonMapper
             "PdfA3B" => PdfComplianceProfile.PdfA3B,
             var value => throw new InvalidDataException($"Unsupported PDF compliance profile '{value}'.")
         };
+        var accessibilityProfile = settings?.AccessibilityProfile?.Trim() switch
+        {
+            null or "" or "None" => PdfAccessibilityProfile.None,
+            "PdfUa1" => PdfAccessibilityProfile.PdfUa1,
+            var value => throw new InvalidDataException($"Unsupported PDF accessibility profile '{value}'.")
+        };
 
         if (complianceProfile != PdfComplianceProfile.None && enc?.Enabled == true)
         {
             throw new InvalidDataException("PDF/A output and PDF encryption cannot be enabled together.");
         }
 
-        if ((enc is null || !enc.Enabled) && complianceProfile == PdfComplianceProfile.None)
+        if ((enc is null || !enc.Enabled) && complianceProfile == PdfComplianceProfile.None
+            && accessibilityProfile == PdfAccessibilityProfile.None)
             return null;
 
         if (enc is null || !enc.Enabled)
         {
-            return new PdfSaveOptions { ComplianceProfile = complianceProfile };
+            return new PdfSaveOptions { ComplianceProfile = complianceProfile, AccessibilityProfile = accessibilityProfile };
         }
 
         var p = enc.Permissions ?? new PdfEncryptionPermissionsDto();
@@ -62,6 +69,7 @@ public static class DesignJsonMapper
         return new PdfSaveOptions
         {
             ComplianceProfile = complianceProfile,
+            AccessibilityProfile = accessibilityProfile,
             Encryption = new PdfEncryptionOptions
             {
                 UserPassword = enc.UserPassword,
@@ -94,11 +102,14 @@ public static class DesignJsonMapper
         var document = new PdfDocument();
 #pragma warning restore PXA0001
         document.FontLoader = fontLoader;
-        document.Info.Title   = design.PageSettings?.Metadata?.Title   ?? design.Name;
+        document.Info.Title   = string.IsNullOrWhiteSpace(design.PageSettings?.Metadata?.Title)
+            ? design.Name
+            : design.PageSettings.Metadata.Title;
         document.Info.Author  = design.PageSettings?.Metadata?.Author  ?? "";
         document.Info.Subject = design.PageSettings?.Metadata?.Subject ?? design.Category ?? "";
         document.Info.Keywords = design.PageSettings?.Metadata?.Keywords ?? "";
         document.Info.Creator = "PXA PDF Renderer";
+        document.Language = design.PageSettings?.TargetLanguage ?? design.PageSettings?.SystemLanguage;
 
         var ps = design.PageSettings ?? new PageSettingsDto();
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
@@ -158,6 +169,7 @@ public static class DesignJsonMapper
             // Page background color (skip default white to keep PDF clean)
             if (!string.IsNullOrEmpty(layout.BackgroundColor) && layout.BackgroundColor != "#ffffff")
             {
+                using var backgroundArtifact = page.BeginArtifact();
                 var bg = ParseColor(layout.BackgroundColor);
                 page.DrawRectangle(0, 0, pageWidth, pageHeight, lineWidth: 0.01, fill: true, strokeColor: bg, fillColor: bg);
             }
@@ -177,6 +189,7 @@ public static class DesignJsonMapper
                         File.WriteAllBytes(tempPath, bytes);
                         try
                         {
+                            using var backgroundArtifact = page.BeginArtifact();
                             switch (layout.BackgroundImageFit)
                             {
                                 case "contain":
@@ -209,19 +222,20 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
             }
 
             // Global watermark from page settings
             if (ps.GlobalWatermark is { } gw && !string.IsNullOrWhiteSpace(gw.Content) &&
                 MatchesPageScope(gw.PageScope ?? "all", gw.PageRange, pageNumber, totalPages))
             {
+                using var watermarkArtifact = page.BeginArtifact();
                 var wColor = ParseColor(gw.Color ?? "#d1d5db");
                 var wFs = gw.FontSize * Math.Max(gw.Scale, 0.1);
                 page.DrawText(gw.Content,
@@ -237,6 +251,7 @@ public static class DesignJsonMapper
             // Global auto page numbering from page settings
             if (ps.PageNumbering is { } pn && (pn.ShowOnFirstPage || pageNumber > 1))
             {
+                using var pageNumberArtifact = page.BeginArtifact();
                 var num = pageNumber + pn.StartNumber - 1;
                 var numText = pn.Format switch
                 {
@@ -278,6 +293,53 @@ public static class DesignJsonMapper
         pageH - cssTop - height;
 
     // ── Main renderer ────────────────────────────────────────────────────────
+
+    private static void RenderAccessibleElement(
+        PdfDocument document, PdfPage page, ElementDto element, double pageHeight,
+        int pageIndex, int totalPages, string? effectiveLanguage)
+    {
+        if (element.Accessibility?.IsArtifact == true)
+        {
+            using var artifact = page.BeginArtifact();
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            return;
+        }
+
+        if (element.Accessibility is not { } source)
+        {
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            return;
+        }
+
+        if (!Enum.TryParse<PdfStructureRole>(source.Role, ignoreCase: true, out var role))
+            throw new InvalidDataException($"Unsupported accessibility role '{source.Role}' on element '{element.Id}'.");
+        var scope = source.TableHeaderScope?.Trim() switch
+        {
+            null or "" or "None" => PdfTableHeaderScope.None,
+            "Row" => PdfTableHeaderScope.Row,
+            "Column" => PdfTableHeaderScope.Column,
+            "Both" => PdfTableHeaderScope.Both,
+            var value => throw new InvalidDataException($"Unsupported table-header scope '{value}' on element '{element.Id}'.")
+        };
+
+        using var semantic = page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = role,
+            ElementId = element.Id,
+            ParentElementId = source.ParentElementId,
+            ReadingOrder = source.ReadingOrder,
+            Language = source.Language ?? element.Language ?? effectiveLanguage,
+            AlternateText = source.AlternateText ?? (role == PdfStructureRole.Form
+                ? element.FieldLabel ?? element.Content ?? element.Placeholder
+                : null),
+            ActualText = source.ActualText ?? (role == PdfStructureRole.Link
+                ? element.Content ?? element.Href
+                : null),
+            TableHeaderScope = scope,
+            TableHeaderIds = source.TableHeaderIds
+        });
+        RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+    }
 
     private static void RenderElement(
         PdfDocument document,
@@ -537,6 +599,10 @@ public static class DesignJsonMapper
                         FillColor = ParseColor(GetString(style, "color") ?? "#101828")
                     });
                 }
+                var checkboxFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                    : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                    : Guid.NewGuid().ToString("N");
+                page.AddCheckBox(checkboxFieldName, elX, boxY, boxSize, state == "checked");
                 break;
             }
 

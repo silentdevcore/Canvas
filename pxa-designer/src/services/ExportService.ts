@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import type { SimpleElement, Template, PageSettings, Page } from '@/types';
+import { validateDesignerAccessibility, type DesignerAccessibilityIssue } from '@/accessibility/designerAccessibility';
 
 export type ExportFormat = 'pdf' | 'json' | 'html' | 'xml' | 'word' | 'excel' | 'png' | 'jpeg' | 'svg' | 'csv' | 'md' | 'tiff' | 'odt';
 
@@ -15,6 +16,13 @@ export interface FormatInfo {
 }
 
 let _formatsCache: FormatInfo[] | null = null;
+
+export class DesignerAccessibilityPreflightError extends Error {
+  constructor(public readonly issues: DesignerAccessibilityIssue[]) {
+    super(`PDF/UA export is blocked by ${issues.length} accessibility issue(s): ${issues.slice(0, 5).map(issue => issue.code).join(', ')}`);
+    this.name = 'DesignerAccessibilityPreflightError';
+  }
+}
 
 export class ExportService {
   private static readonly API_BASE_URL = '/api';
@@ -83,6 +91,7 @@ export class ExportService {
         protection: settings.protection ?? null,
         encryption: settings.encryption?.enabled ? settings.encryption : null,
         complianceProfile: settings.complianceProfile ?? 'None',
+        accessibilityProfile: settings.accessibilityProfile ?? 'None',
         customProperties: settings.customProperties ?? [],
         trackChanges: settings.trackChanges ?? false,
         systemLanguage: settings.systemLanguage ?? navigator.language.split('-')[0],
@@ -793,6 +802,10 @@ export class ExportService {
     pageSettings?: PageSettings,
     onProgress?: (progress: string) => void,
   ): Promise<{ blob: Blob; fileName?: string }> {
+    const accessibilityIssues = validateDesignerAccessibility(template, pages, sharedElements, pageSettings);
+    if (accessibilityIssues.some(issue => issue.severity === 'error'))
+      throw new DesignerAccessibilityPreflightError(accessibilityIssues);
+
     onProgress?.('Connecting to PDF service…');
 
     const payload = await this.buildHydratedDesignPayload(template, pages, sharedElements, pageSettings);

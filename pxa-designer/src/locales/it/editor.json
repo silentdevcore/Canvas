@@ -588,6 +588,28 @@
     "patternRegex": "Schema (espressione regolare)",
     "patternPlaceholder": "es. \\d{5}"
   },
+  "accessibility": {
+    "heading": "Accessibilità", "profile": "Profilo PDF accessibile", "profileNone": "Nessun profilo di accessibilità",
+    "role": "Ruolo strutturale", "selectRole": "Seleziona un ruolo", "decorative": "Artefatto decorativo (ignorato dalle tecnologie assistive)",
+    "readingOrder": "Ordine di lettura", "language": "Lingua dell’elemento", "languagePlaceholder": "es. it-IT",
+    "parent": "Elemento padre logico", "noParent": "Radice del documento", "alternateText": "Testo alternativo", "actualText": "Testo sostitutivo",
+    "headerScope": "Ambito intestazione tabella", "headerIds": "ID intestazioni associate", "headerIdsPlaceholder": "header-1, header-2",
+    "useSuggested": "Usa semantica suggerita", "applySuggestions": "Applica la semantica suggerita al documento",
+    "suggestionsApplied": "La semantica di accessibilità suggerita è stata applicata.", "elementReady": "Nessun errore di accessibilità rilevato per questo elemento.",
+    "preflightReady": "Controllo PDF/UA superato.", "preflightErrors": "Il controllo PDF/UA ha trovato {{count}} problema/i.",
+    "exportBlocked": "Correggi gli errori PDF/UA prima dell’esportazione.",
+    "scopes": { "None": "Nessuno", "Row": "Riga", "Column": "Colonna", "Both": "Riga e colonna" },
+    "diagnostics": {
+      "PXAPDFUA002": "Imposta un titolo nei metadati di esportazione.", "PXAPDFUA003": "Seleziona una lingua del documento.",
+      "PXAPDFUA004": "La crittografia non è ancora supportata per l’esportazione PDF/UA.", "PXAPDFUA005": "Assegna la semantica o marca l’elemento come decorativo.",
+      "PXAPDFUA007": "Aggiungi un testo alternativo significativo.", "PXAPDFUA009": "Seleziona l’ambito riga o colonna dell’intestazione.",
+      "PXAPDFUA010": "Questo link o campo modulo non dispone di un’annotazione PDF interattiva supportata.", "PXAPDFUA011": "Un ID intestazione associato non esiste.",
+      "PXAPDFUA013": "L’elemento padre selezionato non esiste più.", "PXAPDFUA014": "La gerarchia logica contiene un ciclo.", "PXAPDFUA015": "Usa un tag lingua BCP 47 valido.",
+      "PXAPDFUA016": "L’ordine di lettura non può essere negativo.", "PXAPDFUA017": "Aggiungi un testo link significativo.",
+      "PXAPDFUA018": "Aggiungi un’etichetta modulo accessibile.", "PXAPDFUA019": "Marca la prima riga come intestazione.",
+      "PXAPDFUA020": "La tabella richiede una struttura completa di righe e celle.", "PXAPDFUA021": "Seleziona un ruolo strutturale."
+    }
+  },
   "layers": {
     "allPagesHeaderFooter": "Tutte le pagine (intestazione / piè di pagina)",
     "pageHeading": "Pagina {{number}}",

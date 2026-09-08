@@ -7,8 +7,10 @@ internal sealed record PdfLinkAnnotation(
     double Height,
     string? Url,
     int? TargetPageNumber,
-    string? NamedDestination)
+    string? NamedDestination) : IPdfAccessibleAnnotation
 {
+    public PdfAccessibilityProperties? Accessibility { get; init; }
+
     public static PdfLinkAnnotation ForUrl(double x, double y, double width, double height, string url)
     {
         return new PdfLinkAnnotation(x, y, width, height, url, null, null);

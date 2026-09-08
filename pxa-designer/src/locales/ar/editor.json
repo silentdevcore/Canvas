@@ -588,6 +588,28 @@
     "patternRegex": "النمط (تعبير عادي)",
     "patternPlaceholder": "مثال: \\d{5}"
   },
+  "accessibility": {
+    "heading": "إمكانية الوصول", "profile": "ملف PDF ميسّر", "profileNone": "بدون ملف إمكانية وصول",
+    "role": "دور البنية", "selectRole": "اختر دورًا", "decorative": "عنصر زخرفي (تتجاهله التقنيات المساعدة)",
+    "readingOrder": "ترتيب القراءة", "language": "لغة العنصر", "languagePlaceholder": "مثال ar",
+    "parent": "العنصر الأب المنطقي", "noParent": "جذر المستند", "alternateText": "النص البديل", "actualText": "النص البديل الفعلي",
+    "headerScope": "نطاق رأس الجدول", "headerIds": "معرفات الرؤوس المرتبطة", "headerIdsPlaceholder": "header-1, header-2",
+    "useSuggested": "استخدام الدلالات المقترحة", "applySuggestions": "تطبيق الدلالات المقترحة على المستند",
+    "suggestionsApplied": "تم تطبيق دلالات إمكانية الوصول المقترحة.", "elementReady": "لم يتم اكتشاف أخطاء إمكانية وصول لهذا العنصر.",
+    "preflightReady": "نجح فحص PDF/UA.", "preflightErrors": "وجد فحص PDF/UA عدد {{count}} من المشكلات.",
+    "exportBlocked": "عالج أخطاء PDF/UA قبل التصدير.",
+    "scopes": { "None": "بلا", "Row": "صف", "Column": "عمود", "Both": "صف وعمود" },
+    "diagnostics": {
+      "PXAPDFUA002": "عيّن عنوان المستند في بيانات التصدير.", "PXAPDFUA003": "اختر لغة المستند.",
+      "PXAPDFUA004": "التشفير غير مدعوم بعد لتصدير PDF/UA.", "PXAPDFUA005": "عيّن دلالات أو علّم العنصر كزخرفي.",
+      "PXAPDFUA007": "أضف نصًا بديلاً ذا معنى.", "PXAPDFUA009": "اختر نطاق الصف أو العمود لرأس الجدول.",
+      "PXAPDFUA010": "لا يحتوي هذا الرابط أو حقل النموذج على تعليق PDF تفاعلي مدعوم.", "PXAPDFUA011": "معرف رأس جدول مرتبط غير موجود.",
+      "PXAPDFUA013": "العنصر الأب المنطقي المحدد لم يعد موجودًا.", "PXAPDFUA014": "تحتوي البنية المنطقية على حلقة.", "PXAPDFUA015": "استخدم وسم لغة BCP 47 صالحًا.",
+      "PXAPDFUA016": "لا يمكن أن يكون ترتيب القراءة سالبًا.", "PXAPDFUA017": "أضف نص رابط ذا معنى.",
+      "PXAPDFUA018": "أضف تسمية نموذج ميسّرة.", "PXAPDFUA019": "علّم الصف الأول كرأس للجدول.",
+      "PXAPDFUA020": "يتطلب الجدول بنية كاملة للصفوف والخلايا.", "PXAPDFUA021": "اختر دورًا هيكليًا."
+    }
+  },
   "layers": {
     "allPagesHeaderFooter": "كل الصفحات (رأس/تذييل الصفحة)",
     "pageHeading": "صفحة {{number}}",

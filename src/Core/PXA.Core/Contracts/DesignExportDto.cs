@@ -64,6 +64,7 @@ public sealed class PageSettingsDto
     public DocumentProtectionDto? Protection { get; set; }
     public PdfEncryptionDto? Encryption { get; set; }
     public string? ComplianceProfile { get; set; }
+    public string? AccessibilityProfile { get; set; }
     public List<CustomDocumentPropertyDto>? CustomProperties { get; set; }
     public bool TrackChanges { get; set; }
     // Multi-language localization
@@ -182,6 +183,7 @@ public sealed class ElementDto
     public bool? Hidden { get; set; }
     public bool? Locked { get; set; }
     public string? VisibleExpression { get; set; }
+    public AccessibilityPropertiesDto? Accessibility { get; set; }
 
     // Text / content
     public string? Content { get; set; }
@@ -361,6 +363,19 @@ public sealed class ElementDto
     public string? TocPlacement       { get; set; }
     /// <summary>Pre-computed TOC entries from the frontend "Update TOC" action.</summary>
     public TocEntryDto[]? TocEntries  { get; set; }
+}
+
+public sealed class AccessibilityPropertiesDto
+{
+    public string Role { get; set; } = "P";
+    public bool IsArtifact { get; set; }
+    public string? ParentElementId { get; set; }
+    public int? ReadingOrder { get; set; }
+    public string? Language { get; set; }
+    public string? AlternateText { get; set; }
+    public string? ActualText { get; set; }
+    public string? TableHeaderScope { get; set; }
+    public List<string>? TableHeaderIds { get; set; }
 }
 
 /// <summary>Repeat configuration — iterates a data path and stamps a template element.</summary>

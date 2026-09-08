@@ -115,6 +115,14 @@ import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
 import { notify } from '@/notifications/toast';
 import { uploadDesignerImage } from '@/services/designerAssetApi';
 import { EditableDocumentTitle } from './EditableDocumentTitle';
+import AccessibilityInspector from './AccessibilityInspector';
+import {
+  accessibilityForButtonAction,
+  applySuggestedAccessibility,
+  suggestedAccessibility,
+  validateDesignerAccessibility,
+  withSuggestedAccessibility,
+} from '@/accessibility/designerAccessibility';
 import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
 import LineRenderer from '@/components/Rendering/LineRenderer';
 import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
@@ -850,6 +858,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const selectedElement = useMemo(
     () => [...elements, ...sharedElements].find(el => el.id === selectedElementId) ?? null,
     [elements, sharedElements, selectedElementId]
+  );
+  const accessibilityIssues = useMemo(
+    () => validateDesignerAccessibility(template, pages, sharedElements, pageSettings),
+    [template, pages, sharedElements, pageSettings],
   );
 
   // Unified update/delete — routes to shared or page based on element identity
@@ -2063,10 +2075,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   };
 
   const nameElement = (el: SimpleElement): SimpleElement => {
-    if (el.name) return el;
     const count = [...elements, ...sharedElements].filter(e => e.type === el.type).length + 1;
-    const label = (ELEMENT_TYPE_LABELS[el.type] ?? el.type).replace(/\s+/g, '');
-    return { ...el, name: `${label}${count}` };
+    const named = el.name
+      ? el
+      : { ...el, name: `${(ELEMENT_TYPE_LABELS[el.type] ?? el.type).replace(/\s+/g, '')}${count}` };
+    return withSuggestedAccessibility(named, elements.length + sharedElements.length);
   };
 
   const addElement = (tool: Tool) => {
@@ -2161,7 +2174,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     try {
       if (entry.kind === 'block') {
         const source = elementsOverride ?? entry.buildElements?.() ?? [];
-        const inserted = prepareBlockInsertion(source, pages, pageSettings, target);
+        const inserted = prepareBlockInsertion(source, pages, pageSettings, target)
+          .map((element, index) => withSuggestedAccessibility(element, elements.length + index));
         insertElements(inserted);
       } else {
         const sourcePages = buildContentPages(entry, i18n.language);
@@ -2171,7 +2185,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           entry.sourceSize ?? { width: pageSettings.width, height: pageSettings.height },
           pageSettings,
         );
-        insertPagesAfterCurrent(prepared.pages);
+        const accessible = applySuggestedAccessibility(prepared.pages, []);
+        insertPagesAfterCurrent(accessible.pages);
         if (prepared.scaled) {
           notify.warning(t('contentLibrary.scaled', { percent: Math.round(prepared.scale * 100) }));
         }
@@ -4610,13 +4625,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             if (existing) {
                               onElementUpdate(globalId, updates);
                             } else {
-                              onElementAdd({
+                              onElementAdd(withSuggestedAccessibility({
                                 id: globalId,
                                 type: 'pagenumber',
                                 width: elW,
                                 height: elH,
                                 ...updates,
-                              } as SimpleElement);
+                              } as SimpleElement, elements.length + sharedElements.length));
                             }
                             setSelectedElementId(globalId);
                           }}
@@ -4691,7 +4706,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       <input
                         type="checkbox"
                         checked={pageSettings.exportDefaults.accessibilityTagged}
-                        onChange={(e) => updatePageSettings({ exportDefaults: { ...pageSettings.exportDefaults, accessibilityTagged: e.target.checked } })}
+                        onChange={(e) => updatePageSettings({
+                          exportDefaults: { ...pageSettings.exportDefaults, accessibilityTagged: e.target.checked },
+                          accessibilityProfile: e.target.checked ? 'PdfUa1' : 'None',
+                          encryption: e.target.checked ? undefined : pageSettings.encryption,
+                        })}
                       />
                       <span>{t('pageSettings.exportDefaults.accessibilityTagged')}</span>
                     </label>
@@ -4864,6 +4883,61 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       </select>
                     </label>
                     <small>{t('pageSettings.compliance.description')}</small>
+                    <label>
+                      <span>{t('accessibility.profile')}</span>
+                      <select
+                        value={pageSettings.accessibilityProfile ?? 'None'}
+                        onChange={event => {
+                          const accessibilityProfile = event.target.value as PageSettings['accessibilityProfile'];
+                          updatePageSettings({
+                            accessibilityProfile,
+                            exportDefaults: {
+                              ...pageSettings.exportDefaults,
+                              accessibilityTagged: accessibilityProfile === 'PdfUa1',
+                            },
+                            encryption: accessibilityProfile === 'PdfUa1' ? undefined : pageSettings.encryption,
+                          });
+                        }}
+                      >
+                        <option value="None">{t('accessibility.profileNone')}</option>
+                        <option value="PdfUa1">PDF/UA-1</option>
+                      </select>
+                    </label>
+                    {pageSettings.accessibilityProfile === 'PdfUa1' && (
+                      <>
+                        <button
+                          type="button"
+                          className="editor-secondary-button"
+                          onClick={() => {
+                            const suggested = applySuggestedAccessibility(pages, sharedElements);
+                            bulkReplaceContent(suggested.pages, suggested.sharedElements);
+                            notify.success(t('accessibility.suggestionsApplied'));
+                          }}
+                        >
+                          {t('accessibility.applySuggestions')}
+                        </button>
+                        <div className={`editor-accessibility-summary${accessibilityIssues.length ? ' has-errors' : ''}`} role="status">
+                          <strong>{accessibilityIssues.length
+                            ? t('accessibility.preflightErrors', { count: accessibilityIssues.length })
+                            : t('accessibility.preflightReady')}</strong>
+                          {accessibilityIssues.slice(0, 12).map((issue, index) => (
+                            <button
+                              type="button"
+                              key={`${issue.code}-${issue.elementId ?? 'document'}-${index}`}
+                              onClick={() => {
+                                if (issue.pageIndex != null) onPageSelect(issue.pageIndex);
+                                if (issue.elementId) selectOne(issue.elementId);
+                              }}
+                              disabled={!issue.elementId}
+                            >
+                              <span>{issue.code}</span>
+                              {t(`accessibility.diagnostics.${issue.code}`)}
+                              {issue.elementName ? ` · ${issue.elementName}` : ''}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -4878,7 +4952,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       <input
                         type="checkbox"
                         checked={pageSettings.encryption?.enabled ?? false}
-                        disabled={pageSettings.complianceProfile === 'PdfA2B' || pageSettings.complianceProfile === 'PdfA3B'}
+                        disabled={pageSettings.complianceProfile === 'PdfA2B' || pageSettings.complianceProfile === 'PdfA3B' || pageSettings.accessibilityProfile === 'PdfUa1'}
                         onChange={(e) => updatePageSettings({
                           encryption: e.target.checked
                             ? {
@@ -5428,7 +5502,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <div className="editor-form-stack" style={{ padding: '8px 12px' }}>
                     <select
                       value={selectedElement.headingLevel ?? ''}
-                      onChange={e => updateSelectedElement({ headingLevel: e.target.value === '' ? null : Number(e.target.value) as 1 | 2 | 3 })}
+                      onChange={e => {
+                        const headingLevel = e.target.value === '' ? null : Number(e.target.value) as 1 | 2 | 3;
+                        const currentRole = selectedElement.accessibility?.role;
+                        const shouldFollowHeading = !currentRole || currentRole === 'P' || /^H[1-6]$/.test(currentRole);
+                        updateSelectedElement({
+                          headingLevel,
+                          accessibility: shouldFollowHeading
+                            ? { ...(selectedElement.accessibility ?? suggestedAccessibility(selectedElement)), role: headingLevel ? `H${headingLevel}` : 'P' }
+                            : selectedElement.accessibility,
+                        });
+                      }}
                     >
                       <option value="">{t('inspector.headingNone')}</option>
                       <option value="1">{t('inspector.heading1')}</option>
@@ -5439,6 +5523,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </div>
                 </div>
               )}
+
+              <AccessibilityInspector
+                element={selectedElement}
+                allElements={[...pages.flatMap(page => page.elements), ...sharedElements]}
+                issues={accessibilityIssues}
+                onChange={updateSelectedElement}
+              />
 
               {/* ── Form field: tab order + validation ── */}
               {(['field', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature'] as const).includes(selectedElement.type as any) && (
@@ -5849,6 +5940,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   : action === 'submit' ? 'submit'
                   : action === 'reset' ? 'reset'
                   : action.length > 0 ? 'url' : 'none';
+                const updateButtonAction = (buttonAction: string) => updateSelectedElement({
+                  buttonAction,
+                  accessibility: accessibilityForButtonAction(selectedElement, buttonAction),
+                });
                 return (
                 <div className="editor-form-stack">
                   <label>
@@ -5865,10 +5960,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       value={actionType}
                       onChange={(event) => {
                         const t = event.target.value;
-                        if (t === 'none') updateSelectedElement({ buttonAction: '' });
-                        else if (t === 'url') updateSelectedElement({ buttonAction: 'https://' });
-                        else if (t === 'page') updateSelectedElement({ buttonAction: 'page:1' });
-                        else updateSelectedElement({ buttonAction: t });
+                        if (t === 'none') updateButtonAction('');
+                        else if (t === 'url') updateButtonAction('https://');
+                        else if (t === 'page') updateButtonAction('page:1');
+                        else updateButtonAction(t);
                       }}
                     >
                       <option value="none">{t('elementInspector.button.actionNone')}</option>
@@ -5884,7 +5979,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       <input
                         type="text"
                         value={selectedElement.buttonAction || ''}
-                        onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
+                        onChange={(event) => updateButtonAction(event.target.value)}
                         placeholder={t('elementInspector.button.urlPlaceholder')}
                       />
                     </label>
@@ -5896,7 +5991,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         type="number"
                         min="1"
                         value={parseInt(action.replace('page:', ''), 10) || 1}
-                        onChange={(event) => updateSelectedElement({ buttonAction: `page:${event.target.value}` })}
+                        onChange={(event) => updateButtonAction(`page:${event.target.value}`)}
                       />
                     </label>
                   )}

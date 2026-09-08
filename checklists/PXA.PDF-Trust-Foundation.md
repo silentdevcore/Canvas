@@ -616,23 +616,52 @@ Reference material:
 - [ ] Implement Tagged PDF primitives: structure tree, parent tree, marked-content
   IDs, role map, namespaces, artifacts, language, alternate text, actual text, and
   table header associations.
-- [ ] Add a semantic document layer so accessibility is not inferred only from final
+- [x] Emit a PDF 1.7 structure tree, parent tree, per-page `StructParents`, MCIDs,
+  explicit artifacts, document/element language, alternate text, actual text, and
+  table header scope/associations from the PXA generator, including validated
+  parent-child hierarchies for grouped, list, and table semantics.
+- [ ] Add custom role maps and namespace support for imported or provider-specific
+  semantics; PDF/UA-1 output currently accepts only the typed standard role catalog.
+- [x] Add a semantic document layer so accessibility is not inferred only from final
   drawing coordinates.
-- [ ] Preserve reading order independently from visual z-order.
+- [x] Preserve reading order independently from visual z-order in the generator and
+  Designer JSON contract, including one logical element spanning multiple drawing
+  operations.
 - [ ] Map Designer text, headings, paragraphs, lists, tables, links, images, forms,
   headers/footers, page numbers, charts, and decorative elements to explicit roles.
-- [ ] Require document title, language, meaningful link text, form labels, image/chart
+- [x] Carry explicit Designer element roles, reading order, language, alternatives,
+  artifacts, and table-header associations through `DesignExportDto` into tagged PDF;
+  automatic role defaults and the Designer property editor are now available.
+- [x] Add suggested roles for newly inserted elements and a one-action upgrade for
+  existing documents, while preserving explicit user choices and synchronizing heading
+  roles with heading-level changes.
+- [x] Add a localized Accessibility Inspector for role, artifact status, logical parent,
+  reading order, language, alternate/actual text, and table header associations.
+- [x] Emit granular `TR`, `TH`, and `TD` semantics from Designer table cells and add
+  `OBJR`, `StructParent`, parent-tree, tooltip, and structure-order support for links,
+  linked buttons, text fields, text areas, checkboxes, and populated dropdowns.
+- [ ] Add native accessible widgets and Designer mappings for radio groups, option lists,
+  signature fields, and non-link buttons; these remain blocked by preflight.
+- [x] Require document title, language, meaningful link text, form labels, image/chart
   alternatives, and table semantics where the selected profile requires them.
+- [x] Fail PDF/UA-1 export when title, language, complete tagging, figure alternatives,
+  table-header scope/references, embedded text fonts, or supported annotation semantics
+  are absent.
 - [ ] Add keyboard/focus-order and annotation accessibility checks for interactive
   documents.
 - [ ] Ship PDF/UA-1 generation and validation first; evaluate PDF/UA-2 after the PDF
   2.0 object model and ecosystem validators are mature in PXA.
-- [ ] Add an accessibility preflight report with errors, warnings, element IDs,
+- [x] Add an accessibility preflight report with errors, warnings, element IDs,
   page references, and actionable remediation.
+- [x] Add typed `PdfAccessibilityProfile.PdfUa1`, a fail-closed structural generator
+  preflight, stable `PXAPDFUA...` diagnostics with page/element references, and
+  `pdfuaid:part=1` identification metadata. Independent validation remains required
+  before claiming full conformance.
 - [ ] Validate with an independent PDF/UA validator and manual assistive-technology
   checks; automated validation alone is not sufficient.
-- [ ] Add Designer accessibility properties and prevent a compliance export when
-  required semantic data is absent.
+- [x] Add Designer accessibility properties and prevent a compliance export when
+  required semantic data is absent, with localized document- and element-level findings
+  in Page Settings and the Export dialog.
 
 ## Viewer Experience
 

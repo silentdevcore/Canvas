@@ -18,6 +18,9 @@ public sealed class PdfPage
     private readonly List<PdfTextFieldAnnotation> _textFields = new();
     private readonly List<PdfCheckBoxAnnotation> _checkBoxAnnotations = new();
     private readonly List<PdfReviewAnnotation> _reviewAnnotations = new();
+    private readonly List<PdfAccessibilityProperties> _semanticElements = new();
+    private PdfAccessibilityProperties? _activeAccessibility;
+    private bool _activeArtifact;
 
     private readonly PdfFontLoader? _fontLoader;
 
@@ -66,6 +69,81 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfCheckBoxAnnotation> CheckBoxAnnotations => _checkBoxAnnotations;
 
     internal IReadOnlyList<PdfReviewAnnotation> ReviewAnnotations => _reviewAnnotations;
+
+    internal IReadOnlyList<PdfAccessibilityProperties> SemanticElements => _semanticElements;
+
+    /// <summary>Attaches semantic structure information to the most recently drawn page element.</summary>
+    public void TagLastElement(PdfAccessibilityProperties properties)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+        if (_elements.Count == 0)
+            throw new InvalidOperationException("No page element is available to tag.");
+        _elements[^1].Accessibility = properties;
+        _elements[^1].IsArtifact = false;
+        RegisterSemanticElement(properties);
+    }
+
+    /// <summary>Marks the most recently drawn page element as pagination, layout, or decorative content.</summary>
+    public void MarkLastElementAsArtifact()
+    {
+        if (_elements.Count == 0)
+            throw new InvalidOperationException("No page element is available to mark as an artifact.");
+        _elements[^1].Accessibility = null;
+        _elements[^1].IsArtifact = true;
+    }
+
+    /// <summary>
+    /// Tags all drawing operations created inside the scope as one logical structure element.
+    /// The operations retain visual order while <see cref="PdfAccessibilityProperties.ReadingOrder"/>
+    /// controls logical order.
+    /// </summary>
+    public IDisposable BeginAccessibilityElement(PdfAccessibilityProperties properties)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+        RegisterSemanticElement(properties);
+        return BeginAccessibilityScope(properties, artifact: false);
+    }
+
+    /// <summary>Marks all drawing operations created inside the scope as artifacts.</summary>
+    public IDisposable BeginArtifact() => BeginAccessibilityScope(null, artifact: true);
+
+    private IDisposable BeginAccessibilityScope(PdfAccessibilityProperties? properties, bool artifact)
+    {
+        var previousProperties = _activeAccessibility;
+        var previousArtifact = _activeArtifact;
+        _activeAccessibility = properties;
+        _activeArtifact = artifact;
+        return new AccessibilityScope(this, previousProperties, previousArtifact);
+    }
+
+    private void AddElement(PdfPageElement element)
+    {
+        element.Accessibility = _activeAccessibility;
+        element.IsArtifact = _activeArtifact;
+        _elements.Add(element);
+    }
+
+    private void RegisterSemanticElement(PdfAccessibilityProperties properties)
+    {
+        if (!_semanticElements.Contains(properties, ReferenceEqualityComparer.Instance))
+            _semanticElements.Add(properties);
+    }
+
+    private sealed class AccessibilityScope(
+        PdfPage page,
+        PdfAccessibilityProperties? previousProperties,
+        bool previousArtifact) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            page._activeAccessibility = previousProperties;
+            page._activeArtifact = previousArtifact;
+            _disposed = true;
+        }
+    }
 
     public void SetPageBoundary(PdfPageBoundary boundary, PdfPoint lowerLeft, PdfPoint upperRight)
     {
@@ -156,7 +234,7 @@ public sealed class PdfPage
         PdfEmbeddedFont? embeddedFont = null;
         _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
 
-        _elements.Add(new TextElement(
+        AddElement(new TextElement(
             text,
             x,
             y,
@@ -201,7 +279,7 @@ public sealed class PdfPage
     {
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new LineElement(x1, y1, x2, y2, resolvedStrokeStyle, strokeColor ?? PdfColor.Black));
+        AddElement(new LineElement(x1, y1, x2, y2, resolvedStrokeStyle, strokeColor ?? PdfColor.Black));
     }
 
     public void DrawLineFromTop(
@@ -239,7 +317,7 @@ public sealed class PdfPage
 
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new RectangleElement(
+        AddElement(new RectangleElement(
             x,
             y,
             width,
@@ -276,7 +354,7 @@ public sealed class PdfPage
     {
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new BezierCurveElement(
+        AddElement(new BezierCurveElement(
             start,
             control1,
             control2,
@@ -302,7 +380,7 @@ public sealed class PdfPage
 
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new PolygonElement(
+        AddElement(new PolygonElement(
             points.ToArray(),
             resolvedStrokeStyle,
             Stroke: true,
@@ -346,7 +424,7 @@ public sealed class PdfPage
 
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new RoundedRectangleElement(
+        AddElement(new RoundedRectangleElement(
             x,
             y,
             width,
@@ -391,7 +469,7 @@ public sealed class PdfPage
 
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
-        _elements.Add(new CircleElement(
+        AddElement(new CircleElement(
             centerX,
             centerY,
             radius,
@@ -628,7 +706,7 @@ public sealed class PdfPage
 
         var image = PdfImageReader.Read(imagePath);
         var cacheKey = Path.GetFullPath(imagePath);
-        _elements.Add(new ImageElement(
+        AddElement(new ImageElement(
             image,
             cacheKey,
             x,
@@ -800,7 +878,7 @@ public sealed class PdfPage
 
             widestLine = Math.Max(widestLine, lineWidth + GetJustificationWidthContribution(line, wordSpacing));
 
-            _elements.Add(new TextElement(
+            AddElement(new TextElement(
                 line,
                 lineX,
                 lineY,
@@ -908,7 +986,7 @@ public sealed class PdfPage
 
             widestLine = Math.Max(widestLine, lineWidth + GetJustificationWidthContribution(line, wordSpacing));
 
-            _elements.Add(new TextElement(
+            AddElement(new TextElement(
                 line,
                 lineX,
                 lineY,
@@ -1155,6 +1233,13 @@ public sealed class PdfPage
         var paddingBottom = options.CellPaddingBottom ?? options.CellPadding;
         var currentRowTop = y;
         var tableBottom = y - rowHeights.Sum();
+        var tableSemantic = !_activeArtifact && _activeAccessibility?.Role == PdfStructureRole.Table
+            ? _activeAccessibility
+            : null;
+        var tableId = tableSemantic?.ElementId;
+        var headerIds = tableSemantic is not null && options.HasHeaderRow && tableId is { Length: > 0 }
+            ? Enumerable.Range(0, columnCount).Select(columnIndex => $"{tableId}-r1-c{columnIndex + 1}").ToArray()
+            : [];
 
         for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
         {
@@ -1165,10 +1250,36 @@ public sealed class PdfPage
             var isFooter = options.HasFooterRow && rowIndex == rows.Count - 1;
             var dataRowIndex = options.HasHeaderRow ? rowIndex - 1 : rowIndex;
             var cellX = x;
+            var rowSemantic = tableSemantic is not null && tableId is { Length: > 0 }
+                ? new PdfAccessibilityProperties
+                {
+                    Role = PdfStructureRole.TR,
+                    ElementId = $"{tableId}-r{rowIndex + 1}",
+                    ParentElementId = tableId,
+                    ReadingOrder = rowIndex,
+                    Language = tableSemantic!.Language
+                }
+                : null;
+            if (rowSemantic is not null)
+                RegisterSemanticElement(rowSemantic);
 
             for (var columnIndex = 0; columnIndex < columnCount; columnIndex++)
             {
                 var cellWidth = columnWidths[columnIndex];
+                var cellSemantic = rowSemantic is not null
+                    ? new PdfAccessibilityProperties
+                    {
+                        Role = isHeader ? PdfStructureRole.TH : PdfStructureRole.TD,
+                        ElementId = $"{tableId}-r{rowIndex + 1}-c{columnIndex + 1}",
+                        ParentElementId = rowSemantic.ElementId,
+                        ReadingOrder = columnIndex,
+                        Language = tableSemantic!.Language,
+                        TableHeaderScope = isHeader ? PdfTableHeaderScope.Column : PdfTableHeaderScope.None,
+                        TableHeaderIds = !isHeader && headerIds.Length > columnIndex ? [headerIds[columnIndex]] : null
+                    }
+                    : null;
+                if (cellSemantic is not null)
+                    RegisterSemanticElement(cellSemantic);
                 var fillColor = isHeader
                     ? options.HeaderFillColor
                     : isFooter
@@ -1179,35 +1290,43 @@ public sealed class PdfPage
 
                 if (fillColor is not null)
                 {
-                    if (options.CellCornerRadius > 0)
+                    var artifactScope = tableSemantic is null ? null : BeginArtifact();
+                    try
                     {
-                        var maxCellRadius = Math.Min(cellWidth, rowHeight) / 2;
-                        var radius = Math.Min(options.CellCornerRadius, maxCellRadius);
+                        if (options.CellCornerRadius > 0)
+                        {
+                            var maxCellRadius = Math.Min(cellWidth, rowHeight) / 2;
+                            var radius = Math.Min(options.CellCornerRadius, maxCellRadius);
 
-                        _elements.Add(new RoundedRectangleElement(
-                            cellX,
-                            rowBottom,
-                            cellWidth,
-                            rowHeight,
-                            radius,
-                            new PdfStrokeStyle { LineWidth = 1 },
-                            Stroke: false,
-                            Fill: true,
-                            StrokeColor: innerBorderColor,
-                            FillColor: fillColor));
+                            AddElement(new RoundedRectangleElement(
+                                cellX,
+                                rowBottom,
+                                cellWidth,
+                                rowHeight,
+                                radius,
+                                new PdfStrokeStyle { LineWidth = 1 },
+                                Stroke: false,
+                                Fill: true,
+                                StrokeColor: innerBorderColor,
+                                FillColor: fillColor));
+                        }
+                        else
+                        {
+                            AddElement(new RectangleElement(
+                                cellX,
+                                rowBottom,
+                                cellWidth,
+                                rowHeight,
+                                new PdfStrokeStyle { LineWidth = 1 },
+                                Stroke: false,
+                                Fill: true,
+                                StrokeColor: innerBorderColor,
+                                FillColor: fillColor));
+                        }
                     }
-                    else
+                    finally
                     {
-                        _elements.Add(new RectangleElement(
-                            cellX,
-                            rowBottom,
-                            cellWidth,
-                            rowHeight,
-                            new PdfStrokeStyle { LineWidth = 1 },
-                            Stroke: false,
-                            Fill: true,
-                            StrokeColor: innerBorderColor,
-                            FillColor: fillColor));
+                        artifactScope?.Dispose();
                     }
                 }
 
@@ -1228,35 +1347,40 @@ public sealed class PdfPage
                     _ => rowBottom + ((rowHeight + contentHeight) / 2) - lineHeight
                 };
 
-                for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+                var cellScope = cellSemantic is null ? null : BeginAccessibilityElement(cellSemantic);
+                try
                 {
-                    var line = lines[lineIndex];
-                    if (string.IsNullOrEmpty(line))
-                        continue;
-
-                    var textWidth = EstimateTextWidth(line, options.FontSize, cellFont);
-                    var alignment = columnAlignments[columnIndex];
-                    var textX = alignment switch
+                    for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
                     {
-                        PdfTextAlignment.Left or PdfTextAlignment.Justify => cellX + paddingLeft,
-                        PdfTextAlignment.Center => cellX + ((cellWidth - textWidth) / 2),
-                        PdfTextAlignment.Right => cellX + cellWidth - paddingRight - textWidth,
-                        _ => cellX + paddingLeft
-                    };
+                        var line = lines[lineIndex];
+                        if (string.IsNullOrEmpty(line))
+                            continue;
 
-                    if (textX < cellX + paddingLeft)
-                    {
-                        textX = cellX + paddingLeft;
+                        var textWidth = EstimateTextWidth(line, options.FontSize, cellFont);
+                        var alignment = columnAlignments[columnIndex];
+                        var textX = alignment switch
+                        {
+                            PdfTextAlignment.Left or PdfTextAlignment.Justify => cellX + paddingLeft,
+                            PdfTextAlignment.Center => cellX + ((cellWidth - textWidth) / 2),
+                            PdfTextAlignment.Right => cellX + cellWidth - paddingRight - textWidth,
+                            _ => cellX + paddingLeft
+                        };
+
+                        if (textX < cellX + paddingLeft)
+                            textX = cellX + paddingLeft;
+
+                        var textY = firstBaselineY - (lineIndex * lineHeight);
+                        DrawText(line, textX, textY, new PdfDrawTextOptions
+                        {
+                            FontSize = options.FontSize,
+                            Font = cellFont,
+                            FillColor = textColor
+                        });
                     }
-
-                    var textY = firstBaselineY - (lineIndex * lineHeight);
-
-                    DrawText(line, textX, textY, new PdfDrawTextOptions
-                    {
-                        FontSize = options.FontSize,
-                        Font = cellFont,
-                        FillColor = textColor
-                    });
+                }
+                finally
+                {
+                    cellScope?.Dispose();
                 }
 
                 cellX += cellWidth;
@@ -1265,55 +1389,64 @@ public sealed class PdfPage
             currentRowTop = rowBottom;
         }
 
-        // Borders must be emitted after cell fills. PDF elements are painted in
-        // insertion order, so drawing fills later would otherwise hide the grid.
-        if (options.DrawOuterBorder)
+        // Table borders carry layout rather than semantic content.
+        var bordersArtifactScope = tableSemantic is null ? null : BeginArtifact();
+        try
         {
-            DrawRectangle(
-                x: x,
-                y: tableBottom,
-                width: width,
-                height: y - tableBottom,
-                lineWidth: outerBorderLineWidth,
-                fill: false,
-                strokeColor: outerBorderColor,
-                strokeStyle: outerStrokeStyle);
-        }
-
-        if (options.DrawInnerHorizontalBorders)
-        {
-            var horizontalY = y;
-
-            for (var rowIndex = 0; rowIndex < rowHeights.Length - 1; rowIndex++)
+            // Borders must be emitted after cell fills. PDF elements are painted in
+            // insertion order, so drawing fills later would otherwise hide the grid.
+            if (options.DrawOuterBorder)
             {
-                horizontalY -= rowHeights[rowIndex];
-                DrawLine(
-                    x1: x,
-                    y1: horizontalY,
-                    x2: x + width,
-                    y2: horizontalY,
-                    lineWidth: innerBorderLineWidth,
-                    strokeColor: innerBorderColor,
-                    strokeStyle: innerStrokeStyle);
+                DrawRectangle(
+                    x: x,
+                    y: tableBottom,
+                    width: width,
+                    height: y - tableBottom,
+                    lineWidth: outerBorderLineWidth,
+                    fill: false,
+                    strokeColor: outerBorderColor,
+                    strokeStyle: outerStrokeStyle);
+            }
+
+            if (options.DrawInnerHorizontalBorders)
+            {
+                var horizontalY = y;
+
+                for (var rowIndex = 0; rowIndex < rowHeights.Length - 1; rowIndex++)
+                {
+                    horizontalY -= rowHeights[rowIndex];
+                    DrawLine(
+                        x1: x,
+                        y1: horizontalY,
+                        x2: x + width,
+                        y2: horizontalY,
+                        lineWidth: innerBorderLineWidth,
+                        strokeColor: innerBorderColor,
+                        strokeStyle: innerStrokeStyle);
+                }
+            }
+
+            if (options.DrawInnerVerticalBorders)
+            {
+                var verticalX = x;
+
+                for (var columnIndex = 0; columnIndex < columnWidths.Length - 1; columnIndex++)
+                {
+                    verticalX += columnWidths[columnIndex];
+                    DrawLine(
+                        x1: verticalX,
+                        y1: tableBottom,
+                        x2: verticalX,
+                        y2: y,
+                        lineWidth: innerBorderLineWidth,
+                        strokeColor: innerBorderColor,
+                        strokeStyle: innerStrokeStyle);
+                }
             }
         }
-
-        if (options.DrawInnerVerticalBorders)
+        finally
         {
-            var verticalX = x;
-
-            for (var columnIndex = 0; columnIndex < columnWidths.Length - 1; columnIndex++)
-            {
-                verticalX += columnWidths[columnIndex];
-                DrawLine(
-                    x1: verticalX,
-                    y1: tableBottom,
-                    x2: verticalX,
-                    y2: y,
-                    lineWidth: innerBorderLineWidth,
-                    strokeColor: innerBorderColor,
-                    strokeStyle: innerStrokeStyle);
-            }
+            bordersArtifactScope?.Dispose();
         }
 
         var totalHeight = rowHeights.Sum();
@@ -1353,7 +1486,10 @@ public sealed class PdfPage
             throw new ArgumentException("URL cannot be null or empty.", nameof(url));
         }
 
-        _linkAnnotations.Add(PdfLinkAnnotation.ForUrl(x, y, width, height, url));
+        _linkAnnotations.Add(PdfLinkAnnotation.ForUrl(x, y, width, height, url) with
+        {
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
     }
 
     public void AddPageLink(double x, double y, double width, double height, int targetPageNumber)
@@ -1373,7 +1509,10 @@ public sealed class PdfPage
             throw new ArgumentOutOfRangeException(nameof(targetPageNumber), "Target page number must be greater than zero.");
         }
 
-        _linkAnnotations.Add(PdfLinkAnnotation.ForPage(x, y, width, height, targetPageNumber));
+        _linkAnnotations.Add(PdfLinkAnnotation.ForPage(x, y, width, height, targetPageNumber) with
+        {
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
     }
 
     public void AddNamedDestinationLink(double x, double y, double width, double height, string destinationName)
@@ -1393,7 +1532,10 @@ public sealed class PdfPage
             throw new ArgumentException("Destination name cannot be null or empty.", nameof(destinationName));
         }
 
-        _linkAnnotations.Add(PdfLinkAnnotation.ForNamedDestination(x, y, width, height, destinationName));
+        _linkAnnotations.Add(PdfLinkAnnotation.ForNamedDestination(x, y, width, height, destinationName) with
+        {
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
     }
 
     public void AddComboBox(
@@ -1440,7 +1582,8 @@ public sealed class PdfPage
             Height = height,
             Options = options,
             SelectedValue = selectedValue,
-            FontSize = fontSize
+            FontSize = fontSize,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
         });
     }
 
@@ -1481,7 +1624,8 @@ public sealed class PdfPage
             Width = width,
             Height = height,
             DefaultValue = defaultValue,
-            FontSize = fontSize
+            FontSize = fontSize,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
         });
     }
 
@@ -1522,7 +1666,8 @@ public sealed class PdfPage
             Width = width,
             Height = height,
             DefaultValue = defaultValue,
-            FontSize = fontSize
+            FontSize = fontSize,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
         });
     }
 
@@ -1547,6 +1692,7 @@ public sealed class PdfPage
             Width = size,
             Height = size,
             IsChecked = isChecked,
+            Accessibility = _activeArtifact ? null : _activeAccessibility,
         });
     }
 
@@ -2079,7 +2225,7 @@ public sealed class PdfPage
 
     private void AddImageElementWithCacheKey(string cacheKey, PdfImageData image, double x, double y, double width, double height, double opacity)
     {
-        _elements.Add(new ImageElement(image, cacheKey, x, y, width, height, opacity));
+        AddElement(new ImageElement(image, cacheKey, x, y, width, height, opacity));
     }
 
     private void AddReviewAnnotation(PdfReviewAnnotationType type, double x, double y, double width, double height, string contents, PdfColor? color, double opacity, IReadOnlyList<PdfMarkupQuadPoint>? quadPoints = null)

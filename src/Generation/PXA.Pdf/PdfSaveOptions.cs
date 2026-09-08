@@ -16,6 +16,12 @@ public sealed class PdfSaveOptions
     public PdfComplianceProfile ComplianceProfile { get; init; } = PdfComplianceProfile.None;
 
     /// <summary>
+    /// Optional accessibility profile. PDF/UA output is emitted only after the structural
+    /// preflight succeeds; setting this value never adds a metadata-only conformance claim.
+    /// </summary>
+    public PdfAccessibilityProfile AccessibilityProfile { get; init; } = PdfAccessibilityProfile.None;
+
+    /// <summary>
     /// When set, the document is encrypted with the Standard Security Handler using these settings.
     /// When null (the default), the document is written unencrypted.
     /// </summary>

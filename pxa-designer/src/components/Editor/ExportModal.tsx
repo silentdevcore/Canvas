@@ -7,6 +7,7 @@ import {
 import ExportService, { type ExportFormat } from '@/services/ExportService';
 import type { Template, Page, SimpleElement, PageSettings } from '@/types';
 import SignDocxModal from './SignDocxModal';
+import { validateDesignerAccessibility } from '@/accessibility/designerAccessibility';
 
 interface Props {
   template: Template;
@@ -77,6 +78,8 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   const hasMultiLang = activeLangs.length > 1;
   const [multiLangState, setMultiLangState] = useState<ExportState>('idle');
   const [multiLangError, setMultiLangError] = useState('');
+  const accessibilityIssues = validateDesignerAccessibility(template, pages, sharedElements, pageSettings);
+  const accessibilityBlocked = accessibilityIssues.some(issue => issue.severity === 'error');
 
   const handleExport = useCallback(async (card: FormatCard) => {
     if (card.serverSide && !supportedFormats.has(card.format)) return;
@@ -111,6 +114,11 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   }, [template, pages, sharedElements, pageSettings, supportedFormats, t]);
 
   const handleExportAllLanguages = useCallback(async () => {
+    if (accessibilityBlocked) {
+      setMultiLangError(t('accessibility.exportBlocked'));
+      setMultiLangState('error');
+      return;
+    }
     if (runningFormats.current.has('multilanguage')) return;
     runningFormats.current.add('multilanguage');
     setMultiLangState('loading');
@@ -125,7 +133,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
     } finally {
       runningFormats.current.delete('multilanguage');
     }
-  }, [template, pages, sharedElements, pageSettings, t]);
+  }, [template, pages, sharedElements, pageSettings, t, accessibilityBlocked]);
 
   return (
     <div className="export-modal-backdrop" onClick={onClose}>
@@ -137,6 +145,24 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
 
         <div className="export-modal-body">
           {signOpen && <SignDocxModal onClose={() => setSignOpen(false)} />}
+
+          {pageSettings?.accessibilityProfile === 'PdfUa1' && (
+            <div className={`export-accessibility-preflight${accessibilityIssues.length ? ' has-errors' : ''}`} role="status">
+              <strong>{accessibilityIssues.length
+                ? t('accessibility.preflightErrors', { count: accessibilityIssues.length })
+                : t('accessibility.preflightReady')}</strong>
+              {accessibilityIssues.length > 0 && (
+                <ul>
+                  {accessibilityIssues.slice(0, 8).map((issue, index) => (
+                    <li key={`${issue.code}-${issue.elementId ?? 'document'}-${index}`}>
+                      <code>{issue.code}</code> {t(`accessibility.diagnostics.${issue.code}`)}
+                      {issue.elementName ? ` · ${issue.elementName}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {/* Multi-language export section */}
           {hasMultiLang && (
@@ -156,7 +182,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
                   <button
                     className={`export-card-btn export-card-btn--${multiLangState}`}
                     onClick={handleExportAllLanguages}
-                    disabled={multiLangState === 'loading'}
+                    disabled={multiLangState === 'loading' || accessibilityBlocked}
                     aria-label={t('export.multiLanguage.exportZipAriaLabel')}
                   >
                     {multiLangState === 'loading' ? <FiLoader className="spin" size={15} />
@@ -181,10 +207,11 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
                     const err   = errors[card.format] ?? '';
                     const prog  = progress[card.format] ?? '';
                     const label = t(`export.formats.${card.format}.label`);
-                    const available = !card.serverSide || (formatsLoaded && supportedFormats.has(card.format));
-                    const availabilityMessage = formatsLoaded
-                      ? t('export.unavailable')
-                      : t('export.checkingAvailability');
+                    const pdfAccessibilityBlocked = card.format === 'pdf' && accessibilityBlocked;
+                    const available = (!card.serverSide || (formatsLoaded && supportedFormats.has(card.format))) && !pdfAccessibilityBlocked;
+                    const availabilityMessage = pdfAccessibilityBlocked
+                      ? t('accessibility.exportBlocked')
+                      : formatsLoaded ? t('export.unavailable') : t('export.checkingAvailability');
                     return (
                       <div key={card.format} className={`export-card ${state === 'error' ? 'export-card--error' : ''}${available ? '' : ' export-card--disabled'}`}>
                         <div className="export-card-icon">{card.icon}</div>
