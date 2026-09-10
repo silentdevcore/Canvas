@@ -118,6 +118,11 @@ public static class DesignJsonMapper
             document.Info.CustomProperties[PXA.Core.Primitives.ChartMetadataCodec.PdfInfoKey] = chartMetadata;
         var totalPages = plannedPages.Count;
         var sourcePages = design.Pages ?? [];
+        // Shared elements are repeating headers/footers and must not duplicate the logical reading order.
+        var sharedElementIds = (design.SharedElements ?? [])
+            .Select(element => element.Id)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.Ordinal);
 
         // Collect elements with a cross-page scope (watermarks, page-number overlays, etc.)
         // These must be rendered on every page that matches their scope, regardless of which
@@ -222,7 +227,8 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang,
+                    forceArtifact: sharedElementIds.Contains(el.Id));
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
@@ -296,9 +302,9 @@ public static class DesignJsonMapper
 
     private static void RenderAccessibleElement(
         PdfDocument document, PdfPage page, ElementDto element, double pageHeight,
-        int pageIndex, int totalPages, string? effectiveLanguage)
+        int pageIndex, int totalPages, string? effectiveLanguage, bool forceArtifact = false)
     {
-        if (element.Accessibility?.IsArtifact == true)
+        if (forceArtifact || element.Accessibility?.IsArtifact == true)
         {
             using var artifact = page.BeginArtifact();
             RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);

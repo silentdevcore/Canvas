@@ -121,6 +121,7 @@ import {
   applySuggestedAccessibility,
   suggestedAccessibility,
   validateDesignerAccessibility,
+  withRepeatedPageArtifactAccessibility,
   withSuggestedAccessibility,
 } from '@/accessibility/designerAccessibility';
 import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
@@ -2150,7 +2151,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       };
     }
 
-    const named = nameElement(element);
+    const named = nameElement(withRepeatedPageArtifactAccessibility(element));
     onSharedElementAdd(named);
     setSelectedElementId(named.id);
   };

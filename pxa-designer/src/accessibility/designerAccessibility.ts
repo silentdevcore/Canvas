@@ -75,6 +75,13 @@ export function withSuggestedAccessibility(element: SimpleElement, readingOrder?
   return { ...element, accessibility: suggestedAccessibility(element, readingOrder) };
 }
 
+export function withRepeatedPageArtifactAccessibility(element: SimpleElement): SimpleElement {
+  return {
+    ...element,
+    accessibility: { role: 'Span', isArtifact: true },
+  };
+}
+
 export function accessibilityForButtonAction(
   element: SimpleElement,
   buttonAction: string,

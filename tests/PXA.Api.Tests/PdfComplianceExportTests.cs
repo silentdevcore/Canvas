@@ -82,6 +82,25 @@ public sealed class PdfComplianceExportTests
                 AccessibilityProfile = "PdfUa1",
                 Metadata = new PdfMetadataDto { Title = "Accessible interactions" }
             },
+            SharedElements =
+            [
+                new ElementDto
+                {
+                    Id = "shared-header",
+                    Type = "text",
+                    X = 20, Y = 8, Width = 200, Height = 16,
+                    Content = "Repeated document header",
+                    Accessibility = new AccessibilityPropertiesDto { Role = "P" }
+                },
+                new ElementDto
+                {
+                    Id = "shared-footer",
+                    Type = "pagenumber",
+                    X = 260, Y = 810, Width = 80, Height = 16,
+                    NumberingFormat = "pageOfTotal",
+                    Accessibility = new AccessibilityPropertiesDto { Role = "P" }
+                }
+            ],
             Pages =
             [
                 new PageDto
@@ -179,6 +198,7 @@ public sealed class PdfComplianceExportTests
         Assert.Contains("/FT /Btn /Ff 65536", pdf);
         Assert.Contains("/S /ResetForm", pdf);
         Assert.Contains("/Tabs /S", pdf);
+        Assert.True(System.Text.RegularExpressions.Regex.Matches(pdf, "/Artifact BMC").Count >= 2);
     }
 
     [Fact]

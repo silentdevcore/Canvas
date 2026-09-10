@@ -627,7 +627,7 @@ Reference material:
 - [x] Preserve reading order independently from visual z-order in the generator and
   Designer JSON contract, including one logical element spanning multiple drawing
   operations.
-- [ ] Map Designer text, headings, paragraphs, lists, tables, links, images, forms,
+- [x] Map Designer text, headings, paragraphs, lists, tables, links, images, forms,
   headers/footers, page numbers, charts, and decorative elements to explicit roles.
   - [x] Add an exhaustive Designer-registry contract for all 39 element types, assign
     explicit paragraph semantics to date/number/note content, keep destination-only
@@ -636,8 +636,8 @@ Reference material:
   - [x] Independently validate a Designer-generated mixed fixture covering a table, link,
     text field, checkbox, radio group, option list, signature field, and reset button with
     the pinned official veraPDF PDF/UA-1 profile.
-  - [ ] Add explicit semantic treatment for generated headers and footers before closing
-    the parent item.
+  - [x] Treat Designer-generated and imported shared header/footer elements as repeated
+    artifacts in both the document model and backend renderer.
 - [x] Carry explicit Designer element roles, reading order, language, alternatives,
   artifacts, and table-header associations through `DesignExportDto` into tagged PDF;
   automatic role defaults and the Designer property editor are now available.

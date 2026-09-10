@@ -3,6 +3,7 @@ import {
   applySuggestedAccessibility,
   suggestedAccessibility,
   validateDesignerAccessibility,
+  withRepeatedPageArtifactAccessibility,
   withSuggestedAccessibility,
 } from '@/accessibility/designerAccessibility';
 import { DesignerAccessibilityPreflightError, ExportService } from '@/services/ExportService';
@@ -36,6 +37,14 @@ describe('Designer accessibility', () => {
 
     const explicit = element({ accessibility: { role: 'Sect' } });
     expect(withSuggestedAccessibility(explicit).accessibility).toEqual({ role: 'Sect' });
+  });
+
+  test('marks repeated header and footer content as artifacts', () => {
+    const result = withRepeatedPageArtifactAccessibility(element({
+      accessibility: { role: 'P', alternateText: 'Repeated header' },
+    }));
+
+    expect(result.accessibility).toEqual({ role: 'Span', isArtifact: true });
   });
 
   test('defines an intentional accessibility default for every registered element', () => {
