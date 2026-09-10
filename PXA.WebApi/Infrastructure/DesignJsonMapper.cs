@@ -620,14 +620,8 @@ public static class DesignJsonMapper
                 {
                     if (state == "empty")
                     {
-                        // Draw an empty box as a visual placeholder…
                         page.DrawRectangle(elX, boxY, boxSize, boxSize, lineWidth: bw, fill: false,
                             strokeColor: color, fillColor: PdfColor.White);
-                        // …and overlay an interactive AcroForm checkbox widget.
-                        var cbFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
-                            : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
-                            : Guid.NewGuid().ToString("N");
-                        page.AddCheckBox(cbFieldName, elX, boxY, boxSize, isChecked: false);
                     }
                     else
                     {

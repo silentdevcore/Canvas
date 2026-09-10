@@ -15,6 +15,11 @@ PXA_PDFUA_ARTIFACT_DIR=/tmp/pxa-pdfua-fixtures \
   dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj \
   --filter FullyQualifiedName~PdfUaGenerationTests
 
+PXA_PDFUA_ARTIFACT_DIR=/tmp/pxa-pdfua-fixtures \
+  dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj \
+  --filter FullyQualifiedName~PdfComplianceExportTests.DesignerModel_ExportsAccessibleTableLinkAndFormAnnotations \
+  -p:SkipOcrWorkerPackaging=true
+
 PXA_PDFUA_REPORT_DIR=/tmp/pxa-pdfua-reports \
   tools/pdfua/validate-pdfua.sh /tmp/pxa-pdfua-fixtures/*.pdf
 ```

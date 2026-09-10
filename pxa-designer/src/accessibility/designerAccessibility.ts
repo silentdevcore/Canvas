@@ -10,10 +10,13 @@ export type PdfStructureRole = (typeof PDF_STRUCTURE_ROLES)[number];
 
 const ARTIFACT_TYPES = new Set<SimpleElement['type']>([
   'shape', 'rect', 'circle', 'line', 'arrow', 'draw', 'highlight', 'watermark',
-  'pageboundary', 'checkmark',
+  'pageboundary', 'checkmark', 'bookmark',
 ]);
 
 const FIGURE_TYPES = new Set<SimpleElement['type']>(['image', 'chart', 'qrcode', 'barcode']);
+const PARAGRAPH_TYPES = new Set<SimpleElement['type']>([
+  'date', 'number', 'note', 'comment', 'footnote', 'endnote',
+]);
 const FORM_TYPES = new Set<SimpleElement['type']>([
   'field', 'textarea', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature',
 ]);
@@ -38,6 +41,8 @@ export function suggestedAccessibility(element: SimpleElement, readingOrder?: nu
   let role: PdfStructureRole = 'Span';
   if (element.type === 'text' || element.type === 'richtext')
     role = element.headingLevel ? (`H${element.headingLevel}` as PdfStructureRole) : 'P';
+  else if (PARAGRAPH_TYPES.has(element.type))
+    role = 'P';
   else if (FIGURE_TYPES.has(element.type))
     role = 'Figure';
   else if (element.type === 'button' && isButtonLinkAction(element.buttonAction))
@@ -52,15 +57,12 @@ export function suggestedAccessibility(element: SimpleElement, readingOrder?: nu
     role = 'Table';
   else if (element.type === 'optionlist' || element.type === 'toc')
     role = 'L';
-  else if (element.type === 'link' || element.type === 'bookmark')
+  else if (element.type === 'link')
     role = 'Link';
   else if (element.type === 'subsection')
     role = 'Sect';
   else if (element.type === 'area' || element.type === 'contentcontrol')
     role = 'Div';
-  else if (element.type === 'note' || element.type === 'comment' || element.type === 'footnote' || element.type === 'endnote')
-    role = 'P';
-
   return {
     role,
     readingOrder,

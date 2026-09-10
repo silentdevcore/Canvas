@@ -161,8 +161,9 @@ public sealed class PdfComplianceExportTests
         var document = DesignJsonMapper.MapToPdfDocument(
             design,
             new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts")));
-        var pdf = System.Text.Encoding.Latin1.GetString(
-            document.ToBytes(DesignJsonMapper.BuildSaveOptions(design)));
+        var bytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+        WriteValidationArtifact("pxa-designer-pdfua1-elements.pdf", bytes);
+        var pdf = System.Text.Encoding.Latin1.GetString(bytes);
 
         Assert.Contains("/Type /StructElem /S /TR", pdf);
         Assert.Contains("/Type /StructElem /S /TH", pdf);
@@ -178,6 +179,51 @@ public sealed class PdfComplianceExportTests
         Assert.Contains("/FT /Btn /Ff 65536", pdf);
         Assert.Contains("/S /ResetForm", pdf);
         Assert.Contains("/Tabs /S", pdf);
+    }
+
+    [Fact]
+    public void DesignerModel_KeepsStaticCheckMarksAsArtifactsInsteadOfFormWidgets()
+    {
+        var design = new DesignExportDto
+        {
+            Name = "Accessible static mark",
+            PageSettings = new PageSettingsDto
+            {
+                SystemLanguage = "en-US",
+                AccessibilityProfile = "PdfUa1",
+                Metadata = new PdfMetadataDto { Title = "Accessible static mark" }
+            },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "page-1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "static-mark",
+                            Type = "checkmark",
+                            X = 20, Y = 20, Width = 40, Height = 40,
+                            CheckState = "empty",
+                            Accessibility = new AccessibilityPropertiesDto
+                            {
+                                Role = "Span",
+                                IsArtifact = true
+                            }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var document = DesignJsonMapper.MapToPdfDocument(design);
+        var pdf = System.Text.Encoding.Latin1.GetString(
+            document.ToBytes(DesignJsonMapper.BuildSaveOptions(design)));
+
+        Assert.Contains("/Artifact BMC", pdf);
+        Assert.DoesNotContain("/Subtype /Widget", pdf);
+        Assert.DoesNotContain("/AcroForm", pdf);
     }
 
     [Fact]
@@ -229,5 +275,14 @@ public sealed class PdfComplianceExportTests
         var exception = Assert.Throws<InvalidDataException>(() => DesignJsonMapper.BuildSaveOptions(design));
 
         Assert.Contains("cannot be enabled together", exception.Message);
+    }
+
+    private static void WriteValidationArtifact(string fileName, byte[] bytes)
+    {
+        if (Environment.GetEnvironmentVariable("PXA_PDFUA_ARTIFACT_DIR") is not { Length: > 0 } directory)
+            return;
+
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(Path.Combine(directory, fileName), bytes);
     }
 }

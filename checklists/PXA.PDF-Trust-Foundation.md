@@ -629,6 +629,15 @@ Reference material:
   operations.
 - [ ] Map Designer text, headings, paragraphs, lists, tables, links, images, forms,
   headers/footers, page numbers, charts, and decorative elements to explicit roles.
+  - [x] Add an exhaustive Designer-registry contract for all 39 element types, assign
+    explicit paragraph semantics to date/number/note content, keep destination-only
+    bookmarks and static check marks as artifacts, and prevent static check marks from
+    leaking unstructured AcroForm widgets into PDF/UA output.
+  - [x] Independently validate a Designer-generated mixed fixture covering a table, link,
+    text field, checkbox, radio group, option list, signature field, and reset button with
+    the pinned official veraPDF PDF/UA-1 profile.
+  - [ ] Add explicit semantic treatment for generated headers and footers before closing
+    the parent item.
 - [x] Carry explicit Designer element roles, reading order, language, alternatives,
   artifacts, and table-header associations through `DesignExportDto` into tagged PDF;
   automatic role defaults and the Designer property editor are now available.

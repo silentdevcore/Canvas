@@ -7,6 +7,7 @@ import {
 } from '@/accessibility/designerAccessibility';
 import { DesignerAccessibilityPreflightError, ExportService } from '@/services/ExportService';
 import type { Page, PageSettings, SimpleElement, Template } from '@/types';
+import { ELEMENT_TYPES } from '@/data/elementRegistry';
 
 const element = (overrides: Partial<SimpleElement> = {}): SimpleElement => ({
   id: 'element-1',
@@ -35,6 +36,32 @@ describe('Designer accessibility', () => {
 
     const explicit = element({ accessibility: { role: 'Sect' } });
     expect(withSuggestedAccessibility(explicit).accessibility).toEqual({ role: 'Sect' });
+  });
+
+  test('defines an intentional accessibility default for every registered element', () => {
+    const expected: Record<(typeof ELEMENT_TYPES)[number], { role: string; artifact?: true }> = {
+      text: { role: 'P' }, richtext: { role: 'P' }, date: { role: 'P' }, number: { role: 'P' },
+      field: { role: 'Form' }, textarea: { role: 'Form' }, checkbox: { role: 'Form' },
+      radio: { role: 'Form' }, optionlist: { role: 'Form' }, dropdown: { role: 'Form' },
+      button: { role: 'Span' }, signature: { role: 'Form' }, table: { role: 'Table' },
+      chart: { role: 'Figure' }, image: { role: 'Figure' }, qrcode: { role: 'Figure' },
+      barcode: { role: 'Figure' }, shape: { role: 'Span', artifact: true },
+      rect: { role: 'Span', artifact: true }, circle: { role: 'Span', artifact: true },
+      line: { role: 'Span', artifact: true }, arrow: { role: 'Span', artifact: true },
+      draw: { role: 'Span', artifact: true }, area: { role: 'Div' }, subsection: { role: 'Sect' },
+      highlight: { role: 'Span', artifact: true }, checkmark: { role: 'Span', artifact: true },
+      link: { role: 'Link' }, note: { role: 'P' }, watermark: { role: 'Span', artifact: true },
+      pagenumber: { role: 'Span', artifact: true }, pageboundary: { role: 'Span', artifact: true },
+      toc: { role: 'L' }, footnote: { role: 'P' }, endnote: { role: 'P' },
+      bookmark: { role: 'Span', artifact: true }, comment: { role: 'P' }, contentcontrol: { role: 'Div' },
+    };
+
+    expect(Object.keys(expected).sort()).toEqual([...ELEMENT_TYPES].sort());
+    for (const type of ELEMENT_TYPES) {
+      const accessibility = suggestedAccessibility(element({ type }));
+      expect(accessibility.role).toBe(expected[type].role);
+      expect(accessibility.isArtifact === true).toBe(expected[type].artifact === true);
+    }
   });
 
   test('applies stable reading order across pages and shared elements', () => {
