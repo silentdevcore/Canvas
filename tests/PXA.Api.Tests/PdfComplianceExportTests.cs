@@ -114,6 +114,44 @@ public sealed class PdfComplianceExportTests
                             X = 20, Y = 180, Width = 180, Height = 42,
                             FieldLabel = "Customer name",
                             Accessibility = new AccessibilityPropertiesDto { Role = "Form", ReadingOrder = 3 }
+                        },
+                        new ElementDto
+                        {
+                            Id = "delivery-choice",
+                            Type = "radio",
+                            X = 20, Y = 240, Width = 160, Height = 50,
+                            FieldLabel = "Delivery method",
+                            Options = ["Email", "Post"],
+                            SelectedValue = "Email",
+                            Accessibility = new AccessibilityPropertiesDto { Role = "Form", ReadingOrder = 4 }
+                        },
+                        new ElementDto
+                        {
+                            Id = "topics",
+                            Type = "optionlist",
+                            X = 220, Y = 240, Width = 140, Height = 50,
+                            FieldLabel = "Topics",
+                            Options = ["PDF", "Spreadsheet"],
+                            SelectedValue = "PDF",
+                            MultiSelect = true,
+                            Accessibility = new AccessibilityPropertiesDto { Role = "Form", ReadingOrder = 5 }
+                        },
+                        new ElementDto
+                        {
+                            Id = "approval",
+                            Type = "signature",
+                            X = 20, Y = 320, Width = 180, Height = 50,
+                            SignatureLabel = "Approval signature",
+                            Accessibility = new AccessibilityPropertiesDto { Role = "Form", ReadingOrder = 6 }
+                        },
+                        new ElementDto
+                        {
+                            Id = "reset",
+                            Type = "button",
+                            X = 220, Y = 320, Width = 100, Height = 30,
+                            Content = "Reset",
+                            ButtonAction = "reset",
+                            Accessibility = new AccessibilityPropertiesDto { Role = "Form", ReadingOrder = 7 }
                         }
                     ]
                 }
@@ -131,9 +169,14 @@ public sealed class PdfComplianceExportTests
         Assert.Contains("/Type /StructElem /S /TD", pdf);
         Assert.Contains("/Type /StructElem /S /Link", pdf);
         Assert.Contains("/Type /StructElem /S /Form", pdf);
-        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(pdf, "/Type /OBJR").Count);
+        Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(pdf, "/Type /OBJR").Count);
         Assert.Contains("/Subtype /Link", pdf);
         Assert.Contains("/Subtype /Widget", pdf);
+        Assert.Contains("/FT /Btn /Ff 32768", pdf);
+        Assert.Contains("/FT /Ch /Ff 2097152", pdf);
+        Assert.Contains("/FT /Sig", pdf);
+        Assert.Contains("/FT /Btn /Ff 65536", pdf);
+        Assert.Contains("/S /ResetForm", pdf);
         Assert.Contains("/Tabs /S", pdf);
     }
 

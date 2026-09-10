@@ -17,7 +17,9 @@ const FIGURE_TYPES = new Set<SimpleElement['type']>(['image', 'chart', 'qrcode',
 const FORM_TYPES = new Set<SimpleElement['type']>([
   'field', 'textarea', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature',
 ]);
-const SUPPORTED_WIDGET_TYPES = new Set<SimpleElement['type']>(['field', 'textarea', 'checkbox']);
+const SUPPORTED_WIDGET_TYPES = new Set<SimpleElement['type']>([
+  'field', 'textarea', 'checkbox', 'signature',
+]);
 
 export type AccessibilityIssueSeverity = 'error' | 'warning';
 
@@ -157,6 +159,30 @@ export function validateDesignerAccessibility(
       if (!element.cellData?.length || !element.cellData[0]?.length)
         issues.push({ code: 'PXAPDFUA020', severity: 'error', ...context });
     }
+    if (element.type === 'radio' && (!element.options || element.options.length < 2
+      || new Set(element.options).size !== element.options.length))
+      issues.push({ code: 'PXAPDFUA022', severity: 'error', ...context });
+  }
+
+  const interactiveByPage = new Map<number | undefined, SimpleElement[]>();
+  for (const item of allElements.filter(({ element }) =>
+    element.accessibility?.role === 'Link' || element.accessibility?.role === 'Form')) {
+    const values = interactiveByPage.get(item.pageIndex) ?? [];
+    values.push(item.element);
+    interactiveByPage.set(item.pageIndex, values);
+  }
+  for (const [pageIndex, elements] of interactiveByPage) {
+    for (const element of elements.filter(item => item.accessibility?.readingOrder == null))
+      issues.push({ code: 'PXAPDFUA023', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
+    const explicitOrders = new Map<number, SimpleElement[]>();
+    for (const element of elements) {
+      const order = element.accessibility?.readingOrder;
+      if (order == null) continue;
+      explicitOrders.set(order, [...(explicitOrders.get(order) ?? []), element]);
+    }
+    for (const duplicates of [...explicitOrders.values()].filter(items => items.length > 1))
+      for (const element of duplicates)
+        issues.push({ code: 'PXAPDFUA024', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
   }
 
   return issues;
@@ -174,7 +200,8 @@ function meaningfulText(element: SimpleElement, accessibility: NonNullable<Simpl
 }
 
 function formLabel(element: SimpleElement, accessibility: NonNullable<SimpleElement['accessibility']>): string {
-  return (accessibility.alternateText || accessibility.actualText || element.fieldLabel || element.content || '').trim();
+  return (accessibility.alternateText || accessibility.actualText || element.fieldLabel
+    || element.signatureLabel || element.name || element.content || element.options?.join(', ') || '').trim();
 }
 
 function hasLinkTarget(element: SimpleElement): boolean {
@@ -190,7 +217,9 @@ function isButtonLinkAction(action?: string): boolean {
 
 function hasSupportedWidget(element: SimpleElement): boolean {
   if (SUPPORTED_WIDGET_TYPES.has(element.type)) return true;
-  return element.type === 'dropdown' && Boolean(element.options?.length);
+  if (element.type === 'dropdown' || element.type === 'optionlist') return Boolean(element.options?.length);
+  if (element.type === 'radio') return Boolean(element.options && element.options.length >= 2);
+  return element.type === 'button' && ['submit', 'reset'].includes(element.buttonAction || '');
 }
 
 function hasParentCycle(element: SimpleElement, elements: SimpleElement[]): boolean {

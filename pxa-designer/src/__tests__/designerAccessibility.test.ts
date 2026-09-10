@@ -79,8 +79,8 @@ describe('Designer accessibility', () => {
     const pages: Page[] = [{
       id: 'page-1',
       elements: [
-        element({ id: 'field', type: 'field', fieldLabel: 'Name', accessibility: { role: 'Form' } }),
-        element({ id: 'link', type: 'link', content: 'Help', href: 'https://example.test', accessibility: { role: 'Link' } }),
+        element({ id: 'field', type: 'field', fieldLabel: 'Name', accessibility: { role: 'Form', readingOrder: 0 } }),
+        element({ id: 'link', type: 'link', content: 'Help', href: 'https://example.test', accessibility: { role: 'Link', readingOrder: 1 } }),
         element({ id: 'table', type: 'table', headerRow: true, cellData: [['Name'], ['Ada']], accessibility: { role: 'Table' } }),
       ],
     }];
@@ -101,6 +101,23 @@ describe('Designer accessibility', () => {
     }];
 
     expect(validateDesignerAccessibility(template, pages, [], settings)).toEqual([]);
+  });
+
+  test('accepts native advanced widgets and reports focus-order problems', () => {
+    const pages: Page[] = [{
+      id: 'page-1',
+      elements: [
+        element({ id: 'radio', type: 'radio', options: ['Yes', 'No'], accessibility: { role: 'Form', readingOrder: 2 } }),
+        element({ id: 'list', type: 'optionlist', options: ['One', 'Two'], accessibility: { role: 'Form', readingOrder: 2 } }),
+        element({ id: 'signature', type: 'signature', signatureLabel: 'Sign here', accessibility: { role: 'Form' } }),
+        element({ id: 'reset', type: 'button', content: 'Reset', buttonAction: 'reset', accessibility: { role: 'Form', readingOrder: 3 } }),
+      ],
+    }];
+
+    const issues = validateDesignerAccessibility(template, pages, [], settings);
+    expect(issues).not.toContainEqual(expect.objectContaining({ code: 'PXAPDFUA010' }));
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'PXAPDFUA023', elementId: 'signature', severity: 'warning' }));
+    expect(issues.filter(issue => issue.code === 'PXAPDFUA024')).toHaveLength(2);
   });
 
   test('blocks PDF rendering before a network request when preflight fails', async () => {

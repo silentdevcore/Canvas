@@ -640,15 +640,18 @@ Reference material:
 - [x] Emit granular `TR`, `TH`, and `TD` semantics from Designer table cells and add
   `OBJR`, `StructParent`, parent-tree, tooltip, and structure-order support for links,
   linked buttons, text fields, text areas, checkboxes, and populated dropdowns.
-- [ ] Add native accessible widgets and Designer mappings for radio groups, option lists,
-  signature fields, and non-link buttons; these remain blocked by preflight.
+- [x] Add native accessible widgets and Designer mappings for radio groups, option lists,
+  signature fields, and non-link submit/reset buttons, including radio parent fields,
+  multi-select list values, signature fields, tooltips, and structure-object references.
 - [x] Require document title, language, meaningful link text, form labels, image/chart
   alternatives, and table semantics where the selected profile requires them.
 - [x] Fail PDF/UA-1 export when title, language, complete tagging, figure alternatives,
   table-header scope/references, embedded text fonts, or supported annotation semantics
   are absent.
-- [ ] Add keyboard/focus-order and annotation accessibility checks for interactive
-  documents.
+- [x] Add keyboard/focus-order and annotation accessibility checks for interactive
+  documents, order page annotations by explicit semantic reading order under `/Tabs /S`,
+  and report implicit or duplicate focus positions without misrepresenting them as a
+  successful explicit order.
 - [ ] Ship PDF/UA-1 generation and validation first; evaluate PDF/UA-2 after the PDF
   2.0 object model and ecosystem validators are mature in PXA.
 - [x] Add an accessibility preflight report with errors, warnings, element IDs,
@@ -659,6 +662,12 @@ Reference material:
   before claiming full conformance.
 - [ ] Validate with an independent PDF/UA validator and manual assistive-technology
   checks; automated validation alone is not sufficient.
+  - [x] Validate maintained structure and native-widget fixtures against PDF/UA-1 with
+    the pinned official veraPDF container and retain its machine-readable XML reports as
+    CI artifacts.
+  - [ ] Complete the human-checkable Matterhorn Protocol review and record manual
+    keyboard, screen-reader, reading-order, form-label, table, link, and alternative-text
+    evidence on supported desktop platforms.
 - [x] Add Designer accessibility properties and prevent a compliance export when
   required semantic data is absent, with localized document- and element-level findings
   in Page Settings and the Export dialog.
@@ -795,9 +804,12 @@ Reference material:
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture and verify it locally with
-    veraPDF; CI report publication and PDF/UA validation remain open.
+    veraPDF; PDF/A CI report publication remains open.
   - [x] Verify the conservative existing-PDF conversion fixture locally with veraPDF;
     CI report publication and a second validator remain open.
+  - [x] Generate deterministic PDF/UA-1 structure, table, and native-widget fixtures,
+    validate them with the pinned veraPDF `ua1` profile, and publish the PDFs and
+    machine-readable XML reports as CI artifacts.
 - [ ] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.

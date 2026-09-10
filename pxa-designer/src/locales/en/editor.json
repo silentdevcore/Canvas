@@ -630,7 +630,10 @@
       "PXAPDFUA018": "Add an accessible form label.",
       "PXAPDFUA019": "Mark the first table row as a header.",
       "PXAPDFUA020": "The table requires a complete row and cell structure.",
-      "PXAPDFUA021": "Select a structure role."
+      "PXAPDFUA021": "Select a structure role.",
+      "PXAPDFUA022": "A radio group needs at least two unique options and no more than one selected value.",
+      "PXAPDFUA023": "Set an explicit reading order for predictable keyboard focus.",
+      "PXAPDFUA024": "This focus position is also assigned to another interactive control."
     }
   },
   "layers": {

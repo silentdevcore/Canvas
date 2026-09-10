@@ -17,6 +17,10 @@ public sealed class PdfPage
     private readonly List<PdfMultilineTextFieldAnnotation> _multilineTextFields = new();
     private readonly List<PdfTextFieldAnnotation> _textFields = new();
     private readonly List<PdfCheckBoxAnnotation> _checkBoxAnnotations = new();
+    private readonly List<PdfListBoxAnnotation> _listBoxAnnotations = new();
+    private readonly List<PdfRadioButtonAnnotation> _radioButtonAnnotations = new();
+    private readonly List<PdfSignatureFieldAnnotation> _signatureFieldAnnotations = new();
+    private readonly List<PdfPushButtonAnnotation> _pushButtonAnnotations = new();
     private readonly List<PdfReviewAnnotation> _reviewAnnotations = new();
     private readonly List<PdfAccessibilityProperties> _semanticElements = new();
     private PdfAccessibilityProperties? _activeAccessibility;
@@ -67,6 +71,14 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfTextFieldAnnotation> TextFields => _textFields;
 
     internal IReadOnlyList<PdfCheckBoxAnnotation> CheckBoxAnnotations => _checkBoxAnnotations;
+
+    internal IReadOnlyList<PdfListBoxAnnotation> ListBoxAnnotations => _listBoxAnnotations;
+
+    internal IReadOnlyList<PdfRadioButtonAnnotation> RadioButtonAnnotations => _radioButtonAnnotations;
+
+    internal IReadOnlyList<PdfSignatureFieldAnnotation> SignatureFieldAnnotations => _signatureFieldAnnotations;
+
+    internal IReadOnlyList<PdfPushButtonAnnotation> PushButtonAnnotations => _pushButtonAnnotations;
 
     internal IReadOnlyList<PdfReviewAnnotation> ReviewAnnotations => _reviewAnnotations;
 
@@ -1694,6 +1706,126 @@ public sealed class PdfPage
             IsChecked = isChecked,
             Accessibility = _activeArtifact ? null : _activeAccessibility,
         });
+    }
+
+    /// <summary>Adds an interactive list-box field.</summary>
+    public void AddListBox(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        IReadOnlyList<string> options,
+        IReadOnlyList<string>? selectedValues = null,
+        bool multiSelect = false,
+        double fontSize = 10)
+    {
+        ValidateFormField(fieldName, width, height);
+        if (options is null || options.Count == 0)
+            throw new ArgumentException("Options cannot be null or empty.", nameof(options));
+        if (fontSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+
+        _listBoxAnnotations.Add(new PdfListBoxAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Options = options,
+            SelectedValues = selectedValues ?? [],
+            MultiSelect = multiSelect,
+            FontSize = fontSize,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
+    }
+
+    /// <summary>Adds one widget belonging to an interactive radio-button group.</summary>
+    public void AddRadioButton(
+        string fieldName,
+        string exportValue,
+        int optionIndex,
+        double x,
+        double y,
+        double width,
+        double height,
+        bool isSelected = false)
+    {
+        ValidateFormField(fieldName, width, height);
+        if (string.IsNullOrWhiteSpace(exportValue))
+            throw new ArgumentException("Export value cannot be null or empty.", nameof(exportValue));
+        if (optionIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(optionIndex));
+
+        _radioButtonAnnotations.Add(new PdfRadioButtonAnnotation
+        {
+            FieldName = fieldName,
+            ExportValue = exportValue,
+            OptionIndex = optionIndex,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            IsSelected = isSelected,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
+    }
+
+    /// <summary>Adds an unsigned interactive signature field.</summary>
+    public void AddSignatureField(string fieldName, double x, double y, double width, double height)
+    {
+        ValidateFormField(fieldName, width, height);
+        _signatureFieldAnnotations.Add(new PdfSignatureFieldAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
+    }
+
+    /// <summary>Adds an interactive push-button field.</summary>
+    public void AddPushButton(
+        string fieldName,
+        string caption,
+        double x,
+        double y,
+        double width,
+        double height,
+        string? action = null)
+    {
+        ValidateFormField(fieldName, width, height);
+        var parsedAction = action?.Trim().ToLowerInvariant() switch
+        {
+            null or "" => PdfPushButtonAction.None,
+            "submit" => PdfPushButtonAction.Submit,
+            "reset" => PdfPushButtonAction.Reset,
+            _ => throw new ArgumentException("Push-button action must be 'submit', 'reset', or empty.", nameof(action))
+        };
+        _pushButtonAnnotations.Add(new PdfPushButtonAnnotation
+        {
+            FieldName = fieldName,
+            Caption = caption ?? string.Empty,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Action = parsedAction,
+            Accessibility = _activeArtifact ? null : _activeAccessibility
+        });
+    }
+
+    private static void ValidateFormField(string fieldName, double width, double height)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        if (width <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        if (height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
     }
 
     public void AddStickyNoteAnnotation(double x, double y, double width, double height, string contents, PdfColor? color = null, double opacity = 1)

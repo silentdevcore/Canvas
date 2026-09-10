@@ -8,7 +8,7 @@
     "generator"
   ],
   "category": "added",
-  "summary": "PXA can generate structurally tagged PDF output for PDF/UA version 1 workflows, including table cells and accessible link and form annotations, and blocks export when required semantics are incomplete.",
+  "summary": "PXA can generate structurally tagged PDF output for PDF/UA version 1 workflows, including table cells, accessible links, native form controls, and deterministic focus order, blocks export when required semantics are incomplete, and independently validates maintained fixtures with veraPDF.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

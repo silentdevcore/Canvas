@@ -607,7 +607,7 @@
       "PXAPDFUA013": "El elemento superior lógico ya no existe.", "PXAPDFUA014": "La jerarquía lógica contiene un ciclo.", "PXAPDFUA015": "Use una etiqueta de idioma BCP 47 válida.",
       "PXAPDFUA016": "El orden de lectura no puede ser negativo.", "PXAPDFUA017": "Añada un texto de enlace significativo.",
       "PXAPDFUA018": "Añada una etiqueta de formulario accesible.", "PXAPDFUA019": "Marque la primera fila como encabezado.",
-      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura."
+      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura.", "PXAPDFUA022": "Un grupo de opciones necesita al menos dos opciones únicas y como máximo un valor seleccionado.", "PXAPDFUA023": "Defina un orden de lectura explícito para un foco de teclado predecible.", "PXAPDFUA024": "Esta posición de foco también está asignada a otro control interactivo."
     }
   },
   "layers": {

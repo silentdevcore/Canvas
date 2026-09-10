@@ -74,8 +74,21 @@ public static class PdfAccessibilityPreflight
             foreach (var field in page.ComboBoxAnnotations.Cast<IPdfAccessibleAnnotation>()
                          .Concat(page.MultilineTextFields)
                          .Concat(page.TextFields)
-                         .Concat(page.CheckBoxAnnotations))
+                         .Concat(page.CheckBoxAnnotations)
+                         .Concat(page.ListBoxAnnotations)
+                         .Concat(page.RadioButtonAnnotations)
+                         .Concat(page.SignatureFieldAnnotations)
+                         .Concat(page.PushButtonAnnotations))
                 ValidateAnnotation(field, PdfStructureRole.Form, "PXAPDFUA018", "A form control requires an accessible label.", pageIndex + 1);
+            foreach (var group in page.RadioButtonAnnotations.GroupBy(radio => radio.FieldName, StringComparer.Ordinal))
+            {
+                if (group.Count() < 2
+                    || group.Select(radio => radio.OptionIndex).Distinct().Count() != group.Count()
+                    || group.Select(radio => radio.ExportValue).Distinct(StringComparer.Ordinal).Count() != group.Count()
+                    || group.Count(radio => radio.IsSelected) > 1)
+                    Add("PXAPDFUA022", "A radio group requires at least two uniquely identified options and at most one selected value.",
+                        pageIndex + 1, group.First().Accessibility?.ElementId);
+            }
             if (page.ReviewAnnotations.Count > 0)
                 Add("PXAPDFUA010", "Review annotations require dedicated structure-parent support and are not yet accepted for PDF/UA-1 export.", pageIndex + 1);
         }
@@ -102,10 +115,35 @@ public static class PdfAccessibilityPreflight
                 .Concat(page.ComboBoxAnnotations)
                 .Concat(page.MultilineTextFields)
                 .Concat(page.TextFields)
-                .Concat(page.CheckBoxAnnotations))
+                .Concat(page.CheckBoxAnnotations)
+                .Concat(page.ListBoxAnnotations)
+                .Concat(page.RadioButtonAnnotations)
+                .Concat(page.SignatureFieldAnnotations)
+                .Concat(page.PushButtonAnnotations))
             .Where(annotation => annotation.Accessibility is not null)
             .Select(annotation => annotation.Accessibility!)
             .ToHashSet(ReferenceEqualityComparer.Instance);
+
+        for (var pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
+        {
+            var interactiveSemantics = GetAccessibleAnnotations(document.Pages[pageIndex])
+                .Where(annotation => annotation.Accessibility is not null)
+                .Select(annotation => annotation.Accessibility!)
+                .Distinct((IEqualityComparer<PdfAccessibilityProperties>)ReferenceEqualityComparer.Instance)
+                .ToList();
+            foreach (var semantic in interactiveSemantics.Where(semantic => semantic.ReadingOrder is null))
+                AddWarning("PXAPDFUA023", "The interactive control uses implicit focus order; set an explicit reading order for deterministic keyboard navigation.",
+                    pageIndex + 1, semantic.ElementId);
+            foreach (var duplicateOrder in interactiveSemantics
+                         .Where(semantic => semantic.ReadingOrder is not null)
+                         .GroupBy(semantic => semantic.ReadingOrder!.Value)
+                         .Where(group => group.Count() > 1))
+            {
+                foreach (var semantic in duplicateOrder)
+                    AddWarning("PXAPDFUA024", $"Reading order {duplicateOrder.Key} is shared by multiple interactive controls.",
+                        pageIndex + 1, semantic.ElementId);
+            }
+        }
 
         foreach (var semantic in semanticPages.Keys)
         {
@@ -150,6 +188,9 @@ public static class PdfAccessibilityPreflight
         void Add(string code, string message, int? page = null, string? element = null) =>
             diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Error, message, page, element));
 
+        void AddWarning(string code, string message, int? page = null, string? element = null) =>
+            diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Warning, message, page, element));
+
         void ValidateAnnotation(
             IPdfAccessibleAnnotation annotation,
             PdfStructureRole expectedRole,
@@ -169,4 +210,15 @@ public static class PdfAccessibilityPreflight
                 Add(labelCode, labelMessage, page, semantic.ElementId);
         }
     }
+
+    private static IEnumerable<IPdfAccessibleAnnotation> GetAccessibleAnnotations(PdfPage page) =>
+        page.LinkAnnotations.Cast<IPdfAccessibleAnnotation>()
+            .Concat(page.ComboBoxAnnotations)
+            .Concat(page.MultilineTextFields)
+            .Concat(page.TextFields)
+            .Concat(page.CheckBoxAnnotations)
+            .Concat(page.ListBoxAnnotations)
+            .Concat(page.RadioButtonAnnotations)
+            .Concat(page.SignatureFieldAnnotations)
+            .Concat(page.PushButtonAnnotations);
 }

@@ -330,7 +330,8 @@ public static class DesignJsonMapper
             ReadingOrder = source.ReadingOrder,
             Language = source.Language ?? element.Language ?? effectiveLanguage,
             AlternateText = source.AlternateText ?? (role == PdfStructureRole.Form
-                ? element.FieldLabel ?? element.Content ?? element.Placeholder
+                ? element.FieldLabel ?? element.SignatureLabel ?? element.Name ?? element.Content
+                    ?? element.Placeholder ?? (element.Options is { Length: > 0 } options ? string.Join(", ", options) : null)
                 : null),
             ActualText = source.ActualText ?? (role == PdfStructureRole.Link
                 ? element.Content ?? element.Href
@@ -686,6 +687,12 @@ public static class DesignJsonMapper
                     lineWidth: 1, strokeColor: lineColor, strokeStyle: strokeStyle);
                 page.DrawText(label, elX, pdfLineY - 6,
                     new PdfDrawTextOptions { FontSize = 10, FillColor = labelColor, Italic = true });
+                page.AddSignatureField(
+                    !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName : el.Id,
+                    elX,
+                    RectBottomY(pageH, elY, h),
+                    w,
+                    h);
                 break;
             }
 
@@ -976,6 +983,17 @@ public static class DesignJsonMapper
                 {
                     page.AddPageLink(elX, boxY, w, h, targetPage);
                 }
+                else if (btnAction is "submit" or "reset")
+                {
+                    page.AddPushButton(
+                        !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName : el.Id,
+                        text,
+                        elX,
+                        boxY,
+                        w,
+                        h,
+                        btnAction);
+                }
                 break;
             }
 
@@ -1030,6 +1048,25 @@ public static class DesignJsonMapper
                         : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
                     page.DrawText($"{bullet}{options[i]}", elX, TextY(pageH, optCssY, fs),
                         new PdfDrawTextOptions { FontSize = fs, Bold = isSelected, FillColor = textColor });
+                }
+                var fieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName : el.Id;
+                if (el.Type == "optionlist" && options.Length > 0)
+                {
+                    var selectedValues = !string.IsNullOrWhiteSpace(el.SelectedValue) ? new[] { el.SelectedValue } : [];
+                    page.AddListBox(fieldName, elX, RectBottomY(pageH, elY, h), w, h, options,
+                        selectedValues, el.MultiSelect == true, Math.Max(6, fs));
+                }
+                else if (el.Type == "radio")
+                {
+                    for (var i = 0; i < options.Length; i++)
+                    {
+                        var optCssY = elY + i * lineH;
+                        if (optCssY + fs > elY + h) break;
+                        var markerSize = Math.Max(10, Math.Min(14, fs + 2));
+                        page.AddRadioButton(fieldName, options[i], i, elX,
+                            RectBottomY(pageH, optCssY, markerSize), markerSize, markerSize,
+                            options[i] == el.SelectedValue || (el.SelectedValue is null && i == 0));
+                    }
                 }
                 break;
             }

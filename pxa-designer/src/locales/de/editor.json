@@ -630,7 +630,10 @@
       "PXAPDFUA018": "Fügen Sie eine barrierefreie Formularbeschriftung hinzu.",
       "PXAPDFUA019": "Markieren Sie die erste Tabellenzeile als Überschrift.",
       "PXAPDFUA020": "Die Tabelle benötigt eine vollständige Zeilen- und Zellenstruktur.",
-      "PXAPDFUA021": "Wählen Sie eine Strukturrolle aus."
+      "PXAPDFUA021": "Wählen Sie eine Strukturrolle aus.",
+      "PXAPDFUA022": "Eine Optionsgruppe benötigt mindestens zwei eindeutige Optionen und höchstens einen ausgewählten Wert.",
+      "PXAPDFUA023": "Legen Sie eine Lesereihenfolge für eine eindeutige Tastaturfokussierung fest.",
+      "PXAPDFUA024": "Diese Fokusposition ist auch einem anderen interaktiven Steuerelement zugewiesen."
     }
   },
   "layers": {

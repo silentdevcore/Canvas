@@ -206,7 +206,10 @@ internal sealed class PdfWriter
             .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
 
         var hasAcroFields = document.Pages.Any(static p =>
-            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0 || p.CheckBoxAnnotations.Count > 0);
+            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0
+            || p.CheckBoxAnnotations.Count > 0 || p.ListBoxAnnotations.Count > 0
+            || p.RadioButtonAnnotations.Count > 0 || p.SignatureFieldAnnotations.Count > 0
+            || p.PushButtonAnnotations.Count > 0);
         var hasFreeTextReviewAnnotations = document.Pages.Any(static p =>
             p.ReviewAnnotations.Any(static annotation => annotation.Type == PdfReviewAnnotationType.FreeText));
         var acroFormHelvFontObjectId = hasAcroFields || hasFreeTextReviewAnnotations ? nextObjectId++ : (int?)null;
@@ -214,12 +217,24 @@ internal sealed class PdfWriter
         var pageMultilineAnnotObjectIds = new List<int>[pageCount];
         var pageTextFieldAnnotObjectIds = new List<int>[pageCount];
         var pageCheckBoxAnnotObjectIds = new List<int>[pageCount];
+        var pageListBoxAnnotObjectIds = new List<int>[pageCount];
+        var pageRadioButtonAnnotObjectIds = new List<int>[pageCount];
+        var pageSignatureFieldAnnotObjectIds = new List<int>[pageCount];
+        var pagePushButtonAnnotObjectIds = new List<int>[pageCount];
         var pageReviewAnnotObjectIds = new List<int>[pageCount];
         var pageReviewAppearanceObjectIds = new List<int>[pageCount];
         var allComboFieldObjectIds = new List<int>();
         var allMultilineFieldObjectIds = new List<int>();
         var allTextFieldObjectIds = new List<int>();
         var allCheckBoxObjectIds = new List<int>();
+        var allListBoxObjectIds = new List<int>();
+        var allSignatureFieldObjectIds = new List<int>();
+        var allPushButtonObjectIds = new List<int>();
+        var radioGroupParentObjectIds = document.Pages
+            .SelectMany(static page => page.RadioButtonAnnotations)
+            .Select(static radio => radio.FieldName)
+            .Distinct(StringComparer.Ordinal)
+            .ToDictionary(static fieldName => fieldName, _ => nextObjectId++, StringComparer.Ordinal);
 
         for (var i = 0; i < pageCount; i++)
         {
@@ -274,6 +289,38 @@ internal sealed class PdfWriter
 
             pageCheckBoxAnnotObjectIds[i] = checkBoxIds;
 
+            var listBoxIds = new List<int>();
+            foreach (var _ in document.Pages[i].ListBoxAnnotations)
+            {
+                var listBoxId = nextObjectId++;
+                listBoxIds.Add(listBoxId);
+                allListBoxObjectIds.Add(listBoxId);
+            }
+            pageListBoxAnnotObjectIds[i] = listBoxIds;
+
+            var radioButtonIds = new List<int>();
+            foreach (var _ in document.Pages[i].RadioButtonAnnotations)
+                radioButtonIds.Add(nextObjectId++);
+            pageRadioButtonAnnotObjectIds[i] = radioButtonIds;
+
+            var signatureFieldIds = new List<int>();
+            foreach (var _ in document.Pages[i].SignatureFieldAnnotations)
+            {
+                var signatureId = nextObjectId++;
+                signatureFieldIds.Add(signatureId);
+                allSignatureFieldObjectIds.Add(signatureId);
+            }
+            pageSignatureFieldAnnotObjectIds[i] = signatureFieldIds;
+
+            var pushButtonIds = new List<int>();
+            foreach (var _ in document.Pages[i].PushButtonAnnotations)
+            {
+                var pushButtonId = nextObjectId++;
+                pushButtonIds.Add(pushButtonId);
+                allPushButtonObjectIds.Add(pushButtonId);
+            }
+            pagePushButtonAnnotObjectIds[i] = pushButtonIds;
+
             var reviewIds = new List<int>();
             var reviewAppearanceIds = new List<int>();
             foreach (var _ in document.Pages[i].ReviewAnnotations)
@@ -298,6 +345,10 @@ internal sealed class PdfWriter
                 RegisterAnnotations(document.Pages[pageIndex].MultilineTextFields, pageMultilineAnnotObjectIds[pageIndex], pageIndex);
                 RegisterAnnotations(document.Pages[pageIndex].TextFields, pageTextFieldAnnotObjectIds[pageIndex], pageIndex);
                 RegisterAnnotations(document.Pages[pageIndex].CheckBoxAnnotations, pageCheckBoxAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].ListBoxAnnotations, pageListBoxAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].RadioButtonAnnotations, pageRadioButtonAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].SignatureFieldAnnotations, pageSignatureFieldAnnotObjectIds[pageIndex], pageIndex);
+                RegisterAnnotations(document.Pages[pageIndex].PushButtonAnnotations, pagePushButtonAnnotObjectIds[pageIndex], pageIndex);
             }
         }
 
@@ -316,6 +367,7 @@ internal sealed class PdfWriter
         var accessibleAnnotationMap = accessibleAnnotations.ToDictionary(
             reference => reference.Annotation,
             (IEqualityComparer<IPdfAccessibleAnnotation>)ReferenceEqualityComparer.Instance);
+        var accessibleAnnotationByObjectId = accessibleAnnotations.ToDictionary(reference => reference.ObjectId);
 
         var structureTreeRootObjectId = isPdfUa ? nextObjectId++ : (int?)null;
         var parentTreeObjectId = isPdfUa ? nextObjectId++ : (int?)null;
@@ -600,6 +652,80 @@ internal sealed class PdfWriter
                 objects.Add(new PdfIndirectObject(cbObjectId, cbWidgetObject));
             }
 
+            var pageListBoxIds = pageListBoxAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.ListBoxAnnotations.Count; i++)
+            {
+                var listBox = page.ListBoxAnnotations[i];
+                var objectId = pageListBoxIds[i];
+                var rect = BuildAnnotationRectangle(listBox.X, listBox.Y, listBox.Width, listBox.Height);
+                var listOptions = string.Join(" ", listBox.Options.Select(PdfHexString));
+                var values = listBox.SelectedValues.Where(value => listBox.Options.Contains(value, StringComparer.Ordinal)).ToList();
+                var valueSegment = values.Count switch
+                {
+                    0 => string.Empty,
+                    1 => $" /V {PdfHexString(values[0])}",
+                    _ => $" /V [{string.Join(" ", values.Select(PdfHexString))}]"
+                };
+                var flags = listBox.MultiSelect ? 2097152 : 0;
+                var structure = BuildAnnotationStructureSegment(listBox, accessibleAnnotationMap);
+                var description = OptionalHexEntry("TU", AccessibleDescription(listBox.Accessibility, listBox.FieldName));
+                var widget = $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff {flags} " +
+                    $"/T ({EscapeLiteralString(listBox.FieldName)}) /Opt [{listOptions}]{valueSegment} " +
+                    $"/Rect {rect} /P {pageObjectId} 0 R /DA (/Helv {FormatNumber(listBox.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> /BS << /W 1 /S /S >>{description}{structure} >>\n";
+                objects.Add(new PdfIndirectObject(objectId, widget));
+            }
+
+            var pageRadioIds = pageRadioButtonAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.RadioButtonAnnotations.Count; i++)
+            {
+                var radio = page.RadioButtonAnnotations[i];
+                var objectId = pageRadioIds[i];
+                var rect = BuildAnnotationRectangle(radio.X, radio.Y, radio.Width, radio.Height);
+                var state = $"R{radio.OptionIndex + 1}";
+                var structure = BuildAnnotationStructureSegment(radio, accessibleAnnotationMap);
+                var description = OptionalHexEntry("TU", AccessibleDescription(radio.Accessibility, radio.ExportValue));
+                var widget = $"<< /Type /Annot /Subtype /Widget /Parent {radioGroupParentObjectIds[radio.FieldName]} 0 R " +
+                    $"/Rect {rect} /P {pageObjectId} 0 R /AS /{(radio.IsSelected ? state : "Off")} " +
+                    $"/Border [0 0 0]{description}{structure} >>\n";
+                objects.Add(new PdfIndirectObject(objectId, widget));
+            }
+
+            var pageSignatureIds = pageSignatureFieldAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.SignatureFieldAnnotations.Count; i++)
+            {
+                var signature = page.SignatureFieldAnnotations[i];
+                var objectId = pageSignatureIds[i];
+                var rect = BuildAnnotationRectangle(signature.X, signature.Y, signature.Width, signature.Height);
+                var structure = BuildAnnotationStructureSegment(signature, accessibleAnnotationMap);
+                var description = OptionalHexEntry("TU", AccessibleDescription(signature.Accessibility, signature.FieldName));
+                var widget = $"<< /Type /Annot /Subtype /Widget /FT /Sig /Ff 0 " +
+                    $"/T ({EscapeLiteralString(signature.FieldName)}) /Rect {rect} /P {pageObjectId} 0 R " +
+                    $"/Border [0 0 0]{description}{structure} >>\n";
+                objects.Add(new PdfIndirectObject(objectId, widget));
+            }
+
+            var pagePushButtonIds = pagePushButtonAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.PushButtonAnnotations.Count; i++)
+            {
+                var button = page.PushButtonAnnotations[i];
+                var objectId = pagePushButtonIds[i];
+                var rect = BuildAnnotationRectangle(button.X, button.Y, button.Width, button.Height);
+                var structure = BuildAnnotationStructureSegment(button, accessibleAnnotationMap);
+                var description = OptionalHexEntry("TU", AccessibleDescription(button.Accessibility, button.Caption));
+                var action = button.Action switch
+                {
+                    PdfPushButtonAction.Submit => " /A << /S /SubmitForm /Flags 4 >>",
+                    PdfPushButtonAction.Reset => " /A << /S /ResetForm >>",
+                    _ => string.Empty
+                };
+                var widget = $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 65536 " +
+                    $"/T ({EscapeLiteralString(button.FieldName)}) /Rect {rect} /P {pageObjectId} 0 R " +
+                    $"/MK << /CA {PdfHexString(button.Caption)} >> /Border [0 0 0]{action}{description}{structure} >>\n";
+                objects.Add(new PdfIndirectObject(objectId, widget));
+            }
+
             var pageReviewIds = pageReviewAnnotObjectIds[pageIndex];
             var pageReviewAppearanceIds = pageReviewAppearanceObjectIds[pageIndex];
             for (var i = 0; i < page.ReviewAnnotations.Count; i++)
@@ -631,14 +757,23 @@ internal sealed class PdfWriter
                 .Concat(pageMultilineAnnotObjectIds[pageIndex])
                 .Concat(pageTextFieldAnnotObjectIds[pageIndex])
                 .Concat(pageCheckBoxAnnotObjectIds[pageIndex])
+                .Concat(pageListBoxAnnotObjectIds[pageIndex])
+                .Concat(pageRadioButtonAnnotObjectIds[pageIndex])
+                .Concat(pageSignatureFieldAnnotObjectIds[pageIndex])
+                .Concat(pagePushButtonAnnotObjectIds[pageIndex])
                 .Concat(pageReviewAnnotObjectIds[pageIndex]);
-            var annotsSegment = pageLinkAnnotationIds.Count > 0
-                || pageComboAnnotObjectIds[pageIndex].Count > 0
-                || pageMultilineAnnotObjectIds[pageIndex].Count > 0
-                || pageTextFieldAnnotObjectIds[pageIndex].Count > 0
-                || pageCheckBoxAnnotObjectIds[pageIndex].Count > 0
-                || pageReviewAnnotObjectIds[pageIndex].Count > 0
-                ? $" /Annots [{string.Join(" ", allAnnotIds.Select(id => $"{id} 0 R"))}]"
+            if (isPdfUa)
+            {
+                allAnnotIds = allAnnotIds.Select((objectId, originalIndex) => (objectId, originalIndex))
+                    .OrderBy(item => accessibleAnnotationByObjectId.TryGetValue(item.objectId, out var reference)
+                        ? reference.Annotation.Accessibility?.ReadingOrder ?? int.MaxValue
+                        : int.MaxValue)
+                    .ThenBy(item => item.originalIndex)
+                    .Select(item => item.objectId);
+            }
+            var allAnnotIdList = allAnnotIds.ToList();
+            var annotsSegment = allAnnotIdList.Count > 0
+                ? $" /Annots [{string.Join(" ", allAnnotIdList.Select(id => $"{id} 0 R"))}]"
                 : string.Empty;
 
             var rotateSegment = page.RotationDegrees != 0 ? $" /Rotate {page.RotationDegrees}" : string.Empty;
@@ -707,14 +842,22 @@ internal sealed class PdfWriter
             foreach (var item in logicalElements)
             {
                 var semantic = item.Semantic;
+                var structureAttributes = new List<string>();
                 var tableAttributes = new List<string>();
                 if (semantic.Role == PdfStructureRole.TH)
                     tableAttributes.Add($"/Scope /{semantic.TableHeaderScope}");
                 if (semantic.TableHeaderIds is { Count: > 0 })
                     tableAttributes.Add($"/Headers [{string.Join(" ", semantic.TableHeaderIds.Select(PdfHexString))}]");
-                var attributes = tableAttributes.Count > 0
-                    ? $" /A << /O /Table {string.Join(" ", tableAttributes)} >>"
-                    : string.Empty;
+                if (tableAttributes.Count > 0)
+                    structureAttributes.Add($"<< /O /Table {string.Join(" ", tableAttributes)} >>");
+                if (semantic.Role == PdfStructureRole.Form && item.Annotations.Count > 0)
+                    structureAttributes.Add($"<< /O /PrintField /Role /{ResolvePrintFieldRole(item.Annotations.Select(reference => reference.Annotation))} >>");
+                var attributes = structureAttributes.Count switch
+                {
+                    0 => string.Empty,
+                    1 => $" /A {structureAttributes[0]}",
+                    _ => $" /A [{string.Join(" ", structureAttributes)}]"
+                };
                 var markedContentReferences = item.Operations.Select(operation =>
                     $"<< /Type /MCR /Pg {pageObjectIds[operation.pageIndex]} 0 R /MCID {pageMarkedContentIds[operation.pageIndex][operation.element]} >>").ToList();
                 var childReferences = logicalElements
@@ -852,11 +995,40 @@ internal sealed class PdfWriter
                 "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\n"));
         }
 
+        foreach (var (fieldName, parentObjectId) in radioGroupParentObjectIds)
+        {
+            var widgets = document.Pages
+                .SelectMany((page, pageIndex) => page.RadioButtonAnnotations.Select((radio, annotationIndex) => new
+                {
+                    Radio = radio,
+                    ObjectId = pageRadioButtonAnnotObjectIds[pageIndex][annotationIndex]
+                }))
+                .Where(item => string.Equals(item.Radio.FieldName, fieldName, StringComparison.Ordinal))
+                .OrderBy(item => item.Radio.OptionIndex)
+                .ToList();
+            var selected = widgets.FirstOrDefault(item => item.Radio.IsSelected)?.Radio;
+            var value = selected is null ? "/Off" : $"/R{selected.OptionIndex + 1}";
+            var radioKids = string.Join(" ", widgets.Select(item => $"{item.ObjectId} 0 R"));
+            var radioOptions = string.Join(" ", widgets.Select(item => PdfHexString(item.Radio.ExportValue)));
+            var description = OptionalHexEntry("TU", AccessibleDescription(widgets[0].Radio.Accessibility, fieldName));
+            objects.Add(new PdfIndirectObject(parentObjectId,
+                $"<< /FT /Btn /Ff 32768 /T ({EscapeLiteralString(fieldName)}) /V {value} /Opt [{radioOptions}] " +
+                $"/Kids [{radioKids}]{description} >>\n"));
+        }
+
         var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences, isPdfUa);
         var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
         var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
 
-        var allAcroFieldIds = allComboFieldObjectIds.Concat(allMultilineFieldObjectIds).Concat(allTextFieldObjectIds).Concat(allCheckBoxObjectIds).ToList();
+        var allAcroFieldIds = allComboFieldObjectIds
+            .Concat(allMultilineFieldObjectIds)
+            .Concat(allTextFieldObjectIds)
+            .Concat(allCheckBoxObjectIds)
+            .Concat(allListBoxObjectIds)
+            .Concat(radioGroupParentObjectIds.Values)
+            .Concat(allSignatureFieldObjectIds)
+            .Concat(allPushButtonObjectIds)
+            .ToList();
         var acroFormSegment = allAcroFieldIds.Count > 0
             ? $" /AcroForm << /Fields [{string.Join(" ", allAcroFieldIds.Select(id => $"{id} 0 R"))}]" +
               $" /DA (/Helv 0 Tf 0 g)" +
@@ -1669,6 +1841,15 @@ internal sealed class PdfWriter
     private static string OptionalHexEntry(string key, string? value) =>
         string.IsNullOrWhiteSpace(value) ? string.Empty : $" /{key} {PdfHexString(value)}";
 
+    private static string BuildAnnotationRectangle(double x, double y, double width, double height) =>
+        string.Format(
+            CultureInfo.InvariantCulture,
+            "[{0} {1} {2} {3}]",
+            FormatNumber(x),
+            FormatNumber(y),
+            FormatNumber(x + width),
+            FormatNumber(y + height));
+
     private static string BuildAnnotationStructureSegment(
         IPdfAccessibleAnnotation annotation,
         IReadOnlyDictionary<IPdfAccessibleAnnotation, AccessibleAnnotationReference> references) =>
@@ -1678,6 +1859,19 @@ internal sealed class PdfWriter
 
     private static string BuildAnnotationDescriptionSegment(PdfAccessibilityProperties? accessibility) =>
         OptionalHexEntry("Contents", AccessibleDescription(accessibility, null));
+
+    private static string ResolvePrintFieldRole(IEnumerable<IPdfAccessibleAnnotation> annotations)
+    {
+        var types = annotations.Select(static annotation => annotation.GetType()).Distinct().ToList();
+        if (types.Count == 1 && types[0] == typeof(PdfRadioButtonAnnotation))
+            return "rb";
+        if (types.Count == 1 && types[0] == typeof(PdfCheckBoxAnnotation))
+            return "cb";
+        if (types.Count == 1 && types[0] == typeof(PdfPushButtonAnnotation))
+            return "pb";
+
+        return "tv";
+    }
 
     private static string? AccessibleDescription(PdfAccessibilityProperties? accessibility, string? fallback) =>
         !string.IsNullOrWhiteSpace(accessibility?.AlternateText)

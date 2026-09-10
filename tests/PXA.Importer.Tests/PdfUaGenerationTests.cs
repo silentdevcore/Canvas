@@ -32,6 +32,7 @@ public sealed class PdfUaGenerationTests
         page.MarkLastElementAsArtifact();
 
         var bytes = document.ToBytes(new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        WriteValidationArtifact("pxa-pdfua1-structure.pdf", bytes);
         var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.StartsWith("%PDF-1.7", pdf);
@@ -152,8 +153,10 @@ public sealed class PdfUaGenerationTests
             TableHeaderIds = ["column-name"]
         });
 
-        var pdf = Encoding.Latin1.GetString(document.ToBytes(
-            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 }));
+        var bytes = document.ToBytes(
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        WriteValidationArtifact("pxa-pdfua1-table.pdf", bytes);
+        var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.Contains("/A << /O /Table /Scope /Column >>", pdf);
         Assert.Contains("/A << /O /Table /Headers [<FEFF0063006F006C0075006D006E002D006E0061006D0065>] >>", pdf);
@@ -250,6 +253,136 @@ public sealed class PdfUaGenerationTests
     }
 
     [Fact]
+    public void PdfUa1_WritesNativeRadioListSignatureAndPushButtonWidgets()
+    {
+        var document = CreateDocument();
+        var page = document.AddPage();
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "choice",
+            AlternateText = "Preferred option",
+            ReadingOrder = 1
+        }))
+        {
+            page.AddRadioButton("preference", "Yes", 0, 20, 700, 14, 14, true);
+            page.AddRadioButton("preference", "No", 1, 20, 680, 14, 14);
+        }
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "topics",
+            AlternateText = "Topics",
+            ReadingOrder = 2
+        }))
+            page.AddListBox("topics", 60, 650, 120, 50, ["PDF", "Spreadsheet"], ["PDF"], multiSelect: true);
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "approval-signature",
+            AlternateText = "Approval signature",
+            ReadingOrder = 3
+        }))
+            page.AddSignatureField("approval", 60, 590, 120, 40);
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "reset",
+            AlternateText = "Reset form",
+            ReadingOrder = 4
+        }))
+            page.AddPushButton("resetButton", "Reset", 60, 550, 80, 24, "reset");
+
+        var bytes = document.ToBytes(
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        WriteValidationArtifact("pxa-pdfua1-widgets.pdf", bytes);
+        var pdf = Encoding.Latin1.GetString(bytes);
+
+        Assert.Contains("/FT /Btn /Ff 32768", pdf);
+        Assert.Contains("/O /PrintField /Role /rb", pdf);
+        Assert.Contains("/O /PrintField /Role /tv", pdf);
+        Assert.Contains("/O /PrintField /Role /pb", pdf);
+        Assert.Contains("/Kids [", pdf);
+        Assert.Contains("/AS /R1", pdf);
+        Assert.Contains("/FT /Ch /Ff 2097152", pdf);
+        Assert.Contains("/FT /Sig", pdf);
+        Assert.Contains("/FT /Btn /Ff 65536", pdf);
+        Assert.Contains("/S /ResetForm", pdf);
+        Assert.Equal(5, Regex.Matches(pdf, "/Type /OBJR").Count);
+    }
+
+    [Fact]
+    public void PdfUa1_PreflightReportsInvalidRadioGroupsAndAmbiguousFocusOrder()
+    {
+        var document = CreateDocument();
+        var page = document.AddPage();
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "invalid-radio",
+            AlternateText = "Invalid choice",
+            ReadingOrder = 1
+        }))
+            page.AddRadioButton("invalid", "Only", 0, 20, 700, 14, 14, true);
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "duplicate-order",
+            AlternateText = "Name",
+            ReadingOrder = 1
+        }))
+            page.AddTextField("name", 50, 700, 100, 20);
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Link,
+            ElementId = "implicit-order",
+            ActualText = "Help"
+        }))
+            page.AddWebLink(50, 650, 100, 20, "https://example.test");
+
+        var report = PdfAccessibilityPreflight.Validate(document,
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+
+        Assert.False(report.IsValid);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA022");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA023"
+            && diagnostic.Severity == PdfAccessibilityDiagnosticSeverity.Warning);
+        Assert.Equal(2, report.Diagnostics.Count(diagnostic => diagnostic.Code == "PXAPDFUA024"));
+    }
+
+    [Fact]
+    public void PdfUa1_OrdersPageAnnotationsByExplicitReadingOrder()
+    {
+        var document = CreateDocument();
+        var page = document.AddPage();
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "last-field",
+            AlternateText = "Last field",
+            ReadingOrder = 20
+        }))
+            page.AddTextField("last", 20, 700, 100, 20);
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form,
+            ElementId = "first-field",
+            AlternateText = "First field",
+            ReadingOrder = 10
+        }))
+            page.AddTextField("first", 20, 650, 100, 20);
+
+        var pdf = Encoding.Latin1.GetString(document.ToBytes(
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 }));
+        var lastId = FindAnnotationObjectId(pdf, "Last field");
+        var firstId = FindAnnotationObjectId(pdf, "First field");
+        var annotations = Regex.Match(pdf, @"/Annots \[(?<ids>[^]]+)\]").Groups["ids"].Value;
+
+        Assert.True(annotations.IndexOf($"{firstId} 0 R", StringComparison.Ordinal)
+            < annotations.IndexOf($"{lastId} 0 R", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void PdfUa1_PreflightRejectsUnstructuredAnnotationsAndIncompleteTables()
     {
         var document = CreateDocument();
@@ -340,11 +473,28 @@ public sealed class PdfUaGenerationTests
         return document;
     }
 
+    private static void WriteValidationArtifact(string fileName, byte[] bytes)
+    {
+        if (Environment.GetEnvironmentVariable("PXA_PDFUA_ARTIFACT_DIR") is not { Length: > 0 } directory)
+            return;
+
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(Path.Combine(directory, fileName), bytes);
+    }
+
     private static int FindStructureObjectId(string pdf, string elementId)
     {
         var encodedId = $"FEFF{Convert.ToHexString(Encoding.BigEndianUnicode.GetBytes(elementId))}";
         var match = Regex.Match(pdf, $@"(?m)^(\d+) 0 obj\n<< /Type /StructElem .*?/ID <{encodedId}>");
         Assert.True(match.Success, $"Structure element '{elementId}' was not found.");
+        return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static int FindAnnotationObjectId(string pdf, string tooltip)
+    {
+        var encoded = $"FEFF{Convert.ToHexString(Encoding.BigEndianUnicode.GetBytes(tooltip))}";
+        var match = Regex.Match(pdf, $@"(?m)^(\d+) 0 obj\n<< /Type /Annot .*?/TU <{encoded}>");
+        Assert.True(match.Success, $"Annotation '{tooltip}' was not found.");
         return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
     }
 }

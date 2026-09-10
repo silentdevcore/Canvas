@@ -607,7 +607,7 @@
       "PXAPDFUA013": "L’elemento padre selezionato non esiste più.", "PXAPDFUA014": "La gerarchia logica contiene un ciclo.", "PXAPDFUA015": "Usa un tag lingua BCP 47 valido.",
       "PXAPDFUA016": "L’ordine di lettura non può essere negativo.", "PXAPDFUA017": "Aggiungi un testo link significativo.",
       "PXAPDFUA018": "Aggiungi un’etichetta modulo accessibile.", "PXAPDFUA019": "Marca la prima riga come intestazione.",
-      "PXAPDFUA020": "La tabella richiede una struttura completa di righe e celle.", "PXAPDFUA021": "Seleziona un ruolo strutturale."
+      "PXAPDFUA020": "La tabella richiede una struttura completa di righe e celle.", "PXAPDFUA021": "Seleziona un ruolo strutturale.", "PXAPDFUA022": "Un gruppo di opzioni richiede almeno due opzioni univoche e al massimo un valore selezionato.", "PXAPDFUA023": "Imposta un ordine di lettura esplicito per un focus da tastiera prevedibile.", "PXAPDFUA024": "Questa posizione di focus è assegnata anche a un altro controllo interattivo."
     }
   },
   "layers": {
