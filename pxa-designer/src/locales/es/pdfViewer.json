@@ -81,6 +81,14 @@
   "lockedFields": "Campos bloqueados",
   "signatureField": "Campo de firma",
   "signatureFieldLocation": "Ubicación del campo",
+  "affectedObject": "Objeto",
+  "affectedElement": "Elemento del Designer",
+  "technicalDetails": "Detalles técnicos",
+  "diagnosticSummary": {
+    "information": "Información de la comprobación {{code}}.",
+    "warning": "La comprobación {{code}} requiere revisión.",
+    "error": "La comprobación {{code}} encontró un problema bloqueante."
+  },
   "mutationWarningTitle": "Este documento tiene propiedades de confianza",
   "mutationWarningBody": "Guardar anotaciones o aplicar censuras crea un documento nuevo y puede invalidar firmas o requerir una nueva validación de conformidad.",
   "mutationConfirmation": "Lo entiendo y deseo habilitar acciones que modifican el documento.",

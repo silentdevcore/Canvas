@@ -81,6 +81,14 @@
   "lockedFields": "Campi bloccati",
   "signatureField": "Campo firma",
   "signatureFieldLocation": "Posizione del campo",
+  "affectedObject": "Oggetto",
+  "affectedElement": "Elemento del Designer",
+  "technicalDetails": "Dettagli tecnici",
+  "diagnosticSummary": {
+    "information": "Informazione dal controllo {{code}}.",
+    "warning": "Il controllo {{code}} richiede una verifica.",
+    "error": "Il controllo {{code}} ha rilevato un problema bloccante."
+  },
   "mutationWarningTitle": "Questo documento contiene proprietà di attendibilità",
   "mutationWarningBody": "Il salvataggio di annotazioni o l’applicazione di redazioni crea un nuovo documento e può invalidare le firme o richiedere una nuova convalida di conformità.",
   "mutationConfirmation": "Ho compreso e desidero abilitare le azioni che modificano il documento.",

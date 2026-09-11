@@ -160,6 +160,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                      signatures.Any(signature => signature.Status == PdfTrustStatus.Invalid)
             ? PdfTrustStatus.Invalid
             : PdfTrustStatus.Indeterminate;
+        var enrichedDiagnostics = PdfDiagnosticMetadata.Enrich(diagnostics, graph);
 
         return new PdfTrustReport(
             status,
@@ -174,7 +175,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             pdfA,
             pdfUa,
             revisions,
-            diagnostics,
+            enrichedDiagnostics,
             embeddedValidationMaterial,
             risk);
     }

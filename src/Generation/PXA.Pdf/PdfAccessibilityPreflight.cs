@@ -212,15 +212,19 @@ public static class PdfAccessibilityPreflight
 
         if (diagnostics.Count == 0)
             diagnostics.Add(new("PXAPDFUA000", PdfAccessibilityDiagnosticSeverity.Information,
-                "The document satisfies the PXA structural generator preflight for PDF/UA-1."));
+                "The document satisfies the PXA structural generator preflight for PDF/UA-1.",
+                LocalizationKey: "diagnostics.PXAPDFUA000",
+                LocalizationParameters: DiagnosticParameters("PXAPDFUA000", null, null)));
 
         return new(profile, diagnostics.All(d => d.Severity != PdfAccessibilityDiagnosticSeverity.Error), ValidatorName, diagnostics);
 
         void Add(string code, string message, int? page = null, string? element = null) =>
-            diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Error, message, page, element));
+            diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Error, message, page, element,
+                $"diagnostics.{code}", DiagnosticParameters(code, page, element)));
 
         void AddWarning(string code, string message, int? page = null, string? element = null) =>
-            diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Warning, message, page, element));
+            diagnostics.Add(new(code, PdfAccessibilityDiagnosticSeverity.Warning, message, page, element,
+                $"diagnostics.{code}", DiagnosticParameters(code, page, element)));
 
         void ValidateAnnotation(
             IPdfAccessibleAnnotation annotation,
@@ -240,6 +244,19 @@ public static class PdfAccessibilityPreflight
             if (string.IsNullOrWhiteSpace(semantic.AlternateText) && string.IsNullOrWhiteSpace(semantic.ActualText))
                 Add(labelCode, labelMessage, page, semantic.ElementId);
         }
+    }
+
+    private static IReadOnlyDictionary<string, string> DiagnosticParameters(
+        string code,
+        int? pageNumber,
+        string? elementId)
+    {
+        var parameters = new Dictionary<string, string>(StringComparer.Ordinal) { ["code"] = code };
+        if (pageNumber is { } page)
+            parameters["pageNumber"] = page.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (!string.IsNullOrWhiteSpace(elementId))
+            parameters["elementId"] = elementId;
+        return parameters;
     }
 
     private static IEnumerable<IPdfAccessibleAnnotation> GetAccessibleAnnotations(PdfPage page) =>

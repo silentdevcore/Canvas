@@ -40,6 +40,12 @@ describe('pdf viewer i18n', () => {
       'signingPrivacy',
       'riskyContent',
       'embeddedFiles',
+      'affectedObject',
+      'affectedElement',
+      'technicalDetails',
+      'diagnosticSummary.information',
+      'diagnosticSummary.warning',
+      'diagnosticSummary.error',
     ];
 
     for (const key of keys) {

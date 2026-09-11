@@ -99,6 +99,18 @@ interface SearchResult {
   snippet: string;
 }
 
+interface NavigablePdfDiagnostic {
+  code: string;
+  severity: 0 | 1 | 2;
+  message: string;
+  objectNumber?: number | null;
+  generation?: number | null;
+  pageNumber?: number | null;
+  elementId?: string | null;
+  localizationKey?: string | null;
+  localizationParameters?: Record<string, string> | null;
+}
+
 interface ViewerEvent {
   id: number;
   label: string;
@@ -408,6 +420,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     lockedFields: t('lockedFields'),
     signatureField: t('signatureField'),
     signatureFieldLocation: t('signatureFieldLocation'),
+    affectedObject: t('affectedObject'),
+    affectedElement: t('affectedElement'),
+    technicalDetails: t('technicalDetails'),
     mutationWarningTitle: t('mutationWarningTitle'),
     mutationWarningBody: t('mutationWarningBody'),
     mutationConfirmation: t('mutationConfirmation'),
@@ -838,6 +853,74 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const trustFailureLabel = useCallback((kind: PdfTrustFailureKind): string =>
     t(`trustFailure.${kind}`), [t]);
+
+  const diagnosticText = useCallback((diagnostic: NavigablePdfDiagnostic): string => {
+    const localizedKey = diagnostic.localizationKey
+      ? `pdfViewer:${diagnostic.localizationKey}`
+      : null;
+    if (localizedKey && i18n.exists(localizedKey)) {
+      return i18n.t(localizedKey, diagnostic.localizationParameters ?? {});
+    }
+    const severities = ['information', 'warning', 'error'] as const;
+    return t(`diagnosticSummary.${severities[diagnostic.severity] ?? 'warning'}`, {
+      code: diagnostic.code,
+      ...(diagnostic.localizationParameters ?? {}),
+    });
+  }, [i18n, t]);
+
+  const navigateDiagnostic = useCallback((diagnostic: NavigablePdfDiagnostic) => {
+    if (diagnostic.pageNumber != null) {
+      goToPage(diagnostic.pageNumber);
+    }
+    if (diagnostic.elementId) {
+      window.dispatchEvent(new CustomEvent('pxa-designer:navigate-element', {
+        detail: { elementId: diagnostic.elementId, pageNumber: diagnostic.pageNumber ?? null },
+      }));
+    }
+    if (diagnostic.objectNumber != null) {
+      window.dispatchEvent(new CustomEvent('pdf-viewer:navigate-object', {
+        detail: {
+          objectNumber: diagnostic.objectNumber,
+          generation: diagnostic.generation ?? 0,
+          pageNumber: diagnostic.pageNumber ?? null,
+        },
+      }));
+    }
+    emitViewerEvent('diagnostic:navigated', {
+      code: diagnostic.code,
+      pageNumber: diagnostic.pageNumber ?? null,
+      objectNumber: diagnostic.objectNumber ?? null,
+      elementId: diagnostic.elementId ?? null,
+    });
+  }, [emitViewerEvent, goToPage]);
+
+  const renderDiagnostic = useCallback((diagnostic: NavigablePdfDiagnostic) => (
+    <>
+      <code>{diagnostic.code}</code>
+      <span>{diagnosticText(diagnostic)}</span>
+      <span className="pdfv-diagnostic-targets">
+        {diagnostic.pageNumber != null && (
+          <button className="pdfv-inline-link" type="button" onClick={() => navigateDiagnostic(diagnostic)}>
+            {labels.pageNumber} {diagnostic.pageNumber}
+          </button>
+        )}
+        {diagnostic.objectNumber != null && (
+          <button className="pdfv-inline-link" type="button" onClick={() => navigateDiagnostic(diagnostic)}>
+            {labels.affectedObject} #{diagnostic.objectNumber} {diagnostic.generation ?? 0}
+          </button>
+        )}
+        {diagnostic.elementId && (
+          <button className="pdfv-inline-link" type="button" onClick={() => navigateDiagnostic(diagnostic)}>
+            {labels.affectedElement} {diagnostic.elementId}
+          </button>
+        )}
+      </span>
+      <details className="pdfv-diagnostic-technical">
+        <summary>{labels.technicalDetails}</summary>
+        <span>{diagnostic.message}</span>
+      </details>
+    </>
+  ), [diagnosticText, labels.affectedElement, labels.affectedObject, labels.pageNumber, labels.technicalDetails, navigateDiagnostic]);
 
   const runTrustInspection = useCallback(async () => {
     if (!source) {
@@ -2052,11 +2135,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     <ul className="pdfv-trust-diagnostics">
                       {compliancePreflight.findings.map((finding, index) => (
                         <li key={`${finding.code}-${index}`} data-severity={finding.severity}>
-                          <code>{finding.code}</code>
-                          <span>
-                            {finding.message}
-                            {finding.objectNumber != null && <small> #{finding.objectNumber} {finding.generation ?? 0} obj</small>}
-                          </span>
+                          {renderDiagnostic(finding)}
                         </li>
                       ))}
                     </ul>
@@ -2195,8 +2274,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <ul className="pdfv-trust-diagnostics">
                   {trustReport.diagnostics.map((diagnostic, index) => (
                     <li key={`${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>
-                      <code>{diagnostic.code}</code>
-                      <span>{diagnostic.message}</span>
+                      {renderDiagnostic(diagnostic)}
                     </li>
                   ))}
                 </ul>

@@ -97,7 +97,9 @@ public sealed record PdfAccessibilityDiagnostic(
     PdfAccessibilityDiagnosticSeverity Severity,
     string Message,
     int? PageNumber = null,
-    string? ElementId = null);
+    string? ElementId = null,
+    string? LocalizationKey = null,
+    IReadOnlyDictionary<string, string>? LocalizationParameters = null);
 
 public sealed record PdfAccessibilityValidationReport(
     PdfAccessibilityProfile Profile,

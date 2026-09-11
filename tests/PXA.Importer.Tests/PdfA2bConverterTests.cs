@@ -59,7 +59,10 @@ public sealed class PdfA2bConverterTests
         var report = await converter.PreflightAsync(stream);
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.Findings, finding => finding.Code == "PXAPDFTRUST314");
+        var finding = Assert.Single(report.Findings, finding => finding.Code == "PXAPDFTRUST314");
+        Assert.Equal("diagnostics.PXAPDFTRUST314", finding.LocalizationKey);
+        Assert.Equal("PXAPDFTRUST314", finding.LocalizationParameters!["code"]);
+        Assert.Equal(1, finding.PageNumber);
     }
 
     [Fact]

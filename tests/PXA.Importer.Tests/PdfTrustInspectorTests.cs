@@ -54,6 +54,11 @@ public sealed class PdfTrustInspectorTests
         Assert.Empty(report.Signatures);
         Assert.False(report.PdfA.IsClaimed);
         Assert.False(report.PdfUa.IsClaimed);
+        Assert.All(report.Diagnostics, diagnostic =>
+        {
+            Assert.Equal($"diagnostics.{diagnostic.Code}", diagnostic.LocalizationKey);
+            Assert.Equal(diagnostic.Code, diagnostic.LocalizationParameters!["code"]);
+        });
     }
 
     [Fact]

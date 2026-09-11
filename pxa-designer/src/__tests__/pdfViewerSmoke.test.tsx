@@ -156,7 +156,16 @@ describe('pdf viewer smoke test', () => {
           { sequenceNumber: 1, kind: 'Original', crossReferenceOffset: 10, endOffset: 300, sha256: 'b'.repeat(64), entryCount: 8 },
           { sequenceNumber: 2, kind: 'Incremental', crossReferenceOffset: 320, endOffset: 400, sha256: 'c'.repeat(64), entryCount: 4 },
         ],
-        diagnostics: [],
+        diagnostics: [{
+          code: 'PXATEST999',
+          severity: 1,
+          message: 'Synthetic technical detail.',
+          objectNumber: 9,
+          generation: 0,
+          pageNumber: 2,
+          localizationKey: 'diagnostics.PXATEST999',
+          localizationParameters: { code: 'PXATEST999', pageNumber: '2', objectNumber: '9' },
+        }],
       }),
     } as Response);
 
@@ -181,6 +190,16 @@ describe('pdf viewer smoke test', () => {
     expect(container.querySelector('[aria-label^="Valid."]')).not.toBeNull();
     expect(container.textContent).toContain('ABC123');
     expect(container.textContent).toContain('Later revisions exist');
+    expect(container.textContent).toContain('Check PXATEST999 requires review.');
+
+    const objectNavigation = jest.fn();
+    window.addEventListener('pdf-viewer:navigate-object', objectNavigation, { once: true });
+    const objectTarget = Array.from(container.querySelectorAll('button'))
+      .find(button => button.textContent?.startsWith('Object #9'));
+    expect(objectTarget).toBeTruthy();
+    act(() => objectTarget!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(container.querySelector('[data-testid="mock-pdf-page-2"]')).not.toBeNull();
+    expect(objectNavigation).toHaveBeenCalledTimes(1);
 
     const reviewButton = Array.from(container.querySelectorAll('button')).find(button => button.textContent === 'Review');
     act(() => reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true })));

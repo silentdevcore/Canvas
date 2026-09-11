@@ -717,17 +717,17 @@ Reference material:
   - [x] Add a compare-original view.
 - [x] Require explicit confirmation that applying redaction creates a new document
   and may invalidate signatures.
-- [ ] Add compliance and accessibility issue navigation from a report item to the
+- [x] Add compliance and accessibility issue navigation from a report item to the
   affected page, object, or Designer element.
   - [x] Navigate page-scoped redaction findings directly to the affected Viewer page.
-  - [ ] Add page, object, and Designer-element targets to compliance and accessibility
+  - [x] Add page, object, and Designer-element targets to compliance and accessibility
     report contracts and navigate to them.
 - [x] Warn before an edit that invalidates an existing signature or compliance state.
-- [ ] Localize all trust states, warnings, diagnostics, actions, and accessibility
+- [x] Localize all trust states, warnings, diagnostics, actions, and accessibility
   labels in the six Designer languages.
   - [x] Localize all static Viewer trust states, actions, signing fields, mutation
     warnings, risk inventory, and accessibility labels in all six languages.
-  - [ ] Return localization keys and parameters for backend-generated diagnostics
+  - [x] Return localization keys and parameters for backend-generated diagnostics
     instead of displaying English diagnostic messages in every locale.
 - [x] Add protected loading, offline, timeout, cancelled, unsupported, and policy-
   denied states instead of generic download failures.

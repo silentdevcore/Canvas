@@ -185,6 +185,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             : parsed.SignatureCount > 0
                 ? PdfComplianceConversionCapability.ReviewRequired
                 : PdfComplianceConversionCapability.Ready;
+        var enrichedFindings = PdfDiagnosticMetadata.Enrich(findings, parsed.Graph);
 
         return new PdfA2bConversionPreflightReport(
             ProfileName(profile),
@@ -195,7 +196,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             parsed.SignatureCount,
             parsed.SignatureCount > 0,
             true,
-            findings);
+            enrichedFindings);
     }
 
     private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildUpdates(

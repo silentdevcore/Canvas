@@ -4929,7 +4929,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                                 if (issue.pageIndex != null) onPageSelect(issue.pageIndex);
                                 if (issue.elementId) selectOne(issue.elementId);
                               }}
-                              disabled={!issue.elementId}
+                              disabled={!issue.elementId && issue.pageIndex == null}
                             >
                               <span>{issue.code}</span>
                               {t(`accessibility.diagnostics.${issue.code}`)}

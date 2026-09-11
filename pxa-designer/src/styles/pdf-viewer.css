@@ -275,6 +275,31 @@
 .pdfv-trust-diagnostics li[data-severity='1'] { border-inline-start-color: #d97706; }
 .pdfv-trust-diagnostics li[data-severity='2'] { border-inline-start-color: #b42318; }
 
+.pdfv-diagnostic-targets {
+  display: flex;
+  grid-column: 2;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.pdfv-diagnostic-technical {
+  grid-column: 2;
+  color: #57534e;
+  font-size: 0.76rem;
+}
+
+.pdfv-diagnostic-technical summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pdfv-diagnostic-technical > span {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
 .pdfv-trust-error {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

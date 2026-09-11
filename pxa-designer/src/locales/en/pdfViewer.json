@@ -81,6 +81,14 @@
   "lockedFields": "Locked fields",
   "signatureField": "Signature field",
   "signatureFieldLocation": "Field location",
+  "affectedObject": "Object",
+  "affectedElement": "Designer element",
+  "technicalDetails": "Technical details",
+  "diagnosticSummary": {
+    "information": "Information from check {{code}}.",
+    "warning": "Check {{code}} requires review.",
+    "error": "Check {{code}} found a blocking problem."
+  },
   "mutationWarningTitle": "This document has trust properties",
   "mutationWarningBody": "Saving annotations or applying redactions creates a new document and can invalidate signatures or require renewed compliance validation.",
   "mutationConfirmation": "I understand and want to enable document-changing actions.",

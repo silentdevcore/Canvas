@@ -33,6 +33,10 @@ export interface PdfTrustDiagnostic {
   message: string;
   objectNumber?: number | null;
   generation?: number | null;
+  pageNumber?: number | null;
+  elementId?: string | null;
+  localizationKey?: string | null;
+  localizationParameters?: Record<string, string> | null;
 }
 
 export interface PdfTrustReport {
@@ -166,6 +170,10 @@ export interface PdfA2bConversionPreflightReport {
     message: string;
     objectNumber?: number | null;
     generation?: number | null;
+    pageNumber?: number | null;
+    elementId?: string | null;
+    localizationKey?: string | null;
+    localizationParameters?: Record<string, string> | null;
   }>;
 }
 

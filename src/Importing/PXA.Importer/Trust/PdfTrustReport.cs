@@ -71,7 +71,11 @@ public sealed record PdfTrustDiagnostic(
     PdfTrustDiagnosticSeverity Severity,
     string Message,
     int? ObjectNumber = null,
-    int? Generation = null);
+    int? Generation = null,
+    int? PageNumber = null,
+    string? ElementId = null,
+    string? LocalizationKey = null,
+    IReadOnlyDictionary<string, string>? LocalizationParameters = null);
 
 public sealed record PdfEncryptionInspection(
     bool IsEncrypted,

@@ -81,6 +81,14 @@
   "lockedFields": "الحقول المقفلة",
   "signatureField": "حقل التوقيع",
   "signatureFieldLocation": "موقع الحقل",
+  "affectedObject": "الكائن",
+  "affectedElement": "عنصر المصمم",
+  "technicalDetails": "التفاصيل التقنية",
+  "diagnosticSummary": {
+    "information": "معلومات من الفحص {{code}}.",
+    "warning": "يتطلب الفحص {{code}} مراجعة.",
+    "error": "وجد الفحص {{code}} مشكلة مانعة."
+  },
   "mutationWarningTitle": "يحتوي هذا المستند على خصائص موثوقية",
   "mutationWarningBody": "ينشئ حفظ التعليقات أو تطبيق التنقيح مستندًا جديدًا وقد يبطل التواقيع أو يتطلب إعادة التحقق من التوافق.",
   "mutationConfirmation": "أفهم ذلك وأرغب في تمكين الإجراءات التي تغير المستند.",

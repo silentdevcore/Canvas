@@ -81,6 +81,14 @@
   "lockedFields": "Gesperrte Felder",
   "signatureField": "Signaturfeld",
   "signatureFieldLocation": "Feldposition",
+  "affectedObject": "Objekt",
+  "affectedElement": "Designer-Element",
+  "technicalDetails": "Technische Details",
+  "diagnosticSummary": {
+    "information": "Information aus Prüfung {{code}}.",
+    "warning": "Prüfung {{code}} muss kontrolliert werden.",
+    "error": "Prüfung {{code}} hat ein blockierendes Problem gefunden."
+  },
   "mutationWarningTitle": "Dieses Dokument besitzt Vertrauenseigenschaften",
   "mutationWarningBody": "Das Speichern von Anmerkungen oder Anwenden von Schwärzungen erstellt ein neues Dokument und kann Signaturen ungültig machen oder eine erneute Konformitätsprüfung erfordern.",
   "mutationConfirmation": "Ich habe dies verstanden und möchte dokumentverändernde Aktionen freigeben.",

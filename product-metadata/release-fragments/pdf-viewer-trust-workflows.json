@@ -8,7 +8,7 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA PDF Viewer adds accessible trust states, detailed signature and active-content inspection, privileged PAdES signing, protected mutation warnings, and original-to-redacted comparison.",
+  "summary": "PXA PDF Viewer adds accessible trust inspection, privileged PAdES signing, protected mutation workflows, localized diagnostics, and navigation to affected pages, objects, and Designer elements.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.PDF-Trust-Foundation.md"

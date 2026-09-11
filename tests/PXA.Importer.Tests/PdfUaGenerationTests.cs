@@ -417,6 +417,11 @@ public sealed class PdfUaGenerationTests
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA023"
             && diagnostic.Severity == PdfAccessibilityDiagnosticSeverity.Warning);
         Assert.Equal(2, report.Diagnostics.Count(diagnostic => diagnostic.Code == "PXAPDFUA024"));
+        Assert.All(report.Diagnostics, diagnostic =>
+        {
+            Assert.Equal($"diagnostics.{diagnostic.Code}", diagnostic.LocalizationKey);
+            Assert.Equal(diagnostic.Code, diagnostic.LocalizationParameters!["code"]);
+        });
     }
 
     [Fact]

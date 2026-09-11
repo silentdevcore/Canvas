@@ -81,6 +81,14 @@
   "lockedFields": "Champs verrouillés",
   "signatureField": "Champ de signature",
   "signatureFieldLocation": "Emplacement du champ",
+  "affectedObject": "Objet",
+  "affectedElement": "Élément du Designer",
+  "technicalDetails": "Détails techniques",
+  "diagnosticSummary": {
+    "information": "Information du contrôle {{code}}.",
+    "warning": "Le contrôle {{code}} nécessite une vérification.",
+    "error": "Le contrôle {{code}} a détecté un problème bloquant."
+  },
   "mutationWarningTitle": "Ce document possède des propriétés de confiance",
   "mutationWarningBody": "L’enregistrement d’annotations ou l’application de caviardages crée un nouveau document et peut invalider les signatures ou nécessiter une nouvelle validation de conformité.",
   "mutationConfirmation": "J’ai compris et je souhaite activer les actions qui modifient le document.",
