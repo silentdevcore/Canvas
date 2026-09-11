@@ -115,7 +115,10 @@ public sealed record PdfSignatureInspection(
     string? ArchiveTimestampAuthoritySubject = null,
     bool IsCertification = false,
     PdfTrustStatus CertificationStatus = PdfTrustStatus.NotApplicable,
-    PdfCertificationInspection? Certification = null);
+    PdfCertificationInspection? Certification = null,
+    string? FieldName = null,
+    int? FieldPageNumber = null,
+    IReadOnlyList<double>? FieldRectangle = null);
 
 public sealed record PdfComplianceClaim(
     string Standard,
@@ -142,6 +145,21 @@ public sealed record PdfEmbeddedValidationMaterialInspection(
     long TotalBytes,
     PdfTrustStatus Status);
 
+public sealed record PdfRiskInspection(
+    int JavaScriptActionCount,
+    int LaunchActionCount,
+    int EmbeddedFileCount,
+    int FileAttachmentCount,
+    int RichMediaCount,
+    int XfaFormCount,
+    int ExternalLinkCount,
+    PdfTrustStatus Status)
+{
+    public bool HasRiskyContent =>
+        JavaScriptActionCount > 0 || LaunchActionCount > 0 || EmbeddedFileCount > 0 ||
+        FileAttachmentCount > 0 || RichMediaCount > 0 || XfaFormCount > 0;
+}
+
 public sealed record PdfTrustReport(
     PdfTrustStatus Status,
     PdfTrustStatus StructureStatus,
@@ -156,7 +174,8 @@ public sealed record PdfTrustReport(
     PdfComplianceClaim PdfUa,
     IReadOnlyList<PdfRevisionInspection> Revisions,
     IReadOnlyList<PdfTrustDiagnostic> Diagnostics,
-    PdfEmbeddedValidationMaterialInspection? EmbeddedValidationMaterial = null);
+    PdfEmbeddedValidationMaterialInspection? EmbeddedValidationMaterial = null,
+    PdfRiskInspection? Risk = null);
 
 public sealed record PdfTrustInspectionOptions
 {

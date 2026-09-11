@@ -123,6 +123,38 @@ public sealed class PdfTrustInspectorTests
     }
 
     [Fact]
+    public async Task InspectAsync_InventoriesActiveAndEmbeddedContent()
+    {
+        var document = new PdfDocument();
+        document.AddPage().DrawText("Risk inventory", 40, 40);
+        var source = document.ToBytes();
+        var nextObject = NextObjectNumber(source);
+        var bytes = new PdfIncrementalUpdateWriter().Append(source, [
+            new PdfIncrementalObjectUpdate(new PdfObjectId(nextObject, 0), new PdfDictionary
+            {
+                ["Type"] = new PdfName("Action"),
+                ["S"] = new PdfName("JavaScript"),
+                ["JS"] = new PdfString("app.alert('test')"u8.ToArray(), IsHex: false)
+            }),
+            new PdfIncrementalObjectUpdate(new PdfObjectId(nextObject + 1, 0), new PdfDictionary
+            {
+                ["Type"] = new PdfName("Filespec"),
+                ["F"] = new PdfString("evidence.txt"u8.ToArray(), IsHex: false),
+                ["EF"] = new PdfDictionary()
+            })
+        ]).Bytes;
+
+        var report = await InspectAsync(bytes);
+
+        Assert.NotNull(report.Risk);
+        Assert.Equal(1, report.Risk.JavaScriptActionCount);
+        Assert.Equal(1, report.Risk.EmbeddedFileCount);
+        Assert.True(report.Risk.HasRiskyContent);
+        Assert.Equal(PdfTrustStatus.Indeterminate, report.Risk.Status);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST020");
+    }
+
+    [Fact]
     public async Task InspectAsync_ValidatesGeneratedPdfA2bStructure()
     {
         var document = new PdfDocument

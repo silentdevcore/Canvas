@@ -597,6 +597,9 @@ public sealed class PdfPadesSigningServiceTests
         await using var stream = new MemoryStream(result.Bytes);
         var signature = Assert.Single((await new PdfTrustInspector().InspectAsync(stream)).Signatures);
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
+        Assert.Equal("VisibleApproval", signature.FieldName);
+        Assert.Equal(2, signature.FieldPageNumber);
+        Assert.Equal([72d, 80d, 292d, 152d], signature.FieldRectangle);
     }
 
     [Fact]

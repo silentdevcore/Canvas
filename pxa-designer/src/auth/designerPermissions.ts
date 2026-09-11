@@ -30,6 +30,7 @@ export const designerPermissions = {
   pdfExport: 'designer.pdf.export',
   pdfPrint: 'designer.pdf.print',
   pdfTrustInspect: 'designer.pdf.trust.inspect',
+  pdfSignaturesSign: 'designer.pdf.signatures.sign',
   documentEdit: 'designer.document.edit',
   import: 'designer.import',
   export: 'designer.export',

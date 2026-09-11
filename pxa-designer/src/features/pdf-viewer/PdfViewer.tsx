@@ -59,7 +59,8 @@ import {
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
-import { convertPdfA2b, inspectPdfTrust, preflightPdfA2b, type PdfA2bConversionPreflightReport, type PdfArchiveProfile, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
+import { convertPdfA2b, inspectPdfTrust, PdfTrustOperationError, preflightPdfA2b, signPdf, type PdfA2bConversionPreflightReport, type PdfArchiveProfile, type PdfPadesProfile, type PdfTrustFailureKind, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
+import { TrustStatusBadge } from './TrustStatusBadge';
 import { notify } from '@/notifications/toast';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -84,6 +85,7 @@ export interface PdfViewerProps {
   canDownload?: boolean;
   canPrint?: boolean;
   canInspectTrust?: boolean;
+  canSign?: boolean;
   canConvertCompliance?: boolean;
   canAnnotate?: boolean;
   canFillForms?: boolean;
@@ -241,6 +243,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   canDownload = true,
   canPrint = true,
   canInspectTrust = true,
+  canSign = false,
   canConvertCompliance = true,
   canAnnotate = true,
   canFillForms = true,
@@ -272,11 +275,20 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [trustPanelOpen, setTrustPanelOpen] = useState(false);
   const [trustReport, setTrustReport] = useState<PdfTrustReport | null>(null);
   const [trustLoading, setTrustLoading] = useState(false);
-  const [trustError, setTrustError] = useState<string | null>(null);
+  const [trustError, setTrustError] = useState<{ kind: PdfTrustFailureKind; message: string } | null>(null);
   const [compliancePreflight, setCompliancePreflight] = useState<PdfA2bConversionPreflightReport | null>(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
   const [complianceProfile, setComplianceProfile] = useState<PdfArchiveProfile>('PDF/A-2b');
   const [allowSignatureInvalidation, setAllowSignatureInvalidation] = useState(false);
+  const [allowTrustMutation, setAllowTrustMutation] = useState(false);
+  const [signingCertificate, setSigningCertificate] = useState<File | null>(null);
+  const [signingPassword, setSigningPassword] = useState('');
+  const [signingProfile, setSigningProfile] = useState<PdfPadesProfile>('BaselineB');
+  const [signingFieldName, setSigningFieldName] = useState('Signature1');
+  const [signingReason, setSigningReason] = useState('');
+  const [signingVisible, setSigningVisible] = useState(false);
+  const [signingBusy, setSigningBusy] = useState(false);
+  const [signingStatus, setSigningStatus] = useState<string | null>(null);
   const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
   const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
   const [annotations, setAnnotations] = useState<PdfAnnotation[]>([]);
@@ -291,6 +303,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [redactionPreflightFingerprint, setRedactionPreflightFingerprint] = useState<string | null>(null);
   const [redactionVerification, setRedactionVerification] = useState<RedactionVerification | null>(null);
   const [redactionAudit, setRedactionAudit] = useState<{ record: string | null; signed: boolean } | null>(null);
+  const [redactedResult, setRedactedResult] = useState<Blob | null>(null);
+  const [redactionCompareOpen, setRedactionCompareOpen] = useState(false);
   const [redactionBusy, setRedactionBusy] = useState(false);
   const [formPanelOpen, setFormPanelOpen] = useState(false);
   const [formFields, setFormFields] = useState<PdfFormFieldInfo[]>([]);
@@ -304,6 +318,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const downloadLockRef = useRef(false);
   const printLockRef = useRef(false);
   const redactionFingerprintRef = useRef('');
+  const trustInspectionAbortRef = useRef<AbortController | null>(null);
 
   const currentResult = searchResults[selectedResultIndex] ?? null;
   const currentPageAnnotations = annotations.filter(annotation => annotation.pageNumber === currentPage);
@@ -338,6 +353,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     trustLoading: t('trustLoading'),
     trustEmpty: t('trustEmpty'),
     trustFailed: t('trustFailed'),
+    trustCancel: t('trustCancel'),
+    trustRetry: t('trustRetry'),
     pdfAPreflight: t('pdfAPreflight'),
     pdfAProfile: t('pdfAProfile'),
     pdfAConvert: t('pdfAConvert'),
@@ -379,6 +396,41 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     revisions: t('revisions'),
     objects: t('objects'),
     notDetected: t('notDetected'),
+    signatureObject: t('signatureObject'),
+    certificateThumbprint: t('certificateThumbprint'),
+    signingTime: t('signingTime'),
+    signedRevision: t('signedRevision'),
+    signedRevisionOffset: t('signedRevisionOffset'),
+    modificationsAfterSigning: t('modificationsAfterSigning'),
+    noModifications: t('noModifications'),
+    laterModifications: t('laterModifications'),
+    certification: t('certification'),
+    lockedFields: t('lockedFields'),
+    signatureField: t('signatureField'),
+    signatureFieldLocation: t('signatureFieldLocation'),
+    mutationWarningTitle: t('mutationWarningTitle'),
+    mutationWarningBody: t('mutationWarningBody'),
+    mutationConfirmation: t('mutationConfirmation'),
+    trustInspectionRequired: t('trustInspectionRequired'),
+    signPdf: t('signPdf'),
+    signingCertificate: t('signingCertificate'),
+    signingPassword: t('signingPassword'),
+    signingProfile: t('signingProfile'),
+    signingFieldName: t('signingFieldName'),
+    signingReason: t('signingReason'),
+    signingVisible: t('signingVisible'),
+    signingInProgress: t('signingInProgress'),
+    signingComplete: t('signingComplete'),
+    signingCertificateRequired: t('signingCertificateRequired'),
+    signingPrivacy: t('signingPrivacy'),
+    riskyContent: t('riskyContent'),
+    javaScriptActions: t('javaScriptActions'),
+    launchActions: t('launchActions'),
+    embeddedFiles: t('embeddedFiles'),
+    fileAttachments: t('fileAttachments'),
+    richMedia: t('richMedia'),
+    xfaForms: t('xfaForms'),
+    externalLinks: t('externalLinks'),
     language: t('language'),
     searchDocumentText: t('searchDocumentText'),
     caseSensitive: t('caseSensitive'),
@@ -446,6 +498,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     redactionFindings: t('redactionFindings'),
     redactionAuditSigned: t('redactionAuditSigned'),
     redactionAuditUnsigned: t('redactionAuditUnsigned'),
+    redactionCompare: t('redactionCompare'),
+    redactionCompareTitle: t('redactionCompareTitle'),
+    redactionOriginal: t('redactionOriginal'),
+    redactionResult: t('redactionResult'),
+    close: t('close'),
     redactionRequiresPreflight: t('redactionRequiresPreflight'),
     save: t('save'),
     loadSaved: t('loadSaved'),
@@ -487,6 +544,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const effectiveRedactionPreflight = redactionPreflightFingerprint === redactionFingerprint
     ? redactionPreflight
     : null;
+  const requiresTrustMutationConfirmation = Boolean(
+    trustReport && (trustReport.signatures.length > 0 || trustReport.pdfA.isClaimed || trustReport.pdfUa.isClaimed),
+  );
+  const trustMutationAllowed = !canInspectTrust || Boolean(
+    trustReport && (!requiresTrustMutationConfirmation || allowTrustMutation),
+  );
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -760,11 +823,30 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     return t(`trustStatus.${keys[status] ?? 'indeterminate'}`);
   }, [t]);
 
+  const trustStatusExplanation = useCallback((status: PdfTrustStatus): string => {
+    const keys = ['valid', 'invalid', 'indeterminate', 'unsupported', 'notApplicable'] as const;
+    return t(`trustStatusExplanation.${keys[status] ?? 'indeterminate'}`);
+  }, [t]);
+
+  const renderTrustStatus = useCallback((status: PdfTrustStatus) => (
+    <TrustStatusBadge
+      status={status}
+      label={trustStatusLabel(status)}
+      explanation={trustStatusExplanation(status)}
+    />
+  ), [trustStatusExplanation, trustStatusLabel]);
+
+  const trustFailureLabel = useCallback((kind: PdfTrustFailureKind): string =>
+    t(`trustFailure.${kind}`), [t]);
+
   const runTrustInspection = useCallback(async () => {
     if (!source) {
       return;
     }
 
+    const controller = new AbortController();
+    trustInspectionAbortRef.current?.abort();
+    trustInspectionAbortRef.current = controller;
     setTrustLoading(true);
     setTrustError(null);
     try {
@@ -775,7 +857,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       const file = source.file instanceof File
         ? source.file
         : new File([bytes], source.name || 'document.pdf', { type: 'application/pdf' });
-      const report = await inspectPdfTrust(file);
+      const report = await inspectPdfTrust(file, controller.signal);
       setTrustReport(report);
       emitViewerEvent('trust:inspected', {
         status: report.status,
@@ -783,13 +865,23 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         encrypted: report.encryption.isEncrypted,
       });
     } catch (error) {
+      const kind = error instanceof PdfTrustOperationError ? error.kind : 'failed';
       const message = error instanceof Error ? error.message : labels.trustFailed;
-      setTrustError(message);
+      setTrustError({ kind, message });
       emitViewerEvent('trust:inspection-failed', { message });
     } finally {
-      setTrustLoading(false);
+      if (trustInspectionAbortRef.current === controller) {
+        trustInspectionAbortRef.current = null;
+        setTrustLoading(false);
+      }
     }
   }, [emitViewerEvent, getSourceBytes, labels.invalidPdf, labels.trustFailed, source]);
+
+  useEffect(() => {
+    if (reviewPanelOpen && canInspectTrust && source && !trustReport && !trustLoading && !trustError) {
+      void runTrustInspection();
+    }
+  }, [canInspectTrust, reviewPanelOpen, runTrustInspection, source, trustError, trustLoading, trustReport]);
 
   const sourceFile = useCallback(async (): Promise<File> => {
     const bytes = await getSourceBytes();
@@ -808,7 +900,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       setAllowSignatureInvalidation(false);
       emitViewerEvent('compliance:preflighted', { capability: report.capability });
     } catch (error) {
-      setTrustError(error instanceof Error ? error.message : labels.trustFailed);
+      const kind = error instanceof PdfTrustOperationError ? error.kind : 'failed';
+      setTrustError({ kind, message: error instanceof Error ? error.message : labels.trustFailed });
     } finally {
       setComplianceLoading(false);
     }
@@ -829,17 +922,64 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       notify.success(`${labels.pdfAConverted} ${complianceProfile}`, { id: 'pdf-a-converted' });
       emitViewerEvent('compliance:converted', { profile: complianceProfile });
     } catch (error) {
-      setTrustError(error instanceof Error ? error.message : labels.trustFailed);
+      const kind = error instanceof PdfTrustOperationError ? error.kind : 'failed';
+      setTrustError({ kind, message: error instanceof Error ? error.message : labels.trustFailed });
     } finally {
       setComplianceLoading(false);
     }
   }, [allowSignatureInvalidation, complianceProfile, emitViewerEvent, labels.trustFailed, source, sourceFile]);
 
+  const runPdfSigning = useCallback(async () => {
+    if (!signingCertificate) {
+      setSigningStatus(labels.signingCertificateRequired);
+      return;
+    }
+    setSigningBusy(true);
+    setSigningStatus(null);
+    try {
+      const blob = await signPdf({
+        pdf: await sourceFile(),
+        certificate: signingCertificate,
+        certificatePassword: signingPassword,
+        profile: signingProfile,
+        fieldName: signingFieldName,
+        reason: signingReason,
+        visible: signingVisible,
+        pageNumber: currentPage,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = (source?.name || 'document.pdf').replace(/\.pdf$/i, '.signed.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setSigningPassword('');
+      setSigningCertificate(null);
+      setSigningStatus(labels.signingComplete);
+      emitViewerEvent('trust:signed', { profile: signingProfile, visible: signingVisible });
+    } catch (error) {
+      const kind = error instanceof PdfTrustOperationError ? error.kind : 'failed';
+      setSigningStatus(`${trustFailureLabel(kind)}: ${error instanceof Error ? error.message : labels.trustFailed}`);
+    } finally {
+      setSigningBusy(false);
+    }
+  }, [currentPage, emitViewerEvent, labels.signingCertificateRequired, labels.signingComplete, labels.trustFailed, signingCertificate, signingFieldName, signingPassword, signingProfile, signingReason, signingVisible, source?.name, sourceFile, trustFailureLabel]);
+
   useEffect(() => {
+    trustInspectionAbortRef.current?.abort();
+    trustInspectionAbortRef.current = null;
     setTrustReport(null);
     setTrustError(null);
     setCompliancePreflight(null);
     setAllowSignatureInvalidation(false);
+    setAllowTrustMutation(false);
+    setSigningCertificate(null);
+    setSigningPassword('');
+    setSigningStatus(null);
+    setRedactedResult(null);
+    setRedactionCompareOpen(false);
   }, [source]);
 
   useEffect(() => {
@@ -1417,6 +1557,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         prepared.file,
         redactionSidecar,
       );
+      setRedactedResult(outcome.blob);
       const url = URL.createObjectURL(outcome.blob);
       const link = document.createElement('a');
       link.href = url;
@@ -1796,7 +1937,77 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <span>{trustLoading ? labels.trustLoading : labels.inspectTrust}</span>
               </button>
             </div>
-            {trustError && <p className="pdfv-trust-error" role="alert">{trustError}</p>}
+            {trustLoading && (
+              <div className="pdfv-trust-operation" role="status" aria-live="polite">
+                <span>{labels.trustLoading}</span>
+                <button className="pdfv-button" type="button" onClick={() => trustInspectionAbortRef.current?.abort()}>
+                  {labels.trustCancel}
+                </button>
+              </div>
+            )}
+            {trustError && (
+              <div className="pdfv-trust-error" role="alert" data-failure={trustError.kind}>
+                <strong>{trustFailureLabel(trustError.kind)}</strong>
+                <span>{trustError.message}</span>
+                {trustError.kind !== 'cancelled' && (
+                  <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()}>
+                    {labels.trustRetry}
+                  </button>
+                )}
+              </div>
+            )}
+            {canSign && (
+              <form
+                className="pdfv-signing-panel"
+                onSubmit={event => {
+                  event.preventDefault();
+                  void runPdfSigning();
+                }}
+              >
+                <strong>{labels.signPdf}</strong>
+                <label>
+                  <span>{labels.signingCertificate}</span>
+                  <input
+                    key={signingCertificate?.name ?? 'empty-certificate'}
+                    type="file"
+                    accept=".p12,.pfx,application/x-pkcs12"
+                    onChange={event => setSigningCertificate(event.target.files?.[0] ?? null)}
+                    disabled={signingBusy}
+                  />
+                </label>
+                <label>
+                  <span>{labels.signingPassword}</span>
+                  <input type="password" value={signingPassword} onChange={event => setSigningPassword(event.target.value)} autoComplete="off" disabled={signingBusy} />
+                </label>
+                <label>
+                  <span>{labels.signingProfile}</span>
+                  <select value={signingProfile} onChange={event => setSigningProfile(event.target.value as PdfPadesProfile)} disabled={signingBusy}>
+                    <option value="BaselineB">PAdES B-B</option>
+                    <option value="BaselineT">PAdES B-T</option>
+                    <option value="BaselineLT">PAdES B-LT</option>
+                    <option value="BaselineLTA">PAdES B-LTA</option>
+                  </select>
+                </label>
+                <label>
+                  <span>{labels.signingFieldName}</span>
+                  <input value={signingFieldName} maxLength={128} onChange={event => setSigningFieldName(event.target.value)} disabled={signingBusy} />
+                </label>
+                <label>
+                  <span>{labels.signingReason}</span>
+                  <input value={signingReason} maxLength={256} onChange={event => setSigningReason(event.target.value)} disabled={signingBusy} />
+                </label>
+                <label className="pdfv-checkbox">
+                  <input type="checkbox" checked={signingVisible} onChange={event => setSigningVisible(event.target.checked)} disabled={signingBusy} />
+                  <span>{labels.signingVisible}</span>
+                </label>
+                <button className="pdfv-button" type="submit" disabled={!source || !signingCertificate || signingBusy}>
+                  <FiPenTool />
+                  <span>{signingBusy ? labels.signingInProgress : labels.signPdf}</span>
+                </button>
+                <small>{labels.signingPrivacy}</small>
+                {signingStatus && <span className="pdfv-api-status" role="status">{signingStatus}</span>}
+              </form>
+            )}
             {canConvertCompliance && (
               <div className="pdfv-compliance-actions">
                 <label>
@@ -1856,45 +2067,79 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             {trustReport && (
               <div className="pdfv-trust-content">
                 <dl className="pdfv-trust-grid">
-                  <div><dt>{labels.structure}</dt><dd data-status={trustReport.structureStatus}>{trustStatusLabel(trustReport.structureStatus)}</dd></div>
-                  <div><dt>{labels.encryption}</dt><dd data-status={trustReport.encryption.status}>{trustReport.encryption.isEncrypted ? `${trustReport.encryption.algorithm ?? labels.encryption} · ${trustStatusLabel(trustReport.encryption.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>{labels.structure}</dt><dd>{renderTrustStatus(trustReport.structureStatus)}</dd></div>
+                  <div><dt>{labels.encryption}</dt><dd>{trustReport.encryption.isEncrypted ? <>{trustReport.encryption.algorithm ?? labels.encryption} {renderTrustStatus(trustReport.encryption.status)}</> : renderTrustStatus(4)}</dd></div>
                   <div><dt>{labels.signatures}</dt><dd>{trustReport.signatures.length || labels.notDetected}</dd></div>
-                  <div><dt>PDF/A</dt><dd data-status={trustReport.pdfA.status}>{trustReport.pdfA.isClaimed ? `${trustReport.pdfA.profile} · ${trustStatusLabel(trustReport.pdfA.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>PDF/A</dt><dd>{trustReport.pdfA.isClaimed ? <>{trustReport.pdfA.profile} {renderTrustStatus(trustReport.pdfA.status)}</> : renderTrustStatus(4)}</dd></div>
                   {trustReport.pdfA.isClaimed && trustReport.pdfA.validator && (
                     <div><dt>PDF/A validator</dt><dd title={trustReport.pdfA.evidence}>{trustReport.pdfA.validator}</dd></div>
                   )}
-                  <div><dt>PDF/UA</dt><dd data-status={trustReport.pdfUa.status}>{trustReport.pdfUa.isClaimed ? `${trustReport.pdfUa.profile} · ${trustStatusLabel(trustReport.pdfUa.status)}` : labels.notDetected}</dd></div>
+                  <div><dt>PDF/UA</dt><dd>{trustReport.pdfUa.isClaimed ? <>{trustReport.pdfUa.profile} {renderTrustStatus(trustReport.pdfUa.status)}</> : renderTrustStatus(4)}</dd></div>
                   <div><dt>{labels.revisions}</dt><dd>{trustReport.revisionCount}</dd></div>
                   <div><dt>{labels.objects}</dt><dd>{trustReport.objectCount}</dd></div>
                   <div><dt>PDF</dt><dd>{trustReport.pdfVersion ?? labels.notDetected}</dd></div>
                   {trustReport.embeddedValidationMaterial && (
                     <div>
                       <dt>{labels.embeddedValidationMaterial}</dt>
-                      <dd data-status={trustReport.embeddedValidationMaterial.status}>
+                      <dd>
                         {labels.certificates}: {trustReport.embeddedValidationMaterial.certificateCount} · {labels.crls}: {trustReport.embeddedValidationMaterial.crlCount} · {labels.ocspResponses}: {trustReport.embeddedValidationMaterial.ocspResponseCount} · {labels.vriEntries}: {trustReport.embeddedValidationMaterial.vriEntryCount}
+                        {' '}{renderTrustStatus(trustReport.embeddedValidationMaterial.status)}
                       </dd>
                     </div>
                   )}
+                  {trustReport.risk && (
+                    <div>
+                      <dt>{labels.riskyContent}</dt>
+                      <dd>{renderTrustStatus(trustReport.risk.status)}</dd>
+                    </div>
+                  )}
                 </dl>
+                {trustReport.risk && (
+                  <dl className="pdfv-trust-grid" aria-label={labels.riskyContent}>
+                    <div><dt>{labels.javaScriptActions}</dt><dd>{trustReport.risk.javaScriptActionCount}</dd></div>
+                    <div><dt>{labels.launchActions}</dt><dd>{trustReport.risk.launchActionCount}</dd></div>
+                    <div><dt>{labels.embeddedFiles}</dt><dd>{trustReport.risk.embeddedFileCount}</dd></div>
+                    <div><dt>{labels.fileAttachments}</dt><dd>{trustReport.risk.fileAttachmentCount}</dd></div>
+                    <div><dt>{labels.richMedia}</dt><dd>{trustReport.risk.richMediaCount}</dd></div>
+                    <div><dt>{labels.xfaForms}</dt><dd>{trustReport.risk.xfaFormCount}</dd></div>
+                    <div><dt>{labels.externalLinks}</dt><dd>{trustReport.risk.externalLinkCount}</dd></div>
+                  </dl>
+                )}
                 {trustReport.signatures.length > 0 && (
                   <div className="pdfv-signature-list">
                     {trustReport.signatures.map((signature, index) => (
                       <section key={`${signature.objectNumber}-${signature.generation}`} className="pdfv-signature-item">
                         <header>
                           <strong>{signature.isDocumentTimestamp ? labels.documentTimestamp : labels.signature} {index + 1}</strong>
-                          <span data-status={signature.status}>{trustStatusLabel(signature.status)}</span>
+                          {renderTrustStatus(signature.status)}
                         </header>
                         <dl>
-                          <div><dt>{labels.integrity}</dt><dd data-status={signature.integrityStatus}>{trustStatusLabel(signature.integrityStatus)}</dd></div>
-                          <div><dt>{labels.coverage}</dt><dd data-status={signature.coverageStatus}>{signature.coversWholeDocument ? labels.wholeDocument : labels.earlierRevision}</dd></div>
-                          <div><dt>{labels.certificateTrust}</dt><dd data-status={signature.certificateStatus}>{trustStatusLabel(signature.certificateStatus)}</dd></div>
-                          <div><dt>{labels.revocation}</dt><dd data-status={signature.revocationStatus}>{trustStatusLabel(signature.revocationStatus)}</dd></div>
-                          <div><dt>{labels.historicalRevocation}</dt><dd data-status={signature.historicalRevocationStatus}>{trustStatusLabel(signature.historicalRevocationStatus)}</dd></div>
+                          <div><dt>{labels.integrity}</dt><dd>{renderTrustStatus(signature.integrityStatus)}</dd></div>
+                          <div><dt>{labels.coverage}</dt><dd>{signature.coversWholeDocument ? labels.wholeDocument : labels.earlierRevision} {renderTrustStatus(signature.coverageStatus)}</dd></div>
+                          <div><dt>{labels.certificateTrust}</dt><dd>{renderTrustStatus(signature.certificateStatus)}</dd></div>
+                          <div><dt>{labels.revocation}</dt><dd>{renderTrustStatus(signature.revocationStatus)}</dd></div>
+                          <div><dt>{labels.historicalRevocation}</dt><dd>{renderTrustStatus(signature.historicalRevocationStatus)}</dd></div>
+                          <div><dt>{labels.signatureObject}</dt><dd>#{signature.objectNumber} {signature.generation} obj</dd></div>
+                          {signature.fieldName && <div><dt>{labels.signatureField}</dt><dd>{signature.fieldName}</dd></div>}
+                          {signature.fieldPageNumber != null && (
+                            <div>
+                              <dt>{labels.signatureFieldLocation}</dt>
+                              <dd>
+                                <button className="pdfv-inline-link" type="button" onClick={() => goToPage(signature.fieldPageNumber!)}>
+                                  {labels.pageNumber} {signature.fieldPageNumber}
+                                </button>
+                                {signature.fieldRectangle?.length === 4 ? ` · [${signature.fieldRectangle.map(value => Number(value.toFixed(2))).join(', ')}]` : ''}
+                              </dd>
+                            </div>
+                          )}
+                          <div><dt>{labels.signedRevision}</dt><dd>{trustReport.revisions.find(revision => revision.endOffset === signature.signedRevisionEndOffset)?.sequenceNumber ?? labels.notDetected}</dd></div>
+                          {signature.signedRevisionEndOffset != null && <div><dt>{labels.signedRevisionOffset}</dt><dd>{signature.signedRevisionEndOffset}</dd></div>}
+                          <div><dt>{labels.modificationsAfterSigning}</dt><dd>{signature.coversWholeDocument ? labels.noModifications : labels.laterModifications}</dd></div>
                           {signature.revocationEvidence?.map((evidence, evidenceIndex) => (
                             <div key={`signer-evidence-${evidenceIndex}`}>
                               <dt>{labels.revocationEvidence}</dt>
                               <dd title={evidence.source}>
-                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} · {trustStatusLabel(evidence.status)}
+                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} {renderTrustStatus(evidence.status)}
                                 {evidence.nextUpdate ? ` · ${labels.validUntil} ${new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(evidence.nextUpdate))}` : ''}
                               </dd>
                             </div>
@@ -1903,21 +2148,26 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           {signature.embeddedValidationMaterial && (
                             <div>
                               <dt>{labels.vriMatched}</dt>
-                              <dd data-status={signature.embeddedValidationMaterial.status}>
+                              <dd>
                                 {labels.certificates}: {signature.embeddedValidationMaterial.certificateCount} · {labels.crls}: {signature.embeddedValidationMaterial.crlCount} · {labels.ocspResponses}: {signature.embeddedValidationMaterial.ocspResponseCount}
+                                {' '}{renderTrustStatus(signature.embeddedValidationMaterial.status)}
                               </dd>
                             </div>
                           )}
                           <div><dt>Digest</dt><dd>{signature.digestAlgorithm ?? labels.notDetected}</dd></div>
                           <div><dt>{labels.signer}</dt><dd title={signature.signerSubject ?? undefined}>{signature.signerSubject ?? labels.notDetected}</dd></div>
-                          <div><dt>{labels.timestamp}</dt><dd data-status={signature.timestampStatus}>{trustStatusLabel(signature.timestampStatus)}</dd></div>
-                          <div><dt>{labels.timestampRevocation}</dt><dd data-status={signature.timestampRevocationStatus}>{trustStatusLabel(signature.timestampRevocationStatus)}</dd></div>
-                          <div><dt>{labels.timestampHistoricalRevocation}</dt><dd data-status={signature.timestampHistoricalRevocationStatus}>{trustStatusLabel(signature.timestampHistoricalRevocationStatus)}</dd></div>
+                          {signature.signerThumbprint && <div><dt>{labels.certificateThumbprint}</dt><dd title={signature.signerThumbprint}>{signature.signerThumbprint}</dd></div>}
+                          {signature.signingTime && <div><dt>{labels.signingTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.signingTime))}</dd></div>}
+                          <div><dt>{labels.timestamp}</dt><dd>{renderTrustStatus(signature.timestampStatus)}</dd></div>
+                          <div><dt>{labels.timestampRevocation}</dt><dd>{renderTrustStatus(signature.timestampRevocationStatus)}</dd></div>
+                          <div><dt>{labels.timestampHistoricalRevocation}</dt><dd>{renderTrustStatus(signature.timestampHistoricalRevocationStatus)}</dd></div>
+                          {signature.isCertification && <div><dt>{labels.certification}</dt><dd>{renderTrustStatus(signature.certificationStatus ?? 2)}</dd></div>}
+                          {signature.certification?.lockedFields.length ? <div><dt>{labels.lockedFields}</dt><dd title={signature.certification.lockedFields.join(', ')}>{signature.certification.lockedFields.join(', ')}</dd></div> : null}
                           {signature.timestampRevocationEvidence?.map((evidence, evidenceIndex) => (
                             <div key={`timestamp-evidence-${evidenceIndex}`}>
                               <dt>{labels.revocationEvidence}</dt>
                               <dd title={evidence.source}>
-                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} · {trustStatusLabel(evidence.status)}
+                                {evidence.kind === 0 ? 'CRL' : 'OCSP'} {renderTrustStatus(evidence.status)}
                                 {evidence.nextUpdate ? ` · ${labels.validUntil} ${new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(evidence.nextUpdate))}` : ''}
                               </dd>
                             </div>
@@ -1929,7 +2179,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                             <div><dt>{labels.timestampAuthority}</dt><dd title={signature.timestampAuthoritySubject}>{signature.timestampAuthoritySubject}</dd></div>
                           )}
                           {!signature.isDocumentTimestamp && signature.archiveTimestampStatus !== 4 && (
-                            <div><dt>{labels.archiveTimestamp}</dt><dd data-status={signature.archiveTimestampStatus}>{trustStatusLabel(signature.archiveTimestampStatus)}</dd></div>
+                            <div><dt>{labels.archiveTimestamp}</dt><dd>{renderTrustStatus(signature.archiveTimestampStatus)}</dd></div>
                           )}
                           {signature.archiveTimestampTime && (
                             <div><dt>{labels.archiveTimestampTime}</dt><dd>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(signature.archiveTimestampTime))}</dd></div>
@@ -2380,6 +2630,37 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 </button>
               </div>
             )}
+            {requiresTrustMutationConfirmation && (
+              <div className="pdfv-trust-mutation-warning" role="note">
+                <FiShield aria-hidden="true" />
+                <div>
+                  <strong>{labels.mutationWarningTitle}</strong>
+                  <span>{labels.mutationWarningBody}</span>
+                </div>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={allowTrustMutation}
+                    onChange={event => setAllowTrustMutation(event.target.checked)}
+                  />
+                  {labels.mutationConfirmation}
+                </label>
+              </div>
+            )}
+            {canInspectTrust && !trustReport && (
+              <div className="pdfv-trust-mutation-warning" role={trustError ? 'alert' : 'status'}>
+                <FiShield aria-hidden="true" />
+                <div>
+                  <strong>{labels.inspectTrust}</strong>
+                  <span>{trustError ? `${trustFailureLabel(trustError.kind)}: ${trustError.message}` : labels.trustInspectionRequired}</span>
+                </div>
+                {!trustLoading && (
+                  <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()}>
+                    {trustError ? labels.trustRetry : labels.inspectTrust}
+                  </button>
+                )}
+              </div>
+            )}
             <div className="pdfv-review-actions">
               <label className="pdfv-button">
                 <FiUpload />
@@ -2402,11 +2683,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <FiDownload />
                 <span>{labels.exportSidecar}</span>
               </button>
-              <button className="pdfv-button" type="button" onClick={() => void downloadFlattenedPdf()} disabled={!source || annotations.length === 0}>
+              <button className="pdfv-button" type="button" onClick={() => void downloadFlattenedPdf()} disabled={!source || annotations.length === 0 || !trustMutationAllowed}>
                 <FiFileText />
                 <span>{labels.flattenPdf}</span>
               </button>
-              <button className="pdfv-button" type="button" onClick={() => void downloadEmbeddedAnnotationsPdf()} disabled={!source || annotations.length === 0}>
+              <button className="pdfv-button" type="button" onClick={() => void downloadEmbeddedAnnotationsPdf()} disabled={!source || annotations.length === 0 || !trustMutationAllowed}>
                 <FiFileText />
                 <span>{labels.embedAnnotations}</span>
               </button>
@@ -2423,7 +2704,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 className="pdfv-button"
                 type="button"
                 onClick={() => void downloadRedactedPdf()}
-                disabled={!source || redactionAnnotations.length === 0 || redactionBusy || !isApplyAllowed(effectiveRedactionPreflight)}
+                disabled={!source || redactionAnnotations.length === 0 || redactionBusy || !isApplyAllowed(effectiveRedactionPreflight) || !trustMutationAllowed}
                 title={isApplyAllowed(effectiveRedactionPreflight) ? undefined : labels.redactionRequiresPreflight}
               >
                 <FiEyeOff />
@@ -2453,7 +2734,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                       <ul className="pdfv-redaction-findings">
                         {allFindings(effectiveRedactionPreflight).map((finding, index) => (
                           <li key={`${finding.code}-${index}`} data-code={finding.code}>
-                            {finding.message}
+                            <span>{finding.message}</span>
+                            {finding.pageNumber != null && (
+                              <button
+                                className="pdfv-button"
+                                type="button"
+                                onClick={() => goToPage(finding.pageNumber!)}
+                              >
+                                {labels.pageNumber} {finding.pageNumber}
+                              </button>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -2470,8 +2760,39 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                       {redactionAudit.record ? ` (${redactionAudit.record.slice(0, 16)}…)` : ''}
                     </p>
                   )}
+                  {redactedResult && redactionVerification?.passed && (
+                    <button className="pdfv-button" type="button" onClick={() => setRedactionCompareOpen(true)}>
+                      <FiColumns />
+                      <span>{labels.redactionCompare}</span>
+                    </button>
+                  )}
                 </div>
               )}
+            </div>
+          </section>
+        )}
+
+        {redactionCompareOpen && source && redactedResult && (
+          <section className="pdfv-redaction-compare" role="dialog" aria-modal="true" aria-label={labels.redactionCompareTitle}>
+            <header>
+              <strong>{labels.redactionCompareTitle}</strong>
+              <button className="pdfv-icon-button" type="button" onClick={() => setRedactionCompareOpen(false)} title={labels.close} aria-label={labels.close}>
+                <FiMinus />
+              </button>
+            </header>
+            <div className="pdfv-redaction-compare-grid">
+              <figure>
+                <figcaption>{labels.redactionOriginal}</figcaption>
+                <Document file={source.file} loading={labels.loadingPdf}>
+                  <Page pageNumber={currentPage} width={420} renderAnnotationLayer={false} renderTextLayer={false} />
+                </Document>
+              </figure>
+              <figure>
+                <figcaption>{labels.redactionResult}</figcaption>
+                <Document file={redactedResult} loading={labels.loadingPdf}>
+                  <Page pageNumber={currentPage} width={420} renderAnnotationLayer={false} renderTextLayer={false} />
+                </Document>
+              </figure>
             </div>
           </section>
         )}

@@ -9,6 +9,12 @@ namespace PXA.Importer.Trust;
 
 public sealed partial class PdfTrustInspector : IPdfTrustInspector
 {
+    private sealed record SignatureFieldBinding(
+        PdfObjectId? FieldId,
+        string? Name,
+        int? PageNumber,
+        IReadOnlyList<double>? Rectangle);
+
     public async Task<PdfTrustReport> InspectAsync(
         Stream pdfStream,
         PdfTrustInspectionOptions? options = null,
@@ -118,6 +124,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         var sourceText = Encoding.Latin1.GetString(source);
         var pdfA = InspectPdfAClaim(sourceText, graph, encryption.IsEncrypted, diagnostics);
         var pdfUa = InspectPdfUaClaim(sourceText, diagnostics);
+        var risk = InspectRisk(graph, diagnostics);
         var revisions = xref?.Revisions.Select(revision => new PdfRevisionInspection(
                 revision.SequenceNumber,
                 revision.Kind.ToString(),
@@ -168,7 +175,85 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             pdfUa,
             revisions,
             diagnostics,
-            embeddedValidationMaterial);
+            embeddedValidationMaterial,
+            risk);
+    }
+
+    private static PdfRiskInspection? InspectRisk(
+        PdfObjectGraph? graph,
+        ICollection<PdfTrustDiagnostic> diagnostics)
+    {
+        if (graph is null)
+        {
+            return null;
+        }
+
+        var visitedObjects = new HashSet<PdfObject>(ReferenceEqualityComparer.Instance);
+        var visitedReferences = new HashSet<PdfObjectId>();
+        var counters = new int[7];
+
+        void Visit(PdfObject? value, int depth)
+        {
+            if (value is null || depth > 64)
+            {
+                return;
+            }
+            if (value is PdfReference reference)
+            {
+                if (visitedReferences.Add(reference.Id) && graph.Objects.TryGetValue(reference.Id, out var indirect))
+                {
+                    Visit(indirect.Value, depth + 1);
+                }
+                return;
+            }
+            if (!visitedObjects.Add(value))
+            {
+                return;
+            }
+
+            if (value is PdfStreamObject stream)
+            {
+                Visit(stream.Dictionary, depth + 1);
+                return;
+            }
+            if (value is PdfArray array)
+            {
+                foreach (var item in array.Items) Visit(item, depth + 1);
+                return;
+            }
+            if (value is not PdfDictionary dictionary)
+            {
+                return;
+            }
+
+            var action = Resolve(graph, dictionary["S"]) as PdfName;
+            var subtype = Resolve(graph, dictionary["Subtype"]) as PdfName;
+            var type = Resolve(graph, dictionary["Type"]) as PdfName;
+            if (action?.Value == "JavaScript" || dictionary["JS"] is not null) counters[0]++;
+            if (action?.Value == "Launch") counters[1]++;
+            if (type?.Value == "Filespec" && dictionary["EF"] is not null) counters[2]++;
+            if (subtype?.Value == "FileAttachment") counters[3]++;
+            if (subtype?.Value is "RichMedia" or "3D" or "Movie" or "Sound") counters[4]++;
+            if (dictionary["XFA"] is not null) counters[5]++;
+            if (action?.Value == "URI") counters[6]++;
+
+            foreach (var child in dictionary.Values.Values) Visit(child, depth + 1);
+        }
+
+        Visit(graph.Trailer, 0);
+        foreach (var indirect in graph.Objects.Values) Visit(indirect.Value, 0);
+
+        var result = new PdfRiskInspection(
+            counters[0], counters[1], counters[2], counters[3], counters[4], counters[5], counters[6],
+            counters.Take(6).Any(static count => count > 0) ? PdfTrustStatus.Indeterminate : PdfTrustStatus.Valid);
+        if (result.HasRiskyContent)
+        {
+            diagnostics.Add(new PdfTrustDiagnostic(
+                "PXAPDFTRUST020",
+                PdfTrustDiagnosticSeverity.Warning,
+                "The document contains active or embedded content that requires policy review."));
+        }
+        return result;
     }
 
     private static PdfEmbeddedValidationMaterialInspection? InspectEmbeddedValidationMaterial(
@@ -354,7 +439,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
     private static PdfSignatureInspection ValidateSignatureBinding(
         PdfSignatureInspection inspection,
         PdfObjectId signatureId,
-        IReadOnlyDictionary<PdfObjectId, IReadOnlyList<PdfObjectId?>> bindings,
+        IReadOnlyDictionary<PdfObjectId, IReadOnlyList<SignatureFieldBinding>> bindings,
         PdfCrossReferenceTable? xref,
         out IReadOnlyList<PdfTrustDiagnostic> diagnostics)
     {
@@ -397,7 +482,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
             if (inspection.SignedRevisionEndOffset is { } signedRevisionEnd && fields is not null)
             {
-                foreach (var fieldId in fields.OfType<PdfObjectId>())
+                foreach (var fieldId in fields.Select(static field => field.FieldId).OfType<PdfObjectId>())
                 {
                     if (!xref.Entries.TryGetValue(fieldId, out var fieldEntry))
                     {
@@ -421,41 +506,51 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         diagnostics = findings;
+        var binding = fields?.FirstOrDefault();
+        var enriched = inspection with
+        {
+            FieldName = binding?.Name,
+            FieldPageNumber = binding?.PageNumber,
+            FieldRectangle = binding?.Rectangle
+        };
         return findings.Count == 0
-            ? inspection
-            : inspection with
+            ? enriched
+            : enriched with
             {
                 Status = PdfTrustStatus.Invalid,
                 CoverageStatus = PdfTrustStatus.Invalid
             };
     }
 
-    private static IReadOnlyDictionary<PdfObjectId, IReadOnlyList<PdfObjectId?>> FindSignatureFieldBindings(
+    private static IReadOnlyDictionary<PdfObjectId, IReadOnlyList<SignatureFieldBinding>> FindSignatureFieldBindings(
         PdfObjectGraph graph)
     {
-        var result = new Dictionary<PdfObjectId, List<PdfObjectId?>>();
+        var result = new Dictionary<PdfObjectId, List<SignatureFieldBinding>>();
         if (Resolve(graph, graph.Trailer?["Root"]) is not PdfDictionary catalog ||
             Resolve(graph, catalog["AcroForm"]) is not PdfDictionary acroForm ||
             Resolve(graph, acroForm["Fields"]) is not PdfArray fields)
         {
-            return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<PdfObjectId?>)pair.Value);
+            return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<SignatureFieldBinding>)pair.Value);
         }
 
+        var widgetPages = FindWidgetPages(graph, catalog);
         var visited = new HashSet<PdfObjectId>();
         foreach (var field in fields.Items)
         {
-            CollectSignatureFieldBindings(graph, field, null, visited, result);
+            CollectSignatureFieldBindings(graph, field, null, null, widgetPages, visited, result);
         }
 
-        return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<PdfObjectId?>)pair.Value);
+        return result.ToDictionary(static pair => pair.Key, static pair => (IReadOnlyList<SignatureFieldBinding>)pair.Value);
     }
 
     private static void CollectSignatureFieldBindings(
         PdfObjectGraph graph,
         PdfObject fieldObject,
         PdfObjectId? inheritedFieldId,
+        string? inheritedName,
+        IReadOnlyDictionary<PdfObjectId, int> widgetPages,
         ISet<PdfObjectId> visited,
-        IDictionary<PdfObjectId, List<PdfObjectId?>> result)
+        IDictionary<PdfObjectId, List<SignatureFieldBinding>> result)
     {
         var fieldId = fieldObject is PdfReference reference ? reference.Id : inheritedFieldId;
         if (fieldId is { } id && !visited.Add(id))
@@ -468,6 +563,10 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             return;
         }
 
+        var fieldName = Resolve(graph, field["T"]) is PdfString name
+            ? DecodeTextString(name)
+            : inheritedName;
+
         if (field["V"] is PdfReference signatureReference &&
             Resolve(graph, signatureReference) is PdfDictionary signature &&
             IsSignatureDictionary(graph, signature))
@@ -477,7 +576,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 boundFields = [];
                 result[signatureReference.Id] = boundFields;
             }
-            boundFields.Add(fieldId);
+            boundFields.Add(CreateSignatureFieldBinding(graph, field, fieldId, fieldName, widgetPages));
         }
 
         if (Resolve(graph, field["Kids"]) is not PdfArray kids)
@@ -487,8 +586,93 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
         foreach (var kid in kids.Items)
         {
-            CollectSignatureFieldBindings(graph, kid, fieldId, visited, result);
+            CollectSignatureFieldBindings(graph, kid, fieldId, fieldName, widgetPages, visited, result);
         }
+    }
+
+    private static SignatureFieldBinding CreateSignatureFieldBinding(
+        PdfObjectGraph graph,
+        PdfDictionary field,
+        PdfObjectId? fieldId,
+        string? fieldName,
+        IReadOnlyDictionary<PdfObjectId, int> widgetPages)
+    {
+        PdfObjectId? widgetId = fieldId;
+        PdfDictionary widget = field;
+        if ((fieldId is null || !widgetPages.ContainsKey(fieldId.Value)) &&
+            Resolve(graph, field["Kids"]) is PdfArray kids)
+        {
+            var candidate = kids.Items.OfType<PdfReference>()
+                .FirstOrDefault(kid => widgetPages.ContainsKey(kid.Id));
+            if (candidate is not null && Resolve(graph, candidate) is PdfDictionary candidateWidget)
+            {
+                widgetId = candidate.Id;
+                widget = candidateWidget;
+            }
+        }
+
+        var rectangle = Resolve(graph, widget["Rect"]) is PdfArray rect && rect.Items.Count == 4
+            ? rect.Items.Select(item => Resolve(graph, item)).Select(ReadNumber).ToArray()
+            : null;
+        return new SignatureFieldBinding(
+            fieldId,
+            fieldName,
+            widgetId is { } id && widgetPages.TryGetValue(id, out var pageNumber) ? pageNumber : null,
+            rectangle);
+    }
+
+    private static IReadOnlyDictionary<PdfObjectId, int> FindWidgetPages(
+        PdfObjectGraph graph,
+        PdfDictionary catalog)
+    {
+        var result = new Dictionary<PdfObjectId, int>();
+        var visited = new HashSet<PdfObjectId>();
+        var pageNumber = 0;
+
+        void Visit(PdfObject? node)
+        {
+            var nodeId = node is PdfReference reference ? reference.Id : (PdfObjectId?)null;
+            if (nodeId is { } id && !visited.Add(id)) return;
+            if (Resolve(graph, node) is not PdfDictionary dictionary) return;
+            if (Resolve(graph, dictionary["Type"]) is PdfName { Value: "Page" })
+            {
+                pageNumber++;
+                if (Resolve(graph, dictionary["Annots"]) is PdfArray annotations)
+                {
+                    foreach (var annotation in annotations.Items.OfType<PdfReference>())
+                    {
+                        result[annotation.Id] = pageNumber;
+                        if (Resolve(graph, annotation) is PdfDictionary widget && widget["Parent"] is PdfReference parent)
+                        {
+                            result[parent.Id] = pageNumber;
+                        }
+                    }
+                }
+                return;
+            }
+            if (Resolve(graph, dictionary["Kids"]) is PdfArray kids)
+            {
+                foreach (var kid in kids.Items) Visit(kid);
+            }
+        }
+
+        Visit(catalog["Pages"]);
+        return result;
+    }
+
+    private static double ReadNumber(PdfObject? value) => value switch
+    {
+        PdfNumber number => number.Value,
+        PdfInteger integer => integer.Value,
+        _ => 0
+    };
+
+    private static string DecodeTextString(PdfString value)
+    {
+        var bytes = value.GetDecodedBytes().Span;
+        return bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF
+            ? Encoding.BigEndianUnicode.GetString(bytes[2..])
+            : Encoding.Latin1.GetString(bytes);
     }
 
     private static IReadOnlyList<PdfSignatureInspection> PromoteBaselineLta(

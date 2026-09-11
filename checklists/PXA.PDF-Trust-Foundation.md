@@ -687,36 +687,49 @@ Reference material:
 
 ## Viewer Experience
 
-- [ ] Add a `Trust` panel showing encryption, signatures, revisions, timestamps,
+- [x] Add a `Trust` panel showing encryption, signatures, revisions, timestamps,
   PDF/A, PDF/UA, tagging, risky content, and trust-report diagnostics.
   - [x] Baseline panel shows structure, revisions, encryption, signature candidates,
     PDF/A/PDF/UA metadata claims, hashes, and diagnostics.
   - [x] Signature cards show cryptographic integrity, revision coverage, certificate
     trust, signer, digest, PAdES profile, timestamp status, timestamp time, and TSA
-    identity plus separate signer/TSA revocation states; risky content and
-    attachments remain open.
+    identity plus separate signer/TSA revocation states.
   - [x] Show validated signer and TSA revocation evidence kind, status, source, and
     expiry without exposing raw CRL bytes.
   - [x] Show bounded DSS/VRI certificate, CRL, OCSP, and VRI counts plus matched
     per-signature VRI inventory and the resulting historical B-LT validation state.
-- [ ] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
+  - [x] Inventory JavaScript and launch actions, embedded files, file-attachment
+    annotations, rich media, XFA forms, and external links without claiming that
+    every detected item is malicious.
+- [x] Display `valid`, `invalid`, `indeterminate`, `unsupported`, and `notApplicable`
   states with distinct accessible icons, text, and explanations.
-- [ ] Show signature field location, signer/certificate details, signed revision,
+- [x] Show signature field location, signer/certificate details, signed revision,
   timestamp, chain status, revocation status, and modifications after signing.
-- [ ] Add signature creation only through privileged backend operations; private
+  - [x] Show signer, certificate thumbprint, signing time, signed revision and byte
+    offset, timestamp and revocation evidence, certification status, locked fields,
+    and whether later revisions exist.
+  - [x] Resolve and show the bound signature field name, page, and rectangle.
+- [x] Add signature creation only through privileged backend operations; private
   keys must never enter browser storage.
-- [ ] Add redaction mark, preflight, apply, verification, compare-original, and
+- [x] Add redaction mark, preflight, apply, verification, compare-original, and
   download-result steps.
   - [x] Add the mark, preflight, apply, verification, and download-result steps.
-  - [ ] Add a compare-original view.
-- [ ] Require explicit confirmation that applying redaction creates a new document
+  - [x] Add a compare-original view.
+- [x] Require explicit confirmation that applying redaction creates a new document
   and may invalidate signatures.
 - [ ] Add compliance and accessibility issue navigation from a report item to the
   affected page, object, or Designer element.
-- [ ] Warn before an edit that invalidates an existing signature or compliance state.
+  - [x] Navigate page-scoped redaction findings directly to the affected Viewer page.
+  - [ ] Add page, object, and Designer-element targets to compliance and accessibility
+    report contracts and navigate to them.
+- [x] Warn before an edit that invalidates an existing signature or compliance state.
 - [ ] Localize all trust states, warnings, diagnostics, actions, and accessibility
   labels in the six Designer languages.
-- [ ] Add protected loading, offline, timeout, cancelled, unsupported, and policy-
+  - [x] Localize all static Viewer trust states, actions, signing fields, mutation
+    warnings, risk inventory, and accessibility labels in all six languages.
+  - [ ] Return localization keys and parameters for backend-generated diagnostics
+    instead of displaying English diagnostic messages in every locale.
+- [x] Add protected loading, offline, timeout, cancelled, unsupported, and policy-
   denied states instead of generic download failures.
 
 ## Designer and Generator Integration

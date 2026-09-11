@@ -4,7 +4,9 @@
 import {
   convertPdfA2b,
   inspectPdfTrust,
+  PdfTrustOperationError,
   preflightPdfA2b,
+  signPdf,
   type PdfTrustReport,
 } from '@/features/pdf-viewer/pdfTrustApi';
 
@@ -56,8 +58,40 @@ describe('PDF Trust API', () => {
       json: async () => ({ detail: 'PDF inspection is not permitted.' }),
     } as Response);
 
-    await expect(inspectPdfTrust(new File(['%PDF-1.7'], 'trust.pdf')))
-      .rejects.toThrow('PDF inspection is not permitted.');
+    const operation = inspectPdfTrust(new File(['%PDF-1.7'], 'trust.pdf'));
+    await expect(operation).rejects.toThrow('PDF inspection is not permitted.');
+    await expect(operation).rejects.toMatchObject({
+      kind: 'policyDenied',
+      status: 403,
+    } satisfies Partial<PdfTrustOperationError>);
+  });
+
+  test('distinguishes a user cancellation from a generic request failure', async () => {
+    fetchMock.mockImplementation((_url, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(new DOMException('Cancelled', 'AbortError')));
+    }));
+    const controller = new AbortController();
+    const operation = inspectPdfTrust(new File(['%PDF-1.7'], 'trust.pdf'), controller.signal);
+
+    controller.abort();
+
+    await expect(operation).rejects.toMatchObject({ kind: 'cancelled' });
+  });
+
+  test('does not start an inspection when the caller already cancelled it', async () => {
+    fetchMock.mockImplementation((_url, init: RequestInit) => {
+      if (init.signal?.aborted) {
+        return Promise.reject(new DOMException('Cancelled', 'AbortError'));
+      }
+      return Promise.reject(new Error('Expected an aborted signal.'));
+    });
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(inspectPdfTrust(
+      new File(['%PDF-1.7'], 'trust.pdf'),
+      controller.signal,
+    )).rejects.toMatchObject({ kind: 'cancelled' });
   });
 
   test('returns the machine-readable PDF/A preflight report', async () => {
@@ -110,5 +144,30 @@ describe('PDF Trust API', () => {
 
     await expect(convertPdfA2b(new File(['%PDF-1.7'], 'source.pdf'), false))
       .rejects.toThrow('An embedded font is missing.');
+  });
+
+  test('sends signing material only to the privileged signing endpoint', async () => {
+    const signed = new Blob(['%PDF-1.7 signed'], { type: 'application/pdf' });
+    fetchMock.mockResolvedValue({ ok: true, status: 200, blob: async () => signed } as Response);
+    const pdf = new File(['%PDF-1.7'], 'source.pdf', { type: 'application/pdf' });
+    const certificate = new File(['pkcs12'], 'signer.p12', { type: 'application/x-pkcs12' });
+
+    await expect(signPdf({
+      pdf,
+      certificate,
+      certificatePassword: 'secret',
+      profile: 'BaselineT',
+      fieldName: 'Approval',
+      visible: true,
+      pageNumber: 2,
+    })).resolves.toBe(signed);
+
+    const [url, init] = fetchMock.mock.calls[0];
+    const form = init.body as FormData;
+    expect(url).toBe('/api/pxa/v1/pdf/signatures/sign');
+    expect(form.get('pdf')).toBe(pdf);
+    expect(form.get('certificate')).toBe(certificate);
+    expect(form.get('profile')).toBe('BaselineT');
+    expect(form.get('pageNumber')).toBe('2');
   });
 });

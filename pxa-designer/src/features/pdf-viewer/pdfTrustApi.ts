@@ -1,5 +1,24 @@
 export type PdfTrustStatus = 0 | 1 | 2 | 3 | 4;
 
+export type PdfTrustFailureKind =
+  | 'offline'
+  | 'timeout'
+  | 'cancelled'
+  | 'policyDenied'
+  | 'unsupported'
+  | 'failed';
+
+export class PdfTrustOperationError extends Error {
+  constructor(
+    public readonly kind: PdfTrustFailureKind,
+    message: string,
+    public readonly status?: number,
+  ) {
+    super(message);
+    this.name = 'PdfTrustOperationError';
+  }
+}
+
 export interface PdfRevocationEvidenceInspection {
   kind: 0 | 1;
   status: PdfTrustStatus;
@@ -70,6 +89,19 @@ export interface PdfTrustReport {
     archiveTimestampStatus: PdfTrustStatus;
     archiveTimestampTime?: string | null;
     archiveTimestampAuthoritySubject?: string | null;
+    isCertification?: boolean;
+    certificationStatus?: PdfTrustStatus;
+    certification?: {
+      level: number;
+      status: PdfTrustStatus;
+      fieldLockStatus: PdfTrustStatus;
+      disallowedChangeCount: number;
+      disallowedChanges: string[];
+      lockedFields: string[];
+    } | null;
+    fieldName?: string | null;
+    fieldPageNumber?: number | null;
+    fieldRectangle?: number[] | null;
   }>;
   pdfA: {
     standard: string;
@@ -103,6 +135,17 @@ export interface PdfTrustReport {
     totalBytes: number;
     status: PdfTrustStatus;
   } | null;
+  risk?: {
+    javaScriptActionCount: number;
+    launchActionCount: number;
+    embeddedFileCount: number;
+    fileAttachmentCount: number;
+    richMediaCount: number;
+    xfaFormCount: number;
+    externalLinkCount: number;
+    status: PdfTrustStatus;
+    hasRiskyContent: boolean;
+  } | null;
   diagnostics: PdfTrustDiagnostic[];
 }
 
@@ -126,23 +169,114 @@ export interface PdfA2bConversionPreflightReport {
   }>;
 }
 
-export async function inspectPdfTrust(file: File): Promise<PdfTrustReport> {
+async function readProblem(response: Response, fallback: string): Promise<never> {
+  const problem = await response.json().catch(() => ({}));
+  const message = problem.detail || problem.title || `${fallback} (${response.status}).`;
+  const kind: PdfTrustFailureKind = response.status === 401 || response.status === 403
+    ? 'policyDenied'
+    : response.status === 408 || response.status === 504
+      ? 'timeout'
+      : response.status === 415 || response.status === 422 || response.status === 501
+        ? 'unsupported'
+        : response.status === 499
+          ? 'cancelled'
+          : 'failed';
+  throw new PdfTrustOperationError(kind, message, response.status);
+}
+
+function normalizeFetchError(error: unknown, timedOut: boolean): never {
+  if (error instanceof PdfTrustOperationError) {
+    throw error;
+  }
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    throw new PdfTrustOperationError(timedOut ? 'timeout' : 'cancelled', error.message);
+  }
+  const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  throw new PdfTrustOperationError(
+    offline ? 'offline' : 'failed',
+    error instanceof Error ? error.message : 'The PDF Trust request failed.',
+  );
+}
+
+async function trustFetch(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  fallback: string,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeout = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, 30_000);
+  const abort = () => controller.abort();
+  if (signal?.aborted) {
+    controller.abort();
+  } else {
+    signal?.addEventListener('abort', abort, { once: true });
+  }
+  try {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    if (!response.ok) {
+      return await readProblem(response, fallback);
+    }
+    return response;
+  } catch (error) {
+    return normalizeFetchError(error, timedOut);
+  } finally {
+    window.clearTimeout(timeout);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+export async function inspectPdfTrust(file: File, signal?: AbortSignal): Promise<PdfTrustReport> {
   const form = new FormData();
   form.append('file', file);
-  const response = await fetch('/api/pxa/v1/pdf/trust/inspect', {
+  const response = await trustFetch('/api/pxa/v1/pdf/trust/inspect', {
     method: 'POST',
     body: form,
-  });
-
-  if (!response.ok) {
-    const problem = await response.json().catch(() => ({}));
-    throw new Error(problem.detail || problem.title || `PDF Trust inspection failed (${response.status}).`);
-  }
+  }, 'PDF Trust inspection failed', signal);
 
   return response.json() as Promise<PdfTrustReport>;
 }
 
 export type PdfArchiveProfile = 'PDF/A-2b' | 'PDF/A-3b';
+export type PdfPadesProfile = 'BaselineB' | 'BaselineT' | 'BaselineLT' | 'BaselineLTA';
+
+export interface PdfSignRequest {
+  pdf: File;
+  certificate: File;
+  certificatePassword: string;
+  profile: PdfPadesProfile;
+  fieldName?: string;
+  reason?: string;
+  visible?: boolean;
+  pageNumber?: number;
+}
+
+export async function signPdf(request: PdfSignRequest): Promise<Blob> {
+  const form = new FormData();
+  form.append('pdf', request.pdf);
+  form.append('certificate', request.certificate);
+  form.append('certificatePassword', request.certificatePassword);
+  form.append('profile', request.profile);
+  form.append('fieldName', request.fieldName || 'Signature1');
+  if (request.reason) form.append('reason', request.reason);
+  form.append('visible', String(Boolean(request.visible)));
+  if (request.visible) form.append('pageNumber', String(request.pageNumber || 1));
+
+  const response = await trustFetch(
+    '/api/pxa/v1/pdf/signatures/sign',
+    { method: 'POST', body: form },
+    'PDF signing failed',
+  );
+  const blob = await response.blob();
+  if (blob.type && !blob.type.includes('pdf')) {
+    throw new PdfTrustOperationError('failed', 'PDF signing returned an unexpected file type.');
+  }
+  return blob;
+}
 
 export async function preflightPdfA2b(
   file: File,
@@ -151,11 +285,11 @@ export async function preflightPdfA2b(
   const form = new FormData();
   form.append('file', file);
   form.append('profile', profile);
-  const response = await fetch('/api/pxa/v1/pdf/compliance/preflight', { method: 'POST', body: form });
-  if (!response.ok) {
-    const problem = await response.json().catch(() => ({}));
-    throw new Error(problem.detail || problem.title || `PDF/A preflight failed (${response.status}).`);
-  }
+  const response = await trustFetch(
+    '/api/pxa/v1/pdf/compliance/preflight',
+    { method: 'POST', body: form },
+    'PDF/A preflight failed',
+  );
   return response.json() as Promise<PdfA2bConversionPreflightReport>;
 }
 
@@ -168,11 +302,11 @@ export async function convertPdfA2b(
   form.append('file', file);
   form.append('allowSignatureInvalidation', String(allowSignatureInvalidation));
   form.append('profile', profile);
-  const response = await fetch('/api/pxa/v1/pdf/compliance/convert', { method: 'POST', body: form });
-  if (!response.ok) {
-    const problem = await response.json().catch(() => ({}));
-    throw new Error(problem.detail || problem.title || `PDF/A conversion failed (${response.status}).`);
-  }
+  const response = await trustFetch(
+    '/api/pxa/v1/pdf/compliance/convert',
+    { method: 'POST', body: form },
+    'PDF/A conversion failed',
+  );
   const blob = await response.blob();
   if (blob.type && !blob.type.includes('pdf')) {
     throw new Error('PDF/A conversion returned an unexpected file type.');

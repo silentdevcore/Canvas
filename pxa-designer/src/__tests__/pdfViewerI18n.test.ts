@@ -17,4 +17,33 @@ describe('pdf viewer i18n', () => {
     await i18n.changeLanguage('de');
     expect(i18n.t('pdfViewer:openPdf')).toBe('PDF öffnen');
   });
+
+  test.each(['en', 'de', 'fr', 'es', 'it', 'ar'])('provides localized trust UX in %s', language => {
+    const translate = i18n.getFixedT(language, 'pdfViewer');
+    const keys = [
+      'trustCancel',
+      'trustRetry',
+      'trustFailure.offline',
+      'trustFailure.timeout',
+      'trustFailure.cancelled',
+      'trustFailure.policyDenied',
+      'trustFailure.unsupported',
+      'trustStatusExplanation.valid',
+      'trustStatusExplanation.invalid',
+      'trustStatusExplanation.indeterminate',
+      'trustStatusExplanation.unsupported',
+      'trustStatusExplanation.notApplicable',
+      'redactionCompare',
+      'mutationConfirmation',
+      'trustInspectionRequired',
+      'signPdf',
+      'signingPrivacy',
+      'riskyContent',
+      'embeddedFiles',
+    ];
+
+    for (const key of keys) {
+      expect(translate(key)).not.toBe(key);
+    }
+  });
 });
