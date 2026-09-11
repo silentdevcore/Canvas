@@ -48,6 +48,22 @@ public sealed class PdfAccessibilityProperties
 {
     public required PdfStructureRole Role { get; init; }
 
+    /// <summary>
+    /// Optional provider-specific PDF structure type. PDF/UA-1 serializes this name through
+    /// the structure-tree role map to <see cref="Role"/>.
+    /// </summary>
+    public string? CustomRole { get; init; }
+
+    /// <summary>
+    /// Optional source namespace retained by PXA for imported semantics. PDF/UA-1 uses the
+    /// role-map fallback; native namespace dictionaries require PDF 2.0/PDF/UA-2.
+    /// </summary>
+    public string? NamespaceUri { get; init; }
+
+    internal string StructureTypeName => string.IsNullOrWhiteSpace(CustomRole)
+        ? Role.ToString()
+        : CustomRole;
+
     /// <summary>Stable logical identifier used by diagnostics and table associations.</summary>
     public string? ElementId { get; init; }
 

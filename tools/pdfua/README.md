@@ -33,5 +33,11 @@ Its successful result is necessary release evidence, but it is not a complete
 accessibility claim. Human checks from the Matterhorn Protocol and manual tests
 with assistive technology remain a separate release gate.
 
+The maintained fixture set includes provider-specific structure tags mapped to
+standard PDF 1.7 roles through `/RoleMap`. PXA retains the source namespace URI
+in its design contract, but does not emit PDF 2.0 `/Namespaces` or `/NS` entries
+in PDF/UA-1 files. Native structure namespaces are reserved for the evaluated
+PDF/UA-2 milestone.
+
 `test-validate-pdfua.sh` verifies the wrapper's pass, conformance-failure, and
 missing-input behavior without starting Docker.

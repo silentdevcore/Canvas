@@ -139,6 +139,29 @@ describe('Designer accessibility', () => {
     expect(validateDesignerAccessibility(template, pages, [], settings)).toEqual([]);
   });
 
+  test('validates provider-specific roles and namespace collisions', () => {
+    const valid: Page[] = [{
+      id: 'page-1',
+      elements: [element({ accessibility: {
+        role: 'P', customRole: 'NutrientCallout', namespaceUri: 'urn:powerdox:migration:nutrient',
+      } })],
+    }];
+    expect(validateDesignerAccessibility(template, valid, [], settings)).toEqual([]);
+
+    const invalid: Page[] = [{
+      id: 'page-1',
+      elements: [
+        element({ id: 'first', accessibility: { role: 'P', customRole: 'Provider Block', namespaceUri: 'relative' } }),
+        element({ id: 'second', accessibility: { role: 'P', customRole: 'ProviderBlock', namespaceUri: 'urn:provider:one' } }),
+        element({ id: 'third', accessibility: { role: 'Div', customRole: 'ProviderBlock', namespaceUri: 'urn:provider:two' } }),
+      ],
+    }];
+    const codes = validateDesignerAccessibility(template, invalid, [], settings).map(issue => issue.code);
+    expect(codes).toEqual(expect.arrayContaining([
+      'PXAPDFUA025', 'PXAPDFUA026', 'PXAPDFUA027', 'PXAPDFUA028',
+    ]));
+  });
+
   test('accepts native advanced widgets and reports focus-order problems', () => {
     const pages: Page[] = [{
       id: 'page-1',

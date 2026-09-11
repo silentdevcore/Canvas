@@ -602,6 +602,10 @@
     "noParent": "Document root",
     "alternateText": "Alternative text",
     "actualText": "Replacement text",
+    "customRole": "Custom structure role",
+    "customRolePlaceholder": "e.g. NutrientCallout",
+    "namespaceUri": "Source namespace URI",
+    "namespaceUriPlaceholder": "e.g. urn:provider:document",
     "headerScope": "Table header scope",
     "headerIds": "Associated header IDs",
     "headerIdsPlaceholder": "header-1, header-2",
@@ -633,7 +637,11 @@
       "PXAPDFUA021": "Select a structure role.",
       "PXAPDFUA022": "A radio group needs at least two unique options and no more than one selected value.",
       "PXAPDFUA023": "Set an explicit reading order for predictable keyboard focus.",
-      "PXAPDFUA024": "This focus position is also assigned to another interactive control."
+      "PXAPDFUA024": "This focus position is also assigned to another interactive control.",
+      "PXAPDFUA025": "Use a distinct custom role containing only letters, digits, dot, hyphen or underscore.",
+      "PXAPDFUA026": "This custom role maps to conflicting standard roles.",
+      "PXAPDFUA027": "Use an absolute namespace URI and only together with a custom role.",
+      "PXAPDFUA028": "This custom role is assigned to conflicting source namespaces."
     }
   },
   "layers": {

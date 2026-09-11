@@ -620,8 +620,12 @@ Reference material:
   explicit artifacts, document/element language, alternate text, actual text, and
   table header scope/associations from the PXA generator, including validated
   parent-child hierarchies for grouped, list, and table semantics.
-- [ ] Add custom role maps and namespace support for imported or provider-specific
-  semantics; PDF/UA-1 output currently accepts only the typed standard role catalog.
+- [x] Add validated PDF 1.7 role maps and namespace-aware source metadata for imported
+  or provider-specific semantics, including Designer inspection, collision diagnostics,
+  deterministic output, and independent veraPDF PDF/UA-1 validation.
+- [ ] Emit native structure namespace dictionaries only with the future PDF 2.0 object
+  model and evaluated PDF/UA-2 profile; PDF/UA-1 continues to use the standard RoleMap
+  fallback required by its PDF 1.7 foundation.
 - [x] Add a semantic document layer so accessibility is not inferred only from final
   drawing coordinates.
 - [x] Preserve reading order independently from visual z-order in the generator and

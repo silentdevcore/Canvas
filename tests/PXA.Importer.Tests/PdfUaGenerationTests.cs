@@ -94,6 +94,75 @@ public sealed class PdfUaGenerationTests
     }
 
     [Fact]
+    public void PdfUa1_WritesProviderSpecificRoleThroughRoleMap()
+    {
+        var document = CreateDocument();
+        var page = document.AddPage();
+        page.DrawRectangle(10, 10, 20, 20);
+        page.TagLastElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.P,
+            CustomRole = "NutrientCallout",
+            NamespaceUri = "urn:powerdox:migration:nutrient",
+            ElementId = "provider-callout"
+        });
+
+        var bytes = document.ToBytes(new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        WriteValidationArtifact("pxa-pdfua1-custom-role.pdf", bytes);
+        var pdf = Encoding.Latin1.GetString(bytes);
+
+        Assert.Contains("/NutrientCallout <</MCID 0>> BDC", pdf);
+        Assert.Contains("/Type /StructElem /S /NutrientCallout", pdf);
+        Assert.Contains("/RoleMap << /NutrientCallout /P >>", pdf);
+        Assert.DoesNotContain("/Namespaces", pdf);
+        Assert.DoesNotContain("/NS ", pdf);
+    }
+
+    [Fact]
+    public void PdfUa1_PreflightRejectsInvalidAndConflictingCustomRoles()
+    {
+        var invalidDocument = CreateDocument();
+        var invalidPage = invalidDocument.AddPage();
+        invalidPage.DrawRectangle(10, 10, 20, 20);
+        invalidPage.TagLastElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.P,
+            CustomRole = "Invalid role",
+            NamespaceUri = "relative/provider",
+            ElementId = "invalid"
+        });
+
+        var invalidReport = PdfAccessibilityPreflight.Validate(invalidDocument,
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA025");
+        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA027");
+
+        var conflictingDocument = CreateDocument();
+        var conflictingPage = conflictingDocument.AddPage();
+        conflictingPage.DrawRectangle(10, 10, 20, 20);
+        conflictingPage.TagLastElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.P,
+            CustomRole = "ProviderBlock",
+            NamespaceUri = "urn:provider:one",
+            ElementId = "first"
+        });
+        conflictingPage.DrawRectangle(40, 10, 20, 20);
+        conflictingPage.TagLastElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Div,
+            CustomRole = "ProviderBlock",
+            NamespaceUri = "urn:provider:two",
+            ElementId = "second"
+        });
+
+        var conflictingReport = PdfAccessibilityPreflight.Validate(conflictingDocument,
+            new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA026");
+        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA028");
+    }
+
+    [Fact]
     public void PdfUa1_PreflightRequiresFigureAlternativesAndTableHeaderScope()
     {
         var document = CreateDocument();

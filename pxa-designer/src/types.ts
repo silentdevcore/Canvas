@@ -11,6 +11,8 @@ export type ElementType = RegisteredElementType;
 
 export interface AccessibilityProperties {
   role: 'Document' | 'Part' | 'Sect' | 'Div' | 'P' | 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6' | 'L' | 'LI' | 'Lbl' | 'LBody' | 'Table' | 'TR' | 'TH' | 'TD' | 'Span' | 'Link' | 'Figure' | 'Form';
+  customRole?: string;
+  namespaceUri?: string;
   isArtifact?: boolean;
   parentElementId?: string;
   readingOrder?: number;

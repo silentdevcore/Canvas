@@ -55,6 +55,17 @@ const AccessibilityInspector: React.FC<Props> = ({ element, allElements, issues,
               </select>
             </label>
             <label>
+              <span>{t('accessibility.customRole')}</span>
+              <input type="text" value={value?.customRole ?? ''} placeholder={t('accessibility.customRolePlaceholder')}
+                onChange={event => update({ customRole: event.target.value || undefined })} />
+            </label>
+            <label>
+              <span>{t('accessibility.namespaceUri')}</span>
+              <input type="url" value={value?.namespaceUri ?? ''} placeholder={t('accessibility.namespaceUriPlaceholder')}
+                disabled={!value?.customRole}
+                onChange={event => update({ namespaceUri: event.target.value || undefined })} />
+            </label>
+            <label>
               <span>{t('accessibility.readingOrder')}</span>
               <input type="number" min={0} step={1} value={value?.readingOrder ?? ''}
                 onChange={event => update({ readingOrder: event.target.value === '' ? undefined : Number(event.target.value) })} />

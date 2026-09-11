@@ -593,6 +593,7 @@
     "role": "Rol de estructura", "selectRole": "Seleccionar un rol", "decorative": "Artefacto decorativo (ignorado por tecnologías de asistencia)",
     "readingOrder": "Orden de lectura", "language": "Idioma del elemento", "languagePlaceholder": "p. ej. es-ES",
     "parent": "Elemento superior lógico", "noParent": "Raíz del documento", "alternateText": "Texto alternativo", "actualText": "Texto de sustitución",
+    "customRole": "Rol de estructura personalizado", "customRolePlaceholder": "p. ej. NutrientCallout", "namespaceUri": "URI del espacio de nombres de origen", "namespaceUriPlaceholder": "p. ej. urn:proveedor:documento",
     "headerScope": "Ámbito del encabezado de tabla", "headerIds": "ID de encabezados asociados", "headerIdsPlaceholder": "header-1, header-2",
     "useSuggested": "Usar semántica sugerida", "applySuggestions": "Aplicar semántica sugerida al documento",
     "suggestionsApplied": "Se aplicó la semántica de accesibilidad sugerida.", "elementReady": "No se detectaron errores de accesibilidad en este elemento.",
@@ -607,7 +608,8 @@
       "PXAPDFUA013": "El elemento superior lógico ya no existe.", "PXAPDFUA014": "La jerarquía lógica contiene un ciclo.", "PXAPDFUA015": "Use una etiqueta de idioma BCP 47 válida.",
       "PXAPDFUA016": "El orden de lectura no puede ser negativo.", "PXAPDFUA017": "Añada un texto de enlace significativo.",
       "PXAPDFUA018": "Añada una etiqueta de formulario accesible.", "PXAPDFUA019": "Marque la primera fila como encabezado.",
-      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura.", "PXAPDFUA022": "Un grupo de opciones necesita al menos dos opciones únicas y como máximo un valor seleccionado.", "PXAPDFUA023": "Defina un orden de lectura explícito para un foco de teclado predecible.", "PXAPDFUA024": "Esta posición de foco también está asignada a otro control interactivo."
+      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura.", "PXAPDFUA022": "Un grupo de opciones necesita al menos dos opciones únicas y como máximo un valor seleccionado.", "PXAPDFUA023": "Defina un orden de lectura explícito para un foco de teclado predecible.", "PXAPDFUA024": "Esta posición de foco también está asignada a otro control interactivo.",
+      "PXAPDFUA025": "Use un rol personalizado distinto con letras, números, puntos, guiones o guiones bajos.", "PXAPDFUA026": "Este rol personalizado se asigna a roles estándar contradictorios.", "PXAPDFUA027": "Use una URI de espacio de nombres absoluta solo junto con un rol personalizado.", "PXAPDFUA028": "Este rol personalizado utiliza espacios de nombres de origen contradictorios."
     }
   },
   "layers": {

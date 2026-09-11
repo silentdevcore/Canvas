@@ -115,7 +115,13 @@ public sealed class PdfComplianceExportTests
                             X = 20, Y = 20, Width = 300, Height = 80,
                             CellData = [["Item", "Total"], ["Service", "25.00"]],
                             HeaderRow = true,
-                            Accessibility = new AccessibilityPropertiesDto { Role = "Table", ReadingOrder = 1 }
+                            Accessibility = new AccessibilityPropertiesDto
+                            {
+                                Role = "Table",
+                                CustomRole = "ProviderOrdersTable",
+                                NamespaceUri = "urn:powerdox:migration:provider",
+                                ReadingOrder = 1
+                            }
                         },
                         new ElementDto
                         {
@@ -187,6 +193,8 @@ public sealed class PdfComplianceExportTests
         Assert.Contains("/Type /StructElem /S /TR", pdf);
         Assert.Contains("/Type /StructElem /S /TH", pdf);
         Assert.Contains("/Type /StructElem /S /TD", pdf);
+        Assert.Contains("/Type /StructElem /S /ProviderOrdersTable", pdf);
+        Assert.Contains("/RoleMap << /ProviderOrdersTable /Table >>", pdf);
         Assert.Contains("/Type /StructElem /S /Link", pdf);
         Assert.Contains("/Type /StructElem /S /Form", pdf);
         Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(pdf, "/Type /OBJR").Count);

@@ -10,6 +10,12 @@ public static class PdfAccessibilityPreflight
     private static readonly Regex LanguageTagPattern = new(
         "^(?:[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*|[ix](?:-[A-Za-z0-9]{1,8})+)$",
         RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static readonly Regex CustomRolePattern = new(
+        "^[A-Za-z][A-Za-z0-9_.-]{0,126}$",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static readonly HashSet<string> StandardRoleNames = Enum
+        .GetNames<PdfStructureRole>()
+        .ToHashSet(StringComparer.Ordinal);
 
     public static PdfAccessibilityValidationReport Validate(PdfDocument document, PdfSaveOptions options)
     {
@@ -67,6 +73,21 @@ public static class PdfAccessibilityPreflight
                 }
                 if (semantic.Role == PdfStructureRole.TH && semantic.TableHeaderScope == PdfTableHeaderScope.None)
                     Add("PXAPDFUA009", "A table header must define row or column scope.", pageIndex + 1, semantic.ElementId);
+                if (semantic.CustomRole is { Length: > 0 } customRole)
+                {
+                    if (!CustomRolePattern.IsMatch(customRole) || StandardRoleNames.Contains(customRole))
+                        Add("PXAPDFUA025", "A custom structure role must be a distinct, portable PDF name.",
+                            pageIndex + 1, semantic.ElementId);
+                    if (semantic.NamespaceUri is { Length: > 0 } namespaceUri
+                        && (!Uri.TryCreate(namespaceUri, UriKind.Absolute, out _) || namespaceUri.Length > 2048))
+                        Add("PXAPDFUA027", "A structure namespace must be an absolute URI no longer than 2048 characters.",
+                            pageIndex + 1, semantic.ElementId);
+                }
+                else if (!string.IsNullOrWhiteSpace(semantic.NamespaceUri))
+                {
+                    Add("PXAPDFUA027", "A structure namespace requires a custom structure role.",
+                        pageIndex + 1, semantic.ElementId);
+                }
             }
 
             foreach (var link in page.LinkAnnotations)
@@ -108,6 +129,16 @@ public static class PdfAccessibilityPreflight
                 continue;
             foreach (var headerId in semantic.TableHeaderIds.Where(headerId => !ids.ContainsKey(headerId)))
                 Add("PXAPDFUA011", $"Table header reference '{headerId}' does not identify a semantic element.", page, semantic.ElementId);
+        }
+
+        foreach (var mapping in semanticPages.Keys
+                     .Where(semantic => !string.IsNullOrWhiteSpace(semantic.CustomRole))
+                     .GroupBy(semantic => semantic.CustomRole!, StringComparer.Ordinal))
+        {
+            if (mapping.Select(semantic => semantic.Role).Distinct().Count() > 1)
+                Add("PXAPDFUA026", $"Custom structure role '{mapping.Key}' maps to more than one standard role.");
+            if (mapping.Select(semantic => semantic.NamespaceUri ?? string.Empty).Distinct(StringComparer.Ordinal).Count() > 1)
+                Add("PXAPDFUA028", $"Custom structure role '{mapping.Key}' is used by more than one namespace in PDF/UA-1.");
         }
 
         var annotationSemantics = document.Pages

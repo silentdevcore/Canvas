@@ -331,6 +331,8 @@ public static class DesignJsonMapper
         using var semantic = page.BeginAccessibilityElement(new PdfAccessibilityProperties
         {
             Role = role,
+            CustomRole = source.CustomRole,
+            NamespaceUri = source.NamespaceUri,
             ElementId = element.Id,
             ParentElementId = source.ParentElementId,
             ReadingOrder = source.ReadingOrder,

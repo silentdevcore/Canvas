@@ -874,7 +874,7 @@ internal sealed class PdfWriter
                 var parentObjectId = semantic.ParentElementId is { Length: > 0 } parentId
                     ? structureObjectIds[logicalById[parentId].Semantic]
                     : documentStructureObjectId!.Value;
-                var structureObject = $"<< /Type /StructElem /S /{semantic.Role} /P {parentObjectId} 0 R " +
+                var structureObject = $"<< /Type /StructElem /S /{semantic.StructureTypeName} /P {parentObjectId} 0 R " +
                     $"/Pg {pageObjectIds[item.First.pageIndex]} 0 R /K {structureKids}" +
                     OptionalHexEntry("ID", semantic.ElementId) + OptionalHexEntry("Lang", semantic.Language) +
                     OptionalHexEntry("Alt", semantic.AlternateText) + OptionalHexEntry("ActualText", semantic.ActualText) +
@@ -899,8 +899,17 @@ internal sealed class PdfWriter
                 .Select(item => $"{structureObjectIds[item.Semantic]} 0 R"));
             objects.Add(new PdfIndirectObject(documentStructureObjectId!.Value,
                 $"<< /Type /StructElem /S /Document /P {structureTreeRootObjectId} 0 R /Lang {PdfHexString(document.Language!)} /K [{rootKids}] >>\n"));
+            var roleMappings = logicalElements
+                .Where(item => !string.IsNullOrWhiteSpace(item.Semantic.CustomRole))
+                .GroupBy(item => item.Semantic.CustomRole!, StringComparer.Ordinal)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => $"/{group.Key} /{group.First().Semantic.Role}")
+                .ToList();
+            var roleMapSegment = roleMappings.Count == 0
+                ? string.Empty
+                : $" /RoleMap << {string.Join(" ", roleMappings)} >>";
             objects.Add(new PdfIndirectObject(structureTreeRootObjectId!.Value,
-                $"<< /Type /StructTreeRoot /K [{documentStructureObjectId.Value} 0 R] /ParentTree {parentTreeObjectId.Value} 0 R /ParentTreeNextKey {nextStructureParentKey} >>\n"));
+                $"<< /Type /StructTreeRoot /K [{documentStructureObjectId.Value} 0 R] /ParentTree {parentTreeObjectId.Value} 0 R /ParentTreeNextKey {nextStructureParentKey}{roleMapSegment} >>\n"));
         }
 
         if (outlinesRootObjectId is { } outlinesId)

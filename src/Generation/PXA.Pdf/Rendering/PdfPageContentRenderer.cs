@@ -22,7 +22,7 @@ internal static class PdfPageContentRenderer
             if (markedContentIds is not null && markedContentIds.TryGetValue(element, out var markedContentId))
             {
                 sb.Append('/');
-                sb.Append(element.Accessibility!.Role);
+                sb.Append(element.Accessibility!.StructureTypeName);
                 sb.Append(" <</MCID ");
                 sb.Append(markedContentId.ToString(CultureInfo.InvariantCulture));
                 sb.Append(">> BDC\n");

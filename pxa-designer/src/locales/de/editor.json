@@ -602,6 +602,10 @@
     "noParent": "Dokumentwurzel",
     "alternateText": "Alternativtext",
     "actualText": "Ersatztext",
+    "customRole": "Benutzerdefinierte Strukturrolle",
+    "customRolePlaceholder": "z. B. NutrientCallout",
+    "namespaceUri": "Quell-Namespace-URI",
+    "namespaceUriPlaceholder": "z. B. urn:anbieter:dokument",
     "headerScope": "Gültigkeitsbereich der Tabellenüberschrift",
     "headerIds": "Zugeordnete Überschriften-IDs",
     "headerIdsPlaceholder": "header-1, header-2",
@@ -633,7 +637,11 @@
       "PXAPDFUA021": "Wählen Sie eine Strukturrolle aus.",
       "PXAPDFUA022": "Eine Optionsgruppe benötigt mindestens zwei eindeutige Optionen und höchstens einen ausgewählten Wert.",
       "PXAPDFUA023": "Legen Sie eine Lesereihenfolge für eine eindeutige Tastaturfokussierung fest.",
-      "PXAPDFUA024": "Diese Fokusposition ist auch einem anderen interaktiven Steuerelement zugewiesen."
+      "PXAPDFUA024": "Diese Fokusposition ist auch einem anderen interaktiven Steuerelement zugewiesen.",
+      "PXAPDFUA025": "Verwenden Sie eine eindeutige benutzerdefinierte Rolle nur mit Buchstaben, Ziffern, Punkt, Bindestrich oder Unterstrich.",
+      "PXAPDFUA026": "Diese benutzerdefinierte Rolle verweist auf widersprüchliche Standardrollen.",
+      "PXAPDFUA027": "Verwenden Sie eine absolute Namespace-URI nur zusammen mit einer benutzerdefinierten Rolle.",
+      "PXAPDFUA028": "Diese benutzerdefinierte Rolle ist widersprüchlichen Quell-Namespaces zugeordnet."
     }
   },
   "layers": {

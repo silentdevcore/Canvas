@@ -593,6 +593,7 @@
     "role": "Rôle de structure", "selectRole": "Sélectionner un rôle", "decorative": "Artefact décoratif (ignoré par les technologies d’assistance)",
     "readingOrder": "Ordre de lecture", "language": "Langue de l’élément", "languagePlaceholder": "p. ex. fr-CH",
     "parent": "Parent logique", "noParent": "Racine du document", "alternateText": "Texte alternatif", "actualText": "Texte de remplacement",
+    "customRole": "Rôle de structure personnalisé", "customRolePlaceholder": "p. ex. NutrientCallout", "namespaceUri": "URI de l’espace de noms source", "namespaceUriPlaceholder": "p. ex. urn:fournisseur:document",
     "headerScope": "Portée de l’en-tête de tableau", "headerIds": "ID d’en-têtes associés", "headerIdsPlaceholder": "header-1, header-2",
     "useSuggested": "Utiliser la sémantique suggérée", "applySuggestions": "Appliquer la sémantique suggérée au document",
     "suggestionsApplied": "La sémantique d’accessibilité suggérée a été appliquée.", "elementReady": "Aucune erreur d’accessibilité détectée pour cet élément.",
@@ -607,7 +608,8 @@
       "PXAPDFUA013": "Le parent logique sélectionné n’existe plus.", "PXAPDFUA014": "La hiérarchie logique contient un cycle.", "PXAPDFUA015": "Utilisez une balise de langue BCP 47 valide.",
       "PXAPDFUA016": "L’ordre de lecture ne peut pas être négatif.", "PXAPDFUA017": "Ajoutez un texte de lien significatif.",
       "PXAPDFUA018": "Ajoutez une étiquette de formulaire accessible.", "PXAPDFUA019": "Marquez la première ligne comme en-tête.",
-      "PXAPDFUA020": "Le tableau nécessite une structure complète de lignes et de cellules.", "PXAPDFUA021": "Sélectionnez un rôle de structure.", "PXAPDFUA022": "Un groupe d'options nécessite au moins deux options uniques et une seule valeur sélectionnée au maximum.", "PXAPDFUA023": "Définissez un ordre de lecture explicite pour un focus clavier prévisible.", "PXAPDFUA024": "Cette position de focus est également attribuée à un autre contrôle interactif."
+      "PXAPDFUA020": "Le tableau nécessite une structure complète de lignes et de cellules.", "PXAPDFUA021": "Sélectionnez un rôle de structure.", "PXAPDFUA022": "Un groupe d'options nécessite au moins deux options uniques et une seule valeur sélectionnée au maximum.", "PXAPDFUA023": "Définissez un ordre de lecture explicite pour un focus clavier prévisible.", "PXAPDFUA024": "Cette position de focus est également attribuée à un autre contrôle interactif.",
+      "PXAPDFUA025": "Utilisez un rôle personnalisé distinct avec des lettres, chiffres, points, tirets ou traits de soulignement.", "PXAPDFUA026": "Ce rôle personnalisé correspond à des rôles standard contradictoires.", "PXAPDFUA027": "Utilisez une URI d’espace de noms absolue uniquement avec un rôle personnalisé.", "PXAPDFUA028": "Ce rôle personnalisé utilise des espaces de noms source contradictoires."
     }
   },
   "layers": {

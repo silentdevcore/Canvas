@@ -1,4 +1,4 @@
-import type { Page, PageSettings, SimpleElement, Template } from '@/types';
+import type { AccessibilityProperties, Page, PageSettings, SimpleElement, Template } from '@/types';
 
 export const PDF_STRUCTURE_ROLES = [
   'Part', 'Sect', 'Div', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
@@ -7,6 +7,7 @@ export const PDF_STRUCTURE_ROLES = [
 ] as const;
 
 export type PdfStructureRole = (typeof PDF_STRUCTURE_ROLES)[number];
+const CUSTOM_ROLE_PATTERN = /^[A-Za-z][A-Za-z0-9_.-]{0,126}$/;
 
 const ARTIFACT_TYPES = new Set<SimpleElement['type']>([
   'shape', 'rect', 'circle', 'line', 'arrow', 'draw', 'highlight', 'watermark',
@@ -143,6 +144,14 @@ export function validateDesignerAccessibility(
     if (accessibility.isArtifact) continue;
     if (!accessibility.role)
       issues.push({ code: 'PXAPDFUA021', severity: 'error', ...context });
+    if (accessibility.customRole) {
+      if (!CUSTOM_ROLE_PATTERN.test(accessibility.customRole) || PDF_STRUCTURE_ROLES.includes(accessibility.customRole as PdfStructureRole))
+        issues.push({ code: 'PXAPDFUA025', severity: 'error', ...context });
+      if (accessibility.namespaceUri && !isAbsoluteNamespaceUri(accessibility.namespaceUri))
+        issues.push({ code: 'PXAPDFUA027', severity: 'error', ...context });
+    } else if (accessibility.namespaceUri) {
+      issues.push({ code: 'PXAPDFUA027', severity: 'error', ...context });
+    }
     if (accessibility.readingOrder != null && accessibility.readingOrder < 0)
       issues.push({ code: 'PXAPDFUA016', severity: 'error', ...context });
     if (accessibility.parentElementId && !ids.has(accessibility.parentElementId))
@@ -173,6 +182,21 @@ export function validateDesignerAccessibility(
       issues.push({ code: 'PXAPDFUA022', severity: 'error', ...context });
   }
 
+  const customRoles = new Map<string, AccessibilityProperties[]>();
+  for (const { element } of allElements) {
+    const accessibility = element.accessibility;
+    if (!accessibility || accessibility.isArtifact || !accessibility.customRole) continue;
+    const mappings = customRoles.get(accessibility.customRole) ?? [];
+    mappings.push(accessibility);
+    customRoles.set(accessibility.customRole, mappings);
+  }
+  for (const [customRole, mappings] of customRoles) {
+    if (new Set(mappings.map(mapping => mapping.role)).size > 1)
+      issues.push({ code: 'PXAPDFUA026', severity: 'error', elementName: customRole });
+    if (new Set(mappings.map(mapping => mapping.namespaceUri ?? '')).size > 1)
+      issues.push({ code: 'PXAPDFUA028', severity: 'error', elementName: customRole });
+  }
+
   const interactiveByPage = new Map<number | undefined, SimpleElement[]>();
   for (const item of allElements.filter(({ element }) =>
     element.accessibility?.role === 'Link' || element.accessibility?.role === 'Form')) {
@@ -195,6 +219,15 @@ export function validateDesignerAccessibility(
   }
 
   return issues;
+}
+
+function isAbsoluteNamespaceUri(value: string): boolean {
+  if (value.length > 2048) return false;
+  try {
+    return Boolean(new URL(value).protocol);
+  } catch {
+    return false;
+  }
 }
 
 export function accessibilityIssuesForElement(

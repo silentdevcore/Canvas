@@ -368,6 +368,8 @@ public sealed class ElementDto
 public sealed class AccessibilityPropertiesDto
 {
     public string Role { get; set; } = "P";
+    public string? CustomRole { get; set; }
+    public string? NamespaceUri { get; set; }
     public bool IsArtifact { get; set; }
     public string? ParentElementId { get; set; }
     public int? ReadingOrder { get; set; }
