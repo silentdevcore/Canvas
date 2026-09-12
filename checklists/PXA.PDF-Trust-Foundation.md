@@ -734,10 +734,11 @@ Reference material:
 
 ## Designer and Generator Integration
 
-- [ ] Extend `PdfSaveOptions` with typed signing, modern encryption, PDF/A, PDF/UA,
-  redaction/sanitization, and validation policies without mixing these concerns.
+- [x] Keep `PdfSaveOptions` typed and writer-only for modern encryption, PDF/A, and
+  PDF/UA, and compose it with a separate typed final-byte pipeline for signing,
+  redaction/sanitization, and validation.
   - [x] Keep modern encryption, PDF/A, and PDF/UA as typed writer options.
-  - [ ] Add a separate typed post-processing orchestration contract for signing,
+  - [x] Add a separate typed post-processing orchestration contract for signing,
     redaction, sanitization, and final-byte validation; never place credentials in
     `PdfSaveOptions` or `DesignExportDto`.
 - [x] Add C# Generator examples for every supported trust profile.
@@ -760,6 +761,8 @@ Implementation evidence:
   `DesignJsonMapper.BuildSaveOptions`, exactly like normal Designer export.
 - `docs/guides/PXA.Pdf-Trust-Generator-Examples.md` documents AES, certificate encryption,
   PDF/A, PDF/UA, PAdES, redaction, and sanitization without embedding secrets in templates.
+- `PdfTrustPostProcessingPipeline` enforces destructive operations before signing, resolves
+  credentials only from a runtime context, and validates the exact final bytes it returns.
 
 ## Migration Coverage
 

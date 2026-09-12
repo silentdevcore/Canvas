@@ -84,6 +84,54 @@ only removable regions through `PdfRedactionApplier` with an explicit
 `PdfRedactionSanitizationPolicy`. A visual rectangle is not a redaction. Distribute output only
 after the apply result reports successful verification.
 
+## One Final-Byte Trust Pipeline
+
+Use `IPdfTrustPostProcessingPipeline` when multiple operations must be applied safely. Destructive
+redaction and sanitization always run before signing, and the exact returned bytes are inspected
+last. The serializable plan carries stable provider and key IDs; the trusted host supplies the
+resolved key and timestamp services through the runtime-only context.
+
+```csharp
+var result = await pipeline.ProcessAsync(
+    generatedPdfBytes,
+    new PdfTrustPostProcessingOptions
+    {
+        Redaction = new PdfTrustRedactionOptions
+        {
+            Regions = redactionRegions,
+            Sanitization = new PdfRedactionSanitizationPolicy(),
+            Reason = "Approved disclosure copy"
+        },
+        Signing = new PdfTrustSigningOptions
+        {
+            CertificateSource = new PdfSigningCertificateSource
+            {
+                Kind = PdfSigningCertificateSourceKind.OrganizationKeyProvider,
+                ProviderId = "company-hsm",
+                KeyId = "document-signing-key"
+            },
+            Profile = PdfPadesProfile.BaselineLT
+        },
+        Validation = new PdfTrustPipelineValidationPolicy
+        {
+            RequireValidStructure = true,
+            RequireValidSignatures = true,
+            RejectRiskyContent = true
+        }
+    },
+    new PdfTrustPipelineContext
+    {
+        DocumentSigningKey = resolvedSigningKey,
+        DocumentTimestampAuthority = timestampAuthority,
+        LongTermValidationProvider = revocationMaterialProvider,
+        RedactionAuditSigningKey = resolvedAuditKey
+    },
+    cancellationToken);
+```
+
+Never serialize `PdfTrustPipelineContext`. Resolve it after authentication, tenant isolation,
+permission checks, and entitlement checks inside the trusted application host.
+
 ## Designer and Code Workspace
 
 `DesignExportDto.PageSettings` carries PDF/A, PDF/UA and encryption settings through JSON, C#

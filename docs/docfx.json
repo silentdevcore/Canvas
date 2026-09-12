@@ -4,8 +4,10 @@
       "src": [
         {
           "files": [
-            "src/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj",
-            "src/PXA.Core/PXA.Core.csproj"
+            "src/Core/PXA.Core/PXA.Core.csproj",
+            "src/Generation/PXA.Pdf/PXA.Pdf.csproj",
+            "src/Generation/PXA.Generator/PXA.Generator.csproj",
+            "src/Importing/PXA.Importer/PXA.Importer.csproj"
           ],
           "src": ".."
         }
@@ -18,7 +20,7 @@
   "build": {
     "content": [
       { "files": ["api/**.yml", "api/index.md"] },
-      { "files": ["index.md", "csharp-cookbook.md", "toc.yml"] }
+      { "files": ["index.md", "csharp-cookbook.md", "charts.md", "code-designer-workspace.md", "guides/**.md", "toc.yml"] }
     ],
     "output": "_site",
     "template": ["default", "modern"],

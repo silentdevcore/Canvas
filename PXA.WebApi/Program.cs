@@ -129,6 +129,8 @@ builder.Services.AddSingleton<
     PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyProvider>();
 builder.Services.AddScoped<PXA.WebApi.Services.Pdf.PdfViewerRedactionRegionMapper>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfPadesSigningService, PXA.Importer.Signing.PdfPadesSigningService>();
+builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustPostProcessingPipeline,
+    PXA.Importer.Trust.PdfTrustPostProcessingPipeline>();
 builder.Services.AddScoped<PXA.Importer.Signing.IPdfDocumentTimestampService,
     PXA.Importer.Signing.PdfDocumentTimestampService>();
 builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTimestampAuthorityOptions>()
