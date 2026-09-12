@@ -3,7 +3,10 @@ namespace PXA.WebApi.Services;
 public sealed record MigrationResult(
     string PxaCode,
     IReadOnlyList<MigrationDiagnostic> Diagnostics,
-    MigrationSummary Summary);
+    MigrationSummary Summary)
+{
+    public PXA.Migration.Abstractions.PdfTrustMigrationReport? PdfTrust { get; init; }
+}
 
 public sealed record MigrationSummary(
     int ConvertedCount,

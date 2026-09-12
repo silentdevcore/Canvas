@@ -106,4 +106,43 @@ public sealed class PdfMigrationProvidersTests
                 providerOptionsAreComplete: true,
                 targetCanValidateEndToEnd: true));
     }
+
+    [Theory]
+    [MemberData(nameof(ProviderCases))]
+    public void Migrate_AddsStructuredTrustEvidenceForEveryProvider(string providerKey, string _)
+    {
+        var profile = PdfTrustMigrationCatalog.Get(providerKey);
+        var marker = profile.Capabilities
+            .SelectMany(static capability => capability.DetectedApiMarkers)
+            .First(static value => value.All(character => char.IsLetterOrDigit(character) || character == '_'));
+        var source = $"class Sample {{ void Run(dynamic pdf) {{ pdf.{marker}(); }} }}";
+
+        var result = PdfMigrationProviders.Migrate(providerKey, source);
+
+        Assert.NotNull(result.PdfTrust);
+        Assert.Equal(providerKey, result.PdfTrust.ProviderKey);
+        Assert.Contains(result.PdfTrust.Evidence, evidence =>
+            evidence.SourceOperation.Contains(marker, StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.Diagnostics, diagnostic =>
+            diagnostic.Id.StartsWith("CANMIGPDFTRUST", StringComparison.Ordinal) ||
+            result.PdfTrust.Evidence.Any(evidence => evidence.DiagnosticId == diagnostic.Id));
+        Assert.All(result.PdfTrust.Evidence, evidence =>
+            Assert.DoesNotContain("password", string.Join(" ", evidence.ProviderOptions.Values), StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData("PDF_A_4", PdfTrustCapability.PdfA)]
+    [InlineData("PDF_UA_2", PdfTrustCapability.PdfUa)]
+    public void Migrate_ReportsProfilesWithoutEndToEndValidationAsUnsupported(
+        string profileMarker,
+        PdfTrustCapability capability)
+    {
+        var result = PdfMigrationProviders.Migrate(
+            PdfMigrationProviderKeys.IText7,
+            $"class Sample {{ void Run(dynamic pdf) {{ pdf.{profileMarker}(); }} }}");
+
+        var evidence = Assert.Single(result.PdfTrust!.Evidence, item => item.Capability == capability);
+        Assert.Equal(PdfTrustMigrationDisposition.Unsupported, evidence.Disposition);
+        Assert.Equal("false", evidence.ProviderOptions["targetValidationAvailable"]);
+    }
 }

@@ -1,4 +1,5 @@
 using PXA.Migration.Abstractions;
+using PXA.Migration.Roslyn;
 using ActivePdfMigration = PXA.Migration.Pdf.Code.ActivePdf.ActivePdfMigration;
 using ApryseMigration = PXA.Migration.Pdf.Code.Apryse.ApryseMigration;
 using AsposePdfMigration = PXA.Migration.Pdf.Code.Aspose.AsposePdfMigration;
@@ -51,6 +52,35 @@ public static class PdfMigrationProviders
             return migration;
 
         throw new KeyNotFoundException($"Unknown PXA PDF migration provider key '{key}'.");
+    }
+
+    public static MigrationResult Migrate(string key, string sourceCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceCode);
+        var migration = Create(key);
+        var result = migration.Migrate(sourceCode);
+        var trust = result.PdfTrust ?? CSharpPdfTrustEvidenceScanner.Scan(
+            sourceCode,
+            PdfTrustMigrationCatalog.Get(key));
+        var diagnostics = result.Diagnostics.ToList();
+        foreach (var evidence in trust.Evidence)
+        {
+            if (diagnostics.Any(item => string.Equals(item.Id, evidence.DiagnosticId, StringComparison.Ordinal)))
+                continue;
+            diagnostics.Add(new MigrationDiagnostic
+            {
+                Id = evidence.DiagnosticId,
+                Severity = MigrationDiagnosticSeverity.Warning,
+                Message = $"{evidence.SourceOperation} requires {evidence.Disposition} PDF Trust migration. See {evidence.DocumentationPath}."
+            });
+        }
+
+        return new MigrationResult
+        {
+            MigratedCode = result.MigratedCode,
+            Diagnostics = diagnostics,
+            PdfTrust = trust
+        };
     }
 
     public static bool TryCreate(string key, out ISourceMigration migration)

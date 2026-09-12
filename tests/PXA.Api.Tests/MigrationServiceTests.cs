@@ -5,6 +5,21 @@ namespace PXA.Api.Tests;
 public sealed class MigrationServiceTests
 {
     [Fact]
+    public void Convert_ReturnsStructuredPdfTrustEvidence()
+    {
+        const string source = "class Sample { void Run(dynamic pdf) { pdf.PdfSigner(); } }";
+
+        var result = new MigrationService().Convert("iText7", source);
+
+        Assert.NotNull(result.PdfTrust);
+        Assert.Equal("itext7", result.PdfTrust.ProviderKey);
+        Assert.Contains(result.PdfTrust.Evidence, evidence =>
+            evidence.Capability.ToString() == "DigitalSignature" &&
+            evidence.Disposition.ToString() == "ReviewRequired");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTRUST100");
+    }
+
+    [Fact]
     public void GetFrameworks_ExposesNutrientCodeAndViewerAsSeparateMigrationKinds()
     {
         var frameworks = new MigrationService().GetFrameworks().Where(item => item.Provider == "Nutrient").ToArray();

@@ -70,7 +70,7 @@ public static class PdfTrustMigrationCatalog
         {
             PdfTrustCapability.DigitalSignature => ContainsAny(marker, "Sign", "Certificate"),
             PdfTrustCapability.Timestamp => ContainsAny(marker, "Timestamp", "TSA", "Ltv"),
-            PdfTrustCapability.SignatureValidation => ContainsAny(marker, "Verif", "Valid", "Ltv", "Sign"),
+            PdfTrustCapability.SignatureValidation => ContainsAny(marker, "Verif", "Valid", "Ltv"),
             PdfTrustCapability.Encryption => ContainsAny(marker, "Encrypt", "Security"),
             PdfTrustCapability.SecureRedaction => ContainsAny(marker, "Redact", "CleanUp"),
             PdfTrustCapability.PdfA => ContainsAny(marker, "PDFA", "PdfA", "Conformance", "Compliance"),

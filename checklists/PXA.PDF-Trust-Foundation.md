@@ -776,7 +776,7 @@ Implementation evidence:
 - [x] Emit `reviewRequired` when provider defaults, certificate stores, trust policy,
   redaction guarantees, or compliance levels cannot be inferred safely.
 - [x] Emit `unsupported` for provider profiles PXA cannot validate end to end.
-- [ ] Preserve provider options as structured migration evidence instead of dropping
+- [x] Preserve provider options as structured migration evidence instead of dropping
   them into comments only.
 - [x] Extend Nutrient code and Viewer migration after each native trust capability is
   delivered; remove deferred diagnostics only when parity tests prove the mapping.
@@ -795,8 +795,9 @@ Implementation evidence:
   capability, with matching Documentation workflows and unsupported future profiles.
 - Nutrient code, Viewer source, and Instant JSON migrations emit structured Trust evidence.
   Visual redaction marks and saved signature appearances are always `unsupported` Trust claims.
-- Structured evidence for providers other than Nutrient, provider-complete examples, and
-  provider-specific report presentation remain open below.
+- `CSharpPdfTrustEvidenceScanner` enriches all 16 PDF code providers without retaining
+  source arguments or secret values; the PDF facade and WebApi return the same report.
+- Provider-complete examples and provider-specific report presentation remain open below.
 
 ## Authorization, Licensing, and Audit
 

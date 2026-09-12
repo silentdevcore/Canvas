@@ -6,6 +6,27 @@ namespace PXA.WebApi.Services;
 
 public sealed class MigrationService
 {
+    private static readonly IReadOnlyDictionary<string, string> PdfProviderKeysByFrameworkId =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["ActivePdf"] = PdfMigrationProviderKeys.ActivePdf,
+            ["Apryse"] = PdfMigrationProviderKeys.Apryse,
+            ["Aspose"] = PdfMigrationProviderKeys.AsposePdf,
+            ["DevExpress"] = PdfMigrationProviderKeys.DevExpressPdf,
+            ["DsPdf"] = PdfMigrationProviderKeys.DsPdf,
+            ["Foxit"] = PdfMigrationProviderKeys.FoxitPdf,
+            ["GemBox"] = PdfMigrationProviderKeys.GemBoxPdf,
+            ["IronPdf"] = PdfMigrationProviderKeys.IronPdf,
+            ["iText7"] = PdfMigrationProviderKeys.IText7,
+            ["Leadtools"] = PdfMigrationProviderKeys.LeadtoolsPdf,
+            ["Nutrient"] = PdfMigrationProviderKeys.Nutrient,
+            ["PdfKitNet"] = PdfMigrationProviderKeys.PdfKitNet,
+            ["PdfTools"] = PdfMigrationProviderKeys.PdfTools,
+            ["PdfToolsToolbox"] = PdfMigrationProviderKeys.PdfToolsToolbox,
+            ["Spire"] = PdfMigrationProviderKeys.SpirePdf,
+            ["Syncfusion"] = PdfMigrationProviderKeys.SyncfusionPdf,
+        };
+
     private static readonly IReadOnlyDictionary<string, string> FrameworkAliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -106,6 +127,24 @@ public sealed class MigrationService
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
         var converter = GetConverter(frameworkId);
+        if (PdfProviderKeysByFrameworkId.TryGetValue(converter.FrameworkId, out var providerKey))
+        {
+            var nativeResult = PdfMigrationProviders.Migrate(providerKey, sourceCode);
+            var nativeDiagnostics = nativeResult.Diagnostics
+                .Select(static diagnostic => new MigrationDiagnostic(
+                    diagnostic.Id,
+                    diagnostic.Severity.ToString(),
+                    diagnostic.Message))
+                .ToArray();
+            return new MigrationResult(
+                nativeResult.MigratedCode,
+                nativeDiagnostics,
+                CreateSummary(nativeDiagnostics))
+            {
+                PdfTrust = nativeResult.PdfTrust
+            };
+        }
+
         var pxaCode = converter.ConvertCode(sourceCode);
         var diagnostics = converter.GetDiagnostics(sourceCode);
         return new MigrationResult(pxaCode, diagnostics, CreateSummary(diagnostics));
