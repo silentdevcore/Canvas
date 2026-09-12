@@ -19,6 +19,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 
         var root = CSharpSyntaxTree.ParseText(sourceCode).GetCompilationUnitRoot();
+        var trustReport = NutrientTrustEvidence.Scan(root);
         var documentVariables = FindDocumentVariables(root);
         var rewriter = new NutrientRewriter(documentVariables);
         var migrated = (CompilationUnitSyntax)rewriter.Visit(root)!;
@@ -36,6 +37,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 .GroupBy(static diagnostic => (diagnostic.Id, diagnostic.Message))
                 .Select(static group => group.First())
                 .ToArray(),
+            PdfTrust = trustReport
         };
     }
 

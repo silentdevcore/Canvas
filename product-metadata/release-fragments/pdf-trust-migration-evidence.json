@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-migration-evidence",
+  "impact": "minor",
+  "components": [
+    "api",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "PDF migrations now report structured trust capability evidence and conservatively distinguish automatic, review-required, and unsupported security mappings.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md",
+    "/docs/guides/PXA.Pdf-Trust-Generator-Examples.md"
+  ],
+  "breaking": false
+}

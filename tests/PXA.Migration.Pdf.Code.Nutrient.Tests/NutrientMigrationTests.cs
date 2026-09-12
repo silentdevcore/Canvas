@@ -108,6 +108,16 @@ public sealed class NutrientMigrationTests
             d.Id == "CANMIGNUTNET020" && d.Severity == MigrationDiagnosticSeverity.Warning);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET021");
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET022");
+        Assert.NotNull(result.PdfTrust);
+        Assert.Equal(PdfTrustMigrationDisposition.ReviewRequired, result.PdfTrust.OverallDisposition);
+        Assert.Contains(result.PdfTrust.Evidence, item =>
+            item.Capability == PdfTrustCapability.DigitalSignature &&
+            item.SourceOperation.Contains("SignDocument", StringComparison.Ordinal));
+        var redaction = Assert.Single(result.PdfTrust.Evidence, item =>
+            item.Capability == PdfTrustCapability.SecureRedaction);
+        Assert.Equal(PdfTrustSourceSemantics.ContentRemovingRedaction, redaction.SourceSemantics);
+        Assert.Equal("false", redaction.ProviderOptions["automaticReplacement"]);
+        Assert.StartsWith("/docs/", redaction.DocumentationPath, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -144,6 +154,9 @@ public sealed class NutrientMigrationTests
         Assert.Contains("ComplianceProfile = PdfComplianceProfile.PdfA2B", result.MigratedCode);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET032");
         Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGNUTNET023");
+        var pdfA = Assert.Single(result.PdfTrust!.Evidence, item => item.Capability == PdfTrustCapability.PdfA);
+        Assert.Equal(PdfTrustMigrationDisposition.ReviewRequired, pdfA.Disposition);
+        Assert.Equal("PDF/A-2b", pdfA.ProviderOptions["profile"]);
     }
 
     [Fact]

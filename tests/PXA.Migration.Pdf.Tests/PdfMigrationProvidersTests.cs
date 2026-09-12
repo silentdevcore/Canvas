@@ -1,5 +1,7 @@
 namespace PXA.Migration.Pdf.Tests;
 
+using PXA.Migration.Abstractions;
+
 public sealed class PdfMigrationProvidersTests
 {
     public static TheoryData<string, string> ProviderCases => new()
@@ -52,5 +54,56 @@ public sealed class PdfMigrationProvidersTests
     public void Create_RejectsUnknownProviderKey()
     {
         Assert.Throws<KeyNotFoundException>(() => PdfMigrationProviders.Create("unknown-pdf"));
+    }
+
+    [Fact]
+    public void TrustCatalog_CoversEveryProviderAndCapability()
+    {
+        Assert.Equal(PdfMigrationProviders.Keys, PdfTrustMigrationCatalog.All.Select(static item => item.ProviderKey));
+
+        foreach (var profile in PdfTrustMigrationCatalog.All)
+        {
+            Assert.Equal(Enum.GetValues<PdfTrustCapability>(), profile.Capabilities.Select(static item => item.Capability));
+            Assert.All(profile.Capabilities, capability =>
+            {
+                Assert.Equal(PdfTrustMigrationDisposition.ReviewRequired, capability.DefaultDisposition);
+                Assert.StartsWith("/docs/", capability.DocumentationPath, StringComparison.Ordinal);
+            });
+            Assert.Contains("PDF/A-4", profile.UnsupportedTargetProfiles);
+            Assert.Contains("PDF/UA-2", profile.UnsupportedTargetProfiles);
+        }
+    }
+
+    [Fact]
+    public void TrustPolicy_RequiresEquivalentCompleteAndValidatedSemantics()
+    {
+        Assert.Equal(
+            PdfTrustMigrationDisposition.Automatic,
+            PdfTrustMigrationPolicy.ResolveDisposition(
+                PdfTrustSourceSemantics.PasswordEncryption,
+                targetHasEquivalentSemantics: true,
+                providerOptionsAreComplete: true,
+                targetCanValidateEndToEnd: true));
+        Assert.Equal(
+            PdfTrustMigrationDisposition.ReviewRequired,
+            PdfTrustMigrationPolicy.ResolveDisposition(
+                PdfTrustSourceSemantics.PasswordEncryption,
+                targetHasEquivalentSemantics: true,
+                providerOptionsAreComplete: false,
+                targetCanValidateEndToEnd: true));
+    }
+
+    [Theory]
+    [InlineData(PdfTrustSourceSemantics.SignatureAppearanceOnly)]
+    [InlineData(PdfTrustSourceSemantics.VisualRedactionOnly)]
+    public void TrustPolicy_NeverPromotesVisualMarksToTrustClaims(PdfTrustSourceSemantics semantics)
+    {
+        Assert.Equal(
+            PdfTrustMigrationDisposition.Unsupported,
+            PdfTrustMigrationPolicy.ResolveDisposition(
+                semantics,
+                targetHasEquivalentSemantics: true,
+                providerOptionsAreComplete: true,
+                targetCanValidateEndToEnd: true));
     }
 }

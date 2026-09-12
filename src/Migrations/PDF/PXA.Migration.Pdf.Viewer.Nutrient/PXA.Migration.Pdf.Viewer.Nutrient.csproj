@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Esprima" Version="3.0.6" />
+    <ProjectReference Include="../../Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

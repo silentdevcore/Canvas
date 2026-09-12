@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PXA.Migration.Abstractions;
 
 namespace PXA.Migration.Pdf.Viewer.Nutrient;
 
@@ -177,6 +178,7 @@ public sealed class NutrientInstantJsonConverter
 
             var sidecarJson = JsonSerializer.Serialize(sidecar, options);
             var formJson = JsonSerializer.Serialize(formPayload, options);
+            var trustReport = NutrientViewerTrustEvidence.FromInstantJson(diagnostics);
             return new NutrientInstantJsonResult(
                 "Nutrient",
                 ProviderKey,
@@ -190,7 +192,10 @@ public sealed class NutrientInstantJsonConverter
                 Sha256(instantJson),
                 Sha256(sidecarJson),
                 Sha256(sidecarJson + "\n" + formJson),
-                NutrientMigrationCapabilityReport.FromDiagnostics(annotations.Count + formValues.Count, diagnostics));
+                NutrientMigrationCapabilityReport.FromDiagnostics(annotations.Count + formValues.Count, diagnostics))
+            {
+                PdfTrust = trustReport
+            };
         }
     }
 
@@ -642,7 +647,10 @@ public sealed record NutrientInstantJsonResult(
     string SourceChecksum,
     string NormalizedChecksum,
     string GeneratedChecksum,
-    NutrientMigrationCapabilityReport CapabilityReport);
+    NutrientMigrationCapabilityReport CapabilityReport)
+{
+    public PdfTrustMigrationReport? PdfTrust { get; init; }
+}
 
 public sealed record NutrientViewerDiagnostic(string Code, string Severity, string Message);
 

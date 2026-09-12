@@ -1,5 +1,6 @@
 using System.Text.Json;
 using PXA.Migration.Pdf.Viewer.Nutrient;
+using PXA.Migration.Abstractions;
 
 namespace PXA.Migration.Pdf.Viewer.Nutrient.Tests;
 
@@ -107,6 +108,12 @@ public sealed class NutrientInstantJsonConverterTests
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGNUTJSON011");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGNUTJSON020");
         Assert.Contains("\"type\": \"redaction\"", result.AnnotationSidecarJson);
+        Assert.NotNull(result.PdfTrust);
+        var trust = Assert.Single(result.PdfTrust.Evidence, item =>
+            item.Capability == PdfTrustCapability.SecureRedaction);
+        Assert.Equal(PdfTrustMigrationDisposition.Unsupported, trust.Disposition);
+        Assert.Equal(PdfTrustSourceSemantics.VisualRedactionOnly, trust.SourceSemantics);
+        Assert.Equal("false", trust.ProviderOptions["contentRemoved"]);
     }
 
     [Fact]

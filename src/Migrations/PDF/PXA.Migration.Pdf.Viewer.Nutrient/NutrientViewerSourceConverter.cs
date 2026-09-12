@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using PXA.Migration.Abstractions;
 using Esprima;
 using Esprima.Ast;
 
@@ -121,6 +122,15 @@ public sealed class NutrientViewerSourceConverter
         {
             diagnostics.Add(Warning("CANMIGNUTWEB034", "Viewer event integration requires review. Application-owned callback logic was not regenerated."));
         }
+        var trustReport = NutrientViewerTrustEvidence.FromViewerSource(parsedSource);
+        foreach (var evidence in trustReport.Evidence)
+        {
+            if (diagnostics.Any(item => string.Equals(item.Code, evidence.DiagnosticId, StringComparison.Ordinal)))
+                continue;
+            diagnostics.Add(Warning(
+                evidence.DiagnosticId,
+                $"Nutrient {evidence.Capability} usage requires an explicit PXA Trust migration. See {evidence.DocumentationPath}."));
+        }
         var hasReview = diagnostics.Any(item => string.Equals(item.Severity, "Warning", StringComparison.OrdinalIgnoreCase));
         var sourceLine = FindLoadLine(parsedSource, detectedProduct.StartsWith("PSPDFKit", StringComparison.Ordinal) ? "PSPDFKit" : "NutrientViewer", aliases);
         var generated = GenerateIntegrationModule(normalized);
@@ -143,7 +153,10 @@ public sealed class NutrientViewerSourceConverter
             Sha256(checksumSource),
             Sha256(normalizedJson),
             Sha256(generated),
-            capabilityReport);
+            capabilityReport)
+        {
+            PdfTrust = trustReport
+        };
     }
 
     private static void ValidateSize(string source, string label)
@@ -434,7 +447,10 @@ public sealed record NutrientViewerSourceResult(
     string SourceChecksum,
     string NormalizedChecksum,
     string GeneratedChecksum,
-    NutrientMigrationCapabilityReport CapabilityReport);
+    NutrientMigrationCapabilityReport CapabilityReport)
+{
+    public PdfTrustMigrationReport? PdfTrust { get; init; }
+}
 
 public sealed record NutrientViewerSourceMap(int SourceLine, int SourceColumn, string TargetSymbol, string TargetRoute);
 

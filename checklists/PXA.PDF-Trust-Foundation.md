@@ -766,26 +766,37 @@ Implementation evidence:
 
 ## Migration Coverage
 
-- [ ] Add a shared PDF Trust capability model used by all PDF code and Viewer
+- [x] Add a shared PDF Trust capability model used by all PDF code and Viewer
   migration providers.
-- [ ] Inventory signature, timestamp, validation, encryption, redaction, PDF/A, and
+- [x] Inventory signature, timestamp, validation, encryption, redaction, PDF/A, and
   PDF/UA APIs for Nutrient, iText, Apryse, Aspose, Syncfusion, DevExpress, Foxit,
   DsPdf, GemBox, Spire, and Pdftools.
-- [ ] Map a provider operation automatically only when the native PXA capability has
+- [x] Map a provider operation automatically only when the native PXA capability has
   equal security and compliance semantics.
-- [ ] Emit `reviewRequired` when provider defaults, certificate stores, trust policy,
+- [x] Emit `reviewRequired` when provider defaults, certificate stores, trust policy,
   redaction guarantees, or compliance levels cannot be inferred safely.
-- [ ] Emit `unsupported` for provider profiles PXA cannot validate end to end.
+- [x] Emit `unsupported` for provider profiles PXA cannot validate end to end.
 - [ ] Preserve provider options as structured migration evidence instead of dropping
   them into comments only.
-- [ ] Extend Nutrient code and Viewer migration after each native trust capability is
+- [x] Extend Nutrient code and Viewer migration after each native trust capability is
   delivered; remove deferred diagnostics only when parity tests prove the mapping.
 - [ ] Add provider-specific full examples containing signing, encrypted input,
   redaction, archival conversion, and accessibility validation.
 - [ ] Add migration reports linking each manual action to the matching PXA
   Documentation workflow.
-- [ ] Never transform a visual redaction mark into a claim of applied secure
+- [x] Never transform a visual redaction mark into a claim of applied secure
   redaction or an image of a signature into a valid digital signature.
+
+Implementation evidence:
+
+- `PdfTrustMigrationModels` defines shared capabilities, dispositions, source semantics,
+  structured evidence, provider profiles, and conservative automatic-mapping policy.
+- `PdfTrustMigrationCatalog` covers all registered PDF code providers and every Trust
+  capability, with matching Documentation workflows and unsupported future profiles.
+- Nutrient code, Viewer source, and Instant JSON migrations emit structured Trust evidence.
+  Visual redaction marks and saved signature appearances are always `unsupported` Trust claims.
+- Structured evidence for providers other than Nutrient, provider-complete examples, and
+  provider-specific report presentation remain open below.
 
 ## Authorization, Licensing, and Audit
 

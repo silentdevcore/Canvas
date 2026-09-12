@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using PXA.Migration.Abstractions;
 using PXA.Migration.Pdf.Viewer.Nutrient;
 
 namespace PXA.Migration.Pdf.Viewer.Nutrient.Tests;
@@ -167,6 +168,26 @@ public sealed class NutrientViewerSourceConverterTests
         Assert.Contains(result.Diagnostics, item => item.Code == "CANMIGNUTWEB034");
         Assert.Contains(result.Diagnostics, item => item.Code == "CANMIGNUTWEB035");
         Assert.Equal("reviewRequired", result.DocumentFidelity);
+    }
+
+    [Fact]
+    public void Convert_ReportsTrustFeaturesWithoutClaimingAutomaticParity()
+    {
+        const string source = """
+            NutrientViewer.load({ document: "/a.pdf", toolbarItems: ["signature", "redaction"] });
+            """;
+
+        var result = new NutrientViewerSourceConverter().Convert(source);
+
+        Assert.NotNull(result.PdfTrust);
+        Assert.Equal(PdfTrustMigrationDisposition.Unsupported, result.PdfTrust.OverallDisposition);
+        Assert.Contains(result.PdfTrust.Evidence, item =>
+            item.Capability == PdfTrustCapability.DigitalSignature &&
+            item.Disposition == PdfTrustMigrationDisposition.ReviewRequired);
+        Assert.Contains(result.PdfTrust.Evidence, item =>
+            item.Capability == PdfTrustCapability.SecureRedaction &&
+            item.SourceSemantics == PdfTrustSourceSemantics.VisualRedactionOnly &&
+            item.Disposition == PdfTrustMigrationDisposition.Unsupported);
     }
 
     [Fact]

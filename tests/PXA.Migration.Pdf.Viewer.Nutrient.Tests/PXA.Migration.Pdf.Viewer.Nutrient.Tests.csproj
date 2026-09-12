@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../src/Migrations/Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../src/Migrations/PDF/PXA.Migration.Pdf.Viewer.Nutrient/PXA.Migration.Pdf.Viewer.Nutrient.csproj" />
   </ItemGroup>
 
