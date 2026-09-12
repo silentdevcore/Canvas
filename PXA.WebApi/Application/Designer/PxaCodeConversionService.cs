@@ -123,6 +123,9 @@ public sealed class PxaCodeConversionService(
             var elements = design.Pages.SelectMany(value => value.Elements).Concat(design.SharedElements).ToArray();
             if (elements.GroupBy(value => value.Id, StringComparer.Ordinal).Any(group => group.Count() > 1))
                 return (null, [Diagnostic("PXACODE105", "Every element id must be unique in the design.")]);
+            var trustIssues = PdfTrustSettingsValidator.Validate(design.PageSettings);
+            if (trustIssues.Count > 0)
+                return (null, trustIssues.Select(value => Diagnostic(value.Code, value.Message)).ToList());
             return (design, []);
         }
         catch (JsonException exception)

@@ -1,6 +1,7 @@
 import html2canvas from 'html2canvas';
 import type { SimpleElement, Template, PageSettings, Page } from '@/types';
 import { validateDesignerAccessibility, type DesignerAccessibilityIssue } from '@/accessibility/designerAccessibility';
+import { validatePdfTrustSettings, type PdfTrustValidationIssue } from '@/utils/pdfTrustValidation';
 
 export type ExportFormat = 'pdf' | 'json' | 'html' | 'xml' | 'word' | 'excel' | 'png' | 'jpeg' | 'svg' | 'csv' | 'md' | 'tiff' | 'odt';
 
@@ -21,6 +22,13 @@ export class DesignerAccessibilityPreflightError extends Error {
   constructor(public readonly issues: DesignerAccessibilityIssue[]) {
     super(`PDF/UA export is blocked by ${issues.length} accessibility issue(s): ${issues.slice(0, 5).map(issue => issue.code).join(', ')}`);
     this.name = 'DesignerAccessibilityPreflightError';
+  }
+}
+
+export class DesignerPdfTrustPreflightError extends Error {
+  constructor(public readonly issues: PdfTrustValidationIssue[]) {
+    super(`PDF export is blocked by ${issues.map(issue => issue.code).join(', ')}.`);
+    this.name = 'DesignerPdfTrustPreflightError';
   }
 }
 
@@ -67,6 +75,8 @@ export class ExportService {
     pageSettings?: PageSettings,
   ) {
     const settings = pageSettings ?? ({ width: 595, height: 842, orientation: 'portrait' } as PageSettings);
+    const trustIssues = validatePdfTrustSettings(settings);
+    if (trustIssues.length > 0) throw new DesignerPdfTrustPreflightError(trustIssues);
     return {
       id: template.id,
       name: template.name.trim() || 'Untitled document',

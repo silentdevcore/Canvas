@@ -6,6 +6,8 @@ using PXA.CodeWorker;
 using PXA.Core.Contracts;
 using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Controllers;
+using PXA.Importer.Trust;
+using PXA.WebApi.Infrastructure;
 using System.Text.Json;
 
 namespace PXA.Api.Tests;
@@ -236,9 +238,9 @@ public sealed class CodeWorkspaceConversionTests
         const string source = """
             {
               "id":"roundtrip","name":"Roundtrip","vendorDocumentFlag":true,
-              "pageSettings":{"width":612,"height":792,"activeLanguages":["en","ar"],"targetLanguage":"ar","encryption":{"enabled":true,"algorithm":"Aes128","permissions":{"print":true,"copy":false}}},
+              "pageSettings":{"width":612,"height":792,"activeLanguages":["en","ar"],"targetLanguage":"ar","encryption":{"enabled":true,"algorithm":"Aes128","userPassword":"reader","ownerPassword":"owner","permissions":{"print":true,"copy":false}}},
               "pages":[{"id":"page-1","layout":{"width":792,"height":612,"orientation":"landscape","backgroundColor":"#f8fafc","margins":{"top":20,"right":21,"bottom":22,"left":23},"bleedSize":6},"elements":[
-                {"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong></p>","language":"ar","textDirection":"rtl","binding":"customer.name","vendorElementValue":"kept"},
+                {"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong></p>","language":"ar","textDirection":"rtl","binding":"customer.name","accessibility":{"role":"P","alternateText":"Localized introduction","readingOrder":1},"vendorElementValue":"kept"},
                 {"id":"table-1","type":"table","x":10,"y":120,"width":300,"height":100,"cellData":[["A","B"],["1","2"]],"columnWidths":[120,180]},
                 {"id":"chart-1","type":"chart","x":10,"y":240,"width":300,"height":180,"chartType":"bar","chartData":{"labels":["A","B"],"values":[3,7]}}
               ]}]
@@ -267,6 +269,80 @@ public sealed class CodeWorkspaceConversionTests
                 $"{sourceRepresentation.Key} -> {target}: {string.Join(" | ", result.Diagnostics.Select(value => $"{value.Code}: {value.Message}"))}");
             Assert.Equal(PxaCodeFidelity.Exact, result.DocumentFidelity);
             Assert.Equal(expected, CanonicalJson(result.CanonicalDesign!));
+        }
+    }
+
+    [Fact]
+    public async Task SemanticPdfWorker_UsesTheSameTrustOptionsAsNormalExport()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "trust-parity",
+            Name = "Trust parity",
+            PageSettings = new PageSettingsDto
+            {
+                Encryption = new PdfEncryptionDto
+                {
+                    Enabled = true,
+                    Algorithm = "Aes256",
+                    UserPassword = "reader",
+                    OwnerPassword = "owner"
+                }
+            },
+            Pages = [new PageDto
+            {
+                Id = "page-1",
+                Elements = [new ElementDto { Id = "text-1", Type = "text", X = 20, Y = 20, Width = 120, Height = 24, Content = "Trusted" }]
+            }]
+        };
+        var service = CreatePackagedWorkerService();
+        var json = JsonSerializer.Serialize(design, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var generated = await service.ConvertAsync(PxaCodeLanguages.Json, PxaCodeLanguages.CSharpPdf, json, default);
+        var executed = await service.ExecuteAsync(PxaCodeLanguages.CSharpPdf, generated.GeneratedSource, default);
+        var normalBytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+        var inspector = new PdfTrustInspector();
+
+        Assert.True(executed.Success);
+        await using var normalStream = new MemoryStream(normalBytes);
+        await using var workerStream = new MemoryStream(executed.PdfBytes!);
+        var normalReport = await inspector.InspectAsync(normalStream);
+        var workerReport = await inspector.InspectAsync(workerStream);
+
+        Assert.Equal(normalReport.Encryption, workerReport.Encryption);
+        Assert.Equal("AES-256", workerReport.Encryption.Algorithm);
+        Assert.Equal(normalReport.PdfA, workerReport.PdfA);
+        Assert.Equal(normalReport.PdfUa, workerReport.PdfUa);
+    }
+
+    [Theory]
+    [InlineData("PdfA2B", "None")]
+    [InlineData("PdfA3B", "None")]
+    [InlineData("None", "PdfUa1")]
+    public async Task FourCodeRepresentations_PreserveComplianceAndAccessibilityProfiles(
+        string complianceProfile,
+        string accessibilityProfile)
+    {
+        var service = CreatePackagedWorkerService();
+        var design = new DesignExportDto
+        {
+            Id = "trust-roundtrip",
+            PageSettings = new PageSettingsDto
+            {
+                ComplianceProfile = complianceProfile,
+                AccessibilityProfile = accessibilityProfile
+            },
+            Pages = [new PageDto { Id = "page-1" }]
+        };
+        var json = JsonSerializer.Serialize(design, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var expected = CanonicalJson(design);
+
+        foreach (var representation in PxaCodeLanguages.Supported)
+        {
+            var encoded = await service.ConvertAsync(PxaCodeLanguages.Json, representation, json, default);
+            var decoded = await service.ConvertAsync(representation, PxaCodeLanguages.Json, encoded.GeneratedSource, default);
+
+            Assert.DoesNotContain(decoded.Diagnostics, value => value.Severity == "error");
+            Assert.Equal(expected, CanonicalJson(decoded.CanonicalDesign!));
         }
     }
 

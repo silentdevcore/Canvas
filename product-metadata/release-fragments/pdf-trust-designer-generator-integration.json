@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-designer-generator-integration",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator"
+  ],
+  "category": "improved",
+  "summary": "PXA validates PDF trust settings consistently across Designer and code exports, preserves accessibility and security settings in code roundtrips, and clearly separates preview from cryptographic output verification.",
+  "featureIds": [],
+  "documentation": [
+    "/docs/guides/PXA.Pdf-Trust-Generator-Examples.md",
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

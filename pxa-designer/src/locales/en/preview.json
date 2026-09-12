@@ -35,6 +35,7 @@
     "quality": "Quality",
     "qualityDefault": "printer",
     "previewModeTitle": "Preview Mode",
-    "previewModeBody": "QR codes, barcodes, and exact font rendering will be finalised in the PDF export."
+    "previewModeBody": "QR codes, barcodes, and exact font rendering will be finalised in the PDF export.",
+    "trustPreviewModeBody": "This preview is not cryptographic evidence. Encryption, signatures, PDF/A and PDF/UA validity exist only on the produced PDF bytes and must be verified after export."
   }
 }

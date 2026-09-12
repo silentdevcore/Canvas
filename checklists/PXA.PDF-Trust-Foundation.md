@@ -736,17 +736,30 @@ Reference material:
 
 - [ ] Extend `PdfSaveOptions` with typed signing, modern encryption, PDF/A, PDF/UA,
   redaction/sanitization, and validation policies without mixing these concerns.
-- [ ] Add C# Generator examples for every supported trust profile.
-- [ ] Extend JSON, C# Model, C# PDF Builder, and FromBase64String roundtrips for all
+  - [x] Keep modern encryption, PDF/A, and PDF/UA as typed writer options.
+  - [ ] Add a separate typed post-processing orchestration contract for signing,
+    redaction, sanitization, and final-byte validation; never place credentials in
+    `PdfSaveOptions` or `DesignExportDto`.
+- [x] Add C# Generator examples for every supported trust profile.
+- [x] Extend JSON, C# Model, C# PDF Builder, and FromBase64String roundtrips for all
   trust settings and accessibility properties.
-- [ ] Add signing fields, accessibility metadata, compliance profile, and security
+- [x] Add signing fields, accessibility metadata, compliance profile, and security
   options to Designer inspectors with permission and entitlement checks.
-- [ ] Prevent incompatible combinations before export and repeat the same validation
+- [x] Prevent incompatible combinations before export and repeat the same validation
   server-side.
-- [ ] Keep trust operations out of preview-only rendering; Preview must clearly show
+- [x] Keep trust operations out of preview-only rendering; Preview must clearly show
   that cryptographic validity exists only on the produced PDF bytes.
-- [ ] Ensure normal backend export and C# PDF worker output use the same trust services
+- [x] Ensure normal backend export and C# PDF worker output use the same trust services
   and produce equivalent validation reports.
+
+Implementation evidence:
+
+- `PdfTrustSettingsValidator` is shared by normal API export and every executable code
+  representation, while the Designer performs the same preflight before transport.
+- Semantic C# PDF output returns its canonical design to the WebApi and is rendered with
+  `DesignJsonMapper.BuildSaveOptions`, exactly like normal Designer export.
+- `docs/guides/PXA.Pdf-Trust-Generator-Examples.md` documents AES, certificate encryption,
+  PDF/A, PDF/UA, PAdES, redaction, and sanitization without embedding secrets in templates.
 
 ## Migration Coverage
 

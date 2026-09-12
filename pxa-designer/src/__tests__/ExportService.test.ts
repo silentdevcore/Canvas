@@ -1,4 +1,4 @@
-import { ExportService } from '../services/ExportService';
+import { DesignerPdfTrustPreflightError, ExportService } from '../services/ExportService';
 import { DEFAULT_PAGE_SETTINGS } from '../store';
 import type { SimpleElement, Template, PageSettings, Page } from '../types';
 
@@ -45,6 +45,26 @@ describe('convertElementsToTemplate', () => {
 
     expect(payload.pageSettings.complianceProfile).toBe('PdfA2B');
     expect(payload.pageSettings.encryption).toBeNull();
+  });
+
+  test('blocks incompatible trust settings before sending an export', () => {
+    const settings: PageSettings = {
+      ...DEFAULT_PAGE_SETTINGS,
+      accessibilityProfile: 'PdfUa1',
+      encryption: {
+        enabled: true,
+        algorithm: 'Aes256',
+        userPassword: 'reader',
+        ownerPassword: 'owner',
+        permissions: {
+          print: true, modify: true, copy: true, annotate: true,
+          fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
+        },
+      },
+    };
+
+    expect(() => ExportService.buildDesignPayload(mockTemplate, [makePage()], [], settings))
+      .toThrow(DesignerPdfTrustPreflightError);
   });
 
   test('includes template metadata fields', () => {

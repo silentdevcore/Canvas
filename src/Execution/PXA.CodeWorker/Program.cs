@@ -132,6 +132,9 @@ static void ValidateDesignLimits(DesignExportDto design, PxaCodeWorkerRequest re
         throw new InvalidOperationException("PXACODE021: The result exceeds the element limit.");
     if (JsonSerializer.SerializeToUtf8Bytes(design).Length > PxaCodeLimits.MaximumDesignBytes)
         throw new InvalidOperationException("PXACODE103: The canonical design exceeds the 10 MiB limit.");
+    var trustIssue = PdfTrustSettingsValidator.Validate(design.PageSettings).FirstOrDefault();
+    if (trustIssue is not null)
+        throw new InvalidOperationException($"{trustIssue.Code}: {trustIssue.Message}");
 }
 
 static List<PxaCodeSourceMapEntryDto> ParseSourceMap(string source, string language, DesignExportDto design)

@@ -50,6 +50,7 @@
     "quality": "Qualität",
     "qualityDefault": "Druck",
     "previewModeTitle": "Vorschaumodus",
-    "previewModeBody": "QR-Codes, Barcodes und exakte Schriftdarstellung werden erst beim PDF-Export finalisiert."
+    "previewModeBody": "QR-Codes, Barcodes und exakte Schriftdarstellung werden erst beim PDF-Export finalisiert.",
+    "trustPreviewModeBody": "Diese Vorschau ist kein kryptografischer Nachweis. Verschlüsselung, Signaturen sowie PDF/A- und PDF/UA-Gültigkeit bestehen nur in den erzeugten PDF-Bytes und müssen nach dem Export geprüft werden."
   }
 }

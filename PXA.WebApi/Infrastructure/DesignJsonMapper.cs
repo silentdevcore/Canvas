@@ -17,6 +17,7 @@ public static class DesignJsonMapper
     public static PdfSaveOptions? BuildSaveOptions(DesignExportDto design)
     {
         var settings = design.PageSettings;
+        PdfTrustSettingsValidator.ThrowIfInvalid(settings);
         var enc = settings?.Encryption;
         var complianceProfile = settings?.ComplianceProfile?.Trim() switch
         {
@@ -31,11 +32,6 @@ public static class DesignJsonMapper
             "PdfUa1" => PdfAccessibilityProfile.PdfUa1,
             var value => throw new InvalidDataException($"Unsupported PDF accessibility profile '{value}'.")
         };
-
-        if (complianceProfile != PdfComplianceProfile.None && enc?.Enabled == true)
-        {
-            throw new InvalidDataException("PDF/A output and PDF encryption cannot be enabled together.");
-        }
 
         if ((enc is null || !enc.Enabled) && complianceProfile == PdfComplianceProfile.None
             && accessibilityProfile == PdfAccessibilityProfile.None)

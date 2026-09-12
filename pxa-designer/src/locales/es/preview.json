@@ -50,6 +50,7 @@
     "quality": "Calidad",
     "qualityDefault": "impresora",
     "previewModeTitle": "Modo de vista previa",
-    "previewModeBody": "Los códigos QR, los códigos de barras y el renderizado exacto de fuentes se finalizarán en la exportación a PDF."
+    "previewModeBody": "Los códigos QR, los códigos de barras y el renderizado exacto de fuentes se finalizarán en la exportación a PDF.",
+    "trustPreviewModeBody": "Esta vista previa no es una prueba criptográfica. El cifrado, las firmas y la validez PDF/A y PDF/UA solo existen en el PDF generado y deben verificarse después de exportar."
   }
 }

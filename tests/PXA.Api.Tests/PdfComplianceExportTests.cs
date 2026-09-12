@@ -305,6 +305,29 @@ public sealed class PdfComplianceExportTests
         Assert.Contains("cannot be enabled together", exception.Message);
     }
 
+    [Fact]
+    public void BuildSaveOptions_RejectsPdfUaWithEncryptionUsingStableDiagnostic()
+    {
+        var design = new DesignExportDto
+        {
+            PageSettings = new PageSettingsDto
+            {
+                AccessibilityProfile = "PdfUa1",
+                Encryption = new PdfEncryptionDto
+                {
+                    Enabled = true,
+                    Algorithm = "Aes256",
+                    UserPassword = "reader",
+                    OwnerPassword = "owner"
+                }
+            }
+        };
+
+        var exception = Assert.Throws<InvalidDataException>(() => DesignJsonMapper.BuildSaveOptions(design));
+
+        Assert.Contains("PXAPDFTRUST204", exception.Message);
+    }
+
     private static void WriteValidationArtifact(string fileName, byte[] bytes)
     {
         if (Environment.GetEnvironmentVariable("PXA_PDFUA_ARTIFACT_DIR") is not { Length: > 0 } directory)

@@ -105,6 +105,11 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         width: pageLayouts[0]?.width ?? documentPageSettings.width,
         height: pageLayouts[0]?.height ?? documentPageSettings.height,
       });
+  const hasTrustSettings = Boolean(
+    pageSettings?.encryption?.enabled ||
+    (pageSettings?.complianceProfile && pageSettings.complianceProfile !== 'None') ||
+    (pageSettings?.accessibilityProfile && pageSettings.accessibilityProfile !== 'None'),
+  );
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
 
   useEffect(() => {
@@ -871,7 +876,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           <div>
             <strong style={{ fontSize: 13, color: '#92400e' }}>{t('footer.previewModeTitle')}</strong>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: '#b45309' }}>
-              {t('footer.previewModeBody')}
+              {hasTrustSettings ? t('footer.trustPreviewModeBody') : t('footer.previewModeBody')}
             </p>
           </div>
         </div>

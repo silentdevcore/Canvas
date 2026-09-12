@@ -50,6 +50,7 @@
     "quality": "Qualità",
     "qualityDefault": "stampante",
     "previewModeTitle": "Modalità anteprima",
-    "previewModeBody": "Codici QR, codici a barre e il rendering esatto dei font verranno finalizzati nell'esportazione PDF."
+    "previewModeBody": "Codici QR, codici a barre e il rendering esatto dei font verranno finalizzati nell'esportazione PDF.",
+    "trustPreviewModeBody": "Questa anteprima non è una prova crittografica. Crittografia, firme e validità PDF/A e PDF/UA esistono solo nel PDF prodotto e devono essere verificate dopo l'esportazione."
   }
 }
