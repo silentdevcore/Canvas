@@ -1,4 +1,5 @@
 using PXA.WebApi.Services;
+using PXA.Migration.Abstractions;
 
 namespace PXA.Api.Tests;
 
@@ -17,6 +18,10 @@ public sealed class MigrationServiceTests
             evidence.Capability.ToString() == "DigitalSignature" &&
             evidence.Disposition.ToString() == "ReviewRequired");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTRUST100");
+        var action = Assert.Single(result.PdfTrust.ManualActions);
+        Assert.Equal("CANMIGPDFTRUST100", action.ActionId);
+        Assert.Equal(PdfTrustCapability.DigitalSignature, action.Capability);
+        Assert.StartsWith("/docs/", action.DocumentationPath, StringComparison.Ordinal);
     }
 
     [Fact]

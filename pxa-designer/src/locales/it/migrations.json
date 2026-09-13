@@ -70,6 +70,26 @@
     "hideDetails": "▲ Nascondi dettagli",
     "showDetails": "▼ Mostra dettagli"
   },
+  "trust": {
+    "title": "Verifica della migrazione PDF Trust",
+    "description": "{{count}} azione di sicurezza o conformità richiede una verifica manuale.",
+    "sourceOperation": "Operazione di origine",
+    "targetOperation": "Flusso di lavoro PXA",
+    "openWorkflow": "Apri la documentazione del flusso di lavoro",
+    "dispositions": {
+      "ReviewRequired": "Verifica richiesta",
+      "Unsupported": "Non supportato"
+    },
+    "capabilities": {
+      "digitalSignature": "Firma digitale",
+      "timestamp": "Marca temporale",
+      "signatureValidation": "Convalida della firma",
+      "encryption": "Crittografia",
+      "secureRedaction": "Redazione sicura",
+      "pdfA": "Archiviazione PDF/A",
+      "pdfUa": "Accessibilità PDF/UA"
+    }
+  },
   "preview": {
     "spreadsheetHeader": "Anteprima foglio di calcolo",
     "pdfHeader": "Anteprima PDF",

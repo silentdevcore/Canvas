@@ -145,4 +145,55 @@ public sealed class PdfMigrationProvidersTests
         Assert.Equal(PdfTrustMigrationDisposition.Unsupported, evidence.Disposition);
         Assert.Equal("false", evidence.ProviderOptions["targetValidationAvailable"]);
     }
+
+    [Fact]
+    public void TrustExamples_CoverEveryPrioritizedProviderAndCapability()
+    {
+        var expectedProviders = new[]
+        {
+            PdfMigrationProviderKeys.Nutrient,
+            PdfMigrationProviderKeys.IText7,
+            PdfMigrationProviderKeys.Apryse,
+            PdfMigrationProviderKeys.AsposePdf,
+            PdfMigrationProviderKeys.SyncfusionPdf,
+            PdfMigrationProviderKeys.DevExpressPdf,
+            PdfMigrationProviderKeys.FoxitPdf,
+            PdfMigrationProviderKeys.DsPdf,
+            PdfMigrationProviderKeys.GemBoxPdf,
+            PdfMigrationProviderKeys.SpirePdf,
+            PdfMigrationProviderKeys.PdfTools
+        }.Order(StringComparer.Ordinal).ToArray();
+
+        Assert.Equal(expectedProviders, PdfTrustMigrationExamples.All.Select(static item => item.ProviderKey));
+
+        foreach (var example in PdfTrustMigrationExamples.All)
+        {
+            var result = PdfMigrationProviders.Migrate(example.ProviderKey, example.SourceCode);
+
+            Assert.NotNull(result.PdfTrust);
+            Assert.Equal(Enum.GetValues<PdfTrustCapability>(),
+                result.PdfTrust.Evidence.Select(static item => item.Capability).Distinct().Order());
+            Assert.All(result.PdfTrust.Evidence, evidence =>
+            {
+                Assert.NotEqual(PdfTrustMigrationDisposition.Automatic, evidence.Disposition);
+                Assert.StartsWith("/docs/", evidence.DocumentationPath, StringComparison.Ordinal);
+                Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == evidence.DiagnosticId);
+            });
+        }
+    }
+
+    [Fact]
+    public void TrustExamples_UseReferencesInsteadOfEmbeddedCredentials()
+    {
+        foreach (var example in PdfTrustMigrationExamples.All)
+        {
+            Assert.Contains("certificateReference", example.SourceCode, StringComparison.Ordinal);
+            Assert.Contains("timestampAuthorityReference", example.SourceCode, StringComparison.Ordinal);
+            Assert.Contains("passwordReference", example.SourceCode, StringComparison.Ordinal);
+            Assert.Contains(".OpenEncrypted(passwordReference)", example.SourceCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("BEGIN PRIVATE KEY", example.SourceCode, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(".pfx", example.SourceCode, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("base64", example.SourceCode, StringComparison.OrdinalIgnoreCase);
+        }
+    }
 }

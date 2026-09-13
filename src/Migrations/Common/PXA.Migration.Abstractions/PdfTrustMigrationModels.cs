@@ -50,12 +50,35 @@ public sealed record PdfTrustMigrationReport
     public required string MigrationKind { get; init; }
     public IReadOnlyList<PdfTrustMigrationEvidence> Evidence { get; init; } = [];
 
+    public IReadOnlyList<PdfTrustMigrationManualAction> ManualActions => Evidence
+        .Where(static item => item.Disposition != PdfTrustMigrationDisposition.Automatic)
+        .Select(static item => new PdfTrustMigrationManualAction
+        {
+            ActionId = item.DiagnosticId,
+            Capability = item.Capability,
+            Disposition = item.Disposition,
+            SourceOperation = item.SourceOperation,
+            TargetOperation = item.TargetOperation,
+            DocumentationPath = item.DocumentationPath
+        })
+        .ToArray();
+
     public PdfTrustMigrationDisposition OverallDisposition => Evidence.Any(static item =>
         item.Disposition == PdfTrustMigrationDisposition.Unsupported)
             ? PdfTrustMigrationDisposition.Unsupported
             : Evidence.Any(static item => item.Disposition == PdfTrustMigrationDisposition.ReviewRequired)
                 ? PdfTrustMigrationDisposition.ReviewRequired
                 : PdfTrustMigrationDisposition.Automatic;
+}
+
+public sealed record PdfTrustMigrationManualAction
+{
+    public required string ActionId { get; init; }
+    public required PdfTrustCapability Capability { get; init; }
+    public required PdfTrustMigrationDisposition Disposition { get; init; }
+    public required string SourceOperation { get; init; }
+    public string? TargetOperation { get; init; }
+    public required string DocumentationPath { get; init; }
 }
 
 public sealed record PdfTrustProviderCapability

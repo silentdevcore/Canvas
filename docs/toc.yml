@@ -8,6 +8,8 @@
   href: code-designer-workspace.md
 - name: PDF Trust Generator Examples
   href: guides/PXA.Pdf-Trust-Generator-Examples.md
+- name: PDF Trust Migration Examples
+  href: guides/PXA.Pdf-Trust-Migration-Examples.md
 - name: API Reference
   href: api/
 - name: Architecture

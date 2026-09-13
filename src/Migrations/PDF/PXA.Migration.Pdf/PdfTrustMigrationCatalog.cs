@@ -10,21 +10,21 @@ public static class PdfTrustMigrationCatalog
         new[]
         {
             Profile(PdfMigrationProviderKeys.ActivePdf, "ActivePDF", "Signature", "Encryption", "Security"),
-            Profile(PdfMigrationProviderKeys.Apryse, "Apryse", "DigitalSignatureField", "SecurityHandler", "Redactor", "PDFACompliance"),
-            Profile(PdfMigrationProviderKeys.AsposePdf, "Aspose.PDF", "SignatureField", "PdfFileSecurity", "RedactionAnnotation", "Convert"),
-            Profile(PdfMigrationProviderKeys.DevExpressPdf, "DevExpress PDF", "PdfDocumentSigner", "PdfEncryptionOptions", "PdfACompatibility"),
-            Profile(PdfMigrationProviderKeys.DsPdf, "DsPdf", "Sign", "Security", "ApplyRedactions", "SaveAsPdfA"),
-            Profile(PdfMigrationProviderKeys.FoxitPdf, "Foxit PDF SDK", "Signature", "SecurityHandler", "Redaction", "PDFCompliance"),
-            Profile(PdfMigrationProviderKeys.GemBoxPdf, "GemBox.Pdf", "PdfSignature", "PdfEncryption", "PdfConformanceLevel"),
+            Profile(PdfMigrationProviderKeys.Apryse, "Apryse", "DigitalSignatureField", "SignOnNextSave", "Timestamp", "ValidateSignature", "OpenEncrypted", "SecurityHandler", "Redactor", "PDFACompliance", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.AsposePdf, "Aspose.PDF", "SignatureField", "PdfFileSignature", "TimestampSettings", "ValidateSignature", "OpenEncrypted", "PdfFileSecurity", "RedactionAnnotation", "ApplyRedactions", "Convert", "PdfAConversion", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.DevExpressPdf, "DevExpress PDF", "PdfDocumentSigner", "Timestamp", "ValidateSignature", "OpenEncrypted", "PdfEncryptionOptions", "ApplyRedactions", "PdfACompatibility", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.DsPdf, "DsPdf", "Sign", "Timestamp", "ValidateSignature", "OpenEncrypted", "Security", "ApplyRedactions", "SaveAsPdfA", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.FoxitPdf, "Foxit PDF SDK", "Signature", "Sign", "Timestamp", "ValidateSignature", "OpenEncrypted", "SecurityHandler", "Redaction", "ApplyRedactions", "PDFCompliance", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.GemBoxPdf, "GemBox.Pdf", "PdfSignature", "Timestamp", "ValidateSignature", "OpenEncrypted", "PdfEncryption", "ApplyRedactions", "PdfConformanceLevel", "PdfUaValidation"),
             Profile(PdfMigrationProviderKeys.IronPdf, "IronPDF", "SignWithDigitalSignature", "SecuritySettings", "ConvertToPdfA"),
-            Profile(PdfMigrationProviderKeys.IText7, "iText 7", "PdfSigner", "TSAClient", "LtvVerification", "SetStandardEncryption", "PdfCleanUpTool", "PdfADocument"),
+            Profile(PdfMigrationProviderKeys.IText7, "iText 7", "PdfSigner", "SignDetached", "TSAClient", "LtvVerification", "OpenEncrypted", "SetStandardEncryption", "PdfCleanUpTool", "PdfADocument", "PdfUaValidation"),
             Profile(PdfMigrationProviderKeys.LeadtoolsPdf, "LEADTOOLS PDF", "Signature", "Encryption", "Security", "PDF/A"),
-            Profile(PdfMigrationProviderKeys.Nutrient, "Nutrient SDK", "SignPDF", "Timestamp", "ApplyRedaction", "Encrypt", "ConvertToPDFA"),
+            Profile(PdfMigrationProviderKeys.Nutrient, "Nutrient SDK", "SignPDF", "Timestamp", "ValidateSignature", "OpenEncrypted", "Encrypt", "ApplyRedaction", "ConvertToPDFA", "PdfUaValidation"),
             Profile(PdfMigrationProviderKeys.PdfKitNet, "PDFKit.NET", "Signature", "Encryption", "Security"),
-            Profile(PdfMigrationProviderKeys.PdfTools, "Pdftools", "Sign", "Timestamp", "Encrypt", "Redact", "Conformance"),
+            Profile(PdfMigrationProviderKeys.PdfTools, "Pdftools", "Sign", "Timestamp", "ValidateSignature", "OpenEncrypted", "Encrypt", "Redact", "Conformance", "PdfUaValidation"),
             Profile(PdfMigrationProviderKeys.PdfToolsToolbox, "Pdftools Toolbox", "Signature", "Encryption", "Redaction", "Conformance"),
-            Profile(PdfMigrationProviderKeys.SpirePdf, "Spire.PDF", "PdfSignature", "PdfCertificate", "PdfSecurity", "PdfRedactionArea", "PdfConformanceLevel"),
-            Profile(PdfMigrationProviderKeys.SyncfusionPdf, "Syncfusion PDF", "PdfSignature", "PdfCertificate", "PdfSecurity", "PdfRedaction", "PdfConformanceLevel")
+            Profile(PdfMigrationProviderKeys.SpirePdf, "Spire.PDF", "PdfSignature", "PdfCertificate", "Timestamp", "ValidateSignature", "OpenEncrypted", "PdfSecurity", "PdfRedactionArea", "ApplyRedactions", "PdfConformanceLevel", "PdfUaValidation"),
+            Profile(PdfMigrationProviderKeys.SyncfusionPdf, "Syncfusion PDF", "PdfSignature", "PdfCertificate", "Timestamp", "ValidateSignature", "OpenEncrypted", "PdfSecurity", "PdfRedaction", "ApplyRedactions", "PdfConformanceLevel", "PdfUaValidation")
         }.ToDictionary(static profile => profile.ProviderKey, StringComparer.OrdinalIgnoreCase);
 
     public static IReadOnlyList<PdfTrustProviderProfile> All { get; } = Profiles.Values

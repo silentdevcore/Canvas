@@ -70,6 +70,26 @@
     "hideDetails": "▲ Masquer les détails",
     "showDetails": "▼ Afficher les détails"
   },
+  "trust": {
+    "title": "Révision de la migration PDF Trust",
+    "description": "{{count}} action de sécurité ou de conformité nécessite une révision manuelle.",
+    "sourceOperation": "Opération source",
+    "targetOperation": "Flux de travail PXA",
+    "openWorkflow": "Ouvrir la documentation du flux de travail",
+    "dispositions": {
+      "ReviewRequired": "Révision requise",
+      "Unsupported": "Non pris en charge"
+    },
+    "capabilities": {
+      "digitalSignature": "Signature numérique",
+      "timestamp": "Horodatage",
+      "signatureValidation": "Validation de signature",
+      "encryption": "Chiffrement",
+      "secureRedaction": "Caviardage sécurisé",
+      "pdfA": "Archivage PDF/A",
+      "pdfUa": "Accessibilité PDF/UA"
+    }
+  },
   "preview": {
     "spreadsheetHeader": "Aperçu de la feuille de calcul",
     "pdfHeader": "Aperçu du PDF",

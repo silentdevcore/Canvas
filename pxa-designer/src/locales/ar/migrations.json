@@ -70,6 +70,26 @@
     "hideDetails": "▲ إخفاء التفاصيل",
     "showDetails": "▼ إظهار التفاصيل"
   },
+  "trust": {
+    "title": "مراجعة ترحيل موثوقية PDF",
+    "description": "يتطلب {{count}} إجراء أمان أو امتثال مراجعة يدوية.",
+    "sourceOperation": "عملية المصدر",
+    "targetOperation": "سير عمل PXA",
+    "openWorkflow": "فتح وثائق سير العمل",
+    "dispositions": {
+      "ReviewRequired": "المراجعة مطلوبة",
+      "Unsupported": "غير مدعوم"
+    },
+    "capabilities": {
+      "digitalSignature": "التوقيع الرقمي",
+      "timestamp": "الختم الزمني",
+      "signatureValidation": "التحقق من التوقيع",
+      "encryption": "التشفير",
+      "secureRedaction": "الحجب الآمن",
+      "pdfA": "أرشفة PDF/A",
+      "pdfUa": "إتاحة PDF/UA"
+    }
+  },
   "preview": {
     "spreadsheetHeader": "معاينة جدول البيانات",
     "pdfHeader": "معاينة PDF",

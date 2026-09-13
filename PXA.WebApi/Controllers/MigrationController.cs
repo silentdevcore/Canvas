@@ -4,6 +4,7 @@ using PXA.Migration.Report;
 using PXA.WebApi.Security;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaMigrationDiagnostic = PXA.Migration.Abstractions.MigrationDiagnostic;
+using PdfTrustMigrationReport = PXA.Migration.Abstractions.PdfTrustMigrationReport;
 
 namespace PXA.WebApi.Controllers;
 
@@ -74,13 +75,46 @@ public class MigrationController : ControllerBase
                     code = d.Code,
                     severity = d.Severity,
                     message = d.Message
-                })
+                }),
+                pdfTrust = CreatePdfTrustResponse(result.PdfTrust)
             });
         }
         catch (ArgumentException ex)
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    private static object? CreatePdfTrustResponse(PdfTrustMigrationReport? report)
+    {
+        if (report is null)
+            return null;
+
+        return new
+        {
+            providerKey = report.ProviderKey,
+            migrationKind = report.MigrationKind,
+            overallDisposition = report.OverallDisposition.ToString(),
+            evidence = report.Evidence.Select(item => new
+            {
+                capability = item.Capability.ToString(),
+                disposition = item.Disposition.ToString(),
+                sourceOperation = item.SourceOperation,
+                targetOperation = item.TargetOperation,
+                diagnosticId = item.DiagnosticId,
+                documentationPath = item.DocumentationPath,
+                providerOptions = item.ProviderOptions
+            }),
+            manualActions = report.ManualActions.Select(action => new
+            {
+                actionId = action.ActionId,
+                capability = action.Capability.ToString(),
+                disposition = action.Disposition.ToString(),
+                sourceOperation = action.SourceOperation,
+                targetOperation = action.TargetOperation,
+                documentationPath = action.DocumentationPath
+            })
+        };
     }
 
     /// <summary>

@@ -780,9 +780,9 @@ Implementation evidence:
   them into comments only.
 - [x] Extend Nutrient code and Viewer migration after each native trust capability is
   delivered; remove deferred diagnostics only when parity tests prove the mapping.
-- [ ] Add provider-specific full examples containing signing, encrypted input,
+- [x] Add provider-specific full examples containing signing, encrypted input,
   redaction, archival conversion, and accessibility validation.
-- [ ] Add migration reports linking each manual action to the matching PXA
+- [x] Add migration reports linking each manual action to the matching PXA
   Documentation workflow.
 - [x] Never transform a visual redaction mark into a claim of applied secure
   redaction or an image of a signature into a valid digital signature.
@@ -797,7 +797,12 @@ Implementation evidence:
   Visual redaction marks and saved signature appearances are always `unsupported` Trust claims.
 - `CSharpPdfTrustEvidenceScanner` enriches all 16 PDF code providers without retaining
   source arguments or secret values; the PDF facade and WebApi return the same report.
-- Provider-complete examples and provider-specific report presentation remain open below.
+- `PdfTrustMigrationExamples` provides secret-free synthetic full fixtures for the eleven
+  prioritized providers. Contract tests run every fixture through its real provider migrator
+  and require evidence for all seven Trust capabilities.
+- `PdfTrustMigrationReport.ManualActions` is exposed by the migration API as a stable,
+  string-enum contract. The Designer presents every review-required or unsupported action
+  with its source operation, target PXA workflow, and a safe link to the matching guide.
 
 ## Authorization, Licensing, and Audit
 

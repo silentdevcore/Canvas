@@ -70,6 +70,26 @@
     "hideDetails": "▲ Hide details",
     "showDetails": "▼ Show details"
   },
+  "trust": {
+    "title": "PDF Trust migration review",
+    "description": "{{count}} security or compliance action requires manual review.",
+    "sourceOperation": "Source operation",
+    "targetOperation": "PXA workflow",
+    "openWorkflow": "Open workflow documentation",
+    "dispositions": {
+      "ReviewRequired": "Review required",
+      "Unsupported": "Unsupported"
+    },
+    "capabilities": {
+      "digitalSignature": "Digital signature",
+      "timestamp": "Timestamp",
+      "signatureValidation": "Signature validation",
+      "encryption": "Encryption",
+      "secureRedaction": "Secure redaction",
+      "pdfA": "PDF/A archival",
+      "pdfUa": "PDF/UA accessibility"
+    }
+  },
   "preview": {
     "spreadsheetHeader": "Spreadsheet Preview",
     "pdfHeader": "PDF Preview",

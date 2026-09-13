@@ -337,6 +337,31 @@ public sealed class PxaSecurityContractsTests
     }
 
     [Fact]
+    public void Migration_controller_returns_linked_pdf_trust_manual_actions()
+    {
+        var controller = new MigrationController(new MigrationService())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext(),
+            },
+        };
+
+        var result = controller.Convert(new MigrationRequest(
+            "iText7",
+            "class Sample { void Run(dynamic pdf) { pdf.PdfSigner(); } }"));
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var body = System.Text.Json.JsonSerializer.SerializeToElement(ok.Value);
+        var trust = body.GetProperty("pdfTrust");
+        Assert.Equal("ReviewRequired", trust.GetProperty("overallDisposition").GetString());
+        var action = Assert.Single(trust.GetProperty("manualActions").EnumerateArray());
+        Assert.Equal("DigitalSignature", action.GetProperty("capability").GetString());
+        Assert.Equal("CANMIGPDFTRUST100", action.GetProperty("actionId").GetString());
+        Assert.StartsWith("/docs/", action.GetProperty("documentationPath").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Account_permissions_are_all_registered_and_mapped_to_at_least_one_role()
     {
         var mappedPermissions = PxaRoles.Permissions.SelectMany(value => value.Value).ToHashSet(StringComparer.Ordinal);

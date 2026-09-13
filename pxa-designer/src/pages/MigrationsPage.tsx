@@ -4,10 +4,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
+import PdfTrustMigrationReport, { type PdfTrustMigrationResult } from '@/components/Migrations/PdfTrustMigrationReport';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { migrationProviderPermission } from '@/auth/designerPermissions';
+import { designerDocumentationUrl } from '@/product/productMetadata';
 
 // Framework ids for the report → PXA Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -919,6 +921,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const [pxaCode, setPxaCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
+  const [pdfTrust, setPdfTrust] = useState<PdfTrustMigrationResult | null>(null);
   const [hasConverted, setHasConverted] = useState(false);
   const [diagOpen, setDiagOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -968,6 +971,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setPxaCode('');
     setDiagnostics([]);
     setSummary(null);
+    setPdfTrust(null);
     setHasConverted(false);
     setDiagOpen(false);
     setPdfUrl(null);
@@ -1001,11 +1005,12 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codeKind, frameworks, user.permissions]);
 
-  const applyConvertResult = (data: { pxaCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
+  const applyConvertResult = (data: { pxaCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary; pdfTrust?: PdfTrustMigrationResult | null }) => {
     const diags = data.diagnostics ?? [];
     setPxaCode(data.pxaCode ?? '');
     setDiagnostics(diags);
     setSummary(data.summary ?? null);
+    setPdfTrust(data.pdfTrust ?? null);
     setHasConverted(true);
     setDiagOpen(diags.some(d => d.severity === 'Warning'));
   };
@@ -1141,6 +1146,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           errorCount: diags.filter(d => d.severity === 'Error').length,
           totalDiagnostics: diags.length,
         });
+        setPdfTrust(null);
         setHasConverted(true);
         setDiagOpen(diags.some(d => d.severity === 'Warning'));
         return;
@@ -1650,6 +1656,10 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               </ul>
             )}
           </div>
+        )}
+
+        {hasConverted && pdfTrust && (
+          <PdfTrustMigrationReport report={pdfTrust} documentationBaseUrl={designerDocumentationUrl} />
         )}
 
         {/* Preview — PDF for PDF code, an HTML grid for spreadsheet code */}

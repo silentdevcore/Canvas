@@ -70,6 +70,26 @@
     "hideDetails": "▲ Details ausblenden",
     "showDetails": "▼ Details anzeigen"
   },
+  "trust": {
+    "title": "Prüfung der PDF-Trust-Migration",
+    "description": "{{count}} Sicherheits- oder Compliance-Aktion erfordert eine manuelle Prüfung.",
+    "sourceOperation": "Quelloperation",
+    "targetOperation": "PXA-Arbeitsablauf",
+    "openWorkflow": "Dokumentation zum Arbeitsablauf öffnen",
+    "dispositions": {
+      "ReviewRequired": "Prüfung erforderlich",
+      "Unsupported": "Nicht unterstützt"
+    },
+    "capabilities": {
+      "digitalSignature": "Digitale Signatur",
+      "timestamp": "Zeitstempel",
+      "signatureValidation": "Signaturprüfung",
+      "encryption": "Verschlüsselung",
+      "secureRedaction": "Sichere Schwärzung",
+      "pdfA": "PDF/A-Archivierung",
+      "pdfUa": "PDF/UA-Barrierefreiheit"
+    }
+  },
   "preview": {
     "spreadsheetHeader": "Tabellenvorschau",
     "pdfHeader": "PDF-Vorschau",
