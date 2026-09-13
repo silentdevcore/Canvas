@@ -71,6 +71,7 @@ public sealed class PostgreSqlPersistenceTests
         var objectId = Guid.NewGuid();
         var auditEventId = Guid.NewGuid();
         var trustJobId = Guid.NewGuid();
+        var backgroundJobId = Guid.NewGuid();
 
         await using (var context = new PxaDbContext(options))
         {
@@ -103,6 +104,7 @@ public sealed class PostgreSqlPersistenceTests
             });
             context.BackgroundJobs.Add(new PxaBackgroundJob
             {
+                Id = backgroundJobId,
                 OrganizationId = organizationId,
                 CreatedByUserId = userId,
                 Type = "test",
@@ -127,6 +129,7 @@ public sealed class PostgreSqlPersistenceTests
                 OrganizationId = organizationId,
                 ActorUserId = userId,
                 AuditEventId = auditEventId,
+                BackgroundJobId = backgroundJobId,
                 Operation = "pdf.signature.created",
                 Policy = "BaselineB",
                 InputSha256 = new string('a', 64),
@@ -144,6 +147,7 @@ public sealed class PostgreSqlPersistenceTests
         Assert.Single(await verification.StoredObjects.ToListAsync());
         var trustJob = await verification.PdfTrustOperationJobs.SingleAsync();
         Assert.Equal(auditEventId, trustJob.AuditEventId);
+        Assert.Equal(backgroundJobId, trustJob.BackgroundJobId);
 
         var exception = await Assert.ThrowsAsync<PostgresException>(() =>
             verification.Database.ExecuteSqlInterpolatedAsync(

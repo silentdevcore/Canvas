@@ -370,6 +370,18 @@ allowSignatureInvalidation=false`,
         note: 'Preflight returns ready, reviewRequired, or unsupported without changing the source. The converter preserves visible PDF objects and replaces PDF/A identification metadata and the RGB output intent. It blocks encryption, unembedded fonts, unsupported color spaces, interactive forms, PDF/A-2 attachments, JavaScript and additional actions, forbidden Launch or multimedia actions, hidden or non-printing annotations, external stream dependencies, non-default transfer functions, and metadata that cannot be synchronized safely. URI, GoTo, and GoToR links are not rejected merely because they reference a destination. PDF/A-3 retains embedded files only when PXA can establish valid file relationships and associations. Findings include stable diagnostics and affected PDF object numbers. A source with invisible signature fields is reviewRequired because the required full rewrite invalidates and removes those signatures; conversion proceeds only after explicit approval. Visible signature appearances remain unsupported until they can be flattened without visual loss. A blocked or failed conversion returns no PDF and the original remains unchanged. PXA does not yet claim an exhaustive ISO rule implementation for every annotation appearance, optional-content, transparency-group, soft-mask, blend-space, and rendering-intent combination.',
       },
       {
+        title: 'Inspect through a tenant-scoped job',
+        json: `POST /api/pxa/v1/pdf/trust/inspect/jobs
+Content-Type: multipart/form-data
+
+file=@source.pdf
+
+GET /api/pxa/v1/jobs/{jobId}
+GET /api/pxa/v1/jobs/{jobId}/result
+POST /api/pxa/v1/jobs/{jobId}/cancel`,
+        note: 'The Viewer uses this asynchronous path. The upload, job, report, and immutable audit correlation are tenant-scoped. Inspection content expires after one hour by default and transient input and result objects are purged after the first successful result download. Cancelling the Viewer request also cancels queued work. The protected synchronous /api/pxa/v1/pdf/trust/inspect endpoint remains available for compatibility.',
+      },
+      {
         title: 'On-Premise trust policy',
         json: `{
   "PdfTrust": {

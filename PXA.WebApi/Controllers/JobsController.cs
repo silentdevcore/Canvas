@@ -47,7 +47,9 @@ public sealed class JobsController(
             job.Status = PxaBackgroundJobStatus.Cancelled;
             job.CompletedAt = DateTimeOffset.UtcNow;
             job.ExpiresAt = job.RetentionMode == PxaJobRetentionMode.Transient
-                ? job.CompletedAt.Value.AddHours(jobOptions.Value.TransientRetentionHours)
+                ? job.CompletedAt.Value.AddHours(job.Type == PxaJobQueue.PdfTrustInspectionType
+                    ? jobOptions.Value.PdfTrustInspectionRetentionHours
+                    : jobOptions.Value.TransientRetentionHours)
                 : job.CompletedAt.Value.AddDays(jobOptions.Value.ResultRetentionDays);
             job.MetadataExpiresAt = job.CompletedAt.Value.AddDays(jobOptions.Value.TerminalMetadataRetentionDays);
             job.UpdatedAt = DateTimeOffset.UtcNow;

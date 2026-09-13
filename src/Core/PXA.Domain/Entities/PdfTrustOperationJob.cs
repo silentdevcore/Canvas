@@ -6,6 +6,7 @@ public sealed class PdfTrustOperationJob
     public Guid OrganizationId { get; set; }
     public Guid ActorUserId { get; set; }
     public Guid AuditEventId { get; set; }
+    public Guid? BackgroundJobId { get; set; }
     public required string Operation { get; set; }
     public required string Policy { get; set; }
     public required string InputSha256 { get; set; }

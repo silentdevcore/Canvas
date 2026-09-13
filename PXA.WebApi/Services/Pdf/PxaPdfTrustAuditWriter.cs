@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Security;
@@ -16,11 +17,17 @@ public sealed record PxaPdfTrustAuditEntry(
     string? AuditTargetType = null,
     string? AuditTargetId = null,
     string? AuditDetailsJson = null,
-    DateTimeOffset? OccurredAt = null);
+    DateTimeOffset? OccurredAt = null,
+    Guid? BackgroundJobId = null);
 
 public interface IPxaPdfTrustAuditWriter
 {
     Task WriteAsync(PxaPdfTrustAuditEntry entry, CancellationToken cancellationToken = default);
+    Task WriteForTenantAsync(
+        Guid organizationId,
+        Guid actorUserId,
+        PxaPdfTrustAuditEntry entry,
+        CancellationToken cancellationToken = default) => WriteAsync(entry, cancellationToken);
 }
 
 public sealed class PxaPdfTrustAuditWriter(
@@ -34,6 +41,15 @@ public sealed class PxaPdfTrustAuditWriter(
     {
         if (tenantContext.OrganizationId is not { } organizationId || tenantContext.UserId is not { } actorUserId)
             throw new InvalidOperationException("PDF Trust audit requires an authenticated tenant context.");
+        await WriteForTenantAsync(organizationId, actorUserId, entry, cancellationToken);
+    }
+
+    public async Task WriteForTenantAsync(
+        Guid organizationId,
+        Guid actorUserId,
+        PxaPdfTrustAuditEntry entry,
+        CancellationToken cancellationToken = default)
+    {
         if (!IsSha256(entry.InputSha256) || entry.OutputSha256 is not null && !IsSha256(entry.OutputSha256))
             throw new ArgumentException("PDF Trust audit hashes must be lowercase SHA-256 values.", nameof(entry));
 
@@ -43,6 +59,13 @@ public sealed class PxaPdfTrustAuditWriter(
             .ToArray();
         if (diagnosticCodes.Length > 256 || diagnosticCodes.Any(value => value.Length is 0 or > 80))
             throw new ArgumentException("PDF Trust diagnostic codes exceed their safety limits.", nameof(entry));
+        if (entry.BackgroundJobId is { } backgroundJobId &&
+            await dbContext.PdfTrustOperationJobs.AnyAsync(
+                value => value.BackgroundJobId == backgroundJobId,
+                cancellationToken))
+        {
+            return;
+        }
 
         var traceId = httpContextAccessor.HttpContext?.TraceIdentifier;
         var operationId = Guid.NewGuid();
@@ -56,6 +79,7 @@ public sealed class PxaPdfTrustAuditWriter(
             DiagnosticCodes = diagnosticCodes,
             entry.KeyIdentifier,
             OperationJobId = operationId,
+            entry.BackgroundJobId,
             TraceId = traceId,
         }, JsonOptions);
 
@@ -65,6 +89,7 @@ public sealed class PxaPdfTrustAuditWriter(
             OrganizationId = organizationId,
             ActorUserId = actorUserId,
             AuditEventId = auditEventId,
+            BackgroundJobId = entry.BackgroundJobId,
             Operation = entry.Operation,
             Policy = entry.Policy,
             InputSha256 = entry.InputSha256,

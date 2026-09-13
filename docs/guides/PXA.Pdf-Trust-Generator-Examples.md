@@ -84,6 +84,28 @@ only removable regions through `PdfRedactionApplier` with an explicit
 `PdfRedactionSanitizationPolicy`. A visual rectangle is not a redaction. Distribute output only
 after the apply result reports successful verification.
 
+## Tenant-Scoped Trust Inspection Jobs
+
+The PXA Viewer submits inspection work to
+`POST /api/pxa/v1/pdf/trust/inspect/jobs`. The endpoint accepts one bounded PDF upload
+and returns `202 Accepted` with a tenant-scoped job ID and status URL. Poll the status
+URL and download the JSON report only after the job reaches `Completed`.
+
+```text
+POST /api/pxa/v1/pdf/trust/inspect/jobs
+GET  /api/pxa/v1/jobs/{jobId}
+GET  /api/pxa/v1/jobs/{jobId}/result
+POST /api/pxa/v1/jobs/{jobId}/cancel
+```
+
+Inspection inputs and reports use transient object storage. Their content expires
+after one hour by default and is purged after the first successful result download;
+terminal job metadata is retained separately for operational diagnosis. Every
+completed inspection is correlated with an immutable operation record and append-only
+audit event by document hash and job ID. Another organization cannot read the job,
+input, report, or audit evidence. `POST /api/pxa/v1/pdf/trust/inspect` remains a
+protected synchronous compatibility endpoint for existing integrations.
+
 ## One Final-Byte Trust Pipeline
 
 Use `IPdfTrustPostProcessingPipeline` when multiple operations must be applied safely. Destructive

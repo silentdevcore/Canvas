@@ -23,6 +23,7 @@ internal sealed class PdfTrustOperationJobConfiguration : IEntityTypeConfigurati
         builder.Property(value => value.KeyIdentifier).HasMaxLength(256);
         builder.Property(value => value.TraceId).HasMaxLength(128);
         builder.HasIndex(value => value.AuditEventId).IsUnique();
+        builder.HasIndex(value => value.BackgroundJobId).IsUnique();
         builder.HasIndex(value => new { value.OrganizationId, value.CreatedAt });
         builder.HasIndex(value => new { value.Operation, value.CreatedAt });
         builder.HasIndex(value => value.InputSha256);

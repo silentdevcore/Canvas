@@ -259,6 +259,7 @@ builder.Services.AddOptions<PxaJobOptions>()
             options.MaximumAttempts is >= 1 and <= 20 &&
             options.ResultRetentionDays is >= 1 and <= 3650 &&
             options.TransientRetentionHours is >= 1 and <= 24 &&
+            options.PdfTrustInspectionRetentionHours is >= 1 and <= 24 &&
             options.TerminalMetadataRetentionDays is >= 1 and <= 3650 &&
             options.CleanupIntervalMinutes is >= 1 and <= 1440 &&
             options.CleanupBatchSize is >= 1 and <= 10000 &&
@@ -473,6 +474,7 @@ builder.Services.AddSingleton<IPxaObjectStorage, FileSystemPxaObjectStorage>();
 builder.Services.AddScoped<PxaStoredObjectService>();
 builder.Services.AddScoped<IPxaJobQueue, PxaJobQueue>();
 builder.Services.AddScoped<PxaJobProcessor>();
+builder.Services.AddScoped<PdfTrustInspectionJobExecutor>();
 builder.Services.AddScoped<PxaJobRetentionService>();
 if (!builder.Environment.IsEnvironment("Testing"))
 {

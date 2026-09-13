@@ -33,6 +33,7 @@ public sealed class PxaJobQueue(
     public const string DocumentExportType = "document.export";
     public const string CodeMigrationType = "migration.code";
     public const string DesignerCodeExecutionType = "designer.code-execution";
+    public const string PdfTrustInspectionType = "pdf.trust-inspection";
     public static IReadOnlyList<string> SupportedTypes { get; } =
     [
         TemplateRenderType,
@@ -40,6 +41,7 @@ public sealed class PxaJobQueue(
         DocumentExportType,
         CodeMigrationType,
         DesignerCodeExecutionType,
+        PdfTrustInspectionType,
     ];
 
     public async Task<PxaBackgroundJob> EnqueueTemplateRenderAsync(
@@ -68,7 +70,7 @@ public sealed class PxaJobQueue(
             TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
             RetentionMode = retentionMode,
-            ExpiresAt = GetContentExpiry(retentionMode, DateTimeOffset.UtcNow),
+            ExpiresAt = GetContentExpiry(TemplateRenderType, retentionMode, DateTimeOffset.UtcNow),
             MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.TerminalMetadataRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
@@ -84,7 +86,7 @@ public sealed class PxaJobQueue(
         CancellationToken cancellationToken,
         PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient)
     {
-        if (type is not (DocumentImportType or DocumentExportType or CodeMigrationType))
+        if (type is not (DocumentImportType or DocumentExportType or CodeMigrationType or PdfTrustInspectionType))
             throw new ArgumentException("The document job type is unsupported.", nameof(type));
         var organizationId = tenantContext.OrganizationId ??
             throw new UnauthorizedAccessException("An active organization is required.");
@@ -111,7 +113,7 @@ public sealed class PxaJobQueue(
             TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
             RetentionMode = retentionMode,
-            ExpiresAt = GetContentExpiry(retentionMode, DateTimeOffset.UtcNow),
+            ExpiresAt = GetContentExpiry(type, retentionMode, DateTimeOffset.UtcNow),
             MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.TerminalMetadataRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
@@ -120,9 +122,14 @@ public sealed class PxaJobQueue(
         return job;
     }
 
-    private DateTimeOffset GetContentExpiry(PxaJobRetentionMode retentionMode, DateTimeOffset now) =>
+    private DateTimeOffset GetContentExpiry(
+        string type,
+        PxaJobRetentionMode retentionMode,
+        DateTimeOffset now) =>
         retentionMode == PxaJobRetentionMode.Transient
-            ? now.AddHours(options.Value.TransientRetentionHours)
+            ? now.AddHours(type == PdfTrustInspectionType
+                ? options.Value.PdfTrustInspectionRetentionHours
+                : options.Value.TransientRetentionHours)
             : now.AddDays(options.Value.ResultRetentionDays);
 }
 
@@ -134,3 +141,4 @@ public sealed record TemplateRenderJobPayload(
 public sealed record DocumentImportJobPayload(string Extension, string? Name);
 public sealed record DocumentExportJobPayload(string Format, float? Dpi, int? Quality);
 public sealed record CodeMigrationJobPayload(string Framework);
+public sealed record PdfTrustInspectionJobPayload(string ValidationPolicy);

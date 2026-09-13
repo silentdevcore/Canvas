@@ -177,6 +177,19 @@ export interface PdfA2bConversionPreflightReport {
   }>;
 }
 
+interface PxaJobAcceptedResponse {
+  jobId: string;
+  status: string;
+  statusUrl: string;
+}
+
+interface PxaJobResponse {
+  id: string;
+  status: string;
+  downloadUrl?: string | null;
+  failureReason?: string | null;
+}
+
 async function readProblem(response: Response, fallback: string): Promise<never> {
   const problem = await response.json().catch(() => ({}));
   const message = problem.detail || problem.title || `${fallback} (${response.status}).`;
@@ -241,12 +254,63 @@ async function trustFetch(
 export async function inspectPdfTrust(file: File, signal?: AbortSignal): Promise<PdfTrustReport> {
   const form = new FormData();
   form.append('file', file);
-  const response = await trustFetch('/api/pxa/v1/pdf/trust/inspect', {
+  const response = await trustFetch('/api/pxa/v1/pdf/trust/inspect/jobs', {
     method: 'POST',
     body: form,
   }, 'PDF Trust inspection failed', signal);
+  const accepted = await response.json() as PxaJobAcceptedResponse;
+  const deadline = Date.now() + 60_000;
 
-  return response.json() as Promise<PdfTrustReport>;
+  try {
+    while (true) {
+      if (signal?.aborted) {
+        throw new PdfTrustOperationError('cancelled', 'The PDF Trust inspection was cancelled.');
+      }
+      if (Date.now() >= deadline) {
+        throw new PdfTrustOperationError('timeout', 'The PDF Trust inspection timed out.');
+      }
+      const statusResponse = await trustFetch(accepted.statusUrl, {
+        method: 'GET',
+      }, 'PDF Trust inspection status failed', signal);
+      const job = await statusResponse.json() as PxaJobResponse;
+      const status = job.status.toLowerCase();
+      if (status === 'completed' && job.downloadUrl) {
+        const result = await trustFetch(job.downloadUrl, {
+          method: 'GET',
+        }, 'PDF Trust inspection result failed', signal);
+        return result.json() as Promise<PdfTrustReport>;
+      }
+      if (status === 'completed') {
+        throw new PdfTrustOperationError('failed', 'The PDF Trust inspection result is unavailable.');
+      }
+      if (status === 'failed' || status === 'deadletter' || status === 'expired') {
+        throw new PdfTrustOperationError(
+          'failed',
+          job.failureReason || 'The PDF Trust inspection did not complete.',
+        );
+      }
+      if (status === 'cancelled') {
+        throw new PdfTrustOperationError('cancelled', 'The PDF Trust inspection was cancelled.');
+      }
+      await new Promise<void>((resolve, reject) => {
+        const onAbort = () => {
+          window.clearTimeout(timeout);
+          reject(new PdfTrustOperationError('cancelled', 'The PDF Trust inspection was cancelled.'));
+        };
+        const timeout = window.setTimeout(() => {
+          signal?.removeEventListener('abort', onAbort);
+          resolve();
+        }, 300);
+        signal?.addEventListener('abort', onAbort, { once: true });
+      });
+    }
+  } catch (error) {
+    if (signal?.aborted || error instanceof PdfTrustOperationError &&
+      (error.kind === 'cancelled' || error.kind === 'timeout')) {
+      void fetch(`/api/pxa/v1/jobs/${accepted.jobId}/cancel`, { method: 'POST' }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 export type PdfArchiveProfile = 'PDF/A-2b' | 'PDF/A-3b';

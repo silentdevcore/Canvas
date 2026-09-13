@@ -34,21 +34,42 @@ describe('PDF Trust API', () => {
     global.fetch = fetchMock;
   });
 
-  test('uploads the PDF through the canonical trust endpoint', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => report,
-    } as Response);
+  test('uploads and resolves a tenant-scoped PDF Trust job', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({
+          jobId: 'trust-job-1',
+          status: 'Pending',
+          statusUrl: '/api/pxa/v1/jobs/trust-job-1',
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'trust-job-1',
+          status: 'Completed',
+          downloadUrl: '/api/pxa/v1/jobs/trust-job-1/result',
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => report,
+      } as Response);
     const file = new File(['%PDF-1.7'], 'trust.pdf', { type: 'application/pdf' });
 
     await expect(inspectPdfTrust(file)).resolves.toEqual(report);
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/pxa/v1/pdf/trust/inspect');
+    expect(url).toBe('/api/pxa/v1/pdf/trust/inspect/jobs');
     expect(init?.method).toBe('POST');
     expect(init?.body).toBeInstanceOf(FormData);
     expect((init?.body as FormData).get('file')).toBe(file);
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/pxa/v1/jobs/trust-job-1');
+    expect(fetchMock.mock.calls[2][0]).toBe('/api/pxa/v1/jobs/trust-job-1/result');
   });
 
   test('surfaces Problem Details without claiming an inspection result', async () => {
@@ -92,6 +113,38 @@ describe('PDF Trust API', () => {
       new File(['%PDF-1.7'], 'trust.pdf'),
       controller.signal,
     )).rejects.toMatchObject({ kind: 'cancelled' });
+  });
+
+  test('cancels the queued trust job when the caller aborts during polling', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({
+          jobId: 'trust-job-cancel',
+          status: 'Pending',
+          statusUrl: '/api/pxa/v1/jobs/trust-job-cancel',
+        }),
+      } as Response)
+      .mockImplementationOnce((_url, init: RequestInit) => new Promise((_resolve, reject) => {
+        init.signal?.addEventListener('abort', () => reject(new DOMException('Cancelled', 'AbortError')));
+      }))
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+    const controller = new AbortController();
+    const operation = inspectPdfTrust(
+      new File(['%PDF-1.7'], 'trust.pdf', { type: 'application/pdf' }),
+      controller.signal,
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    controller.abort();
+
+    await expect(operation).rejects.toMatchObject({ kind: 'cancelled' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/pxa/v1/jobs/trust-job-cancel/cancel',
+      { method: 'POST' },
+    );
   });
 
   test('returns the machine-readable PDF/A preflight report', async () => {

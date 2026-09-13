@@ -1713,6 +1713,9 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AuditEventId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BackgroundJobId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1765,6 +1768,9 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasIndex("ActorUserId");
 
                     b.HasIndex("AuditEventId")
+                        .IsUnique();
+
+                    b.HasIndex("BackgroundJobId")
                         .IsUnique();
 
                     b.HasIndex("InputSha256");

@@ -140,6 +140,8 @@ public sealed class PxaDbContextModelTests
         Assert.Contains(job!.GetIndexes(), index =>
             index.IsUnique && index.Properties.Single().Name == nameof(PdfTrustOperationJob.AuditEventId));
         Assert.Contains(job.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(PdfTrustOperationJob.BackgroundJobId));
+        Assert.Contains(job.GetIndexes(), index =>
             index.Properties.Select(property => property.Name)
                 .SequenceEqual([nameof(PdfTrustOperationJob.OrganizationId), nameof(PdfTrustOperationJob.CreatedAt)]));
     }

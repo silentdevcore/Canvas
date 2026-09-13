@@ -46,6 +46,7 @@ public sealed class PxaJobProcessorTests
         var settings = Options.Create(new PxaJobOptions
         {
             TransientRetentionHours = 24,
+            PdfTrustInspectionRetentionHours = 1,
             ResultRetentionDays = 7,
             TerminalMetadataRetentionDays = 30,
         });
@@ -66,12 +67,23 @@ public sealed class PxaJobProcessorTests
             new DocumentExportJobPayload("pdf", null, null),
             CancellationToken.None,
             PxaJobRetentionMode.Retained);
+        var trustInspection = await queue.EnqueueDocumentJobAsync(
+            PxaJobQueue.PdfTrustInspectionType,
+            inputId,
+            new PdfTrustInspectionJobPayload("configured-validation-policy"),
+            CancellationToken.None);
 
         Assert.Equal(PxaJobRetentionMode.Transient, transient.RetentionMode);
         Assert.InRange(transient.ExpiresAt, before.AddHours(24), DateTimeOffset.UtcNow.AddHours(24));
         Assert.Equal(PxaJobRetentionMode.Retained, retained.RetentionMode);
         Assert.InRange(retained.ExpiresAt, before.AddDays(7), DateTimeOffset.UtcNow.AddDays(7));
         Assert.InRange(transient.MetadataExpiresAt, before.AddDays(30), DateTimeOffset.UtcNow.AddDays(30));
+        Assert.Equal(PxaJobQueue.PdfTrustInspectionType, trustInspection.Type);
+        Assert.Equal(PxaJobRetentionMode.Transient, trustInspection.RetentionMode);
+        Assert.InRange(
+            trustInspection.ExpiresAt,
+            before.AddHours(1),
+            DateTimeOffset.UtcNow.AddHours(1));
     }
 
     [PostgreSqlFact]
@@ -214,6 +226,7 @@ public sealed class PxaJobProcessorTests
                 new PXA.Application.UseCases.ExportDocumentUseCase(
                     Array.Empty<PXA.Core.Abstractions.IDocumentExporter>()),
                 new PXA.WebApi.Services.MigrationService(),
+                null!,
                 Options.Create(new PxaJobOptions()),
                 NullLogger<PxaJobProcessor>.Instance);
 

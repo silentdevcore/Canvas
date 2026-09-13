@@ -137,8 +137,17 @@ Reference material:
   without storing document content.
 - [x] Expose `POST /api/pxa/v1/pdf/trust/inspect` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
-- [ ] Enforce tenant-scoped jobs, file limits, cancellation, short retention, and
+- [x] Enforce tenant-scoped jobs, file limits, cancellation, short retention, and
   audit events for trust inspections.
+  The Viewer submits inspection uploads to the tenant-scoped `pdf.trust-inspection`
+  background-job path, polls without document-content telemetry, cancels queued work
+  when the user aborts, and downloads a tenant-checked JSON result. Input and result
+  content use transient storage with a configurable one-hour retention ceiling and
+  are purged after result download; request and inspector size limits remain enforced.
+  Each completed job is uniquely correlated with its immutable operation record and
+  append-only audit event. The synchronous inspection endpoint remains as a protected
+  compatibility path with the same upload limit, request cancellation, and audit
+  behavior.
 - [ ] Add synthetic examples for clean, malformed, encrypted, signed, archived,
   accessible, and redaction-risk PDFs.
 

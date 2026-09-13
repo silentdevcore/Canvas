@@ -60,6 +60,12 @@ public sealed class PdfTrustControllerTests
         var trustAuthorization = Assert.Single(type.GetMethod(nameof(PdfTrustController.Inspect))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
         Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, trustAuthorization.Policy);
+        var jobAuthorization = Assert.Single(type.GetMethod(nameof(PdfTrustController.EnqueueInspection))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, jobAuthorization.Policy);
+        Assert.Equal(
+            PxaDesignerPermissions.PdfTrustInspect,
+            PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/trust/inspect/jobs", HttpMethods.Post));
 
         var complianceAuthorization = Assert.Single(typeof(PdfTrustController)
             .GetMethod(nameof(PdfTrustController.ValidateCompliance))!
@@ -128,7 +134,10 @@ public sealed class PdfTrustControllerTests
         new PdfTrustInspector(),
         new TestPdfA2bConverter(),
         new TestTrustPolicyProvider(),
-        new NullTrustAuditWriter())
+        new NullTrustAuditWriter(),
+        null!,
+        null!,
+        null!)
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };

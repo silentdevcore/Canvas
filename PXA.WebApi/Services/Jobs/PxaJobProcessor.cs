@@ -19,6 +19,7 @@ public sealed class PxaJobProcessor(
     IEnumerable<IFileImporter> importers,
     ExportDocumentUseCase exportUseCase,
     MigrationService migrationService,
+    PdfTrustInspectionJobExecutor pdfTrustInspection,
     IOptions<PxaJobOptions> options,
     ILogger<PxaJobProcessor> logger)
 {
@@ -49,6 +50,7 @@ public sealed class PxaJobProcessor(
                 PxaJobQueue.DocumentImportType => await ImportDocumentAsync(job, cancellationToken),
                 PxaJobQueue.DocumentExportType => await ExportDocumentAsync(job, cancellationToken),
                 PxaJobQueue.CodeMigrationType => await MigrateCodeAsync(job, cancellationToken),
+                PxaJobQueue.PdfTrustInspectionType => await InspectPdfTrustAsync(job, cancellationToken),
                 _ => throw new PxaPermanentJobException($"Unsupported job type '{job.Type}'."),
             };
             job.ResultObjectId = execution.Result.Id;
@@ -305,6 +307,15 @@ public sealed class PxaJobProcessor(
         }
     }
 
+    private async Task<JobExecutionResult> InspectPdfTrustAsync(
+        PxaBackgroundJob job,
+        CancellationToken cancellationToken)
+    {
+        _ = Deserialize<PdfTrustInspectionJobPayload>(job);
+        var execution = await pdfTrustInspection.ExecuteAsync(job, cancellationToken);
+        return new JobExecutionResult(execution.Result, execution.DiagnosticsJson);
+    }
+
     private async Task<(PxaStoredObject Metadata, Stream Content)> RequireInputAsync(
         PxaBackgroundJob job,
         CancellationToken cancellationToken)
@@ -334,7 +345,9 @@ public sealed class PxaJobProcessor(
     private void ApplyTerminalRetention(PxaBackgroundJob job, DateTimeOffset completedAt)
     {
         job.ExpiresAt = job.RetentionMode == PxaJobRetentionMode.Transient
-            ? completedAt.AddHours(settings.TransientRetentionHours)
+            ? completedAt.AddHours(job.Type == PxaJobQueue.PdfTrustInspectionType
+                ? settings.PdfTrustInspectionRetentionHours
+                : settings.TransientRetentionHours)
             : completedAt.AddDays(settings.ResultRetentionDays);
         job.MetadataExpiresAt = completedAt.AddDays(settings.TerminalMetadataRetentionDays);
     }
@@ -346,6 +359,7 @@ public sealed class PxaJobProcessor(
             PxaJobQueue.DocumentImportType => "import",
             PxaJobQueue.DocumentExportType => "export",
             PxaJobQueue.CodeMigrationType => "migration",
+            PxaJobQueue.PdfTrustInspectionType => "pdf_trust_inspection",
             _ => "other",
         };
 }

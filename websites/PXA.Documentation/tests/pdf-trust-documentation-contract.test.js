@@ -129,6 +129,14 @@ test('PDF Trust documentation keeps trust policy server-owned', () => {
   assert.doesNotMatch(source, /"crlUrl":/);
 });
 
+test('PDF Trust documentation describes tenant-scoped inspection jobs and retention', () => {
+  assert.match(source, /POST \/api\/pxa\/v1\/pdf\/trust\/inspect\/jobs/);
+  assert.match(source, /GET \/api\/pxa\/v1\/jobs\/\{jobId\}\/result/);
+  assert.match(source, /expires after one hour by default/);
+  assert.match(source, /immutable audit correlation are tenant-scoped/);
+  assert.match(source, /synchronous \/api\/pxa\/v1\/pdf\/trust\/inspect endpoint remains available for compatibility/);
+});
+
 test('Redaction documentation states what is detected and what is sanitized', () => {
   assert.match(source, /narrows coverage by the clipping paths in force/);
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);
