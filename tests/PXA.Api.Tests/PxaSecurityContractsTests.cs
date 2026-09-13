@@ -195,6 +195,12 @@ public sealed class PxaSecurityContractsTests
     [InlineData("/api/pxa/v1/migrations/pdf/viewer/convert", "POST", PxaDesignerPermissions.MigrationPdfExecute)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006", "GET", PxaDesignerPermissions.JobsRead)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006/cancel", "POST", PxaDesignerPermissions.JobsCancel)]
+    [InlineData("/api/pxa/v1/pdf/trust/inspect", "POST", PxaDesignerPermissions.PdfTrustInspect)]
+    [InlineData("/api/pxa/v1/pdf/compliance/validate", "POST", PxaDesignerPermissions.PdfComplianceValidate)]
+    [InlineData("/api/pxa/v1/pdf/compliance/preflight", "POST", PxaDesignerPermissions.PdfComplianceValidate)]
+    [InlineData("/api/pxa/v1/pdf/compliance/convert", "POST", PxaDesignerPermissions.PdfComplianceConvert)]
+    [InlineData("/api/pxa/v1/pdf/trust/policies", "PUT", PxaDesignerPermissions.PdfSignatureTrustPoliciesManage)]
+    [InlineData("/api/pxa/v1/pdf/trust/key-providers", "PUT", PxaDesignerPermissions.PdfSignatureKeyProvidersManage)]
     public void Designer_shared_api_routes_resolve_to_the_required_permission(
         string path,
         string method,

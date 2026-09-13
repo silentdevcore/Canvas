@@ -31,10 +31,13 @@ public static class PxaDesignerPermissions
     public const string PdfExport = "designer.pdf.export";
     public const string PdfPrint = "designer.pdf.print";
     public const string PdfTrustInspect = "designer.pdf.trust.inspect";
+    public const string PdfComplianceValidate = "designer.pdf.compliance.validate";
+    public const string PdfComplianceConvert = "designer.pdf.compliance.convert";
     public const string PdfSignaturesValidate = "designer.pdf.signatures.validate";
     public const string PdfSignaturesSign = "designer.pdf.signatures.sign";
     public const string PdfSignatureTrustPoliciesManage = "designer.pdf.signatures.trust-policies.manage";
     public const string PdfSignatureKeyProvidersUse = "designer.pdf.signatures.key-providers.use";
+    public const string PdfSignatureKeyProvidersManage = "designer.pdf.signatures.key-providers.manage";
     public const string PdfRedactionsInspect = "designer.pdf.redactions.inspect";
     public const string PdfRedactionsApply = "designer.pdf.redactions.apply";
     public const string DocumentEdit = "designer.document.edit";
@@ -90,10 +93,13 @@ public static class PxaDesignerPermissions
         PdfExport,
         PdfPrint,
         PdfTrustInspect,
+        PdfComplianceValidate,
+        PdfComplianceConvert,
         PdfSignaturesValidate,
         PdfSignaturesSign,
         PdfSignatureTrustPoliciesManage,
         PdfSignatureKeyProvidersUse,
+        PdfSignatureKeyProvidersManage,
         PdfRedactionsInspect,
         PdfRedactionsApply,
         DocumentEdit,
@@ -148,6 +154,17 @@ public static class PxaDesignerPermissionResolver
 
         if (StartsWith(value, "/api/pxa/v1/migrations/pdf/viewer"))
             return PxaDesignerPermissions.MigrationPdfExecute;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/compliance"))
+            return value.EndsWith("/convert", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfComplianceConvert
+                : PxaDesignerPermissions.PdfComplianceValidate;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/trust/policies"))
+            return PxaDesignerPermissions.PdfSignatureTrustPoliciesManage;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/trust/key-providers"))
+            return PxaDesignerPermissions.PdfSignatureKeyProvidersManage;
 
         if (StartsWith(value, "/api/pxa/v1/pdf/trust"))
             return PxaDesignerPermissions.PdfTrustInspect;

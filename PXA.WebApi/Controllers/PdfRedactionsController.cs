@@ -17,7 +17,6 @@ namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pxa/v1/pdf/redactions")]
-[Authorize(Policy = PxaDesignerPermissions.PdfRedactionsInspect)]
 [EnableRateLimiting("designer-code")]
 public sealed class PdfRedactionsController(
     IPdfRedactionPreflight preflight,
@@ -38,6 +37,7 @@ public sealed class PdfRedactionsController(
     /// This endpoint never mutates the uploaded document.
     /// </summary>
     [HttpPost("preflight")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfRedactionsInspect)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(typeof(PdfRedactionPreflightReport), StatusCodes.Status200OK)]
@@ -102,7 +102,7 @@ public sealed class PdfRedactionsController(
     /// </summary>
     [HttpPost("apply")]
     [Consumes("multipart/form-data")]
-    [Authorize(Policy = PxaDesignerPermissions.PdfRedactionsApply)]
+    [Authorize(Policy = PxaSecurityPolicies.AppliedPdfRedaction)]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -255,6 +255,7 @@ public sealed class PdfRedactionsController(
     /// restricted to the active organization and never falls back to another tenant.
     /// </summary>
     [HttpGet("audits/{recordSha256}")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfRedactionsInspect)]
     [ProducesResponseType(typeof(PdfRedactionAuditRecord), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

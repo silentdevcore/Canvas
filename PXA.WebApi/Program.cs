@@ -187,9 +187,26 @@ builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaPdfTrustPolicyProvider,
     PXA.WebApi.Services.Pdf.PxaPdfTrustPolicyProvider>();
+builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaPdfTrustRuntimeOptions>()
+    .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaPdfTrustRuntimeOptions.SectionName))
+    .Validate(options => options.DeploymentMode is "Cloud" or "OnPremise" &&
+                         options.KeyProviderAdapter is "Pkcs12Upload" or "Hsm" or "Kms" &&
+                         options.AuditRetentionDays is >= 30 and <= 36500,
+        "PDF Trust deployment mode, key-provider adapter, or audit retention is invalid.")
+    .ValidateOnStart();
+builder.Services.AddHostedService<PXA.WebApi.Services.Pdf.PxaPdfTrustStartupGate>();
 builder.Services.AddSingleton<PXA.Importer.Signing.IPdfLongTermValidationMaterialProvider,
     PXA.WebApi.Services.Pdf.PxaPdfLongTermValidationMaterialProvider>();
+builder.Services.AddScoped<PXA.WebApi.Services.Pdf.IPxaPdfTrustAuditWriter,
+    PXA.WebApi.Services.Pdf.PxaPdfTrustAuditWriter>();
 builder.Services.AddScoped<PxaSessionService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddOptions<PxaStepUpOptions>()
+    .Bind(builder.Configuration.GetSection(PxaStepUpOptions.SectionName))
+    .Validate(options => options.MaximumAuthenticationAgeMinutes is >= 1 and <= 60,
+        "Step-up authentication age must be between 1 and 60 minutes.")
+    .ValidateOnStart();
+builder.Services.AddScoped<IAuthorizationHandler, PxaRecentAuthenticationHandler>();
 builder.Services.AddOptions<PxaPasswordSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))
     .Validate(
@@ -474,6 +491,19 @@ builder.Services.AddAuthorization(options =>
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
     foreach (var permission in PxaDesignerPermissions.All)
         options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
+    options.AddPolicy(PxaSecurityPolicies.RecentAuthentication, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new PxaRecentAuthenticationRequirement());
+    });
+    AddStepUpPolicy(options, PxaSecurityPolicies.OrganizationPdfSigning,
+        PxaDesignerPermissions.PdfSignaturesSign);
+    AddStepUpPolicy(options, PxaSecurityPolicies.AppliedPdfRedaction,
+        PxaDesignerPermissions.PdfRedactionsApply);
+    AddStepUpPolicy(options, PxaSecurityPolicies.PdfTrustPolicyManagement,
+        PxaDesignerPermissions.PdfSignatureTrustPoliciesManage);
+    AddStepUpPolicy(options, PxaSecurityPolicies.PdfKeyProviderManagement,
+        PxaDesignerPermissions.PdfSignatureKeyProvidersManage);
     options.AddPolicy(PxaOAuthPolicies.TemplatesRead, policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -634,6 +664,7 @@ app.UseAuthentication();
 app.UseMiddleware<PxaDesignerAccessMiddleware>();
 app.UseMiddleware<PxaDesignerFeatureGateMiddleware>();
 app.UseRateLimiter();
+app.UseMiddleware<PxaPdfTrustAvailabilityMiddleware>();
 app.UseMiddleware<PxaProductAccessMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
@@ -645,6 +676,16 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 {
     Predicate = check => check.Tags.Contains("ready"),
 });
+
+static void AddStepUpPolicy(AuthorizationOptions options, string policyName, string permission)
+{
+    options.AddPolicy(policyName, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(PxaClaimTypes.Permission, permission);
+        policy.AddRequirements(new PxaRecentAuthenticationRequirement());
+    });
+}
 
 app.Run();
 

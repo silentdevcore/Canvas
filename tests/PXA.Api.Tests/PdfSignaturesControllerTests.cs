@@ -165,22 +165,26 @@ public sealed class PdfSignaturesControllerTests
     {
         var type = typeof(PdfSignaturesController);
         var rateLimit = Assert.Single(type.GetCustomAttributes(typeof(EnableRateLimitingAttribute), true).Cast<EnableRateLimitingAttribute>());
-        var signAuthorization = Assert.Single(typeof(PdfSignaturesController)
+        var signAuthorizations = typeof(PdfSignaturesController)
             .GetMethod(nameof(PdfSignaturesController.Sign))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true)
-            .Cast<AuthorizeAttribute>());
+            .Cast<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .ToArray();
         var validateAuthorization = Assert.Single(typeof(PdfSignaturesController)
             .GetMethod(nameof(PdfSignaturesController.Validate))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true)
             .Cast<AuthorizeAttribute>());
-        var timestampAuthorization = Assert.Single(typeof(PdfSignaturesController)
+        var timestampAuthorizations = typeof(PdfSignaturesController)
             .GetMethod(nameof(PdfSignaturesController.Timestamp))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true)
-            .Cast<AuthorizeAttribute>());
+            .Cast<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .ToArray();
 
-        Assert.Equal(PxaDesignerPermissions.PdfSignaturesSign, signAuthorization.Policy);
+        Assert.Equal(PxaSecurityPolicies.OrganizationPdfSigning, Assert.Single(signAuthorizations));
         Assert.Equal(PxaDesignerPermissions.PdfSignaturesValidate, validateAuthorization.Policy);
-        Assert.Equal(PxaDesignerPermissions.PdfSignaturesSign, timestampAuthorization.Policy);
+        Assert.Equal(PxaSecurityPolicies.OrganizationPdfSigning, Assert.Single(timestampAuthorizations));
         Assert.Equal("designer-code", rateLimit.PolicyName);
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Manager]);
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesSign, PxaRoles.Permissions[PxaRoles.Editor]);
@@ -188,8 +192,10 @@ public sealed class PdfSignaturesControllerTests
         Assert.Contains(PxaDesignerPermissions.PdfSignaturesValidate, PxaRoles.Permissions[PxaRoles.Viewer]);
         Assert.Contains(PxaDesignerPermissions.PdfSignatureTrustPoliciesManage, PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
         Assert.Contains(PxaDesignerPermissions.PdfSignatureKeyProvidersUse, PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
+        Assert.Contains(PxaDesignerPermissions.PdfSignatureKeyProvidersManage, PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
         Assert.DoesNotContain(PxaDesignerPermissions.PdfSignatureTrustPoliciesManage, PxaRoles.Permissions[PxaRoles.Manager]);
         Assert.DoesNotContain(PxaDesignerPermissions.PdfSignatureKeyProvidersUse, PxaRoles.Permissions[PxaRoles.Editor]);
+        Assert.DoesNotContain(PxaDesignerPermissions.PdfSignatureKeyProvidersManage, PxaRoles.Permissions[PxaRoles.Manager]);
         Assert.Equal(
             PxaDesignerPermissions.PdfSignaturesSign,
             PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/signatures/sign", "POST"));
@@ -207,7 +213,8 @@ public sealed class PdfSignaturesControllerTests
         new EmptyTimestampAuthorityFactory(),
         new TestTrustPolicyProvider(),
         new RejectingLongTermValidationMaterialProvider(),
-        new PdfDocumentTimestampService())
+        new PdfDocumentTimestampService(),
+        new NullTrustAuditWriter())
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -228,6 +235,12 @@ public sealed class PdfSignaturesControllerTests
             PdfLongTermValidationContext context,
             CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("The test does not configure PAdES B-LT material.");
+    }
+
+    private sealed class NullTrustAuditWriter : IPxaPdfTrustAuditWriter
+    {
+        public Task WriteAsync(PxaPdfTrustAuditEntry entry, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
     }
 
     private static FormFile CreateFile(byte[] bytes, string fieldName, string fileName, string contentType) =>

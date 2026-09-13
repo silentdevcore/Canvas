@@ -18,13 +18,14 @@ public sealed class PdfSignaturesController(
     IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory,
     IPxaPdfTrustPolicyProvider trustPolicyProvider,
     IPdfLongTermValidationMaterialProvider longTermValidationMaterialProvider,
-    IPdfDocumentTimestampService documentTimestampService) : ControllerBase
+    IPdfDocumentTimestampService documentTimestampService,
+    IPxaPdfTrustAuditWriter auditWriter) : ControllerBase
 {
     private const long MaximumPdfBytes = 100L * 1024 * 1024;
     private const long MaximumCertificateBytes = 10L * 1024 * 1024;
 
     [HttpPost("sign")]
-    [Authorize(Policy = PxaDesignerPermissions.PdfSignaturesSign)]
+    [Authorize(Policy = PxaSecurityPolicies.OrganizationPdfSigning)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumPdfBytes + MaximumCertificateBytes + 128 * 1024)]
     [Produces("application/pdf")]
@@ -133,6 +134,14 @@ public sealed class PdfSignaturesController(
                 },
                 timestampAuthority,
                 cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                "pdf.signature.created",
+                request.Profile.ToString(),
+                Sha256(pdfBytes),
+                Sha256(result.Bytes),
+                "succeeded",
+                [],
+                result.CertificateThumbprint), cancellationToken);
             var baseName = Path.GetFileNameWithoutExtension(request.Pdf.FileName);
             var downloadName = $"{(string.IsNullOrWhiteSpace(baseName) ? "document" : baseName)}.signed.pdf";
             Response.Headers["X-PXA-PAdES-Profile"] = result.Profile switch
@@ -172,7 +181,7 @@ public sealed class PdfSignaturesController(
     }
 
     [HttpPost("timestamp")]
-    [Authorize(Policy = PxaDesignerPermissions.PdfSignaturesSign)]
+    [Authorize(Policy = PxaSecurityPolicies.OrganizationPdfSigning)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumPdfBytes + 64 * 1024)]
     [Produces("application/pdf")]
@@ -229,6 +238,14 @@ public sealed class PdfSignaturesController(
                     FieldName = request.FieldName ?? "DocumentTimestamp1"
                 },
                 cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                "pdf.timestamp.created",
+                "RFC3161",
+                Sha256(pdfBytes),
+                Sha256(result.Bytes),
+                "succeeded",
+                [],
+                result.TimestampAuthoritySubject), cancellationToken);
             var baseName = Path.GetFileNameWithoutExtension(request.Pdf.FileName);
             var downloadName = $"{(string.IsNullOrWhiteSpace(baseName) ? "document" : baseName)}.timestamped.pdf";
             Response.Headers["X-PXA-PDF-Timestamp"] = result.Timestamp.ToString("O");
@@ -350,6 +367,9 @@ public sealed class PdfSignaturesController(
 
         return output.ToArray();
     }
+
+    private static string Sha256(ReadOnlySpan<byte> bytes) =>
+        Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 }
 
 public sealed class PdfSignatureSignRequest

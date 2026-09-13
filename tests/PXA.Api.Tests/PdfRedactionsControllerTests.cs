@@ -254,10 +254,12 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     public void Apply_RequiresTheApplyPermissionSeparatelyFromInspect()
     {
         var apply = typeof(PdfRedactionsController).GetMethod(nameof(PdfRedactionsController.Apply))!;
-        var authorization = Assert.Single(
-            apply.GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
+        var policies = apply.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .ToArray();
 
-        Assert.Equal(PxaDesignerPermissions.PdfRedactionsApply, authorization.Policy);
+        Assert.Equal(PxaSecurityPolicies.AppliedPdfRedaction, Assert.Single(policies));
         Assert.Equal(
             PxaDesignerPermissions.PdfRedactionsApply,
             PxaDesignerPermissionResolver.Resolve("/api/pxa/v1/pdf/redactions/apply", HttpMethods.Post));
@@ -270,11 +272,12 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     public void Controller_RequiresRedactionPermissionAndRateLimit()
     {
         var type = typeof(PdfRedactionsController);
-        var authorization = Assert.Single(type.GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
         var rateLimit = Assert.Single(type.GetCustomAttributes(typeof(EnableRateLimitingAttribute), true).Cast<EnableRateLimitingAttribute>());
 
-        Assert.Equal(PxaDesignerPermissions.PdfRedactionsInspect, authorization.Policy);
         Assert.Equal("designer-code", rateLimit.PolicyName);
+        var preflightAuthorization = Assert.Single(type.GetMethod(nameof(PdfRedactionsController.Preflight))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfRedactionsInspect, preflightAuthorization.Policy);
         Assert.Contains(PxaDesignerPermissions.PdfRedactionsInspect, PxaRoles.Permissions[PxaRoles.Editor]);
         // Preflight begins a destructive workflow, so a read-only role must not hold it.
         Assert.DoesNotContain(PxaDesignerPermissions.PdfRedactionsInspect, PxaRoles.Permissions[PxaRoles.Viewer]);

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Application.Identity;
 
@@ -15,6 +16,7 @@ public sealed class TrialActivationService(PxaDbContext dbContext)
     [
         "generator", "designer", "migration", "importer",
         "pdf-viewer", "spreadsheet", "api", "sdk",
+        .. PxaPdfTrustCapabilities.All,
     ];
 
     public OrganizationSubscription CreatePendingTrialForNewOrganization(

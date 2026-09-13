@@ -53,24 +53,31 @@ public sealed class PdfTrustControllerTests
     public void Controller_RequiresTrustPermissionAndRateLimit()
     {
         var type = typeof(PdfTrustController);
-        var authorization = Assert.Single(type.GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
         var rateLimit = Assert.Single(type.GetCustomAttributes(typeof(EnableRateLimitingAttribute), true).Cast<EnableRateLimitingAttribute>());
 
-        Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, authorization.Policy);
         Assert.Equal("designer-code", rateLimit.PolicyName);
         Assert.Contains(PxaDesignerPermissions.PdfTrustInspect, PxaRoles.Permissions[PxaRoles.Viewer]);
-        var postRoutes = type.GetMethod(nameof(PdfTrustController.Inspect))!
-            .GetCustomAttributes(typeof(HttpPostAttribute), true)
-            .Cast<HttpPostAttribute>()
-            .Select(attribute => attribute.Template)
-            .ToArray();
-        Assert.Contains("/api/pxa/v1/pdf/compliance/validate", postRoutes);
+        var trustAuthorization = Assert.Single(type.GetMethod(nameof(PdfTrustController.Inspect))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfTrustInspect, trustAuthorization.Policy);
+
+        var complianceAuthorization = Assert.Single(typeof(PdfTrustController)
+            .GetMethod(nameof(PdfTrustController.ValidateCompliance))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfComplianceValidate, complianceAuthorization.Policy);
+
+        var preflightAuthorization = Assert.Single(typeof(PdfTrustController)
+            .GetMethod(nameof(PdfTrustController.PreflightPdfA2b))!
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>());
+        Assert.Equal(PxaDesignerPermissions.PdfComplianceValidate, preflightAuthorization.Policy);
 
         var convertAuthorization = Assert.Single(typeof(PdfTrustController)
             .GetMethod(nameof(PdfTrustController.ConvertPdfA2b))!
             .GetCustomAttributes(typeof(AuthorizeAttribute), true)
             .Cast<AuthorizeAttribute>());
-        Assert.Equal(PxaDesignerPermissions.PdfConvert, convertAuthorization.Policy);
+        Assert.Equal(PxaDesignerPermissions.PdfComplianceConvert, convertAuthorization.Policy);
     }
 
     [Fact]
@@ -120,7 +127,8 @@ public sealed class PdfTrustControllerTests
     private static PdfTrustController CreateController() => new(
         new PdfTrustInspector(),
         new TestPdfA2bConverter(),
-        new TestTrustPolicyProvider())
+        new TestTrustPolicyProvider(),
+        new NullTrustAuditWriter())
     {
         ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -138,6 +146,12 @@ public sealed class PdfTrustControllerTests
     private sealed class TestTrustPolicyProvider : IPxaPdfTrustPolicyProvider
     {
         public PdfSignatureValidationPolicy Policy { get; } = new();
+    }
+
+    private sealed class NullTrustAuditWriter : IPxaPdfTrustAuditWriter
+    {
+        public Task WriteAsync(PxaPdfTrustAuditEntry entry, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
     }
 
     private sealed class TestPdfA2bConverter : IPdfA2bConverter

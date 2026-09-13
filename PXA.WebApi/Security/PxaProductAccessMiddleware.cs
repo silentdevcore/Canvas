@@ -13,6 +13,10 @@ public sealed class PxaProductAccessMiddleware
 {
     private static readonly (string Prefix, string Capability)[] ProtectedPrefixes =
     [
+        ("/api/pxa/v1/pdf/signatures", PxaPdfTrustCapabilities.Signing),
+        ("/api/pxa/v1/pdf/redactions", PxaPdfTrustCapabilities.Redaction),
+        ("/api/pxa/v1/pdf/compliance", PxaPdfTrustCapabilities.Compliance),
+        ("/api/pxa/v1/pdf/trust", PxaPdfTrustCapabilities.Inspection),
         ("/api/migration", "migration"),
         ("/api/pxa/migration", "migration"),
         ("/api/spreadsheet", "spreadsheet"),
@@ -92,7 +96,7 @@ public sealed class PxaProductAccessMiddleware
         }
     }
 
-    private static string? ResolveCapability(PathString path)
+    internal static string? ResolveCapability(PathString path)
     {
         var value = path.Value ?? string.Empty;
         return ProtectedPrefixes.FirstOrDefault(item =>
@@ -112,4 +116,15 @@ public sealed class PxaProductAccessMiddleware
             Extensions = { ["code"] = code },
         });
     }
+}
+
+public static class PxaPdfTrustCapabilities
+{
+    public const string Inspection = "pdf-trust";
+    public const string Signing = "pdf-signing";
+    public const string Redaction = "pdf-redaction";
+    public const string Compliance = "pdf-compliance";
+
+    public static IReadOnlyList<string> All { get; } =
+        [Inspection, Signing, Redaction, Compliance];
 }

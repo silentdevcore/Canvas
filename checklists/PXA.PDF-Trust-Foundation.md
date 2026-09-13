@@ -806,18 +806,22 @@ Implementation evidence:
 
 ## Authorization, Licensing, and Audit
 
-- [ ] Define granular permissions for inspect, sign, validate, redact, compliance
+- [x] Define granular permissions for inspect, sign, validate, redact, compliance
   convert, compliance validate, trust-policy manage, and key-provider manage.
-- [ ] Define product entitlements independently from permissions and roles.
-- [ ] Require step-up authentication for key-provider changes, trust-policy changes,
+- [x] Define product entitlements independently from permissions and roles.
+- [x] Require step-up authentication for key-provider changes, trust-policy changes,
   applied redaction, and organization-level signing operations.
-- [ ] Audit actor, tenant, operation, policy, input/output hash, result, diagnostic
+  Dedicated composite policies bind each sensitive permission to a recent
+  interactive session, including the reserved policy and key-provider mutations.
+- [x] Audit actor, tenant, operation, policy, input/output hash, result, diagnostic
   codes, and key/certificate identifier without recording secrets or content.
 - [ ] Make audit records append-only and correlate redaction/signature operations with
   immutable job records.
-- [ ] Add Cloud and On-Premise configuration for trust stores, TSA, OCSP/CRL access,
+  Database and application guards already make audit rows append-only; synchronous
+  signature operations still need durable job correlation.
+- [x] Add Cloud and On-Premise configuration for trust stores, TSA, OCSP/CRL access,
   HSM/KMS adapters, offline mode, validator binaries, and retention.
-- [ ] Fail startup or disable the affected feature when required trust dependencies
+- [x] Fail startup or disable the affected feature when required trust dependencies
   are absent; never fall back to an insecure implementation.
 
 ## Documentation

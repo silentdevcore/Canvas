@@ -9,24 +9,30 @@ namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pxa/v1/pdf/trust")]
-[Authorize(Policy = PxaDesignerPermissions.PdfTrustInspect)]
 [EnableRateLimiting("designer-code")]
 public sealed class PdfTrustController(
     IPdfTrustInspector inspector,
     IPdfA2bConverter pdfA2bConverter,
-    IPxaPdfTrustPolicyProvider trustPolicyProvider) : ControllerBase
+    IPxaPdfTrustPolicyProvider trustPolicyProvider,
+    IPxaPdfTrustAuditWriter auditWriter) : ControllerBase
 {
     private const long MaximumUploadBytes = PdfTrustInspectionOptions.DefaultMaximumFileSizeBytes;
 
     [HttpPost("inspect")]
-    [HttpPost("/api/pxa/v1/pdf/compliance/validate")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfTrustInspect)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(typeof(PdfTrustReport), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status413PayloadTooLarge)]
-    public async Task<ActionResult<PdfTrustReport>> Inspect(
+    public Task<ActionResult<PdfTrustReport>> Inspect(
         IFormFile? file,
+        CancellationToken cancellationToken) =>
+        InspectCore(file, "pdf.trust.inspected", cancellationToken);
+
+    private async Task<ActionResult<PdfTrustReport>> InspectCore(
+        IFormFile? file,
+        string auditOperation,
         CancellationToken cancellationToken)
     {
         if (file is null || file.Length == 0)
@@ -60,14 +66,22 @@ public sealed class PdfTrustController(
         try
         {
             await using var stream = file.OpenReadStream();
-            return Ok(await inspector.InspectAsync(
+            var report = await inspector.InspectAsync(
                 stream,
                 new PdfTrustInspectionOptions
                 {
                     MaximumFileSizeBytes = MaximumUploadBytes,
                     SignatureValidationPolicy = trustPolicyProvider.Policy
                 },
-                cancellationToken));
+                cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                auditOperation,
+                "configured-validation-policy",
+                report.Sha256,
+                null,
+                report.Status.ToString().ToLowerInvariant(),
+                report.Diagnostics.Select(diagnostic => diagnostic.Code).ToArray()), cancellationToken);
+            return Ok(report);
         }
         catch (InvalidDataException)
         {
@@ -79,7 +93,20 @@ public sealed class PdfTrustController(
         }
     }
 
+    [HttpPost("/api/pxa/v1/pdf/compliance/validate")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfComplianceValidate)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
+    [ProducesResponseType(typeof(PdfTrustReport), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status413PayloadTooLarge)]
+    public Task<ActionResult<PdfTrustReport>> ValidateCompliance(
+        IFormFile? file,
+        CancellationToken cancellationToken) =>
+        InspectCore(file, "pdf.compliance.validated", cancellationToken);
+
     [HttpPost("/api/pxa/v1/pdf/compliance/preflight")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfComplianceValidate)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(typeof(PdfA2bConversionPreflightReport), StatusCodes.Status200OK)]
@@ -107,10 +134,18 @@ public sealed class PdfTrustController(
         try
         {
             await using var stream = file!.OpenReadStream();
-            return Ok(await pdfA2bConverter.PreflightAsync(
+            var report = await pdfA2bConverter.PreflightAsync(
                 stream,
                 new PdfA2bConversionOptions { Profile = archiveProfile },
-                cancellationToken));
+                cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                "pdf.compliance.preflighted",
+                report.TargetProfile,
+                report.SourceSha256,
+                null,
+                report.Capability.ToString().ToLowerInvariant(),
+                report.Findings.Select(finding => finding.Code).ToArray()), cancellationToken);
+            return Ok(report);
         }
         catch (InvalidDataException exception)
         {
@@ -123,7 +158,7 @@ public sealed class PdfTrustController(
     }
 
     [HttpPost("/api/pxa/v1/pdf/compliance/convert")]
-    [Authorize(Policy = PxaDesignerPermissions.PdfConvert)]
+    [Authorize(Policy = PxaDesignerPermissions.PdfComplianceConvert)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaximumUploadBytes + 64 * 1024)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -161,6 +196,13 @@ public sealed class PdfTrustController(
                     Profile = archiveProfile
                 },
                 cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                "pdf.compliance.converted",
+                result.Preflight.TargetProfile,
+                result.SourceSha256,
+                result.ResultSha256,
+                result.Validation.Status.ToString().ToLowerInvariant(),
+                result.Preflight.Findings.Select(finding => finding.Code).ToArray()), cancellationToken);
             Response.Headers["PXA-Source-SHA256"] = result.SourceSha256;
             Response.Headers["PXA-Result-SHA256"] = result.ResultSha256;
             Response.Headers["PXA-Compliance-Profile"] = result.Validation.Profile ?? "PDF/A-2b";

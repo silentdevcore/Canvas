@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Application.Identity;
+using PXA.WebApi.Security;
 
 namespace PXA.Api.Tests;
 
@@ -14,7 +15,8 @@ namespace PXA.Api.Tests;
 public sealed class TrialActivationServiceTests
 {
     private static readonly string[] ExpectedCapabilities =
-        ["generator", "designer", "migration", "importer", "pdf-viewer", "spreadsheet", "api", "sdk"];
+        ["generator", "designer", "migration", "importer", "pdf-viewer", "spreadsheet", "api", "sdk",
+            .. PxaPdfTrustCapabilities.All];
 
     [Fact]
     public void Company_verification_activates_an_unlimited_seat_trial_with_every_capability()
