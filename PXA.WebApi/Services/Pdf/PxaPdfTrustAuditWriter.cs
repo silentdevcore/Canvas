@@ -13,7 +13,10 @@ public sealed record PxaPdfTrustAuditEntry(
     string Outcome,
     IReadOnlyList<string> DiagnosticCodes,
     string? KeyIdentifier = null,
-    Guid? JobId = null);
+    string? AuditTargetType = null,
+    string? AuditTargetId = null,
+    string? AuditDetailsJson = null,
+    DateTimeOffset? OccurredAt = null);
 
 public interface IPxaPdfTrustAuditWriter
 {
@@ -34,25 +37,56 @@ public sealed class PxaPdfTrustAuditWriter(
         if (!IsSha256(entry.InputSha256) || entry.OutputSha256 is not null && !IsSha256(entry.OutputSha256))
             throw new ArgumentException("PDF Trust audit hashes must be lowercase SHA-256 values.", nameof(entry));
 
+        var diagnosticCodes = entry.DiagnosticCodes
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (diagnosticCodes.Length > 256 || diagnosticCodes.Any(value => value.Length is 0 or > 80))
+            throw new ArgumentException("PDF Trust diagnostic codes exceed their safety limits.", nameof(entry));
+
         var traceId = httpContextAccessor.HttpContext?.TraceIdentifier;
+        var operationId = Guid.NewGuid();
+        var auditEventId = Guid.NewGuid();
+        var occurredAt = entry.OccurredAt ?? DateTimeOffset.UtcNow;
+        var auditDetails = entry.AuditDetailsJson ?? JsonSerializer.Serialize(new
+        {
+            entry.Policy,
+            entry.InputSha256,
+            entry.OutputSha256,
+            DiagnosticCodes = diagnosticCodes,
+            entry.KeyIdentifier,
+            OperationJobId = operationId,
+            TraceId = traceId,
+        }, JsonOptions);
+
+        dbContext.PdfTrustOperationJobs.Add(new PdfTrustOperationJob
+        {
+            Id = operationId,
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            AuditEventId = auditEventId,
+            Operation = entry.Operation,
+            Policy = entry.Policy,
+            InputSha256 = entry.InputSha256,
+            OutputSha256 = entry.OutputSha256,
+            Outcome = entry.Outcome,
+            DiagnosticCodesJson = JsonSerializer.Serialize(diagnosticCodes, JsonOptions),
+            KeyIdentifier = entry.KeyIdentifier,
+            TraceId = traceId,
+            CreatedAt = occurredAt,
+            CompletedAt = occurredAt,
+        });
         dbContext.AuditEvents.Add(new AuditEvent
         {
+            Id = auditEventId,
             OrganizationId = organizationId,
             ActorUserId = actorUserId,
             Action = entry.Operation,
-            TargetType = "pdf-trust-operation",
-            TargetId = entry.OutputSha256 ?? entry.InputSha256,
+            TargetType = entry.AuditTargetType ?? "pdf-trust-operation",
+            TargetId = entry.AuditTargetId ?? entry.OutputSha256 ?? entry.InputSha256,
             Outcome = entry.Outcome,
-            DetailsJson = JsonSerializer.Serialize(new
-            {
-                entry.Policy,
-                entry.InputSha256,
-                entry.OutputSha256,
-                DiagnosticCodes = entry.DiagnosticCodes.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal),
-                entry.KeyIdentifier,
-                entry.JobId,
-                TraceId = traceId,
-            }, JsonOptions),
+            DetailsJson = auditDetails,
+            CreatedAt = occurredAt,
         });
         await dbContext.SaveChangesAsync(cancellationToken);
     }

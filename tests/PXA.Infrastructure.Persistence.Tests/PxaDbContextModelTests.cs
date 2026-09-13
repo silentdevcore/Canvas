@@ -130,6 +130,21 @@ public sealed class PxaDbContextModelTests
     }
 
     [Fact]
+    public void Model_persists_immutable_pdf_trust_jobs_with_unique_audit_correlation()
+    {
+        using var context = CreateContext();
+        var job = context.Model.FindEntityType(typeof(PdfTrustOperationJob));
+
+        Assert.Equal("pdf_trust_operation_jobs", job?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, job?.GetSchema());
+        Assert.Contains(job!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(PdfTrustOperationJob.AuditEventId));
+        Assert.Contains(job.GetIndexes(), index =>
+            index.Properties.Select(property => property.Name)
+                .SequenceEqual([nameof(PdfTrustOperationJob.OrganizationId), nameof(PdfTrustOperationJob.CreatedAt)]));
+    }
+
+    [Fact]
     public void Model_persists_legal_governance_and_evidence_in_the_expected_schemas()
     {
         using var context = CreateContext();

@@ -113,6 +113,41 @@ public sealed class PxaPdfTrustSecurityTests
         Assert.Contains("certificate-thumbprint", audit.DetailsJson, StringComparison.Ordinal);
         Assert.DoesNotContain("password", audit.DetailsJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("content", audit.DetailsJson, StringComparison.OrdinalIgnoreCase);
+
+        var operation = Assert.Single(dbContext.PdfTrustOperationJobs.Local);
+        Assert.Equal(audit.Id, operation.AuditEventId);
+        Assert.Equal("pdf.signature.created", operation.Operation);
+        Assert.Equal(new string('a', 64), operation.InputSha256);
+        Assert.Equal(new string('b', 64), operation.OutputSha256);
+        Assert.Equal("certificate-thumbprint", operation.KeyIdentifier);
+        Assert.Equal("trust-test-trace", operation.TraceId);
+        Assert.Contains(operation.Id.ToString(), audit.DetailsJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Trust_operation_jobs_are_immutable()
+    {
+        await using var dbContext = CreateContext();
+        var operation = new PdfTrustOperationJob
+        {
+            OrganizationId = Guid.NewGuid(),
+            ActorUserId = Guid.NewGuid(),
+            AuditEventId = Guid.NewGuid(),
+            Operation = "pdf.signature.created",
+            Policy = "BaselineB",
+            InputSha256 = new string('a', 64),
+            OutputSha256 = new string('b', 64),
+            Outcome = "succeeded",
+            DiagnosticCodesJson = "[]",
+        };
+        dbContext.PdfTrustOperationJobs.Add(operation);
+        await dbContext.SaveChangesAsync();
+
+        operation.Outcome = "changed";
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => dbContext.SaveChangesAsync());
+        Assert.Contains("immutable", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<AuthorizationHandlerContext> AuthorizeAsync(

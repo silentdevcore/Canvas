@@ -130,6 +130,13 @@ public sealed class PdfRedactionsControllerTests : IDisposable
         Assert.Equal("pdf.redaction.applied", stored.Action);
         Assert.Equal("pdf-redaction-audit", stored.TargetType);
         Assert.False(string.IsNullOrWhiteSpace(stored.DetailsJson));
+        var operation = Assert.Single(dbContext.PdfTrustOperationJobs);
+        Assert.Equal(stored.Id, operation.AuditEventId);
+        Assert.Equal("pdf.redaction.applied", operation.Operation);
+        Assert.Equal(
+            controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString(),
+            operation.OutputSha256);
+        Assert.Equal(auditKey.Certificate.Thumbprint, operation.KeyIdentifier);
 
         var retrieved = await controller.GetAudit(stored.TargetId, CancellationToken.None);
         var ok = Assert.IsType<OkObjectResult>(retrieved.Result);
@@ -309,8 +316,12 @@ public sealed class PdfRedactionsControllerTests : IDisposable
             new PdfRedactionApplier(preflight),
             new TestAuditKeyProvider(auditKey),
             timestampAuthorityFactory ?? new EmptyTimestampAuthorityFactory(),
-            dbContext ?? CreateDbContext(),
-            tenantContext ?? new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()))
+            dbContext ??= CreateDbContext(),
+            tenantContext ??= new TestTenantContext(Guid.NewGuid(), Guid.NewGuid()),
+            new PxaPdfTrustAuditWriter(
+                dbContext,
+                tenantContext,
+                new HttpContextAccessor { HttpContext = new DefaultHttpContext() }))
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };

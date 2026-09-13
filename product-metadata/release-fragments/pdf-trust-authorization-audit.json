@@ -8,7 +8,7 @@
     "infrastructure"
   ],
   "category": "security",
-  "summary": "PDF Trust operations now use dedicated permissions and product entitlements, require recent authentication for sensitive changes, retain tenant-scoped audit evidence, and fail closed when configured trust dependencies are unavailable.",
+  "summary": "PDF Trust operations now use dedicated permissions and entitlements, require recent authentication for sensitive changes, correlate immutable operation records with append-only audit evidence, and fail closed when trust dependencies are unavailable.",
   "featureIds": [],
   "documentation": [
     "/docs/guides/PXA.Pdf-Trust-Generator-Examples.html"

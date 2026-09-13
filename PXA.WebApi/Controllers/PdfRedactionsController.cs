@@ -24,7 +24,8 @@ public sealed class PdfRedactionsController(
     IPxaRedactionAuditKeyProvider auditKeyProvider,
     IPxaPdfTimestampAuthorityFactory timestampAuthorityFactory,
     PxaDbContext dbContext,
-    IPxaTenantContext tenantContext) : ControllerBase
+    IPxaTenantContext tenantContext,
+    IPxaPdfTrustAuditWriter auditWriter) : ControllerBase
 {
     private const long MaximumUploadBytes = PdfRedactionPreflightOptions.DefaultMaximumFileSizeBytes;
     private const int MaximumReasonCharacters = 2_000;
@@ -187,18 +188,18 @@ public sealed class PdfRedactionsController(
                     extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
             }
 
-            dbContext.AuditEvents.Add(new AuditEvent
-            {
-                OrganizationId = organizationId,
-                ActorUserId = actorUserId,
-                Action = "pdf.redaction.applied",
-                TargetType = AuditTargetType,
-                TargetId = result.Audit.RecordSha256,
-                Outcome = "succeeded",
-                DetailsJson = auditJson,
-                CreatedAt = result.Audit.AppliedAt
-            });
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await auditWriter.WriteAsync(new PxaPdfTrustAuditEntry(
+                "pdf.redaction.applied",
+                "irreversible-redaction",
+                result.Audit.SourceSha256,
+                result.Audit.ResultSha256,
+                "succeeded",
+                [],
+                result.Audit.Signature?.SignerThumbprint,
+                AuditTargetType,
+                result.Audit.RecordSha256,
+                auditJson,
+                result.Audit.AppliedAt), cancellationToken);
 
             Response.Headers["PXA-Redaction-Audit"] = result.Audit.RecordSha256;
             Response.Headers["PXA-Redaction-Result-Sha256"] = result.Audit.ResultSha256;

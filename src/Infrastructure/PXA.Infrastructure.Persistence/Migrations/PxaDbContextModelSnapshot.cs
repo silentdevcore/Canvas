@@ -1701,6 +1701,83 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.ToTable("subscriptions", "administration");
                 });
 
+            modelBuilder.Entity("PXA.Domain.Entities.PdfTrustOperationJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuditEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiagnosticCodesJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("InputSha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("KeyIdentifier")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("OutputSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("Policy")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("TraceId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("AuditEventId")
+                        .IsUnique();
+
+                    b.HasIndex("InputSha256");
+
+                    b.HasIndex("OutputSha256");
+
+                    b.HasIndex("Operation", "CreatedAt");
+
+                    b.HasIndex("OrganizationId", "CreatedAt");
+
+                    b.ToTable("pdf_trust_operation_jobs", "administration");
+                });
+
             modelBuilder.Entity("PXA.Domain.Entities.PxaBackgroundJob", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2247,13 +2324,13 @@ namespace PXA.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<string>("CustomKey")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
@@ -2875,6 +2952,27 @@ namespace PXA.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("PXA.Domain.Entities.OrganizationSubscription", b =>
                 {
+                    b.HasOne("PXA.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.PdfTrustOperationJob", b =>
+                {
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.AuditEvent", null)
+                        .WithOne()
+                        .HasForeignKey("PXA.Domain.Entities.PdfTrustOperationJob", "AuditEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PXA.Domain.Entities.Organization", null)
                         .WithMany()
                         .HasForeignKey("OrganizationId")

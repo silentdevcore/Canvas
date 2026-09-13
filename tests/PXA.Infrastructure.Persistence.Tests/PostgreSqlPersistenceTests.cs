@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
@@ -68,6 +69,8 @@ public sealed class PostgreSqlPersistenceTests
         var organizationId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var objectId = Guid.NewGuid();
+        var auditEventId = Guid.NewGuid();
+        var trustJobId = Guid.NewGuid();
 
         await using (var context = new PxaDbContext(options))
         {
@@ -107,6 +110,30 @@ public sealed class PostgreSqlPersistenceTests
                 Status = PxaBackgroundJobStatus.Completed,
                 ResultObjectId = objectId,
             });
+            context.AuditEvents.Add(new AuditEvent
+            {
+                Id = auditEventId,
+                OrganizationId = organizationId,
+                ActorUserId = userId,
+                Action = "pdf.signature.created",
+                TargetType = "pdf-trust-operation",
+                TargetId = new string('b', 64),
+                Outcome = "succeeded",
+                DetailsJson = "{}",
+            });
+            context.PdfTrustOperationJobs.Add(new PdfTrustOperationJob
+            {
+                Id = trustJobId,
+                OrganizationId = organizationId,
+                ActorUserId = userId,
+                AuditEventId = auditEventId,
+                Operation = "pdf.signature.created",
+                Policy = "BaselineB",
+                InputSha256 = new string('a', 64),
+                OutputSha256 = new string('b', 64),
+                Outcome = "succeeded",
+                DiagnosticCodesJson = "[]",
+            });
             await context.SaveChangesAsync();
         }
 
@@ -115,5 +142,12 @@ public sealed class PostgreSqlPersistenceTests
         Assert.Equal(organizationId, job.OrganizationId);
         Assert.Equal(objectId, job.ResultObjectId);
         Assert.Single(await verification.StoredObjects.ToListAsync());
+        var trustJob = await verification.PdfTrustOperationJobs.SingleAsync();
+        Assert.Equal(auditEventId, trustJob.AuditEventId);
+
+        var exception = await Assert.ThrowsAsync<PostgresException>(() =>
+            verification.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE administration.pdf_trust_operation_jobs SET \"Outcome\" = {"changed"} WHERE \"Id\" = {trustJobId}"));
+        Assert.Equal("55000", exception.SqlState);
     }
 }

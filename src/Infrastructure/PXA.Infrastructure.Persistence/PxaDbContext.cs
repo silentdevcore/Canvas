@@ -19,6 +19,7 @@ public sealed class PxaDbContext
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
     public DbSet<OrganizationMembershipRole> OrganizationMembershipRoles => Set<OrganizationMembershipRole>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+    public DbSet<PdfTrustOperationJob> PdfTrustOperationJobs => Set<PdfTrustOperationJob>();
     public DbSet<IdentityActionToken> IdentityActionTokens => Set<IdentityActionToken>();
     public DbSet<MailOutboxMessage> MailOutboxMessages => Set<MailOutboxMessage>();
     public DbSet<OrganizationSubscription> OrganizationSubscriptions => Set<OrganizationSubscription>();
@@ -123,6 +124,13 @@ public sealed class PxaDbContext
         {
             throw new InvalidOperationException(
                 "Audit events are append-only and cannot be modified or deleted.");
+        }
+
+        if (ChangeTracker.Entries<PdfTrustOperationJob>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "PDF Trust operation jobs are immutable and cannot be modified or deleted.");
         }
 
         if (ChangeTracker.Entries<LegalAcceptanceEvent>().Any(entry =>

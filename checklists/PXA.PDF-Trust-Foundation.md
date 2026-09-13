@@ -815,10 +815,14 @@ Implementation evidence:
   interactive session, including the reserved policy and key-provider mutations.
 - [x] Audit actor, tenant, operation, policy, input/output hash, result, diagnostic
   codes, and key/certificate identifier without recording secrets or content.
-- [ ] Make audit records append-only and correlate redaction/signature operations with
+- [x] Make audit records append-only and correlate redaction/signature operations with
   immutable job records.
-  Database and application guards already make audit rows append-only; synchronous
-  signature operations still need durable job correlation.
+  Database and application guards protect both audit rows and terminal PDF Trust
+  operation jobs from updates and deletion. Every successful signing, timestamp,
+  compliance, inspection, and applied-redaction audit is atomically linked to one
+  tenant-scoped operation job through a unique audit-event foreign key. Redaction keeps
+  its signed evidence JSON unchanged while the job stores only hashes and bounded
+  operational metadata.
 - [x] Add Cloud and On-Premise configuration for trust stores, TSA, OCSP/CRL access,
   HSM/KMS adapters, offline mode, validator binaries, and retention.
 - [x] Fail startup or disable the affected feature when required trust dependencies
