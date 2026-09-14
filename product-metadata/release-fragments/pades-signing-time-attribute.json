@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pades-signing-time-attribute",
+  "impact": "patch",
+  "components": [
+    "importer"
+  ],
+  "category": "fixed",
+  "summary": "PXA PAdES and redaction audit signatures now include and verify the signed signing-time attribute required for reliable validation.",
+  "breaking": false
+}

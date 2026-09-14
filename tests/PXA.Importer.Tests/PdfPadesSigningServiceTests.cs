@@ -29,7 +29,7 @@ public sealed class PdfPadesSigningServiceTests
             SHA256.HashData(fixture.Key.Certificate.RawData),
             ReadSigningCertificateV2Hash(result.SignedAttributes));
         Assert.True(result.SignedAttributes.AsSpan().IndexOf(
-            Convert.FromHexString("06092A864886F70D010905")) < 0);
+            Convert.FromHexString("06092A864886F70D010905")) >= 0);
         using var publicKey = fixture.Key.Certificate.GetRSAPublicKey();
         Assert.NotNull(publicKey);
         Assert.True(publicKey.VerifyHash(
