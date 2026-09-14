@@ -1,5 +1,5 @@
 {
-  "status": "Indeterminate",
+  "status": "Invalid",
   "structureStatus": "Valid",
   "pdfVersion": "1.4",
   "revisionCount": 2,
@@ -15,11 +15,11 @@
   },
   "signatures": [
     {
-      "status": "Indeterminate",
+      "status": "Invalid",
       "subFilter": "ETSI.CAdES.detached",
       "integrityStatus": "Valid",
       "coverageStatus": "Valid",
-      "certificateStatus": "Indeterminate",
+      "certificateStatus": "Invalid",
       "padesProfile": "B-B",
       "digestAlgorithm": "SHA-256",
       "coversWholeDocument": true,
@@ -56,6 +56,6 @@
   "diagnosticCodes": [
     "PXAPDFTRUST010",
     "PXAPDFTRUST110",
-    "PXAPDFTRUST112"
+    "PXAPDFTRUST135"
   ]
 }

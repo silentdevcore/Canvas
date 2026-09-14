@@ -333,6 +333,7 @@ const editorDocs = [
       { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
       { label: 'Download synthetic PDF Trust corpus', href: '/downloads/pdf-trust/' },
       { label: 'Download independently validated PAdES corpus', href: '/downloads/pdf-trust/pades/' },
+      { label: 'Download PAdES negative trust corpus', href: '/downloads/pdf-trust/pades/negative/' },
       { label: 'Download external producer corpus', href: '/downloads/pdf-trust/external/' },
     ],
     examples: [

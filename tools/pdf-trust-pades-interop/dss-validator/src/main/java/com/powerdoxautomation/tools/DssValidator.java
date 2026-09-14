@@ -25,7 +25,7 @@ public final class DssValidator {
 
         Path pdf = Path.of(args[0]).toAbsolutePath();
         Path rootAnchor = Path.of(args[1]).toAbsolutePath();
-        Path rootCrl = Path.of(args[2]).toAbsolutePath();
+        String rootCrlArgument = args[2];
         Path output = Path.of(args[3]).toAbsolutePath();
         Files.createDirectories(output);
 
@@ -35,7 +35,10 @@ public final class DssValidator {
 
         CommonCertificateVerifier verifier = new CommonCertificateVerifier();
         verifier.setTrustedCertSources(trusted);
-        verifier.setCrlSource(new ExternalResourcesCRLSource(new FileDocument(rootCrl.toFile())));
+        if (!"-".equals(rootCrlArgument)) {
+            Path rootCrl = Path.of(rootCrlArgument).toAbsolutePath();
+            verifier.setCrlSource(new ExternalResourcesCRLSource(new FileDocument(rootCrl.toFile())));
+        }
         SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(new FileDocument(pdf.toFile()));
         validator.setCertificateVerifier(verifier);
         Reports reports = validator.validateDocument();

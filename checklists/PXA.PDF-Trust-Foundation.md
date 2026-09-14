@@ -888,16 +888,20 @@ Implementation evidence:
   multiple signatures, encrypted documents, and mixed page geometry.
 - [ ] Add known-answer cryptographic tests and mutation tests that flip every signed
   region and validation-material component.
-- [ ] Test PAdES B-B, B-T, B-LT, and B-LTA independently, including expired,
+- [x] Test PAdES B-B, B-T, B-LT, and B-LTA independently, including expired,
   untrusted, revoked, offline, and unavailable-revocation cases.
   - [x] Generate one synthetic PAdES B-B fixture with pyHanko 0.37.0 and verify its
     cryptographic integrity independently with pyHanko before pinning the PDF and
-    machine-readable PXA trust report. Trust failure cases remain open.
+    machine-readable PXA trust report.
   - [x] Generate PXA B-T, B-LT, and B-LTA fixtures from a synthetic root, signer, and
     timestamp-authority hierarchy; validate exact profile classification, structure,
     certificate chains, and revocation evidence with EU DSS 6.4; pin all PDFs and XML
     reports by SHA-256. B-T uses the public offline CRL during validation while LT/LTA
     embed their validation material, preserving the distinction between profiles.
+  - [x] Independently classify expired, untrusted, revoked, offline/unavailable-
+    revocation, tampered-LT, and tampered-LTA fixtures with EU DSS 6.4 in a
+    network-disabled, read-only container. Pin every PDF, XML report, certificate,
+    and CRL by SHA-256 and assert the corresponding PXA trust result.
 - [ ] Test AES-256 against independent readers and writers with Unicode passwords,
   all permission combinations, metadata options, wrong passwords, and tampering.
   - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and

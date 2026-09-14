@@ -156,13 +156,13 @@ internal static class PdfSignatureValidator
                 : await ValidateCertificateAsync(
                     certificate,
                     parsed.Certificates,
-                    parsed.SigningTime,
                     validationPolicy,
                     embeddedVri,
-                    timestamp.Time,
+                    timestamp.Status == PdfTrustStatus.Valid ? timestamp.Time : null,
                     cancellationToken).ConfigureAwait(false);
             var certificateStatus = certificateValidation.TrustStatus;
             var status = integrityStatus == PdfTrustStatus.Invalid ||
+                         certificateStatus == PdfTrustStatus.Invalid ||
                          certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
                 ? PdfTrustStatus.Invalid
                 : certificateStatus == PdfTrustStatus.Valid &&
@@ -194,6 +194,14 @@ internal static class PdfSignatureValidator
                     "PXAPDFTRUST112",
                     PdfTrustDiagnosticSeverity.Warning,
                     "The signer certificate is cryptographically bound, but its chain is not trusted by the current host trust store.",
+                    signatureId));
+            }
+            else if (certificateStatus == PdfTrustStatus.Invalid)
+            {
+                diagnostics.Add(Diagnostic(
+                    "PXAPDFTRUST135",
+                    PdfTrustDiagnosticSeverity.Error,
+                    "The signer certificate is outside its trusted validity period or its certificate chain is invalid.",
                     signatureId));
             }
 
@@ -393,7 +401,6 @@ internal static class PdfSignatureValidator
                 var certificateValidation = await ValidateCertificateAsync(
                     timestampCertificate,
                     tokenCms.Certificates.Cast<X509Certificate2>().ToArray(),
-                    token.TokenInfo.Timestamp,
                     validationPolicy,
                     embeddedVri,
                     token.TokenInfo.Timestamp,
@@ -775,7 +782,6 @@ internal static class PdfSignatureValidator
     private static async Task<CertificateValidation> ValidateCertificateAsync(
         X509Certificate2 certificate,
         IReadOnlyList<X509Certificate2> certificates,
-        DateTimeOffset? signingTime,
         PdfSignatureValidationPolicy policy,
         PdfEmbeddedVriMaterial? embeddedVri,
         DateTimeOffset? trustedHistoricalReferenceTime,
@@ -785,7 +791,7 @@ internal static class PdfSignatureValidator
         var downloadedCertificates = new List<X509Certificate2>();
         try
         {
-        var validationTime = signingTime ?? DateTimeOffset.UtcNow;
+        var validationTime = trustedHistoricalReferenceTime ?? DateTimeOffset.UtcNow;
         if (validationTime.UtcDateTime < certificate.NotBefore.ToUniversalTime() ||
             validationTime.UtcDateTime > certificate.NotAfter.ToUniversalTime())
         {
@@ -1155,7 +1161,6 @@ internal static class PdfSignatureValidator
                 var certificateValidation = await ValidateCertificateAsync(
                     timestampCertificate,
                     tokenCms.Certificates.Cast<X509Certificate2>().ToArray(),
-                    token.TokenInfo.Timestamp,
                     validationPolicy,
                     embeddedVri,
                     token.TokenInfo.Timestamp,

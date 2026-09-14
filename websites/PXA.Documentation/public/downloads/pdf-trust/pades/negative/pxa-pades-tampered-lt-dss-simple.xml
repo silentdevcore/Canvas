@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SimpleReport ValidationTime="2026-09-14T17:01:16Z" xmlns="http://dss.esig.europa.eu/validation/simple-report">
+    <ValidationPolicy>
+        <PolicyName>QES AES/QC AES TL based</PolicyName>
+        <PolicyDescription>Validates electronic signatures and indicates whether they are advanced electronic signatures (AES), AES supported by a qualified certificate (AES/QC) or a
+		qualified electronic signature (QES). All certificates and their related chains supporting the signatures are validated against the EU Member State Trusted Lists (this includes
+		signer's certificate and certificates used to validate certificate validity status services - CRLs, OCSP, and time-stamps).
+	</PolicyDescription>
+    </ValidationPolicy>
+    <DocumentName>pxa-pades-tampered-lt.pdf</DocumentName>
+    <ValidSignaturesCount>0</ValidSignaturesCount>
+    <SignaturesCount>1</SignaturesCount>
+    <Signature SignatureFormat="PAdES-BASELINE-T" Id="S-4CE9EB054715209062F1C587C1756337FEA2EF540E046DE13E9185906130F598">
+        <CertificateChain>
+            <Certificate Id="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC">
+                <QualifiedName>PXA Synthetic PAdES Signer</QualifiedName>
+            </Certificate>
+            <Certificate Id="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13" trusted="true">
+                <QualifiedName>PXA Synthetic PAdES Primary Root CA</QualifiedName>
+            </Certificate>
+        </CertificateChain>
+        <Indication>INDETERMINATE</Indication>
+        <SubIndication>CERTIFICATE_CHAIN_GENERAL_FAILURE</SubIndication>
+        <AdESValidationDetails>
+            <Error Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</Error>
+            <Error Key="BBB_XCV_IRDPFC_ANS">No revocation data found for the certificate!</Error>
+            <Warning Key="BBB_XCV_AIA_PRES_ANS">The authority info access is not present!</Warning>
+            <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+            <Warning Key="BBB_XCV_REVOC_PRES_ANS">The revocation info access is not present!</Warning>
+        </AdESValidationDetails>
+        <QualificationDetails>
+            <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+            <Warning Key="QUAL_IS_ADES_IND">The signature/seal is an INDETERMINATE AdES digital signature!</Warning>
+        </QualificationDetails>
+        <SigningTime>2026-06-15T10:30:00Z</SigningTime>
+        <BestSignatureTime>2026-09-14T17:01:16Z</BestSignatureTime>
+        <SignedBy>PXA Synthetic PAdES Signer</SignedBy>
+        <SignatureLevel description="Not applicable">N/A</SignatureLevel>
+        <SignatureScope Id="D-59BA308C81B61CAD3412190E8963B2E4F93F176CE1F1ACAA13306E4C54CFFFE8" name="Partial PDF" scope="PARTIAL">The document ByteRange : [0, 1259, 66797, 796]</SignatureScope>
+        <Timestamps>
+            <Timestamp Id="T-CCE0AE0534DCBC81F75E5A3BAA8FB701A16CAC84FC485BCDD81AC694824F4BF6">
+                <CertificateChain>
+                    <Certificate Id="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C">
+                        <QualifiedName>PXA Synthetic TSA</QualifiedName>
+                    </Certificate>
+                    <Certificate Id="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13" trusted="true">
+                        <QualifiedName>PXA Synthetic PAdES Primary Root CA</QualifiedName>
+                    </Certificate>
+                </CertificateChain>
+                <Indication>INDETERMINATE</Indication>
+                <SubIndication>CERTIFICATE_CHAIN_GENERAL_FAILURE</SubIndication>
+                <AdESValidationDetails>
+                    <Error Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</Error>
+                    <Error Key="BBB_XCV_IRDPFC_ANS">No revocation data found for the certificate!</Error>
+                    <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+                </AdESValidationDetails>
+                <QualificationDetails>
+                    <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+                </QualificationDetails>
+                <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+                <ProducedBy>PXA Synthetic TSA</ProducedBy>
+                <TimestampLevel description="Not applicable">N/A</TimestampLevel>
+            </Timestamp>
+        </Timestamps>
+    </Signature>
+</SimpleReport>

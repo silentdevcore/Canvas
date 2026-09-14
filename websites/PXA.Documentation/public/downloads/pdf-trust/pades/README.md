@@ -12,6 +12,10 @@ The certificate hierarchy is synthetic and is not trusted outside this corpus.
 Only the public root certificate and CRL are retained. No private key, password,
 customer document, production certificate, or operational credential is included.
 
+The [negative trust corpus](negative/) independently distinguishes expired and
+revoked certificates, untrusted chains, unavailable offline revocation evidence,
+and tampered LT or LTA validation material.
+
 Regenerate and independently validate a new candidate corpus from the repository
 root with:
 

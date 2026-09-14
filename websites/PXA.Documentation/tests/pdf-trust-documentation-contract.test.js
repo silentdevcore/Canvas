@@ -195,6 +195,30 @@ test('PDF Trust documentation publishes independently validated PAdES profiles',
   assert.ok(fs.existsSync(path.join(directory, 'index.html')));
 });
 
+test('PDF Trust documentation publishes independently classified PAdES failure cases', () => {
+  assert.match(source, /Download PAdES negative trust corpus/);
+  assert.match(source, /\/downloads\/pdf-trust\/pades\/negative\//);
+  const directory = path.join(root, 'websites/PXA.Documentation/public/downloads/pdf-trust/pades/negative');
+  for (const id of [
+    'pxa-pades-expired',
+    'pxa-pades-revocation-unavailable',
+    'pxa-pades-revoked',
+    'pxa-pades-tampered-lt',
+    'pxa-pades-tampered-lta',
+    'pxa-pades-untrusted',
+  ]) {
+    assert.ok(fs.existsSync(path.join(directory, `${id}.pdf`)), `${id}.pdf is missing`);
+    for (const report of ['simple', 'detailed', 'diagnostic']) {
+      assert.ok(
+        fs.existsSync(path.join(directory, `${id}-dss-${report}.xml`)),
+        `${id} ${report} report is missing`,
+      );
+    }
+  }
+  assert.ok(fs.existsSync(path.join(directory, 'negative-corpus.json')));
+  assert.ok(fs.existsSync(path.join(directory, 'index.html')));
+});
+
 test('Redaction documentation states what is detected and what is sanitized', () => {
   assert.match(source, /narrows coverage by the clipping paths in force/);
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);

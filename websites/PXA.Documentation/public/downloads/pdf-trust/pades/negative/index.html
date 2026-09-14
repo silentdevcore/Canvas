@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PXA PAdES Negative Trust Corpus</title>
+    <style>
+      :root { color: #18212b; background: #f4f6f8; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1060px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+      h1 { margin: 0 0 12px; font-size: 2.5rem; letter-spacing: 0; }
+      p { max-width: 780px; color: #52606d; line-height: 1.6; }
+      .actions { display: flex; gap: 12px; margin: 24px 0; }
+      .actions a { padding: 10px 14px; border: 1px solid #b9c3cc; color: #18212b; background: #fff; text-decoration: none; }
+      .table-wrap { overflow-x: auto; border: 1px solid #d7dde3; background: #fff; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 13px 15px; border-bottom: 1px solid #e5e9ed; text-align: left; vertical-align: top; }
+      th { background: #eef1f4; font-size: 0.78rem; text-transform: uppercase; }
+      tr:last-child td { border-bottom: 0; }
+      td a { color: #0969a7; }
+      code { font-size: 0.82rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PXA PAdES Negative Trust Corpus</h1>
+      <p>Independent failure classifications produced by EU DSS 6.4 from synthetic PXA documents. These files are intentionally invalid or indeterminate.</p>
+      <div class="actions"><a href="negative-corpus.json">Download manifest</a><a href="../">Back to positive profiles</a></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Case</th><th>PDF</th><th>DSS reports</th><th>Expected sub-indication</th></tr></thead>
+          <tbody>
+            <tr><td>Revoked signer</td><td><a href="pxa-pades-revoked.pdf">PDF</a></td><td><a href="pxa-pades-revoked-dss-simple.xml">Simple</a> · <a href="pxa-pades-revoked-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-revoked-dss-diagnostic.xml">Diagnostic</a></td><td><code>REVOKED_NO_POE</code></td></tr>
+            <tr><td>Untrusted chain</td><td><a href="pxa-pades-untrusted.pdf">PDF</a></td><td><a href="pxa-pades-untrusted-dss-simple.xml">Simple</a> · <a href="pxa-pades-untrusted-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-untrusted-dss-diagnostic.xml">Diagnostic</a></td><td><code>NO_CERTIFICATE_CHAIN_FOUND</code></td></tr>
+            <tr><td>Revocation unavailable</td><td><a href="pxa-pades-revocation-unavailable.pdf">PDF</a></td><td><a href="pxa-pades-revocation-unavailable-dss-simple.xml">Simple</a> · <a href="pxa-pades-revocation-unavailable-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-revocation-unavailable-dss-diagnostic.xml">Diagnostic</a></td><td><code>CERTIFICATE_CHAIN_GENERAL_FAILURE</code></td></tr>
+            <tr><td>Expired certificate without trusted time</td><td><a href="pxa-pades-expired.pdf">PDF</a></td><td><a href="pxa-pades-expired-dss-simple.xml">Simple</a> · <a href="pxa-pades-expired-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-expired-dss-diagnostic.xml">Diagnostic</a></td><td><code>OUT_OF_BOUNDS_NOT_REVOKED</code></td></tr>
+            <tr><td>Corrupted LT evidence</td><td><a href="pxa-pades-tampered-lt.pdf">PDF</a></td><td><a href="pxa-pades-tampered-lt-dss-simple.xml">Simple</a> · <a href="pxa-pades-tampered-lt-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-tampered-lt-dss-diagnostic.xml">Diagnostic</a></td><td><code>CERTIFICATE_CHAIN_GENERAL_FAILURE</code></td></tr>
+            <tr><td>Corrupted LTA archive timestamp</td><td><a href="pxa-pades-tampered-lta.pdf">PDF</a></td><td><a href="pxa-pades-tampered-lta-dss-simple.xml">Simple</a> · <a href="pxa-pades-tampered-lta-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-tampered-lta-dss-diagnostic.xml">Diagnostic</a></td><td><code>SIG_CRYPTO_FAILURE</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>

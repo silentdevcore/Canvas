@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using PXA.Importer;
@@ -208,6 +209,102 @@ public sealed class PdfTrustCorpusTests
     }
 
     [Fact]
+    public async Task Pades_negative_corpus_preserves_distinct_independent_failure_evidence()
+    {
+        var directory = Path.Combine(CorpusDirectory, "pades", "negative");
+        var manifest = JsonNode.Parse(await File.ReadAllTextAsync(
+            Path.Combine(directory, "negative-corpus.json")))!.AsObject();
+        Assert.Equal(1, manifest["schemaVersion"]!.GetValue<int>());
+        Assert.Equal("disabled", manifest["execution"]!["network"]!.GetValue<string>());
+
+        var expected = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["pxa-pades-expired"] = "OUT_OF_BOUNDS_NOT_REVOKED",
+            ["pxa-pades-revocation-unavailable"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE",
+            ["pxa-pades-revoked"] = "REVOKED_NO_POE",
+            ["pxa-pades-tampered-lt"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE",
+            ["pxa-pades-tampered-lta"] = "SIG_CRYPTO_FAILURE",
+            ["pxa-pades-untrusted"] = "NO_CERTIFICATE_CHAIN_FOUND",
+        };
+        var entries = manifest["entries"]!.AsArray();
+        Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), entries
+            .Select(entry => entry!["id"]!.GetValue<string>())
+            .Order(StringComparer.Ordinal));
+
+        foreach (var item in entries)
+        {
+            var entry = item!.AsObject();
+            var id = entry["id"]!.GetValue<string>();
+            Assert.Equal(expected[id], entry["expectedSubIndication"]!.GetValue<string>());
+            await AssertDescribedFileAsync(directory, entry["pdf"]!.AsObject());
+            foreach (var report in entry["reports"]!.AsObject())
+                await AssertDescribedFileAsync(directory, report.Value!.AsObject());
+
+            var simpleFile = entry["reports"]!["simple"]!["file"]!.GetValue<string>();
+            var simple = await File.ReadAllTextAsync(Path.Combine(directory, simpleFile));
+            Assert.Contains(
+                $"SignatureFormat=\"{entry["expectedProfile"]!.GetValue<string>()}\"",
+                simple,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                $"<SubIndication>{expected[id]}</SubIndication>",
+                simple,
+                StringComparison.Ordinal);
+        }
+
+        foreach (var evidence in manifest["trustEvidence"]!.AsArray())
+            await AssertDescribedFileAsync(directory, evidence!.AsObject());
+    }
+
+    [Fact]
+    public async Task Pxa_inspector_rejects_or_qualifies_every_pades_negative_case()
+    {
+        var directory = Path.Combine(CorpusDirectory, "pades", "negative");
+        using var root = X509CertificateLoader.LoadCertificateFromFile(
+            Path.Combine(directory, "root-trust-anchor.cer"));
+        using var untrustedRoot = X509CertificateLoader.LoadCertificateFromFile(
+            Path.Combine(directory, "untrusted-root.cer"));
+        using var expiredRoot = X509CertificateLoader.LoadCertificateFromFile(
+            Path.Combine(directory, "expired-root.cer"));
+
+        var revoked = await InspectPadesAsync(
+            directory,
+            "pxa-pades-revoked",
+            root,
+            PdfCertificateRevocationMode.Offline,
+            new CrlEvidenceProvider(await File.ReadAllBytesAsync(
+                Path.Combine(directory, "root-signer-revoked.crl"))));
+        Assert.Equal(PdfTrustStatus.Invalid, Approval(revoked).RevocationStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, Approval(revoked).Status);
+
+        var untrusted = await InspectPadesAsync(directory, "pxa-pades-untrusted", untrustedRoot);
+        Assert.Equal(PdfTrustStatus.Indeterminate, Approval(untrusted).CertificateStatus);
+        Assert.Equal(PdfTrustStatus.Indeterminate, Approval(untrusted).Status);
+
+        var unavailable = await InspectPadesAsync(
+            directory,
+            "pxa-pades-revocation-unavailable",
+            root,
+            PdfCertificateRevocationMode.Offline);
+        Assert.Equal(PdfTrustStatus.Indeterminate, Approval(unavailable).RevocationStatus);
+        Assert.Equal(PdfTrustStatus.Indeterminate, Approval(unavailable).Status);
+
+        var expired = await InspectPadesAsync(directory, "pxa-pades-expired", expiredRoot);
+        Assert.Equal(PdfTrustStatus.Invalid, Approval(expired).CertificateStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, Approval(expired).Status);
+
+        var tamperedLt = await InspectPadesAsync(directory, "pxa-pades-tampered-lt", root);
+        Assert.NotEqual("B-LT", Approval(tamperedLt).PadesProfile);
+        Assert.NotEqual(PdfTrustStatus.Valid, Approval(tamperedLt).EmbeddedValidationMaterial?.Status);
+
+        var tamperedLta = await InspectPadesAsync(directory, "pxa-pades-tampered-lta", root);
+        Assert.Equal("B-LT", Approval(tamperedLta).PadesProfile);
+        Assert.Equal(PdfTrustStatus.NotApplicable, Approval(tamperedLta).ArchiveTimestampStatus);
+        Assert.Contains(tamperedLta.Signatures, signature =>
+            signature.IsDocumentTimestamp && signature.IntegrityStatus == PdfTrustStatus.Invalid);
+    }
+
+    [Fact]
     public async Task Corpus_contains_no_private_key_or_credential_artifacts()
     {
         var files = Directory.GetFiles(CorpusDirectory, "*", SearchOption.AllDirectories)
@@ -238,6 +335,55 @@ public sealed class PdfTrustCorpusTests
         Assert.NotEmpty(bytes);
         Assert.Equal(expectedSha256, Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
         return bytes;
+    }
+
+    private static async Task AssertDescribedFileAsync(string directory, JsonObject descriptor)
+    {
+        var bytes = await AssertFileHashAsync(
+            directory,
+            descriptor["file"]!.GetValue<string>(),
+            descriptor["sha256"]!.GetValue<string>());
+        Assert.Equal(descriptor["fileSizeBytes"]!.GetValue<long>(), bytes.LongLength);
+    }
+
+    private static async Task<PdfTrustReport> InspectPadesAsync(
+        string directory,
+        string id,
+        X509Certificate2 trustAnchor,
+        PdfCertificateRevocationMode revocationMode = PdfCertificateRevocationMode.NoCheck,
+        IPdfRevocationEvidenceProvider? evidenceProvider = null)
+    {
+        await using var stream = File.OpenRead(Path.Combine(directory, $"{id}.pdf"));
+        return await new PdfTrustInspector().InspectAsync(stream, new PdfTrustInspectionOptions
+        {
+            SignatureValidationPolicy = new PdfSignatureValidationPolicy
+            {
+                UseSystemTrustStore = false,
+                CustomTrustAnchors = [trustAnchor],
+                RevocationMode = revocationMode,
+                RevocationEvidenceProvider = evidenceProvider,
+            },
+        });
+    }
+
+    private static PdfSignatureInspection Approval(PdfTrustReport report) =>
+        report.Signatures.Single(signature => !signature.IsDocumentTimestamp);
+
+    private sealed class CrlEvidenceProvider(byte[] encodedCrl) : IPdfRevocationEvidenceProvider
+    {
+        public Task<PdfRevocationEvidenceResult> GetEvidenceAsync(
+            PdfRevocationEvidenceRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var evidence = PdfCrlEvidenceValidator.Validate(
+                encodedCrl,
+                request.Certificate,
+                request.Issuer,
+                request.ValidationTime,
+                "fixture:root-signer-revoked.crl");
+            return Task.FromResult(new PdfRevocationEvidenceResult(evidence.Status, [evidence]));
+        }
     }
 
     private static JsonObject ProjectStableReport(PdfTrustReport report) => new()

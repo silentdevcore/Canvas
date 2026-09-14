@@ -27,6 +27,7 @@ var validationMaterial = new PdfLongTermValidationMaterial
 
 var service = new PdfPadesSigningService();
 var fixtures = new List<PadesFixture>();
+var generatedPdfs = new Dictionary<string, byte[]>(StringComparer.Ordinal);
 foreach (var profile in new[]
          {
              PdfPadesProfile.BaselineT,
@@ -58,6 +59,7 @@ foreach (var profile in new[]
         pki.TimestampAuthority);
     var pdfPath = Path.Combine(outputDirectory, $"{id}.pdf");
     await File.WriteAllBytesAsync(pdfPath, result.Bytes);
+    generatedPdfs[id] = result.Bytes;
 
     await using var stream = new MemoryStream(result.Bytes, writable: false);
     var report = await new PdfTrustInspector().InspectAsync(
@@ -87,6 +89,56 @@ await File.WriteAllBytesAsync(
 await File.WriteAllBytesAsync(
     Path.Combine(outputDirectory, "root-current.crl"),
     pki.CertificateRevocationList);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "root-signer-revoked.crl"),
+    pki.SignerRevokedCertificateRevocationList);
+
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-revoked.pdf"),
+    generatedPdfs["pxa-pades-b-t"]);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-untrusted.pdf"),
+    generatedPdfs["pxa-pades-b-t"]);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-revocation-unavailable.pdf"),
+    generatedPdfs["pxa-pades-b-t"]);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-tampered-lt.pdf"),
+    TamperEmbeddedBytes(generatedPdfs["pxa-pades-b-lt"], pki.CertificateRevocationList));
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-tampered-lta.pdf"),
+    TamperLastDocumentTimestamp(generatedPdfs["pxa-pades-b-lta"]));
+
+using var untrustedPki = SyntheticPki.Create(signingTime, "Untrusted");
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "untrusted-root.cer"),
+    untrustedPki.RootCertificate.RawData);
+
+using var expiredPki = SyntheticPki.Create(
+    signingTime,
+    "Expired",
+    signerNotAfter: signingTime.AddDays(1));
+var expiredResult = await service.SignAsync(
+    CreatePdf("pxa-pades-expired"),
+    expiredPki.Signer.Key,
+    new PdfSigningOptions
+    {
+        FieldName = "SyntheticExpiredApproval",
+        Reason = "PXA expired-certificate validation fixture",
+        Location = "Zurich",
+        SigningTime = signingTime,
+        Profile = PdfPadesProfile.BaselineB
+    },
+    timestampAuthority: null);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "pxa-pades-expired.pdf"),
+    expiredResult.Bytes);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "expired-root.cer"),
+    expiredPki.RootCertificate.RawData);
+await File.WriteAllBytesAsync(
+    Path.Combine(outputDirectory, "expired-root-current.crl"),
+    expiredPki.CertificateRevocationList);
 await File.WriteAllTextAsync(
     Path.Combine(outputDirectory, "pxa-pades-corpus.json"),
     new JsonObject
@@ -102,11 +154,18 @@ await File.WriteAllTextAsync(
             ["pdf"] = fixture.Pdf,
             ["sha256"] = fixture.Sha256,
             ["fileSizeBytes"] = fixture.FileSizeBytes
-        }).ToArray())
+        }).ToArray()),
+        ["negativeFixtures"] = new JsonArray(
+            new JsonObject { ["id"] = "pxa-pades-revoked", ["expectedSubIndication"] = "REVOKED_NO_POE" },
+            new JsonObject { ["id"] = "pxa-pades-untrusted", ["expectedSubIndication"] = "NO_CERTIFICATE_CHAIN_FOUND" },
+            new JsonObject { ["id"] = "pxa-pades-revocation-unavailable", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
+            new JsonObject { ["id"] = "pxa-pades-expired", ["expectedSubIndication"] = "OUT_OF_BOUNDS_NOT_REVOKED" },
+            new JsonObject { ["id"] = "pxa-pades-tampered-lt", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
+            new JsonObject { ["id"] = "pxa-pades-tampered-lta", ["expectedSubIndication"] = "SIG_CRYPTO_FAILURE" })
     }.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine,
     new UTF8Encoding(false));
 
-Console.WriteLine($"Wrote {fixtures.Count} PXA PAdES fixtures to {outputDirectory}.");
+Console.WriteLine($"Wrote {fixtures.Count} positive and 6 negative PXA PAdES fixtures to {outputDirectory}.");
 
 static byte[] CreatePdf(string id)
 {
@@ -119,6 +178,72 @@ static byte[] CreatePdf(string id)
     document.Info.ModificationDate = document.Info.CreationDate;
     document.AddPage().DrawText($"Synthetic {id} document", 40, 40);
     return document.ToBytes();
+}
+
+static byte[] TamperEmbeddedBytes(byte[] pdf, byte[] embeddedValue)
+{
+    var offset = pdf.AsSpan().IndexOf(embeddedValue);
+    if (offset < 0)
+        throw new InvalidDataException("The embedded validation material was not found in the generated PDF.");
+
+    var tampered = pdf.ToArray();
+    tampered[offset + embeddedValue.Length / 2] ^= 0x01;
+    return tampered;
+}
+
+static byte[] TamperLastDocumentTimestamp(byte[] pdf)
+{
+    var marker = "/SubFilter /ETSI.RFC3161"u8;
+    var markerOffset = pdf.AsSpan().LastIndexOf(marker);
+    if (markerOffset < 0)
+        throw new InvalidDataException("The generated B-LTA PDF has no document timestamp signature.");
+
+    var contentsMarker = "/Contents <"u8;
+    var contentsOffset = pdf.AsSpan(0, markerOffset).LastIndexOf(contentsMarker);
+    if (contentsOffset < 0)
+        throw new InvalidDataException("The generated document timestamp has no hexadecimal Contents value.");
+
+    var tampered = pdf.ToArray();
+    var contentsStart = contentsOffset + contentsMarker.Length;
+    var contentsEnd = pdf.AsSpan(contentsStart).IndexOf((byte)'>');
+    if (contentsEnd < 0)
+        throw new InvalidDataException("The generated document timestamp Contents value is not terminated.");
+
+    var encodedCms = Convert.FromHexString(Encoding.ASCII.GetString(
+        pdf.AsSpan(contentsStart, contentsEnd)));
+    var cmsLength = ReadDerValueLength(encodedCms);
+    var cms = new SignedCms();
+    cms.Decode(encodedCms.AsSpan(0, cmsLength).ToArray());
+    var signature = cms.SignerInfos[0].GetSignature();
+    var signatureOffset = encodedCms.AsSpan(0, cmsLength).IndexOf(signature);
+    if (signatureOffset < 0)
+        throw new InvalidDataException("The generated document timestamp signature value was not found.");
+
+    var hexOffset = contentsStart + (signatureOffset + signature.Length / 2) * 2;
+    tampered[hexOffset] = tampered[hexOffset] == (byte)'0' ? (byte)'1' : (byte)'0';
+    return tampered;
+}
+
+static int ReadDerValueLength(ReadOnlySpan<byte> encoded)
+{
+    if (encoded.Length < 2)
+        throw new InvalidDataException("The timestamp CMS is truncated.");
+
+    var lengthByte = encoded[1];
+    if ((lengthByte & 0x80) == 0)
+        return checked(2 + lengthByte);
+
+    var lengthBytes = lengthByte & 0x7f;
+    if (lengthBytes is 0 or > 4 || encoded.Length < 2 + lengthBytes)
+        throw new InvalidDataException("The timestamp CMS has an invalid DER length.");
+
+    var contentLength = 0;
+    for (var index = 0; index < lengthBytes; index++)
+        contentLength = checked((contentLength << 8) | encoded[2 + index]);
+    var totalLength = checked(2 + lengthBytes + contentLength);
+    if (totalLength > encoded.Length)
+        throw new InvalidDataException("The timestamp CMS DER value exceeds its Contents payload.");
+    return totalLength;
 }
 
 static string FindRepositoryRoot(string start)
@@ -143,24 +268,30 @@ internal sealed class SyntheticPki : IDisposable
         X509Certificate2 rootCertificate,
         SyntheticSigner signer,
         SyntheticTimestampAuthority timestampAuthority,
-        byte[] certificateRevocationList)
+        byte[] certificateRevocationList,
+        byte[] signerRevokedCertificateRevocationList)
     {
         RootCertificate = rootCertificate;
         Signer = signer;
         TimestampAuthority = timestampAuthority;
         CertificateRevocationList = certificateRevocationList;
+        SignerRevokedCertificateRevocationList = signerRevokedCertificateRevocationList;
     }
 
     public X509Certificate2 RootCertificate { get; }
     public SyntheticSigner Signer { get; }
     public SyntheticTimestampAuthority TimestampAuthority { get; }
     public byte[] CertificateRevocationList { get; }
+    public byte[] SignerRevokedCertificateRevocationList { get; }
 
-    public static SyntheticPki Create(DateTimeOffset signingTime)
+    public static SyntheticPki Create(
+        DateTimeOffset signingTime,
+        string nameSuffix = "Primary",
+        DateTimeOffset? signerNotAfter = null)
     {
         using var rootKey = RSA.Create(2048);
         var rootRequest = new CertificateRequest(
-            "CN=PXA Synthetic PAdES Root CA,O=PXA Synthetic Tests,C=CH",
+            $"CN=PXA Synthetic PAdES {nameSuffix} Root CA,O=PXA Synthetic Tests,C=CH",
             rootKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -172,7 +303,7 @@ internal sealed class SyntheticPki : IDisposable
         var root = rootRequest.CreateSelfSigned(signingTime.AddDays(-2), signingTime.AddYears(5));
         try
         {
-            var signer = SyntheticSigner.Create(root, signingTime);
+            var signer = SyntheticSigner.Create(root, signingTime, signerNotAfter);
             try
             {
                 var timestampAuthority = SyntheticTimestampAuthority.Create(root, signingTime.AddSeconds(5));
@@ -183,7 +314,16 @@ internal sealed class SyntheticPki : IDisposable
                     HashAlgorithmName.SHA256,
                     RSASignaturePadding.Pkcs1,
                     signingTime.AddHours(-1));
-                return new SyntheticPki(root, signer, timestampAuthority, crl);
+                var revokedBuilder = new CertificateRevocationListBuilder();
+                revokedBuilder.AddEntry(signer.Key.Certificate, signingTime.AddMinutes(-10));
+                var revokedCrl = revokedBuilder.Build(
+                    root,
+                    new BigInteger(2),
+                    signingTime.AddYears(4),
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1,
+                    signingTime.AddHours(-1));
+                return new SyntheticPki(root, signer, timestampAuthority, crl, revokedCrl);
             }
             catch
             {
@@ -212,7 +352,10 @@ internal sealed class SyntheticSigner : IDisposable
 
     public PdfPkcs12SigningKey Key { get; }
 
-    public static SyntheticSigner Create(X509Certificate2 issuer, DateTimeOffset signingTime)
+    public static SyntheticSigner Create(
+        X509Certificate2 issuer,
+        DateTimeOffset signingTime,
+        DateTimeOffset? notAfter = null)
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
@@ -228,7 +371,7 @@ internal sealed class SyntheticSigner : IDisposable
         using var issuedCertificate = request.Create(
             issuer,
             signingTime.AddDays(-1),
-            signingTime.AddYears(4),
+            notAfter ?? signingTime.AddYears(4),
             RandomNumberGenerator.GetBytes(16));
         using var certificate = issuedCertificate.CopyWithPrivateKey(rsa);
         var pfx = certificate.Export(X509ContentType.Pkcs12, "synthetic-build-only");

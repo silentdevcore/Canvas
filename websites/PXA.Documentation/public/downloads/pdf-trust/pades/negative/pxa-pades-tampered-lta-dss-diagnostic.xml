@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DiagnosticData xmlns="http://dss.esig.europa.eu/validation/diagnostic">
+    <DocumentName>pxa-pades-tampered-lta.pdf</DocumentName>
+    <ValidationDate>2026-09-14T17:01:17Z</ValidationDate>
+    <Signatures>
+        <Signature Id="S-2AF988AE3B08A47F2AEEBF242393FB22D0DCB32D2D94346D459E604BECA65931">
+            <SignatureFilename>pxa-pades-tampered-lta.pdf</SignatureFilename>
+            <ClaimedSigningTime>2026-06-15T10:30:00Z</ClaimedSigningTime>
+            <SignatureFormat>PAdES-BASELINE-LTA</SignatureFormat>
+            <StructuralValidation valid="true"/>
+            <DigestMatchers>
+                <DigestMatcher type="MESSAGE_DIGEST">
+                    <DigestMethod>SHA256</DigestMethod>
+                    <DigestValue>9YAxTSd3O5F/ogaKg8ZuwF1zhEIc7rv5kBXNIeKzmiM=</DigestValue>
+                    <DataFound>true</DataFound>
+                    <DataIntact>true</DataIntact>
+                </DigestMatcher>
+            </DigestMatchers>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC"/>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <ContentType>1.2.840.113549.1.7.1</ContentType>
+            <CommitmentTypeIndications/>
+            <SignerInformationStore>
+                <SignerInfo Current="true">
+                    <IssuerName>CN=PXA Synthetic PAdES Primary Root CA, O=PXA Synthetic Tests, C=CH</IssuerName>
+                    <SerialNumber>287519326745726588379436148174067936228</SerialNumber>
+                </SignerInfo>
+            </SignerInformationStore>
+            <PDFRevision>
+                <SignatureField name="SyntheticApproval"/>
+                <PDFSignatureDictionary consistent="true">
+                    <Type>Sig</Type>
+                    <Filter>Adobe.PPKLite</Filter>
+                    <SubFilter>ETSI.CAdES.detached</SubFilter>
+                    <Location>Zurich</Location>
+                    <Reason>PXA PAdES interoperability verification</Reason>
+                    <SignatureByteRange valid="true">0 1261 66799 796</SignatureByteRange>
+                </PDFSignatureDictionary>
+                <ModificationDetection>
+                    <ObjectModifications>
+                        <ExtensionChange action="CREATION" fieldName="SyntheticApproval.ArchiveTimestamp" type="DocTimeStamp">/Catalog /AcroForm /Fields 15 0 R</ExtensionChange>
+                        <ExtensionChange action="CREATION">/Catalog /DSS 13 0 R</ExtensionChange>
+                    </ObjectModifications>
+                </ModificationDetection>
+            </PDFRevision>
+            <SignerDocumentRepresentations HashOnly="false" DocHashOnly="false"/>
+            <FoundCertificates>
+                <RelatedCertificate Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C">
+                    <Origin>DSS_DICTIONARY</Origin>
+                </RelatedCertificate>
+                <RelatedCertificate Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13">
+                    <Origin>DSS_DICTIONARY</Origin>
+                </RelatedCertificate>
+                <RelatedCertificate Certificate="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC">
+                    <Origin>SIGNED_DATA</Origin>
+                    <Origin>DSS_DICTIONARY</Origin>
+                    <CertificateRef>
+                        <Origin>SIGNING_CERTIFICATE</Origin>
+                        <DigestAlgoAndValue match="true">
+                            <DigestMethod>SHA256</DigestMethod>
+                            <DigestValue>hzR3v5CrevZhWshhzOj1JH3vBHlUfGDT7MaRBHAlpbw=</DigestValue>
+                        </DigestAlgoAndValue>
+                    </CertificateRef>
+                </RelatedCertificate>
+            </FoundCertificates>
+            <FoundRevocations>
+                <RelatedRevocation Revocation="R-0CBC2E04B8209164FAB489ACD449FF30AFE71BAF9D186A73EAB40352BBD06E25">
+                    <Type>CRL</Type>
+                    <Origin>DSS_DICTIONARY</Origin>
+                </RelatedRevocation>
+            </FoundRevocations>
+            <FoundTimestamps>
+                <FoundTimestamp Timestamp="T-B974DDD0A8D7D4B4FD31A45441DB42E8B6C2C5D4281CDAFF8882DED7F1299330"/>
+                <FoundTimestamp Timestamp="T-1FA7BAB8AFD15778A3446A335F665913B460CD90FB861CDDB2D7DF9C494427CC"/>
+            </FoundTimestamps>
+            <FoundEvidenceRecords/>
+            <SignatureScopes>
+                <SignatureScope SignerData="D-7CCA2AFF9C3BB3DFFBB27DE1E366B0A6113009C2B77B99293CB65BD61DF9E0E9">
+                    <Scope>PARTIAL</Scope>
+                    <Name>Partial PDF</Name>
+                    <Description>The document ByteRange : [0, 1261, 66799, 796]</Description>
+                </SignatureScope>
+            </SignatureScopes>
+            <SignatureDigestReference>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>nIaQZDQZLSsWIL/A+7E8SY+cQOWUggWBvBTIW0LCipI=</DigestValue>
+            </SignatureDigestReference>
+            <DataToBeSignedRepresentation>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>b9Syd0WIVMaeUBJZdeqBTX1L8l3DABtGGIQCh6chOA4=</DigestValue>
+            </DataToBeSignedRepresentation>
+            <SignatureValue>KGhmy7trjcHG0au1mNcZm35GuPGYxiitk0wfH8JWpMkAeXJfVHz0A+QNm3qEC1Ntm6FbcH6aAesBkEur8vAhZGF5JjOuM42vJgvCJSTLHGirmNfq7ZyROeNDNJi1NP/7zbrhXk25BPoo1Vrbap4YE/rksalVrw5Zsl4kJhb77FONNPI22TBXzmn61CyXfiPd4ZVrrdgkXQj8fDdii4zxdk/n8CNUHZHJ8phnNSZo/cYOeel7CB+E6/PBG4/NFUBzQLAYxe/oQewFA74vjsJ1KKN4p+gUQLXmUbktfgWQAxDjCxFC0Vm5Whvip4LiZqNDJFedVD2cTHkgB1i4D3QcMg==</SignatureValue>
+        </Signature>
+    </Signatures>
+    <EvidenceRecords/>
+    <UsedCertificates>
+        <Certificate Id="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13">
+            <SubjectDistinguishedName Format="CANONICAL">cn=pxa synthetic pades primary root ca,o=pxa synthetic tests,c=ch</SubjectDistinguishedName>
+            <SubjectDistinguishedName Format="RFC2253">CN=PXA Synthetic PAdES Primary Root CA,O=PXA Synthetic Tests,C=CH</SubjectDistinguishedName>
+            <IssuerDistinguishedName Format="CANONICAL">cn=pxa synthetic pades primary root ca,o=pxa synthetic tests,c=ch</IssuerDistinguishedName>
+            <IssuerDistinguishedName Format="RFC2253">CN=PXA Synthetic PAdES Primary Root CA,O=PXA Synthetic Tests,C=CH</IssuerDistinguishedName>
+            <SerialNumber>8712012074465963651</SerialNumber>
+            <CommonName>PXA Synthetic PAdES Primary Root CA</CommonName>
+            <CountryName>CH</CountryName>
+            <OrganizationName>PXA Synthetic Tests</OrganizationName>
+            <Sources>
+                <Source>OTHER</Source>
+                <Source>SIGNATURE</Source>
+                <Source>TRUSTED_STORE</Source>
+            </Sources>
+            <NotAfter>2031-06-15T10:30:00Z</NotAfter>
+            <NotBefore>2026-06-13T10:30:00Z</NotBefore>
+            <PublicKeySize>2048</PublicKeySize>
+            <PublicKeyEncryptionAlgo>RSA</PublicKeyEncryptionAlgo>
+            <EntityKey>EK-FF88194C4CEEEB8BE33B14A2D856FA4FB3E7E2BB93B06D2623DC7B7B3F969A68</EntityKey>
+            <IssuerEntityKey key="true" subjectName="true">EK-FF88194C4CEEEB8BE33B14A2D856FA4FB3E7E2BB93B06D2623DC7B7B3F969A68</IssuerEntityKey>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <CertificateChain/>
+            <Trusted>true</Trusted>
+            <SelfSigned>true</SelfSigned>
+            <CertificateExtensions>
+                <SubjectKeyIdentifier OID="2.5.29.14" critical="false">
+                    <ski>IHzrNQuwonagxoQKxNBqph5+Rg4=</ski>
+                </SubjectKeyIdentifier>
+                <BasicConstraints CA="true" pathLenConstraint="2147483647" OID="2.5.29.19" critical="true"/>
+                <KeyUsages OID="2.5.29.15" critical="true">
+                    <keyUsageBit>keyCertSign</keyUsageBit>
+                    <keyUsageBit>crlSign</keyUsageBit>
+                </KeyUsages>
+            </CertificateExtensions>
+            <TrustServiceProviders/>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>CMW8/cvrs4bpmKzDmhhkrxNc7T4xI7lnhU7O4fFZfBM=</DigestValue>
+            </DigestAlgoAndValue>
+        </Certificate>
+        <Certificate Id="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C">
+            <SubjectDistinguishedName Format="CANONICAL">cn=pxa synthetic tsa,o=pxa synthetic tests,c=ch</SubjectDistinguishedName>
+            <SubjectDistinguishedName Format="RFC2253">CN=PXA Synthetic TSA,O=PXA Synthetic Tests,C=CH</SubjectDistinguishedName>
+            <IssuerDistinguishedName Format="CANONICAL">cn=pxa synthetic pades primary root ca,o=pxa synthetic tests,c=ch</IssuerDistinguishedName>
+            <IssuerDistinguishedName Format="RFC2253">CN=PXA Synthetic PAdES Primary Root CA,O=PXA Synthetic Tests,C=CH</IssuerDistinguishedName>
+            <SerialNumber>60675121153529340450848345173519295094</SerialNumber>
+            <CommonName>PXA Synthetic TSA</CommonName>
+            <CountryName>CH</CountryName>
+            <OrganizationName>PXA Synthetic Tests</OrganizationName>
+            <Sources>
+                <Source>TIMESTAMP</Source>
+                <Source>OTHER</Source>
+                <Source>SIGNATURE</Source>
+            </Sources>
+            <NotAfter>2030-06-15T10:30:05Z</NotAfter>
+            <NotBefore>2026-06-14T10:30:05Z</NotBefore>
+            <PublicKeySize>2048</PublicKeySize>
+            <PublicKeyEncryptionAlgo>RSA</PublicKeyEncryptionAlgo>
+            <EntityKey>EK-38793F473189797F7BE62181826044D78C004ABEEEAD16C429056746C5C58780</EntityKey>
+            <IssuerEntityKey key="true" subjectName="true">EK-FF88194C4CEEEB8BE33B14A2D856FA4FB3E7E2BB93B06D2623DC7B7B3F969A68</IssuerEntityKey>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <Trusted>false</Trusted>
+            <SelfSigned>false</SelfSigned>
+            <CertificateExtensions>
+                <SubjectKeyIdentifier OID="2.5.29.14" critical="false">
+                    <ski>DyElXT9k14HAqr8xkPSYstz8zI8=</ski>
+                </SubjectKeyIdentifier>
+                <BasicConstraints CA="false" OID="2.5.29.19" critical="true"/>
+                <KeyUsages OID="2.5.29.15" critical="true">
+                    <keyUsageBit>digitalSignature</keyUsageBit>
+                </KeyUsages>
+                <ExtendedKeyUsages OID="2.5.29.37" critical="true">
+                    <extendedKeyUsageOid Description="timeStamping">1.3.6.1.5.5.7.3.8</extendedKeyUsageOid>
+                </ExtendedKeyUsages>
+            </CertificateExtensions>
+            <TrustServiceProviders/>
+            <Revocations>
+                <CertificateRevocation Revocation="R-0CBC2E04B8209164FAB489ACD449FF30AFE71BAF9D186A73EAB40352BBD06E25">
+                    <Status>GOOD</Status>
+                </CertificateRevocation>
+            </Revocations>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>I8ssFFV9hC/fUdusl3X/O1U7xz01ivWVvJfKVtmuYCw=</DigestValue>
+            </DigestAlgoAndValue>
+        </Certificate>
+        <Certificate Id="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC">
+            <SubjectDistinguishedName Format="CANONICAL">cn=pxa synthetic pades signer,o=pxa synthetic tests,c=ch</SubjectDistinguishedName>
+            <SubjectDistinguishedName Format="RFC2253">CN=PXA Synthetic PAdES Signer,O=PXA Synthetic Tests,C=CH</SubjectDistinguishedName>
+            <IssuerDistinguishedName Format="CANONICAL">cn=pxa synthetic pades primary root ca,o=pxa synthetic tests,c=ch</IssuerDistinguishedName>
+            <IssuerDistinguishedName Format="RFC2253">CN=PXA Synthetic PAdES Primary Root CA,O=PXA Synthetic Tests,C=CH</IssuerDistinguishedName>
+            <SerialNumber>287519326745726588379436148174067936228</SerialNumber>
+            <CommonName>PXA Synthetic PAdES Signer</CommonName>
+            <CountryName>CH</CountryName>
+            <OrganizationName>PXA Synthetic Tests</OrganizationName>
+            <Sources>
+                <Source>OTHER</Source>
+                <Source>SIGNATURE</Source>
+            </Sources>
+            <NotAfter>2030-06-15T10:30:00Z</NotAfter>
+            <NotBefore>2026-06-14T10:30:00Z</NotBefore>
+            <PublicKeySize>2048</PublicKeySize>
+            <PublicKeyEncryptionAlgo>RSA</PublicKeyEncryptionAlgo>
+            <EntityKey>EK-F1AB5259F09B7A8E4EEE3225E039A92319D31F7308BF0639A852AE147262DE99</EntityKey>
+            <IssuerEntityKey key="true" subjectName="true">EK-FF88194C4CEEEB8BE33B14A2D856FA4FB3E7E2BB93B06D2623DC7B7B3F969A68</IssuerEntityKey>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <Trusted>false</Trusted>
+            <SelfSigned>false</SelfSigned>
+            <CertificateExtensions>
+                <SubjectKeyIdentifier OID="2.5.29.14" critical="false">
+                    <ski>VL+IgY1PP2YdUL3N8TXW/0Um7ko=</ski>
+                </SubjectKeyIdentifier>
+                <BasicConstraints CA="false" OID="2.5.29.19" critical="true"/>
+                <KeyUsages OID="2.5.29.15" critical="true">
+                    <keyUsageBit>digitalSignature</keyUsageBit>
+                    <keyUsageBit>nonRepudiation</keyUsageBit>
+                </KeyUsages>
+            </CertificateExtensions>
+            <TrustServiceProviders/>
+            <Revocations>
+                <CertificateRevocation Revocation="R-0CBC2E04B8209164FAB489ACD449FF30AFE71BAF9D186A73EAB40352BBD06E25">
+                    <Status>GOOD</Status>
+                </CertificateRevocation>
+            </Revocations>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>hzR3v5CrevZhWshhzOj1JH3vBHlUfGDT7MaRBHAlpbw=</DigestValue>
+            </DigestAlgoAndValue>
+        </Certificate>
+    </UsedCertificates>
+    <UsedRevocations>
+        <Revocation Id="R-0CBC2E04B8209164FAB489ACD449FF30AFE71BAF9D186A73EAB40352BBD06E25">
+            <Origin>INPUT_DOCUMENT</Origin>
+            <Type>CRL</Type>
+            <ProductionDate>2026-06-15T09:30:00Z</ProductionDate>
+            <ThisUpdate>2026-06-15T09:30:00Z</ThisUpdate>
+            <NextUpdate>2030-06-15T10:30:00Z</NextUpdate>
+            <CRLNumber>1</CRLNumber>
+            <CertHashExtensionPresent>false</CertHashExtensionPresent>
+            <CertHashExtensionMatch>false</CertHashExtensionMatch>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>DLwuBLggkWT6tIms1En/MK/nG6+dGGpz6rQDUrvQbiU=</DigestValue>
+            </DigestAlgoAndValue>
+        </Revocation>
+    </UsedRevocations>
+    <UsedTimestamps>
+        <Timestamp Type="SIGNATURE_TIMESTAMP" Id="T-B974DDD0A8D7D4B4FD31A45441DB42E8B6C2C5D4281CDAFF8882DED7F1299330">
+            <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+            <DigestMatcher type="MESSAGE_IMPRINT">
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>3WLlUbmBhQwGguRgQjBUtglSj41yRHcSYlYQ9MMEGgE=</DigestValue>
+                <DataFound>true</DataFound>
+                <DataIntact>true</DataIntact>
+            </DigestMatcher>
+            <BasicSignature>
+                <EncryptionAlgoUsedToSignThisToken>RSA</EncryptionAlgoUsedToSignThisToken>
+                <KeyLengthUsedToSignThisToken>2048</KeyLengthUsedToSignThisToken>
+                <DigestAlgoUsedToSignThisToken>SHA256</DigestAlgoUsedToSignThisToken>
+                <SignatureIntact>true</SignatureIntact>
+                <SignatureValid>true</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C"/>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <SignerInformationStore>
+                <SignerInfo Current="true">
+                    <IssuerName>CN=PXA Synthetic PAdES Primary Root CA, O=PXA Synthetic Tests, C=CH</IssuerName>
+                    <SerialNumber>60675121153529340450848345173519295094</SerialNumber>
+                </SignerInfo>
+            </SignerInformationStore>
+            <FoundCertificates>
+                <RelatedCertificate Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C">
+                    <Origin>SIGNED_DATA</Origin>
+                    <CertificateRef>
+                        <Origin>SIGNING_CERTIFICATE</Origin>
+                        <DigestAlgoAndValue match="true">
+                            <DigestMethod>SHA256</DigestMethod>
+                            <DigestValue>I8ssFFV9hC/fUdusl3X/O1U7xz01ivWVvJfKVtmuYCw=</DigestValue>
+                        </DigestAlgoAndValue>
+                    </CertificateRef>
+                </RelatedCertificate>
+            </FoundCertificates>
+            <FoundRevocations/>
+            <FoundEvidenceRecords/>
+            <TimestampedObjects>
+                <TimestampedObject Token="D-7CCA2AFF9C3BB3DFFBB27DE1E366B0A6113009C2B77B99293CB65BD61DF9E0E9" Category="SIGNED_DATA"/>
+                <TimestampedObject Token="S-2AF988AE3B08A47F2AEEBF242393FB22D0DCB32D2D94346D459E604BECA65931" Category="SIGNATURE"/>
+                <TimestampedObject Token="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC" Category="CERTIFICATE"/>
+            </TimestampedObjects>
+            <TimestampScopes/>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>AYhqqsMswiYukenTaZUYWtuywGeiV7rrGzXy/sNrbZ4=</DigestValue>
+            </DigestAlgoAndValue>
+        </Timestamp>
+        <Timestamp Type="DOCUMENT_TIMESTAMP" Id="T-1FA7BAB8AFD15778A3446A335F665913B460CD90FB861CDDB2D7DF9C494427CC">
+            <ArchiveTimestampType>PAdES</ArchiveTimestampType>
+            <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+            <DigestMatcher type="MESSAGE_IMPRINT">
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>mJIu1bYtk/3VAH36JDk0L7x5kZoqGR2mcHmjdK0YlAo=</DigestValue>
+                <DataFound>true</DataFound>
+                <DataIntact>true</DataIntact>
+            </DigestMatcher>
+            <BasicSignature>
+                <KeyLengthUsedToSignThisToken>?</KeyLengthUsedToSignThisToken>
+                <SignatureIntact>false</SignatureIntact>
+                <SignatureValid>false</SignatureValid>
+            </BasicSignature>
+            <SigningCertificate Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C"/>
+            <CertificateChain>
+                <ChainItem Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C"/>
+                <ChainItem Certificate="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13"/>
+            </CertificateChain>
+            <SignerInformationStore>
+                <SignerInfo Current="true">
+                    <IssuerName>CN=PXA Synthetic PAdES Primary Root CA, O=PXA Synthetic Tests, C=CH</IssuerName>
+                    <SerialNumber>60675121153529340450848345173519295094</SerialNumber>
+                </SignerInfo>
+            </SignerInformationStore>
+            <PDFRevision>
+                <SignatureField name="SyntheticApproval.ArchiveTimestamp"/>
+                <PDFSignatureDictionary consistent="true">
+                    <Type>DocTimeStamp</Type>
+                    <Filter>Adobe.PPKLite</Filter>
+                    <SubFilter>ETSI.RFC3161</SubFilter>
+                    <SignatureByteRange valid="true">0 71695 137233 498</SignatureByteRange>
+                </PDFSignatureDictionary>
+            </PDFRevision>
+            <FoundCertificates>
+                <RelatedCertificate Certificate="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C">
+                    <Origin>SIGNED_DATA</Origin>
+                    <CertificateRef>
+                        <Origin>SIGNING_CERTIFICATE</Origin>
+                        <DigestAlgoAndValue match="true">
+                            <DigestMethod>SHA256</DigestMethod>
+                            <DigestValue>I8ssFFV9hC/fUdusl3X/O1U7xz01ivWVvJfKVtmuYCw=</DigestValue>
+                        </DigestAlgoAndValue>
+                    </CertificateRef>
+                </RelatedCertificate>
+            </FoundCertificates>
+            <FoundRevocations/>
+            <FoundEvidenceRecords/>
+            <TimestampedObjects>
+                <TimestampedObject Token="D-38856BC5385825F30C886BDF8CD548CA54CA48F2298F25CF085C2E3D9E6C30BD" Category="SIGNED_DATA"/>
+                <TimestampedObject Token="D-7CCA2AFF9C3BB3DFFBB27DE1E366B0A6113009C2B77B99293CB65BD61DF9E0E9" Category="SIGNED_DATA"/>
+                <TimestampedObject Token="S-2AF988AE3B08A47F2AEEBF242393FB22D0DCB32D2D94346D459E604BECA65931" Category="SIGNATURE"/>
+                <TimestampedObject Token="C-873477BF90AB7AF6615AC861CCE8F5247DEF0479547C60D3ECC691047025A5BC" Category="CERTIFICATE"/>
+                <TimestampedObject Token="T-B974DDD0A8D7D4B4FD31A45441DB42E8B6C2C5D4281CDAFF8882DED7F1299330" Category="TIMESTAMP"/>
+                <TimestampedObject Token="C-23CB2C14557D842FDF51DBAC9775FF3B553BC73D358AF595BC97CA56D9AE602C" Category="CERTIFICATE"/>
+                <TimestampedObject Token="C-08C5BCFDCBEBB386E998ACC39A1864AF135CED3E3123B967854ECEE1F1597C13" Category="CERTIFICATE"/>
+                <TimestampedObject Token="R-0CBC2E04B8209164FAB489ACD449FF30AFE71BAF9D186A73EAB40352BBD06E25" Category="REVOCATION"/>
+            </TimestampedObjects>
+            <TimestampScopes>
+                <TimestampScope SignerData="D-38856BC5385825F30C886BDF8CD548CA54CA48F2298F25CF085C2E3D9E6C30BD">
+                    <Scope>FULL</Scope>
+                    <Name>Full PDF</Name>
+                    <Description>The document ByteRange : [0, 71695, 137233, 498]</Description>
+                </TimestampScope>
+            </TimestampScopes>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>KhnV6tnPu/XWi98J1Al2nxC4xlPdaucIj7t0ff9zq8w=</DigestValue>
+            </DigestAlgoAndValue>
+        </Timestamp>
+    </UsedTimestamps>
+    <OriginalDocuments>
+        <SignerData Id="D-7CCA2AFF9C3BB3DFFBB27DE1E366B0A6113009C2B77B99293CB65BD61DF9E0E9">
+            <ReferencedName>Partial PDF</ReferencedName>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>KgwmdC2FhhSCwkc00g87x+yEO0Gy9sNxStMhKDQPs4w=</DigestValue>
+            </DigestAlgoAndValue>
+        </SignerData>
+        <SignerData Id="D-38856BC5385825F30C886BDF8CD548CA54CA48F2298F25CF085C2E3D9E6C30BD">
+            <ReferencedName>Full PDF</ReferencedName>
+            <DigestAlgoAndValue>
+                <DigestMethod>SHA256</DigestMethod>
+                <DigestValue>QPsPK2YsV7ogQyRQHAgBfURxLnkqzQ9nIlRQPyHVJ7Q=</DigestValue>
+            </DigestAlgoAndValue>
+        </SignerData>
+    </OriginalDocuments>
+    <TrustedLists/>
+</DiagnosticData>
