@@ -53,6 +53,16 @@ const editorSections = [
     text: 'Review PDFs, forms, annotations, and browser-side inspection workflows connected to demos.',
   },
   {
+    title: 'PDF/A compliance',
+    status: 'Preview',
+    text: 'Generate, preflight, convert, and independently validate exact PDF/A profiles with documented limitations.',
+  },
+  {
+    title: 'PDF/UA accessibility',
+    status: 'Preview',
+    text: 'Create tagged PDF/UA-1 output, remediate semantics in Designer, and complete human accessibility checks.',
+  },
+  {
     title: 'Spreadsheet',
     status: 'Preview',
     text: 'Import, map, edit, and export workbook-driven data flows for document automation.',
@@ -86,6 +96,70 @@ const editorDocs = [
       { label: 'Live designer', href: siteLinks.designer },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Master-detail demo', href: `${siteLinks.demo}#demo/master-detail-report` },
+    ],
+  },
+  {
+    title: 'PDF/A compliance',
+    status: 'Preview',
+    purpose:
+      'Use PDF/A when a document must remain self-contained and reproducible for long-term preservation. PXA documents the exact profile, generated evidence, conversion risks, and the boundary between first-party checks and independent conformance validation.',
+    whenToUse: [
+      'You are generating an archive copy with a defined PDF/A profile.',
+      'You need to preflight or convert an existing PDF before archival storage.',
+      'You must verify a PDF/A claim without treating metadata alone as proof.',
+      'You need to understand why encryption, forms, annotations, or attachments block a selected profile.',
+    ],
+    concepts: ['PDF/A-2b', 'PDF/A-3b', 'Self-contained files', 'Embedded fonts and ToUnicode', 'ICC output intent', 'Preflight versus conversion', 'veraPDF evidence', 'Conversion loss and signature invalidation'],
+    tasks: ['Generate PDF/A-2b', 'Generate PDF/A-3b with controlled attachments', 'Validate a PDF/A profile in the Viewer', 'Preflight an existing PDF', 'Convert an eligible existing PDF', 'Review independent validator reports', 'Correct PDF/A findings after migration'],
+    related: [
+      { label: 'PDF Viewer trust workflow', href: '#pdf-viewer' },
+      { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
+      { label: 'Download external PDF/A evidence', href: '/downloads/pdf-trust/external/' },
+      { label: 'PDF encryption documentation', href: '../../checklists/Pdf-Encryption.md' },
+    ],
+    examples: [
+      {
+        title: 'Choose a profile and validate independently',
+        json: '{"profile":"PDF/A-2b","generator":"PXA.Generator","firstPartyEndpoint":"POST /api/pxa/v1/pdf/compliance/validate","independentEvidence":"tools/pdfa/validate-pdfa.sh --profile 2b archive.pdf"}',
+        note: 'The Generator creates PDF/A-2b by default and supports PDF/A-3b where attachments have valid relationships. The Viewer and API expose profile, status, validator, evidence, and diagnostics. A production conformance claim requires the pinned official veraPDF report and a recorded second independent validator result. PXA does not claim PDF/A-4 support.',
+      },
+      {
+        title: 'Preflight before converting an existing PDF',
+        json: '{"preflight":"POST /api/pxa/v1/pdf/compliance/preflight","convert":"POST /api/pxa/v1/pdf/compliance/convert","profile":"PdfA2b","allowSignatureInvalidation":false}',
+        note: 'Preflight is read-only and returns ready, reviewRequired, or unsupported with stable diagnostics. Conversion is a full rewrite and can invalidate signatures; it is blocked for unsupported encryption, fonts, actions, interactive content, unsafe colour spaces, and other structures named in the report. The original source is never replaced on failure.',
+      },
+    ],
+  },
+  {
+    title: 'PDF/UA accessibility',
+    status: 'Preview',
+    purpose:
+      'Use PDF/UA guidance to create tagged, navigable documents for assistive technology. PXA carries semantic roles, reading order, language, alternatives, table associations, and accessible form metadata from Designer JSON into tagged PDF, while separating automated evidence from human accessibility review.',
+    whenToUse: [
+      'You need a tagged PDF/UA-1 document with a defined accessibility profile.',
+      'You are remediating missing roles, alternatives, labels, language, or table headers in Designer.',
+      'You are importing or migrating a document and need to review semantic structure.',
+      'You must combine automated PDF/UA validation with keyboard and screen-reader checks.',
+    ],
+    concepts: ['PDF/UA-1', 'Structure tree and parent tree', 'Reading order and MCIDs', 'Role mapping and artifacts', 'Language and document title', 'Alt text and ActualText', 'Table header associations', 'Accessible form labels and focus order', 'Matterhorn Protocol review'],
+    tasks: ['Set document title and language', 'Inspect and correct element roles and reading order', 'Add image and chart alternatives', 'Define table headers and form labels', 'Generate PDF/UA-1', 'Run accessibility preflight and veraPDF', 'Perform keyboard, reading-order, and screen-reader review', 'Review imported semantic loss'],
+    related: [
+      { label: 'PDF Viewer trust workflow', href: '#pdf-viewer' },
+      { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
+      { label: 'Accessibility element reference', href: '#element-reference' },
+      { label: 'Download external PDF/UA evidence', href: '/downloads/pdf-trust/external/' },
+    ],
+    examples: [
+      {
+        title: 'Generate and validate PDF/UA-1',
+        json: '{"accessibilityProfile":"PdfUa1","title":"Accessible invoice","language":"en","validation":"POST /api/pxa/v1/pdf/compliance/validate","independentProfile":"veraPDF ua1"}',
+        note: 'PXA fails closed when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The report includes PXAPDFUA diagnostics, page references, and element IDs. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
+      },
+      {
+        title: 'Remediate before export',
+        json: '{"role":"H1","readingOrder":1,"language":"en","alternateText":"Revenue trend chart","tableHeaderScope":"Column"}',
+        note: 'Use the Designer Accessibility Inspector to correct semantics before exporting. Then test keyboard focus, logical reading order, form labels, table navigation, link names, and image or chart alternatives with assistive technology. Imported or migrated structure that cannot be proven is reported for review rather than silently marked accessible.',
+      },
     ],
   },
   {

@@ -544,6 +544,30 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
     }
 
+    [Theory]
+    [InlineData("signed-content")]
+    [InlineData("cms-signature")]
+    public async Task Inspect_ShouldRejectCryptographicMutations(string mutation)
+    {
+        using var fixture = SigningFixture.Create();
+        var result = new PdfPadesSigningService().Sign(
+            CreatePdf(),
+            fixture.Key,
+            new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
+        var modified = mutation == "signed-content"
+            ? MutateFirstOccurrence(result.Bytes, "PXA PAdES fixture"u8)
+            : MutateSignatureContents(result.Bytes);
+
+        await using var stream = new MemoryStream(modified);
+        var report = await new PdfTrustInspector().InspectAsync(stream);
+        var signature = Assert.Single(report.Signatures);
+
+        Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
+        Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
+        Assert.Contains(report.Diagnostics, diagnostic =>
+            diagnostic.Code is "PXAPDFTRUST103" or "PXAPDFTRUST105");
+    }
+
     [Fact]
     public void Sign_ShouldRejectDuplicateFieldName()
     {
@@ -914,6 +938,26 @@ public sealed class PdfPadesSigningServiceTests
             value.ToString($"D{tokens[index].Length}", System.Globalization.CultureInfo.InvariantCulture)));
         Assert.Equal(originalText.Length, replacementText.Length);
         Encoding.ASCII.GetBytes(replacementText, result.AsSpan(valuesOffset, valuesEnd));
+        return result;
+    }
+
+    private static byte[] MutateFirstOccurrence(byte[] source, ReadOnlySpan<byte> marker)
+    {
+        var offset = source.AsSpan().IndexOf(marker);
+        Assert.True(offset >= 0);
+        var result = source.ToArray();
+        result[offset + marker.Length - 1] ^= 0x20;
+        return result;
+    }
+
+    private static byte[] MutateSignatureContents(byte[] source)
+    {
+        var marker = "/Contents <"u8;
+        var markerOffset = source.AsSpan().IndexOf(marker);
+        Assert.True(markerOffset >= 0);
+        var hexOffset = markerOffset + marker.Length;
+        var result = source.ToArray();
+        result[hexOffset] = result[hexOffset] == (byte)'0' ? (byte)'1' : (byte)'0';
         return result;
     }
 

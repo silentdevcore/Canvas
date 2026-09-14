@@ -68,6 +68,21 @@ test('PDF/A documentation states the exact generated profile and validation boun
   assert.match(source, /standards-level release evidence still comes from the pinned veraPDF profile/i);
 });
 
+test('PDF Trust documentation exposes separate PDF/A and PDF/UA learning paths', () => {
+  assert.match(source, /title: 'PDF\/A compliance'/);
+  assert.match(source, /title: 'PDF\/UA accessibility'/);
+  assert.match(source, /Generate PDF\/A-2b/);
+  assert.match(source, /Generate PDF\/A-3b with controlled attachments/);
+  assert.match(source, /Correct PDF\/A findings after migration/);
+  assert.match(source, /independent validator result/);
+  assert.match(source, /title: 'Generate and validate PDF\/UA-1'/);
+  assert.match(source, /title: 'Remediate before export'/);
+  assert.match(source, /Designer Accessibility Inspector/);
+  assert.match(source, /screen-reader review/);
+  assert.match(source, /Passing automated validation is evidence for the tested profile/);
+  assert.match(source, /Download external PDF\/UA evidence/);
+});
+
 test('PDF redaction documentation separates preflight from applied redaction', () => {
   assert.match(source, /Redaction preflight is separate from applying a redaction/);
   assert.match(source, /POST \/api\/pxa\/v1\/pdf\/redactions\/preflight never changes the uploaded document/);

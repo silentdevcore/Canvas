@@ -846,6 +846,9 @@ Implementation evidence:
 
 - [ ] Add a public `PDF Trust` section to PXA.Documentation with separate Generator,
   Viewer, Migration, API, and troubleshooting paths.
+  - [x] Publish dedicated PDF/A compliance and PDF/UA accessibility topics with
+    profile-specific examples, Generator/Viewer/migration guidance, independent
+    validator boundaries, remediation steps, and explicit limitations.
 - [ ] Document supported standards by exact profile, edition, validator, and known
   limitation.
 - [ ] Explain cryptographic integrity, certificate trust, legal signature effect,
@@ -856,8 +859,12 @@ Implementation evidence:
   verification, audit evidence, and unsupported-content behavior.
 - [x] Document PDF/A profiles, conversion loss risks, validation reports, attachments,
   and incompatibility with encryption.
-- [ ] Document Tagged PDF, PDF/UA semantics, Designer remediation, and the limits of
+- [x] Document Tagged PDF, PDF/UA semantics, Designer remediation, and the limits of
   automated accessibility validation.
+  The public Documentation now has separate PDF/A compliance and PDF/UA accessibility
+  topics with Generator, Viewer, migration, independent validator, remediation, and
+  human-review paths. Automated validation is not presented as a complete
+  accessibility guarantee.
 - [ ] Document AES-256, legacy RC4 compatibility, permissions, password handling, and
   certificate encryption status without exposing cryptographic internals useful for
   abuse.
@@ -888,6 +895,8 @@ Implementation evidence:
   multiple signatures, encrypted documents, and mixed page geometry.
 - [ ] Add known-answer cryptographic tests and mutation tests that flip every signed
   region and validation-material component.
+  - [x] Cover signed document content, CMS signature bytes, unsafe ByteRanges, and
+    signature-object shadowing with assertions for integrity and coverage failure.
 - [x] Test PAdES B-B, B-T, B-LT, and B-LTA independently, including expired,
   untrusted, revoked, offline, and unavailable-revocation cases.
   - [x] Generate one synthetic PAdES B-B fixture with pyHanko 0.37.0 and verify its
