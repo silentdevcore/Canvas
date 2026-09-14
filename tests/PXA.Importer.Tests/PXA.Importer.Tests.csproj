@@ -27,6 +27,9 @@
   <ItemGroup>
     <Content Include="Fixtures/RedactionRecovery/**"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../websites/PXA.Documentation/public/downloads/pdf-trust/**"
+             Link="Fixtures/PdfTrust/%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

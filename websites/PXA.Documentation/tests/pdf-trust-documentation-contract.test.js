@@ -137,6 +137,18 @@ test('PDF Trust documentation describes tenant-scoped inspection jobs and retent
   assert.match(source, /synchronous \/api\/pxa\/v1\/pdf\/trust\/inspect endpoint remains available for compatibility/);
 });
 
+test('PDF Trust documentation publishes all synthetic trust examples and expected reports', () => {
+  assert.match(source, /Download synthetic PDF Trust corpus/);
+  assert.match(source, /\/downloads\/pdf-trust\//);
+  const directory = path.join(root, 'websites/PXA.Documentation/public/downloads/pdf-trust');
+  for (const id of ['clean', 'malformed', 'encrypted', 'signed', 'archived', 'accessible', 'redaction-risk']) {
+    assert.ok(fs.existsSync(path.join(directory, `${id}.pdf`)), `${id}.pdf is missing`);
+    assert.ok(fs.existsSync(path.join(directory, `${id}.expected.json`)), `${id}.expected.json is missing`);
+  }
+  assert.ok(fs.existsSync(path.join(directory, 'corpus.json')));
+  assert.ok(fs.existsSync(path.join(directory, 'index.html')));
+});
+
 test('Redaction documentation states what is detected and what is sanitized', () => {
   assert.match(source, /narrows coverage by the clipping paths in force/);
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);

@@ -331,6 +331,7 @@ const editorDocs = [
       { label: 'Viewer demo', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
       { label: 'Feature gaps checklist', href: '../../checklists/PdfTools-WebViewer-Feature-Gaps.md' },
       { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
+      { label: 'Download synthetic PDF Trust corpus', href: '/downloads/pdf-trust/' },
     ],
     examples: [
       {

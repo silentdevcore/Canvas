@@ -148,8 +148,12 @@ Reference material:
   append-only audit event. The synchronous inspection endpoint remains as a protected
   compatibility path with the same upload limit, request cancellation, and audit
   behavior.
-- [ ] Add synthetic examples for clean, malformed, encrypted, signed, archived,
+- [x] Add synthetic examples for clean, malformed, encrypted, signed, archived,
   accessible, and redaction-risk PDFs.
+  The checked-in public corpus contains all seven synthetic cases, SHA-256-pinned
+  immutable PDFs, and stable expected-report sidecars. A dedicated generator updates
+  the corpus explicitly, while contract tests inspect every pinned file through the
+  production `PdfTrustInspector` and reject report drift or secret-bearing artifacts.
 
 ## P0 - Digital Signatures and Validation
 
@@ -856,8 +860,11 @@ Implementation evidence:
 - [ ] Document AES-256, legacy RC4 compatibility, permissions, password handling, and
   certificate encryption status without exposing cryptographic internals useful for
   abuse.
-- [ ] Add downloadable synthetic examples and expected trust reports; do not use
+- [x] Add downloadable synthetic examples and expected trust reports; do not use
   customer files, real private keys, or production certificates.
+  PXA.Documentation publishes a local download index and manifest for the seven-case
+  corpus. The signed example contains only a synthetic self-signed public certificate;
+  its ephemeral private key and generation password are never written to disk.
 - [ ] Add current screenshots for Viewer Trust, signature validation, redaction
   review, and compliance/accessibility reports.
 - [ ] Update `PxaPdf-Provider-Feature-Gaps.md`, `Pdf-Encryption.md`,

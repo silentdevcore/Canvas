@@ -106,6 +106,16 @@ audit event by document hash and job ID. Another organization cannot read the jo
 input, report, or audit evidence. `POST /api/pxa/v1/pdf/trust/inspect` remains a
 protected synchronous compatibility endpoint for existing integrations.
 
+## Downloadable Synthetic Corpus
+
+The [PDF Trust synthetic corpus](../../websites/PXA.Documentation/public/downloads/pdf-trust/index.html)
+contains clean, malformed, AES-256 encrypted, PAdES B-B signed, PDF/A-2b archived,
+PDF/UA-1 accessible, and active-content/redaction-risk PDFs. Every document has a
+stable expected-report sidecar, and `corpus.json` pins its SHA-256 and byte length.
+The fixtures contain no customer files, production certificates, private keys, or
+operational credentials. The encrypted fixture's synthetic reader passphrase is
+published with the corpus.
+
 ## One Final-Byte Trust Pipeline
 
 Use `IPdfTrustPostProcessingPipeline` when multiple operations must be applied safely. Destructive

@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-synthetic-corpus",
+  "impact": "patch",
+  "components": [
+    "documentation",
+    "importer"
+  ],
+  "category": "improved",
+  "summary": "PXA now publishes downloadable synthetic PDF Trust examples with pinned hashes and expected inspection results for clean, malformed, encrypted, signed, archived, accessible, and risky documents.",
+  "featureIds": [],
+  "documentation": [
+    "/downloads/pdf-trust/"
+  ],
+  "breaking": false
+}

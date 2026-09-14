@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic PDF Trust examples. No customer files, production certificates, private keys, or operational credentials are included.",
+  "entries": [
+    {
+      "id": "clean",
+      "title": "Clean generated PDF",
+      "pdf": "clean.pdf",
+      "expectedReport": "clean.expected.json",
+      "sha256": "a0c20274474432bab951b1fa51f51770540e24ebdcc2322e1706301ab35cbb7a",
+      "fileSizeBytes": 903
+    },
+    {
+      "id": "malformed",
+      "title": "Malformed PDF with an unreferenced object",
+      "pdf": "malformed.pdf",
+      "expectedReport": "malformed.expected.json",
+      "sha256": "1e6043ce0e092dbed35b4734ffa710ac9f1b91c622fc4aaaae260c08f572eb43",
+      "fileSizeBytes": 981
+    },
+    {
+      "id": "encrypted",
+      "title": "AES-256 encrypted PDF",
+      "pdf": "encrypted.pdf",
+      "expectedReport": "encrypted.expected.json",
+      "sha256": "7d26005f60adfe698debb26486a34cbfa01b02705efed916432a1b64a4a0a133",
+      "fileSizeBytes": 1834
+    },
+    {
+      "id": "signed",
+      "title": "PAdES B-B signed PDF with a synthetic self-signed certificate",
+      "pdf": "signed.pdf",
+      "expectedReport": "signed.expected.json",
+      "sha256": "3cd872d7f90d2bbee7dc8fa50ddb0af74f6f69e7507c6d8ddcb813e3eed2c5ee",
+      "fileSizeBytes": 67512
+    },
+    {
+      "id": "archived",
+      "title": "Generated PDF/A-2b document",
+      "pdf": "archived.pdf",
+      "expectedReport": "archived.expected.json",
+      "sha256": "dbd0405efd5603b42ee2e0bb51ada25d8a8f1dc2317ecfe965bd7ebe54072012",
+      "fileSizeBytes": 95740
+    },
+    {
+      "id": "accessible",
+      "title": "Generated PDF/UA-1 document",
+      "pdf": "accessible.pdf",
+      "expectedReport": "accessible.expected.json",
+      "sha256": "0d6a2a59dc54dca020effd9f7ad7fac8818326f3317938124a0151e96caa673d",
+      "fileSizeBytes": 3142
+    },
+    {
+      "id": "redaction-risk",
+      "title": "PDF containing synthetic active-content and attachment risks",
+      "pdf": "redaction-risk.pdf",
+      "expectedReport": "redaction-risk.expected.json",
+      "sha256": "8e2d2b45b9a7b1b0724d2f8fb078c3b0ffbfb86f1b3f4fbf44c8beecc194334b",
+      "fileSizeBytes": 1327
+    }
+  ]
+}
