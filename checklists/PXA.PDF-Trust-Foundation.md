@@ -173,7 +173,7 @@ Reference material:
 - [x] Implement detached CMS signatures with correct `/ByteRange`, `/Contents`,
   digest calculation, placeholder sizing, and incremental save.
 - [x] Support SHA-256 or stronger digests only for new signatures.
-- [ ] Produce PAdES B-B, B-T, B-LT, and B-LTA as independently verified profiles.
+- [x] Produce PAdES B-B, B-T, B-LT, and B-LTA as independently verified profiles.
   - [x] Produce PAdES B-B signatures with signed attributes and incremental updates.
   - [x] Produce PAdES B-T signatures with a validated RFC 3161 timestamp token.
   - [x] Produce PAdES B-LT signatures with a bounded, deduplicated DSS and
@@ -182,10 +182,11 @@ Reference material:
   - [x] Produce PAdES B-LTA signatures by extending a validated B-LT revision with
     a trusted RFC 3161 document timestamp; fail closed unless the final document
     validates back as B-LTA.
-  - [ ] Validate B-T, B-LT, and B-LTA profile classification with an independent
-    licensed or standards-backed validator and retain its machine-readable report.
-    OpenSSL and Poppler already corroborate CMS/PDF integrity, but do not independently
-    classify every PAdES long-term profile.
+  - [x] Validate B-T, B-LT, and B-LTA profile classification with EU Digital Signature
+    Services 6.4 and retain its simple, detailed, and diagnostic XML reports. Each
+    synthetic profile has valid structural validation and a `TOTAL_PASSED` indication;
+    the immutable corpus, public trust anchor, CRL, and SHA-256 manifest are published
+    under `/downloads/pdf-trust/pades/`.
 - [x] Produce interoperable PAdES Baseline B-B signatures validated independently by
   OpenSSL CAdES verification and Poppler `pdfsig`.
 - [x] Produce PAdES Baseline B-T signatures with a bounded, HTTPS-only RFC 3161 TSA
@@ -864,7 +865,9 @@ Implementation evidence:
   customer files, real private keys, or production certificates.
   PXA.Documentation publishes a local download index and manifest for the seven-case
   corpus. The signed example contains only a synthetic self-signed public certificate;
-  its ephemeral private key and generation password are never written to disk.
+  its ephemeral private key and generation password are never written to disk. A
+  separate PAdES corpus publishes synthetic B-T, B-LT, and B-LTA files with pinned EU
+  DSS 6.4 XML evidence, a test-only public root certificate, and its current CRL.
 - [ ] Add current screenshots for Viewer Trust, signature validation, redaction
   review, and compliance/accessibility reports.
 - [ ] Update `PxaPdf-Provider-Feature-Gaps.md`, `Pdf-Encryption.md`,
@@ -889,8 +892,12 @@ Implementation evidence:
   untrusted, revoked, offline, and unavailable-revocation cases.
   - [x] Generate one synthetic PAdES B-B fixture with pyHanko 0.37.0 and verify its
     cryptographic integrity independently with pyHanko before pinning the PDF and
-    machine-readable PXA trust report. Long-term profiles and trust failure cases remain
-    open.
+    machine-readable PXA trust report. Trust failure cases remain open.
+  - [x] Generate PXA B-T, B-LT, and B-LTA fixtures from a synthetic root, signer, and
+    timestamp-authority hierarchy; validate exact profile classification, structure,
+    certificate chains, and revocation evidence with EU DSS 6.4; pin all PDFs and XML
+    reports by SHA-256. B-T uses the public offline CRL during validation while LT/LTA
+    embed their validation material, preserving the distinction between profiles.
 - [ ] Test AES-256 against independent readers and writers with Unicode passwords,
   all permission combinations, metadata options, wrong passwords, and tampering.
   - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and

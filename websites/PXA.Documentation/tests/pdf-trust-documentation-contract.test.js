@@ -176,6 +176,25 @@ test('PDF Trust documentation publishes the external producer baseline', () => {
   }
 });
 
+test('PDF Trust documentation publishes independently validated PAdES profiles', () => {
+  assert.match(source, /Download independently validated PAdES corpus/);
+  assert.match(source, /\/downloads\/pdf-trust\/pades\//);
+  const directory = path.join(root, 'websites/PXA.Documentation/public/downloads/pdf-trust/pades');
+  for (const id of ['pxa-pades-b-t', 'pxa-pades-b-lt', 'pxa-pades-b-lta']) {
+    assert.ok(fs.existsSync(path.join(directory, `${id}.pdf`)), `${id}.pdf is missing`);
+    for (const report of ['simple', 'detailed', 'diagnostic']) {
+      assert.ok(
+        fs.existsSync(path.join(directory, `${id}-dss-${report}.xml`)),
+        `${id} ${report} report is missing`,
+      );
+    }
+  }
+  assert.ok(fs.existsSync(path.join(directory, 'pades-corpus.json')));
+  assert.ok(fs.existsSync(path.join(directory, 'root-trust-anchor.cer')));
+  assert.ok(fs.existsSync(path.join(directory, 'root-current.crl')));
+  assert.ok(fs.existsSync(path.join(directory, 'index.html')));
+});
+
 test('Redaction documentation states what is detected and what is sanitized', () => {
   assert.match(source, /narrows coverage by the clipping paths in force/);
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);

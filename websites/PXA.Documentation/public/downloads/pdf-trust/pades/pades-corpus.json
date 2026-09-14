@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic PXA PAdES fixtures independently validated with EU DSS 6.4.",
+  "validator": {
+    "name": "EU Digital Signature Services",
+    "version": "6.4",
+    "policy": "QES AES/QC AES TL based",
+    "containerImage": "pxa-dss-validator:6.4"
+  },
+  "trustEvidence": {
+    "rootCertificate": "root-trust-anchor.cer",
+    "rootCertificateSha256": "477d65fa0282cfd4a87a29f069e68fe006ffee7b51ac2f2ddac5ab90c4766ce0",
+    "crl": "root-current.crl",
+    "crlSha256": "5fd803da6756321ab03e94889f82188da938b02fbc962c4893981e0008454566"
+  },
+  "entries": [
+    {
+      "id": "pxa-pades-b-t",
+      "expectedProfile": "PAdES-BASELINE-T",
+      "expectedIndication": "TOTAL_PASSED",
+      "pdf": "pxa-pades-b-t.pdf",
+      "sha256": "9e78739298a00a9b4e64bfb1e3be7a7531003d4647810924570f704dc8be0e51",
+      "fileSizeBytes": 67591,
+      "reports": {
+        "simple": { "file": "pxa-pades-b-t-dss-simple.xml", "sha256": "6a1133333224505b0a16c6f2ad4a81f43a612401a82c077f4631cf335762e063" },
+        "detailed": { "file": "pxa-pades-b-t-dss-detailed.xml", "sha256": "2deaaad862d485ecade0743053ea545c0a3fc280f326319ea71bd90f69aa8054" },
+        "diagnostic": { "file": "pxa-pades-b-t-dss-diagnostic.xml", "sha256": "2d5ca9468cc1612254967455121487ddc7db75a60ca17feda42643a88d7c7685" }
+      }
+    },
+    {
+      "id": "pxa-pades-b-lt",
+      "expectedProfile": "PAdES-BASELINE-LT",
+      "expectedIndication": "TOTAL_PASSED",
+      "pdf": "pxa-pades-b-lt.pdf",
+      "sha256": "c6d40b3954cb80f8d20cc86256a4333be7a0ac2eca969dd8e8a1024c93b017b4",
+      "fileSizeBytes": 71471,
+      "reports": {
+        "simple": { "file": "pxa-pades-b-lt-dss-simple.xml", "sha256": "2ce8e3a24234eae35e71ea3c66dc5189d26c79381a7e76acd59d657aabdc9687" },
+        "detailed": { "file": "pxa-pades-b-lt-dss-detailed.xml", "sha256": "754c8eb1acd9b7cb8fac1c6797b96a0cc7d22e0e2acb0bc30a8b8797ea75b6c1" },
+        "diagnostic": { "file": "pxa-pades-b-lt-dss-diagnostic.xml", "sha256": "5a451d9c737fe4b14eab067d0b5569d3ec91f6d52d8421707b866ccc2b2651ac" }
+      }
+    },
+    {
+      "id": "pxa-pades-b-lta",
+      "expectedProfile": "PAdES-BASELINE-LTA",
+      "expectedIndication": "TOTAL_PASSED",
+      "pdf": "pxa-pades-b-lta.pdf",
+      "sha256": "a3b2375593b04bbcbe6385e6b4f0d9e3446ecd758a2947011a03ba4c8c5e97ff",
+      "fileSizeBytes": 137691,
+      "reports": {
+        "simple": { "file": "pxa-pades-b-lta-dss-simple.xml", "sha256": "4139c70bb7b0db5b0c917e439796203742a2a1fc53c129f72e7be11ad6038773" },
+        "detailed": { "file": "pxa-pades-b-lta-dss-detailed.xml", "sha256": "015a1a735caa8ec82419febb88fa0a7ed0f78b5ad3bac97578b90e5f39c678ca" },
+        "diagnostic": { "file": "pxa-pades-b-lta-dss-diagnostic.xml", "sha256": "34bf0e2bd982b7b6797a9b87573715b6c507e5139165196c999f1ed550f6df5e" }
+      }
+    }
+  ]
+}

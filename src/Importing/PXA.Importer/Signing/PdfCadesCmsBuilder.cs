@@ -17,7 +17,6 @@ internal static class PdfCadesCmsBuilder
     private const string SignedDataOid = "1.2.840.113549.1.7.2";
     private const string ContentTypeAttributeOid = "1.2.840.113549.1.9.3";
     private const string MessageDigestAttributeOid = "1.2.840.113549.1.9.4";
-    private const string SigningTimeAttributeOid = "1.2.840.113549.1.9.5";
     private const string SigningCertificateV2AttributeOid = "1.2.840.113549.1.9.16.2.47";
     private const string SignatureTimestampTokenAttributeOid = "1.2.840.113549.1.9.16.2.14";
     private const string Sha256Oid = "2.16.840.1.101.3.4.2.1";
@@ -44,7 +43,7 @@ internal static class PdfCadesCmsBuilder
         }
 
         var certificate = signingKey.Certificate;
-        var signedAttributes = BuildSignedAttributes(documentDigest, certificate, signingTime);
+        var signedAttributes = BuildSignedAttributes(documentDigest, certificate);
         var attributesDigest = HashData(digestAlgorithm, signedAttributes);
         var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
         var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, digestAlgorithm, timestampToken: null);
@@ -80,7 +79,7 @@ internal static class PdfCadesCmsBuilder
         }
 
         var certificate = signingKey.Certificate;
-        var signedAttributes = BuildSignedAttributes(documentDigest.Span, certificate, signingTime);
+        var signedAttributes = BuildSignedAttributes(documentDigest.Span, certificate);
         var attributesDigest = HashData(digestAlgorithm, signedAttributes);
         var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
         var timestampToken = await timestampAuthority.GetTimestampTokenAsync(
@@ -126,8 +125,7 @@ internal static class PdfCadesCmsBuilder
 
     private static byte[] BuildSignedAttributes(
         ReadOnlySpan<byte> documentDigest,
-        X509Certificate2 certificate,
-        DateTimeOffset signingTime)
+        X509Certificate2 certificate)
     {
         var digestBytes = documentDigest.ToArray();
         var writer = new AsnWriter(AsnEncodingRules.DER);
@@ -136,8 +134,6 @@ internal static class PdfCadesCmsBuilder
             values.WriteObjectIdentifier(DataOid)));
         writer.WriteEncodedValue(BuildAttribute(MessageDigestAttributeOid, values =>
             values.WriteOctetString(digestBytes)));
-        writer.WriteEncodedValue(BuildAttribute(SigningTimeAttributeOid, values =>
-            values.WriteUtcTime(signingTime)));
         writer.WriteEncodedValue(BuildAttribute(SigningCertificateV2AttributeOid, values =>
         {
             values.PushSequence();

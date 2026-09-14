@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SimpleReport ValidationTime="2026-09-14T16:36:16Z" xmlns="http://dss.esig.europa.eu/validation/simple-report">
+    <ValidationPolicy>
+        <PolicyName>QES AES/QC AES TL based</PolicyName>
+        <PolicyDescription>Validates electronic signatures and indicates whether they are advanced electronic signatures (AES), AES supported by a qualified certificate (AES/QC) or a
+		qualified electronic signature (QES). All certificates and their related chains supporting the signatures are validated against the EU Member State Trusted Lists (this includes
+		signer's certificate and certificates used to validate certificate validity status services - CRLs, OCSP, and time-stamps).
+	</PolicyDescription>
+    </ValidationPolicy>
+    <DocumentName>pxa-pades-b-lt.pdf</DocumentName>
+    <ValidSignaturesCount>1</ValidSignaturesCount>
+    <SignaturesCount>1</SignaturesCount>
+    <Signature SignatureFormat="PAdES-BASELINE-LT" Id="S-093E41F62AEF5E29C1C171A3ADA3E85FC394E245EB232B34B8EF3C869F946FB2">
+        <CertificateChain>
+            <Certificate Id="C-E87787B6FAE71F87E76B6ACB94BF30A62DFFA6D3D821D6EC2AC3D23641732B14">
+                <QualifiedName>PXA Synthetic PAdES Signer</QualifiedName>
+            </Certificate>
+            <Certificate Id="C-477D65FA0282CFD4A87A29F069E68FE006FFEE7B51AC2F2DDAC5AB90C4766CE0" trusted="true">
+                <QualifiedName>PXA Synthetic PAdES Root CA</QualifiedName>
+            </Certificate>
+        </CertificateChain>
+        <Indication>TOTAL_PASSED</Indication>
+        <AdESValidationDetails>
+            <Warning Key="BBB_XCV_AIA_PRES_ANS">The authority info access is not present!</Warning>
+            <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+            <Warning Key="BBB_XCV_REVOC_PRES_ANS">The revocation info access is not present!</Warning>
+        </AdESValidationDetails>
+        <QualificationDetails>
+            <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+        </QualificationDetails>
+        <ExtensionPeriodMin>2030-06-15T10:30:00Z</ExtensionPeriodMin>
+        <ExtensionPeriodMax>2030-06-15T10:30:05Z</ExtensionPeriodMax>
+        <SigningTime>2026-06-15T10:30:00Z</SigningTime>
+        <BestSignatureTime>2026-06-15T10:30:05Z</BestSignatureTime>
+        <SignedBy>PXA Synthetic PAdES Signer</SignedBy>
+        <SignatureLevel description="Not applicable">N/A</SignatureLevel>
+        <SignatureScope Id="D-59BA308C81B61CAD3412190E8963B2E4F93F176CE1F1ACAA13306E4C54CFFFE8" name="Partial PDF" scope="PARTIAL">The document ByteRange : [0, 1259, 66797, 796]</SignatureScope>
+        <Timestamps>
+            <Timestamp Id="T-D2E65E1CCD17922A3EEFA877485C72325145D4408084AD0C19FD859A535BE41D">
+                <CertificateChain>
+                    <Certificate Id="C-4DF1BC8EEF4584CF521A8237D2EA376808CEE18F340676428C22A5B8D03297ED">
+                        <QualifiedName>PXA Synthetic TSA</QualifiedName>
+                    </Certificate>
+                    <Certificate Id="C-477D65FA0282CFD4A87A29F069E68FE006FFEE7B51AC2F2DDAC5AB90C4766CE0" trusted="true">
+                        <QualifiedName>PXA Synthetic PAdES Root CA</QualifiedName>
+                    </Certificate>
+                </CertificateChain>
+                <Indication>PASSED</Indication>
+                <AdESValidationDetails>
+                    <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+                </AdESValidationDetails>
+                <QualificationDetails>
+                    <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+                </QualificationDetails>
+                <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+                <ProducedBy>PXA Synthetic TSA</ProducedBy>
+                <TimestampLevel description="Not applicable">N/A</TimestampLevel>
+            </Timestamp>
+        </Timestamps>
+    </Signature>
+</SimpleReport>

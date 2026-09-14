@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SimpleReport ValidationTime="2026-09-14T16:36:14Z" xmlns="http://dss.esig.europa.eu/validation/simple-report">
+    <ValidationPolicy>
+        <PolicyName>QES AES/QC AES TL based</PolicyName>
+        <PolicyDescription>Validates electronic signatures and indicates whether they are advanced electronic signatures (AES), AES supported by a qualified certificate (AES/QC) or a
+		qualified electronic signature (QES). All certificates and their related chains supporting the signatures are validated against the EU Member State Trusted Lists (this includes
+		signer's certificate and certificates used to validate certificate validity status services - CRLs, OCSP, and time-stamps).
+	</PolicyDescription>
+    </ValidationPolicy>
+    <DocumentName>pxa-pades-b-lta.pdf</DocumentName>
+    <ValidSignaturesCount>1</ValidSignaturesCount>
+    <SignaturesCount>1</SignaturesCount>
+    <Signature SignatureFormat="PAdES-BASELINE-LTA" Id="S-4372B2E80C65B9DE7B290C96E5976876CCF72EC30E6661AB967A99039B1C7AB6">
+        <CertificateChain>
+            <Certificate Id="C-E87787B6FAE71F87E76B6ACB94BF30A62DFFA6D3D821D6EC2AC3D23641732B14">
+                <QualifiedName>PXA Synthetic PAdES Signer</QualifiedName>
+            </Certificate>
+            <Certificate Id="C-477D65FA0282CFD4A87A29F069E68FE006FFEE7B51AC2F2DDAC5AB90C4766CE0" trusted="true">
+                <QualifiedName>PXA Synthetic PAdES Root CA</QualifiedName>
+            </Certificate>
+        </CertificateChain>
+        <Indication>TOTAL_PASSED</Indication>
+        <AdESValidationDetails>
+            <Warning Key="BBB_XCV_AIA_PRES_ANS">The authority info access is not present!</Warning>
+            <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+            <Warning Key="BBB_XCV_REVOC_PRES_ANS">The revocation info access is not present!</Warning>
+        </AdESValidationDetails>
+        <QualificationDetails>
+            <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+        </QualificationDetails>
+        <ExtensionPeriodMin>2030-06-15T10:30:00Z</ExtensionPeriodMin>
+        <ExtensionPeriodMax>2030-06-15T10:30:05Z</ExtensionPeriodMax>
+        <SigningTime>2026-06-15T10:30:00Z</SigningTime>
+        <BestSignatureTime>2026-06-15T10:30:05Z</BestSignatureTime>
+        <SignedBy>PXA Synthetic PAdES Signer</SignedBy>
+        <SignatureLevel description="Not applicable">N/A</SignatureLevel>
+        <SignatureScope Id="D-7CCA2AFF9C3BB3DFFBB27DE1E366B0A6113009C2B77B99293CB65BD61DF9E0E9" name="Partial PDF" scope="PARTIAL">The document ByteRange : [0, 1261, 66799, 796]</SignatureScope>
+        <Timestamps>
+            <Timestamp Id="T-6954751A2898BB4730242846DB818A1FF064489A3059EE3F881B6F391D139C83">
+                <CertificateChain>
+                    <Certificate Id="C-4DF1BC8EEF4584CF521A8237D2EA376808CEE18F340676428C22A5B8D03297ED">
+                        <QualifiedName>PXA Synthetic TSA</QualifiedName>
+                    </Certificate>
+                    <Certificate Id="C-477D65FA0282CFD4A87A29F069E68FE006FFEE7B51AC2F2DDAC5AB90C4766CE0" trusted="true">
+                        <QualifiedName>PXA Synthetic PAdES Root CA</QualifiedName>
+                    </Certificate>
+                </CertificateChain>
+                <Indication>PASSED</Indication>
+                <AdESValidationDetails>
+                    <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+                </AdESValidationDetails>
+                <QualificationDetails>
+                    <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+                </QualificationDetails>
+                <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+                <ProducedBy>PXA Synthetic TSA</ProducedBy>
+                <TimestampLevel description="Not applicable">N/A</TimestampLevel>
+            </Timestamp>
+            <Timestamp Id="T-9BD469CCE11EF0E88A233D465392BBF2C1DC36509968B6371AF4A44ED899DB87">
+                <CertificateChain>
+                    <Certificate Id="C-4DF1BC8EEF4584CF521A8237D2EA376808CEE18F340676428C22A5B8D03297ED">
+                        <QualifiedName>PXA Synthetic TSA</QualifiedName>
+                    </Certificate>
+                    <Certificate Id="C-477D65FA0282CFD4A87A29F069E68FE006FFEE7B51AC2F2DDAC5AB90C4766CE0" trusted="true">
+                        <QualifiedName>PXA Synthetic PAdES Root CA</QualifiedName>
+                    </Certificate>
+                </CertificateChain>
+                <Indication>PASSED</Indication>
+                <AdESValidationDetails>
+                    <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+                </AdESValidationDetails>
+                <QualificationDetails>
+                    <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+                </QualificationDetails>
+                <ProductionTime>2026-06-15T10:30:05Z</ProductionTime>
+                <ProducedBy>PXA Synthetic TSA</ProducedBy>
+                <TimestampLevel description="Not applicable">N/A</TimestampLevel>
+                <TimestampScope Id="D-771D301A524E7043F97D25639F937BE97AA6E39EE8DEC0E301D2BCF29EE4E279" name="Full PDF" scope="FULL">The document ByteRange : [0, 71655, 137193, 498]</TimestampScope>
+            </Timestamp>
+        </Timestamps>
+    </Signature>
+</SimpleReport>

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 using PXA.Importer;
 using PXA.Importer.Security;
 using PXA.Importer.Trust;
@@ -140,6 +141,73 @@ public sealed class PdfTrustCorpusTests
     }
 
     [Fact]
+    public async Task Pades_corpus_preserves_independent_profile_validation_evidence()
+    {
+        var directory = Path.Combine(CorpusDirectory, "pades");
+        var manifest = JsonNode.Parse(await File.ReadAllTextAsync(
+            Path.Combine(directory, "pades-corpus.json")))!.AsObject();
+        Assert.Equal(1, manifest["schemaVersion"]!.GetValue<int>());
+        Assert.Equal("EU Digital Signature Services", manifest["validator"]!["name"]!.GetValue<string>());
+        Assert.Equal("6.4", manifest["validator"]!["version"]!.GetValue<string>());
+
+        var expected = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["pxa-pades-b-t"] = "PAdES-BASELINE-T",
+            ["pxa-pades-b-lt"] = "PAdES-BASELINE-LT",
+            ["pxa-pades-b-lta"] = "PAdES-BASELINE-LTA",
+        };
+        var entries = manifest["entries"]!.AsArray();
+        Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), entries
+            .Select(entry => entry!["id"]!.GetValue<string>())
+            .Order(StringComparer.Ordinal));
+
+        foreach (var item in entries)
+        {
+            var entry = item!.AsObject();
+            var id = entry["id"]!.GetValue<string>();
+            Assert.Equal(expected[id], entry["expectedProfile"]!.GetValue<string>());
+            Assert.Equal("TOTAL_PASSED", entry["expectedIndication"]!.GetValue<string>());
+
+            var pdf = await AssertFileHashAsync(directory, entry["pdf"]!.GetValue<string>(), entry["sha256"]!.GetValue<string>());
+            Assert.Equal(entry["fileSizeBytes"]!.GetValue<long>(), pdf.LongLength);
+            Assert.StartsWith("%PDF-", System.Text.Encoding.ASCII.GetString(pdf, 0, 5));
+
+            var reports = entry["reports"]!.AsObject();
+            foreach (var kind in new[] { "simple", "detailed", "diagnostic" })
+            {
+                var report = reports[kind]!.AsObject();
+                await AssertFileHashAsync(
+                    directory,
+                    report["file"]!.GetValue<string>(),
+                    report["sha256"]!.GetValue<string>());
+            }
+
+            var simple = XDocument.Load(Path.Combine(directory, reports["simple"]!["file"]!.GetValue<string>()));
+            var signature = simple.Descendants().First(element => element.Name.LocalName == "Signature");
+            Assert.Equal(expected[id], signature.Attribute("SignatureFormat")?.Value);
+            Assert.Equal(
+                "TOTAL_PASSED",
+                signature.Elements().Single(element => element.Name.LocalName == "Indication").Value);
+
+            var diagnostic = XDocument.Load(Path.Combine(directory, reports["diagnostic"]!["file"]!.GetValue<string>()));
+            Assert.Contains(diagnostic.Descendants(), element =>
+                element.Name.LocalName == "SignatureFormat" && element.Value == expected[id]);
+            Assert.Contains(diagnostic.Descendants(), element =>
+                element.Name.LocalName == "StructuralValidation" && element.Attribute("valid")?.Value == "true");
+        }
+
+        var trustEvidence = manifest["trustEvidence"]!.AsObject();
+        await AssertFileHashAsync(
+            directory,
+            trustEvidence["rootCertificate"]!.GetValue<string>(),
+            trustEvidence["rootCertificateSha256"]!.GetValue<string>());
+        await AssertFileHashAsync(
+            directory,
+            trustEvidence["crl"]!.GetValue<string>(),
+            trustEvidence["crlSha256"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task Corpus_contains_no_private_key_or_credential_artifacts()
     {
         var files = Directory.GetFiles(CorpusDirectory, "*", SearchOption.AllDirectories)
@@ -150,7 +218,7 @@ public sealed class PdfTrustCorpusTests
             .ToArray();
         Assert.All(files, path => Assert.Contains(
             Path.GetExtension(path).ToLowerInvariant(),
-            new[] { ".json", ".md", ".html", ".pdf", ".txt", ".xml" }));
+            new[] { ".cer", ".crl", ".json", ".md", ".html", ".pdf", ".txt", ".xml" }));
         foreach (var path in files.Where(path =>
                      Path.GetExtension(path) is ".json" or ".md" or ".html" or ".txt" or ".xml"))
         {
@@ -159,6 +227,17 @@ public sealed class PdfTrustCorpusTests
             Assert.DoesNotContain("BEGIN ENCRYPTED PRIVATE KEY", text, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("BEGIN CERTIFICATE", text, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    private static async Task<byte[]> AssertFileHashAsync(
+        string directory,
+        string file,
+        string expectedSha256)
+    {
+        var bytes = await File.ReadAllBytesAsync(Path.Combine(directory, file));
+        Assert.NotEmpty(bytes);
+        Assert.Equal(expectedSha256, Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
+        return bytes;
     }
 
     private static JsonObject ProjectStableReport(PdfTrustReport report) => new()
