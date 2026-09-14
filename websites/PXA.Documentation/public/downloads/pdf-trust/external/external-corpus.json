@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic PDFs created by independent desktop and browser PDF producers. No third-party document content is included.",
+  "entries": [
+    {
+      "id": "chromium-skia-tagged",
+      "title": "Chromium/Skia tagged text PDF",
+      "producer": "Chromium with Skia/PDF",
+      "producerVersion": "152",
+      "producerMarker": "Skia/PDF m152",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "RedactionRecovery",
+      "sourceFixture": "chromium-encoded-glyphs.pdf",
+      "pdf": "chromium-skia-tagged.pdf",
+      "expectedReport": "chromium-skia-tagged.expected.json",
+      "sha256": "b5d3181eee5704dd28d71b659ec30ea57eed585e991909c33eb96b1d3802023b",
+      "fileSizeBytes": 42903
+    },
+    {
+      "id": "libreoffice-tagged",
+      "title": "LibreOffice tagged text and reusable resources PDF",
+      "producer": "LibreOffice",
+      "producerVersion": "26.2.3.2",
+      "producerMarker": "LibreOffice 26.2.3.2",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "RedactionRecovery",
+      "sourceFixture": "libreoffice-reusable-resources.pdf",
+      "pdf": "libreoffice-tagged.pdf",
+      "expectedReport": "libreoffice-tagged.expected.json",
+      "sha256": "f4a65a9816b71632d0276324c0917338832bde55d150c20820211496d1785d07",
+      "fileSizeBytes": 24518
+    },
+    {
+      "id": "qpdf-aes256-unicode",
+      "title": "qpdf AES-256/R6 PDF with Unicode passwords",
+      "producer": "qpdf",
+      "producerVersion": "12.2.0",
+      "producerMarker": "/CFM /AESV3",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "PdfTrustExternal",
+      "sourceFixture": "qpdf-aes256-unicode.pdf",
+      "pdf": "qpdf-aes256-unicode.pdf",
+      "expectedReport": "qpdf-aes256-unicode.expected.json",
+      "sha256": "fae12aa47e29661f161c2e1d96914a85c5196090d2549c46cf0178a03f20390a",
+      "fileSizeBytes": 44845,
+      "validation": {
+        "tool": "qpdf 12.2.0",
+        "outcome": "PASS",
+        "evidence": "qpdf-aes256-unicode-qpdf.txt",
+        "sha256": "32c97b1bf9657079ebe9ace9dab280f90138f2d0c3a8c9196ef5d15c589165c4"
+      }
+    },
+    {
+      "id": "pyhanko-pades-bb",
+      "title": "pyHanko PAdES Baseline B-B signed PDF",
+      "producer": "pyHanko CLI",
+      "producerVersion": "0.37.0",
+      "producerMarker": "/Name /pyHanko#20CLI",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "PdfTrustExternal",
+      "sourceFixture": "pyhanko-pades-bb.pdf",
+      "pdf": "pyhanko-pades-bb.pdf",
+      "expectedReport": "pyhanko-pades-bb.expected.json",
+      "sha256": "bb5d652250049b35d93ba783a0c8a53dd51f0d98696f77fee36467a7ec6c2c72",
+      "fileSizeBytes": 51143,
+      "validation": {
+        "tool": "pyHanko 0.37.0",
+        "outcome": "PASS",
+        "evidence": "pyhanko-pades-bb-validation.txt",
+        "sha256": "fdb0944302a25f10d13ef7c81811970eb42fc5ff79c725efcd038a3e87ae3879"
+      }
+    },
+    {
+      "id": "libreoffice-pdfa2b",
+      "title": "LibreOffice PDF/A-2b document",
+      "producer": "LibreOffice",
+      "producerVersion": "26.2.3.2",
+      "producerMarker": "LibreOffice 26.2.3.2",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "PdfTrustExternal",
+      "sourceFixture": "libreoffice-pdfa2b.pdf",
+      "pdf": "libreoffice-pdfa2b.pdf",
+      "expectedReport": "libreoffice-pdfa2b.expected.json",
+      "sha256": "32b0b01ef9ec4e326c2de826a47cffed06f4403d921ee3188fee2e1fe23c5eab",
+      "fileSizeBytes": 38385,
+      "validation": {
+        "tool": "veraPDF CLI 1.31.166",
+        "outcome": "PASS",
+        "evidence": "libreoffice-pdfa2b-2b-verapdf.xml",
+        "sha256": "2a36efdf52243785df1c14a40d9c1fc7b9969c6c71aec262278ff5e606fd9195"
+      }
+    },
+    {
+      "id": "libreoffice-pdfua1",
+      "title": "LibreOffice PDF/UA-1 document",
+      "producer": "LibreOffice",
+      "producerVersion": "26.2.3.2",
+      "producerMarker": "LibreOffice 26.2.3.2",
+      "origin": "Locally generated synthetic fixture produced by independent software",
+      "sourceCollection": "PdfTrustExternal",
+      "sourceFixture": "libreoffice-pdfua1.pdf",
+      "pdf": "libreoffice-pdfua1.pdf",
+      "expectedReport": "libreoffice-pdfua1.expected.json",
+      "sha256": "72a71ace3377a4f155e0487138803f349d72a723d175c23b4a0c5dd6415f2ae7",
+      "fileSizeBytes": 29555,
+      "validation": {
+        "tool": "veraPDF CLI 1.31.166",
+        "outcome": "PASS",
+        "evidence": "libreoffice-pdfua1-ua1-verapdf.xml",
+        "sha256": "9894a0b954961ce0510c091936b2f24af45a030120d4193a1a6bc03f3c6fffb8"
+      }
+    }
+  ]
+}

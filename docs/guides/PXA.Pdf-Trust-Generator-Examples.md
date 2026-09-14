@@ -116,6 +116,16 @@ The fixtures contain no customer files, production certificates, private keys, o
 operational credentials. The encrypted fixture's synthetic reader passphrase is
 published with the corpus.
 
+### External Producer Baseline
+
+The [external producer corpus](../../websites/PXA.Documentation/public/downloads/pdf-trust/external/index.html)
+adds synthetic PDFs created by Chromium/Skia, LibreOffice, qpdf, and pyHanko. Its
+separate manifest pins the original bytes, producer marker, producer version, stable
+PXA inspection result, and available independent validator evidence. The positive
+matrix includes qpdf AES-256/R6 with Unicode passwords, pyHanko PAdES B-B, LibreOffice
+PDF/A-2b, and LibreOffice PDF/UA-1. It does not claim coverage for long-term PAdES,
+revocation, tampering, invalid compliance documents, or the complete encryption matrix.
+
 ## One Final-Byte Trust Pipeline
 
 Use `IPdfTrustPostProcessingPipeline` when multiple operations must be applied safely. Destructive

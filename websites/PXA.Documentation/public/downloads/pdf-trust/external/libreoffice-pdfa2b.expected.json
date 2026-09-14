@@ -1,0 +1,48 @@
+{
+  "status": "Indeterminate",
+  "structureStatus": "Valid",
+  "pdfVersion": "1.7",
+  "revisionCount": 1,
+  "objectCount": 46,
+  "encryption": {
+    "isEncrypted": false,
+    "status": "NotApplicable",
+    "filter": null,
+    "algorithm": null,
+    "version": null,
+    "revision": null,
+    "keyLengthBits": null
+  },
+  "signatures": [],
+  "pdfA": {
+    "standard": "PDF/A",
+    "profile": "PDF/A-2b",
+    "isClaimed": true,
+    "status": "Invalid",
+    "evidence": "XMP identification, catalog OutputIntent, ICC header, encryption, font embedding, actions, annotations, and profile-specific embedded-file rules",
+    "validator": "PXA PDF/A-2b/3b structural validator 1.3"
+  },
+  "pdfUa": {
+    "standard": "PDF/UA",
+    "profile": null,
+    "isClaimed": false,
+    "status": "NotApplicable",
+    "evidence": "No PDF/UA identification metadata was found.",
+    "validator": null
+  },
+  "risk": {
+    "javaScriptActionCount": 0,
+    "launchActionCount": 0,
+    "embeddedFileCount": 0,
+    "fileAttachmentCount": 0,
+    "richMediaCount": 0,
+    "xfaFormCount": 0,
+    "externalLinkCount": 0,
+    "status": "Valid",
+    "hasRiskyContent": false
+  },
+  "diagnosticCodes": [
+    "PXAPDFTRUST010",
+    "PXAPDFTRUST313"
+  ]
+}

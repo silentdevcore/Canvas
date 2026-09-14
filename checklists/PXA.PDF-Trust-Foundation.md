@@ -875,6 +875,11 @@ Implementation evidence:
 
 - [ ] Build a deterministic corpus containing generated and externally produced PDFs
   for every supported profile and failure state.
+  - [x] Establish an immutable external-producer baseline with synthetic Chromium/Skia
+    LibreOffice, qpdf, and pyHanko PDFs, pinned hashes, producer markers, expected PXA
+    trust reports, and independent validation evidence. Positive AES-256/R6, PAdES B-B,
+    PDF/A-2b, and PDF/UA-1 paths are covered; profile variants and failure states remain
+    open.
 - [ ] Include malformed xref data, object streams, nested forms, transparency,
   rotations, clipping, layers, attachments, forms, JavaScript, incremental updates,
   multiple signatures, encrypted documents, and mixed page geometry.
@@ -882,8 +887,15 @@ Implementation evidence:
   region and validation-material component.
 - [ ] Test PAdES B-B, B-T, B-LT, and B-LTA independently, including expired,
   untrusted, revoked, offline, and unavailable-revocation cases.
+  - [x] Generate one synthetic PAdES B-B fixture with pyHanko 0.37.0 and verify its
+    cryptographic integrity independently with pyHanko before pinning the PDF and
+    machine-readable PXA trust report. Long-term profiles and trust failure cases remain
+    open.
 - [ ] Test AES-256 against independent readers and writers with Unicode passwords,
   all permission combinations, metadata options, wrong passwords, and tampering.
+  - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and
+    owner passwords, restricted modification, pinned qpdf evidence, and a stable PXA
+    trust report. Permission combinations and negative cases remain open.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture and verify it locally with
@@ -893,6 +905,9 @@ Implementation evidence:
   - [x] Generate deterministic PDF/UA-1 structure, table, and native-widget fixtures,
     validate them with the pinned veraPDF `ua1` profile, and publish the PDFs and
     machine-readable XML reports as CI artifacts.
+  - [x] Generate independent LibreOffice PDF/A-2b and PDF/UA-1 fixtures and retain
+    passing XML reports from the pinned official veraPDF 1.31.166 container alongside
+    their stable PXA trust reports.
 - [ ] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.

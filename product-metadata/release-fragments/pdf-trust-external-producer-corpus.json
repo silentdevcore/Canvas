@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-external-producer-corpus",
+  "impact": "patch",
+  "components": [
+    "documentation",
+    "importer"
+  ],
+  "category": "improved",
+  "summary": "PXA now publishes independently produced Chromium, LibreOffice, qpdf, and pyHanko trust fixtures with pinned inspection and validation evidence for 256-bit AES, PAdES B-B, PDF/A-2b, and PDF/UA version 1.",
+  "featureIds": [],
+  "documentation": [
+    "/downloads/pdf-trust/external/"
+  ],
+  "breaking": false
+}

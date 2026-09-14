@@ -149,6 +149,33 @@ test('PDF Trust documentation publishes all synthetic trust examples and expecte
   assert.ok(fs.existsSync(path.join(directory, 'index.html')));
 });
 
+test('PDF Trust documentation publishes the external producer baseline', () => {
+  assert.match(source, /Download external producer corpus/);
+  assert.match(source, /\/downloads\/pdf-trust\/external\//);
+  const directory = path.join(root, 'websites/PXA.Documentation/public/downloads/pdf-trust/external');
+  for (const id of [
+    'chromium-skia-tagged',
+    'libreoffice-tagged',
+    'qpdf-aes256-unicode',
+    'pyhanko-pades-bb',
+    'libreoffice-pdfa2b',
+    'libreoffice-pdfua1',
+  ]) {
+    assert.ok(fs.existsSync(path.join(directory, `${id}.pdf`)), `${id}.pdf is missing`);
+    assert.ok(fs.existsSync(path.join(directory, `${id}.expected.json`)), `${id}.expected.json is missing`);
+  }
+  assert.ok(fs.existsSync(path.join(directory, 'external-corpus.json')));
+  assert.ok(fs.existsSync(path.join(directory, 'index.html')));
+  for (const evidence of [
+    'qpdf-aes256-unicode-qpdf.txt',
+    'pyhanko-pades-bb-validation.txt',
+    'libreoffice-pdfa2b-2b-verapdf.xml',
+    'libreoffice-pdfua1-ua1-verapdf.xml',
+  ]) {
+    assert.ok(fs.existsSync(path.join(directory, evidence)), `${evidence} is missing`);
+  }
+});
+
 test('Redaction documentation states what is detected and what is sanitized', () => {
   assert.match(source, /narrows coverage by the clipping paths in force/);
   assert.match(source, /soft masks set in the graphics state, pattern resources, and page or form transparency groups/);

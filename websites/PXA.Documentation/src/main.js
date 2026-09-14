@@ -332,6 +332,7 @@ const editorDocs = [
       { label: 'Feature gaps checklist', href: '../../checklists/PdfTools-WebViewer-Feature-Gaps.md' },
       { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
       { label: 'Download synthetic PDF Trust corpus', href: '/downloads/pdf-trust/' },
+      { label: 'Download external producer corpus', href: '/downloads/pdf-trust/external/' },
     ],
     examples: [
       {
