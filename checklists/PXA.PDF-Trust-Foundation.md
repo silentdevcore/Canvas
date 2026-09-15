@@ -957,6 +957,14 @@ Implementation evidence:
     artifacts remains open.
 - [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
   validate, redact, compare, and download.
+  - [x] Add a synthetic authenticated Playwright smoke flow covering trust
+    inspection, PDF/A preflight and conversion, signing, redaction preflight and
+    apply, original comparison, and download for the Desktop Chrome and Pixel 5
+    projects.
+    - Verified on 2026-09-15: both Playwright projects passed the complete
+      synthetic workflow (`2/2`).
+  - [ ] Execute the desktop and mobile browser projects against the running
+    authenticated application and record the resulting screenshots and traces.
 - [ ] Run migration parity tests for every provider mapping before changing a manual
   diagnostic to automatic conversion.
 - [ ] Run `dotnet build PXA.sln`, relevant .NET suites, Designer tests, typecheck,

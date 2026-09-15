@@ -115,59 +115,78 @@ describe('pdf viewer smoke test', () => {
 
   test('shows accessible trust states, signature details, signing controls, and mutation protection', async () => {
     await i18n.changeLanguage('en');
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        status: 0,
-        structureStatus: 0,
-        sha256: 'a'.repeat(64),
-        fileSizeBytes: 256,
-        pdfVersion: '1.7',
-        revisionCount: 2,
-        objectCount: 12,
-        encryption: { isEncrypted: false, status: 4 },
-        signatures: [{
-          objectNumber: 8,
-          generation: 0,
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({
+          jobId: 'synthetic-inspect',
+          status: 'accepted',
+          statusUrl: '/api/synthetic-inspect',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'synthetic-inspect',
+          status: 'completed',
+          downloadUrl: '/api/synthetic-inspect-result',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
           status: 0,
-          byteRange: [0, 100, 200, 100],
-          integrityStatus: 0,
-          coverageStatus: 2,
-          certificateStatus: 0,
-          revocationStatus: 2,
-          padesProfile: 'B-T',
-          digestAlgorithm: 'SHA-256',
-          signerSubject: 'CN=Synthetic Signer',
-          signerThumbprint: 'ABC123',
-          signingTime: '2026-09-11T10:00:00Z',
-          timestampStatus: 0,
-          timestampRevocationStatus: 2,
-          historicalRevocationStatus: 2,
-          timestampHistoricalRevocationStatus: 2,
-          coversWholeDocument: false,
-          signedRevisionEndOffset: 300,
-          isDocumentTimestamp: false,
-          archiveTimestampStatus: 4,
-        }],
-        pdfA: { standard: 'PDF/A', isClaimed: false, status: 4, evidence: 'none' },
-        pdfUa: { standard: 'PDF/UA', isClaimed: false, status: 4, evidence: 'none' },
-        revisions: [
-          { sequenceNumber: 1, kind: 'Original', crossReferenceOffset: 10, endOffset: 300, sha256: 'b'.repeat(64), entryCount: 8 },
-          { sequenceNumber: 2, kind: 'Incremental', crossReferenceOffset: 320, endOffset: 400, sha256: 'c'.repeat(64), entryCount: 4 },
-        ],
-        diagnostics: [{
-          code: 'PXATEST999',
-          severity: 1,
-          message: 'Synthetic technical detail.',
-          objectNumber: 9,
-          generation: 0,
-          pageNumber: 2,
-          localizationKey: 'diagnostics.PXATEST999',
-          localizationParameters: { code: 'PXATEST999', pageNumber: '2', objectNumber: '9' },
-        }],
-      }),
-    } as Response);
+          structureStatus: 0,
+          sha256: 'a'.repeat(64),
+          fileSizeBytes: 256,
+          pdfVersion: '1.7',
+          revisionCount: 2,
+          objectCount: 12,
+          encryption: { isEncrypted: false, status: 4 },
+          signatures: [{
+            objectNumber: 8,
+            generation: 0,
+            status: 0,
+            byteRange: [0, 100, 200, 100],
+            integrityStatus: 0,
+            coverageStatus: 2,
+            certificateStatus: 0,
+            revocationStatus: 2,
+            padesProfile: 'B-T',
+            digestAlgorithm: 'SHA-256',
+            signerSubject: 'CN=Synthetic Signer',
+            signerThumbprint: 'ABC123',
+            signingTime: '2026-09-11T10:00:00Z',
+            timestampStatus: 0,
+            timestampRevocationStatus: 2,
+            historicalRevocationStatus: 2,
+            timestampHistoricalRevocationStatus: 2,
+            coversWholeDocument: false,
+            signedRevisionEndOffset: 300,
+            isDocumentTimestamp: false,
+            archiveTimestampStatus: 4,
+          }],
+          pdfA: { standard: 'PDF/A', isClaimed: false, status: 4, evidence: 'none' },
+          pdfUa: { standard: 'PDF/UA', isClaimed: false, status: 4, evidence: 'none' },
+          revisions: [
+            { sequenceNumber: 1, kind: 'Original', crossReferenceOffset: 10, endOffset: 300, sha256: 'b'.repeat(64), entryCount: 8 },
+            { sequenceNumber: 2, kind: 'Incremental', crossReferenceOffset: 320, endOffset: 400, sha256: 'c'.repeat(64), entryCount: 4 },
+          ],
+          diagnostics: [{
+            code: 'PXATEST999',
+            severity: 1,
+            message: 'Synthetic technical detail.',
+            objectNumber: 9,
+            generation: 0,
+            pageNumber: 2,
+            localizationKey: 'diagnostics.PXATEST999',
+            localizationParameters: { code: 'PXATEST999', pageNumber: '2', objectNumber: '9' },
+          }],
+        }),
+      } as Response);
 
     const sourceFile = new File(['%PDF-1.7'], 'signed.pdf');
     Object.defineProperty(sourceFile, 'arrayBuffer', {

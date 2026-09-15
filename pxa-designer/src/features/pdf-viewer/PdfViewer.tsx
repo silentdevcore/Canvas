@@ -553,7 +553,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     sourceUrl: source?.url ?? null,
     sourceSize: source?.file instanceof File ? source.file.size : null,
     sourceLastModified: source?.file instanceof File ? source.file.lastModified : null,
-    sidecar: redactionSidecar,
+    sidecar: {
+      version: redactionSidecar.version,
+      sourceName: redactionSidecar.sourceName,
+      annotations: redactionSidecar.annotations,
+    },
   });
   redactionFingerprintRef.current = redactionFingerprint;
   const effectiveRedactionPreflight = redactionPreflightFingerprint === redactionFingerprint
@@ -1979,7 +1983,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
               </button>
             )}
             {(canAnnotate || canRedact) && (
-              <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source}>
+              <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source} aria-label={labels.review} title={labels.review}>
                 <FiEdit3 />
                 <span>{labels.review}</span>
               </button>
@@ -1991,7 +1995,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
               </button>
             )}
             {canInspectTrust && (
-              <button className={trustPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setTrustPanelOpen(value => !value)} disabled={!source}>
+              <button className={trustPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setTrustPanelOpen(value => !value)} disabled={!source} aria-label={labels.trust} title={labels.trust}>
                 <FiShield />
                 <span>{labels.trust}</span>
               </button>
@@ -2015,7 +2019,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <strong>{labels.trust}</strong>
                 <span>{trustReport ? `SHA-256 ${trustReport.sha256.slice(0, 16)}...` : labels.trustEmpty}</span>
               </div>
-              <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()} disabled={!source || trustLoading}>
+              <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()} disabled={!source || trustLoading} aria-label={trustLoading ? labels.trustLoading : labels.inspectTrust}>
                 <FiShield />
                 <span>{trustLoading ? labels.trustLoading : labels.inspectTrust}</span>
               </button>
@@ -2083,7 +2087,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                   <input type="checkbox" checked={signingVisible} onChange={event => setSigningVisible(event.target.checked)} disabled={signingBusy} />
                   <span>{labels.signingVisible}</span>
                 </label>
-                <button className="pdfv-button" type="submit" disabled={!source || !signingCertificate || signingBusy}>
+                <button className="pdfv-button" type="submit" disabled={!source || !signingCertificate || signingBusy} aria-label={signingBusy ? labels.signingInProgress : labels.signPdf}>
                   <FiPenTool />
                   <span>{signingBusy ? labels.signingInProgress : labels.signPdf}</span>
                 </button>
@@ -2108,7 +2112,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     <option value="PDF/A-3b">PDF/A-3b</option>
                   </select>
                 </label>
-                <button className="pdfv-button" type="button" onClick={() => void runCompliancePreflight()} disabled={!source || complianceLoading}>
+                <button className="pdfv-button" type="button" onClick={() => void runCompliancePreflight()} disabled={!source || complianceLoading} aria-label={labels.pdfAPreflight}>
                   <FiShield />
                   <span>{labels.pdfAPreflight}</span>
                 </button>
@@ -2128,6 +2132,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                       type="button"
                       onClick={() => void runComplianceConversion()}
                       disabled={complianceLoading || compliancePreflight.capability === 2 || (compliancePreflight.invalidatesSignatures && !allowSignatureInvalidation)}
+                      aria-label={complianceLoading ? labels.pdfAConverting : labels.pdfAConvert}
                     >
                       <FiDownload />
                       <span>{complianceLoading ? labels.pdfAConverting : labels.pdfAConvert}</span>
@@ -2516,7 +2521,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <FiMinus />
                 <span>{labels.strike}</span>
               </button>
-              {canRedact && <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')}>
+              {canRedact && <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')} aria-label={labels.redact}>
                 <FiEyeOff />
                 <span>{labels.redact}</span>
               </button>}
@@ -2774,6 +2779,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 type="button"
                 onClick={() => void preflightRedaction()}
                 disabled={!source || redactionAnnotations.length === 0 || redactionBusy}
+                aria-label={labels.redactionPreflight}
               >
                 <FiEyeOff />
                 <span>{labels.redactionPreflight}</span>
@@ -2784,6 +2790,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 onClick={() => void downloadRedactedPdf()}
                 disabled={!source || redactionAnnotations.length === 0 || redactionBusy || !isApplyAllowed(effectiveRedactionPreflight) || !trustMutationAllowed}
                 title={isApplyAllowed(effectiveRedactionPreflight) ? undefined : labels.redactionRequiresPreflight}
+                aria-label={labels.applyRedactions}
               >
                 <FiEyeOff />
                 <span>{labels.applyRedactions}</span>
@@ -2839,7 +2846,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     </p>
                   )}
                   {redactedResult && redactionVerification?.passed && (
-                    <button className="pdfv-button" type="button" onClick={() => setRedactionCompareOpen(true)}>
+                    <button className="pdfv-button" type="button" onClick={() => setRedactionCompareOpen(true)} aria-label={labels.redactionCompare}>
                       <FiColumns />
                       <span>{labels.redactionCompare}</span>
                     </button>

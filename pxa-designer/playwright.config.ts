@@ -14,7 +14,6 @@ export default defineConfig({
     ['html', { open: 'never' }],
   ],
   use: {
-    channel: 'chrome',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -24,6 +23,13 @@ export default defineConfig({
       name: 'chrome-desktop',
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'pdf-viewer-mobile',
+      testMatch: /pdf-viewer-trust-authenticated\.spec\.ts/,
+      use: {
+        ...devices['Pixel 5'],
       },
     },
   ],
