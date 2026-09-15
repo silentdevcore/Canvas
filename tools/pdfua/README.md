@@ -33,6 +33,11 @@ Its successful result is necessary release evidence, but it is not a complete
 accessibility claim. Human checks from the Matterhorn Protocol and manual tests
 with assistive technology remain a separate release gate.
 
+Use `MATTERHORN-REVIEW.md` for the manual procedure and
+`matterhorn-evidence.schema.json` plus `matterhorn-evidence.template.json` for
+the structured evidence record. The checked-in template is deliberately
+`not-run`; it must not be copied into release evidence as a passing review.
+
 The maintained fixture set includes provider-specific structure tags mapped to
 standard PDF 1.7 roles through `/RoleMap`. PXA retains the source namespace URI
 in its design contract, but does not emit PDF 2.0 `/Namespaces` or `/NS` entries

@@ -86,6 +86,28 @@ test('PDF Trust documentation exposes separate PDF/A and PDF/UA learning paths',
   assert.match(source, /tools\/pdfua\/validate-pdfua\.sh/);
   assert.match(source, /Passing automated validation is evidence for the tested profile/);
   assert.match(source, /Download external PDF\/UA evidence/);
+  assert.match(source, /manual evidence template/);
+});
+
+test('PDF/UA manual evidence has a non-passing structured template', async () => {
+  const templatePath = path.join(root, 'tools/pdfua/matterhorn-evidence.template.json');
+  const schemaPath = path.join(root, 'tools/pdfua/matterhorn-evidence.schema.json');
+  const procedurePath = path.join(root, 'tools/pdfua/MATTERHORN-REVIEW.md');
+  const publicTemplatePath = path.join(root, 'websites/PXA.Documentation/public/downloads/pdf-trust/matterhorn-evidence.template.json');
+  const template = JSON.parse(await fs.promises.readFile(templatePath, 'utf8'));
+  const schema = JSON.parse(await fs.promises.readFile(schemaPath, 'utf8'));
+  const publicTemplate = JSON.parse(await fs.promises.readFile(publicTemplatePath, 'utf8'));
+  await fs.promises.access(procedurePath);
+
+  assert.equal(schema.properties.schemaVersion.const, 1);
+  assert.equal(template.schemaVersion, 1);
+  assert.equal(template.review.status, 'not-run');
+  assert.deepEqual(publicTemplate, template);
+  assert.ok(template.checks.length >= 10);
+  assert.ok(template.checks.every((check) => check.status === 'not-run'));
+  assert.ok(template.checks.some((check) => check.id === 'screen-reader-reading-order'));
+  assert.ok(template.checks.some((check) => check.id === 'table-navigation'));
+  assert.ok(template.checks.some((check) => check.id === 'form-labels-and-values'));
 });
 
 test('PDF redaction documentation separates preflight from applied redaction', () => {

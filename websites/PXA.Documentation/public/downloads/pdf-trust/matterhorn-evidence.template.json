@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "id": "pxa-pdfua1-supported-elements",
+    "path": "artifacts/pdfua/fixtures/pxa-pdfua1-structure.pdf",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "review": {
+    "status": "not-run",
+    "reviewer": "not-recorded",
+    "platform": "not-recorded",
+    "assistiveTechnology": "not-recorded",
+    "reviewedAtUtc": null
+  },
+  "checks": [
+    {
+      "id": "keyboard-navigation",
+      "category": "Interaction",
+      "status": "not-run",
+      "expectedEvidence": "Tab order reaches every interactive control and never traps focus.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "focus-order",
+      "category": "Interaction",
+      "status": "not-run",
+      "expectedEvidence": "Keyboard focus follows the documented logical reading and interaction order.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "screen-reader-reading-order",
+      "category": "Structure",
+      "status": "not-run",
+      "expectedEvidence": "A screen reader announces content in logical order, including headings and repeated artifacts.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "document-language-and-title",
+      "category": "Document",
+      "status": "not-run",
+      "expectedEvidence": "The document title and language are announced correctly by the assistive technology.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "headings-and-paragraphs",
+      "category": "Structure",
+      "status": "not-run",
+      "expectedEvidence": "Headings have meaningful levels and paragraphs are not announced as unrelated decorative objects.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "alternative-text",
+      "category": "Non-text content",
+      "status": "not-run",
+      "expectedEvidence": "Images and charts have useful alternatives; decorative graphics are skipped as artifacts.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "table-navigation",
+      "category": "Tables",
+      "status": "not-run",
+      "expectedEvidence": "Table headers and cells are announced with the correct row and column relationships.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "link-names",
+      "category": "Annotations",
+      "status": "not-run",
+      "expectedEvidence": "Every link has a meaningful accessible name and its destination is understandable.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "form-labels-and-values",
+      "category": "Forms",
+      "status": "not-run",
+      "expectedEvidence": "Form fields expose labels, required state, current values, and group relationships.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "annotation-state-and-feedback",
+      "category": "Annotations",
+      "status": "not-run",
+      "expectedEvidence": "Interactive annotations expose their purpose and state without relying on visual appearance alone.",
+      "evidence": null,
+      "notes": null
+    },
+    {
+      "id": "zoom-and-reflow-review",
+      "category": "Usability",
+      "status": "not-run",
+      "expectedEvidence": "At the supported zoom levels, text remains readable and no essential content is hidden by the viewer.",
+      "evidence": null,
+      "notes": null
+    }
+  ]
+}

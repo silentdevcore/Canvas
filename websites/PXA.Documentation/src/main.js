@@ -148,12 +148,13 @@ const editorDocs = [
       { label: 'PDF Trust roadmap', href: '../../checklists/PXA.PDF-Trust-Foundation.md' },
       { label: 'Accessibility element reference', href: '#element-reference' },
       { label: 'Download external PDF/UA evidence', href: '/downloads/pdf-trust/external/' },
+      { label: 'PDF/UA manual evidence template', href: '/downloads/pdf-trust/matterhorn-evidence.template.json' },
     ],
     examples: [
       {
         title: 'Generate and validate PDF/UA-1',
         json: '{"accessibilityProfile":"PdfUa1","title":"Accessible invoice","language":"en","claimInspection":"POST /api/pxa/v1/pdf/compliance/validate","independentValidation":"tools/pdfua/validate-pdfua.sh document.pdf"}',
-        note: 'The Generator preflight fails closed with PXAPDFUA diagnostics, page references, and element IDs when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The compliance endpoint only detects the PDF/UA metadata claim and reports it as indeterminate; it is not a PDF/UA validator. Use the pinned veraPDF ua1 wrapper and complete manual assistive-technology review. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
+        note: 'The Generator preflight fails closed with PXAPDFUA diagnostics, page references, and element IDs when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The compliance endpoint only detects the PDF/UA metadata claim and reports it as indeterminate; it is not a PDF/UA validator. Use the pinned veraPDF ua1 wrapper, follow the PDF/UA manual evidence template, and complete manual assistive-technology review. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
       },
       {
         title: 'Remediate before export',

@@ -695,6 +695,9 @@ Reference material:
   - [ ] Complete the human-checkable Matterhorn Protocol review and record manual
     keyboard, screen-reader, reading-order, form-label, table, link, and alternative-text
     evidence on supported desktop platforms.
+  - [x] Add a versioned Matterhorn evidence procedure, JSON schema, and intentionally
+    non-passing template; keep actual platform and assistive-technology review evidence
+    open until it is performed by a qualified reviewer.
 - [x] Add Designer accessibility properties and prevent a compliance export when
   required semantic data is absent, with localized document- and element-level findings
   in Page Settings and the Export dialog.
@@ -918,16 +921,18 @@ Implementation evidence:
     trust report. Permission combinations and negative cases remain open.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
-  - [x] Provide a deterministic generated PDF/A-2b fixture and verify it locally with
-    veraPDF; PDF/A CI report publication remains open.
-  - [x] Verify the conservative existing-PDF conversion fixture locally with veraPDF;
-    CI report publication and a second validator remain open.
+  - [x] Provide a deterministic generated PDF/A-2b fixture, verify it locally with
+    veraPDF, and publish the machine-readable report through the PDF/A CI artifact.
+  - [x] Verify the conservative existing-PDF conversion fixture with veraPDF and publish
+    its machine-readable report through the PDF/A CI artifact; a second validator remains open.
   - [x] Generate deterministic PDF/UA-1 structure, table, and native-widget fixtures,
     validate them with the pinned veraPDF `ua1` profile, and publish the PDFs and
     machine-readable XML reports as CI artifacts.
   - [x] Generate independent LibreOffice PDF/A-2b and PDF/UA-1 fixtures and retain
     passing XML reports from the pinned official veraPDF 1.31.166 container alongside
     their stable PXA trust reports.
+  - [x] Publish PDF/A-2b and PDF/A-3b veraPDF validation as a dedicated CI artifact with
+    explicit profile-to-fixture mapping; manual second-validator evidence remains open.
 - [ ] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.

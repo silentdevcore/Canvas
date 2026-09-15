@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/pdfua/matterhorn-evidence.schema.json",
+  "title": "PXA PDF/UA manual accessibility evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fixture", "review", "checks"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewer", "platform", "assistiveTechnology", "reviewedAtUtc"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "assistiveTechnology": { "type": "string", "minLength": 1 },
+        "reviewedAtUtc": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "category", "status", "expectedEvidence", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "category": { "type": "string", "minLength": 1 },
+          "status": { "$ref": "#/$defs/status" },
+          "expectedEvidence": { "type": "string", "minLength": 1 },
+          "evidence": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["not-run", "pass", "fail", "not-applicable", "blocked"]
+    }
+  }
+}

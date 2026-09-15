@@ -97,6 +97,36 @@ jobs:
           path: artifacts/pdfua
           if-no-files-found: error
           retention-days: 30
+      - name: Validate generated PDF/A fixtures independently
+        env:
+          PXA_PDFA_ARTIFACT_DIR: artifacts/pdfa/generated
+          PXA_PDFA_CONVERT_ARTIFACT_DIR: artifacts/pdfa/conversions
+          PXA_PDFA_REPORT_DIR: artifacts/pdfa/reports
+        run: |
+          mkdir -p artifacts/pdfa/generated artifacts/pdfa/conversions artifacts/pdfa/reports
+          tools/pdfa/test-validate-pdfa.sh
+          dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~PdfTrustInspectorTests|FullyQualifiedName~PdfA2bConverterTests|FullyQualifiedName~PdfA3bAndColorConversionTests"
+          cp tests/PXA.Importer.Tests/Fixtures/PdfTrustExternal/libreoffice-pdfa2b.pdf artifacts/pdfa/generated/
+          tools/pdfa/validate-pdfa.sh 2b \
+            artifacts/pdfa/generated/pxa-pdfa2b-fixture.pdf \
+            artifacts/pdfa/generated/pxa-pdfa2b-colored-pattern-fixture.pdf \
+            artifacts/pdfa/generated/pxa-pdfa2b-uncolored-pattern-fixture.pdf \
+            artifacts/pdfa/generated/pxa-pdfa2b-cmyk-image-fixture.pdf \
+            artifacts/pdfa/generated/libreoffice-pdfa2b.pdf \
+            artifacts/pdfa/conversions/pxa-converted-pdfa2b.pdf
+          tools/pdfa/validate-pdfa.sh 3b \
+            artifacts/pdfa/generated/pxa-generated-pdfa3b-fixture.pdf \
+            artifacts/pdfa/generated/pxa-pdfa3b-fixture.pdf
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-pdfa-validation-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdfa
+          if-no-files-found: error
+          retention-days: 30
       - name: Test version and release metadata contracts
         run: >
           dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
