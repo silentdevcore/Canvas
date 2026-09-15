@@ -28,8 +28,9 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(
             SHA256.HashData(fixture.Key.Certificate.RawData),
             ReadSigningCertificateV2Hash(result.SignedAttributes));
-        Assert.True(result.SignedAttributes.AsSpan().IndexOf(
-            Convert.FromHexString("06092A864886F70D010905")) >= 0);
+        Assert.Equal(
+            DateTimeOffset.FromUnixTimeSeconds(fixture.SigningTime.ToUnixTimeSeconds()),
+            ReadSigningTime(result.SignedAttributes));
         using var publicKey = fixture.Key.Certificate.GetRSAPublicKey();
         Assert.NotNull(publicKey);
         Assert.True(publicKey.VerifyHash(
@@ -37,6 +38,20 @@ public sealed class PdfPadesSigningServiceTests
             result.Signature,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1));
+    }
+
+    [Fact]
+    public void CadesBuilder_ShouldUseGeneralizedTimeAfter2049()
+    {
+        using var fixture = SigningFixture.Create();
+        var signingTime = new DateTimeOffset(2050, 1, 2, 3, 4, 5, TimeSpan.Zero);
+
+        var result = PdfCadesCmsBuilder.CreateDetached(
+            SHA256.HashData("PXA future detached content"u8),
+            fixture.Key,
+            signingTime);
+
+        Assert.Equal(signingTime, ReadSigningTime(result.SignedAttributes));
     }
 
     [Fact]
@@ -556,7 +571,7 @@ public sealed class PdfPadesSigningServiceTests
             new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
         var modified = mutation == "signed-content"
             ? MutateFirstOccurrence(result.Bytes, "PXA PAdES fixture"u8)
-            : MutateSignatureContents(result.Bytes);
+            : MutateCmsSignatureValue(result.Bytes);
 
         await using var stream = new MemoryStream(modified);
         var report = await new PdfTrustInspector().InspectAsync(stream);
@@ -564,8 +579,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic =>
-            diagnostic.Code is "PXAPDFTRUST103" or "PXAPDFTRUST105");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
     }
 
     [Fact]
@@ -950,14 +964,24 @@ public sealed class PdfPadesSigningServiceTests
         return result;
     }
 
-    private static byte[] MutateSignatureContents(byte[] source)
+    private static byte[] MutateCmsSignatureValue(byte[] source)
     {
         var marker = "/Contents <"u8;
         var markerOffset = source.AsSpan().IndexOf(marker);
         Assert.True(markerOffset >= 0);
         var hexOffset = markerOffset + marker.Length;
+        var hexLength = source.AsSpan(hexOffset).IndexOf((byte)'>');
+        Assert.True(hexLength > 0 && hexLength % 2 == 0);
+        var contents = Convert.FromHexString(Encoding.ASCII.GetString(source, hexOffset, hexLength));
+        var cmsLength = ReadDerLength(contents);
+        var cms = contents.AsSpan(0, cmsLength);
+        var signature = ReadCms(cms).Signature;
+        var signatureOffset = cms.IndexOf(signature);
+        Assert.True(signatureOffset >= 0);
+
+        var targetHexOffset = hexOffset + ((signatureOffset + signature.Length / 2) * 2);
         var result = source.ToArray();
-        result[hexOffset] = result[hexOffset] == (byte)'0' ? (byte)'1' : (byte)'0';
+        result[targetHexOffset] = result[targetHexOffset] == (byte)'0' ? (byte)'1' : (byte)'0';
         return result;
     }
 
@@ -1127,6 +1151,27 @@ public sealed class PdfPadesSigningServiceTests
         }
 
         throw new Xunit.Sdk.XunitException("The CAdES SigningCertificateV2 attribute is missing.");
+    }
+
+    private static DateTimeOffset ReadSigningTime(ReadOnlySpan<byte> signedAttributes)
+    {
+        var attributes = new AsnReader(signedAttributes.ToArray(), AsnEncodingRules.DER).ReadSetOf();
+        while (attributes.HasData)
+        {
+            var attribute = attributes.ReadSequence();
+            var oid = attribute.ReadObjectIdentifier();
+            var values = attribute.ReadSetOf();
+            if (oid != "1.2.840.113549.1.9.5")
+            {
+                continue;
+            }
+
+            return values.PeekTag().TagValue == (int)UniversalTagNumber.UtcTime
+                ? values.ReadUtcTime()
+                : values.ReadGeneralizedTime();
+        }
+
+        throw new Xunit.Sdk.XunitException("The CMS signing-time attribute is missing.");
     }
 
     private static int ReadDerLength(ReadOnlySpan<byte> value)

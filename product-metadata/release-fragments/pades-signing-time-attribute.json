@@ -6,6 +6,6 @@
     "importer"
   ],
   "category": "fixed",
-  "summary": "PXA PAdES and redaction audit signatures now include and verify the signed signing-time attribute required for reliable validation.",
+  "summary": "PXA PAdES and redaction audit signatures now carry consistently encoded signed signing-time metadata while trusted timestamps remain independently validated.",
   "breaking": false
 }

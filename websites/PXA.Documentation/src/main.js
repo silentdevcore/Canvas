@@ -121,7 +121,7 @@ const editorDocs = [
       {
         title: 'Choose a profile and validate independently',
         json: '{"profile":"PDF/A-2b","generator":"PXA.Generator","firstPartyEndpoint":"POST /api/pxa/v1/pdf/compliance/validate","independentEvidence":"tools/pdfa/validate-pdfa.sh --profile 2b archive.pdf"}',
-        note: 'The Generator creates PDF/A-2b by default and supports PDF/A-3b where attachments have valid relationships. The Viewer and API expose profile, status, validator, evidence, and diagnostics. A production conformance claim requires the pinned official veraPDF report and a recorded second independent validator result. PXA does not claim PDF/A-4 support.',
+        note: 'The Generator creates PDF/A-2b only when PdfA2B is explicitly selected and supports PDF/A-3b where attachments have valid relationships. Ordinary PDF output remains the default. The Viewer and API expose profile, status, validator, evidence, and diagnostics. A production conformance claim requires the pinned official veraPDF report and a recorded second independent validator result. PXA does not claim PDF/A-4 support.',
       },
       {
         title: 'Preflight before converting an existing PDF',
@@ -152,8 +152,8 @@ const editorDocs = [
     examples: [
       {
         title: 'Generate and validate PDF/UA-1',
-        json: '{"accessibilityProfile":"PdfUa1","title":"Accessible invoice","language":"en","validation":"POST /api/pxa/v1/pdf/compliance/validate","independentProfile":"veraPDF ua1"}',
-        note: 'PXA fails closed when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The report includes PXAPDFUA diagnostics, page references, and element IDs. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
+        json: '{"accessibilityProfile":"PdfUa1","title":"Accessible invoice","language":"en","claimInspection":"POST /api/pxa/v1/pdf/compliance/validate","independentValidation":"tools/pdfua/validate-pdfua.sh document.pdf"}',
+        note: 'The Generator preflight fails closed with PXAPDFUA diagnostics, page references, and element IDs when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The compliance endpoint only detects the PDF/UA metadata claim and reports it as indeterminate; it is not a PDF/UA validator. Use the pinned veraPDF ua1 wrapper and complete manual assistive-technology review. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
       },
       {
         title: 'Remediate before export',

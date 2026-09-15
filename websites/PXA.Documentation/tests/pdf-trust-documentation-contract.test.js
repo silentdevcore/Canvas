@@ -74,11 +74,16 @@ test('PDF Trust documentation exposes separate PDF/A and PDF/UA learning paths',
   assert.match(source, /Generate PDF\/A-2b/);
   assert.match(source, /Generate PDF\/A-3b with controlled attachments/);
   assert.match(source, /Correct PDF\/A findings after migration/);
+  assert.match(source, /only when PdfA2B is explicitly selected/);
+  assert.match(source, /Ordinary PDF output remains the default/);
   assert.match(source, /independent validator result/);
   assert.match(source, /title: 'Generate and validate PDF\/UA-1'/);
   assert.match(source, /title: 'Remediate before export'/);
   assert.match(source, /Designer Accessibility Inspector/);
   assert.match(source, /screen-reader review/);
+  assert.match(source, /compliance endpoint only detects the PDF\/UA metadata claim/);
+  assert.match(source, /it is not a PDF\/UA validator/);
+  assert.match(source, /tools\/pdfua\/validate-pdfua\.sh/);
   assert.match(source, /Passing automated validation is evidence for the tested profile/);
   assert.match(source, /Download external PDF\/UA evidence/);
 });

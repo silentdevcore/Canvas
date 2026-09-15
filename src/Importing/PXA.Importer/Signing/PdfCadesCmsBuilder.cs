@@ -137,7 +137,7 @@ internal static class PdfCadesCmsBuilder
         writer.WriteEncodedValue(BuildAttribute(MessageDigestAttributeOid, values =>
             values.WriteOctetString(digestBytes)));
         writer.WriteEncodedValue(BuildAttribute(SigningTimeAttributeOid, values =>
-            values.WriteUtcTime(signingTime)));
+            WriteSigningTime(values, signingTime)));
         writer.WriteEncodedValue(BuildAttribute(SigningCertificateV2AttributeOid, values =>
         {
             values.PushSequence();
@@ -150,6 +150,18 @@ internal static class PdfCadesCmsBuilder
         }));
         writer.PopSetOf();
         return writer.Encode();
+    }
+
+    private static void WriteSigningTime(AsnWriter writer, DateTimeOffset signingTime)
+    {
+        var utcSigningTime = signingTime.ToUniversalTime();
+        if (utcSigningTime.Year is >= 1950 and <= 2049)
+        {
+            writer.WriteUtcTime(utcSigningTime);
+            return;
+        }
+
+        writer.WriteGeneralizedTime(utcSigningTime, omitFractionalSeconds: true);
     }
 
     private static byte[] BuildAttribute(string oid, Action<AsnWriter> writeValue)
