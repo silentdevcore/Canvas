@@ -79,6 +79,14 @@ public ref struct PdfTokenizer
             return Create(PdfTokenKind.ArrayEnd, start, _position);
         }
 
+        // A malformed single delimiter must still advance the tokenizer. Otherwise a
+        // parser recovering from a missing pair delimiter can loop forever at one byte.
+        if (IsDelimiter(current))
+        {
+            _position++;
+            return Create(PdfTokenKind.Keyword, start, _position);
+        }
+
         if (IsNumberStart(current))
         {
             return ReadNumber(start);

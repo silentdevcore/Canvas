@@ -4,6 +4,7 @@ using PXA.Importer;
 using PXA.Importer.Objects;
 using PXA.Importer.Parsing;
 using PXA.Importer.Streams;
+using PXA.Importer.Tokenizer;
 using PXA.Importer.Trust;
 using PXA.Importer.Xref;
 
@@ -223,6 +224,21 @@ public sealed class PdfParserHardeningTests
 
         Assert.Throws<OperationCanceledException>(
             () => new PdfObjectParser(context, table).ParseDocumentGraph());
+    }
+
+    [Theory]
+    [InlineData(">")]
+    [InlineData(")")]
+    [InlineData("{")]
+    [InlineData("}")]
+    public void Tokenizer_ShouldAdvancePastMalformedSingleDelimiters(string delimiter)
+    {
+        var tokenizer = new PdfTokenizer(Encoding.ASCII.GetBytes(delimiter));
+
+        var token = tokenizer.ReadToken();
+
+        Assert.Equal(1, token.Length);
+        Assert.Equal(1, tokenizer.Position);
     }
 
     [Fact]

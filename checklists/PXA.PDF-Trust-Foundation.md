@@ -938,6 +938,10 @@ Implementation evidence:
   attachments.
 - [ ] Add differential fuzzing and bounded parser fuzz tests for trust-sensitive
   objects and incremental revisions.
+  - [x] Add a deterministic process-isolated mutation smoke corpus with fixed seed,
+    input-size bounds, per-case timeout, crash detection, and hash-only JSON evidence.
+  - [ ] Add coverage-guided and differential parser fuzzing with enforced memory,
+    process, and cross-implementation resource limits.
 - [ ] Add golden visual tests proving signatures, redaction results, tagged content,
   and compliance conversion do not corrupt layout.
 - [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
