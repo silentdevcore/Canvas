@@ -355,6 +355,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Restore visual-parity test dependencies
         run: dotnet restore tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+      - name: Restore PDF Trust visual operation dependencies
+        run: dotnet restore tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj
       - name: Enforce approved visual parity
         working-directory: pxa-designer
         run: npm run test:visual-parity:ci
@@ -362,6 +364,10 @@ jobs:
         env:
           PXA_PDF_TRUST_VISUAL_ENFORCE: true
         run: node tools/visual-parity/pdf-trust-golden.mjs
+      - name: Enforce PDF Trust operation visual baselines
+        env:
+          PXA_PDF_TRUST_OPERATION_ENFORCE: true
+        run: node tools/visual-parity/pdf-trust-operations.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -374,6 +380,13 @@ jobs:
         with:
           name: pxa-pdf-trust-visual-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/pdf-trust-visual
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-pdf-trust-operations-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdf-trust-operations
           if-no-files-found: error
           retention-days: 14
 

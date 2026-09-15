@@ -10,6 +10,14 @@ settings. `run.mjs` compares Designer surfaces with generated PDF output.
 - `archived`: PDF/A-2b output
 - `accessible`: PDF/UA-1 output
 
+`pdf-trust-operations.mjs` executes the real Trust services against deterministic
+test documents and covers the operation outputs for:
+
+- visible signature appearance
+- applied redaction
+- PDF/A-2b conversion
+- PDF/UA-1 generation
+
 Run the report locally with:
 
 ```bash
@@ -22,12 +30,23 @@ The default is report-only. CI can enforce the checked-in pixel baselines with:
 PXA_PDF_TRUST_VISUAL_ENFORCE=true node tools/visual-parity/pdf-trust-golden.mjs
 ```
 
+Run operation output baselines with:
+
+```bash
+PXA_PDF_TRUST_OPERATION_ENFORCE=true node tools/visual-parity/pdf-trust-operations.mjs
+```
+
 The command writes raster pages and a JSON report below
 `artifacts/pdf-trust-visual/`. It never writes customer documents or trust
 secrets. Updating a baseline requires an explicit reviewed change to
 `test-assets/pdf-trust/visual-baseline.json`.
 
-This runner currently protects the visual rendering of the checked-in Trust
-corpus. It does not claim that an applied redaction or a PDF/A/PDF/UA
-conversion is visually equivalent yet; those operation-specific fixtures and
-reviewed baseline images remain a follow-up milestone.
+The golden runner protects the visual rendering of the checked-in Trust corpus.
+The operation runner adds real service outputs for redaction, signing, PDF/A,
+and PDF/UA. Reviewed reference images and visual diff masks remain a follow-up
+milestone.
+
+The operation runner additionally verifies that the real service outputs keep
+the source page count and geometry, and protects their rasterized output
+against checked-in baselines. Pixel-level diff masks for intentional changes
+such as the removed redaction content remain a follow-up review step.

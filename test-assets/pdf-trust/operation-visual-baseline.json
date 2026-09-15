@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "dpi": 72,
+  "description": "Operation output baselines generated from deterministic PXA Trust service tests.",
+  "entries": [
+    {
+      "id": "signature",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "02bb78b85529633c1ce1bf1f52ec3b69e27d95ee72f226086af9a3630e0dc49b",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "10827196b1c8a18df7c7a46ddfbae461ac2ba8089bfb759b72c4cff15a3aa919",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "redaction",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "90f6b40e747fd3221fc8f1aa55c89284caec1562bcfbb7c6db510fb23702fc84",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "9dcb47e67e1424e2dbc9e234291520c72ca2e3af7c90f3d247f8a8978ab03863",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "pdf-a-2b",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "2829381cd2694173b5aad64c32a73aab54684235af31c06c41552a051d17e7ee",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "2829381cd2694173b5aad64c32a73aab54684235af31c06c41552a051d17e7ee",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "pdf-ua-1",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "0ddefd544fee3829e75a80c6fe9adcb6da39f0a26e19d57dbbff07e3dd51ac49",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "0ddefd544fee3829e75a80c6fe9adcb6da39f0a26e19d57dbbff07e3dd51ac49",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    }
+  ]
+}

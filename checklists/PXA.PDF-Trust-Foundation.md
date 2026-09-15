@@ -948,8 +948,12 @@ Implementation evidence:
     and PDF/UA-1 synthetic fixtures. It rasterizes at 72 DPI, records page dimensions
     and pixel hashes, writes reviewable JSON evidence, and supports report-only and
     enforced modes.
+  - [x] Generate and validate deterministic operation outputs for visible signatures,
+    applied redaction, PDF/A-2b conversion, and PDF/UA-1 generation through the real
+    Trust services, including page-count and page-geometry invariants.
   - [ ] Add reviewed baseline images and operation-specific applied-redaction output;
-    the current foundation intentionally covers the existing corpus fixtures only.
+    the operation runner now supplies the applied-redaction output; reviewed image
+    baselines and visual diff masks remain open.
 - [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
   validate, redact, compare, and download.
 - [ ] Run migration parity tests for every provider mapping before changing a manual
