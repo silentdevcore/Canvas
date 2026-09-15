@@ -919,6 +919,8 @@ Implementation evidence:
   - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and
     owner passwords, restricted modification, pinned qpdf evidence, and a stable PXA
     trust report. Permission combinations and negative cases remain open.
+  - [x] Cover all 256 supported permission-bit combinations and both encrypted-metadata
+    settings in the native AES-256 handler tests.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture, verify it locally with

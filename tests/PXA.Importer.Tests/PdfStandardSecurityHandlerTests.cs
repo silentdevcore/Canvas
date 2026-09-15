@@ -139,6 +139,68 @@ public sealed class PdfStandardSecurityHandlerTests
     }
 
     [Fact]
+    public void Open_ShouldRoundTripEverySupportedPermissionCombination()
+    {
+        var supportedPermissions = new[]
+        {
+            PdfDocumentPermissions.Print,
+            PdfDocumentPermissions.ModifyContents,
+            PdfDocumentPermissions.Copy,
+            PdfDocumentPermissions.ModifyAnnotations,
+            PdfDocumentPermissions.FillForms,
+            PdfDocumentPermissions.ExtractForAccessibility,
+            PdfDocumentPermissions.AssembleDocument,
+            PdfDocumentPermissions.PrintHighResolution,
+        };
+
+        for (var mask = 0; mask < (1 << supportedPermissions.Length); mask++)
+        {
+            var permissions = PdfDocumentPermissions.None;
+            for (var bit = 0; bit < supportedPermissions.Length; bit++)
+            {
+                if ((mask & (1 << bit)) != 0)
+                {
+                    permissions |= supportedPermissions[bit];
+                }
+            }
+
+            using var handler = PdfStandardSecurityHandler.Create(new PdfDocumentEncryptionOptions
+            {
+                UserPassword = "user-secret",
+                OwnerPassword = "owner-secret",
+                Permissions = permissions,
+            });
+
+            using var reopened = PdfStandardSecurityHandler.Open(
+                handler.BuildEncryptDictionary(),
+                "user-secret",
+                out var result);
+
+            Assert.True(result.PermissionsVerified);
+            Assert.Equal(permissions, result.Permissions);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Create_ShouldPreserveTheEncryptMetadataOption(bool encryptMetadata)
+    {
+        using var handler = PdfStandardSecurityHandler.Create(new PdfDocumentEncryptionOptions
+        {
+            UserPassword = "user-secret",
+            OwnerPassword = "owner-secret",
+            EncryptMetadata = encryptMetadata,
+        });
+
+        var encrypt = handler.BuildEncryptDictionary();
+        using var reopened = PdfStandardSecurityHandler.Open(encrypt, "user-secret", out var result);
+
+        Assert.Equal(encryptMetadata, Assert.IsType<PdfBoolean>(encrypt["EncryptMetadata"]).Value);
+        Assert.Equal(encryptMetadata, result.EncryptMetadata);
+    }
+
+    [Fact]
     public void EncryptValue_ShouldProduceDifferentCiphertextForTheSameInput()
     {
         var handler = PdfStandardSecurityHandler.Create(new PdfDocumentEncryptionOptions { UserPassword = "pw" });
