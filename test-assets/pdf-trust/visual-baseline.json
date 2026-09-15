@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "dpi": 72,
+  "description": "Deterministic PDF Trust visual baselines generated from the checked-in synthetic corpus.",
+  "entries": [
+    {
+      "id": "signed",
+      "pdfSha256": "3cd872d7f90d2bbee7dc8fa50ddb0af74f6f69e7507c6d8ddcb813e3eed2c5ee",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "91169463362291fc8faf999998b0a9f1ea7bb67ebf3a673f304bdef246b3ea5f",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "redaction-risk",
+      "pdfSha256": "8e2d2b45b9a7b1b0724d2f8fb078c3b0ffbfb86f1b3f4fbf44c8beecc194334b",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "5629bf4a9d4eeb5ff7ab17556c3f4b6e1bbfb43bd7225d3f02cb80b658f29de0",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "archived",
+      "pdfSha256": "dbd0405efd5603b42ee2e0bb51ada25d8a8f1dc2317ecfe965bd7ebe54072012",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "bf2b539f1d2a1900307af19e8e30a7ebe0c61d1d2e18a8a1090f520dfc84bd39",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "accessible",
+      "pdfSha256": "0d6a2a59dc54dca020effd9f7ad7fac8818326f3317938124a0151e96caa673d",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "152e3159f2d38ed34c0049433e4c98a95b26f79a8c3d0f3bba811ee2b5039ced",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    }
+  ]
+}

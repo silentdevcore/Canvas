@@ -944,6 +944,12 @@ Implementation evidence:
     process, and cross-implementation resource limits.
 - [ ] Add golden visual tests proving signatures, redaction results, tagged content,
   and compliance conversion do not corrupt layout.
+  - [x] Add a deterministic golden runner for the signed, redaction-risk, PDF/A-2b,
+    and PDF/UA-1 synthetic fixtures. It rasterizes at 72 DPI, records page dimensions
+    and pixel hashes, writes reviewable JSON evidence, and supports report-only and
+    enforced modes.
+  - [ ] Add reviewed baseline images and operation-specific applied-redaction output;
+    the current foundation intentionally covers the existing corpus fixtures only.
 - [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
   validate, redact, compare, and download.
 - [ ] Run migration parity tests for every provider mapping before changing a manual
