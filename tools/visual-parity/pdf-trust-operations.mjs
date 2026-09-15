@@ -23,6 +23,26 @@ function run(command, args, extraEnv = {}) {
   return result;
 }
 
+function writeDiffMask(sourcePath, outputPath, diffMaskPath) {
+  const result = spawnSync('magick', [
+    'compare', '-metric', 'AE',
+    '-highlight-color', '#ff0000',
+    '-lowlight-color', '#ffffff',
+    sourcePath, outputPath, diffMaskPath
+  ], {
+    cwd: root,
+    env: process.env,
+    encoding: 'utf8',
+    stdio: 'pipe'
+  });
+  if (result.status !== 0 && result.status !== 1)
+    throw new Error(`magick compare failed\n${result.stdout ?? ''}\n${result.stderr ?? ''}`);
+  const metric = Number.parseInt((result.stderr || result.stdout).trim().split(/\s+/)[0], 10);
+  if (!Number.isFinite(metric))
+    throw new Error(`Unable to read ImageMagick pixel difference for '${sourcePath}'.`);
+  return metric;
+}
+
 function requireTool(name) {
   const result = spawnSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`PDF Trust operation visuals require '${name}' on PATH.`);
@@ -88,6 +108,39 @@ async function rasterize(pdfPath, operation, side) {
   }));
 }
 
+async function createReviewArtifacts(operation, sourcePages, outputPages) {
+  const pages = [];
+  for (let index = 0; index < sourcePages.length; index += 1) {
+    const source = path.join(outputRoot, sourcePages[index].file);
+    const output = path.join(outputRoot, outputPages[index].file);
+    const reviewDirectory = path.join(outputRoot, operation, 'review');
+    await mkdir(reviewDirectory, { recursive: true });
+    const pageName = `page-${String(index + 1).padStart(3, '0')}`;
+    const sideBySide = path.join(reviewDirectory, `${pageName}-side-by-side.png`);
+    const overlay = path.join(reviewDirectory, `${pageName}-overlay.png`);
+    const diffMask = path.join(reviewDirectory, `${pageName}-diff-mask.png`);
+
+    run('magick', [source, output, '+append', sideBySide]);
+    run('magick', [
+      source, output, '-alpha', 'set', '-compose', 'blend',
+      '-define', 'compose:args=50,50', '-composite', overlay
+    ]);
+    const pixelDifferences = writeDiffMask(source, output, diffMask);
+    const pixelCount = sourcePages[index].width * sourcePages[index].height;
+    pages.push({
+      page: index + 1,
+      source: sourcePages[index].file,
+      output: outputPages[index].file,
+      sideBySide: path.relative(outputRoot, sideBySide),
+      overlay: path.relative(outputRoot, overlay),
+      diffMask: path.relative(outputRoot, diffMask),
+      pixelDifferences,
+      changedPixelRatio: pixelDifferences / pixelCount,
+    });
+  }
+  return pages;
+}
+
 function assertSamePageGeometry(sourcePages, outputPages, operation) {
   if (sourcePages.length !== outputPages.length)
     throw new Error(`${operation} changed the page count during a Trust operation.`);
@@ -124,13 +177,14 @@ async function main() {
       rasterize(outputPath, operation, 'output'),
     ]);
     assertSamePageGeometry(sourcePages, outputPages, operation);
+    const reviewPages = await createReviewArtifacts(operation, sourcePages, outputPages);
     const expected = baseline.entries.find(entry => entry.id === operation);
     const changed = !expected ||
       JSON.stringify(sourcePages.map(({ page, pngSha256, width, height }) => ({ page, pngSha256, width, height }))) !==
         JSON.stringify(expected.sourcePages) ||
       JSON.stringify(outputPages.map(({ page, pngSha256, width, height }) => ({ page, pngSha256, width, height }))) !==
         JSON.stringify(expected.outputPages);
-    results.push({ id: operation, sourcePages, outputPages, status: changed ? 'changed' : 'match' });
+    results.push({ id: operation, sourcePages, outputPages, reviewPages, status: changed ? 'changed' : 'match' });
   }
 
   const report = {

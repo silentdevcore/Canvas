@@ -48,5 +48,8 @@ milestone.
 
 The operation runner additionally verifies that the real service outputs keep
 the source page count and geometry, and protects their rasterized output
-against checked-in baselines. Pixel-level diff masks for intentional changes
-such as the removed redaction content remain a follow-up review step.
+against checked-in baselines. For every page it writes a side-by-side comparison,
+a 50/50 review overlay, a red pixel-diff mask and pixel-difference metrics below
+`artifacts/pdf-trust-operations/<operation>/review/`. These artifacts are
+report-only evidence: intentional changes such as removed redaction content
+must be reviewed by a human and are not automatically treated as regressions.

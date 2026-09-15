@@ -952,8 +952,9 @@ Implementation evidence:
     applied redaction, PDF/A-2b conversion, and PDF/UA-1 generation through the real
     Trust services, including page-count and page-geometry invariants.
   - [ ] Add reviewed baseline images and operation-specific applied-redaction output;
-    the operation runner now supplies the applied-redaction output; reviewed image
-    baselines and visual diff masks remain open.
+    the operation runner now supplies the applied-redaction output, side-by-side images,
+    review overlays, red diff masks and per-page pixel metrics; human approval of the
+    artifacts remains open.
 - [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
   validate, redact, compare, and download.
 - [ ] Run migration parity tests for every provider mapping before changing a manual
