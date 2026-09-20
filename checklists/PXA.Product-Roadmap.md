@@ -1,5 +1,8 @@
 # PXA Product Roadmap
 
+Cross-format fidelity evidence, corpus governance, and the official 95 percent migration gate are
+tracked in `PXA.Proven-Document-Fidelity.md`.
+
 ## Goal
 
 Maintain one prioritized index of product work outside PXA Admin. Detailed implementation tasks remain owned by the linked checklists.

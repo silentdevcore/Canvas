@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "results": [
+    {
+      "fixtureId": "designer-all-elements",
+      "metrics": {
+        "sourceElements": 39,
+        "matchedElements": 39,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0.15,
+        "pageCountMatches": true
+      },
+      "limitations": ["Reviewed P2 differences are limited to browser and PDF rasterization."]
+    },
+    {
+      "fixtureId": "designer-mixed-page-layout",
+      "metrics": {
+        "sourceElements": 6,
+        "matchedElements": 6,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0,
+        "pageCountMatches": true
+      },
+      "limitations": []
+    },
+    {
+      "fixtureId": "word-fidelity-sample-pack",
+      "metrics": {
+        "sourceElements": 13,
+        "matchedElements": 13,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0.304,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0.155105,
+        "pageCountMatches": true
+      },
+      "limitations": ["The current pack is synthetic.", "The worst LibreOffice visual difference exceeds the current 0.15 policy by 0.005105."]
+    },
+    {
+      "fixtureId": "pdf-trust-external-producer-corpus",
+      "forcedClassification": "compatible",
+      "metrics": {
+        "sourceElements": 4,
+        "matchedElements": 4,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "pageCountMatches": true
+      },
+      "limitations": ["This corpus proves standards and security interoperability, not general layout migration fidelity."]
+    }
+  ]
+}

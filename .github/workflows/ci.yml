@@ -32,6 +32,11 @@ jobs:
           node tools/pdf-trust/validate-standards-baseline.mjs
           node tools/pdf-trust/validate-external-evidence.mjs
           node --test tools/pdf-trust/*.test.mjs
+      - name: Validate document fidelity corpus and reviewed baseline
+        run: |
+          node tools/document-fidelity/fidelity.mjs validate
+          node tools/document-fidelity/fidelity.mjs evaluate
+          node --test tools/document-fidelity/fidelity.test.mjs
       - name: Require a release fragment for develop pull requests
         if: >
           github.event_name == 'pull_request' &&
@@ -373,6 +378,11 @@ jobs:
       - name: Enforce approved visual parity
         working-directory: pxa-designer
         run: npm run test:visual-parity:ci
+      - name: Aggregate live visual fidelity evidence
+        run: >
+          node tools/document-fidelity/fidelity.mjs evaluate
+          --visual-parity artifacts/visual-parity/visual-parity-report.json
+          --output artifacts/document-fidelity
       - name: Enforce PDF Trust visual baselines
         env:
           PXA_PDF_TRUST_VISUAL_ENFORCE: true
@@ -388,6 +398,13 @@ jobs:
           path: artifacts/visual-parity
           if-no-files-found: error
           retention-days: 14
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-document-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/document-fidelity
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

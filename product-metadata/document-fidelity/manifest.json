@@ -1,0 +1,60 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "policy": {
+    "maximumGeometryDriftPoints": 1,
+    "minimumTextPreservationRatio": 1,
+    "maximumVisualDifferenceRatio": 0.15,
+    "minimumAutomaticMigrationPercent": 95
+  },
+  "fixtures": [
+    {
+      "id": "designer-all-elements",
+      "domain": "pdf",
+      "workflow": "render-parity",
+      "sourceFormat": "pxa-json",
+      "source": "test-assets/visual-parity/all-elements.json",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["all-elements", "canvas", "preview", "backend-pdf", "csharp-pdf"]
+    },
+    {
+      "id": "designer-mixed-page-layout",
+      "domain": "pdf",
+      "workflow": "render-parity",
+      "sourceFormat": "pxa-json",
+      "source": "test-assets/page-layout/mixed-layout.json",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["portrait", "landscape", "custom-page-size"]
+    },
+    {
+      "id": "word-fidelity-sample-pack",
+      "domain": "word",
+      "workflow": "export-roundtrip",
+      "sourceFormat": "pxa-json",
+      "source": "checklists/word-fidelity-samples",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["docx", "libreoffice", "visual-comparison", "thirteen-samples"]
+    },
+    {
+      "id": "pdf-trust-external-producer-corpus",
+      "domain": "pdf",
+      "workflow": "standards-validation",
+      "sourceFormat": "pdf",
+      "source": "tests/PXA.Importer.Tests/Fixtures/PdfTrustExternal",
+      "provenance": "third-party-generated",
+      "redistribution": "allowed",
+      "realWorld": true,
+      "officiallySupported": false,
+      "tags": ["pdf-a", "pdf-ua", "pades", "aes-256", "validation-only"]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "document-fidelity-evidence-foundation",
+  "impact": "none",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "Document fidelity now has a governed corpus manifest, deterministic classifications, and honest cross-format readiness reporting.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Proven-Document-Fidelity.md"
+  ],
+  "breaking": false,
+  "reason": "This change adds internal evidence governance and CI validation without changing shipped document processing behavior."
+}

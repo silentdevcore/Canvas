@@ -72,6 +72,8 @@ companies will only be able to use PXA in a limited capacity.
 
 ### 2. Proven Document Fidelity
 
+Implementation tracker: `PXA.Proven-Document-Fidelity.md`.
+
 Support must mean more than accepting a file extension. PXA needs:
 
 - Reproducible visual comparison tests.
@@ -277,6 +279,7 @@ Future milestones derived from this assessment should:
 
 ## Related Strategy Documents
 
+- `PXA.Proven-Document-Fidelity.md`
 - `PXA.Competitive-Feature-And-Pricing-Positioning.md`
 - `PXA.Software-Valuation-And-Value-Growth.md`
 - `PXA.Global-Commerce-And-Pricing.md`
