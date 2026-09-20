@@ -32,6 +32,7 @@
     <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
     <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
     <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter/PXA.FileImporter.csproj" />
     <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
     <ProjectReference Include="../../src/Migrations/Report/PXA.Migration.Report.Designer.DevExpress/PXA.Migration.Report.Designer.DevExpress.csproj" />
     <ProjectReference Include="../../src/Migrations/Report/PXA.Migration.Report.Designer.FastReport/PXA.Migration.Report.Designer.FastReport.csproj" />

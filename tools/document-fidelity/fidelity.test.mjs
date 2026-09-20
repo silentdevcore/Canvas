@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { classifyResult, evaluate, fromVisualParity, fromWordFidelity, mergeEvidence, validateManifest } from './fidelity.mjs';
+import { classifyResult, evaluate, fromMigrationFidelity, fromRealWorldCorpus, fromRealWorldReview, fromSpreadsheetFidelity, fromVisualParity, fromWordFidelity, mergeEvidence, validateManifest } from './fidelity.mjs';
 
 const policy = {
   maximumGeometryDriftPoints: 1,
@@ -147,4 +147,89 @@ test('adapts live Word evidence and replaces its reviewed baseline', () => {
   );
   assert.equal(merged.results.filter(item => item.fixtureId === 'word-fidelity-sample-pack').length, 1);
   assert.equal(merged.results.find(item => item.fixtureId === 'word-fidelity-sample-pack').metrics.missingElements, 1);
+});
+
+test('adapts live Spreadsheet feature evidence', () => {
+  const adapted = fromSpreadsheetFidelity({
+    fixtureId: 'spreadsheet-xlsx-roundtrip',
+    sourceFeatures: 18,
+    matchedFeatures: 14,
+    missingFeatures: ['rows', 'validation', 'formatting', 'columns'],
+    duplicateFeatures: 0,
+    sheetCountMatches: true,
+    limitations: ['Four feature groups require review.']
+  });
+  assert.equal(adapted.metrics.sourceElements, 18);
+  assert.equal(adapted.metrics.matchedElements, 14);
+  assert.equal(adapted.metrics.missingElements, 4);
+});
+
+test('adapts PDF, Spreadsheet, and Report migration evidence without promoting smoke coverage', async () => {
+  const report = JSON.parse(await readFile(new URL('../../test-assets/document-fidelity/migration-provider-smoke.json', import.meta.url)));
+  const adapted = fromMigrationFidelity(report);
+
+  assert.equal(adapted.length, 3);
+  assert.equal(adapted[0].metrics.sourceElements, 16);
+  assert.equal(adapted[0].metrics.matchedElements, 0);
+  assert.equal(adapted[0].metrics.missingElements, 16);
+});
+
+test('rejects incomplete, unknown-provider, or arithmetically inconsistent migration evidence', async () => {
+  const source = JSON.parse(await readFile(new URL('../../test-assets/document-fidelity/migration-provider-smoke.json', import.meta.url)));
+  const suites = structuredClone(source.suites);
+  suites[0].automaticCases = 1;
+
+  assert.throws(() => fromMigrationFidelity({ schemaVersion: 1, suites }), /inconsistent migration outcome counts/);
+  assert.throws(() => fromMigrationFidelity({ schemaVersion: 1, suites: suites.slice(0, 2) }), /exactly three suites/);
+  suites[0].automaticCases = 0;
+  suites[0].providers[0] = 'unknown-provider';
+  assert.throws(() => fromMigrationFidelity({ schemaVersion: 1, suites }), /supported registry/);
+});
+
+test('adapts real-world PDF, DOCX, and XLSX imports without claiming visual fidelity', () => {
+  const adapted = fromRealWorldCorpus({
+    schemaVersion: 1,
+    fixtures: [
+      { fixtureId: 'real-world-pdf-ukgi-annual-report', domain: 'pdf', workflow: 'import-roundtrip', structuralUnit: 'page', expectedUnits: 62, importedUnits: 62, importedElements: 4168, diagnosticCount: 0, importSucceeded: true, limitations: ['Visual review required.'] },
+      { fixtureId: 'real-world-docx-suffolk-mapping-guidance', domain: 'word', workflow: 'import-roundtrip', structuralUnit: 'document', expectedUnits: 1, importedUnits: 1, importedElements: 13, diagnosticCount: 0, importSucceeded: true, limitations: ['Visual review required.'] },
+      { fixtureId: 'real-world-xlsx-suffolk-buildings', domain: 'spreadsheet', workflow: 'import-roundtrip', structuralUnit: 'sheet', expectedUnits: 1, importedUnits: 1, importedElements: 59788, diagnosticCount: 0, importSucceeded: true, limitations: ['Visual review required.'] }
+    ]
+  });
+
+  assert.equal(adapted.length, 3);
+  assert.equal(adapted[0].forcedClassification, 'reviewRequired');
+  assert.equal(adapted[0].metrics.pageCountMatches, true);
+  assert.equal(adapted[2].metrics.sheetCountMatches, true);
+});
+
+test('rejects incomplete or structurally mismatched real-world corpus evidence', () => {
+  const valid = {
+    schemaVersion: 1,
+    fixtures: [
+      { fixtureId: 'real-world-pdf-ukgi-annual-report', domain: 'pdf', workflow: 'import-roundtrip', structuralUnit: 'page', expectedUnits: 62, importedUnits: 62, importedElements: 4168, diagnosticCount: 0, importSucceeded: true, limitations: ['Review required.'] },
+      { fixtureId: 'real-world-docx-suffolk-mapping-guidance', domain: 'word', workflow: 'import-roundtrip', structuralUnit: 'document', expectedUnits: 1, importedUnits: 1, importedElements: 13, diagnosticCount: 0, importSucceeded: true, limitations: ['Review required.'] },
+      { fixtureId: 'real-world-xlsx-suffolk-buildings', domain: 'spreadsheet', workflow: 'import-roundtrip', structuralUnit: 'sheet', expectedUnits: 1, importedUnits: 1, importedElements: 59788, diagnosticCount: 0, importSucceeded: true, limitations: ['Review required.'] }
+    ]
+  };
+
+  assert.throws(() => fromRealWorldCorpus({ ...valid, fixtures: valid.fixtures.slice(0, 2) }), /exactly three fixtures/);
+  assert.throws(() => fromRealWorldCorpus({ ...valid, fixtures: valid.fixtures.map((item, index) => index === 0 ? { ...item, structuralUnit: 'sheet' } : item) }), /unexpected corpus contract/);
+  assert.throws(() => fromRealWorldCorpus({ ...valid, fixtures: valid.fixtures.map((item, index) => index === 0 ? { ...item, limitations: [] } : item) }), /review limitations/);
+});
+
+test('adapts reviewed real-world evidence and retains rejected classification', () => {
+  const fixtures = [
+    ['real-world-pdf-ukgi-annual-report', 'pdf'],
+    ['real-world-docx-suffolk-mapping-guidance', 'word'],
+    ['real-world-xlsx-suffolk-buildings', 'spreadsheet']
+  ].map(([fixtureId, domain]) => ({
+    fixtureId, domain, humanDecision: 'rejected', pageCountMatches: domain === 'pdf',
+    semantics: { sourceTokens: 100, outputTokens: 90, matchedTokens: 80, sourcePreservationRatio: 0.8, outputPrecisionRatio: 0.888 },
+    visualSamples: [{ normalizedRmse: 0.2 }], findings: ['Review rejected.']
+  }));
+  const adapted = fromRealWorldReview({ schemaVersion: 1, fixtures });
+  assert.equal(adapted.length, 3);
+  assert.equal(adapted[0].forcedClassification, 'reviewRequired');
+  assert.equal(adapted[0].metrics.missingElements, 20);
+  assert.equal(adapted[0].metrics.maximumVisualDifferenceRatio, 0.2);
 });

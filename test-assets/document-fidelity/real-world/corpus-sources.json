@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-09-20",
+  "license": {
+    "name": "Open Government Licence v3.0",
+    "url": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "redistribution": "allowed-with-attribution",
+    "notes": "No endorsement is implied. Third-party material remains excluded where identified by the source publisher."
+  },
+  "fixtures": [
+    {
+      "fixtureId": "real-world-pdf-ukgi-annual-report",
+      "path": "test-assets/document-fidelity/real-world/ukgi-annual-report-2019.pdf",
+      "sourceUrl": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/817665/UKGI_Annual_Report_and_Accounts_2018-19_WEB.pdf",
+      "landingPageUrl": "https://www.gov.uk/government/publications/ukgi-annual-report-and-accounts-2018-19",
+      "publisher": "UK Government Investments Limited",
+      "attribution": "Contains public sector information licensed under the Open Government Licence v3.0.",
+      "sha256": "d79a90690cecbf858553c0eed263b3db9f0755246f6cc75abbac07641eee4205"
+    },
+    {
+      "fixtureId": "real-world-docx-suffolk-mapping-guidance",
+      "path": "test-assets/document-fidelity/real-world/suffolk-public-mapping-guidance.docx",
+      "sourceUrl": "https://www.suffolk.gov.uk/asset-library/public-mapping-guidance.docx",
+      "landingPageUrl": "https://www.suffolk.gov.uk/council-and-democracy/open-data-suffolk/council-data-and-transparency/local-authority-land-and-property",
+      "publisher": "Suffolk County Council",
+      "attribution": "Contains public sector information licensed under the Open Government Licence v3.0.",
+      "sha256": "792cfe8a946eaa599745cec1bac982633fb0d67e720f68dfa52966a2b71c2834"
+    },
+    {
+      "fixtureId": "real-world-xlsx-suffolk-buildings",
+      "path": "test-assets/document-fidelity/real-world/suffolk-buildings-2026.xlsx",
+      "sourceUrl": "https://www.suffolk.gov.uk/asset-library/list-of-buildings-as-of-1-july-20261.xlsx",
+      "landingPageUrl": "https://www.suffolk.gov.uk/council-and-democracy/open-data-suffolk/council-data-and-transparency/local-authority-land-and-property",
+      "publisher": "Suffolk County Council",
+      "attribution": "Contains public sector information licensed under the Open Government Licence v3.0.",
+      "sha256": "571ae753962141675538ac5e277279e5b21baabbf69d06d8c0536bab791a9a41"
+    }
+  ]
+}

@@ -150,6 +150,199 @@ export function fromWordFidelity(report) {
   };
 }
 
+export function fromSpreadsheetFidelity(report) {
+  if (!report || report.fixtureId !== 'spreadsheet-xlsx-roundtrip') {
+    throw new Error('Invalid Spreadsheet fidelity report.');
+  }
+  for (const key of ['sourceFeatures', 'matchedFeatures', 'duplicateFeatures']) {
+    requireNumber(report[key], `spreadsheet.${key}`, 0);
+  }
+  if (!Array.isArray(report.missingFeatures) || !Array.isArray(report.limitations)) {
+    throw new Error('Spreadsheet fidelity report requires missingFeatures and limitations.');
+  }
+  return {
+    fixtureId: report.fixtureId,
+    metrics: {
+      sourceElements: report.sourceFeatures,
+      matchedElements: report.matchedFeatures,
+      missingElements: report.missingFeatures.length,
+      duplicateElements: report.duplicateFeatures,
+      sheetCountMatches: report.sheetCountMatches === true
+    },
+    limitations: report.limitations
+  };
+}
+
+export function fromMigrationFidelity(report) {
+  if (!report || report.schemaVersion !== 1 || !Array.isArray(report.suites) || report.suites.length !== 3) {
+    throw new Error('Migration fidelity report requires schemaVersion 1 and exactly three suites.');
+  }
+
+  const expectedSuites = new Map([
+    ['pdf-code-migration-provider-smoke', {
+      domain: 'pdf', workflow: 'code-migration',
+      providers: ['active-pdf', 'apryse', 'aspose-pdf', 'devexpress-pdf', 'dspdf', 'foxit-pdf',
+        'gembox-pdf', 'iron-pdf', 'itext7', 'leadtools-pdf', 'nutrient', 'pdfkitnet', 'pdftools',
+        'pdftools-toolbox', 'spire-pdf', 'syncfusion-pdf']
+    }],
+    ['spreadsheet-code-migration-provider-smoke', {
+      domain: 'spreadsheet', workflow: 'code-migration',
+      providers: ['aspose-cells', 'closedxml', 'epplus', 'gembox-spreadsheet', 'npoi', 'spire-xls',
+        'spreadsheetlight', 'syncfusion-xlsio']
+    }],
+    ['report-designer-migration-provider-smoke', {
+      domain: 'report', workflow: 'designer-migration',
+      providers: ['activereports-js', 'devexpress-report', 'fastreport', 'jasperreports', 'rdl', 'rpx',
+        'stimulsoft', 'telerik']
+    }]
+  ]);
+  const seen = new Set();
+
+  return report.suites.map(suite => {
+    requireString(suite.fixtureId, 'migration.fixtureId');
+    if (seen.has(suite.fixtureId)) throw new Error(`Duplicate migration fidelity suite: ${suite.fixtureId}`);
+    seen.add(suite.fixtureId);
+    const expected = expectedSuites.get(suite.fixtureId);
+    if (!expected || suite.domain !== expected.domain || suite.workflow !== expected.workflow) {
+      throw new Error(`${suite.fixtureId} has an unexpected migration domain or workflow.`);
+    }
+    if (!Array.isArray(suite.providers) || suite.providers.length === 0 || new Set(suite.providers).size !== suite.providers.length) {
+      throw new Error(`${suite.fixtureId} requires unique provider keys.`);
+    }
+    const providerKeys = [...suite.providers].sort();
+    if (providerKeys.length !== expected.providers.length || providerKeys.some((key, index) => key !== [...expected.providers].sort()[index])) {
+      throw new Error(`${suite.fixtureId} provider keys do not match the supported registry.`);
+    }
+    for (const key of ['sourceCases', 'executedCases', 'automaticCases', 'reviewRequiredCases', 'unsupportedCases', 'duplicateCases']) {
+      requireNumber(suite[key], `${suite.fixtureId}.${key}`, 0);
+    }
+    if (!Number.isInteger(suite.sourceCases) || !Number.isInteger(suite.executedCases) ||
+        !Number.isInteger(suite.automaticCases) || !Number.isInteger(suite.reviewRequiredCases) ||
+        !Number.isInteger(suite.unsupportedCases) || !Number.isInteger(suite.duplicateCases)) {
+      throw new Error(`${suite.fixtureId} case counts must be integers.`);
+    }
+    if (suite.executedCases !== suite.sourceCases || suite.providers.length !== suite.sourceCases) {
+      throw new Error(`${suite.fixtureId} must execute one case for every declared provider.`);
+    }
+    if (suite.automaticCases + suite.reviewRequiredCases + suite.unsupportedCases !== suite.sourceCases) {
+      throw new Error(`${suite.fixtureId} has inconsistent migration outcome counts.`);
+    }
+    if (!Array.isArray(suite.limitations) || suite.limitations.length === 0) {
+      throw new Error(`${suite.fixtureId} requires explicit limitations.`);
+    }
+
+    const unresolved = suite.reviewRequiredCases + suite.unsupportedCases;
+    return {
+      fixtureId: suite.fixtureId,
+      metrics: {
+        sourceElements: suite.sourceCases,
+        matchedElements: suite.automaticCases,
+        missingElements: unresolved,
+        duplicateElements: suite.duplicateCases
+      },
+      limitations: suite.limitations
+    };
+  });
+}
+
+export function fromRealWorldCorpus(report) {
+  if (!report || report.schemaVersion !== 1 || !Array.isArray(report.fixtures) || report.fixtures.length !== 3) {
+    throw new Error('Real-world corpus report requires schemaVersion 1 and exactly three fixtures.');
+  }
+
+  const expectedFixtures = new Map([
+    ['real-world-pdf-ukgi-annual-report', { domain: 'pdf', workflow: 'import-roundtrip', structuralUnit: 'page' }],
+    ['real-world-docx-suffolk-mapping-guidance', { domain: 'word', workflow: 'import-roundtrip', structuralUnit: 'document' }],
+    ['real-world-xlsx-suffolk-buildings', { domain: 'spreadsheet', workflow: 'import-roundtrip', structuralUnit: 'sheet' }]
+  ]);
+  const seen = new Set();
+
+  return report.fixtures.map(fixture => {
+    requireString(fixture.fixtureId, 'realWorld.fixtureId');
+    if (seen.has(fixture.fixtureId)) throw new Error(`Duplicate real-world corpus fixture: ${fixture.fixtureId}`);
+    seen.add(fixture.fixtureId);
+    const expected = expectedFixtures.get(fixture.fixtureId);
+    if (!expected || fixture.domain !== expected.domain || fixture.workflow !== expected.workflow ||
+        fixture.structuralUnit !== expected.structuralUnit) {
+      throw new Error(`${fixture.fixtureId} has an unexpected corpus contract.`);
+    }
+    for (const key of ['expectedUnits', 'importedUnits', 'importedElements', 'diagnosticCount']) {
+      requireNumber(fixture[key], `${fixture.fixtureId}.${key}`, 0);
+      if (!Number.isInteger(fixture[key])) throw new Error(`${fixture.fixtureId}.${key} must be an integer.`);
+    }
+    if (fixture.importSucceeded !== true) throw new Error(`${fixture.fixtureId} did not import successfully.`);
+    if (!Array.isArray(fixture.limitations) || fixture.limitations.length === 0) {
+      throw new Error(`${fixture.fixtureId} requires explicit review limitations.`);
+    }
+
+    const matched = Math.min(fixture.expectedUnits, fixture.importedUnits);
+    const metrics = {
+      sourceElements: fixture.expectedUnits,
+      matchedElements: matched,
+      missingElements: Math.max(0, fixture.expectedUnits - fixture.importedUnits),
+      duplicateElements: Math.max(0, fixture.importedUnits - fixture.expectedUnits)
+    };
+    metrics[expected.structuralUnit === 'sheet' ? 'sheetCountMatches' : 'pageCountMatches'] =
+      fixture.importedUnits === fixture.expectedUnits;
+
+    return {
+      fixtureId: fixture.fixtureId,
+      forcedClassification: 'reviewRequired',
+      metrics,
+      limitations: fixture.limitations
+    };
+  });
+}
+
+export function fromRealWorldReview(report) {
+  if (!report || report.schemaVersion !== 1 || !Array.isArray(report.fixtures) || report.fixtures.length !== 3) {
+    throw new Error('Real-world review report requires schemaVersion 1 and exactly three fixtures.');
+  }
+  const expected = new Map([
+    ['real-world-pdf-ukgi-annual-report', 'pdf'],
+    ['real-world-docx-suffolk-mapping-guidance', 'word'],
+    ['real-world-xlsx-suffolk-buildings', 'spreadsheet']
+  ]);
+  const seen = new Set();
+  return report.fixtures.map(fixture => {
+    if (!expected.has(fixture.fixtureId) || seen.has(fixture.fixtureId) || fixture.domain !== expected.get(fixture.fixtureId)) {
+      throw new Error(`Unknown, duplicate, or mismatched real-world review fixture: ${fixture.fixtureId ?? '<missing>'}`);
+    }
+    seen.add(fixture.fixtureId);
+    if (!['approved', 'rejected'].includes(fixture.humanDecision) ||
+        !fixture.semantics || !Array.isArray(fixture.visualSamples) || fixture.visualSamples.length === 0 ||
+        !Array.isArray(fixture.findings) || fixture.findings.length === 0) {
+      throw new Error(`${fixture.fixtureId} has incomplete review evidence.`);
+    }
+    for (const key of ['sourceTokens', 'outputTokens', 'matchedTokens']) {
+      requireNumber(fixture.semantics[key], `${fixture.fixtureId}.semantics.${key}`, 0);
+    }
+    for (const key of ['sourcePreservationRatio', 'outputPrecisionRatio']) {
+      requireNumber(fixture.semantics[key], `${fixture.fixtureId}.semantics.${key}`, 0, 1);
+    }
+    const visualDifference = Math.max(...fixture.visualSamples.map((sample, index) => {
+      requireNumber(sample.normalizedRmse, `${fixture.fixtureId}.visualSamples[${index}].normalizedRmse`, 0, 1);
+      return sample.normalizedRmse;
+    }));
+    const missing = Math.max(0, fixture.semantics.sourceTokens - fixture.semantics.matchedTokens);
+    return {
+      fixtureId: fixture.fixtureId,
+      ...(fixture.humanDecision === 'rejected' ? { forcedClassification: 'reviewRequired' } : {}),
+      metrics: {
+        sourceElements: fixture.semantics.sourceTokens,
+        outputElements: fixture.semantics.outputTokens,
+        matchedElements: fixture.semantics.matchedTokens,
+        missingElements: missing,
+        duplicateElements: 0,
+        textPreservationRatio: fixture.semantics.sourcePreservationRatio,
+        maximumVisualDifferenceRatio: visualDifference,
+        pageCountMatches: fixture.pageCountMatches === true
+      },
+      limitations: fixture.findings
+    };
+  });
+}
+
 export function mergeEvidence(evidence, replacements) {
   const replacementMap = new Map(replacements.map(item => [item.fixtureId, item]));
   const retained = evidence.results.filter(item => !replacementMap.has(item.fixtureId));
@@ -278,8 +471,16 @@ async function main() {
   const replacements = [];
   const visualParityPath = option(args, '--visual-parity', null);
   const wordFidelityPath = option(args, '--word-fidelity', null);
+  const spreadsheetFidelityPath = option(args, '--spreadsheet-fidelity', null);
+  const migrationFidelityPath = option(args, '--migration-fidelity', null);
+  const realWorldFidelityPath = option(args, '--real-world-fidelity', null);
+  const realWorldReviewPath = option(args, '--real-world-review', null);
   if (visualParityPath) replacements.push(fromVisualParity(await loadJson(root, visualParityPath)));
   if (wordFidelityPath) replacements.push(fromWordFidelity(await loadJson(root, wordFidelityPath)));
+  if (spreadsheetFidelityPath) replacements.push(fromSpreadsheetFidelity(await loadJson(root, spreadsheetFidelityPath)));
+  if (migrationFidelityPath) replacements.push(...fromMigrationFidelity(await loadJson(root, migrationFidelityPath)));
+  if (realWorldFidelityPath) replacements.push(...fromRealWorldCorpus(await loadJson(root, realWorldFidelityPath)));
+  if (realWorldReviewPath) replacements.push(...fromRealWorldReview(await loadJson(root, realWorldReviewPath)));
   if (replacements.length) evidence = mergeEvidence(evidence, replacements);
   const report = evaluate(manifest, evidence, root);
   const output = option(args, '--output', null);

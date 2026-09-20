@@ -1,5 +1,7 @@
 using PXA.Core.Contracts;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace PXA.Infrastructure.Spreadsheet;
 
@@ -10,9 +12,16 @@ namespace PXA.Infrastructure.Spreadsheet;
 /// </summary>
 public sealed class ExcelWorkbookImporter
 {
+    private sealed record ColumnMetadata(int Index, double? Width, bool Hidden, int OutlineLevel);
+
     public SpreadsheetDto Import(Stream xlsx, string? fileName = null)
     {
-        using var wb = new XLWorkbook(xlsx);
+        using var package = new MemoryStream();
+        xlsx.CopyTo(package);
+        package.Position = 0;
+        var columnMetadata = ReadColumnMetadata(package);
+        package.Position = 0;
+        using var wb = new XLWorkbook(package);
         var dto = new SpreadsheetDto
         {
             Id = Guid.NewGuid().ToString("n"),
@@ -20,7 +29,7 @@ public sealed class ExcelWorkbookImporter
         };
 
         foreach (var ws in wb.Worksheets)
-            dto.Sheets.Add(ReadSheet(ws));
+            dto.Sheets.Add(ReadSheet(ws, columnMetadata.GetValueOrDefault(ws.Name, [])));
 
         foreach (var nr in wb.NamedRanges)
             dto.DefinedNames.Add(new DefinedNameDto { Name = nr.Name, RefersTo = SafeRefersTo(nr) });
@@ -28,7 +37,7 @@ public sealed class ExcelWorkbookImporter
         return dto;
     }
 
-    private static SheetDto ReadSheet(IXLWorksheet ws)
+    private static SheetDto ReadSheet(IXLWorksheet ws, IReadOnlyList<ColumnMetadata> columnMetadata)
     {
         var sheet = new SheetDto { Id = Guid.NewGuid().ToString("n"), Name = ws.Name };
 
@@ -53,7 +62,7 @@ public sealed class ExcelWorkbookImporter
                     if (dc.Type == "empty") { if (cell.Style is null) continue; }
                 }
 
-                var nf = cell.Style.NumberFormat.Format;
+                var nf = cell.Style?.NumberFormat.Format;
                 if (!string.IsNullOrEmpty(nf)) dc.NumberFormat = nf;
                 dc.Style = ReadStyle(cell);
                 if (cell.HasComment) try { dc.Comment = cell.GetComment().Text; } catch { }
@@ -67,15 +76,38 @@ public sealed class ExcelWorkbookImporter
         foreach (var mr in ws.MergedRanges)
             sheet.Merges.Add(mr.RangeAddress.ToStringRelative());
 
-        var lastCol = used?.LastColumn().ColumnNumber() ?? 0;
-        for (var c = 1; c <= lastCol; c++)
+        foreach (var col in ws.ColumnsUsed(XLCellsUsedOptions.All, column =>
+                     column.IsHidden || column.OutlineLevel > 0 || Math.Abs(column.Width - ws.ColumnWidth) > 0.01))
         {
-            var col = ws.Column(c);
-            var width = col.Width;
-            var hidden = col.IsHidden;
-            var outline = col.OutlineLevel;
-            if (hidden || outline > 0 || Math.Abs(width - ws.ColumnWidth) > 0.01)
-                sheet.Columns.Add(new SheetColumnDto { Index = c - 1, Width = width, Hidden = hidden, OutlineLevel = outline });
+            sheet.Columns.Add(new SheetColumnDto
+            {
+                Index = col.ColumnNumber() - 1,
+                Width = col.Width,
+                Hidden = col.IsHidden,
+                OutlineLevel = col.OutlineLevel,
+            });
+        }
+        foreach (var metadata in columnMetadata.Where(value =>
+                     !sheet.Columns.Any(existing => existing.Index == value.Index) &&
+                     (value.Hidden || value.OutlineLevel > 0)))
+            sheet.Columns.Add(new SheetColumnDto
+            {
+                Index = metadata.Index,
+                Width = metadata.Width,
+                Hidden = metadata.Hidden,
+                OutlineLevel = metadata.OutlineLevel,
+            });
+
+        foreach (var row in ws.RowsUsed(XLCellsUsedOptions.All, candidate =>
+                     candidate.IsHidden || candidate.OutlineLevel > 0 || Math.Abs(candidate.Height - ws.RowHeight) > 0.01))
+        {
+            sheet.Rows.Add(new SheetRowDto
+            {
+                Index = row.RowNumber() - 1,
+                Height = row.Height,
+                Hidden = row.IsHidden,
+                OutlineLevel = row.OutlineLevel,
+            });
         }
 
         try
@@ -88,9 +120,137 @@ public sealed class ExcelWorkbookImporter
         try { if (ws.AutoFilter is { IsEnabled: true } af) sheet.AutoFilterRange = af.Range.RangeAddress.ToStringRelative(); } catch { }
         try { if (ws.IsProtected) sheet.Protection = new ProtectionDto { Protected = true }; } catch { }
         sheet.PageSetup = ReadPageSetup(ws);
+        ReadDataValidations(ws, sheet);
+        ReadConditionalFormats(ws, sheet);
         ReadImages(ws, sheet);
 
         return sheet;
+    }
+
+    private static Dictionary<string, IReadOnlyList<ColumnMetadata>> ReadColumnMetadata(Stream package)
+    {
+        var result = new Dictionary<string, IReadOnlyList<ColumnMetadata>>(StringComparer.OrdinalIgnoreCase);
+        using var document = SpreadsheetDocument.Open(package, false);
+        var workbookPart = document.WorkbookPart;
+        if (workbookPart?.Workbook.Sheets is null) return result;
+
+        foreach (var sheet in workbookPart.Workbook.Sheets.Elements<Sheet>())
+        {
+            if (sheet.Id?.Value is not { Length: > 0 } relationshipId ||
+                workbookPart.GetPartById(relationshipId) is not WorksheetPart worksheetPart)
+                continue;
+
+            var columns = new List<ColumnMetadata>();
+            foreach (var column in worksheetPart.Worksheet.Elements<Columns>().SelectMany(value => value.Elements<Column>()))
+            {
+                var minimum = checked((int)(column.Min?.Value ?? 1));
+                var maximum = column.Max?.Value is { } maximumValue ? checked((int)maximumValue) : minimum;
+                for (var index = minimum; index <= maximum; index++)
+                {
+                    columns.Add(new ColumnMetadata(
+                        index - 1,
+                        column.CustomWidth?.Value == true ? column.Width?.Value : null,
+                        column.Hidden?.Value ?? false,
+                        checked((int)(column.OutlineLevel?.Value ?? 0U))));
+                }
+            }
+            result[sheet.Name?.Value ?? "Sheet1"] = columns;
+        }
+        return result;
+    }
+
+    private static void ReadDataValidations(IXLWorksheet ws, SheetDto sheet)
+    {
+        foreach (var validation in ws.DataValidations)
+        {
+            foreach (var range in validation.Ranges)
+            {
+                var type = validation.AllowedValues switch
+                {
+                    XLAllowedValues.List => "list",
+                    XLAllowedValues.WholeNumber => "wholeNumber",
+                    XLAllowedValues.Decimal => "decimal",
+                    XLAllowedValues.Date => "date",
+                    XLAllowedValues.TextLength => "textLength",
+                    _ => null,
+                };
+                if (type is null) continue;
+
+                sheet.DataValidations.Add(new DataValidationDto
+                {
+                    Range = range.RangeAddress.ToStringRelative(),
+                    Type = type,
+                    Operator = MapValidationOperator(validation.Operator),
+                    Value1 = type == "list" ? null : EmptyToNull(validation.MinValue),
+                    Value2 = type == "list" ? null : EmptyToNull(validation.MaxValue),
+                    ListSource = type == "list" ? UnquoteFormula(validation.Value) : null,
+                });
+            }
+        }
+    }
+
+    private static void ReadConditionalFormats(IXLWorksheet ws, SheetDto sheet)
+    {
+        foreach (var format in ws.ConditionalFormats)
+        {
+            var type = format.ConditionalFormatType switch
+            {
+                XLConditionalFormatType.CellIs => "cellIs",
+                XLConditionalFormatType.ColorScale => "colorScale",
+                XLConditionalFormatType.DataBar => "dataBar",
+                _ => null,
+            };
+            if (type is null) continue;
+
+            var values = format.Values.Values.Select(value => value.Value).Where(value => !string.IsNullOrWhiteSpace(value)).ToArray();
+            var color = format.Style.Fill.BackgroundColor.ColorType == XLColorType.Color
+                ? ToHex(format.Style.Fill.BackgroundColor)
+                : format.Colors.Values.FirstOrDefault(colorValue => colorValue.ColorType == XLColorType.Color) is { } firstColor
+                    ? ToHex(firstColor)
+                    : null;
+
+            foreach (var range in format.Ranges)
+            {
+                sheet.ConditionalFormats.Add(new ConditionalFormatDto
+                {
+                    Range = range.RangeAddress.ToStringRelative(),
+                    Type = type,
+                    Operator = MapConditionalOperator(format.Operator),
+                    Value = values.ElementAtOrDefault(0),
+                    Value2 = values.ElementAtOrDefault(1),
+                    Color = color,
+                });
+            }
+        }
+    }
+
+    private static string? MapValidationOperator(XLOperator value) => value switch
+    {
+        XLOperator.GreaterThan => "greaterThan",
+        XLOperator.LessThan => "lessThan",
+        XLOperator.EqualTo => "equalTo",
+        XLOperator.Between => "between",
+        _ => null,
+    };
+
+    private static string? MapConditionalOperator(XLCFOperator value) => value switch
+    {
+        XLCFOperator.GreaterThan => "greaterThan",
+        XLCFOperator.LessThan => "lessThan",
+        XLCFOperator.Equal => "equalTo",
+        XLCFOperator.Between => "between",
+        XLCFOperator.Contains => "contains",
+        _ => null,
+    };
+
+    private static string? EmptyToNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static string? UnquoteFormula(string? value)
+    {
+        var normalized = EmptyToNull(value);
+        return normalized is { Length: >= 2 } && normalized[0] == '"' && normalized[^1] == '"'
+            ? normalized[1..^1]
+            : normalized;
     }
 
     private static void ReadImages(IXLWorksheet ws, SheetDto sheet)
@@ -138,15 +298,25 @@ public sealed class ExcelWorkbookImporter
             var dto = new PageSetupDto
             {
                 Orientation = s.PageOrientation == XLPageOrientation.Landscape ? "landscape" : "portrait",
+                PaperSize = s.PaperSize.ToString().Replace("Paper", "", StringComparison.Ordinal),
                 Header = HfText(s.Header.Center),
                 Footer = HfText(s.Footer.Center),
+                Margins = new MarginsDto
+                {
+                    Top = s.Margins.Top,
+                    Bottom = s.Margins.Bottom,
+                    Left = s.Margins.Left,
+                    Right = s.Margins.Right,
+                },
+                RowPageBreaks = s.RowBreaks.Select(value => Math.Max(0, value - 1)).ToList(),
+                ColPageBreaks = s.ColumnBreaks.Select(value => Math.Max(0, value - 1)).ToList(),
             };
             if (s.PrintAreas.Any()) dto.PrintArea = s.PrintAreas.First().RangeAddress.ToStringRelative();
             if (s.PagesWide > 0) dto.FitToWidth = s.PagesWide;
             if (s.PagesTall > 0) dto.FitToHeight = s.PagesTall;
-            // Only return when it carries something beyond the default portrait.
-            return dto.Orientation == "landscape" || dto.Header != null || dto.Footer != null || dto.PrintArea != null || dto.FitToWidth != null
-                ? dto : null;
+            if (s.PagesWide <= 0 && s.PagesTall <= 0 && s.Scale > 0) dto.Scale = s.Scale;
+            // Paper size, margins, and scale are meaningful even for an otherwise default portrait sheet.
+            return dto;
         }
         catch { return null; }
     }

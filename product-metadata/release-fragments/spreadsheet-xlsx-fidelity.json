@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "spreadsheet-xlsx-fidelity",
+  "impact": "patch",
+  "components": [
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "fixed",
+  "summary": "XLSX imports now preserve row and empty-column metadata, supported data validation and conditional formatting, and complete page setup details.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Proven-Document-Fidelity.md"
+  ],
+  "breaking": false
+}

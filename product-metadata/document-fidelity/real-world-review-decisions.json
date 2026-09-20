@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "fixtureId": "real-world-pdf-ukgi-annual-report",
+      "decision": "rejected",
+      "reviewedAt": "2026-09-20",
+      "reviewer": "PXA engineering",
+      "findings": [
+        "The cover background, lower color panel, logo treatment, and typography are not reproduced faithfully.",
+        "Text extraction contains missing and additional tokens; visual and semantic fidelity are not approved."
+      ]
+    },
+    {
+      "fixtureId": "real-world-docx-suffolk-mapping-guidance",
+      "decision": "rejected",
+      "reviewedAt": "2026-09-20",
+      "reviewer": "PXA engineering",
+      "findings": [
+        "The three-page source is collapsed to one page and later content is lost.",
+        "Headings and images overflow the right page edge, and source pagination is not preserved."
+      ]
+    },
+    {
+      "fixtureId": "real-world-xlsx-suffolk-buildings",
+      "decision": "rejected",
+      "reviewedAt": "2026-09-20",
+      "reviewer": "PXA engineering",
+      "findings": [
+        "Column widths, wrapped text, row heights, and print pagination differ from the source workbook.",
+        "The roundtrip adds 60 printed pages and clips header and cell content."
+      ]
+    }
+  ]
+}

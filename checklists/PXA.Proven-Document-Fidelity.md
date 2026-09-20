@@ -29,8 +29,8 @@ migration, Designer, Preview, and export. The backend PDF remains the printable 
 - [x] Register independently produced PDF Trust fixtures as validation-only evidence.
 - [x] Feed the live Designer visual-parity report into the unified result contract.
 - [x] Feed the live Word-to-PDF fidelity report into the unified result contract.
-- [ ] Add a repeatable Spreadsheet-to-XLSX-to-Spreadsheet fidelity report.
-- [ ] Add adapters for PDF code migration, Spreadsheet code migration, and Report Designer
+- [x] Add a repeatable Spreadsheet-to-XLSX-to-Spreadsheet fidelity report.
+- [x] Add adapters for PDF code migration, Spreadsheet code migration, and Report Designer
   migration reports.
 
 ## P1 - Representative Corpus
@@ -41,11 +41,13 @@ migration, Designer, Preview, and export. The backend PDF remains the printable 
   fields, tables, images, lists, page breaks, RTL, and tracked changes.
 - [ ] Add legally redistributable, real-world XLSX fixtures covering formulas, formatting,
   validation, merged cells, charts, images, print areas, RTL, and multiple sheets.
-- [ ] Store immutable source hashes and licensing notes for every external fixture.
+- [x] Store immutable source hashes and licensing notes for every current external fidelity fixture.
 - [ ] Keep confidential customer documents outside the repository and publish only anonymized,
   approved measurements.
 - [ ] Review and mark the supported subset explicitly; an accepted extension alone is not proof of
   fidelity.
+- [x] Generate a reproducible visual and semantic review packet for the initial PDF, DOCX, and XLSX
+  corpus and record the rejected baseline findings.
 
 ## P1 - Quality Gates
 
@@ -76,6 +78,7 @@ migration, Designer, Preview, and export. The backend PDF remains the printable 
 - [x] Run `node tools/document-fidelity/fidelity.mjs evaluate`.
 - [x] Run `node --test tools/document-fidelity/fidelity.test.mjs`.
 - [ ] Run all live visual, Word, Spreadsheet, and migration adapters in CI.
+- [x] Run the initial real-world PDF, DOCX, and XLSX import adapter in CI.
 - [ ] Review and approve the first real-world cross-format baseline.
 
 ## Acceptance Criteria
@@ -91,9 +94,20 @@ migration, Designer, Preview, and export. The backend PDF remains the printable 
 ## Current Baseline
 
 - The repository has strong synthetic Designer/PDF and Word-export coverage.
+- The synthetic XLSX roundtrip currently preserves all 18 measured feature groups, including typed
+  values, formulas, styles, merges, row and column metadata, page setup, validation, conditional
+  formatting, protection, and defined names.
+- PDF code, Spreadsheet code, and Report Designer provider-smoke suites now feed the shared evidence
+  contract. They remain `reviewRequired` because provider execution does not prove operation-level
+  fidelity.
 - PDF Trust includes independently produced files, but these prove standards and security
   interoperability rather than general document-layout fidelity.
-- No checked-in, reviewed real-world DOCX or XLSX fidelity corpus currently exists.
+- An initial OGL v3 real-world corpus now covers a 62-page tagged PDF report, a DOCX guidance
+  document, and a large XLSX public-data workbook. All three pass their production import adapters,
+  but their first visual and semantic review is rejected: PDF text preservation is 86.46 percent,
+  DOCX collapses from three pages to one with 25.82 percent text preservation, and XLSX changes from
+  696 to 756 print pages with 74.24 percent text preservation.
+- This initial corpus does not yet cover the full representative PDF, DOCX, and XLSX feature lists.
 - No migration fixture is counted as officially supported until its provenance, expected outcome,
   and reviewed result are recorded in the manifest.
 - Therefore the official automatic-migration percentage is currently `notMeasured`, not 100%.

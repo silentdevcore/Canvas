@@ -35,8 +35,10 @@ jobs:
       - name: Validate document fidelity corpus and reviewed baseline
         run: |
           node tools/document-fidelity/fidelity.mjs validate
-          node tools/document-fidelity/fidelity.mjs evaluate
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json
           node --test tools/document-fidelity/fidelity.test.mjs
+          node --test tools/document-fidelity/real-world-review.test.mjs
       - name: Require a release fragment for develop pull requests
         if: >
           github.event_name == 'pull_request' &&
@@ -74,10 +76,14 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
       - name: Install independent PDF parser tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends poppler-utils qpdf
+          sudo apt-get install --yes --no-install-recommends \
+            poppler-utils qpdf imagemagick libreoffice-writer libreoffice-calc fonts-liberation
       - name: Restore
         run: dotnet restore PXA.sln
       - name: Build
@@ -88,6 +94,58 @@ jobs:
           dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --configuration Release --no-build
           dotnet test tests/PXA.Domain.Tests/PXA.Domain.Tests.csproj --configuration Release --no-build
           dotnet test tests/PXA.Observability.WebhookRelay.Tests/PXA.Observability.WebhookRelay.Tests.csproj --configuration Release --no-build
+      - name: Validate migration provider fidelity adapters
+        run: |
+          dotnet test tests/PXA.Migration.Pdf.Tests/PXA.Migration.Pdf.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PXA.Migration.Spreadsheet.Tests/PXA.Migration.Spreadsheet.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --configuration Release --no-build
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json \
+            --output artifacts/migration-fidelity
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-migration-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/migration-fidelity
+          if-no-files-found: error
+          retention-days: 30
+      - name: Measure Spreadsheet XLSX roundtrip fidelity
+        env:
+          PXA_SPREADSHEET_FIDELITY_ARTIFACTS: artifacts/spreadsheet-fidelity/raw
+        run: |
+          dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~SpreadsheetFidelityTests
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --spreadsheet-fidelity artifacts/spreadsheet-fidelity/raw/fidelity-report.json \
+            --output artifacts/spreadsheet-fidelity/report
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-spreadsheet-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/spreadsheet-fidelity
+          if-no-files-found: error
+          retention-days: 30
+      - name: Measure real-world PDF, DOCX, and XLSX import evidence
+        env:
+          PXA_REAL_WORLD_FIDELITY_ARTIFACTS: artifacts/document-fidelity/real-world/raw
+        run: |
+          dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~RealWorldCorpusFidelityTests
+          node tools/document-fidelity/real-world-review.mjs
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --real-world-review artifacts/document-fidelity/real-world/review/real-world-review.json \
+            --output artifacts/document-fidelity/real-world/report
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: pxa-real-world-document-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/document-fidelity/real-world
+          if-no-files-found: error
+          retention-days: 30
       - name: Validate generated PDF/UA-1 fixtures independently
         env:
           PXA_PDFUA_ARTIFACT_DIR: artifacts/pdfua/fixtures
