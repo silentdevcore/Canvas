@@ -27,6 +27,11 @@ jobs:
           node --test tools/deployment/pxa-deployment.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pxa-version.mjs check
+      - name: Validate PDF Trust governance and pinned evidence
+        run: |
+          node tools/pdf-trust/validate-standards-baseline.mjs
+          node tools/pdf-trust/validate-external-evidence.mjs
+          node --test tools/pdf-trust/*.test.mjs
       - name: Require a release fragment for develop pull requests
         if: >
           github.event_name == 'pull_request' &&
@@ -64,6 +69,10 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
+      - name: Install independent PDF parser tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends poppler-utils qpdf
       - name: Restore
         run: dotnet restore PXA.sln
       - name: Build
@@ -129,11 +138,15 @@ jobs:
           retention-days: 30
       - name: Run isolated PDF parser mutation corpus
         run: tools/pdf-parser-fuzzer/run.sh
+      - name: Run AES-256 interoperability matrix
+        run: node tools/pdf-security/aes256-interop.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: pxa-pdf-parser-fuzz-${{ github.run_number }}-${{ github.sha }}
-          path: artifacts/pdf-fuzz
+          path: |
+            artifacts/pdf-fuzz
+            artifacts/pdf-security
           if-no-files-found: error
           retention-days: 30
       - name: Test version and release metadata contracts

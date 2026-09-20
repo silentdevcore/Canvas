@@ -5,14 +5,21 @@ using System.Text.Json;
 using PXA.Importer;
 using PXA.Importer.Trust;
 using PXA.Pdf;
+using SharpFuzz;
 
 const int seed = 0x504841;
 const int maximumMutations = 96;
 const int maximumInputBytes = 256 * 1024;
 const int childTimeoutMilliseconds = 2_000;
+const int maximumCapturedOutputCharacters = 8 * 1024;
 
 if (args.Length >= 2 && string.Equals(args[0], "--child", StringComparison.Ordinal))
     return await RunChildAsync(args[1]);
+if (args.Length >= 1 && string.Equals(args[0], "--afl", StringComparison.Ordinal))
+{
+    Fuzzer.OutOfProcess.Run(stream => RunCoverageInput(stream).GetAwaiter().GetResult());
+    return 0;
+}
 
 var reportPath = ReadOption(args, "--report") ?? "artifacts/pdf-fuzz/parser-fuzz-report.json";
 var source = CreateMinimalPdf();
@@ -24,6 +31,7 @@ var mutations = CreateMutations(source)
     .Where(mutation => mutation.Bytes.Length is >= 1 and <= maximumInputBytes)
     .ToArray();
 var results = new List<MutationResult>(mutations.Length);
+var externalParsers = DiscoverExternalParsers();
 var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pxa-pdf-fuzz-{Guid.NewGuid():N}");
 Directory.CreateDirectory(temporaryDirectory);
 
@@ -34,7 +42,11 @@ try
         var mutation = mutations[index];
         var inputPath = Path.Combine(temporaryDirectory, $"case-{index:D3}.pdf");
         await File.WriteAllBytesAsync(inputPath, mutation.Bytes);
-        results.Add(await RunIsolatedCaseAsync(inputPath, mutation, childTimeoutMilliseconds));
+        var pxa = await RunIsolatedCaseAsync(inputPath, childTimeoutMilliseconds);
+        var external = new List<ParserOutcome>(externalParsers.Count);
+        foreach (var parser in externalParsers)
+            external.Add(await RunExternalParserAsync(parser, inputPath, childTimeoutMilliseconds));
+        results.Add(mutation.ToResult(pxa, external));
     }
 }
 finally
@@ -44,11 +56,13 @@ finally
 }
 
 var report = new FuzzReport(
-    SchemaVersion: 1,
+    SchemaVersion: 2,
     Seed: seed,
     MaximumMutations: maximumMutations,
     MaximumInputBytes: maximumInputBytes,
     ChildTimeoutMilliseconds: childTimeoutMilliseconds,
+    MaximumCapturedOutputCharacters: maximumCapturedOutputCharacters,
+    Parsers: new[] { "pxa" }.Concat(externalParsers.Select(parser => parser.Id)).ToArray(),
     MutationCount: results.Count,
     Cases: results);
 var fullReportPath = Path.GetFullPath(reportPath);
@@ -58,28 +72,33 @@ await File.WriteAllTextAsync(
     JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
 
 Console.WriteLine($"Parser fuzz report: {fullReportPath}");
-Console.WriteLine($"Cases: {results.Count}; crashes: {results.Count(result => result.Status == "crashed")}; timeouts: {results.Count(result => result.Status == "timeout")}");
-return results.Any(result => result.Status is "crashed" or "timeout") ? 1 : 0;
+var outcomes = results.SelectMany(result => result.Outcomes);
+Console.WriteLine($"Cases: {results.Count}; parsers: {report.Parsers.Count}; crashes: {outcomes.Count(result => result.Status == "crashed")}; timeouts: {outcomes.Count(result => result.Status == "timeout")}; differentials: {results.Count(result => result.Differential)}");
+return outcomes.Any(result => result.Status is "crashed" or "timeout") ? 1 : 0;
 
-static async Task<MutationResult> RunIsolatedCaseAsync(
-    string inputPath,
-    Mutation mutation,
-    int timeoutMilliseconds)
+static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int timeoutMilliseconds)
 {
     var stopwatch = Stopwatch.StartNew();
     using var process = new Process { StartInfo = CreateChildStartInfo(inputPath) };
     if (!process.Start())
-        return mutation.ToResult("crashed", null, stopwatch.ElapsedMilliseconds);
+        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
 
     using var timeout = new CancellationTokenSource(timeoutMilliseconds);
+    var outputTask = ReadBoundedAsync(process.StandardOutput, maximumCapturedOutputCharacters);
+    var errorTask = ReadBoundedAsync(process.StandardError, maximumCapturedOutputCharacters);
     try
     {
         await process.WaitForExitAsync(timeout.Token);
+        var output = await outputTask;
+        _ = await errorTask;
         stopwatch.Stop();
-        return mutation.ToResult(
-            process.ExitCode == 0 ? "completed" : "crashed",
+        var status = process.ExitCode == 0 ? ReadChildStatus(output) : "crashed";
+        return new ParserOutcome(
+            "pxa",
+            status,
             process.ExitCode,
-            stopwatch.ElapsedMilliseconds);
+            stopwatch.ElapsedMilliseconds,
+            null);
     }
     catch (OperationCanceledException) when (timeout.IsCancellationRequested)
     {
@@ -95,7 +114,7 @@ static async Task<MutationResult> RunIsolatedCaseAsync(
             // The child may have exited between the checks.
         }
 
-        return mutation.ToResult("timeout", null, stopwatch.ElapsedMilliseconds);
+        return new ParserOutcome("pxa", "timeout", null, stopwatch.ElapsedMilliseconds, null);
     }
     catch
     {
@@ -110,8 +129,125 @@ static async Task<MutationResult> RunIsolatedCaseAsync(
             // The child may have exited between the checks.
         }
 
-        return mutation.ToResult("crashed", null, stopwatch.ElapsedMilliseconds);
+        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
     }
+}
+
+static async Task<ParserOutcome> RunExternalParserAsync(
+    ExternalParser parser,
+    string inputPath,
+    int timeoutMilliseconds)
+{
+    var stopwatch = Stopwatch.StartNew();
+    var startInfo = new ProcessStartInfo
+    {
+        FileName = parser.Command,
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        CreateNoWindow = true
+    };
+    foreach (var argument in parser.Arguments)
+        startInfo.ArgumentList.Add(argument == "{input}" ? inputPath : argument);
+
+    using var process = new Process { StartInfo = startInfo };
+    if (!process.Start())
+        return new ParserOutcome(parser.Id, "crashed", null, stopwatch.ElapsedMilliseconds, null);
+
+    using var timeout = new CancellationTokenSource(timeoutMilliseconds);
+    var outputTask = ReadBoundedAsync(process.StandardOutput, maximumCapturedOutputCharacters);
+    var errorTask = ReadBoundedAsync(process.StandardError, maximumCapturedOutputCharacters);
+    try
+    {
+        await process.WaitForExitAsync(timeout.Token);
+        _ = await outputTask;
+        _ = await errorTask;
+        stopwatch.Stop();
+        var status = process.ExitCode == 0
+            ? "accepted"
+            : process.ExitCode >= 128 ? "crashed" : "rejected";
+        return new ParserOutcome(parser.Id, status, process.ExitCode, stopwatch.ElapsedMilliseconds, null);
+    }
+    catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+    {
+        stopwatch.Stop();
+        KillProcess(process);
+        return new ParserOutcome(parser.Id, "timeout", null, stopwatch.ElapsedMilliseconds, null);
+    }
+    catch (Exception exception)
+    {
+        stopwatch.Stop();
+        KillProcess(process);
+        return new ParserOutcome(parser.Id, "crashed", null, stopwatch.ElapsedMilliseconds, exception.GetType().Name);
+    }
+}
+
+static async Task<string> ReadBoundedAsync(StreamReader reader, int maximumCharacters)
+{
+    var result = new StringBuilder(Math.Min(maximumCharacters, 1024));
+    var buffer = new char[1024];
+    while (await reader.ReadAsync(buffer) is var read && read > 0)
+    {
+        var remaining = maximumCharacters - result.Length;
+        if (remaining > 0)
+            result.Append(buffer, 0, Math.Min(read, remaining));
+    }
+    return result.ToString();
+}
+
+static string ReadChildStatus(string output)
+{
+    try
+    {
+        using var document = JsonDocument.Parse(output.Trim());
+        return document.RootElement.GetProperty("status").GetString() switch
+        {
+            "completed" => "accepted",
+            "rejected" => "rejected",
+            _ => "crashed"
+        };
+    }
+    catch (JsonException)
+    {
+        return "crashed";
+    }
+}
+
+static void KillProcess(Process process)
+{
+    try
+    {
+        if (!process.HasExited)
+            process.Kill(entireProcessTree: true);
+    }
+    catch (InvalidOperationException)
+    {
+        // The process may have exited between the checks.
+    }
+}
+
+static IReadOnlyList<ExternalParser> DiscoverExternalParsers()
+{
+    var candidates = new[]
+    {
+        new ExternalParser("poppler-pdfinfo", "pdfinfo", ["{input}"]),
+        new ExternalParser("poppler-pdftotext", "pdftotext", ["{input}", "-"]),
+        new ExternalParser("qpdf", "qpdf", ["--check", "{input}"]),
+        new ExternalParser("mupdf", "mutool", ["info", "{input}"])
+    };
+    return candidates.Where(parser => FindCommand(parser.Command) is not null).ToArray();
+}
+
+static string? FindCommand(string command)
+{
+    var path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+    foreach (var directory in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+    {
+        var candidate = Path.Combine(directory, command);
+        if (File.Exists(candidate))
+            return candidate;
+    }
+    return null;
 }
 
 static ProcessStartInfo CreateChildStartInfo(string inputPath)
@@ -135,6 +271,7 @@ static ProcessStartInfo CreateChildStartInfo(string inputPath)
     startInfo.ArgumentList.Add("--child");
     startInfo.ArgumentList.Add(inputPath);
     startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+    startInfo.Environment["DOTNET_GCHeapHardLimit"] = "10000000";
     return startInfo;
 }
 
@@ -176,6 +313,61 @@ static async Task<int> RunChildAsync(string inputPath)
         return 0;
     }
 }
+
+static async Task RunCoverageInput(Stream input)
+{
+    using var bounded = new MemoryStream();
+    var buffer = new byte[8192];
+    while (bounded.Length <= maximumInputBytes)
+    {
+        var read = await input.ReadAsync(buffer);
+        if (read == 0)
+            break;
+        await bounded.WriteAsync(buffer.AsMemory(0, read));
+    }
+    if (bounded.Length is < 1 or > maximumInputBytes)
+        return;
+
+    var bytes = bounded.ToArray();
+    try
+    {
+        var inspection = await new PdfTrustInspector().InspectAsync(
+            new MemoryStream(bytes, writable: false),
+            new PdfTrustInspectionOptions
+            {
+                MaximumFileSizeBytes = maximumInputBytes,
+                SignatureValidationPolicy = new PdfSignatureValidationPolicy
+                {
+                    RevocationMode = PdfCertificateRevocationMode.NoCheck
+                }
+            });
+        if (inspection.Diagnostics.Any(IsParseDiagnostic) && inspection.StructureStatus == PdfTrustStatus.Valid)
+            throw new FuzzInvariantException("A parser diagnostic produced a valid structure verdict.");
+
+        var importer = new PdfImporter(new PdfImporterOptions
+        {
+            LazyObjectLoading = false,
+            DeferredStreamDecoding = true,
+            ParsePagesInParallel = false,
+            MaxParallelPageParsers = 1
+        });
+        await importer.LoadAsync(new MemoryStream(bytes, writable: false));
+    }
+    catch (Exception exception) when (IsExpectedMalformedInput(exception))
+    {
+        // Rejection is an expected result for malformed fuzz input.
+    }
+}
+
+static bool IsExpectedMalformedInput(Exception exception) => exception is
+    InvalidDataException or
+    FormatException or
+    NotSupportedException or
+    ArgumentException or
+    CryptographicException or
+    PXA.Importer.Parsing.PdfParseLimitExceededException or
+    PXA.Importer.Security.PdfPasswordException or
+    PXA.Importer.Security.PdfEncryptionIntegrityException;
 
 static bool IsParseDiagnostic(PdfTrustDiagnostic diagnostic) =>
     diagnostic.Code.StartsWith("PXAPDFPARSE", StringComparison.Ordinal) ||
@@ -277,16 +469,38 @@ static Mutation Insert(byte[] source, string id, int offset, byte[] inserted)
 
 sealed record Mutation(string Id, byte[] Bytes)
 {
-    public MutationResult ToResult(string status, int? exitCode, long durationMilliseconds) =>
-        new(Id, Convert.ToHexStringLower(SHA256.HashData(Bytes)), status, exitCode, durationMilliseconds);
+    public MutationResult ToResult(ParserOutcome pxa, IReadOnlyList<ParserOutcome> external)
+    {
+        var outcomes = new[] { pxa }.Concat(external).ToArray();
+        var decisions = outcomes
+            .Where(outcome => outcome.Status is "accepted" or "rejected")
+            .Select(outcome => outcome.Status)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+        return new MutationResult(
+            Id,
+            Convert.ToHexStringLower(SHA256.HashData(Bytes)),
+            decisions > 1,
+            outcomes);
+    }
 }
 
 sealed record MutationResult(
     string Id,
     string Sha256,
+    bool Differential,
+    IReadOnlyList<ParserOutcome> Outcomes);
+
+sealed record ParserOutcome(
+    string Parser,
     string Status,
     int? ExitCode,
-    long DurationMilliseconds);
+    long DurationMilliseconds,
+    string? ErrorType);
+
+sealed record ExternalParser(string Id, string Command, IReadOnlyList<string> Arguments);
+
+sealed class FuzzInvariantException(string message) : Exception(message);
 
 sealed record FuzzReport(
     int SchemaVersion,
@@ -294,5 +508,7 @@ sealed record FuzzReport(
     int MaximumMutations,
     int MaximumInputBytes,
     int ChildTimeoutMilliseconds,
+    int MaximumCapturedOutputCharacters,
+    IReadOnlyList<string> Parsers,
     int MutationCount,
     IReadOnlyList<MutationResult> Cases);

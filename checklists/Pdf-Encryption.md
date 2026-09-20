@@ -18,6 +18,8 @@ Current delivered coverage:
       permission combinations, encrypted metadata, object streams, replacement
       encryption, and signed-document safety are covered by automated tests.
 - [x] X.509 recipient encryption is available as a separate public-key profile.
+- [x] The repeatable open-source interoperability matrix passes Unicode user/owner,
+      wrong-password, metadata, and extraction checks with qpdf and Poppler (`7/7`).
 - [ ] Complete the wider external reader/writer interoperability matrix before a
       production support claim is expanded beyond the documented qpdf baseline.
 

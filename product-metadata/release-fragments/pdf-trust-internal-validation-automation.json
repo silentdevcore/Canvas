@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-internal-validation-automation",
+  "impact": "none",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "PDF Trust development now has repeatable differential parser fuzzing, modern encryption interoperability checks, and pinned standards and validator evidence contracts.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "reason": "This change strengthens internal validation and release governance without changing the shipped runtime behavior."
+}

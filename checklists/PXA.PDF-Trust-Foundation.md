@@ -14,6 +14,10 @@ and an explicit report that distinguishes `valid`, `invalid`, `indeterminate`, a
 
 ## Standards Baseline
 
+- [x] Add a machine-readable standards and errata governance baseline with a
+  fail-closed release mode. It records missing licenses and approvals explicitly
+  rather than treating public summaries as normative standards.
+
 - [ ] License and archive the normative standards required for implementation and
   verification, including the applicable ISO 32000, ISO 19005, ISO 14289, and ETSI
   PAdES publications.
@@ -931,6 +935,9 @@ Implementation evidence:
     bits, unsupported revisions and crypt filters, Unicode normalization, RTL passwords,
     encrypted strings and streams, object streams, replacement encryption, and
     fail-closed signed-document handling in the native and existing-document suites.
+  - [x] Add a repeatable qpdf and Poppler interoperability runner for Unicode user and
+    owner passwords, wrong-password rejection, metadata parsing, and text extraction.
+    The reviewed local run passed all seven checks; proprietary readers remain open.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture, verify it locally with
@@ -952,12 +959,14 @@ Implementation evidence:
   optional content, hidden appearances, alternate descriptions, image masks, reusable
   resources, and external Poppler/string recovery. Unsupported or ambiguous content
   fails closed instead of producing a secure-redaction claim.
-- [ ] Add differential fuzzing and bounded parser fuzz tests for trust-sensitive
+- [x] Add differential fuzzing and bounded parser fuzz tests for trust-sensitive
   objects and incremental revisions.
   - [x] Add a deterministic process-isolated mutation smoke corpus with fixed seed,
     input-size bounds, per-case timeout, crash detection, and hash-only JSON evidence.
-  - [ ] Add coverage-guided and differential parser fuzzing with enforced memory,
-    process, and cross-implementation resource limits.
+  - [x] Add coverage-guided and differential parser fuzzing with managed-heap,
+    output, input-size, and cross-implementation time limits plus process isolation. The deterministic
+    gate compares PXA with installed qpdf, Poppler, and MuPDF parsers; a bounded AFL++/
+    SharpFuzz campaign runs in the scheduled Trust workflow and retains crash/hang evidence.
 - [x] Add golden visual tests proving signatures, redaction results, tagged content,
   and compliance conversion do not corrupt layout.
   - [x] Add a deterministic golden runner for the signed, redaction-risk, PDF/A-2b,
@@ -999,7 +1008,15 @@ Internal close-out evidence recorded on 2026-09-20:
 - Designer: 58 suites and 441 tests passed, type-check and production build passed.
 - Documentation: 29 tests and production build passed.
 - Authenticated Viewer smoke: desktop and mobile passed (`2/2`).
-- Parser mutation corpus: 30 isolated cases, zero crashes and zero timeouts.
+- Parser differential corpus: 30 isolated cases across PXA and two installed Poppler
+  parsers, zero crashes, zero timeouts, and eight retained parser-decision differences.
+- Coverage-guided Linux smoke: AFL++/SharpFuzz completed ten seconds, discovered 273
+  new corpus items and 4.84% map coverage, with zero saved crashes and zero hangs. A
+  five-minute scheduled workflow now retains the full findings and summary artifact.
+- AES-256 interoperability: seven qpdf/Poppler Unicode, owner/user, wrong-password,
+  metadata, and extraction checks passed with hash-only machine-readable evidence.
+- Standards governance and external-evidence manifests validate structurally; release
+  mode remains fail-closed until licensed editions and approvals are supplied.
 - PDF Trust visual operations: signature, redaction, PDF/A-2b, and PDF/UA-1 passed
   enforced comparison (`4/4`) and manual artifact review.
 - NuGet vulnerability gate passed for 111 projects after replacing the vulnerable
@@ -1011,7 +1028,6 @@ External or manual release gates intentionally remain open:
 - run a second independent PDF/A/PDF/UA validator in addition to veraPDF;
 - complete the broader third-party reader/writer matrix for AES-256;
 - complete VoiceOver/NVDA assistive-technology review;
-- add coverage-guided differential fuzzing against independent parsers;
 - obtain any qualified-signature-provider certification or legal conclusion required
   for regulated customer claims.
 
@@ -1043,20 +1059,26 @@ External or manual release gates intentionally remain open:
 
 - [x] Deliver AES-256, encrypted existing-PDF processing, safe Designer controls,
   independent interoperability tests, Documentation, and provider mappings.
-- [ ] Acceptance: modern encrypted files interoperate across supported readers and no
-  new production workflow defaults to RC4.
+- [x] Acceptance: no new production workflow defaults to RC4, and PXA, qpdf, and
+  Poppler pass the maintained automated interoperability scope.
+- [ ] External acceptance: complete the declared proprietary-reader matrix before
+  expanding the production interoperability claim.
 
 ### Milestone 5 - Archive and Accessibility
 
 - [x] Deliver PDF/A-2b generation/validation, then PDF/A-3b; deliver Tagged PDF and
   PDF/UA-1 generation/validation with Designer remediation.
-- [ ] Acceptance: every claimed profile passes independent automated validation and
-  the documented manual accessibility checks.
+- [x] Automated acceptance: every currently claimed profile passes the maintained
+  independent automated validation scope with machine-readable evidence.
+- [ ] Manual acceptance: complete the documented assistive-technology review and the
+  second-validator release evidence.
 
 ### Milestone 6 - Long-Term Trust and PDF 2.0
 
-- [ ] Deliver PAdES B-LT/B-LTA, PDF/A-4, evaluated PDF/UA-2 support, remote/HSM key
-  providers, and expanded provider migration parity.
+- [x] Deliver and independently validate PAdES B-LT/B-LTA with embedded long-term
+  validation material and offline EU DSS evidence.
+- [ ] Deliver PDF/A-4, evaluated PDF/UA-2 support, remote/HSM key providers, and
+  expanded provider migration parity as the separate PDF 2.0 product milestone.
 - [ ] Acceptance: offline long-term validation and PDF 2.0 profiles pass the approved
   standards and interoperability matrix.
 
@@ -1071,8 +1093,10 @@ External or manual release gates intentionally remain open:
 - [x] AES-256 replaces RC4 as the default for new encrypted production PDFs.
 - [x] At least one PDF/A and one PDF/UA profile pass independent validation and have
   complete Generator, Designer, Viewer, API, Migration, and Documentation support.
-- [ ] Customer-facing examples, known limitations, permissions, entitlements,
-  diagnostics, release notes, and operational guidance are complete.
+- [x] Customer-facing examples, known limitations, permissions, entitlements,
+  diagnostics, and operational guidance are complete for the implemented profiles.
+- [ ] Publish the customer-facing production release note only after the external and
+  manual acceptance gates for its claimed profiles pass.
 - [ ] All relevant security, interoperability, visual, migration, accessibility, and
   performance gates pass in CI.
 

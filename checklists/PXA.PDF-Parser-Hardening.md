@@ -103,5 +103,6 @@ viewer showing the document produces trust verdicts about a document nobody sees
 
 - [ ] Universal repair of arbitrary malformed or hostile PDFs; this checklist bounds
   damage, it does not add recovery heuristics.
-- [ ] Differential and coverage-guided fuzzing, which remains tracked in the trust
-  foundation Verification Matrix.
+- [x] Differential and coverage-guided fuzzing is implemented in the Trust foundation:
+  deterministic process-isolated comparisons run against available qpdf, Poppler, and
+  MuPDF parsers, while a bounded scheduled AFL++/SharpFuzz campaign retains findings.

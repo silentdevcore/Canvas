@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpFuzz" Version="2.3.0" />
     <ProjectReference Include="../../src/Importing/PXA.Importer/PXA.Importer.csproj" />
     <ProjectReference Include="../../src/Generation/PXA.Generator/PXA.Generator.csproj" />
     <ProjectReference Include="../../src/Generation/PXA.Pdf/PXA.Pdf.csproj" />
