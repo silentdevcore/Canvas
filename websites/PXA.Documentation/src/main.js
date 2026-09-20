@@ -53,6 +53,11 @@ const editorSections = [
     text: 'Review PDFs, forms, annotations, and browser-side inspection workflows connected to demos.',
   },
   {
+    title: 'PDF Trust',
+    status: 'Ready',
+    text: 'Generate, inspect, migrate, and troubleshoot signed, redacted, encrypted, archival, and accessible PDFs with explicit evidence and limitations.',
+  },
+  {
     title: 'PDF/A compliance',
     status: 'Preview',
     text: 'Generate, preflight, convert, and independently validate exact PDF/A profiles with documented limitations.',
@@ -544,6 +549,110 @@ POST /api/pxa/v1/jobs/{jobId}/cancel`,
   ]
 }`,
         note: 'PXA converts valid CalGray, CalRGB, and Lab colors from their complete calibration parameters. Embedded Gray, RGB, and CMYK ICC source profiles use LittleCMS and fail closed when the profile or native runtime is unavailable. Colored tiling Pattern streams are traversed; uncolored tiling patterns retain their identity while the base color space and every scn or SCN use are remapped to DeviceRGB. DeviceGray, DeviceRGB, calibrated, and embedded-ICC shadings are preserved. DeviceCMYK, Separation, DeviceN, mesh, missing, and malformed shadings remain blocked until interpolation and sample domains can be transformed without visual loss. Untagged DeviceCMYK uses the documented ISO 32000-1 approximation and is reproducible, not colorimetrically exact, because a destination output intent cannot reconstruct a missing source profile.',
+      },
+    ],
+  },
+  {
+    title: 'PDF Trust',
+    status: 'Ready',
+    purpose:
+      'Use the PDF Trust workflows when document integrity, signer trust, irreversible redaction, AES encryption, archival conformance, or accessibility evidence matters. PXA reports exact profiles and explicit valid, invalid, indeterminate, unsupported, or not-applicable outcomes instead of a generic secure or compliant label.',
+    whenToUse: [
+      'You need to create or validate PAdES B-B, B-T, B-LT, or B-LTA signatures.',
+      'Sensitive content must be removed rather than covered with a visual rectangle.',
+      'A generated or existing PDF requires AES-256 password protection and permissions.',
+      'You need PDF/A-2b, PDF/A-3b, or PDF/UA-1 output with retained validation evidence.',
+      'A provider migration contains security, signature, redaction, archival, or accessibility settings.',
+    ],
+    concepts: ['Generator trust settings', 'Viewer Trust panel', 'Migration diagnostics', 'Trust API', 'PAdES profiles', 'Applied redaction', 'AES-256 revision 6', 'PDF/A-2b and PDF/A-3b', 'PDF/UA-1', 'Fail-closed operations'],
+    tasks: ['Generate trusted output', 'Inspect in the Viewer', 'Apply and verify a redaction', 'Validate signatures and revocation', 'Migrate provider settings', 'Call the Trust API', 'Resolve a diagnostic'],
+    related: [
+      { label: 'PDF Viewer workflow', href: '#pdf-viewer-details' },
+      { label: 'PDF/A compliance', href: '#pdf-a-compliance-details' },
+      { label: 'PDF/UA accessibility', href: '#pdf-ua-accessibility-details' },
+      { label: 'Generator examples', href: '../../docs/guides/PXA.Pdf-Trust-Generator-Examples.md' },
+      { label: 'Migration examples', href: '../../docs/guides/PXA.Pdf-Trust-Migration-Examples.md' },
+      { label: 'Existing PDF boundaries', href: '../../docs/architecture/existing-pdf-boundaries.md' },
+      { label: 'Download synthetic evidence', href: '/downloads/pdf-trust/' },
+    ],
+    images: [
+      {
+        src: '/images/pdf-trust/viewer-trust-desktop.png',
+        alt: 'PXA PDF Viewer Trust panel showing a synthetic document inspection result',
+        caption: 'Trust inspection reports structure, encryption, signatures, PDF/A, PDF/UA, revisions, and diagnostics separately.',
+      },
+      {
+        src: '/images/pdf-trust/viewer-signature-desktop.png',
+        alt: 'PXA PDF Viewer after creating a synthetic PAdES signature',
+        caption: 'Signing reports the operation result without treating the visible appearance as validation evidence.',
+      },
+      {
+        src: '/images/pdf-trust/viewer-compliance-desktop.png',
+        alt: 'PXA PDF Viewer after PDF/A preflight and conversion of a synthetic document',
+        caption: 'Compliance preflight and conversion remain distinct operations with an explicit target profile.',
+      },
+      {
+        src: '/images/pdf-trust/viewer-redaction-review-desktop.png',
+        alt: 'PXA PDF Viewer comparing an original synthetic PDF with its verified redacted result',
+        caption: 'Applied redaction exposes preflight, verification, audit status, and original-versus-result comparison.',
+      },
+    ],
+    examples: [
+      {
+        title: 'Generator path',
+        json: `var document = Pdf.CreateDocument();
+document.Info.Title = "Trusted example";
+document.AddPage().DrawText("Approved content", 48, 760);
+document.Save("trusted.pdf", new PdfSaveOptions {
+  Encryption = PdfEncryptionOptions.Aes256(
+    userPassword: "reader-password",
+    ownerPassword: "owner-password",
+    permissions: PdfPermissions.Print)
+});`,
+        note: 'New encrypted output uses the PDF 2.0 Standard Security Handler with AES-256 revision 6. Password encryption is incompatible with PDF/A. Signing, PDF/A, and PDF/UA use their dedicated typed options and preflight rules; PXA refuses contradictory settings instead of silently weakening them.',
+      },
+      {
+        title: 'Viewer path',
+        json: `1. Open the PDF Viewer and choose PDF Trust.
+2. Run Inspect trust before changing the document.
+3. Review integrity, certificate trust, revocation, profile, and diagnostics separately.
+4. Run redaction preflight before Apply.
+5. Compare the verified result with the preserved original and download the evidence.`,
+        note: 'A redaction mark is only an instruction. Applied redaction uses a full rewrite, sanitizes supported carriers, reparses the output, verifies the covered regions, and blocks delivery if verification fails. Signature appearance is not evidence of cryptographic integrity or certificate trust.',
+      },
+      {
+        title: 'Migration path',
+        json: `{
+  "sourceProvider": "Nutrient",
+  "target": "PXA",
+  "securityPolicy": "review",
+  "expectedDiagnostics": [
+    "unsupported provider-only trust-store behavior",
+    "signature-invalidating full rewrite",
+    "manual accessibility review required"
+  ]
+}`,
+        note: 'Migration maps only behavior that PXA can prove. Provider-specific trust stores, remote signing services, unsupported encryption modes, or inferred accessibility remain review diagnostics. Automatic conversion never upgrades a visual mark or metadata claim into a security or conformance claim.',
+      },
+      {
+        title: 'API path',
+        json: `POST /api/pxa/v1/pdf/trust/inspect/jobs
+POST /api/pxa/v1/pdf/signatures/sign
+POST /api/pxa/v1/pdf/signatures/timestamp
+POST /api/pxa/v1/pdf/redactions/preflight
+POST /api/pxa/v1/pdf/redactions/apply
+POST /api/pxa/v1/pdf/compliance/preflight
+POST /api/pxa/v1/pdf/compliance/convert
+POST /api/pxa/v1/pdf/compliance/validate`,
+        note: 'All mutation endpoints require an authenticated tenant, the corresponding permission, entitlement and feature gate. Trust policy, anchors, revocation sources, TSA credentials, audit keys, and private keys remain server-owned. Responses use stable PXAPDFTRUST diagnostics and never echo passwords, keys, removed text, or document contents.',
+      },
+      {
+        title: 'Troubleshooting path',
+        json: `invalid       Evidence proves the requested property failed.
+indeterminate  Available evidence cannot establish the result.
+unsupported    PXA cannot safely process the encountered structure.
+notApplicable  The property does not apply to this document.`,
+        note: 'Keep the original file and the complete diagnostic report. Confirm the exact profile and validator version, check whether a signed file would require a full rewrite, verify fonts and color spaces for PDF/A, repair semantic roles for PDF/UA, and retry only after the blocking diagnostic is resolved. Never convert indeterminate or unsupported into success at the UI boundary.',
       },
     ],
   },
@@ -3822,6 +3931,16 @@ function renderDetailedDocs(items) {
           <div class="pxa-doc-related-links">
             ${item.related.map((link) => `<a href="${link.href}">${link.label}</a>`).join('')}
           </div>
+          ${item.images
+            ? `<div class="pxa-doc-screenshot-grid">
+                ${item.images.map((image) => `
+                  <figure class="pxa-doc-screenshot">
+                    <img src="${image.src}" alt="${image.alt}" loading="lazy">
+                    <figcaption>${image.caption}</figcaption>
+                  </figure>
+                `).join('')}
+              </div>`
+            : ''}
           ${item.examples
             ? `
               <div class="pxa-export-example-grid">

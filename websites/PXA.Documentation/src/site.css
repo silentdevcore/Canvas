@@ -1292,3 +1292,19 @@
     grid-template-columns: 1fr;
   }
 }
+.pxa-doc-screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pxa-doc-screenshot-grid .pxa-doc-screenshot {
+  margin: 0;
+}
+
+.pxa-doc-screenshot-grid img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

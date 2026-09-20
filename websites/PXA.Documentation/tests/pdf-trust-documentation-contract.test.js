@@ -89,6 +89,48 @@ test('PDF Trust documentation exposes separate PDF/A and PDF/UA learning paths',
   assert.match(source, /manual evidence template/);
 });
 
+test('PDF Trust documentation exposes Generator, Viewer, Migration, API, and troubleshooting paths', async () => {
+  assert.match(source, /title: 'PDF Trust'/);
+  assert.match(source, /title: 'Generator path'/);
+  assert.match(source, /title: 'Viewer path'/);
+  assert.match(source, /title: 'Migration path'/);
+  assert.match(source, /title: 'API path'/);
+  assert.match(source, /title: 'Troubleshooting path'/);
+  assert.match(source, /AES-256 revision 6/);
+  assert.match(source, /A redaction mark is only an instruction/);
+  assert.match(source, /Signature appearance is not evidence/);
+  assert.match(source, /indeterminate or unsupported into success/);
+
+  const imageDirectory = path.join(
+    root,
+    'websites/PXA.Documentation/public/images/pdf-trust',
+  );
+  for (const name of [
+    'viewer-trust-desktop.png',
+    'viewer-trust-mobile.png',
+    'viewer-signature-desktop.png',
+    'viewer-signature-mobile.png',
+    'viewer-compliance-desktop.png',
+    'viewer-compliance-mobile.png',
+    'viewer-redaction-review-desktop.png',
+    'viewer-redaction-review-mobile.png',
+  ]) {
+    assert.ok(fs.existsSync(path.join(imageDirectory, name)), `${name} is missing`);
+  }
+});
+
+test('existing PDF architecture documents exact editing boundaries', async () => {
+  const boundaryPath = path.join(root, 'docs/architecture/existing-pdf-boundaries.md');
+  const boundary = await fs.promises.readFile(boundaryPath, 'utf8');
+  assert.match(boundary, /`PXA\.Importer` owns reading and changing existing PDF object graphs/);
+  assert.match(boundary, /`PXA\.Pdf` owns new-document generation/);
+  assert.match(boundary, /`PXA\.Infrastructure\.Pdf` adapts application-level design documents/);
+  assert.match(boundary, /Incremental update/);
+  assert.match(boundary, /Full rewrite/);
+  assert.match(boundary, /Regeneration/);
+  assert.match(boundary, /No component may choose a weaker strategy/);
+});
+
 test('PDF/UA manual evidence has a non-passing structured template', async () => {
   const templatePath = path.join(root, 'tools/pdfua/matterhorn-evidence.template.json');
   const schemaPath = path.join(root, 'tools/pdfua/matterhorn-evidence.schema.json');

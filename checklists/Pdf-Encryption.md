@@ -8,13 +8,29 @@
 > recipient encryption is available through `PdfCertificateEncryptionOptions`. See
 > `PXA.PDF-AES256-Security-Handler.md` for the current security contract.
 
+Current delivered coverage:
+
+- [x] AES-256 revision 6 is the default for new encrypted production PDFs.
+- [x] AES-128 and RC4-128 remain explicit interoperability and legacy options.
+- [x] Existing AES-256, AES-128, and RC4 documents can be opened through the importer
+      with user/owner authentication and permission inspection.
+- [x] Wrong passwords, tampered permission blocks, Unicode passwords, all supported
+      permission combinations, encrypted metadata, object streams, replacement
+      encryption, and signed-document safety are covered by automated tests.
+- [x] X.509 recipient encryption is available as a separate public-key profile.
+- [ ] Complete the wider external reader/writer interoperability matrix before a
+      production support claim is expanded beyond the documented qpdf baseline.
+
+Everything below this point is retained as the historical V1 implementation record.
+Its RC4-first scope and deferred AES decisions no longer describe the current product.
+
 **V1 shipped (RC4-128).** `PdfSaveOptions.Encryption` encrypts strings and streams with the Standard
 Security Handler (`/V 2 /R 3`). Verified end-to-end: PdfPig opens the output with the password and
 recovers the text. **AES-128 (`/V 4 /R 4`) is deferred to V2** — RC4 was chosen first because, as a
 stream cipher, it preserves byte length and avoids rewriting every `/Length` in the already-serialized
 object bodies. The handler is structured so AES slots in as an additional mode.
 
-## Goal
+## Historical V1 Goal
 
 Add document encryption to `PXA.Pdf` so generated PDFs can be password-protected with owner/user
 passwords and permission flags — the clearest functional gap versus DevExpress PDF

@@ -23,6 +23,7 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 | **Documentation strategy** | `docs/Documentation-Approach.md` |
 | **PXA.Admin customer and integration guidance** | Protected `/documentation` route in `websites/PXA.Admin`; content served by the authorized Admin documentation API |
 | **Restricted PXA.Admin operations** | Protected deployment sourced from `operator-docs/PXA.Admin-Operations.md` |
+| **Public PDF Trust guidance** | `PXA.Documentation` PDF Trust, PDF/A, PDF/UA, and Viewer topics; implementation boundaries in `docs/architecture/existing-pdf-boundaries.md` |
 
 ## Completed In This Audit
 
@@ -37,6 +38,8 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 - [x] **[medium]** Add `checklists/PxaPdf-Provider-Feature-Gaps.md`.
 - [x] **[high]** Add complete protected PXA.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PXA.Admin`.
 - [x] **[high]** Exclude Admin handbook content and operator guidance from the public Documentation build and navigation.
+- [x] **[high]** Add public PDF Trust paths for Generator, Viewer, Migration, API, and troubleshooting, with synthetic screenshots and downloadable validation evidence.
+- [x] **[high]** Document the exact ownership boundary between existing-PDF parsing/mutation, application rendering, and new-PDF generation.
 
 ## Follow-Up Audit Items
 

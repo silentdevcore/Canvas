@@ -19,7 +19,7 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 ## P0 - Product Quality
 
 - [ ] Complete durable, tenant-protected viewer state, complex redaction coverage, signatures, and remaining form/annotation fidelity from `PdfTools-WebViewer-Feature-Gaps.md`.
-- [ ] Implement the high-priority PDF engine gaps from `PxaPdf-Provider-Feature-Gaps.md`, especially digital signatures, secure redaction, advanced forms, accessibility, and attachments.
+- [ ] Complete the remaining high-priority PDF engine gaps from `PxaPdf-Provider-Feature-Gaps.md`. Digital signatures, bounded secure redaction, AES-256, PDF/A-2b/3b, PDF/UA-1, Tagged PDF, Viewer Trust, and validation evidence are delivered; advanced forms, attachments/portfolios, universal existing-PDF editing, optimization, and broader interoperability remain.
 - [ ] Complete importer fidelity and format wiring through `Importer-New-Featuers.md`, `PDF-Importer.md`, and `UI-Importer-Features.md`.
 - [ ] Complete Word, image, and spreadsheet conversion gaps through `Word-Converter.md`, `Image-Converter2.md`, and `Spreadsheet-Import-Export.md`.
 

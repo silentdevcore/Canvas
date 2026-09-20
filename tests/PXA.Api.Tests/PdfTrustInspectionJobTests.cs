@@ -66,7 +66,12 @@ public sealed class PdfTrustInspectionJobTests
             Assert.NotNull(result);
             await using (result.Value.Content)
             {
-                var report = await JsonSerializer.DeserializeAsync<PdfTrustReport>(result.Value.Content);
+                using var json = await JsonDocument.ParseAsync(result.Value.Content);
+                Assert.True(json.RootElement.TryGetProperty("signatures", out var signatures));
+                Assert.Equal(JsonValueKind.Array, signatures.ValueKind);
+                Assert.False(json.RootElement.TryGetProperty("Signatures", out _));
+                var report = json.RootElement.Deserialize<PdfTrustReport>(
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web));
                 Assert.NotNull(report);
                 Assert.Equal(input.Checksum, report.Sha256);
             }

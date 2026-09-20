@@ -199,6 +199,35 @@ public sealed class PdfRedactionApplierTests
     }
 
     [Fact]
+    public async Task Apply_ShouldRemoveEmbeddedFilesAndTheirPayloads()
+    {
+        const string attachmentSecret = "ATTACHMENT-PRIVATE-VALUE-5827";
+        var pdf = AddEmbeddedFile(
+            CreatePdf(("Public heading", 40, 700), (Secret, 40, 400)),
+            attachmentSecret);
+        var region = await RegionCoveringAsync(pdf, Secret);
+
+        var result = await ApplyAsync(pdf, region);
+
+        Assert.True(result.Verification.Passed);
+        Assert.Contains("embeddedFiles", result.Audit.AppliedSanitizations);
+        Assert.DoesNotContain(attachmentSecret, Encoding.Latin1.GetString(result.Bytes), StringComparison.Ordinal);
+        var (_, graph) = ParseGraph(result.Bytes);
+        var catalog = (PdfDictionary)graph.Resolve(((PdfReference)graph.Trailer!["Root"]!).Id)!.Value;
+        var names = catalog["Names"] switch
+        {
+            PdfReference reference => graph.Resolve(reference.Id)?.Value as PdfDictionary,
+            PdfDictionary dictionary => dictionary,
+            _ => null
+        };
+        Assert.True(names is null || names["EmbeddedFiles"] is null);
+        Assert.DoesNotContain(
+            graph.Objects.Values,
+            value => value.Value is PdfDictionary dictionary &&
+                dictionary["Type"] is PdfName { Value: "Filespec" });
+    }
+
+    [Fact]
     public async Task Apply_ShouldRecordAuditEvidenceWithoutTheRemovedContent()
     {
         var pdf = CreatePdf(("Public heading", 40, 700), (Secret, 40, 400));
@@ -305,6 +334,44 @@ public sealed class PdfRedactionApplierTests
                     ["Subtype"] = new PdfName("XML")
                 },
                 Encoding.UTF8.GetBytes($"<x:xmpmeta>{value}</x:xmpmeta>"))),
+            new PdfIncrementalObjectUpdate(rootId, updated)
+        ]).Bytes;
+    }
+
+    private static byte[] AddEmbeddedFile(byte[] source, string value)
+    {
+        var (table, graph) = ParseGraph(source);
+        var rootId = ((PdfReference)graph.Trailer!["Root"]!).Id;
+        var catalog = (PdfDictionary)graph.Resolve(rootId)!.Value;
+        var nextObjectNumber = table.Entries.Keys.Max(static id => id.Number) + 1;
+        var streamId = new PdfObjectId(nextObjectNumber, 0);
+        var fileSpecificationId = new PdfObjectId(nextObjectNumber + 1, 0);
+        var updated = new PdfDictionary(catalog.Values.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value))
+        {
+            ["Names"] = new PdfDictionary
+            {
+                ["EmbeddedFiles"] = new PdfDictionary
+                {
+                    ["Names"] = new PdfArray([
+                        new PdfString(Encoding.UTF8.GetBytes("private.txt"), IsHex: false),
+                        new PdfReference(fileSpecificationId)
+                    ])
+                }
+            }
+        };
+
+        return new PdfIncrementalUpdateWriter().Append(source, [
+            new PdfIncrementalObjectUpdate(streamId, new PdfStreamObject(
+                new PdfDictionary { ["Type"] = new PdfName("EmbeddedFile") },
+                Encoding.UTF8.GetBytes(value))),
+            new PdfIncrementalObjectUpdate(fileSpecificationId, new PdfDictionary
+            {
+                ["Type"] = new PdfName("Filespec"),
+                ["F"] = new PdfString(Encoding.UTF8.GetBytes("private.txt"), IsHex: false),
+                ["EF"] = new PdfDictionary { ["F"] = new PdfReference(streamId) }
+            }),
             new PdfIncrementalObjectUpdate(rootId, updated)
         ]).Bytes;
     }

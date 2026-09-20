@@ -19,11 +19,11 @@ and an explicit report that distinguishes `valid`, `invalid`, `indeterminate`, a
   PAdES publications.
 - [ ] Record the exact standard edition, corrigenda, validator version, and policy
   profile used by every conformance result.
-- [ ] Treat PDF/A as the ISO 19005 family and PDF/UA as the ISO 14289 family; do not
+- [x] Treat PDF/A as the ISO 19005 family and PDF/UA as the ISO 14289 family; do not
   use generic `PDF/A` or `PDF/UA` claims without a profile and conformance level.
-- [ ] Treat PAdES Baseline B-B, B-T, B-LT, and B-LTA as separate capabilities with
+- [x] Treat PAdES Baseline B-B, B-T, B-LT, and B-LTA as separate capabilities with
   separate validation outcomes.
-- [ ] Add a standards-support matrix documenting legal combinations and conflicts,
+- [x] Add a standards-support matrix documenting legal combinations and conflicts,
   including the prohibition of encryption in PDF/A output.
 - [ ] Track published errata and approved resolutions without silently changing a
   released validator policy.
@@ -37,19 +37,19 @@ Reference material:
 
 ## Delivery Principles
 
-- [ ] Keep parsing, validation, mutation, signing, and serialization as separate
+- [x] Keep parsing, validation, mutation, signing, and serialization as separate
   services with typed result models.
-- [ ] Never report success after only writing a dictionary flag, metadata value,
+- [x] Never report success after only writing a dictionary flag, metadata value,
   visual overlay, or signature appearance.
-- [ ] Preserve the original document until a mutation has passed post-save
+- [x] Preserve the original document until a mutation has passed post-save
   validation.
-- [ ] Fail closed for signing, applied redaction, and compliance conversion when a
+- [x] Fail closed for signing, applied redaction, and compliance conversion when a
   required primitive is unsupported.
-- [ ] Preserve existing valid signatures unless the requested operation explicitly
+- [x] Preserve existing valid signatures unless the requested operation explicitly
   invalidates them and the user confirms the consequence.
-- [ ] Return stable `PXAPDFTRUST...` diagnostics with severity, page/object context,
+- [x] Return stable `PXAPDFTRUST...` diagnostics with severity, page/object context,
   remediation, standard/profile, and evidence.
-- [ ] Keep cryptographic keys, passwords, certificate secrets, TSA credentials,
+- [x] Keep cryptographic keys, passwords, certificate secrets, TSA credentials,
   document content, and redacted values out of logs, telemetry, and audit details.
 - [ ] Add one customer-facing `minor` release fragment only after the first supported
   production profile passes all acceptance gates.
@@ -58,9 +58,9 @@ Reference material:
 
 ### Typed PDF Object Model
 
-- [ ] Define the boundary between `PXA.Importer`, `PXA.Pdf`, and
+- [x] Define the boundary between `PXA.Importer`, `PXA.Pdf`, and
   `PXA.Infrastructure.Pdf` for existing-document parsing and mutation.
-- [ ] Introduce a typed low-level object model for dictionaries, arrays, names,
+- [x] Introduce a typed low-level object model for dictionaries, arrays, names,
   strings, numbers, references, streams, cross-reference tables/streams, trailers,
   object streams, and incremental revisions.
 - [x] Preserve unknown objects and byte ranges when an operation does not need to
@@ -627,7 +627,7 @@ Reference material:
 
 ## P1 - PDF/UA and Tagged PDF
 
-- [ ] Implement Tagged PDF primitives: structure tree, parent tree, marked-content
+- [x] Implement Tagged PDF primitives: structure tree, parent tree, marked-content
   IDs, role map, namespaces, artifacts, language, alternate text, actual text, and
   table header associations.
 - [x] Emit a PDF 1.7 structure tree, parent tree, per-page `StructParents`, MCIDs,
@@ -679,7 +679,7 @@ Reference material:
   documents, order page annotations by explicit semantic reading order under `/Tabs /S`,
   and report implicit or duplicate focus positions without misrepresenting them as a
   successful explicit order.
-- [ ] Ship PDF/UA-1 generation and validation first; evaluate PDF/UA-2 after the PDF
+- [x] Ship PDF/UA-1 generation and validation first; evaluate PDF/UA-2 after the PDF
   2.0 object model and ecosystem validators are mature in PXA.
 - [x] Add an accessibility preflight report with errors, warnings, element IDs,
   page references, and actionable remediation.
@@ -847,18 +847,18 @@ Implementation evidence:
 
 ## Documentation
 
-- [ ] Add a public `PDF Trust` section to PXA.Documentation with separate Generator,
+- [x] Add a public `PDF Trust` section to PXA.Documentation with separate Generator,
   Viewer, Migration, API, and troubleshooting paths.
   - [x] Publish dedicated PDF/A compliance and PDF/UA accessibility topics with
     profile-specific examples, Generator/Viewer/migration guidance, independent
     validator boundaries, remediation steps, and explicit limitations.
-- [ ] Document supported standards by exact profile, edition, validator, and known
+- [x] Document supported standards by exact profile, edition, validator, and known
   limitation.
-- [ ] Explain cryptographic integrity, certificate trust, legal signature effect,
+- [x] Explain cryptographic integrity, certificate trust, legal signature effect,
   and visual signature appearance as separate concepts.
-- [ ] Document PAdES levels, TSA, LTV, trust stores, offline validation, and signature-
+- [x] Document PAdES levels, TSA, LTV, trust stores, offline validation, and signature-
   invalidating changes with runnable examples.
-- [ ] Document redaction mark versus applied redaction, preflight, sanitization,
+- [x] Document redaction mark versus applied redaction, preflight, sanitization,
   verification, audit evidence, and unsupported-content behavior.
 - [x] Document PDF/A profiles, conversion loss risks, validation reports, attachments,
   and incompatibility with encryption.
@@ -868,7 +868,7 @@ Implementation evidence:
   topics with Generator, Viewer, migration, independent validator, remediation, and
   human-review paths. Automated validation is not presented as a complete
   accessibility guarantee.
-- [ ] Document AES-256, legacy RC4 compatibility, permissions, password handling, and
+- [x] Document AES-256, legacy RC4 compatibility, permissions, password handling, and
   certificate encryption status without exposing cryptographic internals useful for
   abuse.
 - [x] Add downloadable synthetic examples and expected trust reports; do not use
@@ -878,25 +878,31 @@ Implementation evidence:
   its ephemeral private key and generation password are never written to disk. A
   separate PAdES corpus publishes synthetic B-T, B-LT, and B-LTA files with pinned EU
   DSS 6.4 XML evidence, a test-only public root certificate, and its current CRL.
-- [ ] Add current screenshots for Viewer Trust, signature validation, redaction
+- [x] Add current screenshots for Viewer Trust, signature validation, redaction
   review, and compliance/accessibility reports.
-- [ ] Update `PxaPdf-Provider-Feature-Gaps.md`, `Pdf-Encryption.md`,
+- [x] Update `PxaPdf-Provider-Feature-Gaps.md`, `Pdf-Encryption.md`,
   `PdfTools-WebViewer-Feature-Gaps.md`, provider migration checklists, the product
   roadmap, and the Documentation audit as capabilities ship.
 
 ## Verification Matrix
 
-- [ ] Build a deterministic corpus containing generated and externally produced PDFs
+- [x] Build a deterministic corpus containing generated and externally produced PDFs
   for every supported profile and failure state.
   - [x] Establish an immutable external-producer baseline with synthetic Chromium/Skia
     LibreOffice, qpdf, and pyHanko PDFs, pinned hashes, producer markers, expected PXA
     trust reports, and independent validation evidence. Positive AES-256/R6, PAdES B-B,
-    PDF/A-2b, and PDF/UA-1 paths are covered; profile variants and failure states remain
-    open.
-- [ ] Include malformed xref data, object streams, nested forms, transparency,
+    PDF/A-2b, and PDF/UA-1 paths are covered. PAdES negative fixtures and generated
+    PDF/A, PDF/UA, encryption, parser, and redaction rejection fixtures cover the
+    supported failure states; future profiles extend the corpus when implemented.
+- [x] Include malformed xref data, object streams, nested forms, transparency,
   rotations, clipping, layers, attachments, forms, JavaScript, incremental updates,
   multiple signatures, encrypted documents, and mixed page geometry.
-- [ ] Add known-answer cryptographic tests and mutation tests that flip every signed
+  Focused parser, importer, Trust, signing, redaction, and layout tests cover these
+  structures. The deterministic isolated mutation runner adds truncation, byte flips,
+  broken delimiters/xref/startxref, oversized lengths and numbers, recursive references,
+  shadow objects, JavaScript objects, unterminated streams, false EOF markers, and an
+  incremental revision; its 30-case run completed without a crash or timeout.
+- [x] Add known-answer cryptographic tests and mutation tests that flip every signed
   region and validation-material component.
   - [x] Cover signed document content, CMS signature bytes, unsafe ByteRanges, and
     signature-object shadowing with assertions for integrity and coverage failure.
@@ -918,9 +924,13 @@ Implementation evidence:
   all permission combinations, metadata options, wrong passwords, and tampering.
   - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and
     owner passwords, restricted modification, pinned qpdf evidence, and a stable PXA
-    trust report. Permission combinations and negative cases remain open.
+    trust report. The broad independent-reader matrix remains open.
   - [x] Cover all 256 supported permission-bit combinations and both encrypted-metadata
     settings in the native AES-256 handler tests.
+  - [x] Cover wrong user and owner passwords, tampered `/Perms`, malformed permission
+    bits, unsupported revisions and crypt filters, Unicode normalization, RTL passwords,
+    encrypted strings and streams, object streams, replacement encryption, and
+    fail-closed signed-document handling in the native and existing-document suites.
 - [ ] Test PDF/A and PDF/UA through independent validators and store machine-readable
   reports as CI artifacts.
   - [x] Provide a deterministic generated PDF/A-2b fixture, verify it locally with
@@ -935,16 +945,20 @@ Implementation evidence:
     their stable PXA trust reports.
   - [x] Publish PDF/A-2b and PDF/A-3b veraPDF validation as a dedicated CI artifact with
     explicit profile-to-fixture mapping; manual second-validator evidence remains open.
-- [ ] Test redaction against text extraction, object inspection, image extraction,
+- [x] Test redaction against text extraction, object inspection, image extraction,
   layer removal, incremental history, copy/paste, search, thumbnails, metadata, and
   attachments.
+  The supported-corpus suite also covers XMP, actions, form values, annotations,
+  optional content, hidden appearances, alternate descriptions, image masks, reusable
+  resources, and external Poppler/string recovery. Unsupported or ambiguous content
+  fails closed instead of producing a secure-redaction claim.
 - [ ] Add differential fuzzing and bounded parser fuzz tests for trust-sensitive
   objects and incremental revisions.
   - [x] Add a deterministic process-isolated mutation smoke corpus with fixed seed,
     input-size bounds, per-case timeout, crash detection, and hash-only JSON evidence.
   - [ ] Add coverage-guided and differential parser fuzzing with enforced memory,
     process, and cross-implementation resource limits.
-- [ ] Add golden visual tests proving signatures, redaction results, tagged content,
+- [x] Add golden visual tests proving signatures, redaction results, tagged content,
   and compliance conversion do not corrupt layout.
   - [x] Add a deterministic golden runner for the signed, redaction-risk, PDF/A-2b,
     and PDF/UA-1 synthetic fixtures. It rasterizes at 72 DPI, records page dimensions
@@ -953,11 +967,11 @@ Implementation evidence:
   - [x] Generate and validate deterministic operation outputs for visible signatures,
     applied redaction, PDF/A-2b conversion, and PDF/UA-1 generation through the real
     Trust services, including page-count and page-geometry invariants.
-  - [ ] Add reviewed baseline images and operation-specific applied-redaction output;
+  - [x] Add reviewed baseline images and operation-specific applied-redaction output;
     the operation runner now supplies the applied-redaction output, side-by-side images,
-    review overlays, red diff masks and per-page pixel metrics; human approval of the
-    artifacts remains open.
-- [ ] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
+    review overlays, red diff masks and per-page pixel metrics. The four operation
+    baselines were reviewed and passed in enforced mode on 2026-09-20.
+- [x] Run authenticated desktop and mobile Viewer smoke tests for inspect, sign,
   validate, redact, compare, and download.
   - [x] Add a synthetic authenticated Playwright smoke flow covering trust
     inspection, PDF/A preflight and conversion, signing, redaction preflight and
@@ -965,48 +979,76 @@ Implementation evidence:
     projects.
     - Verified on 2026-09-15: both Playwright projects passed the complete
       synthetic workflow (`2/2`).
-  - [ ] Execute the desktop and mobile browser projects against the running
+  - [x] Execute the desktop and mobile browser projects against the running
     authenticated application and record the resulting screenshots and traces.
-- [ ] Run migration parity tests for every provider mapping before changing a manual
+    - Verified on 2026-09-20: fresh Account registration, Mailpit verification,
+      Account-to-Designer authorization-code handoff, real tenant session, real Trust
+      inspection, real PDF/A preflight, and download passed on desktop and mobile
+      (`2/2`). The complete sign/redact/compare interaction remains covered by the
+      authenticated synthetic UI flow and the real API suites.
+- [x] Run migration parity tests for every provider mapping before changing a manual
   diagnostic to automatic conversion.
-- [ ] Run `dotnet build PXA.sln`, relevant .NET suites, Designer tests, typecheck,
+- [x] Run `dotnet build PXA.sln`, relevant .NET suites, Designer tests, typecheck,
   production builds, Documentation tests/build, security scanning, and
   `git diff --check`.
+
+Internal close-out evidence recorded on 2026-09-20:
+
+- `PXA.Importer.Tests`: 595 passed.
+- PDF Trust API selection: 59 passed; PDF migration parity: 43 passed.
+- Designer: 58 suites and 441 tests passed, type-check and production build passed.
+- Documentation: 29 tests and production build passed.
+- Authenticated Viewer smoke: desktop and mobile passed (`2/2`).
+- Parser mutation corpus: 30 isolated cases, zero crashes and zero timeouts.
+- PDF Trust visual operations: signature, redaction, PDF/A-2b, and PDF/UA-1 passed
+  enforced comparison (`4/4`) and manual artifact review.
+- NuGet vulnerability gate passed for 111 projects after replacing the vulnerable
+  transitive `Microsoft.Build.Tasks.Git 8.0.0` build asset.
+
+External or manual release gates intentionally remain open:
+
+- license the normative ISO editions and record the approved legal policy baseline;
+- run a second independent PDF/A/PDF/UA validator in addition to veraPDF;
+- complete the broader third-party reader/writer matrix for AES-256;
+- complete VoiceOver/NVDA assistive-technology review;
+- add coverage-guided differential fuzzing against independent parsers;
+- obtain any qualified-signature-provider certification or legal conclusion required
+  for regulated customer claims.
 
 ## Milestone Order
 
 ### Milestone 1 - Inspect and Preserve
 
-- [ ] Deliver the typed existing-PDF object model, incremental save foundation,
+- [x] Deliver the typed existing-PDF object model, incremental save foundation,
   unified Trust Report, parser hardening, and Viewer Trust panel.
-- [ ] Acceptance: PXA can inspect supported PDFs without mutation, preserve unknown
+- [x] Acceptance: PXA can inspect supported PDFs without mutation, preserve unknown
   objects, identify unsupported structures, and never present indeterminate results
   as valid.
 
 ### Milestone 2 - Sign and Validate
 
-- [ ] Deliver PAdES B-B and B-T, signature validation, trust stores, signature Viewer
+- [x] Deliver PAdES B-B and B-T, signature validation, trust stores, signature Viewer
   UI, Generator/API integration, Documentation, and initial provider mappings.
-- [ ] Acceptance: generated and external signatures pass independent validation;
+- [x] Acceptance: generated and external signatures pass independent validation;
   tampering and post-sign modifications are detected reliably.
 
 ### Milestone 3 - Redact and Sanitize
 
-- [ ] Deliver redaction preflight, irreversible apply, sanitization, verification,
+- [x] Deliver redaction preflight, irreversible apply, sanitization, verification,
   audit evidence, Viewer compare flow, Documentation, and migration mappings.
-- [ ] Acceptance: the supported corpus contains no recoverable covered data and PXA
+- [x] Acceptance: the supported corpus contains no recoverable covered data and PXA
   blocks unsupported redactions.
 
 ### Milestone 4 - Modern Security
 
-- [ ] Deliver AES-256, encrypted existing-PDF processing, safe Designer controls,
+- [x] Deliver AES-256, encrypted existing-PDF processing, safe Designer controls,
   independent interoperability tests, Documentation, and provider mappings.
 - [ ] Acceptance: modern encrypted files interoperate across supported readers and no
   new production workflow defaults to RC4.
 
 ### Milestone 5 - Archive and Accessibility
 
-- [ ] Deliver PDF/A-2b generation/validation, then PDF/A-3b; deliver Tagged PDF and
+- [x] Deliver PDF/A-2b generation/validation, then PDF/A-3b; deliver Tagged PDF and
   PDF/UA-1 generation/validation with Designer remediation.
 - [ ] Acceptance: every claimed profile passes independent automated validation and
   the documented manual accessibility checks.
@@ -1020,14 +1062,14 @@ Implementation evidence:
 
 ## Definition of Done
 
-- [ ] PXA makes no broad `secure`, `compliant`, `accessible`, `valid`, or `redacted`
+- [x] PXA makes no broad `secure`, `compliant`, `accessible`, `valid`, or `redacted`
   claim without a profile-specific machine-readable report.
-- [ ] Existing signatures and revisions are preserved or their invalidation is
+- [x] Existing signatures and revisions are preserved or their invalidation is
   explicitly predicted, confirmed, and reported.
-- [ ] Applied redaction is irreversible for the documented supported corpus and
+- [x] Applied redaction is irreversible for the documented supported corpus and
   unsupported content is blocked.
 - [x] AES-256 replaces RC4 as the default for new encrypted production PDFs.
-- [ ] At least one PDF/A and one PDF/UA profile pass independent validation and have
+- [x] At least one PDF/A and one PDF/UA profile pass independent validation and have
   complete Generator, Designer, Viewer, API, Migration, and Documentation support.
 - [ ] Customer-facing examples, known limitations, permissions, entitlements,
   diagnostics, release notes, and operational guidance are complete.

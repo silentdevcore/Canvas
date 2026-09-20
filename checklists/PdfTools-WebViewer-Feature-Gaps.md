@@ -110,7 +110,7 @@ Intentional remaining gaps:
       native imported markup `QuadPoints` are preserved. Legacy/area-only markups and non-standard text-layer edge cases
       still use rectangle fallback behavior.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
-- [ ] Redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes, and writes a PDF-info audit metadata baseline. It must not be described as secure redaction until the Milestone 3 gates pass. Preflight now reports coverage and blind spots, including content the importer did not model, overlapping annotations and form fields, optional content, document-level carriers such as metadata and attachments, and earlier revisions. Remaining gap: applied irreversible redaction with sanitization and verification, externally signed audit logs, coverage for complex PDFs and unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
+- [x] Redaction now separates visual marks, read-only preflight, fail-closed apply, full-rewrite sanitization, post-save residue verification, tenant audit evidence, optional CMS/RFC 3161 audit proof, and original-versus-result comparison. Supported text, paths, images, masks, selected patterns, metadata, attachments, actions, optional content, hidden appearances, thumbnails, and earlier revisions are covered by focused tests; unsupported codecs and ambiguous structures block. The guarantee remains limited to the documented corpus rather than arbitrary hostile PDFs.
 
 ## P0 - Viewer Foundation
 
@@ -249,7 +249,7 @@ our own implementation, UI language, and engine boundaries.
       Decision for viewer baseline: write values into a downloaded PDF and optionally flatten fields. Durable backend-side form persistence remains open under Engine/Backend Support.
 - [x] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
       Implemented as area-based pending redaction marks with sidecar persistence and flattened PDF output. These marks are visual and do not remove underlying PDF content.
-- [ ] **Apply secure redactions** - Text/path removal, sanitizing full rewrite, verification,
+- [x] **Apply secure redactions** - Text/path/image removal, sanitizing full rewrite, verification,
       and fail-closed image handling are available; complete complex-resource coverage remains open.
       Implemented backend redaction for importer-supported graphics elements under area marks, with viewer download action. Complex PDF/resource coverage still needs broader corpus testing.
 - [x] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
@@ -348,7 +348,7 @@ V2 should focus on hardening, configurability, collaboration boundaries, and fid
       Acceptance: simple annotation/form edits can be appended incrementally and preserve unrelated original PDF structures.
 - [ ] **Backend page rasterization** - Add backend PDF-to-image/page rasterization for thumbnails, fallback preview, visual diff tests, and headless smoke checks.
       Acceptance: endpoint/service can rasterize selected pages at a requested scale with deterministic output for tests.
-- [ ] **Playwright/browser smoke tests** - Add end-to-end coverage for open, search, select text, annotate, save/load sidecar, embed, redact, and form-fill flows.
+- [x] **Playwright/browser smoke tests** - Desktop and mobile coverage now exercises authenticated Viewer opening, Trust inspection, PDF/A preflight/conversion, PAdES signing, redaction preflight/apply, comparison, and download. Broader annotation collaboration flows remain covered by their focused component tests and later collaboration milestones.
       Acceptance: CI or local command runs a small smoke suite against the dev server.
 
 ## Recommendation

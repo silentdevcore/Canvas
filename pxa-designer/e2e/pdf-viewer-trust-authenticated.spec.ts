@@ -1,6 +1,115 @@
-import { expect, test } from '@playwright/test';
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+  type TestInfo,
+} from '@playwright/test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const designerUrl = 'http://localhost:5176';
+const accountUrl = 'http://localhost:5178';
+const mailpitUrl = 'http://localhost:8025';
+
+type MailpitMessage = {
+  ID: string;
+  To: Array<{ Address: string }>;
+  Subject: string;
+};
+
+async function findVerificationUrl(request: APIRequestContext, email: string): Promise<string> {
+  let verificationUrl = '';
+
+  await expect.poll(async () => {
+    const listResponse = await request.get(`${mailpitUrl}/api/v1/messages`);
+    if (!listResponse.ok()) return '';
+
+    const list = await listResponse.json() as { messages?: MailpitMessage[] };
+    const message = list.messages?.find((candidate) =>
+      candidate.To.some((recipient) => recipient.Address.toLowerCase() === email.toLowerCase())
+      && /verify/i.test(candidate.Subject));
+    if (!message) return '';
+
+    const messageResponse = await request.get(`${mailpitUrl}/api/v1/message/${message.ID}`);
+    if (!messageResponse.ok()) return '';
+
+    const detail = await messageResponse.json() as { Text?: string; HTML?: string };
+    const body = `${detail.Text ?? ''}\n${detail.HTML ?? ''}`.replaceAll('&amp;', '&');
+    verificationUrl = body.match(/http:\/\/localhost:5178\/verify-email\?[^\s"'<>]+/)?.[0] ?? '';
+    return verificationUrl;
+  }, {
+    message: `verification email for ${email}`,
+    timeout: 25_000,
+    intervals: [500, 1_000, 2_000],
+  }).not.toBe('');
+
+  return verificationUrl;
+}
+
+async function registerAndEnterDesigner(
+  page: Page,
+  request: APIRequestContext,
+  returnUrl: string,
+): Promise<void> {
+  const unique = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const email = `pdf-trust-live-${unique}@example.test`;
+  const password = 'Pxa-Trust-E2E-2026!';
+
+  await page.goto(`${accountUrl}/register?returnUrl=${encodeURIComponent(returnUrl)}`);
+  const storageNotice = page.locator('[data-pxa-storage-notice]');
+  if (await storageNotice.isVisible()) {
+    await storageNotice.getByRole('button', { name: 'Understood' }).click();
+  }
+  await page.locator('[name="displayName"]').fill('PDF Trust E2E User');
+  await page.locator('[name="email"]').fill(email);
+  await page.locator('[name="password"]').fill(password);
+  await page.locator('[name="country"]').fill('DE');
+  await page.locator('[name="acceptTerms"]').check();
+  await page.locator('[name="acceptPrivacy"]').check();
+  await page.locator('#register-form button[type="submit"]').click();
+
+  await expect(page).toHaveURL(/\/registration-pending/);
+  await page.goto(await findVerificationUrl(request, email));
+  await expect(page.getByRole('heading', { name: 'Your Trial is ready' })).toBeVisible();
+  await page.getByRole('link', { name: 'Sign in' }).click();
+  await page.locator('[name="identifier"]').fill(email);
+  await page.locator('[name="password"]').fill(password);
+  await page.locator('#login-form').getByRole('button', { name: 'Sign in' }).click();
+
+  await expect(page).toHaveURL(new RegExp(`^${designerUrl.replaceAll('.', '\\.')}/`));
+  expect(new URL(page.url()).searchParams.has('code')).toBe(false);
+  expect(new URL(page.url()).searchParams.has('state')).toBe(false);
+}
+
+async function dismissProductPanel(page: Page): Promise<void> {
+  const panel = page.locator('.pxa-product-overlay');
+  try {
+    await panel.waitFor({ state: 'visible', timeout: 3_000 });
+    await panel.getByRole('button', { name: 'Close panel' }).click();
+  } catch {
+    // The release panel only opens for users who have not seen the current release.
+  }
+}
+
+async function captureDocumentationScreenshot(
+  page: Page,
+  testInfo: TestInfo,
+  name: string,
+): Promise<void> {
+  if (process.env.PXA_CAPTURE_PDF_TRUST_DOCS !== '1') return;
+
+  const viewport = testInfo.project.name.includes('mobile') ? 'mobile' : 'desktop';
+  const directory = path.resolve(
+    process.cwd(),
+    '../websites/PXA.Documentation/public/images/pdf-trust',
+  );
+  await fs.mkdir(directory, { recursive: true });
+  await page.screenshot({
+    path: path.join(directory, `${name}-${viewport}.png`),
+    fullPage: false,
+  });
+}
 
 function syntheticPdf(): string {
   const objects = [
@@ -51,7 +160,7 @@ const permissions = [
   'designer.pdf.print',
 ];
 
-test('authenticated viewer completes PDF Trust smoke workflow with synthetic data', async ({ page }) => {
+test('authenticated viewer completes PDF Trust smoke workflow with synthetic data', async ({ page }, testInfo) => {
   const pdf = syntheticPdf();
   const pdfBuffer = Buffer.from(pdf, 'binary');
 
@@ -158,10 +267,13 @@ test('authenticated viewer completes PDF Trust smoke workflow with synthetic dat
   await page.getByRole('button', { name: 'PDF Trust' }).click();
   await page.getByRole('button', { name: 'Inspect trust' }).click();
   await expect(page.getByText('SHA-256 aaaaaaaaaaaaaaaa...')).toBeVisible();
+  await captureDocumentationScreenshot(page, testInfo, 'viewer-trust');
 
   await page.getByRole('button', { name: 'Preflight PDF/A' }).click();
   await expect(page.getByText(/Preflight passed|Ready/i)).toBeVisible();
   await page.getByRole('button', { name: /Convert to selected PDF\/A profile/i }).click();
+  await expect(page.getByText(/selected PDF\/A file was created/i)).toBeVisible();
+  await captureDocumentationScreenshot(page, testInfo, 'viewer-compliance');
 
   await expect(page.getByRole('button', { name: 'Sign PDF' })).toBeVisible();
   await page.locator('input[type="file"][accept*=".p12"]').setInputFiles({
@@ -172,6 +284,7 @@ test('authenticated viewer completes PDF Trust smoke workflow with synthetic dat
   await page.locator('input[type="password"]').fill('synthetic-password');
   await page.getByRole('button', { name: 'Sign PDF' }).click();
   await expect(page.getByText('The signed PDF was created.')).toBeVisible();
+  await captureDocumentationScreenshot(page, testInfo, 'viewer-signature');
 
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Redact', exact: true }).click();
@@ -182,8 +295,57 @@ test('authenticated viewer completes PDF Trust smoke workflow with synthetic dat
   await expect(page.getByTestId('redaction-report')).toContainText('Verify: ✓');
   await page.getByRole('button', { name: 'Compare with original' }).click();
   await expect(page.getByRole('dialog', { name: 'Redaction result comparison' })).toBeVisible();
+  await captureDocumentationScreenshot(page, testInfo, 'viewer-redaction-review');
 
   const download = page.waitForEvent('download');
   await page.getByTitle('Download').click();
   await expect((await download).suggestedFilename()).toBe('synthetic.pdf');
+});
+
+test.describe('live authenticated PDF Trust workflow', () => {
+  test('registered customer inspects and reviews a PDF through the running application', async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(
+      process.env.PXA_RUN_LIVE_AUTH_TRUST !== '1',
+      'Requires running Account, Designer, WebApi, PostgreSQL, and Mailpit services.',
+    );
+    test.setTimeout(180_000);
+
+    const pdfBuffer = Buffer.from(syntheticPdf(), 'binary');
+    await page.route('**/pdf-trust-live.pdf', route => route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: pdfBuffer,
+    }));
+
+    const viewerUrl = `${designerUrl}/pdf/viewer?src=/pdf-trust-live.pdf&name=pdf-trust-live.pdf`;
+    await registerAndEnterDesigner(page, request, viewerUrl);
+    await dismissProductPanel(page);
+    await expect(page.getByTitle('Download')).toBeVisible();
+
+    if ((page.viewportSize()?.width ?? 0) <= 680) {
+      await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    }
+
+    await page.getByTitle('PDF Trust').click();
+    await page.getByRole('button', { name: 'Inspect trust' }).click();
+    await expect(page.getByText(/SHA-256 [a-f0-9]{16}\.\.\./i)).toBeVisible({ timeout: 30_000 });
+    await testInfo.attach('live-trust-inspection', {
+      body: await page.screenshot({ fullPage: false }),
+      contentType: 'image/png',
+    });
+
+    await page.getByRole('button', { name: 'Preflight PDF/A' }).click();
+    await expect(page.getByText(/Preflight passed|Ready/i)).toBeVisible({ timeout: 30_000 });
+    await testInfo.attach('live-compliance-preflight', {
+      body: await page.screenshot({ fullPage: false }),
+      contentType: 'image/png',
+    });
+
+    const download = page.waitForEvent('download');
+    await page.getByTitle('Download').click();
+    await expect((await download).suggestedFilename()).toBe('pdf-trust-live.pdf');
+  });
 });

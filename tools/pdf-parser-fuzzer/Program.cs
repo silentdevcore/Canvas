@@ -7,7 +7,7 @@ using PXA.Importer.Trust;
 using PXA.Pdf;
 
 const int seed = 0x504841;
-const int maximumMutations = 48;
+const int maximumMutations = 96;
 const int maximumInputBytes = 256 * 1024;
 const int childTimeoutMilliseconds = 2_000;
 
@@ -219,6 +219,32 @@ static IEnumerable<Mutation> CreateMutations(byte[] source)
     yield return Replace(source, "oversized-length", "/Length ", "/Length 999999999999999999999999 ");
     yield return Insert(source, "nested-arrays", Math.Min(source.Length, 64), Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("[ ", 96))));
     yield return Insert(source, "nested-dictionaries", Math.Min(source.Length, 64), Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("<</A ", 64))));
+    yield return Replace(source, "negative-size", "/Size 5", "/Size -1");
+    yield return Replace(source, "invalid-startxref", $"startxref\n{FindStartXref(source)}", "startxref\n999999999");
+    yield return Insert(source, "duplicate-shadow-object", FindEofOffset(source), Encoding.ASCII.GetBytes("\n1 0 obj\n<< /Type /Catalog /Pages 999 0 R >>\nendobj\n"));
+    yield return Insert(source, "late-javascript-object", FindEofOffset(source), Encoding.ASCII.GetBytes("\n99 0 obj\n<< /S /JavaScript /JS (alert\\(1\\)) >>\nendobj\n"));
+    yield return Insert(source, "recursive-reference", FindEofOffset(source), Encoding.ASCII.GetBytes("\n98 0 obj\n98 0 R\nendobj\n"));
+    yield return Insert(source, "unterminated-stream", FindEofOffset(source), Encoding.ASCII.GetBytes("\n97 0 obj\n<< /Length 64 >>\nstream\nunterminated"));
+    yield return Insert(source, "fake-eof-middle", source.Length / 2, Encoding.ASCII.GetBytes("\n%%EOF\n"));
+    yield return Insert(source, "incremental-empty-revision", source.Length, Encoding.ASCII.GetBytes(
+        $"\nxref\n0 1\n0000000000 65535 f \ntrailer\n<< /Size 5 /Prev {FindStartXref(source)} >>\nstartxref\n{source.Length}\n%%EOF\n"));
+}
+
+static int FindStartXref(byte[] source)
+{
+    var text = Encoding.Latin1.GetString(source);
+    var marker = text.LastIndexOf("startxref\n", StringComparison.Ordinal);
+    if (marker < 0)
+        return 0;
+    marker += "startxref\n".Length;
+    var end = text.IndexOf('\n', marker);
+    return end > marker && int.TryParse(text[marker..end], out var value) ? value : 0;
+}
+
+static int FindEofOffset(byte[] source)
+{
+    var marker = Encoding.Latin1.GetString(source).LastIndexOf("%%EOF", StringComparison.Ordinal);
+    return marker >= 0 ? marker : source.Length;
 }
 
 static Mutation Flip(byte[] source, string id, int offset, Random random)

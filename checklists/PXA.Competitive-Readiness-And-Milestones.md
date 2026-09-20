@@ -59,6 +59,14 @@ This is the most important technical gap:
 - Optimization and linearization.
 - Reliable editing of existing PDFs.
 
+Current implementation status: PAdES B-B/B-T/B-LT/B-LTA, timestamps, AES-256,
+bounded irreversible redaction, PDF/A-2b/PDF/A-3b, Tagged PDF/PDF/UA-1, Viewer
+Trust workflows, provider diagnostics, and synthetic validation corpora are
+implemented. Remaining release gates are explicitly tracked in
+`PXA.PDF-Trust-Foundation.md`; PDF/A-4, PDF/UA-2, qualified-signature providers,
+manual assistive-technology evidence, and universal hostile-PDF repair are not
+claimed.
+
 Without these capabilities, banks, insurers, public authorities, and larger
 companies will only be able to use PXA in a limited capacity.
 

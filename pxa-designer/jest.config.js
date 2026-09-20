@@ -2,6 +2,7 @@
 const config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  setupFiles: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^\\./pdfWorker$': '<rootDir>/src/__tests__/mocks/pdfWorker.ts',

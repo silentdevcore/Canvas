@@ -60,6 +60,14 @@ Dies ist die wichtigste technische Lücke:
 Ohne diese Fähigkeiten können Banken, Versicherungen, Behörden und größere
 Unternehmen PXA nur eingeschränkt einsetzen.
 
+Aktueller Umsetzungsstand: PAdES B-B/B-T/B-LT/B-LTA, Zeitstempel, AES-256,
+begrenzt nachgewiesene irreversible Redaction, PDF/A-2b/PDF/A-3b, Tagged PDF/
+PDF/UA-1, Viewer-Trust-Workflows, Provider-Diagnosen und synthetische
+Validierungskorpora sind implementiert. Die verbleibenden Release-Gates stehen
+explizit in `PXA.PDF-Trust-Foundation.md`. PDF/A-4, PDF/UA-2, qualifizierte
+Signaturanbieter, manuelle Assistive-Technology-Nachweise und universelle
+Reparatur beliebiger feindlicher PDFs werden nicht behauptet.
+
 ### 2. Nachgewiesene Dokumenttreue
 
 Unterstützung muss mehr bedeuten, als nur eine Dateiendung zu akzeptieren. PXA

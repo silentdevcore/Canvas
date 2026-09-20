@@ -12,6 +12,8 @@ public sealed class PdfTrustInspectionJobExecutor(
     IPxaPdfTrustPolicyProvider trustPolicyProvider,
     IPxaPdfTrustAuditWriter auditWriter)
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     public async Task<PdfTrustInspectionJobResult> ExecuteAsync(
         PxaBackgroundJob job,
         CancellationToken cancellationToken)
@@ -48,7 +50,9 @@ public sealed class PdfTrustInspectionJobExecutor(
             },
             cancellationToken);
         var diagnosticCodes = report.Diagnostics.Select(value => value.Code).ToArray();
-        await using var output = new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(report), writable: false);
+        await using var output = new MemoryStream(
+            JsonSerializer.SerializeToUtf8Bytes(report, JsonOptions),
+            writable: false);
         var result = await storedObjects.StoreAsync(
             job.OrganizationId,
             job.CreatedByUserId,
@@ -57,7 +61,7 @@ public sealed class PdfTrustInspectionJobExecutor(
             "pdf-trust-report.json",
             output,
             cancellationToken);
-        var diagnosticsJson = JsonSerializer.Serialize(diagnosticCodes);
+        var diagnosticsJson = JsonSerializer.Serialize(diagnosticCodes, JsonOptions);
         job.ResultObjectId = result.Id;
         job.DiagnosticsJson = diagnosticsJson;
         try
