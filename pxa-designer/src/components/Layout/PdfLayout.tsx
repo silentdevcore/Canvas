@@ -16,7 +16,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
+import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
@@ -64,8 +64,14 @@ const PdfLayout: React.FC = () => {
         : undefined,
     },
     { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge,
-      disabled: !hasDesignerPermission(user, designerPermissions.migrationPdfExecute)
-        && !hasDesignerPermission(user, designerPermissions.migrationReportExecute), disabledReason: permissionRequired },
+      disabled: !hasAnyDesignerPermission(user, [
+        designerPermissions.migrationPdfExecute,
+        migrationKindPermission('pdf', 'code', 'execute'),
+        migrationKindPermission('pdf', 'viewer', 'execute'),
+        migrationKindPermission('pdf', 'designer', 'execute'),
+        designerPermissions.migrationReportExecute,
+        migrationKindPermission('report', 'designer', 'execute'),
+      ]), disabledReason: permissionRequired },
   ];
 
   return (

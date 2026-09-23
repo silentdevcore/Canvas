@@ -61,4 +61,32 @@ describe('PDF Trust migration report', () => {
     await act(async () => root.unmount());
     container.remove();
   });
+
+  test('normalizes legacy numeric enum values without crashing', async () => {
+    const report: PdfTrustMigrationResult = {
+      providerKey: 'nutrient',
+      migrationKind: 'code',
+      overallDisposition: 'ReviewRequired',
+      manualActions: [{
+        actionId: 'CANMIGNUTNET021',
+        capability: 0,
+        disposition: 1,
+        sourceOperation: 'SignPDF',
+        documentationPath: '/docs/guides/PXA.Pdf-Trust-Generator-Examples.html',
+      }],
+    };
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<PdfTrustMigrationReport report={report} documentationBaseUrl="https://docs.example.test" />);
+    });
+
+    expect(container.textContent).toContain('trust.capabilities.digitalSignature');
+    expect(container.textContent).toContain('trust.dispositions.ReviewRequired');
+
+    await act(async () => root.unmount());
+    container.remove();
+  });
 });

@@ -152,8 +152,27 @@ public static class PxaDesignerPermissionResolver
                 ? PxaDesignerPermissions.JobsCancel
                 : PxaDesignerPermissions.JobsRead;
 
-        if (StartsWith(value, "/api/pxa/v1/migrations/pdf/viewer"))
-            return PxaDesignerPermissions.MigrationPdfExecute;
+        if (StartsWith(value, "/api/pxa/v1/migrations"))
+        {
+            var segments = value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 4 || string.Equals(segments.ElementAtOrDefault(4), "catalog", StringComparison.Ordinal))
+                return PxaDesignerPermissions.MigrationRead;
+
+            var domain = segments.Length > 4 ? segments[4] : string.Empty;
+            var readOnly = normalizedMethod is "GET" or "HEAD" or "OPTIONS";
+            return domain switch
+            {
+                "spreadsheet" => readOnly
+                    ? PxaDesignerPermissions.MigrationSpreadsheetRead
+                    : PxaDesignerPermissions.MigrationSpreadsheetExecute,
+                "report" => readOnly
+                    ? PxaDesignerPermissions.MigrationReportRead
+                    : PxaDesignerPermissions.MigrationReportExecute,
+                _ => readOnly
+                    ? PxaDesignerPermissions.MigrationPdfRead
+                    : PxaDesignerPermissions.MigrationPdfExecute
+            };
+        }
 
         if (StartsWith(value, "/api/pxa/v1/pdf/compliance"))
             return value.EndsWith("/convert", StringComparison.Ordinal)

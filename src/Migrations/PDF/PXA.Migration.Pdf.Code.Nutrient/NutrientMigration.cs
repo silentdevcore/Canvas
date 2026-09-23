@@ -26,13 +26,23 @@ public sealed class NutrientMigration : CSharpSourceMigration
         migrated = RemoveNutrientUsings(migrated);
         migrated = EnsurePxaUsing(migrated);
 
+        var migratedCode = migrated.NormalizeWhitespace().ToFullString()
+            .Replace("\r\n", "\n", StringComparison.Ordinal);
+        if (rewriter.ReviewMarkers.Count > 0)
+        {
+            migratedCode += "\n\n// PXA migration review\n" + string.Join(
+                "\n",
+                rewriter.ReviewMarkers
+                    .Distinct(StringComparer.Ordinal)
+                    .Select(static marker => $"// {marker}"));
+        }
+
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanUnsupportedCapabilities(root));
 
         return new MigrationResult
         {
-            MigratedCode = migrated.NormalizeWhitespace().ToFullString()
-                .Replace("\r\n", "\n", StringComparison.Ordinal),
+            MigratedCode = migratedCode,
             Diagnostics = diagnostics
                 .GroupBy(static diagnostic => (diagnostic.Id, diagnostic.Message))
                 .Select(static group => group.First())
@@ -63,7 +73,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
         if (methodNames.Overlaps(new[]
             {
                 "LoadFromFile", "LoadFromStream", "ClonePage", "MovePage", "DeletePage",
-                "MergeDocuments", "Merge2Documents", "InsertPage", "SelectPage"
+                "MergeDocuments", "Merge2Documents", "InsertPage"
             }))
         {
             yield return Warning("CANMIGNUTNET020",
@@ -76,7 +86,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 || name.Contains("Timestamp", StringComparison.OrdinalIgnoreCase)))
         {
             yield return Warning("CANMIGNUTNET021",
-                "Digital signatures, certificates, timestamps, PAdES, and validation are deferred to the PXA PDF Trust Foundation; source calls were preserved.");
+                "Digital signatures, certificates, timestamps, PAdES, and validation require a runtime-managed PXA signing key. Generated code contains an explicit Trust workflow action and never copies certificate secrets.");
         }
 
         if (methodNames.Any(static name =>
@@ -84,7 +94,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 || name.Contains("Redaction", StringComparison.OrdinalIgnoreCase)))
         {
             yield return Warning("CANMIGNUTNET022",
-                "Nutrient redaction cannot yet be migrated as irreversible content removal; source calls were preserved and must not be replaced by visual overlays.");
+                "Nutrient redaction requires source regions and existing-PDF bytes. Generated code contains an explicit PXA Trust pipeline action and never substitutes a visual overlay.");
         }
 
         if (methodNames.Any(static name =>
@@ -93,11 +103,10 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 || name.Contains("PdfUA", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Conformance", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Linear", StringComparison.OrdinalIgnoreCase)
-                || name.Contains("Encrypt", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Security", StringComparison.OrdinalIgnoreCase))))
         {
             yield return Warning("CANMIGNUTNET023",
-                "PDF/A, PDF/UA, encryption, security, conformance, and linearization require review until equivalent PXA trust capabilities are available.");
+                "PDF/A, PDF/UA, encryption, security, conformance, and linearization require explicit adapter review; available PXA Trust capabilities are not substituted without equivalent source semantics.");
         }
 
         if (methodNames.Any(static name =>
@@ -108,12 +117,14 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 || name.Contains("HyperCompress", StringComparison.OrdinalIgnoreCase)))
         {
             yield return Warning("CANMIGNUTNET024",
-                "OCR, scanning, native printing, and hyper-compression require migration to separate PXA application services or manual replacement.");
+                "OCR, scanning, native printing, and hyper-compression cross application-service or hardware boundaries and are emitted as explicit review actions.");
         }
 
         if (methodNames.Any(static name =>
                 name.StartsWith("Add", StringComparison.Ordinal) && name.Contains("Annotation", StringComparison.Ordinal)
+                    && name is not "AddStickyNoteAnnotation" and not "AddLinkToWebAnnotation"
                 || name.StartsWith("Add", StringComparison.Ordinal) && name.Contains("FormField", StringComparison.Ordinal)
+                    && name is not "AddTextFormField" and not "AddCheckBoxFormField"
                 || name.StartsWith("SetFormField", StringComparison.Ordinal)
                 || name.StartsWith("ImportXFDF", StringComparison.Ordinal)))
         {
@@ -167,13 +178,22 @@ public sealed class NutrientMigration : CSharpSourceMigration
     private sealed class NutrientRewriter : CSharpSyntaxRewriter
     {
         private readonly HashSet<string> _documentVariables;
+        private readonly HashSet<string> _imageResourceVariables = [];
         private readonly List<MigrationDiagnostic> _diagnostics = [];
+        private readonly List<string> _reviewMarkers = [];
+        private readonly Dictionary<int, string> _pageVariables = [];
         private string _currentPageVariable = "page";
         private int _pageCount;
         private double _unitScale = 1;
         private bool _topLeftOrigin;
+        private bool _rightOrigin;
         private string _fontSize = "12";
+        private string _lineWidth = "1";
+        private string _lineColor = "PdfColor.Black";
+        private string _fillColor = "PdfColor.Black";
         private bool _pdfA2b;
+        private string? _ownerPassword;
+        private string? _userPassword;
 
         public NutrientRewriter(HashSet<string> documentVariables)
         {
@@ -181,6 +201,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
         }
 
         public IReadOnlyList<MigrationDiagnostic> Diagnostics => _diagnostics;
+        public IReadOnlyList<string> ReviewMarkers => _reviewMarkers;
 
         public override SyntaxNode? VisitGlobalStatement(GlobalStatementSyntax node)
         {
@@ -195,6 +216,12 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
             if (TryRewriteFontDeclaration(node, out var fontDeclaration))
                 return fontDeclaration;
+
+            if (TryRewriteImageResourceDeclaration(node, out var imageDeclaration))
+                return imageDeclaration;
+
+            if (TryRewriteFormFieldDeclaration(node, out var formFieldStatement))
+                return formFieldStatement;
 
             return base.VisitLocalDeclarationStatement(node);
         }
@@ -223,7 +250,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     else if (arguments.Count > 0 && !arguments[0].ToString().EndsWith(".PDF", StringComparison.Ordinal))
                     {
                         _diagnostics.Add(Warning("CANMIGNUTNET006",
-                            "NewPDF conformance was removed from generated code because PXA does not yet provide equivalent PDF/A or PDF/UA guarantees."));
+                            "Only PDF/A-2b is currently mapped automatically; the requested NewPDF conformance requires explicit PXA Trust review."));
                     }
                     else
                     {
@@ -255,19 +282,59 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 case "NewPage":
                     return RewriteNewPage(node, arguments);
 
+                case "SelectPage":
+                    return RewriteSelectPage(node, arguments);
+
+                case "RotatePage":
+                    return RewriteRotatePage(node, arguments);
+
                 case "SaveToFile":
                     if (arguments.Count == 0)
                         return base.VisitExpressionStatement(node);
                     _diagnostics.Add(Info("CANMIGNUTNET005", "SaveToFile(path) converted to PdfDocument.Save(path)."));
-                    return ParseStatement(_pdfA2b
-                        ? $"{member.Expression}.Save({arguments[0]}, new PdfSaveOptions {{ ComplianceProfile = PdfComplianceProfile.PdfA2B }});"
-                        : $"{member.Expression}.Save({arguments[0]});", node);
+                    return ParseStatement(BuildSaveStatement(member.Expression.ToString(), arguments[0].ToString()), node);
+
+                case "Encrypt":
+                    return RewriteEncryption(arguments);
+
+                case "OcrPage":
+                    return ReviewOperation(
+                        "CANMIGNUTNET056",
+                        "OcrPage",
+                        "Route the selected PDF page through a PDF OCR service that preserves the original page and adds an invisible text layer. PXA image OCR is not semantically equivalent.",
+                        "Nutrient OcrPage requires a PDF OCR application-service handoff; it was not replaced by image-to-design OCR.");
+
+                case "TwainAcquire":
+                    return ReviewOperation(
+                        "CANMIGNUTNET057",
+                        "TwainAcquire",
+                        "Acquire the scan through a customer-side TWAIN/WIA adapter, then submit the resulting bytes to PXA import or OCR.",
+                        "TWAIN acquisition requires scanner hardware and remains an explicit external adapter boundary.");
+
+                case "ApplyRedaction":
+                    return ReviewOperation(
+                        "CANMIGNUTNET058",
+                        "ApplyRedaction",
+                        "Map every source redaction region to PdfRedactionRegion and execute IPdfTrustPostProcessingPipeline with PdfTrustRedactionOptions before signing.",
+                        "ApplyRedaction requires source regions and existing-PDF bytes; PXA will not substitute a visual overlay.");
+
+                case "SignPDF":
+                case "SignDocument":
+                    return ReviewOperation(
+                        "CANMIGNUTNET059",
+                        method,
+                        "Resolve an IPdfSigningKey in the trusted host and execute IPdfTrustPostProcessingPipeline with PdfTrustSigningOptions. Never embed the PFX password in generated code.",
+                        "PDF signing requires a runtime-managed signing key; certificate paths and passwords were intentionally not copied.");
 
                 case "SetOrigin":
-                    _topLeftOrigin = arguments.Count > 0
-                        && arguments[0].ToString().Contains("TopLeft", StringComparison.Ordinal);
-                    _diagnostics.Add(Info("CANMIGNUTNET007",
-                        $"Nutrient coordinate origin recorded as {(_topLeftOrigin ? "top-left" : "bottom-left")}."));
+                    var origin = arguments.Count > 0 ? arguments[0].ToString() : string.Empty;
+                    _topLeftOrigin = origin.Contains("Top", StringComparison.Ordinal);
+                    _rightOrigin = origin.Contains("Right", StringComparison.Ordinal);
+                    _diagnostics.Add(_rightOrigin
+                        ? Warning("CANMIGNUTNET049",
+                            "Right-side coordinate origins require manual geometry review and subsequent drawing operations are not rewritten.")
+                        : Info("CANMIGNUTNET007",
+                            $"Nutrient coordinate origin recorded as {(_topLeftOrigin ? "top-left" : "bottom-left")}."));
                     return null;
 
                 case "SetMeasurementUnit":
@@ -283,21 +350,137 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     _diagnostics.Add(Info("CANMIGNUTNET009", "Nutrient text size was captured for subsequent text drawing."));
                     return null;
 
+                case "SetLineWidth":
+                    if (arguments.Count > 0)
+                        _lineWidth = Scale(arguments[0].ToString());
+                    _diagnostics.Add(Info("CANMIGNUTNET050", "Nutrient line width captured for subsequent graphics operations."));
+                    return null;
+
+                case "SetLineColor":
+                    if (arguments.Count == 3)
+                    {
+                        _lineColor = Rgb(arguments);
+                        _diagnostics.Add(Info("CANMIGNUTNET053", "Nutrient line color captured for subsequent graphics operations."));
+                    }
+                    else
+                        _diagnostics.Add(Warning("CANMIGNUTNET051", "SetLineColor overload requires manual color review."));
+                    return null;
+
+                case "SetFillColor":
+                    if (arguments.Count == 3)
+                    {
+                        _fillColor = Rgb(arguments);
+                        _diagnostics.Add(Info("CANMIGNUTNET054", "Nutrient fill color captured for subsequent text and graphics operations."));
+                    }
+                    else
+                        _diagnostics.Add(Warning("CANMIGNUTNET052", "SetFillColor overload requires manual color review."));
+                    return null;
+
                 case "DrawText":
                     return RewriteDrawText(node, arguments);
+
+                case "DrawTextBox":
+                    return RewriteDrawTextBox(node, arguments);
+
+                case "DrawLine":
+                    return RewriteDrawLine(node, arguments);
+
+                case "DrawRectangle":
+                    return RewriteDrawRectangle(node, arguments);
+
+                case "DrawImage":
+                    return RewriteDrawImage(node, arguments);
+
+                case "AddLinkToWeb":
+                    return RewriteWebLink(node, arguments);
+
+                case "AddLinkToWebAnnotation":
+                    return RewriteOfficialWebLink(node, arguments);
+
+                case "AddTextFormField":
+                    return RewriteTextFormField(node, arguments);
+
+                case "AddCheckBoxFormField":
+                    return RewriteCheckBoxFormField(node, arguments);
+
+                case "AddStickyNoteAnnotation":
+                    return RewriteStickyNote(node, arguments);
 
                 case "Dispose":
                     _diagnostics.Add(Info("CANMIGNUTNET010", "GdPicturePDF.Dispose() removed; PdfDocument does not own unmanaged SDK state."));
                     return null;
 
                 default:
-                    _diagnostics.Add(Warning("CANMIGNUTNET031",
-                        $"Nutrient operation '{method}' is not mapped by the Beta converter and was replaced with a review marker."));
-                    return SyntaxFactory.EmptyStatement()
-                        .WithLeadingTrivia(node.GetLeadingTrivia().Add(
-                            SyntaxFactory.Comment($"// TODO: Migrate Nutrient {method}(...) manually. ")))
-                        .WithTrailingTrivia(node.GetTrailingTrivia());
+                    return ReviewOperation(
+                        "CANMIGNUTNET031",
+                        method,
+                        $"Select an equivalent PXA API for Nutrient {method}(...) and verify its semantics before enabling the migrated workflow.",
+                        $"Nutrient operation '{method}' is not mapped by the converter and requires explicit review.");
             }
+        }
+
+        private SyntaxNode? RewriteEncryption(SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (arguments.Count < 2)
+            {
+                return ReviewOperation(
+                    "CANMIGNUTNET023",
+                    "Encrypt",
+                    "Map the Nutrient encryption overload to PdfSaveOptions.Encryption after reviewing passwords, algorithm, permissions, and metadata encryption.",
+                    "The Nutrient Encrypt overload does not provide enough information for an equivalent PXA policy.");
+            }
+
+            _ownerPassword = SecurePasswordExpression(arguments[0].Expression, "PXA_PDF_OWNER_PASSWORD");
+            _userPassword = SecurePasswordExpression(arguments[1].Expression, "PXA_PDF_USER_PASSWORD");
+            _diagnostics.Add(Info("CANMIGNUTNET055",
+                "Nutrient password encryption was mapped to PdfSaveOptions.Encryption with AES-256. Literal passwords were replaced by environment lookups."));
+            return null;
+        }
+
+        private string BuildSaveStatement(string document, string path)
+        {
+            if (!_pdfA2b && _ownerPassword is null)
+                return $"{document}.Save({path});";
+
+            if (_pdfA2b && _ownerPassword is not null)
+            {
+                _diagnostics.Add(Warning("CANMIGNUTNET060",
+                    "PDF/A forbids encryption. The generated options retain both requested policies so PXA fails closed; choose archival compliance or encryption before production use."));
+            }
+
+            var properties = new List<string>();
+            if (_pdfA2b)
+                properties.Add("ComplianceProfile = PdfComplianceProfile.PdfA2B");
+            if (_ownerPassword is not null)
+            {
+                properties.Add(
+                    "Encryption = new PdfEncryptionOptions { " +
+                    $"OwnerPassword = {_ownerPassword}, UserPassword = {_userPassword}, " +
+                    "Algorithm = PdfEncryptionAlgorithm.Aes256 }");
+            }
+
+            return $"{document}.Save({path}, new PdfSaveOptions {{ {string.Join(", ", properties)} }});";
+        }
+
+        private string SecurePasswordExpression(ExpressionSyntax expression, string environmentVariable)
+        {
+            if (!expression.IsKind(SyntaxKind.StringLiteralExpression))
+                return expression.ToString();
+
+            _diagnostics.Add(Warning("CANMIGNUTNET061",
+                $"A hard-coded PDF password was removed. Supply it at runtime through {environmentVariable} or replace the generated lookup with a secret-provider expression."));
+            return $"global::System.Environment.GetEnvironmentVariable(\"{environmentVariable}\") ?? throw new global::System.InvalidOperationException(\"Missing {environmentVariable}.\")";
+        }
+
+        private SyntaxNode? ReviewOperation(
+            string diagnosticId,
+            string operation,
+            string action,
+            string message)
+        {
+            _diagnostics.Add(Warning(diagnosticId, message));
+            _reviewMarkers.Add($"[{diagnosticId}] {operation}: {action}");
+            return null;
         }
 
         private bool TryRewriteDocumentDeclaration(
@@ -352,12 +535,66 @@ public sealed class NutrientMigration : CSharpSourceMigration
             return true;
         }
 
+        private bool TryRewriteImageResourceDeclaration(
+            LocalDeclarationStatementSyntax node,
+            out LocalDeclarationStatementSyntax rewritten)
+        {
+            rewritten = node;
+            var variable = node.Declaration.Variables.SingleOrDefault();
+            if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
+                || invocation.Expression is not MemberAccessExpressionSyntax member
+                || !_documentVariables.Contains(member.Expression.ToString())
+                || member.Name.Identifier.ValueText is not ("AddJpegImageFromFile" or "AddPngImageFromFile" or "AddImageFromFile")
+                || invocation.ArgumentList.Arguments.Count != 1)
+            {
+                return false;
+            }
+
+            _imageResourceVariables.Add(variable.Identifier.ValueText);
+            var declaration = node.Declaration
+                .WithType(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    variable.WithInitializer(variable.Initializer.WithValue(
+                        invocation.ArgumentList.Arguments[0].Expression))));
+            rewritten = node.WithDeclaration(declaration);
+            _diagnostics.Add(Info("CANMIGNUTNET029",
+                "Nutrient file image resource converted to a PXA image path reference."));
+            return true;
+        }
+
+        private bool TryRewriteFormFieldDeclaration(
+            LocalDeclarationStatementSyntax node,
+            out SyntaxNode rewritten)
+        {
+            rewritten = node;
+            var variable = node.Declaration.Variables.SingleOrDefault();
+            if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
+                || invocation.Expression is not MemberAccessExpressionSyntax member
+                || !_documentVariables.Contains(member.Expression.ToString()))
+            {
+                return false;
+            }
+
+            var method = member.Name.Identifier.ValueText;
+            var arguments = invocation.ArgumentList.Arguments;
+            rewritten = method switch
+            {
+                "AddTextFormField" => RewriteOfficialTextFormField(node, arguments),
+                "AddCheckBoxFormField" => RewriteOfficialCheckBoxFormField(node, arguments),
+                "AddLinkToWebAnnotation" => RewriteOfficialWebLink(node, arguments),
+                "AddStickyNoteAnnotation" => RewriteStickyNote(node, arguments),
+                _ => node,
+            };
+            return !ReferenceEquals(rewritten, node);
+        }
+
         private SyntaxNode RewriteNewPage(
             ExpressionStatementSyntax node,
             SeparatedSyntaxList<ArgumentSyntax> arguments)
         {
             _pageCount++;
             _currentPageVariable = _pageCount == 1 ? "page" : $"page{_pageCount}";
+            _pageVariables[_pageCount] = _currentPageVariable;
 
             string addPage;
             if (arguments.Count == 1 && TryMapPagePreset(arguments[0].ToString(), out var preset))
@@ -375,10 +612,42 @@ public sealed class NutrientMigration : CSharpSourceMigration
             return ParseStatement($"var {_currentPageVariable} = {addPage};", node);
         }
 
+        private SyntaxNode? RewriteSelectPage(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (arguments.Count == 1
+                && int.TryParse(arguments[0].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var pageNumber)
+                && _pageVariables.TryGetValue(pageNumber, out var pageVariable))
+            {
+                _currentPageVariable = pageVariable;
+                _diagnostics.Add(Info("CANMIGNUTNET012",
+                    $"Nutrient SelectPage({pageNumber}) mapped to the generated page variable '{pageVariable}'."));
+                return null;
+            }
+
+            return Unsupported(node, "SelectPage",
+                "CANMIGNUTNET033", "Dynamic or forward page selection requires manual review.");
+        }
+
+        private SyntaxNode RewriteRotatePage(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (arguments.Count != 1)
+                return Unsupported(node, "RotatePage", "CANMIGNUTNET034", "RotatePage overload could not be mapped safely.");
+
+            _diagnostics.Add(Info("CANMIGNUTNET013", "Nutrient page rotation converted to PdfPage.RotationDegrees."));
+            return ParseStatement($"{_currentPageVariable}.RotationDegrees = (int)({arguments[0]});", node);
+        }
+
         private SyntaxNode RewriteDrawText(
             ExpressionStatementSyntax node,
             SeparatedSyntaxList<ArgumentSyntax> arguments)
         {
+            if (_rightOrigin)
+                return Unsupported(node, "DrawText", "CANMIGNUTNET049", "DrawText with a right-side origin requires manual geometry review.");
+
             if (arguments.Count < 4)
             {
                 _diagnostics.Add(Warning("CANMIGNUTNET030",
@@ -391,10 +660,277 @@ public sealed class NutrientMigration : CSharpSourceMigration
             var y = Scale(arguments[2].ToString());
             var text = arguments[3].ToString();
             var method = _topLeftOrigin ? "DrawTextFromTop" : "DrawText";
-            var call = $"{_currentPageVariable}.{method}({text}, {x}, {y}, new PdfDrawTextOptions {{ FontSize = {_fontSize}, Font = {font} }});";
+            var call = $"{_currentPageVariable}.{method}({text}, {x}, {y}, new PdfDrawTextOptions {{ FontSize = {_fontSize}, Font = {font}, FillColor = {_fillColor} }});";
             _diagnostics.Add(Info("CANMIGNUTNET011", $"Nutrient DrawText converted to PdfPage.{method}."));
             return ParseStatement(call, node);
         }
+
+        private SyntaxNode RewriteDrawTextBox(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "DrawTextBox", "CANMIGNUTNET049", "DrawTextBox with a right-side origin requires manual geometry review.");
+
+            if (arguments.Count < 8)
+                return Unsupported(node, "DrawTextBox", "CANMIGNUTNET035", "DrawTextBox overload requires font, bounds, alignment, and text arguments.");
+
+            var method = _topLeftOrigin ? "DrawTextBoxFromTop" : "DrawTextBox";
+            if (!_topLeftOrigin)
+            {
+                return Unsupported(node, "DrawTextBox", "CANMIGNUTNET035",
+                    "Bottom-left DrawTextBox vertical alignment requires manual baseline review.");
+            }
+
+            var call = $"{_currentPageVariable}.{method}({arguments[7]}, {Scale(arguments[1].ToString())}, " +
+                $"{Scale(arguments[2].ToString())}, {Scale(arguments[3].ToString())}, {Scale(arguments[4].ToString())}, " +
+                $"new PdfTextBoxOptions {{ FontSize = {_fontSize}, Font = {arguments[0]}, FillColor = {_fillColor}, " +
+                $"Alignment = PdfTextAlignment.{MapHorizontalAlignment(arguments[5].ToString())}, " +
+                $"VerticalAlignment = PdfVerticalAlignment.{MapVerticalAlignment(arguments[6].ToString())} }});";
+            _diagnostics.Add(Info("CANMIGNUTNET014", "Nutrient DrawTextBox converted to PdfPage.DrawTextBoxFromTop."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteDrawLine(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "DrawLine", "CANMIGNUTNET049", "DrawLine with a right-side origin requires manual geometry review.");
+
+            if (arguments.Count < 4)
+                return Unsupported(node, "DrawLine", "CANMIGNUTNET036", "DrawLine overload could not be mapped safely.");
+
+            var method = _topLeftOrigin ? "DrawLineFromTop" : "DrawLine";
+            var lineWidth = arguments.Count >= 5 ? Scale(arguments[4].ToString()) : _lineWidth;
+            var call = $"{_currentPageVariable}.{method}({Scale(arguments[0].ToString())}, {Scale(arguments[1].ToString())}, " +
+                $"{Scale(arguments[2].ToString())}, {Scale(arguments[3].ToString())}, {lineWidth}, {_lineColor});";
+            _diagnostics.Add(Info("CANMIGNUTNET015", $"Nutrient DrawLine converted to PdfPage.{method}."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteDrawRectangle(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "DrawRectangle", "CANMIGNUTNET049", "DrawRectangle with a right-side origin requires manual geometry review.");
+
+            if (arguments.Count < 4)
+                return Unsupported(node, "DrawRectangle", "CANMIGNUTNET037", "DrawRectangle overload could not be mapped safely.");
+
+            var method = _topLeftOrigin ? "DrawRectangleFromTop" : "DrawRectangle";
+            var fill = arguments.Count >= 5 ? arguments[4].ToString() : "false";
+            var call = $"{_currentPageVariable}.{method}({Scale(arguments[0].ToString())}, {Scale(arguments[1].ToString())}, " +
+                $"{Scale(arguments[2].ToString())}, {Scale(arguments[3].ToString())}, lineWidth: {_lineWidth}, fill: {fill}, " +
+                $"strokeColor: {_lineColor}, fillColor: {_fillColor});";
+            _diagnostics.Add(Info("CANMIGNUTNET016", $"Nutrient DrawRectangle converted to PdfPage.{method}."));
+
+            if (arguments.Count >= 6 && arguments[5].ToString() == "false")
+            {
+                _diagnostics.Add(Warning("CANMIGNUTNET038",
+                    "The source rectangle disabled stroking; PXA currently renders a one-point border and requires visual review."));
+            }
+
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteDrawImage(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "DrawImage", "CANMIGNUTNET049", "DrawImage with a right-side origin requires manual geometry review.");
+
+            if (arguments.Count is not (3 or 5) || !IsSupportedImageExpression(arguments[0].Expression))
+            {
+                return Unsupported(node, "DrawImage", "CANMIGNUTNET039",
+                    "Only file-path, byte-array, or stream image overloads can be mapped; GdPicture image resource IDs require manual export.");
+            }
+
+            var method = _topLeftOrigin ? "DrawImageFromTop" : "DrawImage";
+            var scaled = arguments.Skip(1).Select(argument => Scale(argument.ToString()));
+            var call = $"{_currentPageVariable}.{method}({arguments[0]}, {string.Join(", ", scaled)});";
+            _diagnostics.Add(Info("CANMIGNUTNET017", $"Nutrient file or in-memory image converted to PdfPage.{method}."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteWebLink(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddLinkToWeb", "CANMIGNUTNET049", "Web links with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 5)
+                return Unsupported(node, "AddLinkToWeb", "CANMIGNUTNET040", "Web-link overload could not be mapped safely.");
+
+            var y = BoxY(arguments[2].ToString(), arguments[4].ToString());
+            var call = $"{_currentPageVariable}.AddWebLink({Scale(arguments[1].ToString())}, {y}, " +
+                $"{Scale(arguments[3].ToString())}, {Scale(arguments[4].ToString())}, {arguments[0]});";
+            _diagnostics.Add(Info("CANMIGNUTNET018", "Nutrient web link converted to PdfPage.AddWebLink."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteOfficialWebLink(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddLinkToWebAnnotation", "CANMIGNUTNET049", "Web links with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 9)
+                return Unsupported(node, "AddLinkToWebAnnotation", "CANMIGNUTNET040", "Web-link annotation overload could not be mapped safely.");
+
+            var call = $"{_currentPageVariable}.AddWebLink({Scale(arguments[0].ToString())}, " +
+                $"{BoxY(arguments[1].ToString(), arguments[3].ToString())}, {Scale(arguments[2].ToString())}, " +
+                $"{Scale(arguments[3].ToString())}, {arguments[4]});";
+            _diagnostics.Add(Info("CANMIGNUTNET018", "Nutrient web-link annotation converted to PdfPage.AddWebLink."));
+            if (arguments[5].ToString() == "true")
+            {
+                _diagnostics.Add(Warning("CANMIGNUTNET045",
+                    "The source web-link border appearance is not retained by the current PXA link contract."));
+            }
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteTextFormField(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddTextFormField", "CANMIGNUTNET049", "Text fields with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 12)
+                return Unsupported(node, "AddTextFormField", "CANMIGNUTNET041", "Text form-field overload could not be mapped safely.");
+            return RewriteOfficialTextFormField(node, arguments);
+        }
+
+        private SyntaxNode RewriteCheckBoxFormField(
+            ExpressionStatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddCheckBoxFormField", "CANMIGNUTNET049", "Checkboxes with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 10)
+                return Unsupported(node, "AddCheckBoxFormField", "CANMIGNUTNET042", "Checkbox form-field overload could not be mapped safely.");
+            return RewriteOfficialCheckBoxFormField(node, arguments);
+        }
+
+        private SyntaxNode RewriteOfficialTextFormField(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddTextFormField", "CANMIGNUTNET049", "Text fields with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 12)
+                return Unsupported(node, "AddTextFormField", "CANMIGNUTNET041", "Text form-field overload could not be mapped safely.");
+
+            var commonArguments = $"{arguments[4]}, {Scale(arguments[0].ToString())}, " +
+                $"{BoxY(arguments[1].ToString(), arguments[3].ToString())}, {Scale(arguments[2].ToString())}, " +
+                $"{Scale(arguments[3].ToString())}, {arguments[5]}, {Scale(arguments[8].ToString())}";
+            var multiline = arguments[6].ToString();
+            var call = multiline switch
+            {
+                "true" => $"{_currentPageVariable}.AddMultilineTextField({commonArguments});",
+                "false" => $"{_currentPageVariable}.AddTextField({commonArguments});",
+                _ => $"if ({multiline}) {_currentPageVariable}.AddMultilineTextField({commonArguments}); " +
+                    $"else {_currentPageVariable}.AddTextField({commonArguments});",
+            };
+            _diagnostics.Add(Info("CANMIGNUTNET019", "Nutrient text form field converted to the matching PXA text-field contract."));
+            _diagnostics.Add(Warning("CANMIGNUTNET046",
+                "Text-field font resource and RGB appearance require visual review because PXA currently preserves the font size only."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteOfficialCheckBoxFormField(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddCheckBoxFormField", "CANMIGNUTNET049", "Checkboxes with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 10)
+                return Unsupported(node, "AddCheckBoxFormField", "CANMIGNUTNET042", "Checkbox form-field overload could not be mapped safely.");
+
+            if (arguments[2].ToString() != arguments[3].ToString())
+            {
+                _diagnostics.Add(Warning("CANMIGNUTNET043",
+                    "A non-square checkbox was normalized to its width because PXA checkboxes are square."));
+            }
+            _diagnostics.Add(Warning("CANMIGNUTNET047",
+                "Checkbox mark style and RGB appearance require visual review in PXA."));
+            var call = $"{_currentPageVariable}.AddCheckBox({arguments[4]}, {Scale(arguments[0].ToString())}, " +
+                $"{BoxY(arguments[1].ToString(), arguments[3].ToString())}, {Scale(arguments[2].ToString())}, {arguments[6]});";
+            _diagnostics.Add(Info("CANMIGNUTNET027", "Nutrient checkbox form field converted to PdfPage.AddCheckBox."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteStickyNote(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddStickyNoteAnnotation", "CANMIGNUTNET049", "Sticky notes with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 15)
+                return Unsupported(node, "AddStickyNoteAnnotation", "CANMIGNUTNET044", "Sticky-note overload could not be mapped safely.");
+
+            const string iconSize = "18";
+            var call = $"{_currentPageVariable}.AddStickyNoteAnnotation({Scale(arguments[1].ToString())}, " +
+                $"{BoxY(arguments[2].ToString(), iconSize)}, {iconSize}, {iconSize}, {arguments[5]}, " +
+                $"PdfColor.FromRgb({arguments[8]}, {arguments[9]}, {arguments[10]}), {arguments[6]});";
+            _diagnostics.Add(Info("CANMIGNUTNET028", "Nutrient sticky note converted to PdfPage.AddStickyNoteAnnotation."));
+            _diagnostics.Add(Warning("CANMIGNUTNET048",
+                "Sticky-note author, subject, icon, popup state, and popup geometry are not represented by the current PXA annotation contract."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode Unsupported(StatementSyntax node, string operation, string diagnosticId, string message)
+        {
+            _diagnostics.Add(Warning(diagnosticId, message));
+            _reviewMarkers.Add($"[{diagnosticId}] {operation}: {message}");
+            return SyntaxFactory.EmptyStatement()
+                .WithLeadingTrivia(node.GetLeadingTrivia())
+                .WithTrailingTrivia(node.GetTrailingTrivia());
+        }
+
+        private string BoxY(string y, string height) => _topLeftOrigin
+            ? $"{_currentPageVariable}.Height - ({Scale(y)}) - ({Scale(height)})"
+            : Scale(y);
+
+        private bool IsSupportedImageExpression(ExpressionSyntax expression) => expression switch
+        {
+            LiteralExpressionSyntax literal => literal.IsKind(SyntaxKind.StringLiteralExpression),
+            IdentifierNameSyntax identifier => _imageResourceVariables.Contains(identifier.Identifier.ValueText),
+            ArrayCreationExpressionSyntax => true,
+            ImplicitArrayCreationExpressionSyntax => true,
+            ObjectCreationExpressionSyntax creation => SimpleName(creation.Type) is "MemoryStream" or "FileStream",
+            _ => false,
+        };
+
+        private static string MapHorizontalAlignment(string expression)
+        {
+            if (expression.Contains("Center", StringComparison.OrdinalIgnoreCase)) return "Center";
+            if (expression.Contains("Right", StringComparison.OrdinalIgnoreCase)
+                || expression.Contains("Far", StringComparison.OrdinalIgnoreCase)) return "Right";
+            if (expression.Contains("Just", StringComparison.OrdinalIgnoreCase)) return "Justify";
+            return "Left";
+        }
+
+        private static string MapVerticalAlignment(string expression)
+        {
+            if (expression.Contains("Center", StringComparison.OrdinalIgnoreCase)
+                || expression.Contains("Middle", StringComparison.OrdinalIgnoreCase)) return "Middle";
+            if (expression.Contains("Bottom", StringComparison.OrdinalIgnoreCase)
+                || expression.Contains("Far", StringComparison.OrdinalIgnoreCase)) return "Bottom";
+            return "Top";
+        }
+
+        private static string Rgb(SeparatedSyntaxList<ArgumentSyntax> arguments) =>
+            $"PdfColor.FromRgb({arguments[0]}, {arguments[1]}, {arguments[2]})";
 
         private static StatementSyntax ParseStatement(string statement, StatementSyntax source) =>
             SyntaxFactory.ParseStatement(statement)

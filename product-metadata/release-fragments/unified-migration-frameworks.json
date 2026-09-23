@@ -1,0 +1,21 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "unified-migration-frameworks",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "migration",
+    "spreadsheet"
+  ],
+  "category": "improved",
+  "summary": "PXA now provides one discoverable migration catalog and consistent APIs while keeping PDF and Spreadsheet workflows separate. Nutrient Viewer migration combines the original PDF and Viewer source into one editable PXA design with backend preview and Open in Designer.",
+  "documentation": [
+    "/checklists/PXA.Unified-Migration-Frameworks.md",
+    "/checklists/Migration-Namespace-Taxonomy.md",
+    "/docs/guides/PXA.Unified-Migration-Provider-Coverage.md",
+    "/#provider-taxonomy"
+  ],
+  "breaking": false
+}

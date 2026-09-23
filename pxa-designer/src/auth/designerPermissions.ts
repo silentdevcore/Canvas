@@ -68,9 +68,29 @@ export function hasDesignerPermission(user: DesignerUser, permission: DesignerPe
   return user.permissions.includes(permission);
 }
 
+export function hasAnyDesignerPermission(user: DesignerUser, permissions: readonly string[]): boolean {
+  return permissions.some(permission => user.permissions.includes(permission));
+}
+
+export function migrationKindPermission(
+  domain: 'pdf' | 'spreadsheet' | 'report',
+  kind: 'code' | 'viewer' | 'designer' | 'datasource',
+  action: 'read' | 'execute',
+): string {
+  return `designer.migration.${domain}.${kind}.${action}`;
+}
+
 export function migrationProviderPermission(
   domain: 'pdf' | 'spreadsheet' | 'report',
   provider: string,
 ): string {
   return `designer.migration.${domain}.provider.${provider}.execute`;
+}
+
+export function canonicalMigrationProviderPermission(
+  domain: 'pdf' | 'spreadsheet' | 'report',
+  kind: 'code' | 'viewer' | 'designer' | 'datasource',
+  provider: string,
+): string {
+  return `designer.migration.${domain}.${kind}.provider.${provider}.execute`;
 }

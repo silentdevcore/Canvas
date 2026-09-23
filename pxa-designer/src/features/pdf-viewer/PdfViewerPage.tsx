@@ -14,6 +14,8 @@ const PdfViewerPage: React.FC = () => {
         initialSource={launchConfig.source}
         initialPageNumber={launchConfig.initialPageNumber}
         initialFitMode={launchConfig.initialFitMode}
+        initialAnnotations={launchConfig.annotations}
+        initialFormValues={launchConfig.formValues}
         canDownload={hasDesignerPermission(user, designerPermissions.pdfExport)}
         canPrint={hasDesignerPermission(user, designerPermissions.pdfPrint)}
         canInspectTrust={hasDesignerPermission(user, designerPermissions.pdfTrustInspect)}

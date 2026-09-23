@@ -16,12 +16,15 @@ public sealed class NutrientViewerMigrationController : ControllerBase
 {
     [HttpGet("examples/comprehensive")]
     [ProducesResponseType(typeof(NutrientComprehensiveExample), StatusCodes.Status200OK)]
-    public ActionResult<NutrientComprehensiveExample> GetComprehensiveExample() => Ok(
-        new NutrientComprehensiveExample(
+    public ActionResult<NutrientComprehensiveExample> GetComprehensiveExample()
+    {
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/pdf/viewer/nutrient/examples");
+        return Ok(new NutrientComprehensiveExample(
             NutrientViewerExamples.ComprehensiveTypeScript,
             NutrientViewerExamples.ComprehensiveInstantJson,
             NutrientCodeExamples.ComprehensiveGdPictureCSharp,
             NutrientViewerExamples.ComprehensivePageGeometry));
+    }
 
     [HttpPost("convert")]
     [RequestSizeLimit(NutrientInstantJsonConverter.MaximumPayloadBytes + 64 * 1024)]
@@ -30,6 +33,7 @@ public sealed class NutrientViewerMigrationController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public ActionResult<object> Convert([FromBody] NutrientViewerMigrationRequest request)
     {
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/pdf/viewer/nutrient/convert");
         if (string.Equals(request.InputType, "javascript", StringComparison.OrdinalIgnoreCase)
             || string.Equals(request.InputType, "js", StringComparison.OrdinalIgnoreCase))
         {
@@ -118,6 +122,14 @@ public sealed class NutrientViewerMigrationController : ControllerBase
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?> { ["code"] = "CANMIGNUTJSON009" });
         }
+    }
+
+    private void AddCompatibilityHeaders(string successor)
+    {
+        if (ControllerContext.HttpContext is null) return;
+        Response.Headers["Deprecation"] = "true";
+        Response.Headers["Sunset"] = "Thu, 30 Sep 2027 23:59:59 GMT";
+        Response.Headers.Link = $"<{successor}>; rel=\"successor-version\"";
     }
 }
 

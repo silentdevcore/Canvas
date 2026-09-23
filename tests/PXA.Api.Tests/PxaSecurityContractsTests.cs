@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.RateLimiting;
+using PXA.Migration.Abstractions;
 using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services;
@@ -160,7 +161,25 @@ public sealed class PxaSecurityContractsTests
         Assert.Equal(8, PxaDesignerMigrationPermissions.SpreadsheetProviders.Values.Distinct().Count());
         Assert.Equal(8, PxaDesignerMigrationPermissions.ReportProviders.Values.Distinct().Count());
         Assert.Single(PxaDesignerMigrationPermissions.ViewerProviders.Values.Distinct());
-        Assert.Equal(33, PxaDesignerMigrationPermissions.All.Count);
+        Assert.Equal(33, PxaDesignerMigrationPermissions.LegacyAll.Count);
+        var expectedCanonical = MigrationProviderCatalog.All
+            .Select(static descriptor => descriptor.PermissionKey)
+            .Concat(MigrationProviderCatalog.All.SelectMany(static descriptor => new[]
+            {
+                PxaDesignerMigrationPermissions.KindPermission(descriptor.Domain, descriptor.MigrationKind, "read"),
+                PxaDesignerMigrationPermissions.KindPermission(descriptor.Domain, descriptor.MigrationKind, "execute")
+            }))
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+        Assert.Equal(expectedCanonical, PxaDesignerMigrationPermissions.CanonicalAll.Count);
+        Assert.Equal(PxaDesignerMigrationPermissions.LegacyAll
+            .Concat(PxaDesignerMigrationPermissions.CanonicalAll)
+            .Distinct(StringComparer.Ordinal)
+            .Count(), PxaDesignerMigrationPermissions.All.Count);
+        Assert.Contains("designer.migration.report.designer.provider.auto.execute",
+            PxaDesignerMigrationPermissions.CanonicalAll);
+        Assert.Contains("designer.migration.pdf.designer.provider.nutrient.execute",
+            PxaDesignerMigrationPermissions.CanonicalAll);
         Assert.All(PxaDesignerMigrationPermissions.PdfProviders.Values,
             permission => Assert.StartsWith("designer.migration.pdf.provider.", permission, StringComparison.Ordinal));
         Assert.All(PxaDesignerMigrationPermissions.SpreadsheetProviders.Values,
@@ -192,6 +211,7 @@ public sealed class PxaSecurityContractsTests
     [InlineData("/api/pxa/v1/document-jobs/import", "POST", PxaDesignerPermissions.PdfImport)]
     [InlineData("/api/pxa/v1/document-jobs/export", "POST", PxaDesignerPermissions.PdfExport)]
     [InlineData("/api/pxa/v1/document-jobs/code-migration", "POST", PxaDesignerPermissions.MigrationExecute)]
+    [InlineData("/api/pxa/v1/migrations/catalog", "GET", PxaDesignerPermissions.MigrationRead)]
     [InlineData("/api/pxa/v1/migrations/pdf/viewer/convert", "POST", PxaDesignerPermissions.MigrationPdfExecute)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006", "GET", PxaDesignerPermissions.JobsRead)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006/cancel", "POST", PxaDesignerPermissions.JobsCancel)]

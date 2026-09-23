@@ -1,4 +1,6 @@
 import type { PdfSource } from './PdfViewer';
+import type { PdfAnnotation } from './annotations';
+import type { PdfFormFieldValue } from './pdfForms';
 
 const PDF_VIEWER_HANDOFF_KEY = 'pdf_viewer_handoff';
 
@@ -10,12 +12,16 @@ export interface PdfViewerHandoff {
   name?: string;
   initialPageNumber?: number;
   initialFitMode?: PdfViewerInitialFitMode;
+  annotations?: PdfAnnotation[];
+  formValues?: Array<{ name: string; value: PdfFormFieldValue }>;
 }
 
 export interface PdfViewerLaunchConfig {
   source: PdfSource | null;
   initialPageNumber: number;
   initialFitMode: PdfViewerInitialFitMode;
+  annotations: PdfAnnotation[];
+  formValues: Array<{ name: string; value: PdfFormFieldValue }>;
 }
 
 export const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
@@ -67,12 +73,14 @@ export const resolvePdfViewerLaunchConfig = (search = window.location.search): P
       },
       initialPageNumber: Math.max(1, Math.trunc(handoff.initialPageNumber ?? 1)),
       initialFitMode: handoff.initialFitMode === 'width' ? 'width' : 'page',
+      annotations: Array.isArray(handoff.annotations) ? handoff.annotations : [],
+      formValues: Array.isArray(handoff.formValues) ? handoff.formValues : [],
     };
   }
 
   const src = params.get('src');
   if (!src) {
-    return { source: null, initialPageNumber: 1, initialFitMode: 'page' };
+    return { source: null, initialPageNumber: 1, initialFitMode: 'page', annotations: [], formValues: [] };
   }
 
   return {
@@ -84,6 +92,8 @@ export const resolvePdfViewerLaunchConfig = (search = window.location.search): P
     },
     initialPageNumber: Math.max(1, Number.parseInt(params.get('page') ?? '1', 10) || 1),
     initialFitMode: params.get('fit') === 'width' ? 'width' : 'page',
+    annotations: [],
+    formValues: [],
   };
 };
 

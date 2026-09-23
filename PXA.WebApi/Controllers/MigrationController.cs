@@ -1,9 +1,6 @@
 using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using PXA.Migration.Report;
 using PXA.WebApi.Security;
-using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
-using PxaMigrationDiagnostic = PXA.Migration.Abstractions.MigrationDiagnostic;
 using PdfTrustMigrationReport = PXA.Migration.Abstractions.PdfTrustMigrationReport;
 
 namespace PXA.WebApi.Controllers;
@@ -14,10 +11,12 @@ namespace PXA.WebApi.Controllers;
 public class MigrationController : ControllerBase
 {
     private readonly MigrationService _service;
+    private readonly ReportMigrationService _reportService;
 
-    public MigrationController(MigrationService service)
+    public MigrationController(MigrationService service, ReportMigrationService? reportService = null)
     {
         _service = service;
+        _reportService = reportService ?? new ReportMigrationService();
     }
 
     /// <summary>Returns metadata for all supported migration frameworks.</summary>
@@ -25,6 +24,7 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<object>), 200)]
     public IActionResult GetFrameworks()
     {
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/catalog");
         var frameworks = _service.GetFrameworks()
             .Where(CanReadFramework)
             .Select(f => new
@@ -50,6 +50,7 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(400)]
     public IActionResult Convert([FromBody] MigrationRequest request)
     {
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/{domain}/code/{provider}/convert");
         if (string.IsNullOrWhiteSpace(request.Framework))
             return BadRequest(new { error = "Field 'framework' is required." });
         if (string.IsNullOrWhiteSpace(request.SourceCode))
@@ -129,103 +130,26 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(400)]
     public IActionResult ReportToDesign([FromBody] ReportToDesignRequest request)
     {
-        // A binary/zip upload (sourceBase64) — e.g. Telerik .trdp or a packaged .rdlx — is unpacked to its
-        // inner report document; the remaining package entries become sub-report resources.
-        string? sourceCode = request.SourceCode;
-        Dictionary<string, string>? packageResources = null;
-        if (!string.IsNullOrWhiteSpace(request.SourceBase64))
-        {
-            byte[] bytes;
-            try { bytes = System.Convert.FromBase64String(request.SourceBase64); }
-            catch (FormatException) { return BadRequest(new { error = "Field 'sourceBase64' is not valid base64." }); }
-
-            if (ReportPackageExtractor.IsZip(bytes))
-            {
-                try
-                {
-                    var (report, resources) = ReportPackageExtractor.Extract(bytes, LooksLikeAnyReport);
-                    if (report is null)
-                        return BadRequest(new { error = "Zip package contains no recognizable report document." });
-                    sourceCode = report;
-                    packageResources = resources;
-                }
-                catch (InvalidDataException)
-                {
-                    return BadRequest(new { error = "Field 'sourceBase64' is not a valid zip package." });
-                }
-            }
-            else
-            {
-                sourceCode = System.Text.Encoding.UTF8.GetString(bytes);
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(sourceCode))
-            return BadRequest(new { error = "Field 'sourceCode' (or 'sourceBase64') is required." });
-        var reportProvider = DetectReportProvider(sourceCode);
-        if (AuthorizeReportMigration(reportProvider) is { } permissionError)
-            return permissionError;
-
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/report/designer/auto/convert");
         try
         {
-            PxaDesignExportDto design;
-            IReadOnlyList<PxaMigrationDiagnostic> diagnostics;
-            if (RdlReportMigration.LooksLike(sourceCode))
-            {
-                var result = new RdlReportMigration().Convert(sourceCode);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (RpxReportMigration.LooksLike(sourceCode))
-            {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new RpxReportMigration().Convert(sourceCode, resources);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (FastReportMigration.LooksLike(sourceCode))
-            {
-                var result = new FastReportMigration().Convert(sourceCode);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (TelerikReportMigration.LooksLike(sourceCode))
-            {
-                var result = new TelerikReportMigration().Convert(sourceCode);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (JasperReportsMigration.LooksLike(sourceCode))
-            {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new JasperReportsMigration().Convert(sourceCode, resources);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (ActiveReportsJsMigration.LooksLike(sourceCode))
-            {
-                var result = new ActiveReportsJsMigration().Convert(sourceCode);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else if (StimulsoftReportMigration.LooksLike(sourceCode))
-            {
-                var result = new StimulsoftReportMigration().Convert(sourceCode);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
-            else
-            {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new DevExpressReportMigration().Convert(sourceCode, resources);
-                design = result.Design;
-                diagnostics = result.Diagnostics;
-            }
+            var detectedProvider = string.IsNullOrWhiteSpace(request.SourceCode)
+                ? "auto"
+                : ReportMigrationService.DetectProvider(request.SourceCode);
+            if (AuthorizeReportMigration(detectedProvider) is { } permissionError)
+                return permissionError;
+
+            var result = _reportService.Convert(new ReportMigrationInput(
+                "auto",
+                request.SourceCode,
+                request.Resources,
+                request.ResourceXml,
+                request.SourceBase64));
 
             return Ok(new
             {
-                design,
-                diagnostics = diagnostics.Select(d => new
+                design = result.Design,
+                diagnostics = result.Diagnostics.Select(d => new
                 {
                     code = d.Id,
                     severity = d.Severity.ToString(),
@@ -246,6 +170,7 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(400)]
     public IActionResult Preview([FromBody] MigrationRequest request)
     {
+        AddCompatibilityHeaders("/api/pxa/v1/migrations/{domain}/code/{provider}/preview");
         if (string.IsNullOrWhiteSpace(request.Framework))
             return BadRequest(new { error = "Field 'framework' is required." });
         if (string.IsNullOrWhiteSpace(request.SourceCode))
@@ -265,16 +190,6 @@ public class MigrationController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
-
-    // Recognized by one of the explicit detectors — used to pick the main report inside a zip package.
-    private static bool LooksLikeAnyReport(string content) =>
-        RdlReportMigration.LooksLike(content)
-        || RpxReportMigration.LooksLike(content)
-        || FastReportMigration.LooksLike(content)
-        || TelerikReportMigration.LooksLike(content)
-        || JasperReportsMigration.LooksLike(content)
-        || ActiveReportsJsMigration.LooksLike(content)
-        || StimulsoftReportMigration.LooksLike(content);
 
     private bool CanReadFramework(FrameworkInfo framework)
     {
@@ -328,40 +243,14 @@ public class MigrationController : ControllerBase
     private bool HasPermission(string permission) =>
         User.HasClaim(PxaClaimTypes.Permission, permission);
 
-    private static string DetectReportProvider(string sourceCode)
+    private void AddCompatibilityHeaders(string successor)
     {
-        if (RdlReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Rdl;
-        if (RpxReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Rpx;
-        if (FastReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.FastReport;
-        if (TelerikReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Telerik;
-        if (JasperReportsMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.JasperReports;
-        if (ActiveReportsJsMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.ActiveReportsJs;
-        if (StimulsoftReportMigration.LooksLike(sourceCode)) return ReportMigrationProviderKeys.Stimulsoft;
-        return ReportMigrationProviderKeys.DevExpressReport;
+        if (ControllerContext.HttpContext is null) return;
+        Response.Headers["Deprecation"] = "true";
+        Response.Headers["Sunset"] = "Thu, 30 Sep 2027 23:59:59 GMT";
+        Response.Headers.Link = $"<{successor}>; rel=\"successor-version\"";
     }
 
-    private static IReadOnlyDictionary<string, string>? MergeReportResources(
-        string? resourceXml,
-        Dictionary<string, string>? resources,
-        IReadOnlyDictionary<string, string>? packageResources = null)
-    {
-        if (string.IsNullOrWhiteSpace(resourceXml) && resources is null && packageResources is null)
-            return null;
-
-        var merged = string.IsNullOrWhiteSpace(resourceXml)
-            ? new Dictionary<string, string>(StringComparer.Ordinal)
-            : DevExpressReportResourceParser.ParseResx(resourceXml);
-
-        if (packageResources is not null)
-            foreach (var (key, value) in packageResources)
-                merged[key] = value;
-
-        if (resources is not null)
-            foreach (var (key, value) in resources)
-                merged[key] = value;   // explicit request resources win over package entries
-
-        return merged;
-    }
 }
 
 public sealed record MigrationRequest(string Framework, string SourceCode);

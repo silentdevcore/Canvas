@@ -7,7 +7,6 @@ import DocsPage from '@/pages/DocsPage';
 import MigrationsPage from '@/pages/MigrationsPage';
 import ImporterPage from '@/pages/ImporterPage';
 import ConvertToPdfPage from '@/pages/ConvertToPdfPage';
-import NutrientViewerMigrationPage from '@/pages/NutrientViewerMigrationPage';
 import SpreadsheetImportPage from '@/pages/SpreadsheetImportPage';
 import PdfLayout from '@/components/Layout/PdfLayout';
 import SpreadsheetLayout from '@/components/Layout/SpreadsheetLayout';
@@ -15,7 +14,7 @@ import LocaleProvider from '@/components/Layout/LocaleProvider';
 import DesignerAuthGate from '@/auth/DesignerAuthGate';
 import ProductExperienceProvider from '@/product/ProductExperienceProvider';
 import RequireDesignerPermission from '@/auth/RequireDesignerPermission';
-import { designerPermissions } from '@/auth/designerPermissions';
+import { designerPermissions, migrationKindPermission } from '@/auth/designerPermissions';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
@@ -91,18 +90,20 @@ const App: React.FC = () => {
             sub-tab is its own view (no cross-route state bleed). */}
         <Route path="migrations" element={<Navigate to="/pdf/migrations/code" replace />} />
         <Route path="migrations/code" element={(
-          <RequireDesignerPermission permission={designerPermissions.migrationPdfExecute}>
+          <RequireDesignerPermission permission={[designerPermissions.migrationPdfExecute, migrationKindPermission('pdf', 'code', 'execute')]}>
             <MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />
           </RequireDesignerPermission>
         )} />
-        <Route path="migrations/designer" element={(
-          <RequireDesignerPermission permission={designerPermissions.migrationReportExecute}>
-            <MigrationsPage key="pdf-designer" mode="designer" />
-          </RequireDesignerPermission>
-        )} />
         <Route path="migrations/viewer" element={(
-          <RequireDesignerPermission permission={designerPermissions.migrationPdfExecute}>
-            <NutrientViewerMigrationPage />
+          <Navigate to="/pdf/migrations/designer?provider=nutrient-viewer" replace />
+        )} />
+        <Route path="migrations/designer" element={(
+          <RequireDesignerPermission permission={[
+            designerPermissions.migrationReportExecute,
+            migrationKindPermission('report', 'designer', 'execute'),
+            migrationKindPermission('pdf', 'designer', 'execute'),
+          ]}>
+            <MigrationsPage key="report-designer" mode="designer" />
           </RequireDesignerPermission>
         )} />
       </Route>
@@ -135,7 +136,7 @@ const App: React.FC = () => {
         )} />
         <Route path="migrations" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
         <Route path="migrations/code" element={(
-          <RequireDesignerPermission permission={designerPermissions.migrationSpreadsheetExecute}>
+          <RequireDesignerPermission permission={[designerPermissions.migrationSpreadsheetExecute, migrationKindPermission('spreadsheet', 'code', 'execute')]}>
             <MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />
           </RequireDesignerPermission>
         )} />
@@ -149,6 +150,9 @@ const App: React.FC = () => {
       <Route path="/migrations" element={<Navigate to="/pdf/migrations" replace />} />
       <Route path="/migrations/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
       <Route path="/migrations/pdf/code" element={<Navigate to="/pdf/migrations/code" replace />} />
+      <Route path="/report" element={<Navigate to="/pdf/migrations/designer" replace />} />
+      <Route path="/report/migrations" element={<Navigate to="/pdf/migrations/designer" replace />} />
+      <Route path="/report/migrations/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/pdf/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/pdf/viewer" element={<Navigate to="/pdf/migrations/viewer" replace />} />
       <Route path="/migrations/spreadsheet" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
@@ -158,6 +162,8 @@ const App: React.FC = () => {
       <Route path="/migrations/code/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
       <Route path="/migrations/code/spreadsheet" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
       <Route path="/migrations/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
+      <Route path="/migrations/report" element={<Navigate to="/pdf/migrations/designer" replace />} />
+      <Route path="/migrations/report/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/format" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/format/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/format/spreadsheet" element={<Navigate to="/spreadsheet/import" replace />} />

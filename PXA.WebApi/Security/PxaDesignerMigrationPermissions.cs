@@ -1,3 +1,5 @@
+using PXA.Migration.Abstractions;
+
 namespace PXA.WebApi.Security;
 
 public static class PxaDesignerMigrationPermissions
@@ -55,13 +57,70 @@ public static class PxaDesignerMigrationPermissions
             ("telerik", new[] { "TrdxReport" }),
         ]);
 
-    public static IReadOnlyList<string> All { get; } = PdfProviders.Values
+    public static IReadOnlyList<string> LegacyAll { get; } = PdfProviders.Values
         .Concat(SpreadsheetProviders.Values)
         .Concat(ReportProviders.Values)
         .Concat(ViewerProviders.Values)
         .Distinct(StringComparer.Ordinal)
         .Order(StringComparer.Ordinal)
         .ToArray();
+
+    public static IReadOnlyList<string> CanonicalAll { get; } = MigrationProviderCatalog.All
+        .Select(static descriptor => descriptor.PermissionKey)
+        .Concat(MigrationProviderCatalog.All
+            .SelectMany(static descriptor => new[]
+            {
+                KindPermission(descriptor.Domain, descriptor.MigrationKind, "read"),
+                KindPermission(descriptor.Domain, descriptor.MigrationKind, "execute")
+            }))
+        .Distinct(StringComparer.Ordinal)
+        .Order(StringComparer.Ordinal)
+        .ToArray();
+
+    public static IReadOnlyList<string> All { get; } = LegacyAll
+        .Concat(CanonicalAll)
+        .Distinct(StringComparer.Ordinal)
+        .Order(StringComparer.Ordinal)
+        .ToArray();
+
+    public static string KindPermission(string domain, string kind, string action) =>
+        $"designer.migration.{domain}.{kind}.{action}";
+
+    public static string ProviderPermission(string domain, string kind, string providerFamily) =>
+        $"designer.migration.{domain}.{kind}.provider.{providerFamily}.execute";
+
+    public static string? ResolveCanonicalProvider(string domain, string kind, string provider)
+    {
+        return MigrationProviderCatalog.TryGet(domain, kind, provider, out var descriptor)
+            ? descriptor.PermissionKey
+            : null;
+    }
+
+    public static IReadOnlyList<string> CompatibilityPermissions(MigrationProviderDescriptor descriptor)
+    {
+        var legacyProvider = descriptor.MigrationKind switch
+        {
+            MigrationKinds.Viewer => ResolveViewerProvider(descriptor.ProviderKey),
+            MigrationKinds.Designer when descriptor.Domain == MigrationDomains.Pdf => ResolveViewerProvider(descriptor.ProviderKey),
+            MigrationKinds.Designer => ResolveReportProvider(descriptor.ProviderKey),
+            MigrationKinds.Code => ResolveCodeProvider(descriptor.ProviderKey, descriptor.Domain),
+            _ => null
+        };
+
+        var domainPermission = descriptor.Domain switch
+        {
+            MigrationDomains.Pdf => PxaDesignerPermissions.MigrationPdfExecute,
+            MigrationDomains.Spreadsheet => PxaDesignerPermissions.MigrationSpreadsheetExecute,
+            MigrationDomains.Report => PxaDesignerPermissions.MigrationReportExecute,
+            _ => PxaDesignerPermissions.MigrationExecute
+        };
+
+        return new[] { descriptor.PermissionKey, legacyProvider, domainPermission }
+            .Where(static permission => !string.IsNullOrWhiteSpace(permission))
+            .Cast<string>()
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+    }
 
     public static string? ResolveCodeProvider(string framework, string domain) =>
         string.Equals(domain, "spreadsheet", StringComparison.OrdinalIgnoreCase)

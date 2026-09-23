@@ -113,6 +113,35 @@ describe('pdf viewer smoke test', () => {
     expect(document.activeElement).toBe(container.querySelector('input[placeholder="Dokumenttext suchen"]'));
   });
 
+  test('renders annotations supplied by a migrated Viewer package', async () => {
+    await i18n.changeLanguage('en');
+    await act(async () => {
+      root.render(
+        <PdfViewer
+          canInspectTrust={false}
+          initialSource={{ file: '/migration-preview.pdf', kind: 'url', name: 'migration-preview.pdf', url: '/migration-preview.pdf' }}
+          initialAnnotations={[{
+            id: 'migrated-note',
+            type: 'note',
+            pageNumber: 1,
+            xPct: 10,
+            yPct: 15,
+            widthPct: 8,
+            heightPct: 8,
+            text: 'Migrated review note',
+            author: 'Nutrient migration',
+            createdAt: '2026-09-22T00:00:00Z',
+            color: '#2563eb',
+          }]}
+        />,
+      );
+      await new Promise(resolve => window.setTimeout(resolve, 0));
+    });
+
+    expect(container.querySelector('.pdfv-annotation-note')).not.toBeNull();
+    expect(container.textContent).toContain('Migrated review note');
+  });
+
   test('shows accessible trust states, signature details, signing controls, and mutation protection', async () => {
     await i18n.changeLanguage('en');
     global.fetch = jest.fn()

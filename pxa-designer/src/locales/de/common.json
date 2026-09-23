@@ -6,6 +6,7 @@
     "home": "Startseite",
     "pdf": "PDF",
     "spreadsheet": "Tabellen",
+    "report": "Reports",
     "docs": "Dokumentation",
     "logoHome": "Power Dox Automation Startseite",
     "openMenu": "Menü öffnen",
@@ -39,6 +40,7 @@
     "convertToSpreadsheet": "In Tabelle konvertieren",
     "migrations": "Migrationen"
   },
+  "reportSidebar": { "designerMigration": "Report-Designer-Migration" },
   "productExperience": {
     "whatsNew": "Neuigkeiten",
     "notifications": "Benachrichtigungen",

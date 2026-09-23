@@ -8,7 +8,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
+import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
 
 // "Use Template" and "Viewer" are intentionally absent: neither a spreadsheet
 // template gallery nor a standalone read-only spreadsheet viewer exists today
@@ -41,7 +41,10 @@ const SpreadsheetLayout: React.FC = () => {
       disabled: !hasDesignerPermission(user, designerPermissions.spreadsheetImport), disabledReason: permissionRequired },
     { path: '/spreadsheet/convert', label: t('spreadsheetSidebar.convertToSpreadsheet'), icon: FiRefreshCw, disabled: true },
     { path: '/spreadsheet/migrations', label: t('spreadsheetSidebar.migrations'), icon: FiGitMerge,
-      disabled: !hasDesignerPermission(user, designerPermissions.migrationSpreadsheetExecute), disabledReason: permissionRequired },
+      disabled: !hasAnyDesignerPermission(user, [
+        designerPermissions.migrationSpreadsheetExecute,
+        migrationKindPermission('spreadsheet', 'code', 'execute'),
+      ]), disabledReason: permissionRequired },
   ];
 
   return (

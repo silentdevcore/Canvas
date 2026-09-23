@@ -123,10 +123,17 @@ POST /api/document/convert-image-to-pdf   # Convert raster image to PDF
 
 ### Migrations
 ```
-GET  /api/migration/frameworks        # List supported code migration frameworks
-POST /api/migration/convert           # Convert vendor PDF code to PXA-compatible PDF C#
-POST /api/migration/report-to-design  # Convert report source (XtraReport/REPX/RDL/RPX) to DesignExportDto
-POST /api/migration/preview           # Render migrated PXA-compatible PDF code as PDF preview
+GET  /api/pxa/v1/migrations/catalog                                      # Discover PDF, Spreadsheet, and Report providers
+GET  /api/pxa/v1/migrations/{domain}/{kind}/{provider}                    # Read one provider contract
+GET  /api/pxa/v1/migrations/{domain}/{kind}/{provider}/examples           # Load backend-owned examples when available
+POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/convert            # Convert to typed migration artifacts
+POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/preview            # Preview providers that support it
+
+# Compatibility adapters retained for one major release:
+GET  /api/migration/frameworks
+POST /api/migration/convert
+POST /api/migration/report-to-design
+POST /api/migration/preview
 ```
 
 ### Templates

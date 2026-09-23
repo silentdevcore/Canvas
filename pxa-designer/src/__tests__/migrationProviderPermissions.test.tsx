@@ -6,7 +6,12 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import MigrationsPage from '@/pages/MigrationsPage';
 import { DesignerAuthContextProvider } from '@/auth/DesignerAuthGate';
-import { designerPermissions, migrationProviderPermission } from '@/auth/designerPermissions';
+import {
+  canonicalMigrationProviderPermission,
+  designerPermissions,
+  migrationKindPermission,
+  migrationProviderPermission,
+} from '@/auth/designerPermissions';
 import type { DesignerUser } from '@/auth/designerAuth';
 
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
@@ -38,31 +43,31 @@ const limitedUser: DesignerUser = {
   lastLoginAt: null,
 };
 
-const frameworks = [
+const providers = [
   {
-    id: 'Syncfusion', name: 'Syncfusion PDF', status: 'full', description: 'Allowed PDF', kind: 'pdf',
-    requiredPermission: migrationProviderPermission('pdf', 'syncfusion-pdf'),
+    providerKey: 'syncfusion-pdf', providerFamily: 'syncfusion', displayName: 'Syncfusion PDF', status: 'full', description: 'Allowed PDF', domain: 'pdf', kind: 'code', aliases: ['Syncfusion'], requiredPermission: canonicalMigrationProviderPermission('pdf', 'code', 'syncfusion'),
   },
   {
-    id: 'Aspose', name: 'Aspose.PDF', status: 'full', description: 'Blocked PDF', kind: 'pdf',
-    requiredPermission: migrationProviderPermission('pdf', 'aspose-pdf'),
+    providerKey: 'devexpress-pdf', providerFamily: 'devexpress', displayName: 'DevExpress PDF', status: 'full', description: 'Denied PDF', domain: 'pdf', kind: 'code', aliases: ['DevExpress'], requiredPermission: canonicalMigrationProviderPermission('pdf', 'code', 'devexpress'),
   },
   {
-    id: 'AsposeCells', name: 'Aspose.Cells', status: 'full', description: 'Allowed Spreadsheet', kind: 'spreadsheet',
-    requiredPermission: migrationProviderPermission('spreadsheet', 'aspose-cells'),
+    providerKey: 'aspose-cells', providerFamily: 'aspose', displayName: 'Aspose.Cells', status: 'full', description: 'Allowed Spreadsheet', domain: 'spreadsheet', kind: 'code', aliases: ['AsposeCells'], requiredPermission: canonicalMigrationProviderPermission('spreadsheet', 'code', 'aspose'),
   },
   {
-    id: 'ClosedXmlSpreadsheet', name: 'ClosedXML', status: 'full', description: 'Blocked Spreadsheet', kind: 'spreadsheet',
-    requiredPermission: migrationProviderPermission('spreadsheet', 'closedxml'),
+    providerKey: 'closedxml', providerFamily: 'closedxml', displayName: 'ClosedXML', status: 'full', description: 'Denied Spreadsheet', domain: 'spreadsheet', kind: 'code', aliases: ['ClosedXmlSpreadsheet'], requiredPermission: canonicalMigrationProviderPermission('spreadsheet', 'code', 'closedxml'),
   },
 ];
 
-const renderPage = async (container: HTMLElement, kind: 'pdf' | 'spreadsheet'): Promise<Root> => {
+const renderPage = async (
+  container: HTMLElement,
+  kind: 'pdf' | 'spreadsheet',
+  user: DesignerUser = limitedUser,
+): Promise<Root> => {
   const root = createRoot(container);
   await act(async () => {
     root.render(
       <MemoryRouter>
-        <DesignerAuthContextProvider user={limitedUser}>
+        <DesignerAuthContextProvider user={user}>
           <MigrationsPage mode="code" codeKind={kind} />
         </DesignerAuthContextProvider>
       </MemoryRouter>,
@@ -90,9 +95,10 @@ describe('migration provider permissions', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = null;
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => frameworks,
+    global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      const domain = url.includes('domain=spreadsheet') ? 'spreadsheet' : 'pdf';
+      return Promise.resolve({ ok: true, json: async () => ({ providers: providers.filter(item => item.domain === domain) }) });
     });
   });
 
@@ -103,11 +109,27 @@ describe('migration provider permissions', () => {
 
   it('shows only the allowed PDF provider', async () => {
     root = await renderPage(container, 'pdf');
-    await waitForOptions(container, ['Syncfusion']);
+    await waitForOptions(container, ['syncfusion-pdf']);
   });
 
   it('shows only the allowed Spreadsheet provider', async () => {
     root = await renderPage(container, 'spreadsheet');
-    await waitForOptions(container, ['AsposeCells']);
+    await waitForOptions(container, ['aspose-cells']);
+  });
+
+  it('supports a role containing only canonical kind and provider permissions', async () => {
+    const canonicalUser: DesignerUser = {
+      ...limitedUser,
+      id: 'canonical-user',
+      permissions: [
+        designerPermissions.access,
+        migrationKindPermission('pdf', 'code', 'read'),
+        migrationKindPermission('pdf', 'code', 'execute'),
+        canonicalMigrationProviderPermission('pdf', 'code', 'syncfusion'),
+      ],
+    };
+
+    root = await renderPage(container, 'pdf', canonicalUser);
+    await waitForOptions(container, ['syncfusion-pdf']);
   });
 });

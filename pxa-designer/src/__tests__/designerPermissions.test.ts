@@ -1,4 +1,11 @@
-import { designerPermissions, hasDesignerPermission, migrationProviderPermission } from '@/auth/designerPermissions';
+import {
+  canonicalMigrationProviderPermission,
+  designerPermissions,
+  hasAnyDesignerPermission,
+  hasDesignerPermission,
+  migrationKindPermission,
+  migrationProviderPermission,
+} from '@/auth/designerPermissions';
 import type { DesignerUser } from '@/auth/designerAuth';
 
 describe('Designer permissions', () => {
@@ -25,5 +32,23 @@ describe('Designer permissions', () => {
       .toBe('designer.migration.spreadsheet.provider.aspose-cells.execute');
     expect(migrationProviderPermission('report', 'devexpress-report'))
       .toBe('designer.migration.report.provider.devexpress-report.execute');
+  });
+
+  it('builds canonical kind and provider-family permissions', () => {
+    expect(migrationKindPermission('pdf', 'viewer', 'execute'))
+      .toBe('designer.migration.pdf.viewer.execute');
+    expect(canonicalMigrationProviderPermission('pdf', 'viewer', 'nutrient'))
+      .toBe('designer.migration.pdf.viewer.provider.nutrient.execute');
+  });
+
+  it('accepts any matching compatibility permission', () => {
+    const user = {
+      permissions: [migrationKindPermission('report', 'designer', 'execute')],
+    } as DesignerUser;
+
+    expect(hasAnyDesignerPermission(user, [
+      designerPermissions.migrationReportExecute,
+      migrationKindPermission('report', 'designer', 'execute'),
+    ])).toBe(true);
   });
 });

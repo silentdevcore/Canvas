@@ -6,6 +6,7 @@
     "home": "الرئيسية",
     "pdf": "PDF",
     "spreadsheet": "جدول بيانات",
+    "report": "التقارير",
     "docs": "التوثيق",
     "logoHome": "الصفحة الرئيسية لـ Power Dox Automation",
     "openMenu": "فتح القائمة",
@@ -39,6 +40,7 @@
     "convertToSpreadsheet": "التحويل إلى جدول بيانات",
     "migrations": "عمليات الترحيل"
   },
+  "reportSidebar": { "designerMigration": "ترحيل مصمم التقارير" },
   "productExperience": {
     "whatsNew": "ما الجديد",
     "notifications": "الإشعارات",

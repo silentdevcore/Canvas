@@ -34,16 +34,14 @@ const MigrationTabs: React.FC<{ tabs: MigrationTab[] }> = ({ tabs }) => {
 };
 
 /** PDF Migration sub-tabs. */
-export const pdfTabs = (active: 'code' | 'designer' | 'viewer', t: TFunction): MigrationTab[] => [
-  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/migrations/pdf/code', active: active === 'code' },
-  { label: t('tabs.reportDesignerMigration', { ns: 'migrations' }), to: '/migrations/pdf/designer', active: active === 'designer' },
-  { label: t('tabs.viewerMigration', { ns: 'migrations' }), to: '/pdf/migrations/viewer', active: active === 'viewer' },
+export const pdfTabs = (active: 'code' | 'viewer' | 'designer', t: TFunction): MigrationTab[] => [
+  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/pdf/migrations/code', active: active === 'code' },
+  { label: t('tabs.reportDesignerMigration', { ns: 'migrations' }), to: '/pdf/migrations/designer', active: active === 'designer' },
 ];
 
 /** Spreadsheet Migration sub-tabs. */
 export const sheetTabs = (active: 'code' | 'datasource', t: TFunction): MigrationTab[] => [
-  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/migrations/spreadsheet/code', active: active === 'code' },
-  { label: t('tabs.datasourceMigration', { ns: 'migrations' }), to: '/migrations/spreadsheet/datasource', active: active === 'datasource' },
+  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/spreadsheet/migrations/code', active: active === 'code' },
 ];
 
 export default MigrationTabs;

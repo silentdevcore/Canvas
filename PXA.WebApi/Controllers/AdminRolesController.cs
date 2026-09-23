@@ -124,10 +124,17 @@ public sealed class AdminRolesController : ControllerBase
         {
             var segments = permission.Split('.');
             var domain = segments[2];
-            var provider = segments[4];
+            var providerPermission = segments.Length >= 7 && segments[4] == "provider";
+            var kindPermission = segments.Length == 5;
+            var kind = providerPermission || kindPermission ? segments[3] : "legacy";
+            var provider = providerPermission ? segments[5] : segments.Length > 4 ? segments[4] : segments[^1];
             definitions[permission] = new PermissionDefinition(
-                $"Designer {domain} migration providers",
-                $"Execute {provider} migrations in the {domain} domain.");
+                $"Designer {domain} {kind} migration",
+                providerPermission
+                    ? $"Execute {provider} {kind} migrations in the {domain} domain."
+                    : kindPermission
+                        ? $"{char.ToUpperInvariant(provider[0])}{provider[1..]} {kind} migration workflows in the {domain} domain."
+                    : $"Compatibility permission for {provider} migrations in the {domain} domain.");
         }
 
         return definitions;

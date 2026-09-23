@@ -11,7 +11,7 @@ public sealed class NutrientPdfConverter : BasePdfConverter
     public override string Status => "pilot";
 
     public override string Description =>
-        "Roslyn-based conversion of supported GdPicturePDF document, page, text, unit, font, and save operations. Trust, redaction, OCR, forms, and advanced editing operations produce explicit review diagnostics.";
+        "Roslyn-based conversion of supported GdPicturePDF document, page, content, basic form, annotation, AES-256, and save operations. Signing, irreversible redaction, PDF OCR, scanning, and advanced editing produce explicit PXA workflow actions.";
 
     public override string ConvertCode(string sourceCode) =>
         new NutrientMigration().Migrate(sourceCode).MigratedCode;

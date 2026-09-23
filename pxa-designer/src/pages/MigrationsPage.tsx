@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
-import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
+import { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
+import MigrationWorkspace from '@/components/Migrations/MigrationWorkspace';
 import PdfTrustMigrationReport, { type PdfTrustMigrationResult } from '@/components/Migrations/PdfTrustMigrationReport';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
+import { designerDocumentationUrl } from '@/product/productMetadata';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { migrationProviderPermission } from '@/auth/designerPermissions';
-import { designerDocumentationUrl } from '@/product/productMetadata';
+import { transpileNutrientViewerTypeScript } from '@/features/pdf-viewer/nutrientTypeScript';
 
 // Framework ids for the report → PXA Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -20,33 +22,19 @@ const TRDX_REPORT_ID = 'TrdxReport';
 const JRXML_REPORT_ID = 'JrxmlReport';
 const ACTIVE_REPORTS_JS_ID = 'ActiveReportsJsReport';
 const MRT_REPORT_ID = 'MrtReport';
-// All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
-const isReportDesign = (id: string) =>
-  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID
-  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID || id === ACTIVE_REPORTS_JS_ID || id === MRT_REPORT_ID;
-
 interface Framework {
   id: string;
+  providerFamily?: string;
   name: string;
   status: string;
   description: string;
   kind?: string; // "pdf" (default) | "spreadsheet"
   migrationKind?: string;
   requiredPermission?: string;
+  aliases?: string[];
+  supportsPreview?: boolean;
+  hasExamples?: boolean;
 }
-
-const MIGRATION_PROVIDER_KEYS: Record<string, string> = {
-  ActivePdf: 'active-pdf', Apryse: 'apryse', Aspose: 'aspose-pdf', DevExpress: 'devexpress-pdf',
-  DsPdf: 'dspdf', Foxit: 'foxit-pdf', GemBox: 'gembox-pdf', IronPdf: 'iron-pdf', iText7: 'itext7',
-  Leadtools: 'leadtools-pdf', PdfKitNet: 'pdfkitnet', PdfTools: 'pdftools',
-  Nutrient: 'nutrient',
-  PdfToolsToolbox: 'pdftools-toolbox', Spire: 'spire-pdf', Syncfusion: 'syncfusion-pdf',
-  AsposeCells: 'aspose-cells', ClosedXmlSpreadsheet: 'closedxml', EpplusSpreadsheet: 'epplus',
-  GemBoxSpreadsheet: 'gembox-spreadsheet', Npoi: 'npoi', SpireXls: 'spire-xls',
-  SpreadsheetLight: 'spreadsheetlight', SyncfusionXlsIo: 'syncfusion-xlsio',
-  ActiveReportsJsReport: 'activereports-js', DevExpressReport: 'devexpress-report', FrxReport: 'fastreport',
-  JrxmlReport: 'jasperreports', RdlReport: 'rdl', RpxReport: 'rpx', MrtReport: 'stimulsoft', TrdxReport: 'telerik',
-};
 
 interface Diagnostic {
   code: string;
@@ -54,25 +42,7 @@ interface Diagnostic {
   message: string;
 }
 
-const API_BASE = '/api/migration';
-
-const FRAMEWORKS_FALLBACK: Framework[] = [
-  { id: 'Syncfusion', name: 'Syncfusion PDF',    status: 'full',    description: 'Full pattern-based conversion with top-left coordinate adapter. Covers document/page/text/line/rectangle/image/save.' },
-  { id: 'iText7',     name: 'iText7',            status: 'full',    description: 'Roslyn-based conversion: PdfWriter+PdfDocument+Document → PdfDocument; Paragraph (with SetFontSize) → DrawTextFromTop; ShowTextAligned → DrawText; PdfCanvas line/rect/text; Close/SetMargins removed.' },
-  { id: 'Apryse',     name: 'Apryse (PDFTron)',  status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument, PageCreate+PagePushBack → AddPage(), doc.Save() → document.Save().' },
-  { id: 'Aspose',     name: 'Aspose.PDF',        status: 'full',    description: 'Roslyn-based conversion: Document → PdfDocument, Pages.Add → AddPage, TextFragment/TextBuilder with Position → DrawText/DrawTextFromTop.' },
-  { id: 'DsPdf',      name: 'DsPdf (GrapeCity)', status: 'full',    description: 'Roslyn-based conversion: GcPdfDocument → PdfDocument; doc.NewPage() → AddPage(); page.Graphics.DrawString/DrawLine/DrawRectangle/FillRectangle → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save() preserved.' },
-  { id: 'Foxit',      name: 'Foxit PDF SDK',     status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().' },
-  { id: 'DevExpress', name: 'DevExpress PDF',    status: 'full',    description: 'Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, RenderNewPage → AddPage, draw calls repositioned, SaveDocument → Save. Forms/signatures/report export produce warnings.' },
-  { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual PXA draw call migration.' },
-  { id: 'Spire',      name: 'Spire.PDF',         status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; page.Canvas.DrawString → DrawTextFromTop; page.Canvas.DrawLine → DrawLineFromTop; page.Canvas.DrawRectangle/FillRectangle → DrawRectangleFromTop; SaveToFile → Save; tables/forms/annotations produce warnings.' },
-  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Content.DrawText → DrawTextFromTop; Content.DrawLine → DrawLineFromTop; Content.DrawRectangle → DrawRectangleFromTop; ComponentInfo.SetLicense removed; forms/encryption/annotations produce warnings.' },
-  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'full',    description: 'Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.' },
-  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'full',    description: 'Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.' },
-  { id: 'ActivePdf',  name: 'ActivePDF',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely Toolkit-style generation; DocConverter, WebGrabber, COM/server, printer, merge, and stamp workflows are manual.' },
-  { id: 'PdfTools',   name: 'PDFTools / Pdftools SDK', status: 'pilot', description: 'Cautious Roslyn pilot: removes Sdk.Initialize and flags SDK conversion/processing workflows for manual PXA-compatible PDF migration. Direct PDF generation belongs to the separate PDF Toolbox SDK/add-on.' },
-  { id: 'PdfToolsToolbox', name: 'PDF Toolbox SDK', status: 'pilot', description: 'Cautious Roslyn pilot for Toolbox direct-generation flows: Document.Create/Page.Create/TextGenerator.ShowLine → PXA-compatible PDF code; existing-PDF editing and rich styling remain manual.' },
-];
+const API_BASE = '/api/pxa/v1/migrations';
 
 const SYNCFUSION_EXAMPLE = `using Syncfusion.Pdf;
 using Syncfusion.Pdf.Graphics;
@@ -901,13 +871,16 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const isDesigner = mode === 'designer';
   // Code Migration sub-tab (PDF | Spreadsheet) is driven by the route (codeKind prop).
   const kindFilter: 'pdf' | 'spreadsheet' = codeKind ?? 'pdf';
-  const [frameworks, setFrameworks] = useState<Framework[]>(isDesigner ? DESIGNER_FRAMEWORKS : FRAMEWORKS_FALLBACK);
-  const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : (kindFilter === 'spreadsheet' ? 'ClosedXmlSpreadsheet' : 'Syncfusion'));
+  const [frameworks, setFrameworks] = useState<Framework[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [searchParams] = useSearchParams();
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
   const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
   const updatePageSettings = useEditorStore(s => s.updatePageSettings);
   const [sourceCode, setSourceCode] = useState('');
+  const [nutrientInputType, setNutrientInputType] = useState<'javascript' | 'typescript' | 'instantJson'>('instantJson');
+  const [nutrientPdf, setNutrientPdf] = useState<File | null>(null);
   // Base64 of a binary/zip report package (.trdp, packaged .rdlx); when set, sent as sourceBase64.
   const [sourceBase64, setSourceBase64] = useState<string | null>(null);
   const [binaryFileName, setBinaryFileName] = useState('');
@@ -938,29 +911,54 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const splitRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // The /frameworks endpoint lists the PDF code-migration providers; designer frameworks are static.
-    if (!isDesigner) {
-      fetch(`${API_BASE}/frameworks`)
-        .then(r => r.json())
-        .then((data: Framework[]) => setFrameworks(data))
-        .catch(() => { /* use fallback */ });
-    }
+    const requests = isDesigner
+      ? [
+          fetch(`${API_BASE}/catalog?domain=report&kind=designer`),
+          fetch(`${API_BASE}/catalog?domain=pdf&kind=designer`),
+        ]
+      : [fetch(`${API_BASE}/catalog?domain=${kindFilter}&kind=code`)];
+    Promise.all(requests)
+      .then(async responses => {
+        const failed = responses.find(response => !response.ok);
+        if (failed) throw new Error(`HTTP ${failed.status}`);
+        return Promise.all(responses.map(response => response.json()));
+      })
+      .then((results: Array<{ providers?: Array<any> }>) => setFrameworks(results.flatMap(data => data.providers ?? [])
+        .filter(provider => provider.providerKey !== 'auto')
+        .map(provider => ({
+          id: provider.providerKey,
+          providerFamily: provider.providerFamily,
+          name: provider.displayName,
+          status: provider.status,
+          description: provider.description,
+          kind: provider.domain,
+          migrationKind: provider.kind,
+          requiredPermission: provider.requiredPermission,
+          aliases: provider.aliases ?? [],
+          supportsPreview: provider.supportsPreview,
+          hasExamples: provider.hasExamples,
+        }))))
+      .catch(() => setError(t('errors.conversionFailed')));
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
-  }, [isDesigner]);
+  }, [isDesigner, kindFilter, t]);
 
-  const canUseFramework = useCallback((framework: Framework) => {
-    const providerKey = MIGRATION_PROVIDER_KEYS[framework.id];
-    const domain = isDesigner ? 'report' : framework.kind === 'spreadsheet' ? 'spreadsheet' : 'pdf';
-    const permission = framework.requiredPermission
-      ?? (providerKey ? migrationProviderPermission(domain, providerKey) : null);
-    return permission === null || user.permissions.includes(permission);
-  }, [isDesigner, user.permissions]);
-  const availableFrameworks = frameworks.filter(canUseFramework);
+  const availableFrameworks = frameworks.filter(framework => {
+    if (!framework.requiredPermission) return false;
+    const legacyPermission = migrationProviderPermission(
+      (framework.kind ?? kindFilter) as 'pdf' | 'spreadsheet' | 'report',
+      framework.id,
+    );
+    return user.permissions.includes(framework.requiredPermission)
+      || user.permissions.includes(legacyPermission);
+  });
   const current = availableFrameworks.find(f => f.id === selectedId);
+  const legacyFramework = DESIGNER_FRAMEWORKS.find(framework => current?.aliases?.includes(framework.id));
+  const exampleKey = current?.aliases?.find(alias => EXAMPLES[alias]) ?? legacyFramework?.id ?? current?.id ?? '';
 
   const handleFrameworkChange = (id: string) => {
     setSelectedId(id);
     setSourceCode('');
+    setNutrientPdf(null);
     setResourceJson('');
     setResourceXml('');
     setResourceFileName('');
@@ -975,21 +973,36 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setHasConverted(false);
     setDiagOpen(false);
     setPdfUrl(null);
+    setPdfDataUrl(null);
     setError(null);
     setReportDesign(null);
   };
 
   const loadSelectedExample = async () => {
-    if (selectedId !== 'Nutrient') {
-      setSourceCode(EXAMPLES[selectedId] ?? '');
+    if (isDesigner && selectedId === 'nutrient-viewer') {
+      try {
+        const response = await fetch('/api/pxa/v1/migrations/pdf/designer/nutrient-viewer/examples');
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.detail ?? body.title ?? `HTTP ${response.status}`);
+        const example = body.examples?.find((item: any) => item.inputType === 'instantJson') ?? body.examples?.[0];
+        setNutrientInputType(example?.inputType ?? 'instantJson');
+        setSourceCode(example?.source ?? '');
+        setError(null);
+      } catch (exampleError) {
+        setError(exampleError instanceof Error ? exampleError.message : t('viewerMigration.exampleFailed'));
+      }
+      return;
+    }
+    if (selectedId !== 'nutrient') {
+      setSourceCode(EXAMPLES[exampleKey] ?? '');
       return;
     }
 
     try {
-      const response = await fetch('/api/pxa/v1/migrations/pdf/code/nutrient/examples/comprehensive');
+      const response = await fetch('/api/pxa/v1/migrations/pdf/code/nutrient/examples');
       const body = await response.json();
       if (!response.ok) throw new Error(body.detail ?? body.title ?? `HTTP ${response.status}`);
-      setSourceCode(body.gdPictureCSharp ?? '');
+      setSourceCode(body.examples?.[0]?.source ?? '');
       setError(null);
     } catch (exampleError) {
       setError(exampleError instanceof Error ? exampleError.message : t('viewerMigration.exampleFailed'));
@@ -998,12 +1011,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
   // Keep the selected framework valid for the active Code sub-tab (PDF vs Spreadsheet).
   useEffect(() => {
-    const visible = availableFrameworks.filter(f => isDesigner
-      || (f.migrationKind !== 'viewer'
-        && (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet')));
-    if (visible.length > 0 && !visible.some(f => f.id === selectedId)) handleFrameworkChange(visible[0].id);
+    const visible = availableFrameworks;
+    const requestedProvider = isDesigner ? searchParams.get('provider') : null;
+    const requested = requestedProvider && visible.find(framework => framework.id === requestedProvider);
+    if (requested && selectedId !== requested.id) handleFrameworkChange(requested.id);
+    else if (visible.length > 0 && !visible.some(f => f.id === selectedId)) handleFrameworkChange(visible[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codeKind, frameworks, user.permissions]);
+  }, [codeKind, frameworks, searchParams]);
 
   const applyConvertResult = (data: { pxaCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary; pdfTrust?: PdfTrustMigrationResult | null }) => {
     const diags = data.diagnostics ?? [];
@@ -1101,16 +1115,68 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     }
   };
 
+  const renderDesignerPreview = async (design: any) => {
+    const response = await fetch('/api/templates/render-design', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(design),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.details ?? body.error ?? `HTTP ${response.status}`);
+    }
+    const blob = await response.blob();
+    if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current);
+    const url = URL.createObjectURL(blob);
+    prevPdfUrl.current = url;
+    setPdfUrl(url);
+    setPdfDataUrl(await blobToDataUrl(blob));
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim() && !sourceBase64) return;
     setConverting(true);
     setError(null);
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → PXA design (JSON), opened in the visual designer.
-      if (isReportDesign(selectedId)) {
+      if (isDesigner) {
+        if (selectedId === 'nutrient-viewer') {
+          if (!nutrientPdf) throw new Error(t('viewerMigration.originalPdfRequired'));
+          let transpiledSource: string | undefined;
+          let compilerDiagnostics: string[] | undefined;
+          if (nutrientInputType === 'typescript') {
+            const transpiled = await transpileNutrientViewerTypeScript(sourceCode);
+            transpiledSource = transpiled.outputText;
+            compilerDiagnostics = transpiled.diagnostics;
+          }
+          const form = new FormData();
+          form.append('pdf', nutrientPdf);
+          form.append('inputType', nutrientInputType);
+          form.append('source', sourceCode);
+          if (transpiledSource) form.append('transpiledSource', transpiledSource);
+          if (compilerDiagnostics) form.append('compilerDiagnostics', JSON.stringify(compilerDiagnostics));
+          const response = await fetch(`${API_BASE}/pdf/designer/nutrient-viewer/convert`, {
+            method: 'POST',
+            body: form,
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail ?? data.error ?? `HTTP ${response.status}`);
+          const design = data.artifacts?.find((artifact: any) => artifact.id === 'design')?.content;
+          if (!design) throw new Error(t('errors.conversionFailed'));
+          const diags: Diagnostic[] = data.diagnostics ?? [];
+          setReportDesign(design);
+          setPxaCode(JSON.stringify(design, null, 2));
+          setDiagnostics(diags);
+          setSummary(data.summary ?? null);
+          setPdfTrust(null);
+          setHasConverted(true);
+          setDiagOpen(diags.some(diagnostic => diagnostic.severity === 'Warning'));
+          await renderDesignerPreview(design);
+          return;
+        }
         let resources: Record<string, string> = {};
-        if (selectedId === JRXML_REPORT_ID) resources = { ...resources, ...jrxmlResourceMap };
-        if (selectedId === RPX_REPORT_ID) resources = { ...resources, ...rpxResourceMap };
+        if (selectedId === 'jasperreports') resources = { ...resources, ...jrxmlResourceMap };
+        if (selectedId === 'rpx') resources = { ...resources, ...rpxResourceMap };
         if (resourceJson.trim()) {
           const parsed = JSON.parse(resourceJson);
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -1123,42 +1189,45 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
             ),
           };
         }
-        const res = await fetch(`${API_BASE}/report-to-design`, {
+        const res = await fetch(`${API_BASE}/report/designer/${selectedId}/convert`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sourceCode,
+            inputType: 'report',
+            source: sourceCode,
             sourceBase64: sourceBase64 ?? undefined,
             resources: Object.keys(resources).length > 0 ? resources : undefined,
             resourceXml: resourceXml.trim() ? resourceXml : undefined,
           }),
         });
-        if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail ?? e.error ?? `HTTP ${res.status}`); }
         const data = await res.json();
         const diags: Diagnostic[] = data.diagnostics ?? [];
-        const elementCount = data.design?.pages?.[0]?.elements?.length ?? 0;
-        setReportDesign(data.design);
-        setPxaCode(JSON.stringify(data.design, null, 2));
+        const design = data.artifacts?.find((artifact: any) => artifact.id === 'design')?.content;
+        setReportDesign(design);
+        setPxaCode(JSON.stringify(design, null, 2));
         setDiagnostics(diags);
-        setSummary({
-          convertedCount: elementCount,
-          warningCount: diags.filter(d => d.severity === 'Warning').length,
-          errorCount: diags.filter(d => d.severity === 'Error').length,
-          totalDiagnostics: diags.length,
-        });
+        setSummary(data.summary ?? null);
         setPdfTrust(null);
         setHasConverted(true);
         setDiagOpen(diags.some(d => d.severity === 'Warning'));
         return;
       }
 
-      const res = await fetch(`${API_BASE}/convert`, {
+      const domain = isSpreadsheetCode ? 'spreadsheet' : 'pdf';
+      const res = await fetch(`${API_BASE}/${domain}/code/${selectedId}/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ framework: selectedId, sourceCode }),
+        body: JSON.stringify({ inputType: 'csharp', source: sourceCode }),
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
-      applyConvertResult(await res.json());
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail ?? e.error ?? `HTTP ${res.status}`); }
+      const data = await res.json();
+      applyConvertResult({
+        pxaCode: data.artifacts?.[0]?.content,
+        diagnostics: data.diagnostics,
+        summary: data.summary,
+        pdfTrust: data.pdfTrust,
+      });
     } catch (e: any) {
       setError(e.message ?? t('errors.conversionFailed'));
     } finally {
@@ -1204,17 +1273,22 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setError(null);
     try {
       // Sync the output panel first so the user sees the converted code
-      const convertRes = await fetch(`${API_BASE}/convert`, {
+      const domain = isSpreadsheetCode ? 'spreadsheet' : 'pdf';
+      const endpoint = `${API_BASE}/${domain}/code/${selectedId}`;
+      const convertRes = await fetch(`${endpoint}/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ framework: selectedId, sourceCode }),
+        body: JSON.stringify({ inputType: 'csharp', source: sourceCode }),
       });
-      if (convertRes.ok) applyConvertResult(await convertRes.json());
+      if (convertRes.ok) {
+        const data = await convertRes.json();
+        applyConvertResult({ pxaCode: data.artifacts?.[0]?.content, diagnostics: data.diagnostics, summary: data.summary, pdfTrust: data.pdfTrust });
+      }
 
-      const res = await fetch(`${API_BASE}/preview`, {
+      const res = await fetch(`${endpoint}/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ framework: selectedId, sourceCode }),
+        body: JSON.stringify({ inputType: 'csharp', source: sourceCode }),
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
       const blob = await res.blob();
@@ -1239,11 +1313,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
   const handleDownload = () => {
     if (!pxaCode) return;
-    const blob = new Blob([pxaCode], { type: 'text/plain' });
+    const blob = new Blob([pxaCode], { type: isDesigner ? 'application/json' : 'text/x-csharp' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'migration.cs';
+    a.download = isDesigner ? `${selectedId || 'migration'}-design.json` : 'migration.cs';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -1288,12 +1362,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   }, []);
 
   const isSpreadsheetCode = !isDesigner && kindFilter === 'spreadsheet';
+  const workspaceTabs = isSpreadsheetCode
+    ? sheetTabs('code', t)
+    : isDesigner
+      ? pdfTabs('designer', t)
+      : pdfTabs('code', t);
   return (
-    <div className="mgr-page">
-      {isSpreadsheetCode
-        ? <MigrationTabs tabs={sheetTabs('code', t)} />
-        : <MigrationTabs tabs={pdfTabs(isDesigner ? 'designer' : 'code', t)} />}
-
+    <MigrationWorkspace tabs={workspaceTabs}>
       <main className="mgr-main">
         {/* Page heading */}
         <div className="mgr-heading">
@@ -1310,7 +1385,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               </p>
             </div>
           </div>
-          <button className="mgr-btn" onClick={() => navigate('/migrations')} title={t('backToMigrationsTitle')}>
+          <button className="mgr-btn" onClick={() => navigate(isSpreadsheetCode ? '/spreadsheet' : '/pdf')} title={t('backToMigrationsTitle')}>
             {t('backToMigrations')}
           </button>
         </div>
@@ -1347,7 +1422,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           {current?.status === 'skeleton' && (
             <span className="mgr-badge mgr-badge-skeleton">{t('status.skeleton')}</span>
           )}
-          {(EXAMPLES[selectedId] || selectedId === 'Nutrient') && (
+          {(EXAMPLES[exampleKey] || current?.hasExamples) && (
             <button
               className="mgr-example-btn"
               onClick={loadSelectedExample}
@@ -1370,7 +1445,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
             </div>
             <div className="mgr-editor-wrapper">
               <Editor
-                language="csharp"
+                language={isDesigner && selectedId === 'nutrient-viewer'
+                  ? nutrientInputType === 'instantJson' ? 'json' : nutrientInputType
+                  : 'csharp'}
                 value={sourceCode}
                 onChange={v => { setSourceCode(v ?? ''); if (sourceBase64) { setSourceBase64(null); setBinaryFileName(''); } }}
                 onMount={handleSourceMount}
@@ -1386,7 +1463,49 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                 height="100%"
               />
             </div>
-            {isReportDesign(selectedId) && (
+            {isDesigner && selectedId === 'nutrient-viewer' ? (
+              <div className="mgr-resource-panel">
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-nutrient-input-type">{t('viewerMigration.inputType')}</label>
+                  <select
+                    id="mgr-nutrient-input-type"
+                    value={nutrientInputType}
+                    onChange={event => {
+                      setNutrientInputType(event.target.value as 'javascript' | 'typescript' | 'instantJson');
+                      setSourceCode('');
+                      setReportDesign(null);
+                      setHasConverted(false);
+                      setPdfUrl(null);
+                      setPdfDataUrl(null);
+                    }}
+                  >
+                    <option value="instantJson">{t('viewerMigration.instantJson')}</option>
+                    <option value="javascript">{t('viewerMigration.javascript')}</option>
+                    <option value="typescript">{t('viewerMigration.typescript')}</option>
+                  </select>
+                </div>
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-nutrient-pdf">{t('viewerMigration.originalPdf')}</label>
+                  <span>{nutrientPdf?.name ?? t('viewerMigration.noOriginalPdf')}</span>
+                </div>
+                <div className="mgr-resource-actions">
+                  <label className="mgr-file-btn" htmlFor="mgr-nutrient-pdf">
+                    <FiUpload /> {t('viewerMigration.selectOriginalPdf')}
+                  </label>
+                  <input
+                    id="mgr-nutrient-pdf"
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={event => {
+                      setNutrientPdf(event.target.files?.[0] ?? null);
+                      setReportDesign(null);
+                      setHasConverted(false);
+                    }}
+                  />
+                </div>
+                <small>{t('viewerMigration.designerMigrationHint')}</small>
+              </div>
+            ) : isDesigner && (
               <div className="mgr-resource-panel">
                 <div className="mgr-resource-header">
                   <label htmlFor="mgr-resource-file">{t('resources.header')}</label>
@@ -1439,7 +1558,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     </button>
                   )}
                 </div>
-                {selectedId === JRXML_REPORT_ID && (
+                {selectedId === 'jasperreports' && (
                   <>
                     <div className="mgr-resource-header">
                       <label htmlFor="mgr-jrxml-resource-files">{t('resources.jrxmlSubreports')}</label>
@@ -1476,7 +1595,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     )}
                   </>
                 )}
-                {selectedId === RPX_REPORT_ID && (
+                {selectedId === 'rpx' && (
                   <>
                     <div className="mgr-resource-header">
                       <label htmlFor="mgr-rpx-resource-files">{t('resources.rpxSubreports')}</label>
@@ -1540,7 +1659,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
           <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
-              <span>{isReportDesign(selectedId) ? t('output.design') : current?.kind === 'spreadsheet' ? t('output.spreadsheetCode') : t('output.pdfCode')}</span>
+              <span>{isDesigner ? t('output.design') : current?.kind === 'spreadsheet' ? t('output.spreadsheetCode') : t('output.pdfCode')}</span>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button
@@ -1554,8 +1673,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                 <button className="mgr-icon-btn" onClick={handleCopy} disabled={!pxaCode} title={t('copyToClipboard')}>
                   <FiCopy /> {copied ? t('copied') : t('copy')}
                 </button>
-                <button className="mgr-icon-btn" onClick={handleDownload} disabled={!pxaCode} title={t('downloadCsFile')}>
-                  <FiDownload /> {t('downloadCs')}
+                <button
+                  className="mgr-icon-btn"
+                  onClick={handleDownload}
+                  disabled={!pxaCode}
+                  title={t(isDesigner ? 'downloadJsonFile' : 'downloadCsFile')}
+                >
+                  <FiDownload /> {t(isDesigner ? 'downloadJson' : 'downloadCs')}
                 </button>
               </div>
             </div>
@@ -1580,7 +1704,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                 />
               ) : (
                 <Editor
-                  language={isReportDesign(selectedId) ? 'json' : 'csharp'}
+                  language={isDesigner ? 'json' : 'csharp'}
                   value={pxaCode}
                   options={{
                     readOnly: true,
@@ -1597,15 +1721,24 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               )}
             </div>
             <div className="mgr-pane-footer mgr-pane-footer-right">
-              {isReportDesign(selectedId) ? (
-                <button
-                  className="mgr-btn mgr-btn-primary"
-                  onClick={handleOpenInDesigner}
-                  disabled={!reportDesign}
-                  title={t('openInDesignerTitle')}
-                >
-                  <FiLayout /> {t('openInDesigner')}
-                </button>
+              {isDesigner ? (
+                <>
+                  <button
+                    className="mgr-btn mgr-btn-secondary"
+                    onClick={() => reportDesign && void renderDesignerPreview(reportDesign).catch(previewError => setError(previewError instanceof Error ? previewError.message : t('errors.previewFailed')))}
+                    disabled={previewing || !reportDesign}
+                  >
+                    <FiPlay /> {t('generatePreview')}
+                  </button>
+                  <button
+                    className="mgr-btn mgr-btn-primary"
+                    onClick={handleOpenInDesigner}
+                    disabled={!reportDesign}
+                    title={t('openInDesignerTitle')}
+                  >
+                    <FiLayout /> {t('openInDesigner')}
+                  </button>
+                </>
               ) : (
                 <button
                   className="mgr-btn mgr-btn-secondary"
@@ -1691,7 +1824,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           }
         </div>
       </main>
-    </div>
+    </MigrationWorkspace>
   );
 };
 

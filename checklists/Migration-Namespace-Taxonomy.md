@@ -18,6 +18,11 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 `kind` remains the current target-domain field (`pdf` or `spreadsheet`); the canonical taxonomy is exposed as
 `domain`, `migrationKind`, and `provider`.
 
+The physical namespace work in this checklist is the implemented foundation for
+[`PXA.Unified-Migration-Frameworks.md`](PXA.Unified-Migration-Frameworks.md), which owns the canonical registry,
+v1 API and permissions. Technical domains remain separate in the API, while Report Designer is intentionally
+presented inside the PDF product experience at `/pdf/migrations/designer`.
+
 ## Naming Rules
 
 - [x] Use `Pdf`, not `PDF`.
@@ -129,6 +134,10 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 - [x] Keep `PXA.Infrastructure.Pdf` under `src/Infrastructure`, because the namespace represents the technical implementation layer.
 
 ## Compatibility Rules
+
+- [x] Use `/api/pxa/v1/migrations/{domain}/{kind}/{provider}` as the canonical provider route.
+- [x] Keep PDF Code, PDF Viewer, Spreadsheet Code, and Report Designer as distinct catalog paths.
+- [x] Return canonical provider IDs from the v1 API while accepting historical aliases at input boundaries.
 
 - [x] Existing provider IDs continue to work as aliases:
   - `aspose-pdf`

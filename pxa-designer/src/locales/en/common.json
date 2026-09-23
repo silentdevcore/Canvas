@@ -6,6 +6,7 @@
     "home": "Home",
     "pdf": "PDF",
     "spreadsheet": "Spreadsheet",
+    "report": "Reports",
     "docs": "Documentation",
     "logoHome": "Power Dox Automation home",
     "openMenu": "Open menu",
@@ -39,6 +40,7 @@
     "convertToSpreadsheet": "Convert to Spreadsheet",
     "migrations": "Migrations"
   },
+  "reportSidebar": { "designerMigration": "Report Designer Migration" },
   "productExperience": {
     "whatsNew": "What's New",
     "notifications": "Notifications",

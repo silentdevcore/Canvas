@@ -41,15 +41,29 @@ represented as successfully migrated.
   form fields, and form-value payloads.
 - [x] Added public Nutrient Viewer migration guidance, mapping tables,
   diagnostics, and a Documentation contract test.
-- [x] Verified the completed Beta scope with 7 Nutrient .NET tests, 23 Viewer
+- [x] Verified the completed Beta scope with 11 Nutrient .NET tests, 24 Viewer
   converter tests, 19 PDF provider tests, targeted API/security/feature-gate
   tests, all 395 Designer tests, all 12 Documentation tests, both production
   builds, release validation, and `git diff --check`.
 - [x] Added a TypeScript Compiler API boundary in Designer. The API receives the
   original TypeScript and compiler-produced JavaScript, analyzes the latter
   without execution, and checksums the original source.
-- [ ] Next: expand .NET semantic coverage to editing, annotations, forms,
-  conversion, OCR service handoff, and async/cancellation patterns.
+- [x] Expanded the .NET hardening scope with official GdPicture mappings for
+  static page selection, rotation, text boxes, lines, rectangles, file-image
+  resources, web links, text and checkbox fields, sticky notes, and stateful
+  line/fill appearance. Right-side origins are rejected with review diagnostics
+  instead of producing incorrect geometry. Generated comprehensive output is
+  compiled against `PXA.Pdf` in tests.
+- [ ] Next: expand .NET semantic coverage to existing-document editing,
+  additional annotations and form families, conversion, OCR service handoff,
+  and async/cancellation patterns.
+- [x] Replaced generated `TODO` statements for advanced operations with stable,
+  actionable migration-review entries. OCR is not confused with image-to-design
+  OCR, TWAIN remains an external hardware boundary, irreversible redaction points
+  to the PXA Trust pipeline, and signing never copies certificate secrets.
+- [x] Mapped the supported two-password Nutrient `Encrypt(owner, user)` pattern
+  to `PdfSaveOptions.Encryption` with AES-256, runtime secret lookups, compile
+  coverage, and a fail-closed PDF/A-plus-encryption conflict diagnostic.
 - [ ] Next: validate against representative customer-approved fixtures and
   broaden semantic Viewer event/configuration mappings.
 
@@ -100,6 +114,18 @@ Official reference baseline:
 ## Shared Migration Contract
 
 - [x] Define one structured Nutrient Viewer migration result shared by API and UI.
+- [x] Consolidate the user-facing Viewer result into one versioned, importable
+  `pxa-viewer-package` instead of exposing disconnected generated files.
+- [x] Support package download and re-import in Designer.
+- [x] Preview migrated settings, annotations, and form values in the real PXA
+  PDF Viewer, using an attached PDF or generated geometry-only preview pages.
+- [x] Integrate the customer-facing Nutrient workflow into PDF Designer Migration.
+- [x] Require the original PDF, import it into `DesignExportDto`, and overlay
+  supported Nutrient annotations and matching form values as editable content.
+- [x] Return one editable design with backend preview and Open-in-Designer instead
+  of exposing the Viewer package as the primary UI result.
+- [x] Keep the lower-level Viewer package endpoint as a compatibility and SDK
+  contract while redirecting the old Designer route to the integrated workflow.
 - [x] Return the detected product family, API generation, source language,
   generated target artifacts, and canonical provider identity.
 - [x] Return `documentFidelity` as `exact`, `compatible`, `reviewRequired`, or
@@ -127,7 +153,7 @@ Official reference baseline:
 - [ ] Use Roslyn syntax and semantic analysis rather than regex-only rewriting.
 - [ ] Detect aliases, fully qualified names, extension methods, async calls,
   helper wrappers, and dependency-injected Nutrient services.
-- [ ] Detect hard-coded license keys and emit a security diagnostic without
+- [x] Detect hard-coded license keys and emit a security diagnostic without
   copying the secret into generated code or logs.
 - [ ] Classify every recognized call into document lifecycle, pages, content,
   annotations, forms, signatures, security, redaction, OCR, conversion,
@@ -307,8 +333,8 @@ Official reference baseline:
 
 - [x] Add Nutrient to PDF Code Migration with display name
   `Nutrient .NET (formerly GdPicture.NET)`.
-- [x] Add a distinct PDF Viewer Migration workflow with display name
-  `Nutrient Web SDK (formerly PSPDFKit)`.
+- [x] Add `Nutrient Viewer` to PDF Designer Migration and remove the standalone
+  Viewer Migration tab from the customer-facing Designer navigation.
 - [x] Do not present Apryse and Nutrient as aliases or versions of one another.
 - [ ] Add input modes for C#, Java, JavaScript/TypeScript, Viewer configuration,
   and Instant JSON according to implemented rollout phase.
@@ -423,6 +449,12 @@ Official reference baseline:
 ### Phase N3: Hardening
 
 - [ ] Expand semantic C# mappings and supported Viewer events.
+  - [x] Map official static page selection, rotation, text boxes, primitive
+    graphics, file-image resources, web links, text/checkbox fields, and sticky
+    notes with origin- and unit-aware geometry.
+  - [x] Compile generated comprehensive C# against `PXA.Pdf` in the test suite.
+  - [ ] Add remaining annotation and form families, existing-document editing,
+    OCR/conversion service handoff, and async/cancellation mappings.
 - [ ] Add XFDF conversion and bounded multi-file project input.
 - [ ] Validate against representative customer-approved samples.
 - [ ] Publish a provider compatibility matrix by API generation.
@@ -433,20 +465,32 @@ Official reference baseline:
   stable.
 - [ ] Add Java-specific examples, diagnostics, and Documentation.
 
-## Deferred to the PDF Trust Foundation
+## PDF Trust Integration Follow-up
 
 Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.md)
 
-- [ ] Native PXA digital signatures, PAdES, timestamps, and LTV validation.
-- [ ] Irreversible content redaction with sanitization guarantees.
-- [ ] PDF/A and PDF/UA generation, validation, and repair.
+- [x] PXA now provides native Trust capabilities for signatures/PAdES,
+  irreversible redaction, PDF/A, PDF/UA, and AES-256 as tracked by the linked
+  PDF Trust checklist.
+- [ ] Map Nutrient signature, timestamp, validation, and certificate calls to
+  semantically equivalent PXA Trust workflows.
+- [ ] Map Nutrient redaction calls to PXA preflight, apply, verification, and
+  audit workflows without replacing removal with visual overlays.
+- [ ] Map additional Nutrient PDF/A and PDF/UA profiles only where target
+  generation and validation semantics are equivalent.
 - [x] Map Nutrient `PDF_A_2b` generation requests to
   `PdfComplianceProfile.PdfA2B` with explicit font, regeneration, and review warnings.
-- [ ] AES-256 and certificate-based PDF security.
-- [ ] Advanced signature and compliance Viewer UI.
+- [x] Map the supported Nutrient password-encryption pattern to PXA AES-256.
+- [ ] Map advanced Nutrient permissions and certificate-security options to
+  equivalent PXA policies; keep unmatched options as review items.
+- [ ] Connect migrated signature and compliance operations to the existing PXA
+  Viewer Trust UI.
 
-The Nutrient migrators may detect and report these APIs before the trust
-features exist, but they must not claim functional migration until the target
+The Nutrient migrators detect and report these APIs today, but they must not
+claim functional migration until each source call is mapped to an equivalent
+target capability with validation, Viewer workflow, and interoperability
+evidence.
+
 ## Release and Acceptance
 
 - [x] Add a customer-facing `minor` release fragment when the first Nutrient

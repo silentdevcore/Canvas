@@ -9,7 +9,7 @@
     "migration"
   ],
   "category": "added",
-  "summary": "PXA adds Nutrient and legacy GdPicture .NET code migration, non-executing JavaScript and TypeScript Viewer analysis, Instant JSON conversion, localized review reports, and a comprehensive synthetic migration example.",
+  "summary": "PXA expands Nutrient and legacy GdPicture migration with page and content mappings, basic forms and annotations, modern password encryption, actionable Trust workflow reviews, and non-executing Viewer conversion.",
   "featureIds": [
     "designer.nutrient-viewer-migration"
   ],

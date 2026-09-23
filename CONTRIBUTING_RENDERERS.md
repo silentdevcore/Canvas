@@ -245,13 +245,20 @@ Preferred implementation:
 
 ### 4. Register in WebApi
 
-Add the converter to the DI setup used by `MigrationService`.
+Add the converter to the appropriate typed aggregator and register one
+`MigrationProviderDescriptor` in `MigrationProviderCatalog`.
 
 Ensure it appears in:
 
-- `GET /api/migration/frameworks`
-- `POST /api/migration/convert`
-- `POST /api/migration/preview`, when preview can replay generated PXA-compatible PDF calls
+- `GET /api/pxa/v1/migrations/catalog`
+- `POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/convert`
+- `POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/preview`, when preview is supported
+
+The descriptor is the source for domain, kind, canonical key, historical aliases,
+inputs, artifacts, status, Documentation ID, feature gate, limits, and canonical
+permission. Do not add a second frontend provider list. The legacy
+`/api/migration/*` routes are compatibility adapters and must resolve through the
+same registry and orchestration.
 
 ### 5. Add tests
 
@@ -307,13 +314,17 @@ Use `PXA.Migration.Abstractions` for diagnostics and `PXA.Core` for `DesignExpor
 
 ### 3. Wire endpoint routing
 
-Register detection/conversion in `MigrationController` behind:
+Register the converter in `MigrationProviderCatalog` with domain `report` and kind
+`designer`. The canonical endpoint is:
 
 ```text
-POST /api/migration/report-to-design
+POST /api/pxa/v1/migrations/report/designer/{provider}/convert
 ```
 
-Detection must be explicit and ordered so similar formats do not steal each other's inputs.
+Normal requests select a provider explicitly. Detection must be explicit and
+ordered for the compatibility provider `auto` so similar formats do not steal
+each other's inputs. The legacy `/api/migration/report-to-design` endpoint remains
+an adapter for one major release.
 
 ### 4. Add tests
 

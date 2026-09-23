@@ -4,8 +4,8 @@ import { FiAlertTriangle, FiExternalLink, FiShield } from 'react-icons/fi';
 
 export interface PdfTrustManualAction {
   actionId: string;
-  capability: string;
-  disposition: 'ReviewRequired' | 'Unsupported';
+  capability: string | number;
+  disposition: 'ReviewRequired' | 'Unsupported' | number;
   sourceOperation: string;
   targetOperation?: string | null;
   documentationPath: string;
@@ -17,6 +17,28 @@ export interface PdfTrustMigrationResult {
   overallDisposition: 'Automatic' | 'ReviewRequired' | 'Unsupported';
   manualActions: PdfTrustManualAction[];
 }
+
+const capabilityNames = [
+  'DigitalSignature',
+  'Timestamp',
+  'SignatureValidation',
+  'Encryption',
+  'SecureRedaction',
+  'PdfA',
+  'PdfUa',
+] as const;
+
+const dispositionNames = ['Automatic', 'ReviewRequired', 'Unsupported'] as const;
+
+const normalizeCapability = (capability: string | number): string =>
+  typeof capability === 'number'
+    ? capabilityNames[capability] ?? `Unknown (${capability})`
+    : capability;
+
+const normalizeDisposition = (disposition: PdfTrustManualAction['disposition']): string =>
+  typeof disposition === 'number'
+    ? dispositionNames[disposition] ?? `Unknown (${disposition})`
+    : disposition;
 
 export const resolveMigrationDocumentationHref = (baseUrl: string, path: string): string => {
   try {
@@ -50,14 +72,16 @@ const PdfTrustMigrationReport: React.FC<Props> = ({ report, documentationBaseUrl
       </div>
       <ul className="mgr-trust-actions">
         {report.manualActions.map(action => {
-          const unsupported = action.disposition === 'Unsupported';
+          const capability = normalizeCapability(action.capability);
+          const disposition = normalizeDisposition(action.disposition);
+          const unsupported = disposition === 'Unsupported';
           return (
             <li className={`mgr-trust-action${unsupported ? ' is-unsupported' : ''}`} key={action.actionId}>
               <FiAlertTriangle aria-hidden="true" />
               <div className="mgr-trust-action-content">
                 <div className="mgr-trust-action-heading">
-                  <strong>{t(`trust.capabilities.${capabilityTranslationKey(action.capability)}`, action.capability)}</strong>
-                  <span>{t(`trust.dispositions.${action.disposition}`)}</span>
+                  <strong>{t(`trust.capabilities.${capabilityTranslationKey(capability)}`, capability)}</strong>
+                  <span>{t(`trust.dispositions.${disposition}`, disposition)}</span>
                 </div>
                 <p>{t('trust.sourceOperation')}: <code>{action.sourceOperation}</code></p>
                 {action.targetOperation && (

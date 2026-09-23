@@ -82,6 +82,8 @@ export interface PdfViewerProps {
   initialSource?: PdfSource | null;
   initialPageNumber?: number;
   initialFitMode?: Exclude<PdfViewerFitMode, 'custom'>;
+  initialAnnotations?: PdfAnnotation[];
+  initialFormValues?: Array<{ name: string; value: PdfFormFieldValue }>;
   canDownload?: boolean;
   canPrint?: boolean;
   canInspectTrust?: boolean;
@@ -222,6 +224,9 @@ const supportsFill = (type: PdfAnnotation['type']): boolean => type === 'rectang
 
 const supportsLineEndings = (type: PdfAnnotation['type']): boolean => type === 'line';
 
+const EMPTY_INITIAL_ANNOTATIONS: PdfAnnotation[] = [];
+const EMPTY_INITIAL_FORM_VALUES: Array<{ name: string; value: PdfFormFieldValue }> = [];
+
 const annotationStrokeWidth = (annotation: PdfAnnotation): number => annotation.strokeWidth ?? defaultStrokeWidthForType(annotation.type);
 
 const annotationOpacity = (annotation: PdfAnnotation): number => annotation.opacity ?? defaultOpacityForType(annotation.type);
@@ -252,6 +257,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   initialSource = null,
   initialPageNumber = 1,
   initialFitMode = 'page',
+  initialAnnotations = EMPTY_INITIAL_ANNOTATIONS,
+  initialFormValues = EMPTY_INITIAL_FORM_VALUES,
   canDownload = true,
   canPrint = true,
   canInspectTrust = true,
@@ -303,7 +310,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [signingStatus, setSigningStatus] = useState<string | null>(null);
   const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
   const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
-  const [annotations, setAnnotations] = useState<PdfAnnotation[]>([]);
+  const [annotations, setAnnotations] = useState<PdfAnnotation[]>(initialAnnotations);
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [reviewAuthor, setReviewAuthor] = useState('Reviewer');
   const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
@@ -582,10 +589,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     setUrlInput(initialSource?.url ?? '');
     setCurrentPage(Math.max(1, Math.trunc(initialPageNumber)));
     setFitMode(initialFitMode);
+    setAnnotations(initialAnnotations);
     if (initialSource) {
       emitViewerEvent('open:initial', { name: initialSource.name });
     }
-  }, [emitViewerEvent, initialFitMode, initialPageNumber, initialSource]);
+  }, [emitViewerEvent, initialAnnotations, initialFitMode, initialPageNumber, initialSource]);
 
   useEffect(() => {
     setPageInput(String(currentPage));
@@ -1091,7 +1099,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           return;
         }
 
-        setFormFields(fields);
+        const migratedValues = new Map(initialFormValues.map(field => [field.name, field.value]));
+        const mergedFields = fields.map(field => {
+          if (!migratedValues.has(field.name)) return field;
+          const value = migratedValues.get(field.name)!;
+          return {
+            ...field,
+            value: Array.isArray(value) ? [...value] : value,
+          };
+        });
+        setFormFields(mergedFields);
         setFormStatus(fields.length > 0 ? null : labels.formNone);
         emitViewerEvent('forms:loaded', { count: fields.length });
       } catch (error) {
@@ -1111,7 +1128,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [emitViewerEvent, getSourceBytes, labels.formLoadFailed, labels.formLoading, labels.formNone, source]);
+  }, [emitViewerEvent, getSourceBytes, initialFormValues, labels.formLoadFailed, labels.formLoading, labels.formNone, source]);
 
   const buildSubsetPdfUrl = async (pages: number[]): Promise<string> => {
     const bytes = await getSourceBytes();

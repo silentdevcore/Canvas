@@ -22,6 +22,7 @@ const authenticatedDesignerUser = {
   permissions: [
     ...Object.values(designerPermissions),
     migrationProviderPermission('pdf', 'nutrient-viewer'),
+    migrationProviderPermission('report', 'devexpress-report'),
   ],
   organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
   activeOrganizationId: 'org-1',
@@ -276,6 +277,22 @@ describe('app route smoke tests', () => {
       expect(getByText(container, 'Convert to PDF')).toBeTruthy();
       expect(getByText(container, /PDF Viewer/)).toBeTruthy();
       expect(getByText(container, 'Migrations')).toBeTruthy();
+      const primaryNavigation = container.querySelector('.pdf-nav-links');
+      expect(primaryNavigation?.textContent).not.toContain('Reports');
+    });
+  });
+
+  test('legacy Report route redirects to the Report Designer tab inside PDF Migration', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) });
+
+    root = await renderRoute(container, '/report/migrations/designer');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'PDF Designer Migration')).toBeTruthy();
+      expect(container.querySelector('button[aria-selected="true"]')?.textContent).toContain('Designer Migration');
     });
   });
 
@@ -468,20 +485,30 @@ describe('app route smoke tests', () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockResolvedValueOnce({
       ok: true,
+      json: async () => ({ providers: [{
+        providerKey: 'devexpress-report', providerFamily: 'devexpress', displayName: 'DevExpress XtraReports',
+        status: 'full', description: 'Report migration', domain: 'report', kind: 'designer', aliases: ['DevExpressReport'],
+        requiredPermission: 'designer.migration.report.designer.provider.devexpress.execute', hasExamples: true,
+      }] }),
+    });
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) });
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
       json: async () => ({
-        design: {
+        artifacts: [{ id: 'design', content: {
           id: 'booking-receipt',
           name: 'Booking Receipt',
           pages: [{ id: 'page-1', elements: [] }],
           sharedElements: [],
           data: {},
           pageSettings: { width: 612, height: 792 },
-        },
+        } }],
+        summary: { convertedCount: 0, warningCount: 0, errorCount: 0, totalDiagnostics: 0 },
         diagnostics: [],
       }),
     });
 
-    root = await renderRoute(container, '/migrations/pdf/designer');
+    root = await renderRoute(container, '/pdf/migrations/designer');
 
     await click(getButtonByText(container, /load example/i));
     await click(getButtonByText(container, /convert/i));
@@ -511,12 +538,20 @@ describe('app route smoke tests', () => {
     });
   });
 
-  test('opens the protected Nutrient Viewer migration workspace', async () => {
+  test('redirects the old Nutrient Viewer route into PDF Designer Migration', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [{
+        providerKey: 'nutrient-viewer', providerFamily: 'nutrient', displayName: 'Nutrient Viewer',
+        status: 'beta', description: 'Nutrient PDF designer migration', domain: 'pdf', kind: 'designer',
+        requiredPermission: 'designer.migration.pdf.designer.provider.nutrient.execute', hasExamples: true,
+      }] }) });
     root = await renderRoute(container, '/pdf/migrations/viewer');
 
     await waitUntil(() => {
-      expect(getByText(container, 'Nutrient Viewer Migration')).toBeTruthy();
-      expect(getByText(container, 'JavaScript configuration')).toBeTruthy();
+      expect(getByText(container, 'PDF Designer Migration')).toBeTruthy();
+      expect(getByText(container, 'Nutrient Viewer')).toBeTruthy();
       expect(getByText(container, 'Instant JSON')).toBeTruthy();
     });
   });

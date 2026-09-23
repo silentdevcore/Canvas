@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using PXA.Migration.Abstractions;
 using PXA.Migration.Pdf.Code.Nutrient;
+using PXA.Pdf;
 
 namespace PXA.Migration.Pdf.Code.Nutrient.Tests;
 
@@ -182,21 +183,149 @@ public sealed class NutrientMigrationTests
     }
 
     [Fact]
-    public void ComprehensiveFixture_RemovesLicenseAndMarksUnsupportedTrustOperations()
+    public void ComprehensiveFixture_MapsEncryptionAndProducesActionableTrustReview()
     {
         var result = new NutrientMigration().Migrate(NutrientCodeExamples.ComprehensiveGdPictureCSharp);
 
         Assert.DoesNotContain("SYNTHETIC-LICENSE", result.MigratedCode);
         Assert.DoesNotContain("certificate.pfx", result.MigratedCode);
-        Assert.Contains("Migrate Nutrient ApplyRedaction", result.MigratedCode);
-        Assert.Contains("Migrate Nutrient SignPDF", result.MigratedCode);
+        Assert.DoesNotContain("TODO", result.MigratedCode);
+        Assert.Contains("[CANMIGNUTNET058] ApplyRedaction", result.MigratedCode);
+        Assert.Contains("[CANMIGNUTNET059] SignPDF", result.MigratedCode);
+        Assert.Contains("PdfEncryptionAlgorithm.Aes256", result.MigratedCode);
+        Assert.Contains("PXA_PDF_OWNER_PASSWORD", result.MigratedCode);
+        Assert.Contains("PXA_PDF_USER_PASSWORD", result.MigratedCode);
+        Assert.DoesNotContain("owner-password", result.MigratedCode);
+        Assert.DoesNotContain("user-password", result.MigratedCode);
+        Assert.DoesNotContain("secret", result.MigratedCode);
         Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET026");
         Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET021");
         Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET022");
         Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET024");
-        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET025");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET055");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET056");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET057");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET058");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET059");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET060");
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET025");
+        Assert.Contains("page.DrawRectangleFromTop(48, 90, 500, 120", result.MigratedCode);
+        Assert.Contains("var logo = \"invoice-logo.jpg\";", result.MigratedCode);
+        Assert.Contains("page.DrawImageFromTop(logo, 460, 36, 84, 42);", result.MigratedCode);
+        Assert.Contains("page.AddWebLink(48, page.Height - (240) - (20), 180, 20", result.MigratedCode);
+        Assert.Contains("page2.RotationDegrees = (int)(90);", result.MigratedCode);
+        Assert.Contains("page2.AddTextField(\"customerName\", 48, page2.Height - (72) - (28), 240, 28, \"Example Customer\", 10);", result.MigratedCode);
+        Assert.Contains("page2.AddCheckBox(\"approved\", 48, page2.Height - (120) - (18), 18, true);", result.MigratedCode);
+        Assert.Contains("page2.AddStickyNoteAnnotation(320, page2.Height - (72) - (18), 18, 18, \"Review this page\"", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET016");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET017");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET018");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET019");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET027");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET028");
 
         var syntaxTree = CSharpSyntaxTree.ParseText(result.MigratedCode);
         Assert.DoesNotContain(syntaxTree.GetDiagnostics(), item => item.Severity == DiagnosticSeverity.Error);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MapsNutrientEncryptionToAes256WithoutCopyingLiteralSecrets()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.Encrypt("owner-secret", "user-secret");
+            pdf.SaveToFile("encrypted.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("Encryption = new PdfEncryptionOptions", result.MigratedCode);
+        Assert.Contains("Algorithm = PdfEncryptionAlgorithm.Aes256", result.MigratedCode);
+        Assert.Contains("Environment.GetEnvironmentVariable(\"PXA_PDF_OWNER_PASSWORD\")", result.MigratedCode);
+        Assert.Contains("Environment.GetEnvironmentVariable(\"PXA_PDF_USER_PASSWORD\")", result.MigratedCode);
+        Assert.DoesNotContain("owner-secret", result.MigratedCode);
+        Assert.DoesNotContain("user-secret", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET023");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MapsOfficialTextBoxLineAndStaticPageSelection()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            var font = pdf.AddStandardFont(PdfStandardFont.PdfStandardFontHelvetica);
+            pdf.SetTextSize(11);
+            pdf.SetFillColor(12, 34, 56);
+            pdf.SetLineColor(70, 80, 90);
+            pdf.SetLineWidth(2);
+            pdf.DrawTextBox(font, 40, 60, 240, 80, TextAlignment.TextAlignmentFar, TextAlignment.TextAlignmentFar, "Wrapped text");
+            pdf.DrawLine(40, 150, 280, 150);
+            pdf.NewPage(PdfPageSizes.PdfPageSizeLetter);
+            pdf.SelectPage(1);
+            pdf.DrawText(font, 40, 200, "Back on page one");
+            pdf.SaveToFile("mapped.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("page.DrawTextBoxFromTop(\"Wrapped text\", 40, 60, 240, 80", result.MigratedCode);
+        Assert.Contains("FillColor = PdfColor.FromRgb(12, 34, 56)", result.MigratedCode);
+        Assert.Contains("Alignment = PdfTextAlignment.Right", result.MigratedCode);
+        Assert.Contains("VerticalAlignment = PdfVerticalAlignment.Bottom", result.MigratedCode);
+        Assert.Contains("page.DrawLineFromTop(40, 150, 280, 150, 2, PdfColor.FromRgb(70, 80, 90));", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Back on page one\"", result.MigratedCode);
+        Assert.DoesNotContain("Migrate Nutrient SelectPage", result.MigratedCode);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_DoesNotGuessGeometryForRightSideOrigins()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            var font = pdf.AddStandardFont(PdfStandardFont.PdfStandardFontHelvetica);
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopRight);
+            pdf.DrawText(font, 20, 30, "Right origin");
+            pdf.SaveToFile("right-origin.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("[CANMIGNUTNET049] DrawText", result.MigratedCode);
+        Assert.DoesNotContain("page.DrawText", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET049");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    private static void AssertCompiles(string source)
+    {
+        var trustedAssemblies = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES"))!
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path))
+            .ToList();
+        trustedAssemblies.Add(MetadataReference.CreateFromFile(typeof(PdfDocument).Assembly.Location));
+
+        var compilation = CSharpCompilation.Create(
+            $"NutrientMigration_{Guid.NewGuid():N}",
+            [CSharpSyntaxTree.ParseText(source)],
+            trustedAssemblies,
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+        var errors = compilation.GetDiagnostics()
+            .Where(item => item.Severity == DiagnosticSeverity.Error)
+            .ToArray();
+
+        Assert.True(errors.Length == 0, string.Join(Environment.NewLine, errors.Select(item => item.ToString())));
     }
 }

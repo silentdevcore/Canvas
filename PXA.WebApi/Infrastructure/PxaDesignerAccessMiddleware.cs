@@ -99,7 +99,8 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
             var requiredPermission = PxaDesignerPermissionResolver.Resolve(
                 context.Request.Path,
                 context.Request.Method);
-            if (!context.User.HasClaim(PxaClaimTypes.Permission, requiredPermission))
+            if (!HasPermission(context.User, requiredPermission) &&
+                !HasCanonicalMigrationPermission(context))
             {
                 dbContext.AuditEvents.Add(new AuditEvent
                 {
@@ -169,6 +170,42 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
 
     private static bool IsDesignerOrganizationSwitch(PathString path) =>
         path.Equals("/api/pxa/v1/auth/switch-organization");
+
+    private static bool HasCanonicalMigrationPermission(HttpContext context)
+    {
+        var segments = (context.Request.Path.Value ?? string.Empty)
+            .Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length < 5 ||
+            !string.Equals(segments[0], "api", StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(segments[1], "pxa", StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(segments[2], "v1", StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(segments[3], "migrations", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (segments.Length == 5 &&
+            string.Equals(segments[4], "catalog", StringComparison.OrdinalIgnoreCase))
+        {
+            var domain = context.Request.Query["domain"].ToString();
+            var kind = context.Request.Query["kind"].ToString();
+            return !string.IsNullOrWhiteSpace(domain) &&
+                   !string.IsNullOrWhiteSpace(kind) &&
+                   HasPermission(context.User, PxaDesignerMigrationPermissions.KindPermission(domain, kind, "read"));
+        }
+
+        if (segments.Length < 6) return false;
+
+        var action = HttpMethods.IsGet(context.Request.Method) ||
+                     HttpMethods.IsHead(context.Request.Method) ||
+                     HttpMethods.IsOptions(context.Request.Method)
+            ? "read"
+            : "execute";
+        return HasPermission(
+            context.User,
+            PxaDesignerMigrationPermissions.KindPermission(segments[4], segments[5], action));
+    }
+
+    private static bool HasPermission(ClaimsPrincipal user, string permission) =>
+        user.HasClaim(PxaClaimTypes.Permission, permission);
 
     private static async Task WriteProblemAsync(
         HttpContext context,

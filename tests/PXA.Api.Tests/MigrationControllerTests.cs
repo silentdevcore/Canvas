@@ -1,7 +1,15 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using PXA.Migration.Abstractions;
+using PXA.Migration.Pdf.Code.Nutrient;
+using PXA.WebApi.Controllers;
+using PXA.WebApi.Security;
+using PXA.WebApi.Services;
 
 namespace PXA.Api.Tests;
 
@@ -15,12 +23,318 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
     }
 
     [Fact]
+    public async Task CanonicalCatalog_SeparatesDomainsKindsAndProviderFamilies()
+    {
+        var response = await client.GetAsync("/api/pxa/v1/migrations/catalog");
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var providers = body.GetProperty("providers").EnumerateArray().ToArray();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(35, providers.Length); // Includes separate Nutrient Viewer and editable Designer contracts.
+        Assert.Contains(providers, item =>
+            item.GetProperty("domain").GetString() == "pdf"
+            && item.GetProperty("kind").GetString() == "viewer"
+            && item.GetProperty("providerKey").GetString() == "nutrient-viewer"
+            && item.GetProperty("providerFamily").GetString() == "nutrient");
+        Assert.Contains(providers, item =>
+            item.GetProperty("domain").GetString() == "spreadsheet"
+            && item.GetProperty("kind").GetString() == "code"
+            && item.GetProperty("providerKey").GetString() == "aspose-cells");
+        Assert.Contains(providers, item =>
+            item.GetProperty("domain").GetString() == "report"
+            && item.GetProperty("kind").GetString() == "designer"
+            && item.GetProperty("providerKey").GetString() == "devexpress-report");
+        Assert.Contains(providers, item =>
+            item.GetProperty("domain").GetString() == "pdf"
+            && item.GetProperty("kind").GetString() == "designer"
+            && item.GetProperty("providerKey").GetString() == "nutrient-viewer");
+    }
+
+    [Fact]
+    public async Task CanonicalCatalog_DomainFilterNeverMixesSpreadsheetAndPdf()
+    {
+        var response = await client.GetAsync("/api/pxa/v1/migrations/catalog?domain=spreadsheet&kind=code");
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var providers = body.GetProperty("providers").EnumerateArray().ToArray();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(8, providers.Length);
+        Assert.All(providers, item =>
+        {
+            Assert.Equal("spreadsheet", item.GetProperty("domain").GetString());
+            Assert.Equal("code", item.GetProperty("kind").GetString());
+        });
+    }
+
+    [Fact]
+    public async Task CanonicalProviderAndExamples_ExposeBackendOwnedContracts()
+    {
+        var providerResponse = await client.GetAsync("/api/pxa/v1/migrations/pdf/viewer/nutrient-viewer");
+        var provider = await providerResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var examplesResponse = await client.GetAsync("/api/pxa/v1/migrations/pdf/viewer/nutrient-viewer/examples");
+        var examples = await examplesResponse.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, providerResponse.StatusCode);
+        Assert.Equal("designer.nutrient-viewer-migration", provider.GetProperty("featureId").GetString());
+        Assert.Equal(HttpStatusCode.OK, examplesResponse.StatusCode);
+        Assert.NotEmpty(examples.GetProperty("examples").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task CanonicalViewerConvert_ReturnsOneImportablePxaPackage()
+    {
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/pdf/viewer/nutrient-viewer/convert",
+            Json(JsonSerializer.Serialize(new
+            {
+                inputType = "instantJson",
+                source = """{"format":"https://pspdfkit.com/instant-json/v1","annotations":[]}""",
+                pages = new[] { new { width = 595, height = 842 } }
+            })));
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var artifact = Assert.Single(body.GetProperty("artifacts").EnumerateArray());
+        Assert.Equal("pxa-viewer-package", artifact.GetProperty("id").GetString());
+        Assert.Equal("application/vnd.pxa.viewer+json", artifact.GetProperty("mediaType").GetString());
+        var package = artifact.GetProperty("content");
+        Assert.Equal(1, package.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal("pxa.pdf-viewer-package", package.GetProperty("kind").GetString());
+        Assert.Equal("nutrient", package.GetProperty("provider").GetString());
+        Assert.Equal(595, package.GetProperty("pageGeometry")[0].GetProperty("width").GetDouble());
+        Assert.Equal(JsonValueKind.Object, package.GetProperty("annotationSidecar").ValueKind);
+        Assert.Equal(JsonValueKind.Object, package.GetProperty("formValues").ValueKind);
+    }
+
+    [Fact]
+    public async Task NutrientDesignerConvert_CombinesPdfAndInstantJsonIntoOneEditableDesign()
+    {
+#pragma warning disable PXA0001
+        var sourcePdf = new PXA.Pdf.PdfDocument();
+#pragma warning restore PXA0001
+        sourcePdf.AddPage().DrawText("Original PDF", 40, 780, 12);
+        var pdfBytes = sourcePdf.ToBytes();
+        var instantJson = """
+            {
+              "format": "https://pspdfkit.com/instant-json/v1",
+              "annotations": [
+                {
+                  "id": "review-note",
+                  "type": "pspdfkit/text",
+                  "pageIndex": 0,
+                  "bbox": [72, 72, 160, 30],
+                  "text": "Editable Nutrient annotation",
+                  "creatorName": "Migration test"
+                }
+              ]
+            }
+            """;
+        using var content = new MultipartFormDataContent();
+        var pdfContent = new ByteArrayContent(pdfBytes);
+        pdfContent.Headers.ContentType = new("application/pdf");
+        content.Add(pdfContent, "pdf", "nutrient-source.pdf");
+        content.Add(new StringContent("instantJson"), "inputType");
+        content.Add(new StringContent(instantJson), "source");
+
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/pdf/designer/nutrient-viewer/convert",
+            content);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("pdf", body.GetProperty("domain").GetString());
+        Assert.Equal("designer", body.GetProperty("kind").GetString());
+        var artifact = Assert.Single(body.GetProperty("artifacts").EnumerateArray());
+        Assert.Equal("design", artifact.GetProperty("id").GetString());
+        var design = artifact.GetProperty("content");
+        Assert.Contains(
+            design.GetProperty("pages")[0].GetProperty("elements").EnumerateArray(),
+            element => element.GetProperty("content").GetString() == "Editable Nutrient annotation");
+        Assert.True(design.TryGetProperty("nutrientViewerMigration", out _));
+        Assert.Equal(1, body.GetProperty("metadata").GetProperty("mappedAnnotations").GetInt32());
+    }
+
+    [Fact]
+    public async Task CanonicalCodeConvert_ReturnsTypedArtifactEnvelope()
+    {
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/pdf/code/devexpress-pdf/convert",
+            Json(JsonSerializer.Serialize(new
+            {
+                inputType = "csharp",
+                source = "using DevExpress.Pdf; var processor = new PdfDocumentProcessor(); processor.CreateEmptyDocument();"
+            })));
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("pdf", body.GetProperty("domain").GetString());
+        Assert.Equal("code", body.GetProperty("kind").GetString());
+        Assert.Equal("pxa-csharp", body.GetProperty("artifacts")[0].GetProperty("id").GetString());
+        Assert.Contains("PXA.Pdf", body.GetProperty("artifacts")[0].GetProperty("content").GetString());
+    }
+
+    [Fact]
+    public async Task CanonicalCodePreview_ReturnsTheDomainSpecificArtifact()
+    {
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/pdf/code/devexpress-pdf/preview",
+            Json(JsonSerializer.Serialize(new
+            {
+                inputType = "csharp",
+                source = "using DevExpress.Pdf; var processor = new PdfDocumentProcessor(); processor.CreateEmptyDocument();"
+            })));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        Assert.Equal("%PDF-", Encoding.ASCII.GetString(bytes, 0, 5));
+    }
+
+    [Fact]
+    public void CanonicalCodePreview_RejectsSourceAboveProviderLimit()
+    {
+        var controller = CreateCanonicalController(
+            "designer.migration.pdf.code.execute",
+            "designer.migration.pdf.code.provider.devexpress.execute");
+        var oversizedSource = new string('x', (10 * 1024 * 1024) + 1);
+
+        var result = controller.Preview(
+            "pdf", "code", "devexpress-pdf",
+            new UnifiedMigrationRequest("csharp", oversizedSource));
+
+        var problem = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, problem.StatusCode);
+        Assert.Equal("PXAMIG010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+    }
+
+    [Fact]
+    public async Task CanonicalReportConvert_UsesExplicitProvider()
+    {
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/report/designer/rdl/convert",
+            Json(JsonSerializer.Serialize(new
+            {
+                inputType = "report",
+                source = "<Report xmlns=\"http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition\" Name=\"Canonical\"><Body><Height>1in</Height></Body><Page><PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth></Page></Report>"
+            })));
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("rdl", body.GetProperty("provider").GetString());
+        Assert.Equal("design", body.GetProperty("artifacts")[0].GetProperty("id").GetString());
+        Assert.Equal("Canonical", body.GetProperty("artifacts")[0].GetProperty("content").GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task CanonicalRoute_RejectsProviderInWrongDomain()
+    {
+        var response = await client.PostAsync(
+            "/api/pxa/v1/migrations/spreadsheet/code/devexpress-pdf/convert",
+            Json("{\"source\":\"test\"}"));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public void ProviderCatalog_HasUniqueCanonicalPathsAndAliases()
+    {
+        var paths = MigrationProviderCatalog.All
+            .Select(item => $"{item.Domain}/{item.MigrationKind}/{item.ProviderKey}")
+            .ToArray();
+
+        Assert.Equal(paths.Length, paths.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.DoesNotContain(MigrationProviderCatalog.All, item => string.IsNullOrWhiteSpace(item.DocumentationId));
+        Assert.DoesNotContain(MigrationProviderCatalog.All, item => item.Inputs.Count == 0 || item.Artifacts.Count == 0);
+        Assert.DoesNotContain(MigrationProviderCatalog.All, item => item.MaximumInputBytes <= 0);
+        Assert.True(MigrationProviderCatalog.TryGet("pdf", "code", "GdPicture.NET", out var nutrient));
+        Assert.Equal("nutrient", nutrient.ProviderKey);
+    }
+
+    [Fact]
+    public void CanonicalConversion_RequiresKindAndProviderPermissions()
+    {
+        var controller = CreateCanonicalController(
+            "designer.migration.pdf.code.provider.devexpress.execute");
+
+        var denied = controller.Convert(
+            "pdf", "code", "devexpress-pdf",
+            new UnifiedMigrationRequest("csharp", "using DevExpress.Pdf;"));
+
+        Assert.Equal(StatusCodes.Status403Forbidden, Assert.IsType<ObjectResult>(denied).StatusCode);
+    }
+
+    [Fact]
+    public void CanonicalConversion_AcceptsMatchingKindAndProviderPermissions()
+    {
+        var controller = CreateCanonicalController(
+            "designer.migration.pdf.code.execute",
+            "designer.migration.pdf.code.provider.devexpress.execute");
+
+        var result = controller.Convert(
+            "pdf", "code", "devexpress-pdf",
+            new UnifiedMigrationRequest("csharp", "using DevExpress.Pdf; var processor = new PdfDocumentProcessor();"));
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public void CanonicalNutrientConversion_SerializesPdfTrustEnumsAsStrings()
+    {
+        var controller = CreateCanonicalController(
+            "designer.migration.pdf.code.execute",
+            "designer.migration.pdf.code.provider.nutrient.execute");
+
+        var result = controller.Convert(
+            "pdf", "code", "nutrient",
+            new UnifiedMigrationRequest("csharp", NutrientCodeExamples.ComprehensiveGdPictureCSharp));
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var body = JsonSerializer.SerializeToElement(ok.Value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var generatedCode = body.GetProperty("artifacts")[0].GetProperty("content").GetString();
+        Assert.NotNull(generatedCode);
+        Assert.Contains("PdfEncryptionAlgorithm.Aes256", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("[CANMIGNUTNET058] ApplyRedaction", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("[CANMIGNUTNET059] SignPDF", generatedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("TODO", generatedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("owner-password", generatedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("certificate.pfx", generatedCode, StringComparison.Ordinal);
+        var trust = body.GetProperty("pdfTrust");
+        Assert.Equal("ReviewRequired", trust.GetProperty("overallDisposition").GetString());
+        var action = Assert.Single(trust.GetProperty("manualActions").EnumerateArray(), item =>
+            item.GetProperty("actionId").GetString() == "CANMIGNUTNET021");
+        Assert.Equal("DigitalSignature", action.GetProperty("capability").GetString());
+        Assert.Equal("ReviewRequired", action.GetProperty("disposition").GetString());
+    }
+
+    private static UnifiedMigrationsController CreateCanonicalController(params string[] permissions)
+    {
+        var controller = new UnifiedMigrationsController(
+            new MigrationService(),
+            new ReportMigrationService(),
+            new NutrientViewerDesignMigrationService())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        permissions.Select(permission => new Claim(PxaClaimTypes.Permission, permission)), "test")),
+                },
+            },
+        };
+        controller.Request.Headers["X-PXA-Application"] = "designer";
+        return controller;
+    }
+
+    [Fact]
     public async Task GetFrameworks_PxaRoute_ReturnsSupportedFrameworks()
     {
         var response = await client.GetAsync("/api/pxa/migration/frameworks");
         var frameworks = await response.Content.ReadFromJsonAsync<JsonElement[]>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("true", response.Headers.GetValues("Deprecation").Single());
+        Assert.Contains("successor-version", response.Headers.GetValues("Link").Single());
         Assert.NotNull(frameworks);
         Assert.Contains(
             frameworks!,

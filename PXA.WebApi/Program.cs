@@ -628,6 +628,8 @@ builder.Services.AddTransient<ImageToPdfConverter>();
 
 // Register migration service
 builder.Services.AddSingleton<PXA.WebApi.Services.MigrationService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.ReportMigrationService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.NutrientViewerDesignMigrationService>();
 builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerAnnotationStore>();
 builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerAnnotationFlatteningService>();
 builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerNativeAnnotationExtractionService>();

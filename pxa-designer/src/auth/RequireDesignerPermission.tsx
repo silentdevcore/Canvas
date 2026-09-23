@@ -1,15 +1,18 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDesignerAuth } from './DesignerAuthGate';
-import { hasDesignerPermission, type DesignerPermission } from './designerPermissions';
+import { hasAnyDesignerPermission, type DesignerPermission } from './designerPermissions';
 
-const RequireDesignerPermission: React.FC<React.PropsWithChildren<{ permission: DesignerPermission }>> = ({
+const RequireDesignerPermission: React.FC<React.PropsWithChildren<{
+  permission: DesignerPermission | readonly string[];
+}>> = ({
   permission,
   children,
 }) => {
   const { user } = useDesignerAuth();
   const { t } = useTranslation('common');
-  if (hasDesignerPermission(user, permission)) return <>{children}</>;
+  const acceptedPermissions = typeof permission === 'string' ? [permission] : permission;
+  if (hasAnyDesignerPermission(user, acceptedPermissions)) return <>{children}</>;
 
   return (
     <main className="designer-auth-state">
@@ -17,7 +20,7 @@ const RequireDesignerPermission: React.FC<React.PropsWithChildren<{ permission: 
         <p className="designer-auth-kicker">Power Dox Automation</p>
         <h1>{t('permissions.requiredTitle')}</h1>
         <p>{t('permissions.requiredMessage')}</p>
-        <code>{permission}</code>
+        <code>{acceptedPermissions.join(' | ')}</code>
       </section>
     </main>
   );

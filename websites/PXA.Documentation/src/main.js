@@ -3157,9 +3157,9 @@ const migrationGuides = [
     text: 'Map third-party PDF SDK calls into PXA code patterns and track missing API parity explicitly.',
   },
   {
-    title: 'Nutrient Viewer Migration',
+    title: 'Nutrient Viewer to Designer Migration',
     status: 'Beta',
-    text: 'Convert Nutrient Web SDK and legacy PSPDFKit bootstrap code, Instant JSON annotations, and supported form values into PXA Viewer artifacts.',
+    text: 'Combine an original PDF with Nutrient Web SDK or PSPDFKit source and produce one editable PXA design with preview and Open in Designer.',
   },
   {
     title: 'Report Designer Migration',
@@ -3186,14 +3186,14 @@ const migrationGuides = [
 const migrationWorkflowSteps = [
   ['Choose the migration path', 'PDF Code, Report Designer, Spreadsheet Code, or Provider Taxonomy.'],
   ['Select provider/framework', 'Use the original technology, for example iText7, DevExpress XtraReport, RDL, ClosedXML, or Aspose.Cells.'],
-  ['Submit source', 'Paste source code, upload a report designer file, or provide a spreadsheet migration sample.'],
-  ['Review converted output', 'PDF and spreadsheet code produce PXA-compatible code; report designer migration produces editable design JSON.'],
+  ['Submit source', 'Paste source code, upload a report designer file, or provide the original PDF together with Nutrient Viewer source.'],
+  ['Review converted output', 'PDF and spreadsheet code produce PXA-compatible code; Designer migration produces one editable design JSON document.'],
   ['Read diagnostics', 'Warnings identify unsupported patterns, manual follow-ups, or API areas outside deterministic migration.'],
   ['Open or export result', 'Open report output in PXA Designer, copy generated code, generate preview, or download artifacts.'],
 ];
 
 const pdfCodeMigrationProviders = [
-  ['Nutrient .NET (formerly GdPicture.NET)', 'pilot', 'Document creation, pages, standard fonts, measurement units, text, save, and disposal.', 'Editing, annotations, forms, signatures, OCR, conversion, and advanced security.'],
+  ['Nutrient .NET (formerly GdPicture.NET)', 'beta', 'Document creation, static page selection, rotation, text/text boxes, lines, rectangles, file images, web links, basic text/checkbox fields, sticky notes, AES-256 password encryption, save, and disposal.', 'Existing-PDF editing, rich appearance details, runtime signing, irreversible-redaction orchestration, PDF OCR, scanning, conversion, advanced permissions, and certificate security.'],
   ['Syncfusion PDF', 'full', 'Document/page/text/line/rectangle/image/save with top-left coordinate adapter.', 'Complex tables, forms, signatures, existing-PDF editing.'],
   ['iText7', 'full', 'PdfWriter/PdfDocument/Document, Paragraph, ShowTextAligned, PdfCanvas text/line/rectangle.', 'Advanced layout renderer model, forms, tagged PDF, signatures.'],
   ['Apryse (PDFTron)', 'full', 'PDFDoc creation, PageCreate/PagePushBack, document save.', 'ElementBuilder rich graphics, editing workflows, annotations.'],
@@ -3243,6 +3243,14 @@ const taxonomyRows = [
   ['Roslyn infrastructure', 'PXA.Migration.Roslyn', 'Shared C# source rewriting infrastructure.'],
 ];
 
+const migrationApiRows = [
+  ['Catalog', 'GET /api/pxa/v1/migrations/catalog', 'Discover providers and filter by domain and kind.'],
+  ['Provider', 'GET /api/pxa/v1/migrations/{domain}/{kind}/{provider}', 'Read inputs, artifacts, status, limits, permissions, and Documentation ID.'],
+  ['Examples', 'GET /api/pxa/v1/migrations/{domain}/{kind}/{provider}/examples', 'Load a safe backend-owned example when the provider publishes one.'],
+  ['Convert', 'POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/convert', 'Return the common envelope and typed provider artifacts.'],
+  ['Preview', 'POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/preview', 'Render a preview only when the catalog declares preview support.'],
+];
+
 const nutrientViewerConfigurationMappings = [
   ['NutrientViewer.load / PSPDFKit.load', 'Generated typed PXA Viewer adapter', 'JavaScript is parsed as source and is never executed.'],
   ['container', 'mountSelector', 'Literal CSS selectors are preserved. Dynamic expressions require review.'],
@@ -3253,6 +3261,19 @@ const nutrientViewerConfigurationMappings = [
   ['toolbarItems', 'requested toolbar capabilities', 'PXA permissions and entitlements remain authoritative.'],
   ['licenseKey / jwt / authPayload / serverUrl', 'omitted', 'Secrets and Document Engine authentication are never copied.'],
   ['event callbacks and custom UI', 'review diagnostic', 'Application-owned callback logic is not regenerated.'],
+];
+
+const nutrientCodeMappings = [
+  ['NewPDF / NewPage / SelectPage', 'PdfDocument / AddPage / generated page variable', 'Static page selections are deterministic; dynamic and forward selections remain review items.'],
+  ['DrawText / DrawTextBox', 'DrawText or DrawTextBoxFromTop', 'Measurement units, origin, standard font, size, and supported alignment are retained.'],
+  ['DrawLine / DrawRectangle', 'DrawLine or DrawRectangle with origin-aware variants', 'Stateful line width, line color, fill color, and fill are retained; unsupported right-side origins and no-stroke rectangles receive review diagnostics.'],
+  ['AddJpegImageFromFile + DrawImage', 'Image path + DrawImage', 'PXA loads the original local image path; opaque GdPicture image resource IDs are not guessed.'],
+  ['AddLinkToWebAnnotation', 'AddWebLink', 'Geometry and URI are retained; source border appearance is reported when it cannot be represented.'],
+  ['AddTextFormField / AddCheckBoxFormField', 'AddTextField, AddMultilineTextField, or AddCheckBox', 'Geometry, name, value, multiline state, size, and checked state are retained; provider-specific appearance requires review.'],
+  ['AddStickyNoteAnnotation', 'AddStickyNoteAnnotation', 'Position, contents, color, and opacity are retained; icon, author, subject, and popup details are reported as gaps.'],
+  ['Encrypt(owner, user)', 'PdfSaveOptions.Encryption with AES-256', 'Literal passwords are removed and replaced by runtime secret lookups. PDF/A combined with encryption fails closed and requires a policy decision.'],
+  ['OcrPage / TwainAcquire', 'Explicit application-service or hardware action', 'PXA does not misrepresent image-to-design OCR as searchable-PDF OCR, and scanner acquisition remains customer-side.'],
+  ['ApplyRedaction / SignPDF', 'Explicit PXA Trust workflow action', 'Redaction requires regions and source bytes; signing requires a runtime-managed key. Visual overlays and copied certificate secrets are prohibited.'],
 ];
 
 const nutrientAnnotationMappings = [
@@ -3360,7 +3381,7 @@ const trackGuides = {
     related: [
       { label: 'Migration product page', href: companyPage('products/migration') },
       { label: 'Provider migration demo', href: `${siteLinks.demo}#demo/provider-migration-examples` },
-      { label: 'Designer migration route', href: `${siteLinks.designer}migrations/pdf/designer` },
+      { label: 'Report Designer migration', href: `${siteLinks.designer}pdf/migrations/designer` },
     ],
   },
 };
@@ -3460,7 +3481,7 @@ const quickstarts = [
     title: 'Migration Quickstart',
     label: 'Migration',
     steps: ['Choose code or designer migration', 'Upload or paste provider input', 'Review diagnostics before opening in designer'],
-    command: 'open /migrations/pdf/designer',
+    command: 'open /pdf/migrations/designer',
   },
 ];
 
@@ -4316,14 +4337,16 @@ function renderMigrationDetails() {
     <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="nutrient-viewer-migration">
       <div class="pxa-doc-detail__header">
         <span class="pxa-status pxa-status--preview">Beta</span>
-        <h3>Nutrient Viewer Migration</h3>
-        <p>Convert Nutrient Web SDK and legacy PSPDFKit Viewer bootstrap code without executing it. A separate Instant JSON mode converts supported annotations and form values into bounded PXA sidecars.</p>
+        <h3>Nutrient Viewer to Designer Migration</h3>
+        <p>Convert Nutrient Web SDK and legacy PSPDFKit Viewer workflows without executing them. PXA imports the original PDF, maps supported annotations and form values, and returns one editable design with backend preview and Open in Designer.</p>
       </div>
       <div class="pxa-doc-detail__grid">
-        <article><h4>Prerequisites</h4><ul><li>An authenticated PXA Designer session.</li><li>An active organization and Nutrient Viewer migration permission.</li><li>JavaScript, TypeScript, or Instant JSON plus page geometry.</li></ul></article>
-        <article><h4>Workflow</h4><ol><li>Open PDF &gt; Viewer Migration.</li><li>Select JavaScript, TypeScript, or Instant JSON.</li><li>Convert and inspect fidelity, capability counts, source map, and diagnostics.</li><li>Copy the generated adapter or review the annotation and form sidecars.</li><li>Open the safe Viewer result in PXA Viewer.</li></ol></article>
+        <article><h4>Prerequisites</h4><ul><li>An authenticated PXA Designer session.</li><li>An active organization and Nutrient Designer migration permission.</li><li>The original PDF plus JavaScript, TypeScript, or Instant JSON.</li></ul></article>
+        <article><h4>Workflow</h4><ol><li>Open PDF &gt; Designer Migration.</li><li>Select Nutrient Viewer.</li><li>Attach the original PDF and choose the Nutrient input type.</li><li>Convert and inspect the editable design, preview, fidelity, and diagnostics.</li><li>Click Open in Designer or download the design JSON.</li></ol></article>
         <article><h4>Security boundary</h4><ul><li>Uploaded source is parsed, never executed.</li><li>License keys, JWTs, server authentication, unsafe paths, and remote customer URLs are removed.</li><li>Signature material and active annotation actions are never migrated.</li></ul></article>
       </div>
+      <h4>Nutrient .NET and GdPicture code</h4>
+      ${renderMigrationProviderTable(['Nutrient input', 'PXA output', 'Behavior'], nutrientCodeMappings)}
       <h4>Viewer configuration</h4>
       ${renderMigrationProviderTable(['Nutrient input', 'PXA output', 'Behavior'], nutrientViewerConfigurationMappings)}
       <h4>Instant JSON annotations</h4>
@@ -4331,24 +4354,23 @@ function renderMigrationDetails() {
       <h4>Instant JSON forms</h4>
       ${renderMigrationProviderTable(['Field', 'Outcome', 'Notes'], nutrientFormMappings)}
       <h4>API</h4>
-      <pre class="pxa-code"><code>POST /api/pxa/v1/migrations/pdf/viewer/convert
-Content-Type: application/json
+      <pre class="pxa-code"><code>POST /api/pxa/v1/migrations/pdf/designer/nutrient-viewer/convert
+Content-Type: multipart/form-data
 
-{
-  "inputType": "javascript",
-  "source": "NutrientViewer.load({ container: '#viewer', document: '/documents/sample.pdf' })"
-}</code></pre>
+pdf=@source.pdf
+inputType=instantJson
+source={ "format": "https://pspdfkit.com/instant-json/v1", "annotations": [] }</code></pre>
       <p>For TypeScript, PXA Designer compiles the source with the TypeScript Compiler API and submits both the original source and non-executed JavaScript compiler output. API clients must provide <code>transpiledSource</code> themselves; the migration API never executes either representation.</p>
       <h4>Comprehensive synthetic example</h4>
-      <p>Use <strong>Load comprehensive example</strong> in Designer or request <code>GET /api/pxa/v1/migrations/pdf/viewer/examples/comprehensive</code>. The package contains TypeScript Viewer bootstrap, callbacks, toolbar and layout requests, two-page Instant JSON with portrait/rotated geometry, annotations, forms, a visual redaction mark, a deliberately unsupported attachment, and GdPicture C# with trust operations.</p>
+      <p>Use <strong>Load example</strong> in Designer or request <code>GET /api/pxa/v1/migrations/pdf/designer/nutrient-viewer/examples</code>. The examples contain TypeScript Viewer bootstrap and Instant JSON annotations and forms. The original PDF remains mandatory because it provides the editable page content and authoritative page geometry.</p>
       <ol>
         <li>Load the example and convert the TypeScript source. Confirm the document source, initial page, fit mode, toolbar request, event warning, and deterministic checksums.</li>
-        <li>Switch to Instant JSON, paste the supplied payload and page geometry, then confirm note, highlight, rectangle, and form conversion.</li>
+        <li>Switch to Instant JSON, attach the original PDF, paste the supplied payload, then confirm note, highlight, rectangle, and form conversion.</li>
         <li>Confirm that signature material and the unsupported attachment are absent, and that visual redaction is explicitly marked as non-destructive.</li>
-        <li>Submit the GdPicture sample through PDF Code Migration. Confirm license removal and review markers for OCR, annotations, forms, signatures, and irreversible redaction.</li>
+        <li>Submit the GdPicture sample through PDF Code Migration. Confirm automatic page, content, web-link, basic form, and sticky-note mappings plus review markers for appearance gaps, OCR, signatures, and irreversible redaction.</li>
       </ol>
       <div class="pxa-callout pxa-callout--warning"><strong>Synthetic data only.</strong> The example contains no Nutrient binaries, valid license keys, customer URLs, certificates, or customer documents.</div>
-      <p>The response contains detected product family, normalized settings, generated files, fidelity, source preservation, checksums, source mappings, capability coverage, and stable diagnostics. Instant JSON responses additionally contain annotation and form-value payloads.</p>
+      <p>The response contains one <code>design</code> artifact with editable imported PDF content and supported Nutrient overlays. Viewer settings, unmatched form values, and normalized sidecars remain in versioned design metadata; unsupported content is reported through stable diagnostics. The lower-level <code>pdf/viewer/nutrient-viewer</code> package API remains a compatibility and SDK contract, not the primary Designer workflow.</p>
       <h4>Troubleshooting</h4>
       ${renderMigrationProviderTable(['Diagnostic family', 'Meaning'], nutrientDiagnosticRows)}
       <div class="pxa-doc-related-links">
@@ -4369,6 +4391,7 @@ Content-Type: application/json
         <article><h4>Common mapping</h4><ul><li>Report bands become absolute page positions.</li><li>Labels/textboxes become Text elements.</li><li>Lines, rectangles, tables, charts, barcodes, and images map to closest PXA elements.</li></ul></article>
         <article><h4>Validation workflow</h4><ul><li>Run report-to-design migration.</li><li>Inspect diagnostics and mapping notes.</li><li>Open in Designer and compare layout fidelity.</li></ul></article>
       </div>
+      <div class="pxa-callout"><strong>Designer location.</strong> Report conversion remains the technical <code>report/designer</code> API domain, but the user-facing workflow is part of PDF Migration at <code>/pdf/migrations/designer</code>.</div>
       ${renderMigrationProviderTable(['Provider', 'Input', 'Mapped surface', 'Namespace'], reportDesignerProviders)}
     </section>
 
@@ -4399,6 +4422,10 @@ PXA.Migration.Pdf.Code.Aspose
 PXA.Migration.Pdf.Viewer.Nutrient
 PXA.Migration.Report.Designer.Rdl
 PXA.Migration.Spreadsheet.Code.Syncfusion</code></pre>
+      <h4>Canonical API</h4>
+      ${renderMigrationProviderTable(['Operation', 'Route', 'Purpose'], migrationApiRows)}
+      <p>The route itself separates PDF, Spreadsheet, and Report. Provider aliases are accepted only at input boundaries; responses always return the canonical provider key.</p>
+      <div class="pxa-callout pxa-callout--warning"><strong>Compatibility routes.</strong> <code>/api/migration/frameworks</code>, <code>/api/migration/convert</code>, <code>/api/migration/preview</code>, <code>/api/migration/report-to-design</code>, and the former Nutrient Viewer convert route remain adapters for one major release. New integrations should use the v1 routes above.</div>
     </section>
 
     <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="migration-diagnostics">
@@ -4409,7 +4436,9 @@ PXA.Migration.Spreadsheet.Code.Syncfusion</code></pre>
       </div>
       ${renderMigrationProviderTable(['Signal', 'Meaning'], diagnosticRows)}
       <div class="pxa-doc-related-links">
+        <a href="../../docs/guides/PXA.Unified-Migration-Provider-Coverage.md">Provider coverage report</a>
         <a href="../../checklists/Migration-Namespace-Taxonomy.md">Namespace taxonomy checklist</a>
+        <a href="../../checklists/PXA.Unified-Migration-Frameworks.md">Unified migration roadmap</a>
         <a href="../../checklists/Designer-Migration.md">Designer migration roadmap</a>
         <a href="../../checklists/Spreadsheet-Migration.md">Spreadsheet migration checklist</a>
       </div>
