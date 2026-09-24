@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using PXA.Migration.Abstractions;
 using PXA.Migration.Pdf.Code.Nutrient;
+using PXA.Importer.Editing;
 using PXA.Pdf;
 
 namespace PXA.Migration.Pdf.Code.Nutrient.Tests;
@@ -93,22 +94,25 @@ public sealed class NutrientMigrationTests
         var source = """
             using GdPicture14;
             var pdf = new GdPicturePDF();
-            pdf.LoadFromFile(inputPath);
+            pdf.LoadFromFile("input.pdf", false);
             pdf.AddRedactionRegion(10, 10, 20, 20);
             pdf.ApplyRedaction();
             pdf.SignDocument(certificate);
-            pdf.SaveToFile(outputPath);
+            pdf.SaveToFile("output.pdf");
             """;
 
         var result = new NutrientMigration().Migrate(source);
 
-        Assert.Contains("LoadFromFile", result.MigratedCode);
+        Assert.Contains("pdf.LoadFromFile(\"input.pdf\", false)", result.MigratedCode);
         Assert.Contains("ApplyRedaction", result.MigratedCode);
         Assert.Contains("SignDocument", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGNUTNET020");
         Assert.Contains(result.Diagnostics, d =>
-            d.Id == "CANMIGNUTNET020" && d.Severity == MigrationDiagnosticSeverity.Warning);
+            d.Id == "CANMIGNUTNET031" && d.Severity == MigrationDiagnosticSeverity.Warning);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET021");
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET022");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET058");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET059");
         Assert.NotNull(result.PdfTrust);
         Assert.Equal(PdfTrustMigrationDisposition.ReviewRequired, result.PdfTrust.OverallDisposition);
         Assert.Contains(result.PdfTrust.Evidence, item =>
@@ -254,6 +258,208 @@ public sealed class NutrientMigrationTests
     }
 
     [Fact]
+    public void Migrate_MapsExistingPdfMoveAndDeleteToLosslessPageEditor()
+    {
+        var source = """
+            using GdPicture14;
+            using var pdf = new GdPicturePDF();
+            pdf.LoadFromFile("input.pdf");
+            pdf.MovePage(3, 1);
+            pdf.DeletePage(2);
+            pdf.SaveToFile("output.pdf");
+            pdf.Dispose();
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("using PXA.Importer.Editing;", result.MigratedCode);
+        Assert.Contains("var pdf = new PdfEditableDocument();", result.MigratedCode);
+        Assert.Contains("pdf.LoadFromFile(\"input.pdf\")", result.MigratedCode);
+        Assert.Contains("pdf.MovePage(3, 1)", result.MigratedCode);
+        Assert.Contains("pdf.DeletePage(2)", result.MigratedCode);
+        Assert.Contains("pdf.SaveToFile(\"output.pdf\")", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET020");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET062");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET063");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET064");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_TracksExistingPdfModePerDocumentVariable()
+    {
+        var source = """
+            using GdPicture14;
+            var existing = new GdPicturePDF();
+            existing.LoadFromFile("input.pdf");
+            existing.MovePage(2, 1);
+            existing.SaveToFile("edited.pdf");
+
+            var created = new GdPicturePDF();
+            created.NewPDF();
+            created.NewPage(200, 300);
+            created.SaveToFile("created.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("var existing = new PdfEditableDocument();", result.MigratedCode);
+        Assert.Contains("existing.MovePage(2, 1)", result.MigratedCode);
+        Assert.Contains("var created = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = created.AddPage(200, 300);", result.MigratedCode);
+        Assert.Contains("created.Save(\"created.pdf\")", result.MigratedCode);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ResetsPendingPageOperationsWhenAnotherFileIsLoaded()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.LoadFromFile("first.pdf");
+            pdf.DeletePage(2);
+            pdf.LoadFromFile("second.pdf");
+            pdf.MovePage(2, 1);
+            pdf.SaveToFile("output.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("pdf.LoadFromFile(\"first.pdf\")", result.MigratedCode);
+        Assert.Contains("pdf.DeletePage(2)", result.MigratedCode);
+        Assert.Contains("pdf.LoadFromFile(\"second.pdf\")", result.MigratedCode);
+        Assert.Contains("pdf.MovePage(2, 1)", result.MigratedCode);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_PreservesConditionalExistingPdfControlFlow()
+    {
+        var source = """
+            using GdPicture14;
+            var shouldEdit = true;
+            var pdf = new GdPicturePDF();
+            if (shouldEdit)
+            {
+                pdf.LoadFromFile("input.pdf");
+                pdf.DeletePage(2);
+            }
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("var pdf = new PdfEditableDocument();", result.MigratedCode);
+        Assert.Contains("if (shouldEdit)", result.MigratedCode);
+        Assert.Contains("pdf.LoadFromFile(\"input.pdf\")", result.MigratedCode);
+        Assert.Contains("pdf.DeletePage(2)", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET062");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET063");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MapsStreamStatusCloneInsertAndPathMergeWorkflows()
+    {
+        var source = """
+            using System;
+            using System.IO;
+            using GdPicture14;
+
+            using var input = new MemoryStream(Array.Empty<byte>());
+            using var sourcePdf = new GdPicturePDF();
+            if (sourcePdf.LoadFromStream(input, false) == GdPictureStatus.OK)
+            {
+                using var targetPdf = new GdPicturePDF();
+                targetPdf.NewPDF();
+                if (targetPdf.ClonePage(sourcePdf, 1) == GdPictureStatus.OK)
+                {
+                    targetPdf.InsertPage(PdfPageSizes.PdfPageSizeA4, 1);
+                    targetPdf.SaveToFile("composed.pdf");
+                }
+            }
+
+            using var merger = new GdPicturePDF();
+            var mergeStatus = merger.Merge2Documents("first.pdf", "second.pdf", "merged.pdf");
+            if (mergeStatus != GdPictureStatus.OK)
+                throw new InvalidOperationException();
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("new PdfEditableDocument()", result.MigratedCode);
+        Assert.Contains("sourcePdf.LoadFromStream(input, false) == PdfPageOperationStatus.Success", result.MigratedCode);
+        Assert.Contains("targetPdf.NewDocument()", result.MigratedCode);
+        Assert.Contains("targetPdf.ClonePage(sourcePdf, 1) == PdfPageOperationStatus.Success", result.MigratedCode);
+        Assert.Contains("targetPdf.InsertPage(PdfEditablePageSize.A4, 1)", result.MigratedCode);
+        Assert.Contains("merger.Merge2Documents(\"first.pdf\", \"second.pdf\", \"merged.pdf\")", result.MigratedCode);
+        Assert.Contains("mergeStatus != PdfPageOperationStatus.Success", result.MigratedCode);
+        Assert.DoesNotContain("GdPicture", result.MigratedCode, StringComparison.Ordinal);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MapsLoadedDocumentArrayMergeResult()
+    {
+        var source = """
+            using GdPicture14;
+            var first = new GdPicturePDF();
+            first.LoadFromFile("first.pdf");
+            var second = new GdPicturePDF();
+            second.LoadFromFile("second.pdf");
+            var utility = new GdPicturePDF();
+            var merged = utility.MergeDocuments(new GdPicturePDF[] { first, second });
+            if (merged.GetStat() == GdPictureStatus.OK)
+                merged.SaveToFile("merged.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("utility.MergeDocuments(new PdfEditableDocument[]", result.MigratedCode);
+        Assert.Contains("merged.GetStatus() == PdfPageOperationStatus.Success", result.MigratedCode);
+        Assert.Contains("merged.SaveToFile(\"merged.pdf\")", result.MigratedCode);
+        Assert.DoesNotContain("GdPicture", result.MigratedCode, StringComparison.Ordinal);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_PathArrayMerge_UsesEditableCompositionAndCompiles()
+    {
+        var source = """
+            using GdPicture14;
+            var utility = new GdPicturePDF();
+            var status = utility.MergeDocuments(new[] { "first.pdf", "second.pdf" }, "merged.pdf");
+            if (status != GdPictureStatus.OK) throw new System.InvalidOperationException();
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("utility.MergeDocuments(new[]", result.MigratedCode);
+        Assert.Contains("status != PdfPageOperationStatus.Success", result.MigratedCode);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MergeAttachmentOption_RemainsCompilableAndFailsClosedForReview()
+    {
+        var source = """
+            using GdPicture14;
+            var utility = new GdPicturePDF();
+            var first = new GdPicturePDF();
+            var second = new GdPicturePDF();
+            var merged = utility.MergeDocuments(
+                new GdPicturePDF[] { first, second },
+                PdfDocumentMergingOptions.ExcludeAttachments);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("PdfEditableMergeOptions.ExcludeAttachments", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET069");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
     public void Migrate_MapsOfficialTextBoxLineAndStaticPageSelection()
     {
         var source = """
@@ -316,6 +522,7 @@ public sealed class NutrientMigrationTests
             .Select(path => MetadataReference.CreateFromFile(path))
             .ToList();
         trustedAssemblies.Add(MetadataReference.CreateFromFile(typeof(PdfDocument).Assembly.Location));
+        trustedAssemblies.Add(MetadataReference.CreateFromFile(typeof(PdfPageEditor).Assembly.Location));
 
         var compilation = CSharpCompilation.Create(
             $"NutrientMigration_{Guid.NewGuid():N}",

@@ -22,6 +22,7 @@
     <ProjectReference Include="../../src/Migrations/PDF/PXA.Migration.Pdf.Code.Nutrient/PXA.Migration.Pdf.Code.Nutrient.csproj" />
     <ProjectReference Include="../../src/Migrations/Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../src/Generation/PXA.Pdf/PXA.Pdf.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.Importer/PXA.Importer.csproj" />
   </ItemGroup>
 
 </Project>

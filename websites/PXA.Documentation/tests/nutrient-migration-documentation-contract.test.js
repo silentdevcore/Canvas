@@ -27,6 +27,12 @@ test('Nutrient documentation describes mappings and security omissions', () => {
   assert.match(source, /AddTextFormField \/ AddCheckBoxFormField/);
   assert.match(source, /AddStickyNoteAnnotation/);
   assert.match(source, /dynamic and forward selections remain review items/i);
+  assert.match(source, /file\/stream existing-PDF load/i);
+  assert.match(source, /PdfEditableDocument/);
+  assert.match(source, /PdfPageComposer/);
+  assert.match(source, /cross-document cloning/i);
+  assert.match(source, /refuses to delete the last page/i);
+  assert.match(source, /CANMIGNUTNET069/);
   assert.match(source, /Signature \/ push button/);
   assert.match(source, /Saved signatures, biometric data, credentials/);
   assert.match(source, /Uploaded source is parsed, never executed/);

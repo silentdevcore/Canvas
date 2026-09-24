@@ -23,6 +23,32 @@ It is responsible for:
 - preserving reachable unknown objects that are not affected by an operation;
 - refusing an operation when the required object semantics cannot be proven.
 
+The first public page-editing surface is `PdfPageEditor`. It accepts one-based
+move and delete operations against an existing PDF, preserves the original page
+dictionaries, content streams, resources, annotations, and unknown reachable
+objects, and writes one fresh revision. It materializes inherited page
+attributes before flattening the edited page tree. Deleting the final page or a
+page that remains reachable through navigation, links, annotations, or another
+PDF object is rejected rather than producing a dangling reference or retaining
+hidden page content.
+
+`PdfPageComposer` imports a selected page by cloning its complete transitive
+object graph into a collision-free target object-number range. It remaps page,
+resource, content, font, image, annotation, and form references, then rebuilds
+the target page tree in one full rewrite. `PdfEditableDocument` adds a
+stateful facade for migrated SDK workflows, including file and stream loading,
+runtime status results, page move/delete, blank insertion, cloning, merging,
+AES-256 output configuration, and saving.
+
+Path-based multi-document merge is supported. Nutrient's attachment-specific
+merge options intentionally fail closed until catalog-level embedded-file
+composition can preserve their exact semantics.
+
+Cross-document composition rejects encrypted inputs and pages that reference a
+different source page. These cases require password-aware source sessions or a
+multi-page relationship remapper and must not be approximated by copying page
+dictionaries or leaving dangling destinations.
+
 The importer must not silently flatten an existing PDF into Designer elements
 and describe the result as an exact edit. Scene-graph reconstruction is a
 separate, potentially lossy conversion with explicit fidelity diagnostics.
@@ -104,4 +130,3 @@ review diagnostics and retains the original source where required.
   or audit details.
 - A metadata flag or visual appearance alone never proves encryption,
   signature validity, archival conformance, accessibility, or redaction.
-

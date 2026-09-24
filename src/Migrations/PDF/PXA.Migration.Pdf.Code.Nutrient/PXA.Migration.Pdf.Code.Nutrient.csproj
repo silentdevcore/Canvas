@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../Common/PXA.Migration.Roslyn/PXA.Migration.Roslyn.csproj" />
+    <ProjectReference Include="../../../Importing/PXA.Importer/PXA.Importer.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

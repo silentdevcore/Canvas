@@ -3193,7 +3193,7 @@ const migrationWorkflowSteps = [
 ];
 
 const pdfCodeMigrationProviders = [
-  ['Nutrient .NET (formerly GdPicture.NET)', 'beta', 'Document creation, static page selection, rotation, text/text boxes, lines, rectangles, file images, web links, basic text/checkbox fields, sticky notes, AES-256 password encryption, save, and disposal.', 'Existing-PDF editing, rich appearance details, runtime signing, irreversible-redaction orchestration, PDF OCR, scanning, conversion, advanced permissions, and certificate security.'],
+  ['Nutrient .NET (formerly GdPicture.NET)', 'beta', 'Document creation, file/stream existing-PDF load, status-preserving control flow, page move/delete/clone/blank insert, path and loaded-document merge, static page selection, rotation, content, basic forms and annotations, AES-256 output, save, and disposal.', 'Encrypted cross-document sources, cross-page destinations during cloning, crop/split, rich appearance details, runtime signing, irreversible-redaction orchestration, PDF OCR, scanning, conversion, advanced permissions, and certificate security.'],
   ['Syncfusion PDF', 'full', 'Document/page/text/line/rectangle/image/save with top-left coordinate adapter.', 'Complex tables, forms, signatures, existing-PDF editing.'],
   ['iText7', 'full', 'PdfWriter/PdfDocument/Document, Paragraph, ShowTextAligned, PdfCanvas text/line/rectangle.', 'Advanced layout renderer model, forms, tagged PDF, signatures.'],
   ['Apryse (PDFTron)', 'full', 'PDFDoc creation, PageCreate/PagePushBack, document save.', 'ElementBuilder rich graphics, editing workflows, annotations.'],
@@ -4347,6 +4347,8 @@ function renderMigrationDetails() {
       </div>
       <h4>Nutrient .NET and GdPicture code</h4>
       ${renderMigrationProviderTable(['Nutrient input', 'PXA output', 'Behavior'], nutrientCodeMappings)}
+      <div class="pxa-callout pxa-callout--info"><strong>Existing PDF page editing.</strong> <code>PdfEditableDocument</code> preserves file and stream loading, stream ownership, status comparisons, conditions, page move/delete, blank insertion, cross-document cloning, merging, AES-256 output, and saving. <code>PdfPageComposer</code> remaps the complete reachable page object graph into collision-free target IDs instead of rebuilding the PDF through Designer elements.</div>
+      <div class="pxa-callout pxa-callout--warning"><strong>Fail-closed boundaries.</strong> PXA refuses to delete the last page or a referenced page. Cross-document composition rejects encrypted inputs and pages that point to another source page; password-aware composition and multi-page destination remapping remain explicit review work. Nutrient merge options for including or excluding attachments produce <code>CANMIGNUTNET069</code> until catalog-level attachment migration is equivalent. Full rewrites invalidate existing signatures unless explicitly allowed.</div>
       <h4>Viewer configuration</h4>
       ${renderMigrationProviderTable(['Nutrient input', 'PXA output', 'Behavior'], nutrientViewerConfigurationMappings)}
       <h4>Instant JSON annotations</h4>

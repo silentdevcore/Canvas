@@ -21,10 +21,56 @@ public sealed class NutrientMigration : CSharpSourceMigration
         var root = CSharpSyntaxTree.ParseText(sourceCode).GetCompilationUnitRoot();
         var trustReport = NutrientTrustEvidence.Scan(root);
         var documentVariables = FindDocumentVariables(root);
-        var rewriter = new NutrientRewriter(documentVariables);
+        foreach (var declaration in root.DescendantNodes().OfType<VariableDeclaratorSyntax>())
+        {
+            if (declaration.Initializer?.Value is InvocationExpressionSyntax invocation &&
+                invocation.Expression is MemberAccessExpressionSyntax member &&
+                member.Name.Identifier.ValueText == "MergeDocuments" &&
+                documentVariables.Contains(member.Expression.ToString()))
+            {
+                documentVariables.Add(declaration.Identifier.ValueText);
+            }
+        }
+
+        var editablePdfVariables = root.DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
+            .Where(invocation => invocation.Expression is MemberAccessExpressionSyntax member
+                && documentVariables.Contains(member.Expression.ToString())
+                && member.Name.Identifier.ValueText is "LoadFromFile" or "LoadFromStream"
+                    or "MovePage" or "DeletePage" or "ClonePage" or "InsertPage"
+                    or "MergeDocuments" or "Merge2Documents")
+            .Select(static invocation => ((MemberAccessExpressionSyntax)invocation.Expression).Expression.ToString())
+            .ToHashSet(StringComparer.Ordinal);
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax member ||
+                member.Name.Identifier.ValueText != "MergeDocuments" ||
+                invocation.ArgumentList.Arguments.Count == 0)
+                continue;
+
+            editablePdfVariables.Add(member.Expression.ToString());
+            foreach (var identifier in invocation.ArgumentList.Arguments[0].Expression
+                         .DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
+                         .Select(static identifier => identifier.Identifier.ValueText)
+                         .Where(documentVariables.Contains))
+            {
+                editablePdfVariables.Add(identifier);
+            }
+        }
+        foreach (var variable in documentVariables.Where(variable => root.DescendantNodes()
+                     .OfType<VariableDeclaratorSyntax>()
+                     .Any(declaration => declaration.Identifier.ValueText == variable &&
+                         declaration.Initializer?.Value is InvocationExpressionSyntax invocation &&
+                         invocation.Expression is MemberAccessExpressionSyntax member &&
+                         member.Name.Identifier.ValueText == "MergeDocuments")))
+            editablePdfVariables.Add(variable);
+
+        var rewriter = new NutrientRewriter(documentVariables, editablePdfVariables);
         var migrated = (CompilationUnitSyntax)rewriter.Visit(root)!;
         migrated = RemoveNutrientUsings(migrated);
         migrated = EnsurePxaUsing(migrated);
+        if (editablePdfVariables.Count > 0)
+            migrated = EnsureUsing(migrated, "PXA.Importer.Editing");
 
         var migratedCode = migrated.NormalizeWhitespace().ToFullString()
             .Replace("\r\n", "\n", StringComparison.Ordinal);
@@ -62,6 +108,16 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
     private static IEnumerable<MigrationDiagnostic> ScanUnsupportedCapabilities(CompilationUnitSyntax root)
     {
+        if (root.DescendantNodes().OfType<InvocationExpressionSyntax>().Any(static invocation =>
+                invocation.Expression is MemberAccessExpressionSyntax member &&
+                member.Name.Identifier.ValueText == "MergeDocuments" &&
+                invocation.ArgumentList.Arguments.Count > 1 &&
+                invocation.ArgumentList.Arguments[1].ToString().Contains("PdfDocumentMergingOptions", StringComparison.Ordinal)))
+        {
+            yield return Warning("CANMIGNUTNET069",
+                "Nutrient merge options control attachment handling. PXA preserves the call as a fail-closed review operation until catalog-level attachment migration is available.");
+        }
+
         var methodNames = root.DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
             .Select(static invocation => invocation.Expression is MemberAccessExpressionSyntax member
@@ -69,16 +125,6 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 : string.Empty)
             .Where(static name => name.Length > 0)
             .ToHashSet(StringComparer.Ordinal);
-
-        if (methodNames.Overlaps(new[]
-            {
-                "LoadFromFile", "LoadFromStream", "ClonePage", "MovePage", "DeletePage",
-                "MergeDocuments", "Merge2Documents", "InsertPage"
-            }))
-        {
-            yield return Warning("CANMIGNUTNET020",
-                "Existing-PDF editing, page selection, insertion, merge, or reordering requires review; the source operation was preserved.");
-        }
 
         if (methodNames.Any(static name =>
                 name.Contains("Sign", StringComparison.OrdinalIgnoreCase)
@@ -144,13 +190,16 @@ public sealed class NutrientMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(usings));
     }
 
-    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root) =>
+        EnsureUsing(root, "PXA.Pdf");
+
+    private static CompilationUnitSyntax EnsureUsing(CompilationUnitSyntax root, string namespaceName)
     {
-        if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
+        if (root.Usings.Any(directive => directive.Name?.ToString() == namespaceName))
             return root;
 
         return root.WithUsings(root.Usings.Insert(0,
-            SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("PXA.Pdf"))));
+            SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceName))));
     }
 
     private static string SimpleName(TypeSyntax type) => type switch
@@ -194,14 +243,69 @@ public sealed class NutrientMigration : CSharpSourceMigration
         private bool _pdfA2b;
         private string? _ownerPassword;
         private string? _userPassword;
+        private readonly HashSet<string> _editablePdfVariables;
 
-        public NutrientRewriter(HashSet<string> documentVariables)
+        public NutrientRewriter(HashSet<string> documentVariables, HashSet<string> editablePdfVariables)
         {
             _documentVariables = documentVariables;
+            _editablePdfVariables = editablePdfVariables;
         }
 
         public IReadOnlyList<MigrationDiagnostic> Diagnostics => _diagnostics;
         public IReadOnlyList<string> ReviewMarkers => _reviewMarkers;
+
+        public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            return node.Identifier.ValueText switch
+            {
+                "GdPicturePDF" => SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node),
+                "GdPictureStatus" => SyntaxFactory.IdentifierName("PdfPageOperationStatus").WithTriviaFrom(node),
+                "PdfDocumentMergingOptions" => SyntaxFactory.IdentifierName("PdfEditableMergeOptions").WithTriviaFrom(node),
+                _ => base.VisitIdentifierName(node)
+            };
+        }
+
+        public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            if (node.Expression.ToString() == "GdPictureStatus")
+            {
+                var status = node.Name.Identifier.ValueText == "OK" ? "Success" : "Failed";
+                return SyntaxFactory.ParseExpression($"PdfPageOperationStatus.{status}").WithTriviaFrom(node);
+            }
+
+            if (node.Expression.ToString() == "PdfPageSizes")
+            {
+                var size = node.Name.Identifier.ValueText switch
+                {
+                    "PdfPageSizeA4" => "A4",
+                    "PdfPageSizeA3" => "A3",
+                    "PdfPageSizeLetter" => "Letter",
+                    _ => null
+                };
+                if (size is not null)
+                    return SyntaxFactory.ParseExpression($"PdfEditablePageSize.{size}").WithTriviaFrom(node);
+            }
+
+            if (node.Expression.ToString() == "PdfDocumentMergingOptions")
+            {
+                return SyntaxFactory.ParseExpression($"PdfEditableMergeOptions.{node.Name.Identifier.ValueText}")
+                    .WithTriviaFrom(node);
+            }
+
+            if (_editablePdfVariables.Contains(node.Expression.ToString()))
+            {
+                var targetName = node.Name.Identifier.ValueText switch
+                {
+                    "GetStat" => "GetStatus",
+                    "NewPDF" => "NewDocument",
+                    _ => node.Name.Identifier.ValueText
+                };
+                if (targetName != node.Name.Identifier.ValueText)
+                    return node.WithName(SyntaxFactory.IdentifierName(targetName).WithTriviaFrom(node.Name));
+            }
+
+            return base.VisitMemberAccessExpression(node);
+        }
 
         public override SyntaxNode? VisitGlobalStatement(GlobalStatementSyntax node)
         {
@@ -240,7 +344,76 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
             switch (method)
             {
+                case "LoadFromFile":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count is < 1 or > 2)
+                        return ReviewOperation("CANMIGNUTNET062", "LoadFromFile",
+                            "Load the PDF bytes through the PXA existing-document workflow.",
+                            "LoadFromFile requires a source path and an optional load-in-memory flag for automatic migration.");
+                    _diagnostics.Add(Info("CANMIGNUTNET062",
+                        "Nutrient LoadFromFile converted to PdfEditableDocument.LoadFromFile; its optional load-in-memory flag is normalized to bounded PXA processing."));
+                    return base.VisitExpressionStatement(node);
+
+                case "LoadFromStream":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count is < 1 or > 2)
+                        return ReviewOperation("CANMIGNUTNET065", "LoadFromStream",
+                            "Load the PDF through PdfEditableDocument.LoadFromStream with explicit stream ownership.",
+                            "LoadFromStream requires a source stream and an optional ownership flag.");
+                    _diagnostics.Add(Info("CANMIGNUTNET065",
+                        "Nutrient LoadFromStream converted to PdfEditableDocument.LoadFromStream with matching ownership semantics."));
+                    return base.VisitExpressionStatement(node);
+
+                case "DeletePage":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count != 1)
+                        return ReviewOperation("CANMIGNUTNET063", "DeletePage",
+                            "Use PdfDeletePageOperation with an explicit one-based page number.",
+                            "DeletePage requires an existing-PDF source and one explicit page number.");
+                    _diagnostics.Add(Info("CANMIGNUTNET063",
+                        "Nutrient DeletePage converted to PdfEditableDocument.DeletePage."));
+                    return base.VisitExpressionStatement(node);
+
+                case "MovePage":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count != 2)
+                        return ReviewOperation("CANMIGNUTNET064", "MovePage",
+                            "Use PdfMovePageOperation with explicit one-based source and final target positions.",
+                            "MovePage requires an existing-PDF source, source page, and final target page.");
+                    _diagnostics.Add(Info("CANMIGNUTNET064",
+                        "Nutrient MovePage converted to PdfEditableDocument.MovePage."));
+                    return base.VisitExpressionStatement(node);
+
+                case "ClonePage":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count is < 1 or > 2)
+                        return ReviewOperation("CANMIGNUTNET066", "ClonePage",
+                            "Use PdfEditableDocument.ClonePage with a loaded source document and one-based page number.",
+                            "ClonePage requires an explicit page number and an optional PXA editable source document.");
+                    _diagnostics.Add(Info("CANMIGNUTNET066",
+                        "Nutrient ClonePage converted to lossless cross-document page cloning."));
+                    return base.VisitExpressionStatement(node);
+
+                case "Merge2Documents":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count is < 2 or > 3)
+                        return ReviewOperation("CANMIGNUTNET067", "Merge2Documents",
+                            "Use PdfEditableDocument.Merge2Documents with two source paths and a distinct destination path.",
+                            "Merge2Documents requires either two loaded source documents or two source paths and one destination path.");
+                    _diagnostics.Add(Info("CANMIGNUTNET067",
+                        "Nutrient Merge2Documents converted to collision-safe PXA page composition."));
+                    return base.VisitExpressionStatement(node);
+
+                case "InsertPage":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count is < 2 or > 3)
+                        return ReviewOperation("CANMIGNUTNET068", "InsertPage",
+                            "Use PdfEditableDocument.InsertPage with a supported preset or explicit point dimensions and one-based position.",
+                            "InsertPage overload could not be mapped to a supported blank-page insertion.");
+                    _diagnostics.Add(Info("CANMIGNUTNET068",
+                        "Nutrient InsertPage converted to PdfEditableDocument.InsertPage."));
+                    return base.VisitExpressionStatement(node);
+
                 case "NewPDF":
+                    if (IsEditablePdf(member.Expression))
+                    {
+                        _diagnostics.Add(Info("CANMIGNUTNET002",
+                            "NewPDF converted to PdfEditableDocument.NewDocument."));
+                        return ParseStatement($"{member.Expression}.NewDocument();", node);
+                    }
                     if (arguments.Count > 0 && arguments[0].ToString().Contains("PDF_A_2b", StringComparison.OrdinalIgnoreCase))
                     {
                         _pdfA2b = true;
@@ -291,10 +464,29 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 case "SaveToFile":
                     if (arguments.Count == 0)
                         return base.VisitExpressionStatement(node);
+                    if (IsEditablePdf(member.Expression))
+                    {
+                        _diagnostics.Add(Info("CANMIGNUTNET005",
+                            "SaveToFile(path) converted to PdfEditableDocument.SaveToFile(path)."));
+                        return base.VisitExpressionStatement(node);
+                    }
                     _diagnostics.Add(Info("CANMIGNUTNET005", "SaveToFile(path) converted to PdfDocument.Save(path)."));
                     return ParseStatement(BuildSaveStatement(member.Expression.ToString(), arguments[0].ToString()), node);
 
                 case "Encrypt":
+                    if (IsEditablePdf(member.Expression))
+                    {
+                        if (arguments.Count < 2)
+                            return ReviewOperation("CANMIGNUTNET023", "Encrypt",
+                                "Configure AES-256 with explicit owner and user passwords after reviewing the source overload.",
+                                "The Nutrient Encrypt overload does not provide enough information for an equivalent PXA policy.");
+                        var ownerPassword = SecurePasswordExpression(arguments[0].Expression, "PXA_PDF_OWNER_PASSWORD");
+                        var userPassword = SecurePasswordExpression(arguments[1].Expression, "PXA_PDF_USER_PASSWORD");
+                        _diagnostics.Add(Info("CANMIGNUTNET055",
+                            "Nutrient existing-PDF encryption was mapped to PdfEditableDocument.ConfigureAes256."));
+                        return ParseStatement(
+                            $"{member.Expression}.ConfigureAes256({ownerPassword}, {userPassword});", node);
+                    }
                     return RewriteEncryption(arguments);
 
                 case "OcrPage":
@@ -496,7 +688,11 @@ public sealed class NutrientMigration : CSharpSourceMigration
             }
 
             var newCreation = creation.WithType(SyntaxFactory.IdentifierName("PdfDocument"));
-            var newVariable = variable.WithInitializer(variable.Initializer.WithValue(newCreation));
+            var editablePdf = _editablePdfVariables.Contains(variable.Identifier.ValueText);
+            ExpressionSyntax replacement = editablePdf
+                ? SyntaxFactory.ParseExpression("new PdfEditableDocument()")
+                : newCreation;
+            var newVariable = variable.WithInitializer(variable.Initializer.WithValue(replacement));
             var declaration = node.Declaration
                 .WithType(SyntaxFactory.IdentifierName("var"))
                 .WithVariables(SyntaxFactory.SingletonSeparatedList(newVariable));
@@ -505,9 +701,14 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 .WithUsingKeyword(default)
                 .WithAwaitKeyword(default)
                 .WithDeclaration(declaration);
-            _diagnostics.Add(Info("CANMIGNUTNET001", "GdPicturePDF construction converted to new PdfDocument()."));
+            _diagnostics.Add(Info("CANMIGNUTNET001", editablePdf
+                ? "GdPicturePDF construction converted to a stateful PdfEditableDocument workflow."
+                : "GdPicturePDF construction converted to new PdfDocument()."));
             return true;
         }
+
+        private bool IsEditablePdf(ExpressionSyntax expression) =>
+            _editablePdfVariables.Contains(expression.ToString());
 
         private bool TryRewriteFontDeclaration(
             LocalDeclarationStatementSyntax node,

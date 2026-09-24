@@ -13,7 +13,7 @@ documentation, and tests. It does not implement the separate PDF Trust
 Foundation. Unsupported PXA capabilities must remain explicit instead of being
 represented as successfully migrated.
 
-## Implementation Status (2026-08-26)
+## Implementation Status (2026-09-24)
 
 - [x] Added the first Roslyn-based Nutrient .NET/GdPicture code provider with
   document creation, pages, standard fonts, measurement units, coordinate
@@ -54,9 +54,25 @@ represented as successfully migrated.
   line/fill appearance. Right-side origins are rejected with review diagnostics
   instead of producing incorrect geometry. Generated comprehensive output is
   compiled against `PXA.Pdf` in tests.
-- [ ] Next: expand .NET semantic coverage to existing-document editing,
-  additional annotations and form families, conversion, OCR service handoff,
-  and async/cancellation patterns.
+- [x] Added the first exact existing-document editing path: `LoadFromFile`,
+  `MovePage`, and `DeletePage` migrate to the typed `PXA.Importer` page editor,
+  preserve reachable page content and resources, and save through a full
+  rewrite instead of reconstructing the document through Designer elements.
+- [x] Added fail-closed page-deletion rules for the last remaining page and for
+  pages still reachable through bookmarks, destinations, links, annotations,
+  or other PDF objects.
+- [x] Added `PdfEditableDocument` and collision-safe page graph composition for
+  `LoadFromStream`, runtime status checks, conditional workflows, `ClonePage`,
+  blank `InsertPage`, path-based `Merge2Documents`, and loaded-document-array
+  `MergeDocuments` without flattening pages through the Designer model.
+- [x] Added path-array `MergeDocuments`; attachment-aware merge options remain
+  fail-closed with `CANMIGNUTNET069` because copying or excluding catalog-level
+  embedded files is not yet semantically equivalent.
+- [x] Preserve Nutrient stream ownership, one-based page positions, operation
+  order, repeated loads, multiple document variables, and `GdPictureStatus.OK`
+  control flow in generated PXA code.
+- [ ] Next: expand .NET semantic coverage to additional annotations and form
+  families, conversion, OCR service handoff, and async/cancellation patterns.
 - [x] Replaced generated `TODO` statements for advanced operations with stable,
   actionable migration-review entries. OCR is not confused with image-to-design
   OCR, TWAIN remains an external hardware boundary, irreversible redaction points
@@ -161,10 +177,12 @@ Official reference baseline:
 
 ### Deterministic Mappings
 
-- [ ] Map supported document creation, open/load, save, and disposal patterns to
-  PXA document APIs.
-- [ ] Map page add, insert, remove, reorder, rotate, crop, merge, and split when
-  an equivalent PXA operation exists.
+- [x] Map supported document creation and disposal plus file-based existing-PDF
+  load/save patterns to the appropriate PXA generator or importer APIs.
+- [ ] Map all page add, insert, remove, reorder, rotate, crop, merge, and split
+  patterns where an equivalent PXA operation exists. Static creation, blank
+  insertion, rotation, remove, reorder, cross-document clone, and supported
+  merge overloads are covered; crop and split remain open.
 - [ ] Map text, image, shape, link, bookmark, metadata, and basic page-content
   operations where semantic equivalence can be proven.
 - [ ] Map supported annotations to PXA note, free text, stamp, image, line,

@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "nutrient-existing-pdf-page-editing",
+  "impact": "minor",
+  "components": [
+    "documentation",
+    "importer",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "Nutrient and GdPicture migrations now preserve file and stream loading, status-driven control flow, page move, delete, insert, clone and merge workflows through typed PXA existing-PDF editing.",
+  "documentation": [
+    "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md",
+    "/docs/architecture/existing-pdf-boundaries.md",
+    "/#nutrient-viewer-migration"
+  ],
+  "breaking": false
+}
