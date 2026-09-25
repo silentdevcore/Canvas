@@ -16,6 +16,19 @@ public enum PdfEditablePageSize
     Letter
 }
 
+public enum PdfEditablePageBox
+{
+    CropBox
+}
+
+public enum PdfEditableMeasurementUnit
+{
+    Point,
+    Millimeter,
+    Centimeter,
+    Inch
+}
+
 public enum PdfEditableMergeOptions
 {
     Default,
@@ -33,6 +46,8 @@ public sealed class PdfEditableDocument : IDisposable
     private readonly PdfPageEditor _editor = new();
     private byte[]? _bytes;
     private PdfDocumentEncryptionOptions? _encryption;
+    private int _currentPageNumber = 1;
+    private double _measurementScale = 1;
 
     public Exception? LastError { get; private set; }
     public bool IsLoaded => _bytes is { Length: > 0 };
@@ -41,6 +56,8 @@ public sealed class PdfEditableDocument : IDisposable
     {
         _bytes = null;
         _encryption = null;
+        _currentPageNumber = 1;
+        _measurementScale = 1;
     });
 
     public PdfPageOperationStatus LoadFromFile(string path, bool loadInMemory = true) =>
@@ -49,6 +66,8 @@ public sealed class PdfEditableDocument : IDisposable
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
             _bytes = File.ReadAllBytes(path);
             ValidateLoadedBytes();
+            _currentPageNumber = 1;
+            _measurementScale = 1;
             _ = loadInMemory;
         });
 
@@ -62,6 +81,8 @@ public sealed class PdfEditableDocument : IDisposable
                 stream.CopyTo(buffer);
                 _bytes = buffer.ToArray();
                 ValidateLoadedBytes();
+                _currentPageNumber = 1;
+                _measurementScale = 1;
             }
             finally
             {
@@ -77,6 +98,69 @@ public sealed class PdfEditableDocument : IDisposable
     public PdfPageOperationStatus DeletePage(int pageNumber) =>
         Execute(() => _bytes = _editor.Apply(RequireBytes(),
             [new PdfDeletePageOperation(pageNumber)]).Bytes);
+
+    public PdfPageOperationStatus SelectPage(int pageNumber) =>
+        Execute(() =>
+        {
+            var count = _composer.GetPageCount(RequireBytes());
+            if (pageNumber < 1 || pageNumber > count)
+                throw new ArgumentOutOfRangeException(nameof(pageNumber), pageNumber, $"Page number must be between 1 and {count}.");
+            _currentPageNumber = pageNumber;
+        });
+
+    public PdfPageOperationStatus SetMeasurementUnit(PdfEditableMeasurementUnit unit) =>
+        Execute(() => _measurementScale = unit switch
+        {
+            PdfEditableMeasurementUnit.Point => 1d,
+            PdfEditableMeasurementUnit.Millimeter => 72d / 25.4d,
+            PdfEditableMeasurementUnit.Centimeter => 72d / 2.54d,
+            PdfEditableMeasurementUnit.Inch => 72d,
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, "Unknown PDF measurement unit.")
+        });
+
+    public PdfPageOperationStatus SetPageBox(
+        PdfEditablePageBox pageBox,
+        double left,
+        double top,
+        double right,
+        double bottom) =>
+        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+            [new PdfSetPageBoxOperation(
+                _currentPageNumber,
+                MapPageBox(pageBox),
+                left * _measurementScale,
+                top * _measurementScale,
+                right * _measurementScale,
+                bottom * _measurementScale)]).Bytes);
+
+    public PdfPageOperationStatus RemovePageBox(PdfEditablePageBox pageBox) =>
+        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+            [new PdfRemovePageBoxOperation(_currentPageNumber, MapPageBox(pageBox))]).Bytes);
+
+    public PdfPageOperationStatus GetPageBox(
+        PdfEditablePageBox pageBox,
+        ref float left,
+        ref float top,
+        ref float right,
+        ref float bottom)
+    {
+        left = top = right = bottom = 0;
+        try
+        {
+            var box = _editor.ReadPageBox(RequireBytes(), _currentPageNumber, MapPageBox(pageBox));
+            left = checked((float)(box.Left / _measurementScale));
+            top = checked((float)(box.Top / _measurementScale));
+            right = checked((float)(box.Right / _measurementScale));
+            bottom = checked((float)(box.Bottom / _measurementScale));
+            LastError = null;
+            return PdfPageOperationStatus.Success;
+        }
+        catch (Exception error)
+        {
+            LastError = error;
+            return PdfPageOperationStatus.Failed;
+        }
+    }
 
     public PdfPageOperationStatus ClonePage(PdfEditableDocument source, int pageNumber) =>
         Execute(() =>
@@ -131,6 +215,22 @@ public sealed class PdfEditableDocument : IDisposable
 
     public PdfPageOperationStatus InsertPage(double width, double height, int pageNumber) =>
         InsertBlankPage(width, height, pageNumber);
+
+    /// <summary>
+    /// Clones the selected one-based Nutrient page range at the end of this document.
+    /// Selected pages are remapped together so references between them remain valid.
+    /// </summary>
+    public PdfPageOperationStatus ClonePages(PdfEditableDocument source, string pageRange) =>
+        Execute(() =>
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            var sourceBytes = source.RequireBytes();
+            var pages = PdfPageRangeParser.Parse(pageRange, _composer.GetPageCount(sourceBytes));
+            _bytes = _bytes is null
+                ? _composer.ExtractPages(sourceBytes, pages)
+                : _composer.AppendPages(_bytes, sourceBytes, pages).Bytes;
+            _currentPageNumber = _composer.GetPageCount(_bytes);
+        });
 
     public PdfEditableDocument MergeDocuments(params PdfEditableDocument[] documents)
     {
@@ -221,7 +321,14 @@ public sealed class PdfEditableDocument : IDisposable
         _bytes = null;
         _encryption = null;
         LastError = null;
+        _measurementScale = 1;
     }
+
+    private static PdfPageBoxKind MapPageBox(PdfEditablePageBox pageBox) => pageBox switch
+    {
+        PdfEditablePageBox.CropBox => PdfPageBoxKind.CropBox,
+        _ => throw new ArgumentOutOfRangeException(nameof(pageBox), pageBox, "Unknown page box.")
+    };
 
     private PdfPageOperationStatus Execute(Action action)
     {

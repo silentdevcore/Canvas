@@ -67,6 +67,67 @@ public sealed class PdfEditableDocumentTests
     }
 
     [Fact]
+    public async Task Document_CanExtractNutrientPageRangeIntoNewDestination()
+    {
+        using var source = new PdfEditableDocument();
+        using var destination = new PdfEditableDocument();
+        using var sourceStream = new MemoryStream(CreatePdf((300, "One"), (310, "Two"), (320, "Three")));
+        Assert.Equal(PdfPageOperationStatus.Success, source.LoadFromStream(sourceStream));
+        Assert.Equal(PdfPageOperationStatus.Success, destination.NewDocument());
+        Assert.Equal(PdfPageOperationStatus.Success, destination.ClonePages(source, "2-3"));
+
+        await AssertPages(destination.ToBytes(), (310, "Two"), (320, "Three"));
+    }
+
+    [Fact]
+    public async Task ClonePages_AppendsToLoadedDestinationAndSelectsLastPage()
+    {
+        using var source = new PdfEditableDocument();
+        using var destination = new PdfEditableDocument();
+        using var sourceStream = new MemoryStream(CreatePdf((300, "One"), (310, "Two"), (320, "Three")));
+        using var destinationStream = new MemoryStream(CreatePdf((200, "Existing")));
+        Assert.Equal(PdfPageOperationStatus.Success, source.LoadFromStream(sourceStream));
+        Assert.Equal(PdfPageOperationStatus.Success, destination.LoadFromStream(destinationStream));
+
+        Assert.Equal(PdfPageOperationStatus.Success, destination.ClonePages(source, "1;3"));
+
+        await AssertPages(destination.ToBytes(), (200, "Existing"), (300, "One"), (320, "Three"));
+        Assert.Equal(PdfPageOperationStatus.Success,
+            destination.SetPageBox(PdfEditablePageBox.CropBox, 10, 480, 190, 20));
+        var box = new PdfPageEditor().ReadPageBox(destination.ToBytes(), 3, PdfPageBoxKind.CropBox);
+        Assert.Equal(new PdfPageBoxCoordinates(10, 480, 190, 20), box);
+    }
+
+    [Fact]
+    public async Task PageBox_UsesConfiguredMeasurementUnitForSetAndGet()
+    {
+        using var document = new PdfEditableDocument();
+        using var stream = new MemoryStream(CreatePdf((200, "Measured")));
+        Assert.Equal(PdfPageOperationStatus.Success, document.LoadFromStream(stream));
+        Assert.Equal(PdfPageOperationStatus.Success,
+            document.SetMeasurementUnit(PdfEditableMeasurementUnit.Inch));
+        Assert.Equal(PdfPageOperationStatus.Success,
+            document.SetPageBox(PdfEditablePageBox.CropBox, 0.25, 6, 2, 0.5));
+
+        float left = 0, top = 0, right = 0, bottom = 0;
+        Assert.Equal(PdfPageOperationStatus.Success,
+            document.GetPageBox(PdfEditablePageBox.CropBox, ref left, ref top, ref right, ref bottom));
+        Assert.Equal(0.25f, left, 3);
+        Assert.Equal(6f, top, 3);
+        Assert.Equal(2f, right, 3);
+        Assert.Equal(0.5f, bottom, 3);
+
+        await using var output = new MemoryStream(document.ToBytes(), writable: false);
+        var imported = await Pdf.LoadAsync(output);
+        var cropBox = imported.Pages[0].CropBox
+            ?? throw new Xunit.Sdk.XunitException("Expected a CropBox after page-box editing.");
+        Assert.Equal(18, cropBox.X, 3);
+        Assert.Equal(36, cropBox.Y, 3);
+        Assert.Equal(126, cropBox.Width, 3);
+        Assert.Equal(396, cropBox.Height, 3);
+    }
+
+    [Fact]
     public void SaveToFile_AppliesConfiguredAes256Encryption()
     {
         using var document = new PdfEditableDocument();

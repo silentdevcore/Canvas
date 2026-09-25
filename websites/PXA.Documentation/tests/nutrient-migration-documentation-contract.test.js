@@ -32,6 +32,12 @@ test('Nutrient documentation describes mappings and security omissions', () => {
   assert.match(source, /PdfPageComposer/);
   assert.match(source, /cross-document cloning/i);
   assert.match(source, /refuses to delete the last page/i);
+  assert.match(source, /CropBox read\/set\/reset/i);
+  assert.match(source, /one-based page-range extraction\/split/i);
+  assert.match(source, /CANMIGNUTNET070/);
+  assert.match(source, /CANMIGNUTNET071/);
+  assert.match(source, /CropBox operations are limited to non-encrypted input/i);
+  assert.match(source, /retains existing destination pages/i);
   assert.match(source, /CANMIGNUTNET069/);
   assert.match(source, /Signature \/ push button/);
   assert.match(source, /Saved signatures, biometric data, credentials/);

@@ -64,6 +64,48 @@ public sealed class PdfPageComposerTests
             new PdfPageComposer().Apply(target, [new PdfPageImport(encrypted, 1)]));
     }
 
+    [Fact]
+    public async Task Split_ExtractsRangesAsIndependentLosslessDocuments()
+    {
+        var source = CreatePdf((200, "First"), (210, "Second"), (220, "Third"));
+
+        var result = new PdfPageComposer().Split(source,
+        [
+            new PdfPageRange(1, 2),
+            new PdfPageRange(3, 3)
+        ]);
+
+        Assert.Equal(2, result.Documents.Count);
+        await AssertPages(result.Documents[0], (200, "First"), (210, "Second"));
+        await AssertPages(result.Documents[1], (220, "Third"));
+    }
+
+    [Fact]
+    public async Task AppendPages_AddsSelectedPagesToExistingTargetInRangeOrder()
+    {
+        var target = CreatePdf((150, "Existing"));
+        var source = CreatePdf((200, "First"), (210, "Second"), (220, "Third"));
+
+        var result = new PdfPageComposer().AppendPages(target, source, [3, 1]);
+
+        Assert.Equal(1, result.OriginalPageCount);
+        Assert.Equal(3, result.PageCount);
+        await AssertPages(result.Bytes, (150, "Existing"), (220, "Third"), (200, "First"));
+    }
+
+    [Fact]
+    public void Split_RejectsInvalidRangesAndDuplicateExtractionPages()
+    {
+        var source = CreatePdf((200, "First"), (210, "Second"));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new PdfPageComposer().Split(source, [new PdfPageRange(0, 1)]));
+        Assert.Throws<ArgumentException>(() =>
+            new PdfPageComposer().ExtractPages(source, [1, 1]));
+        Assert.Throws<FormatException>(() =>
+            PdfPageRangeParser.Parse("2-1", 2));
+    }
+
     private static byte[] CreatePdf(params (double Width, string Text)[] pages)
     {
         var document = PXA.Generator.Pdf.CreateDocument();

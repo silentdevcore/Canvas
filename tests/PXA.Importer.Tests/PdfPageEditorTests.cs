@@ -84,6 +84,50 @@ public sealed class PdfPageEditorTests
     }
 
     [Fact]
+    public async Task Apply_SetsCropBoxWithoutRebuildingPageContent()
+    {
+        var source = CreateThreePagePdf();
+        var result = new PdfPageEditor().Apply(source,
+        [
+            new PdfSetPageBoxOperation(1, PdfPageBoxKind.CropBox, 10, 180, 90, 20)
+        ]);
+
+        var box = new PdfPageEditor().ReadPageBox(result.Bytes, 1, PdfPageBoxKind.CropBox);
+        Assert.Equal(new PdfPageBoxCoordinates(10, 180, 90, 20), box);
+
+        await using var stream = new MemoryStream(result.Bytes, writable: false);
+        var imported = await Pdf.LoadAsync(stream);
+        Assert.Equal(10, imported.Pages[0].CropBox?.X);
+        Assert.Equal(20, imported.Pages[0].CropBox?.Y);
+        Assert.Equal(80, imported.Pages[0].CropBox?.Width);
+        Assert.Equal(160, imported.Pages[0].CropBox?.Height);
+        Assert.Contains(imported.Pages[0].TextObjects, text => text.Text == "Page one");
+    }
+
+    [Fact]
+    public void Apply_RejectsCropOutsideMediaBoxAndEncryptedCrop()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new PdfPageEditor().Apply(CreateThreePagePdf(),
+            [new PdfSetPageBoxOperation(1, PdfPageBoxKind.CropBox, -1, 180, 90, 20)]));
+
+        var document = PXA.Generator.Pdf.CreateDocument();
+        document.AddPage(200, 200);
+        var encrypted = document.ToBytes(new PXA.Pdf.PdfSaveOptions
+        {
+            Encryption = new PXA.Pdf.PdfEncryptionOptions
+            {
+                OwnerPassword = "owner-secret",
+                UserPassword = "reader-secret",
+                Algorithm = PXA.Pdf.PdfEncryptionAlgorithm.Aes256
+            }
+        });
+        Assert.Throws<NotSupportedException>(() =>
+            new PdfPageEditor().Apply(encrypted,
+            [new PdfSetPageBoxOperation(1, PdfPageBoxKind.CropBox, 10, 100, 100, 10)]));
+    }
+
+    [Fact]
     public void Apply_RejectsDeletingAPageThatRemainsReachableOutsideThePageTree()
     {
         var source = CreateThreePagePdf();

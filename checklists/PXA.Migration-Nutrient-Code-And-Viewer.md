@@ -68,6 +68,24 @@ represented as successfully migrated.
 - [x] Added path-array `MergeDocuments`; attachment-aware merge options remain
   fail-closed with `CANMIGNUTNET069` because copying or excluding catalog-level
   embedded files is not yet semantically equivalent.
+- [x] Added exact existing-PDF `CropBox` and page-range extraction support.
+  `SetPageBox(PdfPageBoxCropBox, left, top, right, bottom)`,
+  `GetPageBox(PdfPageBoxCropBox, ref left, ref top, ref right, ref bottom)`,
+  and `RemovePageBox(PdfPageBoxCropBox)` preserve the existing page dictionary,
+  resources, and content instead of reconstructing through Designer. The
+  supported `ClonePages(FromPDF, PageRange)` overload and the typed split API
+  use one-based page ranges and retain/remap the complete reachable graph.
+- [x] Preserve Nutrient page-box coordinate order and the active point,
+  millimeter, centimeter, or inch measurement unit symmetrically for both
+  `SetPageBox` and `GetPageBox`.
+- [x] Added stable diagnostics `CANMIGNUTNET070` for exact `CropBox` mapping and
+  `CANMIGNUTNET071` for exact page-range append mapping. Unsupported page
+  boxes, encrypted sources, and non-range split modes remain explicit review
+  cases. `ClonePages` appends the selected pages to an existing target in source
+  range order and selects the last appended page, matching Nutrient semantics.
+- [x] Added focused importer and Nutrient tests for CropBox mutation and reads,
+  page-range split/extraction, graph preservation, invalid ranges, duplicate
+  selections, encrypted boundaries, and compilable generated code.
 - [x] Preserve Nutrient stream ownership, one-based page positions, operation
   order, repeated loads, multiple document variables, and `GdPictureStatus.OK`
   control flow in generated PXA code.
@@ -181,8 +199,10 @@ Official reference baseline:
   load/save patterns to the appropriate PXA generator or importer APIs.
 - [ ] Map all page add, insert, remove, reorder, rotate, crop, merge, and split
   patterns where an equivalent PXA operation exists. Static creation, blank
-  insertion, rotation, remove, reorder, cross-document clone, and supported
-  merge overloads are covered; crop and split remain open.
+  insertion, rotation, remove, reorder, cross-document clone, supported merge
+  overloads, `CropBox` set/read/reset, and explicit page-range extraction are
+  covered. Other page-box kinds, bookmark/barcode/repeating-content split modes,
+  and encrypted source workflows remain open.
 - [ ] Map text, image, shape, link, bookmark, metadata, and basic page-content
   operations where semantic equivalence can be proven.
 - [ ] Map supported annotations to PXA note, free text, stamp, image, line,

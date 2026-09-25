@@ -9,6 +9,12 @@ namespace PXA.Importer.Editing;
 
 public sealed record PdfPageImport(ReadOnlyMemory<byte> Source, int PageNumber, int? TargetPageNumber = null);
 
+public sealed record PdfPageRange(int FirstPage, int LastPage);
+
+public sealed record PdfDocumentSplitResult(
+    IReadOnlyList<byte[]> Documents,
+    IReadOnlyList<PdfPageRange> Ranges);
+
 public sealed record PdfPageCompositionOptions
 {
     public bool AllowSignatureInvalidation { get; init; }
@@ -101,6 +107,118 @@ public sealed class PdfPageComposer
         return Apply(documents[0], imports, options);
     }
 
+    /// <summary>
+    /// Appends an ordered set of source pages to an existing target while cloning the selected
+    /// pages as one graph. References between selected pages are therefore remapped together.
+    /// </summary>
+    public PdfPageCompositionResult AppendPages(
+        ReadOnlyMemory<byte> target,
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<int> pageNumbers,
+        PdfPageCompositionOptions? options = null)
+    {
+        if (target.IsEmpty)
+            throw new ArgumentException("A non-empty target PDF is required.", nameof(target));
+        ArgumentNullException.ThrowIfNull(pageNumbers);
+        if (pageNumbers.Count == 0)
+            throw new ArgumentException("At least one page number is required.", nameof(pageNumbers));
+        if (pageNumbers.Distinct().Count() != pageNumbers.Count)
+            throw new ArgumentException("An appended page range cannot contain duplicate page numbers.", nameof(pageNumbers));
+        options ??= new PdfPageCompositionOptions();
+
+        var targetGraph = ParseUnencrypted(target, options.Limits, "target");
+        var targetTree = ReadPageTree(targetGraph);
+        var sourceGraph = ParseUnencrypted(source, options.Limits, "source");
+        var sourceTree = ReadPageTree(sourceGraph);
+        if (ContainsSignature(sourceGraph) && !options.AllowSignatureInvalidation)
+        {
+            throw new InvalidOperationException(
+                "Cloning pages from a signed PDF invalidates their signature context. Set AllowSignatureInvalidation to proceed.");
+        }
+
+        foreach (var pageNumber in pageNumbers)
+            ValidatePageNumber(pageNumber, sourceTree.Pages.Count, nameof(pageNumbers));
+
+        var nextObjectNumber = targetGraph.Objects.Keys.Max(static id => id.Number) + 1;
+        var sourcePages = pageNumbers.Select(pageNumber => sourceTree.Pages[pageNumber - 1]).ToArray();
+        var cloned = ClonePageGraphs(sourceGraph, sourceTree, sourcePages, ref nextObjectNumber);
+        var pages = targetTree.Pages.Concat(cloned.Pages).ToArray();
+        var updates = cloned.Updates.ToList();
+        updates.AddRange(BuildPageTreeUpdates(targetTree.RootReference, targetTree.RootDictionary, pages));
+        var save = new PdfDocumentSaver().Save(target, new PdfSaveRequest
+        {
+            Strategy = PdfSaveStrategy.FullRewrite,
+            Updates = updates,
+            FullRewriteOptions = new PdfFullRewriteOptions
+            {
+                AllowSignatureInvalidation = options.AllowSignatureInvalidation,
+                Limits = options.Limits
+            }
+        });
+
+        return new PdfPageCompositionResult(save.Bytes, targetTree.Pages.Count, pages.Length);
+    }
+
+    /// <summary>
+    /// Extracts each one-based page range into a separate PDF. Page dictionaries, resources,
+    /// content streams, annotations, and other reachable page objects are cloned without
+    /// passing through the Designer model. Encrypted and signed sources are rejected unless
+    /// the caller explicitly accepts signature invalidation; source encryption is never
+    /// silently removed.
+    /// </summary>
+    public PdfDocumentSplitResult Split(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<PdfPageRange> ranges,
+        PdfPageCompositionOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(ranges);
+        if (ranges.Count == 0)
+            throw new ArgumentException("At least one page range is required.", nameof(ranges));
+        options ??= new PdfPageCompositionOptions();
+
+        var graph = ParseUnencrypted(source, options.Limits, "source");
+        var tree = ReadPageTree(graph);
+        if (ContainsSignature(graph) && !options.AllowSignatureInvalidation)
+        {
+            throw new InvalidOperationException(
+                "Splitting a signed PDF invalidates its signatures. Set AllowSignatureInvalidation to proceed.");
+        }
+
+        var documents = new List<byte[]>(ranges.Count);
+        foreach (var range in ranges)
+        {
+            if (range.FirstPage < 1 || range.LastPage < range.FirstPage || range.LastPage > tree.Pages.Count)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(ranges),
+                    $"Page range {range.FirstPage}-{range.LastPage} is outside the one-based source page range 1-{tree.Pages.Count}.");
+            }
+
+            documents.Add(ExtractPages(source,
+                Enumerable.Range(range.FirstPage, range.LastPage - range.FirstPage + 1).ToArray(),
+                options,
+                graph,
+                tree));
+        }
+
+        return new PdfDocumentSplitResult(documents, ranges.ToArray());
+    }
+
+    /// <summary>Extracts an ordered, non-duplicated one-based page list into one PDF.</summary>
+    public byte[] ExtractPages(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<int> pageNumbers,
+        PdfPageCompositionOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(pageNumbers);
+        if (pageNumbers.Count == 0)
+            throw new ArgumentException("At least one page number is required.", nameof(pageNumbers));
+        options ??= new PdfPageCompositionOptions();
+        var graph = ParseUnencrypted(source, options.Limits, "source");
+        var tree = ReadPageTree(graph);
+        return ExtractPages(source, pageNumbers, options, graph, tree);
+    }
+
     public int GetPageCount(ReadOnlyMemory<byte> source, PdfParseLimits? limits = null) =>
         ReadPageTree(ParseUnencrypted(source, limits ?? new PdfParseLimits(), "source")).Pages.Count;
 
@@ -185,11 +303,27 @@ public sealed class PdfPageComposer
         PageEntry sourcePage,
         ref int nextObjectNumber)
     {
+        var cloned = ClonePageGraphs(sourceGraph, sourceTree, [sourcePage], ref nextObjectNumber);
+        return new ClonedPage(cloned.Pages[0], cloned.Updates);
+    }
+
+    private static ClonedPages ClonePageGraphs(
+        PdfObjectGraph sourceGraph,
+        PageTree sourceTree,
+        IReadOnlyList<PageEntry> sourcePages,
+        ref int nextObjectNumber)
+    {
         var objectNumber = nextObjectNumber;
         var mapping = new Dictionary<PdfObjectId, PdfObjectId>();
         var updates = new List<PdfIncrementalObjectUpdate>();
-        var newPageId = new PdfObjectId(objectNumber++, 0);
-        mapping[sourcePage.Reference.Id] = newPageId;
+        var selectedPageIds = sourcePages.Select(static page => page.Reference.Id).ToHashSet();
+        var newPageIds = new Dictionary<PdfObjectId, PdfObjectId>();
+        foreach (var sourcePage in sourcePages)
+        {
+            var newPageId = new PdfObjectId(objectNumber++, 0);
+            newPageIds[sourcePage.Reference.Id] = newPageId;
+            mapping[sourcePage.Reference.Id] = newPageId;
+        }
 
         PdfObject Clone(PdfObject value, int depth)
         {
@@ -201,8 +335,8 @@ public sealed class PdfPageComposer
                     if (sourceTree.PageTreeNodes.Contains(reference.Id))
                         throw new NotSupportedException("The imported page contains an unexpected reference to its source page tree.");
                     if (sourceTree.Pages.Any(page => page.Reference.Id == reference.Id) &&
-                        reference.Id != sourcePage.Reference.Id)
-                        throw new NotSupportedException("The imported page references another source page; clone the related pages together or remove the cross-page reference first.");
+                        !selectedPageIds.Contains(reference.Id))
+                        throw new NotSupportedException("The imported page references a source page outside the selected split range; clone the related pages together or remove the cross-page reference first.");
                     if (mapping.TryGetValue(reference.Id, out var mapped))
                         return new PdfReference(mapped);
                     var sourceObject = sourceGraph.Resolve(reference.Id)?.Value
@@ -229,23 +363,67 @@ public sealed class PdfPageComposer
             }
         }
 
-        var pageValues = sourcePage.Dictionary.Values
-            .Where(static entry => entry.Key != "Parent")
-            .ToDictionary(static entry => entry.Key, entry => Clone(entry.Value, 0), StringComparer.Ordinal);
-        foreach (var key in InheritablePageKeys)
+        var pages = new List<PageEntry>(sourcePages.Count);
+        foreach (var sourcePage in sourcePages)
         {
-            if (!pageValues.ContainsKey(key) && sourcePage.EffectiveAttributes.TryGetValue(key, out var inherited))
-                pageValues[key] = Clone(inherited, 0);
-        }
-        var pageDictionary = new PdfDictionary(pageValues) { ["Type"] = new PdfName("Page") };
-        updates.Add(new PdfIncrementalObjectUpdate(newPageId, pageDictionary));
-        nextObjectNumber = objectNumber;
-        return new ClonedPage(
-            new PageEntry(new PdfReference(newPageId), pageDictionary,
+            var pageValues = sourcePage.Dictionary.Values
+                .Where(static entry => entry.Key != "Parent")
+                .ToDictionary(static entry => entry.Key, entry => Clone(entry.Value, 0), StringComparer.Ordinal);
+            foreach (var key in InheritablePageKeys)
+            {
+                if (!pageValues.ContainsKey(key) && sourcePage.EffectiveAttributes.TryGetValue(key, out var inherited))
+                    pageValues[key] = Clone(inherited, 0);
+            }
+            var newPageId = newPageIds[sourcePage.Reference.Id];
+            var pageDictionary = new PdfDictionary(pageValues) { ["Type"] = new PdfName("Page") };
+            updates.Add(new PdfIncrementalObjectUpdate(newPageId, pageDictionary));
+            pages.Add(new PageEntry(new PdfReference(newPageId), pageDictionary,
                 pageValues.Where(entry => InheritablePageKeys.Contains(entry.Key, StringComparer.Ordinal))
-                    .ToDictionary(static entry => entry.Key, static entry => entry.Value, StringComparer.Ordinal)),
-            updates);
+                    .ToDictionary(static entry => entry.Key, static entry => entry.Value, StringComparer.Ordinal)));
+        }
+        nextObjectNumber = objectNumber;
+        return new ClonedPages(pages, updates);
     }
+
+    private byte[] ExtractPages(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<int> pageNumbers,
+        PdfPageCompositionOptions options,
+        PdfObjectGraph sourceGraph,
+        PageTree sourceTree)
+    {
+        if (pageNumbers.Distinct().Count() != pageNumbers.Count)
+            throw new ArgumentException("A split output cannot contain duplicate page numbers.", nameof(pageNumbers));
+        foreach (var pageNumber in pageNumbers)
+            ValidatePageNumber(pageNumber, sourceTree.Pages.Count, nameof(pageNumbers));
+
+#pragma warning disable PXA0001
+        var blank = new PXA.Pdf.PdfDocument();
+#pragma warning restore PXA0001
+        blank.AddPage(1, 1);
+        var target = blank.ToBytes();
+        var targetGraph = ParseUnencrypted(target, options.Limits, "split target");
+        var targetTree = ReadPageTree(targetGraph);
+        var nextObjectNumber = targetGraph.Objects.Keys.Max(static id => id.Number) + 1;
+        var sourcePages = pageNumbers.Select(pageNumber => sourceTree.Pages[pageNumber - 1]).ToArray();
+        var cloned = ClonePageGraphs(sourceGraph, sourceTree, sourcePages, ref nextObjectNumber);
+        var updates = cloned.Updates.ToList();
+        updates.AddRange(BuildPageTreeUpdates(targetTree.RootReference, targetTree.RootDictionary, cloned.Pages));
+        return new PdfDocumentSaver().Save(target, new PdfSaveRequest
+        {
+            Strategy = PdfSaveStrategy.FullRewrite,
+            Updates = updates,
+            FullRewriteOptions = new PdfFullRewriteOptions
+            {
+                AllowSignatureInvalidation = options.AllowSignatureInvalidation,
+                Limits = options.Limits
+            }
+        }).Bytes;
+    }
+
+    private static bool ContainsSignature(PdfObjectGraph graph) =>
+        graph.Objects.Values.Any(static item => item.Value is PdfDictionary dictionary &&
+            (dictionary["Type"] is PdfName { Value: "Sig" } || dictionary["FT"] is PdfName { Value: "Sig" }));
 
     private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildPageTreeUpdates(
         PdfReference rootReference,
@@ -294,4 +472,5 @@ public sealed class PdfPageComposer
         PdfDictionary Dictionary,
         IReadOnlyDictionary<string, PdfObject> EffectiveAttributes);
     private sealed record ClonedPage(PageEntry Page, IReadOnlyList<PdfIncrementalObjectUpdate> Updates);
+    private sealed record ClonedPages(IReadOnlyList<PageEntry> Pages, IReadOnlyList<PdfIncrementalObjectUpdate> Updates);
 }

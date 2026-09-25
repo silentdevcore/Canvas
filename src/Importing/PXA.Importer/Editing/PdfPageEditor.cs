@@ -16,6 +16,24 @@ public sealed record PdfDeletePageOperation(int PageNumber) : PdfPageEditOperati
 /// <summary>Moves a page to its final one-based position.</summary>
 public sealed record PdfMovePageOperation(int PageNumber, int TargetPageNumber) : PdfPageEditOperation;
 
+/// <summary>Supported page boundary boxes for existing-PDF editing.</summary>
+public enum PdfPageBoxKind
+{
+    CropBox
+}
+
+/// <summary>Sets a page boundary using Nutrient coordinates: left, upper Y, right, lower Y.</summary>
+public sealed record PdfSetPageBoxOperation(
+    int PageNumber,
+    PdfPageBoxKind PageBox,
+    double Left,
+    double Top,
+    double Right,
+    double Bottom) : PdfPageEditOperation;
+
+/// <summary>Removes a page boundary so the PDF default/inherited value applies.</summary>
+public sealed record PdfRemovePageBoxOperation(int PageNumber, PdfPageBoxKind PageBox) : PdfPageEditOperation;
+
 public sealed record PdfPageEditOptions
 {
     public bool AllowSignatureInvalidation { get; init; }
@@ -34,6 +52,8 @@ public sealed record PdfPageEditResult(
     int PageCount,
     IReadOnlyList<PdfPageEditOperation> AppliedOperations,
     IReadOnlyList<PdfObjectId> InvalidatedSignatures);
+
+public sealed record PdfPageBoxCoordinates(double Left, double Top, double Right, double Bottom);
 
 /// <summary>
 /// Reorders or removes pages by updating the existing PDF page tree. Page dictionaries,
@@ -56,6 +76,19 @@ public sealed class PdfPageEditor
         if (operations.Count == 0)
             throw new ArgumentException("At least one page operation is required.", nameof(operations));
         options ??= new PdfPageEditOptions();
+
+        if (operations.Any(static operation => operation is PdfSetPageBoxOperation or PdfRemovePageBoxOperation))
+        {
+            var boxContext = new PdfParseContext(source, new PdfImporterOptions { Limits = options.Limits });
+            var boxTable = new PdfCrossReferenceParser().Parse(boxContext);
+            if (boxTable.Diagnostics.Count > 0)
+                throw new InvalidDataException($"The source PDF cross-reference data is invalid: {boxTable.Diagnostics[0].Code}.");
+            if (PdfDocumentDecryptor.IsEncrypted(boxTable))
+            {
+                throw new NotSupportedException(
+                    "Nutrient page-box editing is defined for non-encrypted PDFs; decrypt and re-save through an explicit trusted workflow first.");
+            }
+        }
 
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = options.Limits });
         var xref = new PdfCrossReferenceParser().Parse(context);
@@ -91,6 +124,7 @@ public sealed class PdfPageEditor
             throw new InvalidDataException("The source PDF does not contain a page.");
 
         var originalCount = pages.Count;
+        var pageBoxMutations = new Dictionary<PdfObjectId, PageBoxMutation>();
         var originalPageIds = pages.Select(static page => page.Reference.Id).ToHashSet();
         foreach (var operation in operations)
         {
@@ -113,12 +147,35 @@ public sealed class PdfPageEditor
                     pages.Insert(move.TargetPageNumber - 1, page);
                     break;
 
+                case PdfSetPageBoxOperation setBox:
+                    ValidatePageNumber(setBox.PageNumber, pages.Count, nameof(setBox.PageNumber));
+                    ValidatePageBoxKind(setBox.PageBox);
+                    ValidateCoordinates(setBox.Left, setBox.Top, setBox.Right, setBox.Bottom);
+                    var setPage = pages[setBox.PageNumber - 1];
+                    var mediaBox = ReadBox(graph, setPage.EffectiveAttributes, "MediaBox")
+                        ?? throw new InvalidDataException("The selected page does not have a valid /MediaBox.");
+                    var cropBox = new PdfBox(setBox.Left, setBox.Bottom, setBox.Right, setBox.Top);
+                    if (!mediaBox.Contains(cropBox))
+                    {
+                        throw new ArgumentOutOfRangeException(
+                            nameof(setBox),
+                            "A CropBox must be contained within the effective MediaBox.");
+                    }
+                    pageBoxMutations[setPage.Reference.Id] = PageBoxMutation.Set(cropBox);
+                    break;
+
+                case PdfRemovePageBoxOperation removeBox:
+                    ValidatePageNumber(removeBox.PageNumber, pages.Count, nameof(removeBox.PageNumber));
+                    ValidatePageBoxKind(removeBox.PageBox);
+                    pageBoxMutations[pages[removeBox.PageNumber - 1].Reference.Id] = PageBoxMutation.Remove();
+                    break;
+
                 default:
                     throw new NotSupportedException($"Unsupported page operation '{operation.GetType().Name}'.");
             }
         }
 
-        var updates = BuildUpdates(pagesRoot, pages);
+        var updates = BuildUpdates(pagesRoot, pages, pageBoxMutations);
         var removedPageIds = originalPageIds
             .Except(pages.Select(static page => page.Reference.Id))
             .ToHashSet();
@@ -149,6 +206,35 @@ public sealed class PdfPageEditor
             pages.Count,
             operations.ToArray(),
             save.InvalidatedSignatures);
+    }
+
+    public PdfPageBoxCoordinates ReadPageBox(
+        ReadOnlyMemory<byte> source,
+        int pageNumber,
+        PdfPageBoxKind pageBox,
+        PdfParseLimits? limits = null)
+    {
+        if (source.IsEmpty)
+            throw new ArgumentException("A non-empty PDF is required.", nameof(source));
+        ValidatePageBoxKind(pageBox);
+        limits ??= new PdfParseLimits();
+        var context = new PdfParseContext(source, new PdfImporterOptions { Limits = limits });
+        var table = new PdfCrossReferenceParser().Parse(context);
+        if (table.Diagnostics.Count > 0)
+            throw new InvalidDataException($"The source PDF cross-reference data is invalid: {table.Diagnostics[0].Code}.");
+        if (PdfDocumentDecryptor.IsEncrypted(table))
+            throw new NotSupportedException("Page-box inspection does not accept encrypted PDFs.");
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var root = ResolvePagesRoot(graph);
+        var pages = new List<PageEntry>();
+        WalkPages(graph, root.Reference, root.Dictionary,
+            new Dictionary<string, PdfObject>(StringComparer.Ordinal), pages, []);
+        ValidatePageNumber(pageNumber, pages.Count, nameof(pageNumber));
+        var page = pages[pageNumber - 1];
+        var box = ReadBox(graph, page.EffectiveAttributes, "CropBox")
+            ?? ReadBox(graph, page.EffectiveAttributes, "MediaBox")
+            ?? throw new InvalidDataException("The selected page does not have a valid page boundary.");
+        return new PdfPageBoxCoordinates(box.Left, box.Top, box.Right, box.Bottom);
     }
 
     private static PagesRoot ResolvePagesRoot(PdfObjectGraph graph)
@@ -207,7 +293,8 @@ public sealed class PdfPageEditor
 
     private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildUpdates(
         PagesRoot root,
-        IReadOnlyList<PageEntry> pages)
+        IReadOnlyList<PageEntry> pages,
+        IReadOnlyDictionary<PdfObjectId, PageBoxMutation> pageBoxMutations)
     {
         var updates = new List<PdfIncrementalObjectUpdate>(pages.Count + 1);
         var rootDictionary = Clone(root.Dictionary);
@@ -223,8 +310,15 @@ public sealed class PdfPageEditor
             var dictionary = Clone(page.Dictionary);
             dictionary["Type"] = new PdfName("Page");
             dictionary["Parent"] = root.Reference;
+            pageBoxMutations.TryGetValue(page.Reference.Id, out var pageBoxMutation);
+            if (pageBoxMutation?.Value is { } box)
+                dictionary["CropBox"] = box.ToPdfArray();
+            else if (pageBoxMutation?.IsRemoved == true)
+                dictionary["CropBox"] = null;
             foreach (var key in InheritablePageKeys)
             {
+                if (key == "CropBox" && pageBoxMutation is not null)
+                    continue;
                 if (dictionary[key] is null && page.EffectiveAttributes.TryGetValue(key, out var inherited))
                     dictionary[key] = inherited;
             }
@@ -293,9 +387,76 @@ public sealed class PdfPageEditor
             throw new ArgumentOutOfRangeException(parameterName, pageNumber, $"Page number must be between 1 and {count}.");
     }
 
+    private static void ValidatePageBoxKind(PdfPageBoxKind pageBox)
+    {
+        if (pageBox != PdfPageBoxKind.CropBox)
+            throw new NotSupportedException($"Page box '{pageBox}' is not supported by the existing-PDF crop operation.");
+    }
+
+    private static void ValidateCoordinates(double left, double top, double right, double bottom)
+    {
+        if (!double.IsFinite(left) || !double.IsFinite(top) ||
+            !double.IsFinite(right) || !double.IsFinite(bottom) ||
+            left >= right || bottom >= top)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(left),
+                "Page box coordinates must be finite and define a positive rectangle.");
+        }
+    }
+
+    private static PdfBox? ReadBox(
+        PdfObjectGraph graph,
+        IReadOnlyDictionary<string, PdfObject> attributes,
+        string key)
+    {
+        if (!attributes.TryGetValue(key, out var value))
+            return null;
+        value = Resolve(graph, value);
+        if (value is not PdfArray { Items.Count: 4 } array)
+            return null;
+        var numbers = array.Items.Select(item => Resolve(graph, item)).Select(ToNumber).ToArray();
+        return numbers.Any(static number => number is null)
+            ? null
+            : new PdfBox(numbers[0]!.Value, numbers[1]!.Value, numbers[2]!.Value, numbers[3]!.Value);
+    }
+
+    private static PdfObject Resolve(PdfObjectGraph graph, PdfObject value) =>
+        value is PdfReference reference
+            ? graph.Resolve(reference.Id)?.Value
+                ?? throw new InvalidDataException($"PDF page boundary references missing object {reference.Id.Number}.")
+            : value;
+
+    private static double? ToNumber(PdfObject value) => value switch
+    {
+        PdfInteger integer => integer.Value,
+        PdfNumber number => number.Value,
+        _ => null
+    };
+
     private sealed record PagesRoot(PdfReference Reference, PdfDictionary Dictionary);
     private sealed record PageEntry(
         PdfReference Reference,
         PdfDictionary Dictionary,
         IReadOnlyDictionary<string, PdfObject> EffectiveAttributes);
+
+    private sealed record PageBoxMutation(PdfBox? Value, bool IsRemoved)
+    {
+        public static PageBoxMutation Set(PdfBox value) => new(value, false);
+        public static PageBoxMutation Remove() => new(null, true);
+    }
+
+    private sealed record PdfBox(double Left, double Bottom, double Right, double Top)
+    {
+        public bool Contains(PdfBox other) =>
+            other.Left >= Left && other.Bottom >= Bottom &&
+            other.Right <= Right && other.Top <= Top;
+
+        public PdfArray ToPdfArray() => new([
+            new PdfNumber(Left),
+            new PdfNumber(Bottom),
+            new PdfNumber(Right),
+            new PdfNumber(Top)
+        ]);
+    }
 }

@@ -40,6 +40,28 @@ stateful facade for migrated SDK workflows, including file and stream loading,
 runtime status results, page move/delete, blank insertion, cloning, merging,
 AES-256 output configuration, and saving.
 
+The exact page-editing surface also supports the PDF `CropBox` on a selected
+one-based page. `PdfPageEditor` can set, read, or remove that boundary while
+leaving the page dictionary, resources, and content streams intact; CropBox
+coordinates use the existing PDF point and bottom-left coordinate contract.
+The migration facade preserves Nutrient's `Left, Top, Right, Bottom` parameter
+order and converts the active point, millimeter, centimeter, or inch unit in
+both directions; PDF storage remains `[left, bottom, right, top]`.
+This operation is intentionally limited to non-encrypted input. The
+`PdfEditableDocument` facade exposes the corresponding
+`SetPageBox`/`GetPageBox`/`RemovePageBox` operations through the typed
+`PdfEditablePageBox.CropBox` value.
+
+`PdfPageComposer.Split` and `ExtractPages` create independent documents from
+explicit one-based page ranges. The selected page graph is cloned and internal
+cross-page references are remapped; references to pages outside the selected
+set, malformed or duplicate ranges, and encrypted sources are rejected. A
+signed source requires explicit acknowledgement that the operation invalidates
+its signature. `AppendPages` clones all selected pages as one graph and appends
+them to an existing target. Nutrient's two-argument
+`ClonePages(source, pageRange)` therefore retains destination pages, appends in
+range order, and selects the final appended page.
+
 Path-based multi-document merge is supported. Nutrient's attachment-specific
 merge options intentionally fail closed until catalog-level embedded-file
 composition can preserve their exact semantics.

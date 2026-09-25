@@ -423,6 +423,58 @@ public sealed class NutrientMigrationTests
     }
 
     [Fact]
+    public void Migrate_MapsExactCropBoxAndPageRangeExtractionOverloads()
+    {
+        var source = """
+            using GdPicture14;
+            var source = new GdPicturePDF();
+            source.LoadFromFile("source.pdf");
+            source.SelectPage(1);
+            source.SetMeasurementUnit(PdfMeasurementUnit.PdfMeasurementUnitMillimeter);
+            float left = 0, top = 0, right = 0, bottom = 0;
+            var boxStatus = source.GetPageBox(PdfPageBox.PdfPageBoxCropBox, ref left, ref top, ref right, ref bottom);
+            source.SetPageBox(PdfPageBox.PdfPageBoxCropBox, 10, 200, 100, 20);
+            source.RemovePageBox(PdfPageBox.PdfPageBoxCropBox);
+
+            var split = new GdPicturePDF();
+            split.NewPDF();
+            var splitStatus = split.ClonePages(source, "2-3;5");
+            split.SaveToFile("split.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("source.SetMeasurementUnit(PdfEditableMeasurementUnit.Millimeter)", result.MigratedCode);
+        Assert.Contains("source.SetPageBox(PdfEditablePageBox.CropBox, 10, 200, 100, 20)", result.MigratedCode);
+        Assert.Contains("source.RemovePageBox(PdfEditablePageBox.CropBox)", result.MigratedCode);
+        Assert.Contains("source.GetPageBox(PdfEditablePageBox.CropBox, ref left, ref top, ref right, ref bottom)", result.MigratedCode);
+        Assert.Contains("split.ClonePages(source, \"2-3;5\")", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET070");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET071");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_LeavesUnsupportedPageBoxOverloadsAsReviewMarkers()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.LoadFromFile("source.pdf");
+            pdf.SetPageBox(PdfPageBox.PdfPageBoxMediaBox, 0, 0, 100, 100);
+            pdf.ClonePages(pdf, 1);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("[CANMIGNUTNET070] SetPageBox", result.MigratedCode);
+        Assert.Contains("[CANMIGNUTNET071] ClonePages", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET070");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET071");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
     public void Migrate_PathArrayMerge_UsesEditableCompositionAndCompiles()
     {
         var source = """

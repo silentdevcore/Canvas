@@ -37,24 +37,28 @@ public sealed class NutrientMigration : CSharpSourceMigration
             .Where(invocation => invocation.Expression is MemberAccessExpressionSyntax member
                 && documentVariables.Contains(member.Expression.ToString())
                 && member.Name.Identifier.ValueText is "LoadFromFile" or "LoadFromStream"
-                    or "MovePage" or "DeletePage" or "ClonePage" or "InsertPage"
+                    or "MovePage" or "DeletePage" or "ClonePage" or "ClonePages" or "InsertPage"
+                    or "SetPageBox" or "RemovePageBox"
                     or "MergeDocuments" or "Merge2Documents")
             .Select(static invocation => ((MemberAccessExpressionSyntax)invocation.Expression).Expression.ToString())
             .ToHashSet(StringComparer.Ordinal);
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax member ||
-                member.Name.Identifier.ValueText != "MergeDocuments" ||
+                member.Name.Identifier.ValueText is not ("MergeDocuments" or "ClonePage" or "ClonePages") ||
                 invocation.ArgumentList.Arguments.Count == 0)
                 continue;
 
             editablePdfVariables.Add(member.Expression.ToString());
-            foreach (var identifier in invocation.ArgumentList.Arguments[0].Expression
-                         .DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
-                         .Select(static identifier => identifier.Identifier.ValueText)
-                         .Where(documentVariables.Contains))
+            foreach (var argument in invocation.ArgumentList.Arguments)
             {
-                editablePdfVariables.Add(identifier);
+                foreach (var identifier in argument.Expression
+                             .DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
+                             .Select(static identifier => identifier.Identifier.ValueText)
+                             .Where(documentVariables.Contains))
+                {
+                    editablePdfVariables.Add(identifier);
+                }
             }
         }
         foreach (var variable in documentVariables.Where(variable => root.DescendantNodes()
@@ -261,6 +265,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 "GdPicturePDF" => SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node),
                 "GdPictureStatus" => SyntaxFactory.IdentifierName("PdfPageOperationStatus").WithTriviaFrom(node),
                 "PdfDocumentMergingOptions" => SyntaxFactory.IdentifierName("PdfEditableMergeOptions").WithTriviaFrom(node),
+                "PdfPageBox" => SyntaxFactory.IdentifierName("PdfEditablePageBox").WithTriviaFrom(node),
                 _ => base.VisitIdentifierName(node)
             };
         }
@@ -292,6 +297,24 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     .WithTriviaFrom(node);
             }
 
+            if (node.Expression.ToString() == "PdfPageBox" &&
+                node.Name.Identifier.ValueText == "PdfPageBoxCropBox")
+            {
+                return SyntaxFactory.ParseExpression("PdfEditablePageBox.CropBox").WithTriviaFrom(node);
+            }
+
+            if (node.Expression.ToString() == "PdfMeasurementUnit")
+            {
+                var unit = node.Name.Identifier.ValueText switch
+                {
+                    "PdfMeasurementUnitMillimeter" => "Millimeter",
+                    "PdfMeasurementUnitCentimeter" => "Centimeter",
+                    "PdfMeasurementUnitInch" => "Inch",
+                    _ => "Point"
+                };
+                return SyntaxFactory.ParseExpression($"PdfEditableMeasurementUnit.{unit}").WithTriviaFrom(node);
+            }
+
             if (_editablePdfVariables.Contains(node.Expression.ToString()))
             {
                 var targetName = node.Name.Identifier.ValueText switch
@@ -311,6 +334,30 @@ public sealed class NutrientMigration : CSharpSourceMigration
         {
             var statement = Visit(node.Statement) as StatementSyntax;
             return statement is null ? null : node.WithStatement(statement);
+        }
+
+        public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (node.Expression is MemberAccessExpressionSyntax member &&
+                member.Name.Identifier.ValueText == "ClonePages" &&
+                IsEditablePdf(member.Expression))
+            {
+                var arguments = node.ArgumentList.Arguments;
+                if (!IsSupportedClonePages(arguments))
+                {
+                    _diagnostics.Add(Warning("CANMIGNUTNET071",
+                        "Only ClonePages(FromPDF, PageRange) is mapped; this overload requires explicit review."));
+                    _reviewMarkers.Add(
+                        "[CANMIGNUTNET071] ClonePages: use PdfEditableDocument.ClonePages with a loaded source and a validated page-range string.");
+                    return SyntaxFactory.ParseExpression(
+                        "global::PXA.Importer.Editing.PdfPageOperationStatus.Failed").WithTriviaFrom(node);
+                }
+
+                _diagnostics.Add(Info("CANMIGNUTNET071",
+                    "Nutrient ClonePages(FromPDF, PageRange) converted to lossless existing-PDF page appending."));
+            }
+
+            return base.VisitInvocationExpression(node);
         }
 
         public override SyntaxNode? VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -389,6 +436,43 @@ public sealed class NutrientMigration : CSharpSourceMigration
                         "Nutrient ClonePage converted to lossless cross-document page cloning."));
                     return base.VisitExpressionStatement(node);
 
+                case "ClonePages":
+                    if (!IsEditablePdf(member.Expression) || !IsSupportedClonePages(arguments))
+                    {
+                        return ReviewOperation("CANMIGNUTNET071", "ClonePages",
+                            "Use PdfEditableDocument.ClonePages with a loaded source document and a validated one-based page range.",
+                            "Only ClonePages(loadedSource, pageRange) is mapped; other overloads remain explicit review cases.");
+                    }
+                    _diagnostics.Add(Info("CANMIGNUTNET071",
+                        "Nutrient ClonePages(FromPDF, PageRange) converted to lossless existing-PDF page appending."));
+                    return base.VisitExpressionStatement(node);
+
+                case "SetPageBox":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count != 5 ||
+                        !arguments[0].ToString().EndsWith("PdfPageBoxCropBox", StringComparison.Ordinal))
+                    {
+                        return ReviewOperation("CANMIGNUTNET070", "SetPageBox",
+                            "Use PdfEditableDocument.SetPageBox for the CropBox with bottom-left PDF-point coordinates.",
+                            "Only SetPageBox(PdfPageBoxCropBox, left, top, right, bottom) is mapped automatically.");
+                    }
+                    _diagnostics.Add(Info("CANMIGNUTNET070",
+                        "Nutrient SetPageBox(CropBox, left, top, right, bottom) converted to the typed PXA CropBox operation."));
+                    return ParseStatement(
+                        $"{member.Expression}.SetPageBox(PdfEditablePageBox.CropBox, {arguments[1]}, {arguments[2]}, {arguments[3]}, {arguments[4]});",
+                        node);
+
+                case "RemovePageBox":
+                    if (!IsEditablePdf(member.Expression) || arguments.Count != 1 ||
+                        !arguments[0].ToString().EndsWith("PdfPageBoxCropBox", StringComparison.Ordinal))
+                    {
+                        return ReviewOperation("CANMIGNUTNET070", "RemovePageBox",
+                            "Use PdfEditableDocument.RemovePageBox for the CropBox.",
+                            "Only RemovePageBox(PdfPageBoxCropBox) is mapped automatically.");
+                    }
+                    _diagnostics.Add(Info("CANMIGNUTNET070",
+                        "Nutrient RemovePageBox(CropBox) converted to the typed PXA CropBox reset operation."));
+                    return ParseStatement($"{member.Expression}.RemovePageBox(PdfEditablePageBox.CropBox);", node);
+
                 case "Merge2Documents":
                     if (!IsEditablePdf(member.Expression) || arguments.Count is < 2 or > 3)
                         return ReviewOperation("CANMIGNUTNET067", "Merge2Documents",
@@ -456,6 +540,12 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     return RewriteNewPage(node, arguments);
 
                 case "SelectPage":
+                    if (IsEditablePdf(member.Expression))
+                    {
+                        _diagnostics.Add(Info("CANMIGNUTNET012",
+                            "Nutrient SelectPage converted to the stateful PdfEditableDocument page selection."));
+                        return base.VisitExpressionStatement(node);
+                    }
                     return RewriteSelectPage(node, arguments);
 
                 case "RotatePage":
@@ -530,6 +620,12 @@ public sealed class NutrientMigration : CSharpSourceMigration
                     return null;
 
                 case "SetMeasurementUnit":
+                    if (IsEditablePdf(member.Expression))
+                    {
+                        _diagnostics.Add(Info("CANMIGNUTNET008",
+                            "Nutrient existing-PDF measurement units are preserved for symmetric page-box reads and writes."));
+                        return base.VisitExpressionStatement(node);
+                    }
                     if (arguments.Count > 0)
                         _unitScale = UnitScale(arguments[0].ToString());
                     _diagnostics.Add(Info("CANMIGNUTNET008",
@@ -680,7 +776,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
             out LocalDeclarationStatementSyntax rewritten)
         {
             rewritten = node;
-            var variable = node.Declaration.Variables.SingleOrDefault();
+            var variable = node.Declaration.Variables.Count == 1
+                ? node.Declaration.Variables[0]
+                : null;
             if (variable?.Initializer?.Value is not ObjectCreationExpressionSyntax creation
                 || SimpleName(creation.Type) != "GdPicturePDF")
             {
@@ -710,12 +808,25 @@ public sealed class NutrientMigration : CSharpSourceMigration
         private bool IsEditablePdf(ExpressionSyntax expression) =>
             _editablePdfVariables.Contains(expression.ToString());
 
+        private bool IsDocumentVariableArgument(ExpressionSyntax expression) =>
+            expression is IdentifierNameSyntax identifier &&
+            _documentVariables.Contains(identifier.Identifier.ValueText);
+
+        private bool IsSupportedClonePages(SeparatedSyntaxList<ArgumentSyntax> arguments) =>
+            arguments.Count == 2 &&
+            IsDocumentVariableArgument(arguments[0].Expression) &&
+            !arguments[1].Expression.IsKind(SyntaxKind.NullLiteralExpression) &&
+            (arguments[1].Expression is not LiteralExpressionSyntax literal ||
+             literal.IsKind(SyntaxKind.StringLiteralExpression));
+
         private bool TryRewriteFontDeclaration(
             LocalDeclarationStatementSyntax node,
             out LocalDeclarationStatementSyntax rewritten)
         {
             rewritten = node;
-            var variable = node.Declaration.Variables.SingleOrDefault();
+            var variable = node.Declaration.Variables.Count == 1
+                ? node.Declaration.Variables[0]
+                : null;
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
                 || member.Name.Identifier.ValueText != "AddStandardFont"
@@ -741,7 +852,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
             out LocalDeclarationStatementSyntax rewritten)
         {
             rewritten = node;
-            var variable = node.Declaration.Variables.SingleOrDefault();
+            var variable = node.Declaration.Variables.Count == 1
+                ? node.Declaration.Variables[0]
+                : null;
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
                 || !_documentVariables.Contains(member.Expression.ToString())
@@ -768,7 +881,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
             out SyntaxNode rewritten)
         {
             rewritten = node;
-            var variable = node.Declaration.Variables.SingleOrDefault();
+            var variable = node.Declaration.Variables.Count == 1
+                ? node.Declaration.Variables[0]
+                : null;
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
                 || !_documentVariables.Contains(member.Expression.ToString()))
