@@ -89,7 +89,7 @@ public sealed class NutrientMigrationTests
     }
 
     [Fact]
-    public void Migrate_WarnsWithoutRemovingTrustOperations()
+    public void Migrate_ExternalizesTrustOperationsWithoutKeepingVendorCalls()
     {
         var source = """
             using GdPicture14;
@@ -104,11 +104,11 @@ public sealed class NutrientMigrationTests
         var result = new NutrientMigration().Migrate(source);
 
         Assert.Contains("pdf.LoadFromFile(\"input.pdf\", false)", result.MigratedCode);
-        Assert.Contains("ApplyRedaction", result.MigratedCode);
-        Assert.Contains("SignDocument", result.MigratedCode);
+        Assert.DoesNotContain("pdf.ApplyRedaction", result.MigratedCode);
+        Assert.DoesNotContain("pdf.SignDocument", result.MigratedCode);
+        Assert.Contains("[CANMIGNUTNET058] ApplyRedaction", result.MigratedCode);
+        Assert.Contains("[CANMIGNUTNET059] SignDocument", result.MigratedCode);
         Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGNUTNET020");
-        Assert.Contains(result.Diagnostics, d =>
-            d.Id == "CANMIGNUTNET031" && d.Severity == MigrationDiagnosticSeverity.Warning);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET021");
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET022");
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGNUTNET058");
@@ -122,7 +122,107 @@ public sealed class NutrientMigrationTests
             item.Capability == PdfTrustCapability.SecureRedaction);
         Assert.Equal(PdfTrustSourceSemantics.ContentRemovingRedaction, redaction.SourceSemantics);
         Assert.Equal("false", redaction.ProviderOptions["automaticReplacement"]);
+        Assert.NotEmpty(redaction.SourceLocations);
+        Assert.All(redaction.SourceLocations, location => Assert.True(location.Line > 0));
         Assert.StartsWith("/docs/", redaction.DocumentationPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Migrate_UsesSemanticIdentityForAliasAndInjectedDocumentReceivers()
+    {
+        var source = """
+            using NutrientPdf = GdPicture14.GdPicturePDF;
+
+            static class Program
+            {
+                public static void Main() { }
+            }
+
+            sealed class PdfService
+            {
+                private readonly NutrientPdf _pdf;
+
+                public PdfService(NutrientPdf pdf) => _pdf = pdf;
+
+                public void Edit()
+                {
+                    _pdf.LoadFromFile("input.pdf");
+                    _pdf.DeletePage(2);
+                    _pdf.SaveToFile("output.pdf");
+                }
+            }
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.DoesNotContain("GdPicture", result.MigratedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("NutrientPdf", result.MigratedCode, StringComparison.Ordinal);
+        Assert.Contains("PdfEditableDocument _pdf", result.MigratedCode);
+        Assert.Contains("PdfService(PdfEditableDocument pdf)", result.MigratedCode);
+        Assert.Contains("_pdf.DeletePage(2)", result.MigratedCode);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ExternalizesOfficialSignatureChainAndRemovesCertificateSecrets()
+    {
+        var source = """
+            using System;
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.LoadFromFile("input.pdf");
+            var certificateStatus = pdf.SetSignatureCertificateFromP12("certificate.pfx", "pfx-secret");
+            if (certificateStatus != GdPictureStatus.OK)
+                throw new InvalidOperationException();
+            pdf.SetSignatureInfo("Signer", "Approval", "Bern", "signer@example.invalid");
+            pdf.SetSignatureTimestampInfo("https://tsa.example.invalid", "user", "password");
+            pdf.ApplySignature("signed.pdf", PdfSignatureMode.PdfSignatureModeAdobePPKMS, false);
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.DoesNotContain("certificate.pfx", result.MigratedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("pfx-secret", result.MigratedCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("tsa.example.invalid", result.MigratedCode, StringComparison.Ordinal);
+        Assert.Contains("var certificateStatus = global::PXA.Importer.Editing.PdfPageOperationStatus.Failed", result.MigratedCode);
+        Assert.DoesNotContain("pdf.ApplySignature", result.MigratedCode, StringComparison.Ordinal);
+        Assert.Contains("[CANMIGNUTNET059] ApplySignature", result.MigratedCode);
+        var signature = Assert.Single(result.PdfTrust!.Evidence, item =>
+            item.Capability == PdfTrustCapability.DigitalSignature);
+        Assert.Equal("runtime-only", signature.ProviderOptions["credentialHandling"]);
+        Assert.True(signature.SourceLocations.Count >= 3);
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_DoesNotRewriteShadowedNonNutrientReceiver()
+    {
+        var source = """
+            using GdPicture14;
+
+            static class Program { public static void Main() { } }
+            sealed class FakePdf { public void DeletePage(int page) { } }
+
+            sealed class PdfService
+            {
+                private readonly GdPicturePDF _pdf;
+                public PdfService(GdPicturePDF pdf) => _pdf = pdf;
+
+                public void Load() => _pdf.LoadFromFile("input.pdf");
+
+                public void RunUnrelatedCode()
+                {
+                    var _pdf = new FakePdf();
+                    _pdf.DeletePage(2);
+                }
+            }
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("_pdf.DeletePage(2)", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET063");
+        AssertCompiles(result.MigratedCode);
     }
 
     [Fact]

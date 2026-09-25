@@ -31,6 +31,8 @@ public enum PdfTrustSourceSemantics
     ComplianceValidation
 }
 
+public sealed record MigrationSourceLocation(int Line, int Column);
+
 public sealed record PdfTrustMigrationEvidence
 {
     public required PdfTrustCapability Capability { get; init; }
@@ -40,6 +42,7 @@ public sealed record PdfTrustMigrationEvidence
     public PdfTrustSourceSemantics SourceSemantics { get; init; } = PdfTrustSourceSemantics.Unknown;
     public required string DiagnosticId { get; init; }
     public required string DocumentationPath { get; init; }
+    public IReadOnlyList<MigrationSourceLocation> SourceLocations { get; init; } = [];
     public IReadOnlyDictionary<string, string> ProviderOptions { get; init; } =
         new Dictionary<string, string>(StringComparer.Ordinal);
 }

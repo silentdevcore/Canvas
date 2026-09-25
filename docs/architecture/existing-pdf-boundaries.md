@@ -75,6 +75,29 @@ The importer must not silently flatten an existing PDF into Designer elements
 and describe the result as an exact edit. Scene-graph reconstruction is a
 separate, potentially lossy conversion with explicit fidelity diagnostics.
 
+### Migration evidence and Trust handoff
+
+The Nutrient/GdPicture code migrator uses Roslyn syntax and semantic information
+for the supported detection paths. An SDK symbol remains identifiable when the
+call is reached through a supported alias, field, or method parameter; the
+Trust evidence retains the source location of the invocation. This is evidence for
+review and source navigation, not a promise that every wrapper, extension,
+async, or dependency-injected pattern is understood.
+
+Official Nutrient signature and redaction calls are externalized as bounded PXA
+Trust review evidence. The evidence records the recognized operation, source
+location, Trust status, and required next action. It does not execute signing,
+certificate validation, preflight, apply, or irreversible redaction as part of
+the migration handoff. PFX paths, passwords, private keys, certificate
+material, and removed text are never copied into generated Trust review code,
+diagnostics, evidence, or logs. A visual redaction mark remains a review
+item and is never reported as removed content.
+
+This boundary deliberately separates semantic detection from Trust execution:
+the migrator may point an operator to the PXA Trust workflow, while the Trust
+pipeline remains responsible for credentials, policy, validation, full-rewrite
+decisions, and post-operation evidence.
+
 ### `PXA.Pdf`
 
 `PXA.Pdf` owns new-document generation. Its public API creates pages, content,

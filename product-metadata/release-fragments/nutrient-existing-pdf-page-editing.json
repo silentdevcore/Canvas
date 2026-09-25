@@ -8,7 +8,7 @@
     "migration"
   ],
   "category": "added",
-  "summary": "Nutrient and GdPicture migrations now preserve file and stream loading, status-driven control flow, page move, delete, insert, clone, merge, CropBox read/set/reset, and exact one-based page-range append/split workflows through typed PXA existing-PDF editing.",
+  "summary": "Nutrient migrations now use symbol-aware Roslyn detection for aliases, fields, and parameters, attach source locations to Trust review evidence, and externalize signature and redaction calls without executing Trust operations or copying certificate secrets.",
   "documentation": [
     "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md",
     "/docs/architecture/existing-pdf-boundaries.md",

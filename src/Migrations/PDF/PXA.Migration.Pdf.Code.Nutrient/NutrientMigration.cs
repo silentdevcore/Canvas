@@ -18,30 +18,54 @@ public sealed class NutrientMigration : CSharpSourceMigration
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 
-        var root = CSharpSyntaxTree.ParseText(sourceCode).GetCompilationUnitRoot();
+        var semanticContext = CSharpMigrationSemanticContext.Create(
+            sourceCode,
+            "PXA.Migration.Nutrient.Semantic");
+        var root = semanticContext.Root;
         var trustReport = NutrientTrustEvidence.Scan(root);
-        var documentVariables = FindDocumentVariables(root);
+        var documentSymbols = new HashSet<ISymbol>(
+            semanticContext.FindDeclaredSymbolsByType("GdPicturePDF"),
+            SymbolEqualityComparer.Default);
+        var documentVariables = FindDocumentVariables(root, semanticContext);
+        bool IsDocumentReceiver(ExpressionSyntax expression)
+        {
+            var symbol = semanticContext.GetReferencedSymbol(expression);
+            return symbol is not null
+                ? documentSymbols.Contains(symbol)
+                : documentVariables.Contains(expression.ToString());
+        }
         foreach (var declaration in root.DescendantNodes().OfType<VariableDeclaratorSyntax>())
         {
             if (declaration.Initializer?.Value is InvocationExpressionSyntax invocation &&
                 invocation.Expression is MemberAccessExpressionSyntax member &&
                 member.Name.Identifier.ValueText == "MergeDocuments" &&
-                documentVariables.Contains(member.Expression.ToString()))
+                IsDocumentReceiver(member.Expression))
             {
                 documentVariables.Add(declaration.Identifier.ValueText);
+                if (semanticContext.SemanticModel.GetDeclaredSymbol(declaration) is { } symbol)
+                    documentSymbols.Add(symbol);
             }
         }
 
-        var editablePdfVariables = root.DescendantNodes()
+        var editableInvocations = root.DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
             .Where(invocation => invocation.Expression is MemberAccessExpressionSyntax member
-                && documentVariables.Contains(member.Expression.ToString())
+                && IsDocumentReceiver(member.Expression)
                 && member.Name.Identifier.ValueText is "LoadFromFile" or "LoadFromStream"
                     or "MovePage" or "DeletePage" or "ClonePage" or "ClonePages" or "InsertPage"
                     or "SetPageBox" or "RemovePageBox"
                     or "MergeDocuments" or "Merge2Documents")
+            .ToArray();
+        var editablePdfVariables = editableInvocations
             .Select(static invocation => ((MemberAccessExpressionSyntax)invocation.Expression).Expression.ToString())
             .ToHashSet(StringComparer.Ordinal);
+        var editablePdfSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+        foreach (var invocation in editableInvocations)
+        {
+            var receiver = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
+            if (semanticContext.GetReferencedSymbol(receiver) is { } symbol)
+                editablePdfSymbols.Add(symbol);
+        }
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax member ||
@@ -50,6 +74,8 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 continue;
 
             editablePdfVariables.Add(member.Expression.ToString());
+            if (semanticContext.GetReferencedSymbol(member.Expression) is { } targetSymbol)
+                editablePdfSymbols.Add(targetSymbol);
             foreach (var argument in invocation.ArgumentList.Arguments)
             {
                 foreach (var identifier in argument.Expression
@@ -58,6 +84,8 @@ public sealed class NutrientMigration : CSharpSourceMigration
                              .Where(documentVariables.Contains))
                 {
                     editablePdfVariables.Add(identifier);
+                    if (semanticContext.GetReferencedSymbol(argument.Expression) is { } sourceSymbol)
+                        editablePdfSymbols.Add(sourceSymbol);
                 }
             }
         }
@@ -69,7 +97,19 @@ public sealed class NutrientMigration : CSharpSourceMigration
                          member.Name.Identifier.ValueText == "MergeDocuments")))
             editablePdfVariables.Add(variable);
 
-        var rewriter = new NutrientRewriter(documentVariables, editablePdfVariables);
+        foreach (var declaration in root.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                     .Where(declaration => editablePdfVariables.Contains(declaration.Identifier.ValueText)))
+        {
+            if (semanticContext.SemanticModel.GetDeclaredSymbol(declaration) is { } symbol)
+                editablePdfSymbols.Add(symbol);
+        }
+
+        var rewriter = new NutrientRewriter(
+            documentVariables,
+            editablePdfVariables,
+            editablePdfSymbols,
+            semanticContext,
+            documentSymbols);
         var migrated = (CompilationUnitSyntax)rewriter.Visit(root)!;
         migrated = RemoveNutrientUsings(migrated);
         migrated = EnsurePxaUsing(migrated);
@@ -101,14 +141,36 @@ public sealed class NutrientMigration : CSharpSourceMigration
         };
     }
 
-    private static HashSet<string> FindDocumentVariables(CompilationUnitSyntax root) =>
-        root.DescendantNodes()
+    private static HashSet<string> FindDocumentVariables(
+        CompilationUnitSyntax root,
+        CSharpMigrationSemanticContext semanticContext)
+    {
+        var variables = root.DescendantNodes()
             .OfType<ObjectCreationExpressionSyntax>()
-            .Where(static creation => SimpleName(creation.Type) == "GdPicturePDF")
-            .Select(static creation => creation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault())
+            .Where(creation => semanticContext.TypeMatches(creation.Type, "GdPicturePDF"))
+            .Select(static creation => creation.Parent is EqualsValueClauseSyntax
+                { Parent: VariableDeclaratorSyntax declaration }
+                    ? declaration
+                    : null)
             .Where(static declaration => declaration is not null)
             .Select(static declaration => declaration!.Identifier.ValueText)
             .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var declaration in root.DescendantNodes().OfType<VariableDeclarationSyntax>()
+                     .Where(declaration => semanticContext.TypeMatches(declaration.Type, "GdPicturePDF")))
+        {
+            foreach (var variable in declaration.Variables)
+                variables.Add(variable.Identifier.ValueText);
+        }
+        foreach (var parameter in root.DescendantNodes().OfType<ParameterSyntax>()
+                     .Where(parameter => parameter.Type is not null &&
+                         semanticContext.TypeMatches(parameter.Type, "GdPicturePDF")))
+            variables.Add(parameter.Identifier.ValueText);
+        foreach (var property in root.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+                     .Where(property => semanticContext.TypeMatches(property.Type, "GdPicturePDF")))
+            variables.Add(property.Identifier.ValueText);
+        return variables;
+    }
 
     private static IEnumerable<MigrationDiagnostic> ScanUnsupportedCapabilities(CompilationUnitSyntax root)
     {
@@ -189,7 +251,8 @@ public sealed class NutrientMigration : CSharpSourceMigration
         {
             var name = directive.Name?.ToString() ?? string.Empty;
             return !name.StartsWith("GdPicture", StringComparison.Ordinal)
-                && !name.StartsWith("Nutrient", StringComparison.Ordinal);
+                && !name.StartsWith("Nutrient", StringComparison.Ordinal)
+                && !(directive.Alias is not null && name == "PdfEditableDocument");
         });
         return root.WithUsings(SyntaxFactory.List(usings));
     }
@@ -231,6 +294,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
     private sealed class NutrientRewriter : CSharpSyntaxRewriter
     {
         private readonly HashSet<string> _documentVariables;
+        private readonly CSharpMigrationSemanticContext _semanticContext;
+        private readonly IReadOnlySet<ISymbol> _documentSymbols;
+        private readonly IReadOnlySet<ISymbol> _editablePdfSymbols;
         private readonly HashSet<string> _imageResourceVariables = [];
         private readonly List<MigrationDiagnostic> _diagnostics = [];
         private readonly List<string> _reviewMarkers = [];
@@ -249,10 +315,18 @@ public sealed class NutrientMigration : CSharpSourceMigration
         private string? _userPassword;
         private readonly HashSet<string> _editablePdfVariables;
 
-        public NutrientRewriter(HashSet<string> documentVariables, HashSet<string> editablePdfVariables)
+        public NutrientRewriter(
+            HashSet<string> documentVariables,
+            HashSet<string> editablePdfVariables,
+            IReadOnlySet<ISymbol> editablePdfSymbols,
+            CSharpMigrationSemanticContext semanticContext,
+            IReadOnlySet<ISymbol> documentSymbols)
         {
             _documentVariables = documentVariables;
             _editablePdfVariables = editablePdfVariables;
+            _editablePdfSymbols = editablePdfSymbols;
+            _semanticContext = semanticContext;
+            _documentSymbols = documentSymbols;
         }
 
         public IReadOnlyList<MigrationDiagnostic> Diagnostics => _diagnostics;
@@ -260,6 +334,9 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
         public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
         {
+            if (IsTypeReference(node) && _semanticContext.TypeMatches(node, "GdPicturePDF"))
+                return SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node);
+
             return node.Identifier.ValueText switch
             {
                 "GdPicturePDF" => SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node),
@@ -268,6 +345,20 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 "PdfPageBox" => SyntaxFactory.IdentifierName("PdfEditablePageBox").WithTriviaFrom(node),
                 _ => base.VisitIdentifierName(node)
             };
+        }
+
+        public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
+        {
+            if (_semanticContext.TypeMatches(node, "GdPicturePDF"))
+                return SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node);
+            return base.VisitQualifiedName(node);
+        }
+
+        public override SyntaxNode? VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
+        {
+            if (_semanticContext.TypeMatches(node, "GdPicturePDF"))
+                return SyntaxFactory.IdentifierName("PdfEditableDocument").WithTriviaFrom(node);
+            return base.VisitAliasQualifiedName(node);
         }
 
         public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
@@ -338,23 +429,38 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
         public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            if (node.Expression is MemberAccessExpressionSyntax member &&
-                member.Name.Identifier.ValueText == "ClonePages" &&
-                IsEditablePdf(member.Expression))
+            if (node.Expression is MemberAccessExpressionSyntax member && IsDocumentReceiver(member.Expression))
             {
-                var arguments = node.ArgumentList.Arguments;
-                if (!IsSupportedClonePages(arguments))
+                var method = member.Name.Identifier.ValueText;
+                if (method == "ClonePages" && IsEditablePdf(member.Expression))
                 {
-                    _diagnostics.Add(Warning("CANMIGNUTNET071",
-                        "Only ClonePages(FromPDF, PageRange) is mapped; this overload requires explicit review."));
-                    _reviewMarkers.Add(
-                        "[CANMIGNUTNET071] ClonePages: use PdfEditableDocument.ClonePages with a loaded source and a validated page-range string.");
-                    return SyntaxFactory.ParseExpression(
-                        "global::PXA.Importer.Editing.PdfPageOperationStatus.Failed").WithTriviaFrom(node);
+                    var arguments = node.ArgumentList.Arguments;
+                    if (!IsSupportedClonePages(arguments))
+                    {
+                        _diagnostics.Add(Warning("CANMIGNUTNET071",
+                            "Only ClonePages(FromPDF, PageRange) is mapped; this overload requires explicit review."));
+                        _reviewMarkers.Add(
+                            "[CANMIGNUTNET071] ClonePages: use PdfEditableDocument.ClonePages with a loaded source and a validated page-range string.");
+                        return FailedStatus(node);
+                    }
+
+                    _diagnostics.Add(Info("CANMIGNUTNET071",
+                        "Nutrient ClonePages(FromPDF, PageRange) converted to lossless existing-PDF page appending."));
                 }
 
-                _diagnostics.Add(Info("CANMIGNUTNET071",
-                    "Nutrient ClonePages(FromPDF, PageRange) converted to lossless existing-PDF page appending."));
+                if (TrustReviewMethods.Contains(method))
+                {
+                    var diagnosticId = method is "VerifySignature" or "ValidateSignature"
+                        ? "CANMIGNUTNET072"
+                        : method.Contains("Redact", StringComparison.OrdinalIgnoreCase)
+                            ? "CANMIGNUTNET058"
+                            : "CANMIGNUTNET059";
+                    _diagnostics.Add(Warning(diagnosticId,
+                        $"Nutrient {method} requires an explicit PXA Trust workflow and was not executed during migration."));
+                    _reviewMarkers.Add(
+                        $"[{diagnosticId}] {method}: configure and execute the server-owned PXA Trust workflow.");
+                    return FailedStatus(node);
+                }
             }
 
             return base.VisitInvocationExpression(node);
@@ -381,7 +487,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
         {
             if (node.Expression is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
-                || !_documentVariables.Contains(member.Expression.ToString()))
+                || !IsDocumentReceiver(member.Expression))
             {
                 return base.VisitExpressionStatement(node);
             }
@@ -600,13 +706,41 @@ public sealed class NutrientMigration : CSharpSourceMigration
                         "Map every source redaction region to PdfRedactionRegion and execute IPdfTrustPostProcessingPipeline with PdfTrustRedactionOptions before signing.",
                         "ApplyRedaction requires source regions and existing-PDF bytes; PXA will not substitute a visual overlay.");
 
+                case "AddRedactionRegion":
+                case "SearchAndAddRedactionRegions":
+                case "SmartRedaction":
+                case "ClearRedactionRegions":
+                    return ReviewOperation(
+                        "CANMIGNUTNET058",
+                        method,
+                        "Create validated PdfRedactionRegion values in PDF user-space coordinates and pass them to PdfTrustRedactionOptions.Regions before executing the Trust pipeline.",
+                        "The Nutrient redaction definition was captured for Trust review but was not copied as a visual overlay or executed during migration.");
+
                 case "SignPDF":
                 case "SignDocument":
+                case "ApplySignature":
+                case "SetSignatureCertificateFromP12":
+                case "SetSignatureCertificateFromStore":
+                case "SetSignatureInfo":
+                case "SetSignaturePos":
+                case "SetSignaturePosFromPlaceHolder":
+                case "SetSignatureStampImage":
+                case "SetSignatureHash":
+                case "SetSignatureTimestampInfo":
+                case "SetSignatureCertificationLevel":
                     return ReviewOperation(
                         "CANMIGNUTNET059",
                         method,
                         "Resolve an IPdfSigningKey in the trusted host and execute IPdfTrustPostProcessingPipeline with PdfTrustSigningOptions. Never embed the PFX password in generated code.",
                         "PDF signing requires a runtime-managed signing key; certificate paths and passwords were intentionally not copied.");
+
+                case "VerifySignature":
+                case "ValidateSignature":
+                    return ReviewOperation(
+                        "CANMIGNUTNET072",
+                        method,
+                        "Inspect the final PDF bytes with IPdfTrustInspector and apply the server-owned trust policy to the returned signature report.",
+                        "Nutrient signature validation was mapped to an explicit PXA Trust inspection action; source trust decisions were not copied blindly.");
 
                 case "SetOrigin":
                     var origin = arguments.Count > 0 ? arguments[0].ToString() : string.Empty;
@@ -805,12 +939,63 @@ public sealed class NutrientMigration : CSharpSourceMigration
             return true;
         }
 
-        private bool IsEditablePdf(ExpressionSyntax expression) =>
-            _editablePdfVariables.Contains(expression.ToString());
+        private bool IsEditablePdf(ExpressionSyntax expression)
+        {
+            var symbol = _semanticContext.GetReferencedSymbol(expression);
+            return symbol is not null
+                ? _editablePdfSymbols.Contains(symbol)
+                : _editablePdfVariables.Contains(expression.ToString());
+        }
 
         private bool IsDocumentVariableArgument(ExpressionSyntax expression) =>
-            expression is IdentifierNameSyntax identifier &&
-            _documentVariables.Contains(identifier.Identifier.ValueText);
+            IsDocumentReceiver(expression);
+
+        private static readonly HashSet<string> TrustReviewMethods = new(StringComparer.Ordinal)
+        {
+            "AddRedactionRegion",
+            "SearchAndAddRedactionRegions",
+            "SmartRedaction",
+            "ClearRedactionRegions",
+            "ApplyRedaction",
+            "SignPDF",
+            "SignDocument",
+            "ApplySignature",
+            "SetSignatureCertificateFromP12",
+            "SetSignatureCertificateFromStore",
+            "SetSignatureInfo",
+            "SetSignaturePos",
+            "SetSignaturePosFromPlaceHolder",
+            "SetSignatureStampImage",
+            "SetSignatureHash",
+            "SetSignatureTimestampInfo",
+            "SetSignatureCertificationLevel",
+            "VerifySignature",
+            "ValidateSignature"
+        };
+
+        private static ExpressionSyntax FailedStatus(SyntaxNode source) =>
+            SyntaxFactory.ParseExpression("global::PXA.Importer.Editing.PdfPageOperationStatus.Failed")
+                .WithTriviaFrom(source);
+
+        private static bool IsTypeReference(IdentifierNameSyntax node) => node.Parent switch
+        {
+            VariableDeclarationSyntax declaration => declaration.Type == node,
+            ObjectCreationExpressionSyntax creation => creation.Type == node,
+            ParameterSyntax parameter => parameter.Type == node,
+            PropertyDeclarationSyntax property => property.Type == node,
+            FieldDeclarationSyntax field => field.Declaration.Type == node,
+            _ => false
+        };
+
+        private bool IsDocumentReceiver(ExpressionSyntax expression)
+        {
+            var symbol = _semanticContext.GetReferencedSymbol(expression);
+            if (symbol is not null)
+                return _documentSymbols.Contains(symbol);
+            return _documentVariables.Contains(expression.ToString()) ||
+                   expression is IdentifierNameSyntax identifier &&
+                   _documentVariables.Contains(identifier.Identifier.ValueText);
+        }
 
         private bool IsSupportedClonePages(SeparatedSyntaxList<ArgumentSyntax> arguments) =>
             arguments.Count == 2 &&
@@ -830,7 +1015,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
                 || member.Name.Identifier.ValueText != "AddStandardFont"
-                || !_documentVariables.Contains(member.Expression.ToString())
+                || !IsDocumentReceiver(member.Expression)
                 || invocation.ArgumentList.Arguments.Count == 0)
             {
                 return false;
@@ -857,7 +1042,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 : null;
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
-                || !_documentVariables.Contains(member.Expression.ToString())
+                || !IsDocumentReceiver(member.Expression)
                 || member.Name.Identifier.ValueText is not ("AddJpegImageFromFile" or "AddPngImageFromFile" or "AddImageFromFile")
                 || invocation.ArgumentList.Arguments.Count != 1)
             {
@@ -886,7 +1071,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 : null;
             if (variable?.Initializer?.Value is not InvocationExpressionSyntax invocation
                 || invocation.Expression is not MemberAccessExpressionSyntax member
-                || !_documentVariables.Contains(member.Expression.ToString()))
+                || !IsDocumentReceiver(member.Expression))
             {
                 return false;
             }

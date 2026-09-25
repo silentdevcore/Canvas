@@ -45,5 +45,32 @@ test('Nutrient documentation describes mappings and security omissions', () => {
   assert.match(source, /licenseKey \/ jwt \/ authPayload \/ serverUrl/);
   assert.match(source, /signature material and the unsupported attachment are absent/);
   assert.match(source, /unmatched form values.*versioned design metadata/i);
+  assert.match(source, /Aliases, fields, and parameters/);
+  assert.match(source, /Symbol-aware Roslyn evidence/);
+  assert.match(source, /Trust review evidence/);
+  assert.match(source, /source location/);
+  assert.match(source, /does not execute irreversible redaction/);
+  assert.match(source, /does not sign, validate certificates/);
+  assert.match(source, /PFX paths or passwords/);
+  assert.doesNotMatch(source, /PFX path:\s*['"][^'"]+['"]/i);
   assert.doesNotMatch(source, /licenseKey:\s*['"][^'"]+['"]/);
+});
+
+test('Nutrient architecture and roadmap preserve the Trust execution boundary', () => {
+  const checklist = fs.readFileSync(path.join(root, 'checklists/PXA.Migration-Nutrient-Code-And-Viewer.md'), 'utf8');
+  const boundaries = fs.readFileSync(path.join(root, 'docs/architecture/existing-pdf-boundaries.md'), 'utf8');
+  const fragment = fs.readFileSync(path.join(root, 'product-metadata/release-fragments/nutrient-existing-pdf-page-editing.json'), 'utf8');
+
+  assert.match(checklist, /source locations to Trust evidence/i);
+  assert.match(checklist, /supported alias, field, or method parameter/i);
+  assert.match(checklist, /does not execute signing\s+or\s+irreversible redaction/i);
+  assert.match(checklist, /does not copy PFX paths, passwords, private keys/i);
+  assert.match(boundaries, /Migration evidence and Trust handoff/);
+  assert.match(boundaries, /Roslyn syntax and semantic information/);
+  assert.match(boundaries, /call is reached through a supported alias, field, or method parameter/);
+  assert.match(boundaries, /PFX paths, passwords, private keys/);
+  assert.match(boundaries, /does not execute signing/);
+  assert.match(fragment, /symbol-aware Roslyn detection/i);
+  assert.match(fragment, /Trust review evidence/);
+  assert.match(fragment, /without executing Trust operations/);
 });

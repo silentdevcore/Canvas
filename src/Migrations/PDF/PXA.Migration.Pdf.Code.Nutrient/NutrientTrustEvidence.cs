@@ -16,7 +16,8 @@ internal static class NutrientTrustEvidence
                 invocation.Expression is MemberAccessExpressionSyntax member
                     ? member.Name.Identifier.ValueText
                     : string.Empty,
-                invocation.ArgumentList.Arguments.ToString()))
+                invocation.ArgumentList.Arguments.ToString(),
+                SourceLocation(invocation)))
             .Where(static operation => operation.Name.Length > 0)
             .ToArray();
         var evidence = new List<PdfTrustMigrationEvidence>();
@@ -27,8 +28,13 @@ internal static class NutrientTrustEvidence
             PdfTrustCapability.DigitalSignature,
             "CANMIGNUTNET021",
             PdfTrustSourceSemantics.CryptographicSignature,
-            static name => ContainsAny(name, "Sign", "Certificate"),
-            "PdfTrustPostProcessingPipeline.Signing");
+            static name => ContainsAny(name, "Sign", "Certificate", "ApplySignature"),
+            "IPdfTrustPostProcessingPipeline.ProcessAsync",
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["credentialHandling"] = "runtime-only",
+                ["automaticReplacement"] = "false"
+            });
         AddDetected(
             evidence,
             invocations,
@@ -36,7 +42,12 @@ internal static class NutrientTrustEvidence
             "CANMIGNUTNET021",
             PdfTrustSourceSemantics.CryptographicSignature,
             static name => ContainsAny(name, "Timestamp"),
-            "PdfTrustPipelineContext.DocumentTimestampAuthority");
+            "PdfTrustPipelineContext.DocumentTimestampAuthority",
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["credentialHandling"] = "runtime-only",
+                ["automaticReplacement"] = "false"
+            });
         AddDetected(
             evidence,
             invocations,
@@ -56,14 +67,12 @@ internal static class NutrientTrustEvidence
 
         var redactionOperations = invocations
             .Where(static operation => ContainsAny(operation.Name, "Redact", "Redaction"))
-            .Select(static operation => operation.Name)
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
+            .OrderBy(static operation => operation.Name, StringComparer.Ordinal)
             .ToArray();
         if (redactionOperations.Length > 0)
         {
             var appliesRedaction = redactionOperations.Any(static name =>
-                name.Contains("Apply", StringComparison.OrdinalIgnoreCase));
+                name.Name.Contains("Apply", StringComparison.OrdinalIgnoreCase));
             var semantics = appliesRedaction
                 ? PdfTrustSourceSemantics.ContentRemovingRedaction
                 : PdfTrustSourceSemantics.VisualRedactionOnly;
@@ -74,7 +83,8 @@ internal static class NutrientTrustEvidence
                     targetHasEquivalentSemantics: appliesRedaction,
                     providerOptionsAreComplete: false,
                     targetCanValidateEndToEnd: true),
-                string.Join(", ", redactionOperations),
+                string.Join(", ", redactionOperations.Select(static operation => operation.Name)
+                    .Distinct(StringComparer.Ordinal)),
                 "IPdfRedactionApplier.ApplyAsync",
                 semantics,
                 "CANMIGNUTNET022",
@@ -82,7 +92,8 @@ internal static class NutrientTrustEvidence
                 {
                     ["sourceGuarantee"] = appliesRedaction ? "content-removal-requested" : "visual-mark-only",
                     ["automaticReplacement"] = "false"
-                }));
+                },
+                redactionOperations.Select(static operation => operation.Location).ToArray()));
         }
 
         var pdfAOperations = invocations
@@ -102,7 +113,8 @@ internal static class NutrientTrustEvidence
                 profile == "PDF/A-2b" ? "PdfSaveOptions.ComplianceProfile = PdfA2B" : null,
                 PdfTrustSourceSemantics.ComplianceConversion,
                 profile == "PDF/A-2b" ? "CANMIGNUTNET032" : "CANMIGNUTNET006",
-                new Dictionary<string, string>(StringComparer.Ordinal) { ["profile"] = profile }));
+                new Dictionary<string, string>(StringComparer.Ordinal) { ["profile"] = profile },
+                pdfAOperations.Select(static operation => operation.Location).ToArray()));
         }
 
         AddDetected(
@@ -129,24 +141,26 @@ internal static class NutrientTrustEvidence
         string diagnosticId,
         PdfTrustSourceSemantics semantics,
         Func<string, bool> matches,
-        string targetOperation)
+        string targetOperation,
+        IReadOnlyDictionary<string, string>? providerOptions = null)
     {
-        var names = invocations
-            .Select(static operation => operation.Name)
-            .Where(matches)
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
+        var operations = invocations
+            .Where(operation => matches(operation.Name))
+            .OrderBy(static operation => operation.Name, StringComparer.Ordinal)
             .ToArray();
-        if (names.Length == 0)
+        if (operations.Length == 0)
             return;
 
         evidence.Add(Create(
             capability,
             PdfTrustMigrationDisposition.ReviewRequired,
-            string.Join(", ", names),
+            string.Join(", ", operations.Select(static operation => operation.Name)
+                .Distinct(StringComparer.Ordinal)),
             targetOperation,
             semantics,
-            diagnosticId));
+            diagnosticId,
+            providerOptions,
+            operations.Select(static operation => operation.Location).ToArray()));
     }
 
     private static PdfTrustMigrationEvidence Create(
@@ -156,7 +170,8 @@ internal static class NutrientTrustEvidence
         string? targetOperation,
         PdfTrustSourceSemantics sourceSemantics,
         string diagnosticId,
-        IReadOnlyDictionary<string, string>? providerOptions = null) => new()
+        IReadOnlyDictionary<string, string>? providerOptions = null,
+        IReadOnlyList<MigrationSourceLocation>? sourceLocations = null) => new()
     {
         Capability = capability,
         Disposition = disposition,
@@ -165,6 +180,7 @@ internal static class NutrientTrustEvidence
         SourceSemantics = sourceSemantics,
         DiagnosticId = diagnosticId,
         DocumentationPath = DocumentationFor(capability),
+        SourceLocations = sourceLocations ?? [],
         ProviderOptions = providerOptions ?? new Dictionary<string, string>(StringComparer.Ordinal)
     };
 
@@ -182,5 +198,14 @@ internal static class NutrientTrustEvidence
         _ => TrustGuide
     };
 
-    private sealed record DetectedOperation(string Name, string Arguments);
+    private static MigrationSourceLocation SourceLocation(InvocationExpressionSyntax invocation)
+    {
+        var start = invocation.GetLocation().GetLineSpan().StartLinePosition;
+        return new MigrationSourceLocation(start.Line + 1, start.Character + 1);
+    }
+
+    private sealed record DetectedOperation(
+        string Name,
+        string Arguments,
+        MigrationSourceLocation Location);
 }

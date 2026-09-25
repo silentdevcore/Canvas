@@ -170,6 +170,10 @@ Official reference baseline:
   API, PXA replacement, manual action, and Documentation link.
 - [x] Return a source map between recognized Nutrient calls and generated PXA
   statements or Viewer settings.
+- [x] Attach source locations to Trust evidence for recognized signature and
+  redaction calls so reviewers can navigate back to the original invocation.
+  The evidence is bounded to symbol and location metadata and does not contain
+  source secrets or document content.
 - [x] Return a capability report containing migrated, approximated, omitted,
   and blocked features.
 - [x] Never report `exact` when the source uses behavior unavailable in PXA.
@@ -184,7 +188,11 @@ Official reference baseline:
 
 - [ ] Detect current Nutrient .NET SDK usage and legacy GdPicture.NET usage by
   package, namespace, type, and invocation symbols.
-- [ ] Use Roslyn syntax and semantic analysis rather than regex-only rewriting.
+- [x] Use Roslyn syntax and semantic analysis rather than regex-only rewriting
+  for the implemented .NET detection paths.
+- [x] Resolve supported Nutrient/GdPicture aliases and symbol references when a
+  call is reached through a supported alias, field, or method parameter; retain
+  the resolved invocation location in Trust evidence.
 - [ ] Detect aliases, fully qualified names, extension methods, async calls,
   helper wrappers, and dependency-injected Nutrient services.
 - [x] Detect hard-coded license keys and emit a security diagnostic without
@@ -228,6 +236,11 @@ Official reference baseline:
   and advanced optimization according to actual PXA support.
 - [x] Mark TWAIN/WIA scanning, native printing, proprietary OCR options,
   hyper-compression, and unsupported image processing for manual replacement.
+- [x] Externalize recognized official Nutrient signature and redaction calls as
+  PXA Trust review evidence with source location, affected operation, and
+  required manual action. This review handoff does not execute signing or
+  irreversible redaction and does not copy PFX paths, passwords, private keys,
+  certificate material, or removed document text.
 - [x] Never replace an unsupported security operation with a no-op.
 - [x] Never silently remove a signature, redaction, encryption, retention, or
   compliance operation.
@@ -514,6 +527,9 @@ Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.m
   semantically equivalent PXA Trust workflows.
 - [ ] Map Nutrient redaction calls to PXA preflight, apply, verification, and
   audit workflows without replacing removal with visual overlays.
+- [x] Preserve official signature and redaction call identity, source location,
+  Trust review status, and safe next action without claiming that either
+  operation was executed by the migrator.
 - [ ] Map additional Nutrient PDF/A and PDF/UA profiles only where target
   generation and validation semantics are equivalent.
 - [x] Map Nutrient `PDF_A_2b` generation requests to
