@@ -667,6 +667,58 @@ public sealed class NutrientMigrationTests
         AssertCompiles(result.MigratedCode);
     }
 
+    [Fact]
+    public void Migrate_MapsSupportedFreeTextSquareAndCircleAnnotations()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            pdf.SetMeasurementUnit(PdfMeasurementUnit.PdfMeasurementUnitPoint);
+            var freeTextId = pdf.AddFreeTextAnnotation(10, 20, 120, 30, false, "Author", "Subject", "Review this", "Helvetica", 11, 1, 2, 3, 4, 5, 6, 0.75f);
+            var squareId = pdf.AddSquareAnnotation(30, 70, 80, 40, "Author", "Square note", 2, PdfAnnotationBorderStyle.PdfAnnotationBorderStyleSolid, 0, 0, 0.5f, 10, 20, 30);
+            pdf.AddCircleAnnotation(50, 130, 60, 60, "Author", "Circle note", 1, PdfAnnotationBorderStyle.PdfAnnotationBorderStyleDashed, 2, 2, 0.6f, 40, 50, 60);
+            pdf.SaveToFile("annotations.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("page.AddFreeTextAnnotation(10, page.Height - (20) - (30), 120, 30, \"Review this\", PdfColor.FromRgb(1, 2, 3), 0.75f);", result.MigratedCode);
+        Assert.Contains("page.AddSquareAnnotation(30, page.Height - (70) - (40), 80, 40, \"Square note\", PdfColor.FromRgb(10, 20, 30), 0.5f);", result.MigratedCode);
+        Assert.Contains("page.AddCircleAnnotation(50, page.Height - (130) - (60), 60, 60, \"Circle note\", PdfColor.FromRgb(40, 50, 60), 0.6f);", result.MigratedCode);
+        Assert.DoesNotContain("AddFreeTextAnnotation(10, 20", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET025");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET073");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET075");
+        AssertCompiles(result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_MapsRadioButtonGroupsWithStableOptionIndexes()
+    {
+        var source = """
+            using GdPicture14;
+            var pdf = new GdPicturePDF();
+            pdf.NewPDF();
+            pdf.NewPage(PdfPageSizes.PdfPageSizeA4);
+            pdf.SetOrigin(PdfOrigin.PdfOriginTopLeft);
+            var first = pdf.AddRadioButtonFormField(20, 30, 18, 18, "approval", "yes", PdfCheckBoxStyle.PdfCheckBoxStyleCircle, 0, 0, 0);
+            pdf.AddRadioButtonFormField(20, 60, 18, 18, "approval", "no", PdfCheckBoxStyle.PdfCheckBoxStyleCircle, 0, 0, 0);
+            pdf.SaveToFile("radio.pdf");
+            """;
+
+        var result = new NutrientMigration().Migrate(source);
+
+        Assert.Contains("page.AddRadioButton(\"approval\", \"yes\", 0, 20, page.Height - (30) - (18), 18, 18, false);", result.MigratedCode);
+        Assert.Contains("page.AddRadioButton(\"approval\", \"no\", 1, 20, page.Height - (60) - (18), 18, 18, false);", result.MigratedCode);
+        Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET025");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET077");
+        Assert.Contains(result.Diagnostics, item => item.Id == "CANMIGNUTNET078");
+        AssertCompiles(result.MigratedCode);
+    }
+
     private static void AssertCompiles(string source)
     {
         var trustedAssemblies = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES"))!

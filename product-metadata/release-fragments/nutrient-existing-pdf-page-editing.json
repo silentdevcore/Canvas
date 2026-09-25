@@ -8,10 +8,11 @@
     "migration"
   ],
   "category": "added",
-  "summary": "Nutrient migrations now use symbol-aware Roslyn detection for aliases, fields, and parameters, attach source locations to Trust review evidence, and externalize signature and redaction calls without executing Trust operations or copying certificate secrets.",
+  "summary": "Nutrient migration now adds symbol-aware Roslyn detection, records safe Trust review evidence without executing Trust operations, and maps additional annotations and grouped radio buttons while keeping unsupported appearance details visible for review.",
   "documentation": [
     "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md",
     "/docs/architecture/existing-pdf-boundaries.md",
+    "/docs/migrations/nutrient-java-document-engine-inventory.md",
     "/#nutrient-viewer-migration"
   ],
   "breaking": false

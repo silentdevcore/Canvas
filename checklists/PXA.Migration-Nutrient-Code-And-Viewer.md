@@ -107,15 +107,15 @@ represented as successfully migrated.
   patterns from official documentation and representative licensed samples.
 - [x] Inventory legacy GdPicture.NET package and namespace variants still found
   in customer applications.
-- [ ] Inventory current Nutrient Java SDK packages and the `io.nutrient.sdk`
+- [x] Inventory current Nutrient Java SDK packages and the `io.nutrient.sdk`
   surface.
 - [x] Inventory current `NutrientViewer` Web SDK imports, configuration, instance
   methods, events, annotations, forms, and document operations.
 - [x] Inventory historical `PSPDFKit` Web SDK package names, global names,
   configuration objects, Instant JSON, and deprecated PSPDFKit Server patterns.
-- [ ] Inventory Document Engine REST and synchronization integration separately
+- [x] Inventory Document Engine REST and synchronization integration separately
   from client-only Web SDK usage.
-- [ ] Store the dated API inventory and fixture provenance without committing
+- [x] Store the dated API inventory and fixture provenance without committing
   Nutrient binaries, license keys, proprietary source, or customer code.
 
 Official reference baseline:
@@ -504,6 +504,9 @@ Official reference baseline:
     graphics, file-image resources, web links, text/checkbox fields, and sticky
     notes with origin- and unit-aware geometry.
   - [x] Compile generated comprehensive C# against `PXA.Pdf` in the test suite.
+  - [x] Map the documented GdPicture free-text, square, and circle annotation
+    overloads and grouped radio-button fields to PXA contracts while diagnosing
+    unsupported appearance and selection properties.
   - [ ] Add remaining annotation and form families, existing-document editing,
     OCR/conversion service handoff, and async/cancellation mappings.
 - [ ] Add XFDF conversion and bounded multi-file project input.
@@ -512,6 +515,9 @@ Official reference baseline:
 
 ### Phase N4: Java
 
+- [x] Record the dated Java SDK and Document Engine API inventory, product
+  boundaries, provenance policy, and synthetic fixture matrix in
+  `docs/migrations/nutrient-java-document-engine-inventory.md`.
 - [ ] Deliver Java AST analysis and C# PXA generation after N1-N3 contracts are
   stable.
 - [ ] Add Java-specific examples, diagnostics, and Documentation.

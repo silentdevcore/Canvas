@@ -234,9 +234,15 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
         if (methodNames.Any(static name =>
                 name.StartsWith("Add", StringComparison.Ordinal) && name.Contains("Annotation", StringComparison.Ordinal)
-                    && name is not "AddStickyNoteAnnotation" and not "AddLinkToWebAnnotation"
+                    && name is not "AddStickyNoteAnnotation"
+                        and not "AddLinkToWebAnnotation"
+                        and not "AddFreeTextAnnotation"
+                        and not "AddSquareAnnotation"
+                        and not "AddCircleAnnotation"
                 || name.StartsWith("Add", StringComparison.Ordinal) && name.Contains("FormField", StringComparison.Ordinal)
-                    && name is not "AddTextFormField" and not "AddCheckBoxFormField"
+                    && name is not "AddTextFormField"
+                        and not "AddCheckBoxFormField"
+                        and not "AddRadioButtonFormField"
                 || name.StartsWith("SetFormField", StringComparison.Ordinal)
                 || name.StartsWith("ImportXFDF", StringComparison.Ordinal)))
         {
@@ -301,6 +307,7 @@ public sealed class NutrientMigration : CSharpSourceMigration
         private readonly List<MigrationDiagnostic> _diagnostics = [];
         private readonly List<string> _reviewMarkers = [];
         private readonly Dictionary<int, string> _pageVariables = [];
+        private readonly Dictionary<string, int> _radioGroupOptionIndexes = new(StringComparer.Ordinal);
         private string _currentPageVariable = "page";
         private int _pageCount;
         private double _unitScale = 1;
@@ -825,8 +832,20 @@ public sealed class NutrientMigration : CSharpSourceMigration
                 case "AddCheckBoxFormField":
                     return RewriteCheckBoxFormField(node, arguments);
 
+                case "AddRadioButtonFormField":
+                    return RewriteRadioButtonFormField(node, arguments);
+
                 case "AddStickyNoteAnnotation":
                     return RewriteStickyNote(node, arguments);
+
+                case "AddFreeTextAnnotation":
+                    return RewriteFreeTextAnnotation(node, arguments);
+
+                case "AddSquareAnnotation":
+                    return RewriteShapeAnnotation(node, arguments, "Square");
+
+                case "AddCircleAnnotation":
+                    return RewriteShapeAnnotation(node, arguments, "Circle");
 
                 case "Dispose":
                     _diagnostics.Add(Info("CANMIGNUTNET010", "GdPicturePDF.Dispose() removed; PdfDocument does not own unmanaged SDK state."));
@@ -1082,8 +1101,12 @@ public sealed class NutrientMigration : CSharpSourceMigration
             {
                 "AddTextFormField" => RewriteOfficialTextFormField(node, arguments),
                 "AddCheckBoxFormField" => RewriteOfficialCheckBoxFormField(node, arguments),
+                "AddRadioButtonFormField" => RewriteRadioButtonFormField(node, arguments),
                 "AddLinkToWebAnnotation" => RewriteOfficialWebLink(node, arguments),
                 "AddStickyNoteAnnotation" => RewriteStickyNote(node, arguments),
+                "AddFreeTextAnnotation" => RewriteFreeTextAnnotation(node, arguments),
+                "AddSquareAnnotation" => RewriteShapeAnnotation(node, arguments, "Square"),
+                "AddCircleAnnotation" => RewriteShapeAnnotation(node, arguments, "Circle"),
                 _ => node,
             };
             return !ReferenceEquals(rewritten, node);
@@ -1369,6 +1392,29 @@ public sealed class NutrientMigration : CSharpSourceMigration
             return ParseStatement(call, node);
         }
 
+        private SyntaxNode RewriteRadioButtonFormField(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddRadioButtonFormField", "CANMIGNUTNET049", "Radio buttons with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 10)
+                return Unsupported(node, "AddRadioButtonFormField", "CANMIGNUTNET077", "Radio-button form-field overload could not be mapped safely.");
+
+            var group = arguments[4].ToString();
+            var optionIndex = _radioGroupOptionIndexes.GetValueOrDefault(group);
+            _radioGroupOptionIndexes[group] = optionIndex + 1;
+            var call = $"{_currentPageVariable}.AddRadioButton({group}, {arguments[5]}, {optionIndex}, " +
+                $"{Scale(arguments[0].ToString())}, {BoxY(arguments[1].ToString(), arguments[3].ToString())}, " +
+                $"{Scale(arguments[2].ToString())}, {Scale(arguments[3].ToString())}, false);";
+            _diagnostics.Add(Info("CANMIGNUTNET077",
+                "Nutrient radio-button form field converted to a grouped PXA radio-button option."));
+            _diagnostics.Add(Warning("CANMIGNUTNET078",
+                "Radio-button mark style, mark color, and selected state require visual and data review in PXA."));
+            return ParseStatement(call, node);
+        }
+
         private SyntaxNode RewriteStickyNote(
             StatementSyntax node,
             SeparatedSyntaxList<ArgumentSyntax> arguments)
@@ -1386,6 +1432,48 @@ public sealed class NutrientMigration : CSharpSourceMigration
             _diagnostics.Add(Info("CANMIGNUTNET028", "Nutrient sticky note converted to PdfPage.AddStickyNoteAnnotation."));
             _diagnostics.Add(Warning("CANMIGNUTNET048",
                 "Sticky-note author, subject, icon, popup state, and popup geometry are not represented by the current PXA annotation contract."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteFreeTextAnnotation(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            if (_rightOrigin)
+                return Unsupported(node, "AddFreeTextAnnotation", "CANMIGNUTNET049", "Free-text annotations with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 17)
+                return Unsupported(node, "AddFreeTextAnnotation", "CANMIGNUTNET073", "Free-text annotation overload could not be mapped safely.");
+
+            var call = $"{_currentPageVariable}.AddFreeTextAnnotation({Scale(arguments[0].ToString())}, " +
+                $"{BoxY(arguments[1].ToString(), arguments[3].ToString())}, {Scale(arguments[2].ToString())}, " +
+                $"{Scale(arguments[3].ToString())}, {arguments[7]}, " +
+                $"PdfColor.FromRgb({arguments[10]}, {arguments[11]}, {arguments[12]}), {arguments[16]});";
+            _diagnostics.Add(Info("CANMIGNUTNET073", "Nutrient free-text annotation converted to PdfPage.AddFreeTextAnnotation."));
+            _diagnostics.Add(Warning("CANMIGNUTNET074",
+                "Free-text author, subject, border appearance, font resource, and font size require visual review in PXA."));
+            return ParseStatement(call, node);
+        }
+
+        private SyntaxNode RewriteShapeAnnotation(
+            StatementSyntax node,
+            SeparatedSyntaxList<ArgumentSyntax> arguments,
+            string shape)
+        {
+            var operation = $"Add{shape}Annotation";
+            if (_rightOrigin)
+                return Unsupported(node, operation, "CANMIGNUTNET049", $"{shape} annotations with a right-side origin require manual geometry review.");
+
+            if (arguments.Count != 14)
+                return Unsupported(node, operation, "CANMIGNUTNET075", $"{shape} annotation overload could not be mapped safely.");
+
+            var call = $"{_currentPageVariable}.{operation}({Scale(arguments[0].ToString())}, " +
+                $"{BoxY(arguments[1].ToString(), arguments[3].ToString())}, {Scale(arguments[2].ToString())}, " +
+                $"{Scale(arguments[3].ToString())}, {arguments[5]}, " +
+                $"PdfColor.FromRgb({arguments[11]}, {arguments[12]}, {arguments[13]}), {arguments[10]});";
+            _diagnostics.Add(Info("CANMIGNUTNET075", $"Nutrient {shape.ToLowerInvariant()} annotation converted to PdfPage.{operation}."));
+            _diagnostics.Add(Warning("CANMIGNUTNET076",
+                $"{shape} annotation author, border width, border style, and dash pattern require visual review in PXA."));
             return ParseStatement(call, node);
         }
 
