@@ -369,5 +369,6 @@ redaction and form editing.
 
 - Pdftools Web Viewer demo: https://viewer.pdf-tools.com/v5/
 - PXA.PDF provider gaps: [PxaPdf-Provider-Feature-Gaps.md](PxaPdf-Provider-Feature-Gaps.md)
+- Specialized PDF domains: [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md)
 - PDF Tools SDK migration checklist: [Code-Migration-PdfTools.md](Code-Migration-PdfTools.md)
 - PDF Toolbox migration checklist: [Code-Migration-PdfToolsToolbox.md](Code-Migration-PdfToolsToolbox.md)

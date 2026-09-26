@@ -1,5 +1,8 @@
 # UI Page Settings Checklist
 
+> PDF/X, print-production, marks, color, and imposition work is coordinated in
+> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).
+
 ## Scope
 Improve Page Settings so users can configure document/page behavior before designing or exporting PDFs.
 
@@ -124,4 +127,3 @@ Analysis of `src/components/Editor/SimplePxaSurface.tsx`, `src/store.ts`, and `s
 - [x] Test watermark/background rendering in preview and PDF export. *(ExportService.test.ts: watermark enabled/null, backgroundColor)*
 - [ ] Test numbering after multi-page pagination. *(backend rendering concern — not unit-testable in frontend)*
 - [x] Test save/load round trip for all page settings. *(ExportService.test.ts: exportDefaults, pageNumbering, margins; units.test.ts: round-trip px↔mm/cm/in/pt)*
-

@@ -6,7 +6,7 @@ Preserve the current indicative valuation of Power Dox Automation (PXA), the
 assumptions behind it, and the development and commercial milestones that could
 increase its value.
 
-Assessment date: 2026-08-24.
+Assessment date: 2026-09-26.
 
 This document is a strategic planning estimate, not an independent valuation,
 fairness opinion, tax assessment, investment recommendation, or guaranteed sale
@@ -36,11 +36,11 @@ software/IP asset rather than as a proven SaaS company.
 
 | Transaction context | Indicative value |
 | --- | ---: |
-| Source-code and IP asset sale | CHF 250,000-750,000 |
-| Prepared asset deal including documentation, brand, domains, and deployment material | CHF 500,000-1,000,000 |
-| Strategic acquirer with a specific need for PXA migration technology | CHF 800,000-1,500,000 |
-| Indicative initial asking range | CHF 700,000-900,000 |
-| Indicative likely closing range without meaningful ARR | CHF 450,000-750,000 |
+| Source-code and IP asset sale | CHF 350,000-950,000 |
+| Prepared asset deal including documentation, brand, domains, and deployment material | CHF 600,000-1,300,000 |
+| Strategic acquirer with a specific need for PXA migration and PDF Trust technology | CHF 1,000,000-2,000,000 |
+| Indicative initial asking range | CHF 900,000-1,200,000 |
+| Indicative likely closing range without meaningful ARR | CHF 600,000-950,000 |
 
 The estimated professional replacement cost is approximately CHF 1.5-4 million,
 depending on team composition, implementation quality, required fidelity, and
@@ -55,7 +55,7 @@ overlap because execution quality and buyer fit matter more than feature count.
 
 | Product state | Indicative value without substantial ARR |
 | --- | ---: |
-| Current repository state | CHF 250,000-750,000 |
+| Current repository state after the PDF Trust implementation | CHF 350,000-950,000 |
 | P0 gaps closed and a stable release delivered | CHF 700,000-1,500,000 |
 | Enterprise-ready deployment, public SDKs, and repeatable quality evidence | CHF 1.2-2.5 million |
 | Mature platform with initial reference customers and strategic buyer interest | CHF 2-4 million |
@@ -78,6 +78,15 @@ Indicative technical value effect: 20-40 percent.
 - Compliance diagnostics and repair workflows.
 
 These capabilities are important for regulated and Enterprise buyers.
+
+Post-implementation assessment: this milestone is substantially realized for
+the supported profiles. PXA now includes PAdES B-B/B-T/B-LT/B-LTA, AES-256
+revision 6, PDF/A-2b/3b, PDF/UA-1, bounded irreversible redaction, Viewer and
+Migration integration, public guidance, and reproducible evidence using
+independent tools. The valuation ranges above apply a conservative partial
+uplift rather than the full theoretical effect because second-validator,
+proprietary-reader, manual accessibility, qualified-provider, legal, and
+customer-production evidence remain open.
 
 ### Existing-PDF Editing and Viewer Maturity
 
@@ -189,8 +198,8 @@ The fuller multi-currency subscription proposal remains in
 
 ## Most Effective Value-Growth Sequence
 
-1. Close the highest-priority Enterprise security, standards, and reliability
-   gaps.
+1. Complete the remaining external PDF Trust acceptance gates and stabilize
+   existing-PDF fidelity for the declared support scope.
 2. Package one stable supported release with reproducible deployment and tests.
 3. Win three to five paid pilot customers.
 4. Sell migration as a separately priced professional service and product
@@ -225,6 +234,7 @@ Before presenting a sale valuation, verify:
 
 ## Related Strategy Documents
 
+- `PXA.PDF-Specialized-Features-Roadmap.md`
 - `PXA.Competitive-Feature-And-Pricing-Positioning.md`
 - `PXA.Global-Commerce-And-Pricing.md`
 - `PXA.Subscription-Licensing.md`

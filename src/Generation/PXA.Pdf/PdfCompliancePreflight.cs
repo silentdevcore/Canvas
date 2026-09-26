@@ -46,6 +46,23 @@ public static class PdfCompliancePreflight
                 "Custom document properties require a declared XMP extension schema and are not supported by the PXA PDF/A writer."));
         }
 
+        if (options.ComplianceProfile == PdfComplianceProfile.PdfA2B && document.AssociatedFiles.Count > 0)
+        {
+            diagnostics.Add(new PdfComplianceDiagnostic(
+                "PXAPDFA007",
+                PdfComplianceDiagnosticSeverity.Error,
+                "PDF/A-2b does not permit associated embedded files. Use PDF/A-3b or remove them."));
+        }
+
+        if (options.ComplianceProfile != PdfComplianceProfile.PdfA3B &&
+            document.AssociatedFiles.Any(static file => file.XmpMetadata is not null))
+        {
+            diagnostics.Add(new PdfComplianceDiagnostic(
+                "PXAPDFA008",
+                PdfComplianceDiagnosticSeverity.Error,
+                "Associated-file PDF/A extension metadata requires PDF/A-3b output."));
+        }
+
         for (var pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
         {
             var page = document.Pages[pageIndex];

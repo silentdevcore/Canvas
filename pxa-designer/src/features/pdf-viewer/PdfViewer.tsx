@@ -61,6 +61,7 @@ import { configurePdfWorker } from './pdfWorker';
 import { assertPdfBytes, createPdfBlob, downloadPdfBytes } from './pdfArtifact';
 import { convertPdfA2b, inspectPdfTrust, PdfTrustOperationError, preflightPdfA2b, signPdf, type PdfA2bConversionPreflightReport, type PdfArchiveProfile, type PdfPadesProfile, type PdfTrustFailureKind, type PdfTrustReport, type PdfTrustStatus } from './pdfTrustApi';
 import { TrustStatusBadge } from './TrustStatusBadge';
+import { extractEInvoice, inspectEInvoices, type EInvoiceAttachmentSummary } from './eInvoiceApi';
 import { notify } from '@/notifications/toast';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -295,6 +296,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [trustReport, setTrustReport] = useState<PdfTrustReport | null>(null);
   const [trustLoading, setTrustLoading] = useState(false);
   const [trustError, setTrustError] = useState<{ kind: PdfTrustFailureKind; message: string } | null>(null);
+  const [eInvoices, setEInvoices] = useState<EInvoiceAttachmentSummary[]>([]);
+  const [eInvoiceLoading, setEInvoiceLoading] = useState(false);
+  const [eInvoiceError, setEInvoiceError] = useState<string | null>(null);
   const [compliancePreflight, setCompliancePreflight] = useState<PdfA2bConversionPreflightReport | null>(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
   const [complianceProfile, setComplianceProfile] = useState<PdfArchiveProfile>('PDF/A-2b');
@@ -449,6 +453,35 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     javaScriptActions: t('javaScriptActions'),
     launchActions: t('launchActions'),
     embeddedFiles: t('embeddedFiles'),
+    eInvoices: t('eInvoices'),
+    eInvoiceInspecting: t('eInvoiceInspecting'),
+    eInvoiceFailed: t('eInvoiceFailed'),
+    eInvoiceStandard: t('eInvoiceStandard'),
+    eInvoiceProfile: t('eInvoiceProfile'),
+    eInvoiceSyntax: t('eInvoiceSyntax'),
+    eInvoiceValidation: t('eInvoiceValidation'),
+    eInvoiceNumber: t('eInvoiceNumber'),
+    eInvoiceSeller: t('eInvoiceSeller'),
+    eInvoiceBuyer: t('eInvoiceBuyer'),
+    eInvoiceCurrency: t('eInvoiceCurrency'),
+    eInvoicePayable: t('eInvoicePayable'),
+    eInvoiceTax: t('eInvoiceTax'),
+    eInvoiceLines: t('eInvoiceLines'),
+    eInvoicePdfConsistency: t('eInvoicePdfConsistency'),
+    eInvoiceConsistency: {
+      consistent: t('eInvoiceConsistency.consistent'),
+      reviewRequired: t('eInvoiceConsistency.reviewRequired'),
+      notEvaluated: t('eInvoiceConsistency.notEvaluated'),
+    },
+    eInvoiceStructuralValid: t('eInvoiceStructuralValid'),
+    eInvoiceStructuralInvalid: t('eInvoiceStructuralInvalid'),
+    eInvoiceDownloadXml: t('eInvoiceDownloadXml'),
+    eInvoiceConformance: {
+      valid: t('eInvoiceConformance.valid'),
+      invalid: t('eInvoiceConformance.invalid'),
+      unavailable: t('eInvoiceConformance.unavailable'),
+      notEvaluated: t('eInvoiceConformance.notEvaluated'),
+    },
     fileAttachments: t('fileAttachments'),
     richMedia: t('richMedia'),
     xfaForms: t('xfaForms'),
@@ -954,6 +987,18 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         : new File([bytes], source.name || 'document.pdf', { type: 'application/pdf' });
       const report = await inspectPdfTrust(file, controller.signal);
       setTrustReport(report);
+      setEInvoices([]);
+      setEInvoiceError(null);
+      if ((report.risk?.embeddedFileCount ?? 0) > 0) {
+        setEInvoiceLoading(true);
+        try {
+          setEInvoices(await inspectEInvoices(file, controller.signal));
+        } catch (error) {
+          setEInvoiceError(error instanceof Error ? error.message : labels.eInvoiceFailed);
+        } finally {
+          setEInvoiceLoading(false);
+        }
+      }
       emitViewerEvent('trust:inspected', {
         status: report.status,
         signatures: report.signatures.length,
@@ -970,7 +1015,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         setTrustLoading(false);
       }
     }
-  }, [emitViewerEvent, getSourceBytes, labels.invalidPdf, labels.trustFailed, source]);
+  }, [emitViewerEvent, getSourceBytes, labels.eInvoiceFailed, labels.invalidPdf, labels.trustFailed, source]);
 
   useEffect(() => {
     if (reviewPanelOpen && canInspectTrust && source && !trustReport && !trustLoading && !trustError) {
@@ -985,6 +1030,23 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       ? source.file
       : new File([bytes], source.name || 'document.pdf', { type: 'application/pdf' });
   }, [getSourceBytes, labels.invalidPdf, source]);
+
+  const downloadEInvoice = useCallback(async (attachment: EInvoiceAttachmentSummary) => {
+    try {
+      const file = await sourceFile();
+      const blob = await extractEInvoice(file, attachment.fileName);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setEInvoiceError(error instanceof Error ? error.message : labels.eInvoiceFailed);
+    }
+  }, [labels.eInvoiceFailed, sourceFile]);
 
   const runCompliancePreflight = useCallback(async () => {
     setComplianceLoading(true);
@@ -1067,6 +1129,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     trustInspectionAbortRef.current = null;
     setTrustReport(null);
     setTrustError(null);
+    setEInvoices([]);
+    setEInvoiceLoading(false);
+    setEInvoiceError(null);
     setCompliancePreflight(null);
     setAllowSignatureInvalidation(false);
     setAllowTrustMutation(false);
@@ -2205,6 +2270,59 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                     <div><dt>{labels.xfaForms}</dt><dd>{trustReport.risk.xfaFormCount}</dd></div>
                     <div><dt>{labels.externalLinks}</dt><dd>{trustReport.risk.externalLinkCount}</dd></div>
                   </dl>
+                )}
+                {(eInvoiceLoading || eInvoiceError || eInvoices.some(item => item.isXml)) && (
+                  <section className="pdfv-signature-list" aria-label={labels.eInvoices}>
+                    <header><strong>{labels.eInvoices}</strong></header>
+                    {eInvoiceLoading && <p role="status">{labels.eInvoiceInspecting}</p>}
+                    {eInvoiceError && <p role="alert" className="pdfv-trust-error">{eInvoiceError}</p>}
+                    {eInvoices.filter(item => item.isXml).map(attachment => (
+                      <section key={attachment.fileName} className="pdfv-signature-item">
+                        <header>
+                          <strong>{attachment.fileName}</strong>
+                          <span>{labels.eInvoiceConformance[attachment.conformanceStatus]}</span>
+                        </header>
+                        <dl>
+                          <div><dt>{labels.eInvoiceStandard}</dt><dd>{attachment.standard ?? labels.notDetected}</dd></div>
+                          <div><dt>{labels.eInvoiceProfile}</dt><dd>{attachment.profile ?? labels.notDetected}</dd></div>
+                          <div><dt>{labels.eInvoiceSyntax}</dt><dd>{attachment.syntax ?? labels.notDetected}</dd></div>
+                          <div><dt>{labels.eInvoiceValidation}</dt><dd>{attachment.isStructurallyValid ? labels.eInvoiceStructuralValid : labels.eInvoiceStructuralInvalid} · {labels.eInvoiceConformance[attachment.conformanceStatus]}</dd></div>
+                          {attachment.semanticData && <>
+                            <div><dt>{labels.eInvoiceNumber}</dt><dd>{attachment.semanticData.invoiceNumber ?? labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoiceSeller}</dt><dd>{attachment.semanticData.seller.name ?? labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoiceBuyer}</dt><dd>{attachment.semanticData.buyer.name ?? labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoiceCurrency}</dt><dd>{attachment.semanticData.currency ?? labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoicePayable}</dt><dd>{attachment.semanticData.payableAmount != null ? `${attachment.semanticData.payableAmount.toFixed(2)} ${attachment.semanticData.currency ?? ''}`.trim() : labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoiceTax}</dt><dd>{attachment.semanticData.taxTotal != null ? `${attachment.semanticData.taxTotal.toFixed(2)} ${attachment.semanticData.currency ?? ''}`.trim() : labels.notDetected}</dd></div>
+                            <div><dt>{labels.eInvoiceLines}</dt><dd>{attachment.semanticData.lines.length}</dd></div>
+                          </>}
+                          <div><dt>{labels.eInvoicePdfConsistency}</dt><dd>{labels.eInvoiceConsistency[attachment.pdfConsistency.status]}</dd></div>
+                        </dl>
+                        {attachment.pdfConsistency.status === 'reviewRequired' && (
+                          <ul className="pdfv-trust-diagnostics">
+                            {attachment.pdfConsistency.findings.filter(finding => finding.status === 'notFound').map(finding => (
+                              <li key={`${attachment.fileName}-${finding.field}`} data-severity="warning">
+                                <code>{finding.field}</code> {finding.message}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {attachment.diagnostics.length > 0 && (
+                          <ul className="pdfv-trust-diagnostics">
+                            {attachment.diagnostics.map((diagnostic, index) => (
+                              <li key={`${attachment.fileName}-${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>
+                                <code>{diagnostic.code}</code> {diagnostic.message}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <button className="pdfv-button" type="button" onClick={() => void downloadEInvoice(attachment)} disabled={!attachment.sizeMatches || !attachment.checksumMatches}>
+                          <FiDownload aria-hidden="true" />
+                          <span>{labels.eInvoiceDownloadXml}</span>
+                        </button>
+                      </section>
+                    ))}
+                  </section>
                 )}
                 {trustReport.signatures.length > 0 && (
                   <div className="pdfv-signature-list">

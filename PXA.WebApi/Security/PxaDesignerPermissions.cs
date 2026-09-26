@@ -40,6 +40,10 @@ public static class PxaDesignerPermissions
     public const string PdfSignatureKeyProvidersManage = "designer.pdf.signatures.key-providers.manage";
     public const string PdfRedactionsInspect = "designer.pdf.redactions.inspect";
     public const string PdfRedactionsApply = "designer.pdf.redactions.apply";
+    public const string PdfEInvoicesRead = "designer.pdf.e-invoices.read";
+    public const string PdfEInvoicesValidate = "designer.pdf.e-invoices.validate";
+    public const string PdfEInvoicesGenerate = "designer.pdf.e-invoices.generate";
+    public const string PdfEInvoicesCreate = "designer.pdf.e-invoices.create";
     public const string DocumentEdit = "designer.document.edit";
     public const string Import = "designer.import";
     public const string Export = "designer.export";
@@ -102,6 +106,10 @@ public static class PxaDesignerPermissions
         PdfSignatureKeyProvidersManage,
         PdfRedactionsInspect,
         PdfRedactionsApply,
+        PdfEInvoicesRead,
+        PdfEInvoicesValidate,
+        PdfEInvoicesGenerate,
+        PdfEInvoicesCreate,
         DocumentEdit,
         Import,
         Export,
@@ -192,6 +200,15 @@ public static class PxaDesignerPermissionResolver
             return value.EndsWith("/apply", StringComparison.Ordinal)
                 ? PxaDesignerPermissions.PdfRedactionsApply
                 : PxaDesignerPermissions.PdfRedactionsInspect;
+
+        if (StartsWith(value, "/api/pxa/v1/pdf/e-invoices"))
+            return value.EndsWith("/validate", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfEInvoicesValidate
+                : value.EndsWith("/generate", StringComparison.Ordinal)
+                    ? PxaDesignerPermissions.PdfEInvoicesGenerate
+                    : value.EndsWith("/create", StringComparison.Ordinal)
+                        ? PxaDesignerPermissions.PdfEInvoicesCreate
+                        : PxaDesignerPermissions.PdfEInvoicesRead;
 
         if (StartsWith(value, "/api/pxa/v1/pdf/signatures"))
             return value.EndsWith("/validate", StringComparison.Ordinal)

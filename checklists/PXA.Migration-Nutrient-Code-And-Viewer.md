@@ -1,5 +1,9 @@
 # PXA Nutrient Code and Viewer Migration
 
+> Cross-provider specialized PDF capabilities detected during migration are
+> coordinated through
+> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).
+
 ## Goal
 
 Deliver first-class migration paths from Nutrient document-processing code and

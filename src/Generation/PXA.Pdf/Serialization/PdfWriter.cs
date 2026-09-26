@@ -47,6 +47,9 @@ internal sealed class PdfWriter
         var metadataObjectId = isPdfA || isPdfUa ? nextObjectId++ : (int?)null;
         var outputIntentObjectId = isPdfA ? nextObjectId++ : (int?)null;
         var iccProfileObjectId = isPdfA ? nextObjectId++ : (int?)null;
+        var associatedFileObjects = document.AssociatedFiles
+            .Select(file => new AssociatedFileObjectIds(file, nextObjectId++, nextObjectId++))
+            .ToList();
 
         var usedFonts = document.Pages
             .SelectMany(static page => page.Elements)
@@ -1059,17 +1062,39 @@ internal sealed class PdfWriter
 
         if (metadataObjectId is { } actualMetadataObjectId)
             objects.Add(new PdfIndirectObject(actualMetadataObjectId,
-                BuildBinaryStreamObject(BuildComplianceXmp(document.Info, isPdfA ? pdfAPart : null, isPdfUa), "/Type /Metadata /Subtype /XML")));
+                BuildBinaryStreamObject(
+                    BuildComplianceXmp(document.Info, isPdfA ? pdfAPart : null, isPdfUa, document.AssociatedFiles),
+                    "/Type /Metadata /Subtype /XML")));
+
+        foreach (var associated in associatedFileObjects)
+        {
+            var checksum = Convert.ToHexString(MD5.HashData(associated.File.ContentBytes));
+            var mimeType = EscapePdfName(associated.File.MimeType);
+            objects.Add(new PdfIndirectObject(
+                associated.StreamObjectId,
+                BuildBinaryStreamObject(
+                    associated.File.ContentBytes,
+                    $"/Type /EmbeddedFile /Subtype /{mimeType} /Params << /Size {associated.File.ContentBytes.Length} /CheckSum <{checksum}> >>")));
+
+            var fallbackName = EscapeLiteralString(AsciiFileName(associated.File.FileName));
+            var description = OptionalHexEntry("Desc", associated.File.Description);
+            objects.Add(new PdfIndirectObject(
+                associated.FileSpecificationObjectId,
+                $"<< /Type /Filespec /F ({fallbackName}) /UF {PdfHexString(associated.File.FileName)}" +
+                $" /AFRelationship /{associated.File.Relationship}{description}" +
+                $" /EF << /F {associated.StreamObjectId} 0 R /UF {associated.StreamObjectId} 0 R >> >>\n"));
+        }
 
         var metadataSegment = metadataObjectId is not null ? $" /Metadata {metadataObjectId.Value} 0 R" : string.Empty;
         var outputIntentSegment = isPdfA ? $" /OutputIntents [{outputIntentObjectId!.Value} 0 R]" : string.Empty;
+        var associatedFilesSegment = BuildAssociatedFilesCatalogSegment(associatedFileObjects);
         var openAction = BuildOpenAction(document, pageObjectIds);
         var accessibilitySegment = isPdfUa
             ? $" /StructTreeRoot {structureTreeRootObjectId} 0 R /MarkInfo << /Marked true >> /Lang {PdfHexString(document.Language!)}"
             : string.Empty;
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
-            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{accessibilitySegment} >>\n"
-            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{accessibilitySegment} >>\n";
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{associatedFilesSegment}{accessibilitySegment} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment}{metadataSegment}{outputIntentSegment}{associatedFilesSegment}{accessibilitySegment} >>\n";
 
         objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
 
@@ -1769,7 +1794,11 @@ internal sealed class PdfWriter
         return memory.ToArray();
     }
 
-    private static byte[] BuildComplianceXmp(PdfDocumentInfo info, int? pdfAPart, bool isPdfUa)
+    private static byte[] BuildComplianceXmp(
+        PdfDocumentInfo info,
+        int? pdfAPart,
+        bool isPdfUa,
+        IReadOnlyList<PdfAssociatedFile> associatedFiles)
     {
         static string Xml(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
         static string OptionalElement(string name, string? value) => string.IsNullOrWhiteSpace(value)
@@ -1800,12 +1829,13 @@ internal sealed class PdfWriter
                   <pdfuaid:part>1</pdfuaid:part>
                 </rdf:Description>
             """ : string.Empty;
+        var associatedFileMetadata = BuildAssociatedFileXmp(associatedFiles, Xml);
 
         var xmp = $"""
             <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
             <x:xmpmeta xmlns:x="adobe:ns:meta/">
               <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                {pdfAIdentification}{pdfUaIdentification}
+                {pdfAIdentification}{pdfUaIdentification}{associatedFileMetadata}
                 <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
                   {title}{author}{subject}
                 </rdf:Description>
@@ -1821,6 +1851,57 @@ internal sealed class PdfWriter
             """;
 
         return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(xmp);
+    }
+
+    private static string BuildAssociatedFileXmp(
+        IReadOnlyList<PdfAssociatedFile> associatedFiles,
+        Func<string?, string> xml)
+    {
+        var metadata = associatedFiles
+            .Select(static file => file.XmpMetadata)
+            .SingleOrDefault(static value => value is not null);
+        if (metadata is null)
+            return string.Empty;
+
+        var propertyDefinitions = string.Join(
+            "\n",
+            metadata.Properties.Select(property => $"""
+                      <rdf:li rdf:parseType="Resource">
+                        <pdfaProperty:name>{xml(property.Name)}</pdfaProperty:name>
+                        <pdfaProperty:valueType>{xml(property.ValueType)}</pdfaProperty:valueType>
+                        <pdfaProperty:category>{xml(property.Category)}</pdfaProperty:category>
+                        <pdfaProperty:description>{xml(property.Description)}</pdfaProperty:description>
+                      </rdf:li>
+                """));
+        var propertyValues = string.Join(
+            "\n",
+            metadata.Properties.Select(property =>
+                $"<{metadata.Prefix}:{property.Name}>{xml(property.Value)}</{metadata.Prefix}:{property.Name}>"));
+
+        return $"""
+                <rdf:Description rdf:about=""
+                    xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
+                    xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
+                    xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#">
+                  <pdfaExtension:schemas>
+                    <rdf:Bag>
+                      <rdf:li rdf:parseType="Resource">
+                        <pdfaSchema:schema>{xml(metadata.SchemaName)}</pdfaSchema:schema>
+                        <pdfaSchema:namespaceURI>{xml(metadata.NamespaceUri)}</pdfaSchema:namespaceURI>
+                        <pdfaSchema:prefix>{xml(metadata.Prefix)}</pdfaSchema:prefix>
+                        <pdfaSchema:property>
+                          <rdf:Seq>
+                {propertyDefinitions}
+                          </rdf:Seq>
+                        </pdfaSchema:property>
+                      </rdf:li>
+                    </rdf:Bag>
+                  </pdfaExtension:schemas>
+                </rdf:Description>
+                <rdf:Description rdf:about="" xmlns:{metadata.Prefix}="{xml(metadata.NamespaceUri)}">
+                  {propertyValues}
+                </rdf:Description>
+            """;
     }
 
     private static void AppendIfValue(List<string> entries, string key, string? value)
@@ -1893,6 +1974,49 @@ internal sealed class PdfWriter
     {
         var bytes = Encoding.BigEndianUnicode.GetBytes(value);
         return $"<FEFF{Convert.ToHexString(bytes)}>";
+    }
+
+    private static string BuildAssociatedFilesCatalogSegment(
+        IReadOnlyList<AssociatedFileObjectIds> associatedFiles)
+    {
+        if (associatedFiles.Count == 0)
+            return string.Empty;
+
+        var names = string.Join(" ", associatedFiles
+            .OrderBy(static file => file.File.FileName, StringComparer.Ordinal)
+            .Select(file =>
+            $"{PdfHexString(file.File.FileName)} {file.FileSpecificationObjectId} 0 R"));
+        var references = string.Join(" ", associatedFiles.Select(file =>
+            $"{file.FileSpecificationObjectId} 0 R"));
+        return $" /Names << /EmbeddedFiles << /Names [{names}] >> >> /AF [{references}]";
+    }
+
+    private static string EscapePdfName(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        foreach (var current in Encoding.ASCII.GetBytes(value))
+        {
+            if (current is >= 33 and <= 126 && current is not (byte)'#' and not (byte)'/' &&
+                current is not (byte)'(' and not (byte)')' and not (byte)'<' and not (byte)'>' &&
+                current is not (byte)'[' and not (byte)']' and not (byte)'{' and not (byte)'}' and
+                not (byte)'%')
+            {
+                builder.Append((char)current);
+            }
+            else
+            {
+                builder.Append('#').Append(current.ToString("X2", CultureInfo.InvariantCulture));
+            }
+        }
+        return builder.ToString();
+    }
+
+    private static string AsciiFileName(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        foreach (var current in value)
+            builder.Append(current is >= ' ' and <= '~' ? current : '_');
+        return builder.ToString();
     }
 
     private static string SanitizeInfoKey(string value)
@@ -1996,6 +2120,11 @@ internal sealed class PdfWriter
             .Replace("(", "\\(", StringComparison.Ordinal)
             .Replace(")", "\\)", StringComparison.Ordinal);
     }
+
+    private sealed record AssociatedFileObjectIds(
+        PdfAssociatedFile File,
+        int StreamObjectId,
+        int FileSpecificationObjectId);
 
     private static byte[] BuildImageObject(PdfImageData image, int? softMaskObjectId = null)
     {

@@ -121,6 +121,10 @@ builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformat
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
 builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionPreflight, PXA.Importer.Redaction.PdfRedactionPreflight>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfA2bConverter, PXA.Importer.Trust.PdfA2bConverter>();
+builder.Services.Configure<PXA.WebApi.Services.Pdf.PxaEInvoiceValidationOptions>(
+    builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaEInvoiceValidationOptions.SectionName));
+builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaEInvoiceValidationService,
+    PXA.WebApi.Services.Pdf.PxaEInvoiceValidationService>();
 builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionApplier, PXA.Importer.Redaction.PdfRedactionApplier>();
 builder.Services.Configure<PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyOptions>(
     builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaRedactionAuditKeyOptions.SectionName));

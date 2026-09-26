@@ -1,5 +1,9 @@
 # Importer New Featuers Checklist
 
+> Specialized capture, GeoPDF, PDF/E/3D, rich-media, legal-document, and
+> e-invoicing requirements are coordinated through
+> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).
+
 Scope: this checklist tracks core PXA.Importer PDF parsing, interpretation, editing, and regeneration work. Annotations, forms, signatures, OCR, and AI remain separate layers over the parsed DOM and are intentionally out of scope here.
 
 ## Parser Core

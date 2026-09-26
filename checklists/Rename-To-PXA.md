@@ -19,7 +19,9 @@ terms such as editor canvas surfaces, `PdfCanvas`, `SKCanvas`, and third-party A
 - [x] Product/Web name: **Power Dox Automation**
 - [x] Short/developer name: **PXA**
 - [x] CLI name reserved: `pxa`
-- [x] Future native file format reserved: `.pxa`
+- [x] Future generic native file format reserved: `.pxa`; the first dedicated
+  Designer project formats are planned separately as `.pxap` and `.pxas` in
+  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).
 
 ## Namespace Mapping
 

@@ -1,5 +1,8 @@
 # PXA Wettbewerbsreife und Meilenstein-Grundlage
 
+Bewertung aktualisiert: 26.09.2026, nach der Implementierung der
+PDF-Vertrauensbasis.
+
 ## Klare Bewertung
 
 PXA ist bereits ein echter Konkurrent in einer bestimmten Nische, aber noch kein
@@ -33,19 +36,20 @@ klassischer PDF-Anbieter.
 
 | Marktsegment | PXA heute |
 | --- | --- |
-| Alternative zu GemBox oder IronPDF | Fast konkurrenzfähig |
+| Alternative zu GemBox oder IronPDF | Bei fokussierter PDF-Automation und Migration konkurrenzfähig |
 | DevExpress-Reportmigration | Bei der Migration konkurrenzfähig, nicht bei der vollständigen Reporting Runtime |
-| PDF- und Dokumentautomation | Teilweise konkurrenzfähig |
+| PDF- und Dokumentautomation | Im implementierten Trust- und Automatisierungsumfang konkurrenzfähig; breitere Produkttiefe bleibt offen |
 | Aspose- oder Syncfusion-Komplettsuite | Noch nicht konkurrenzfähig |
 | Apryse- oder Nutrient-PDF-Viewer | Noch nicht konkurrenzfähig |
-| iText- oder Pdftools-Compliance-Engine | Noch nicht konkurrenzfähig |
+| iText- oder Pdftools-Compliance-Engine | Bei unterstützten Profilen glaubwürdiger Konkurrent, aber noch ohne vollständige Standardbreite |
 | Enterprise-Dokumentplattform | Architektur vorhanden, aber Marktbeweis fehlt |
 
 ## Was PXA braucht, um ein echter Konkurrent zu werden
 
 ### 1. PDF-Vertrauensbasis
 
-Dies ist die wichtigste technische Lücke:
+Dies war die wichtigste technische Lücke und ist inzwischen weitgehend
+implementiert:
 
 - Digitale PDF-Signaturen und Validierung.
 - PAdES, Zeitstempel und Langzeitvalidierung.
@@ -57,8 +61,20 @@ Dies ist die wichtigste technische Lücke:
 - Optimierung und Linearization.
 - Zuverlässige Bearbeitung bestehender PDFs.
 
-Ohne diese Fähigkeiten können Banken, Versicherungen, Behörden und größere
-Unternehmen PXA nur eingeschränkt einsetzen.
+Nach Anzahl der Checklist-Punkte ist die interne Umsetzung zu ungefähr 90 Prozent
+abgeschlossen. Der unterstützte Kernumfang ist in Generator, API, Viewer,
+Migration, Tests, Nachweisen und Dokumentation implementiert. Offen bleiben
+bewusste Release- oder Ausbaustufen: lizenzierte normative Standards, ein zweiter
+unabhängiger Compliance-Validator, eine breitere proprietäre Reader-Matrix,
+manuelle Prüfung mit assistiven Technologien, qualifizierte Signaturanbieter und
+rechtliche Bewertung, PDF/A-4, evaluiertes PDF/UA-2 sowie Remote- oder HSM-Key-
+Provider.
+
+Damit ändert sich die Wettbewerbsbewertung wesentlich: PXA besitzt nun eine
+glaubwürdige PDF-Vertrauensbasis für kontrollierte Produktionsprofile. Breite
+Aussagen wie universelle Compliance, vollständige Barrierefreiheit, Reparatur
+beliebiger schädlicher PDFs oder qualifizierte rechtswirksame Signaturen bleiben
+ausgeschlossen, bis die jeweiligen externen Prüfungen abgeschlossen sind.
 
 Aktueller Umsetzungsstand: PAdES B-B/B-T/B-LT/B-LTA, Zeitstempel, AES-256,
 begrenzt nachgewiesene irreversible Redaction, PDF/A-2b/PDF/A-3b, Tagged PDF/
@@ -222,7 +238,10 @@ Migration, visuellem Design und Code.
 
 ### Phase 2: Enterprise-Vertrauen
 
-- Digitale Signaturen, AES, PDF/A, PDF/UA und sichere Redaction bereitstellen.
+- PDF-Trust-Kern umgesetzt: PAdES B-B/B-T/B-LT/B-LTA, AES-256, PDF/A-2b/3b,
+  PDF/UA-1, sichere Redaction, Viewer-Abläufe, Migration und Dokumentation.
+- Die verbleibenden externen, manuellen, rechtlichen und proprietären Reader-
+  Freigaben abschließen, bevor Produktionsaussagen erweitert werden.
 - Die Bearbeitung bestehender PDFs stabilisieren.
 - Backup, Wiederherstellung, Monitoring und Sicherheitsprüfung abschließen.
 - Unterstützte SDKs und Kundendokumentation veröffentlichen.
@@ -242,17 +261,22 @@ Migration, visuellem Design und Code.
 | --- | --- |
 | Ist PXA ein echter Nischenkonkurrent? | Ja |
 | Ist PXA ein echter Konkurrent bei Migrationstechnologie? | Ja |
-| Ist PXA ein vollwertiger PDF-SDK-Konkurrent? | Teilweise |
+| Ist PXA ein vollwertiger PDF-SDK-Konkurrent? | Im unterstützten Trust- und Automatisierungsumfang konkurrenzfähig, aber noch nicht in voller Breite |
 | Ist PXA ein vollwertiger Document-Suite-Konkurrent? | Noch nicht |
 | Ist PXA eine Enterprise-reife Plattform? | Auf dem Weg, aber noch nicht bewiesen |
 
-Mit einem fokussierten Team von ungefähr vier bis sechs erfahrenen Entwicklern,
-QA, Produktverantwortung und gezielter Sicherheits- und PDF-Expertise könnte PXA
-innerhalb von ungefähr 12-18 Monaten zu einem glaubwürdigen und verkaufbaren
-Konkurrenten in der Migrations- und Automatisierungsnische werden.
+PXA ist technisch bereits ein glaubwürdiger und potenziell verkaufbarer Anbieter
+in der fokussierten Nische aus Migration, Automatisierung und unterstütztem PDF
+Trust. Für einen Produktionsstart fehlen weiterhin die erklärten externen
+Release-Prüfungen, reproduzierbare Produktauslieferung, Support-Prozesse und
+Kundenvalidierung. Mit einem fokussierten Team von ungefähr vier bis sechs
+erfahrenen Entwicklern, QA, Produktverantwortung und gezielter Sicherheits- und
+PDF-Expertise ist ein unterstützter kommerzieller Start innerhalb von 6-12
+Monaten realistisch.
 
-Eine breite Konkurrenz zu Aspose, Syncfusion oder Apryse würde realistischerweise
-24-36 Monate und eine strenge Begrenzung des Produktumfangs erfordern.
+Eine breite Konkurrenz zu den vollständigen Portfolios von Aspose, Syncfusion
+oder Apryse würde weiterhin realistischerweise 18-30 Monate, Kundennachweise und
+eine strenge Begrenzung des Produktumfangs erfordern.
 
 Die wichtigste Schlussfolgerung ist, dass PXA nicht jeden Anbieter in jeder
 Funktionskategorie besiegen muss. Es muss ein wichtiges Kundenproblem wesentlich
@@ -280,6 +304,7 @@ Zukünftige Meilensteine, die aus dieser Bewertung abgeleitet werden, sollen:
 
 ## Zugehörige Strategieunterlagen
 
+- `PXA.PDF-Specialized-Features-Roadmap.md`
 - `PXA.Competitive-Readiness-And-Milestones.md`
 - `PXA.Competitive-Feature-And-Pricing-Positioning.md`
 - `PXA.Software-Valuation-And-Value-Growth.md`

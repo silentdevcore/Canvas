@@ -1102,6 +1102,10 @@ External or manual release gates intentionally remain open:
 
 ## Explicitly Deferred
 
+Specialized standards and product domains promoted from this section are tracked
+centrally in
+[PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).
+
 - [ ] Qualified electronic signature service-provider certification and legal
   conclusions about signature enforceability.
 - [ ] Running a public timestamp authority, certificate authority, OCSP responder, or

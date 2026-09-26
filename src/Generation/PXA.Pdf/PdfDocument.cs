@@ -1,4 +1,6 @@
 using PXA.Pdf.Serialization;
+using System.Collections.ObjectModel;
+using System.Xml;
 
 namespace PXA.Pdf;
 
@@ -23,6 +25,8 @@ public sealed class PdfDocument
     private readonly List<PdfNamedDestination> _namedDestinations = new();
     private readonly HashSet<PdfPage> _tableOfContentsPages = new();
     private readonly List<PdfSection> _sections = new();
+    private readonly List<PdfAssociatedFile> _associatedFiles = new();
+    private readonly ReadOnlyCollection<PdfAssociatedFile> _associatedFilesView;
     private int _lastWatermarkPageCount;
     private int _lastHeaderRenderedPageCount;
     private int _lastFooterRenderedPageCount;
@@ -50,10 +54,148 @@ public sealed class PdfDocument
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
     {
         DefaultFont = defaultFont;
+        _associatedFilesView = _associatedFiles.AsReadOnly();
     }
 
     /// <summary>The pages of the document, in order. Add pages with <see cref="AddPage()"/>.</summary>
     public IReadOnlyList<PdfPage> Pages => _pages;
+
+    /// <summary>Files embedded in and associated with the complete document.</summary>
+    public IReadOnlyList<PdfAssociatedFile> AssociatedFiles => _associatedFilesView;
+
+    /// <summary>
+    /// Embeds a file and associates it with the document. PDF/A-3 output supports associated
+    /// files; PDF/A-2 output rejects them during compliance preflight.
+    /// </summary>
+    public PdfAssociatedFile AddAssociatedFile(
+        ReadOnlyMemory<byte> content,
+        string fileName,
+        string mimeType,
+        PdfAssociatedFileRelationship relationship = PdfAssociatedFileRelationship.Data,
+        string? description = null,
+        PdfAssociatedFileXmpMetadata? xmpMetadata = null)
+    {
+        const int maximumAssociatedFileCount = 64;
+        const int maximumAssociatedFileBytes = 100 * 1024 * 1024;
+        const long maximumTotalAssociatedFileBytes = 200L * 1024 * 1024;
+        if (content.IsEmpty)
+            throw new ArgumentException("Associated file content cannot be empty.", nameof(content));
+        if (content.Length > maximumAssociatedFileBytes)
+            throw new ArgumentException("An associated file cannot exceed 100 MiB.", nameof(content));
+        if (_associatedFiles.Count >= maximumAssociatedFileCount)
+            throw new InvalidOperationException("A document cannot contain more than 64 associated files.");
+        if (_associatedFiles.Sum(static file => (long)file.ContentBytes.Length) + content.Length > maximumTotalAssociatedFileBytes)
+            throw new InvalidOperationException("Associated files cannot exceed 200 MiB per document.");
+        if (!Enum.IsDefined(relationship))
+            throw new ArgumentOutOfRangeException(nameof(relationship));
+
+        fileName = fileName?.Trim() ?? string.Empty;
+        if (fileName.Length is < 1 or > 255 ||
+            fileName != Path.GetFileName(fileName) ||
+            fileName.Any(char.IsControl))
+        {
+            throw new ArgumentException(
+                "Associated file names must be plain filenames between 1 and 255 characters.",
+                nameof(fileName));
+        }
+
+        if (_associatedFiles.Any(file =>
+                string.Equals(file.FileName, fileName, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException(
+                $"An associated file named '{fileName}' already exists.", nameof(fileName));
+        }
+
+        mimeType = mimeType?.Trim() ?? string.Empty;
+        if (!IsMimeType(mimeType))
+            throw new ArgumentException("Associated files require a valid ASCII MIME type.", nameof(mimeType));
+
+        if (description is { Length: > 1024 })
+            throw new ArgumentException("Associated file descriptions cannot exceed 1024 characters.", nameof(description));
+
+        ValidateXmpMetadata(xmpMetadata);
+        if (xmpMetadata is not null && _associatedFiles.Any(static file => file.XmpMetadata is not null))
+            throw new InvalidOperationException("A document can contain only one associated file with PDF/A extension metadata.");
+
+        var stableXmpMetadata = xmpMetadata is null
+            ? null
+            : xmpMetadata with { Properties = xmpMetadata.Properties.ToArray() };
+
+        var associatedFile = new PdfAssociatedFile(
+            fileName,
+            mimeType,
+            content.ToArray(),
+            relationship,
+            string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+            stableXmpMetadata);
+        _associatedFiles.Add(associatedFile);
+        return associatedFile;
+    }
+
+    private static bool IsMimeType(string value)
+    {
+        var slash = value.IndexOf('/');
+        return slash > 0 && slash == value.LastIndexOf('/') && slash < value.Length - 1 &&
+               IsMimeToken(value.AsSpan(0, slash)) && IsMimeToken(value.AsSpan(slash + 1));
+    }
+
+    private static void ValidateXmpMetadata(PdfAssociatedFileXmpMetadata? metadata)
+    {
+        if (metadata is null)
+            return;
+        if (string.IsNullOrWhiteSpace(metadata.SchemaName) || metadata.SchemaName.Length > 128)
+            throw new ArgumentException("XMP schema names must contain between 1 and 128 characters.", nameof(metadata));
+        if (!Uri.TryCreate(metadata.NamespaceUri, UriKind.Absolute, out _) || metadata.NamespaceUri.Length > 256)
+            throw new ArgumentException("XMP namespaces must be bounded absolute URIs.", nameof(metadata));
+        VerifyXmlName(metadata.Prefix, "XMP prefixes", metadata);
+        if (metadata.Properties is null || metadata.Properties.Count is < 1 or > 32)
+            throw new ArgumentException("XMP extension schemas require between 1 and 32 properties.", nameof(metadata));
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var property in metadata.Properties)
+        {
+            if (property is null)
+                throw new ArgumentException("XMP extension properties cannot be null.", nameof(metadata));
+            VerifyXmlName(property.Name, "XMP property names", metadata);
+            if (!names.Add(property.Name))
+                throw new ArgumentException($"XMP property '{property.Name}' is declared more than once.", nameof(metadata));
+            if (string.IsNullOrWhiteSpace(property.Value) || property.Value.Length > 1024 ||
+                string.IsNullOrWhiteSpace(property.ValueType) || property.ValueType.Length > 64 ||
+                property.Category is not ("internal" or "external") ||
+                string.IsNullOrWhiteSpace(property.Description) || property.Description.Length > 256)
+            {
+                throw new ArgumentException($"XMP property '{property.Name}' has invalid bounded metadata.", nameof(metadata));
+            }
+        }
+    }
+
+    private static void VerifyXmlName(string value, string label, PdfAssociatedFileXmpMetadata metadata)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 32)
+                throw new XmlException();
+            XmlConvert.VerifyNCName(value);
+        }
+        catch (XmlException)
+        {
+            throw new ArgumentException($"{label} must be valid XML names up to 32 characters.", nameof(metadata));
+        }
+    }
+
+    private static bool IsMimeToken(ReadOnlySpan<char> value)
+    {
+        if (value.IsEmpty || value.IndexOfAny("()<>@,;:\"/[]?= \t\r\n".AsSpan()) >= 0)
+            return false;
+
+        foreach (var current in value)
+        {
+            if (current is <= '\u001f' or >= '\u007f')
+                return false;
+        }
+
+        return true;
+    }
 
     /// <summary>The default standard font applied to new pages and to text drawing without an explicit font.</summary>
     public PdfStandardFont DefaultFont { get; set; }

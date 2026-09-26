@@ -81,6 +81,8 @@ Ein gemeinsames Layout- und Design-System fuer `PXA.Company`, `PXA.Documentation
 - [ ] Mobile/Desktop Screenshot-Pruefung durchfuehren, sobald die Websites laufen.
 
 ## Offene Entscheidungen
-- [ ] Logo-Datei oder reines Textlogo festlegen.
+- [ ] Finalize the logo asset through
+  [PXA.Brand-And-Logo-System.md](PXA.Brand-And-Logo-System.md); retain the current
+  text treatment until an approved production asset exists.
 - [ ] Finales Pricing-/Sales-Ziel festlegen.
 - [ ] Ob `websites/shared` spaeter ein eigenes Package wird, festlegen.

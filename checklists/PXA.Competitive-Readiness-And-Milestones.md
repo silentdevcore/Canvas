@@ -1,5 +1,8 @@
 # PXA Competitive Readiness and Milestone Foundation
 
+Assessment updated: 2026-09-26, after implementation of the PDF Trust
+Foundation.
+
 ## Clear Assessment
 
 PXA is already a real competitor in a specific niche, but it is not yet a full
@@ -33,12 +36,12 @@ PDF provider.
 
 | Market segment | PXA today |
 | --- | --- |
-| GemBox or IronPDF alternative | Almost competitive |
+| GemBox or IronPDF alternative | Competitive for focused PDF automation and migration workflows |
 | DevExpress report migration | Competitive for migration, not for the complete reporting runtime |
-| PDF and document automation | Partially competitive |
+| PDF and document automation | Competitive for the implemented Trust and automation scope; broader suite depth remains open |
 | Aspose or Syncfusion complete suite | Not yet competitive |
 | Apryse or Nutrient PDF Viewer | Not yet competitive |
-| iText or Pdftools compliance engine | Not yet competitive |
+| iText or Pdftools compliance engine | Credible supported-profile competitor, not full standards breadth |
 | Enterprise document platform | Architecture exists, but market proof is missing |
 
 ## What PXA Needs to Become a Real Competitor
@@ -47,7 +50,7 @@ PDF provider.
 
 Implementation tracker: [PXA.PDF-Trust-Foundation.md](PXA.PDF-Trust-Foundation.md)
 
-This is the most important technical gap:
+This was the most important technical gap and is now substantially implemented:
 
 - PDF digital signatures and validation.
 - PAdES, timestamps, and long-term validation.
@@ -67,8 +70,18 @@ implemented. Remaining release gates are explicitly tracked in
 manual assistive-technology evidence, and universal hostile-PDF repair are not
 claimed.
 
-Without these capabilities, banks, insurers, public authorities, and larger
-companies will only be able to use PXA in a limited capacity.
+The internal implementation tracker is approximately 90 percent complete by
+checkbox count. The core supported scope is implemented across Generator, API,
+Viewer, Migration, tests, evidence, and Documentation. The remaining items are
+deliberate release or expansion gates: licensed normative standards, a second
+independent compliance validator, a broader proprietary-reader matrix, manual
+assistive-technology review, qualified-signature-provider/legal conclusions,
+PDF/A-4, evaluated PDF/UA-2, and remote or HSM-backed key providers.
+
+This changes the competitive assessment materially: PXA now has a credible PDF
+Trust foundation for controlled production profiles. It must still avoid broad
+claims such as universal compliance, accessibility, hostile-PDF repair, or
+qualified legal signatures until the corresponding external gates pass.
 
 ### 2. Proven Document Fidelity
 
@@ -224,7 +237,10 @@ and code.
 
 ### Phase 2: Enterprise Trust
 
-- Deliver digital signatures, AES, PDF/A, PDF/UA, and secure redaction.
+- PDF Trust core delivered: PAdES B-B/B-T/B-LT/B-LTA, AES-256, PDF/A-2b/3b,
+  PDF/UA-1, secure redaction, Viewer workflows, migration, and Documentation.
+- Complete the remaining external, manual, legal, and proprietary-reader release
+  gates before expanding production claims.
 - Stabilize existing-PDF editing.
 - Complete backup, restore, monitoring, and security assessment.
 - Publish supported SDKs and customer documentation.
@@ -244,17 +260,21 @@ and code.
 | --- | --- |
 | Is PXA a real niche competitor? | Yes |
 | Is PXA a real migration-technology competitor? | Yes |
-| Is PXA a full PDF SDK competitor? | Partially |
+| Is PXA a full PDF SDK competitor? | Competitive in its supported Trust and automation scope; not yet full breadth |
 | Is PXA a full document-suite competitor? | Not yet |
 | Is PXA an Enterprise-ready platform? | On the way, but not yet proven |
 
-With a focused team of approximately four to six experienced engineers, QA,
-product ownership, and targeted security and PDF expertise, PXA could become a
-credible and sellable competitor in the migration and automation niche within
-approximately 12-18 months.
+PXA is technically credible and potentially sellable now in the focused
+migration, automation, and supported PDF Trust niche. A production launch still
+requires completion of the declared external release gates, reproducible product
+delivery, support operations, and customer validation. With a focused team of
+approximately four to six experienced engineers, QA, product ownership, and
+targeted security and PDF expertise, a supported commercial launch is a
+realistic 6-12 month objective.
 
-Broad competition with Aspose, Syncfusion, or Apryse would more realistically
-require 24-36 months and strict control of product scope.
+Broad competition with the complete portfolios of Aspose, Syncfusion, or Apryse
+would still more realistically require 18-30 months, customer evidence, and
+strict control of product scope.
 
 The most important conclusion is that PXA does not need to defeat every provider
 in every feature category. It needs to solve one important customer problem
@@ -279,6 +299,7 @@ Future milestones derived from this assessment should:
 
 ## Related Strategy Documents
 
+- `PXA.PDF-Specialized-Features-Roadmap.md`
 - `PXA.Proven-Document-Fidelity.md`
 - `PXA.Competitive-Feature-And-Pricing-Positioning.md`
 - `PXA.Software-Valuation-And-Value-Growth.md`

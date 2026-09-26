@@ -10,14 +10,22 @@ This is a dated planning snapshot, not a claim of certified feature parity and
 not an approved public price list. Implemented, Beta, planned, and independently
 validated capabilities must remain distinguishable in all future comparisons.
 
-Assessment date: 2026-08-24.
+Assessment date: 2026-09-26.
 
 ## Executive Assessment
 
 PXA is not yet a universal replacement for mature document SDKs. Its current
 strength is the combination of vendor migration, a visual Designer, a canonical
 document model, code roundtrips, multiple document families, administration,
-Cloud and On-Premise architecture, and an emerging MCP integration.
+Cloud and On-Premise architecture, an emerging MCP integration, and a now
+substantial PDF Trust stack.
+
+Since the previous assessment, the former critical PDF Trust gap has been
+materially reduced. PXA now implements profile-specific signing and validation,
+irreversible redaction, modern encryption, archival output, accessibility output,
+Viewer workflows, migration diagnostics, and reproducible validation evidence.
+The remaining gap is primarily breadth, independent release acceptance, and
+production proof rather than the absence of a Trust foundation.
 
 Indicative assessment of the current repository state:
 
@@ -27,11 +35,11 @@ Indicative assessment of the current repository state:
 | Feature breadth | 7.5 / 10 |
 | Vendor and report migration | 9.0 / 10 |
 | Designer and template automation | 7.5 / 10 |
-| Document-engine depth | 5.0 / 10 |
-| Production maturity | 5.0 / 10 |
-| Documentation and ecosystem | 4.5 / 10 |
+| Document-engine depth | 7.0 / 10 |
+| Production maturity | 6.0 / 10 |
+| Documentation and ecosystem | 6.0 / 10 |
 | Commercial and enterprise maturity | 4.0 / 10 |
-| Overall technical position | 6.5 / 10 |
+| Overall technical position | 7.0 / 10 |
 
 These are directional product-planning scores, not benchmark results.
 
@@ -49,13 +57,13 @@ providers.
 | Vendor PDF-code migration | 9 | No close direct equivalent | Primary advantage |
 | Report-designer migration | 8 | Limited direct competition | Strong advantage |
 | PDF generation | 7 | iText, Aspose, Syncfusion | Good foundation, less depth |
-| Editing existing PDFs | 5 | Apryse, Nutrient, iText | Importer foundation, incomplete parity |
-| PDF Viewer | 5 | Apryse, Nutrient, Pdftools | Functional, materially less mature |
-| Forms and annotations | 5 | Nutrient, Apryse | Basic support, advanced cases open |
-| PDF digital signatures | 2 | iText, Nutrient, Syncfusion | Critical gap |
-| PDF/A, PDF/UA and accessibility | 2 | iText, Pdftools, Syncfusion | Critical enterprise gap |
-| Secure redaction | 3 | Apryse, Nutrient, iText | Not yet complete |
-| PDF encryption | 4 | iText, Aspose, Apryse | RC4 foundation; modern AES missing |
+| Editing existing PDFs | 6 | Apryse, Nutrient, iText | Typed object model and safe operations exist; universal preservation remains open |
+| PDF Viewer | 7 | Apryse, Nutrient, Pdftools | Trust workflows are strong; scale, comparison and collaboration remain behind |
+| Forms and annotations | 6 | Nutrient, Apryse | Useful support; advanced authoring and collaboration remain open |
+| PDF digital signatures | 8 | iText, Nutrient, Syncfusion | PAdES B-B/B-T/B-LT/B-LTA and validation implemented; qualified providers remain external |
+| PDF/A, PDF/UA and accessibility | 7 | iText, Pdftools, Syncfusion | PDF/A-2b/3b and PDF/UA-1 independently checked; newer profiles and manual AT acceptance remain open |
+| Secure redaction | 8 | Apryse, Nutrient, iText | Irreversible bounded workflow with verification and audit evidence |
+| PDF encryption | 8 | iText, Aspose, Apryse | AES-256 revision 6 and encrypted-input processing implemented; broader reader matrix remains open |
 | Word processing | 5 | Aspose.Words, Syncfusion, DevExpress | Useful, not a full Word engine |
 | Spreadsheet processing | 5 | Syncfusion, DevExpress, Aspose.Cells | Formula, Pivot, chart and fidelity gaps |
 | Reporting runtime | 6 | DevExpress, Telerik | Migration stronger than runtime depth |
@@ -117,9 +125,12 @@ Reference: https://www.nutrient.io/sdk/
 
 ### iText and Pdftools
 
-iText and Pdftools are stronger in PDF standards, PDF/A, PDF/UA, PDF 2.0,
-signatures, optimization, secure redaction, validation, and low-level PDF
-control. These categories remain among the highest-value PXA engine gaps.
+iText and Pdftools retain greater breadth, longer production history, broader
+standards coverage, optimization depth, and low-level PDF control. PXA now has a
+credible Trust subset with PAdES through B-LTA, AES-256, PDF/A-2b/3b, PDF/UA-1,
+and bounded secure redaction. PDF/A-4, evaluated PDF/UA-2, qualified signing
+providers, a second compliance validator, and broader production interoperability
+remain meaningful gaps.
 
 References:
 
@@ -144,11 +155,16 @@ more commercial validation of their core workflows.
 - Integrated Account, Admin, subscription, licensing, and tenant foundations.
 - Cloud and On-Premise direction rather than Cloud-only processing.
 - MCP and agent-facing architecture built around the same application services.
+- Integrated PDF Trust workflows spanning Generator, API, Viewer, Migration, and
+  Documentation.
+- Reproducible external evidence from veraPDF, qpdf, Poppler, pyHanko, LibreOffice,
+  and EU DSS for the maintained support scope.
 
 ## Highest-Priority Competitive Gaps
 
-1. PDF security and standards: digital signatures, AES-256, PDF/A, PDF/UA,
-   Tagged PDF, secure redaction, and validation.
+1. Independent PDF Trust release acceptance: second-validator evidence,
+   proprietary-reader coverage, manual assistive-technology review, approved
+   standards baselines, and qualified-provider/legal conclusions where claimed.
 2. Existing-PDF editing: reliable object preservation, page operations,
    incremental updates, and advanced forms.
 3. Office fidelity: Word layout, Spreadsheet formulas and Pivot Tables, native
@@ -161,6 +177,10 @@ more commercial validation of their core workflows.
    support SLA, security review, and compliance evidence.
 7. Ecosystem: public Java, Python, TypeScript/JavaScript, and C# REST SDKs,
    examples, reference documentation, and support processes.
+
+PDF Trust is therefore no longer the principal missing engine foundation. It is
+now a strong implemented capability whose supported profiles must pass the final
+external and manual release gates before broad production claims are published.
 
 The detailed PDF-engine tracker remains:
 `PxaPdf-Provider-Feature-Gaps.md`.
@@ -240,6 +260,7 @@ the legally required tax-inclusive amount.
 
 ## Related Planning Sources
 
+- `PXA.PDF-Specialized-Features-Roadmap.md`
 - `PXA.Global-Commerce-And-Pricing.md`
 - `PXA.Subscription-Licensing.md`
 - `PXA.Product-Roadmap.md`

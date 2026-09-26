@@ -88,3 +88,6 @@ implementation tracker for those trust-sensitive capabilities.
 - This is a feature roadmap, not a promise that every provider feature belongs in `PXA.Pdf`.
 - Some provider features are better served by adjacent modules (`PXA.Importer`, file importers, image OCR, or migration tools) rather than the PDF generation API itself.
 - Keep priority tied to product value and migration blockers, not only to provider checklists.
+- Specialized domains such as e-invoicing, legal workflows, PDF/X, capture, PDF/VT,
+  GeoPDF, PDF/E/3D, rich media, and provenance are centralized in
+  [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).

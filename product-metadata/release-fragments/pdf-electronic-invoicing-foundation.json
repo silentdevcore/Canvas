@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-electronic-invoicing-foundation",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "generator",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PXA creates visible PDF/A-3 hybrid invoices from typed data, embeds deterministic Factur-X, ZUGFeRD, or XRechnung XML, and lets authorized Viewer users inspect, validate, and extract invoice data.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.E-Invoicing.md",
+    "/checklists/PXA.PDF-Specialized-Features-Roadmap.md"
+  ],
+  "breaking": false
+}

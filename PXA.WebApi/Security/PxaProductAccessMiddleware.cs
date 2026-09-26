@@ -17,6 +17,7 @@ public sealed class PxaProductAccessMiddleware
         ("/api/pxa/v1/pdf/redactions", PxaPdfTrustCapabilities.Redaction),
         ("/api/pxa/v1/pdf/compliance", PxaPdfTrustCapabilities.Compliance),
         ("/api/pxa/v1/pdf/trust", PxaPdfTrustCapabilities.Inspection),
+        ("/api/pxa/v1/pdf/e-invoices", "generator"),
         ("/api/migration", "migration"),
         ("/api/pxa/migration", "migration"),
         ("/api/spreadsheet", "spreadsheet"),

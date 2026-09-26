@@ -22,4 +22,10 @@
     <ProjectReference Include="../../src/Generation/PXA.Generator/PXA.Generator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="../../assets/fonts/liberation/*"
+             Link="fonts/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,9 @@
 # Image-Converter2.md: New OCR-Based Image-to-PDF Converter
 
+> The broader PDF document-capture milestone is centralized in
+> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md)
+> and builds on the OCR and image-conversion foundation tracked here.
+
 ## Summary
 
 - [x] Create a new image-to-PDF conversion path that turns raster images into editable PXA documents and exports them as PDFs with real text, image, and layout objects.
