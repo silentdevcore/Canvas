@@ -233,7 +233,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       dataUrl: viewerPdfDataUrl,
       name: `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`,
     });
-    navigate('/pdf-viewer?handoff=session');
+    navigate('/pdf/viewer?handoff=session');
   };
 
   const getDatePreview = (element: SimpleElement) => {

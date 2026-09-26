@@ -14,4 +14,16 @@ describe('canonical migration routes', () => {
     expect(app).toContain('/pdf/migrations/designer?provider=nutrient-viewer');
     expect(tabs).not.toContain("to: '/pdf/migrations/viewer'");
   });
+
+  it('keeps PDF handoff parameters on the canonical Viewer route', () => {
+    const migrations = readFileSync(join(process.cwd(), 'src/pages/MigrationsPage.tsx'), 'utf8');
+    const preview = readFileSync(join(process.cwd(), 'src/components/Preview/LivePreview.tsx'), 'utf8');
+    const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8');
+
+    expect(migrations).toContain("navigate('/pdf/viewer?handoff=session')");
+    expect(preview).toContain("navigate('/pdf/viewer?handoff=session')");
+    expect(migrations).not.toContain("navigate('/pdf-viewer?handoff=session')");
+    expect(preview).not.toContain("navigate('/pdf-viewer?handoff=session')");
+    expect(app).toContain("search: location.search, hash: location.hash");
+  });
 });

@@ -1,11 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import { resolvePdfViewerLaunchConfig, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
+import { consumePdfViewerHandoff, resolvePdfViewerLaunchConfig, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { openMigratedPdfViewer } from '@/features/pdf-viewer/migrationAdapter';
 
 describe('PDF Viewer migration handoff', () => {
   beforeEach(() => {
+    consumePdfViewerHandoff();
     sessionStorage.clear();
   });
 
@@ -31,6 +32,7 @@ describe('PDF Viewer migration handoff', () => {
       annotations: [],
       formValues: [],
     });
+    consumePdfViewerHandoff();
     expect(resolvePdfViewerLaunchConfig('?handoff=session')).toEqual({
       source: null,
       initialPageNumber: 1,
@@ -64,6 +66,8 @@ describe('PDF Viewer migration handoff', () => {
 
     expect(launch.annotations).toEqual([annotation]);
     expect(launch.formValues).toEqual([{ name: 'Approved', value: true }]);
+    expect(resolvePdfViewerLaunchConfig('?handoff=session').annotations).toEqual([annotation]);
+    consumePdfViewerHandoff();
     expect(resolvePdfViewerLaunchConfig('?handoff=session').annotations).toEqual([]);
   });
 
@@ -78,6 +82,20 @@ describe('PDF Viewer migration handoff', () => {
 
     expect(result.initialPageNumber).toBe(1);
     expect(result.initialFitMode).toBe('page');
+  });
+
+  it('keeps a same-tab PDF handoff when browser storage quota is exceeded', () => {
+    const storage = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+
+    expect(() => writePdfViewerHandoff({
+      dataUrl: 'data:application/pdf;base64,JVBERi0=',
+      name: 'large-preview.pdf',
+    })).not.toThrow();
+    expect(resolvePdfViewerLaunchConfig('?handoff=session').source?.name).toBe('large-preview.pdf');
+
+    storage.mockRestore();
   });
 
   it('rejects externally hosted PDFs at the generated integration boundary', () => {

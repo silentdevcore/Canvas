@@ -3,6 +3,7 @@ import type { PdfAnnotation } from './annotations';
 import type { PdfFormFieldValue } from './pdfForms';
 
 const PDF_VIEWER_HANDOFF_KEY = 'pdf_viewer_handoff';
+let pendingHandoff: PdfViewerHandoff | null = null;
 
 export type PdfViewerInitialFitMode = 'page' | 'width';
 
@@ -32,7 +33,12 @@ export const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resol
 });
 
 export const writePdfViewerHandoff = (handoff: PdfViewerHandoff): void => {
-  sessionStorage.setItem(PDF_VIEWER_HANDOFF_KEY, JSON.stringify(handoff));
+  pendingHandoff = handoff;
+  try {
+    sessionStorage.setItem(PDF_VIEWER_HANDOFF_KEY, JSON.stringify(handoff));
+  } catch {
+    // Same-tab navigation can use the in-memory handoff when a large PDF exceeds storage quota.
+  }
 };
 
 const sourceNameFromUrl = (url: string): string => {
@@ -46,17 +52,25 @@ const sourceNameFromUrl = (url: string): string => {
 };
 
 const readHandoff = (): PdfViewerHandoff | null => {
+  if (pendingHandoff) {
+    return pendingHandoff;
+  }
   const raw = sessionStorage.getItem(PDF_VIEWER_HANDOFF_KEY);
   if (!raw) {
     return null;
   }
 
-  sessionStorage.removeItem(PDF_VIEWER_HANDOFF_KEY);
   try {
-    return JSON.parse(raw) as PdfViewerHandoff;
+    pendingHandoff = JSON.parse(raw) as PdfViewerHandoff;
+    return pendingHandoff;
   } catch {
     return null;
   }
+};
+
+export const consumePdfViewerHandoff = (): void => {
+  pendingHandoff = null;
+  sessionStorage.removeItem(PDF_VIEWER_HANDOFF_KEY);
 };
 
 export const resolvePdfViewerLaunchConfig = (search = window.location.search): PdfViewerLaunchConfig => {

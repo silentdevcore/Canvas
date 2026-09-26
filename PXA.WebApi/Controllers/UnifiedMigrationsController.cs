@@ -113,6 +113,9 @@ public sealed class UnifiedMigrationsController(
             return MigrationProblem(400, "Migration source required", "Provide source or sourceBase64.", "PXAMIG003");
         if (descriptor.MigrationKind is MigrationKinds.Code or MigrationKinds.Viewer && string.IsNullOrWhiteSpace(request.Source))
             return MigrationProblem(400, "Migration source required", "This migration provider requires text source.", "PXAMIG003");
+        if (!string.IsNullOrWhiteSpace(request.SourceName)
+            && !AcceptsSourceName(descriptor, request.InputType, request.SourceName))
+            return UnsupportedSourceFile(descriptor, request.InputType, request.SourceName);
         if (ExceedsInputLimit(request, descriptor.MaximumInputBytes))
             return MigrationProblem(413, "Migration source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PXAMIG010");
 
@@ -158,6 +161,9 @@ public sealed class UnifiedMigrationsController(
             return MigrationProblem(413, "Source PDF is too large", "The Nutrient Designer migration accepts PDFs up to 50 MiB.", "CANMIGNUTDESIGN102");
         if (string.IsNullOrWhiteSpace(request.Source))
             return MigrationProblem(400, "Nutrient source required", "Provide Viewer JavaScript, TypeScript, or Instant JSON.", "PXAMIG003");
+        if (!string.IsNullOrWhiteSpace(request.SourceName)
+            && !AcceptsSourceName(descriptor, request.InputType, request.SourceName))
+            return UnsupportedSourceFile(descriptor, request.InputType, request.SourceName);
         if (Encoding.UTF8.GetByteCount(request.Source) > descriptor.MaximumInputBytes)
             return MigrationProblem(413, "Nutrient source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PXAMIG010");
 
@@ -172,6 +178,7 @@ public sealed class UnifiedMigrationsController(
                 request.Pdf.FileName,
                 request.InputType ?? "instantJson",
                 request.Source,
+                request.SourceName,
                 request.TranspiledSource,
                 compilerDiagnostics,
                 cancellationToken);
@@ -500,6 +507,45 @@ public sealed class UnifiedMigrationsController(
                request.SourceBase64.Length > checked((maximumBytes * 4 / 3) + 4);
     }
 
+    private IActionResult UnsupportedSourceFile(
+        MigrationProviderDescriptor descriptor,
+        string? inputType,
+        string sourceName)
+    {
+        var extensions = MatchingInputs(descriptor, inputType)
+            .SelectMany(static input => input.FileExtensions)
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        return MigrationProblem(
+            400,
+            "Unsupported migration source file",
+            $"'{Path.GetFileName(sourceName)}' is not supported by {descriptor.DisplayName}. " +
+            $"Choose one of: {string.Join(", ", extensions)}.",
+            "PXAMIG011");
+    }
+
+    private static bool AcceptsSourceName(
+        MigrationProviderDescriptor descriptor,
+        string? inputType,
+        string sourceName)
+    {
+        var normalizedName = Path.GetFileName(sourceName).Trim().ToLowerInvariant();
+        return MatchingInputs(descriptor, inputType)
+            .SelectMany(static input => input.FileExtensions)
+            .Any(extension => normalizedName.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<MigrationInputDescriptor> MatchingInputs(
+        MigrationProviderDescriptor descriptor,
+        string? inputType)
+    {
+        if (string.IsNullOrWhiteSpace(inputType) || inputType.Equals("report", StringComparison.OrdinalIgnoreCase))
+            return descriptor.Inputs;
+
+        var matches = descriptor.Inputs.Where(input =>
+            input.Id.Equals(inputType, StringComparison.OrdinalIgnoreCase));
+        return matches.Any() ? matches : descriptor.Inputs;
+    }
+
     private bool IsDesignerRequest() => string.Equals(
         Request.Headers["X-PXA-Application"].ToString(), "designer", StringComparison.OrdinalIgnoreCase);
 
@@ -561,6 +607,7 @@ public sealed class NutrientViewerDesignMigrationRequest
     public IFormFile? Pdf { get; set; }
     public string? InputType { get; set; }
     public string Source { get; set; } = "";
+    public string? SourceName { get; set; }
     public string? TranspiledSource { get; set; }
     public string? CompilerDiagnostics { get; set; }
 }

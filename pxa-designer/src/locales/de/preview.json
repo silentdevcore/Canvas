@@ -39,7 +39,7 @@
       "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
     }
   },
-  "openInPdfViewer": "Im PDF-Betrachter öffnen",
+  "openInPdfViewer": "Im PDF-Viewer öffnen",
   "watermarkAlt": "Wasserzeichen",
   "footer": {
     "template": "Vorlage",

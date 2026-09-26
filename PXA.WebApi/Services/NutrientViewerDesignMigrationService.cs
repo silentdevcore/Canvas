@@ -15,6 +15,7 @@ public sealed class NutrientViewerDesignMigrationService
         string pdfName,
         string inputType,
         string source,
+        string? sourceName,
         string? transpiledSource,
         IReadOnlyList<string>? compilerDiagnostics,
         CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ public sealed class NutrientViewerDesignMigrationService
 
         if (inputType.Equals("instantJson", StringComparison.OrdinalIgnoreCase))
         {
-            var converted = new NutrientInstantJsonConverter().Convert(source, pages, pdfName);
+            var converted = new NutrientInstantJsonConverter().Convert(source, pages, sourceName ?? pdfName);
             annotations = JsonSerializer.Deserialize<PxaViewerAnnotationSidecar>(converted.AnnotationSidecarJson, JsonOptions);
             formValues = JsonSerializer.Deserialize<PxaViewerFormValuePayload>(converted.FormValuePayloadJson, JsonOptions);
             diagnostics.AddRange(converted.Diagnostics);
@@ -50,9 +51,9 @@ public sealed class NutrientViewerDesignMigrationService
                 ? new NutrientViewerSourceConverter().ConvertTranspiledTypeScript(
                     source,
                     transpiledSource ?? throw new ArgumentException("TypeScript compiler output is required."),
-                    pdfName,
+                    sourceName ?? pdfName,
                     compilerDiagnostics)
-                : new NutrientViewerSourceConverter().Convert(source, "javascript", pdfName);
+                : new NutrientViewerSourceConverter().Convert(source, "javascript", sourceName ?? pdfName);
             viewerSettings = JsonDocument.Parse(converted.NormalizedViewerSettingsJson).RootElement.Clone();
             diagnostics.AddRange(converted.Diagnostics);
             fidelity = converted.DocumentFidelity;

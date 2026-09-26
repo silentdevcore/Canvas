@@ -251,6 +251,49 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
     }
 
     [Fact]
+    public void DesignerProviderCatalog_DeclaresProviderSpecificSourceFiles()
+    {
+        var expected = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["activereports-js"] = [".json"],
+            ["devexpress-report"] = [".cs", ".repx"],
+            ["fastreport"] = [".frx"],
+            ["jasperreports"] = [".jrxml"],
+            ["rdl"] = [".rdl", ".rdlc", ".rdlx"],
+            ["rpx"] = [".rpx"],
+            ["stimulsoft"] = [".mrt"],
+            ["telerik"] = [".trdx", ".trdp"],
+        };
+
+        foreach (var (provider, extensions) in expected)
+        {
+            var descriptor = MigrationProviderCatalog.Get("report", "designer", provider);
+            var input = Assert.Single(descriptor.Inputs);
+            Assert.Equal(extensions, input.FileExtensions);
+            Assert.Equal(provider is "rdl" or "telerik", input.SupportsBinary);
+        }
+
+        var devExpress = MigrationProviderCatalog.Get("report", "designer", "devexpress-report");
+        Assert.DoesNotContain(".resx", devExpress.Inputs[0].FileExtensions);
+    }
+
+    [Fact]
+    public void CanonicalDesignerConversion_RejectsFileFromAnotherProvider()
+    {
+        var controller = CreateCanonicalController(
+            "designer.migration.report.designer.execute",
+            "designer.migration.report.designer.provider.devexpress.execute");
+
+        var result = controller.Convert(
+            "report", "designer", "devexpress-report",
+            new UnifiedMigrationRequest("report", "<jasperReport />", "report.jrxml"));
+
+        var problem = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
+        Assert.Equal("PXAMIG011", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+    }
+
+    [Fact]
     public void CanonicalConversion_RequiresKindAndProviderPermissions()
     {
         var controller = CreateCanonicalController(

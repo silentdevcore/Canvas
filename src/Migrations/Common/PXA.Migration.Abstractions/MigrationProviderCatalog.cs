@@ -127,7 +127,7 @@ public static class MigrationProviderCatalog
         SpreadsheetCodeProvider("syncfusion-xlsio", "syncfusion", "Syncfusion XlsIO", ["SyncfusionXlsIo"]),
 
         ReportProvider("activereports-js", "activereports-js", "ActiveReports JS", ["ActiveReportsJsReport"], [".json"]),
-        ReportProvider("devexpress-report", "devexpress", "DevExpress XtraReports", ["DevExpressReport"], [".cs", ".repx", ".resx"]),
+        ReportProvider("devexpress-report", "devexpress", "DevExpress XtraReports", ["DevExpressReport"], [".cs", ".repx"]),
         ReportProvider("fastreport", "fastreport", "FastReport", ["FrxReport"], [".frx"]),
         ReportProvider("jasperreports", "jasperreports", "JasperReports", ["JrxmlReport"], [".jrxml"]),
         ReportProvider("rdl", "rdl", "RDL / RDLC", ["RdlReport"], [".rdl", ".rdlc", ".rdlx"]),
@@ -172,7 +172,8 @@ public static class MigrationProviderCatalog
         string key, string family, string name, IReadOnlyList<string> aliases, IReadOnlyList<string> extensions) =>
         new(key, family, name, MigrationDomains.Report, MigrationKinds.Designer, "full",
             $"Migrates {name} reports to editable PXA design JSON.", aliases,
-            [new("report", "application/octet-stream", extensions, true, true)], [DesignJson], false, false,
+            [new("report", "application/octet-stream", extensions, true,
+                extensions.Any(extension => extension is ".trdp" or ".rdlx"))], [DesignJson], false, false,
             $"report-designer-migration-{key}");
 
     private static IReadOnlyDictionary<string, MigrationProviderDescriptor> BuildLookup()

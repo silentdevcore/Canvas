@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
-import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
+import { FiCheckCircle, FiCode, FiCopy, FiDownload, FiExternalLink, FiFileText, FiGitMerge, FiLayout, FiPlay, FiRefreshCw, FiSearch, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
 import MigrationWorkspace from '@/components/Migrations/MigrationWorkspace';
@@ -12,6 +12,15 @@ import { designerDocumentationUrl } from '@/product/productMetadata';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { migrationProviderPermission } from '@/auth/designerPermissions';
 import { transpileNutrientViewerTypeScript } from '@/features/pdf-viewer/nutrientTypeScript';
+import {
+  acceptsMigrationFile,
+  bytesToBase64,
+  inferMigrationInput,
+  migrationFileAccept,
+  migrationFileExtensionsLabel,
+  startsWithZipSignature,
+  type MigrationInputContract,
+} from '@/features/migrations/sourceFiles';
 
 // Framework ids for the report → PXA Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -34,6 +43,8 @@ interface Framework {
   aliases?: string[];
   supportsPreview?: boolean;
   hasExamples?: boolean;
+  inputs?: MigrationInputContract[];
+  maximumInputBytes?: number;
 }
 
 interface Diagnostic {
@@ -883,7 +894,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const [nutrientPdf, setNutrientPdf] = useState<File | null>(null);
   // Base64 of a binary/zip report package (.trdp, packaged .rdlx); when set, sent as sourceBase64.
   const [sourceBase64, setSourceBase64] = useState<string | null>(null);
-  const [binaryFileName, setBinaryFileName] = useState('');
+  const [sourceFileName, setSourceFileName] = useState('');
   const [resourceJson, setResourceJson] = useState('');
   const [resourceXml, setResourceXml] = useState('');
   const [resourceFileName, setResourceFileName] = useState('');
@@ -896,7 +907,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
   const [pdfTrust, setPdfTrust] = useState<PdfTrustMigrationResult | null>(null);
   const [hasConverted, setHasConverted] = useState(false);
-  const [diagOpen, setDiagOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
@@ -904,6 +914,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [diffMode, setDiffMode] = useState(false);
+  const [providerSearch, setProviderSearch] = useState('');
+  const [resultView, setResultView] = useState<'preview' | 'output' | 'diagnostics'>('preview');
   const [splitPercent, setSplitPercent] = useState(50);
   const prevPdfUrl = useRef<string | null>(null);
   const handleConvertRef = useRef<() => Promise<void>>(async () => {});
@@ -937,6 +949,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           aliases: provider.aliases ?? [],
           supportsPreview: provider.supportsPreview,
           hasExamples: provider.hasExamples,
+          inputs: provider.inputs ?? [],
+          maximumInputBytes: provider.maximumInputBytes ?? 10 * 1024 * 1024,
         }))))
       .catch(() => setError(t('errors.conversionFailed')));
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
@@ -959,6 +973,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setSelectedId(id);
     setSourceCode('');
     setNutrientPdf(null);
+    setSourceBase64(null);
+    setSourceFileName('');
     setResourceJson('');
     setResourceXml('');
     setResourceFileName('');
@@ -971,14 +987,16 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setSummary(null);
     setPdfTrust(null);
     setHasConverted(false);
-    setDiagOpen(false);
     setPdfUrl(null);
     setPdfDataUrl(null);
     setError(null);
     setReportDesign(null);
+    setResultView('preview');
   };
 
   const loadSelectedExample = async () => {
+    setSourceBase64(null);
+    setSourceFileName('');
     if (isDesigner && selectedId === 'nutrient-viewer') {
       try {
         const response = await fetch('/api/pxa/v1/migrations/pdf/designer/nutrient-viewer/examples');
@@ -1026,7 +1044,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setSummary(data.summary ?? null);
     setPdfTrust(data.pdfTrust ?? null);
     setHasConverted(true);
-    setDiagOpen(diags.some(d => d.severity === 'Warning'));
+    setResultView('output');
   };
 
   const handleResourceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1037,6 +1055,54 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     try {
       setResourceXml(await file.text());
       setResourceFileName(file.name);
+      setError(null);
+    } catch {
+      setError(t('errors.couldNotReadFile', { fileName: file.name }));
+    }
+  };
+
+  const handleSourceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !current) return;
+
+    const inputs = (current.inputs ?? []).filter(input => input.id !== 'pdf');
+    if (!acceptsMigrationFile(file.name, inputs)) {
+      setError(t('errors.unsupportedSourceFile', {
+        fileName: file.name,
+        framework: current.name,
+        extensions: migrationFileExtensionsLabel(inputs),
+      }));
+      return;
+    }
+    const maximumInputBytes = current.maximumInputBytes ?? 10 * 1024 * 1024;
+    if (file.size > maximumInputBytes) {
+      setError(t('errors.sourceFileTooLarge', {
+        fileName: file.name,
+        size: Math.ceil(maximumInputBytes / (1024 * 1024)),
+      }));
+      return;
+    }
+
+    try {
+      const input = inferMigrationInput(file.name, inputs);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const isBinaryPackage = !!input?.supportsBinary && startsWithZipSignature(bytes);
+      if (isBinaryPackage || input?.supportsText === false) {
+        setSourceBase64(bytesToBase64(bytes));
+        setSourceCode(`/* ${file.name} (${bytes.length} bytes) */`);
+      } else {
+        setSourceCode(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+        setSourceBase64(null);
+      }
+      if (selectedId === 'nutrient-viewer' && input?.id) {
+        setNutrientInputType(input.id as 'javascript' | 'typescript' | 'instantJson');
+      }
+      setSourceFileName(file.name);
+      setReportDesign(null);
+      setHasConverted(false);
+      setPdfUrl(null);
+      setPdfDataUrl(null);
       setError(null);
     } catch {
       setError(t('errors.couldNotReadFile', { fileName: file.name }));
@@ -1093,28 +1159,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     }
   };
 
-  // Load a binary/zip report package (.trdp, packaged .rdlx) and send it base64-encoded as sourceBase64;
-  // the backend unzips it and converts the inner report.
-  const handlePackageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      let binary = '';
-      const chunk = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunk)
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-      setSourceBase64(btoa(binary));
-      setBinaryFileName(file.name);
-      setSourceCode(`/* Binary report package loaded: ${file.name} (${bytes.length} bytes). Click Convert. */`);
-      setError(null);
-    } catch {
-      setError(t('errors.couldNotReadPackage'));
-    } finally {
-      e.target.value = '';
-    }
-  };
-
   const renderDesignerPreview = async (design: any) => {
     const response = await fetch('/api/templates/render-design', {
       method: 'POST',
@@ -1153,6 +1197,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           form.append('pdf', nutrientPdf);
           form.append('inputType', nutrientInputType);
           form.append('source', sourceCode);
+          if (sourceFileName) form.append('sourceName', sourceFileName);
           if (transpiledSource) form.append('transpiledSource', transpiledSource);
           if (compilerDiagnostics) form.append('compilerDiagnostics', JSON.stringify(compilerDiagnostics));
           const response = await fetch(`${API_BASE}/pdf/designer/nutrient-viewer/convert`, {
@@ -1170,8 +1215,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           setSummary(data.summary ?? null);
           setPdfTrust(null);
           setHasConverted(true);
-          setDiagOpen(diags.some(diagnostic => diagnostic.severity === 'Warning'));
           await renderDesignerPreview(design);
+          setResultView('preview');
           return;
         }
         let resources: Record<string, string> = {};
@@ -1195,6 +1240,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           body: JSON.stringify({
             inputType: 'report',
             source: sourceCode,
+            sourceName: sourceFileName || undefined,
             sourceBase64: sourceBase64 ?? undefined,
             resources: Object.keys(resources).length > 0 ? resources : undefined,
             resourceXml: resourceXml.trim() ? resourceXml : undefined,
@@ -1210,7 +1256,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
         setSummary(data.summary ?? null);
         setPdfTrust(null);
         setHasConverted(true);
-        setDiagOpen(diags.some(d => d.severity === 'Warning'));
+        setResultView('output');
         return;
       }
 
@@ -1297,6 +1343,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       prevPdfUrl.current = url;
       setPdfUrl(url);
       setPdfDataUrl(await blobToDataUrl(blob));
+      setResultView('preview');
     } catch (e: any) {
       setError(e.message ?? t('errors.previewFailed'));
     } finally {
@@ -1328,7 +1375,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       dataUrl: pdfDataUrl,
       name: `${selectedId}-migration-preview.pdf`,
     });
-    navigate('/pdf-viewer?handoff=session');
+    navigate('/pdf/viewer?handoff=session');
   };
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
@@ -1362,6 +1409,20 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   }, []);
 
   const isSpreadsheetCode = !isDesigner && kindFilter === 'spreadsheet';
+  const visibleFrameworks = availableFrameworks.filter(framework => framework.migrationKind !== 'viewer'
+    && (isDesigner || (isSpreadsheetCode ? framework.kind === 'spreadsheet' : framework.kind !== 'spreadsheet')));
+  const normalizedProviderSearch = providerSearch.trim().toLocaleLowerCase();
+  const filteredFrameworks = visibleFrameworks.filter(framework => {
+    if (!normalizedProviderSearch) return true;
+    const extensions = migrationFileExtensionsLabel(framework.inputs ?? []);
+    return `${framework.name} ${framework.description} ${extensions}`.toLocaleLowerCase().includes(normalizedProviderSearch);
+  });
+  const providerGroups = isDesigner
+    ? [
+        { id: 'report', label: t('workbench.reportDesigners'), items: filteredFrameworks.filter(framework => framework.kind === 'report') },
+        { id: 'pdf', label: t('workbench.viewerWorkflows'), items: filteredFrameworks.filter(framework => framework.kind === 'pdf') },
+      ]
+    : [{ id: isSpreadsheetCode ? 'spreadsheet' : 'pdf', label: t(isSpreadsheetCode ? 'workbench.spreadsheetFrameworks' : 'workbench.pdfFrameworks'), items: filteredFrameworks }];
   const workspaceTabs = isSpreadsheetCode
     ? sheetTabs('code', t)
     : isDesigner
@@ -1390,58 +1451,76 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           </button>
         </div>
 
-        {/* Framework selector */}
-        <div className="mgr-framework-bar">
-          <label htmlFor="mgr-fw-select">{t('sourceFramework')}</label>
-          <select
-            id="mgr-fw-select"
-            value={selectedId}
-            onChange={e => handleFrameworkChange(e.target.value)}
-          >
-            {(() => {
-              const label = (f: Framework) =>
-                `${f.name}${f.status === 'skeleton' ? ' (skeleton)' : f.status === 'pilot' ? ' (pilot)' : ''}`;
-              const opt = (f: Framework) => <option key={f.id} value={f.id}>{label(f)}</option>;
-              // Code mode: the PDF | Spreadsheet sub-tab filters by kind. Designer mode: show all.
-              const visible = isDesigner
-                ? availableFrameworks
-                : availableFrameworks.filter(f => f.migrationKind !== 'viewer'
-                  && (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
-              return visible.map(opt);
-            })()}
-          </select>
-          {current && (
-            <span className="mgr-framework-desc">{current.description}</span>
-          )}
-          {current?.status === 'full' && (
-            <span className="mgr-badge mgr-badge-full">{t('status.full')}</span>
-          )}
-          {current?.status === 'pilot' && (
-            <span className="mgr-badge mgr-badge-pilot">{t('status.pilot')}</span>
-          )}
-          {current?.status === 'skeleton' && (
-            <span className="mgr-badge mgr-badge-skeleton">{t('status.skeleton')}</span>
-          )}
-          {(EXAMPLES[exampleKey] || current?.hasExamples) && (
-            <button
-              className="mgr-example-btn"
-              onClick={loadSelectedExample}
-              title={t('loadExampleTitle', { name: current?.name ?? selectedId })}
-            >
-              {t('loadExample')}
-            </button>
-          )}
-        </div>
-
         {error && (
           <div className="mgr-error" role="alert">{error}</div>
         )}
 
-        {/* Split: source | canvas */}
-        <div className="mgr-split" ref={splitRef}>
+        <div className="mgr-workbench">
+          <aside className="mgr-provider-sidebar" aria-label={t('workbench.providers')}>
+            <div className="mgr-provider-sidebar-header">
+              <span>{t('workbench.providers')}</span>
+              <small>{visibleFrameworks.length}</small>
+            </div>
+            <label className="mgr-provider-search">
+              <FiSearch aria-hidden="true" />
+              <span className="sr-only">{t('workbench.searchProviders')}</span>
+              <input
+                type="search"
+                value={providerSearch}
+                onChange={event => setProviderSearch(event.target.value)}
+                placeholder={t('workbench.searchProviders')}
+              />
+            </label>
+            <div className="mgr-provider-groups">
+              {providerGroups.map(group => group.items.length > 0 && (
+                <section className="mgr-provider-group" key={group.id}>
+                  <h2>{group.label}</h2>
+                  {group.items.map(framework => (
+                    <button
+                      type="button"
+                      key={framework.id}
+                      data-provider-id={framework.id}
+                      className={`mgr-provider-item${selectedId === framework.id ? ' is-selected' : ''}`}
+                      onClick={() => handleFrameworkChange(framework.id)}
+                      aria-pressed={selectedId === framework.id}
+                    >
+                      <span className="mgr-provider-mark">{framework.name.slice(0, 2).toUpperCase()}</span>
+                      <span className="mgr-provider-copy">
+                        <strong>{framework.name}</strong>
+                        <small>{migrationFileExtensionsLabel(framework.inputs ?? [])}</small>
+                      </span>
+                      <span
+                        className={`mgr-provider-status is-${framework.status}`}
+                        title={t(`status.${framework.status}`, { defaultValue: framework.status })}
+                      >
+                        {t(`status.${framework.status}`, { defaultValue: framework.status })}
+                      </span>
+                    </button>
+                  ))}
+                </section>
+              ))}
+              {filteredFrameworks.length === 0 && (
+                <p className="mgr-provider-empty">{t('workbench.noProviders')}</p>
+              )}
+            </div>
+          </aside>
+
+          {/* Source and result workspace */}
+          <div className="mgr-split" ref={splitRef}>
           <div className="mgr-pane" style={{ width: `${splitPercent}%` }}>
             <div className="mgr-pane-header">
-              <span>{t('sourceCodeHeader', { name: current?.name ?? selectedId })}</span>
+              <div className="mgr-pane-title">
+                <span className="mgr-step">1</span>
+                <span>
+                  <strong>{t('workbench.source')}</strong>
+                  <small>{current?.name ?? selectedId}</small>
+                </span>
+              </div>
+              {(EXAMPLES[exampleKey] || current?.hasExamples) && (
+                <button className="mgr-example-btn" onClick={loadSelectedExample} title={t('loadExampleTitle', { name: current?.name ?? selectedId })}>
+                  {t('loadExample')}
+                </button>
+              )}
             </div>
             <div className="mgr-editor-wrapper">
               <Editor
@@ -1449,7 +1528,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                   ? nutrientInputType === 'instantJson' ? 'json' : nutrientInputType
                   : 'csharp'}
                 value={sourceCode}
-                onChange={v => { setSourceCode(v ?? ''); if (sourceBase64) { setSourceBase64(null); setBinaryFileName(''); } }}
+                onChange={v => { setSourceCode(v ?? ''); if (sourceBase64) { setSourceBase64(null); setSourceFileName(''); } }}
                 onMount={handleSourceMount}
                 options={{
                   minimap: { enabled: false },
@@ -1473,6 +1552,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     onChange={event => {
                       setNutrientInputType(event.target.value as 'javascript' | 'typescript' | 'instantJson');
                       setSourceCode('');
+                      setSourceBase64(null);
+                      setSourceFileName('');
                       setReportDesign(null);
                       setHasConverted(false);
                       setPdfUrl(null);
@@ -1484,6 +1565,35 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     <option value="typescript">{t('viewerMigration.typescript')}</option>
                   </select>
                 </div>
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-source-file">{t('resources.sourceFile')}</label>
+                  <span>{sourceFileName || t('resources.noSourceFile')}</span>
+                </div>
+                <div className="mgr-resource-actions">
+                  <label className="mgr-file-btn" htmlFor="mgr-source-file">
+                    <FiUpload /> {t('resources.selectSourceFile')}
+                  </label>
+                  <input
+                    id="mgr-source-file"
+                    type="file"
+                    accept={migrationFileAccept(current?.inputs?.filter(input => input.id !== 'pdf') ?? [])}
+                    onChange={handleSourceFileChange}
+                  />
+                  {sourceFileName && (
+                    <button type="button" className="mgr-link-btn" onClick={() => {
+                      setSourceCode('');
+                      setSourceBase64(null);
+                      setSourceFileName('');
+                    }}>
+                      {t('resources.clear')}
+                    </button>
+                  )}
+                </div>
+                <small className="mgr-source-formats">
+                  {t('resources.supportedSourceFiles', {
+                    extensions: migrationFileExtensionsLabel(current?.inputs?.filter(input => input.id !== 'pdf') ?? []),
+                  })}
+                </small>
                 <div className="mgr-resource-header">
                   <label htmlFor="mgr-nutrient-pdf">{t('viewerMigration.originalPdf')}</label>
                   <span>{nutrientPdf?.name ?? t('viewerMigration.noOriginalPdf')}</span>
@@ -1503,61 +1613,71 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     }}
                   />
                 </div>
+                <small className="mgr-source-formats">{t('resources.requiredOriginalPdf')}</small>
                 <small>{t('viewerMigration.designerMigrationHint')}</small>
               </div>
             ) : isDesigner && (
               <div className="mgr-resource-panel">
                 <div className="mgr-resource-header">
-                  <label htmlFor="mgr-resource-file">{t('resources.header')}</label>
-                  <span>{resourceFileName || t('resources.noResxLoaded')}</span>
+                  <label htmlFor="mgr-source-file">{t('resources.sourceFile')}</label>
+                  <span>{sourceFileName || t('resources.noSourceFile')}</span>
                 </div>
                 <div className="mgr-resource-actions">
-                  <label className="mgr-file-btn" htmlFor="mgr-resource-file">
-                    <FiUpload /> {t('resources.loadResx')}
+                  <label className="mgr-file-btn" htmlFor="mgr-source-file">
+                    <FiUpload /> {t('resources.selectSourceFile')}
                   </label>
                   <input
-                    id="mgr-resource-file"
+                    id="mgr-source-file"
                     type="file"
-                    accept=".resx,.xml"
-                    onChange={handleResourceFileChange}
+                    accept={migrationFileAccept(current?.inputs ?? [])}
+                    onChange={handleSourceFileChange}
                   />
-                  {(resourceXml || resourceFileName) && (
+                  {sourceFileName && (
                     <button
                       type="button"
                       className="mgr-link-btn"
                       onClick={() => {
-                        setResourceXml('');
-                        setResourceFileName('');
+                        setSourceCode('');
+                        setSourceBase64(null);
+                        setSourceFileName('');
                       }}
                     >
                       {t('resources.clear')}
                     </button>
                   )}
                 </div>
-                <div className="mgr-resource-header">
-                  <label htmlFor="mgr-package-file">{t('resources.packageHeader')}</label>
-                  <span>{binaryFileName || t('resources.noPackageLoaded')}</span>
-                </div>
-                <div className="mgr-resource-actions">
-                  <label className="mgr-file-btn" htmlFor="mgr-package-file">
-                    <FiUpload /> {t('resources.loadPackage')}
-                  </label>
-                  <input
-                    id="mgr-package-file"
-                    type="file"
-                    accept=".trdp,.trdx,.rdlx,.zip"
-                    onChange={handlePackageFileChange}
-                  />
-                  {sourceBase64 && (
-                    <button
-                      type="button"
-                      className="mgr-link-btn"
-                      onClick={() => { setSourceBase64(null); setBinaryFileName(''); setSourceCode(''); }}
-                    >
-                      {t('resources.clear')}
-                    </button>
-                  )}
-                </div>
+                <small className="mgr-source-formats">
+                  {t('resources.supportedSourceFiles', {
+                    extensions: migrationFileExtensionsLabel(current?.inputs ?? []),
+                  })}
+                </small>
+                {selectedId === 'devexpress-report' && (
+                  <>
+                    <div className="mgr-resource-header">
+                      <label htmlFor="mgr-resource-file">{t('resources.header')}</label>
+                      <span>{resourceFileName || t('resources.noResxLoaded')}</span>
+                    </div>
+                    <div className="mgr-resource-actions">
+                      <label className="mgr-file-btn" htmlFor="mgr-resource-file">
+                        <FiUpload /> {t('resources.loadResx')}
+                      </label>
+                      <input
+                        id="mgr-resource-file"
+                        type="file"
+                        accept=".resx"
+                        onChange={handleResourceFileChange}
+                      />
+                      {(resourceXml || resourceFileName) && (
+                        <button type="button" className="mgr-link-btn" onClick={() => {
+                          setResourceXml('');
+                          setResourceFileName('');
+                        }}>
+                          {t('resources.clear')}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
                 {selectedId === 'jasperreports' && (
                   <>
                     <div className="mgr-resource-header">
@@ -1643,6 +1763,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               </div>
             )}
             <div className="mgr-pane-footer">
+              <span className="mgr-source-ready">
+                <FiCheckCircle /> {sourceCode.trim() || sourceBase64 ? t('workbench.sourceReady') : t('workbench.awaitingSource')}
+              </span>
               <button
                 className="mgr-btn mgr-btn-primary"
                 onClick={handleConvert}
@@ -1657,9 +1780,15 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
           <div className="mgr-drag-handle" onMouseDown={handleDragStart} title={t('dragToResize')} />
 
-          <div className="mgr-pane" style={{ flex: 1 }}>
-            <div className="mgr-pane-header">
-              <span>{isDesigner ? t('output.design') : current?.kind === 'spreadsheet' ? t('output.spreadsheetCode') : t('output.pdfCode')}</span>
+          <div className="mgr-pane mgr-result-pane" style={{ flex: 1 }}>
+            <div className="mgr-pane-header mgr-result-header">
+              <div className="mgr-pane-title">
+                <span className="mgr-step">2</span>
+                <span>
+                  <strong>{t('workbench.result')}</strong>
+                  <small>{hasConverted ? t('workbench.resultReady') : t('workbench.awaitingConversion')}</small>
+                </span>
+              </div>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button
@@ -1683,7 +1812,22 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                 </button>
               </div>
             </div>
-            <div className="mgr-editor-wrapper">
+            <div className="mgr-result-tabs" role="tablist" aria-label={t('workbench.resultViews')}>
+              {(['preview', 'output', 'diagnostics'] as const).map(view => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={resultView === view}
+                  className={resultView === view ? 'is-active' : ''}
+                  onClick={() => setResultView(view)}
+                  key={view}
+                >
+                  {t(`workbench.${view}`)}
+                  {view === 'diagnostics' && diagnostics.length > 0 && <span>{diagnostics.length}</span>}
+                </button>
+              ))}
+            </div>
+            {resultView === 'output' && <div className="mgr-editor-wrapper">
               {diffMode && pxaCode ? (
                 <DiffEditor
                   language="csharp"
@@ -1719,7 +1863,62 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                   height="100%"
                 />
               )}
-            </div>
+            </div>}
+            {resultView === 'preview' && (
+              <div className="mgr-preview mgr-preview-embedded">
+                <div className="mgr-preview-header">
+                  <span>{isSpreadsheetCode ? t('preview.spreadsheetHeader') : t('preview.pdfHeader')}</span>
+                  {pdfDataUrl && !isSpreadsheetCode && (
+                    <button className="mgr-preview-action" type="button" onClick={handleOpenPreviewInViewer}>
+                      <FiExternalLink />
+                      {t('preview.openInPdfViewer')}
+                    </button>
+                  )}
+                </div>
+                {pdfUrl
+                  ? <iframe className="mgr-pdf-frame" src={pdfUrl} title={isSpreadsheetCode ? t('preview.spreadsheetHeader') : t('preview.pdfHeader')} />
+                  : (
+                    <div className="mgr-pdf-empty">
+                      <FiFileText size={32} />
+                      <p>
+                        <Trans
+                          t={t}
+                          i18nKey={isSpreadsheetCode ? 'preview.emptyPromptGrid' : 'preview.emptyPromptPdf'}
+                          values={{ action: t('generatePreview') }}
+                          components={{ strong: <strong /> }}
+                        />
+                      </p>
+                    </div>
+                  )}
+              </div>
+            )}
+            {resultView === 'diagnostics' && (
+              <div className="mgr-result-diagnostics">
+                {!hasConverted ? (
+                  <div className="mgr-pdf-empty"><FiCheckCircle size={32} /><p>{t('workbench.noDiagnosticsYet')}</p></div>
+                ) : (
+                  <>
+                    <div className="mgr-diag-summary">
+                      <strong>{t('diagnostics.label')}</strong>
+                      {summary && summary.convertedCount > 0 && <span className="mgr-diag-chip mgr-diag-chip-converted">{t('diagnostics.converted', { count: summary.convertedCount })}</span>}
+                      {warnCount > 0 && <span className="mgr-diag-chip mgr-diag-chip-warn">{t('diagnostics.warning', { count: warnCount })}</span>}
+                      {diagnostics.length === 0 && <span className="mgr-diag-chip mgr-diag-chip-ok">{t('diagnostics.noIssues')}</span>}
+                    </div>
+                    {diagnostics.length > 0 && (
+                      <ul className="mgr-diag-list">
+                        {diagnostics.map((diagnostic, index) => (
+                          <li key={`${diagnostic.code}-${index}`} className={`mgr-diag-item mgr-diag-${diagnostic.severity.toLowerCase()}`}>
+                            <code className="mgr-diag-code">{diagnostic.code}</code>
+                            <span>{diagnostic.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {pdfTrust && <PdfTrustMigrationReport report={pdfTrust} documentationBaseUrl={designerDocumentationUrl} />}
+                  </>
+                )}
+              </div>
+            )}
             <div className="mgr-pane-footer mgr-pane-footer-right">
               {isDesigner ? (
                 <>
@@ -1753,75 +1952,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
             </div>
           </div>
         </div>
-
-        {/* Diagnostics — always visible after a conversion */}
-        {hasConverted && (
-          <div className="mgr-diagnostics">
-            <div className="mgr-diag-summary">
-              <strong>{t('diagnostics.label')}</strong>
-              {summary && summary.convertedCount > 0 && (
-                <span className="mgr-diag-chip mgr-diag-chip-converted">{t('diagnostics.converted', { count: summary.convertedCount })}</span>
-              )}
-              {warnCount > 0 && (
-                <span className="mgr-diag-chip mgr-diag-chip-warn">{t('diagnostics.warning', { count: warnCount })}</span>
-              )}
-              {diagnostics.length === 0 && (
-                <span className="mgr-diag-chip mgr-diag-chip-ok">{t('diagnostics.noIssues')}</span>
-              )}
-              {diagnostics.length > 0 && (
-                <button
-                  className="mgr-diag-toggle"
-                  onClick={() => setDiagOpen(o => !o)}
-                  aria-expanded={diagOpen}
-                >
-                  {diagOpen ? t('diagnostics.hideDetails') : t('diagnostics.showDetails')}
-                </button>
-              )}
-            </div>
-            {diagOpen && (
-              <ul className="mgr-diag-list">
-                {diagnostics.map((d, i) => (
-                  <li key={i} className={`mgr-diag-item mgr-diag-${d.severity.toLowerCase()}`}>
-                    <code className="mgr-diag-code">{d.code}</code>
-                    <span>{d.message}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {hasConverted && pdfTrust && (
-          <PdfTrustMigrationReport report={pdfTrust} documentationBaseUrl={designerDocumentationUrl} />
-        )}
-
-        {/* Preview — PDF for PDF code, an HTML grid for spreadsheet code */}
-        <div className="mgr-preview">
-          <div className="mgr-preview-header">
-            <span>{isSpreadsheetCode ? t('preview.spreadsheetHeader') : t('preview.pdfHeader')}</span>
-            {pdfDataUrl && !isSpreadsheetCode && (
-              <button className="mgr-preview-action" type="button" onClick={handleOpenPreviewInViewer}>
-                <FiExternalLink />
-                {t('preview.openInPdfViewer')}
-              </button>
-            )}
-          </div>
-          {pdfUrl
-            ? <iframe className="mgr-pdf-frame" src={pdfUrl} title={isSpreadsheetCode ? t('preview.spreadsheetHeader') : t('preview.pdfHeader')} />
-            : (
-              <div className="mgr-pdf-empty">
-                <FiPlay size={32} />
-                <p>
-                  <Trans
-                    t={t}
-                    i18nKey={isSpreadsheetCode ? 'preview.emptyPromptGrid' : 'preview.emptyPromptPdf'}
-                    values={{ action: t('generatePreview') }}
-                    components={{ strong: <strong /> }}
-                  />
-                </p>
-              </div>
-            )
-          }
         </div>
       </main>
     </MigrationWorkspace>

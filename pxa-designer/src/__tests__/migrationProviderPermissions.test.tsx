@@ -79,8 +79,8 @@ const renderPage = async (
 
 const waitForOptions = async (container: HTMLElement, expected: string[]) => {
   for (let index = 0; index < 20; index++) {
-    const values = Array.from(container.querySelectorAll<HTMLSelectElement>('#mgr-fw-select option'))
-      .map(option => option.value);
+    const values = Array.from(container.querySelectorAll<HTMLElement>('[data-provider-id]'))
+      .map(option => option.dataset.providerId ?? '');
     if (JSON.stringify(values) === JSON.stringify(expected)) return;
     await act(async () => { await new Promise(resolve => window.setTimeout(resolve, 0)); });
   }
@@ -110,6 +110,23 @@ describe('migration provider permissions', () => {
   it('shows only the allowed PDF provider', async () => {
     root = await renderPage(container, 'pdf');
     await waitForOptions(container, ['syncfusion-pdf']);
+    expect(container.textContent).toContain('workbench.pdfFrameworks');
+  });
+
+  it('filters the provider sidebar by provider name or file type', async () => {
+    root = await renderPage(container, 'pdf');
+    await waitForOptions(container, ['syncfusion-pdf']);
+
+    const search = container.querySelector<HTMLInputElement>('input[type="search"]');
+    expect(search).not.toBeNull();
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      valueSetter?.call(search, 'does-not-exist');
+      search!.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    expect(container.querySelectorAll('[data-provider-id]')).toHaveLength(0);
+    expect(container.textContent).toContain('workbench.noProviders');
   });
 
   it('shows only the allowed Spreadsheet provider', async () => {

@@ -1,12 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PdfViewer from './PdfViewer';
-import { resolvePdfViewerLaunchConfig } from './handoff';
+import { consumePdfViewerHandoff, resolvePdfViewerLaunchConfig } from './handoff';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
 
 const PdfViewerPage: React.FC = () => {
   const launchConfig = useMemo(() => resolvePdfViewerLaunchConfig(), []);
   const { user } = useDesignerAuth();
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('handoff') === 'session') {
+      consumePdfViewerHandoff();
+    }
+  }, []);
 
   return (
     <div className="pdfv-page">

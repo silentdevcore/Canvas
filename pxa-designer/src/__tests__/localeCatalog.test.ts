@@ -57,4 +57,12 @@ describe('locale catalogs', () => {
       applyRedactions: 'Aplicar censuras',
     });
   });
+
+  test('German uses the established PDF Viewer product name', () => {
+    const catalogs = ['common.json', 'home.json', 'migrations.json', 'pdfViewer.json', 'preview.json']
+      .map(name => JSON.stringify(readCatalog('de', name)));
+
+    expect(catalogs.join('\n')).not.toContain('PDF-Betrachter');
+    expect(catalogs.join('\n')).toContain('PDF-Viewer');
+  });
 });

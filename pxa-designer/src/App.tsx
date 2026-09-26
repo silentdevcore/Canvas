@@ -36,6 +36,11 @@ const PdfCreateRoute: React.FC = () => {
   );
 };
 
+const LegacyPdfViewerRedirect: React.FC = () => {
+  const location = useLocation();
+  return <Navigate to={{ pathname: '/pdf/viewer', search: location.search, hash: location.hash }} replace />;
+};
+
 const App: React.FC = () => {
   if (visualParityEnabled && VisualParityPage && location.pathname === '/__visual-parity') {
     return (
@@ -146,7 +151,7 @@ const App: React.FC = () => {
       <Route path="/template" element={<Navigate to="/pdf/template" replace />} />
       <Route path="/create" element={<Navigate to="/pdf/create" replace />} />
       <Route path="/importer" element={<Navigate to="/pdf/import" replace />} />
-      <Route path="/pdf-viewer" element={<Navigate to="/pdf/viewer" replace />} />
+      <Route path="/pdf-viewer" element={<LegacyPdfViewerRedirect />} />
       <Route path="/migrations" element={<Navigate to="/pdf/migrations" replace />} />
       <Route path="/migrations/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
       <Route path="/migrations/pdf/code" element={<Navigate to="/pdf/migrations/code" replace />} />

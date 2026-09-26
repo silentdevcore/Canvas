@@ -213,7 +213,7 @@
   "resetForms": "Zurücksetzen",
   "flattenFields": "Formularfelder reduzieren",
   "unsupportedField": "Nicht unterstütztes Feld",
-  "emptyTitle": "PDF-Betrachter",
+  "emptyTitle": "PDF-Viewer",
   "emptyDescription": "Öffnen Sie eine lokale PDF-Datei oder eine vom Backend bereitgestellte PDF-URL, um Seiten zu prüfen, Text zu suchen, zu drucken oder herunterzuladen.",
   "pages": "Seiten",
   "loadingPdf": "PDF wird geladen...",
