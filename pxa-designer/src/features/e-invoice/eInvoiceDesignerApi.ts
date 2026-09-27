@@ -21,7 +21,12 @@ export interface EInvoiceValidationReport {
   syntax?: string | null;
   guidelineIdentifier?: string | null;
   diagnostics: Array<{ code: string; severity: string; message: string }>;
-  conformanceStatus: 'validated' | 'invalid' | 'notEvaluated';
+  /**
+   * The backend's own vocabulary: `valid` only ever comes from a pinned official artifact set,
+   * `unavailable` means an artifact set was selected but could not be verified, and
+   * `notEvaluated` means none was configured. Structural recognition never produces any of them.
+   */
+  conformanceStatus: 'valid' | 'invalid' | 'unavailable' | 'notEvaluated';
   validatorArtifactSetId?: string | null;
   validatorArtifactSetSha256?: string | null;
 }

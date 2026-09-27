@@ -36,6 +36,7 @@ import {
 } from '../features/e-invoice/invoiceValidation';
 import { calculateInvoice, createBindingContext } from '../features/e-invoice/invoiceTotals';
 import { toFixed } from '../features/e-invoice/exactDecimal';
+import { readEInvoiceDocument } from '../features/e-invoice/designerDocument';
 
 const LANGUAGES = ['en', 'de', 'fr', 'es', 'it', 'ar'] as const;
 const LOCALES_ROOT = path.join(process.cwd(), 'src', 'locales');
@@ -131,6 +132,30 @@ describe('typed invoice bindings', () => {
   it('creates line identifiers that do not collide', () => {
     const lines = [1, 2, 3].map(createEmptyLine);
     expect(new Set(lines.map(line => line.identifier)).size).toBe(3);
+  });
+
+  it('repairs malformed persisted values before arithmetic or rendering', () => {
+    const restored = readEInvoiceDocument({
+      schemaVersion: 1,
+      settings: { standard: 'FacturX', version: 'old', profile: 'missing' },
+      invoice: {
+        invoiceNumber: 42,
+        issueDate: 20260927,
+        currency: null,
+        currencyDecimalPlaces: 999,
+        seller: { name: ['invalid'], address: null },
+        buyer: null,
+        lines: [{ identifier: 1, quantity: 'many', unitPrice: null, taxRate: 19 }],
+      },
+    });
+
+    expect(restored).not.toBeNull();
+    expect(restored!.settings.version).toBe(EINVOICE_VERSIONS.FacturX);
+    expect(restored!.settings.profile).toBe(defaultSettings('FacturX').profile);
+    expect(restored!.invoice.currencyDecimalPlaces).toBe(2);
+    expect(restored!.invoice.issueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(restored!.invoice.lines[0]).toEqual({ ...createEmptyLine(1), taxRate: 19 });
+    expect(() => calculateInvoice(restored!.invoice)).not.toThrow();
   });
 });
 
@@ -313,10 +338,15 @@ describe('localized invoice validation', () => {
     expect(conformanceStateFor(broken)).toBe('draft');
     expect(conformanceStateFor(clean)).toBe('structurallyValid');
     expect(conformanceStateFor(clean, 'notEvaluated')).toBe('notEvaluated');
-    expect(conformanceStateFor(clean, 'validated')).toBe('validated');
+    // The backend's vocabulary is `valid`, not `validated`; only that reaches `validated`.
+    expect(conformanceStateFor(clean, 'valid')).toBe('validated');
     expect(conformanceStateFor(clean, 'invalid')).toBe('invalid');
+    expect(conformanceStateFor(clean, 'unavailable')).toBe('unavailable');
+    // An unknown or misspelled status must never be promoted to a conformance claim.
+    expect(conformanceStateFor(clean, 'validated')).toBe('structurallyValid');
+    expect(conformanceStateFor(clean, 'conformant')).toBe('structurallyValid');
     // A blocking error outranks any backend verdict the Designer may still be holding.
-    expect(conformanceStateFor(broken, 'validated')).toBe('draft');
+    expect(conformanceStateFor(broken, 'valid')).toBe('draft');
   });
 
   it('states the product boundary in every language', () => {

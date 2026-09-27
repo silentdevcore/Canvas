@@ -276,9 +276,33 @@ describe('app route smoke tests', () => {
       expect(getByText(container, 'Import PDF')).toBeTruthy();
       expect(getByText(container, 'Convert to PDF')).toBeTruthy();
       expect(getByText(container, /PDF Viewer/)).toBeTruthy();
+      expect(getByText(container, /Electronic invoice/)).toBeTruthy();
       expect(getByText(container, 'Migrations')).toBeTruthy();
       const primaryNavigation = container.querySelector('.pdf-nav-links');
       expect(primaryNavigation?.textContent).not.toContain('Reports');
+    });
+  });
+
+  test('the electronic invoice route is reachable from the PDF hub', async () => {
+    // A document has to be open for the workspace to offer an invoice; without one it
+    // correctly shows its loading state instead.
+    useEditorStore.setState({
+      currentTemplate: {
+        id: 'smoke-invoice',
+        name: 'Invoice smoke',
+        category: 'invoice',
+        description: '',
+        pages: [{ id: 'page-1', elements: [] }],
+        sharedElements: [],
+        data: {},
+      },
+    });
+
+    root = await renderRoute(container, '/pdf/e-invoice');
+
+    await waitUntil(() => {
+      expect(container.querySelector('[data-testid="einvoice-empty"]')).toBeTruthy();
+      expect(getByText(container, 'Start an invoice')).toBeTruthy();
     });
   });
 

@@ -7,6 +7,7 @@ import { DesignerAuthContextProvider } from '@/auth/DesignerAuthGate';
 import { designerPermissions } from '@/auth/designerPermissions';
 import allElementsFixture from '../../../test-assets/visual-parity/all-elements.json';
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
+import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 
 type Fixture = {
   id: string;
@@ -35,7 +36,13 @@ export default function VisualParityPage() {
   const [ready, setReady] = useState(false);
   const search = new URLSearchParams(location.search);
   const surface = search.get('surface') ?? 'preview';
-  const selectedFixture = search.get('fixture') === 'mixed-layout' ? mixedLayoutFixture : allElementsFixture;
+  // Keyed by fixture filename, matching the key tools/visual-parity/run.mjs derives.
+  const fixtures: Record<string, unknown> = {
+    'all-elements': allElementsFixture,
+    'mixed-layout': mixedLayoutFixture,
+    'e-invoice': eInvoiceFixture,
+  };
+  const selectedFixture = fixtures[search.get('fixture') ?? ''] ?? allElementsFixture;
   const design = selectedFixture as unknown as Fixture;
   const template: Template = {
     id: design.id,
@@ -93,14 +100,19 @@ export default function VisualParityPage() {
   }
 
   return (
-    <LivePreview
-      template={template}
-      pages={design.pages}
-      sharedElements={design.sharedElements ?? []}
-      pageSettings={normalizePageSettings(design.pageSettings)}
-      onBack={noop}
-      onExport={noop}
-      visualParityMode
-    />
+    // LivePreview calls useDesignerAuth for its export gating, so the preview surface needs the
+    // same auth context the canvas surface already had. Without it the preview never renders and
+    // the parity run hangs waiting for a surface that will never appear.
+    <DesignerAuthContextProvider user={parityUser}>
+      <LivePreview
+        template={template}
+        pages={design.pages}
+        sharedElements={design.sharedElements ?? []}
+        pageSettings={normalizePageSettings(design.pageSettings)}
+        onBack={noop}
+        onExport={noop}
+        visualParityMode
+      />
+    </DesignerAuthContextProvider>
   );
 }

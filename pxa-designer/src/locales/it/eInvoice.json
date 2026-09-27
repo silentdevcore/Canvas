@@ -9,7 +9,12 @@
     "buyer": "Acquirente",
     "lines": "Righe della fattura",
     "totals": "Totali",
-    "evidence": "Storico delle validazioni"
+    "evidence": "Storico delle validazioni",
+    "standards": "Standard e profilo",
+    "templates": "Layout",
+    "actions": "Genera",
+    "preview": "Risultato",
+    "diagnostics": "Validazione"
   },
   "fields": {
     "invoiceNumber": "Numero della fattura",
@@ -34,7 +39,9 @@
     "lineUnitPrice": "Prezzo unitario",
     "lineTaxRate": "Aliquota IVA",
     "lineTaxCategory": "Categoria IVA",
-    "lineNetAmount": "Importo netto"
+    "lineNetAmount": "Importo netto",
+    "notes": "Note",
+    "taxCategory": "Categoria IVA"
   },
   "actions": {
     "addLine": "Aggiungi riga",
@@ -43,14 +50,22 @@
     "createPdf": "Crea il PDF ibrido",
     "attachToPdf": "Allega a un PDF esistente",
     "validate": "Valida",
-    "viewHistory": "Storico delle validazioni"
+    "viewHistory": "Storico delle validazioni",
+    "downloadXml": "Scarica l'XML",
+    "downloadPdf": "Scarica il PDF",
+    "openInViewer": "Apri in PXA Viewer",
+    "moveLineUp": "Sposta la riga in alto",
+    "moveLineDown": "Sposta la riga in basso",
+    "insertTemplate": "Inserisci il layout",
+    "clearResult": "Cancella il risultato"
   },
   "totals": {
     "netTotal": "Totale netto",
     "taxTotal": "Totale IVA",
     "grandTotal": "Importo da pagare",
     "taxGroup": "IVA al {{rate}} %",
-    "taxBasis": "Base imponibile"
+    "taxBasis": "Base imponibile",
+    "calculated": "Calcolato da PXA; non modificabile."
   },
   "conformance": {
     "label": "Conformità",
@@ -60,7 +75,8 @@
     "validated": "Validata con gli artefatti ufficiali fissati",
     "invalid": "Respinta dagli artefatti ufficiali",
     "explanation": "Il riconoscimento strutturale non è un'affermazione di conformità. Un giudizio di conformità richiede un insieme di artefatti ufficiali fissato, il cui identificativo e hash accompagnano il risultato.",
-    "artifactSet": "Insieme di artefatti"
+    "artifactSet": "Insieme di artefatti",
+    "unavailable": "Sono stati selezionati artefatti ufficiali ma non è stato possibile verificarli"
   },
   "validation": {
     "invoiceNumberRequired": "È richiesto un numero di fattura.",
@@ -146,5 +162,88 @@
   "boundaries": {
     "title": "Fuori dall'ambito di PXA",
     "description": "PXA produce, incorpora, legge e valida documenti di fattura. Il trasporto Peppol, la trasmissione fiscale nazionale, la contabilità e la conservazione legale sono integrazioni separate."
+  },
+  "page": {
+    "defaultName": "Fattura elettronica",
+    "title": "Fattura elettronica",
+    "subtitle": "Componi la fattura una volta. PXA genera l'XML, produce la fattura ibrida PDF/A-3 visibile e dichiara cosa ha effettivamente validato."
+  },
+  "empty": {
+    "title": "Nessuna fattura in questo documento",
+    "description": "Avvia una fattura elettronica per modificare le parti, le righe, le imposte e i totali. Inserire un layout mantenuto la disegna sull’area di lavoro.",
+    "action": "Avvia una fattura"
+  },
+  "loading": "Caricamento dell'area di fatturazione...",
+  "unavailable": {
+    "title": "La fatturazione elettronica non è disponibile",
+    "description": "Questa funzione non è abilitata per il tuo spazio di lavoro. Chiedi a un amministratore di abilitarla o verifica il tuo diritto di prodotto."
+  },
+  "save": {
+    "label": "Bozza",
+    "idle": "Non ancora salvata",
+    "changed": "Modifiche non salvate",
+    "saving": "Salvataggio...",
+    "retrying": "Nuovo tentativo di salvataggio...",
+    "saved": "Salvata",
+    "failed": "Salvataggio non riuscito",
+    "offline": "Offline: le modifiche non vengono salvate",
+    "conflict": "Esiste una bozza del server più recente",
+    "reload": "Carica la bozza del server",
+    "saveAsNew": "Salva come nuova bozza",
+    "downloadLocal": "Scarica una copia locale"
+  },
+  "lines": {
+    "caption": "Righe della fattura con quantità, unità, prezzo unitario, IVA e importo netto calcolato",
+    "empty": "Nessuna riga di fattura.",
+    "position": "Riga {{position}}",
+    "netCalculated": "Calcolato da quantità e prezzo unitario"
+  },
+  "structural": {
+    "label": "Riconoscimento strutturale",
+    "pending": "Non ancora verificato",
+    "valid": "Riconosciuto come {{syntax}}",
+    "invalid": "Non riconosciuto"
+  },
+  "business": {
+    "label": "Validazione di business PXA",
+    "pending": "Non ancora verificato",
+    "ok": "Nessun rilievo bloccante",
+    "errors": "{{count}} errore(i)",
+    "warnings": "{{count}} avviso(i)"
+  },
+  "diagnostics": {
+    "title": "Rilievi",
+    "empty": "Nessun rilievo.",
+    "goToField": "Vai al campo",
+    "code": "Codice",
+    "severityError": "Errore",
+    "severityWarning": "Avviso",
+    "backendTitle": "Segnalato dal server"
+  },
+  "templates": {
+    "title": "Layout mantenuti",
+    "description": "Un layout si collega ai percorsi canonici della fattura. Inserirlo è un solo passo di annullamento.",
+    "insert": "Inserisci",
+    "active": "Inserito",
+    "none": "Nessun layout ancora inserito."
+  },
+  "announce": {
+    "validated": "Validazione completata.",
+    "validationFailed": "La validazione ha segnalato rilievi.",
+    "xmlReady": "XML della fattura generato.",
+    "pdfReady": "PDF ibrido creato.",
+    "generateFailed": "Generazione non riuscita."
+  },
+  "errors": {
+    "offline": "Sembri offline. Riprova appena la connessione torna disponibile.",
+    "validateFailed": "Non è stato possibile completare la validazione.",
+    "generateXmlFailed": "Non è stato possibile generare l'XML della fattura.",
+    "createPdfFailed": "Non è stato possibile creare il PDF ibrido.",
+    "serverCode": "Codice del server"
+  },
+  "result": {
+    "xmlReady": "L'XML della fattura è pronto.",
+    "pdfReady": "Il PDF ibrido è pronto.",
+    "none": "Ancora nulla generato."
   }
 }

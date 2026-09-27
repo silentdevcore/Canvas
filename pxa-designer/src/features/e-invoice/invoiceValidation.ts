@@ -150,16 +150,27 @@ export type DesignerConformanceState =
   | 'draft'
   | 'structurallyValid'
   | 'notEvaluated'
+  | 'unavailable'
   | 'validated'
   | 'invalid';
 
+/**
+ * Maps the backend's conformance vocabulary onto what the Designer may display.
+ *
+ * `validated` is reachable only when the backend reported `valid`, which it does only from a
+ * pinned official artifact set. Anything else - including a clean structural result - stops at
+ * `structurallyValid`, `notEvaluated` or `unavailable`, and a blocking local finding outranks
+ * every backend verdict because the document in front of the user is no longer the one that
+ * was validated.
+ */
 export function conformanceStateFor(
   findings: readonly InvoiceFinding[],
   backendConformanceStatus?: string | null,
 ): DesignerConformanceState {
   if (hasBlockingFindings(findings)) return 'draft';
-  if (backendConformanceStatus === 'validated') return 'validated';
+  if (backendConformanceStatus === 'valid') return 'validated';
   if (backendConformanceStatus === 'invalid') return 'invalid';
+  if (backendConformanceStatus === 'unavailable') return 'unavailable';
   if (backendConformanceStatus === 'notEvaluated') return 'notEvaluated';
   return 'structurallyValid';
 }

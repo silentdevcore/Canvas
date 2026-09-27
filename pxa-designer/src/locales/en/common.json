@@ -31,6 +31,7 @@
     "importPdf": "Import PDF",
     "convertToPdf": "Convert to PDF",
     "pdfViewer": "PDF Viewer",
+    "eInvoice": "Electronic invoice",
     "migrations": "Migrations"
   },
   "spreadsheetSidebar": {
@@ -80,6 +81,10 @@
     "notifications": { "title": "Notification center", "description": "Keep releases and important product messages available after transient feedback disappears." },
     "experimental": { "title": "Experimental features", "description": "Opt in to organization-approved Alpha capabilities." },
     "pdfViewer": { "title": "PDF Viewer", "description": "Inspect PDFs, annotations, forms, outlines, and related document data." },
+    "eInvoice": {
+      "title": "Electronic invoicing",
+      "description": "Build Factur-X, ZUGFeRD, and XRechnung invoices, generate the XML, and create a PDF/A-3 hybrid invoice."
+    },
     "pdfChartRecognition": { "title": "PDF chart recognition", "description": "Recover supported PDF charts as editable Designer elements with confidence-based review." },
     "codeWorkspace": { "title": "Code workspace", "description": "Convert, validate, and safely execute JSON, C# model, and PXA PDF code alongside the visual Designer." },
     "spreadsheet": { "title": "Spreadsheet", "description": "Author, import, calculate, and export workbook-based content." },

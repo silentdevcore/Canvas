@@ -17,6 +17,7 @@ import RequireDesignerPermission from '@/auth/RequireDesignerPermission';
 import { designerPermissions, migrationKindPermission } from '@/auth/designerPermissions';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
+const EInvoicePage = React.lazy(() => import('@/features/e-invoice/EInvoicePage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
 const visualParityEnabled = typeof __PXA_VISUAL_PARITY_ENABLED__ !== 'undefined'
   && __PXA_VISUAL_PARITY_ENABLED__;
@@ -87,6 +88,16 @@ const App: React.FC = () => {
             <RequireDesignerPermission permission={designerPermissions.pdfViewerRead}>
               <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
                 <PdfViewerPage />
+              </Suspense>
+            </RequireDesignerPermission>
+          )}
+        />
+        <Route
+          path="e-invoice"
+          element={(
+            <RequireDesignerPermission permission={designerPermissions.pdfEInvoicesRead}>
+              <Suspense fallback={<div className="route-loading">Loading electronic invoice...</div>}>
+                <EInvoicePage />
               </Suspense>
             </RequireDesignerPermission>
           )}

@@ -9,7 +9,12 @@
     "buyer": "Acheteur",
     "lines": "Lignes de facture",
     "totals": "Totaux",
-    "evidence": "Historique des validations"
+    "evidence": "Historique des validations",
+    "standards": "Norme et profil",
+    "templates": "Mise en page",
+    "actions": "Générer",
+    "preview": "Résultat",
+    "diagnostics": "Validation"
   },
   "fields": {
     "invoiceNumber": "Numéro de facture",
@@ -34,7 +39,9 @@
     "lineUnitPrice": "Prix unitaire",
     "lineTaxRate": "Taux de TVA",
     "lineTaxCategory": "Catégorie de TVA",
-    "lineNetAmount": "Montant net"
+    "lineNetAmount": "Montant net",
+    "notes": "Notes",
+    "taxCategory": "Catégorie de TVA"
   },
   "actions": {
     "addLine": "Ajouter une ligne",
@@ -43,14 +50,22 @@
     "createPdf": "Créer le PDF hybride",
     "attachToPdf": "Joindre à un PDF existant",
     "validate": "Valider",
-    "viewHistory": "Historique des validations"
+    "viewHistory": "Historique des validations",
+    "downloadXml": "Télécharger le XML",
+    "downloadPdf": "Télécharger le PDF",
+    "openInViewer": "Ouvrir dans PXA Viewer",
+    "moveLineUp": "Monter la ligne",
+    "moveLineDown": "Descendre la ligne",
+    "insertTemplate": "Insérer la mise en page",
+    "clearResult": "Effacer le résultat"
   },
   "totals": {
     "netTotal": "Total net",
     "taxTotal": "Total TVA",
     "grandTotal": "Montant à payer",
     "taxGroup": "TVA à {{rate}} %",
-    "taxBasis": "Base imposable"
+    "taxBasis": "Base imposable",
+    "calculated": "Calculé par PXA ; non modifiable."
   },
   "conformance": {
     "label": "Conformité",
@@ -60,7 +75,8 @@
     "validated": "Validée avec les artefacts officiels épinglés",
     "invalid": "Rejetée par les artefacts officiels",
     "explanation": "La reconnaissance structurelle n'est pas une affirmation de conformité. Un verdict de conformité exige un jeu d'artefacts officiels épinglé, dont l'identifiant et l'empreinte accompagnent le résultat.",
-    "artifactSet": "Jeu d'artefacts"
+    "artifactSet": "Jeu d'artefacts",
+    "unavailable": "Des artefacts officiels ont été sélectionnés mais n'ont pas pu être vérifiés"
   },
   "validation": {
     "invoiceNumberRequired": "Un numéro de facture est requis.",
@@ -146,5 +162,88 @@
   "boundaries": {
     "title": "Hors du périmètre de PXA",
     "description": "PXA produit, intègre, lit et valide des documents de facture. Le transport Peppol, la déclaration fiscale nationale, la comptabilité et la conservation légale sont des intégrations distinctes."
+  },
+  "page": {
+    "defaultName": "Facture électronique",
+    "title": "Facture électronique",
+    "subtitle": "Composez la facture une fois. PXA génère le XML, produit la facture hybride PDF/A-3 visible et indique ce qui a réellement été validé."
+  },
+  "empty": {
+    "title": "Aucune facture dans ce document",
+    "description": "Démarrez une facture électronique pour saisir les parties, les lignes, la TVA et les totaux. Insérer une mise en page maintenue la dessine sur le plan de travail.",
+    "action": "Démarrer une facture"
+  },
+  "loading": "Chargement de l'espace de facturation...",
+  "unavailable": {
+    "title": "La facturation électronique n'est pas disponible",
+    "description": "Cette fonctionnalité n'est pas activée pour votre espace de travail. Demandez son activation à un administrateur ou vérifiez votre droit produit."
+  },
+  "save": {
+    "label": "Brouillon",
+    "idle": "Pas encore enregistré",
+    "changed": "Modifications non enregistrées",
+    "saving": "Enregistrement...",
+    "retrying": "Nouvelle tentative...",
+    "saved": "Enregistré",
+    "failed": "Échec de l'enregistrement",
+    "offline": "Hors ligne – les modifications ne sont pas enregistrées",
+    "conflict": "Un brouillon serveur plus récent existe",
+    "reload": "Charger le brouillon serveur",
+    "saveAsNew": "Enregistrer comme nouveau brouillon",
+    "downloadLocal": "Télécharger une copie locale"
+  },
+  "lines": {
+    "caption": "Lignes de facture avec quantité, unité, prix unitaire, TVA et montant net calculé",
+    "empty": "Aucune ligne de facture.",
+    "position": "Ligne {{position}}",
+    "netCalculated": "Calculé à partir de la quantité et du prix unitaire"
+  },
+  "structural": {
+    "label": "Reconnaissance structurelle",
+    "pending": "Pas encore vérifié",
+    "valid": "Reconnu comme {{syntax}}",
+    "invalid": "Non reconnu"
+  },
+  "business": {
+    "label": "Validation métier PXA",
+    "pending": "Pas encore vérifié",
+    "ok": "Aucun constat bloquant",
+    "errors": "{{count}} erreur(s)",
+    "warnings": "{{count}} avertissement(s)"
+  },
+  "diagnostics": {
+    "title": "Constats",
+    "empty": "Aucun constat.",
+    "goToField": "Aller au champ",
+    "code": "Code",
+    "severityError": "Erreur",
+    "severityWarning": "Avertissement",
+    "backendTitle": "Signalé par le serveur"
+  },
+  "templates": {
+    "title": "Mises en page maintenues",
+    "description": "Une mise en page se lie aux chemins canoniques de la facture. L'insertion est une seule étape d'annulation.",
+    "insert": "Insérer",
+    "active": "Insérée",
+    "none": "Aucune mise en page insérée."
+  },
+  "announce": {
+    "validated": "Validation terminée.",
+    "validationFailed": "La validation a signalé des constats.",
+    "xmlReady": "XML de facture généré.",
+    "pdfReady": "PDF hybride créé.",
+    "generateFailed": "La génération a échoué."
+  },
+  "errors": {
+    "offline": "Vous semblez hors ligne. Réessayez dès que la connexion est rétablie.",
+    "validateFailed": "La validation n'a pas pu aboutir.",
+    "generateXmlFailed": "Le XML de facture n'a pas pu être généré.",
+    "createPdfFailed": "Le PDF hybride n'a pas pu être créé.",
+    "serverCode": "Code serveur"
+  },
+  "result": {
+    "xmlReady": "Le XML de facture est prêt.",
+    "pdfReady": "Le PDF hybride est prêt.",
+    "none": "Rien généré pour le moment."
   }
 }

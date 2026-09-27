@@ -9,7 +9,12 @@
     "buyer": "Käufer",
     "lines": "Rechnungspositionen",
     "totals": "Summen",
-    "evidence": "Prüfhistorie"
+    "evidence": "Prüfhistorie",
+    "standards": "Standard und Profil",
+    "templates": "Layout",
+    "actions": "Erzeugen",
+    "preview": "Ergebnis",
+    "diagnostics": "Prüfung"
   },
   "fields": {
     "invoiceNumber": "Rechnungsnummer",
@@ -34,7 +39,9 @@
     "lineUnitPrice": "Einzelpreis",
     "lineTaxRate": "Steuersatz",
     "lineTaxCategory": "Steuerkategorie",
-    "lineNetAmount": "Nettobetrag"
+    "lineNetAmount": "Nettobetrag",
+    "notes": "Hinweise",
+    "taxCategory": "Steuerkategorie"
   },
   "actions": {
     "addLine": "Position hinzufügen",
@@ -43,14 +50,22 @@
     "createPdf": "Hybrid-PDF erzeugen",
     "attachToPdf": "An vorhandenes PDF anhängen",
     "validate": "Prüfen",
-    "viewHistory": "Prüfhistorie"
+    "viewHistory": "Prüfhistorie",
+    "downloadXml": "XML herunterladen",
+    "downloadPdf": "PDF herunterladen",
+    "openInViewer": "In PXA Viewer öffnen",
+    "moveLineUp": "Position nach oben",
+    "moveLineDown": "Position nach unten",
+    "insertTemplate": "Layout einfügen",
+    "clearResult": "Ergebnis verwerfen"
   },
   "totals": {
     "netTotal": "Nettosumme",
     "taxTotal": "Steuerbetrag",
     "grandTotal": "Zahlbetrag",
     "taxGroup": "Steuer {{rate}} %",
-    "taxBasis": "Steuerbasis"
+    "taxBasis": "Steuerbasis",
+    "calculated": "Von PXA berechnet; nicht bearbeitbar."
   },
   "conformance": {
     "label": "Konformität",
@@ -60,7 +75,8 @@
     "validated": "Gegen die hinterlegten offiziellen Artefakte geprüft",
     "invalid": "Von den offiziellen Artefakten abgelehnt",
     "explanation": "Strukturelle Erkennung ist keine Konformitätsaussage. Ein Konformitätsurteil erfordert einen hinterlegten offiziellen Artefaktsatz, dessen Kennung und Hash mit dem Ergebnis ausgewiesen werden.",
-    "artifactSet": "Artefaktsatz"
+    "artifactSet": "Artefaktsatz",
+    "unavailable": "Offizielle Artefakte wurden ausgewählt, konnten aber nicht verifiziert werden"
   },
   "validation": {
     "invoiceNumberRequired": "Eine Rechnungsnummer ist erforderlich.",
@@ -146,5 +162,88 @@
   "boundaries": {
     "title": "Außerhalb von PXA",
     "description": "PXA erzeugt, bettet ein, liest und prüft Rechnungsdokumente. Peppol-Übertragung, nationale Steuermeldung, Buchhaltung und gesetzliche Aufbewahrung sind separate Integrationen."
+  },
+  "page": {
+    "defaultName": "Elektronische Rechnung",
+    "title": "Elektronische Rechnung",
+    "subtitle": "Die Rechnung einmal erfassen. PXA erzeugt das XML, rendert die sichtbare PDF/A-3-Hybridrechnung und weist aus, was tatsächlich geprüft wurde."
+  },
+  "empty": {
+    "title": "Noch keine Rechnung in diesem Dokument",
+    "description": "Starten Sie eine elektronische Rechnung, um Parteien, Positionen, Steuern und Summen zu bearbeiten. Ein gepflegtes Layout stellt sie auf der Arbeitsfläche dar.",
+    "action": "Rechnung starten"
+  },
+  "loading": "Rechnungsarbeitsbereich wird geladen...",
+  "unavailable": {
+    "title": "Elektronische Rechnungsstellung ist nicht verfügbar",
+    "description": "Diese Funktion ist für Ihren Arbeitsbereich nicht aktiviert. Bitten Sie eine Administratorin oder einen Administrator um Aktivierung oder prüfen Sie Ihre Produktberechtigung."
+  },
+  "save": {
+    "label": "Entwurf",
+    "idle": "Noch nicht gespeichert",
+    "changed": "Nicht gespeicherte Änderungen",
+    "saving": "Wird gespeichert...",
+    "retrying": "Speichern wird wiederholt...",
+    "saved": "Gespeichert",
+    "failed": "Speichern fehlgeschlagen",
+    "offline": "Offline – Änderungen werden nicht gespeichert",
+    "conflict": "Es existiert ein neuerer Serverentwurf",
+    "reload": "Serverentwurf laden",
+    "saveAsNew": "Als neuen Entwurf speichern",
+    "downloadLocal": "Lokale Kopie herunterladen"
+  },
+  "lines": {
+    "caption": "Rechnungspositionen mit Menge, Einheit, Einzelpreis, Steuer und berechnetem Nettobetrag",
+    "empty": "Noch keine Rechnungspositionen.",
+    "position": "Position {{position}}",
+    "netCalculated": "Berechnet aus Menge und Einzelpreis"
+  },
+  "structural": {
+    "label": "Strukturelle Erkennung",
+    "pending": "Noch nicht geprüft",
+    "valid": "Als {{syntax}} erkannt",
+    "invalid": "Nicht erkannt"
+  },
+  "business": {
+    "label": "PXA-Fachprüfung",
+    "pending": "Noch nicht geprüft",
+    "ok": "Keine blockierenden Befunde",
+    "errors": "{{count}} Fehler",
+    "warnings": "{{count}} Warnung(en)"
+  },
+  "diagnostics": {
+    "title": "Befunde",
+    "empty": "Keine Befunde.",
+    "goToField": "Zum Feld springen",
+    "code": "Code",
+    "severityError": "Fehler",
+    "severityWarning": "Warnung",
+    "backendTitle": "Vom Server gemeldet"
+  },
+  "templates": {
+    "title": "Gepflegte Layouts",
+    "description": "Ein Layout bindet an die kanonischen Rechnungspfade. Das Einfügen ist ein einzelner Rückgängig-Schritt.",
+    "insert": "Einfügen",
+    "active": "Eingefügt",
+    "none": "Noch kein Layout eingefügt."
+  },
+  "announce": {
+    "validated": "Prüfung abgeschlossen.",
+    "validationFailed": "Die Prüfung hat Befunde gemeldet.",
+    "xmlReady": "Rechnungs-XML erzeugt.",
+    "pdfReady": "Hybrid-PDF erstellt.",
+    "generateFailed": "Erzeugung fehlgeschlagen."
+  },
+  "errors": {
+    "offline": "Sie scheinen offline zu sein. Versuchen Sie es erneut, sobald die Verbindung besteht.",
+    "validateFailed": "Die Prüfung konnte nicht abgeschlossen werden.",
+    "generateXmlFailed": "Das Rechnungs-XML konnte nicht erzeugt werden.",
+    "createPdfFailed": "Das Hybrid-PDF konnte nicht erstellt werden.",
+    "serverCode": "Servercode"
+  },
+  "result": {
+    "xmlReady": "Rechnungs-XML ist bereit.",
+    "pdfReady": "Hybrid-PDF ist bereit.",
+    "none": "Noch nichts erzeugt."
   }
 }

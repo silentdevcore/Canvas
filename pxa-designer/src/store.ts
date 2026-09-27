@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SimpleElement, ElementType, LayerDirection, PageSettings, PageLayoutSettings, Page, Template as BaseTemplate, LocalizedProperty } from '@/types';
+import type { SimpleElement, ElementType, LayerDirection, PageSettings, PageLayoutSettings, Page, Template as BaseTemplate, LocalizedProperty, TemplateEInvoiceState } from '@/types';
 import { effectivePageSettings, materializePageLayout } from '@/utils/pageLayout';
 
 export type { ElementType, SimpleElement };
@@ -146,6 +146,21 @@ interface EditorState {
   updateSharedElement: (id: string, updates: Partial<SimpleElement>) => void;
   deleteSharedElement: (id: string) => void;
   bulkReplaceContent: (pages: Page[], sharedElements: SimpleElement[]) => void;
+  /**
+   * Commits an electronic-invoice change as one undoable Designer transaction.
+   *
+   * The invoice payload and the page elements it projects onto land in a single `set`, so
+   * inserting a maintained template is one undo step rather than a burst the user has to
+   * undo repeatedly, and autosave sees exactly one changed snapshot per edit.
+   */
+  commitEInvoice: (payload: {
+    eInvoice?: TemplateEInvoiceState;
+    pages?: Page[];
+    sharedElements?: SimpleElement[];
+    pageSettings?: Partial<PageSettings>;
+    /** True when a template was inserted: go back to page one and clear the selection. */
+    resetView?: boolean;
+  }) => void;
 }
 
 const makePage = (elements: SimpleElement[] = [], layout?: PageLayoutSettings): Page => ({
@@ -530,6 +545,25 @@ export const useEditorStore = create<EditorState>()(
           if (!state.currentTemplate) return state;
           return {
             currentTemplate: { ...state.currentTemplate, pages, sharedElements },
+            undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
+            redoStack: [],
+          };
+        }),
+
+      commitEInvoice: ({ eInvoice, pages, sharedElements, pageSettings, resetView }) =>
+        set((state) => {
+          if (!state.currentTemplate) return state;
+          return {
+            currentTemplate: {
+              ...state.currentTemplate,
+              ...(pages ? { pages } : {}),
+              ...(sharedElements ? { sharedElements } : {}),
+              ...(eInvoice !== undefined ? { eInvoice } : {}),
+            },
+            pageSettings: pageSettings
+              ? normalizePageSettings({ ...state.pageSettings, ...pageSettings })
+              : state.pageSettings,
+            ...(resetView ? { currentPageIndex: 0, selectedElementId: null } : {}),
             undoStack: [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)],
             redoStack: [],
           };

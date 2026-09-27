@@ -246,25 +246,81 @@ path. `revalidate` runs the currently configured artifact set over the same docu
 identical by checksum — and stores the new verdict **beside** the old one, so both remain provable.
 `export` returns the retained evidence as one machine-readable JSON document.
 
-## Designer integration status
+## Designer integration
 
-The Designer integration is currently a development foundation, not a reachable product surface.
-The typed invoice model mirrors `PxaEInvoiceDocument`, template definitions use canonical binding
-paths (`invoice.seller.name`, `invoice.lines`, `totals.grandTotal` and so on), and the API client
-posts that same model to `generate` and `create`. A React editor, template insertion workflow,
-autosave integration, and visual-parity evidence are still required before customers can edit an
-electronic invoice in the Designer.
+The Electronic Invoice workspace lives at **`/pdf/e-invoice`**, reachable from the PDF hub sidebar
+between *PDF Viewer* and *Migrations*. It requires the `designer.pdf.e-invoices.read` permission,
+the `generator` product entitlement, and the `designer.e-invoice` feature gate; the page renders a
+distinct unavailable state when the gate is off and the standard permission wall when the
+permission is missing.
 
-The prepared Designer-side validation mirrors the backend's `PXAEINV1xx` diagnostics and has
-catalog entries in all six Designer languages. These strings and modules are not yet a rendered
-six-language UI. When the UI is added, its validation remains only a typing aid: the backend must
-still validate, and the Designer must never display a conformance state it has not received.
+### What the workspace edits
 
-Amounts in the Designer use exact scaled-integer arithmetic that reproduces .NET `decimal` with
-half-away-from-zero rounding. `test-assets/e-invoicing/totals-parity.json` pins nine cases —
-multiple rates, equal rates in different categories, half-way rounding, fractional quantities and
-rates, 0-, 2- and 3-minor-digit currencies, and accumulation of values that binary floating point
-cannot represent — and both the TypeScript and the C# implementations are asserted against it.
+One canonical invoice. The editor has sections for the standard and profile, the invoice number and
+references, the issue and due dates, the currency and its minor units, the seller and buyer with
+their addresses, the buyer reference or Leitweg-ID, and the invoice lines. Lines can be added,
+removed and reordered. Tax groups, the net total, the tax total and the amount payable are rendered
+as read-only `output` elements: they are computed by the same exact-decimal arithmetic the generator
+uses, and a total a user could overtype would be a second source of truth.
+
+Selecting a standard pins its maintained version — it is displayed, never editable — and filters the
+profile list to that standard's profiles. Switching to XRechnung therefore leaves `XRECHNUNG` as the
+only profile, and a profile only the previous standard offered does not survive the switch.
+
+### One canonical copy
+
+`template.eInvoice.invoice` is the only editable copy of any invoice value. The page elements the
+Canvas, the Live Preview and the exported PDF render are a *projection* of that object: regenerated
+whenever it changes, each keeping the `binding` path it came from, and never read back into the
+invoice. Projected pages and elements keep deterministic IDs across invoice edits, so selection
+and internal references remain stable. The XML and the PDF come from the backend, from the same object. That is what makes it
+impossible for the preview, the XML, the visible PDF and a reopened Viewer inspection to disagree
+about a figure.
+
+### Layouts
+
+The maintained layouts are offered in the workspace and bind only to canonical paths. Inserting one
+is a **single undoable transaction**: the pages, the elements and the invoice payload land in one
+store commit, so one undo reverses the whole insertion. Projected elements receive collision-free
+deterministic ids, and
+the layout definitions themselves hold no literal invoice value — their labels are i18n keys
+resolved at insertion time, which is how one definition serves all six Designer languages.
+
+### Generating
+
+The workspace offers Validate, Generate XML and Create PDF/A-3 hybrid invoice, then Download XML,
+Download PDF and Open in PXA Viewer. Validation runs over the generated XML, so what is checked is
+exactly what would be embedded. After a PDF is created the workspace inspects it and shows the
+semantic PDF/XML comparison; a scanned or text-inaccessible result stays at `notEvaluated` and is
+never shown as `consistent`.
+
+Structural recognition, PXA business validation and official conformance appear as three separate
+rows. A clean local check reads "structurally recognised"; only a backend `valid` verdict — which
+comes only from a pinned official artifact set — reads as validated, and the artifact-set identifier
+is shown beside it. Diagnostics keep their `PXAEINV…` codes visible for support, and each local
+finding has a control that focuses the field it is about.
+
+### Saving
+
+The invoice is part of the Designer document, so it uses the existing template persistence
+pipeline: the same two-second debounce, the same revision conflict handling, the same offline
+behaviour and the same unsaved-changes warning. The workspace surfaces Saving, Saved, Unsaved
+changes, Retrying, Failed, Offline and Conflict, and offers *Load the server draft*, *Save as a new
+draft* and *Download a local copy* where they apply. Reopening a draft reproduces the exact invoice
+values and the same calculated totals.
+
+### Localization and accessibility
+
+The workspace is localized in English, German, French, Spanish, Italian and Arabic, with Arabic
+rendering right-to-left through the shared logical-property layout. Every input has a real label,
+the invoice lines use table semantics with `scope` on every header, icon-only buttons carry
+accessible names, and validation and generation results are announced through a polite live region.
+
+Amounts use exact scaled-integer arithmetic that reproduces .NET `decimal` with half-away-from-zero
+rounding. `test-assets/e-invoicing/totals-parity.json` pins nine cases — multiple rates, equal rates
+in different categories, half-way rounding, fractional quantities and rates, 0-, 2- and
+3-minor-digit currencies, and accumulation of values that binary floating point cannot represent —
+and both the TypeScript and the C# implementations are asserted against it.
 
 ## Migration
 
@@ -320,6 +376,9 @@ The full table is in
   supported; a mismatch is rejected with `PXAEINV012`.
 - **Synchronous limits.** 100 MiB source PDF, 10 MiB invoice XML, 120 MiB attachment output,
   50 MiB generated PDF, 2 000 lines for synchronous PDF creation, 10 000 lines for XML.
+- **Designer pagination remains under review.** The hybrid-PDF generator paginates invoice lines.
+  The maintained Designer layout currently projects one page and is visually verified with three
+  lines, so large multi-page invoice previews must not yet be treated as visually equivalent.
 
 ## Permissions and entitlement
 

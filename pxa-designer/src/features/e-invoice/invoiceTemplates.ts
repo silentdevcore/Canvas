@@ -29,6 +29,12 @@ export interface InvoiceTemplateDefinition {
   taxTemplateId: string;
 }
 
+/**
+ * The typeface every maintained invoice layout uses. It maps onto the PDF engine's Helvetica
+ * family, so the Canvas, the Live Preview and the generated PDF all resolve to the same metrics.
+ */
+const TEMPLATE_FONT_FAMILY = 'Arial';
+
 const A4_WIDTH = 595;
 const A4_HEIGHT = 842;
 
@@ -51,6 +57,10 @@ function label(
     width,
     height: 14,
     style: {
+      // A maintained layout pins its typeface. Left unset, the Canvas would inherit the
+      // Designer's UI font while the PDF fell back to its own default, and the same invoice
+      // would render with two different faces on two surfaces.
+      fontFamily: TEMPLATE_FONT_FAMILY,
       fontSize: options.size ?? 9,
       fontWeight: options.bold ? 700 : 400,
       textAlign: options.align ?? 'left',
@@ -78,6 +88,7 @@ function bound(
     width,
     height: 14,
     style: {
+      fontFamily: TEMPLATE_FONT_FAMILY,
       fontSize: options.size ?? 9,
       fontWeight: options.bold ? 700 : 400,
       textAlign: options.align ?? 'left',
@@ -184,8 +195,10 @@ function standardLayout(): SimpleElement[] {
 
     rule('totalsRule', 366, 690, right - 366),
     label('payableLabel', 'template.amountPayable', 366, 700, 116, { size: 11, bold: true, align: 'right' }),
-    bound('payableAmount', EINVOICE_BINDINGS.grandTotal, amountColumn, 700, 90, { size: 11, bold: true, align: 'right', formatter: 'money' }),
-    bound('payableCurrency', EINVOICE_BINDINGS.currency, right - 24, 700, 24, { size: 11, bold: true }),
+    // The amount stops short of the right edge so the currency code has its own column. Sharing
+    // the edge would draw the code on top of the last digits of the total.
+    bound('payableAmount', EINVOICE_BINDINGS.grandTotal, right - 130, 700, 90, { size: 11, bold: true, align: 'right', formatter: 'money' }),
+    bound('payableCurrency', EINVOICE_BINDINGS.currency, right - 36, 700, 36, { size: 11, bold: true }),
 
     label('conformanceNote', 'template.conformanceNote', left, 790, right - left, { size: 7, muted: true }),
   ];

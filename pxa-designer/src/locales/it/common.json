@@ -31,6 +31,7 @@
     "importPdf": "Importa PDF",
     "convertToPdf": "Converti in PDF",
     "pdfViewer": "Visualizzatore PDF",
+    "eInvoice": "Fattura elettronica",
     "migrations": "Migrazioni"
   },
   "spreadsheetSidebar": {
@@ -68,6 +69,10 @@
     "notifications": { "title": "Centro notifiche", "description": "Mantieni disponibili versioni e messaggi importanti dopo la scomparsa degli avvisi temporanei." },
     "experimental": { "title": "Funzioni sperimentali", "description": "Attiva le funzioni Alfa approvate dalla tua organizzazione." },
     "pdfViewer": { "title": "Visualizzatore PDF", "description": "Esamina PDF, annotazioni, moduli, segnalibri e dati correlati." },
+    "eInvoice": {
+      "title": "Fatturazione elettronica",
+      "description": "Comporre fatture Factur-X, ZUGFeRD e XRechnung, generare l'XML e creare una fattura ibrida PDF/A-3."
+    },
     "pdfChartRecognition": { "title": "Riconoscimento grafici PDF", "description": "Recupera i grafici PDF supportati come elementi modificabili con verifica dell'affidabilità." },
     "codeWorkspace": { "title": "Area di lavoro codice", "description": "Converti, convalida ed esegui in sicurezza JSON, modelli C# e codice PDF PXA insieme al Designer visuale." },
     "spreadsheet": { "title": "Foglio di calcolo", "description": "Crea, importa, calcola ed esporta contenuti basati su cartelle di lavoro." },

@@ -31,6 +31,7 @@
     "importPdf": "Importer un PDF",
     "convertToPdf": "Convertir en PDF",
     "pdfViewer": "Visionneuse PDF",
+    "eInvoice": "Facture électronique",
     "migrations": "Migrations"
   },
   "spreadsheetSidebar": {
@@ -68,6 +69,10 @@
     "notifications": { "title": "Centre de notifications", "description": "Conservez les versions et messages importants après la disparition des alertes temporaires." },
     "experimental": { "title": "Fonctions expérimentales", "description": "Activez les fonctions Alpha autorisées par votre organisation." },
     "pdfViewer": { "title": "Visionneuse PDF", "description": "Inspectez les PDF, annotations, formulaires, signets et données associées." },
+    "eInvoice": {
+      "title": "Facturation électronique",
+      "description": "Composer des factures Factur-X, ZUGFeRD et XRechnung, générer le XML et créer une facture hybride PDF/A-3."
+    },
     "pdfChartRecognition": { "title": "Reconnaissance des graphiques PDF", "description": "Récupérez les graphiques PDF pris en charge comme éléments modifiables avec contrôle de confiance." },
     "codeWorkspace": { "title": "Espace de code", "description": "Convertissez, validez et exécutez en sécurité du JSON, des modèles C# et du code PDF PXA avec le Designer visuel." },
     "spreadsheet": { "title": "Feuille de calcul", "description": "Créez, importez, calculez et exportez du contenu de classeur." },

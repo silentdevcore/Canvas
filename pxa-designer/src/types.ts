@@ -215,6 +215,31 @@ export interface PageLayoutSettings {
   bleedSize?: number;
 }
 
+/**
+ * The electronic-invoice document a template carries, when it is an invoice.
+ *
+ * It lives on the template rather than in its own store slice so the existing
+ * Designer persistence and autosave pipeline carries it without a second code path:
+ * `useDesignerTemplateAutosave` snapshots the whole template, so the invoice inherits
+ * the two-second debounce, the revision conflict handling, the offline state and the
+ * unsaved-changes warning. Reloading a server draft restores it the same way.
+ *
+ * The shape is deliberately structural (`unknown`-free but dependency-free) so
+ * `types.ts` does not import the e-invoice feature module and create a cycle. The
+ * authoritative types live in `features/e-invoice/invoiceModel.ts`, and
+ * `features/e-invoice/designerDocument.ts` converts between the two.
+ */
+export interface TemplateEInvoiceState {
+  /** The canonical invoice document. One copy; never duplicated for preview or export. */
+  invoice: Record<string, any>;
+  /** Selected standard, maintained version and profile. */
+  settings: { standard: string; version: string; profile: string };
+  /** Which maintained invoice template was inserted, if any. */
+  templateId?: string;
+  /** Schema version of this payload, so a later reader can migrate it. */
+  schemaVersion: 1;
+}
+
 export interface Template {
   id: string;
   name: string;
@@ -227,6 +252,7 @@ export interface Template {
     revision: number;
     status: string;
   };
+  eInvoice?: TemplateEInvoiceState;
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';

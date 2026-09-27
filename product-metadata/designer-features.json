@@ -52,6 +52,19 @@
       "documentationPath": "/#pdf-viewer-details"
     },
     {
+      "id": "designer.e-invoice",
+      "titleKey": "features.eInvoice.title",
+      "descriptionKey": "features.eInvoice.description",
+      "fallbackTitle": "Electronic invoicing",
+      "fallbackDescription": "Build Factur-X, ZUGFeRD, and XRechnung invoices, generate the XML, and create a PDF/A-3 hybrid invoice.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "generator",
+      "documentationPath": "/#electronic-invoicing-details"
+    },
+    {
       "id": "designer.pdf-chart-recognition",
       "titleKey": "features.pdfChartRecognition.title",
       "descriptionKey": "features.pdfChartRecognition.description",

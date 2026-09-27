@@ -51,7 +51,7 @@ independent validators remain authoritative.
 - [x] Add parsed invoice identifiers, dates, parties, currency, taxes, totals,
   and line items plus conservative PDF/XML semantic consistency warnings to
   the Viewer.
-- [ ] Add Designer invoice data binding and templates without making the PDF engine
+- [x] Add Designer invoice data binding and templates without making the PDF engine
   depend on billing-domain services.
 - [x] Add migration capability mappings for providers that expose Factur-X,
   ZUGFeRD, XRechnung, or generic PDF/A-3 invoice APIs.
@@ -105,7 +105,7 @@ depends on the validation foundation.
 
 ### Status
 
-Progress: 28 of 40 checklist items complete (70%), up from 21 (52.5%).
+Progress: 29 of 40 checklist items complete (72.5%), up from 21 (52.5%).
 
 | Item | State |
 |---|---|
@@ -113,7 +113,7 @@ Progress: 28 of 40 checklist items complete (70%), up from 21 (52.5%).
 | EINV-02 Complete standards validation | open, depends on EINV-01 |
 | EINV-03 Existing-PDF attachment workflow | done |
 | EINV-04 Complete API contract | done |
-| EINV-05 Designer invoice experience | open; binding layer done, but UI, autosave, and visual parity remain |
+| EINV-05 Designer invoice experience | core workspace complete; visual and multi-page layout acceptance pending |
 | EINV-06 Migration provider coverage | done |
 | EINV-07 Maintained fixture corpus | PXA-authored part done; official fixtures blocked on EINV-01 |
 | EINV-08 Independent hybrid-PDF validation | open, externally blocked |
@@ -130,10 +130,52 @@ artifacts. Until those are reviewed and recorded, PXA reports
 or fixture, and publishes no independent validation result. The customer-facing
 release fragment therefore stays un-finalized and `VERSION` is unchanged at 1.1.0.
 
+Visual parity status.
+
+`test-assets/visual-parity/e-invoice.json` is compared by
+`PXA_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/e-invoice.json node
+tools/visual-parity/run.mjs`. Artifacts land in `artifacts/visual-parity/`:
+`visual-parity-report.html`, `visual-parity-report.json`, and per-page and
+per-element PNGs, diffs and overlays under `raw/`.
+
+Latest run: **P0 0, P1 4, P2 6, match 51** across 61 elements and one page. The
+repository's approved thresholds reject P0 and P1, so this fixture **does not pass
+the enforced gate** and visual parity is therefore not claimed complete.
+
+What the numbers say:
+
+- The JSON-to-C#-generated PDF is pixel-identical to the backend PDF on every
+  element (`csharp` RMSE 0), so the code-generation path is exact.
+- Canvas and Live Preview produce the identical RMSE on every element, so the two
+  Designer surfaces agree with each other. The divergence is browser text
+  rendering against PDF text rendering, not an inconsistency inside the Designer.
+- The maintained Designer fixture covers three lines on one page. The backend hybrid-PDF
+  renderer paginates large invoices, but equivalent multi-page Designer projection is not yet
+  implemented or covered. Long invoices therefore remain outside EINV-05 acceptance.
+- The four remaining P1 findings are right-aligned bold text
+  (`einv-invoiceNumber`, `einv-payableAmount`) and two long wrapped line
+  descriptions. Closing them needs a change to how the Designer lays out text or
+  how the PDF engine wraps it, which is outside this task.
+
+The comparison exposed and fixed two real layout defects along the way:
+
+- The maintained layouts pinned no typeface, so the Canvas inherited the
+  Designer's UI font while the PDF fell back to its own default. Pinning the
+  template typeface reduced P1 findings from 9 to 4 and raised matches from 43
+  to 51.
+- The payable amount and the currency code shared the right edge, so the code was
+  drawn on top of the last digits of the total. They now have separate columns.
+
+The pipeline was not runnable at all before this work: `VisualParityPage` wrapped
+only the canvas surface in `DesignerAuthContextProvider`, so `LivePreview` threw
+`useDesignerAuth must be used inside DesignerAuthGate` and every parity run hung
+waiting for a preview surface that never rendered. That is fixed. For reference, the
+pre-existing `all-elements` fixture now completes and reports **P0 1** (`optionlist`)
+**P1 0, P2 26, match 12**, so it does not pass the enforced gate either.
+
 Two open items are **not** externally blocked and can be picked up immediately:
 
-- The Designer UI for EINV-05 - a component over the finished binding layer, its
-  autosave wiring, and a visual-parity fixture.
+- The four remaining P1 visual-parity findings above.
 - Per-provider migration conversion fixtures for EINV-06, which currently has
   catalog-level and report-level coverage but no source-snippet conversions.
 
@@ -261,91 +303,107 @@ Evidence.
 - `tests/PXA.Api.Tests/PxaSecurityContractsTests.cs` and
   `PxaPdfTrustSecurityTests.cs` extended with the attach routes.
 
-### EINV-05 - Designer Invoice Experience - open; binding layer only
+### EINV-05 - Designer Invoice Experience - core workspace complete, acceptance pending
 
-- [ ] Add typed invoice bindings and maintained invoice templates without moving
+- [x] Add typed invoice bindings and maintained invoice templates without moving
   tax, accounting, or billing-domain logic into `PXA.Pdf`.
-- [ ] Support seller, buyer, dates, references, currency, lines, tax groups, and
+- [x] Support seller, buyer, dates, references, currency, lines, tax groups, and
   totals with localized validation and a visible conformance state.
-- [ ] Ensure Designer preview, generated XML, visible PDF, and reopened Viewer
+- [x] Ensure Designer preview, generated XML, visible PDF, and reopened Viewer
   inspection use the same canonical invoice values.
-- Completion evidence: autosave/roundtrip tests, six-language UI coverage,
-  visual parity, and successful export/reinspection fixtures.
+- Completion evidence still required: autosave/roundtrip tests, six-language UI coverage,
+  successful export/reinspection fixtures, and a passing enforced visual-parity gate. The first
+  three are present; visual acceptance remains open as documented below.
 
-Implementation. `pxa-designer/src/features/e-invoice/` holds the typed invoice
-(`invoiceModel.ts`, mirroring `PxaEInvoiceDocument` field for field), the canonical
-binding paths (`EINVOICE_BINDINGS`), the arithmetic (`invoiceTotals.ts`), localized
-validation (`invoiceValidation.ts`, each finding carrying its backend `PXAEINV1xx`
-code), the API client (`eInvoiceDesignerApi.ts`) and two maintained templates
-(`invoiceTemplates.ts`). No domain logic moved into `PXA.Pdf`: the Designer carries
-invoice data plus the arithmetic the standards fix, and rate selection, exemption
-reasons and filing stay with the caller.
+Route and entry point. The workspace is `/pdf/e-invoice`, reachable from the PDF
+hub sidebar between *PDF Viewer* and *Migrations*, gated by the
+`designer.pdf.e-invoices.read` permission, the `generator` product entitlement and
+the `designer.e-invoice` feature entry in `product-metadata/designer-features.json`.
+It renders distinct unavailable, loading, empty, unauthorized (through the shared
+`RequireDesignerPermission` wall), offline and validation-failure states.
 
-Canonical values. The preview binds the very object that is posted to
-`/generate` and `/create` - `createBindingContext` returns the invoice by
-reference and computes no second copy - so a value cannot differ between the
-preview, the XML and the PDF. Amounts use `exactDecimal.ts`, a scaled-`bigint`
-implementation that reproduces .NET `decimal` with `MidpointRounding.AwayFromZero`;
-plain doubles get 0.1 + 0.2 and half-way rounding wrong.
+Editor. `EInvoicePage.tsx` with `InvoiceLinesTable`, `InvoiceTotalsPanel`,
+`InvoiceValidationStates` and `InvoiceDiagnosticsPanel`. Sections cover the
+standard and profile, invoice number and references, issue and due date, currency
+and minor units, seller and buyer with addresses, buyer reference, and the invoice
+lines with quantity, unit, unit price, tax category and rate. Lines can be added,
+removed and reordered. Tax groups and the three totals are read-only `output`
+elements computed by `calculateInvoice`, so no total is independently editable.
+Selecting a standard pins its maintained version - displayed, never editable - and
+filters the profile list; switching to XRechnung leaves `XRECHNUNG` as the only
+option. Diagnostics keep their `PXAEINV...` codes visible and each carries a
+control that focuses the field it is about.
 
-Parity. `test-assets/e-invoicing/totals-parity.json` pins nine cases - multiple
-rates, equal rates in different categories, half-away-from-zero rounding,
-fractional quantities and rates, 0-, 2- and 3-minor-digit currencies, and ten
-lines of 0.10 - and is asserted from both languages plus the real endpoints. All
-three suites passed the hand-computed fixture on their first run, so the numbers
-were not fitted to the implementation.
+One canonical copy. `template.eInvoice.invoice` is the only editable copy of any
+invoice value. The page elements the Canvas, the Live Preview and the exported PDF
+render are a projection of it, produced by `projectInvoiceElements`, regenerated on
+every change, each keeping the `binding` path it came from, and never read back
+into the invoice. The XML and the PDF come from the backend from the same object.
 
-Two consistency defects were found and fixed while proving this:
+Persistence. Because the invoice lives on the template,
+`useDesignerTemplateAutosave` carries it: the same two-second debounce, revision
+conflict handling, offline state and unsaved-changes warning as any other Designer
+document, with no second save path. Saving, Saved, Unsaved changes, Retrying,
+Failed, Offline and Conflict are surfaced, with *Load the server draft*, *Save as a
+new draft* and *Download a local copy* where they apply.
 
-- `PxaEInvoicePdfConsistencyInspector` only offered two-decimal amount forms, so a
-  correct invoice in a 0- or 3-minor-digit currency was reported as needing
-  review. Variants are now also generated at the value's own scale.
-- `EInvoice.CreatePdf` printed each tax group but never the aggregate tax total,
-  so any multi-rate invoice was reported as needing review - and would have been
-  refused by `attach` without an override. A "Tax total" row is now drawn when
-  there is more than one group; single-rate output is unchanged.
+Template insertion. `commitEInvoice` writes the pages, the elements and the invoice
+payload in one store transaction, so inserting a maintained layout is a single undo
+step. Projected elements get collision-free deterministic ids that remain stable across edits;
+the layout definitions hold no literal invoice value, because their labels are i18n keys resolved
+at insertion time.
+
+Localization and accessibility. Rendered in all six Designer languages, with Arabic
+right-to-left through the shared logical-property layout. Every input has a real
+label, the lines use table semantics with `scope` on every header and a caption,
+icon-only buttons carry accessible names, and results are announced through a
+polite live region.
+
+Two defects were found and fixed while proving this:
+
+- `conformanceStateFor` and the Designer API client checked for a
+  `"validated"` conformance status, but the backend emits `"valid"`,
+  `"invalid"`, `"unavailable"` or `"notEvaluated"`. The Designer would therefore
+  never have shown a real conformance verdict. The vocabulary now matches, an
+  unknown status is never promoted to a claim, and `unavailable` has its own state.
+- `VisualParityPage` wrapped only the canvas surface in
+  `DesignerAuthContextProvider`, so `LivePreview` threw `useDesignerAuth must be
+  used inside DesignerAuthGate` and the preview surface never rendered. The whole
+  visual-parity pipeline was hanging on every fixture, not just the new one. The
+  preview surface now gets the same context.
 
 Evidence.
 
+- `pxa-designer/src/__tests__/eInvoiceWorkspace.test.tsx` - 43 tests: route and
+  gating states, permission-driven action enablement, standard/version/profile
+  filtering, add/remove/reorder lines, exact totals and tax groups with a
+  0-minor-unit currency, field-linked diagnostics and `aria-invalid`, the three
+  validation states kept separate, template insertion as one undo step, projection
+  re-rendering on edit, autosave through the two-second pipeline, revision conflict,
+  offline, XML generation and download, PDF generation with consistency reporting
+  and Viewer handoff, `notEvaluated` never shown as consistent, a stable Problem
+  Details code on refusal, six-language rendering, Arabic RTL with table semantics,
+  labelled and keyboard-reachable inputs, live-region announcements, and one
+  canonical copy of every invoice value.
+- `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts` - 4 tests
+  generating and drift-guarding `test-assets/visual-parity/e-invoice.json` from the
+  canonical invoice, and asserting it covers seller and buyer, three lines, two tax
+  rates, a two-decimal currency, long wrapping text, German and French diacritics,
+  right-to-left Arabic, and the Factur-X 1.09.2 identity.
+- `pxa-designer/src/__tests__/eInvoiceDesigner.test.ts` - 22 tests (model,
+  templates, localized validation, conformance vocabulary).
 - `pxa-designer/src/__tests__/eInvoiceTotalsParity.test.ts` - 16 tests.
-- `pxa-designer/src/__tests__/eInvoiceDesigner.test.ts` - 22 tests: canonical
-  bindings, standard/version/profile consistency, JSON roundtrip, templates bound
-  only to canonical paths and holding no literal invoice value, all template
-  labels present in all six languages, localized validation with backend codes,
-  and the conformance state never presenting recognition as conformance.
-- `tests/PXA.Generator.Tests/EInvoiceTotalsParityTests.cs` - 11 tests.
-- `tests/PXA.Api.Tests/PdfEInvoiceCanonicalValueParityTests.cs` - 11 tests
-  putting the corpus through `create`, `generate`, `inspect` and `attach`.
-- `tests/PXA.Api.Tests/PxaEInvoicePdfConsistencyInspectorTests.cs` - 7 tests
-  pinning both consistency fixes and the false-negative they removed.
-- Six-language coverage: `eInvoice.json` in en, de, fr, es, it and ar, with key
-  and placeholder parity enforced by the existing `localeCatalog` test.
-- Designer `tsc --noEmit` clean, 506/506 jest tests, production build succeeds.
+- `appRouteSmoke.test.tsx` extended: the route is reachable and the sidebar lists
+  the entry.
 
-Not done. The rendered Designer surface does not exist yet. What is complete is
-the layer everything else depends on - the typed model, the canonical bindings,
-the arithmetic, the localized validation, the templates, the API client and the
-six locale catalogs - together with the parity guarantees that make a UI safe to
-build on it. Specifically still missing:
+Visual parity. `test-assets/visual-parity/e-invoice.json` is a deterministic fixture generated from
+the canonical invoice and drift-guarded by its test. `tools/visual-parity/run.mjs` compares the
+Designer Canvas, the Live Preview, the backend PDF and the JSON-to-C#-generated PDF for it; the
+fixture key is now derived from the filename, so the runner needed no per-fixture change.
 
-- No React component. `pxa-designer/src/features/e-invoice/` contains only `.ts`
-  modules, and nothing outside the tests imports them, so the feature is not
-  reachable from the Designer app.
-- The six locale catalogs are complete and key-parity enforced, but no component
-  consumes them yet, so "six-language UI coverage" is currently string coverage
-  rather than rendered coverage.
-- Autosave is not wired. The Designer's existing template autosave path was not
-  extended to the invoice document, so the autosave part of the completion
-  evidence is unmet; the JSON roundtrip that autosave depends on is tested.
-- No pixel-level visual-parity fixture was added to `tools/visual-parity`. Parity
-  is currently proven by value agreement across the four surfaces rather than by
-  image comparison.
-
-The claim that is fully established is the hard one: a value shown in a preview
-built on this layer cannot differ from the generated XML, the visible PDF or a
-reopened Viewer inspection, because `createBindingContext` returns the invoice by
-reference and computes no second copy, and the arithmetic is pinned against the
-generator from both languages.
+The comparison **does not pass the enforced gate**, and is reported as such rather than as
+complete. See the "Visual parity status" note in the handoff section for the numbers, what the
+remaining findings are, and the two layout defects the comparison exposed and that were fixed.
 
 ### EINV-06 - Migration Provider Coverage - done
 

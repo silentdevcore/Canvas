@@ -9,6 +9,7 @@ import {
   FiEye,
   FiFileText,
   FiGitMerge,
+  FiDollarSign,
 } from 'react-icons/fi';
 import AppHeader from './AppHeader';
 import HubSidebar, { type HubSidebarItem } from './HubSidebar';
@@ -25,6 +26,7 @@ const PdfLayout: React.FC = () => {
   const { user } = useDesignerAuth();
   const permissionRequired = t('permissions.sidebarRequired');
   const pdfViewerFeature = features.find(feature => feature.id === 'designer.pdf-viewer');
+  const eInvoiceFeature = features.find(feature => feature.id === 'designer.e-invoice');
 
   const pdfSidebarItems: HubSidebarItem[] = [
     {
@@ -60,6 +62,17 @@ const PdfLayout: React.FC = () => {
       disabled: (pdfViewerFeature ? !pdfViewerFeature.enabled : false)
         || !hasDesignerPermission(user, designerPermissions.pdfViewerRead),
       disabledReason: !hasDesignerPermission(user, designerPermissions.pdfViewerRead)
+        ? permissionRequired
+        : undefined,
+    },
+    {
+      path: '/pdf/e-invoice',
+      label: t('pdfSidebar.eInvoice'),
+      icon: FiDollarSign,
+      badge: eInvoiceFeature ? <FeatureBadge feature={eInvoiceFeature} /> : undefined,
+      disabled: (eInvoiceFeature ? !eInvoiceFeature.enabled : false)
+        || !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead),
+      disabledReason: !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead)
         ? permissionRequired
         : undefined,
     },

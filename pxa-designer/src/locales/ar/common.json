@@ -31,6 +31,7 @@
     "importPdf": "استيراد PDF",
     "convertToPdf": "التحويل إلى PDF",
     "pdfViewer": "عارض PDF",
+    "eInvoice": "فاتورة إلكترونية",
     "migrations": "عمليات الترحيل"
   },
   "spreadsheetSidebar": {
@@ -68,6 +69,10 @@
     "notifications": { "title": "مركز الإشعارات", "description": "احتفظ بالإصدارات ورسائل المنتج المهمة بعد اختفاء التنبيهات المؤقتة." },
     "experimental": { "title": "الميزات التجريبية", "description": "فعّل ميزات ألفا التي وافقت عليها مؤسستك." },
     "pdfViewer": { "title": "عارض PDF", "description": "افحص ملفات PDF والتعليقات والنماذج والإشارات المرجعية وبيانات المستند." },
+    "eInvoice": {
+      "title": "الفوترة الإلكترونية",
+      "description": "إنشاء فواتير Factur-X و ZUGFeRD و XRechnung، وتوليد ملف XML، وإنشاء فاتورة هجينة بصيغة PDF/A-3."
+    },
     "pdfChartRecognition": { "title": "التعرّف على مخططات PDF", "description": "استعد مخططات PDF المدعومة كعناصر قابلة للتحرير مع مراجعة مستوى الثقة." },
     "codeWorkspace": { "title": "مساحة عمل التعليمات البرمجية", "description": "حوّل وتحقق وشغّل JSON ونماذج C# وتعليمات PXA PDF بأمان بجانب المصمم المرئي." },
     "spreadsheet": { "title": "جدول البيانات", "description": "أنشئ واستورد واحسب وصدّر محتوى المصنفات." },

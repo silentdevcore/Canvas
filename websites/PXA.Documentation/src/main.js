@@ -695,6 +695,18 @@ validatorArtifactSetSha256`,
         note: 'conformanceStatus notEvaluated means no artifact set was configured for that standard, version, profile and syntax. It does not mean the invoice is fine. An invoice is never reported as conformant on the strength of structural validation alone. No official FeRD/FNFE or KoSIT artifact is shipped yet, so every profile currently reports notEvaluated, and no independent validation result is asserted anywhere.',
       },
       {
+        title: 'Designer path',
+        json: `/pdf/e-invoice
+
+Permission   designer.pdf.e-invoices.read (plus generate, create and validate per action)
+Entitlement  generator
+Feature gate designer.e-invoice
+Saving       the existing Designer template pipeline: two-second autosave, revision conflict,
+             offline state and unsaved-changes warning
+Actions      Validate, Generate XML, Create PDF/A-3 hybrid invoice, Download, Open in PXA Viewer`,
+        note: 'The workspace edits one canonical invoice. The page elements the Canvas, the Live Preview and the exported PDF render are a projection of that object: regenerated whenever it changes, each keeping the binding path it came from, and never read back into the invoice. Tax groups and totals are read-only outputs computed by the same exact-decimal arithmetic the generator uses, because a total a user could overtype would be a second source of truth. Selecting a standard pins its maintained version and filters the profile list. Inserting a maintained layout is a single undoable transaction. Structural recognition, PXA business validation and official conformance appear as three separate rows, and only a backend valid verdict - which comes only from a pinned official artifact set - reads as validated. The workspace is localized in English, German, French, Spanish, Italian and Arabic, with Arabic rendering right-to-left.',
+      },
+      {
         title: 'Generator path',
         json: `var options = new PxaEInvoiceOptions {
   Standard = PxaEInvoiceStandard.FacturX,

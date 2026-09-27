@@ -147,12 +147,27 @@ test('the guide documents permissions and the diagnostic ranges', () => {
   assert.match(guide, /Identifiers are stable/);
 });
 
-test('the guide documents the Designer foundation honestly and the migration mapping', () => {
-  assert.match(guide, /## Designer integration status/);
-  assert.match(guideProse, /development foundation, not a reachable product surface/);
-  assert.match(guideProse, /React editor.*still required/);
-  assert.match(guideProse, /canonical binding paths/);
-  assert.match(guideProse, /same model to `generate` and `create`/);
+test('the guide documents the Designer workflow that actually exists', () => {
+  assert.match(guide, /## Designer integration/);
+  // The route and its gates, so a reader can find and enable the feature.
+  assert.match(guideProse, /`\/pdf\/e-invoice`/);
+  assert.match(guideProse, /designer\.pdf\.e-invoices\.read/);
+  assert.match(guideProse, /`generator` product entitlement/);
+  assert.match(guideProse, /`designer\.e-invoice` feature gate/);
+  // The single-source-of-truth claim and what makes it true.
+  assert.match(guideProse, /only editable copy of any invoice value/);
+  assert.match(guideProse, /never read back into the invoice/);
+  // Totals are derived, not editable.
+  assert.match(guideProse, /read-only `output` elements/);
+  // Template insertion is one undo step.
+  assert.match(guideProse, /single undoable transaction/);
+  // Persistence reuses the existing pipeline rather than a second code path.
+  assert.match(guideProse, /two-second debounce/);
+  assert.match(guideProse, /revision conflict handling/);
+  // Localization and the honest conformance wording.
+  assert.match(guideProse, /English, German, French, Spanish, Italian and Arabic/);
+  assert.match(guideProse, /only a backend `valid` verdict/);
+  assert.match(guideProse, /canonical/);
   assert.match(guideProse, /totals-parity\.json/);
   assert.match(guide, /## Migration/);
   assert.match(guideProse, /`automatic`, `reviewRequired` or `unsupported`/);

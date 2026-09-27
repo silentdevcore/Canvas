@@ -9,7 +9,12 @@
     "buyer": "Buyer",
     "lines": "Invoice lines",
     "totals": "Totals",
-    "evidence": "Validation history"
+    "evidence": "Validation history",
+    "standards": "Standard and profile",
+    "templates": "Layout",
+    "actions": "Generate",
+    "preview": "Result",
+    "diagnostics": "Validation"
   },
   "fields": {
     "invoiceNumber": "Invoice number",
@@ -34,7 +39,9 @@
     "lineUnitPrice": "Unit price",
     "lineTaxRate": "Tax rate",
     "lineTaxCategory": "Tax category",
-    "lineNetAmount": "Net amount"
+    "lineNetAmount": "Net amount",
+    "notes": "Notes",
+    "taxCategory": "Tax category"
   },
   "actions": {
     "addLine": "Add line",
@@ -43,14 +50,22 @@
     "createPdf": "Create hybrid PDF",
     "attachToPdf": "Attach to an existing PDF",
     "validate": "Validate",
-    "viewHistory": "Validation history"
+    "viewHistory": "Validation history",
+    "downloadXml": "Download XML",
+    "downloadPdf": "Download PDF",
+    "openInViewer": "Open in PXA Viewer",
+    "moveLineUp": "Move line up",
+    "moveLineDown": "Move line down",
+    "insertTemplate": "Insert layout",
+    "clearResult": "Clear result"
   },
   "totals": {
     "netTotal": "Net total",
     "taxTotal": "Tax total",
     "grandTotal": "Amount payable",
     "taxGroup": "Tax at {{rate}}%",
-    "taxBasis": "Taxable amount"
+    "taxBasis": "Taxable amount",
+    "calculated": "Calculated by PXA; not editable."
   },
   "conformance": {
     "label": "Conformance",
@@ -60,7 +75,8 @@
     "validated": "Validated against the pinned official artifacts",
     "invalid": "Rejected by the official artifacts",
     "explanation": "Structural recognition is not a conformance claim. A conformance verdict requires a pinned official artifact set, whose identifier and hash are reported with the result.",
-    "artifactSet": "Artifact set"
+    "artifactSet": "Artifact set",
+    "unavailable": "Official artifacts were selected but could not be verified"
   },
   "validation": {
     "invoiceNumberRequired": "An invoice number is required.",
@@ -146,5 +162,88 @@
   "boundaries": {
     "title": "Outside PXA",
     "description": "PXA produces, embeds, reads and validates invoice documents. Peppol transport, national tax submission, accounting and legal retention are separate integrations."
+  },
+  "page": {
+    "defaultName": "Electronic invoice",
+    "title": "Electronic invoice",
+    "subtitle": "Build the invoice once. PXA generates the XML, renders the visible PDF/A-3 hybrid invoice, and reports what it actually validated."
+  },
+  "empty": {
+    "title": "No invoice in this document yet",
+    "description": "Start an electronic invoice to edit its parties, lines, taxes and totals. Inserting a maintained template lays it out on the canvas.",
+    "action": "Start an invoice"
+  },
+  "loading": "Loading the invoice workspace...",
+  "unavailable": {
+    "title": "Electronic invoicing is not available",
+    "description": "This feature is not enabled for your workspace. Ask an administrator to enable it, or check your product entitlement."
+  },
+  "save": {
+    "label": "Draft",
+    "idle": "Not saved yet",
+    "changed": "Unsaved changes",
+    "saving": "Saving...",
+    "retrying": "Retrying save...",
+    "saved": "Saved",
+    "failed": "Save failed",
+    "offline": "Offline - changes are not saved",
+    "conflict": "A newer server draft exists",
+    "reload": "Load the server draft",
+    "saveAsNew": "Save as a new draft",
+    "downloadLocal": "Download a local copy"
+  },
+  "lines": {
+    "caption": "Invoice lines with quantity, unit, unit price, tax and calculated net amount",
+    "empty": "No invoice lines yet.",
+    "position": "Line {{position}}",
+    "netCalculated": "Calculated from quantity and unit price"
+  },
+  "structural": {
+    "label": "Structural recognition",
+    "pending": "Not checked yet",
+    "valid": "Recognised as {{syntax}}",
+    "invalid": "Not recognised"
+  },
+  "business": {
+    "label": "PXA business validation",
+    "pending": "Not checked yet",
+    "ok": "No blocking findings",
+    "errors": "{{count}} error(s)",
+    "warnings": "{{count}} warning(s)"
+  },
+  "diagnostics": {
+    "title": "Findings",
+    "empty": "No findings.",
+    "goToField": "Go to the field",
+    "code": "Code",
+    "severityError": "Error",
+    "severityWarning": "Warning",
+    "backendTitle": "Reported by the server"
+  },
+  "templates": {
+    "title": "Maintained layouts",
+    "description": "A layout binds to the canonical invoice paths. Inserting one is a single undo step.",
+    "insert": "Insert",
+    "active": "Inserted",
+    "none": "No layout inserted yet."
+  },
+  "announce": {
+    "validated": "Validation finished.",
+    "validationFailed": "Validation reported findings.",
+    "xmlReady": "Invoice XML generated.",
+    "pdfReady": "Hybrid PDF created.",
+    "generateFailed": "Generation failed."
+  },
+  "errors": {
+    "offline": "You appear to be offline. Try again once the connection is back.",
+    "validateFailed": "Validation could not be completed.",
+    "generateXmlFailed": "The invoice XML could not be generated.",
+    "createPdfFailed": "The hybrid PDF could not be created.",
+    "serverCode": "Server code"
+  },
+  "result": {
+    "xmlReady": "Invoice XML is ready.",
+    "pdfReady": "Hybrid PDF is ready.",
+    "none": "Nothing generated yet."
   }
 }

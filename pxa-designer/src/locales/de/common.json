@@ -31,6 +31,7 @@
     "importPdf": "PDF importieren",
     "convertToPdf": "In PDF konvertieren",
     "pdfViewer": "PDF-Viewer",
+    "eInvoice": "Elektronische Rechnung",
     "migrations": "Migrationen"
   },
   "spreadsheetSidebar": {
@@ -80,6 +81,10 @@
     "notifications": { "title": "Benachrichtigungszentrale", "description": "Versionen und wichtige Produktmeldungen bleiben auch nach kurzzeitigen Hinweisen verfügbar." },
     "experimental": { "title": "Experimentelle Funktionen", "description": "Aktivieren Sie von Ihrer Organisation freigegebene Alpha-Funktionen." },
     "pdfViewer": { "title": "PDF-Viewer", "description": "Prüfen Sie PDFs, Anmerkungen, Formulare, Gliederungen und zugehörige Dokumentdaten." },
+    "eInvoice": {
+      "title": "Elektronische Rechnungen",
+      "description": "Factur-X-, ZUGFeRD- und XRechnung-Rechnungen erstellen, das XML erzeugen und ein PDF/A-3-Hybrid-Rechnung anlegen."
+    },
     "pdfChartRecognition": { "title": "PDF-Diagrammerkennung", "description": "Stellen Sie unterstützte PDF-Diagramme als bearbeitbare Designer-Elemente mit Konfidenzprüfung wieder her." },
     "codeWorkspace": { "title": "Code-Arbeitsbereich", "description": "Konvertieren, validieren und führen Sie JSON-, C#-Modell- und PXA-PDF-Code sicher neben dem visuellen Designer aus." },
     "spreadsheet": { "title": "Tabellenkalkulation", "description": "Erstellen, importieren, berechnen und exportieren Sie arbeitsmappenbasierte Inhalte." },

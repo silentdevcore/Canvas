@@ -16,7 +16,9 @@ const output = path.join(root, 'artifacts', 'visual-parity');
 const raw = path.join(output, 'raw');
 const configuredFixture = process.env.PXA_VISUAL_PARITY_FIXTURE ?? 'test-assets/visual-parity/all-elements.json';
 const fixturePath = path.isAbsolute(configuredFixture) ? configuredFixture : path.join(root, configuredFixture);
-const fixtureKey = configuredFixture.includes('mixed-layout') ? 'mixed-layout' : 'all-elements';
+// The key the browser route uses to pick the same fixture. Derived from the filename so adding a
+// fixture needs no change here.
+const fixtureKey = path.basename(configuredFixture, '.json');
 const baseUrl = 'http://127.0.0.1:4187';
 
 function run(command, args, options = {}) {
