@@ -54,7 +54,8 @@ builder.AddPxaObservability();
 
 // Add services to the container.
 builder.Services.AddControllers(options => options.Filters.Add<PxaProblemDetailsResultFilter>());
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer<PXA.WebApi.Infrastructure.OpenApi.PxaEInvoiceOpenApiTransformer>());
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
@@ -121,6 +122,19 @@ builder.Services.AddScoped<IClaimsTransformation, PxaPermissionClaimsTransformat
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfTrustInspector, PXA.Importer.Trust.PdfTrustInspector>();
 builder.Services.AddScoped<PXA.Importer.Redaction.IPdfRedactionPreflight, PXA.Importer.Redaction.PdfRedactionPreflight>();
 builder.Services.AddScoped<PXA.Importer.Trust.IPdfA2bConverter, PXA.Importer.Trust.PdfA2bConverter>();
+builder.Services.AddScoped<PXA.Importer.EInvoicing.IPdfEInvoiceAttacher, PXA.Importer.EInvoicing.PdfEInvoiceAttacher>();
+builder.Services.AddOptions<PXA.WebApi.Services.Pdf.PxaEInvoiceEvidenceOptions>()
+    .Bind(builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaEInvoiceEvidenceOptions.SectionName))
+    .Validate(
+        options => options.RetentionDays is >= 1 and <= 36_500 &&
+                   options.MaximumPageSize is >= 1 and <= 1_000 &&
+                   options.CleanupIntervalMinutes is >= 1 and <= 1_440 &&
+                   options.CleanupBatchSize is >= 1 and <= 10_000,
+        "Electronic-invoice evidence retention configuration is invalid.")
+    .ValidateOnStart();
+builder.Services.AddScoped<PXA.WebApi.Services.Pdf.IPxaEInvoiceValidationEvidenceService,
+    PXA.WebApi.Services.Pdf.PxaEInvoiceValidationEvidenceService>();
+builder.Services.AddHostedService<PXA.WebApi.Services.Pdf.PxaEInvoiceValidationEvidenceRetentionWorker>();
 builder.Services.Configure<PXA.WebApi.Services.Pdf.PxaEInvoiceValidationOptions>(
     builder.Configuration.GetSection(PXA.WebApi.Services.Pdf.PxaEInvoiceValidationOptions.SectionName));
 builder.Services.AddSingleton<PXA.WebApi.Services.Pdf.IPxaEInvoiceValidationService,

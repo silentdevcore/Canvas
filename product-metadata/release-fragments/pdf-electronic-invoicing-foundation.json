@@ -5,13 +5,17 @@
   "components": [
     "api",
     "designer",
+    "documentation",
     "generator",
-    "importer"
+    "importer",
+    "migration"
   ],
   "category": "added",
-  "summary": "PXA creates visible PDF/A-3 hybrid invoices from typed data, embeds deterministic Factur-X, ZUGFeRD, or XRechnung XML, and lets authorized Viewer users inspect, validate, and extract invoice data.",
+  "summary": "PXA creates visible PDF/A-3 hybrid invoices from typed data, embeds deterministic Factur-X, ZUGFeRD, or XRechnung XML, attaches invoice XML to an existing PDF without changing its visible pages, and lets authorized users inspect, validate, extract, and retain validation evidence per tenant.",
   "featureIds": [],
   "documentation": [
+    "/docs/guides/PXA.EInvoicing.md",
+    "/docs/guides/PXA.Unified-Migration-Provider-Coverage.md",
     "/checklists/PXA.E-Invoicing.md",
     "/checklists/PXA.PDF-Specialized-Features-Roadmap.md"
   ],

@@ -18,6 +18,8 @@ public sealed class PxaPdfTrustSecurityTests
     [InlineData("/api/pxa/v1/pdf/redactions/apply", PxaPdfTrustCapabilities.Redaction)]
     [InlineData("/api/pxa/v1/pdf/compliance/convert", PxaPdfTrustCapabilities.Compliance)]
     [InlineData("/api/pxa/v1/pdf/e-invoices/create", "generator")]
+    [InlineData("/api/pxa/v1/pdf/e-invoices/attach", "generator")]
+    [InlineData("/api/pxa/v1/pdf/e-invoices/attach/preflight", "generator")]
     public void Product_capabilities_are_independent_from_role_permissions(string path, string expected)
     {
         Assert.Equal(expected, PxaProductAccessMiddleware.ResolveCapability(path));

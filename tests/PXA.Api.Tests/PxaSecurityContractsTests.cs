@@ -223,6 +223,8 @@ public sealed class PxaSecurityContractsTests
     [InlineData("/api/pxa/v1/pdf/e-invoices/validate", "POST", PxaDesignerPermissions.PdfEInvoicesValidate)]
     [InlineData("/api/pxa/v1/pdf/e-invoices/generate", "POST", PxaDesignerPermissions.PdfEInvoicesGenerate)]
     [InlineData("/api/pxa/v1/pdf/e-invoices/create", "POST", PxaDesignerPermissions.PdfEInvoicesCreate)]
+    [InlineData("/api/pxa/v1/pdf/e-invoices/attach", "POST", PxaDesignerPermissions.PdfEInvoicesAttach)]
+    [InlineData("/api/pxa/v1/pdf/e-invoices/attach/preflight", "POST", PxaDesignerPermissions.PdfEInvoicesAttach)]
     [InlineData("/api/pxa/v1/pdf/compliance/convert", "POST", PxaDesignerPermissions.PdfComplianceConvert)]
     [InlineData("/api/pxa/v1/pdf/trust/policies", "PUT", PxaDesignerPermissions.PdfSignatureTrustPoliciesManage)]
     [InlineData("/api/pxa/v1/pdf/trust/key-providers", "PUT", PxaDesignerPermissions.PdfSignatureKeyProvidersManage)]

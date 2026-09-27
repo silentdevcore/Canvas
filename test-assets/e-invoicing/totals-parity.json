@@ -1,0 +1,161 @@
+{
+  "schema": "pxa.e-invoice.totals-parity/1",
+  "purpose": "Pins invoice arithmetic so the Designer (TypeScript) and PXA.Generator (C#) can never drift. Amounts are fixed-point text with the case's currencyDecimalPlaces; rates and quantities use their shortest decimal form. Asserted by tests/PXA.Generator.Tests/EInvoiceTotalsParityTests.cs and pxa-designer/src/__tests__/eInvoiceTotalsParity.test.ts.",
+  "cases": [
+    {
+      "id": "single-standard-rate",
+      "description": "One line at the German standard rate.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Consulting", "quantity": 1, "unitCode": "C62", "unitPrice": 100, "taxRate": 19, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["100.00"],
+        "taxes": [{ "categoryCode": "S", "rate": "19", "basis": "100.00", "amount": "19.00" }],
+        "lineNetTotal": "100.00",
+        "taxTotal": "19.00",
+        "grandTotal": "119.00"
+      }
+    },
+    {
+      "id": "multiple-rates-ordered-by-rate",
+      "description": "Three rates in one invoice; groups must be ordered by rate, then category code.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Standard goods", "quantity": 2, "unitCode": "C62", "unitPrice": 50, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "2", "description": "Books", "quantity": 3, "unitCode": "C62", "unitPrice": 20, "taxRate": 7, "taxCategoryCode": "S" },
+        { "identifier": "3", "description": "Export service", "quantity": 1, "unitCode": "C62", "unitPrice": 400, "taxRate": 0, "taxCategoryCode": "K" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["100.00", "60.00", "400.00"],
+        "taxes": [
+          { "categoryCode": "K", "rate": "0", "basis": "400.00", "amount": "0.00" },
+          { "categoryCode": "S", "rate": "7", "basis": "60.00", "amount": "4.20" },
+          { "categoryCode": "S", "rate": "19", "basis": "100.00", "amount": "19.00" }
+        ],
+        "lineNetTotal": "560.00",
+        "taxTotal": "23.20",
+        "grandTotal": "583.20"
+      }
+    },
+    {
+      "id": "same-rate-different-category",
+      "description": "Equal rates in different categories stay separate groups, ordered by category code.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Zero rated", "quantity": 1, "unitCode": "C62", "unitPrice": 10, "taxRate": 0, "taxCategoryCode": "Z" },
+        { "identifier": "2", "description": "Exempt", "quantity": 1, "unitCode": "C62", "unitPrice": 20, "taxRate": 0, "taxCategoryCode": "E" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["10.00", "20.00"],
+        "taxes": [
+          { "categoryCode": "E", "rate": "0", "basis": "20.00", "amount": "0.00" },
+          { "categoryCode": "Z", "rate": "0", "basis": "10.00", "amount": "0.00" }
+        ],
+        "lineNetTotal": "30.00",
+        "taxTotal": "0.00",
+        "grandTotal": "30.00"
+      }
+    },
+    {
+      "id": "line-net-rounds-half-away-from-zero",
+      "description": "0.005 rounds up, not to even. Floating-point maths gets this wrong.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Half cent up", "quantity": 1, "unitCode": "C62", "unitPrice": 0.125, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "2", "description": "Half cent up again", "quantity": 1, "unitCode": "C62", "unitPrice": 0.135, "taxRate": 19, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["0.13", "0.14"],
+        "taxes": [{ "categoryCode": "S", "rate": "19", "basis": "0.27", "amount": "0.05" }],
+        "lineNetTotal": "0.27",
+        "taxTotal": "0.05",
+        "grandTotal": "0.32"
+      }
+    },
+    {
+      "id": "fractional-quantity-and-price",
+      "description": "Fractional quantity times fractional price, rounded once at the line.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Hours", "quantity": 7.25, "unitCode": "HUR", "unitPrice": 93.33, "taxRate": 19, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["676.64"],
+        "taxes": [{ "categoryCode": "S", "rate": "19", "basis": "676.64", "amount": "128.56" }],
+        "lineNetTotal": "676.64",
+        "taxTotal": "128.56",
+        "grandTotal": "805.20"
+      }
+    },
+    {
+      "id": "fractional-tax-rate",
+      "description": "A non-integer rate, as several jurisdictions use.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Service", "quantity": 1, "unitCode": "C62", "unitPrice": 1000, "taxRate": 8.1, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["1000.00"],
+        "taxes": [{ "categoryCode": "S", "rate": "8.1", "basis": "1000.00", "amount": "81.00" }],
+        "lineNetTotal": "1000.00",
+        "taxTotal": "81.00",
+        "grandTotal": "1081.00"
+      }
+    },
+    {
+      "id": "zero-decimal-currency",
+      "description": "A currency without minor units rounds the line and the tax to whole units.",
+      "currencyDecimalPlaces": 0,
+      "lines": [
+        { "identifier": "1", "description": "Item", "quantity": 3, "unitCode": "C62", "unitPrice": 1500.5, "taxRate": 10, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["4502"],
+        "taxes": [{ "categoryCode": "S", "rate": "10", "basis": "4502", "amount": "450" }],
+        "lineNetTotal": "4502",
+        "taxTotal": "450",
+        "grandTotal": "4952"
+      }
+    },
+    {
+      "id": "three-decimal-currency",
+      "description": "Three minor digits, as Gulf currencies use.",
+      "currencyDecimalPlaces": 3,
+      "lines": [
+        { "identifier": "1", "description": "Item", "quantity": 2, "unitCode": "C62", "unitPrice": 12.3456, "taxRate": 5, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["24.691"],
+        "taxes": [{ "categoryCode": "S", "rate": "5", "basis": "24.691", "amount": "1.235" }],
+        "lineNetTotal": "24.691",
+        "taxTotal": "1.235",
+        "grandTotal": "25.926"
+      }
+    },
+    {
+      "id": "many-lines-accumulate-without-drift",
+      "description": "Ten identical lines whose value is not representable in binary floating point.",
+      "currencyDecimalPlaces": 2,
+      "lines": [
+        { "identifier": "1", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "2", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "3", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "4", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "5", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "6", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "7", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "8", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "9", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" },
+        { "identifier": "10", "description": "Unit", "quantity": 1, "unitCode": "C62", "unitPrice": 0.1, "taxRate": 19, "taxCategoryCode": "S" }
+      ],
+      "expected": {
+        "lineNetAmounts": ["0.10", "0.10", "0.10", "0.10", "0.10", "0.10", "0.10", "0.10", "0.10", "0.10"],
+        "taxes": [{ "categoryCode": "S", "rate": "19", "basis": "1.00", "amount": "0.19" }],
+        "lineNetTotal": "1.00",
+        "taxTotal": "0.19",
+        "grandTotal": "1.19"
+      }
+    }
+  ]
+}

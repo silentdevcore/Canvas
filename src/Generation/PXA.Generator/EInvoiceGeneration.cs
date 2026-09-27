@@ -272,6 +272,17 @@ public static partial class EInvoice
             page.DrawTextFromTop($"{Money(tax.Amount, decimalPlaces)} {code}", right - 95, top, Text(9));
             top += 20;
         }
+
+        // With one tax group the group row already is the tax total. With several, the aggregate
+        // would otherwise appear nowhere on the page, so a reader - and the PDF/XML consistency
+        // comparison - could not confirm the tax total the embedded XML declares.
+        if (calculations.Taxes.Count > 1)
+        {
+            page.DrawTextFromTop("Tax total", x, top, Text(9));
+            page.DrawTextFromTop($"{Money(calculations.TaxTotal, decimalPlaces)} {code}", right - 95, top, Text(9));
+            top += 20;
+        }
+
         page.DrawLineFromTop(x, top, right, top, 1, PdfColor.FromRgb(34, 49, 63));
         page.DrawTextFromTop("Amount payable", x, top + 12, Text(11, bold: true));
         page.DrawTextFromTop($"{Money(calculations.GrandTotal, decimalPlaces)} {code}", right - 110, top + 12, Text(11, bold: true));

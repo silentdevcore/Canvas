@@ -657,6 +657,97 @@ notApplicable  The property does not apply to this document.`,
     ],
   },
   {
+    title: 'Electronic invoicing',
+    status: 'Preview',
+    purpose:
+      'Produce, embed, read and validate Factur-X, ZUGFeRD and XRechnung invoice documents. PXA reports structural recognition, PXA business validation and official conformance as three separate states and never presents one as another. Peppol transport, national tax submission, accounting, payment and legal retention are external integrations, not PDF-engine capabilities.',
+    whenToUse: [
+      'You must issue a hybrid invoice whose visible page and embedded XML carry the same values.',
+      'An existing PDF has to carry invoice XML without its visible pages changing.',
+      'You need to read an invoice back out of a PDF byte for byte.',
+      'You have to prove later what a validator said about a specific document, and with which artifact set.',
+      'A provider migration contains invoice, PDF/A-3 attachment or invoice-validation calls.',
+    ],
+    concepts: ['Three validation states', 'Structural recognition', 'Official artifact sets', 'PDF/A-3 hybrid invoice', 'Incremental attachment', 'PDF and XML consistency', 'Retained validation evidence', 'Unknown XML preservation', 'Canonical invoice values'],
+    tasks: ['Generate invoice XML', 'Create a hybrid PDF', 'Attach to an existing PDF', 'Inspect and extract', 'Validate and revalidate', 'Bind an invoice in the Designer', 'Migrate provider invoice calls'],
+    related: [
+      { label: 'Electronic invoicing guide', href: '../../docs/guides/PXA.EInvoicing.md' },
+      { label: 'PDF Trust workflow', href: '#pdf-trust-details' },
+      { label: 'PDF/A compliance', href: '#pdf-a-compliance-details' },
+      { label: 'Provider coverage', href: '../../docs/guides/PXA.Unified-Migration-Provider-Coverage.md' },
+    ],
+    examples: [
+      {
+        title: 'Supported versions and profiles',
+        json: `Factur-X   1.09.2  CII                       MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED, EXTENDED-CTC-FR  factur-x.xml
+ZUGFeRD    2.5.2   CII                       MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED                     factur-x.xml
+XRechnung  3.0.2   UBL Invoice, CreditNote   XRECHNUNG                                                        xrechnung.xml`,
+        note: 'One version per standard is maintained; any other version is rejected with PXAEINV012 instead of being silently accepted. ZUGFeRD and Factur-X share one technical hybrid format while keeping separate product identities, so ZUGFeRD 2.5.2 output uses the harmonized factur-x.xml filename and the Factur-X XMP namespace. Embedding XRechnung XML in a PDF/A-3 document is a PXA workflow, not a claim that an XRechnung exchange requires a PDF.',
+      },
+      {
+        title: 'The three validation states',
+        json: `isStructurallyValid      Parsed under a bounded DTD-free reader and recognised as CII or UBL. Not a conformance claim.
+diagnostics PXAEINV...   PXA business validation: standard and profile agreement, arithmetic totals, required fields.
+isConformanceValidated   Official conformance only, from a pinned artifact set.
+conformanceStatus        validated | invalid | notEvaluated
+validatorArtifactSetId   Which pinned official artifact set produced the verdict.
+validatorArtifactSetSha256`,
+        note: 'conformanceStatus notEvaluated means no artifact set was configured for that standard, version, profile and syntax. It does not mean the invoice is fine. An invoice is never reported as conformant on the strength of structural validation alone. No official FeRD/FNFE or KoSIT artifact is shipped yet, so every profile currently reports notEvaluated, and no independent validation result is asserted anywhere.',
+      },
+      {
+        title: 'Generator path',
+        json: `var options = new PxaEInvoiceOptions {
+  Standard = PxaEInvoiceStandard.FacturX,
+  Version = EInvoice.CurrentFacturXVersion,
+  Profile = "EN 16931",
+};
+var xml = EInvoice.GenerateXml(invoice, options);
+var hybrid = EInvoice.CreatePdf(invoice, options, fontLoader);`,
+        note: 'PXA calculates line nets, tax groups and totals: it rounds half away from zero at the currency minor-unit scale, groups tax by category code and rate, and orders the groups by rate then category. Choosing a rate, claiming an exemption and deciding what is taxable stay with the caller, because those are billing-domain decisions and PXA does not make them for you.',
+      },
+      {
+        title: 'Attach to an existing PDF',
+        json: `POST /api/pxa/v1/pdf/e-invoices/attach/preflight
+POST /api/pxa/v1/pdf/e-invoices/attach
+
+allowArchiveConversion       rewrite a source that is not PDF/A-3b
+allowSignatureInvalidation   accept removing existing signatures
+replaceExistingInvoice       replace an invoice the PDF already carries
+allowInconsistentPdf         values were not found in the visible page
+preserveUnrecognized         store XML PXA does not recognise, byte for byte`,
+        note: 'A source that already identifies PDF/A-3b receives an incremental update, so the original bytes become the prefix of the result and no visible page can change. A source whose archival identification forbids embedded files is converted first, which is a rewrite and needs explicit approval. Every attachment is verified after it is written: the invoice is re-extracted byte for byte, the per-page content digests are compared, and the result is revalidated. A blocked operation returns 409 with the full preflight report and never modifies the source.',
+      },
+      {
+        title: 'Inspect, extract and consistency',
+        json: `POST /api/pxa/v1/pdf/e-invoices/inspect
+POST /api/pxa/v1/pdf/e-invoices/extract
+
+pdfConsistency.status  consistent | reviewRequired | notEvaluated
+recognitionStatus      recognized | unrecognized | notXml
+isEditable             false for preserved unknown XML`,
+        note: 'A scanned or text-inaccessible PDF stays at notEvaluated. Missing text extraction is never treated as agreement, because that is the one false positive a reader could not detect. Amount matching covers the value own minor-unit scale as well as two-digit and thousand-separated forms, so an invoice in a currency with zero or three minor units is not flagged merely because of its scale. Extraction verifies the declared size and PDF checksum before returning any bytes.',
+      },
+      {
+        title: 'Retained validation evidence',
+        json: `GET  /api/pxa/v1/pdf/e-invoices/validations
+GET  /api/pxa/v1/pdf/e-invoices/validations/{id}
+GET  /api/pxa/v1/pdf/e-invoices/validations/export
+POST /api/pxa/v1/pdf/e-invoices/validations/{id}/revalidate`,
+        note: 'Each record is append-only and carries the tenant, actor, document checksum, container checksum, standard, version, profile, the three states, the validator artifact-set identifier and hash, the diagnostics as reported, and both timestamps. The database rejects an UPDATE outright and permits a DELETE only through the bounded retention path. Revalidation runs the currently configured artifact set over the same document bytes, proven identical by checksum, and stores the new verdict beside the old one so both remain provable.',
+      },
+      {
+        title: 'Known limits',
+        json: `No official FeRD/FNFE or KoSIT artifacts are shipped yet.
+Independent validation results are not published yet.
+Encrypted sources must be decrypted before an attachment.
+An incremental attachment leaves earlier revisions intact.
+notEvaluated consistency is not agreement.
+100 MiB source PDF, 10 MiB invoice XML, 120 MiB output, 2000 synchronous lines.`,
+        note: 'Peppol transport, national tax submission, accounting, payment and legal retention are external integrations, not PDF-engine capabilities. PXA hands you an invoice document and an honest account of what it checked; sending it to an access point, filing it with a tax authority, posting it to a ledger, settling it or retaining it for a statutory period are things your own systems do. PXA deliberately has no API for any of them.',
+      },
+    ],
+  },
+  {
     title: 'Spreadsheet',
     status: 'Preview',
     purpose:

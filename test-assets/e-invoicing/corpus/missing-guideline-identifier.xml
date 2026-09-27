@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"><rsm:ExchangedDocumentContext/><rsm:ExchangedDocument><ram:ID>NO-GUIDELINE-1</ram:ID></rsm:ExchangedDocument><rsm:SupplyChainTradeTransaction/></rsm:CrossIndustryInvoice>

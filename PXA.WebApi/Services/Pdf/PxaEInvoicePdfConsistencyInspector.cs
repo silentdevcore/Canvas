@@ -137,7 +137,9 @@ public static class PxaEInvoicePdfConsistencyInspector
         var found = variants.Any(variant => ContainsNumberToken(
             normalizedText,
             NormalizeAmountWhitespace(variant)));
-        var expected = value.Value.ToString("0.00", CultureInfo.InvariantCulture);
+        var expected = value.Value.ToString(
+            "F" + DecimalScale(value.Value),
+            CultureInfo.InvariantCulture);
         findings.Add(new(
             field,
             expected,
@@ -147,14 +149,39 @@ public static class PxaEInvoicePdfConsistencyInspector
                 : "The XML amount was not found in the extractable PDF text; visual review is required."));
     }
 
-    private static IReadOnlySet<string> AmountVariants(decimal value) => new HashSet<string>(StringComparer.Ordinal)
+    /// <summary>
+    /// How the same amount may legitimately appear on a page. Two minor digits are not a safe
+    /// assumption: a currency without minor units prints "4502" and a three-digit currency prints
+    /// "24.691", so the value's own scale has to be offered alongside the two-digit forms. Without
+    /// it, a correct invoice in such a currency is reported as needing review.
+    /// </summary>
+    private static IReadOnlySet<string> AmountVariants(decimal value)
     {
-        value.ToString("0.##", CultureInfo.InvariantCulture),
-        value.ToString("0.00", CultureInfo.InvariantCulture),
-        value.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
-        value.ToString("N2", CultureInfo.GetCultureInfo("de-DE")),
-        value.ToString("N2", CultureInfo.GetCultureInfo("fr-FR"))
-    };
+        var variants = new HashSet<string>(StringComparer.Ordinal)
+        {
+            value.ToString("0.############################", CultureInfo.InvariantCulture)
+        };
+        foreach (var places in new[] { 2, DecimalScale(value) }.Distinct())
+        {
+            variants.Add(value.ToString("F" + places, CultureInfo.InvariantCulture));
+            foreach (var culture in AmountCultures)
+            {
+                variants.Add(value.ToString("N" + places, culture));
+            }
+        }
+
+        return variants;
+    }
+
+    private static readonly CultureInfo[] AmountCultures =
+    [
+        CultureInfo.GetCultureInfo("en-US"),
+        CultureInfo.GetCultureInfo("de-DE"),
+        CultureInfo.GetCultureInfo("fr-FR")
+    ];
+
+    /// <summary>The number of decimal places the value carries, 0-28.</summary>
+    private static int DecimalScale(decimal value) => (decimal.GetBits(value)[3] >> 16) & 0xFF;
 
     private static string Normalize(string value)
     {

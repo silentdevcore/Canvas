@@ -79,3 +79,47 @@ and server preview is not advertised by the catalog.
 - Historical provider aliases are accepted as input and normalized to canonical keys.
 - Legacy `/api/migration/*` routes remain adapters for one major release and advertise
   deprecation, sunset, and successor information.
+
+## Electronic-invoice capabilities per PDF code provider
+
+This section mirrors `PdfEInvoiceMigrationCatalog` and is drift-guarded by
+`PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationCoverageReportTests`.
+
+The mappings are keyed on API identifiers a customer's source may contain, not on a
+claim about which invoice features each vendor ships. `automatic` means the call
+transfers onto a PXA API with no judgement left; `reviewRequired` means a person has
+to confirm something the source leaves implicit; `unsupported` means no invoice API
+of that kind was identified and PXA will not invent one. Nothing in this table is a
+conformance claim — conformance is established by the pinned official artifact sets.
+
+- Attachment and extraction are `automatic` wherever the provider has the API,
+  because embedding and reading back an embedded file is byte-preserving on both
+  sides.
+- Factur-X, ZUGFeRD and XRechnung generation is never `automatic`: the standard
+  version and profile are a business obligation the source code usually leaves
+  implicit.
+- Invoice validation is never `automatic`: the detected call may validate PDF/A
+  structure rather than invoice rules, and a migration must not turn that into an
+  invoice-conformance claim.
+
+<!-- BEGIN GENERATED: e-invoice-provider-coverage -->
+
+| Provider | Factur-X | ZUGFeRD | XRechnung | PDF/A-3 attachment | Extraction | Validation |
+|---|---|---|---|---|---|---|
+| `active-pdf` | unsupported | unsupported | unsupported | automatic | unsupported | unsupported |
+| `apryse` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `aspose-pdf` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `devexpress-pdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `dspdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `foxit-pdf` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `gembox-pdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `iron-pdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `itext7` | reviewRequired | reviewRequired | unsupported | automatic | automatic | unsupported |
+| `leadtools-pdf` | unsupported | unsupported | unsupported | automatic | unsupported | unsupported |
+| `nutrient` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `pdfkitnet` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `pdftools` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `pdftools-toolbox` | unsupported | unsupported | unsupported | automatic | automatic | reviewRequired |
+| `spire-pdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+| `syncfusion-pdf` | unsupported | unsupported | unsupported | automatic | automatic | unsupported |
+<!-- END GENERATED: e-invoice-provider-coverage -->

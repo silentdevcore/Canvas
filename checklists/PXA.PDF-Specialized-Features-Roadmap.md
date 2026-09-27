@@ -75,19 +75,22 @@ Current state: `inProgress`. The focused implementation tracker is
   Schematron, code lists, totals, and business rules.
 - [x] Embed invoice XML in PDF/A-3 with the correct associated-file relationship,
   MIME type, filename, metadata, and checksum.
-- [ ] Import, extract, inspect, and validate invoice XML from existing PDFs.
+- [x] Import, extract, inspect, and validate invoice XML from existing PDFs.
 - [x] Add bounded associated-file inspection and byte-preserving extraction for
   structurally valid PDF associated files.
-- [ ] Add Designer invoice bindings, structured invoice templates, and validation
-  diagnostics without coupling the PDF engine to billing logic.
+- [ ] Complete the Designer invoice experience. Typed bindings, template
+  definitions, exact totals, localized validation, and an API client exist, but
+  the reachable UI, autosave wiring, and visual-parity evidence remain open.
 - [x] Add initial Viewer presentation for invoice profile, structural and
   conformance state, diagnostics, and machine-readable download.
 - [x] Add parsed invoice identifiers, dates, parties, currency, taxes, totals,
   and line items plus conservative PDF/XML consistency warnings to
   the Viewer.
 - [ ] Add API, migration, Documentation, sample invoices, schema validation, and
-  independent conformance evidence.
-- [ ] Keep Peppol transport and national tax submission outside the PDF engine and
+  independent conformance evidence. API, migration mappings, Documentation, and a
+  PXA-authored sample corpus are done; pinned official schema validation and
+  independent conformance evidence remain blocked on artifact redistribution terms.
+- [x] Keep Peppol transport and national tax submission outside the PDF engine and
   document them as integration boundaries.
 
 ### PXA-PDF-LEGAL - Legal Document Workflows

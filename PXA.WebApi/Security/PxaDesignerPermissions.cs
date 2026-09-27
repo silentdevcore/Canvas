@@ -44,6 +44,7 @@ public static class PxaDesignerPermissions
     public const string PdfEInvoicesValidate = "designer.pdf.e-invoices.validate";
     public const string PdfEInvoicesGenerate = "designer.pdf.e-invoices.generate";
     public const string PdfEInvoicesCreate = "designer.pdf.e-invoices.create";
+    public const string PdfEInvoicesAttach = "designer.pdf.e-invoices.attach";
     public const string DocumentEdit = "designer.document.edit";
     public const string Import = "designer.import";
     public const string Export = "designer.export";
@@ -110,6 +111,7 @@ public static class PxaDesignerPermissions
         PdfEInvoicesValidate,
         PdfEInvoicesGenerate,
         PdfEInvoicesCreate,
+        PdfEInvoicesAttach,
         DocumentEdit,
         Import,
         Export,
@@ -202,13 +204,24 @@ public static class PxaDesignerPermissionResolver
                 : PxaDesignerPermissions.PdfRedactionsInspect;
 
         if (StartsWith(value, "/api/pxa/v1/pdf/e-invoices"))
-            return value.EndsWith("/validate", StringComparison.Ordinal)
+            // Reading retained validation evidence is a read; producing a new verdict for a
+            // stored record is a validation.
+            return value.EndsWith("/revalidate", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfEInvoicesValidate
+                : value.Contains("/validations", StringComparison.Ordinal)
+                ? PxaDesignerPermissions.PdfEInvoicesRead
+                : value.EndsWith("/validate", StringComparison.Ordinal)
                 ? PxaDesignerPermissions.PdfEInvoicesValidate
                 : value.EndsWith("/generate", StringComparison.Ordinal)
                     ? PxaDesignerPermissions.PdfEInvoicesGenerate
                     : value.EndsWith("/create", StringComparison.Ordinal)
                         ? PxaDesignerPermissions.PdfEInvoicesCreate
-                        : PxaDesignerPermissions.PdfEInvoicesRead;
+                        // Preflighting an attachment reveals what a write would do, so it
+                        // requires the same permission as the write itself.
+                        : value.EndsWith("/attach", StringComparison.Ordinal) ||
+                            value.EndsWith("/attach/preflight", StringComparison.Ordinal)
+                            ? PxaDesignerPermissions.PdfEInvoicesAttach
+                            : PxaDesignerPermissions.PdfEInvoicesRead;
 
         if (StartsWith(value, "/api/pxa/v1/pdf/signatures"))
             return value.EndsWith("/validate", StringComparison.Ordinal)

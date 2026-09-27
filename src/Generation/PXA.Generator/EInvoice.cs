@@ -52,6 +52,14 @@ public sealed record PxaEInvoiceRecognitionReport(
     IReadOnlyList<PxaEInvoiceDiagnostic> Diagnostics,
     PxaEInvoiceSemanticData? SemanticData = null);
 
+/// <summary>How invoice XML appears as an associated file inside a hybrid PDF.</summary>
+public sealed record PxaEInvoiceAttachmentDescriptor(
+    string FileName,
+    string MimeType,
+    PdfAssociatedFileRelationship Relationship,
+    string Description,
+    PdfAssociatedFileXmpMetadata XmpMetadata);
+
 public sealed record PxaEInvoiceValidationReport(
     bool IsStructurallyValid,
     bool IsConformanceValidated,
@@ -352,16 +360,40 @@ public static partial class EInvoice
             throw new InvalidDataException(message);
         }
 
+        var descriptor = DescribeAttachment(options);
+        return document.AddAssociatedFile(
+            xml,
+            descriptor.FileName,
+            descriptor.MimeType,
+            descriptor.Relationship,
+            descriptor.Description,
+            descriptor.XmpMetadata);
+    }
+
+    /// <summary>
+    /// Describes how the invoice XML has to appear inside a PDF for the requested standard.
+    /// Embedding into an existing PDF uses this so a hybrid invoice carries the same filename,
+    /// relationship and PDF/A extension schema no matter which entry point produced it.
+    /// </summary>
+    public static PxaEInvoiceAttachmentDescriptor DescribeAttachment(PxaEInvoiceOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        if (!Enum.IsDefined(options.Standard))
+            throw new ArgumentOutOfRangeException(nameof(options), "The electronic-invoice standard is not supported.");
+
+        var profile = NormalizeProfile(options.Profile);
+        if (profile is null)
+            throw new ArgumentException("A profile is required to describe an invoice attachment.", nameof(options));
+
         var fileName = string.IsNullOrWhiteSpace(options.FileName)
             ? DefaultFileName(options.Standard)
             : options.FileName.Trim();
-        return document.AddAssociatedFile(
-            xml,
+        return new PxaEInvoiceAttachmentDescriptor(
             fileName,
             "application/xml",
             PdfAssociatedFileRelationship.Alternative,
-            options.Standard + " " + options.Version + " " + NormalizeProfile(options.Profile) + " invoice XML",
-            CreateXmpMetadata(options.Standard, fileName, NormalizeProfile(options.Profile)!));
+            options.Standard + " " + options.Version + " " + profile + " invoice XML",
+            CreateXmpMetadata(options.Standard, fileName, profile));
     }
 
     private static void ValidateOptions(
