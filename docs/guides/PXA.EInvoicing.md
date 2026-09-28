@@ -288,12 +288,52 @@ resolved at insertion time, which is how one definition serves all six Designer 
 
 ### Pages
 
-A long invoice is projected onto as many A4 pages as it needs. With the standard Designer layout
-that is 26 short line rows on the first page — which also carries the seller and
-buyer block — and 36 on each continuation page, where the column headings repeat. The totals block
-follows the final line when there is room for it and takes a page of its own when there is not; it
-grows with the number of tax groups and continues on further totals pages when necessary. A row is
-never split across a page, and ordinary wrapping descriptions grow their cells.
+A long invoice is projected onto as many A4 pages as it needs, and **the Designer and the hybrid-PDF
+renderer paginate it identically**. They implement one versioned contract —
+`test-assets/e-invoicing/pagination-contract.json`, schema `pxa.e-invoice.pagination/1` — which pins
+the page box, the table geometry, the columns, the row metrics, the continuation headings, the
+totals block and the footer-safe bound. Neither implementation depends on the other: the Designer's
+half is `invoicePagination.ts`, the generator's is `EInvoicePageLayout`, and each asserts itself
+against the pinned file. The same invoice therefore reaches the same page count with the same
+content on each page, whichever surface renders it.
+
+With the maintained standard layout that is **26 short line rows on the first page** — which also
+carries the seller and buyer block — and **36 on each continuation page**, where the column headings
+repeat. A row is never split across a page. Concretely, a one-tax-group invoice fits on a single
+page up to 19 lines and on two pages up to 56, gaining a page every 36 lines after that.
+
+### Long descriptions
+
+A description that wraps grows its row, and the next row starts below it. A description longer than
+a whole page is not clipped: it continues on the next page as a **continuation fragment**. Only the
+text continues — the position, quantity, unit price, tax rate and net amount stay on the row that
+carries them, so no amount is ever shown twice for one line. The canonical invoice still holds one
+line with one identity; fragments are a visual device with deterministic identifiers
+(`…-l<line>f<fragment>` in the Designer projection) and never appear in the XML.
+
+Both renderers wrap greedily to the same column width using the same conservative metrics, so they
+break at the same word and produce the same fragments.
+
+**Limit.** A single description may occupy at most eight fragments. Beyond that `EInvoice.CreatePdf`
+refuses the document with `PXAEINV122` rather than emitting one of unbounded length. The limit
+cannot be reached through the public API, because `PXAEINV109` already caps a description at 4 096
+characters — about four fragments at worst — so it guards the renderer rather than the caller.
+
+### Totals and large tax breakdowns
+
+The totals block follows the final line when there is room for it above the footer-safe bound, and
+takes a page of its own when there is not. It grows with the number of tax groups, and a breakdown
+too large for one page continues across further totals pages. However many pages it spans:
+
+- every tax group appears exactly once, in rate then category order;
+- the net total appears once, on the first totals page;
+- the payable total appears once, on the last;
+- with more than one tax group an aggregate **Tax total** row is drawn, so the figure the embedded
+  XML declares can be confirmed on the page. With a single group the group row already is that
+  total, and no aggregate row is added;
+- nothing overlaps the footer note or runs past the page boundary.
+
+Zero, one, two, eight and eighty tax groups are covered by pinned cases in the contract.
 
 Stable Designer-only line IDs are stored alongside the canonical lines and move with them. They do
 not enter the invoice XML. Whatever the page count, one edit stays one undoable transaction and
@@ -395,11 +435,15 @@ The full table is in
   order, so the Designer preview of such a line must not be treated as visually equivalent to the
   generated PDF. The invoice values themselves are unaffected: they travel through the canonical
   invoice and the XML, not through the rendered page.
-- **Hybrid layout parity is still under review.** The Designer's maintained layout and normal PDF
-  export are visually gated. The dedicated PDF/A-3 hybrid renderer currently uses fixed 30-point
-  rows and a separate table geometry. Maximum-length descriptions may therefore clip in that
-  renderer, and its page breaks can differ from the Designer projection. Canonical values and
-  embedded XML remain the same; identical pagination is not yet claimed.
+- **Hybrid parity is pagination and content, not pixels.** The Designer and the hybrid renderer
+  implement one pagination contract and are gated on producing the same page count and the same
+  content per page for every maintained fixture. They are not pixel-identical: the two draw text
+  through different engines, so page-level differences of a few hundredths RMSE remain and are
+  reported as P2. Where an exact visual reference matters, the DesignExport PDF of the projection is
+  the gated surface, and parity against it is not a statement about the hybrid renderer.
+- **Unbroken text is bounded safely.** A token wider than the description column is segmented at
+  Unicode boundaries for visual layout. The canonical invoice value and embedded XML remain
+  unchanged, while the visible row receives enough lines and continuation pages to avoid clipping.
 
 ## Permissions and entitlement
 
@@ -425,6 +469,23 @@ document's content.
 | `PXAEINV1xx` | Typed invoice-document validation |
 | `PXAEINVATTACH0xx` | Existing-PDF attachment preflight and execution |
 | `PXAEINVAPI0xx` | API request handling and Problem Details |
+| `CANMIGEINV00x` | Electronic-invoice code-migration findings, one per capability |
 
 Identifiers are stable. A diagnostic keeps its code across releases even when its message is
 reworded.
+
+Named codes worth knowing:
+
+| Code | Meaning |
+|---|---|
+| `PXAEINV109` | A line description exceeds 4 096 characters. |
+| `PXAEINV120` | PDF/A-3 invoice creation was asked for without an embedded-font loader. |
+| `PXAEINV122` | A line description is too long to render within eight continuation fragments. |
+| `CANMIGEINV001` / `002` / `003` | Factur-X / ZUGFeRD / XRechnung generation found in migrated source. |
+| `CANMIGEINV004` | PDF/A-3 attachment found in migrated source. |
+| `CANMIGEINV005` / `006` | Invoice extraction / validation found in migrated source. |
+
+A `CANMIGEINV` finding carries a disposition — `automatic`, `reviewRequired` or `unsupported` — and
+always names either the PXA API that replaces the call or, when there is none, what to do instead.
+Invoice generation is never `automatic`: the standard version and profile are a business obligation
+the source code usually leaves implicit. No migration finding asserts conformance.

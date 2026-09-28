@@ -152,6 +152,7 @@
     "lineTaxRate": "IVA",
     "lineNet": "Netto",
     "netTotal": "Totale netto",
+    "taxTotal": "Totale imposta",
     "amountPayable": "Importo da pagare",
     "conformanceNote": "L'XML di fattura incorporato è il dato giuridicamente rilevante. Il riconoscimento strutturale di PXA non è un'affermazione di conformità.",
     "standardName": "Fattura standard",

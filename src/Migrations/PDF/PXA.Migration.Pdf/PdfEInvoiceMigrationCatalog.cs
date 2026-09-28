@@ -206,6 +206,110 @@ public static class PdfEInvoiceMigrationCatalog
             capability.Disposition != PdfTrustMigrationDisposition.Unsupported))
         .ToArray();
 
+    /// <summary>The stable diagnostic identifier for one capability. These never change.</summary>
+    public static string CodeFor(PdfEInvoiceCapability capability) => capability switch
+    {
+        PdfEInvoiceCapability.FacturX => "CANMIGEINV001",
+        PdfEInvoiceCapability.Zugferd => "CANMIGEINV002",
+        PdfEInvoiceCapability.XRechnung => "CANMIGEINV003",
+        PdfEInvoiceCapability.PdfA3Attachment => "CANMIGEINV004",
+        PdfEInvoiceCapability.InvoiceExtraction => "CANMIGEINV005",
+        PdfEInvoiceCapability.InvoiceValidation => "CANMIGEINV006",
+        _ => throw new ArgumentOutOfRangeException(nameof(capability), capability, null)
+    };
+
+    /// <summary>
+    /// Standard names that identify an invoice capability whatever SDK the source uses.
+    /// </summary>
+    /// <remarks>
+    /// A provider's own markers only exist where PXA identified a matching API. These catch the
+    /// case where the source clearly intends a standard the provider has no API for, so the
+    /// migration reports it as unsupported instead of passing over it in silence.
+    /// </remarks>
+    private static readonly (PdfEInvoiceCapability Capability, string[] Names)[] StandardNames =
+    [
+        (PdfEInvoiceCapability.FacturX, ["Factur-X", "FacturX", "factur_x"]),
+        (PdfEInvoiceCapability.Zugferd, ["ZUGFeRD"]),
+        (PdfEInvoiceCapability.XRechnung, ["XRechnung"])
+    ];
+
+    /// <summary>
+    /// Reports every electronic-invoice capability a source file touches.
+    /// </summary>
+    /// <remarks>
+    /// This is what turns the catalog from a table into a migration answer: given the code a
+    /// customer actually has, it says which PXA API replaces each call, which ones a human must
+    /// confirm, and which ones PXA cannot carry across. Detection is textual because the input is a
+    /// source snippet in an SDK PXA does not reference; a marker is matched on a word boundary so
+    /// <c>Attachments</c> does not match <c>MyAttachmentsHelper</c>.
+    /// </remarks>
+    public static IReadOnlyList<PdfEInvoiceMigrationFinding> Analyze(string providerKey, string source)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
+        ArgumentNullException.ThrowIfNull(source);
+        var profile = Get(providerKey);
+
+        var findings = new List<(int SourceIndex, PdfEInvoiceMigrationFinding Finding)>();
+        foreach (var capability in profile.Capabilities)
+        {
+            var matched = capability.DetectedApiMarkers
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(marker => (Marker: marker, Index: FindMarker(source, marker)))
+                .Where(match => match.Index >= 0)
+                .OrderBy(static match => match.Index)
+                .ToArray();
+
+            if (matched.Length == 0)
+            {
+                // No provider API matched. The source may still name the standard outright, which
+                // means the customer wants it and this provider has no API PXA could map.
+                var named = StandardNames
+                    .FirstOrDefault(entry => entry.Capability == capability.Capability)
+                    .Names?
+                    .Select(name => (Marker: name, Index: FindMarker(source, name)))
+                    .Where(match => match.Index >= 0)
+                    .OrderBy(static match => match.Index)
+                    .ToArray() ?? [];
+                if (named.Length == 0) continue;
+                matched = named;
+            }
+
+            findings.Add((matched[0].Index, new PdfEInvoiceMigrationFinding
+            {
+                ProviderKey = profile.ProviderKey,
+                Capability = capability.Capability,
+                Disposition = capability.Disposition,
+                Code = CodeFor(capability.Capability),
+                MatchedMarkers = matched.Select(static match => match.Marker).ToArray(),
+                PxaEquivalent = capability.PxaEquivalent,
+                Rationale = capability.Rationale,
+                DocumentationPath = capability.DocumentationPath
+            }));
+        }
+
+        return findings
+            .OrderBy(static finding => finding.SourceIndex)
+            .Select(static finding => finding.Finding)
+            .ToArray();
+    }
+
+    private static int FindMarker(string source, string marker)
+    {
+        var index = source.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        while (index >= 0)
+        {
+            var beforeOk = index == 0 || !IsMarkerCharacter(source[index - 1]);
+            var after = index + marker.Length;
+            var afterOk = after >= source.Length || !IsMarkerCharacter(source[after]);
+            if (beforeOk && afterOk) return index;
+            index = source.IndexOf(marker, index + 1, StringComparison.OrdinalIgnoreCase);
+        }
+        return -1;
+    }
+
+    private static bool IsMarkerCharacter(char character) =>
+        char.IsLetterOrDigit(character) || character == '_';
+
     public static string DocumentationFor(PdfEInvoiceCapability capability) => capability switch
     {
         PdfEInvoiceCapability.FacturX => $"{Guide}#factur-x",

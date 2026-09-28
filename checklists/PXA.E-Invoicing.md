@@ -105,12 +105,11 @@ depends on the validation foundation.
 
 ### Status
 
-Progress: 29 of 40 checklist items complete (72.5%), up from 21 (52.5%).
+Progress: 30 of 40 checklist items complete (75%), up from 21 (52.5%).
 
-The figure is unchanged by this handoff. EINV-05 now has maintained multi-page projection and a
-passing projection/export visual gate, but full acceptance remains open: the dedicated hybrid
-invoice renderer still uses a separate fixed-row layout, and maximum-length descriptions need a
-shared overflow contract before Designer and hybrid output can claim identical pagination.
+EINV-05 is complete. The Designer projection and dedicated hybrid renderer now implement the same
+versioned pagination contract, including deterministic continuation fragments, multi-page tax
+summaries and safe segmentation of valid maximum-length tokens without losing Unicode characters.
 
 | Item | State |
 |---|---|
@@ -118,7 +117,7 @@ shared overflow contract before Designer and hybrid output can claim identical p
 | EINV-02 Complete standards validation | open, depends on EINV-01 |
 | EINV-03 Existing-PDF attachment workflow | done |
 | EINV-04 Complete API contract | done |
-| EINV-05 Designer invoice experience | multi-page core done; hybrid-layout acceptance pending |
+| EINV-05 Designer invoice experience | done |
 | EINV-06 Migration provider coverage | done |
 | EINV-07 Maintained fixture corpus | PXA-authored part done; official fixtures blocked on EINV-01 |
 | EINV-08 Independent hybrid-PDF validation | open, externally blocked |
@@ -137,36 +136,81 @@ release fragment therefore stays un-finalized and `VERSION` is unchanged at 1.1.
 
 Visual parity status.
 
-Two maintained fixtures are compared, both generated from one canonical invoice and drift-guarded
+Four maintained fixtures are compared, each generated from one canonical invoice and drift-guarded
 by `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts`:
 
 ```
-PXA_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/e-invoice.json \
-  PXA_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
-PXA_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/e-invoice-multipage.json \
-  PXA_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+for fixture in e-invoice e-invoice-multipage e-invoice-long-description e-invoice-multi-tax; do
+  PXA_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/$fixture.json \
+    PXA_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+done
 ```
 
-Artifacts land in `artifacts/visual-parity/`: `visual-parity-report.html`,
+Artifacts land in `artifacts/visual-parity/`, which is ignored: `visual-parity-report.html`,
 `visual-parity-report.json`, and per-page and per-element PNGs, diffs and overlays under `raw/`.
 
-| Fixture | Pages | Elements | P0 | P1 | P2 | Match | Enforced gate |
-|---|---|---|---|---|---|---|---|
-| `e-invoice.json` | 1 | 61 | 0 | 0 | 4 | 57 | passes |
-| `e-invoice-multipage.json` | 2 | 233 | 0 | 0 | 4 | 229 | passes |
+The run compares four surfaces. Three share the DesignExport `backend` PDF as reference — the
+Canvas, the Live Preview and the JSON-to-C# generated PDF — and the fourth is the dedicated
+`EInvoice.CreatePdf` hybrid invoice, rendered from the canonical invoice in the `.invoice.json`
+sidecar beside each fixture. **Parity against the DesignExport PDF is not a statement about the
+hybrid renderer**, and the report labels the two separately.
 
-Both fixtures pass the enforced gate with the repository's approved thresholds unchanged.
+| Fixture | Pages | Elements | P0 | P1 | P2 | Match | Hybrid pages | Worst hybrid page RMSE | Enforced gate |
+|---|---|---|---|---|---|---|---|---|---|
+| `e-invoice.json` | 1 | 63 | 0 | 0 | 4 | 59 | 1 of 1 | 0.05180 | passes |
+| `e-invoice-multipage.json` | 2 | 235 | 0 | 0 | 4 | 231 | 2 of 2 | 0.06446 | passes |
+| `e-invoice-long-description.json` | 2 | 72 | 0 | 0 | 6 | 66 | 2 of 2 | 0.07538 | passes |
+| `e-invoice-multi-tax.json` | 2 | 265 | 0 | 0 | 4 | 261 | 2 of 2 | 0.06558 | passes |
+
+All four pass the enforced gate with the repository's approved thresholds unchanged. Enforcement now
+also fails on a hybrid page-count disagreement and on a hybrid page scoring P0 or P1.
 
 - The JSON-to-C#-generated PDF is pixel-identical to the backend PDF on every element and every
-  page of both fixtures (`csharp` RMSE 0), so the code-generation path is exact.
+  page of all four fixtures (`csharp` RMSE 0), so the code-generation path is exact.
 - Canvas and Live Preview report identical RMSE on every element and every page, so the two
   Designer surfaces agree with the normal backend export of the projected `DesignExportDto`.
-  This does not compare against the separate `EInvoice.CreatePdf` hybrid-invoice layout.
+- The hybrid renderer produces the same page count as the projection on every fixture, with the
+  same lines, fragments and tax groups per page. It is **not** pixel-identical: the two draw text
+  through different engines, so a page-level difference of 0.05-0.08 perceptual RMSE remains. That
+  is P2 under the approved thresholds and is reported as such, not as parity.
 - The four remaining P2 findings are the same on both fixtures: `einv-title`, `einv-invoiceNumber`,
   `einv-payableAmount` and `einv-payableCurrency`. Each one's trimmed ink box matches the backend
   exactly in width and position; only a single anti-aliased edge row differs, because Chromium and
   poppler distribute partial coverage differently on bold stems. These are genuinely
   rasterization-related and are not layout differences.
+
+Shared pagination contract.
+
+The Designer and `EInvoice.CreatePdf` previously paginated independently: the Designer used 18-point
+rows from y 272, the hybrid renderer fixed 30-point rows from y 276 with its own columns, a dark
+header bar and a 24-point description box that silently clipped anything longer. The same invoice
+could therefore reach a different page count on screen and in the issued document.
+
+Both now implement one versioned contract, `test-assets/e-invoicing/pagination-contract.json`
+(schema `pxa.e-invoice.pagination/1`), which pins the page box, table geometry, the eight named
+columns, row metrics, continuation headings, the totals block, the footer-safe bound and the
+description-fragment limit. It carries twelve cases, each fixing the expected page count, rows per
+page, tax groups per page, which page carries the net and payable totals, and which lines were
+fragmented. `EInvoicePaginationContractTests` (C#) and `eInvoicePaginationContract.test.ts`
+(TypeScript) each assert their own implementation against the file. Neither implementation depends
+on the other; PXA.Generator takes no dependency on the Designer.
+
+Aligning the two exposed three further divergences, all fixed:
+
+- The Designer never implemented the `formatter` metadata its templates carried, so a tax rate
+  rendered as `19` where the PDF wrote `19%`, and a unit price as `24.9` where the PDF wrote
+  `24.90`. The binding context now publishes the rendered text for both.
+- `PdfPage.ResolveFont` only honours `Bold` when a font family is named. The hybrid renderer passed
+  neither, so every bold heading rendered regular. It now names the Helvetica slot the Designer's
+  layouts ask for.
+- The Designer's wrapped description used 9-point leading while the contract budgets 11, so the two
+  stacked wrapped text differently. The wrapping cell now takes its leading from the contract.
+
+Long descriptions no longer clip. A description longer than a page continues as deterministic
+fragments carrying only text - never a repeated amount - and a description beyond eight fragments is
+refused with `PXAEINV122` rather than rendered. Large tax breakdowns continue across totals pages
+with each group once, the net total once on the first and the payable total once on the last;
+zero, one, two, eight and eighty groups are pinned cases.
 
 Four root causes were found and fixed, each verified against the actual text metrics rather than
 inferred from the difference images:
@@ -210,10 +254,9 @@ For reference, the pre-existing `all-elements` fixture reports **P0 1** (`option
 24, match 14**. That P0 is unrelated to this work and unchanged by it: the backend draws a real
 AcroForm list box while the Canvas draws a bulleted list. It does not pass the enforced gate.
 
-One open item is **not** externally blocked and can be picked up immediately:
-
-- Per-provider migration conversion fixtures for EINV-06, which currently has
-  catalog-level and report-level coverage but no source-snippet conversions.
+No remaining item is internally actionable: everything still open depends on the external artifact
+dependency above. Per-provider migration conversion fixtures, previously the one internal gap, are
+now covered by `PdfEInvoiceMigrationConversionTests`.
 
 Two defects were found and fixed while proving the completed work, both of which
 made correct invoices look wrong:
@@ -228,18 +271,19 @@ made correct invoices look wrong:
 Both mattered beyond the report, because `attach` refuses an inconsistent invoice
 without an explicit approval.
 
-Validation at handoff: solution build 0 errors; PXA.Generator.Tests 86/86;
-PXA.Importer.Tests 645/645; PXA.Migration.Pdf.Tests 72/72; PXA.Api.Tests 646 pass
-/ 66 skipped (all `[PostgreSqlFact]`) / 0 fail; Designer 580/580 jest, `tsc
+Validation at handoff: solution build 0 errors; PXA.Generator.Tests 104/104;
+PXA.Importer.Tests 645/645; PXA.Migration.Pdf.Tests 99/99; PXA.Api.Tests 692 pass
+/ 66 skipped (all `[PostgreSqlFact]`) / 0 fail; Designer 604/604 jest, `tsc
 --noEmit` clean, production build succeeds; Documentation 45/45 contract tests and
-site build; both enforced visual-parity commands exit 0; versioning `check` and
-`fragments` clean; `git diff --check` clean. The migration from the previous handoff
-was applied to the local development database, without which every host-booting
-test fails closed on a pending migration.
+site build; all four enforced electronic-invoice visual-parity commands exit 0;
+versioning `check`, `fragments`, `pxa-version` 22/22 and `pxa-release-author` 9/9
+clean; `git diff --check` clean. The migration from an earlier handoff was applied
+to the local development database, without which every host-booting test fails
+closed on a pending migration.
 
-One PXA.Api.Tests run out of four failed a single test that the next three runs
-passed; the failure summary did not name it, and the long-standing intermittent
-below is the likely candidate.
+One PXA.Importer.Tests run failed a single test that the immediate re-run passed,
+and the failure summary did not name it. The long-standing intermittent below is
+the likely candidate.
 
 `PdfViewerAnnotationsControllerTests.ExtractAnnotations_ReturnsNativeAnnotationsAsSidecar`
 fails intermittently under full-suite parallel load - it passed in four of six
@@ -344,7 +388,7 @@ Evidence.
 - `tests/PXA.Api.Tests/PxaSecurityContractsTests.cs` and
   `PxaPdfTrustSecurityTests.cs` extended with the attach routes.
 
-### EINV-05 - Designer Invoice Experience - multi-page core complete, acceptance pending
+### EINV-05 - Designer Invoice Experience - done
 
 - [x] Add typed invoice bindings and maintained invoice templates without moving
   tax, accounting, or billing-domain logic into `PXA.Pdf`.
@@ -352,13 +396,11 @@ Evidence.
   totals with localized validation and a visible conformance state.
 - [x] Ensure Designer preview, generated XML, visible PDF, and reopened Viewer
   inspection use the same canonical invoice values.
-- [ ] Align the Designer projection and the dedicated hybrid-invoice renderer on one pagination
-  and long-description overflow contract. The maintained projection handles continuation pages,
-  repeated headings, stable line identities and multi-page tax summaries, but the hybrid renderer
-  still uses fixed 30-point rows and clips descriptions that need more than that row.
-- Completion evidence already present for the projection: autosave/roundtrip tests, six-language
-  UI coverage, export/reinspection fixtures, multi-page tests, and passing enforced visual-parity
-  gates for normal backend export. Hybrid-layout acceptance remains open.
+- [x] Align the Designer projection and the dedicated hybrid-invoice renderer on one pagination
+  and long-description overflow contract.
+- Completion evidence: autosave/roundtrip tests, six-language UI coverage, export/reinspection
+  fixtures, the shared versioned pagination contract, maximum-length unbroken-token tests and four
+  passing enforced visual-parity gates covering normal backend and hybrid PDF output.
 
 Route and entry point. The workspace is `/pdf/e-invoice`, reachable from the PDF
 hub sidebar between *PDF Viewer* and *Migrations*, gated by the
@@ -390,14 +432,15 @@ Pagination. A long invoice is projected onto as many A4 pages as it needs.
 the table starts at y 272 on page one and at y 82 on a continuation page, a row is 18pt unless its
 description wraps, no row may cross y 740,
 and the totals block - 150pt, plus 16pt for each tax group beyond the first two - must end above
-y 790. A row is never split across a page. With the standard layout that gives **26 rows on page
+y 790. An ordinary row is never split across a page; a description taller than a whole page is
+continued in deterministic text-only fragments without repeating amounts. With the standard layout that gives **26 rows on page
 one and 36 on each continuation page**; the totals follow the final line when there is room and
 take a page of their own when there is not. Concretely, a one-tax-group invoice fits on a single
 page up to 19 lines, on two pages up to 56, and gains a page every 36 lines after that; with eight
 tax groups the taller totals block lowers the first-page figure to 14 and the two-page figure to
-50. Tax summaries that exceed a page are split across safe totals pages. Description growth is
-currently capped for projection safety; maximum-length descriptions remain part of the open shared
-overflow contract with the hybrid renderer.
+50. Tax summaries that exceed a page are split across safe totals pages. Tokens wider than the
+description column are segmented at Unicode boundaries before planning, so a valid 4,096-character
+description cannot be treated as one line and silently clipped.
 
 Line identity is persisted next to the canonical lines as Designer-only `lineIds`; it is moved or
 removed with its line and never enters generated invoice XML. A page is
@@ -463,15 +506,23 @@ Evidence.
   transaction per edit however many pages it regenerates, the A4 page box the layout was measured
   against, and a canonical round-trip proving the stored invoice carries no page or element
   identity - so XML and PDF generation keep reading the canonical invoice, not the projection.
-- `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts` - 6 tests generating and
-  drift-guarding both `test-assets/visual-parity/e-invoice.json` and
-  `test-assets/visual-parity/e-invoice-multipage.json` from the canonical invoice. The single-page
-  fixture is asserted to cover seller and buyer, three lines, two tax rates, a two-decimal
-  currency, long wrapping text, and German, French and Central European diacritics, with the
-  Factur-X 1.09.2 identity, and to contain no script the PDF engine cannot reach parity on. The
-  multi-page fixture is asserted to break into real continuation pages carrying every line exactly
-  once in canonical order, with the address block on one page, headings on each page that has
-  rows, the totals on the last page, and every tax group present.
+- `pxa-designer/src/__tests__/eInvoicePaginationContract.test.ts` - 19 tests asserting the Designer
+  projection against the shared pagination contract: the schema version, page and table geometry,
+  the eight non-overlapping columns, all twelve pinned cases (page count, rows per page, distinct
+  lines per page, totals pages, tax groups per page, which page carries the net and payable totals,
+  fragmented lines and overflow), every row inside the page and in canonical order with fragments
+  in sequence, fragments rejoining to exactly the wrapped description, and a description beyond the
+  bound being reported rather than rendered, and a 4,096-character unbroken Unicode token being
+  segmented without clipping or character loss.
+- `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts` - 9 tests generating and
+  drift-guarding four fixtures - single-page, multi-page, long-description and many-tax-group - and
+  a canonical-invoice sidecar for each, which is what lets the parity run render the dedicated
+  hybrid PDF. The single-page fixture is asserted to cover seller and buyer, three lines, two tax
+  rates, a two-decimal currency, long wrapping text, and German, French and Central European
+  diacritics, with the Factur-X 1.09.2 identity, and to contain no script the PDF engine cannot
+  reach parity on. The multi-page fixture is asserted to break into real continuation pages
+  carrying every line exactly once in canonical order, with the address block on one page, headings
+  on each page that has rows, the totals on the last page, and every tax group present.
 - `pxa-designer/src/__tests__/eInvoiceDesigner.test.ts` - 22 tests (model,
   templates, localized validation, conformance vocabulary).
 - `pxa-designer/src/__tests__/eInvoiceTotalsParity.test.ts` - 17 tests over the shared corpus
@@ -484,14 +535,38 @@ Evidence.
   the hybrid PDF and a reopened Viewer inspection with one set of values.
 - `appRouteSmoke.test.tsx` extended: the route is reachable and the sidebar lists
   the entry.
+- `tests/PXA.Generator.Tests/EInvoicePaginationContractTests.cs` - 18 tests asserting
+  `EInvoicePageLayout` against the same contract file from C#, independently of the Designer, plus
+  a case-by-case replay of all twelve pinned plans, the description-fragment bound and safe
+  maximum-length token segmentation.
+- `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` - 31 tests for the refusals PXA can prove
+  without any official artifact: malformed XML, a DTD, an external entity, non-invoice XML, a
+  syntax contradicting the declared standard, an unmaintained version, a profile the standard does
+  not define, non-positive quantities, negative prices, out-of-range tax rates, duplicate line
+  identifiers, a due date before the issue date, an empty invoice, arithmetic reaching the XML
+  unaltered, more lines than the synchronous limit, over-long descriptions and party names,
+  malformed currencies and minor units, a non-PDF upload, an empty upload, a missing upload, page
+  text contradicting the embedded XML, a document with no extractable text never being called
+  consistent, and no validation path reporting `valid` without an artifact set.
+- `tests/PXA.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` - 15 tests that the Designer, API,
+  Viewer inspection, migration catalog, generator, importer recognition and published documentation
+  agree on the maintained version per standard, the profiles offered, the syntax of each standard,
+  the reserved filenames, the four-state conformance vocabulary, the canonical binding paths, the
+  documentation anchors the migration catalog points at, and one set of figures for a two-rate
+  invoice carried from generation through the finished PDF to a reopened inspection.
+- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - 27 tests converting
+  representative PXA-authored source snippets for every registered provider family, covering all
+  six capabilities, the three dispositions, the stable `CANMIGEINV00x` identifiers, word-boundary
+  matching, source-ordered diagnostics and markers, and the rule that migration output never claims
+  conformance.
 
 Visual parity. `test-assets/visual-parity/e-invoice.json` and
 `test-assets/visual-parity/e-invoice-multipage.json` are deterministic fixtures generated from the
 canonical invoice and drift-guarded by their test. `tools/visual-parity/run.mjs` compares the
-Designer Canvas, the Live Preview, the backend PDF and the JSON-to-C#-generated PDF for each; the
-fixture key is derived from the filename, so the runner needed no per-fixture change. Both pass the
-normal DesignExport projection gate with P0 0 and P1 0 and `csharp` RMSE 0. See the "Visual parity
-status" note for the exact scope and the remaining hybrid-layout limitation.
+Designer Canvas, the Live Preview, the backend PDF, the JSON-to-C#-generated PDF and the dedicated
+hybrid invoice for each; the fixture key is derived from the filename. All four fixtures pass with
+P0 0 and P1 0, matching Designer/hybrid page counts and `csharp` RMSE 0. See the "Visual parity
+status" note for the exact measurements and scope.
 
 ### EINV-06 - Migration Provider Coverage - done
 
@@ -502,7 +577,7 @@ status" note for the exact scope and the remaining hybrid-layout limitation.
 - [x] Link each mapping to the unified migration catalog, permission, example,
   diagnostics, and documentation.
 - Completion evidence: provider coverage report and representative conversion
-  tests for every mapped provider family.
+  tests for every mapped provider family. Both present; see Conversions below.
 
 Implementation. `PdfEInvoiceMigrationCatalog` covers all 16 PDF code-migration
 providers across six capabilities: Factur-X, ZUGFeRD, XRechnung, PDF/A-3
@@ -516,6 +591,17 @@ a claim about which invoice features each vendor ships - PXA can honestly say
 to confirm", and cannot honestly assert a third party's current feature list.
 Every capability of every provider carries a disposition, a rationale and a
 documentation link, which is what makes a silent TODO impossible.
+
+Conversions. `PdfEInvoiceMigrationCatalog.Analyze` turns the table into an answer: given a source
+file, it reports each invoice capability the code touches, the PXA API that replaces it, the
+disposition, and a stable `CANMIGEINV00x` identifier - `001` Factur-X, `002` ZUGFeRD, `003`
+XRechnung, `004` PDF/A-3 attachment, `005` extraction, `006` validation. Markers match on word
+boundaries, so `Attachments` is not found inside `CustomAttachmentsHelper`. When the source names a
+standard the provider has no API for - including through the reserved `factur-x.xml` filename - the
+capability is reported `unsupported` with what to do instead, rather than passed over because only
+a neighbouring call was recognised. `PdfEInvoiceMigrationConversionTests` covers every registered
+provider family, all six capabilities, all three dispositions and the rule that no migration finding
+claims conformance.
 
 Dispositions follow from what the mapping actually knows:
 

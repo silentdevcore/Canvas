@@ -612,7 +612,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Consulting engagement covering the migration assessment, the implementation plan and two workshops"
         },
@@ -670,7 +670,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l1",
@@ -723,7 +723,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Handbuch „Elektronische Rechnungsstellung“ (gebundene Ausgabe)"
         },
@@ -762,7 +762,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "24.9"
+          "content": "24.90"
         },
         {
           "id": "einv-lineTaxRate-l2",
@@ -781,7 +781,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l2",
@@ -834,7 +834,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Roční údržba a školení — Přeprava zboží (Łódź)"
         },
@@ -873,7 +873,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "150"
+          "content": "150.00"
         },
         {
           "id": "einv-lineTaxRate-l3",
@@ -892,7 +892,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l3",
@@ -966,7 +966,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-taxAmount-g1",
@@ -1004,7 +1004,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-taxAmount-g2",
@@ -1026,10 +1026,46 @@
           "content": "185.56"
         },
         {
+          "id": "einv-taxTotalLabel-t",
+          "type": "text",
+          "content": "Tax total",
+          "x": 284,
+          "y": 438,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-taxTotal-t",
+          "type": "text",
+          "binding": "totals.taxTotal",
+          "formatter": "money",
+          "x": 458,
+          "y": 438,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "190.79"
+        },
+        {
           "id": "einv-totalsRule-t",
           "type": "line",
           "x": 284,
-          "y": 438,
+          "y": 454,
           "width": 236,
           "height": 1,
           "style": {
@@ -1041,7 +1077,7 @@
           "type": "text",
           "content": "Amount payable",
           "x": 284,
-          "y": 448,
+          "y": 464,
           "width": 166,
           "height": 14,
           "style": {
@@ -1059,7 +1095,7 @@
           "binding": "totals.grandTotal",
           "formatter": "money",
           "x": 458,
-          "y": 448,
+          "y": 464,
           "width": 62,
           "height": 14,
           "style": {
@@ -1077,7 +1113,7 @@
           "type": "text",
           "binding": "invoice.currency",
           "x": 524,
-          "y": 448,
+          "y": 464,
           "width": 29,
           "height": 14,
           "style": {

@@ -9,6 +9,8 @@ import allElementsFixture from '../../../test-assets/visual-parity/all-elements.
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
+import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
+import eInvoiceMultiTaxFixture from '../../../test-assets/visual-parity/e-invoice-multi-tax.json';
 
 type Fixture = {
   id: string;
@@ -43,6 +45,8 @@ export default function VisualParityPage() {
     'mixed-layout': mixedLayoutFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
+    'e-invoice-long-description': eInvoiceLongDescriptionFixture,
+    'e-invoice-multi-tax': eInvoiceMultiTaxFixture,
   };
   const selectedFixture = fixtures[search.get('fixture') ?? ''] ?? allElementsFixture;
   const design = selectedFixture as unknown as Fixture;

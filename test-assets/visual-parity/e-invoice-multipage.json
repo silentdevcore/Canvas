@@ -612,7 +612,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 1 - maintenance, support and licence renewal"
         },
@@ -651,7 +651,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "10"
+          "content": "10.00"
         },
         {
           "id": "einv-lineTaxRate-l1",
@@ -670,7 +670,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l1",
@@ -723,7 +723,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 2 - maintenance, support and licence renewal"
         },
@@ -781,7 +781,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l2",
@@ -834,7 +834,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 3 - maintenance, support and licence renewal"
         },
@@ -892,7 +892,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l3",
@@ -945,7 +945,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 4 - maintenance, support and licence renewal"
         },
@@ -1003,7 +1003,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l4",
@@ -1056,7 +1056,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 5 - maintenance, support and licence renewal"
         },
@@ -1114,7 +1114,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l5",
@@ -1167,7 +1167,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 6 - maintenance, support and licence renewal"
         },
@@ -1225,7 +1225,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l6",
@@ -1278,7 +1278,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 7 - maintenance, support and licence renewal"
         },
@@ -1336,7 +1336,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l7",
@@ -1389,7 +1389,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 8 - maintenance, support and licence renewal"
         },
@@ -1447,7 +1447,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l8",
@@ -1500,7 +1500,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 9 - maintenance, support and licence renewal"
         },
@@ -1558,7 +1558,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l9",
@@ -1611,7 +1611,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 10 - maintenance, support and licence renewal"
         },
@@ -1669,7 +1669,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l10",
@@ -1722,7 +1722,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 11 - maintenance, support and licence renewal"
         },
@@ -1761,7 +1761,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "23.7"
+          "content": "23.70"
         },
         {
           "id": "einv-lineTaxRate-l11",
@@ -1780,7 +1780,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l11",
@@ -1833,7 +1833,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 12 - maintenance, support and licence renewal"
         },
@@ -1891,7 +1891,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l12",
@@ -1944,7 +1944,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 13 - maintenance, support and licence renewal"
         },
@@ -2002,7 +2002,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l13",
@@ -2055,7 +2055,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 14 - maintenance, support and licence renewal"
         },
@@ -2113,7 +2113,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l14",
@@ -2166,7 +2166,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 15 - maintenance, support and licence renewal"
         },
@@ -2224,7 +2224,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l15",
@@ -2277,7 +2277,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 16 - maintenance, support and licence renewal"
         },
@@ -2335,7 +2335,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l16",
@@ -2523,7 +2523,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 17 - maintenance, support and licence renewal"
         },
@@ -2581,7 +2581,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l17",
@@ -2634,7 +2634,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 18 - maintenance, support and licence renewal"
         },
@@ -2692,7 +2692,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l18",
@@ -2745,7 +2745,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 19 - maintenance, support and licence renewal"
         },
@@ -2803,7 +2803,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l19",
@@ -2856,7 +2856,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 20 - maintenance, support and licence renewal"
         },
@@ -2914,7 +2914,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l20",
@@ -2967,7 +2967,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 21 - maintenance, support and licence renewal"
         },
@@ -3006,7 +3006,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "37.4"
+          "content": "37.40"
         },
         {
           "id": "einv-lineTaxRate-l21",
@@ -3025,7 +3025,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l21",
@@ -3078,7 +3078,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 22 - maintenance, support and licence renewal"
         },
@@ -3136,7 +3136,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l22",
@@ -3189,7 +3189,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 23 - maintenance, support and licence renewal"
         },
@@ -3247,7 +3247,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l23",
@@ -3300,7 +3300,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 24 - maintenance, support and licence renewal"
         },
@@ -3358,7 +3358,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l24",
@@ -3411,7 +3411,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 25 - maintenance, support and licence renewal"
         },
@@ -3469,7 +3469,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l25",
@@ -3522,7 +3522,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 26 - maintenance, support and licence renewal"
         },
@@ -3580,7 +3580,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l26",
@@ -3633,7 +3633,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 27 - maintenance, support and licence renewal"
         },
@@ -3691,7 +3691,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l27",
@@ -3744,7 +3744,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 28 - maintenance, support and licence renewal"
         },
@@ -3802,7 +3802,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-lineNetAmount-l28",
@@ -3855,7 +3855,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 29 - maintenance, support and licence renewal"
         },
@@ -3913,7 +3913,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-lineNetAmount-l29",
@@ -3966,7 +3966,7 @@
             "fontWeight": 400,
             "textAlign": "left",
             "color": "#0f172a",
-            "lineHeight": 1
+            "lineHeight": 1.2222222222222223
           },
           "content": "Position 30 - maintenance, support and licence renewal"
         },
@@ -4024,7 +4024,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-lineNetAmount-l30",
@@ -4098,7 +4098,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "7"
+          "content": "7%"
         },
         {
           "id": "einv-taxAmount-g1",
@@ -4136,7 +4136,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "19"
+          "content": "19%"
         },
         {
           "id": "einv-taxAmount-g2",
@@ -4174,7 +4174,7 @@
             "color": "#0f172a",
             "lineHeight": 1
           },
-          "content": "21"
+          "content": "21%"
         },
         {
           "id": "einv-taxAmount-g3",
@@ -4196,10 +4196,46 @@
           "content": "196.78"
         },
         {
+          "id": "einv-taxTotalLabel-t",
+          "type": "text",
+          "content": "Tax total",
+          "x": 284,
+          "y": 572,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-taxTotal-t",
+          "type": "text",
+          "binding": "totals.taxTotal",
+          "formatter": "money",
+          "x": 458,
+          "y": 572,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "399.42"
+        },
+        {
           "id": "einv-totalsRule-t",
           "type": "line",
           "x": 284,
-          "y": 572,
+          "y": 588,
           "width": 236,
           "height": 1,
           "style": {
@@ -4211,7 +4247,7 @@
           "type": "text",
           "content": "Amount payable",
           "x": 284,
-          "y": 582,
+          "y": 598,
           "width": 166,
           "height": 14,
           "style": {
@@ -4229,7 +4265,7 @@
           "binding": "totals.grandTotal",
           "formatter": "money",
           "x": 458,
-          "y": 582,
+          "y": 598,
           "width": 62,
           "height": 14,
           "style": {
@@ -4247,7 +4283,7 @@
           "type": "text",
           "binding": "invoice.currency",
           "x": 524,
-          "y": 582,
+          "y": 598,
           "width": 29,
           "height": 14,
           "style": {

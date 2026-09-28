@@ -126,9 +126,11 @@ public sealed class PxaEInvoicePdfConsistencyInspectorTests
             .GetAwaiter()
             .GetResult();
 
-        // The group row already is the total, so the layout stays as it was.
+        // The group row already is the total, so no aggregate row is added. The rate is written the
+        // way the shared pagination contract prints it, which is the same string the Designer's
+        // tax-group row shows.
         Assert.DoesNotContain("Tax total", text!, StringComparison.Ordinal);
-        Assert.Contains("Tax 19%", text!, StringComparison.Ordinal);
+        Assert.Contains("19%", text!, StringComparison.Ordinal);
         Assert.Equal(
             "consistent",
             PxaEInvoicePdfConsistencyInspector.Inspect(text, created.SemanticData).Status);

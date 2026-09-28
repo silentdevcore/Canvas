@@ -1,25 +1,43 @@
 /**
  * Turns one canonical invoice into the pages the Designer shows.
  *
- * Two jobs. First, decide how tall each line row has to be, because a long description wraps and a
- * row that is shorter than its content would either clip it or let it collide with the row below.
- * Second, decide where the Designer page breaks fall. The dedicated hybrid-invoice renderer has a
- * separate fixed-row layout; parity with that renderer is tracked independently.
+ * This is the Designer half of the pagination contract recorded in
+ * `test-assets/e-invoicing/pagination-contract.json`. `EInvoicePageLayout` in `PXA.Generator`
+ * implements the same contract for the dedicated hybrid-invoice renderer, independently - neither
+ * side depends on the other, and `eInvoicePaginationContract.test.ts` and
+ * `EInvoicePaginationContractTests` each assert their implementation against the pinned file. That
+ * is what makes the Designer and `EInvoice.CreatePdf` put the same invoice content on the same
+ * number of pages.
  *
- * Row heights come from a conservative estimate for the maintained projection fixtures. The
- * estimate is capped; maximum-length descriptions still require the shared overflow contract
- * tracked in the electronic-invoicing checklist.
+ * Three jobs. Decide how tall each line row has to be, because a long description wraps and a row
+ * shorter than its content would clip it or collide with the row below. Decide where the page
+ * breaks fall. And, when a single description is longer than a whole page can hold, split it into
+ * deterministic continuation fragments rather than clipping it.
  */
 
 import type { InvoiceTemplateLayout } from './invoiceTemplates';
 
-/** One invoice line, placed. */
+/**
+ * A description longer than this many fragments is refused rather than rendered.
+ *
+ * The bound cannot be reached by a valid invoice: `PXAEINV109` caps a description at 4 096
+ * characters, which is at most four fragments even when every character is full-em. It exists so
+ * that an unbounded description fails closed with a stable diagnostic instead of producing a
+ * document of unbounded length.
+ */
+export const MAXIMUM_DESCRIPTION_FRAGMENTS = 8;
+
+/** One invoice line - or one fragment of one - placed on a page. */
 export interface PlannedRow {
   /** Index into the canonical `invoice.lines`, so a row's identity follows the invoice order. */
   readonly lineIndex: number;
+  /** 0 for the row that carries the amounts, 1.. for description continuation fragments. */
+  readonly fragmentIndex: number;
+  /** The description text this fragment shows. */
+  readonly text: string;
   readonly top: number;
   readonly height: number;
-  /** How many lines the wrapping cell needs. */
+  /** How many wrapped lines this fragment's text occupies. */
   readonly textLines: number;
 }
 
@@ -41,6 +59,8 @@ export interface PlannedPage {
 
 export interface InvoicePlan {
   readonly pages: readonly PlannedPage[];
+  /** Canonical line indexes whose description exceeded `MAXIMUM_DESCRIPTION_FRAGMENTS`. */
+  readonly overflowingLines: readonly number[];
 }
 
 /**
@@ -48,10 +68,13 @@ export interface InvoicePlan {
  *
  * These are bounds, not exact metrics: the aim is never to under-estimate a string's width. A
  * character the table does not know about counts as a full em, which covers CJK and any script
- * whose glyphs are wider than Latin.
+ * whose glyphs are wider than Latin. `EInvoicePageLayout.AdvanceRatio` carries the same table.
  */
 const NARROW = new Set([...' ijlt.,:;\'"`!|()[]{}/\\-']);
 const WIDE = new Set([...'WMQ@%&mw']);
+
+/** The safety margin over the estimated width, so a real renderer never needs one more line. */
+const WIDTH_SAFETY = 1.05;
 
 function advanceRatio(character: string): number {
   if (NARROW.has(character)) return 0.32;
@@ -73,17 +96,57 @@ export function estimateTextWidth(text: string, fontSize: number): number {
 }
 
 /**
- * How many lines `text` needs in a `width`-point column, bounded by the maintained row limit.
+ * Greedily wraps `text` to `width`, the way both renderers do.
+ *
+ * Tokens wider than the column are split at Unicode code-point boundaries. This matters for valid
+ * identifiers and descriptions without whitespace: keeping an over-wide token on one line would
+ * make the planned box too short and silently clip it in both renderers.
  */
+export function wrapText(text: string | undefined, width: number, fontSize: number): string[] {
+  const words = (text ?? '').split(/\s+/).filter(Boolean);
+  if (words.length === 0 || width <= 0) return [''];
+
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    let remaining = word;
+    while (remaining) {
+      const candidate = current ? `${current} ${remaining}` : remaining;
+      if (estimateTextWidth(candidate, fontSize) * WIDTH_SAFETY <= width) {
+        current = candidate;
+        remaining = '';
+        continue;
+      }
+
+      if (current) {
+        lines.push(current);
+        current = '';
+        continue;
+      }
+
+      let chunk = '';
+      let consumed = 0;
+      for (const character of remaining) {
+        const expanded = `${chunk}${character}`;
+        if (chunk && estimateTextWidth(expanded, fontSize) * WIDTH_SAFETY > width) break;
+        chunk = expanded;
+        consumed += character.length;
+      }
+      lines.push(chunk);
+      remaining = remaining.slice(consumed);
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+/** How many lines `text` needs in a `width`-point column. Unbounded: a description is never cut. */
 export function estimateTextLines(
   text: string | undefined,
   width: number,
   fontSize: number,
-  maximumLines = 8,
 ): number {
-  if (!text || width <= 0) return 1;
-  const estimated = Math.ceil((estimateTextWidth(text, fontSize) * 1.05) / width);
-  return Math.min(Math.max(estimated, 1), maximumLines);
+  return wrapText(text, width, fontSize).length;
 }
 
 export interface PlanInput {
@@ -97,20 +160,34 @@ export interface PlanInput {
   readonly taxGroupCount: number;
 }
 
+/** The height a fragment of `lineCount` wrapped lines occupies. */
+function rowHeightFor(lineCount: number, layout: InvoiceTemplateLayout): number {
+  return Math.max(layout.rowHeight, lineCount * layout.lineHeight + 7);
+}
+
+/** How many wrapped lines still fit above `rowLimit` when the cursor is at `top`. */
+function linesThatFit(top: number, layout: InvoiceTemplateLayout): number {
+  return Math.floor((layout.rowLimit - top - 7) / layout.lineHeight);
+}
+
 /**
  * Plans the pages.
  *
- * A row is placed on the current page when it fits entirely above `rowLimit`; otherwise a
- * continuation page starts, which re-establishes the column headings at `continuationTableTop`. The
- * totals block follows the final row when there is room for it above `totalsLimit`, and moves to a
- * page of its own when there is not. Very large tax breakdowns continue across totals pages.
+ * A row is placed whole on the current page when it fits above `rowLimit`; otherwise it starts a
+ * continuation page, which re-establishes the column headings at `continuationTableTop`. A row too
+ * tall for any page is split into fragments instead of being clipped. The totals block follows the
+ * final row when there is room above `totalsLimit` and takes its own page when there is not; very
+ * large tax breakdowns continue across further totals pages.
  */
 export function planInvoicePages(input: PlanInput): InvoicePlan {
   const { layout } = input;
-  // Two tax rows are already budgeted inside `totalsHeight`; each further group adds a row.
-  const totalsHeight =
-    layout.totalsHeight + Math.max(input.taxGroupCount - 2, 0) * layout.taxRowHeight;
+  // Two tax rows are already budgeted inside `totalsHeight`; each further group adds a row, and a
+  // breakdown of more than one group adds the aggregate tax-total row beneath them.
+  const totalsHeight = layout.totalsHeight
+    + Math.max(input.taxGroupCount - 2, 0) * layout.taxRowHeight
+    + (input.taxGroupCount > 1 ? layout.taxRowHeight : 0);
   const pages: PlannedPage[] = [];
+  const overflowingLines: number[] = [];
 
   let pageNumber = 1;
   let tableTop = layout.tableTop;
@@ -143,18 +220,56 @@ export function planInvoicePages(input: PlanInput): InvoicePlan {
     }
   };
 
-  input.rowTexts.forEach((text, lineIndex) => {
-    const textLines = estimateTextLines(text, input.wrappingWidth, input.wrappingFontSize);
-    // A wrapped cell needs its lines plus the row's own breathing room.
-    const height = Math.max(layout.rowHeight, textLines * layout.lineHeight + 7);
+  // The tallest row a page can hold at all, which decides whether a line has to be fragmented.
+  const wholePageLines = linesThatFit(layout.continuationTableTop, layout);
 
-    // A row is never split across pages: if it does not fit whole, it starts the next page.
-    if (cursor + height > layout.rowLimit && rows.length > 0) {
-      closePage(null, layout.continuationTableTop);
+  input.rowTexts.forEach((text, lineIndex) => {
+    const wrapped = wrapText(text, input.wrappingWidth, input.wrappingFontSize);
+
+    if (wrapped.length <= wholePageLines) {
+      // The common case: the row is never split, it only moves to the next page whole.
+      const height = rowHeightFor(wrapped.length, layout);
+      if (cursor + height > layout.rowLimit && rows.length > 0) {
+        closePage(null, layout.continuationTableTop);
+      }
+      rows.push({
+        lineIndex,
+        fragmentIndex: 0,
+        text: wrapped.join(' '),
+        top: cursor,
+        height,
+        textLines: wrapped.length,
+      });
+      cursor += height;
+      return;
     }
 
-    rows.push({ lineIndex, top: cursor, height, textLines });
-    cursor += height;
+    // Longer than a page: emit deterministic continuation fragments.
+    const fragments = Math.ceil(wrapped.length / wholePageLines);
+    if (fragments > MAXIMUM_DESCRIPTION_FRAGMENTS) overflowingLines.push(lineIndex);
+
+    let taken = 0;
+    let fragmentIndex = 0;
+    while (taken < wrapped.length) {
+      let available = linesThatFit(cursor, layout);
+      if (available < 1) {
+        closePage(null, layout.continuationTableTop);
+        available = linesThatFit(cursor, layout);
+      }
+      const count = Math.min(available, wrapped.length - taken);
+      const height = rowHeightFor(count, layout);
+      rows.push({
+        lineIndex,
+        fragmentIndex,
+        text: wrapped.slice(taken, taken + count).join(' '),
+        top: cursor,
+        height,
+        textLines: count,
+      });
+      cursor += height;
+      taken += count;
+      fragmentIndex += 1;
+    }
   });
 
   const totalsTop = cursor + 18;
@@ -191,5 +306,5 @@ export function planInvoicePages(input: PlanInput): InvoicePlan {
     }
   }
 
-  return { pages };
+  return { pages, overflowingLines };
 }

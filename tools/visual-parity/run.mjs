@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { rmSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -332,13 +332,16 @@ function severity(rmse, geometryDrift) {
   return 'match';
 }
 
-async function buildReport(fixture, geometry, symbolSources, enforceThresholds) {
+async function buildReport(fixture, geometry, symbolSources, enforceThresholds, hasHybrid) {
   const pages = [];
   const elements = [];
   for (const [pageIndex, page] of fixture.pages.entries()) {
     const pageNumber = pageIndex + 1;
     const pageComparisons = {};
-    for (const surface of ['canvas', 'preview', 'csharp']) {
+    for (const surface of hasHybrid ? ['canvas', 'preview', 'csharp', 'hybrid'] : ['canvas', 'preview', 'csharp']) {
+      // The hybrid page may not exist if the two renderers disagree on the page count; that is
+      // itself the finding, reported below rather than crashing the run.
+      if (surface === 'hybrid' && !existsSync(path.join(raw, `hybrid-page-${pageNumber}.png`))) continue;
       pageComparisons[surface] = compareImages(
         path.join(raw, `${surface}-page-${pageNumber}.png`),
         path.join(raw, `backend-page-${pageNumber}.png`),
@@ -376,6 +379,22 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds) 
         comparisons, sourceVerification, severity: resolvedSeverity });
     }
   }
+  // How many pages the dedicated hybrid renderer produced, which is the strongest statement this
+  // harness can make about the two renderers agreeing: same invoice, same page count, same content.
+  const hybridPages = hasHybrid
+    ? (await readdir(raw)).filter(file => /^hybrid-page-\d+\.png$/.test(file)).length
+    : null;
+  const hybrid = hasHybrid ? {
+    surface: 'EInvoice.CreatePdf',
+    description: 'The dedicated PDF/A-3 hybrid invoice, rendered from the canonical invoice by the '
+      + 'generator. This is a separate surface from the DesignExport "backend" PDF, which renders '
+      + 'the Designer projection; only this one is evidence about the hybrid invoice PXA issues.',
+    designerPages: fixture.pages.length,
+    hybridPages,
+    pageCountAgrees: hybridPages === fixture.pages.length,
+    worstPagePerceptualRmse: Math.max(0, ...pages.map(page => page.comparisons.hybrid?.perceptualRmse ?? 0)),
+  } : null;
+
   const report = {
     generatedAt: new Date().toISOString(),
     mode: enforceThresholds ? 'enforced' : 'report-only',
@@ -386,6 +405,11 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds) 
       rawMetric: 'rmse',
       antiAliasingTolerance: 'Gaussian blur 0x1 on both inputs',
       rasterSourcePolicy: 'Exact source pixels embedded in backend and C# PDFs cap QR/barcode rasterizer-only findings at P2.',
+      surfaces: {
+        backend: 'DesignExport rendering of the Designer projection. The reference for canvas, preview and csharp.',
+        csharp: 'The same projection through the generated C# code path. Expected to be pixel-identical to backend.',
+        hybrid: 'EInvoice.CreatePdf rendering of the canonical invoice. A separate surface: backend parity is not hybrid parity.',
+      },
     },
     summary: {
       pages: pages.length,
@@ -394,6 +418,7 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds) 
       findings: Object.fromEntries(['P0', 'P1', 'P2', 'match'].map(level =>
         [level, elements.filter(element => element.severity === level).length])),
     },
+    hybrid,
     pages,
     elements,
   };
@@ -411,7 +436,8 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds) 
       `<td><img src="${dir}/preview-vs-backend-diff.png" alt="diff ${htmlEscape(element.id)}"><small>Preview diff</small></td></tr>`;
   }).join('\n');
   const pageCards = pages.map(page => `<section><h2>Page ${page.page}: ${htmlEscape(page.id)}</h2><div class="pages">` +
-    ['canvas', 'preview', 'backend', 'csharp'].map(surface =>
+    ['canvas', 'preview', 'backend', 'csharp', 'hybrid'].filter(surface =>
+      surface !== 'hybrid' || existsSync(path.join(raw, `hybrid-page-${page.page}.png`))).map(surface =>
       `<figure><img src="raw/${surface}-page-${page.page}.png" alt="${surface} page ${page.page}"><figcaption>${surface}${surface === 'backend' ? ' (reference)' : ` · RMSE ${page.comparisons[surface]?.rmse?.toFixed(5) ?? 'n/a'}`}</figcaption></figure>`).join('') +
     `</div></section>`).join('\n');
   await writeFile(path.join(output, 'visual-parity-report.html'), `<!doctype html><html><head><meta charset="utf-8"><title>PXA visual parity</title><style>
@@ -450,20 +476,39 @@ async function main() {
   process.stdout.write('Rasterizing backend PDFs (4x supersampled to 72 DPI)...\n');
   await rasterizePdf('backend');
   await rasterizePdf('csharp');
+  // Only the maintained electronic-invoice fixtures carry a canonical invoice, so only they have a
+  // dedicated hybrid rendering to compare.
+  const hasHybrid = existsSync(path.join(raw, 'hybrid.pdf'));
+  if (hasHybrid) await rasterizePdf('hybrid');
   const symbolSources = await verifyEmbeddedSymbolSources(fixture);
   process.stdout.write('Creating per-element crops and comparisons...\n');
   await cropPdfElements(fixture);
-  const report = await buildReport(fixture, geometry, symbolSources, enforceThresholds);
+  const report = await buildReport(fixture, geometry, symbolSources, enforceThresholds, hasHybrid);
   process.stdout.write(`Visual parity report: ${path.join(output, 'visual-parity-report.html')}\n`);
   process.stdout.write(`Findings: ${JSON.stringify(report.summary.findings)}\n`);
+  if (report.hybrid) {
+    process.stdout.write(`Hybrid invoice (EInvoice.CreatePdf): ${report.hybrid.hybridPages} pages ` +
+      `vs ${report.hybrid.designerPages} projected; worst page perceptual RMSE ` +
+      `${report.hybrid.worstPagePerceptualRmse.toFixed(5)}\n`);
+  }
   if (enforceThresholds) {
     const materialFindings = report.elements.filter(element => element.severity === 'P0' || element.severity === 'P1');
     const csharpDifferences = report.elements.filter(element => element.comparisons.csharp.rmse !== 0);
-    if (materialFindings.length > 0 || csharpDifferences.length > 0) {
-      const details = [
-        ...materialFindings.map(element => `${element.id}:${element.severity}`),
-        ...csharpDifferences.map(element => `${element.id}:csharp-pdf-difference`),
-      ];
+    const details = [
+      ...materialFindings.map(element => `${element.id}:${element.severity}`),
+      ...csharpDifferences.map(element => `${element.id}:csharp-pdf-difference`),
+    ];
+    if (report.hybrid && !report.hybrid.pageCountAgrees) {
+      details.push(`hybrid-page-count:${report.hybrid.hybridPages}-vs-${report.hybrid.designerPages}`);
+    }
+    // The hybrid renderer is held to the same approved thresholds as every other surface.
+    for (const page of report.pages) {
+      const level = severity(page.comparisons.hybrid?.perceptualRmse ?? 0, 0);
+      if (page.comparisons.hybrid && (level === 'P0' || level === 'P1')) {
+        details.push(`hybrid-page-${page.page}:${level}`);
+      }
+    }
+    if (details.length > 0) {
       throw new Error(`Approved visual-parity thresholds failed: ${details.join(', ')}`);
     }
   }

@@ -117,12 +117,25 @@ public static partial class EInvoice
         try
         {
             var calculations = Calculate(invoice);
+            var plan = EInvoicePageLayout.Plan(
+                [.. invoice.Lines.Select(static line => line.Description)],
+                calculations.Taxes.Count);
+            if (plan.OverflowingLines.Count > 0)
+            {
+                // Fail closed rather than emit a document of unbounded length. A description this
+                // long cannot reach here through the public API: PXAEINV109 caps it well below the
+                // bound, so this guards the renderer itself.
+                var positions = string.Join(", ", plan.OverflowingLines.Select(static index => index + 1));
+                return new(false, ReadOnlyMemory<byte>.Empty, generated.Xml, generated.SemanticData,
+                    [.. diagnostics, Error("PXAEINV122",
+                        $"Invoice line {positions} has a description too long to render within {EInvoicePageLayout.MaximumDescriptionFragments} continuation fragments.")]);
+            }
             var document = Pdf.CreateDocument();
             document.FontLoader = fontLoader;
             document.Language = "en";
             document.Info.Title = $"Invoice {invoice.InvoiceNumber.Trim()}";
             document.Info.Subject = $"{options.Standard} electronic invoice";
-            RenderInvoice(document, invoice, calculations);
+            RenderInvoice(document, invoice, calculations, plan);
             Attach(document, generated.Xml, options);
             var pdf = document.ToBytes(new PdfSaveOptions
             {
@@ -141,158 +154,273 @@ public static partial class EInvoice
 
     public static string GetDefaultFileName(PxaEInvoiceStandard standard) => DefaultFileName(standard);
 
+    /// <summary>
+    /// Draws the invoice onto as many pages as <see cref="EInvoicePageLayout"/> plans for it.
+    /// </summary>
+    /// <remarks>
+    /// Geometry, pagination and wording all come from the shared contract, so this renderer and the
+    /// Designer projection put the same content on the same pages. Nothing here decides a layout of
+    /// its own.
+    /// </remarks>
     private static void RenderInvoice(
         PdfDocument document,
         PxaEInvoiceDocument invoice,
-        InvoiceCalculations calculations)
+        InvoiceCalculations calculations,
+        EInvoicePageLayout.InvoicePlan plan)
     {
-        const double left = 42;
-        const double right = 553;
-        const double contentWidth = right - left;
-        const double rowHeight = 30;
-        var pageNumber = 0;
-        var page = NewInvoicePage(document, invoice, ref pageNumber, showParties: true);
-        var top = 250d;
-        DrawTableHeader(page, left, top, contentWidth);
-        top += 26;
+        var currency = invoice.Currency.Trim().ToUpperInvariant();
+        var places = invoice.CurrencyDecimalPlaces;
 
-        foreach (var line in calculations.Lines)
+        foreach (var planned in plan.Pages)
         {
-            if (top + rowHeight > 740)
-            {
-                page = NewInvoicePage(document, invoice, ref pageNumber, showParties: false);
-                top = 82;
-                DrawTableHeader(page, left, top, contentWidth);
-                top += 26;
-            }
-            DrawInvoiceLine(page, line, invoice.Currency, invoice.CurrencyDecimalPlaces, left, top, contentWidth, rowHeight);
-            top += rowHeight;
-        }
+            var page = NewInvoicePage(document, invoice, planned.PageNumber, planned.IsFirst);
 
-        if (top + 150 > 790)
-        {
-            page = NewInvoicePage(document, invoice, ref pageNumber, showParties: false);
-            top = 82;
+            if (planned.TableTop is { } tableTop && planned.Rows.Count > 0)
+                DrawTableHeader(page, tableTop);
+
+            foreach (var row in planned.Rows)
+                DrawInvoiceLine(page, calculations.Lines[row.LineIndex], row, currency, places);
+
+            if (planned.TotalsTop is { } totalsTop)
+                DrawTotals(page, calculations, planned, currency, places, totalsTop);
+
+            page.DrawTextBoxFromTop(ConformanceNote, EInvoicePageLayout.Left,
+                EInvoicePageLayout.FooterTop, EInvoicePageLayout.Right - EInvoicePageLayout.Left, 12,
+                Box(7, color: Muted));
         }
-        DrawTotals(page, calculations, invoice.Currency, invoice.CurrencyDecimalPlaces, top + 18, right);
     }
+
+    /// <summary>The same standing note the maintained Designer layout carries in its footer.</summary>
+    private const string ConformanceNote =
+        "The embedded invoice XML is the legally relevant data. Structural recognition by PXA is not a conformance claim.";
+
+    private static readonly PdfColor Muted = PdfColor.FromRgb(100, 116, 139);
+    private static readonly PdfColor Ink = PdfColor.FromRgb(15, 23, 42);
+    private static readonly PdfColor Hairline = PdfColor.FromRgb(148, 163, 184);
 
     private static PdfPage NewInvoicePage(
         PdfDocument document,
         PxaEInvoiceDocument invoice,
-        ref int pageNumber,
+        int pageNumber,
         bool showParties)
     {
-        pageNumber++;
-        var page = document.AddPage(PdfPageSizes.A4Width, PdfPageSizes.A4Height);
-        page.DrawTextFromTop("INVOICE", 42, 44, Text(22, bold: true));
-        page.DrawTextFromTop(invoice.InvoiceNumber.Trim(), 390, 46, Text(12, bold: true));
-        page.DrawTextFromTop($"Page {pageNumber}", 486, 68, Text(8));
-        page.DrawLineFromTop(42, 78, 553, 78, 1, PdfColor.FromRgb(34, 49, 63));
+        var page = document.AddPage(EInvoicePageLayout.PageWidth, EInvoicePageLayout.PageHeight);
+        page.DrawTextFromTop("INVOICE", EInvoicePageLayout.Left, 30, Text(20, bold: true));
+        DrawRight(page, invoice.InvoiceNumber.Trim(), 350, 32, 203, 12, bold: true);
+        page.DrawLineFromTop(EInvoicePageLayout.Left, 62, EInvoicePageLayout.Right, 62, 1, Hairline);
         if (!showParties) return page;
 
-        page.DrawTextFromTop("Seller", 42, 102, Text(9, bold: true));
-        DrawParty(page, invoice.Seller, 42, 120);
-        page.DrawTextFromTop("Buyer", 310, 102, Text(9, bold: true));
-        DrawParty(page, invoice.Buyer, 310, 120);
-        page.DrawTextFromTop($"Issue date: {invoice.IssueDate:yyyy-MM-dd}", 42, 208, Text(9));
+        DrawParty(page, "Seller", invoice.Seller, EInvoicePageLayout.Left, 220, 106, 156);
+        DrawParty(page, "Buyer", invoice.Buyer, 310, 243, 374, 179);
+
+        page.DrawTextFromTop("Issue date", EInvoicePageLayout.Left, 190, Text(9, color: Muted));
+        page.DrawTextFromTop(invoice.IssueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            EInvoicePageLayout.Left + 94, 190, Text(9));
         if (invoice.DueDate is { } dueDate)
-            page.DrawTextFromTop($"Due date: {dueDate:yyyy-MM-dd}", 210, 208, Text(9));
-        page.DrawTextFromTop($"Currency: {invoice.Currency.Trim().ToUpperInvariant()}", 410, 208, Text(9));
+        {
+            page.DrawTextFromTop("Due date", EInvoicePageLayout.Left, 206, Text(9, color: Muted));
+            page.DrawTextFromTop(dueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                EInvoicePageLayout.Left + 94, 206, Text(9));
+        }
+        if (!string.IsNullOrWhiteSpace(invoice.BuyerReference))
+        {
+            page.DrawTextFromTop("Buyer reference", 310, 190, Text(9, color: Muted));
+            page.DrawTextFromTop(invoice.BuyerReference.Trim(), 424, 190, Text(9));
+        }
+        if (!string.IsNullOrWhiteSpace(invoice.PaymentReference))
+        {
+            page.DrawTextFromTop("Payment reference", 310, 206, Text(9, color: Muted));
+            page.DrawTextFromTop(invoice.PaymentReference.Trim(), 424, 206, Text(9));
+        }
         return page;
     }
 
-    private static void DrawParty(PdfPage page, PxaEInvoiceBusinessParty party, double x, double top)
+    private static void DrawParty(
+        PdfPage page,
+        string heading,
+        PxaEInvoiceBusinessParty party,
+        double x,
+        double width,
+        double cityX,
+        double cityWidth)
     {
-        var lines = new List<string> { party.Name.Trim() };
+        page.DrawTextFromTop(heading, x, 78, Text(9, bold: true, color: Muted));
+        page.DrawTextFromTop(party.Name.Trim(), x, 94, Text(9, bold: true));
         if (party.Address is { } address)
         {
-            lines.Add(address.Street.Trim());
-            if (!string.IsNullOrWhiteSpace(address.AdditionalLine)) lines.Add(address.AdditionalLine.Trim());
-            lines.Add($"{address.PostalCode.Trim()} {address.City.Trim()}");
-            lines.Add(address.CountryCode.Trim().ToUpperInvariant());
+            page.DrawTextFromTop(address.Street.Trim(), x, 110, Text(9));
+            page.DrawTextFromTop(address.PostalCode.Trim(), x, 126, Text(9));
+            page.DrawTextBoxFromTop(address.City.Trim(), cityX, 126, cityWidth, 14, Box(9));
+            page.DrawTextFromTop(address.CountryCode.Trim().ToUpperInvariant(), x, 142, Text(9));
         }
-        page.DrawTextBoxFromTop(string.Join('\n', lines), x, top, 230, 75, new PdfTextBoxOptions
-        {
-            FontSize = 9,
-            LineHeight = 13,
-            Language = "en"
-        });
+        if (!string.IsNullOrWhiteSpace(party.TaxIdentifier))
+            page.DrawTextBoxFromTop(party.TaxIdentifier.Trim(), x, 158, width, 12, Box(8));
     }
 
-    private static void DrawTableHeader(PdfPage page, double left, double top, double width)
+    private static void DrawTableHeader(PdfPage page, double tableTop)
     {
-        page.DrawRectangleFromTop(left, top, width, 24, fill: true,
-            strokeColor: PdfColor.FromRgb(34, 49, 63), fillColor: PdfColor.FromRgb(34, 49, 63));
-        page.DrawTextFromTop("Item", left + 8, top + 7, Text(8, bold: true, color: PdfColor.White));
-        page.DrawTextFromTop("Description", left + 48, top + 7, Text(8, bold: true, color: PdfColor.White));
-        page.DrawTextFromTop("Qty", left + 298, top + 7, Text(8, bold: true, color: PdfColor.White));
-        page.DrawTextFromTop("Unit price", left + 350, top + 7, Text(8, bold: true, color: PdfColor.White));
-        page.DrawTextFromTop("Tax", left + 418, top + 7, Text(8, bold: true, color: PdfColor.White));
-        page.DrawTextFromTop("Net", left + 466, top + 7, Text(8, bold: true, color: PdfColor.White));
+        var top = tableTop - EInvoicePageLayout.ColumnHeaderOffset;
+        DrawHeading(page, "No.", EInvoicePageLayout.Position, top, right: false);
+        DrawHeading(page, "Description", EInvoicePageLayout.Description, top, right: false);
+        DrawHeading(page, "Quantity", EInvoicePageLayout.Quantity, top, right: true);
+        DrawHeading(page, "Unit price", EInvoicePageLayout.UnitPrice, top, right: true);
+        DrawHeading(page, "Tax", EInvoicePageLayout.TaxRate, top, right: true);
+        DrawHeading(page, "Net", EInvoicePageLayout.Net, top, right: true);
+        var ruleTop = tableTop - EInvoicePageLayout.HeaderRuleOffset;
+        page.DrawLineFromTop(EInvoicePageLayout.Left, ruleTop, EInvoicePageLayout.Right, ruleTop, 1, Hairline);
     }
+
+    private static void DrawHeading(
+        PdfPage page,
+        string text,
+        EInvoicePageLayout.Column column,
+        double top,
+        bool right) =>
+        page.DrawTextBoxFromTop(text, column.X, top, column.Width, 14,
+            Box(9, bold: true, color: Muted, right: right));
 
     private static void DrawInvoiceLine(
         PdfPage page,
         CalculatedLine line,
+        EInvoicePageLayout.PlannedRow row,
         string currency,
-        int decimalPlaces,
-        double left,
-        double top,
-        double width,
-        double height)
+        int decimalPlaces)
     {
-        page.DrawRectangleFromTop(left, top, width, height, lineWidth: 0.5,
-            strokeColor: PdfColor.FromRgb(190, 198, 204));
-        page.DrawTextFromTop(line.Source.Identifier.Trim(), left + 8, top + 10, Text(8));
-        page.DrawTextBoxFromTop(line.Source.Description.Trim(), left + 48, top + 6, 240, height - 8,
-            new PdfTextBoxOptions { FontSize = 8, LineHeight = 10, Language = "en" });
-        page.DrawTextFromTop(Decimal(line.Source.Quantity), left + 298, top + 10, Text(8));
-        page.DrawTextFromTop(Money(line.Source.UnitPrice, decimalPlaces), left + 350, top + 10, Text(8));
-        page.DrawTextFromTop($"{Decimal(line.Source.TaxRate)}%", left + 418, top + 10, Text(8));
-        page.DrawTextFromTop($"{Money(line.NetAmount, decimalPlaces)} {currency.Trim().ToUpperInvariant()}", left + 466, top + 10, Text(8));
+        // A continuation fragment carries only the rest of the description. Repeating the amounts
+        // would show the same money twice for one canonical line.
+        page.DrawTextBoxFromTop(row.Text, EInvoicePageLayout.Description.X, row.Top,
+            EInvoicePageLayout.Description.Width,
+            Math.Max(14, row.TextLines * EInvoicePageLayout.LineHeight),
+            Box(9, lineHeight: EInvoicePageLayout.LineHeight));
+        if (row.FragmentIndex > 0) return;
+
+        page.DrawTextBoxFromTop(line.Source.Identifier.Trim(), EInvoicePageLayout.Position.X, row.Top,
+            EInvoicePageLayout.Position.Width, 14, Box(9));
+        DrawColumn(page, Decimal(line.Source.Quantity), EInvoicePageLayout.Quantity, row.Top);
+        DrawColumn(page, Money(line.Source.UnitPrice, decimalPlaces), EInvoicePageLayout.UnitPrice, row.Top);
+        DrawColumn(page, $"{Decimal(line.Source.TaxRate)}%", EInvoicePageLayout.TaxRate, row.Top);
+        DrawColumn(page, Money(line.NetAmount, decimalPlaces), EInvoicePageLayout.Net, row.Top);
     }
 
+    private static void DrawColumn(
+        PdfPage page,
+        string text,
+        EInvoicePageLayout.Column column,
+        double top) =>
+        page.DrawTextBoxFromTop(text, column.X, top, column.Width, 14, Box(9, right: true));
+
+    /// <summary>
+    /// Draws whichever part of the totals block this page carries.
+    /// </summary>
+    /// <remarks>
+    /// A large tax breakdown continues across several totals pages. The net total is drawn once, on
+    /// the first of them, and the payable total once, on the last, so neither is ever duplicated and
+    /// neither runs into the footer.
+    /// </remarks>
     private static void DrawTotals(
         PdfPage page,
         InvoiceCalculations calculations,
+        EInvoicePageLayout.PlannedPage planned,
         string currency,
         int decimalPlaces,
-        double top,
-        double right)
+        double top)
     {
-        var code = currency.Trim().ToUpperInvariant();
-        var x = right - 220;
-        page.DrawTextFromTop("Net total", x, top, Text(9));
-        page.DrawTextFromTop($"{Money(calculations.LineTotal, decimalPlaces)} {code}", right - 95, top, Text(9));
-        top += 20;
-        foreach (var tax in calculations.Taxes)
+        if (planned.ShowNetTotal)
         {
-            page.DrawTextFromTop($"Tax {Decimal(tax.Rate)}%", x, top, Text(9));
-            page.DrawTextFromTop($"{Money(tax.Amount, decimalPlaces)} {code}", right - 95, top, Text(9));
-            top += 20;
+            DrawTotalsRow(page, "Net total", Money(calculations.LineTotal, decimalPlaces), top, 9, bold: false);
         }
 
-        // With one tax group the group row already is the tax total. With several, the aggregate
-        // would otherwise appear nowhere on the page, so a reader - and the PDF/XML consistency
-        // comparison - could not confirm the tax total the embedded XML declares.
+        var taxTop = planned.ShowNetTotal ? top + 18 : top;
+        var taxes = calculations.Taxes
+            .Skip(planned.TaxGroupStart)
+            .Take(planned.TaxGroupCount)
+            .ToArray();
+        for (var index = 0; index < taxes.Length; index++)
+        {
+            var tax = taxes[index];
+            DrawTotalsRow(page, $"{Decimal(tax.Rate)}%", Money(tax.Amount, decimalPlaces),
+                taxTop + index * EInvoicePageLayout.TaxRowHeight, 9, bold: false);
+        }
+
+        if (!planned.ShowPayableTotal) return;
+
+        var ruleTop = taxTop + Math.Max(taxes.Length, 1) * EInvoicePageLayout.TaxRowHeight;
+
+        // With one group the group row already is the tax total; with several the aggregate needs
+        // its own row, or nothing on the page confirms the total the embedded XML declares - and
+        // the PDF/XML consistency comparison would report the invoice for review.
         if (calculations.Taxes.Count > 1)
         {
-            page.DrawTextFromTop("Tax total", x, top, Text(9));
-            page.DrawTextFromTop($"{Money(calculations.TaxTotal, decimalPlaces)} {code}", right - 95, top, Text(9));
-            top += 20;
+            DrawTotalsRow(page, "Tax total", Money(calculations.TaxTotal, decimalPlaces),
+                ruleTop, 9, bold: false);
+            ruleTop += EInvoicePageLayout.TaxRowHeight;
         }
 
-        page.DrawLineFromTop(x, top, right, top, 1, PdfColor.FromRgb(34, 49, 63));
-        page.DrawTextFromTop("Amount payable", x, top + 12, Text(11, bold: true));
-        page.DrawTextFromTop($"{Money(calculations.GrandTotal, decimalPlaces)} {code}", right - 110, top + 12, Text(11, bold: true));
+        page.DrawLineFromTop(EInvoicePageLayout.TotalsLabel.X, ruleTop,
+            EInvoicePageLayout.Net.Right, ruleTop, 1, Hairline);
+        var payableTop = ruleTop + 10;
+        DrawTotalsRow(page, "Amount payable", Money(calculations.GrandTotal, decimalPlaces),
+            payableTop, 11, bold: true);
+        page.DrawTextBoxFromTop(currency, EInvoicePageLayout.Currency.X, payableTop,
+            EInvoicePageLayout.Currency.Width, 16, Box(11, bold: true));
     }
 
+    private static void DrawTotalsRow(
+        PdfPage page,
+        string label,
+        string amount,
+        double top,
+        double size,
+        bool bold)
+    {
+        page.DrawTextBoxFromTop(label, EInvoicePageLayout.TotalsLabel.X, top,
+            EInvoicePageLayout.TotalsLabel.Width, size + 5, Box(size, bold: bold, right: true));
+        page.DrawTextBoxFromTop(amount, EInvoicePageLayout.Net.X, top,
+            EInvoicePageLayout.Net.Width, size + 5, Box(size, bold: bold, right: true));
+    }
+
+    private static void DrawRight(
+        PdfPage page,
+        string text,
+        double x,
+        double top,
+        double width,
+        double size,
+        bool bold) =>
+        page.DrawTextBoxFromTop(text, x, top, width, size + 5, Box(size, bold: bold, right: true));
+
+    /// <summary>
+    /// A text box in the contract's typeface.
+    /// </summary>
+    /// <remarks>
+    /// The family is named explicitly because the weight depends on it: with no family the page
+    /// falls back to its default font and drops <c>Bold</c> silently, so a bold heading rendered
+    /// regular. Helvetica is also the slot the Designer's maintained layouts ask for, which the font
+    /// loader backs with Liberation Sans on both surfaces.
+    /// </remarks>
+    private static PdfTextBoxOptions Box(
+        double size,
+        bool bold = false,
+        IPdfColor? color = null,
+        bool right = false,
+        double? lineHeight = null) => new()
+    {
+        FontSize = size,
+        Bold = bold,
+        FontFamily = PdfFontFamily.Helvetica,
+        FillColor = color ?? Ink,
+        Alignment = right ? PdfTextAlignment.Right : PdfTextAlignment.Left,
+        LineHeight = lineHeight,
+        Language = "en"
+    };
+
+    /// <summary>A single line of text in the contract's typeface. See <see cref="Box"/> on the family.</summary>
     private static PdfDrawTextOptions Text(double size, bool bold = false, IPdfColor? color = null) => new()
     {
         FontSize = size,
         Bold = bold,
-        FillColor = color ?? PdfColor.Black,
+        FontFamily = PdfFontFamily.Helvetica,
+        FillColor = color ?? Ink,
         Language = "en"
     };
 

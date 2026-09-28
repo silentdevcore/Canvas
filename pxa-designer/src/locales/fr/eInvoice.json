@@ -152,6 +152,7 @@
     "lineTaxRate": "TVA",
     "lineNet": "Net",
     "netTotal": "Total net",
+    "taxTotal": "Total de la taxe",
     "amountPayable": "Montant à payer",
     "conformanceNote": "Le XML de facture intégré constitue la donnée juridiquement pertinente. La reconnaissance structurelle par PXA n'est pas une affirmation de conformité.",
     "standardName": "Facture standard",

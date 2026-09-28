@@ -1,0 +1,279 @@
+{
+  "schema": "pxa.e-invoice.parity-invoice/1",
+  "standard": "FacturX",
+  "profile": "EN 16931",
+  "invoice": {
+    "invoiceNumber": "PARITY-EINV-2026-0045",
+    "issueDate": "2026-09-27",
+    "currency": "EUR",
+    "seller": {
+      "name": "Groß & Söhne Bürotechnik GmbH",
+      "taxIdentifier": "DE123456789",
+      "address": {
+        "street": "Hauptstraße 118a",
+        "city": "Berlin",
+        "postalCode": "10115",
+        "countryCode": "DE"
+      }
+    },
+    "buyer": {
+      "name": "Société Générale de Facturation",
+      "taxIdentifier": "FR40303265045",
+      "address": {
+        "street": "12 Rue de l'Église",
+        "city": "Genève",
+        "postalCode": "75008",
+        "countryCode": "FR"
+      }
+    },
+    "lines": [
+      {
+        "identifier": "1",
+        "description": "Cross-border service at 0%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 25,
+        "taxRate": 0,
+        "taxCategoryCode": "Z"
+      },
+      {
+        "identifier": "2",
+        "description": "Cross-border service at 2.1%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 28.5,
+        "taxRate": 2.1,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "3",
+        "description": "Cross-border service at 3%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 32,
+        "taxRate": 3,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "4",
+        "description": "Cross-border service at 4%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 35.5,
+        "taxRate": 4,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "5",
+        "description": "Cross-border service at 5%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 39,
+        "taxRate": 5,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "6",
+        "description": "Cross-border service at 5.5%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 42.5,
+        "taxRate": 5.5,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "7",
+        "description": "Cross-border service at 6%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 46,
+        "taxRate": 6,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "8",
+        "description": "Cross-border service at 7%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 49.5,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "9",
+        "description": "Cross-border service at 8%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 53,
+        "taxRate": 8,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "10",
+        "description": "Cross-border service at 9%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 56.5,
+        "taxRate": 9,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "11",
+        "description": "Cross-border service at 10%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 60,
+        "taxRate": 10,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "12",
+        "description": "Cross-border service at 12%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 63.5,
+        "taxRate": 12,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "13",
+        "description": "Cross-border service at 13%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 67,
+        "taxRate": 13,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "14",
+        "description": "Cross-border service at 13.5%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 70.5,
+        "taxRate": 13.5,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "15",
+        "description": "Cross-border service at 14%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 74,
+        "taxRate": 14,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "16",
+        "description": "Cross-border service at 15%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 77.5,
+        "taxRate": 15,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "17",
+        "description": "Cross-border service at 16%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 81,
+        "taxRate": 16,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "18",
+        "description": "Cross-border service at 17%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 84.5,
+        "taxRate": 17,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "19",
+        "description": "Cross-border service at 18%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 88,
+        "taxRate": 18,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "20",
+        "description": "Cross-border service at 19%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 91.5,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "21",
+        "description": "Cross-border service at 20%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 95,
+        "taxRate": 20,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "22",
+        "description": "Cross-border service at 21%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 98.5,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "23",
+        "description": "Cross-border service at 22%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 102,
+        "taxRate": 22,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "24",
+        "description": "Cross-border service at 23%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 105.5,
+        "taxRate": 23,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "25",
+        "description": "Cross-border service at 24%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 109,
+        "taxRate": 24,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "26",
+        "description": "Cross-border service at 25%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 112.5,
+        "taxRate": 25,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "27",
+        "description": "Cross-border service at 27%",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 116,
+        "taxRate": 27,
+        "taxCategoryCode": "S"
+      }
+    ],
+    "currencyDecimalPlaces": 2,
+    "dueDate": "2026-10-27",
+    "buyerReference": "04011000-12345-34",
+    "paymentReference": "RF18 5390 0754 7034"
+  }
+}

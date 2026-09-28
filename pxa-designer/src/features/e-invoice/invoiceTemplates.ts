@@ -105,6 +105,10 @@ const COL = {
 
 const LEFT = COL.position.x;
 const RIGHT = 553;
+/** Body text size, and the leading one wrapped description line advances by. Both come from the
+ * shared pagination contract, so the Designer and `EInvoice.CreatePdf` stack wrapped text alike. */
+const BODY_FONT_SIZE = 9;
+const WRAPPED_LINE_HEIGHT = 11;
 const TOTALS_ANCHOR = 640;
 const TAX_ROW_HEIGHT = 16;
 
@@ -145,7 +149,14 @@ function bound(
   x: number,
   y: number,
   width: number,
-  options: { size?: number; bold?: boolean; align?: 'left' | 'right'; formatter?: string } = {},
+  options: {
+    size?: number;
+    bold?: boolean;
+    align?: 'left' | 'right';
+    formatter?: string;
+    /** Absolute leading in points, for the one cell whose text wraps. */
+    lineHeight?: number;
+  } = {},
 ): SimpleElement {
   return {
     id,
@@ -162,7 +173,9 @@ function bound(
       fontWeight: options.bold ? 700 : 400,
       textAlign: options.align ?? 'left',
       color: '#0f172a',
-      lineHeight: 1,
+      // A unitless multiplier: the browser reads it against the font size and `DesignJsonMapper`
+      // treats anything below 8 the same way, so one number gives both surfaces the same leading.
+      lineHeight: options.lineHeight ? options.lineHeight / (options.size ?? BODY_FONT_SIZE) : 1,
     },
   };
 }
@@ -202,7 +215,7 @@ const LINE_ROW_IDS = [
 const TAX_ROW_IDS = ['taxRate', 'taxAmount'] as const;
 
 const TOTALS_IDS = [
-  'netTotalLabel', 'netTotal', 'totalsRule',
+  'netTotalLabel', 'netTotal', 'taxTotalLabel', 'taxTotal', 'totalsRule',
   'payableLabel', 'payableAmount', 'payableCurrency',
 ] as const;
 
@@ -265,7 +278,7 @@ function standardLayout(): SimpleElement[] {
       style: {},
     },
     bound('lineIdentifier', EINVOICE_BINDINGS.lineIdentifier, COL.position.x, 272, COL.position.width),
-    bound('lineDescription', EINVOICE_BINDINGS.lineDescription, COL.description.x, 272, COL.description.width),
+    bound('lineDescription', EINVOICE_BINDINGS.lineDescription, COL.description.x, 272, COL.description.width, { lineHeight: WRAPPED_LINE_HEIGHT }),
     bound('lineQuantity', EINVOICE_BINDINGS.lineQuantity, COL.quantity.x, 272, COL.quantity.width, { align: 'right' }),
     bound('lineUnitPrice', EINVOICE_BINDINGS.lineUnitPrice, COL.unitPrice.x, 272, COL.unitPrice.width, { align: 'right', formatter: 'money' }),
     bound('lineTaxRate', EINVOICE_BINDINGS.lineTaxRate, COL.taxRate.x, 272, COL.taxRate.width, { align: 'right', formatter: 'percent' }),
@@ -287,6 +300,13 @@ function standardLayout(): SimpleElement[] {
     },
     bound('taxRate', EINVOICE_BINDINGS.taxGroupRate, COL.totalsLabel.x, TOTALS_ANCHOR + 18, COL.totalsLabel.width, { align: 'right', formatter: 'percent' }),
     bound('taxAmount', EINVOICE_BINDINGS.taxGroupAmount, COL.net.x, TOTALS_ANCHOR + 18, COL.net.width, { align: 'right', formatter: 'money' }),
+
+    // Shown only when there is more than one tax group: with a single group the group row already
+    // is the tax total, and repeating it would state the same money twice. With several, the
+    // aggregate the embedded XML declares would otherwise appear nowhere on the page, so neither a
+    // reader nor the PDF/XML consistency comparison could confirm it.
+    label('taxTotalLabel', 'template.taxTotal', COL.totalsLabel.x, TOTALS_ANCHOR + 34, COL.totalsLabel.width, { align: 'right' }),
+    bound('taxTotal', EINVOICE_BINDINGS.taxTotal, COL.net.x, TOTALS_ANCHOR + 34, COL.net.width, { align: 'right', formatter: 'money' }),
 
     rule('totalsRule', COL.totalsLabel.x, TOTALS_ANCHOR + 50, COL.net.x + COL.net.width - COL.totalsLabel.x),
     label('payableLabel', 'template.amountPayable', COL.totalsLabel.x, TOTALS_ANCHOR + 60, COL.totalsLabel.width, { size: 11, bold: true, align: 'right' }),

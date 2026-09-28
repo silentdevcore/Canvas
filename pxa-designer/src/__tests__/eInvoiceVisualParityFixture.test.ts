@@ -29,6 +29,12 @@ const FIXTURE_PATH = path.join(
 const MULTIPAGE_FIXTURE_PATH = path.join(
   process.cwd(), '..', 'test-assets', 'visual-parity', 'e-invoice-multipage.json',
 );
+const LONG_DESCRIPTION_FIXTURE_PATH = path.join(
+  process.cwd(), '..', 'test-assets', 'visual-parity', 'e-invoice-long-description.json',
+);
+const MULTI_TAX_FIXTURE_PATH = path.join(
+  process.cwd(), '..', 'test-assets', 'visual-parity', 'e-invoice-multi-tax.json',
+);
 
 /** The English labels the projection resolves, so the fixture is language-stable. */
 const EN_LABELS: Record<string, string> = JSON.parse(
@@ -142,7 +148,72 @@ function multiPageInvoice(): EInvoiceDocument {
   };
 }
 
-/** The shared envelope both fixtures use, so only the pages differ between them. */
+/**
+ * One description far longer than a row, so the fixture carries continuation fragments.
+ *
+ * The second line's description needs more space than a whole page has, which is what forces the
+ * projection to split it and the hybrid renderer to continue it on the next page.
+ */
+function longDescriptionInvoice(): EInvoiceDocument {
+  const phrase = 'annual maintenance, support and licence renewal for the consolidated reporting '
+    + 'platform including the quarterly compliance review';
+  return {
+    ...parityInvoice(),
+    invoiceNumber: 'PARITY-EINV-2026-0044',
+    lines: [
+      {
+        identifier: '1',
+        description: 'Implementation workshop',
+        quantity: 2,
+        unitCode: 'DAY',
+        unitPrice: 890,
+        taxRate: 19,
+        taxCategoryCode: 'S',
+      },
+      {
+        identifier: '2',
+        description: Array.from({ length: 24 }, () => phrase).join(' '),
+        quantity: 1,
+        unitCode: 'C62',
+        unitPrice: 4200,
+        taxRate: 19,
+        taxCategoryCode: 'S',
+      },
+      {
+        identifier: '3',
+        description: 'Closing report',
+        quantity: 1,
+        unitCode: 'C62',
+        unitPrice: 150,
+        taxRate: 7,
+        taxCategoryCode: 'S',
+      },
+    ],
+  };
+}
+
+/**
+ * Enough distinct tax rates that the breakdown outgrows the totals block and continues onto totals
+ * pages of its own, with the net total on the first and the payable total on the last.
+ */
+function multiTaxInvoice(): EInvoiceDocument {
+  const rates = [0, 2.1, 3, 4, 5, 5.5, 6, 7, 8, 9, 10, 12, 13, 13.5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27];
+  return {
+    ...parityInvoice(),
+    invoiceNumber: 'PARITY-EINV-2026-0045',
+    lines: rates.map((rate, index) => ({
+      identifier: String(index + 1),
+      description: `Cross-border service at ${rate}%`,
+      quantity: 1,
+      unitCode: 'C62',
+      unitPrice: Number((25 + index * 3.5).toFixed(2)),
+      taxRate: rate,
+      taxCategoryCode: rate === 0 ? 'Z' : 'S',
+    })),
+  };
+}
+
+/** The shared envelope every fixture uses, so only the pages differ between them. */
 function fixtureEnvelope(
   id: string,
   name: string,
@@ -184,10 +255,35 @@ function buildFixture(): Record<string, unknown> {
 }
 
 function buildMultiPageFixture(): Record<string, unknown> {
+  return buildProjectedFixture(
+    'e-invoice-multipage', 'Electronic invoice parity (multi-page)', multiPageInvoice());
+}
+
+function buildProjectedFixture(
+  id: string,
+  name: string,
+  invoice: EInvoiceDocument,
+): Record<string, unknown> {
   const definition = invoiceTemplate('invoice-standard')!;
   resetProjectionIds();
-  const pages = projectInvoicePages(definition, multiPageInvoice(), translate);
-  return fixtureEnvelope('e-invoice-multipage', 'Electronic invoice parity (multi-page)', pages);
+  return fixtureEnvelope(id, name, projectInvoicePages(definition, invoice, translate));
+}
+
+/**
+ * The canonical invoice a fixture was projected from, written beside it.
+ *
+ * `VisualParityArtifactTests` reads this to render the dedicated hybrid PDF with
+ * `EInvoice.CreatePdf`. Without it the parity run could only compare the Designer against a
+ * DesignExport PDF of the projection, which says nothing about the hybrid invoice PXA actually
+ * issues.
+ */
+function sidecarFor(invoice: EInvoiceDocument): Record<string, unknown> {
+  return {
+    schema: 'pxa.e-invoice.parity-invoice/1',
+    standard: 'FacturX',
+    profile: 'EN 16931',
+    invoice,
+  };
 }
 
 /** Rewrites `file` when the generated fixture drifted, and reports that it did. */
@@ -202,12 +298,47 @@ function assertFixtureCurrent(file: string, fixture: Record<string, unknown>): v
 }
 
 describe('electronic invoice visual parity fixture', () => {
+  const normalizedText = (value: unknown) => String(value ?? '').replace(/\s+/g, ' ').trim();
+
   it('matches the projection of the canonical invoice', () => {
     assertFixtureCurrent(FIXTURE_PATH, buildFixture());
   });
 
   it('keeps a multi-page fixture in step with the projection too', () => {
     assertFixtureCurrent(MULTIPAGE_FIXTURE_PATH, buildMultiPageFixture());
+  });
+
+  it('keeps a long-description fixture in step with the projection', () => {
+    assertFixtureCurrent(LONG_DESCRIPTION_FIXTURE_PATH, buildProjectedFixture(
+      'e-invoice-long-description',
+      'Electronic invoice parity (long description)',
+      longDescriptionInvoice()));
+  });
+
+  it('keeps a multi-tax fixture in step with the projection', () => {
+    assertFixtureCurrent(MULTI_TAX_FIXTURE_PATH, buildProjectedFixture(
+      'e-invoice-multi-tax', 'Electronic invoice parity (many tax groups)', multiTaxInvoice()));
+  });
+
+  it('writes the canonical invoice beside every fixture, for the hybrid renderer', () => {
+    const sidecars: Array<[string, EInvoiceDocument]> = [
+      [FIXTURE_PATH, parityInvoice()],
+      [MULTIPAGE_FIXTURE_PATH, multiPageInvoice()],
+      [LONG_DESCRIPTION_FIXTURE_PATH, longDescriptionInvoice()],
+      [MULTI_TAX_FIXTURE_PATH, multiTaxInvoice()],
+    ];
+    // Rewrite every drifted sidecar before reporting, so one run brings them all up to date.
+    const regenerated: string[] = [];
+    for (const [fixturePath, invoice] of sidecars) {
+      const file = fixturePath.replace(/\.json$/, '.invoice.json');
+      const expected = `${JSON.stringify(sidecarFor(invoice), null, 2)}\n`;
+      if ((fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '') === expected) continue;
+      fs.writeFileSync(file, expected);
+      regenerated.push(file);
+    }
+    if (regenerated.length > 0) {
+      throw new Error(`Regenerated ${regenerated.join(', ')}. Review the diff and commit it.`);
+    }
   });
 
   it('breaks the multi-page fixture into real continuation pages', () => {
@@ -221,7 +352,7 @@ describe('electronic invoice visual parity fixture', () => {
     // Every line, exactly once, in canonical order.
     const descriptions = pages.flatMap(page => page.elements
       .filter(element => String(element.id).startsWith('einv-lineDescription-'))
-      .map(element => String(element.content ?? '')));
+      .map(element => normalizedText(element.content)));
     expect(descriptions).toEqual(invoice.lines.map(line => line.description));
 
     // The address block appears once; the column headings repeat on each page that has rows.
@@ -251,7 +382,7 @@ describe('electronic invoice visual parity fixture', () => {
     const fixture = buildFixture();
     const elements = (fixture.pages as Array<{ elements: Array<Record<string, unknown>> }>)[0]
       .elements;
-    const contents = elements.map(element => String(element.content ?? ''));
+    const contents = elements.map(element => normalizedText(element.content));
     const invoice = parityInvoice();
     const totals = calculateInvoice(invoice);
 

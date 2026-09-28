@@ -152,6 +152,7 @@
     "lineTaxRate": "Steuer",
     "lineNet": "Netto",
     "netTotal": "Nettosumme",
+    "taxTotal": "Steuersumme",
     "amountPayable": "Zahlbetrag",
     "conformanceNote": "Das eingebettete Rechnungs-XML ist der rechtlich maßgebliche Datensatz. Die strukturelle Erkennung durch PXA ist keine Konformitätsaussage.",
     "standardName": "Standardrechnung",

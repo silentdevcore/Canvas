@@ -61,3 +61,33 @@ public sealed record PdfEInvoiceProviderProfile
     public PdfEInvoiceProviderCapability Capability(PdfEInvoiceCapability capability) =>
         Capabilities.Single(item => item.Capability == capability);
 }
+
+/// <summary>
+/// One electronic-invoice capability found in a customer's source, and what PXA does with it.
+/// </summary>
+/// <remarks>
+/// A finding is produced whenever source code touches an invoice capability - including when the
+/// provider has no such API and the answer is <see cref="PdfTrustMigrationDisposition.Unsupported"/>.
+/// That is the point: a capability a migration cannot carry across has to be reported, never
+/// silently dropped.
+/// </remarks>
+public sealed record PdfEInvoiceMigrationFinding
+{
+    public required string ProviderKey { get; init; }
+
+    public required PdfEInvoiceCapability Capability { get; init; }
+
+    public required PdfTrustMigrationDisposition Disposition { get; init; }
+
+    /// <summary>The stable <c>CANMIGEINV...</c> identifier for this capability.</summary>
+    public required string Code { get; init; }
+
+    /// <summary>The API identifiers actually present in the analyzed source, in source order.</summary>
+    public required IReadOnlyList<string> MatchedMarkers { get; init; }
+
+    public string? PxaEquivalent { get; init; }
+
+    public required string Rationale { get; init; }
+
+    public required string DocumentationPath { get; init; }
+}

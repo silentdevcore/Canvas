@@ -138,6 +138,8 @@ export interface InvoiceBindingContext {
     EInvoiceDocumentLine & {
       netAmount: number;
       netAmountText: string;
+      unitPriceText: string;
+      taxRateText: string;
     }
   >;
 }
@@ -164,6 +166,9 @@ export function createBindingContext(invoice: EInvoiceDocument): InvoiceBindingC
         rate: toNumber(tax.rate),
         basis: toNumber(tax.basis),
         amount: toNumber(tax.amount),
+        // The percentage as the page shows it. The hybrid renderer writes the same string, so the
+        // Designer and `EInvoice.CreatePdf` present one tax rate in one form.
+        rateText: formatRate(toNumber(tax.rate)),
         basisText: toFixed(tax.basis, places),
         amountText: toFixed(tax.amount, places),
       })),
@@ -172,8 +177,20 @@ export function createBindingContext(invoice: EInvoiceDocument): InvoiceBindingC
       ...line.source,
       netAmount: toNumber(line.netAmount),
       netAmountText: toFixed(line.netAmount, places),
+      // The unit price in the currency's minor units, which is how the hybrid renderer writes it.
+      // Without this the Designer showed the raw number - "24.9" where the PDF said "24.90".
+      unitPriceText: toFixed(fromNumber(line.source.unitPrice), places),
+      taxRateText: formatRate(line.source.taxRate),
     })),
   };
+}
+
+/**
+ * A tax rate as both renderers print it: the shortest exact decimal, with a percent sign. Matches
+ * `EInvoice.Decimal` in the generator, which uses the same trailing-zero-free form.
+ */
+export function formatRate(rate: number): string {
+  return `${rate}%`;
 }
 
 /** Fixed-point text for one amount, matching the backend's money formatting. */

@@ -152,6 +152,7 @@
     "lineTaxRate": "Tax",
     "lineNet": "Net",
     "netTotal": "Net total",
+    "taxTotal": "Tax total",
     "amountPayable": "Amount payable",
     "conformanceNote": "The embedded invoice XML is the legally relevant data. Structural recognition by PXA is not a conformance claim.",
     "standardName": "Standard invoice",

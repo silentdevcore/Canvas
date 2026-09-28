@@ -254,12 +254,13 @@ export function projectInvoicePages(
     scope: unknown,
     suffix: string,
     height?: number,
+    content?: string,
   ): void => {
     const template = byId.get(templateId);
     if (!template) return;
     placed.push({
       pageIndex,
-      element: resolveElement(template, translate, scope, top, suffix, height),
+      element: resolveElement(template, translate, scope, top, suffix, height, content),
     });
   };
 
@@ -279,15 +280,34 @@ export function projectInvoicePages(
 
     for (const row of page.rows) {
       const line = context.lines[row.lineIndex];
+      const lineId = lineIds?.[row.lineIndex]?.replace(/^line-/, '') ?? String(row.lineIndex + 1);
+      // The wrapping cell grows to the text it holds, so nothing is clipped and the next row
+      // starts below the box rather than inside it.
+      const wrappingHeight = Math.max(
+        byId.get(layout.wrappingElementId)!.height,
+        row.textLines * layout.lineHeight,
+      );
+
+      if (row.fragmentIndex > 0) {
+        // A description too long for one page continues here. Only the text continues: the
+        // identifier, quantity, price, rate and net amount stay on the row that carries them, so
+        // no semantic amount is ever shown twice.
+        emit(
+          pageIndex,
+          layout.wrappingElementId,
+          row.top,
+          line,
+          `l${lineId}f${row.fragmentIndex}`,
+          wrappingHeight,
+          row.text,
+        );
+        continue;
+      }
+
       for (const id of layout.lineRowIds) {
-        const template = byId.get(id)!;
-        // The wrapping cell grows within the maintained projection limit, and the next row starts
-        // below that box. Maximum-length overflow remains part of the hybrid-layout acceptance gap.
-        const height = id === layout.wrappingElementId
-          ? Math.max(template.height, row.textLines * layout.lineHeight)
-          : undefined;
-        const lineId = lineIds?.[row.lineIndex]?.replace(/^line-/, '') ?? String(row.lineIndex + 1);
-        emit(pageIndex, id, row.top, line, `l${lineId}`, height);
+        const height = id === layout.wrappingElementId ? wrappingHeight : undefined;
+        const content = id === layout.wrappingElementId ? row.text : undefined;
+        emit(pageIndex, id, row.top, line, `l${lineId}`, height, content);
       }
     }
 
@@ -319,7 +339,14 @@ export function projectInvoicePages(
       });
 
       if (page.showPayableTotal) {
-        const ruleTop = taxBase + Math.max(taxes.length, 1) * layout.taxRowHeight;
+        let ruleTop = taxBase + Math.max(taxes.length, 1) * layout.taxRowHeight;
+        // With one group the group row already is the tax total; with several the aggregate needs
+        // its own row, or nothing on the page confirms the total the embedded XML declares.
+        if (context.totals.taxes.length > 1 && layout.taxRowIds.length > 0) {
+          emit(pageIndex, 'taxTotalLabel', ruleTop, context, 't');
+          emit(pageIndex, 'taxTotal', ruleTop, context, 't');
+          ruleTop += layout.taxRowHeight;
+        }
         const payableTop = ruleTop + 10;
         emit(pageIndex, 'totalsRule', ruleTop, context, 't');
         emit(pageIndex, 'payableLabel', payableTop, context, 't');
@@ -367,6 +394,7 @@ function resolveElement(
   top: number,
   suffix: string,
   height?: number,
+  content?: string,
 ): SimpleElement {
   const resolved: SimpleElement = {
     ...element,
@@ -375,6 +403,12 @@ function resolveElement(
     ...(height !== undefined ? { height } : {}),
     style: element.style ? { ...element.style } : undefined,
   };
+
+  // A pre-wrapped fragment supplies its own text; everything else resolves from its binding.
+  if (content !== undefined) {
+    resolved.content = content;
+    return resolved;
+  }
 
   const labelKey = LABEL_PATTERN.exec(element.content ?? '')?.[1];
   if (labelKey) {
