@@ -13,7 +13,6 @@
 
 import type { Page, SimpleElement, TemplateEInvoiceState } from '@/types';
 import {
-  EINVOICE_BINDINGS,
   EINVOICE_PROFILES,
   EINVOICE_VERSIONS,
   createEmptyInvoice,
@@ -25,12 +24,14 @@ import {
   type EInvoiceStandard,
 } from './invoiceModel';
 import { createBindingContext } from './invoiceTotals';
+import { planInvoicePages } from './invoicePagination';
 import type { InvoiceTemplateDefinition } from './invoiceTemplates';
 
 export interface EInvoiceDesignerDocument {
   invoice: EInvoiceDocument;
   settings: EInvoiceSettings;
   templateId?: string;
+  lineIds: string[];
 }
 
 /** Translates an i18n key from a template label. */
@@ -67,6 +68,10 @@ export function readEInvoiceDocument(
       : defaultSettings(standard).profile,
   };
 
+  const lines = Array.isArray(stored.lines)
+    ? stored.lines.map((line, index) => normalizeLine(line, index + 1))
+    : empty.lines;
+
   return {
     invoice: {
       ...empty,
@@ -79,9 +84,7 @@ export function readEInvoiceDocument(
       paymentReference: optionalText(stored.paymentReference),
       seller: normalizeParty(stored.seller, empty.seller),
       buyer: normalizeParty(stored.buyer, empty.buyer),
-      lines: Array.isArray(stored.lines)
-        ? stored.lines.map((line, index) => normalizeLine(line, index + 1))
-        : empty.lines,
+      lines,
       currencyDecimalPlaces: Number.isInteger(stored.currencyDecimalPlaces)
         && stored.currencyDecimalPlaces! >= 0
         && stored.currencyDecimalPlaces! <= 4
@@ -90,7 +93,30 @@ export function readEInvoiceDocument(
     },
     settings,
     templateId: state.templateId,
+    lineIds: normalizeLineIds(state.lineIds, lines.length),
   };
+}
+
+function normalizeLineIds(value: unknown, count: number): string[] {
+  const stored = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string' && /^line-\d+$/.test(item))
+    : [];
+  const used = new Set<string>();
+  const result: string[] = [];
+  let next = 1;
+  for (let index = 0; index < count; index += 1) {
+    const candidate = stored[index];
+    if (candidate && !used.has(candidate)) {
+      used.add(candidate);
+      result.push(candidate);
+      continue;
+    }
+    while (used.has(`line-${next}`)) next += 1;
+    const generated = `line-${next++}`;
+    used.add(generated);
+    result.push(generated);
+  }
+  return result;
 }
 
 function text(value: unknown, fallback = ''): string {
@@ -152,6 +178,7 @@ export function writeEInvoiceDocument(document: EInvoiceDesignerDocument): Templ
     invoice: document.invoice as unknown as Record<string, unknown>,
     settings: { ...document.settings },
     templateId: document.templateId,
+    lineIds: [...document.lineIds],
     schemaVersion: 1,
   };
 }
@@ -160,7 +187,11 @@ export function writeEInvoiceDocument(document: EInvoiceDesignerDocument): Templ
 export function createEInvoiceDesignerDocument(
   standard: EInvoiceStandard = 'FacturX',
 ): EInvoiceDesignerDocument {
-  return { invoice: createEmptyInvoice(), settings: defaultSettings(standard) };
+  return {
+    invoice: createEmptyInvoice(),
+    settings: defaultSettings(standard),
+    lineIds: ['line-1'],
+  };
 }
 
 /** Keeps version and profile valid when the standard changes. */
@@ -172,85 +203,176 @@ export function withStandardSelected(
 }
 
 /**
- * Retained for source compatibility with fixture builders. Projection IDs are now derived from
- * template element IDs and repeat indexes, so no mutable counter needs resetting.
+ * Retained for source compatibility with fixture builders. Projection IDs are derived from template
+ * element IDs, the line index and the page number, so no mutable counter needs resetting.
  */
 export function resetProjectionIds(): void {
   // Intentionally empty.
 }
 
+/** A projected element plus the page it belongs to. */
+interface PlacedElement {
+  readonly pageIndex: number;
+  readonly element: SimpleElement;
+}
+
 /**
- * Projects the invoice onto concrete page elements.
+ * Projects the invoice onto the pages the Designer shows.
  *
- * Static labels resolve through `translate`, so one template definition serves all six
- * Designer languages instead of needing a translated copy per language. Bound elements get
- * their value from `createBindingContext`, which is the same exact-decimal arithmetic the
- * generator uses, and keep their `binding` path so the projection stays traceable.
+ * Static labels resolve through `translate`, so one template definition serves all six Designer
+ * languages instead of needing a translated copy per language. Bound elements take their value from
+ * `createBindingContext` - the same exact-decimal arithmetic the generator uses - and keep their
+ * `binding` path so the projection stays traceable back to the canonical invoice.
+ *
+ * Persisted Designer line IDs are used when supplied by the workspace. Fixture and compatibility
+ * callers that only have a canonical invoice fall back to deterministic positional IDs.
+ */
+export function projectInvoicePages(
+  definition: InvoiceTemplateDefinition,
+  invoice: EInvoiceDocument,
+  translate: TemplateTranslator,
+  lineIds?: readonly string[],
+): Page[] {
+  const { layout } = definition;
+  const context = createBindingContext(invoice);
+  const byId = new Map(definition.elements.map(element => [element.id, element]));
+  const wrapping = byId.get(layout.wrappingElementId);
+
+  const plan = planInvoicePages({
+    layout,
+    wrappingWidth: wrapping?.width ?? 200,
+    wrappingFontSize: Number((wrapping?.style as Record<string, unknown> | undefined)?.fontSize) || 9,
+    rowTexts: context.lines.map(line => line.description),
+    taxGroupCount: layout.taxRowIds.length > 0 ? context.totals.taxes.length : 0,
+  });
+
+  const placed: PlacedElement[] = [];
+  const emit = (
+    pageIndex: number,
+    templateId: string,
+    top: number,
+    scope: unknown,
+    suffix: string,
+    height?: number,
+  ): void => {
+    const template = byId.get(templateId);
+    if (!template) return;
+    placed.push({
+      pageIndex,
+      element: resolveElement(template, translate, scope, top, suffix, height),
+    });
+  };
+
+  plan.pages.forEach((page, pageIndex) => {
+    // The address block belongs to page one; a continuation page starts at its table.
+    if (page.isFirst) {
+      for (const id of layout.headerIds) emit(pageIndex, id, byId.get(id)!.y, context, 'p1');
+    }
+
+    // Column headings repeat above every table that actually carries rows.
+    if (page.tableTop !== null && page.rows.length > 0) {
+      const shift = page.tableTop - layout.tableTop;
+      for (const id of layout.columnHeaderIds) {
+        emit(pageIndex, id, byId.get(id)!.y + shift, context, `p${page.pageNumber}`);
+      }
+    }
+
+    for (const row of page.rows) {
+      const line = context.lines[row.lineIndex];
+      for (const id of layout.lineRowIds) {
+        const template = byId.get(id)!;
+        // The wrapping cell grows within the maintained projection limit, and the next row starts
+        // below that box. Maximum-length overflow remains part of the hybrid-layout acceptance gap.
+        const height = id === layout.wrappingElementId
+          ? Math.max(template.height, row.textLines * layout.lineHeight)
+          : undefined;
+        const lineId = lineIds?.[row.lineIndex]?.replace(/^line-/, '') ?? String(row.lineIndex + 1);
+        emit(pageIndex, id, row.top, line, `l${lineId}`, height);
+      }
+    }
+
+    if (page.totalsTop !== null) {
+      const shift = page.totalsTop - layout.totalsAnchor;
+      if (page.showNetTotal) {
+        emit(pageIndex, 'netTotalLabel', byId.get('netTotalLabel')!.y + shift, context, 't');
+        emit(pageIndex, 'netTotal', byId.get('netTotal')!.y + shift, context, 't');
+      }
+
+      const taxes = context.totals.taxes.slice(
+        page.taxGroupStart,
+        page.taxGroupStart + page.taxGroupCount,
+      );
+      const taxBase = page.showNetTotal ? page.totalsTop + 18 : page.totalsTop;
+      taxes.forEach((tax, localIndex) => {
+        const globalIndex = page.taxGroupStart + localIndex;
+        for (const id of layout.taxRowIds) {
+          const template = byId.get(id)!;
+          const relativeY = template.y - (layout.totalsAnchor + 18);
+          emit(
+            pageIndex,
+            id,
+            taxBase + localIndex * layout.taxRowHeight + relativeY,
+            tax,
+            `g${globalIndex + 1}`,
+          );
+        }
+      });
+
+      if (page.showPayableTotal) {
+        const ruleTop = taxBase + Math.max(taxes.length, 1) * layout.taxRowHeight;
+        const payableTop = ruleTop + 10;
+        emit(pageIndex, 'totalsRule', ruleTop, context, 't');
+        emit(pageIndex, 'payableLabel', payableTop, context, 't');
+        emit(pageIndex, 'payableAmount', payableTop, context, 't');
+        emit(pageIndex, 'payableCurrency', payableTop, context, 't');
+      }
+    }
+
+    for (const id of layout.footerIds) {
+      emit(pageIndex, id, byId.get(id)!.y, context, `p${page.pageNumber}`);
+    }
+  });
+
+  return plan.pages.map((page, pageIndex) => ({
+    id: `page-einv-${definition.id}-${page.pageNumber}`,
+    elements: placed
+      .filter(item => item.pageIndex === pageIndex)
+      .map(item => item.element),
+  }));
+}
+
+/**
+ * Every projected element, flattened across pages. Kept because callers that only need the element
+ * set - fixture builders and binding assertions - should not have to walk the page structure.
  */
 export function projectInvoiceElements(
   definition: InvoiceTemplateDefinition,
   invoice: EInvoiceDocument,
   translate: TemplateTranslator,
+  lineIds?: readonly string[],
 ): SimpleElement[] {
-  const context = createBindingContext(invoice);
-  const projected: SimpleElement[] = [];
-  const rowTemplates = new Map<string, SimpleElement[]>();
-  const repeatHosts = definition.elements.filter(element => element.repeat);
-
-  // Elements that sit inside a repeat host's row band belong to that row, not to the page.
-  for (const host of repeatHosts) {
-    rowTemplates.set(
-      host.id,
-      definition.elements.filter(element =>
-        element.id !== host.id &&
-        !element.repeat &&
-        element.y >= host.y &&
-        element.y < host.y + host.height),
-    );
-  }
-  const consumed = new Set(
-    [...rowTemplates.values()].flat().map(element => element.id),
-  );
-
-  for (const element of definition.elements) {
-    if (consumed.has(element.id)) continue;
-
-    if (element.repeat) {
-      const rows = element.repeat.dataPath === EINVOICE_BINDINGS.lines
-        ? context.lines
-        : context.totals.taxes;
-      const band = rowTemplates.get(element.id) ?? [];
-      rows.forEach((row, index) => {
-        const offsetY = element.y + index * element.height;
-        for (const cell of band) {
-          projected.push(resolveElement(cell, translate, row, offsetY - element.y, index));
-        }
-      });
-      continue;
-    }
-
-    projected.push(resolveElement(element, translate, context, 0, 0));
-  }
-
-  return projected;
+  return projectInvoicePages(definition, invoice, translate, lineIds)
+    .flatMap(page => page.elements);
 }
 
 /**
- * Resolves one template element against a value scope. `scope` is the whole binding context
- * for a page-level element and one row for a repeated element, which is what lets a row
- * template bind to `line.netAmount` rather than to an index.
+ * Resolves one template element against a value scope. `scope` is the whole binding context for a
+ * page-level element and one row for a repeated element, which is what lets a row template bind to
+ * `line.netAmount` rather than to an index.
  */
 function resolveElement(
   element: SimpleElement,
   translate: TemplateTranslator,
   scope: unknown,
-  offsetY: number,
-  occurrence: number,
+  top: number,
+  suffix: string,
+  height?: number,
 ): SimpleElement {
   const resolved: SimpleElement = {
     ...element,
-    id: `einv-${element.id}-${occurrence + 1}`,
-    y: element.y + offsetY,
+    id: `einv-${element.id}-${suffix}`,
+    y: top,
+    ...(height !== undefined ? { height } : {}),
     style: element.style ? { ...element.style } : undefined,
   };
 
@@ -301,16 +423,4 @@ function walk(scope: unknown, parts: readonly string[]): unknown {
         : undefined,
     scope,
   );
-}
-
-/** Builds the pages a maintained invoice template projects onto, with fresh ids. */
-export function projectInvoicePages(
-  definition: InvoiceTemplateDefinition,
-  invoice: EInvoiceDocument,
-  translate: TemplateTranslator,
-): Page[] {
-  return [{
-    id: `page-einv-${definition.id}`,
-    elements: projectInvoiceElements(definition, invoice, translate),
-  }];
 }

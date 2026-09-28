@@ -3,11 +3,26 @@ import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
 
+/**
+ * Which of the PDF engine's three font slots a CSS family list asks for.
+ *
+ * `sans-serif` is dropped before the serif test, because it is the generic *sans* keyword and ends
+ * most family lists. Without that, a perfectly ordinary `Arial, Helvetica, sans-serif` would be
+ * drawn in Times on the Canvas while the generated PDF used Helvetica.
+ */
+const pdfFontSlot = (value?: string): 'serif' | 'mono' | 'sans' => {
+  const normalized = (value?.toLowerCase() ?? '').replace(/sans-serif/g, '');
+  if (normalized.includes('courier') || normalized.includes('mono')) return 'mono';
+  if (normalized.includes('times') || normalized.includes('serif')) return 'serif';
+  return 'sans';
+};
+
 export const pdfFontFamily = (value?: string) => {
-  const normalized = value?.toLowerCase() ?? '';
-  if (normalized.includes('times') || normalized.includes('serif')) return 'Times New Roman, Times, serif';
-  if (normalized.includes('courier') || normalized.includes('mono')) return 'Courier New, Courier, monospace';
-  return "'PXA Helvetica', Arial, Helvetica, sans-serif";
+  switch (pdfFontSlot(value)) {
+    case 'serif': return 'Times New Roman, Times, serif';
+    case 'mono': return 'Courier New, Courier, monospace';
+    default: return "'PXA Helvetica', Arial, Helvetica, sans-serif";
+  }
 };
 
 const roman = (input: number) => {
@@ -124,10 +139,8 @@ export function PdfSingleLineText({
 }
 
 const wrapPdfText = (text: string, width: number, fontSize: number, family?: string) => {
-  const normalized = family?.toLowerCase() ?? '';
-  const factor = normalized.includes('courier') || normalized.includes('mono')
-    ? 0.6
-    : normalized.includes('times') || normalized.includes('serif') ? 0.5 : 0.52;
+  const slot = pdfFontSlot(family);
+  const factor = slot === 'mono' ? 0.6 : slot === 'serif' ? 0.5 : 0.52;
   const lines: string[] = [];
   text.replace(/\r\n/g, '\n').split('\n').forEach(paragraph => {
     if (!paragraph) {

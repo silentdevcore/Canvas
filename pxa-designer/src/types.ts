@@ -236,6 +236,8 @@ export interface TemplateEInvoiceState {
   settings: { standard: string; version: string; profile: string };
   /** Which maintained invoice template was inserted, if any. */
   templateId?: string;
+  /** Stable Designer-only identities for invoice lines, kept parallel to `invoice.lines`. */
+  lineIds?: string[];
   /** Schema version of this payload, so a later reader can migrate it. */
   schemaVersion: 1;
 }

@@ -8,10 +8,54 @@
  *
  * Labels are i18n keys resolved at render time, which is what keeps one template usable in all six
  * Designer languages instead of needing a translated copy per language.
+ *
+ * Geometry is declared as named, non-overlapping columns. Overlapping boxes were a real defect: a
+ * right-aligned totals label drew over the amount beside it, and the per-element visual comparison
+ * then measured two strings at once.
  */
 
 import type { SimpleElement } from '../../types';
 import { EINVOICE_BINDINGS, type EInvoiceStandard } from './invoiceModel';
+
+/** Where each block sits, and how a continuation page re-establishes the line table. */
+export interface InvoiceTemplateLayout {
+  /** First line row on page one, below the address block and the column headings. */
+  readonly tableTop: number;
+  /** First line row on a continuation page, which carries no address block. */
+  readonly continuationTableTop: number;
+  /** Column headings sit this far above their table top. */
+  readonly columnHeaderOffset: number;
+  /** The heading rule sits this far above its table top. */
+  readonly headerRuleOffset: number;
+  /** Height of a line row whose description occupies a single line. */
+  readonly rowHeight: number;
+  /** Vertical advance of one wrapped description line. */
+  readonly lineHeight: number;
+  /** The lowest y a Designer line row may occupy. */
+  readonly rowLimit: number;
+  /** The totals block needs this much vertical room. */
+  readonly totalsHeight: number;
+  /** The lowest y the totals block may start at. */
+  readonly totalsLimit: number;
+  /** The anchor the totals elements are positioned relative to in `elements`. */
+  readonly totalsAnchor: number;
+  /** Vertical advance of one tax-group row inside the totals block. */
+  readonly taxRowHeight: number;
+  /** Ids rendered on page one only. */
+  readonly headerIds: readonly string[];
+  /** Ids rendered at the top of every page that carries line rows. */
+  readonly columnHeaderIds: readonly string[];
+  /** Ids rendered once per invoice line. */
+  readonly lineRowIds: readonly string[];
+  /** Ids rendered once per tax group. */
+  readonly taxRowIds: readonly string[];
+  /** Ids of the totals block, positioned after the final line. */
+  readonly totalsIds: readonly string[];
+  /** Ids rendered at the foot of every page. */
+  readonly footerIds: readonly string[];
+  /** The id of the element whose text may wrap onto several lines. */
+  readonly wrappingElementId: string;
+}
 
 export interface InvoiceTemplateDefinition {
   id: string;
@@ -27,16 +71,42 @@ export interface InvoiceTemplateDefinition {
   lineTemplateId: string;
   /** The element that repeats once per tax group. */
   taxTemplateId: string;
+  layout: InvoiceTemplateLayout;
 }
 
 /**
- * The typeface every maintained invoice layout uses. It maps onto the PDF engine's Helvetica
- * family, so the Canvas, the Live Preview and the generated PDF all resolve to the same metrics.
+ * The typeface every maintained invoice layout uses.
+ *
+ * Naming the PDF engine's Helvetica slot puts all three surfaces on one face: the backend embeds
+ * Liberation Sans for it, and the Canvas and Live Preview resolve it through `pdfFontFamily` to the
+ * `PXA Helvetica` web font, which `src/styles/editor.css` loads from those very same files. That is
+ * what lets all three break a long description at the same word and land right-aligned text on the
+ * same pixel. Note the bare family name: a list ending in `sans-serif` would work in a browser, but
+ * the slot lookup and the backend's `ParseFontFamily` both read the string, so keep it unambiguous.
  */
-const TEMPLATE_FONT_FAMILY = 'Arial';
+const TEMPLATE_FONT_FAMILY = 'Helvetica';
 
 const A4_WIDTH = 595;
 const A4_HEIGHT = 842;
+
+/** Non-overlapping columns, left to right: `x + width` never reaches the next column's `x`. */
+const COL = {
+  position: { x: 42, width: 26 },
+  description: { x: 72, width: 208 },
+  quantity: { x: 284, width: 52 },
+  unitPrice: { x: 340, width: 68 },
+  taxRate: { x: 412, width: 42 },
+  net: { x: 458, width: 62 },
+  /** The currency code of the payable total, in its own column so it cannot overprint digits. */
+  currency: { x: 524, width: 29 },
+  /** Totals labels are right-aligned and stop short of the amount column. */
+  totalsLabel: { x: 284, width: 166 },
+} as const;
+
+const LEFT = COL.position.x;
+const RIGHT = 553;
+const TOTALS_ANCHOR = 640;
+const TAX_ROW_HEIGHT = 16;
 
 /** i18n-keyed static label. */
 function label(
@@ -57,14 +127,13 @@ function label(
     width,
     height: 14,
     style: {
-      // A maintained layout pins its typeface. Left unset, the Canvas would inherit the
-      // Designer's UI font while the PDF fell back to its own default, and the same invoice
-      // would render with two different faces on two surfaces.
       fontFamily: TEMPLATE_FONT_FAMILY,
       fontSize: options.size ?? 9,
       fontWeight: options.bold ? 700 : 400,
       textAlign: options.align ?? 'left',
       color: options.muted ? '#64748b' : '#0f172a',
+      // Pinned so the Canvas cannot inherit a leading the PDF paragraph engine does not use.
+      lineHeight: 1,
     },
   };
 }
@@ -93,6 +162,7 @@ function bound(
       fontWeight: options.bold ? 700 : 400,
       textAlign: options.align ?? 'left',
       color: '#0f172a',
+      lineHeight: 1,
     },
   };
 }
@@ -109,6 +179,35 @@ function rule(id: string, x: number, y: number, width: number): SimpleElement {
   };
 }
 
+const HEADER_IDS = [
+  'title', 'invoiceNumber', 'headerRule',
+  'sellerHeading', 'sellerName', 'sellerStreet', 'sellerPostalCode', 'sellerCity',
+  'sellerCountryCode', 'sellerTaxIdentifier',
+  'buyerHeading', 'buyerName', 'buyerStreet', 'buyerPostalCode', 'buyerCity',
+  'buyerCountryCode', 'buyerTaxIdentifier',
+  'issueDateLabel', 'issueDate', 'dueDateLabel', 'dueDate',
+  'buyerReferenceLabel', 'buyerReference', 'paymentReferenceLabel', 'paymentReference',
+] as const;
+
+const COLUMN_HEADER_IDS = [
+  'lineNumberHeading', 'lineDescriptionHeading', 'lineQuantityHeading',
+  'lineUnitPriceHeading', 'lineTaxRateHeading', 'lineNetHeading', 'tableHeaderRule',
+] as const;
+
+const LINE_ROW_IDS = [
+  'lineIdentifier', 'lineDescription', 'lineQuantity', 'lineUnitPrice',
+  'lineTaxRate', 'lineNetAmount',
+] as const;
+
+const TAX_ROW_IDS = ['taxRate', 'taxAmount'] as const;
+
+const TOTALS_IDS = [
+  'netTotalLabel', 'netTotal', 'totalsRule',
+  'payableLabel', 'payableAmount', 'payableCurrency',
+] as const;
+
+const FOOTER_IDS = ['conformanceNote'] as const;
+
 /**
  * The standard layout: seller and buyer blocks, document references, a line table, a tax
  * breakdown and the payable total. It matches the arrangement `EInvoice.CreatePdf` renders, so a
@@ -116,22 +215,18 @@ function rule(id: string, x: number, y: number, width: number): SimpleElement {
  * same order.
  */
 function standardLayout(): SimpleElement[] {
-  const left = 42;
-  const right = 553;
-  const amountColumn = right - 90;
-
   return [
-    label('title', 'template.title', left, 30, 240, { size: 20, bold: true }),
+    label('title', 'template.title', LEFT, 30, 240, { size: 20, bold: true }),
     bound('invoiceNumber', EINVOICE_BINDINGS.invoiceNumber, 350, 32, 203, { size: 12, bold: true, align: 'right' }),
-    rule('headerRule', left, 62, right - left),
+    rule('headerRule', LEFT, 62, RIGHT - LEFT),
 
-    label('sellerHeading', 'template.seller', left, 78, 220, { bold: true, muted: true }),
-    bound('sellerName', EINVOICE_BINDINGS.sellerName, left, 94, 220, { bold: true }),
-    bound('sellerStreet', EINVOICE_BINDINGS.sellerStreet, left, 110, 220),
-    bound('sellerPostalCode', EINVOICE_BINDINGS.sellerPostalCode, left, 126, 60),
-    bound('sellerCity', EINVOICE_BINDINGS.sellerCity, left + 64, 126, 156),
-    bound('sellerCountryCode', EINVOICE_BINDINGS.sellerCountryCode, left, 142, 60),
-    bound('sellerTaxIdentifier', EINVOICE_BINDINGS.sellerTaxIdentifier, left, 158, 220, { size: 8 }),
+    label('sellerHeading', 'template.seller', LEFT, 78, 220, { bold: true, muted: true }),
+    bound('sellerName', EINVOICE_BINDINGS.sellerName, LEFT, 94, 220, { bold: true }),
+    bound('sellerStreet', EINVOICE_BINDINGS.sellerStreet, LEFT, 110, 220),
+    bound('sellerPostalCode', EINVOICE_BINDINGS.sellerPostalCode, LEFT, 126, 60),
+    bound('sellerCity', EINVOICE_BINDINGS.sellerCity, LEFT + 64, 126, 156),
+    bound('sellerCountryCode', EINVOICE_BINDINGS.sellerCountryCode, LEFT, 142, 60),
+    bound('sellerTaxIdentifier', EINVOICE_BINDINGS.sellerTaxIdentifier, LEFT, 158, 220, { size: 8 }),
 
     label('buyerHeading', 'template.buyer', 310, 78, 243, { bold: true, muted: true }),
     bound('buyerName', EINVOICE_BINDINGS.buyerName, 310, 94, 243, { bold: true }),
@@ -141,66 +236,64 @@ function standardLayout(): SimpleElement[] {
     bound('buyerCountryCode', EINVOICE_BINDINGS.buyerCountryCode, 310, 142, 60),
     bound('buyerTaxIdentifier', EINVOICE_BINDINGS.buyerTaxIdentifier, 310, 158, 243, { size: 8 }),
 
-    label('issueDateLabel', 'template.issueDate', left, 190, 90, { muted: true }),
-    bound('issueDate', EINVOICE_BINDINGS.issueDate, left + 94, 190, 90),
-    label('dueDateLabel', 'template.dueDate', left, 206, 90, { muted: true }),
-    bound('dueDate', EINVOICE_BINDINGS.dueDate, left + 94, 206, 90),
+    label('issueDateLabel', 'template.issueDate', LEFT, 190, 90, { muted: true }),
+    bound('issueDate', EINVOICE_BINDINGS.issueDate, LEFT + 94, 190, 90),
+    label('dueDateLabel', 'template.dueDate', LEFT, 206, 90, { muted: true }),
+    bound('dueDate', EINVOICE_BINDINGS.dueDate, LEFT + 94, 206, 90),
     label('buyerReferenceLabel', 'template.buyerReference', 310, 190, 110, { muted: true }),
     bound('buyerReference', EINVOICE_BINDINGS.buyerReference, 424, 190, 129),
     label('paymentReferenceLabel', 'template.paymentReference', 310, 206, 110, { muted: true }),
     bound('paymentReference', EINVOICE_BINDINGS.paymentReference, 424, 206, 129),
 
-    label('lineNumberHeading', 'template.linePosition', left, 250, 30, { bold: true, muted: true }),
-    label('lineDescriptionHeading', 'template.lineDescription', left + 34, 250, 200, { bold: true, muted: true }),
-    label('lineQuantityHeading', 'template.lineQuantity', 300, 250, 60, { bold: true, muted: true, align: 'right' }),
-    label('lineUnitPriceHeading', 'template.lineUnitPrice', 366, 250, 70, { bold: true, muted: true, align: 'right' }),
-    label('lineTaxRateHeading', 'template.lineTaxRate', 442, 250, 40, { bold: true, muted: true, align: 'right' }),
-    label('lineNetHeading', 'template.lineNet', amountColumn, 250, 90, { bold: true, muted: true, align: 'right' }),
-    rule('tableHeaderRule', left, 266, right - left),
+    label('lineNumberHeading', 'template.linePosition', COL.position.x, 250, COL.position.width, { bold: true, muted: true }),
+    label('lineDescriptionHeading', 'template.lineDescription', COL.description.x, 250, COL.description.width, { bold: true, muted: true }),
+    label('lineQuantityHeading', 'template.lineQuantity', COL.quantity.x, 250, COL.quantity.width, { bold: true, muted: true, align: 'right' }),
+    label('lineUnitPriceHeading', 'template.lineUnitPrice', COL.unitPrice.x, 250, COL.unitPrice.width, { bold: true, muted: true, align: 'right' }),
+    label('lineTaxRateHeading', 'template.lineTaxRate', COL.taxRate.x, 250, COL.taxRate.width, { bold: true, muted: true, align: 'right' }),
+    label('lineNetHeading', 'template.lineNet', COL.net.x, 250, COL.net.width, { bold: true, muted: true, align: 'right' }),
+    rule('tableHeaderRule', LEFT, 266, RIGHT - LEFT),
 
     // One instance per invoice line, bound to the canonical line paths.
     {
       id: 'lineRow',
       type: 'area',
-      x: left,
+      x: LEFT,
       y: 272,
-      width: right - left,
+      width: RIGHT - LEFT,
       height: 18,
       repeat: { dataPath: EINVOICE_BINDINGS.lines, templateId: 'lineRow' },
       style: {},
     },
-    bound('lineIdentifier', EINVOICE_BINDINGS.lineIdentifier, left, 272, 30),
-    bound('lineDescription', EINVOICE_BINDINGS.lineDescription, left + 34, 272, 200),
-    bound('lineQuantity', EINVOICE_BINDINGS.lineQuantity, 300, 272, 60, { align: 'right' }),
-    bound('lineUnitPrice', EINVOICE_BINDINGS.lineUnitPrice, 366, 272, 70, { align: 'right', formatter: 'money' }),
-    bound('lineTaxRate', EINVOICE_BINDINGS.lineTaxRate, 442, 272, 40, { align: 'right', formatter: 'percent' }),
-    bound('lineNetAmount', EINVOICE_BINDINGS.lineNetAmount, amountColumn, 272, 90, { align: 'right', formatter: 'money' }),
+    bound('lineIdentifier', EINVOICE_BINDINGS.lineIdentifier, COL.position.x, 272, COL.position.width),
+    bound('lineDescription', EINVOICE_BINDINGS.lineDescription, COL.description.x, 272, COL.description.width),
+    bound('lineQuantity', EINVOICE_BINDINGS.lineQuantity, COL.quantity.x, 272, COL.quantity.width, { align: 'right' }),
+    bound('lineUnitPrice', EINVOICE_BINDINGS.lineUnitPrice, COL.unitPrice.x, 272, COL.unitPrice.width, { align: 'right', formatter: 'money' }),
+    bound('lineTaxRate', EINVOICE_BINDINGS.lineTaxRate, COL.taxRate.x, 272, COL.taxRate.width, { align: 'right', formatter: 'percent' }),
+    bound('lineNetAmount', EINVOICE_BINDINGS.lineNetAmount, COL.net.x, 272, COL.net.width, { align: 'right', formatter: 'money' }),
 
-    label('netTotalLabel', 'template.netTotal', 366, 640, 116, { align: 'right' }),
-    bound('netTotal', EINVOICE_BINDINGS.lineNetTotal, amountColumn, 640, 90, { align: 'right', formatter: 'money' }),
+    label('netTotalLabel', 'template.netTotal', COL.totalsLabel.x, TOTALS_ANCHOR, COL.totalsLabel.width, { align: 'right' }),
+    bound('netTotal', EINVOICE_BINDINGS.lineNetTotal, COL.net.x, TOTALS_ANCHOR, COL.net.width, { align: 'right', formatter: 'money' }),
 
     // One instance per tax group, in the backend's order: by rate, then category code.
     {
       id: 'taxRow',
       type: 'area',
-      x: 366,
-      y: 658,
-      width: right - 366,
-      height: 16,
+      x: COL.totalsLabel.x,
+      y: TOTALS_ANCHOR + 18,
+      width: COL.net.x + COL.net.width - COL.totalsLabel.x,
+      height: TAX_ROW_HEIGHT,
       repeat: { dataPath: EINVOICE_BINDINGS.taxGroups, templateId: 'taxRow' },
       style: {},
     },
-    bound('taxRate', EINVOICE_BINDINGS.taxGroupRate, 366, 658, 116, { align: 'right', formatter: 'percent' }),
-    bound('taxAmount', EINVOICE_BINDINGS.taxGroupAmount, amountColumn, 658, 90, { align: 'right', formatter: 'money' }),
+    bound('taxRate', EINVOICE_BINDINGS.taxGroupRate, COL.totalsLabel.x, TOTALS_ANCHOR + 18, COL.totalsLabel.width, { align: 'right', formatter: 'percent' }),
+    bound('taxAmount', EINVOICE_BINDINGS.taxGroupAmount, COL.net.x, TOTALS_ANCHOR + 18, COL.net.width, { align: 'right', formatter: 'money' }),
 
-    rule('totalsRule', 366, 690, right - 366),
-    label('payableLabel', 'template.amountPayable', 366, 700, 116, { size: 11, bold: true, align: 'right' }),
-    // The amount stops short of the right edge so the currency code has its own column. Sharing
-    // the edge would draw the code on top of the last digits of the total.
-    bound('payableAmount', EINVOICE_BINDINGS.grandTotal, right - 130, 700, 90, { size: 11, bold: true, align: 'right', formatter: 'money' }),
-    bound('payableCurrency', EINVOICE_BINDINGS.currency, right - 36, 700, 36, { size: 11, bold: true }),
+    rule('totalsRule', COL.totalsLabel.x, TOTALS_ANCHOR + 50, COL.net.x + COL.net.width - COL.totalsLabel.x),
+    label('payableLabel', 'template.amountPayable', COL.totalsLabel.x, TOTALS_ANCHOR + 60, COL.totalsLabel.width, { size: 11, bold: true, align: 'right' }),
+    bound('payableAmount', EINVOICE_BINDINGS.grandTotal, COL.net.x, TOTALS_ANCHOR + 60, COL.net.width, { size: 11, bold: true, align: 'right', formatter: 'money' }),
+    bound('payableCurrency', EINVOICE_BINDINGS.currency, COL.currency.x, TOTALS_ANCHOR + 60, COL.currency.width, { size: 11, bold: true }),
 
-    label('conformanceNote', 'template.conformanceNote', left, 790, right - left, { size: 7, muted: true }),
+    label('conformanceNote', 'template.conformanceNote', LEFT, 790, RIGHT - LEFT, { size: 7, muted: true }),
   ];
 }
 
@@ -214,6 +307,33 @@ function compactLayout(): SimpleElement[] {
   );
 }
 
+/**
+ * Designer pagination bounds: a line row may reach y 740, and the totals block needs 150 points
+ * and may start no lower than 790. The dedicated hybrid-invoice renderer uses a separate layout.
+ */
+function layoutFor(taxRows: boolean): InvoiceTemplateLayout {
+  return {
+    tableTop: 272,
+    continuationTableTop: 82,
+    columnHeaderOffset: 22,
+    headerRuleOffset: 6,
+    rowHeight: 18,
+    lineHeight: 11,
+    rowLimit: 740,
+    totalsHeight: 150,
+    totalsLimit: 790,
+    totalsAnchor: TOTALS_ANCHOR,
+    taxRowHeight: TAX_ROW_HEIGHT,
+    headerIds: HEADER_IDS,
+    columnHeaderIds: COLUMN_HEADER_IDS,
+    lineRowIds: LINE_ROW_IDS,
+    taxRowIds: taxRows ? TAX_ROW_IDS : [],
+    totalsIds: TOTALS_IDS,
+    footerIds: FOOTER_IDS,
+    wrappingElementId: 'lineDescription',
+  };
+}
+
 export const INVOICE_TEMPLATES: readonly InvoiceTemplateDefinition[] = Object.freeze([
   {
     id: 'invoice-standard',
@@ -225,6 +345,7 @@ export const INVOICE_TEMPLATES: readonly InvoiceTemplateDefinition[] = Object.fr
     elements: standardLayout(),
     lineTemplateId: 'lineRow',
     taxTemplateId: 'taxRow',
+    layout: layoutFor(true),
   },
   {
     id: 'invoice-compact',
@@ -236,6 +357,7 @@ export const INVOICE_TEMPLATES: readonly InvoiceTemplateDefinition[] = Object.fr
     elements: compactLayout(),
     lineTemplateId: 'lineRow',
     taxTemplateId: 'taxRow',
+    layout: layoutFor(false),
   },
 ]);
 
@@ -264,3 +386,6 @@ export function templateLabelKeys(template: InvoiceTemplateDefinition): readonly
     .filter((value): value is string => typeof value === 'string');
   return [...new Set([template.nameKey, template.descriptionKey, ...keys])].sort();
 }
+
+/** The declared columns, so a test can assert that no two of them overlap. */
+export const INVOICE_TEMPLATE_COLUMNS = COL;

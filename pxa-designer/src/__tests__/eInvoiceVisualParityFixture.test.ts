@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   projectInvoiceElements,
+  projectInvoicePages,
   resetProjectionIds,
 } from '../features/e-invoice/designerDocument';
 import { invoiceTemplate } from '../features/e-invoice/invoiceTemplates';
@@ -24,6 +25,9 @@ import { toFixed } from '../features/e-invoice/exactDecimal';
 
 const FIXTURE_PATH = path.join(
   process.cwd(), '..', 'test-assets', 'visual-parity', 'e-invoice.json',
+);
+const MULTIPAGE_FIXTURE_PATH = path.join(
+  process.cwd(), '..', 'test-assets', 'visual-parity', 'e-invoice-multipage.json',
 );
 
 /** The English labels the projection resolves, so the fixture is language-stable. */
@@ -39,8 +43,9 @@ const translate = (key: string): string => {
 
 /**
  * The invoice the fixture renders. It deliberately covers what the parity comparison has to
- * survive: two tax rates, a two-decimal currency, a description long enough to wrap, German and
- * French diacritics, and a right-to-left Arabic line.
+ * survive: two tax rates, a two-decimal currency, a description long enough to wrap, and German,
+ * French and Central European diacritics. See the note on line three for why no right-to-left or
+ * CJK content appears here.
  */
 function parityInvoice(): EInvoiceDocument {
   return {
@@ -94,8 +99,16 @@ function parityInvoice(): EInvoiceDocument {
       },
       {
         identifier: '3',
-        // Right-to-left content inside an otherwise left-to-right document.
-        description: 'خدمات استشارية للتحول الرقمي',
+        // Latin Extended-A, which Liberation Sans covers, so the comparison stays about layout.
+        //
+        // Deliberately not Arabic, Hebrew or CJK. Those need the Noto faces from `fonts/README.md`,
+        // which this repository does not carry, and the PDF engine does not implement cursive
+        // shaping, so an Arabic run is drawn as unjoined glyphs in visual order while a browser
+        // shapes and joins it. Pixel parity is unreachable there by design, and a fixture that
+        // included it would report a small anti-aliasing-shaped difference that actually hid a
+        // row of missing-glyph boxes. Right-to-left content is covered functionally instead, in
+        // `eInvoiceWorkspace.test.tsx` and the canonical-invoice tests.
+        description: 'Roční údržba a školení — Přeprava zboží (Łódź)',
         quantity: 2,
         unitCode: 'C62',
         unitPrice: 150,
@@ -106,13 +119,39 @@ function parityInvoice(): EInvoiceDocument {
   };
 }
 
-function buildFixture(): Record<string, unknown> {
-  const definition = invoiceTemplate('invoice-standard')!;
-  resetProjectionIds();
-  const elements = projectInvoiceElements(definition, parityInvoice(), translate);
+/**
+ * An invoice with more lines than one page holds, so the fixture carries real continuation pages.
+ *
+ * Everything else stays as plain as possible: the point of this fixture is the page break, the
+ * repeated column headings and the totals block landing after the final line, not the content.
+ */
+function multiPageInvoice(): EInvoiceDocument {
+  const rates = [7, 19, 21];
   return {
-    id: 'e-invoice',
-    name: 'Electronic invoice parity',
+    ...parityInvoice(),
+    invoiceNumber: 'PARITY-EINV-2026-0043',
+    lines: Array.from({ length: 30 }, (_, index) => ({
+      identifier: String(index + 1),
+      description: `Position ${index + 1} - maintenance, support and licence renewal`,
+      quantity: [1, 2, 3, 0.5, 7.25][index % 5],
+      unitCode: 'C62',
+      unitPrice: Number((10 + index * 1.37).toFixed(2)),
+      taxRate: rates[index % rates.length],
+      taxCategoryCode: 'S',
+    })),
+  };
+}
+
+/** The shared envelope both fixtures use, so only the pages differ between them. */
+function fixtureEnvelope(
+  id: string,
+  name: string,
+  pages: Array<{ id: string; elements: unknown[] }>,
+): Record<string, unknown> {
+  const definition = invoiceTemplate('invoice-standard')!;
+  return {
+    id,
+    name,
     // The standard and version the projected document represents. PXA makes no conformance
     // claim here; this only records which maintained layout the fixture came from.
     category: 'invoice',
@@ -131,24 +170,81 @@ function buildFixture(): Record<string, unknown> {
       targetLanguage: 'en',
     },
     sharedElements: [],
-    pages: [{ id: 'e-invoice-page-1', elements }],
+    pages,
   };
+}
+
+function buildFixture(): Record<string, unknown> {
+  const definition = invoiceTemplate('invoice-standard')!;
+  resetProjectionIds();
+  const elements = projectInvoiceElements(definition, parityInvoice(), translate);
+  return fixtureEnvelope('e-invoice', 'Electronic invoice parity', [
+    { id: 'e-invoice-page-1', elements },
+  ]);
+}
+
+function buildMultiPageFixture(): Record<string, unknown> {
+  const definition = invoiceTemplate('invoice-standard')!;
+  resetProjectionIds();
+  const pages = projectInvoicePages(definition, multiPageInvoice(), translate);
+  return fixtureEnvelope('e-invoice-multipage', 'Electronic invoice parity (multi-page)', pages);
+}
+
+/** Rewrites `file` when the generated fixture drifted, and reports that it did. */
+function assertFixtureCurrent(file: string, fixture: Record<string, unknown>): void {
+  const expected = `${JSON.stringify(fixture, null, 2)}\n`;
+  const actual = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  if (actual === expected) return;
+
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, expected);
+  throw new Error(`${file} was out of date and has been regenerated. Review the diff and commit it.`);
 }
 
 describe('electronic invoice visual parity fixture', () => {
   it('matches the projection of the canonical invoice', () => {
-    const expected = `${JSON.stringify(buildFixture(), null, 2)}\n`;
-    const actual = fs.existsSync(FIXTURE_PATH)
-      ? fs.readFileSync(FIXTURE_PATH, 'utf8')
-      : '';
+    assertFixtureCurrent(FIXTURE_PATH, buildFixture());
+  });
 
-    if (actual !== expected) {
-      fs.mkdirSync(path.dirname(FIXTURE_PATH), { recursive: true });
-      fs.writeFileSync(FIXTURE_PATH, expected);
-      throw new Error(
-        `${FIXTURE_PATH} was out of date and has been regenerated. Review the diff and commit it.`,
-      );
+  it('keeps a multi-page fixture in step with the projection too', () => {
+    assertFixtureCurrent(MULTIPAGE_FIXTURE_PATH, buildMultiPageFixture());
+  });
+
+  it('breaks the multi-page fixture into real continuation pages', () => {
+    const fixture = buildMultiPageFixture();
+    const pages = fixture.pages as Array<{ id: string; elements: Array<Record<string, unknown>> }>;
+    const invoice = multiPageInvoice();
+
+    expect(pages.length).toBeGreaterThan(1);
+    expect(new Set(pages.map(page => page.id)).size).toBe(pages.length);
+
+    // Every line, exactly once, in canonical order.
+    const descriptions = pages.flatMap(page => page.elements
+      .filter(element => String(element.id).startsWith('einv-lineDescription-'))
+      .map(element => String(element.content ?? '')));
+    expect(descriptions).toEqual(invoice.lines.map(line => line.description));
+
+    // The address block appears once; the column headings repeat on each page that has rows.
+    const addressPages = pages.filter(page =>
+      page.elements.some(element => element.id === 'einv-sellerName-p1'));
+    expect(addressPages).toHaveLength(1);
+    for (const page of pages) {
+      const rows = page.elements.filter(e => String(e.id).startsWith('einv-lineDescription-l'));
+      const headings = page.elements.filter(e =>
+        String(e.id).startsWith('einv-lineDescriptionHeading-'));
+      expect(headings.length).toBe(rows.length > 0 ? 1 : 0);
     }
+
+    // One page carries the totals, and it is the last one.
+    const totalsPages = pages.filter(page =>
+      page.elements.some(element => element.id === 'einv-payableAmount-t'));
+    expect(totalsPages).toHaveLength(1);
+    expect(totalsPages[0]).toBe(pages[pages.length - 1]);
+
+    // Every tax group reached the document.
+    const groups = new Set(invoice.lines.map(line => line.taxRate));
+    expect(pages.flatMap(page => page.elements
+      .filter(element => String(element.id).startsWith('einv-taxAmount-g')))).toHaveLength(groups.size);
   });
 
   it('covers everything the parity comparison has to survive', () => {
@@ -171,9 +267,11 @@ describe('electronic invoice visual parity fixture', () => {
       && value === toFixed(totals.grandTotal, 2)));
     // Long text that has to wrap.
     expect(contents.some(value => value.length > 80)).toBe(true);
-    // Localized and right-to-left content.
+    // Localized content, in the scripts Liberation Sans actually carries.
     expect(contents).toContain('Handbuch „Elektronische Rechnungsstellung“ (gebundene Ausgabe)');
-    expect(contents.some(value => /[؀-ۿ]/.test(value))).toBe(true);
+    expect(contents.some(value => /[Ā-ſ]/.test(value))).toBe(true);
+    // Scripts the PDF engine cannot yet reach parity on must stay out of a pixel fixture.
+    expect(contents.some(value => /[֐-ࣿ　-鿿]/.test(value))).toBe(false);
     // The Factur-X identity of the layout is recorded.
     expect(String(fixture.description)).toContain('Factur-X 1.09.2');
   });

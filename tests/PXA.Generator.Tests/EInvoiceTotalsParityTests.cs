@@ -99,8 +99,10 @@ public sealed class EInvoiceTotalsParityTests
     public void Parity_corpus_covers_the_arithmetic_that_can_drift()
     {
         Assert.Equal("pxa.e-invoice.totals-parity/1", Corpus.Schema);
-        Assert.True(Corpus.Cases.Count >= 9, "The parity corpus must keep every pinned case.");
+        Assert.True(Corpus.Cases.Count >= 10, "The parity corpus must keep every pinned case.");
         Assert.Contains(Corpus.Cases, item => item.Id == "line-net-rounds-half-away-from-zero");
+        // Large enough that the Designer paginates it, so the totals are proven across page breaks.
+        Assert.Contains(Corpus.Cases, item => item.Id == "multi-page-projection" && item.Lines.Count >= 60);
         Assert.Contains(Corpus.Cases, item => item.Id == "multiple-rates-ordered-by-rate");
         Assert.Contains(Corpus.Cases, item => item.Id == "same-rate-different-category");
         Assert.Contains(Corpus.Cases, item => item.CurrencyDecimalPlaces == 0);

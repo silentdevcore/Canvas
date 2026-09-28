@@ -3326,3 +3326,24 @@ html[data-visual-parity="true"] #root {
   font-weight: 700;
   font-display: block;
 }
+
+/*
+ * Document elements measure text the way the PDF engine does.
+ *
+ * The generator writes each string as a single unkerned show operator, so a run's width is just the
+ * sum of the font's advance widths. Browsers apply the font's kern pairs by default, which is the
+ * right call for reading text on screen but makes the same string measurably narrower here:
+ * `PARITY-EINV-2026-0042` in 12pt bold is 137.39pt unkerned and 135.19pt kerned. Two points is
+ * enough to shift every right-aligned amount and to move a wrap point in a long description, so the
+ * Canvas and the Live Preview would disagree with the PDF they are previewing. Ligatures are off for
+ * the same reason - the generator never substitutes one.
+ *
+ * Scoped to `[data-element-id]`, which marks rendered document elements only, so the Designer's own
+ * interface keeps normal typography.
+ */
+[data-element-id],
+[data-element-id] * {
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-feature-settings: 'kern' 0, 'liga' 0, 'clig' 0;
+}

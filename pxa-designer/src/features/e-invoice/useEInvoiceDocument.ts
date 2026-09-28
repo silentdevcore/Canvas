@@ -84,7 +84,7 @@ export function useEInvoiceDocument(
     (next: EInvoiceDesignerDocument, options: { resetView?: boolean } = {}) => {
       const definition = next.templateId ? invoiceTemplate(next.templateId) : undefined;
       const pages: Page[] | undefined = definition
-        ? projectInvoicePages(definition, next.invoice, translate)
+        ? projectInvoicePages(definition, next.invoice, translate, next.lineIds)
         : undefined;
       commitEInvoice({
         eInvoice: writeEInvoiceDocument(next),
@@ -128,33 +128,48 @@ export function useEInvoiceDocument(
   );
 
   const addLine = useCallback(() => {
-    updateInvoice(invoice => ({
-      ...invoice,
-      lines: [...invoice.lines, createEmptyLine(nextLinePosition(invoice.lines))],
-    }));
-  }, [updateInvoice]);
+    if (!document) return;
+    commit({
+      ...document,
+      invoice: {
+        ...document.invoice,
+        lines: [...document.invoice.lines, createEmptyLine(nextLinePosition(document.invoice.lines))],
+      },
+      lineIds: [...document.lineIds, nextLineId(document.lineIds)],
+    });
+  }, [commit, document]);
 
   const removeLine = useCallback(
     (index: number) => {
-      updateInvoice(invoice => ({
-        ...invoice,
-        lines: invoice.lines.filter((_line, position) => position !== index),
-      }));
+      if (!document) return;
+      commit({
+        ...document,
+        invoice: {
+          ...document.invoice,
+          lines: document.invoice.lines.filter((_line, position) => position !== index),
+        },
+        lineIds: document.lineIds.filter((_id, position) => position !== index),
+      });
     },
-    [updateInvoice],
+    [commit, document],
   );
 
   const moveLine = useCallback(
     (index: number, direction: -1 | 1) => {
-      updateInvoice(invoice => {
-        const target = index + direction;
-        if (target < 0 || target >= invoice.lines.length) return invoice;
-        const lines = [...invoice.lines];
-        [lines[index], lines[target]] = [lines[target], lines[index]];
-        return { ...invoice, lines };
+      if (!document) return;
+      const target = index + direction;
+      if (target < 0 || target >= document.invoice.lines.length) return;
+      const lines = [...document.invoice.lines];
+      const lineIds = [...document.lineIds];
+      [lines[index], lines[target]] = [lines[target], lines[index]];
+      [lineIds[index], lineIds[target]] = [lineIds[target], lineIds[index]];
+      commit({
+        ...document,
+        invoice: { ...document.invoice, lines },
+        lineIds,
       });
     },
-    [updateInvoice],
+    [commit, document],
   );
 
   const updateLine = useCallback(
@@ -202,4 +217,12 @@ function nextLinePosition(lines: readonly EInvoiceDocumentLine[]): number {
     .map(line => Number.parseInt(line.identifier, 10))
     .filter(value => Number.isInteger(value));
   return used.length === 0 ? 1 : Math.max(...used) + 1;
+}
+
+function nextLineId(lineIds: readonly string[]): string {
+  const maximum = lineIds.reduce((result, id) => {
+    const value = Number.parseInt(id.replace(/^line-/, ''), 10);
+    return Number.isInteger(value) ? Math.max(result, value) : result;
+  }, 0);
+  return `line-${maximum + 1}`;
 }

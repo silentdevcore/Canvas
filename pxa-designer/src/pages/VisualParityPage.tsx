@@ -8,6 +8,7 @@ import { designerPermissions } from '@/auth/designerPermissions';
 import allElementsFixture from '../../../test-assets/visual-parity/all-elements.json';
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
+import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 
 type Fixture = {
   id: string;
@@ -41,6 +42,7 @@ export default function VisualParityPage() {
     'all-elements': allElementsFixture,
     'mixed-layout': mixedLayoutFixture,
     'e-invoice': eInvoiceFixture,
+    'e-invoice-multipage': eInvoiceMultiPageFixture,
   };
   const selectedFixture = fixtures[search.get('fixture') ?? ''] ?? allElementsFixture;
   const design = selectedFixture as unknown as Fixture;

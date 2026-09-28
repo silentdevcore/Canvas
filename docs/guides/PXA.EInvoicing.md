@@ -286,6 +286,19 @@ deterministic ids, and
 the layout definitions themselves hold no literal invoice value — their labels are i18n keys
 resolved at insertion time, which is how one definition serves all six Designer languages.
 
+### Pages
+
+A long invoice is projected onto as many A4 pages as it needs. With the standard Designer layout
+that is 26 short line rows on the first page — which also carries the seller and
+buyer block — and 36 on each continuation page, where the column headings repeat. The totals block
+follows the final line when there is room for it and takes a page of its own when there is not; it
+grows with the number of tax groups and continues on further totals pages when necessary. A row is
+never split across a page, and ordinary wrapping descriptions grow their cells.
+
+Stable Designer-only line IDs are stored alongside the canonical lines and move with them. They do
+not enter the invoice XML. Whatever the page count, one edit stays one undoable transaction and
+autosave persists every generated page.
+
 ### Generating
 
 The workspace offers Validate, Generate XML and Create PDF/A-3 hybrid invoice, then Download XML,
@@ -376,9 +389,17 @@ The full table is in
   supported; a mismatch is rejected with `PXAEINV012`.
 - **Synchronous limits.** 100 MiB source PDF, 10 MiB invoice XML, 120 MiB attachment output,
   50 MiB generated PDF, 2 000 lines for synchronous PDF creation, 10 000 lines for XML.
-- **Designer pagination remains under review.** The hybrid-PDF generator paginates invoice lines.
-  The maintained Designer layout currently projects one page and is visually verified with three
-  lines, so large multi-page invoice previews must not yet be treated as visually equivalent.
+- **Non-Latin scripts are not visually verified.** Arabic, Hebrew and CJK need the Noto faces
+  listed in `fonts/README.md`, which PXA does not ship, and the PDF engine implements no cursive
+  shaping. A browser shapes and joins an Arabic run while the PDF draws unjoined glyphs in visual
+  order, so the Designer preview of such a line must not be treated as visually equivalent to the
+  generated PDF. The invoice values themselves are unaffected: they travel through the canonical
+  invoice and the XML, not through the rendered page.
+- **Hybrid layout parity is still under review.** The Designer's maintained layout and normal PDF
+  export are visually gated. The dedicated PDF/A-3 hybrid renderer currently uses fixed 30-point
+  rows and a separate table geometry. Maximum-length descriptions may therefore clip in that
+  renderer, and its page breaks can differ from the Designer projection. Canonical values and
+  embedded XML remain the same; identical pagination is not yet claimed.
 
 ## Permissions and entitlement
 

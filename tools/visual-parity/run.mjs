@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -178,12 +178,40 @@ async function renderBrowserSurfaces(fixture) {
   }
 }
 
+/**
+ * A PDF point is a CSS pixel here, so the reference bitmap has to come out at 72 DPI. It is rendered
+ * at 4x and averaged down rather than rasterized at 72 DPI directly.
+ *
+ * At 72 DPI a 9pt line has a 9-pixel em, and poppler grid-fits every glyph to that coarse raster.
+ * The rounding thickens and nudges small text by a fraction of a pixel per glyph, which a browser -
+ * positioning glyphs on subpixels - does not do, so a direct 72 DPI render charges the Designer for
+ * the hinter's error. Supersampling keeps the grid-fitting error well under a pixel before the
+ * downsample, so what the comparison measures is the geometry the PDF encodes. On the e-invoice
+ * fixture it turned four findings into exact matches and roughly halved the rest.
+ *
+ * `-filter Box` averages the 4x4 block, which is what an ideal rasterizer's coverage-based
+ * antialiasing computes; a sharpening filter would invent edge contrast that is in neither surface.
+ * Both the backend and the C# PDF go through this identical path, so their parity is unaffected.
+ */
+const RASTER_SUPERSAMPLE = 4;
+
 async function rasterizePdf(name) {
-  run('pdftoppm', ['-r', '72', '-png', path.join(raw, `${name}.pdf`), path.join(raw, `${name}-page`)]);
-  for (let index = 1; ; index += 1) {
-    const generated = path.join(raw, `${name}-page-${index}.png`);
-    if (!existsSync(generated)) break;
-    // pdftoppm already emits the report naming convention; keep this explicit for readability.
+  const prefix = path.join(raw, `${name}-page`);
+  const supersampled = path.join(raw, `${name}-supersampled`);
+  run('pdftoppm', ['-r', String(72 * RASTER_SUPERSAMPLE), '-png', path.join(raw, `${name}.pdf`), supersampled]);
+  // pdftoppm pads the page number to the width of the last page, so a ten-page document emits
+  // `-01`, not `-1`. Read back what it actually wrote instead of assuming either form.
+  const base = path.basename(supersampled);
+  const written = (await readdir(raw))
+    .filter(file => file.startsWith(`${base}-`) && file.endsWith('.png'))
+    .map(file => ({ file, page: Number(file.slice(base.length + 1, -4)) }))
+    .filter(entry => Number.isInteger(entry.page))
+    .sort((left, right) => left.page - right.page);
+
+  for (const [index, entry] of written.entries()) {
+    const source = path.join(raw, entry.file);
+    run('magick', [source, '-filter', 'Box', '-resize', `${100 / RASTER_SUPERSAMPLE}%`, `${prefix}-${index + 1}.png`]);
+    rmSync(source);
   }
 }
 
@@ -419,7 +447,7 @@ async function main() {
   }
   process.stdout.write('Capturing Canvas and Live Preview...\n');
   const geometry = await renderBrowserSurfaces(fixture);
-  process.stdout.write('Rasterizing backend PDFs at 72 DPI...\n');
+  process.stdout.write('Rasterizing backend PDFs (4x supersampled to 72 DPI)...\n');
   await rasterizePdf('backend');
   await rasterizePdf('csharp');
   const symbolSources = await verifyEmbeddedSymbolSources(fixture);

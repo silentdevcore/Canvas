@@ -32,7 +32,7 @@
       "id": "e-invoice-page-1",
       "elements": [
         {
-          "id": "einv-title-1",
+          "id": "einv-title-p1",
           "type": "text",
           "content": "INVOICE",
           "x": 42,
@@ -40,15 +40,16 @@
           "width": 240,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 20,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-invoiceNumber-1",
+          "id": "einv-invoiceNumber-p1",
           "type": "text",
           "binding": "invoice.invoiceNumber",
           "x": 350,
@@ -56,16 +57,17 @@
           "width": 203,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 12,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "PARITY-EINV-2026-0042"
         },
         {
-          "id": "einv-headerRule-1",
+          "id": "einv-headerRule-p1",
           "type": "line",
           "x": 42,
           "y": 62,
@@ -76,7 +78,7 @@
           }
         },
         {
-          "id": "einv-sellerHeading-1",
+          "id": "einv-sellerHeading-p1",
           "type": "text",
           "content": "Seller",
           "x": 42,
@@ -84,15 +86,16 @@
           "width": 220,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-sellerName-1",
+          "id": "einv-sellerName-p1",
           "type": "text",
           "binding": "invoice.seller.name",
           "x": 42,
@@ -100,16 +103,17 @@
           "width": 220,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Groß & Söhne Bürotechnik GmbH"
         },
         {
-          "id": "einv-sellerStreet-1",
+          "id": "einv-sellerStreet-p1",
           "type": "text",
           "binding": "invoice.seller.address.street",
           "x": 42,
@@ -117,16 +121,17 @@
           "width": 220,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Hauptstraße 118a"
         },
         {
-          "id": "einv-sellerPostalCode-1",
+          "id": "einv-sellerPostalCode-p1",
           "type": "text",
           "binding": "invoice.seller.address.postalCode",
           "x": 42,
@@ -134,16 +139,17 @@
           "width": 60,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "10115"
         },
         {
-          "id": "einv-sellerCity-1",
+          "id": "einv-sellerCity-p1",
           "type": "text",
           "binding": "invoice.seller.address.city",
           "x": 106,
@@ -151,16 +157,17 @@
           "width": 156,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Berlin"
         },
         {
-          "id": "einv-sellerCountryCode-1",
+          "id": "einv-sellerCountryCode-p1",
           "type": "text",
           "binding": "invoice.seller.address.countryCode",
           "x": 42,
@@ -168,16 +175,17 @@
           "width": 60,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "DE"
         },
         {
-          "id": "einv-sellerTaxIdentifier-1",
+          "id": "einv-sellerTaxIdentifier-p1",
           "type": "text",
           "binding": "invoice.seller.taxIdentifier",
           "x": 42,
@@ -185,16 +193,17 @@
           "width": 220,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 8,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "DE123456789"
         },
         {
-          "id": "einv-buyerHeading-1",
+          "id": "einv-buyerHeading-p1",
           "type": "text",
           "content": "Buyer",
           "x": 310,
@@ -202,15 +211,16 @@
           "width": 243,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-buyerName-1",
+          "id": "einv-buyerName-p1",
           "type": "text",
           "binding": "invoice.buyer.name",
           "x": 310,
@@ -218,16 +228,17 @@
           "width": 243,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Société Générale de Facturation"
         },
         {
-          "id": "einv-buyerStreet-1",
+          "id": "einv-buyerStreet-p1",
           "type": "text",
           "binding": "invoice.buyer.address.street",
           "x": 310,
@@ -235,16 +246,17 @@
           "width": 243,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "12 Rue de l'Église"
         },
         {
-          "id": "einv-buyerPostalCode-1",
+          "id": "einv-buyerPostalCode-p1",
           "type": "text",
           "binding": "invoice.buyer.address.postalCode",
           "x": 310,
@@ -252,16 +264,17 @@
           "width": 60,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "75008"
         },
         {
-          "id": "einv-buyerCity-1",
+          "id": "einv-buyerCity-p1",
           "type": "text",
           "binding": "invoice.buyer.address.city",
           "x": 374,
@@ -269,16 +282,17 @@
           "width": 179,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Genève"
         },
         {
-          "id": "einv-buyerCountryCode-1",
+          "id": "einv-buyerCountryCode-p1",
           "type": "text",
           "binding": "invoice.buyer.address.countryCode",
           "x": 310,
@@ -286,16 +300,17 @@
           "width": 60,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "FR"
         },
         {
-          "id": "einv-buyerTaxIdentifier-1",
+          "id": "einv-buyerTaxIdentifier-p1",
           "type": "text",
           "binding": "invoice.buyer.taxIdentifier",
           "x": 310,
@@ -303,16 +318,17 @@
           "width": 243,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 8,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "FR40303265045"
         },
         {
-          "id": "einv-issueDateLabel-1",
+          "id": "einv-issueDateLabel-p1",
           "type": "text",
           "content": "Issue date",
           "x": 42,
@@ -320,15 +336,16 @@
           "width": 90,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-issueDate-1",
+          "id": "einv-issueDate-p1",
           "type": "text",
           "binding": "invoice.issueDate",
           "x": 136,
@@ -336,16 +353,17 @@
           "width": 90,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "2026-09-27"
         },
         {
-          "id": "einv-dueDateLabel-1",
+          "id": "einv-dueDateLabel-p1",
           "type": "text",
           "content": "Due date",
           "x": 42,
@@ -353,15 +371,16 @@
           "width": 90,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-dueDate-1",
+          "id": "einv-dueDate-p1",
           "type": "text",
           "binding": "invoice.dueDate",
           "x": 136,
@@ -369,16 +388,17 @@
           "width": 90,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "2026-10-27"
         },
         {
-          "id": "einv-buyerReferenceLabel-1",
+          "id": "einv-buyerReferenceLabel-p1",
           "type": "text",
           "content": "Buyer reference",
           "x": 310,
@@ -386,15 +406,16 @@
           "width": 110,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-buyerReference-1",
+          "id": "einv-buyerReference-p1",
           "type": "text",
           "binding": "invoice.buyerReference",
           "x": 424,
@@ -402,16 +423,17 @@
           "width": 129,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "04011000-12345-34"
         },
         {
-          "id": "einv-paymentReferenceLabel-1",
+          "id": "einv-paymentReferenceLabel-p1",
           "type": "text",
           "content": "Payment reference",
           "x": 310,
@@ -419,15 +441,16 @@
           "width": 110,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-paymentReference-1",
+          "id": "einv-paymentReference-p1",
           "type": "text",
           "binding": "invoice.paymentReference",
           "x": 424,
@@ -435,112 +458,119 @@
           "width": 129,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "RF18 5390 0754 7034"
         },
         {
-          "id": "einv-lineNumberHeading-1",
+          "id": "einv-lineNumberHeading-p1",
           "type": "text",
           "content": "No.",
           "x": 42,
           "y": 250,
-          "width": 30,
+          "width": 26,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-lineDescriptionHeading-1",
+          "id": "einv-lineDescriptionHeading-p1",
           "type": "text",
           "content": "Description",
-          "x": 76,
+          "x": 72,
           "y": 250,
-          "width": 200,
+          "width": 208,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-lineQuantityHeading-1",
+          "id": "einv-lineQuantityHeading-p1",
           "type": "text",
           "content": "Quantity",
-          "x": 300,
+          "x": 284,
           "y": 250,
-          "width": 60,
+          "width": 52,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-lineUnitPriceHeading-1",
+          "id": "einv-lineUnitPriceHeading-p1",
           "type": "text",
           "content": "Unit price",
-          "x": 366,
+          "x": 340,
           "y": 250,
-          "width": 70,
+          "width": 68,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-lineTaxRateHeading-1",
+          "id": "einv-lineTaxRateHeading-p1",
           "type": "text",
           "content": "Tax",
-          "x": 442,
+          "x": 412,
           "y": 250,
-          "width": 40,
+          "width": 42,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-lineNetHeading-1",
+          "id": "einv-lineNetHeading-p1",
           "type": "text",
           "content": "Net",
-          "x": 463,
+          "x": 458,
           "y": 250,
-          "width": 90,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-tableHeaderRule-1",
+          "id": "einv-tableHeaderRule-p1",
           "type": "line",
           "x": 42,
           "y": 266,
@@ -551,490 +581,517 @@
           }
         },
         {
-          "id": "einv-lineIdentifier-1",
+          "id": "einv-lineIdentifier-l1",
           "type": "text",
           "binding": "line.identifier",
           "x": 42,
           "y": 272,
-          "width": 30,
+          "width": 26,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "1"
         },
         {
-          "id": "einv-lineDescription-1",
+          "id": "einv-lineDescription-l1",
           "type": "text",
           "binding": "line.description",
-          "x": 76,
+          "x": 72,
           "y": 272,
-          "width": 200,
-          "height": 14,
+          "width": 208,
+          "height": 33,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Consulting engagement covering the migration assessment, the implementation plan and two workshops"
         },
         {
-          "id": "einv-lineQuantity-1",
+          "id": "einv-lineQuantity-l1",
           "type": "text",
           "binding": "line.quantity",
-          "x": 300,
+          "x": 284,
           "y": 272,
-          "width": 60,
+          "width": 52,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "7.25"
         },
         {
-          "id": "einv-lineUnitPrice-1",
+          "id": "einv-lineUnitPrice-l1",
           "type": "text",
           "binding": "line.unitPrice",
           "formatter": "money",
-          "x": 366,
+          "x": 340,
           "y": 272,
-          "width": 70,
+          "width": 68,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "93.33"
         },
         {
-          "id": "einv-lineTaxRate-1",
+          "id": "einv-lineTaxRate-l1",
           "type": "text",
           "binding": "line.taxRate",
           "formatter": "percent",
-          "x": 442,
+          "x": 412,
           "y": 272,
-          "width": 40,
+          "width": 42,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "19"
         },
         {
-          "id": "einv-lineNetAmount-1",
+          "id": "einv-lineNetAmount-l1",
           "type": "text",
           "binding": "line.netAmount",
           "formatter": "money",
-          "x": 463,
+          "x": 458,
           "y": 272,
-          "width": 90,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "676.64"
         },
         {
-          "id": "einv-lineIdentifier-2",
+          "id": "einv-lineIdentifier-l2",
           "type": "text",
           "binding": "line.identifier",
           "x": 42,
-          "y": 290,
-          "width": 30,
+          "y": 312,
+          "width": 26,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "2"
         },
         {
-          "id": "einv-lineDescription-2",
+          "id": "einv-lineDescription-l2",
           "type": "text",
           "binding": "line.description",
-          "x": 76,
-          "y": 290,
-          "width": 200,
-          "height": 14,
+          "x": 72,
+          "y": 312,
+          "width": 208,
+          "height": 22,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "Handbuch „Elektronische Rechnungsstellung“ (gebundene Ausgabe)"
         },
         {
-          "id": "einv-lineQuantity-2",
+          "id": "einv-lineQuantity-l2",
           "type": "text",
           "binding": "line.quantity",
-          "x": 300,
-          "y": 290,
-          "width": 60,
+          "x": 284,
+          "y": 312,
+          "width": 52,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "3"
         },
         {
-          "id": "einv-lineUnitPrice-2",
+          "id": "einv-lineUnitPrice-l2",
           "type": "text",
           "binding": "line.unitPrice",
           "formatter": "money",
-          "x": 366,
-          "y": 290,
-          "width": 70,
+          "x": 340,
+          "y": 312,
+          "width": 68,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "24.9"
         },
         {
-          "id": "einv-lineTaxRate-2",
+          "id": "einv-lineTaxRate-l2",
           "type": "text",
           "binding": "line.taxRate",
           "formatter": "percent",
-          "x": 442,
-          "y": 290,
-          "width": 40,
+          "x": 412,
+          "y": 312,
+          "width": 42,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "7"
         },
         {
-          "id": "einv-lineNetAmount-2",
+          "id": "einv-lineNetAmount-l2",
           "type": "text",
           "binding": "line.netAmount",
           "formatter": "money",
-          "x": 463,
-          "y": 290,
-          "width": 90,
+          "x": 458,
+          "y": 312,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "74.70"
         },
         {
-          "id": "einv-lineIdentifier-3",
+          "id": "einv-lineIdentifier-l3",
           "type": "text",
           "binding": "line.identifier",
           "x": 42,
-          "y": 308,
-          "width": 30,
+          "y": 341,
+          "width": 26,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "3"
         },
         {
-          "id": "einv-lineDescription-3",
+          "id": "einv-lineDescription-l3",
           "type": "text",
           "binding": "line.description",
-          "x": 76,
-          "y": 308,
-          "width": 200,
-          "height": 14,
+          "x": 72,
+          "y": 341,
+          "width": 208,
+          "height": 22,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
-          "content": "خدمات استشارية للتحول الرقمي"
+          "content": "Roční údržba a školení — Přeprava zboží (Łódź)"
         },
         {
-          "id": "einv-lineQuantity-3",
+          "id": "einv-lineQuantity-l3",
           "type": "text",
           "binding": "line.quantity",
-          "x": 300,
-          "y": 308,
-          "width": 60,
+          "x": 284,
+          "y": 341,
+          "width": 52,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "2"
         },
         {
-          "id": "einv-lineUnitPrice-3",
+          "id": "einv-lineUnitPrice-l3",
           "type": "text",
           "binding": "line.unitPrice",
           "formatter": "money",
-          "x": 366,
-          "y": 308,
-          "width": 70,
+          "x": 340,
+          "y": 341,
+          "width": 68,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "150"
         },
         {
-          "id": "einv-lineTaxRate-3",
+          "id": "einv-lineTaxRate-l3",
           "type": "text",
           "binding": "line.taxRate",
           "formatter": "percent",
-          "x": 442,
-          "y": 308,
-          "width": 40,
+          "x": 412,
+          "y": 341,
+          "width": 42,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "19"
         },
         {
-          "id": "einv-lineNetAmount-3",
+          "id": "einv-lineNetAmount-l3",
           "type": "text",
           "binding": "line.netAmount",
           "formatter": "money",
-          "x": 463,
-          "y": 308,
-          "width": 90,
+          "x": 458,
+          "y": 341,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "300.00"
         },
         {
-          "id": "einv-netTotalLabel-1",
+          "id": "einv-netTotalLabel-t",
           "type": "text",
           "content": "Net total",
-          "x": 366,
-          "y": 640,
-          "width": 116,
+          "x": 284,
+          "y": 388,
+          "width": 166,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-netTotal-1",
+          "id": "einv-netTotal-t",
           "type": "text",
           "binding": "totals.lineNetTotal",
           "formatter": "money",
-          "x": 463,
-          "y": 640,
-          "width": 90,
+          "x": 458,
+          "y": 388,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "1051.34"
         },
         {
-          "id": "einv-taxRate-1",
+          "id": "einv-taxRate-g1",
           "type": "text",
           "binding": "tax.rate",
           "formatter": "percent",
-          "x": 366,
-          "y": 658,
-          "width": 116,
+          "x": 284,
+          "y": 406,
+          "width": 166,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "7"
         },
         {
-          "id": "einv-taxAmount-1",
+          "id": "einv-taxAmount-g1",
           "type": "text",
           "binding": "tax.amount",
           "formatter": "money",
-          "x": 463,
-          "y": 658,
-          "width": 90,
+          "x": 458,
+          "y": 406,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "5.23"
         },
         {
-          "id": "einv-taxRate-2",
+          "id": "einv-taxRate-g2",
           "type": "text",
           "binding": "tax.rate",
           "formatter": "percent",
-          "x": 366,
-          "y": 674,
-          "width": 116,
+          "x": 284,
+          "y": 422,
+          "width": 166,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "19"
         },
         {
-          "id": "einv-taxAmount-2",
+          "id": "einv-taxAmount-g2",
           "type": "text",
           "binding": "tax.amount",
           "formatter": "money",
-          "x": 463,
-          "y": 674,
-          "width": 90,
+          "x": 458,
+          "y": 422,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 9,
             "fontWeight": 400,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "185.56"
         },
         {
-          "id": "einv-totalsRule-1",
+          "id": "einv-totalsRule-t",
           "type": "line",
-          "x": 366,
-          "y": 690,
-          "width": 187,
+          "x": 284,
+          "y": 438,
+          "width": 236,
           "height": 1,
           "style": {
             "backgroundColor": "#22313f"
           }
         },
         {
-          "id": "einv-payableLabel-1",
+          "id": "einv-payableLabel-t",
           "type": "text",
           "content": "Amount payable",
-          "x": 366,
-          "y": 700,
-          "width": 116,
+          "x": 284,
+          "y": 448,
+          "width": 166,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 11,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           }
         },
         {
-          "id": "einv-payableAmount-1",
+          "id": "einv-payableAmount-t",
           "type": "text",
           "binding": "totals.grandTotal",
           "formatter": "money",
-          "x": 423,
-          "y": 700,
-          "width": 90,
+          "x": 458,
+          "y": 448,
+          "width": 62,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 11,
             "fontWeight": 700,
             "textAlign": "right",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "1242.13"
         },
         {
-          "id": "einv-payableCurrency-1",
+          "id": "einv-payableCurrency-t",
           "type": "text",
           "binding": "invoice.currency",
-          "x": 517,
-          "y": 700,
-          "width": 36,
+          "x": 524,
+          "y": 448,
+          "width": 29,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 11,
             "fontWeight": 700,
             "textAlign": "left",
-            "color": "#0f172a"
+            "color": "#0f172a",
+            "lineHeight": 1
           },
           "content": "EUR"
         },
         {
-          "id": "einv-conformanceNote-1",
+          "id": "einv-conformanceNote-p1",
           "type": "text",
           "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PXA is not a conformance claim.",
           "x": 42,
@@ -1042,11 +1099,12 @@
           "width": 511,
           "height": 14,
           "style": {
-            "fontFamily": "Arial",
+            "fontFamily": "Helvetica",
             "fontSize": 7,
             "fontWeight": 400,
             "textAlign": "left",
-            "color": "#64748b"
+            "color": "#64748b",
+            "lineHeight": 1
           }
         }
       ]
