@@ -246,6 +246,100 @@ path. `revalidate` runs the currently configured artifact set over the same docu
 identical by checksum — and stores the new verdict **beside** the old one, so both remain provable.
 `export` returns the retained evidence as one machine-readable JSON document.
 
+### What each validation layer proves
+
+Five different things are called "validation" around an invoice, and they are not interchangeable.
+
+| Layer | What it proves | What it cannot prove |
+|---|---|---|
+| Structural recognition | The bytes parse safely and look like a CII or UBL invoice. | Anything about correctness or conformance. |
+| PXA business validation | PXA's own rules hold: totals add up, identifiers are unique, limits are respected. Reported as `PXAEINV…` diagnostics. | That an official rule set agrees. |
+| PDF/A validation | The container meets ISO 19005-3. Run through the pinned veraPDF workflow in `tools/pdfa/`. | Anything about the invoice inside it. |
+| Official invoice conformance | The XML satisfies the published XSD and Schematron for its standard, version and profile. | Only available when a reviewed artifact set is mounted; otherwise `notEvaluated`. |
+| Independent validation evidence | A second, independent implementation agrees. | Nothing PXA can self-certify; see the limits below. |
+
+A pass at one layer is never reported as a pass at another. In particular, a structurally recognised
+invoice with clean business diagnostics still reports `conformanceStatus: "notEvaluated"`.
+
+### PDF/A evidence
+
+`tools/pdfa/validate-pdfa.sh` runs the pinned veraPDF container.
+`tools/pdfa/einvoice-pdfa-evidence.mjs` drives it over a deterministic corpus of hybrid invoices —
+Factur-X, ZUGFeRD and XRechnung, single-page, multi-page, long-description and many-tax-group, plus a
+deliberately non-PDF/A control — and writes one machine-readable record beside the raw validator
+reports.
+
+```bash
+dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj \
+  --filter FullyQualifiedName~EInvoicePdfaFixture
+node tools/pdfa/einvoice-pdfa-evidence.mjs
+```
+
+The fixtures are regenerated rather than committed, and every one's SHA-256 is pinned in
+`test-assets/e-invoicing/pdfa-fixtures.json`. The runner refuses to hand a file to the validator
+unless its checksum matches, because a report about different bytes is evidence about a different
+document. The control exists so that a validator which rubber-stamps everything fails the run.
+
+When the container is unavailable, every fixture is recorded `notEvaluated`. Nothing in the pipeline
+can produce a pass without a report.
+
+### Mounting official validator artifacts
+
+PXA ships no FeRD/FNFE or KoSIT artifacts; their redistribution terms are unresolved. An operator who
+holds them mounts a set locally and PXA reads it from disk. **Validation never downloads anything.**
+
+A set is a directory containing the XSD and precompiled Schematron XSLT plus a manifest. From
+manifest schema version 2 the manifest must carry a governance record. Version 1 manifests are
+refused with `PXAEINV027`; this prevents an older manifest from bypassing the licence gate:
+
+| Field | Why it is required |
+|---|---|
+| `family` | Which upstream published it, checked against the standard so a KoSIT set cannot validate Factur-X. |
+| `upstreamVersion` | The upstream's own release, not PXA's. |
+| `retrievedOn` | When the files were fetched from `sourceUri`. |
+| `licenseReview`, `licenseReviewedBy`, `licenseReviewedOn` | Who concluded PXA may run them, and when. Only `approved` is usable. |
+| `supportedProfiles` | Which profiles the set covers. |
+| `updatePolicy` | How the set is kept current. |
+| `expiresOn` | When it goes stale and is refused. |
+
+Every artifact is pinned by SHA-256 and re-verified on each run. Paths must stay inside the mounted
+directory and may not be symbolic links.
+
+**Fail-closed behaviour.** Each of the following produces `conformanceStatus: "unavailable"` with a
+stable diagnostic, never a verdict and never a silent downgrade to structural recognition:
+
+| Situation | Diagnostic |
+|---|---|
+| A pinned artifact is missing | `PXAEINV020` |
+| An artifact's SHA-256 does not match | `PXAEINV022` |
+| The set does not match the requested standard, version, profile or syntax | `PXAEINV026` |
+| The manifest schema version is unknown to this build | `PXAEINV027` |
+| Provenance is incomplete | `PXAEINV028` |
+| The licence review is not `approved` | `PXAEINV029` |
+| The set has expired | `PXAEINV030` |
+
+When a rule does fail, the finding is mapped to a stable PXA code **and** the validator's own rule
+identifier, severity, location, message and test are preserved alongside it, so a result can still be
+discussed in the standards body's own terms.
+
+#### Mount conventions
+
+The directory is ignored by Git in every layout, so a mounted set can never be committed.
+
+| Environment | Convention |
+|---|---|
+| Local development | `validator-artifacts/<family>/<version>/` at the repository root. |
+| CI | A job-scoped secret mount at `$PXA_EINVOICE_ARTIFACT_ROOT`; absent on public pipelines, where conformance is simply `notEvaluated`. |
+| Docker Compose | A read-only bind mount, `./validator-artifacts:/srv/pxa/validator-artifacts:ro`. |
+| On-Premise, isolated | An operator-managed read-only volume; the runner needs no network access at any point. |
+
+### Synthetic corpus boundaries
+
+Every fixture in this repository is PXA-authored and synthetic. `test-assets/e-invoicing/corpus/` and
+`test-assets/e-invoicing/pdfa-fixtures.json` each record provenance, licence, expected result and
+SHA-256 for every entry. No customer document, no licensed real-world invoice and no official
+reference fixture is present, and none of these fixtures is evidence of official conformance.
+
 ## Designer integration
 
 The Electronic Invoice workspace lives at **`/pdf/e-invoice`**, reachable from the PDF hub sidebar

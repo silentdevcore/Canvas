@@ -105,7 +105,14 @@ depends on the validation foundation.
 
 ### Status
 
-Progress: 30 of 40 checklist items complete (75%), up from 21 (52.5%).
+Progress: 30 of 40 unique roadmap items complete (75%), up from 21 (52.5%).
+
+Two Acceptance Criteria - fail-closed handling of invalid input, and cross-surface agreement on
+standard, version, profile, syntax and conformance state - are now ticked because dedicated tests
+prove them. They are **restatements** of scope already counted under EINV-04, EINV-05, EINV-06 and
+EINV-12, so the unique figure stays 30 of 40 and the percentage is unchanged. For reference the raw
+checkbox count across the two counted regions is 31 of 40 (27 of 34 P0-P3 items, 4 of 6 Acceptance
+Criteria); the unique figure is the one to report.
 
 EINV-05 is complete. The Designer projection and dedicated hybrid renderer now implement the same
 versioned pagination contract, including deterministic continuation fragments, multi-page tax
@@ -281,6 +288,20 @@ clean; `git diff --check` clean. The migration from an earlier handoff was appli
 to the local development database, without which every host-booting test fails
 closed on a pending migration.
 
+Authenticated smoke workflow: pending execution. `pxa-designer/e2e/e-invoice-authenticated.spec.ts`
+covers registration through the real Account handoff, the full editor workflow, save and reload, XML
+and hybrid-PDF generation, reopening in the Viewer, byte-identical XML extraction, and the
+unauthenticated, missing-entitlement and API-unavailable refusals, on desktop and at phone width. It
+is gated behind `PXA_RUN_LIVE_AUTH_EINVOICE=1`, the same opt-in convention
+`pdf-viewer-trust-authenticated.spec.ts` uses, so it skips rather than fails without the stack.
+
+An opt-in run was attempted against a locally running API, PostgreSQL, Mailpit, Designer and Account.
+It blocked in the shared registration helper: the Account consent checkboxes render `disabled`
+because the legal-document endpoints return 403 to an anonymous caller in this local API
+configuration. That is upstream of anything the spec does - the pre-existing live PDF Trust workflow
+is gated off for the same class of reason - so the selectors past registration are unverified
+against a live stack.
+
 One PXA.Importer.Tests run failed a single test that the immediate re-run passed,
 and the failure summary did not name it. The long-standing intermittent below is
 the likely candidate.
@@ -301,6 +322,22 @@ and touches no e-invoicing code path.
 - Completion evidence: reviewed license record, pinned artifacts, deterministic
   manifest verification tests, and no network access during invoice validation.
 
+Internally complete; externally blocked. The offline runner is finished and tested. Manifest schema
+version 2 requires a governance record - upstream family, upstream version, retrieval date, licence
+review state with reviewer and date, supported profiles, update policy and expiry - and every
+artifact is pinned by SHA-256 and re-verified per run. Missing files, altered hashes, unknown
+manifest versions, profile or family mismatches, incomplete provenance, an unapproved licence review
+and an expired set each produce `unavailable` with a stable diagnostic (`PXAEINV020`, `022`, `026`,
+`027`, `028`, `029`, `030`), never a verdict and never a silent downgrade to structural recognition.
+Legacy version 1 manifests are deliberately refused so they cannot bypass the governance gate.
+Mounted directories are Git-ignored in every layout and validation performs no network access.
+Evidence: `tests/PXA.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` (27) and
+`EInvoiceConformanceValidatorTests`. Mount conventions for local development, CI, Docker Compose and
+isolated On-Premise installations are documented in the guide.
+
+**Still blocked:** the licence and redistribution review itself. No FeRD/FNFE or KoSIT artifact is in
+this repository, so no set has ever been run through the gate in anger.
+
 ### EINV-02 - Complete Standards Validation
 
 - Execute the correct XSD, Schematron, code-list, arithmetic-total, tax, and
@@ -309,8 +346,12 @@ and touches no e-invoicing code path.
   conformance as separate statuses in every report.
 - Map validator output to stable `PXAEINV...` diagnostics without discarding
   the original rule identifier, location, severity, or artifact-set evidence.
+  *Implemented.* Every finding now carries a `PxaEInvoiceOriginalFinding` with the validator's own source, rule
+  identifier, severity, location, message and test, beside the PXA code. Schematron advisory rules
+  (`flag="warning"`) are reported as warnings and do not invalidate a document.
 - Completion evidence: profile matrix tests covering valid documents, each rule
-  family, incorrect profiles, malformed totals, and unsupported versions.
+  family, incorrect profiles, malformed totals, and unsupported versions. The rule families and
+  profile matrix need the official artifact sets and remain blocked on EINV-01.
 
 ### EINV-03 - Existing-PDF Attachment Workflow - done
 
@@ -554,6 +595,24 @@ Evidence.
   the reserved filenames, the four-state conformance vocabulary, the canonical binding paths, the
   documentation anchors the migration catalog points at, and one set of figures for a two-rate
   invoice carried from generation through the finished PDF to a reopened inspection.
+- `tests/PXA.Api.Tests/PdfEInvoiceBoundaryTests.cs` - 24 tests on both sides of every internal
+  limit: a valid 4 096-character description with no whitespace at all (broken across lines, never
+  shortened), astral-plane scalars that survive wrapping with no split surrogate and no replacement
+  character, mixed-script text, one character above the limit refused, the maximum supported line
+  count accepted and one beyond refused, zero-, two- and three-decimal currencies reaching the XML
+  with their own digits, half-a-minor-unit rounding away from zero, negative line values refused
+  because credit notes are not supported, the reserved attachment filenames enforced, unsafe
+  filenames refused, and exactly one attachment under the reserved name.
+- `tests/PXA.Generator.Tests/EInvoicePdfaFixtureTests.cs` - 4 tests generating the deterministic
+  PDF/A corpus, proving each fixture is byte-identical across two generations, pinning every
+  SHA-256, and asserting the multi-page, long-description and many-tax-group fixtures really
+  exercise what they claim.
+- `tests/PXA.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` - 27 tests on the fail-closed gate
+  in front of a mounted official artifact set, including that a refusal never reports structural
+  recognition as a conformance result, and that a failing rule keeps the validator's own identifier,
+  severity, location, wording and test.
+- `pxa-designer/e2e/e-invoice-authenticated.spec.ts` - the authenticated desktop and mobile smoke
+  workflow. **Written and type-checked, execution pending**; see the note below.
 - `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - 27 tests converting
   representative PXA-authored source snippets for every registered provider family, covering all
   six capabilities, the three dispositions, the stable `CANMIGEINV00x` identifiers, word-boundary
@@ -625,11 +684,12 @@ Evidence.
   renders the published table in
   `docs/guides/PXA.Unified-Migration-Provider-Coverage.md` from the catalog and
   rewrites it when it drifts, so the report cannot fall behind the code.
-- 72/72 `PXA.Migration.Pdf.Tests` pass.
-
-Not done. Per-provider conversion fixtures that feed real source snippets through
-each provider's converter were not added; coverage is currently asserted at the
-catalog and report level.
+- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - feeds
+  representative PXA-authored source snippets through `PdfEInvoiceMigrationCatalog.Analyze`
+  for every registered provider family, covering all six capabilities, the three
+  dispositions, the stable `CANMIGEINV00x` identifiers, word-boundary matching and
+  the rule that no finding claims conformance.
+- `PXA.Migration.Pdf.Tests` pass in full.
 
 ### EINV-07 - Maintained Fixture Corpus - PXA-authored part done, official part blocked
 
@@ -685,6 +745,30 @@ claim.
   machine-readable summaries without overstating unavailable checks.
 - Completion evidence: reproducible passing evidence for every supported output
   profile and intentional failing fixtures proving the gate is effective.
+
+PDF/A half done. The pinned veraPDF workflow now runs over a deterministic corpus of hybrid invoices
+and its evidence is retained. Latest run, veraPDF 1.31.166 via `ghcr.io/verapdf/cli:v1.31.166`:
+**6 compliant, 1 non-compliant, 0 notEvaluated, 0 unexpected** across seven PDF/A-3b fixtures -
+Factur-X, ZUGFeRD and XRechnung single-page, plus multi-page, long-description and many-tax-group,
+plus a deliberately non-PDF/A control which veraPDF rejected on ISO 19005-3:2012 clauses 6.2.4.3 and
+6.6.2.1. The control is what proves the gate is effective: a validator that passed it would not be
+validating. Fixtures are regenerated rather than committed, each pinned by SHA-256 in
+`test-assets/e-invoicing/pdfa-fixtures.json`, and the runner refuses to validate a file whose
+checksum does not match. Reproduce with:
+
+```
+dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj \
+  --filter FullyQualifiedName~EInvoicePdfaFixture
+node tools/pdfa/einvoice-pdfa-evidence.mjs
+```
+
+Raw veraPDF reports and the normalized record land in the ignored `artifacts/e-invoicing/pdfa/`.
+
+**Still blocked.** veraPDF proves PDF/A properties only - it is not Factur-X, ZUGFeRD or XRechnung
+conformance. Official FeRD/FNFE and KoSIT validation still needs the artifact sets, and
+`tools/pdfa/README.md` additionally requires a recorded pass from a second, separately licensed
+validator before independent PDF/A conformance is claimed. Neither is available here, so this item
+stays open.
 
 ### EINV-09 - Real-World Semantic Consistency - synthetic part done, licensed corpus blocked
 
@@ -880,10 +964,13 @@ Evidence.
   hybrid invoice whose embedded semantic values match its rendered content.
 - [ ] The generated PDF/A-3 structure passes PXA and independent validation.
 - [ ] Supported XML passes the pinned official XSD and Schematron rules.
-- [ ] Invalid XML, mismatched profiles, invalid totals, and unsafe payloads fail
+- [x] Invalid XML, mismatched profiles, invalid totals, and unsafe payloads fail
   closed with stable diagnostics.
-- [ ] Viewer, API, Designer, Migration, tests, and Documentation agree on standard,
+  Evidence: `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` (31) and
+  `tests/PXA.Api.Tests/PdfEInvoiceBoundaryTests.cs`.
+- [x] Viewer, API, Designer, Migration, tests, and Documentation agree on standard,
   version, profile, syntax, and conformance state.
+  Evidence: `tests/PXA.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` (15).
 
 ## Assumptions
 

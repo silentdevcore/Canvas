@@ -11,7 +11,7 @@
     "migration"
   ],
   "category": "added",
-  "summary": "PXA creates and previews multi-page PDF/A-3 hybrid invoices, embeds deterministic Factur-X, ZUGFeRD, or XRechnung XML, attaches invoice XML to existing PDFs without changing visible pages, and supports authorized inspection, validation, extraction, and retained evidence.",
+  "summary": "Design, preview and issue Factur-X, ZUGFeRD and XRechnung invoices: PDF/A-3 hybrids paginated identically in the Designer and the generator, XML attached to existing PDFs, plus inspection, extraction, validation and retained evidence. Official conformance stays unevaluated.",
   "featureIds": [],
   "documentation": [
     "/docs/guides/PXA.EInvoicing.md",

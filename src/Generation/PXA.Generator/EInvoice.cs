@@ -20,7 +20,35 @@ public sealed record PxaEInvoiceOptions
     public string? FileName { get; init; }
 }
 
-public sealed record PxaEInvoiceDiagnostic(string Code, string Severity, string Message);
+public sealed record PxaEInvoiceDiagnostic(string Code, string Severity, string Message)
+{
+    /// <summary>
+    /// The validator's own finding, when this diagnostic came from an official artifact set.
+    /// </summary>
+    /// <remarks>
+    /// A PXA code is stable and greppable; an official rule identifier is what a recipient, an
+    /// auditor or the standards body will ask about. Mapping one onto the other must not discard
+    /// the other, so the original finding travels alongside rather than inside the message.
+    /// </remarks>
+    public PxaEInvoiceOriginalFinding? OriginalFinding { get; init; }
+}
+
+/// <summary>
+/// One finding exactly as the official validator reported it.
+/// </summary>
+/// <param name="Source">Which validation step produced it, for example <c>xsd</c> or <c>schematron</c>.</param>
+/// <param name="RuleId">The rule or assertion identifier, when the artifact set supplies one.</param>
+/// <param name="Severity">The validator's own severity, not PXA's.</param>
+/// <param name="Location">Where in the document the validator pointed, typically an XPath or line.</param>
+/// <param name="Message">The validator's own wording, unaltered.</param>
+/// <param name="Test">The assertion expression, when the artifact set supplies one.</param>
+public sealed record PxaEInvoiceOriginalFinding(
+    string Source,
+    string? RuleId,
+    string? Severity,
+    string? Location,
+    string Message,
+    string? Test = null);
 
 public sealed record PxaEInvoiceParty(string? Name, string? Identifier);
 

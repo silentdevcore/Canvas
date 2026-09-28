@@ -167,6 +167,7 @@ public sealed class EInvoiceConformanceValidatorTests
             File.WriteAllText(schematronPath, schematron, new UTF8Encoding(false));
             var manifest = new PxaEInvoiceValidationArtifactManifest
             {
+                SchemaVersion = 2,
                 ArtifactSetId = "factur-x-1.09.2-en16931-test",
                 Standard = PxaEInvoiceStandard.FacturX,
                 StandardVersion = EInvoice.CurrentFacturXVersion,
@@ -178,7 +179,19 @@ public sealed class EInvoiceConformanceValidatorTests
                 [
                     new PxaEInvoiceValidationArtifact("invoice.xsd", Hash(schemaPath))
                 ],
-                SchematronXslt = new PxaEInvoiceValidationArtifact("rules.xsl", Hash(schematronPath))
+                SchematronXslt = new PxaEInvoiceValidationArtifact("rules.xsl", Hash(schematronPath)),
+                Governance = new PxaEInvoiceArtifactGovernance
+                {
+                    Family = PxaEInvoiceArtifactFamily.FerdFnfeFacturX,
+                    UpstreamVersion = "synthetic-test-1",
+                    RetrievedOn = new DateOnly(2026, 9, 1),
+                    LicenseReview = PxaEInvoiceLicenseReviewState.Approved,
+                    LicenseReviewedBy = "PXA synthetic test reviewer",
+                    LicenseReviewedOn = new DateOnly(2026, 9, 2),
+                    SupportedProfiles = ["EN 16931"],
+                    UpdatePolicy = "Updated with the synthetic test contract.",
+                    ExpiresOn = new DateOnly(2099, 1, 1)
+                }
             };
             return new ArtifactFixture(root, schemaPath, manifest);
         }

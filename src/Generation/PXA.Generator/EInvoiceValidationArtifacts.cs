@@ -13,9 +13,76 @@ public sealed record PxaEInvoiceValidationArtifact(
     string Path,
     string Sha256);
 
+/// <summary>Which upstream publishes an artifact set. PXA ships none of them.</summary>
+public enum PxaEInvoiceArtifactFamily
+{
+    /// <summary>Not stated. A governed artifact set cannot use this value.</summary>
+    Unspecified = 0,
+    /// <summary>FeRD/FNFE Factur-X schema and Schematron distribution.</summary>
+    FerdFnfeFacturX = 1,
+    /// <summary>FeRD/FNFE ZUGFeRD schema and Schematron distribution.</summary>
+    FerdFnfeZugferd = 2,
+    /// <summary>KoSIT XRechnung validator configuration.</summary>
+    KositXRechnung = 3
+}
+
+/// <summary>Where a mounted artifact set stands in PXA's own licence review.</summary>
+public enum PxaEInvoiceLicenseReviewState
+{
+    /// <summary>Not stated. A governed artifact set cannot use this value.</summary>
+    Unspecified = 0,
+    /// <summary>Review has not been performed. The set must not be used.</summary>
+    NotReviewed = 1,
+    /// <summary>Review is under way. The set must not be used.</summary>
+    InReview = 2,
+    /// <summary>Review concluded the set may be used under the recorded terms.</summary>
+    Approved = 3,
+    /// <summary>Review concluded the set may not be used.</summary>
+    Rejected = 4
+}
+
+/// <summary>
+/// The governance record for one mounted artifact set.
+/// </summary>
+/// <remarks>
+/// Every field here answers a question someone will eventually ask about a conformance result:
+/// where the rules came from, which upstream release they are, when they were fetched, whether
+/// anyone confirmed PXA may run them, which profiles they cover, and when they stop being current.
+/// A set that cannot answer all of them is not used.
+/// </remarks>
+public sealed record PxaEInvoiceArtifactGovernance
+{
+    [JsonConverter(typeof(JsonStringEnumConverter<PxaEInvoiceArtifactFamily>))]
+    public PxaEInvoiceArtifactFamily Family { get; init; } = PxaEInvoiceArtifactFamily.Unspecified;
+
+    /// <summary>The upstream's own release identifier, not PXA's.</summary>
+    public string? UpstreamVersion { get; init; }
+
+    /// <summary>The date the files were retrieved from <c>SourceUri</c>, as yyyy-MM-dd.</summary>
+    public DateOnly? RetrievedOn { get; init; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter<PxaEInvoiceLicenseReviewState>))]
+    public PxaEInvoiceLicenseReviewState LicenseReview { get; init; } = PxaEInvoiceLicenseReviewState.Unspecified;
+
+    /// <summary>Who recorded the licence review conclusion.</summary>
+    public string? LicenseReviewedBy { get; init; }
+
+    public DateOnly? LicenseReviewedOn { get; init; }
+
+    /// <summary>Every profile this set can validate, normalized upper-case.</summary>
+    public IReadOnlyList<string> SupportedProfiles { get; init; } = [];
+
+    /// <summary>How the set is kept current, in prose, so an operator knows what to watch.</summary>
+    public string? UpdatePolicy { get; init; }
+
+    /// <summary>The date after which the set is treated as stale and refused.</summary>
+    public DateOnly? ExpiresOn { get; init; }
+}
+
 public sealed record PxaEInvoiceValidationArtifactManifest
 {
-    public int SchemaVersion { get; init; } = 1;
+    /// <summary>Manifest contract version. Version 2 requires <see cref="Governance"/>.</summary>
+    public int SchemaVersion { get; init; } = 2;
     public required string ArtifactSetId { get; init; }
     [JsonConverter(typeof(JsonStringEnumConverter<PxaEInvoiceStandard>))]
     public required PxaEInvoiceStandard Standard { get; init; }
@@ -26,6 +93,9 @@ public sealed record PxaEInvoiceValidationArtifactManifest
     public required string License { get; init; }
     public required IReadOnlyList<PxaEInvoiceValidationArtifact> XmlSchemas { get; init; }
     public required PxaEInvoiceValidationArtifact SchematronXslt { get; init; }
+
+    /// <summary>Required by the current manifest contract.</summary>
+    public PxaEInvoiceArtifactGovernance? Governance { get; init; }
 }
 
 public interface IPxaEInvoiceConformanceValidator
@@ -132,8 +202,10 @@ public sealed class PxaEInvoiceConformanceValidator : IPxaEInvoiceConformanceVal
 
     private void ValidateManifest(PxaEInvoiceOptions options, string? syntax)
     {
-        if (_manifest.SchemaVersion != 1 ||
-            string.IsNullOrWhiteSpace(_manifest.ArtifactSetId) ||
+        if (_manifest.SchemaVersion != 2)
+            throw ArtifactError("PXAEINV027", "The validation artifact manifest version is not supported by this build.");
+        ValidateGovernance();
+        if (string.IsNullOrWhiteSpace(_manifest.ArtifactSetId) ||
             _manifest.ArtifactSetId.Length > 128 ||
             string.IsNullOrWhiteSpace(_manifest.StandardVersion) ||
             string.IsNullOrWhiteSpace(_manifest.Profile) ||
@@ -151,6 +223,67 @@ public sealed class PxaEInvoiceConformanceValidator : IPxaEInvoiceConformanceVal
             throw ArtifactError("PXAEINV021", "The validation artifact source and license are required.");
         if (_manifest.XmlSchemas is null || _manifest.XmlSchemas.Count == 0 || _manifest.SchematronXslt is null)
             throw ArtifactError("PXAEINV021", "At least one XML schema is required.");
+        ValidateProfileIsSupported(options);
+    }
+
+    /// <summary>
+    /// Refuses an artifact set whose provenance, licence review or currency cannot be established.
+    /// </summary>
+    /// <remarks>
+    /// This is the fail-closed gate the whole mounted-artifact design rests on. An unreviewed,
+    /// expired or unattributed set produces <c>unavailable</c>, never a conformance verdict, and the
+    /// caller is told why rather than quietly receiving a structural result instead.
+    /// </remarks>
+    private void ValidateGovernance()
+    {
+        var governance = _manifest.Governance
+            ?? throw ArtifactError("PXAEINV028", "The validation artifact manifest is missing its governance record.");
+
+        if (governance.Family == PxaEInvoiceArtifactFamily.Unspecified)
+            throw ArtifactError("PXAEINV028", "The validation artifact set does not state which upstream family it comes from.");
+        if (string.IsNullOrWhiteSpace(governance.UpstreamVersion) || governance.UpstreamVersion.Length > 128)
+            throw ArtifactError("PXAEINV028", "The validation artifact set does not state its upstream version.");
+        if (governance.RetrievedOn is null)
+            throw ArtifactError("PXAEINV028", "The validation artifact set does not state when it was retrieved.");
+        if (string.IsNullOrWhiteSpace(governance.UpdatePolicy) || governance.UpdatePolicy.Length > 1024)
+            throw ArtifactError("PXAEINV028", "The validation artifact set does not state an update policy.");
+
+        if (governance.LicenseReview != PxaEInvoiceLicenseReviewState.Approved)
+            throw ArtifactError("PXAEINV029",
+                $"The validation artifact set's licence review is '{governance.LicenseReview}'; only an approved set may be used.");
+        if (string.IsNullOrWhiteSpace(governance.LicenseReviewedBy) || governance.LicenseReviewedOn is null)
+            throw ArtifactError("PXAEINV029", "An approved licence review must record who concluded it and when.");
+
+        if (governance.SupportedProfiles is null || governance.SupportedProfiles.Count == 0)
+            throw ArtifactError("PXAEINV028", "The validation artifact set does not state which profiles it supports.");
+
+        // The family has to match the standard, or a ZUGFeRD set could validate an XRechnung.
+        var expectedFamily = _manifest.Standard switch
+        {
+            PxaEInvoiceStandard.FacturX => PxaEInvoiceArtifactFamily.FerdFnfeFacturX,
+            PxaEInvoiceStandard.Zugferd => PxaEInvoiceArtifactFamily.FerdFnfeZugferd,
+            _ => PxaEInvoiceArtifactFamily.KositXRechnung
+        };
+        if (governance.Family != expectedFamily)
+            throw ArtifactError("PXAEINV026",
+                $"The artifact set is a {governance.Family} distribution but the manifest declares {_manifest.Standard}.");
+
+        if (governance.ExpiresOn is { } expiry && expiry < DateOnly.FromDateTime(DateTime.UtcNow))
+            throw ArtifactError("PXAEINV030",
+                $"The validation artifact set expired on {expiry:yyyy-MM-dd} and must be refreshed before it is used again.");
+    }
+
+    /// <summary>The manifest's declared profile must be one the set actually says it supports.</summary>
+    private void ValidateProfileIsSupported(PxaEInvoiceOptions options)
+    {
+        if (_manifest.Governance is not { SupportedProfiles.Count: > 0 } governance) return;
+        var requested = Normalize(options.Profile);
+        if (!governance.SupportedProfiles.Any(profile =>
+            string.Equals(Normalize(profile), requested, StringComparison.Ordinal)))
+        {
+            throw ArtifactError("PXAEINV026",
+                $"The validation artifact set does not support profile '{options.Profile.Trim()}'.");
+        }
     }
 
     private IReadOnlyDictionary<string, string> VerifyArtifacts()
@@ -213,7 +346,19 @@ public sealed class PxaEInvoiceConformanceValidator : IPxaEInvoiceConformanceVal
         settings.ValidationEventHandler += (_, args) => diagnostics.Add(new PxaEInvoiceDiagnostic(
             "PXAEINV023",
             args.Severity == XmlSeverityType.Error ? "error" : "warning",
-            args.Message));
+            args.Message)
+        {
+            // The schema validator's own wording, severity and position are kept verbatim: a PXA
+            // code is greppable, but an auditor will ask about the line the schema objected to.
+            OriginalFinding = new PxaEInvoiceOriginalFinding(
+                "xsd",
+                args.Exception?.SourceSchemaObject?.SourceUri,
+                args.Severity == XmlSeverityType.Error ? "error" : "warning",
+                args.Exception is { LineNumber: > 0 } position
+                    ? $"line {position.LineNumber}, position {position.LinePosition}"
+                    : null,
+                args.Message)
+        });
 
         using var input = new MemoryStream(xml.ToArray(), writable: false);
         using var reader = XmlReader.Create(input, settings);
@@ -245,17 +390,40 @@ public sealed class PxaEInvoiceConformanceValidator : IPxaEInvoiceConformanceVal
         output.Position = 0;
         using var resultReader = XmlReader.Create(output, SecureReaderSettings(null));
         var result = XDocument.Load(resultReader, LoadOptions.None);
-        foreach (var failedAssert in result.Descendants().Where(static element => element.Name.LocalName == "failed-assert"))
+        // Schematron reports both hard assertions and advisory reports; both are findings and both
+        // carry a rule identifier the standards body publishes.
+        foreach (var finding in result.Descendants().Where(static element =>
+            element.Name.LocalName is "failed-assert" or "successful-report"))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var location = failedAssert.Attribute("location")?.Value;
-            var message = failedAssert.Value.Trim();
+            var location = finding.Attribute("location")?.Value;
+            var ruleId = finding.Attribute("id")?.Value;
+            var flag = finding.Attribute("flag")?.Value;
+            var test = finding.Attribute("test")?.Value;
+            var message = finding.Value.Trim();
+            var severity = MapSchematronSeverity(finding.Name.LocalName, flag);
+
             diagnostics.Add(new PxaEInvoiceDiagnostic(
                 "PXAEINV024",
-                "error",
-                string.IsNullOrWhiteSpace(location) ? message : $"{message} ({location})"));
+                severity,
+                string.IsNullOrWhiteSpace(location) ? message : $"{message} ({location})")
+            {
+                OriginalFinding = new PxaEInvoiceOriginalFinding(
+                    "schematron", ruleId, flag ?? severity, location, message, test)
+            });
         }
     }
+
+    private static string MapSchematronSeverity(string findingType, string? flag) =>
+        flag?.Trim().ToLowerInvariant() switch
+        {
+            "fatal" or "error" => "error",
+            "warning" or "warn" => "warning",
+            "information" or "info" => "information",
+            _ => string.Equals(findingType, "failed-assert", StringComparison.Ordinal)
+                ? "error"
+                : "information"
+        };
 
     private PxaEInvoiceValidationReport Report(
         PxaEInvoiceValidationReport structural,
@@ -294,6 +462,24 @@ public sealed class PxaEInvoiceConformanceValidator : IPxaEInvoiceConformanceVal
         {
             canonical.Append(artifact.Path).Append('|')
                 .Append(artifact.Sha256.Trim().ToLowerInvariant()).Append('\n');
+        }
+        if (_manifest.Governance is { } governance)
+        {
+            canonical.Append("governance|")
+                .Append(governance.Family).Append('|')
+                .Append(governance.UpstreamVersion).Append('|')
+                .Append(governance.RetrievedOn?.ToString("yyyy-MM-dd")).Append('|')
+                .Append(governance.LicenseReview).Append('|')
+                .Append(governance.LicenseReviewedBy).Append('|')
+                .Append(governance.LicenseReviewedOn?.ToString("yyyy-MM-dd")).Append('|')
+                .Append(governance.UpdatePolicy).Append('|')
+                .Append(governance.ExpiresOn?.ToString("yyyy-MM-dd")).Append('\n');
+            foreach (var profile in governance.SupportedProfiles
+                         .Select(Normalize)
+                         .OrderBy(static profile => profile, StringComparer.Ordinal))
+            {
+                canonical.Append("profile|").Append(profile).Append('\n');
+            }
         }
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical.ToString())))
             .ToLowerInvariant();

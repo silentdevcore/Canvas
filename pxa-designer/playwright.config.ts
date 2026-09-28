@@ -32,5 +32,14 @@ export default defineConfig({
         ...devices['Pixel 5'],
       },
     },
+    {
+      // The electronic-invoice workspace is a dense editor; the mobile run is what proves the
+      // lines table, the totals and the generate actions stay reachable at phone width.
+      name: 'e-invoice-mobile',
+      testMatch: /e-invoice-authenticated\.spec\.ts/,
+      use: {
+        ...devices['Pixel 5'],
+      },
+    },
   ],
 });

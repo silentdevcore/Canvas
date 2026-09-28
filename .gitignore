@@ -41,6 +41,13 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# Mounted official electronic-invoice validator artifacts (FeRD/FNFE, KoSIT).
+# PXA ships none of these: an operator mounts a reviewed set at one of these paths and the
+# validator reads it locally. They must never be committed - their redistribution terms are the
+# open licence question the whole conformance gate is waiting on.
+validator-artifacts/
+/deploy/**/validator-artifacts/
+
 # Rider
 .idea/
 *.sln.iml
