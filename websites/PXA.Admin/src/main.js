@@ -2,6 +2,7 @@ import './site.css';
 import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { pxaCommit, pxaVersion } from '../../shared/buildInfo.js';
 import { siteLinks } from '../../shared/siteLinks.js';
+import { getStatusDefinition } from '../../shared/statusPages.ts';
 import pxaReleaseManifest from '../../../product-metadata/pxa-releases.json';
 import {
   currentUser,
@@ -452,6 +453,12 @@ function renderShell(content, title) {
       </div>
     </div>
   `;
+
+  const statusHeading = app.querySelector('[data-status-key] h1');
+  if (statusHeading) {
+    statusHeading.tabIndex = -1;
+    statusHeading.focus({ preventScroll: true });
+  }
 
   bindShellEvents();
 }
@@ -1996,11 +2003,12 @@ function dataPage(path) {
 
 function forbiddenPage() {
   const error = state.accessDenied;
+  const status = getStatusDefinition('forbidden');
   return `
-    <section class="admin-message-page">
-      <span class="admin-error-code">403</span>
-      <h1>Administrator access required</h1>
-      <p>${escapeHtml(error?.message || 'Your account is authenticated but does not have permission to use this administrative capability.')}</p>
+    <section class="admin-message-page" data-status-key="forbidden" aria-live="polite" aria-atomic="true">
+      <span class="admin-error-code">${status.httpStatus}</span>
+      <h1>${escapeHtml(error ? 'Administrator access required' : status.title)}</h1>
+      <p>${escapeHtml(error?.message || status.message)}</p>
       ${error?.code ? `<code>${escapeHtml(error.code)}${error.traceId ? ` · ${escapeHtml(error.traceId)}` : ''}</code>` : ''}
       <button class="pxa-button pxa-button--secondary" id="forbidden-signout" type="button">Sign out</button>
     </section>
@@ -2008,11 +2016,12 @@ function forbiddenPage() {
 }
 
 function notFoundPage() {
+  const status = getStatusDefinition('notFound');
   return `
-    <section class="admin-message-page">
-      <span class="admin-error-code">404</span>
-      <h1>Page not found</h1>
-      <p>This administration route does not exist.</p>
+    <section class="admin-message-page" data-status-key="notFound" aria-live="polite" aria-atomic="true">
+      <span class="admin-error-code">${status.httpStatus}</span>
+      <h1>${status.title}</h1>
+      <p>${status.message}</p>
       <a class="pxa-button pxa-button--secondary" href="/dashboard">Return to dashboard</a>
     </section>
   `;

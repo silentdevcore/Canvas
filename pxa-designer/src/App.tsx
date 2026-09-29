@@ -15,6 +15,7 @@ import DesignerAuthGate from '@/auth/DesignerAuthGate';
 import ProductExperienceProvider from '@/product/ProductExperienceProvider';
 import RequireDesignerPermission from '@/auth/RequireDesignerPermission';
 import { designerPermissions, migrationKindPermission } from '@/auth/designerPermissions';
+import StatusPage from '@/components/StatusPage';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const EInvoicePage = React.lazy(() => import('@/features/e-invoice/EInvoicePage'));
@@ -184,6 +185,7 @@ const App: React.FC = () => {
       <Route path="/migrations/format/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/format/spreadsheet" element={<Navigate to="/spreadsheet/import" replace />} />
       <Route path="/migrations/format/documents" element={<Navigate to="/pdf/import" replace />} />
+      <Route path="*" element={<StatusPage statusKey="notFound" />} />
       </Routes>
       </ProductExperienceProvider>
     </DesignerAuthGate>

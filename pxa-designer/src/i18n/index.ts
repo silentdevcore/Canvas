@@ -13,7 +13,7 @@ export const RTL_LANGUAGES: SupportedLanguage[] = ['ar'];
 export const NAMESPACES = [
   'common', 'home', 'templates', 'gallery', 'editor', 'create', 'importer',
   'convert', 'spreadsheet', 'migrations', 'docs', 'onboarding', 'pdfViewer',
-  'codeEditor', 'preview', 'eInvoice',
+  'codeEditor', 'preview', 'eInvoice', 'status',
 ] as const;
 
 i18n

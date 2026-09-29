@@ -243,6 +243,13 @@ describe('app route smoke tests', () => {
       });
   });
 
+  test('unknown routes render the Designer not-found state', async () => {
+    root = await renderRoute(container, '/this-route-does-not-exist');
+    await waitUntil(() => expect(getByText(container, 'Page not found')).toBeTruthy());
+    expect(container.querySelector('[data-status-key="notFound"]')).toBeTruthy();
+    expect(getByText(container, 'Return to Designer')).toBeTruthy();
+  });
+
   afterEach(() => {
     if (root) {
       act(() => {

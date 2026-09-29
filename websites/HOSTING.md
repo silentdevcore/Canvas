@@ -43,6 +43,12 @@ npm run build
 - Keep `PXA.Company`, `PXA.Documentation`, `PXA.Demo`, and `PXA.Account` on separate production hosts or separate hosting projects.
 - Keep `websites/shared` as source-only shared styling; it is bundled into each site during build.
 - Do not commit generated `dist` output.
+- Use the shared production HTTP contract in
+  [`deploy/websites`](../deploy/websites/README.md) for Nginx-based deployments.
+- Select the application-specific route allowlist from
+  `deploy/websites/route-patterns.env.example`; unknown routes must return the
+  local status body with HTTP 404 rather than silently becoming HTTP 200.
+- Preserve origin status and cache headers at any CDN or ingress layer.
 
 ## Cross-Site Links
 

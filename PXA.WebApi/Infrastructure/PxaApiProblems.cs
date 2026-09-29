@@ -21,6 +21,7 @@ public static class PxaApiProblems
     public const string AccountDisabled = "PXAAPI015";
     public const string OrganizationSuspended = "PXAAPI016";
     public const string PolicyAcceptanceRequired = "PXAAPI017";
+    public const string UnexpectedError = "PXAAPI018";
 
     public static ProblemDetails Create(
         HttpContext context,
@@ -73,6 +74,7 @@ public static class PxaApiProblems
             StatusCodes.Status409Conflict => Conflict,
             StatusCodes.Status423Locked => AccountLocked,
             StatusCodes.Status429TooManyRequests => RateLimited,
+            StatusCodes.Status500InternalServerError => UnexpectedError,
             _ => InvalidRequest,
         };
     }
@@ -84,6 +86,7 @@ public static class PxaApiProblems
         StatusCodes.Status404NotFound => "Resource not found",
         StatusCodes.Status409Conflict => "Request conflict",
         StatusCodes.Status429TooManyRequests => "Too many requests",
+        StatusCodes.Status500InternalServerError => "Unexpected server error",
         _ => "Invalid request",
     };
 }

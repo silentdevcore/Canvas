@@ -48,3 +48,78 @@ export function pxaBuildInfoPlugin(buildInfo = readPxaBuildInfo()) {
     },
   };
 }
+
+const staticStatusDefinitions = {
+  '404.html': {
+    code: '404',
+    title: 'Page not found',
+    message: 'The address may be incorrect, or the page may have moved.',
+    action: 'Go home',
+  },
+  '500.html': {
+    code: '500',
+    title: 'Something went wrong',
+    message: 'PXA could not load this application. Your stored work is not affected.',
+    action: 'Try again',
+  },
+  'maintenance.html': {
+    code: '503',
+    title: 'Planned maintenance',
+    message: 'PXA is undergoing planned maintenance. Your stored documents are not affected.',
+    action: 'Check again',
+  },
+};
+
+function escapeStaticText(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export function renderStaticStatusPage(fileName, productName = 'PXA') {
+  const status = staticStatusDefinitions[fileName];
+  if (!status) throw new Error(`Unknown static PXA status page: ${fileName}`);
+  const product = escapeStaticText(productName);
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>${escapeStaticText(status.title)} | ${product}</title>
+  <style>
+    :root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#243449;background:#f7f9fc}
+    *{box-sizing:border-box}body{margin:0}main{display:grid;width:min(100% - 32px,960px);min-height:100vh;margin:auto;grid-template-rows:auto 1fr auto}
+    header,footer{padding:24px 0}header{display:flex;gap:12px;align-items:center;color:#132033;font-weight:700}header b{display:grid;width:42px;height:42px;place-items:center;color:#fff;background:#184e8a;border-radius:6px;font-size:14px}
+    section{align-self:center;max-width:680px;padding:48px 0}.code{margin:0 0 16px;color:#184e8a;font-size:14px;font-weight:800}h1{margin:0;color:#132033;font-size:clamp(2rem,6vw,3.5rem);line-height:1.08}p{max-width:620px;margin:20px 0 0;color:#657386;font-size:18px;line-height:1.55}
+    a{display:inline-flex;min-height:44px;align-items:center;margin-top:32px;padding:8px 16px;color:#fff;background:#2468b2;border-radius:6px;font-weight:700;text-decoration:none}a:focus-visible{outline:3px solid #2f80d7;outline-offset:3px}footer{color:#657386;border-top:1px solid #d8e0ea;font-size:14px}
+  </style>
+</head>
+<body>
+  <main>
+    <header><b aria-hidden="true">PXA</b><span>${product}</span></header>
+    <section aria-labelledby="status-title"><p class="code">${status.code}</p><h1 id="status-title" tabindex="-1">${status.title}</h1><p>${status.message}</p><a href="/">${status.action}</a></section>
+    <footer>Power Dox Automation</footer>
+  </main>
+</body>
+</html>\n`;
+}
+
+export function pxaStaticStatusPagesPlugin(productName) {
+  return {
+    name: 'pxa-static-status-pages',
+    apply: 'build',
+    generateBundle() {
+      Object.keys(staticStatusDefinitions).forEach((fileName) => {
+        this.emitFile({
+          type: 'asset',
+          fileName,
+          source: renderStaticStatusPage(fileName, productName),
+        });
+      });
+    },
+  };
+}

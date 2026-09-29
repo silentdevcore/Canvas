@@ -1,5 +1,6 @@
 import {
   pxaBuildInfoPlugin,
+  pxaStaticStatusPagesPlugin,
   pxaVersionDefines,
   readPxaBuildInfo,
 } from '../shared/vitePxaVersion.js';
@@ -8,7 +9,7 @@ const buildInfo = readPxaBuildInfo();
 
 export default {
   define: pxaVersionDefines(buildInfo),
-  plugins: [pxaBuildInfoPlugin(buildInfo)],
+  plugins: [pxaBuildInfoPlugin(buildInfo), pxaStaticStatusPagesPlugin('PXA.Account')],
   server: {
     port: 5178,
     strictPort: true,

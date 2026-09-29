@@ -15,6 +15,56 @@
 @import './product-experience.css';
 @import './einvoice.css';
 @import './rtl.css';
+@import '../../../websites/shared/styles/status-pages.css';
+
+.designer-status-page {
+  --pxa-color-brand-700: var(--color-primary-hover);
+  --pxa-color-brand-600: var(--color-primary);
+  --pxa-color-ink: var(--color-ink);
+  --pxa-color-text: var(--color-gray-700);
+  --pxa-color-muted: var(--color-gray-500);
+  --pxa-color-soft: var(--color-gray-100);
+  --pxa-color-border: var(--color-gray-200);
+  --pxa-color-teal-600: var(--color-success);
+  --pxa-font-mono: var(--font-family-mono);
+  --pxa-text-sm: var(--font-size-sm);
+  --pxa-text-md: var(--font-size-base);
+  --pxa-text-lg: var(--font-size-lg);
+  --pxa-space-2: var(--space-2);
+  --pxa-space-3: var(--space-3);
+  --pxa-space-4: var(--space-4);
+  --pxa-space-5: var(--space-5);
+  --pxa-space-6: var(--space-6);
+  --pxa-space-8: var(--space-8);
+  --pxa-space-12: var(--space-12);
+  --pxa-radius-sm: var(--radius-sm);
+  --pxa-radius-md: var(--radius-md);
+}
+
+.designer-status-page .pxa-status-page__mark,
+.designer-status-page .pxa-status-primary {
+  color: var(--color-white);
+  background: var(--color-primary-hover);
+}
+
+.designer-status-page .pxa-status-primary,
+.designer-status-page .pxa-status-secondary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary-hover);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+}
+
+.designer-status-page .pxa-status-secondary {
+  color: var(--color-primary-hover);
+  background: var(--color-white);
+}
 
 .designer-auth-state {
   min-height: 100vh;

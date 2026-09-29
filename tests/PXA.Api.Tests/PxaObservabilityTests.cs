@@ -116,7 +116,15 @@ public sealed class PxaObservabilityTests
             "good",
             "templates",
             "lcp",
-            1200);
+            1200,
+            "1.1.0");
+        PxaTelemetry.RecordBrowserEvent(
+            "designer",
+            "status_page",
+            "shown",
+            "designer",
+            "offline",
+            version: "1.1.0");
 
         var recordedMeasurements = measurements.ToArray();
         Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.enqueued");
@@ -161,7 +169,8 @@ public sealed class PxaObservabilityTests
             "storage.operation", "storage.outcome", "licensing.operation",
             "licensing.outcome", "license.state",
             "browser.application", "browser.event", "browser.outcome",
-            "browser.route", "browser.vital",
+            "browser.route", "browser.vital", "browser.version",
+            "browser.status", "browser.recovery", "browser.category",
         };
         Assert.All(
             recordedMeasurements.SelectMany(value => value.Tags),
@@ -182,11 +191,27 @@ public sealed class PxaObservabilityTests
             [
                 new BrowserTelemetryEvent("navigation", "completed", "profile"),
                 new BrowserTelemetryEvent("web_vital", "good", "profile", "lcp", 1200),
-            ]);
+                new BrowserTelemetryEvent("status_page", "shown", "profile", "sessionExpired", CorrelationId: "trace-safe_123"),
+                new BrowserTelemetryEvent("status_recovery", "selected", "profile", "signIn", CorrelationId: "trace-safe_123"),
+                new BrowserTelemetryEvent("status_recovery", "completed", "profile", "signIn", CorrelationId: "trace-safe_123"),
+                new BrowserTelemetryEvent("status_recovery", "failed", "profile", "retry", CorrelationId: "trace-safe_123"),
+                new BrowserTelemetryEvent("status_loop", "detected", "profile", "unavailable", CorrelationId: "trace-safe_123"),
+                new BrowserTelemetryEvent("diagnostic_mapping", "unknown", "profile"),
+            ],
+            "1.1.0");
 
         Assert.True(BrowserTelemetryController.TryValidate(valid, out _));
         Assert.Equal("profile", BrowserTelemetryController.NormalizeRoute("account", "profile"));
         Assert.Equal("other", BrowserTelemetryController.NormalizeRoute("account", "customer-123"));
+        Assert.False(BrowserTelemetryController.TryValidate(
+            valid with { Version = "1.1.0/customer" }, out _));
+        Assert.False(BrowserTelemetryController.TryValidate(
+            valid with
+            {
+                Events = [new BrowserTelemetryEvent(
+                    "status_page", "shown", "profile", "unexpected",
+                    CorrelationId: "customer@example.test/private")],
+            }, out _));
     }
 
     [Fact]
@@ -212,6 +237,10 @@ public sealed class PxaObservabilityTests
     [InlineData("error", "failed", "stack", 1.0)]
     [InlineData("navigation", "poor", null, null)]
     [InlineData("custom-event", "completed", null, null)]
+    [InlineData("status_page", "shown", "customer-private-status", null)]
+    [InlineData("status_page", "shown", "notFound", 1.0)]
+    [InlineData("status_recovery", "selected", "customer-private-action", null)]
+    [InlineData("status_recovery", "selected", "home", 1.0)]
     public void Browser_telemetry_rejects_free_form_or_mismatched_event_data(
         string eventType,
         string outcome,

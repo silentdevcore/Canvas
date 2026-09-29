@@ -1,6 +1,8 @@
 import {
   describeDesignerAuthError,
   DesignerAuthError,
+  isKnownDesignerAuthCode,
+  safeDesignerReturnPath,
   shouldRedirectToAccount,
 } from '@/auth/designerAuth';
 
@@ -42,5 +44,23 @@ describe('Designer authentication states', () => {
     expect(shouldRedirectToAccount('/pdf/create', unauthorized)).toBe(true);
     expect(shouldRedirectToAccount('/auth/callback', unauthorized)).toBe(false);
     expect(shouldRedirectToAccount('/pdf/create', error(undefined, 403))).toBe(false);
+  });
+
+  test('keeps only bounded Designer parameters in Account return paths', () => {
+    expect(safeDesignerReturnPath(
+      '/pdf/create',
+      '?mode=code&templateId=template-42&returnUrl=https://attacker.example/private',
+      '#editor',
+    )).toBe('/pdf/create?mode=code&templateId=template-42#editor');
+    expect(safeDesignerReturnPath('/pdf/migrations/designer', '?provider=nutrient-viewer', ''))
+      .toBe('/pdf/migrations/designer?provider=nutrient-viewer');
+    expect(safeDesignerReturnPath('//attacker.example', '?mode=code', '')).toBe('/');
+    expect(safeDesignerReturnPath('/pdf/create', '?mode=arbitrary', '#unsafe/path')).toBe('/pdf/create');
+  });
+
+  test('classifies diagnostic codes without exposing unknown values to telemetry', () => {
+    expect(isKnownDesignerAuthCode('PXA_TRIAL_EXPIRED')).toBe(true);
+    expect(isKnownDesignerAuthCode('customer-private-diagnostic')).toBe(false);
+    expect(isKnownDesignerAuthCode()).toBe(true);
   });
 });

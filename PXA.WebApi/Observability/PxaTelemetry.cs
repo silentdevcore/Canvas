@@ -356,7 +356,8 @@ public static class PxaTelemetry
         string outcome,
         string route,
         string? vitalName = null,
-        double? value = null)
+        double? value = null,
+        string version = "unknown")
     {
         var tags = new TagList
         {
@@ -364,7 +365,16 @@ public static class PxaTelemetry
             { "browser.event", eventType },
             { "browser.outcome", outcome },
             { "browser.route", route },
+            { "browser.version", version },
         };
+        if (eventType is "status_page" or "status_loop" && vitalName is not null)
+        {
+            tags.Add("browser.status", vitalName);
+            tags.Add("browser.category", BrowserStatusCategory(vitalName));
+        }
+        else if (eventType == "status_recovery" && vitalName is not null)
+            tags.Add("browser.recovery", vitalName);
+
         BrowserEvents.Add(1, tags);
         if (eventType == "web_vital" && vitalName is not null && value is not null)
         {
@@ -372,6 +382,22 @@ public static class PxaTelemetry
             BrowserWebVital.Record(Math.Max(0, value.Value), tags);
         }
     }
+
+    private static string BrowserStatusCategory(string status) => status switch
+    {
+        "unauthenticated" or "sessionExpired" => "authentication",
+        "forbidden" or "entitlementDenied" or "suspended" or "trialExpired" => "access",
+        "badRequest" or "expiredLink" or "fileTooLarge" => "request",
+        "conflict" => "conflict",
+        "rateLimited" => "rate_limit",
+        "unexpected" => "server",
+        "upstreamUnavailable" or "unavailable" or "maintenance" or "timeout" or "requestTimeout" => "availability",
+        "offline" => "connectivity",
+        "incompatibleVersion" => "compatibility",
+        "unsupportedBrowser" => "browser",
+        "notFound" => "navigation",
+        _ => "unknown",
+    };
 
     private static string NormalizeOcrLanguage(string language)
     {

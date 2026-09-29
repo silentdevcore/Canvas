@@ -5,6 +5,7 @@ import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import pxaReleaseManifest from '../../../product-metadata/pxa-releases.json';
 import designerFeatureManifest from '../../../product-metadata/designer-features.json';
 import { initializeStorageNotice } from '../../shared/storageNotice.js';
+import { bindStatusPage, renderStatusPage } from '../../shared/statusPages.ts';
 
 initializeBrowserTelemetry({ application: 'documentation' });
 
@@ -4824,13 +4825,23 @@ document.querySelector('#app').innerHTML = `
     ${renderPxaFooter('PXA.Documentation')}
   </div>
 `;
-initializeStorageNotice();
-
-initDocumentationScrollSpy();
-initDocumentationSearch();
-initReleaseFilters();
-initCodeSdkPlaygrounds();
-initElementJsonPlaygrounds();
+if (window.location.pathname !== '/') {
+  document.title = 'Page not found | PXA Documentation';
+  document.querySelector('#app').innerHTML = renderStatusPage('notFound', {
+    product: 'PXA.Documentation',
+    homeHref: '/',
+    supportHref: companyPage('support'),
+    allowedOrigins: new URL(siteLinks.company).origin,
+  });
+  bindStatusPage();
+} else {
+  initializeStorageNotice();
+  initDocumentationScrollSpy();
+  initDocumentationSearch();
+  initReleaseFilters();
+  initCodeSdkPlaygrounds();
+  initElementJsonPlaygrounds();
+}
 
 function initReleaseFilters() {
   const buttons = [...document.querySelectorAll('[data-release-filter]')];

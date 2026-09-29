@@ -5,9 +5,13 @@ import {
   DesignerAuthError,
   type DesignerUser,
   exchangeCallback,
+  isKnownDesignerAuthCode,
   redirectToAccount,
   shouldRedirectToAccount,
 } from './designerAuth';
+import StatusPage from '@/components/StatusPage';
+import type { PxaStatusKey } from '../../../websites/shared/statusPages';
+import { recordBrowserUnknownDiagnosticMapping } from '../../../websites/shared/browserTelemetry.js';
 
 type GateState =
   | { kind: 'loading' }
@@ -18,6 +22,8 @@ type GateState =
       message: string;
       retry: boolean;
       openAccount: boolean;
+      statusKey: PxaStatusKey;
+      diagnosticCode?: string;
     };
 
 interface DesignerAuthContextValue {
@@ -27,6 +33,33 @@ interface DesignerAuthContextValue {
 }
 
 const DesignerAuthContext = createContext<DesignerAuthContextValue | null>(null);
+
+function authStatusKey(error: DesignerAuthError): PxaStatusKey {
+  if (error.offline) return 'offline';
+  switch (error.code) {
+    case 'PXA_SUBSCRIPTION_CANCELLED':
+    case 'PXA_SUBSCRIPTION_INACTIVE':
+    case 'PXA_TRIAL_EXPIRED':
+    case 'PXA_GRACE_PERIOD_EXPIRED':
+    case 'PXA_ENTITLEMENT_EXPIRED':
+      return 'trialExpired';
+    case 'PXA_ENTITLEMENT_MISSING':
+    case 'PXA_ENTITLEMENT_DENIED':
+      return 'entitlementDenied';
+    case 'PXA_DESIGNER_ACCOUNT_DISABLED':
+    case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
+    case 'PXA_ORGANIZATION_INACTIVE':
+    case 'PXAAPI015':
+    case 'PXAAPI016':
+      return 'suspended';
+    case 'PXA_DESIGNER_SESSION_EXPIRED':
+      return 'sessionExpired';
+    case 'PXA_API_VERSION_INCOMPATIBLE':
+      return 'incompatibleVersion';
+    default:
+      return error.status === 403 ? 'forbidden' : 'unavailable';
+  }
+}
 
 export const DesignerAuthContextProvider: React.FC<React.PropsWithChildren<{ user: DesignerUser }>> = ({
   user: initialUser,
@@ -69,10 +102,13 @@ const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
           return;
         }
         if (!active) return;
+        if (!isKnownDesignerAuthCode(error.code)) recordBrowserUnknownDiagnosticMapping();
         const presentation = describeDesignerAuthError(error);
         setState({
           kind: 'error',
           ...presentation,
+          statusKey: authStatusKey(error),
+          diagnosticCode: error.code,
         });
       }
     };
@@ -102,21 +138,13 @@ const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
   }
   if (state.kind === 'error') {
     return (
-      <main className="designer-auth-state">
-        <section>
-          <p className="designer-auth-kicker">Power Dox Automation</p>
-          <h1>{state.title}</h1>
-          <p>{state.message}</p>
-          <div className="designer-auth-actions">
-            {state.retry && <button type="button" onClick={() => location.reload()}>Try again</button>}
-            {state.openAccount && (
-              <button type="button" className="secondary" onClick={() => void redirectToAccount()}>
-                Open PXA Account
-              </button>
-            )}
-          </div>
-        </section>
-      </main>
+      <StatusPage
+        statusKey={state.statusKey}
+        title={state.title}
+        message={state.message}
+        diagnosticCode={state.diagnosticCode}
+        primaryAction={state.retry ? 'retry' : state.openAccount ? 'account' : undefined}
+      />
     );
   }
   return (

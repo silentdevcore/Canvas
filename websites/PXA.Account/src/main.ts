@@ -44,6 +44,7 @@ import {
   designerAccessActionLabel,
   type DesignerAccessAction,
 } from './designerAccessPresentation';
+import { bindStatusPage, renderStatusPage } from '../../shared/statusPages';
 
 initializeBrowserTelemetry({ application: 'account' });
 
@@ -82,6 +83,11 @@ const portalPages: Record<string, PortalPage> = {
 };
 const portalPaths = new Set([...navigation.map((item) => item.path), '/closure']);
 portalPaths.add('/legal-review');
+const publicPaths = new Set([
+  '/', '/login', '/register', '/registration-pending', '/verify-email',
+  '/accept-invitation', '/confirm-email', '/designer-authorize',
+  '/forgot-password', '/reset-password',
+]);
 
 interface AccountState {
   user: UserInfo | null;
@@ -680,6 +686,17 @@ function render(): void {
     const target = consumeReturnUrl();
     if (target) { window.location.href = withSignedInSignal(target); return; }
     navigate('/dashboard', true); return;
+  }
+  if (!publicPaths.has(path) && !portalPaths.has(path)) {
+    document.title = 'Page not found | PXA Account';
+    app.innerHTML = renderStatusPage('notFound', {
+      product: 'PXA.Account',
+      homeHref: state.user ? '/dashboard' : '/login',
+      primaryLabel: state.user ? 'Return to account' : 'Go to sign in',
+      supportHref: '/support',
+    });
+    bindStatusPage(app);
+    return;
   }
   if (!state.user && (portalPaths.has(path) || path === '/designer-authorize')) {
     const returnUrl = path === '/designer-authorize' ? location.href : null;

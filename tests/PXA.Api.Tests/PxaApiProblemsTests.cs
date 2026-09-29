@@ -13,6 +13,7 @@ public sealed class PxaApiProblemsTests
     [InlineData(StatusCodes.Status423Locked, PxaApiProblems.AccountLocked)]
     [InlineData(StatusCodes.Status429TooManyRequests, PxaApiProblems.RateLimited)]
     [InlineData(StatusCodes.Status400BadRequest, PxaApiProblems.InvalidRequest)]
+    [InlineData(StatusCodes.Status500InternalServerError, PxaApiProblems.UnexpectedError)]
     public void ResolveCode_maps_status_codes_to_stable_codes(int status, string expectedCode)
     {
         Assert.Equal(expectedCode, PxaApiProblems.ResolveCode(status));

@@ -1192,6 +1192,7 @@ tbody tr:hover { background: #f8fafc; }
 }
 .admin-message-page h1 { margin: var(--pxa-space-3) 0 0; color: var(--pxa-color-ink); }
 .admin-message-page p { max-width: 480px; color: var(--pxa-color-muted); }
+.admin-message-page[data-status-key] p { color: var(--pxa-color-text); }
 .admin-error-code { color: var(--pxa-color-brand-600); font-size: var(--pxa-text-3xl); font-weight: 800; }
 
 @media (max-width: 900px) {

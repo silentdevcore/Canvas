@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "jest",
     "test:e2e": "playwright test",
+    "test:e2e:status": "playwright test --config playwright.status-pages.config.ts",
     "test:e2e:legal": "playwright test --config playwright.legal.config.ts",
     "test:e2e:headed": "playwright test --headed",
     "test:visual-parity": "node ../tools/visual-parity/run.mjs",
@@ -58,6 +59,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

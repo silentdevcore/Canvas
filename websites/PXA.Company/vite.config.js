@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   pxaBuildInfoPlugin,
+  pxaStaticStatusPagesPlugin,
   pxaVersionDefines,
   readPxaBuildInfo,
 } from '../shared/vitePxaVersion.js';
@@ -11,7 +12,7 @@ const buildInfo = readPxaBuildInfo();
 
 export default {
   define: pxaVersionDefines(buildInfo),
-  plugins: [pxaBuildInfoPlugin(buildInfo)],
+  plugins: [pxaBuildInfoPlugin(buildInfo), pxaStaticStatusPagesPlugin('PXA.Company')],
   server: {
     proxy: {
       '/api': {

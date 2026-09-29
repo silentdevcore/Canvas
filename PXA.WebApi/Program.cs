@@ -54,6 +54,14 @@ builder.AddPxaObservability();
 
 // Add services to the container.
 builder.Services.AddControllers(options => options.Filters.Add<PxaProblemDetailsResultFilter>());
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+        PxaApiProblems.Complete(
+            context.HttpContext,
+            context.ProblemDetails,
+            context.ProblemDetails.Status ?? StatusCodes.Status500InternalServerError);
+});
 builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<PXA.WebApi.Infrastructure.OpenApi.PxaEInvoiceOpenApiTransformer>());
 builder.Services.AddPxaPersistence(
@@ -680,6 +688,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
 app.UseCors();
 app.UseMiddleware<PxaOperationMetricsMiddleware>();
 app.UseAuthentication();
@@ -697,6 +706,17 @@ app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthC
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("ready"),
+});
+app.MapFallback((HttpContext context) =>
+{
+    var problem = PxaApiProblems.Create(
+        context,
+        StatusCodes.Status404NotFound,
+        detail: "The requested API resource does not exist.");
+    return Results.Json(
+        problem,
+        statusCode: StatusCodes.Status404NotFound,
+        contentType: "application/problem+json");
 });
 
 static void AddStepUpPolicy(AuthorizationOptions options, string policyName, string permission)

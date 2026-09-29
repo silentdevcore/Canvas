@@ -5,6 +5,7 @@ import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { consumeSignedInSignal } from '../../shared/signedInSignal.js';
 import { initializeStorageNotice } from '../../shared/storageNotice.js';
+import { bindStatusPage, renderStatusPage } from '../../shared/statusPages.ts';
 import {
   loadPublishedLegalDocument,
   loadPublishedLegalHistory,
@@ -721,7 +722,13 @@ function updateRouteMetadata(route) {
   }
 }
 
-const currentRoute = companyRoutes[window.location.pathname] || fallbackRoute;
+const routeExists = Object.hasOwn(companyRoutes, window.location.pathname);
+const currentRoute = routeExists ? companyRoutes[window.location.pathname] : {
+  ...fallbackRoute,
+  section: 'notFound',
+  title: 'Page not found | Power Dox Automation',
+  description: 'The requested Power Dox Automation page could not be found.',
+};
 updateRouteMetadata(currentRoute);
 
 function activeAttr(section) {
@@ -1138,16 +1145,27 @@ function renderMainContent() {
   }
 }
 
-document.querySelector('#app').innerHTML = `
-  <div class="pxa-site pxa-site--company">
-    ${renderHeader()}
-    <main class="pxa-site-main">
-      ${renderMainContent()}
-    </main>
+if (!routeExists) {
+  document.querySelector('#app').innerHTML = renderStatusPage('notFound', {
+    product: 'PXA.Company',
+    homeHref: siteLinks.company,
+    supportHref: companyPage('support'),
+    secondaryHref: companyPage('products'),
+    secondaryLabel: 'View products',
+  });
+  bindStatusPage();
+} else {
+  document.querySelector('#app').innerHTML = `
+    <div class="pxa-site pxa-site--company">
+      ${renderHeader()}
+      <main class="pxa-site-main">
+        ${renderMainContent()}
+      </main>
 
-    ${renderPxaFooter('PXA.Company')}
-  </div>
-`;
+      ${renderPxaFooter('PXA.Company')}
+    </div>
+  `;
+}
 
 function formatLegalDate(value, includeTime = false) {
   return new Intl.DateTimeFormat('en', {

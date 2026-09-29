@@ -9,6 +9,7 @@ import App from '@/App';
 import i18n from '@/i18n';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { designerPermissions } from '@/auth/designerPermissions';
+import { getStatusCatalog } from '../../../websites/shared/statusPages';
 
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
 globalWithAct.IS_REACT_ACT_ENVIRONMENT = true;
@@ -229,6 +230,28 @@ describe('localization', () => {
       expect(i18n.t('common:features.codeWorkspace.title')).toBe(expectedTitle);
       expect(i18n.t('common:productExperience.changeCategories.fixed')).not.toContain('productExperience.');
       expect(i18n.t('common:productExperience.notificationCategories.ActionRequired')).not.toContain('productExperience.');
+    }
+  });
+
+  test('status and recovery messages are translated in all six locales', async () => {
+    const expectedNotFoundTitles: Record<string, string> = {
+      en: 'Page not found',
+      de: 'Seite nicht gefunden',
+      fr: 'Page introuvable',
+      es: 'Página no encontrada',
+      it: 'Pagina non trovata',
+      ar: 'الصفحة غير موجودة',
+    };
+
+    for (const [language, expectedTitle] of Object.entries(expectedNotFoundTitles)) {
+      await i18n.changeLanguage(language);
+      expect(i18n.t('status:states.notFound.title')).toBe(expectedTitle);
+      expect(i18n.t('status:actions.retry')).not.toContain('status:');
+      expect(i18n.t('status:savedWork')).not.toContain('status:');
+      for (const status of getStatusCatalog()) {
+        expect(i18n.getResource(language, 'status', `states.${status.statusKey}.title`)).toBeTruthy();
+        expect(i18n.getResource(language, 'status', `states.${status.statusKey}.message`)).toBeTruthy();
+      }
     }
   });
 });

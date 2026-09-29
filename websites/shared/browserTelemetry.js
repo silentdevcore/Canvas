@@ -1,6 +1,39 @@
+import { pxaVersion } from './buildInfo.js';
+
 const TELEMETRY_PATH = '/api/pxa/v1/telemetry/browser';
 const MAX_BATCH_SIZE = 20;
 const FLUSH_DELAY_MS = 1000;
+const STATUS_LOOP_STORAGE_KEY = 'pxa-status-loop-v1';
+const STATUS_RECOVERY_STORAGE_KEY = 'pxa-status-recovery-v1';
+const statusKeys = new Set([
+  'badRequest', 'unauthenticated', 'sessionExpired', 'forbidden',
+  'entitlementDenied', 'suspended', 'trialExpired', 'notFound', 'conflict',
+  'requestTimeout', 'expiredLink', 'fileTooLarge', 'rateLimited', 'unexpected',
+  'upstreamUnavailable', 'unavailable', 'maintenance', 'timeout', 'offline',
+  'incompatibleVersion', 'unsupportedBrowser',
+]);
+const recoveryActions = new Set([
+  'back', 'home', 'reload', 'retry', 'signIn', 'subscription', 'support', 'account',
+]);
+
+export function createStatusLoopDetector({ threshold = 3, windowMs = 60_000, storage } = {}) {
+  const targetStorage = storage ?? globalThis.sessionStorage;
+  return (statusKey, route, now = Date.now()) => {
+    if (!statusKeys.has(statusKey) || typeof route !== 'string' || !targetStorage) return false;
+    try {
+      const previous = JSON.parse(targetStorage.getItem(STATUS_LOOP_STORAGE_KEY) || '[]');
+      const recent = Array.isArray(previous)
+        ? previous.filter(item => Number.isFinite(item?.at) && now - item.at <= windowMs)
+        : [];
+      const earlierMatches = recent.filter(item => item.statusKey === statusKey && item.route === route).length;
+      recent.push({ statusKey, route, at: now });
+      targetStorage.setItem(STATUS_LOOP_STORAGE_KEY, JSON.stringify(recent.slice(-32)));
+      return earlierMatches + 1 === threshold;
+    } catch {
+      return false;
+    }
+  };
+}
 
 const applicationRoutes = {
   company: new Set(['home', 'products', 'pricing', 'about', 'support', 'contact', 'terms', 'privacy', 'license']),
@@ -40,6 +73,83 @@ export function classifyBrowserApiOutcome(status) {
   if (status >= 500) return 'server_error';
   if (status >= 400) return 'client_error';
   return 'completed';
+}
+
+export function createBrowserEventDeduplicator(windowMs = 2000) {
+  const recent = new Map();
+  const deduplicatedTypes = new Set([
+    'error', 'unhandled_rejection', 'api_failure', 'status_page', 'status_recovery',
+  ]);
+
+  return (event, now = Date.now()) => {
+    if (!deduplicatedTypes.has(event.type)) return true;
+    const key = `${event.type}|${event.outcome}|${event.route}|${event.name || ''}`;
+    const previous = recent.get(key);
+    if (previous !== undefined && now - previous < windowMs) return false;
+    recent.set(key, now);
+    if (recent.size > 64) {
+      for (const [candidate, recordedAt] of recent) {
+        if (now - recordedAt > windowMs) recent.delete(candidate);
+      }
+    }
+    return true;
+  };
+}
+
+function boundedCorrelationId(value) {
+  return typeof value === 'string' && /^[A-Za-z0-9._:-]{1,64}$/.test(value) ? value : undefined;
+}
+
+export function recordBrowserStatusPage(statusKey, correlationId) {
+  if (!statusKeys.has(statusKey)) return;
+  globalThis.__pxaBrowserTelemetry?.record('status_page', 'shown', {
+    name: statusKey,
+    correlationId: boundedCorrelationId(correlationId),
+  });
+}
+
+export function recordBrowserRecoveryAction(action, correlationId) {
+  if (!recoveryActions.has(action)) return;
+  rememberStatusRecovery(action, correlationId);
+  globalThis.__pxaBrowserTelemetry?.record('status_recovery', 'selected', {
+    name: action,
+    correlationId: boundedCorrelationId(correlationId),
+  });
+}
+
+export function rememberStatusRecovery(action, correlationId, storage = globalThis.sessionStorage, now = Date.now()) {
+  if (!recoveryActions.has(action) || !storage) return false;
+  try {
+    storage.setItem(STATUS_RECOVERY_STORAGE_KEY, JSON.stringify({
+      action,
+      at: now,
+      ...(boundedCorrelationId(correlationId) ? { correlationId } : {}),
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function consumeStatusRecovery(storage = globalThis.sessionStorage, now = Date.now(), maxAgeMs = 120_000) {
+  if (!storage) return undefined;
+  try {
+    const value = JSON.parse(storage.getItem(STATUS_RECOVERY_STORAGE_KEY) || 'null');
+    storage.removeItem(STATUS_RECOVERY_STORAGE_KEY);
+    if (!value || !recoveryActions.has(value.action) || !Number.isFinite(value.at) || now - value.at > maxAgeMs)
+      return undefined;
+    return {
+      action: value.action,
+      correlationId: boundedCorrelationId(value.correlationId),
+    };
+  } catch {
+    try { storage.removeItem(STATUS_RECOVERY_STORAGE_KEY); } catch { /* unavailable storage */ }
+    return undefined;
+  }
+}
+
+export function recordBrowserUnknownDiagnosticMapping() {
+  globalThis.__pxaBrowserTelemetry?.record('diagnostic_mapping', 'unknown');
 }
 
 function randomHex(byteCount) {
@@ -115,22 +225,38 @@ function observeWebVitals(report) {
   };
 }
 
-export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_PATH } = {}) {
+export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_PATH, version = pxaVersion } = {}) {
   if (!applicationRoutes[application] || globalThis.__pxaBrowserTelemetry) return;
 
   const nativeFetch = globalThis.fetch.bind(globalThis);
   const queue = [];
+  const shouldRecord = createBrowserEventDeduplicator();
+  const isStatusLoop = createStatusLoopDetector();
   let flushTimer;
   let currentRoute = normalizeBrowserRoute(application, location.pathname);
 
   const event = (type, outcome, values = {}) => {
-    queue.push({
+    if (type === 'status_recovery' && outcome === 'selected' && values.name)
+      rememberStatusRecovery(values.name, values.correlationId);
+    const browserEvent = {
       type,
       outcome,
       route: currentRoute,
       ...(values.name ? { name: values.name } : {}),
       ...(Number.isFinite(values.value) ? { value: values.value } : {}),
-    });
+      ...(boundedCorrelationId(values.correlationId) ? { correlationId: values.correlationId } : {}),
+    };
+    if (!shouldRecord(browserEvent)) return;
+    queue.push(browserEvent);
+    if (type === 'status_page' && values.name && isStatusLoop(values.name, currentRoute)) {
+      queue.push({
+        type: 'status_loop',
+        outcome: 'detected',
+        route: currentRoute,
+        name: values.name,
+        ...(boundedCorrelationId(values.correlationId) ? { correlationId: values.correlationId } : {}),
+      });
+    }
     if (queue.length >= MAX_BATCH_SIZE) void flush();
     else if (!flushTimer) flushTimer = setTimeout(flush, FLUSH_DELAY_MS);
   };
@@ -149,7 +275,7 @@ export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_P
           'Content-Type': 'application/json',
           traceparent: createTraceParent(),
         },
-        body: JSON.stringify({ application, events }),
+        body: JSON.stringify({ application, version, events }),
       });
     } catch {
       // Telemetry must never affect the product experience or retry indefinitely.
@@ -207,8 +333,17 @@ export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_P
   window.addEventListener('unhandledrejection', () => event('unhandled_rejection', 'failed'));
 
   event('navigation', 'completed');
+  setTimeout(() => {
+    const pendingRecovery = consumeStatusRecovery();
+    if (!pendingRecovery) return;
+    const failed = Boolean(document.querySelector('[data-status-key]'));
+    event('status_recovery', failed ? 'failed' : 'completed', {
+      name: pendingRecovery.action,
+      correlationId: pendingRecovery.correlationId,
+    });
+  }, 0);
   const stopVitals = observeWebVitals((name, value, outcome) =>
     event('web_vital', outcome, { name, value }));
 
-  globalThis.__pxaBrowserTelemetry = { flush, stopVitals };
+  globalThis.__pxaBrowserTelemetry = { flush, stopVitals, record: event };
 }

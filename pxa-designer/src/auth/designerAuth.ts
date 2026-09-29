@@ -46,6 +46,21 @@ export interface DesignerAccessPresentation {
   openAccount: boolean;
 }
 
+const knownDesignerAuthCodes = new Set([
+  'PXA_DESIGNER_VERIFICATION_REQUIRED', 'PXAAPI010',
+  'PXA_DESIGNER_ACCOUNT_DISABLED', 'PXAAPI015', 'PXA_DESIGNER_ACCOUNT_LOCKED',
+  'PXA_DESIGNER_MEMBERSHIP_INACTIVE', 'PXA_ORGANIZATION_INACTIVE', 'PXAAPI016',
+  'PXA_SUBSCRIPTION_CANCELLED', 'PXA_SUBSCRIPTION_INACTIVE', 'PXA_TRIAL_EXPIRED',
+  'PXA_GRACE_PERIOD_EXPIRED', 'PXA_ENTITLEMENT_EXPIRED',
+  'PXA_ENTITLEMENT_MISSING', 'PXA_ENTITLEMENT_DENIED',
+  'PXA_DESIGNER_PERMISSION_REQUIRED', 'PXA_API_VERSION_INCOMPATIBLE',
+  'PXA_DESIGNER_SESSION_EXPIRED',
+]);
+
+export function isKnownDesignerAuthCode(code?: string): boolean {
+  return !code || knownDesignerAuthCodes.has(code);
+}
+
 export function describeDesignerAuthError(error: DesignerAuthError): DesignerAccessPresentation {
   if (error.offline) {
     return {
@@ -231,15 +246,31 @@ export function shouldRedirectToAccount(pathname: string, error: DesignerAuthErr
   return error.status === 401 && pathname !== '/auth/callback';
 }
 
-function safeCurrentPath(): string {
-  const value = `${location.pathname}${location.search}${location.hash}`;
-  return value.startsWith('/') && !value.startsWith('//') ? value : '/';
+export function safeDesignerReturnPath(
+  pathname = location.pathname,
+  search = location.search,
+  hash = location.hash,
+): string {
+  if (!pathname.startsWith('/') || pathname.startsWith('//')) return '/';
+
+  const source = new URLSearchParams(search);
+  const filtered = new URLSearchParams();
+  const mode = source.get('mode');
+  if (mode === 'code' || mode === 'editor') filtered.set('mode', mode);
+  for (const key of ['templateId', 'provider', 'category']) {
+    const value = source.get(key);
+    if (value && value.length <= 160 && /^[a-z0-9._-]+$/i.test(value)) filtered.set(key, value);
+  }
+
+  const query = filtered.toString();
+  const safeHash = /^#[a-z0-9._-]{1,100}$/i.test(hash) ? hash : '';
+  return `${pathname}${query ? `?${query}` : ''}${safeHash}`;
 }
 
 export async function redirectToAccount(): Promise<never> {
   const verifier = randomValue(64);
   const state = randomValue(32);
-  const returnPath = safeCurrentPath();
+  const returnPath = safeDesignerReturnPath();
   const transaction: AuthTransaction = { verifier, state, returnPath, createdAt: Date.now() };
   sessionStorage.setItem(transactionKey, JSON.stringify(transaction));
 
