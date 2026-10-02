@@ -834,6 +834,10 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var hdrBg      = NormalizeHexColor(el.HeaderBgColor ?? "#f1f5f9", "f1f5f9");
         var zebraColor = el.ZebraEnabled == true ? NormalizeHexColor(el.ZebraColor ?? "#f9fafb", "f9fafb") : null;
         var matrixHeaders = RdlMatrixHeaders(s);
+        var visualRowCount = cellData.Length + matrixHeaders.Count;
+        var minimumRowHeightTwips = el.Height > 0 && visualRowCount > 0
+            ? WordUnitConverter.PxaToTwips(el.Height / visualRowCount)
+            : 0;
 
         // Column widths use PXA units converted through shared converter.
         // Fall back to equal distribution of element width across columns.
@@ -886,7 +890,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
         table.AppendChild(grid);
 
         foreach (var header in matrixHeaders)
-            table.AppendChild(CreateMatrixHeaderRow(header, cols, ColTwips, bw, bc));
+            table.AppendChild(CreateMatrixHeaderRow(header, cols, ColTwips, bw, bc, minimumRowHeightTwips));
 
         for (int r = 0; r < cellData.Length; r++)
         {
@@ -894,9 +898,18 @@ public sealed class WordDocumentExporter : IDocumentExporter
             var isHdr   = hasHdr && r == 0;
             var isZebra = !isHdr && zebraColor != null && r % 2 == 1;
 
-            var tableRow = new TableRow();
+            var rowProperties = new TableRowProperties();
+            if (minimumRowHeightTwips > 0)
+            {
+                rowProperties.AppendChild(new TableRowHeight
+                {
+                    Val = (uint)minimumRowHeightTwips,
+                    HeightType = HeightRuleValues.AtLeast,
+                });
+            }
             if (isHdr)
-                tableRow.AppendChild(new TableRowProperties(new TableHeader()));
+                rowProperties.AppendChild(new TableHeader());
+            var tableRow = new TableRow(rowProperties);
 
             for (int c = 0; c < cols; c++)
             {
@@ -915,10 +928,10 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 if (bgFill is not null)
                     tcp.AppendChild(new Shading { Fill = bgFill, Val = ShadingPatternValues.Clear, Color = "auto" });
                 // CT_TcPr order: tcW(2) -> shd(6) -> vAlign(11)
-                var vAlignVal = el.Style?.GetStr("verticalAlign", "top") switch {
-                    "middle" or "center" => TableVerticalAlignmentValues.Center,
+                var vAlignVal = el.Style?.GetStr("verticalAlign", "middle") switch {
+                    "top"                 => TableVerticalAlignmentValues.Top,
                     "bottom"             => TableVerticalAlignmentValues.Bottom,
-                    _                    => TableVerticalAlignmentValues.Top,
+                    _                    => TableVerticalAlignmentValues.Center,
                 };
                 tcp.AppendChild(new TableCellVerticalAlignment { Val = vAlignVal });
                 tc.AppendChild(tcp);
@@ -984,9 +997,24 @@ public sealed class WordDocumentExporter : IDocumentExporter
         };
     }
 
-    private static TableRow CreateMatrixHeaderRow(string header, int cols, Func<int, int> colTwips, uint borderWidth, string borderColor)
+    private static TableRow CreateMatrixHeaderRow(
+        string header,
+        int cols,
+        Func<int, int> colTwips,
+        uint borderWidth,
+        string borderColor,
+        int minimumRowHeightTwips)
     {
-        var tableRow = new TableRow(new TableRowProperties(new TableHeader()));
+        var rowProperties = new TableRowProperties(new TableHeader());
+        if (minimumRowHeightTwips > 0)
+        {
+            rowProperties.AppendChild(new TableRowHeight
+            {
+                Val = (uint)minimumRowHeightTwips,
+                HeightType = HeightRuleValues.AtLeast,
+            });
+        }
+        var tableRow = new TableRow(rowProperties);
         var tc = new TableCell();
         var totalWidth = Enumerable.Range(0, Math.Max(cols, 1)).Sum(colTwips);
         var props = new TableCellProperties(

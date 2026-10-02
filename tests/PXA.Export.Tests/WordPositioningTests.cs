@@ -119,6 +119,58 @@ public sealed class WordPositioningTests
     }
 
     [Fact]
+    public void Word_Export_UsesElementHeightAsMinimumTableRowHeight()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "table-height",
+            Name = "Table height",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "tbl",
+                            Type = "table",
+                            Width = 300,
+                            Height = 120,
+                            HeaderRow = true,
+                            CellData = [["H1", "H2"], ["A", "B"]],
+                        },
+                    ],
+                },
+            ],
+        };
+
+        var bytes = new WordDocumentExporter().Export(design);
+
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+        var rows = doc.MainDocumentPart!.Document!.Body!
+            .Elements<Table>()
+            .Single()
+            .Elements<TableRow>()
+            .ToArray();
+
+        Assert.Equal(2, rows.Length);
+        Assert.All(rows, row =>
+        {
+            var height = row.TableRowProperties?.GetFirstChild<TableRowHeight>();
+            Assert.NotNull(height);
+            Assert.Equal((uint)1200, height!.Val!.Value); // 120pt / 2 rows = 60pt = 1200 twips
+            Assert.Equal(HeightRuleValues.AtLeast, height.HeightType!.Value);
+            Assert.All(row.Elements<TableCell>(), cell =>
+                Assert.Equal(
+                    TableVerticalAlignmentValues.Center,
+                    cell.TableCellProperties?.GetFirstChild<TableCellVerticalAlignment>()?.Val?.Value));
+        });
+    }
+
+    [Fact]
     public void Word_Export_LegacyMode_UsesTableIndentation_FromElementX()
     {
         var design = new DesignExportDto

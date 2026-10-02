@@ -7,7 +7,7 @@ namespace PXA.Export.Tests;
 public sealed class WordIntegrationParityTests
 {
     [Fact]
-    public void Word_Integration_MultiPage_InsertsExpectedPageBreaks()
+    public void Word_Integration_MultiPage_InsertsExpectedNextPageSections()
     {
         var design = new DesignExportDto
         {
@@ -46,13 +46,19 @@ public sealed class WordIntegrationParityTests
 
         using var ms = new MemoryStream(bytes);
         using var doc = WordprocessingDocument.Open(ms, false);
-        var pageBreakCount = doc.MainDocumentPart!
+        var sectionBreaks = doc.MainDocumentPart!
             .Document!
             .Body!
-            .Descendants<Break>()
-            .Count(b => b.Type?.Value == BreakValues.Page);
+            .Elements<Paragraph>()
+            .SelectMany(paragraph => paragraph.Elements<ParagraphProperties>())
+            .SelectMany(properties => properties.Elements<SectionProperties>())
+            .ToArray();
+        var finalSection = doc.MainDocumentPart.Document.Body.Elements<SectionProperties>().Single();
 
-        Assert.Equal(2, pageBreakCount); // pages-1
+        Assert.Equal(2, sectionBreaks.Length); // pages - 1
+        Assert.All(sectionBreaks, section =>
+            Assert.Equal(SectionMarkValues.NextPage, section.GetFirstChild<SectionType>()?.Val?.Value));
+        Assert.NotNull(finalSection.GetFirstChild<PageSize>());
     }
 
     [Fact]
