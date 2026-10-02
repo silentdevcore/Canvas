@@ -215,6 +215,14 @@ public sealed class PxaSecurityContractsTests
     [InlineData("/api/pxa/v1/migrations/pdf/viewer/convert", "POST", PxaDesignerPermissions.MigrationPdfExecute)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006", "GET", PxaDesignerPermissions.JobsRead)]
     [InlineData("/api/pxa/v1/jobs/58b50226-34ea-480c-936a-837b03445006/cancel", "POST", PxaDesignerPermissions.JobsCancel)]
+    [InlineData("/api/pxa/v1/designer/projects/pdf/export", "POST", PxaDesignerPermissions.PdfExport)]
+    [InlineData("/api/pxa/v1/designer/projects/pdf/open", "POST", PxaDesignerPermissions.PdfImport)]
+    [InlineData("/api/pxa/v1/designer/projects/spreadsheet/export", "POST", PxaDesignerPermissions.SpreadsheetExport)]
+    [InlineData("/api/pxa/v1/designer/projects/spreadsheet/open", "POST", PxaDesignerPermissions.SpreadsheetImport)]
+    [InlineData("/api/pxa/v1/designer/projects/pdf/validate", "POST", PxaDesignerPermissions.PdfTemplatesRead)]
+    [InlineData("/api/pxa/v1/designer/projects/spreadsheet/validate", "POST", PxaDesignerPermissions.SpreadsheetRead)]
+    [InlineData("/api/pxa/v1/designer/projects/pdf/inspect", "POST", PxaDesignerPermissions.PdfTemplatesRead)]
+    [InlineData("/api/pxa/v1/designer/projects/spreadsheet/inspect", "POST", PxaDesignerPermissions.SpreadsheetRead)]
     [InlineData("/api/pxa/v1/pdf/trust/inspect", "POST", PxaDesignerPermissions.PdfTrustInspect)]
     [InlineData("/api/pxa/v1/pdf/compliance/validate", "POST", PxaDesignerPermissions.PdfComplianceValidate)]
     [InlineData("/api/pxa/v1/pdf/compliance/preflight", "POST", PxaDesignerPermissions.PdfComplianceValidate)]
@@ -246,6 +254,7 @@ public sealed class PxaSecurityContractsTests
             typeof(DesignerElementFavoritesController),
             typeof(DesignerFeaturesController),
             typeof(DesignerNotificationsController),
+            typeof(DesignerProjectsController),
             typeof(DesignerSymbolsController),
             typeof(DesignerTemplatesController),
         ];

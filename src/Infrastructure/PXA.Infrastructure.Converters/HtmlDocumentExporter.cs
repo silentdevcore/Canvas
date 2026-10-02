@@ -4,6 +4,7 @@ using System.Text.Json;
 using PXA.Core.Abstractions;
 using PXA.Core.Contracts;
 using PXA.Core.Primitives;
+using PXA.Core.Security;
 
 namespace PXA.Infrastructure.Converters;
 
@@ -102,13 +103,13 @@ public sealed class HtmlDocumentExporter : DocumentExporter
             case "richtext":
                 // Mirror the editor's .editor-richtext (padding/line-height/colour); the
                 // inner HTML carries its own inline formatting.
-                sb.AppendLine($"    <div style=\"{posStyle}{rotation} padding:10px; line-height:1.45; color:#111827;\">{el.HtmlContent ?? ""}</div>");
+                sb.AppendLine($"    <div style=\"{posStyle}{rotation} padding:10px; line-height:1.45; color:#111827;\">{PxaRichTextSanitizer.Sanitize(el.HtmlContent)}</div>");
                 break;
 
             case "link":
             {
                 var textStyle = BuildTextStyle(s);
-                var href = Esc(el.Href ?? "#");
+                var href = Esc(PxaRichTextSanitizer.SanitizeLinkTarget(el.Href) ?? "#");
                 var target = el.LinkTarget ?? "_blank";
                 sb.AppendLine($"    <a href=\"{href}\" target=\"{target}\" rel=\"noopener noreferrer\" style=\"{posStyle}{rotation}{textStyle} text-decoration:underline; color:{s.GetStr("color", "#2563eb")};\">{Esc(el.Content ?? href)}</a>");
                 break;
@@ -116,7 +117,7 @@ public sealed class HtmlDocumentExporter : DocumentExporter
 
             case "button":
             {
-                var href = el.ButtonAction ?? "#";
+                var href = PxaRichTextSanitizer.SanitizeLinkTarget(el.ButtonAction) ?? "#";
                 var bg   = s.GetStr("backgroundColor", "#3b82f6");
                 var color = s.GetStr("color", "#ffffff");
                 var fs   = s.GetNum("fontSize", 14);

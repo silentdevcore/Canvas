@@ -606,7 +606,7 @@ public sealed class CodeWorkspaceConversionTests
         Assert.Equal("customer.name", element.Binding);
         Assert.Equal("rtl", element.TextDirection);
         Assert.Equal("ar", element.Language);
-        Assert.Equal("asset-1", element.Extensions!["assetId"].GetString());
+        Assert.Equal("asset-1", element.AssetId);
         Assert.Equal(["en", "ar"], result.CanonicalDesign.PageSettings!.ActiveLanguages);
     }
 

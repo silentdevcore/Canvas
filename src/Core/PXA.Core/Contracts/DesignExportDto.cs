@@ -228,6 +228,11 @@ public sealed class ElementDto
     public bool? NoteCollapsed { get; set; }
 
     // Image
+    /// <summary>
+    /// Stable package-local image reference in a PXAP document. Persistent Designer documents
+    /// replace this value with an organization-owned asset ID after import.
+    /// </summary>
+    public string? AssetId { get; set; }
     public string? FitMode { get; set; }
     public double? CropX { get; set; }
     public double? CropY { get; set; }

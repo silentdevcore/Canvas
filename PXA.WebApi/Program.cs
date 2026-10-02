@@ -63,7 +63,10 @@ builder.Services.AddProblemDetails(options =>
             context.ProblemDetails.Status ?? StatusCodes.Status500InternalServerError);
 });
 builder.Services.AddOpenApi(options =>
-    options.AddDocumentTransformer<PXA.WebApi.Infrastructure.OpenApi.PxaEInvoiceOpenApiTransformer>());
+{
+    options.AddDocumentTransformer<PXA.WebApi.Infrastructure.OpenApi.PxaEInvoiceOpenApiTransformer>();
+    options.AddDocumentTransformer<PXA.WebApi.Infrastructure.OpenApi.PxaDesignerProjectsOpenApiTransformer>();
+});
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
@@ -392,6 +395,7 @@ builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
 builder.Services.AddScoped<IPxaUsageService, PxaUsageService>();
 builder.Services.AddSingleton<PxaDesignerProductMetadata>();
 builder.Services.AddScoped<IPxaDesignerFeatureGate, PxaDesignerFeatureGate>();
+builder.Services.AddScoped<IPxaDesignerProjectAuditWriter, PxaDesignerProjectAuditWriter>();
 builder.Services.AddOptions<PxaCodeWorkerOptions>()
     .Bind(builder.Configuration.GetSection("CodeWorker"))
     .Validate(options => options.TimeoutSeconds is >= 1 and <= 15 &&

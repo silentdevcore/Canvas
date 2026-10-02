@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace PXA.Core.Contracts;
@@ -25,6 +26,9 @@ public sealed class SpreadsheetDto
     public List<SheetDto> Sheets { get; set; } = [];
     /// <summary>Named ranges (e.g. "Sales" → "Sheet1!$A$1:$A$10").</summary>
     public List<DefinedNameDto> DefinedNames { get; set; } = [];
+    public List<ImportDiagnosticDto>? ImportDiagnostics { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class SheetDto
@@ -50,6 +54,8 @@ public sealed class SheetDto
     public List<DataValidationDto> DataValidations { get; set; } = [];
     /// <summary>Images anchored to worksheet cells. Persisted documents use <see cref="SpreadsheetImageDto.AssetId"/>;</summary>
     public List<SpreadsheetImageDto> Images { get; set; } = [];
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class SpreadsheetImageDto
@@ -66,6 +72,8 @@ public sealed class SpreadsheetImageDto
     public int Width { get; set; } = 160;
     public int Height { get; set; } = 90;
     public string? AltText { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class SheetColumnDto
@@ -161,6 +169,8 @@ public sealed class CellDto
     public string? Comment { get; set; }
     /// <summary>Hyperlink target (URL or internal "Sheet!A1").</summary>
     public string? Hyperlink { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extensions { get; set; }
 }
 
 public sealed class DefinedNameDto

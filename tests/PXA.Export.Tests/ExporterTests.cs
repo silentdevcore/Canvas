@@ -108,6 +108,33 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Html_Export_Sanitizes_RichText_And_Unsafe_Link_Targets()
+    {
+        var design = MinimalDesign();
+        design.Pages[0].Elements =
+        [
+            new ElementDto
+            {
+                Id = "rich", Type = "richtext", Width = 200, Height = 80,
+                HtmlContent = "<p onclick=\"alert(1)\">Safe<script>alert(1)</script></p>",
+            },
+            new ElementDto
+            {
+                Id = "link", Type = "link", Y = 90, Width = 200, Height = 30,
+                Content = "Open", Href = "javascript:alert(1)",
+            },
+        ];
+
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(design));
+
+        Assert.Contains("<p>Safe</p>", html);
+        Assert.DoesNotContain("onclick", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<script>alert(1)</script>", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("javascript:alert(1)", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("href=\"#\"", html);
+    }
+
+    [Fact]
     public void Html_Export_ContainsTableHeader()
     {
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MinimalDesign()));

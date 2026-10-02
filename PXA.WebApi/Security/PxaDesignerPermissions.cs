@@ -162,6 +162,22 @@ public static class PxaDesignerPermissionResolver
                 ? PxaDesignerPermissions.JobsCancel
                 : PxaDesignerPermissions.JobsRead;
 
+        if (StartsWith(value, "/api/pxa/v1/designer/projects"))
+        {
+            var spreadsheet = value.Contains("/spreadsheet/", StringComparison.Ordinal);
+            if (value.EndsWith("/export", StringComparison.Ordinal))
+                return spreadsheet
+                    ? PxaDesignerPermissions.SpreadsheetExport
+                    : PxaDesignerPermissions.PdfExport;
+            if (value.EndsWith("/open", StringComparison.Ordinal))
+                return spreadsheet
+                    ? PxaDesignerPermissions.SpreadsheetImport
+                    : PxaDesignerPermissions.PdfImport;
+            return spreadsheet
+                ? PxaDesignerPermissions.SpreadsheetRead
+                : PxaDesignerPermissions.PdfTemplatesRead;
+        }
+
         if (StartsWith(value, "/api/pxa/v1/migrations"))
         {
             var segments = value.Split('/', StringSplitOptions.RemoveEmptyEntries);
