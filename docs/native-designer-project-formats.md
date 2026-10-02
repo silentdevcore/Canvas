@@ -8,8 +8,8 @@ PXA Designer uses two portable, editable project formats:
 | `.pxas` | PXA Spreadsheet Project | `application/vnd.powerdox.pxas+zip` |
 
 These files preserve editable Designer state. They are not substitutes for a final PDF,
-XLSX, CSV, or other delivery format. The generic `.pxa` extension is reserved and is
-not accepted as either project type.
+XLSX, CSV, or other delivery format. No generic `.pxa` project format is defined;
+only `.pxap` and `.pxas` are accepted.
 
 Unlike PostgreSQL template persistence, a project file is a user-controlled portable
 snapshot. It has no server revision, organization ownership, autosave history, published
@@ -41,6 +41,7 @@ Both formats are ZIP-compatible packages with deterministic entry ordering:
 mimetype
 manifest.json
 document.json
+components/code-workspace.json          # optional, PXAP only
 assets/images/<stable-package-asset-id>.png
 assets/fonts/<stable-package-asset-id>.woff2
 assets/previews/<stable-package-asset-id>.webp
@@ -53,6 +54,12 @@ schema versions, minimum PXA version, document identity, locale, timestamps, ass
 index, per-entry SHA-256 checksums, a canonical content hash, required Designer
 capabilities, and bounded compatibility diagnostics. `document.json` contains
 `DesignExportDto` for PXAP or the PXA Workbook model for PXAS.
+
+PXAP may include `components/code-workspace.json`. This independently versioned,
+`confidential-source` component preserves JSON, C# Model, C# PDF, and Base64 drafts
+plus the canonical design and source map. It is limited to 10 MiB, covered by the
+manifest checksums, and validated as inert JSON. Inspecting or opening a project never
+compiles or executes its source. PXAS rejects this PDF-specific component.
 
 Each asset descriptor records a stable package-local ID, kind, canonical path, safe
 filename, MIME type, byte length, and SHA-256. The supported kinds are `image`, `font`,
@@ -151,6 +158,9 @@ and the matching PDF or Spreadsheet permission.
 Open, validate, and inspect accept multipart field `file`. Save accepts the matching
 canonical JSON document and returns the native media type with a sanitized download
 name. Rejections use Problem Details and a stable `PXAPROJECT...` diagnostic code.
+PDF Designer uses `POST /api/pxa/v1/designer/projects/pdf/export-with-workspace` when
+an optional Code Workspace is included. Existing clients remain compatible with the
+document-only export route.
 Inspect reads and validates the envelope, manifest, declared paths, sizes, versions,
 and integrity metadata without expanding document or asset payloads. It does not prove
 payload checksums; use Validate or Open when full content integrity is required.
@@ -179,6 +189,11 @@ field. The two Open operations additionally accept `reservedIds` as an optional
 JSON-array string. SDK and embedded-engine callers can read directly from a `Stream`;
 `WritePdfAsync` and `WriteSpreadsheetAsync` write a deterministic package to a
 caller-owned writable stream without closing it.
+For local, CLI, and server file paths, `WritePdfFileAtomicallyAsync` and
+`WriteSpreadsheetFileAtomicallyAsync` write to a same-directory temporary file, flush
+it, and replace the destination only after success. Browser download APIs cannot promise
+filesystem-level atomic rename, so the Designer first receives a complete validated
+response blob and only then starts the download.
 
 Small public fixtures are available under `docs/fixtures/native-projects/`. They contain
 only synthetic content and include reproducible SHA-256 hashes. Regenerate them with:
@@ -198,6 +213,8 @@ When an upgrade path is used, the open response includes `upgradeReport` with th
 schema versions, every applied step, the original package SHA-256, loss indicators, and diagnostics.
 The Designer requires review before applying an upgraded project. The original package remains the
 recovery source until the user explicitly saves the upgraded project as a new PXAP or PXAS file.
+Applying the imported design is one undoable transaction, so the previous active PDF or Spreadsheet
+state can also be restored before save.
 If no complete reviewed path exists, PXA rejects the package instead of partially upgrading it.
 
 The package envelope and embedded document schema have independent `major.minor`

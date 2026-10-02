@@ -119,8 +119,8 @@ const editorDocs = [
       'You need to exchange a Spreadsheet Designer workbook without converting it to XLSX first.',
       'You need a validated portable package whose images do not depend on the source organization asset store.',
     ],
-    concepts: ['PXA PDF Project (.pxap)', 'PXA Spreadsheet Project (.pxas)', 'Editable document JSON', 'Package-local assets', 'SHA-256 integrity', 'Schema compatibility'],
-    tasks: ['Save a PDF project', 'Open a PDF project', 'Save a Spreadsheet project', 'Open a Spreadsheet project', 'Validate or inspect a package', 'Troubleshoot PXAPROJECT diagnostics'],
+    concepts: ['PXA PDF Project (.pxap)', 'PXA Spreadsheet Project (.pxas)', 'Editable document JSON', 'Optional Code Workspace', 'Package-local assets', 'SHA-256 integrity', 'Schema compatibility'],
+    tasks: ['Save a PDF project', 'Preserve Code Workspace drafts', 'Open a PDF project', 'Save a Spreadsheet project', 'Open a Spreadsheet project', 'Validate or inspect a package', 'Troubleshoot PXAPROJECT diagnostics'],
     related: [
       { label: 'Native format specification', href: '../../docs/native-designer-project-formats.md' },
       { label: 'Designer image assets', href: '../../docs/architecture/designer-assets.md' },
@@ -136,6 +136,11 @@ const editorDocs = [
         title: 'Open safely',
         json: '1. Choose Open project in the matching Designer.\n2. Select a .pxap or .pxas file.\n3. PXA validates the package before changing the current document.\n4. Packaged images receive fresh organization-owned asset IDs.\n5. Use Undo to return to the previous document.',
         note: 'Passwords, authentication data, tenant asset IDs, external image URLs, executable content, and unverified archive entries are not accepted as portable project content.',
+      },
+      {
+        title: 'Preserve code without executing it',
+        json: '{"path":"components/code-workspace.json","schemaVersion":"1.0","securityClassification":"confidential-source"}',
+        note: 'PXAP can carry JSON and C# drafts plus source maps as an optional integrity-protected component. Opening or inspecting the project never compiles or executes those drafts.',
       },
     ],
   },

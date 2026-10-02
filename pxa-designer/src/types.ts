@@ -257,6 +257,7 @@ export interface Template {
   };
   eInvoice?: TemplateEInvoiceState;
   projectExtensionData?: Record<string, unknown>;
+  projectCodeWorkspace?: import('./services/designerProjectApi').ProjectCodeWorkspace;
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';

@@ -26,7 +26,21 @@ public sealed class DesignerProjectsController(
     [Produces(PxaProjectFormat.PxapMediaType)]
     public async Task<IActionResult> ExportPdf(
         [FromBody] DesignExportDto document,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        await ExportPdfPackage(document, null, cancellationToken);
+
+    [HttpPost("pdf/export-with-workspace")]
+    [Authorize(Policy = PxaDesignerPermissions.PdfExport)]
+    [Produces(PxaProjectFormat.PxapMediaType)]
+    public async Task<IActionResult> ExportPdfWithWorkspace(
+        [FromBody] PxaPdfProjectExportRequest request,
+        CancellationToken cancellationToken = default) =>
+        await ExportPdfPackage(request.Document, request.CodeWorkspace, cancellationToken);
+
+    private async Task<IActionResult> ExportPdfPackage(
+        DesignExportDto document,
+        PxaCodeWorkspaceProjectComponent? codeWorkspace,
+        CancellationToken cancellationToken)
     {
         if (!TryGetActor(out var organizationId, out var userId))
             return Unauthorized();
@@ -34,7 +48,11 @@ public sealed class DesignerProjectsController(
         {
             var assets = PxaProjectAssetMapper.ExtractPdfAssets(document);
             var package = PxaProjectArchive.WritePdf(
-                document, new PxaProjectWriteOptions { Assets = assets }, cancellationToken);
+                document, new PxaProjectWriteOptions
+                {
+                    Assets = assets,
+                    CodeWorkspace = codeWorkspace,
+                }, cancellationToken);
             await WriteAudit(organizationId, userId, document.Id, "pxap", "export", "succeeded",
                 package.LongLength, assets.Count, cancellationToken: cancellationToken);
             return File(package, PxaProjectFormat.PxapMediaType,
@@ -403,7 +421,8 @@ public sealed class DesignerProjectsController(
         return new(package.Manifest, package.Document, package.PackageSha256,
             package.Assets.Select(asset => new PxaProjectAssetInfo(
                 asset.Id, asset.Kind, asset.FileName, asset.ContentType, asset.Content.LongLength)).ToArray(),
-            compatibility, idRemaps ?? new Dictionary<string, string>(), package.UpgradeReport);
+            compatibility, idRemaps ?? new Dictionary<string, string>(), package.UpgradeReport,
+            package.CodeWorkspace);
     }
 }
 
@@ -414,7 +433,12 @@ public sealed record PxaProjectOpenResponse<TDocument>(
     IReadOnlyList<PxaProjectAssetInfo> Assets,
     PxaProjectCompatibilityInfo Compatibility,
     IReadOnlyDictionary<string, string> IdRemaps,
-    PxaProjectUpgradeReport? UpgradeReport);
+    PxaProjectUpgradeReport? UpgradeReport,
+    PxaCodeWorkspaceProjectComponent? CodeWorkspace);
+
+public sealed record PxaPdfProjectExportRequest(
+    DesignExportDto Document,
+    PxaCodeWorkspaceProjectComponent CodeWorkspace);
 
 public sealed record PxaProjectCompatibilityInfo(
     bool RequiresReview,

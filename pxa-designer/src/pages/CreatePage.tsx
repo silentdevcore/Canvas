@@ -18,6 +18,7 @@ import type { Template } from '@/store';
 import type { ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
 import ExportService from '@/services/ExportService';
 import { isProjectOperationCancelled, openPdfProject, preparePdfProjectAssets, savePdfProject, type PdfProjectDocument, type PreparedProjectAssets } from '@/services/designerProjectApi';
+import { getCodeWorkspace, type CodeWorkspace } from '@/services/codeWorkspaceApi';
 import { notify } from '@/notifications/toast';
 import { useTranslation } from 'react-i18next';
 
@@ -219,7 +220,17 @@ const CreatePage: React.FC = () => {
         active.currentTemplate.sharedElements ?? [],
         active.pageSettings,
       ) as PdfProjectDocument;
-      await savePdfProject(document);
+      let codeWorkspace = active.currentTemplate.projectCodeWorkspace;
+      if (active.currentTemplate.persistence?.id) {
+        try {
+          const persisted = await getCodeWorkspace(active.currentTemplate.persistence.id);
+          codeWorkspace = projectWorkspaceFromApi(persisted);
+        } catch (error) {
+          const status = (error as Error & { status?: number }).status;
+          if (status !== 403 && status !== 404) throw error;
+        }
+      }
+      await savePdfProject(document, codeWorkspace);
       notify.success(t('topbar.projectSaved'));
     } catch (error) {
       notify.error(error instanceof Error ? error.message : t('topbar.projectSaveFailed'));
@@ -263,6 +274,7 @@ const CreatePage: React.FC = () => {
           sharedElements: document.sharedElements ?? [],
           data: {},
           projectExtensionData: document.extensionData,
+          projectCodeWorkspace: result.codeWorkspace,
           ...(target?.persistence ? { persistence: target.persistence } : {}),
         },
         normalizePageSettings(document.pageSettings),
@@ -432,5 +444,17 @@ const CreatePage: React.FC = () => {
     </>
   );
 };
+
+const projectWorkspaceFromApi = (workspace: CodeWorkspace) => ({
+  schemaVersion: '1.0' as const,
+  revision: workspace.revision,
+  baseTemplateRevision: workspace.baseTemplateRevision,
+  jsonDraft: workspace.json.source,
+  cSharpModelDraft: workspace.cSharpModel.source,
+  cSharpPdfDraft: workspace.cSharpPdf.source,
+  cSharpBase64Draft: workspace.cSharpBase64.source,
+  canonicalDesignJson: JSON.stringify(workspace.canonicalDesign),
+  sourceMap: workspace.sourceMap,
+});
 
 export default CreatePage;

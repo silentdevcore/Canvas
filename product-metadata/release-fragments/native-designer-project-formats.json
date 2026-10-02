@@ -9,7 +9,7 @@
     "spreadsheet"
   ],
   "category": "added",
-  "summary": "Designer users can save and reopen portable PXA PDF and Spreadsheet project files with editable document content and validated package integrity.",
+  "summary": "Designer users can save and reopen portable PXA PDF and Spreadsheet projects with validated integrity, optional inert Code Workspace drafts, and atomic host-file writers.",
   "featureIds": [],
   "documentation": [
     "/checklists/PXA.Native-Designer-Formats.md"

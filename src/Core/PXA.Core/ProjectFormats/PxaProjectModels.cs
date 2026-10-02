@@ -23,6 +23,7 @@ public static class PxaProjectFormat
     public const string ManifestEntry = "manifest.json";
     public const string MimeTypeEntry = "mimetype";
     public const string DocumentEntry = "document.json";
+    public const string CodeWorkspaceEntry = "components/code-workspace.json";
 
     public static string CurrentProductVersion
     {
@@ -101,12 +102,44 @@ public sealed class PxaProjectManifest
     public string EntryDocument { get; set; } = PxaProjectFormat.DocumentEntry;
     public string ContentHash { get; set; } = "";
     public List<PxaProjectAssetDescriptor> Assets { get; set; } = [];
+    public List<PxaProjectComponentDescriptor> Components { get; set; } = [];
     public SortedDictionary<string, string> EntryChecksums { get; set; } = new(StringComparer.Ordinal);
     public List<string> RequiredFeatures { get; set; } = [];
     public List<PxaProjectDiagnostic> Diagnostics { get; set; } = [];
 
     [JsonExtensionData]
     public Dictionary<string, System.Text.Json.JsonElement>? Extensions { get; set; }
+}
+
+public static class PxaProjectComponentKinds
+{
+    public const string CodeWorkspace = "code-workspace";
+    public const string ConfidentialSource = "confidential-source";
+}
+
+public sealed class PxaProjectComponentDescriptor
+{
+    public string Kind { get; set; } = "";
+    public string Path { get; set; } = "";
+    public string SchemaVersion { get; set; } = "";
+    public string SecurityClassification { get; set; } = "";
+    public long Length { get; set; }
+    public string Sha256 { get; set; } = "";
+}
+
+public sealed class PxaCodeWorkspaceProjectComponent
+{
+    public const string CurrentSchemaVersion = "1.0";
+
+    public string SchemaVersion { get; set; } = CurrentSchemaVersion;
+    public long Revision { get; set; }
+    public long BaseTemplateRevision { get; set; }
+    public string JsonDraft { get; set; } = "";
+    public string CSharpModelDraft { get; set; } = "";
+    public string CSharpPdfDraft { get; set; } = "";
+    public string CSharpBase64Draft { get; set; } = "";
+    public string CanonicalDesignJson { get; set; } = "{}";
+    public System.Text.Json.JsonElement? SourceMap { get; set; }
 }
 
 public sealed class PxaProjectAssetDescriptor
@@ -136,6 +169,7 @@ public sealed class PxaProjectWriteOptions
     public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UnixEpoch;
     public DateTimeOffset ModifiedAtUtc { get; init; } = DateTimeOffset.UnixEpoch;
     public IReadOnlyCollection<PxaProjectAsset> Assets { get; init; } = [];
+    public PxaCodeWorkspaceProjectComponent? CodeWorkspace { get; init; }
     public IReadOnlyDictionary<string, System.Text.Json.JsonElement>? ManifestExtensions { get; init; }
 }
 
@@ -169,6 +203,7 @@ public sealed record PxaProjectPackage<TDocument>(
     string PackageSha256)
 {
     public PxaProjectUpgradeReport? UpgradeReport { get; init; }
+    public PxaCodeWorkspaceProjectComponent? CodeWorkspace { get; init; }
 }
 
 public sealed class PxaProjectFormatException : Exception

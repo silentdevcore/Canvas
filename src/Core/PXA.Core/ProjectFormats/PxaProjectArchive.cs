@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Linq;
 using PXA.Core.Contracts;
@@ -62,6 +63,20 @@ public static class PxaProjectArchive
         var package = WriteSpreadsheet(document, options, cancellationToken);
         await destination.WriteAsync(package, cancellationToken);
     }
+
+    public static Task WritePdfFileAtomicallyAsync(
+        string destinationPath,
+        DesignExportDto document,
+        PxaProjectWriteOptions? options = null,
+        CancellationToken cancellationToken = default) =>
+        WriteFileAtomicallyAsync(destinationPath, WritePdf(document, options, cancellationToken), cancellationToken);
+
+    public static Task WriteSpreadsheetFileAtomicallyAsync(
+        string destinationPath,
+        SpreadsheetDto document,
+        PxaProjectWriteOptions? options = null,
+        CancellationToken cancellationToken = default) =>
+        WriteFileAtomicallyAsync(destinationPath, WriteSpreadsheet(document, options, cancellationToken), cancellationToken);
 
     public static PxaProjectPackage<DesignExportDto> ReadPdf(
         Stream source,
@@ -159,6 +174,7 @@ public static class PxaProjectArchive
             [PxaProjectFormat.DocumentEntry] = PxaCanonicalJson.Serialize(document),
         };
         var assetDescriptors = new List<PxaProjectAssetDescriptor>();
+        var componentDescriptors = new List<PxaProjectComponentDescriptor>();
         var assetIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var asset in options.Assets.OrderBy(item => item.Id, StringComparer.Ordinal))
@@ -182,6 +198,24 @@ public static class PxaProjectArchive
             });
         }
 
+        if (options.CodeWorkspace is not null)
+        {
+            if (kind != PxaProjectKind.Pdf)
+                throw Error("PXAPROJECT016", "Code Workspace components are supported only by PXAP projects.");
+            ValidateCodeWorkspace(options.CodeWorkspace, limits);
+            var bytes = PxaCanonicalJson.Serialize(options.CodeWorkspace);
+            entries.Add(PxaProjectFormat.CodeWorkspaceEntry, bytes);
+            componentDescriptors.Add(new PxaProjectComponentDescriptor
+            {
+                Kind = PxaProjectComponentKinds.CodeWorkspace,
+                Path = PxaProjectFormat.CodeWorkspaceEntry,
+                SchemaVersion = options.CodeWorkspace.SchemaVersion,
+                SecurityClassification = PxaProjectComponentKinds.ConfidentialSource,
+                Length = bytes.LongLength,
+                Sha256 = Sha256(bytes),
+            });
+        }
+
         var checksums = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var entry in entries)
         {
@@ -201,6 +235,7 @@ public static class PxaProjectArchive
             CreatedAtUtc = options.CreatedAtUtc.ToUniversalTime(),
             ModifiedAtUtc = options.ModifiedAtUtc.ToUniversalTime(),
             Assets = assetDescriptors,
+            Components = componentDescriptors,
             EntryChecksums = checksums,
             ContentHash = ContentHash(entries),
             RequiredFeatures = DetectRequiredFeatures(document),
@@ -277,6 +312,15 @@ public static class PxaProjectArchive
                 validated.Entries[descriptor.Path].ToArray(),
                 descriptor.Kind))
             .ToArray();
+        PxaCodeWorkspaceProjectComponent? codeWorkspace = null;
+        var workspaceDescriptor = validated.Manifest.Components.SingleOrDefault(component =>
+            component.Kind == PxaProjectComponentKinds.CodeWorkspace);
+        if (workspaceDescriptor is not null)
+        {
+            codeWorkspace = PxaCanonicalJson.Deserialize<PxaCodeWorkspaceProjectComponent>(
+                validated.Entries[workspaceDescriptor.Path], validated.Limits.MaximumJsonDepth);
+            ValidateCodeWorkspace(codeWorkspace, validated.Limits);
+        }
         var packageHash = Sha256(validated.ArchiveBytes);
         if (upgrade.Report is not null)
             upgrade.Report.OriginalPackageSha256 = packageHash;
@@ -287,6 +331,7 @@ public static class PxaProjectArchive
             packageHash)
         {
             UpgradeReport = upgrade.Report,
+            CodeWorkspace = codeWorkspace,
         };
     }
 
@@ -386,6 +431,7 @@ public static class PxaProjectArchive
                 throw Error("PXAPROJECT007", "A project asset failed integrity validation.");
             ValidateAssetContent(asset.ContentType, content, limits);
         }
+        AddAndValidateComponents(manifest, entries, expectedPaths, limits, budget);
         if (!expectedPaths.SetEquals(entries.Keys))
             throw Error("PXAPROJECT008", "The project package contains undeclared entries.");
 
@@ -425,6 +471,7 @@ public static class PxaProjectArchive
             if (!entries.TryGetValue(asset.Path, out var entry) || entry.Length != asset.Length)
                 throw Error("PXAPROJECT008", "A declared project asset is missing or has an invalid length.");
         }
+        AddAndValidateComponentEnvelopes(manifest, entries, expectedPaths, limits, budget);
         if (!expectedPaths.SetEquals(entries.Keys))
             throw Error("PXAPROJECT008", "The project package contains undeclared entries.");
 
@@ -441,7 +488,7 @@ public static class PxaProjectArchive
         PxaProjectKind kind,
         PxaProjectReadLimits limits)
     {
-        if (manifest.Assets is null || manifest.EntryChecksums is null)
+        if (manifest.Assets is null || manifest.Components is null || manifest.EntryChecksums is null)
             throw Error("PXAPROJECT008", "The project manifest is incomplete.");
         manifest.RequiredFeatures ??= [];
         manifest.Diagnostics ??= [];
@@ -1109,6 +1156,120 @@ public static class PxaProjectArchive
             throw Error("PXAPROJECT008", "The project modification time cannot precede its creation time.");
         if (options.Assets.Count > 250)
             throw Error("PXAPROJECT005", "The project contains too many assets.");
+    }
+
+    private static void ValidateCodeWorkspace(
+        PxaCodeWorkspaceProjectComponent workspace,
+        PxaProjectReadLimits limits)
+    {
+        if (workspace.SchemaVersion != PxaCodeWorkspaceProjectComponent.CurrentSchemaVersion ||
+            workspace.Revision < 0 || workspace.BaseTemplateRevision < 0)
+            throw Error("PXAPROJECT016", "The Code Workspace component schema is unsupported.");
+        if (workspace.SourceMap is { } sourceMap &&
+            sourceMap.ValueKind is not (JsonValueKind.Array or JsonValueKind.Object or JsonValueKind.Null))
+            throw Error("PXAPROJECT016", "The Code Workspace source map is invalid.");
+        byte[] bytes;
+        try
+        {
+            bytes = PxaCanonicalJson.Serialize(workspace);
+            using var canonical = JsonDocument.Parse(workspace.CanonicalDesignJson, new JsonDocumentOptions
+            {
+                MaxDepth = limits.MaximumJsonDepth,
+                CommentHandling = JsonCommentHandling.Disallow,
+                AllowTrailingCommas = false,
+            });
+            if (canonical.RootElement.ValueKind != JsonValueKind.Object)
+                throw new JsonException("The canonical design must be a JSON object.");
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
+        {
+            throw Error("PXAPROJECT016", "The Code Workspace component contains invalid JSON.");
+        }
+        if (bytes.LongLength > 10 * 1024 * 1024)
+            throw Error("PXAPROJECT005", "The Code Workspace component exceeds its 10 MiB size limit.");
+    }
+
+    private static void AddAndValidateComponents(
+        PxaProjectManifest manifest,
+        IReadOnlyDictionary<string, byte[]> entries,
+        ISet<string> expectedPaths,
+        PxaProjectReadLimits limits,
+        ProcessingBudget budget)
+    {
+        if (manifest.Components.Count > 1)
+            throw Error("PXAPROJECT016", "The project contains unsupported duplicate components.");
+        foreach (var component in manifest.Components)
+        {
+            budget.ThrowIfExceeded();
+            ValidateComponentDescriptor(component);
+            if (!expectedPaths.Add(component.Path) || !entries.TryGetValue(component.Path, out var content) ||
+                content.LongLength != component.Length || Sha256(content) != component.Sha256)
+                throw Error("PXAPROJECT007", "A project component failed integrity validation.");
+            var workspace = PxaCanonicalJson.Deserialize<PxaCodeWorkspaceProjectComponent>(content, limits.MaximumJsonDepth);
+            ValidateCodeWorkspace(workspace, limits);
+        }
+    }
+
+    private static void AddAndValidateComponentEnvelopes(
+        PxaProjectManifest manifest,
+        IReadOnlyDictionary<string, ZipArchiveEntry> entries,
+        ISet<string> expectedPaths,
+        PxaProjectReadLimits limits,
+        ProcessingBudget budget)
+    {
+        if (manifest.Components.Count > 1)
+            throw Error("PXAPROJECT016", "The project contains unsupported duplicate components.");
+        foreach (var component in manifest.Components)
+        {
+            budget.ThrowIfExceeded();
+            ValidateComponentDescriptor(component);
+            if (!expectedPaths.Add(component.Path) || !entries.TryGetValue(component.Path, out var entry) ||
+                entry.Length != component.Length || entry.Length > limits.MaximumEntryBytes)
+                throw Error("PXAPROJECT008", "A declared project component is missing or has an invalid length.");
+        }
+    }
+
+    private static void ValidateComponentDescriptor(PxaProjectComponentDescriptor component)
+    {
+        if (component.Kind != PxaProjectComponentKinds.CodeWorkspace ||
+            component.Path != PxaProjectFormat.CodeWorkspaceEntry ||
+            component.SchemaVersion != PxaCodeWorkspaceProjectComponent.CurrentSchemaVersion ||
+            component.SecurityClassification != PxaProjectComponentKinds.ConfidentialSource ||
+            component.Length < 0 || component.Length > 10 * 1024 * 1024 || !IsSha256(component.Sha256))
+            throw Error("PXAPROJECT016", "A project component descriptor is invalid.");
+        ValidatePath(component.Path);
+    }
+
+    private static async Task WriteFileAtomicallyAsync(
+        string destinationPath,
+        byte[] package,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        var fullPath = Path.GetFullPath(destinationPath);
+        var directory = Path.GetDirectoryName(fullPath)
+            ?? throw new ArgumentException("The destination must include a directory.", nameof(destinationPath));
+        if (!Directory.Exists(directory))
+            throw new DirectoryNotFoundException($"The destination directory does not exist: '{directory}'.");
+        var temporaryPath = Path.Combine(directory, $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            await using (var stream = new FileStream(
+                temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81_920,
+                FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await stream.WriteAsync(package, cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            File.Move(temporaryPath, fullPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+        }
     }
 
     private static void ValidateDocument<TDocument>(

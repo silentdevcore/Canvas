@@ -21,16 +21,15 @@ or spreadsheet delivery formats.
 - [x] P1: Integrate the formats with Designer persistence, versions, assets, and
   export workflows.
 - [x] P1: Publish format documentation, fixtures, and compatibility guarantees.
-- [ ] P2: Evaluate signatures, organization templates, and a future generic
-  `.pxa` exchange container.
+- [ ] P2: Evaluate signatures and organization templates.
 
 ## Naming And Media Types
 
 - [x] Use lowercase canonical file extensions `.pxap` and `.pxas`; UI labels may
   display them as `PXAP` and `PXAS`.
 - [x] Define PXAP as **PXA PDF Project** and PXAS as **PXA Spreadsheet Project**.
-- [x] Reserve `.pxa` for a possible future multi-document exchange package; do
-  not alias it to either initial format.
+- [x] Retire the generic `.pxa` reservation. Native Designer projects use the
+  explicit `.pxap` and `.pxas` formats only.
 - [x] Register internal media types:
   `application/vnd.powerdox.pxap+zip` and
   `application/vnd.powerdox.pxas+zip`.
@@ -64,7 +63,7 @@ or spreadsheet delivery formats.
 - [x] Preserve pages, per-page layouts, elements, stable IDs, styles, bindings,
   localization, RTL, assets, accessibility, forms, charts, page settings, and
   supported PDF Trust settings.
-- [ ] Preserve Code Workspace drafts and source maps only as optional project
+- [x] Preserve Code Workspace drafts and source maps only as optional project
   components with an explicit schema and security classification.
 - [x] Keep final PDF bytes optional and non-authoritative; reopening must use the
   editable design contract.
@@ -88,7 +87,7 @@ or spreadsheet delivery formats.
 
 - [x] Add `Open project` and `Save project` actions to the PDF and Spreadsheet
   Designer areas.
-- [ ] Use atomic writes through a temporary file and final rename where the host
+- [x] Use atomic writes through a temporary file and final rename where the host
   platform permits it.
 - [x] Validate the complete package before replacing the active document.
 - [x] Open a project as one undoable transaction and leave the current document
@@ -159,10 +158,11 @@ or spreadsheet delivery formats.
 - [x] Test desktop and mobile import states and large-project progress reporting.
 - [ ] Run Designer, API, persistence, Generator, Spreadsheet, Documentation, and
   cross-platform filesystem tests.
-  - Local validation on 2026-10-02 passed Designer (638 tests), Core (121), native
-    project API (18), the full API suite (747 passed / 66 PostgreSQL-only skipped),
+  - Local validation on 2026-10-02 passed Designer (639 tests), Core (126), native
+    project API and OpenAPI contracts (19), the full API suite (747 passed / 66 PostgreSQL-only skipped),
     Generator (137), Spreadsheet (7), Persistence (8 passed / 2 PostgreSQL-only
-    skipped), Documentation (56), and both production builds.
+    skipped), Documentation (56), the complete Solution build, and both production
+    builds. The Designer TypeScript check also passes.
   - The Solution build and all 220 non-LibreOffice Export tests pass. The external
     LibreOffice fidelity run also passes after aligning DOCX table minimum row heights
     and vertical alignment with the PDF renderer; `dense-table-ledger` improved from
@@ -175,7 +175,7 @@ or spreadsheet delivery formats.
 - [x] PXAP and PXAS projects reopen with the same editable content and assets.
 - [x] The two formats cannot be confused with each other or with exported files.
 - [x] A hostile package cannot escape extraction limits or access another tenant.
-- [ ] Package upgrades are explicit, tested, reversible until save, and
+- [x] Package upgrades are explicit, tested, reversible until save, and
   diagnostically transparent.
 - [x] Format documentation and fixtures are sufficient for future SDK support.
 
@@ -188,9 +188,9 @@ or spreadsheet delivery formats.
   [PXA.Designer-Per-Page-Settings-And-Backend-Parity.md](PXA.Designer-Per-Page-Settings-And-Backend-Parity.md).
 - [x] Align version policy with
   [PXA.Application-Versioning-And-Releases.md](PXA.Application-Versioning-And-Releases.md).
-- [ ] Replace the generic `.pxa` reservation in
-  [Rename-To-PXA.md](Rename-To-PXA.md) only after the future container is
-  explicitly specified.
+- [x] Replace the generic `.pxa` reservation in
+  [Rename-To-PXA.md](Rename-To-PXA.md) with the implemented `.pxap` and `.pxas`
+  project formats.
 
 ## Assumptions
 

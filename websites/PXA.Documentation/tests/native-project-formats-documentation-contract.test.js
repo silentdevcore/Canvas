@@ -16,6 +16,10 @@ const workbookSchema = JSON.parse(await readFile(
   new URL('../../../docs/schema/pxa-workbook.schema.json', import.meta.url),
   'utf8',
 ));
+const codeWorkspaceSchema = JSON.parse(await readFile(
+  new URL('../../../docs/schema/pxa-code-workspace.schema.json', import.meta.url),
+  'utf8',
+));
 const openApi = JSON.parse(await readFile(
   new URL('../../../docs/schema/openapi.json', import.meta.url),
   'utf8',
@@ -31,6 +35,7 @@ test('native project formats are a focused public documentation topic', () => {
 test('the technical guide documents all canonical project operations and boundaries', () => {
   for (const route of [
     '/pdf/export', '/pdf/open', '/pdf/validate', '/pdf/inspect',
+    '/pdf/export-with-workspace',
     '/spreadsheet/export', '/spreadsheet/open', '/spreadsheet/validate', '/spreadsheet/inspect',
   ]) assert.match(guide, new RegExp(route.replaceAll('/', '\\/')));
   assert.match(guide, /25 MiB/);
@@ -45,6 +50,9 @@ test('the public manifest schema distinguishes PXAP and PXAS', () => {
   assert.equal(schema.properties.requiredFeatures.uniqueItems, true);
   assert.equal(schema.properties.diagnostics.items.$ref, '#/$defs/diagnostic');
   assert.deepEqual(schema.$defs.diagnostic.properties.severity.enum, ['info', 'warning', 'error']);
+  assert.equal(schema.$defs.component.properties.kind.const, 'code-workspace');
+  assert.equal(codeWorkspaceSchema.properties.schemaVersion.const, '1.0');
+  assert.match(guide, /confidential-source/);
   assert.equal(pdfSchema.properties.importDiagnostics.items.$ref, '#/$defs/importDiagnostic');
   assert.equal(workbookSchema.properties.importDiagnostics.items.$ref, '#/$defs/importDiagnostic');
 });
@@ -88,6 +96,7 @@ test('the guide publishes SDK stream helpers and reproducible synthetic fixtures
 test('the public OpenAPI snapshot exposes stable native project operations', () => {
   const operations = {
     '/api/pxa/v1/designer/projects/pdf/export': 'exportPdfProject',
+    '/api/pxa/v1/designer/projects/pdf/export-with-workspace': 'exportPdfProjectWithWorkspace',
     '/api/pxa/v1/designer/projects/spreadsheet/export': 'exportSpreadsheetProject',
     '/api/pxa/v1/designer/projects/pdf/open': 'openPdfProject',
     '/api/pxa/v1/designer/projects/spreadsheet/open': 'openSpreadsheetProject',
@@ -100,7 +109,8 @@ test('the public OpenAPI snapshot exposes stable native project operations', () 
     assert.equal(openApi.paths[route].post.operationId, operationId);
   }
 
-  for (const route of Object.keys(operations).filter((route) => !route.endsWith('/export'))) {
+  for (const route of Object.keys(operations).filter((route) =>
+    route.endsWith('/open') || route.endsWith('/validate') || route.endsWith('/inspect'))) {
     const properties = openApi.paths[route].post.requestBody
       .content['multipart/form-data'].schema.properties;
     assert.equal(properties.file.format, 'binary');
@@ -119,6 +129,10 @@ test('the public OpenAPI snapshot exposes stable native project operations', () 
   assert.equal(
     openApi.components.schemas.PxaProjectUpgradeReport.properties.steps.items.$ref,
     '#/components/schemas/PxaProjectUpgradeStepInfo',
+  );
+  assert.equal(
+    openApi.components.schemas.PxaProjectManifest.properties.components.items.$ref,
+    '#/components/schemas/PxaProjectComponentDescriptor',
   );
 });
 

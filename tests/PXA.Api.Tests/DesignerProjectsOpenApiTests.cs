@@ -12,6 +12,7 @@ public sealed class DesignerProjectsOpenApiTests
         var routes = new[]
         {
             "/api/pxa/v1/designer/projects/pdf/export",
+            "/api/pxa/v1/designer/projects/pdf/export-with-workspace",
             "/api/pxa/v1/designer/projects/spreadsheet/export",
             "/api/pxa/v1/designer/projects/pdf/open",
             "/api/pxa/v1/designer/projects/spreadsheet/open",
@@ -41,7 +42,10 @@ public sealed class DesignerProjectsOpenApiTests
         }).ToArray();
         Assert.Equal(routes.Length, operationIds.Distinct(StringComparer.Ordinal).Count());
         Assert.All(operationIds, operationId => Assert.False(string.IsNullOrWhiteSpace(operationId)));
-        foreach (var route in routes.Where(route => !route.EndsWith("/export", StringComparison.Ordinal)))
+        foreach (var route in routes.Where(route =>
+                     route.EndsWith("/open", StringComparison.Ordinal) ||
+                     route.EndsWith("/validate", StringComparison.Ordinal) ||
+                     route.EndsWith("/inspect", StringComparison.Ordinal)))
         {
             var operations = Assert.IsAssignableFrom<IDictionary<HttpMethod, OpenApiOperation>>(document.Paths[route].Operations);
             var body = Assert.IsType<OpenApiRequestBody>(operations[HttpMethod.Post].RequestBody);

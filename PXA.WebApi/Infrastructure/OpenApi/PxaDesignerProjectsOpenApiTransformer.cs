@@ -11,6 +11,7 @@ public sealed class PxaDesignerProjectsOpenApiTransformer : IOpenApiDocumentTran
         new Dictionary<string, OperationContract>(StringComparer.Ordinal)
         {
             [$"{Prefix}/pdf/export"] = new("exportPdfProject", "Export a PXA PDF Project", "pxap", true, false),
+            [$"{Prefix}/pdf/export-with-workspace"] = new("exportPdfProjectWithWorkspace", "Export a PXA PDF Project with Code Workspace", "pxap", true, false),
             [$"{Prefix}/spreadsheet/export"] = new("exportSpreadsheetProject", "Export a PXA Spreadsheet Project", "pxas", true, false),
             [$"{Prefix}/pdf/open"] = new("openPdfProject", "Open a PXA PDF Project", "pxap", false, true),
             [$"{Prefix}/spreadsheet/open"] = new("openSpreadsheetProject", "Open a PXA Spreadsheet Project", "pxas", false, true),

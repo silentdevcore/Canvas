@@ -48,6 +48,33 @@ public sealed class DesignerProjectsControllerTests
     }
 
     [Fact]
+    public async Task Pdf_project_export_optionally_preserves_inert_code_workspace()
+    {
+        var document = new DesignExportDto
+        {
+            Id = "pdf-code-project",
+            Name = "Code project",
+            Pages = [new PageDto { Id = "page-1" }],
+        };
+        var workspace = new PxaCodeWorkspaceProjectComponent
+        {
+            Revision = 3,
+            BaseTemplateRevision = 2,
+            JsonDraft = "{}",
+            CSharpPdfDraft = "throw new Exception(\"not executed\");",
+            CanonicalDesignJson = "{\"id\":\"pdf-code-project\"}",
+        };
+
+        var exported = Assert.IsType<FileContentResult>(await controller.ExportPdfWithWorkspace(
+            new PxaPdfProjectExportRequest(document, workspace)));
+        var opened = await OpenPdf(exported.FileContents, "code-project.pxap");
+
+        Assert.NotNull(opened.CodeWorkspace);
+        Assert.Equal(3, opened.CodeWorkspace.Revision);
+        Assert.Equal(workspace.CSharpPdfDraft, opened.CodeWorkspace.CSharpPdfDraft);
+    }
+
+    [Fact]
     public async Task Spreadsheet_project_export_and_open_roundtrip_formulas()
     {
         var workbook = new SpreadsheetDto

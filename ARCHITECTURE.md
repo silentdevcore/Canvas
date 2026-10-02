@@ -5,7 +5,7 @@
 | Name | Meaning |
 |------|---------|
 | Power Dox Automation | Product and website name |
-| PXA | Developer/API/CLI identity and reserved future `.pxa` file-format prefix |
+| PXA | Developer/API/CLI identity and native `.pxap`/`.pxas` project-format prefix |
 | `PXA.*` | Active backend namespaces, project names, and public developer-facing API |
 | `PXA.*` | Historical project/namespace name removed by the breaking PXA rename |
 

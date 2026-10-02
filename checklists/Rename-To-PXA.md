@@ -19,8 +19,8 @@ terms such as editor canvas surfaces, `PdfCanvas`, `SKCanvas`, and third-party A
 - [x] Product/Web name: **Power Dox Automation**
 - [x] Short/developer name: **PXA**
 - [x] CLI name reserved: `pxa`
-- [x] Future generic native file format reserved: `.pxa`; the first dedicated
-  Designer project formats are planned separately as `.pxap` and `.pxas` in
+- [x] Native Designer formats are `.pxap` and `.pxas`; the earlier generic
+  `.pxa` reservation is retired. See
   [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).
 
 ## Namespace Mapping
@@ -205,7 +205,7 @@ Verification for this slice:
 - [x] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
       Started with additive Web API branding discovery endpoint exposed on both legacy
       `/api/system/brand` and PXA `/api/pxa/system/brand` routes. Response advertises
-      Power Dox Automation/PXA naming, reserved `pxa` CLI and `.pxa` extension, and legacy
+      Power Dox Automation/PXA naming, the reserved `pxa` CLI, native `.pxap`/`.pxas` formats, and legacy
       PXA compatibility notes.
       Export API alias added with `/api/pxa/export` while legacy `/api/export` remains compatible.
       Migration API alias added with `/api/pxa/migration` while legacy `/api/migration` remains compatible.
@@ -1070,7 +1070,7 @@ Completed Phase 9 promotion slices:
 
 ## Assumptions
 
-- [x] This checklist reserves `.pxa`; it does not implement the file format.
+- [x] The former `.pxa` reservation was superseded by `.pxap` and `.pxas`.
 - [x] This checklist reserves `pxa`; it does not implement the CLI.
 - [x] Existing uncommitted workspace changes are left untouched.
 - [x] The first implementation block should avoid physical path/project renames unless explicitly approved.

@@ -258,6 +258,114 @@ public sealed class PxaProjectArchiveTests
         Assert.Equal(PxaProjectArchive.WriteSpreadsheet(spreadsheet), spreadsheetStream.ToArray());
     }
 
+    [Fact]
+    public async Task Atomic_file_helpers_replace_complete_packages_and_leave_no_temporary_file()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var path = Path.Combine(directory, "project.pxap");
+            await File.WriteAllTextAsync(path, "previous-content");
+
+            await PxaProjectArchive.WritePdfFileAtomicallyAsync(path, PdfDesign());
+
+            await using var stream = File.OpenRead(path);
+            Assert.Equal(PdfDesign().Id, PxaProjectArchive.ReadPdf(stream).Document.Id);
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxap.*.tmp"));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Cancelled_atomic_file_write_preserves_existing_destination()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var path = Path.Combine(directory, "project.pxas");
+            var original = Encoding.UTF8.GetBytes("previous-content");
+            await File.WriteAllBytesAsync(path, original);
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                PxaProjectArchive.WriteSpreadsheetFileAtomicallyAsync(
+                    path, CompleteSpreadsheet(), cancellationToken: cancellation.Token));
+
+            Assert.Equal(original, await File.ReadAllBytesAsync(path));
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxas.*.tmp"));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Pxap_optionally_roundtrips_code_workspace_without_executing_source()
+    {
+        using var sourceMapDocument = JsonDocument.Parse("[{\"elementId\":\"title\",\"startLine\":2}]");
+        var workspace = new PxaCodeWorkspaceProjectComponent
+        {
+            Revision = 7,
+            BaseTemplateRevision = 4,
+            JsonDraft = "{\"name\":\"draft\"}",
+            CSharpModelDraft = "throw new Exception(\"must not execute\");",
+            CSharpPdfDraft = "System.IO.File.Delete(\"must-not-run\");",
+            CSharpBase64Draft = "Convert.FromBase64String(\"e30=\")",
+            CanonicalDesignJson = "{\"id\":\"pdf-project\"}",
+            SourceMap = sourceMapDocument.RootElement.Clone(),
+        };
+
+        var bytes = PxaProjectArchive.WritePdf(PdfDesign(), new PxaProjectWriteOptions
+        {
+            CodeWorkspace = workspace,
+        });
+        var package = PxaProjectArchive.ReadPdf(new MemoryStream(bytes));
+
+        Assert.NotNull(package.CodeWorkspace);
+        Assert.Equal(7, package.CodeWorkspace.Revision);
+        Assert.Equal(workspace.CSharpModelDraft, package.CodeWorkspace.CSharpModelDraft);
+        Assert.Equal(PxaProjectComponentKinds.ConfidentialSource,
+            Assert.Single(package.Manifest.Components).SecurityClassification);
+        Assert.Equal(PxaProjectFormat.CodeWorkspaceEntry, package.Manifest.Components[0].Path);
+    }
+
+    [Fact]
+    public void Pxas_rejects_pdf_code_workspace_components()
+    {
+        var error = Assert.Throws<PxaProjectFormatException>(() =>
+            PxaProjectArchive.WriteSpreadsheet(CompleteSpreadsheet(), new PxaProjectWriteOptions
+            {
+                CodeWorkspace = new PxaCodeWorkspaceProjectComponent(),
+            }));
+
+        Assert.Equal("PXAPROJECT016", error.Code);
+    }
+
+    [Fact]
+    public void Pxap_without_optional_components_field_remains_compatible()
+    {
+        var bytes = PxaProjectArchive.WritePdf(PdfDesign());
+        using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+        using var manifestStream = archive.GetEntry(PxaProjectFormat.ManifestEntry)!.Open();
+        var manifest = JsonNode.Parse(manifestStream)!.AsObject();
+        Assert.True(manifest.Remove("components"));
+        var legacyPackage = Rewrite(bytes, PxaProjectFormat.ManifestEntry,
+            JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+
+        var reopened = PxaProjectArchive.ReadPdf(new MemoryStream(legacyPackage));
+
+        Assert.Equal(PdfDesign().Id, reopened.Document.Id);
+        Assert.Empty(reopened.Manifest.Components);
+        Assert.Null(reopened.CodeWorkspace);
+    }
+
     [Theory]
     [InlineData("minimal.pxap", PxaProjectKind.Pdf, "pxap")]
     [InlineData("minimal.pxas", PxaProjectKind.Spreadsheet, "pxas")]

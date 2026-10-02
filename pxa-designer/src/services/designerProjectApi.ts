@@ -37,6 +37,18 @@ export interface ProjectUpgradeReport {
   diagnostics: ProjectDiagnostic[];
 }
 
+export interface ProjectCodeWorkspace {
+  schemaVersion: '1.0';
+  revision: number;
+  baseTemplateRevision: number;
+  jsonDraft: string;
+  cSharpModelDraft: string;
+  cSharpPdfDraft: string;
+  cSharpBase64Draft: string;
+  canonicalDesignJson: string;
+  sourceMap?: unknown;
+}
+
 export type ProjectTransferPhase = 'uploading' | 'validating';
 
 export interface ProjectTransferProgress {
@@ -57,7 +69,7 @@ export interface PreparedProjectAssets<T> {
   rollback: () => Promise<void>;
 }
 
-interface ProjectOpenResponse<T> {
+export interface ProjectOpenResponse<T> {
   manifest: {
     title: string;
     formatId: string;
@@ -70,6 +82,7 @@ interface ProjectOpenResponse<T> {
   compatibility?: ProjectCompatibility;
   upgradeReport?: ProjectUpgradeReport;
   idRemaps?: Record<string, string>;
+  codeWorkspace?: ProjectCodeWorkspace;
 }
 
 export class DesignerProjectApiError extends Error {
@@ -198,12 +211,18 @@ const openWithProgress = <T>(
   request.send(form);
 });
 
-const save = async (kind: 'pdf' | 'spreadsheet', document: PdfProjectDocument | Workbook, name: string): Promise<void> => {
-  const response = await fetch(`${base}/${kind}/export`, {
+const save = async (
+  kind: 'pdf' | 'spreadsheet',
+  document: PdfProjectDocument | Workbook,
+  name: string,
+  codeWorkspace?: ProjectCodeWorkspace,
+): Promise<void> => {
+  const includeWorkspace = kind === 'pdf' && codeWorkspace !== undefined;
+  const response = await fetch(`${base}/${kind}/${includeWorkspace ? 'export-with-workspace' : 'export'}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', Accept: kind === 'pdf' ? 'application/vnd.powerdox.pxap+zip' : 'application/vnd.powerdox.pxas+zip' },
-    body: JSON.stringify(document),
+    body: JSON.stringify(includeWorkspace ? { document, codeWorkspace } : document),
   });
   if (!response.ok) return throwResponse(response);
   const blob = await response.blob();
@@ -301,7 +320,8 @@ const requireUpgradeReview = <T>(result: ProjectOpenResponse<T>): ProjectOpenRes
   };
 };
 
-export const savePdfProject = (document: PdfProjectDocument) => save('pdf', document, document.name);
+export const savePdfProject = (document: PdfProjectDocument, codeWorkspace?: ProjectCodeWorkspace) =>
+  save('pdf', document, document.name, codeWorkspace);
 export const openPdfProject = async (
   file: File,
   reservedIds: readonly string[] = [],

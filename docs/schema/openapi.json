@@ -16046,6 +16046,44 @@
         }
       }
     },
+    "/api/pxa/v1/designer/projects/pdf/export-with-workspace": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Export a PXA PDF Project with Code Workspace",
+        "description": "Streams a deterministic .pxap package. The response media type is the native PXA project media type and Content-Disposition supplies the sanitized filename.",
+        "operationId": "exportPdfProjectWithWorkspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PxaPdfProjectExportRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PxaPdfProjectExportRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PxaPdfProjectExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.powerdox.pxap+zip": {}
+            }
+          }
+        }
+      }
+    },
     "/api/pxa/v1/designer/projects/spreadsheet/export": {
       "post": {
         "tags": [
@@ -28574,6 +28612,39 @@
           }
         }
       },
+      "PxaCodeWorkspaceProjectComponent": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": { "type": "string" },
+          "revision": { "type": "integer", "format": "int64" },
+          "baseTemplateRevision": { "type": "integer", "format": "int64" },
+          "jsonDraft": { "type": "string" },
+          "cSharpModelDraft": { "type": "string" },
+          "cSharpPdfDraft": { "type": "string" },
+          "cSharpBase64Draft": { "type": "string" },
+          "canonicalDesignJson": { "type": "string" },
+          "sourceMap": {}
+        }
+      },
+      "PxaPdfProjectExportRequest": {
+        "required": ["document", "codeWorkspace"],
+        "type": "object",
+        "properties": {
+          "document": { "$ref": "#/components/schemas/DesignExportDto" },
+          "codeWorkspace": { "$ref": "#/components/schemas/PxaCodeWorkspaceProjectComponent" }
+        }
+      },
+      "PxaProjectComponentDescriptor": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string" },
+          "path": { "type": "string" },
+          "schemaVersion": { "type": "string" },
+          "securityClassification": { "type": "string" },
+          "length": { "type": "integer", "format": "int64" },
+          "sha256": { "type": "string" }
+        }
+      },
       "PxaProjectDiagnostic": {
         "type": "object",
         "properties": {
@@ -28674,6 +28745,12 @@
               "$ref": "#/components/schemas/PxaProjectAssetDescriptor"
             }
           },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectComponentDescriptor"
+            }
+          },
           "entryChecksums": {
             "type": "object",
             "additionalProperties": {
@@ -28702,7 +28779,8 @@
           "assets",
           "compatibility",
           "idRemaps",
-          "upgradeReport"
+          "upgradeReport",
+          "codeWorkspace"
         ],
         "type": "object",
         "properties": {
@@ -28742,6 +28820,12 @@
               { "type": "null" },
               { "$ref": "#/components/schemas/PxaProjectUpgradeReport" }
             ]
+          },
+          "codeWorkspace": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/PxaCodeWorkspaceProjectComponent" }
+            ]
           }
         }
       },
@@ -28753,7 +28837,8 @@
           "assets",
           "compatibility",
           "idRemaps",
-          "upgradeReport"
+          "upgradeReport",
+          "codeWorkspace"
         ],
         "type": "object",
         "properties": {
@@ -28792,6 +28877,12 @@
             "oneOf": [
               { "type": "null" },
               { "$ref": "#/components/schemas/PxaProjectUpgradeReport" }
+            ]
+          },
+          "codeWorkspace": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/PxaCodeWorkspaceProjectComponent" }
             ]
           }
         }

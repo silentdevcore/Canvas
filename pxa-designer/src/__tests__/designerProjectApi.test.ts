@@ -5,6 +5,7 @@ import {
   openSpreadsheetProject,
   preparePdfProjectAssets,
   projectCompatibilitySummary,
+  savePdfProject,
   storePdfProjectAssets,
 } from '@/services/designerProjectApi';
 import { deleteDesignerAsset, uploadDesignerImage } from '@/services/designerAssetApi';
@@ -75,6 +76,45 @@ describe('Designer project API', () => {
     await openSpreadsheetProject(new File(['project'], 'budget.pxas'));
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/pxa/v1/designer/projects/spreadsheet/open');
+  });
+
+  test('exports an optional code workspace through the protected package endpoint', async () => {
+    const createObjectUrl = jest.fn(() => 'blob:project');
+    const revokeObjectUrl = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revokeObjectUrl });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      headers: new Headers({
+        'Content-Type': 'application/vnd.powerdox.pxap+zip',
+        'Content-Disposition': 'attachment; filename="project.pxap"',
+      }),
+      blob: async () => new Blob(['package'], { type: 'application/vnd.powerdox.pxap+zip' }),
+    });
+    const document = { id: 'project', name: 'Project', pages: [] };
+    const codeWorkspace = {
+      schemaVersion: '1.0' as const,
+      revision: 2,
+      baseTemplateRevision: 1,
+      jsonDraft: '{}',
+      cSharpModelDraft: '',
+      cSharpPdfDraft: '',
+      cSharpBase64Draft: '',
+      canonicalDesignJson: '{}',
+      sourceMap: [],
+    };
+
+    await savePdfProject(document, codeWorkspace);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/pxa/v1/designer/projects/pdf/export-with-workspace',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ document, codeWorkspace }),
+      }),
+    );
+    expect(createObjectUrl).toHaveBeenCalledTimes(1);
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:project');
   });
 
   test('captures unknown PDF document, page, and settings properties for re-export', async () => {
