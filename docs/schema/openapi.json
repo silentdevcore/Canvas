@@ -16007,6 +16007,402 @@
           }
         }
       }
+    },
+    "/api/pxa/v1/designer/projects/pdf/export": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Export a PXA PDF Project",
+        "description": "Streams a deterministic .pxap package. The response media type is the native PXA project media type and Content-Disposition supplies the sanitized filename.",
+        "operationId": "exportPdfProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DesignExportDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DesignExportDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DesignExportDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.powerdox.pxap+zip": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/spreadsheet/export": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Export a PXA Spreadsheet Project",
+        "description": "Streams a deterministic .pxas package. The response media type is the native PXA project media type and Content-Disposition supplies the sanitized filename.",
+        "operationId": "exportSpreadsheetProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpreadsheetDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpreadsheetDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpreadsheetDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.powerdox.pxas+zip": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/pdf/open": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Open a PXA PDF Project",
+        "description": "Accepts a bounded .pxap package as multipart field `file`. Optional `reservedIds` is a JSON string array used only to remap IDs that collide with the selected target.",
+        "operationId": "openPdfProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  },
+                  "reservedIds": {
+                    "type": "string",
+                    "description": "Optional JSON array of stable IDs already used by the selected import target."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfDesignExportDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfDesignExportDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfDesignExportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/spreadsheet/open": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Open a PXA Spreadsheet Project",
+        "description": "Accepts a bounded .pxas package as multipart field `file`. Optional `reservedIds` is a JSON string array used only to remap IDs that collide with the selected target.",
+        "operationId": "openSpreadsheetProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  },
+                  "reservedIds": {
+                    "type": "string",
+                    "description": "Optional JSON array of stable IDs already used by the selected import target."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfSpreadsheetDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfSpreadsheetDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectOpenResponseOfSpreadsheetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/pdf/validate": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Validate a PXA PDF Project",
+        "description": "Accepts a bounded .pxap package as multipart field `file`.",
+        "operationId": "validatePdfProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/spreadsheet/validate": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Validate a PXA Spreadsheet Project",
+        "description": "Accepts a bounded .pxas package as multipart field `file`.",
+        "operationId": "validateSpreadsheetProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/pdf/inspect": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Inspect a PXA PDF Project",
+        "description": "Accepts a bounded .pxap package as multipart field `file`.",
+        "operationId": "inspectPdfProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pxa/v1/designer/projects/spreadsheet/inspect": {
+      "post": {
+        "tags": [
+          "Designer Projects"
+        ],
+        "summary": "Inspect a PXA Spreadsheet Project",
+        "description": "Accepts a bounded .pxas package as multipart field `file`.",
+        "operationId": "inspectSpreadsheetProject",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The native PXA project package.",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PxaProjectManifest"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -19060,7 +19456,7 @@
               "string"
             ]
           },
-          "fallbackValue": { },
+          "fallbackValue": {},
           "formatter": {
             "type": [
               "null",
@@ -23346,7 +23742,7 @@
           }
         }
       },
-      "JsonElement": { },
+      "JsonElement": {},
       "LangOverrideDto": {
         "type": "object",
         "properties": {
@@ -23883,8 +24279,12 @@
           },
           "layout": {
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/components/schemas/PageLayoutDto" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PageLayoutDto"
+              }
             ]
           },
           "elements": {
@@ -23898,19 +24298,64 @@
       "PageLayoutDto": {
         "type": "object",
         "properties": {
-          "width": { "type": ["null", "number", "string"], "format": "double" },
-          "height": { "type": ["null", "number", "string"], "format": "double" },
-          "orientation": { "type": ["null", "string"] },
-          "backgroundColor": { "type": ["null", "string"] },
-          "backgroundImage": { "type": ["null", "string"] },
-          "backgroundImageFit": { "type": ["null", "string"] },
-          "margins": {
-            "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/components/schemas/MarginsDto" }
+          "width": {
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "height": {
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "orientation": {
+            "type": [
+              "null",
+              "string"
             ]
           },
-          "bleedSize": { "type": ["null", "number", "string"], "format": "double" }
+          "backgroundColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backgroundImage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backgroundImageFit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "margins": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarginsDto"
+              }
+            ]
+          },
+          "bleedSize": {
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
         }
       },
       "PageNumberConfig": {
@@ -24097,7 +24542,10 @@
           },
           "bleedSize": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": ["number", "string"],
+            "type": [
+              "number",
+              "string"
+            ],
             "format": "double"
           },
           "pageNumbering": {
@@ -24582,8 +25030,8 @@
           "kind": {
             "type": "string"
           },
-          "value": { },
-          "originalValue": { },
+          "value": {},
+          "originalValue": {},
           "options": {
             "type": "array",
             "items": {
@@ -27122,7 +27570,7 @@
           "templateId": {
             "type": "string"
           },
-          "payload": { },
+          "payload": {},
           "templateVersion": {
             "type": [
               "null",
@@ -28035,6 +28483,335 @@
               "string"
             ],
             "format": "double"
+          }
+        }
+      },
+      "PxaProjectAssetDescriptor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "length": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        }
+      },
+      "PxaProjectAssetInfo": {
+        "required": [
+          "id",
+          "kind",
+          "fileName",
+          "contentType",
+          "length"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "length": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "PxaProjectCompatibilityInfo": {
+        "required": [
+          "requiresReview",
+          "missingFeatures",
+          "diagnostics"
+        ],
+        "type": "object",
+        "properties": {
+          "requiresReview": {
+            "type": "boolean"
+          },
+          "missingFeatures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectDiagnostic"
+            }
+          }
+        }
+      },
+      "PxaProjectDiagnostic": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PxaProjectUpgradeStepInfo": {
+        "required": [
+          "fromVersion",
+          "toVersion",
+          "isLossy"
+        ],
+        "type": "object",
+        "properties": {
+          "fromVersion": { "type": "string" },
+          "toVersion": { "type": "string" },
+          "isLossy": { "type": "boolean" }
+        }
+      },
+      "PxaProjectUpgradeReport": {
+        "type": "object",
+        "properties": {
+          "sourceVersion": { "type": "string" },
+          "targetVersion": { "type": "string" },
+          "originalPackageSha256": { "type": "string" },
+          "isLossy": { "type": "boolean" },
+          "steps": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PxaProjectUpgradeStepInfo" }
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PxaProjectDiagnostic" }
+          }
+        }
+      },
+      "PxaProjectManifest": {
+        "type": "object",
+        "properties": {
+          "magic": {
+            "type": "string"
+          },
+          "formatId": {
+            "type": "string"
+          },
+          "mediaType": {
+            "type": "string"
+          },
+          "envelopeVersion": {
+            "type": "string"
+          },
+          "documentSchemaVersion": {
+            "type": "string"
+          },
+          "minimumPxaVersion": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "entryDocument": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectAssetDescriptor"
+            }
+          },
+          "entryChecksums": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "requiredFeatures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectDiagnostic"
+            }
+          }
+        }
+      },
+      "PxaProjectOpenResponseOfDesignExportDto": {
+        "required": [
+          "manifest",
+          "document",
+          "packageSha256",
+          "assets",
+          "compatibility",
+          "idRemaps",
+          "upgradeReport"
+        ],
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/PxaProjectManifest"
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DesignExportDto"
+              }
+            ]
+          },
+          "packageSha256": {
+            "type": "string"
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectAssetInfo"
+            }
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/PxaProjectCompatibilityInfo"
+          },
+          "idRemaps": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "upgradeReport": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/PxaProjectUpgradeReport" }
+            ]
+          }
+        }
+      },
+      "PxaProjectOpenResponseOfSpreadsheetDto": {
+        "required": [
+          "manifest",
+          "document",
+          "packageSha256",
+          "assets",
+          "compatibility",
+          "idRemaps",
+          "upgradeReport"
+        ],
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/PxaProjectManifest"
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SpreadsheetDto"
+              }
+            ]
+          },
+          "packageSha256": {
+            "type": "string"
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PxaProjectAssetInfo"
+            }
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/PxaProjectCompatibilityInfo"
+          },
+          "idRemaps": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "upgradeReport": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/PxaProjectUpgradeReport" }
+            ]
+          }
+        }
+      },
+      "PxaProjectValidationResponse": {
+        "required": [
+          "valid",
+          "manifest",
+          "packageSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/PxaProjectManifest"
+          },
+          "packageSha256": {
+            "type": "string"
           }
         }
       }

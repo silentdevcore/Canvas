@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-designer-project-formats",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "added",
+  "summary": "Designer users can save and reopen portable PXA PDF and Spreadsheet project files with editable document content and validated package integrity.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Native-Designer-Formats.md"
+  ],
+  "breaking": false
+}

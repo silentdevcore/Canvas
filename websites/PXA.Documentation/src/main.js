@@ -19,6 +19,11 @@ const editorSections = [
     text: 'Create and inspect PXA document templates in the visual designer, then preview output and review JSON.',
   },
   {
+    title: 'Project Files',
+    status: 'Ready',
+    text: 'Save and reopen portable PXA PDF (.pxap) and Spreadsheet (.pxas) projects with editable content and validated image assets.',
+  },
+  {
     title: 'Templates',
     status: 'Preview',
     text: 'Understand pages, shared elements, bindings, repeats, and template structure before connecting data.',
@@ -102,6 +107,36 @@ const editorDocs = [
       { label: 'Live designer', href: siteLinks.designer },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Master-detail demo', href: `${siteLinks.demo}#demo/master-detail-report` },
+    ],
+  },
+  {
+    title: 'Project Files',
+    status: 'Ready',
+    purpose:
+      'Use PXAP and PXAS when editable Designer work must be transferred, reviewed, archived as a working project, or reopened on another authorized PXA installation.',
+    whenToUse: [
+      'You want to continue editing a PDF Designer document later or on another device.',
+      'You need to exchange a Spreadsheet Designer workbook without converting it to XLSX first.',
+      'You need a validated portable package whose images do not depend on the source organization asset store.',
+    ],
+    concepts: ['PXA PDF Project (.pxap)', 'PXA Spreadsheet Project (.pxas)', 'Editable document JSON', 'Package-local assets', 'SHA-256 integrity', 'Schema compatibility'],
+    tasks: ['Save a PDF project', 'Open a PDF project', 'Save a Spreadsheet project', 'Open a Spreadsheet project', 'Validate or inspect a package', 'Troubleshoot PXAPROJECT diagnostics'],
+    related: [
+      { label: 'Native format specification', href: '../../docs/native-designer-project-formats.md' },
+      { label: 'Designer image assets', href: '../../docs/architecture/designer-assets.md' },
+      { label: 'Open Designer', href: siteLinks.designer },
+    ],
+    examples: [
+      {
+        title: 'Choose the correct project type',
+        json: '{"pdfDesigner":"report.pxap","spreadsheetDesigner":"forecast.pxas","finalOutputs":["report.pdf","forecast.xlsx"]}',
+        note: 'PXAP and PXAS are editable project packages. They are deliberately incompatible with each other and are not final PDF or Spreadsheet delivery files.',
+      },
+      {
+        title: 'Open safely',
+        json: '1. Choose Open project in the matching Designer.\n2. Select a .pxap or .pxas file.\n3. PXA validates the package before changing the current document.\n4. Packaged images receive fresh organization-owned asset IDs.\n5. Use Undo to return to the previous document.',
+        note: 'Passwords, authentication data, tenant asset IDs, external image URLs, executable content, and unverified archive entries are not accepted as portable project content.',
+      },
     ],
   },
   {

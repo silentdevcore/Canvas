@@ -20,10 +20,25 @@
       "description": "Elements repeated on every page (headers/footers/watermarks).",
       "items": { "$ref": "#/$defs/element" }
     },
-    "pageSettings": { "$ref": "#/$defs/pageSettings" }
+    "pageSettings": { "$ref": "#/$defs/pageSettings" },
+    "importDiagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/importDiagnostic" }
+    }
   },
   "additionalProperties": true,
   "$defs": {
+    "importDiagnostic": {
+      "type": "object",
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "type": "string" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" },
+        "source": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "page": {
       "type": "object",
       "required": ["id", "elements"],
@@ -78,6 +93,7 @@
       "required": ["id", "type", "x", "y", "width", "height"],
       "properties": {
         "id": { "type": "string" },
+        "assetId": { "type": "string", "description": "Organization-owned asset ID in persisted Designer JSON or package-local asset ID inside PXAP." },
         "type": {
           "type": "string",
           "description": "The element type.",

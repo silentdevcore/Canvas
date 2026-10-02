@@ -160,3 +160,13 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [ ] Add real-time multi-user collaboration and presence.
 - [ ] Add branches, reviews, approvals, and merge operations.
 - [ ] Add privileged ownership transfer and permanent deletion.
+
+## Native Project Format Integration
+
+- [x] Keep portable `.pxap` files tenant-neutral while resolving embedded images into
+  organization-owned assets before applying the document.
+- [x] Preserve the active server template identity and optimistic-concurrency revision when a
+  native project replaces its editable draft content.
+- [x] Roll back newly uploaded assets if applying an opened project fails.
+- [x] Track the package contract and compatibility rules in
+  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).

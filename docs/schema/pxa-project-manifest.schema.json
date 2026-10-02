@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/pxa-project-manifest.schema.json",
+  "title": "PXA Native Project Manifest",
+  "description": "Manifest shared by PXA PDF Project (.pxap) and PXA Spreadsheet Project (.pxas) packages.",
+  "type": "object",
+  "required": [
+    "magic", "formatId", "mediaType", "envelopeVersion", "documentSchemaVersion",
+    "minimumPxaVersion", "documentId", "title", "createdAtUtc", "modifiedAtUtc",
+    "locale", "entryDocument", "contentHash", "assets", "entryChecksums"
+  ],
+  "properties": {
+    "magic": { "enum": ["PXA-PXAP-1", "PXA-PXAS-1"] },
+    "formatId": { "enum": ["pxap", "pxas"] },
+    "mediaType": {
+      "enum": ["application/vnd.powerdox.pxap+zip", "application/vnd.powerdox.pxas+zip"]
+    },
+    "envelopeVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+    "documentSchemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+    "minimumPxaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "documentId": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "modifiedAtUtc": { "type": "string", "format": "date-time" },
+    "locale": { "type": "string", "minLength": 1, "maxLength": 35 },
+    "entryDocument": { "const": "document.json" },
+    "contentHash": { "$ref": "#/$defs/sha256" },
+    "assets": {
+      "type": "array",
+      "maxItems": 250,
+      "items": { "$ref": "#/$defs/asset" }
+    },
+    "entryChecksums": {
+      "type": "object",
+      "propertyNames": { "pattern": "^(mimetype|document\\.json|assets/(images|fonts|previews|sources|data)/[A-Za-z0-9._-]+\\.(png|jpg|gif|webp|svg|ttf|otf|woff|woff2|pdf|json))$" },
+      "additionalProperties": { "$ref": "#/$defs/sha256" }
+    },
+    "requiredFeatures": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "diagnostics": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/diagnostic" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "source": { "type": ["string", "null"], "maxLength": 300 }
+      },
+      "additionalProperties": false
+    },
+    "asset": {
+      "type": "object",
+      "required": ["id", "kind", "path", "fileName", "contentType", "length", "sha256"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,64}$" },
+        "kind": { "enum": ["image", "font", "preview", "source", "data"] },
+        "path": { "type": "string", "pattern": "^assets/(images|fonts|previews|sources|data)/[A-Za-z0-9._-]+\\.(png|jpg|gif|webp|svg|ttf|otf|woff|woff2|pdf|json)$" },
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "contentType": {
+          "enum": [
+            "image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml",
+            "font/ttf", "font/otf", "font/woff", "font/woff2",
+            "application/pdf", "application/json"
+          ]
+        },
+        "length": { "type": "integer", "minimum": 1, "maximum": 20971520 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

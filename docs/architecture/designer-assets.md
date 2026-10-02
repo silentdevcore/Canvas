@@ -41,6 +41,20 @@ Worksheet `images` entries contain an `assetId`, cell anchor (`row`, `col`), dim
 
 XLSX import extracts supported drawings and immediately uploads them to the organization asset store. XLSX export resolves referenced assets only for the duration of the request and embeds them in the generated workbook. The transient `data` field is an import/export transport detail and must not be persisted.
 
+## Native project files
+
+Saving a `.pxap` or `.pxas` project resolves organization-owned PNG and JPEG images,
+places their validated bytes in deterministic `assets/` package entries, and replaces
+the transient image data with package-local references. Tenant asset IDs, content URLs,
+and credentials are never portable project references.
+
+Opening performs the reverse operation only after package checksums, MIME signatures,
+limits, and the complete document model have passed validation. PXA uploads each image
+through the authenticated Asset Store API, receives fresh IDs in the active organization,
+rewrites the document references, and then applies the project to the Designer. See
+[Native Designer Project Formats](../native-designer-project-formats.md) for the package
+contract and API routes.
+
 ## Lifecycle and operations
 
 The Designer does not automatically delete an object when an element is removed because one asset may be referenced by multiple drafts or versions. Explicit deletion is available through the API. Reference tracking, retention policy, and orphan cleanup remain required before exposing a general asset-library delete workflow.

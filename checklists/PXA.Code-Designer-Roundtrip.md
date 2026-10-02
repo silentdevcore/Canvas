@@ -177,3 +177,11 @@ isolated, tenant-aware PXA sandbox.
 - [x] Add UI regression coverage for complete canonical JSON, exact C# request input, mixed page
   layouts, language-scoped elements, and unsaved-template handling.
 - [x] Document the Code Export panel contract and add a customer-facing Patch release fragment.
+
+## Native Project Format Integration
+
+- [x] Use the canonical `DesignExportDto` shared by JSON and Code Workspace conversion as the
+  editable document inside `.pxap` packages.
+- [x] Keep Code Workspace drafts and source maps outside the initial package contract until their
+  schema and security classification are explicitly approved in
+  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).

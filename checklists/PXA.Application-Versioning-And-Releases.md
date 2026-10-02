@@ -88,6 +88,13 @@ deployment controls are tracked in
 - [ ] Add automatic production deployment after stable release approval.
 - [ ] Add package-registry publishing for public PXA SDKs.
 
+## Native Project Compatibility
+
+- [x] Derive native-project minimum product compatibility from the shared application version.
+- [x] Keep package-envelope and document-schema versions independent from the application and API
+  contract versions, as documented in
+  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).
+
 ## Acceptance Criteria
 
 - [x] One file determines the release version of every PXA component.

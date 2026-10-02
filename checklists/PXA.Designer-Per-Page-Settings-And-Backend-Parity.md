@@ -53,3 +53,9 @@
 - [x] All page-oriented exports preserve the effective page layout.
 - [x] Existing documents continue to render unchanged.
 - [x] New page layout fields cannot bypass contract and parity validation.
+
+## Native Project Format Integration
+
+- [x] Preserve document defaults and every per-page physical layout override in `.pxap` projects.
+- [x] Cover mixed page layouts in the native package roundtrip tracked by
+  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).

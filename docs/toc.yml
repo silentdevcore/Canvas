@@ -6,6 +6,8 @@
   href: charts.md
 - name: Code Designer Workspace
   href: code-designer-workspace.md
+- name: Native Designer Project Formats
+  href: native-designer-project-formats.md
 - name: PDF Trust Generator Examples
   href: guides/PXA.Pdf-Trust-Generator-Examples.md
 - name: PDF Trust Migration Examples

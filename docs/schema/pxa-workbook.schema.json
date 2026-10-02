@@ -11,10 +11,25 @@
     "id": { "type": "string", "description": "Unique workbook id." },
     "name": { "type": "string", "description": "Human-readable workbook name." },
     "sheets": { "type": "array", "description": "Worksheets, in order.", "items": { "$ref": "#/$defs/sheet" } },
-    "definedNames": { "type": "array", "description": "Named ranges.", "items": { "$ref": "#/$defs/definedName" } }
+    "definedNames": { "type": "array", "description": "Named ranges.", "items": { "$ref": "#/$defs/definedName" } },
+    "importDiagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/importDiagnostic" }
+    }
   },
   "additionalProperties": true,
   "$defs": {
+    "importDiagnostic": {
+      "type": "object",
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "type": "string" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" },
+        "source": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "sheet": {
       "type": "object",
       "required": ["id", "name"],
