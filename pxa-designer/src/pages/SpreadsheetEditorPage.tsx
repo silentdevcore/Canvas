@@ -4,6 +4,7 @@ import {
   FiBold, FiItalic, FiAlignLeft, FiAlignCenter, FiAlignRight,
   FiRotateCcw, FiRotateCw, FiUpload, FiDownload, FiPlus, FiX,
   FiImage,
+  FiFolder, FiSave,
 } from 'react-icons/fi';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
@@ -12,6 +13,9 @@ import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook } from '../spreadsheet/io';
 import { notify } from '@/notifications/toast';
 import { uploadDesignerImage } from '@/services/designerAssetApi';
+import { isProjectOperationCancelled, openSpreadsheetProject, saveSpreadsheetProject } from '@/services/designerProjectApi';
+import { useProjectImportFlow } from '@/hooks/useProjectImportFlow';
+import ProjectImportNotice from '@/components/Project/ProjectImportNotice';
 import '../styles/spreadsheet.css';
 
 const NUMBER_FORMAT_DEFS: { key: string; value: string | undefined }[] = [
@@ -55,6 +59,7 @@ const SpreadsheetEditorPage: React.FC = () => {
   const renameSheet = useSpreadsheetStore((s) => s.renameSheet);
   const deleteSheet = useSpreadsheetStore((s) => s.deleteSheet);
   const loadWorkbook = useSpreadsheetStore((s) => s.loadWorkbook);
+  const loadProject = useSpreadsheetStore((s) => s.loadProject);
   const toWire = useSpreadsheetStore((s) => s.toWire);
   const setCellMeta = useSpreadsheetStore((s) => s.setCellMeta);
   const patchSheet = useSpreadsheetStore((s) => s.patchSheet);
@@ -69,6 +74,7 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const imageInput = useRef<HTMLInputElement>(null);
+  const projectInput = useRef<HTMLInputElement>(null);
   const exportLock = useRef(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportMenu, setExportMenu] = useState(false);
@@ -76,6 +82,7 @@ const SpreadsheetEditorPage: React.FC = () => {
   const [sheetMenu, setSheetMenu] = useState(false);
   const [rulesMenu, setRulesMenu] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const projectImport = useProjectImportFlow();
   const [cf, setCf] = useState({ type: 'cellIs', operator: 'greaterThan', value: '', value2: '', color: '#ffeb3b' });
   const [dv, setDv] = useState({ type: 'list', operator: 'between', value1: '', value2: '', listSource: '' });
 
@@ -167,6 +174,62 @@ const SpreadsheetEditorPage: React.FC = () => {
     }
   };
 
+  const saveProject = async () => {
+    if (exportLock.current) return;
+    exportLock.current = true;
+    setBusy(t('editor.savingProject'));
+    try {
+      await saveSpreadsheetProject(await SpreadsheetService.buildPortableWorkbook(toWire()));
+      notify.success(t('editor.projectSaved'));
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : t('editor.projectSaveFailed'));
+    } finally {
+      exportLock.current = false;
+      setBusy(null);
+    }
+  };
+
+  const openProject = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || exportLock.current) return;
+    exportLock.current = true;
+    setBusy(t('editor.openingProject'));
+    let preparedAssets: Awaited<ReturnType<typeof SpreadsheetService.prepareEmbeddedImages>> | undefined;
+    try {
+      const current = toWire();
+      const reservedIds = [
+        current.id,
+        ...current.sheets.flatMap(sheet => [
+          sheet.id,
+          ...(sheet.images ?? []).map(image => image.id),
+        ]),
+      ];
+      const signal = projectImport.begin();
+      const result = await openSpreadsheetProject(file, reservedIds, { signal, onProgress: projectImport.report });
+      if (result.compatibility?.requiresReview) {
+        const accepted = await projectImport.review(result.compatibility);
+        if (!accepted) return;
+      }
+      projectImport.stage('assets', 94);
+      preparedAssets = await SpreadsheetService.prepareEmbeddedImages(result.document);
+      const workbook = preparedAssets.workbook;
+      projectImport.stage('applying', 99);
+      loadProject(workbook);
+      preparedAssets.commit();
+      projectImport.finish();
+      notify.success(t('editor.projectOpened'));
+    } catch (err) {
+      await preparedAssets?.rollback();
+      projectImport.fail(err, t('editor.projectOpenFailed'));
+      if (!isProjectOperationCancelled(err))
+        notify.error(err instanceof Error ? err.message : t('editor.projectOpenFailed'));
+    } finally {
+      exportLock.current = false;
+      setBusy(null);
+    }
+  };
+
   const validate = async () => {
     setBusy(t('editor.validating'));
     try {
@@ -180,6 +243,19 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   return (
     <div className="spreadsheet-root">
+      <ProjectImportNotice
+        state={projectImport.state}
+        labels={{
+          opening: t('projectImport.opening'), review: t('projectImport.review'), failed: t('projectImport.failed'),
+          uploading: t('projectImport.uploading'), validating: t('projectImport.validating'), assets: t('projectImport.assets'),
+          applying: t('projectImport.applying'), cancel: t('projectImport.cancel'), dismiss: t('projectImport.dismiss'),
+          openAnyway: t('projectImport.openAnyway'), keepCurrent: t('projectImport.keepCurrent'), preserved: t('projectImport.preserved'),
+          missingFeature: feature => t('projectImport.missingFeature', { feature }),
+        }}
+        onCancel={projectImport.cancel}
+        onDismiss={projectImport.dismiss}
+        onReviewDecision={projectImport.decideReview}
+      />
       <div className="spreadsheet-toolbar">
         <button className="ss-tool" title={t('editor.undo')} onClick={undo}><FiRotateCcw /></button>
         <button className="ss-tool" title={t('editor.redo')} onClick={redo}><FiRotateCw /></button>
@@ -332,6 +408,8 @@ const SpreadsheetEditorPage: React.FC = () => {
         </div>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
+        <button className="ss-tool" title={t('editor.openProject')} disabled={Boolean(busy)} onClick={() => projectInput.current?.click()}><FiFolder /></button>
+        <button className="ss-tool" title={t('editor.saveProject')} disabled={Boolean(busy)} onClick={() => void saveProject()}><FiSave /></button>
         <button className="ss-tool ss-tool--text" title={t('editor.validateTitle')} onClick={validate}>{t('editor.validate')}</button>
         <button className="ss-tool ss-tool--text" title={t('editor.insertImageTitle')} onClick={() => imageInput.current?.click()}><FiImage /> {t('editor.insertImage')}</button>
         {sheet?.images.some(image => image.row === row && image.col === col) && (
@@ -351,6 +429,7 @@ const SpreadsheetEditorPage: React.FC = () => {
           )}
         </div>
         <input ref={fileInput} type="file" accept=".xlsx,.csv,.json" hidden onChange={onImport} />
+        <input ref={projectInput} type="file" accept=".pxas,application/vnd.powerdox.pxas+zip" hidden onChange={openProject} />
         <input ref={imageInput} type="file" accept="image/png,image/jpeg" hidden onChange={onImageUpload} />
       </div>
 

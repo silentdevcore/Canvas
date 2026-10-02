@@ -10,6 +10,12 @@
     "chooseFile": "Elegir archivo",
     "importFailed": "Error al importar. Comprueba el archivo e inténtalo de nuevo."
   },
+  "projectImport": {
+    "opening": "Abriendo proyecto", "review": "Revisar el proyecto antes de abrirlo", "failed": "No se pudo abrir el proyecto",
+    "uploading": "Subiendo proyecto", "validating": "Validando paquete", "assets": "Guardando recursos", "applying": "Aplicando proyecto",
+    "cancel": "Cancelar", "dismiss": "Cerrar", "openAnyway": "Abrir proyecto", "keepCurrent": "Conservar libro actual",
+    "preserved": "El libro actual permanece sin cambios hasta aplicar el proyecto.", "missingFeature": "Función no disponible: {{feature}}"
+  },
   "editor": {
     "undo": "Deshacer",
     "redo": "Rehacer",
@@ -115,6 +121,15 @@
     "unsupportedFile": "Archivo no compatible. Usa .xlsx, .csv o .json.",
     "importFailed": "Error al importar",
     "exportFailed": "Error al exportar",
-    "validationFailed": "Error de validación"
+    "validationFailed": "Error de validación",
+    "openProject": "Abrir proyecto de hoja de cálculo PXA",
+    "saveProject": "Guardar proyecto de hoja de cálculo PXA",
+    "openingProject": "Abriendo proyecto de hoja de cálculo PXA…",
+    "savingProject": "Guardando proyecto de hoja de cálculo PXA…",
+    "projectOpened": "Proyecto de hoja de cálculo PXA abierto.",
+    "projectOpenedWithWarnings": "Revise este proyecto antes de editarlo. {{details}}",
+    "projectSaved": "Proyecto de hoja de cálculo PXA guardado.",
+    "projectOpenFailed": "No se pudo abrir el proyecto de hoja de cálculo PXA.",
+    "projectSaveFailed": "No se pudo guardar el proyecto de hoja de cálculo PXA."
   }
 }

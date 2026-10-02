@@ -645,7 +645,21 @@
     "title": "Ordinateur de bureau requis",
     "body": "L'éditeur est conçu pour les grands écrans. Veuillez l'ouvrir sur un ordinateur de bureau ou une tablette."
   },
+  "projectImport": {
+    "opening": "Ouverture du projet", "review": "Vérifier le projet avant de l’ouvrir", "failed": "Impossible d’ouvrir le projet",
+    "uploading": "Téléversement du projet", "validating": "Validation du paquet", "assets": "Enregistrement des ressources", "applying": "Application du projet",
+    "cancel": "Annuler", "dismiss": "Fermer", "openAnyway": "Ouvrir le projet", "keepCurrent": "Conserver le document actuel",
+    "preserved": "Le document actuel reste inchangé jusqu’à l’application du projet.", "missingFeature": "Fonction indisponible : {{feature}}"
+  },
   "topbar": {
+    "openProject": "Ouvrir un projet PDF PXA",
+    "saveProject": "Enregistrer le projet PDF PXA",
+    "projectOpened": "Projet PDF PXA ouvert.",
+    "projectOpenedWithWarnings": "Vérifiez ce projet avant de le modifier. {{details}}",
+    "projectSaved": "Projet PDF PXA enregistré.",
+    "projectOpenFailed": "Le projet PDF PXA n'a pas pu être ouvert.",
+    "projectSaveFailed": "Le projet PDF PXA n'a pas pu être enregistré.",
+    "projectHasNoPages": "Le projet PDF PXA ne contient aucune page.",
     "backToGallery": "Retour à la galerie",
     "kicker": "Concepteur d'interface",
     "designActions": "Actions de conception",

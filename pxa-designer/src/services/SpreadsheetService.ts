@@ -1,5 +1,11 @@
 import type { Workbook } from '../spreadsheet/types';
-import { designerAssetContentUrl, uploadDesignerImage } from './designerAssetApi';
+import { deleteDesignerAsset, designerAssetContentUrl, uploadDesignerImage } from './designerAssetApi';
+
+export interface PreparedWorkbookAssets {
+  workbook: Workbook;
+  commit: () => void;
+  rollback: () => Promise<void>;
+}
 
 export interface ValidationIssue { severity: string; path: string; message: string; }
 export interface ValidationResult {
@@ -104,33 +110,63 @@ export class SpreadsheetService {
 
   /** Migrates legacy/imported data URLs into organization-owned assets before the workbook enters the store. */
   static async storeEmbeddedImages(workbook: Workbook): Promise<Workbook> {
-    for (const sheet of workbook.sheets) {
-      for (const image of sheet.images ?? []) {
-        if (!image.data) continue;
-        const blob = await (await fetch(image.data)).blob();
-        const asset = await uploadDesignerImage(new File(
-          [blob],
-          image.fileName || `spreadsheet-image.${assetExtension(blob.type)}`,
-          { type: blob.type },
-        ));
-        image.assetId = asset.id;
-        image.contentUrl = asset.contentUrl;
-        image.contentType = asset.contentType;
-        delete image.data;
-      }
-    }
-    return workbook;
+    const prepared = await this.prepareEmbeddedImages(workbook);
+    prepared.commit();
+    return prepared.workbook;
   }
 
-  private static async hydrateImages(workbook: Workbook): Promise<Workbook> {
+  /** Prepares embedded images so callers can roll back uploads if applying the workbook fails. */
+  static async prepareEmbeddedImages(workbook: Workbook): Promise<PreparedWorkbookAssets> {
+    const copy = structuredClone(workbook);
+    const uploadedAssetIds: string[] = [];
+    let settled = false;
+    try {
+      for (const sheet of copy.sheets) {
+        for (const image of sheet.images ?? []) {
+          if (!image.data) continue;
+          const blob = await (await fetch(image.data)).blob();
+          const asset = await uploadDesignerImage(new File(
+            [blob],
+            image.fileName || `spreadsheet-image.${assetExtension(blob.type)}`,
+            { type: blob.type },
+          ));
+          uploadedAssetIds.push(asset.id);
+          image.assetId = asset.id;
+          image.contentUrl = asset.contentUrl;
+          image.contentType = asset.contentType;
+          delete image.data;
+        }
+      }
+      return {
+        workbook: copy,
+        commit: () => { settled = true; },
+        rollback: async () => {
+          if (settled) return;
+          settled = true;
+          await Promise.allSettled(uploadedAssetIds.map(assetId => deleteDesignerAsset(assetId)));
+        },
+      };
+    } catch (error) {
+      await Promise.allSettled(uploadedAssetIds.map(assetId => deleteDesignerAsset(assetId)));
+      throw error;
+    }
+  }
+
+  static async buildPortableWorkbook(workbook: Workbook): Promise<Workbook> {
     const copy = structuredClone(workbook);
     await Promise.all(copy.sheets.flatMap(sheet => (sheet.images ?? []).map(async image => {
       if (!image.assetId) return;
       const response = await fetch(designerAssetContentUrl(image.assetId));
       if (!response.ok) throw new Error(`Spreadsheet image could not be loaded (${response.status}).`);
       image.data = await blobToDataUrl(await response.blob());
+      delete image.assetId;
+      delete image.contentUrl;
     })));
     return copy;
+  }
+
+  private static hydrateImages(workbook: Workbook): Promise<Workbook> {
+    return this.buildPortableWorkbook(workbook);
   }
 }
 

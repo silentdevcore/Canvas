@@ -73,18 +73,28 @@ export class ExportService {
     pages: Page[],
     sharedElements: SimpleElement[] = [],
     pageSettings?: PageSettings,
+    validateTrust = true,
   ) {
     const settings = pageSettings ?? ({ width: 595, height: 842, orientation: 'portrait' } as PageSettings);
-    const trustIssues = validatePdfTrustSettings(settings);
-    if (trustIssues.length > 0) throw new DesignerPdfTrustPreflightError(trustIssues);
+    if (validateTrust) {
+      const trustIssues = validatePdfTrustSettings(settings);
+      if (trustIssues.length > 0) throw new DesignerPdfTrustPreflightError(trustIssues);
+    }
     return {
+      ...(template.projectExtensionData ?? {}),
       id: template.id,
       name: template.name.trim() || 'Untitled document',
       category: template.category,
       description: template.description,
-      pages: pages.map(page => ({ id: page.id, elements: page.elements, layout: page.layout ?? null })),
+      pages: pages.map(page => ({
+        ...(page.extensionData ?? {}),
+        id: page.id,
+        elements: page.elements,
+        layout: page.layout ?? null,
+      })),
       sharedElements,
       pageSettings: {
+        ...(settings.extensionData ?? {}),
         width: settings.width,
         height: settings.height,
         orientation: settings.orientation,
@@ -117,12 +127,33 @@ export class ExportService {
     pages: Page[],
     sharedElements: SimpleElement[],
     pageSettings?: PageSettings,
+    validateTrust = true,
   ) {
     const [hydratedPages, hydratedSharedElements] = await Promise.all([
       this.hydrateAssetPages(pages),
       this.hydrateAssetElements(sharedElements),
     ]);
-    return this.buildDesignPayload(template, hydratedPages, hydratedSharedElements, pageSettings);
+    return this.buildDesignPayload(template, hydratedPages, hydratedSharedElements, pageSettings, validateTrust);
+  }
+
+  /** Builds a portable project payload without tenant-scoped asset references. */
+  static async buildProjectPayload(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+  ) {
+    const payload = await this.buildHydratedDesignPayload(template, pages, sharedElements, pageSettings, false);
+    const portable = structuredClone(payload);
+    for (const element of [
+      ...portable.pages.flatMap(page => page.elements),
+      ...portable.sharedElements,
+    ]) {
+      if (element.type !== 'image') continue;
+      delete element.assetId;
+      delete (element as SimpleElement & { contentUrl?: string }).contentUrl;
+    }
+    return portable;
   }
 
   private static responseFileName(response: Response): string | undefined {

@@ -75,6 +75,8 @@ import {
   FiHelpCircle,
   FiGrid,
   FiStar,
+  FiFolder,
+  FiSave,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
 import { ElementBoundary } from './ElementBoundary';
@@ -179,6 +181,9 @@ interface SimplePxaSurfaceProps {
   onPublish?: () => Promise<string>;
   onArchive?: () => Promise<string>;
   onTemplateRename: (name: string) => void;
+  onOpenProject?: () => void;
+  onSaveProject?: () => void;
+  projectActionPending?: boolean;
   /** Renders only deterministic document pages for the internal visual-parity harness. */
   visualParityMode?: boolean;
 }
@@ -587,6 +592,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   onPublish,
   onArchive,
   onTemplateRename,
+  onOpenProject,
+  onSaveProject,
+  projectActionPending = false,
   visualParityMode = false,
 }) => {
   const { t, i18n } = useTranslation('editor');
@@ -3052,6 +3060,32 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         </div>
 
         <div className="editor-topbar-actions">
+          {onOpenProject && (
+            <motion.button
+              className="editor-icon-button"
+              title={t('topbar.openProject')}
+              aria-label={t('topbar.openProject')}
+              disabled={projectActionPending}
+              onClick={onOpenProject}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <FiFolder />
+            </motion.button>
+          )}
+          {onSaveProject && (
+            <motion.button
+              className="editor-icon-button"
+              title={t('topbar.saveProject')}
+              aria-label={t('topbar.saveProject')}
+              disabled={projectActionPending}
+              onClick={onSaveProject}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <FiSave />
+            </motion.button>
+          )}
           {autosaveState !== 'idle' && (
             <div
               className={`editor-save-status is-${autosaveState}`}

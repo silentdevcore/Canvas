@@ -257,6 +257,73 @@
   cursor: pointer;
 }
 
+.project-import-notice {
+  position: fixed;
+  inset-inline-end: 20px;
+  bottom: 20px;
+  z-index: 620;
+  width: min(460px, calc(100vw - 40px));
+  max-height: min(520px, calc(100vh - 40px));
+  overflow: auto;
+  padding: 16px;
+  color: #292524;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(28 25 23 / 18%);
+}
+
+.project-import-notice.is-review { border-color: #f59e0b; }
+.project-import-notice.is-error { border-color: #ef4444; }
+.project-import-notice header,
+.project-import-progress-row,
+.project-import-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.project-import-notice header strong { flex: 1; }
+.project-import-notice p { margin: 10px 0; font-size: 13px; line-height: 1.45; }
+.project-import-notice ul { margin: 10px 0; padding-inline-start: 20px; font-size: 12px; }
+.project-import-notice li + li { margin-top: 6px; }
+.project-import-progress-row { justify-content: space-between; margin-top: 12px; font-size: 12px; }
+.project-import-progress { height: 6px; margin-top: 6px; overflow: hidden; background: #e7e5e4; border-radius: 3px; }
+.project-import-progress > span { display: block; height: 100%; background: #0284c7; transition: width 160ms ease; }
+.project-import-actions { justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.project-import-notice button {
+  min-height: 34px;
+  padding: 0 11px;
+  color: #292524;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.project-import-notice button.is-primary { color: #fff; background: #0369a1; border-color: #0369a1; }
+.project-import-close { display: grid; place-items: center; width: 32px; padding: 0 !important; }
+.project-import-code { display: inline-block; padding: 3px 6px; color: #991b1b; background: #fef2f2; border-radius: 4px; }
+.project-import-notice .is-spinning { animation: project-import-spin 1s linear infinite; }
+@keyframes project-import-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  .project-import-notice {
+    inset-inline: 10px;
+    bottom: 10px;
+    width: auto;
+    max-height: calc(100vh - 20px);
+  }
+  .project-import-actions { align-items: stretch; flex-direction: column-reverse; }
+  .project-import-actions button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-import-notice .is-spinning { animation: none; }
+  .project-import-progress > span { transition: none; }
+}
+
 .designer-document-state {
   min-height: calc(100vh - 72px);
   display: grid;

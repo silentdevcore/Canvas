@@ -3,7 +3,9 @@ import { emptySheet } from '../spreadsheet/types';
 
 const reset = () => {
   useSpreadsheetStore.setState({
-    name: 'Workbook', sheets: [emptySheet()], active: 0,
+    projectId: 'workbook-original', name: 'Workbook', sheets: [emptySheet()], active: 0,
+    schemaVersion: '1.0', definedNames: [{ name: 'Original', refersTo: 'Sheet1!$A$1' }],
+    extensionData: undefined,
     selection: { row: 0, col: 0 }, range: null, past: [], future: [],
   });
   useSpreadsheetStore.getState().rebuildEngine();
@@ -47,6 +49,97 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(useSpreadsheetStore.getState().cellAt(0, 0)?.value).toBe('a');
     useSpreadsheetStore.getState().redo();
     expect(useSpreadsheetStore.getState().cellAt(0, 0)?.value).toBe('b');
+  });
+
+  test('opens a native project as one undoable transaction', () => {
+    const current = useSpreadsheetStore.getState().toWire();
+    useSpreadsheetStore.getState().loadProject({
+      ...current,
+      id: 'imported',
+      name: 'Imported workbook',
+      schemaVersion: '2.0',
+      definedNames: [{ name: 'Imported', refersTo: 'Sheet1!$B$2' }],
+      sheets: current.sheets.map(sheet => ({ ...sheet, name: 'Imported sheet' })),
+    });
+
+    expect(useSpreadsheetStore.getState()).toMatchObject({
+      name: 'Imported workbook',
+      schemaVersion: '2.0',
+      definedNames: [{ name: 'Imported', refersTo: 'Sheet1!$B$2' }],
+    });
+    expect(useSpreadsheetStore.getState().past).toHaveLength(1);
+    useSpreadsheetStore.getState().undo();
+    expect(useSpreadsheetStore.getState()).toMatchObject({
+      name: 'Workbook',
+      schemaVersion: '1.0',
+      definedNames: [{ name: 'Original', refersTo: 'Sheet1!$A$1' }],
+    });
+  });
+
+  test('preserves workbook and sheet extension data through project edits and undo', () => {
+    const current = useSpreadsheetStore.getState().toWire();
+    useSpreadsheetStore.getState().loadProject({
+      ...current,
+      id: 'future-workbook',
+      futureWorkbookOption: { enabled: true },
+      sheets: current.sheets.map(sheet => ({
+        ...sheet,
+        futureSheetOption: ['kept'],
+      })),
+    } as typeof current);
+
+    useSpreadsheetStore.getState().setCellInput(0, 0, 'edited');
+    const exported = useSpreadsheetStore.getState().toWire() as typeof current & {
+      futureWorkbookOption?: { enabled: boolean };
+    };
+    expect(exported.id).toBe('future-workbook');
+    expect(exported.futureWorkbookOption).toEqual({ enabled: true });
+    expect((exported.sheets[0] as typeof exported.sheets[0] & { futureSheetOption?: string[] })
+      .futureSheetOption).toEqual(['kept']);
+
+    useSpreadsheetStore.getState().undo();
+    expect(useSpreadsheetStore.getState().toWire().id).toBe('future-workbook');
+  });
+
+  test('reopens the complete editable workbook contract without losing model features', () => {
+    const project = {
+      schemaVersion: '2.0',
+      id: 'complete-workbook',
+      name: 'Complete workbook',
+      definedNames: [{ name: 'SalesTotal', refersTo: 'Report!$B$2' }],
+      futureWorkbookOption: { retained: true },
+      sheets: [{
+        id: 'report-sheet',
+        name: 'Report',
+        rowCount: 100,
+        colCount: 26,
+        columns: [{ index: 1, width: 24, hidden: false, outlineLevel: 1 }],
+        rows: [{ index: 1, height: 32, hidden: false, outlineLevel: 1 }],
+        cells: [{
+          row: 1, col: 1, type: 'formula' as const, formula: '=SUM(B3:B4)', value: 42,
+          numberFormat: '#,##0.00', comment: 'Calculated', hyperlink: 'https://example.test',
+          style: { bold: true, backgroundColor: '#ffeeaa' },
+        }],
+        merges: ['A1:B1'],
+        frozenRows: 1,
+        frozenCols: 1,
+        autoFilterRange: 'A1:B4',
+        pageSetup: { orientation: 'landscape', printArea: 'A1:B20', fitToWidth: 1 },
+        protection: { protected: true },
+        conditionalFormats: [{ range: 'B2:B4', type: 'cellIs', operator: 'greaterThan', value: '10' }],
+        dataValidations: [{ range: 'A2:A4', type: 'list', listSource: 'Open,Closed' }],
+        images: [{
+          id: 'image-1', assetId: 'asset-1', contentUrl: '/assets/asset-1',
+          contentType: 'image/png', row: 4, col: 0, width: 120, height: 80, altText: 'Chart preview',
+        }],
+        futureSheetOption: ['retained'],
+      }],
+    };
+
+    useSpreadsheetStore.getState().loadProject(project);
+    expect(useSpreadsheetStore.getState().toWire()).toEqual(project);
+    useSpreadsheetStore.getState().undo();
+    expect(useSpreadsheetStore.getState().name).toBe('Workbook');
   });
 
   test('applyStyle styles every cell of the selected range', () => {

@@ -38,6 +38,30 @@ describe('convertElementsToTemplate', () => {
     expect(payload.pageSettings.width).toBe(595);
   });
 
+  test('canonical project payload re-emits bounded forward-compatible properties', () => {
+    const template: Template = {
+      ...mockTemplate,
+      projectExtensionData: { futureDocumentOption: { enabled: true } },
+    };
+    const settings: PageSettings = {
+      ...DEFAULT_PAGE_SETTINGS,
+      extensionData: { futureSettingsOption: 'kept' },
+    };
+    const pages: Page[] = [{
+      ...makePage(),
+      extensionData: { futurePageOption: [1, 2, 3] },
+    }];
+
+    const payload = ExportService.buildDesignPayload(template, pages, [], settings) as Record<string, any>;
+
+    expect(payload.futureDocumentOption).toEqual({ enabled: true });
+    expect(payload.pages[0].futurePageOption).toEqual([1, 2, 3]);
+    expect(payload.pageSettings.futureSettingsOption).toBe('kept');
+    expect(payload.projectExtensionData).toBeUndefined();
+    expect(payload.pages[0].extensionData).toBeUndefined();
+    expect(payload.pageSettings.extensionData).toBeUndefined();
+  });
+
   test('canonical export payload preserves PDF/A-2b compliance', () => {
     const settings: PageSettings = { ...DEFAULT_PAGE_SETTINGS, complianceProfile: 'PdfA2B' };
 
@@ -65,6 +89,28 @@ describe('convertElementsToTemplate', () => {
 
     expect(() => ExportService.buildDesignPayload(mockTemplate, [makePage()], [], settings))
       .toThrow(DesignerPdfTrustPreflightError);
+  });
+
+  test('project payload preserves editable settings without applying PDF export preflight', async () => {
+    const settings: PageSettings = {
+      ...DEFAULT_PAGE_SETTINGS,
+      accessibilityProfile: 'PdfUa1',
+      encryption: {
+        enabled: true,
+        algorithm: 'Aes256',
+        userPassword: '',
+        ownerPassword: '',
+        permissions: {
+          print: true, modify: true, copy: true, annotate: true,
+          fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
+        },
+      },
+    };
+
+    await expect(ExportService.buildProjectPayload(mockTemplate, [makePage()], [], settings))
+      .resolves.toMatchObject({
+        pageSettings: { accessibilityProfile: 'PdfUa1', encryption: { algorithm: 'Aes256' } },
+      });
   });
 
   test('includes template metadata fields', () => {

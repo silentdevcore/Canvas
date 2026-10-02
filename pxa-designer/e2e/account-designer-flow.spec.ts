@@ -248,6 +248,21 @@ test('customer can register, verify, enter Designer, persist and version a templ
   await page.getByRole('button', { name: 'Close' }).click();
   await page.getByRole('button', { name: 'Back to editor' }).click();
 
+  const projectDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PXA PDF project' }).click();
+  const savedProject = await projectDownload;
+  expect(savedProject.suggestedFilename()).toBe('Designer-E2E-Report.pxap');
+  const savedProjectPath = await savedProject.path();
+  expect(savedProjectPath).not.toBeNull();
+  await page.locator('input[accept*=".pxap"]').setInputFiles(savedProjectPath!);
+  const reviewNotice = page.locator('.project-import-notice.is-review');
+  if (await reviewNotice.isVisible().catch(() => false)) {
+    await reviewNotice.getByRole('button', { name: 'Open project' }).click();
+  }
+  await expect(page.getByText('PXA PDF project opened.')).toBeVisible();
+  await expect(page.locator('.project-import-notice')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Rename Designer E2E Report' })).toBeVisible();
+
   await page.getByRole('button', { name: 'Design actions' }).click();
   await page.getByRole('button', { name: 'Create version' }).click();
   await expect(page.getByText(/Version 1 created/)).toBeVisible();

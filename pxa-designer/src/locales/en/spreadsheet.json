@@ -10,6 +10,12 @@
     "chooseFile": "Choose file",
     "importFailed": "Import failed. Please check the file and try again."
   },
+  "projectImport": {
+    "opening": "Opening project", "review": "Review project before opening", "failed": "Project could not be opened",
+    "uploading": "Uploading project", "validating": "Validating package", "assets": "Storing project assets", "applying": "Applying project",
+    "cancel": "Cancel", "dismiss": "Dismiss", "openAnyway": "Open project", "keepCurrent": "Keep current workbook",
+    "preserved": "Your current workbook remains unchanged until the project is applied.", "missingFeature": "Unavailable feature: {{feature}}"
+  },
   "editor": {
     "undo": "Undo",
     "redo": "Redo",
@@ -115,6 +121,15 @@
     "unsupportedFile": "Unsupported file. Use .xlsx, .csv, or .json.",
     "importFailed": "Import failed",
     "exportFailed": "Export failed",
-    "validationFailed": "Validation failed"
+    "validationFailed": "Validation failed",
+    "openProject": "Open PXA Spreadsheet project",
+    "saveProject": "Save PXA Spreadsheet project",
+    "openingProject": "Opening PXA Spreadsheet project…",
+    "savingProject": "Saving PXA Spreadsheet project…",
+    "projectOpened": "PXA Spreadsheet project opened.",
+    "projectOpenedWithWarnings": "Review this project before editing. {{details}}",
+    "projectSaved": "PXA Spreadsheet project saved.",
+    "projectOpenFailed": "The PXA Spreadsheet project could not be opened.",
+    "projectSaveFailed": "The PXA Spreadsheet project could not be saved."
   }
 }

@@ -202,6 +202,7 @@ export interface Page {
   id: string;
   elements: SimpleElement[];
   layout?: PageLayoutSettings;
+  extensionData?: Record<string, unknown>;
 }
 
 export interface PageLayoutSettings {
@@ -255,6 +256,7 @@ export interface Template {
     status: string;
   };
   eInvoice?: TemplateEInvoiceState;
+  projectExtensionData?: Record<string, unknown>;
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';
@@ -398,5 +400,6 @@ export interface PageSettings {
   systemLanguage?: string;                // source/default language for fallback resolution
   activeLanguages?: string[];           // user-selected active BCP-47 language tags
   localizedProperties?: LocalizedProperty[];
+  extensionData?: Record<string, unknown>;
   targetLanguage?: string;                // selected export/preview language
 }

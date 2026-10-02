@@ -645,7 +645,21 @@
     "title": "Se requiere escritorio",
     "body": "El editor está diseñado para pantallas más grandes. Ábrelo en un escritorio o tableta."
   },
+  "projectImport": {
+    "opening": "Abriendo proyecto", "review": "Revisar el proyecto antes de abrirlo", "failed": "No se pudo abrir el proyecto",
+    "uploading": "Subiendo proyecto", "validating": "Validando paquete", "assets": "Guardando recursos", "applying": "Aplicando proyecto",
+    "cancel": "Cancelar", "dismiss": "Cerrar", "openAnyway": "Abrir proyecto", "keepCurrent": "Conservar documento actual",
+    "preserved": "El documento actual permanece sin cambios hasta aplicar el proyecto.", "missingFeature": "Función no disponible: {{feature}}"
+  },
   "topbar": {
+    "openProject": "Abrir proyecto PDF de PXA",
+    "saveProject": "Guardar proyecto PDF de PXA",
+    "projectOpened": "Proyecto PDF de PXA abierto.",
+    "projectOpenedWithWarnings": "Revise este proyecto antes de editarlo. {{details}}",
+    "projectSaved": "Proyecto PDF de PXA guardado.",
+    "projectOpenFailed": "No se pudo abrir el proyecto PDF de PXA.",
+    "projectSaveFailed": "No se pudo guardar el proyecto PDF de PXA.",
+    "projectHasNoPages": "El proyecto PDF de PXA no contiene páginas.",
     "backToGallery": "Volver a la galería",
     "kicker": "Diseñador de interfaz",
     "designActions": "Acciones de diseño",

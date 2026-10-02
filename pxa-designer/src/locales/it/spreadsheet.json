@@ -10,6 +10,12 @@
     "chooseFile": "Scegli file",
     "importFailed": "Importazione non riuscita. Controlla il file e riprova."
   },
+  "projectImport": {
+    "opening": "Apertura progetto", "review": "Verifica il progetto prima di aprirlo", "failed": "Impossibile aprire il progetto",
+    "uploading": "Caricamento progetto", "validating": "Convalida pacchetto", "assets": "Salvataggio risorse", "applying": "Applicazione progetto",
+    "cancel": "Annulla", "dismiss": "Chiudi", "openAnyway": "Apri progetto", "keepCurrent": "Mantieni cartella corrente",
+    "preserved": "La cartella corrente resta invariata finché il progetto non viene applicato.", "missingFeature": "Funzione non disponibile: {{feature}}"
+  },
   "editor": {
     "undo": "Annulla",
     "redo": "Ripeti",
@@ -115,6 +121,15 @@
     "unsupportedFile": "File non supportato. Usa .xlsx, .csv o .json.",
     "importFailed": "Importazione non riuscita",
     "exportFailed": "Esportazione non riuscita",
-    "validationFailed": "Convalida non riuscita"
+    "validationFailed": "Convalida non riuscita",
+    "openProject": "Apri progetto foglio di calcolo PXA",
+    "saveProject": "Salva progetto foglio di calcolo PXA",
+    "openingProject": "Apertura progetto foglio di calcolo PXA…",
+    "savingProject": "Salvataggio progetto foglio di calcolo PXA…",
+    "projectOpened": "Progetto foglio di calcolo PXA aperto.",
+    "projectOpenedWithWarnings": "Verifica questo progetto prima di modificarlo. {{details}}",
+    "projectSaved": "Progetto foglio di calcolo PXA salvato.",
+    "projectOpenFailed": "Impossibile aprire il progetto foglio di calcolo PXA.",
+    "projectSaveFailed": "Impossibile salvare il progetto foglio di calcolo PXA."
   }
 }

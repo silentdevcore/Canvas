@@ -10,6 +10,12 @@
     "chooseFile": "Choisir un fichier",
     "importFailed": "Échec de l'importation. Veuillez vérifier le fichier et réessayer."
   },
+  "projectImport": {
+    "opening": "Ouverture du projet", "review": "Vérifier le projet avant de l’ouvrir", "failed": "Impossible d’ouvrir le projet",
+    "uploading": "Téléversement du projet", "validating": "Validation du paquet", "assets": "Enregistrement des ressources", "applying": "Application du projet",
+    "cancel": "Annuler", "dismiss": "Fermer", "openAnyway": "Ouvrir le projet", "keepCurrent": "Conserver le classeur actuel",
+    "preserved": "Le classeur actuel reste inchangé jusqu’à l’application du projet.", "missingFeature": "Fonction indisponible : {{feature}}"
+  },
   "editor": {
     "undo": "Annuler",
     "redo": "Rétablir",
@@ -115,6 +121,15 @@
     "unsupportedFile": "Fichier non pris en charge. Utilisez .xlsx, .csv ou .json.",
     "importFailed": "Échec de l'importation",
     "exportFailed": "Échec de l'exportation",
-    "validationFailed": "Échec de la validation"
+    "validationFailed": "Échec de la validation",
+    "openProject": "Ouvrir un projet de feuille de calcul PXA",
+    "saveProject": "Enregistrer le projet de feuille de calcul PXA",
+    "openingProject": "Ouverture du projet de feuille de calcul PXA…",
+    "savingProject": "Enregistrement du projet de feuille de calcul PXA…",
+    "projectOpened": "Projet de feuille de calcul PXA ouvert.",
+    "projectOpenedWithWarnings": "Vérifiez ce projet avant de le modifier. {{details}}",
+    "projectSaved": "Projet de feuille de calcul PXA enregistré.",
+    "projectOpenFailed": "Le projet de feuille de calcul PXA n'a pas pu être ouvert.",
+    "projectSaveFailed": "Le projet de feuille de calcul PXA n'a pas pu être enregistré."
   }
 }

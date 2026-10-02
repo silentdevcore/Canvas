@@ -10,6 +10,12 @@
     "chooseFile": "اختيار ملف",
     "importFailed": "فشل الاستيراد. يرجى التحقق من الملف والمحاولة مرة أخرى."
   },
+  "projectImport": {
+    "opening": "جارٍ فتح المشروع", "review": "راجع المشروع قبل فتحه", "failed": "تعذر فتح المشروع",
+    "uploading": "جارٍ رفع المشروع", "validating": "جارٍ التحقق من الحزمة", "assets": "جارٍ حفظ الأصول", "applying": "جارٍ تطبيق المشروع",
+    "cancel": "إلغاء", "dismiss": "إغلاق", "openAnyway": "فتح المشروع", "keepCurrent": "الاحتفاظ بالمصنف الحالي",
+    "preserved": "يبقى المصنف الحالي دون تغيير حتى يتم تطبيق المشروع.", "missingFeature": "ميزة غير متاحة: {{feature}}"
+  },
   "editor": {
     "undo": "تراجع",
     "redo": "إعادة",
@@ -115,6 +121,15 @@
     "unsupportedFile": "ملف غير مدعوم. استخدم .xlsx أو .csv أو .json.",
     "importFailed": "فشل الاستيراد",
     "exportFailed": "فشل التصدير",
-    "validationFailed": "فشل التحقق"
+    "validationFailed": "فشل التحقق",
+    "openProject": "فتح مشروع جدول بيانات PXA",
+    "saveProject": "حفظ مشروع جدول بيانات PXA",
+    "openingProject": "جارٍ فتح مشروع جدول بيانات PXA…",
+    "savingProject": "جارٍ حفظ مشروع جدول بيانات PXA…",
+    "projectOpened": "تم فتح مشروع جدول بيانات PXA.",
+    "projectOpenedWithWarnings": "راجع هذا المشروع قبل تحريره. {{details}}",
+    "projectSaved": "تم حفظ مشروع جدول بيانات PXA.",
+    "projectOpenFailed": "تعذر فتح مشروع جدول بيانات PXA.",
+    "projectSaveFailed": "تعذر حفظ مشروع جدول بيانات PXA."
   }
 }

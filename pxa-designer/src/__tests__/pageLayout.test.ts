@@ -66,4 +66,69 @@ describe('per-page layout', () => {
     useEditorStore.getState().undo();
     expect(useEditorStore.getState().currentTemplate!.pages[0].layout).toBeUndefined();
   });
+
+  it('opens a native project as one undoable transaction', () => {
+    const imported: Template = {
+      ...createTemplate(),
+      id: 'imported',
+      name: 'Imported project',
+      pages: [{ id: 'imported-page', elements: [] }],
+    };
+
+    useEditorStore.getState().openProject(imported, {
+      ...DEFAULT_PAGE_SETTINGS,
+      width: 842,
+      height: 595,
+      orientation: 'landscape',
+    });
+
+    expect(useEditorStore.getState().currentTemplate?.name).toBe('Imported project');
+    expect(useEditorStore.getState().undoStack).toHaveLength(1);
+    useEditorStore.getState().undo();
+    expect(useEditorStore.getState().currentTemplate?.name).toBe('Mixed layout');
+    expect(useEditorStore.getState().pageSettings).toMatchObject({ width: 595, height: 842 });
+  });
+
+  it('retains editable project content, extensions and target persistence through reopen and undo', () => {
+    const previous = useEditorStore.getState().currentTemplate!;
+    const imported: Template = {
+      id: 'portable-project',
+      name: 'Portable project',
+      category: 'project',
+      description: 'Native format contract',
+      pages: [{
+        id: 'portable-page',
+        layout: { width: 700, height: 500, orientation: 'landscape', backgroundColor: '#f8fafc' },
+        elements: [{
+          id: 'portable-text', type: 'text', content: 'Editable text',
+          x: 12, y: 24, width: 220, height: 48,
+          binding: 'customer.name',
+          style: { fontFamily: 'Inter', fontSize: 16, color: '#112233' },
+        }],
+        extensionData: { futurePageOption: { enabled: true } },
+      }],
+      sharedElements: [{
+        id: 'portable-footer', type: 'text', content: 'Footer',
+        x: 20, y: 460, width: 200, height: 20,
+      }],
+      data: {},
+      persistence: { id: 'server-template', revision: 17, status: 'Draft' },
+      projectExtensionData: { futureDocumentOption: ['kept'] },
+    };
+
+    useEditorStore.getState().openProject(imported, {
+      ...DEFAULT_PAGE_SETTINGS,
+      metadata: { title: 'Portable project', author: 'PXA', subject: '', keywords: '' },
+      activeLanguages: ['en', 'de'],
+    });
+
+    const opened = useEditorStore.getState();
+    expect(opened.currentTemplate).toEqual(imported);
+    expect(opened.pageSettings).toMatchObject({
+      metadata: { title: 'Portable project', author: 'PXA' },
+      activeLanguages: ['en', 'de'],
+    });
+    opened.undo();
+    expect(useEditorStore.getState().currentTemplate).toEqual(previous);
+  });
 });

@@ -2,6 +2,13 @@
 
 import { SpreadsheetService } from '@/services/SpreadsheetService';
 import type { Workbook } from '@/spreadsheet/types';
+import { deleteDesignerAsset, uploadDesignerImage } from '@/services/designerAssetApi';
+
+jest.mock('@/services/designerAssetApi', () => ({
+  deleteDesignerAsset: jest.fn(),
+  designerAssetContentUrl: jest.fn((assetId: string) => `/assets/${assetId}`),
+  uploadDesignerImage: jest.fn(),
+}));
 
 const workbook: Workbook = {
   id: 'workbook-1',
@@ -40,6 +47,8 @@ describe('Spreadsheet export reliability', () => {
   const originalStructuredClone = global.structuredClone;
 
   beforeEach(() => {
+    jest.mocked(deleteDesignerAsset).mockReset();
+    jest.mocked(uploadDesignerImage).mockReset();
     URL.createObjectURL = jest.fn(() => 'blob:spreadsheet');
     URL.revokeObjectURL = jest.fn();
     global.structuredClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -85,5 +94,81 @@ describe('Spreadsheet export reliability', () => {
     SpreadsheetService.exportText('{"sheets":[]}', ' Q3: Europe / Sales? ', 'json');
 
     expect(names).toEqual(['Q3-Europe-Sales.csv', 'Q3-Europe-Sales.json']);
+  });
+
+  test('removes uploaded images when a later native-project image fails', async () => {
+    global.fetch = jest.fn(async () => ({
+      blob: async () => new Blob(['png'], { type: 'image/png' }),
+    } as Response));
+    jest.mocked(uploadDesignerImage)
+      .mockResolvedValueOnce({ id: 'asset-1', contentUrl: '/assets/asset-1' } as never)
+      .mockRejectedValueOnce(new Error('upload failed'));
+    jest.mocked(deleteDesignerAsset).mockResolvedValue();
+    const project: Workbook = {
+      ...workbook,
+      sheets: [{
+        ...workbook.sheets[0],
+        images: ['image-1', 'image-2'].map(id => ({
+          id,
+          data: 'data:image/png;base64,cG5n',
+          row: 0,
+          col: 0,
+          width: 100,
+          height: 100,
+        })),
+      }],
+    };
+
+    await expect(SpreadsheetService.storeEmbeddedImages(project)).rejects.toThrow('upload failed');
+    expect(deleteDesignerAsset).toHaveBeenCalledWith('asset-1');
+  });
+
+  test('keeps source data immutable and can roll back prepared project images', async () => {
+    global.fetch = jest.fn(async () => ({
+      blob: async () => new Blob(['png'], { type: 'image/png' }),
+    } as Response));
+    jest.mocked(uploadDesignerImage).mockResolvedValue({
+      id: 'asset-prepared', contentUrl: '/assets/asset-prepared', contentType: 'image/png',
+    } as never);
+    jest.mocked(deleteDesignerAsset).mockResolvedValue();
+    const source: Workbook = {
+      ...workbook,
+      sheets: [{ ...workbook.sheets[0], images: [{
+        id: 'image-1', data: 'data:image/png;base64,cG5n',
+        row: 0, col: 0, width: 100, height: 100,
+      }] }],
+    };
+
+    const prepared = await SpreadsheetService.prepareEmbeddedImages(source);
+    expect(source.sheets[0].images?.[0].data).toBe('data:image/png;base64,cG5n');
+    expect(prepared.workbook.sheets[0].images?.[0]).toMatchObject({ assetId: 'asset-prepared' });
+    expect(prepared.workbook.sheets[0].images?.[0]).not.toHaveProperty('data');
+
+    await prepared.rollback();
+    await prepared.rollback();
+    expect(deleteDesignerAsset).toHaveBeenCalledTimes(1);
+    expect(deleteDesignerAsset).toHaveBeenCalledWith('asset-prepared');
+  });
+
+  test('retains prepared project images after commit', async () => {
+    global.fetch = jest.fn(async () => ({
+      blob: async () => new Blob(['png'], { type: 'image/png' }),
+    } as Response));
+    jest.mocked(uploadDesignerImage).mockResolvedValue({
+      id: 'asset-committed', contentUrl: '/assets/asset-committed', contentType: 'image/png',
+    } as never);
+    jest.mocked(deleteDesignerAsset).mockResolvedValue();
+
+    const prepared = await SpreadsheetService.prepareEmbeddedImages({
+      ...workbook,
+      sheets: [{ ...workbook.sheets[0], images: [{
+        id: 'image-1', data: 'data:image/png;base64,cG5n',
+        row: 0, col: 0, width: 100, height: 100,
+      }] }],
+    });
+    prepared.commit();
+    await prepared.rollback();
+
+    expect(deleteDesignerAsset).not.toHaveBeenCalled();
   });
 });

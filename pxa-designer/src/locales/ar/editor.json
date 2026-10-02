@@ -645,7 +645,21 @@
     "title": "مطلوب جهاز كمبيوتر مكتبي",
     "body": "المحرر مصمم للشاشات الأكبر. يرجى فتحه على جهاز كمبيوتر مكتبي أو جهاز لوحي."
   },
+  "projectImport": {
+    "opening": "جارٍ فتح المشروع", "review": "راجع المشروع قبل فتحه", "failed": "تعذر فتح المشروع",
+    "uploading": "جارٍ رفع المشروع", "validating": "جارٍ التحقق من الحزمة", "assets": "جارٍ حفظ الأصول", "applying": "جارٍ تطبيق المشروع",
+    "cancel": "إلغاء", "dismiss": "إغلاق", "openAnyway": "فتح المشروع", "keepCurrent": "الاحتفاظ بالمستند الحالي",
+    "preserved": "يبقى المستند الحالي دون تغيير حتى يتم تطبيق المشروع.", "missingFeature": "ميزة غير متاحة: {{feature}}"
+  },
   "topbar": {
+    "openProject": "فتح مشروع PDF من PXA",
+    "saveProject": "حفظ مشروع PDF من PXA",
+    "projectOpened": "تم فتح مشروع PDF من PXA.",
+    "projectOpenedWithWarnings": "راجع هذا المشروع قبل تحريره. {{details}}",
+    "projectSaved": "تم حفظ مشروع PDF من PXA.",
+    "projectOpenFailed": "تعذر فتح مشروع PDF من PXA.",
+    "projectSaveFailed": "تعذر حفظ مشروع PDF من PXA.",
+    "projectHasNoPages": "لا يحتوي مشروع PDF من PXA على صفحات.",
     "backToGallery": "العودة إلى المعرض",
     "kicker": "مصمم الواجهة",
     "designActions": "إجراءات التصميم",

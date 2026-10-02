@@ -10,6 +10,12 @@
     "chooseFile": "Datei auswählen",
     "importFailed": "Import fehlgeschlagen. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
   },
+  "projectImport": {
+    "opening": "Projekt wird geöffnet", "review": "Projekt vor dem Öffnen prüfen", "failed": "Projekt konnte nicht geöffnet werden",
+    "uploading": "Projekt wird hochgeladen", "validating": "Paket wird geprüft", "assets": "Projekt-Assets werden gespeichert", "applying": "Projekt wird übernommen",
+    "cancel": "Abbrechen", "dismiss": "Schließen", "openAnyway": "Projekt öffnen", "keepCurrent": "Aktuelle Arbeitsmappe behalten",
+    "preserved": "Die aktuelle Arbeitsmappe bleibt unverändert, bis das Projekt übernommen wird.", "missingFeature": "Nicht verfügbare Funktion: {{feature}}"
+  },
   "editor": {
     "undo": "Rückgängig",
     "redo": "Wiederholen",
@@ -115,6 +121,15 @@
     "unsupportedFile": "Nicht unterstützte Datei. Verwenden Sie .xlsx, .csv oder .json.",
     "importFailed": "Import fehlgeschlagen",
     "exportFailed": "Export fehlgeschlagen",
-    "validationFailed": "Validierung fehlgeschlagen"
+    "validationFailed": "Validierung fehlgeschlagen",
+    "openProject": "PXA-Spreadsheet-Projekt öffnen",
+    "saveProject": "PXA-Spreadsheet-Projekt speichern",
+    "openingProject": "PXA-Spreadsheet-Projekt wird geöffnet…",
+    "savingProject": "PXA-Spreadsheet-Projekt wird gespeichert…",
+    "projectOpened": "PXA-Spreadsheet-Projekt wurde geöffnet.",
+    "projectOpenedWithWarnings": "Prüfen Sie dieses Projekt vor der Bearbeitung. {{details}}",
+    "projectSaved": "PXA-Spreadsheet-Projekt wurde gespeichert.",
+    "projectOpenFailed": "Das PXA-Spreadsheet-Projekt konnte nicht geöffnet werden.",
+    "projectSaveFailed": "Das PXA-Spreadsheet-Projekt konnte nicht gespeichert werden."
   }
 }

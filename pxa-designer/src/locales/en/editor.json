@@ -677,7 +677,21 @@
     "title": "Desktop required",
     "body": "The editor is designed for larger screens. Please open it on a desktop or tablet."
   },
+  "projectImport": {
+    "opening": "Opening project", "review": "Review project before opening", "failed": "Project could not be opened",
+    "uploading": "Uploading project", "validating": "Validating package", "assets": "Storing project assets", "applying": "Applying project",
+    "cancel": "Cancel", "dismiss": "Dismiss", "openAnyway": "Open project", "keepCurrent": "Keep current document",
+    "preserved": "Your current document remains unchanged until the project is applied.", "missingFeature": "Unavailable feature: {{feature}}"
+  },
   "topbar": {
+    "openProject": "Open PXA PDF project",
+    "saveProject": "Save PXA PDF project",
+    "projectOpened": "PXA PDF project opened.",
+    "projectOpenedWithWarnings": "Review this project before editing. {{details}}",
+    "projectSaved": "PXA PDF project saved.",
+    "projectOpenFailed": "The PXA PDF project could not be opened.",
+    "projectSaveFailed": "The PXA PDF project could not be saved.",
+    "projectHasNoPages": "The PXA PDF project contains no pages.",
     "backToGallery": "Back to gallery",
     "kicker": "UI Designer",
     "designActions": "Design actions",

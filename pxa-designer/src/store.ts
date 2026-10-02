@@ -121,6 +121,7 @@ interface EditorState {
   redo: () => void;
   addTemplate: (template: Template) => void;
   setCurrentTemplate: (template: Template | null) => void;
+  openProject: (template: Template, pageSettings: PageSettings) => void;
   addElement: (element: SimpleElement) => void;
   insertElements: (elements: SimpleElement[]) => void;
   updateElement: (id: string, updates: Partial<SimpleElement>) => void;
@@ -256,6 +257,16 @@ export const useEditorStore = create<EditorState>()(
 
       addTemplate: (template) => set((state) => ({ templates: [...state.templates, template] })),
       setCurrentTemplate: (template) => set({ currentTemplate: template, currentPageIndex: 0, undoStack: [], redoStack: [] }),
+      openProject: (template, pageSettings) => set((state) => ({
+        currentTemplate: template,
+        currentPageIndex: 0,
+        selectedElementId: null,
+        pageSettings: normalizePageSettings(pageSettings),
+        undoStack: state.currentTemplate
+          ? [...state.undoStack.slice(-49), historyEntry(state.currentTemplate, state.pageSettings)]
+          : [],
+        redoStack: [],
+      })),
 
       addElement: (element) =>
         set((state) => {

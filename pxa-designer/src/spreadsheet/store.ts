@@ -11,12 +11,21 @@ export interface Selection { row: number; col: number; }
 /** Inclusive selected rectangle (0-based). */
 export interface SelRange { r0: number; c0: number; r1: number; c1: number; }
 
-interface Snapshot { name: string; sheets: SheetState[]; }
+interface Snapshot {
+  projectId?: string;
+  name: string;
+  sheets: SheetState[];
+  schemaVersion?: string;
+  definedNames?: { name: string; refersTo: string }[];
+  extensionData?: Record<string, unknown>;
+}
 
 interface SpreadsheetState {
+  projectId: string;
   name: string;
   schemaVersion: string;
   definedNames: { name: string; refersTo: string }[];
+  extensionData?: Record<string, unknown>;
   sheets: SheetState[];
   active: number;
   selection: Selection;
@@ -70,6 +79,7 @@ interface SpreadsheetState {
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
   loadWorkbook: (w: Workbook) => void;
+  loadProject: (w: Workbook) => void;
   toWire: () => Workbook;
   rebuildEngine: () => void;
   undo: () => void;
@@ -205,6 +215,7 @@ export const createSpreadsheetStorage = (
 export const useSpreadsheetStore = create<SpreadsheetState>()(
   persist(
     (set, get) => ({
+      projectId: crypto.randomUUID(),
       name: 'Workbook',
       schemaVersion: '1.0',
       definedNames: [],
@@ -460,27 +471,90 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       },
 
       loadWorkbook: (w) => {
-        const { name, sheets, definedNames, schemaVersion } = workbookFromWire(w);
-        set({ name, schemaVersion, definedNames, sheets, active: 0, selection: { row: 0, col: 0 }, past: [], future: [] });
+        const { id, name, sheets, definedNames, schemaVersion, extensionData } = workbookFromWire(w);
+        set({ projectId: id, name, schemaVersion, definedNames, extensionData, sheets, active: 0, selection: { row: 0, col: 0 }, past: [], future: [] });
         sheetEngine.rebuild(sheets);
       },
-      toWire: () => workbookToWire(get().name, get().sheets, get().definedNames, get().schemaVersion),
+      loadProject: (w) => {
+        const current: Snapshot = {
+          projectId: get().projectId,
+          name: get().name,
+          sheets: clone(get().sheets),
+          schemaVersion: get().schemaVersion,
+          definedNames: structuredClone(get().definedNames),
+          extensionData: get().extensionData ? structuredClone(get().extensionData) : undefined,
+        };
+        const { id, name, sheets, definedNames, schemaVersion, extensionData } = workbookFromWire(w);
+        set({
+          projectId: id,
+          name,
+          schemaVersion,
+          definedNames,
+          extensionData,
+          sheets,
+          active: 0,
+          selection: { row: 0, col: 0 },
+          past: [...get().past, current].slice(-MAX_HISTORY),
+          future: [],
+        });
+        sheetEngine.rebuild(sheets);
+      },
+      toWire: () => workbookToWire(
+        get().name,
+        get().sheets,
+        get().definedNames,
+        get().schemaVersion,
+        get().projectId,
+        get().extensionData,
+      ),
       rebuildEngine: () => sheetEngine.rebuild(get().sheets),
 
       undo: () => {
         const { past } = get();
         if (past.length === 0) return;
         const prev = past[past.length - 1];
-        const current: Snapshot = { name: get().name, sheets: clone(get().sheets) };
-        set({ name: prev.name, sheets: prev.sheets, past: past.slice(0, -1), future: [current, ...get().future] });
+        const current: Snapshot = {
+          projectId: get().projectId,
+          name: get().name,
+          sheets: clone(get().sheets),
+          schemaVersion: get().schemaVersion,
+          definedNames: structuredClone(get().definedNames),
+          extensionData: get().extensionData ? structuredClone(get().extensionData) : undefined,
+        };
+        set({
+          projectId: prev.projectId ?? get().projectId,
+          name: prev.name,
+          sheets: prev.sheets,
+          schemaVersion: prev.schemaVersion ?? get().schemaVersion,
+          definedNames: prev.definedNames ?? get().definedNames,
+          extensionData: prev.extensionData ?? get().extensionData,
+          past: past.slice(0, -1),
+          future: [current, ...get().future],
+        });
         sheetEngine.rebuild(prev.sheets);
       },
       redo: () => {
         const { future } = get();
         if (future.length === 0) return;
         const nextSnap = future[0];
-        const current: Snapshot = { name: get().name, sheets: clone(get().sheets) };
-        set({ name: nextSnap.name, sheets: nextSnap.sheets, future: future.slice(1), past: [...get().past, current] });
+        const current: Snapshot = {
+          projectId: get().projectId,
+          name: get().name,
+          sheets: clone(get().sheets),
+          schemaVersion: get().schemaVersion,
+          definedNames: structuredClone(get().definedNames),
+          extensionData: get().extensionData ? structuredClone(get().extensionData) : undefined,
+        };
+        set({
+          projectId: nextSnap.projectId ?? get().projectId,
+          name: nextSnap.name,
+          sheets: nextSnap.sheets,
+          schemaVersion: nextSnap.schemaVersion ?? get().schemaVersion,
+          definedNames: nextSnap.definedNames ?? get().definedNames,
+          extensionData: nextSnap.extensionData ?? get().extensionData,
+          future: future.slice(1),
+          past: [...get().past, current],
+        });
         sheetEngine.rebuild(nextSnap.sheets);
       },
     }),
@@ -490,7 +564,15 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         if (typeof localStorage === 'undefined') throw new Error('localStorage unavailable');
         return createSpreadsheetStorage(localStorage);
       }),
-      partialize: (s) => ({ name: s.name, sheets: s.sheets, active: s.active }),
+      partialize: (s) => ({
+        projectId: s.projectId,
+        name: s.name,
+        schemaVersion: s.schemaVersion,
+        definedNames: s.definedNames,
+        extensionData: s.extensionData,
+        sheets: s.sheets,
+        active: s.active,
+      }),
       onRehydrateStorage: () => (state) => { if (state) sheetEngine.rebuild(state.sheets); },
     },
   ),

@@ -12,12 +12,19 @@ import {
   publishDesignerTemplate,
 } from '@/services/designerTemplateApi';
 import { useDesignerTemplateAutosave } from '@/hooks/useDesignerTemplateAutosave';
+import { useProjectImportFlow } from '@/hooks/useProjectImportFlow';
+import ProjectImportNotice from '@/components/Project/ProjectImportNotice';
 import type { Template } from '@/store';
 import type { ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
+import ExportService from '@/services/ExportService';
+import { isProjectOperationCancelled, openPdfProject, preparePdfProjectAssets, savePdfProject, type PdfProjectDocument, type PreparedProjectAssets } from '@/services/designerProjectApi';
+import { notify } from '@/notifications/toast';
+import { useTranslation } from 'react-i18next';
 
 type SubView = 'editor' | 'preview' | 'code';
 
 const CreatePage: React.FC = () => {
+  const { t } = useTranslation('editor');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'code' ? 'code' : 'editor';
@@ -26,6 +33,9 @@ const CreatePage: React.FC = () => {
   const [loadingPersistedTemplate, setLoadingPersistedTemplate] = useState(Boolean(persistedTemplateId));
   const [loadError, setLoadError] = useState('');
   const localInitializationStarted = useRef(false);
+  const projectInput = useRef<HTMLInputElement>(null);
+  const [projectActionPending, setProjectActionPending] = useState(false);
+  const projectImport = useProjectImportFlow();
 
   // /pdf/create and /pdf/edit (an alias that redirects to /pdf/create?mode=code)
   // are the same matched route, so switching between them via the sidebar only
@@ -197,6 +207,79 @@ const CreatePage: React.FC = () => {
     return 'Template archived';
   };
 
+  const handleSaveProject = async () => {
+    if (projectActionPending) return;
+    setProjectActionPending(true);
+    try {
+      const active = useEditorStore.getState();
+      if (!active.currentTemplate) return;
+      const document = await ExportService.buildProjectPayload(
+        active.currentTemplate,
+        active.currentTemplate.pages ?? [],
+        active.currentTemplate.sharedElements ?? [],
+        active.pageSettings,
+      ) as PdfProjectDocument;
+      await savePdfProject(document);
+      notify.success(t('topbar.projectSaved'));
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : t('topbar.projectSaveFailed'));
+    } finally {
+      setProjectActionPending(false);
+    }
+  };
+
+  const handleOpenProject = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || projectActionPending) return;
+    setProjectActionPending(true);
+    let preparedAssets: PreparedProjectAssets<PdfProjectDocument> | undefined;
+    try {
+      const target = useEditorStore.getState().currentTemplate;
+      const targetSettings = useEditorStore.getState().pageSettings;
+      const reservedIds = target
+        ? [target.id, ...target.pages.flatMap(page => [page.id, ...page.elements.map(element => element.id)]),
+          ...(target.sharedElements ?? []).map(element => element.id),
+          ...(targetSettings.namedStyles ?? []).map(style => style.id)]
+        : [];
+      const signal = projectImport.begin();
+      const result = await openPdfProject(file, reservedIds, { signal, onProgress: projectImport.report });
+      if (!result.document.pages?.length) throw new Error(t('topbar.projectHasNoPages'));
+      if (result.compatibility?.requiresReview) {
+        const accepted = await projectImport.review(result.compatibility);
+        if (!accepted) return;
+      }
+      projectImport.stage('assets', 94);
+      preparedAssets = await preparePdfProjectAssets(result.document);
+      const document = preparedAssets.document;
+      projectImport.stage('applying', 99);
+      useEditorStore.getState().openProject(
+        {
+          id: document.id,
+          name: document.name,
+          category: document.category ?? 'project',
+          description: document.description ?? '',
+          pages: document.pages,
+          sharedElements: document.sharedElements ?? [],
+          data: {},
+          projectExtensionData: document.extensionData,
+          ...(target?.persistence ? { persistence: target.persistence } : {}),
+        },
+        normalizePageSettings(document.pageSettings),
+      );
+      preparedAssets.commit();
+      projectImport.finish();
+      notify.success(t('topbar.projectOpened'));
+    } catch (error) {
+      await preparedAssets?.rollback();
+      projectImport.fail(error, t('topbar.projectOpenFailed'));
+      if (!isProjectOperationCancelled(error))
+        notify.error(error instanceof Error ? error.message : t('topbar.projectOpenFailed'));
+    } finally {
+      setProjectActionPending(false);
+    }
+  };
+
   const codeDesign: ParsedDesign = {
     id: currentTemplate.id,
     name: currentTemplate.name,
@@ -229,6 +312,20 @@ const CreatePage: React.FC = () => {
   };
 
   return (
+    <>
+    <ProjectImportNotice
+      state={projectImport.state}
+      labels={{
+        opening: t('projectImport.opening'), review: t('projectImport.review'), failed: t('projectImport.failed'),
+        uploading: t('projectImport.uploading'), validating: t('projectImport.validating'), assets: t('projectImport.assets'),
+        applying: t('projectImport.applying'), cancel: t('projectImport.cancel'), dismiss: t('projectImport.dismiss'),
+        openAnyway: t('projectImport.openAnyway'), keepCurrent: t('projectImport.keepCurrent'), preserved: t('projectImport.preserved'),
+        missingFeature: feature => t('projectImport.missingFeature', { feature }),
+      }}
+      onCancel={projectImport.cancel}
+      onDismiss={projectImport.dismiss}
+      onReviewDecision={projectImport.decideReview}
+    />
     <AnimatePresence mode="wait">
       {subView === 'editor' && (
         <motion.div
@@ -267,6 +364,16 @@ const CreatePage: React.FC = () => {
               const active = useEditorStore.getState().currentTemplate;
               if (active) useEditorStore.setState({ currentTemplate: { ...active, name } });
             }}
+            onOpenProject={() => projectInput.current?.click()}
+            onSaveProject={() => void handleSaveProject()}
+            projectActionPending={projectActionPending}
+          />
+          <input
+            ref={projectInput}
+            type="file"
+            accept=".pxap,application/vnd.powerdox.pxap+zip"
+            hidden
+            onChange={handleOpenProject}
           />
           {autosave.state === 'conflict' && (
             <aside className="designer-save-conflict" role="alert">
@@ -322,6 +429,7 @@ const CreatePage: React.FC = () => {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 };
 

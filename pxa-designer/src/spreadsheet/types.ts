@@ -73,6 +73,7 @@ export interface SheetWire {
   conditionalFormats?: ConditionalFormat[];
   dataValidations?: DataValidation[];
   images?: SpreadsheetImage[];
+  extensionData?: Record<string, unknown>;
 }
 
 export interface Workbook {
@@ -82,6 +83,7 @@ export interface Workbook {
   name: string;
   sheets: SheetWire[];
   definedNames: DefinedName[];
+  extensionData?: Record<string, unknown>;
 }
 
 // ── working representation (store) ──────────────────────────────────────────────────────────────────
@@ -130,6 +132,7 @@ export interface SheetState {
   conditionalFormats?: ConditionalFormat[];
   dataValidations?: DataValidation[];
   images: SpreadsheetImage[];
+  extensionData?: Record<string, unknown>;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -161,6 +164,7 @@ export function sheetFromWire(w: SheetWire): SheetState {
     conditionalFormats: w.conditionalFormats,
     dataValidations: w.dataValidations,
     images: w.images ?? [],
+    extensionData: extractExtensionData(w as unknown as Record<string, unknown>, SHEET_PROPERTIES),
   };
 }
 
@@ -173,6 +177,7 @@ export function sheetToWire(s: SheetState): SheetWire {
     colByIndex.set(i, { ...(colByIndex.get(i) ?? { index: i }), index: i, width });
   }
   return {
+    ...(s.extensionData ?? {}),
     id: s.id,
     name: s.name,
     rowCount: s.rowCount,
@@ -192,16 +197,47 @@ export function sheetToWire(s: SheetState): SheetWire {
   };
 }
 
-export function workbookFromWire(w: Workbook): { name: string; sheets: SheetState[]; definedNames: DefinedName[]; schemaVersion: string } {
+export function workbookFromWire(w: Workbook): {
+  id: string;
+  name: string;
+  sheets: SheetState[];
+  definedNames: DefinedName[];
+  schemaVersion: string;
+  extensionData?: Record<string, unknown>;
+} {
   const sheets = (w.sheets ?? []).map(sheetFromWire);
   return {
+    id: w.id || uid(),
     name: w.name || 'Workbook',
     sheets: sheets.length ? sheets : [emptySheet()],
     definedNames: w.definedNames ?? [],
     schemaVersion: w.schemaVersion || '1.0',
+    extensionData: extractExtensionData(w as unknown as Record<string, unknown>, WORKBOOK_PROPERTIES),
   };
 }
 
-export function workbookToWire(name: string, sheets: SheetState[], definedNames: DefinedName[] = [], schemaVersion = '1.0'): Workbook {
-  return { schemaVersion, id: uid(), name, sheets: sheets.map(sheetToWire), definedNames };
+export function workbookToWire(
+  name: string,
+  sheets: SheetState[],
+  definedNames: DefinedName[] = [],
+  schemaVersion = '1.0',
+  id = uid(),
+  extensionData?: Record<string, unknown>,
+): Workbook {
+  return { ...(extensionData ?? {}), schemaVersion, id, name, sheets: sheets.map(sheetToWire), definedNames };
+}
+
+const WORKBOOK_PROPERTIES = new Set(['$schema', 'schemaVersion', 'id', 'name', 'sheets', 'definedNames']);
+const SHEET_PROPERTIES = new Set([
+  'id', 'name', 'rowCount', 'colCount', 'columns', 'rows', 'cells', 'merges',
+  'frozenRows', 'frozenCols', 'autoFilterRange', 'pageSetup', 'protection',
+  'conditionalFormats', 'dataValidations', 'images',
+]);
+
+function extractExtensionData(
+  value: Record<string, unknown>,
+  knownProperties: ReadonlySet<string>,
+): Record<string, unknown> | undefined {
+  const entries = Object.entries(value).filter(([key]) => !knownProperties.has(key));
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }

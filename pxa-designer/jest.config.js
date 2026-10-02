@@ -5,6 +5,7 @@ const config = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^.*websites/shared/browserTelemetry\\.js$': '<rootDir>/src/__tests__/mocks/browserTelemetry.ts',
     '^\\./pdfWorker$': '<rootDir>/src/__tests__/mocks/pdfWorker.ts',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },

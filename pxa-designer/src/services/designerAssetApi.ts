@@ -32,5 +32,17 @@ export async function uploadDesignerImage(file: File): Promise<DesignerAsset> {
   return body as DesignerAsset;
 }
 
+export async function deleteDesignerAsset(assetId: string): Promise<void> {
+  const response = await fetch(`${assetBase}/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+  if (response.ok || response.status === 404) return;
+  const body = await response.json().catch(() => null);
+  const error = new DesignerAssetApiError(
+    body?.detail || body?.title || 'The image cleanup failed.',
+  );
+  error.status = response.status;
+  error.code = body?.code;
+  throw error;
+}
+
 export const designerAssetContentUrl = (assetId: string): string =>
   `${assetBase}/${encodeURIComponent(assetId)}/content`;
