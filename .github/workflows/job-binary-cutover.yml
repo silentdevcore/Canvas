@@ -1,0 +1,30 @@
+name: PVAD Paired Binary Job Cutover
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-binary-cutover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Restore test dependencies
+        run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --disable-parallel -m:1 -nr:false
+      # PXA identifies the pinned historical binary, not the current product name.
+      - name: Build pinned PXA and current PVAD workers and test process cutover
+        env:
+          PVAD_CUTOVER_NUGET_SOURCE: https://api.nuget.org/v3/index.json
+        run: node tools/job-cutover/run.mjs

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly VALIDATOR="${PXA_PDFA_SECONDARY_VALIDATOR:-pdfvalidator}"
-readonly REPORT_DIRECTORY="${PXA_PDFA_SECONDARY_REPORT_DIR:-artifacts/pdfa-secondary}"
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_PDFA_SECONDARY_REPORT_DIR PXA_PDFA_SECONDARY_REPORT_DIR "${PVAD_PDFA_SECONDARY_REPORT_DIR+x}" "${PVAD_PDFA_SECONDARY_REPORT_DIR-}" "${PXA_PDFA_SECONDARY_REPORT_DIR+x}" "${PXA_PDFA_SECONDARY_REPORT_DIR-}"
+pvad_environment_alias PVAD_PDFA_SECONDARY_VALIDATOR PXA_PDFA_SECONDARY_VALIDATOR "${PVAD_PDFA_SECONDARY_VALIDATOR+x}" "${PVAD_PDFA_SECONDARY_VALIDATOR-}" "${PXA_PDFA_SECONDARY_VALIDATOR+x}" "${PXA_PDFA_SECONDARY_VALIDATOR-}"
+
+readonly VALIDATOR="${PVAD_PDFA_SECONDARY_VALIDATOR:-pdfvalidator}"
+readonly REPORT_DIRECTORY="${PVAD_PDFA_SECONDARY_REPORT_DIR:-artifacts/pdfa-secondary}"
 
 usage() {
   echo "Usage: $0 <2b|3b> <pdf> [pdf ...]" >&2
@@ -22,7 +26,7 @@ fi
 
 if ! command -v "$VALIDATOR" >/dev/null 2>&1 && [[ ! -x "$VALIDATOR" ]]; then
   echo "Secondary PDF/A validator not found: $VALIDATOR" >&2
-  echo "Set PXA_PDFA_SECONDARY_VALIDATOR to a licensed 3-Heights PDF Validator Shell executable." >&2
+  echo "Set PVAD_PDFA_SECONDARY_VALIDATOR to a licensed 3-Heights PDF Validator Shell executable." >&2
   exit 69
 fi
 

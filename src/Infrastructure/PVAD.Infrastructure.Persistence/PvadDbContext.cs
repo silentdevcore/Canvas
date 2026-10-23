@@ -1,0 +1,168 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using PVAD.Domain.Entities;
+using PVAD.Infrastructure.Persistence.Identity;
+using OpenIddict.EntityFrameworkCore.Models;
+
+namespace PVAD.Infrastructure.Persistence;
+
+public sealed class PvadDbContext
+    : IdentityDbContext<PvadIdentityUser, PvadIdentityRole, Guid>
+{
+    public PvadDbContext(DbContextOptions<PvadDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    public DbSet<OrganizationMembershipRole> OrganizationMembershipRoles => Set<OrganizationMembershipRole>();
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+    public DbSet<PdfTrustOperationJob> PdfTrustOperationJobs => Set<PdfTrustOperationJob>();
+    public DbSet<EInvoiceValidationRecord> EInvoiceValidationRecords => Set<EInvoiceValidationRecord>();
+    public DbSet<IdentityActionToken> IdentityActionTokens => Set<IdentityActionToken>();
+    public DbSet<MailOutboxMessage> MailOutboxMessages => Set<MailOutboxMessage>();
+    public DbSet<OrganizationSubscription> OrganizationSubscriptions => Set<OrganizationSubscription>();
+    public DbSet<SubscriptionEntitlement> SubscriptionEntitlements => Set<SubscriptionEntitlement>();
+    public DbSet<SubscriptionSeatAssignment> SubscriptionSeatAssignments => Set<SubscriptionSeatAssignment>();
+    public DbSet<SubscriptionLifecycleEvent> SubscriptionLifecycleEvents => Set<SubscriptionLifecycleEvent>();
+    public DbSet<SubscriptionUsageEvent> SubscriptionUsageEvents => Set<SubscriptionUsageEvent>();
+    public DbSet<OfflineLicense> OfflineLicenses => Set<OfflineLicense>();
+    public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<DesignerAuthorizationCode> DesignerAuthorizationCodes => Set<DesignerAuthorizationCode>();
+    public DbSet<DesignerTemplate> DesignerTemplates => Set<DesignerTemplate>();
+    public DbSet<DesignerTemplateVersion> DesignerTemplateVersions => Set<DesignerTemplateVersion>();
+    public DbSet<DesignerCodeWorkspace> DesignerCodeWorkspaces => Set<DesignerCodeWorkspace>();
+    public DbSet<DesignerCodeWorkspaceVersion> DesignerCodeWorkspaceVersions => Set<DesignerCodeWorkspaceVersion>();
+    public DbSet<AccountClosureRequest> AccountClosureRequests => Set<AccountClosureRequest>();
+    public DbSet<UserConsentEvent> UserConsentEvents => Set<UserConsentEvent>();
+    public DbSet<PvadBackgroundJob> BackgroundJobs => Set<PvadBackgroundJob>();
+    public DbSet<PvadStoredObject> StoredObjects => Set<PvadStoredObject>();
+    public DbSet<DesignerFeaturePreference> DesignerFeaturePreferences => Set<DesignerFeaturePreference>();
+    public DbSet<DesignerElementFavorite> DesignerElementFavorites => Set<DesignerElementFavorite>();
+    public DbSet<DesignerFeaturePolicy> DesignerFeaturePolicies => Set<DesignerFeaturePolicy>();
+    public DbSet<DesignerReleaseRead> DesignerReleaseReads => Set<DesignerReleaseRead>();
+    public DbSet<DesignerNotification> DesignerNotifications => Set<DesignerNotification>();
+    public DbSet<DesignerNotificationState> DesignerNotificationStates => Set<DesignerNotificationState>();
+    public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
+    public DbSet<LegalDocumentVersion> LegalDocumentVersions => Set<LegalDocumentVersion>();
+    public DbSet<LegalPublicationApproval> LegalPublicationApprovals => Set<LegalPublicationApproval>();
+    public DbSet<LegalAcceptanceEvent> LegalAcceptanceEvents => Set<LegalAcceptanceEvent>();
+    public DbSet<RetentionLegalHold> RetentionLegalHolds => Set<RetentionLegalHold>();
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnsureAuditEventsAreAppendOnly();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureAuditEventsAreAppendOnly();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.UseOpenIddict();
+        ConfigureIdentityTables(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(PvadDbContext).Assembly);
+    }
+
+    private static void ConfigureIdentityTables(ModelBuilder builder)
+    {
+        builder.Entity<PvadIdentityUser>().ToTable("users", DatabaseSchemas.Identity);
+        builder.Entity<PvadIdentityRole>().ToTable("roles", DatabaseSchemas.Identity);
+        builder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles", DatabaseSchemas.Identity);
+        builder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims", DatabaseSchemas.Identity);
+        builder.Entity<IdentityUserLogin<Guid>>().ToTable("user_logins", DatabaseSchemas.Identity);
+        builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims", DatabaseSchemas.Identity);
+        builder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreApplication>()
+            .ToTable("oauth_applications", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreAuthorization>()
+            .ToTable("oauth_authorizations", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreScope>()
+            .ToTable("oauth_scopes", DatabaseSchemas.Identity);
+        builder.Entity<OpenIddictEntityFrameworkCoreToken>()
+            .ToTable("oauth_tokens", DatabaseSchemas.Identity);
+
+        builder.Entity<PvadIdentityUser>(user =>
+        {
+            user.Property(value => value.DisplayName).HasMaxLength(200).IsRequired();
+            user.Property(value => value.PendingEmail).HasMaxLength(320);
+            user.Property(value => value.Locale).HasMaxLength(16).IsRequired();
+            user.Property(value => value.Country).HasMaxLength(2);
+            user.Property(value => value.TermsAcceptedVersion).HasMaxLength(64);
+            user.Property(value => value.PrivacyAcknowledgedVersion).HasMaxLength(64);
+            user.Property(value => value.MarketingConsentSource).HasMaxLength(64);
+            user.Property(value => value.CreatedAt).IsRequired();
+            user.Property(value => value.UpdatedAt).IsRequired();
+        });
+
+        builder.Entity<PvadIdentityRole>(role =>
+        {
+            role.Property(value => value.Description).HasMaxLength(500);
+            role.Property(value => value.IsSystemRole).IsRequired();
+            role.Property(value => value.CustomKey).HasMaxLength(80);
+            role.Property(value => value.DisplayName).HasMaxLength(200);
+            role.Property(value => value.IsArchived).IsRequired();
+            role.HasIndex(value => new { value.OrganizationId, value.CustomKey }).IsUnique();
+        });
+    }
+
+    private void EnsureAuditEventsAreAppendOnly()
+    {
+        if (ChangeTracker.Entries<AuditEvent>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "Audit events are append-only and cannot be modified or deleted.");
+        }
+
+        if (ChangeTracker.Entries<PdfTrustOperationJob>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "PDF Trust operation jobs are immutable and cannot be modified or deleted.");
+        }
+
+        if (ChangeTracker.Entries<LegalAcceptanceEvent>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted) ||
+            ChangeTracker.Entries<LegalPublicationApproval>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "Legal acceptance and publication approval evidence is append-only.");
+        }
+
+        foreach (var entry in ChangeTracker.Entries<LegalDocumentVersion>().Where(entry =>
+                     entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            var original = entry.Property(value => value.Status).OriginalValue;
+            if (entry.State == EntityState.Modified &&
+                (original == LegalDocumentStatus.Published ||
+                 original == LegalDocumentStatus.Scheduled) &&
+                entry.Entity.Status == LegalDocumentStatus.Retired &&
+                entry.Properties.Where(property => property.Metadata.Name != nameof(LegalDocumentVersion.Status) &&
+                                                   property.Metadata.Name != nameof(LegalDocumentVersion.RetiredAt))
+                    .All(property => !property.IsModified))
+            {
+                continue;
+            }
+
+            if (original is LegalDocumentStatus.Published or LegalDocumentStatus.Scheduled or LegalDocumentStatus.Retired)
+            {
+                throw new InvalidOperationException(
+                    "Published, scheduled, and retired legal document versions are immutable.");
+            }
+        }
+    }
+}

@@ -1,4 +1,4 @@
-const apiBase = '/api/pxa/v1/admin/operator/documentation';
+const apiBase = '/api/pvad/v1/admin/operator/documentation';
 const navigation = document.querySelector('#runbook-navigation');
 const content = document.querySelector('#runbook-content');
 

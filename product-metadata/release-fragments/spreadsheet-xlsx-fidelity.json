@@ -10,7 +10,7 @@
   "summary": "XLSX imports now preserve row and empty-column metadata, supported data validation and conditional formatting, and complete page setup details.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Proven-Document-Fidelity.md"
+    "/checklists/PVAD.Proven-Document-Fidelity.md"
   ],
   "breaking": false
 }

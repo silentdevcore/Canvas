@@ -1,0 +1,8 @@
+{
+  "id": "pvad-interface-identity-consistency",
+  "impact": "patch",
+  "components": ["designer", "company", "documentation", "demo", "admin", "account"],
+  "category": "fixed",
+  "summary": "Align shared interface styling and storage-notice controls with the current identity, and prevent the collapsed Designer navigation toggle from overlapping the brand on narrow screens.",
+  "breaking": false
+}

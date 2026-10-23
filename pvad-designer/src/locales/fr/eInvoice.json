@@ -1,0 +1,250 @@
+{
+  "title": "Facture électronique",
+  "standard": "Norme",
+  "version": "Version",
+  "profile": "Profil",
+  "sections": {
+    "document": "Informations de facture",
+    "seller": "Vendeur",
+    "buyer": "Acheteur",
+    "lines": "Lignes de facture",
+    "totals": "Totaux",
+    "evidence": "Historique des validations",
+    "standards": "Norme et profil",
+    "templates": "Mise en page",
+    "actions": "Générer",
+    "preview": "Résultat",
+    "diagnostics": "Validation"
+  },
+  "fields": {
+    "invoiceNumber": "Numéro de facture",
+    "issueDate": "Date d'émission",
+    "dueDate": "Date d'échéance",
+    "currency": "Devise",
+    "currencyDecimalPlaces": "Décimales",
+    "buyerReference": "Référence acheteur",
+    "paymentReference": "Référence de paiement",
+    "name": "Nom",
+    "identifier": "Identifiant",
+    "taxIdentifier": "Numéro de TVA",
+    "endpointIdentifier": "Adresse électronique",
+    "street": "Rue",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "countryCode": "Pays",
+    "lineIdentifier": "Position",
+    "lineDescription": "Désignation",
+    "lineQuantity": "Quantité",
+    "lineUnitCode": "Unité",
+    "lineUnitPrice": "Prix unitaire",
+    "lineTaxRate": "Taux de TVA",
+    "lineTaxCategory": "Catégorie de TVA",
+    "lineNetAmount": "Montant net",
+    "notes": "Notes",
+    "taxCategory": "Catégorie de TVA"
+  },
+  "actions": {
+    "addLine": "Ajouter une ligne",
+    "removeLine": "Supprimer la ligne",
+    "generateXml": "Télécharger le XML",
+    "createPdf": "Créer le PDF hybride",
+    "attachToPdf": "Joindre à un PDF existant",
+    "validate": "Valider",
+    "viewHistory": "Historique des validations",
+    "downloadXml": "Télécharger le XML",
+    "downloadPdf": "Télécharger le PDF",
+    "openInViewer": "Ouvrir dans PVADE Viewer",
+    "moveLineUp": "Monter la ligne",
+    "moveLineDown": "Descendre la ligne",
+    "insertTemplate": "Insérer la mise en page",
+    "clearResult": "Effacer le résultat"
+  },
+  "totals": {
+    "netTotal": "Total net",
+    "taxTotal": "Total TVA",
+    "grandTotal": "Montant à payer",
+    "taxGroup": "TVA à {{rate}} %",
+    "taxBasis": "Base imposable",
+    "calculated": "Calculé par PVADE ; non modifiable."
+  },
+  "conformance": {
+    "label": "Conformité",
+    "draft": "Brouillon — corrigez d'abord les erreurs",
+    "structurallyValid": "Reconnue structurellement — conformité non évaluée",
+    "notEvaluated": "Conformité non évaluée",
+    "validated": "Validée avec les artefacts officiels épinglés",
+    "invalid": "Rejetée par les artefacts officiels",
+    "explanation": "La reconnaissance structurelle n'est pas une affirmation de conformité. Un verdict de conformité exige un jeu d'artefacts officiels épinglé, dont l'identifiant et l'empreinte accompagnent le résultat.",
+    "artifactSet": "Jeu d'artefacts",
+    "unavailable": "Des artefacts officiels ont été sélectionnés mais n'ont pas pu être vérifiés"
+  },
+  "validation": {
+    "invoiceNumberRequired": "Un numéro de facture est requis.",
+    "currencyRequired": "Un code de devise est requis.",
+    "currencyFormat": "La devise doit être un code alphabétique de trois lettres.",
+    "currencyDecimalPlaces": "Les décimales doivent être comprises entre zéro et quatre.",
+    "linesRequired": "Au moins une ligne de facture est requise.",
+    "tooManyLines": "Une facture ne peut pas contenir plus de {{maximum}} lignes.",
+    "lineIdentifierRequired": "La ligne {{position}} exige un numéro de position.",
+    "lineDescriptionRequired": "La ligne {{position}} exige une désignation.",
+    "lineUnitCodeRequired": "La ligne {{position}} exige une unité.",
+    "lineTaxCategoryRequired": "La ligne {{position}} exige une catégorie de TVA.",
+    "lineIdentifierDuplicated": "Le numéro de position « {{identifier}} » est utilisé plusieurs fois.",
+    "lineQuantityPositive": "La ligne {{position}} exige une quantité supérieure à zéro.",
+    "lineUnitPriceNonNegative": "La ligne {{position}} ne peut pas avoir un prix unitaire négatif.",
+    "lineTaxRateRange": "La ligne {{position}} exige un taux de TVA entre zéro et 100.",
+    "dueDateBeforeIssueDate": "La date d'échéance ne peut pas précéder la date d'émission.",
+    "buyerReferenceRecommended": "XRechnung exige normalement une référence acheteur (BT-10).",
+    "partyNameRequired": "Le nom du {{role}} est requis.",
+    "partyStreetRequired": "La rue du {{role}} est requise.",
+    "partyCityRequired": "La ville du {{role}} est requise.",
+    "partyPostalCodeRequired": "Le code postal du {{role}} est requis.",
+    "partyCountryCodeRequired": "Le pays du {{role}} est requis.",
+    "partyCountryCodeFormat": "Le pays du {{role}} doit être un code de deux lettres.",
+    "standardUnsupported": "Cette norme de facturation électronique n'est pas prise en charge.",
+    "versionUnsupported": "PVADE maintient {{standard}} en version {{expected}}, pas « {{actual}} ».",
+    "profileUnsupported": "Le profil « {{profile}} » n'est pas pris en charge pour {{standard}}."
+  },
+  "roles": {
+    "seller": "vendeur",
+    "buyer": "acheteur"
+  },
+  "attach": {
+    "title": "Joindre à un PDF existant",
+    "strategyIncremental": "Les pages d'origine sont conservées octet pour octet et la facture est ajoutée comme nouvelle révision.",
+    "strategyConversion": "La source doit d'abord être convertie en PDF/A-3b, ce qui réécrit le fichier.",
+    "approveConversion": "Autoriser la conversion en PDF/A-3b",
+    "approveSignatureInvalidation": "Autoriser la suppression des signatures existantes",
+    "approveReplacement": "Autoriser le remplacement de la facture déjà jointe",
+    "approveInconsistent": "Joindre même si les valeurs sont absentes de la page visible",
+    "pagesUnchanged": "Toutes les pages visibles inchangées",
+    "blocked": "L'ajout a été bloqué. Le fichier d'origine est inchangé."
+  },
+  "consistency": {
+    "label": "Comparaison PDF et XML",
+    "consistent": "Les valeurs de la facture ont été trouvées dans la page visible.",
+    "reviewRequired": "Certaines valeurs n'ont pas été trouvées dans la page visible ; vérifiez-la.",
+    "notEvaluated": "Aucun texte de page extractible n'était disponible, donc aucune comparaison n'a eu lieu."
+  },
+  "evidence": {
+    "recordedAt": "Enregistré",
+    "operation": "Opération",
+    "documentChecksum": "Empreinte du document",
+    "retainUntil": "Conservé jusqu'au",
+    "revalidate": "Revalider",
+    "revalidated": "Revalidée avec le jeu d'artefacts actuel",
+    "verdictUnchanged": "Le verdict n'a pas changé.",
+    "verdictChanged": "Le verdict a changé.",
+    "empty": "Aucune validation n'a encore été enregistrée."
+  },
+  "template": {
+    "title": "FACTURE",
+    "seller": "Vendeur",
+    "buyer": "Acheteur",
+    "issueDate": "Date d'émission",
+    "dueDate": "Date d'échéance",
+    "buyerReference": "Référence acheteur",
+    "paymentReference": "Référence de paiement",
+    "linePosition": "N°",
+    "lineDescription": "Désignation",
+    "lineQuantity": "Quantité",
+    "lineUnitPrice": "Prix unitaire",
+    "lineTaxRate": "TVA",
+    "lineNet": "Net",
+    "netTotal": "Total net",
+    "taxTotal": "Total de la taxe",
+    "amountPayable": "Montant à payer",
+    "conformanceNote": "Le XML de facture intégré constitue la donnée juridiquement pertinente. La reconnaissance structurelle par PVADE n'est pas une affirmation de conformité.",
+    "standardName": "Facture standard",
+    "standardDescription": "Blocs vendeur et acheteur, tableau des lignes, ventilation de TVA et montant à payer.",
+    "compactName": "Facture compacte",
+    "compactDescription": "La mise en page standard sans ventilation de TVA par taux, pour les profils MINIMUM et BASIC WL."
+  },
+  "boundaries": {
+    "title": "Hors du périmètre de PVADE",
+    "description": "PVADE produit, intègre, lit et valide des documents de facture. Le transport Peppol, la déclaration fiscale nationale, la comptabilité et la conservation légale sont des intégrations distinctes."
+  },
+  "page": {
+    "defaultName": "Facture électronique",
+    "title": "Facture électronique",
+    "subtitle": "Composez la facture une fois. PVADE génère le XML, produit la facture hybride PDF/A-3 visible et indique ce qui a réellement été validé."
+  },
+  "empty": {
+    "title": "Aucune facture dans ce document",
+    "description": "Démarrez une facture électronique pour saisir les parties, les lignes, la TVA et les totaux. Insérer une mise en page maintenue la dessine sur le plan de travail.",
+    "action": "Démarrer une facture"
+  },
+  "loading": "Chargement de l'espace de facturation...",
+  "unavailable": {
+    "title": "La facturation électronique n'est pas disponible",
+    "description": "Cette fonctionnalité n'est pas activée pour votre espace de travail. Demandez son activation à un administrateur ou vérifiez votre droit produit."
+  },
+  "save": {
+    "label": "Brouillon",
+    "idle": "Pas encore enregistré",
+    "changed": "Modifications non enregistrées",
+    "saving": "Enregistrement...",
+    "retrying": "Nouvelle tentative...",
+    "saved": "Enregistré",
+    "failed": "Échec de l'enregistrement",
+    "offline": "Hors ligne – les modifications ne sont pas enregistrées",
+    "conflict": "Un brouillon serveur plus récent existe",
+    "reload": "Charger le brouillon serveur",
+    "saveAsNew": "Enregistrer comme nouveau brouillon",
+    "downloadLocal": "Télécharger une copie locale"
+  },
+  "lines": {
+    "caption": "Lignes de facture avec quantité, unité, prix unitaire, TVA et montant net calculé",
+    "empty": "Aucune ligne de facture.",
+    "position": "Ligne {{position}}",
+    "netCalculated": "Calculé à partir de la quantité et du prix unitaire"
+  },
+  "structural": {
+    "label": "Reconnaissance structurelle",
+    "pending": "Pas encore vérifié",
+    "valid": "Reconnu comme {{syntax}}",
+    "invalid": "Non reconnu"
+  },
+  "business": {
+    "label": "Validation métier PVADE",
+    "pending": "Pas encore vérifié",
+    "ok": "Aucun constat bloquant",
+    "errors": "{{count}} erreur(s)",
+    "warnings": "{{count}} avertissement(s)"
+  },
+  "diagnostics": {
+    "title": "Constats",
+    "empty": "Aucun constat.",
+    "goToField": "Aller au champ",
+    "code": "Code",
+    "severityError": "Erreur",
+    "severityWarning": "Avertissement",
+    "backendTitle": "Signalé par le serveur"
+  },
+  "templates": {
+    "title": "Mises en page maintenues",
+    "description": "Une mise en page se lie aux chemins canoniques de la facture. L'insertion est une seule étape d'annulation.",
+    "insert": "Insérer",
+    "active": "Insérée",
+    "none": "Aucune mise en page insérée."
+  },
+  "announce": {
+    "validated": "Validation terminée.",
+    "validationFailed": "La validation a signalé des constats.",
+    "xmlReady": "XML de facture généré.",
+    "pdfReady": "PDF hybride créé.",
+    "generateFailed": "La génération a échoué."
+  },
+  "errors": {
+    "offline": "Vous semblez hors ligne. Réessayez dès que la connexion est rétablie.",
+    "validateFailed": "La validation n'a pas pu aboutir.",
+    "generateXmlFailed": "Le XML de facture n'a pas pu être généré.",
+    "createPdfFailed": "Le PDF hybride n'a pas pu être créé.",
+    "serverCode": "Code serveur"
+  },
+  "result": {
+    "xmlReady": "Le XML de facture est prêt.",
+    "pdfReady": "Le PDF hybride est prêt.",
+    "none": "Rien généré pour le moment."
+  }
+}

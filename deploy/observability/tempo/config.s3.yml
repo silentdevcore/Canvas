@@ -17,7 +17,7 @@ ingester:
 
 compactor:
   compaction:
-    block_retention: ${PXA_TRACE_RETENTION:-336h}
+    block_retention: ${PVAD_TRACE_RETENTION:-336h}
 
 storage:
   trace:
@@ -25,8 +25,8 @@ storage:
     wal:
       path: /var/tempo/wal
     s3:
-      bucket: ${PXA_TEMPO_S3_BUCKET}
-      endpoint: ${PXA_S3_ENDPOINT}
-      region: ${PXA_S3_REGION}
-      forcepathstyle: ${PXA_S3_FORCE_PATH_STYLE}
-      insecure: ${PXA_S3_INSECURE}
+      bucket: ${PVAD_TEMPO_S3_BUCKET}
+      endpoint: ${PVAD_S3_ENDPOINT}
+      region: ${PVAD_S3_REGION}
+      forcepathstyle: ${PVAD_S3_FORCE_PATH_STYLE}
+      insecure: ${PVAD_S3_INSECURE}

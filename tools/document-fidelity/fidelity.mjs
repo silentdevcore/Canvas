@@ -436,7 +436,7 @@ export function evaluate(manifest, evidence, root = defaultRoot) {
 export function toMarkdown(report) {
   const rows = report.domains.map(item => `| ${item.domain} | ${item.fixtures} | ${item.measured} | ${item.realWorld} | ${item.officiallySupported} | ${item.automaticMigrationPercent ?? 'notMeasured'} |`).join('\n');
   const findings = report.results.map(item => `- \`${item.fixtureId}\`: **${item.classification}**${item.limitations.length ? ` - ${item.limitations.join(' ')}` : ''}`).join('\n');
-  return `# PXA Document Fidelity Report\n\n` +
+  return `# PVAD Document Fidelity Report\n\n` +
     `Official automatic migration: **${report.summary.automaticMigrationPercent}** (target ${report.policy.minimumAutomaticMigrationPercent}%).\n\n` +
     `This percentage counts only reviewed, real-world fixtures explicitly marked as officially supported. \`notMeasured\` means that no fixture is eligible; it never means 100%.\n\n` +
     `| Domain | Fixtures | Measured | Real-world | Official | Automatic % |\n| --- | ---: | ---: | ---: | ---: | ---: |\n${rows}\n\n` +

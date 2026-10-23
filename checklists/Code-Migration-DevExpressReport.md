@@ -1,5 +1,7 @@
 # PXA Migration: DevExpress XtraReport → PXA Designer
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Goal
 
 Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens

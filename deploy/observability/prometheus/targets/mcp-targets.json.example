@@ -1,6 +1,6 @@
 [
   {
-    "targets": ["pxa-mcp:3000"],
+    "targets": ["pvad-mcp:3000"],
     "labels": {
       "environment": "production"
     }

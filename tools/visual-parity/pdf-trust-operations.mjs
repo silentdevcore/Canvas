@@ -1,3 +1,4 @@
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -158,12 +159,12 @@ async function main() {
 
   const artifactDirectory = path.join(outputRoot, 'generated');
   run('dotnet', [
-    'test', 'tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj',
+    'test', 'tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj',
     '--no-restore', '--disable-build-servers',
     '--filter', 'FullyQualifiedName~PdfTrustVisualArtifactTests'
   ], { PXA_PDF_TRUST_OPERATION_ARTIFACT_DIR: artifactDirectory });
 
-  const updateBaseline = process.env.PXA_PDF_TRUST_OPERATION_UPDATE_BASELINE === 'true';
+  const updateBaseline = readPvadEnvironment('PVAD_PDF_TRUST_OPERATION_UPDATE_BASELINE') === 'true';
   const baseline = updateBaseline
     ? { schemaVersion: 1, dpi, entries: [] }
     : validateBaseline(JSON.parse(await readFile(baselinePath, 'utf8')));
@@ -190,7 +191,7 @@ async function main() {
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    mode: process.env.PXA_PDF_TRUST_OPERATION_ENFORCE === 'true' ? 'enforced' : 'report-only',
+    mode: readPvadEnvironment('PVAD_PDF_TRUST_OPERATION_ENFORCE') === 'true' ? 'enforced' : 'report-only',
     rasterizer: { command: 'pdftoppm', dpi, format: 'png' },
     operations: results,
     summary: {
@@ -203,7 +204,7 @@ async function main() {
     await writeFile(baselinePath, `${JSON.stringify({
       schemaVersion: 1,
       dpi,
-      description: 'Operation output baselines generated from deterministic PXA Trust service tests.',
+      description: 'Operation output baselines generated from deterministic PVAD Trust service tests.',
       entries: results.map(result => ({
         id: result.id,
         sourcePages: result.sourcePages.map(({ page, pngSha256, width, height }) => ({ page, pngSha256, width, height })),

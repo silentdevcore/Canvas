@@ -1,11 +1,11 @@
-# PXA Shared Web Design System
+# PVADE Shared Web Design System
 
-This folder contains shared layout and styling foundations for the PXA web properties:
+This folder contains shared layout and styling foundations for the PVADE web properties:
 
-- `PXA.Company`
-- `PXA.Documentation`
-- `PXA.Demo`
-- `PXA.Account`
+- `PVAD.Company`
+- `PVAD.Documentation`
+- `PVAD.Demo`
+- `PVAD.Account`
 
 The goal is to keep the sites visually consistent while allowing each site to optimize for its own workflow: marketing, documentation, demos, or customer self-service.
 
@@ -23,9 +23,9 @@ If a site lives deeper than one level below `websites`, adjust the relative impo
 
 Use these root classes on the page shell:
 
-- `pxa-site pxa-site--company`
-- `pxa-site pxa-site--documentation`
-- `pxa-site pxa-site--demo`
+- `pvad-site pvad-site--company`
+- `pvad-site pvad-site--documentation`
+- `pvad-site pvad-site--demo`
 - Account uses the same tokens and components inside its authentication and portal shells.
 
 Each site should use the same header/footer pattern and the same token names. Site-specific styling should be layered after the shared CSS.
@@ -46,17 +46,17 @@ Site apps can map these labels to local routes, subdomains, or deployment URLs.
 
 The shared CSS provides stable classes for common components:
 
-- `pxa-button`
-- `pxa-card`
-- `pxa-product-card`
-- `pxa-demo-card`
-- `pxa-status`
-- `pxa-code`
-- `pxa-search`
-- `pxa-page-header`
-- `pxa-section`
-- `pxa-site-header`
-- `pxa-site-footer`
+- `pvad-button`
+- `pvad-card`
+- `pvad-product-card`
+- `pvad-demo-card`
+- `pvad-status`
+- `pvad-code`
+- `pvad-search`
+- `pvad-page-header`
+- `pvad-section`
+- `pvad-site-header`
+- `pvad-site-footer`
 
 Prefer extending these classes over redefining fundamentals in each site.
 

@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$root_dir/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_CAPACITY_API_URL PVAD_CAPACITY_API_CONTAINER PVAD_CAPACITY_ITERATIONS \
+  PVAD_CAPACITY_PAGE_COPIES PVAD_CAPACITY_REQUEST_FILE PVAD_CAPACITY_API_KEY
 
 profile="${1:-}"
 expected_cpus="${2:-}"
 expected_memory_bytes="${3:-}"
 concurrency="${4:-}"
-api_url="${PXA_CAPACITY_API_URL:-http://127.0.0.1:5087}"
-container="${PXA_CAPACITY_API_CONTAINER:-canvas-pxa-webapi-1}"
-iterations="${PXA_CAPACITY_ITERATIONS:-100}"
-page_copies="${PXA_CAPACITY_PAGE_COPIES:-20}"
-source_request="${PXA_CAPACITY_REQUEST_FILE:-deploy/observability/performance-request.json}"
-api_key="${PXA_CAPACITY_API_KEY:-}"
+api_url="${PVAD_CAPACITY_API_URL:-http://127.0.0.1:5087}"
+container="${PVAD_CAPACITY_API_CONTAINER:-}"
+iterations="${PVAD_CAPACITY_ITERATIONS:-100}"
+page_copies="${PVAD_CAPACITY_PAGE_COPIES:-20}"
+source_request="${PVAD_CAPACITY_REQUEST_FILE:-deploy/observability/performance-request.json}"
+api_key="${PVAD_CAPACITY_API_KEY:-}"
 
 if [[ -z "${profile}" || -z "${expected_cpus}" || -z "${expected_memory_bytes}" ||
       -z "${concurrency}" || -z "${api_key}" ]]; then
   echo "Usage: $0 <profile> <cpus> <memory-bytes> <concurrency>" >&2
-  echo "Set PXA_CAPACITY_API_KEY to an active synthetic service-account key." >&2
+  echo "Set PVAD_CAPACITY_API_KEY to an active synthetic service-account key." >&2
   exit 2
 fi
 if (( iterations < 20 || iterations > 1000 || concurrency < 1 || concurrency > 64 )); then
   echo "Iterations must be 20-1000 and concurrency must be 1-64." >&2
   exit 2
 fi
+
+container="${container:-$(node "$root_dir/tools/configuration/pvad-compose.mjs" -f "$root_dir/deploy/api/docker-compose.api.yml" ps -q pvad-webapi)}"
 
 work="$(mktemp -d)"
 expanded_request="${work}/request.json"
@@ -60,7 +66,7 @@ jq --argjson copies "${page_copies}" '
 
 for warmup in 1 2 3; do
   curl --fail --silent --show-error --output /dev/null \
-    --header "X-PXA-API-Key: ${api_key}" \
+    --header "X-PVAD-API-Key: ${api_key}" \
     --header 'Content-Type: application/json' \
     --data-binary "@${expanded_request}" \
     "${api_url}/api/export?format=pdf&language=en"
@@ -82,7 +88,7 @@ run_request() {
   if ! curl --fail --silent --show-error \
       --output /dev/null \
       --write-out "%{time_total}\n" \
-      --header "X-PXA-API-Key: ${api_key}" \
+      --header "X-PVAD-API-Key: ${api_key}" \
       --header "Content-Type: application/json" \
       --data-binary "@${expanded_request}" \
       "${api_url}/api/export?format=pdf&language=en" >"${work}/duration-${iteration}"; then

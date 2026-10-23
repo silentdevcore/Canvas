@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://pxa/schema/design-export.schema.json",
+  "$id": "https://powerdoxautomation.com/schemas/design-export.schema.json",
   "title": "DesignExportDto",
-  "description": "A PXA document design. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/PXA.Core/Contracts/DesignExportDto.cs.",
+  "description": "A PVAD document design. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/Core/PVAD.Core/Contracts/DesignExportDto.cs.",
   "type": "object",
   "required": ["id", "name", "pages"],
   "properties": {
@@ -89,11 +89,11 @@
     },
     "element": {
       "type": "object",
-      "description": "A single positioned element. Type-specific properties are permitted in addition to the common ones (see pxa-designer/src/docs/elementCatalog.ts for the per-type properties).",
+      "description": "A single positioned element. Type-specific properties are permitted in addition to the common ones (see pvad-designer/src/docs/elementCatalog.ts for the per-type properties).",
       "required": ["id", "type", "x", "y", "width", "height"],
       "properties": {
         "id": { "type": "string" },
-        "assetId": { "type": "string", "description": "Organization-owned asset ID in persisted Designer JSON or package-local asset ID inside PXAP." },
+        "assetId": { "type": "string", "description": "Organization-owned asset ID in persisted Designer JSON or package-local asset ID inside PVADP." },
         "type": {
           "type": "string",
           "description": "The element type.",

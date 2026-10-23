@@ -1,7 +1,7 @@
-# PXA PDF C# Cookbook
+# PVAD PDF C# Cookbook
 
-Task-oriented recipes for the imperative PXA PDF API. Every snippet is self-contained — add
-`using PXA.Pdf;` plus `using PXA.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
+Task-oriented recipes for the imperative PVAD PDF API. Every snippet is self-contained — add
+`using PVAD.Pdf;` plus `using PVAD.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
 call `ToBytes()` to get the PDF bytes.
 
 > **Coordinates** are in points (1/72"). The origin is the **bottom-left** of the page; `x` increases to
@@ -11,12 +11,12 @@ call `ToBytes()` to get the PDF bytes.
 ## Getting started
 
 ```csharp
-using PXA.Pdf;
-using PXA.Generator;
+using PVAD.Pdf;
+using PVAD.Generator;
 
 var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";
-document.Info.Author = "Power Dox Automation";
+document.Info.Author = "PVADE";
 
 var page = document.AddPage();                 // A4 portrait by default
 page.DrawText("Hello world", x: 40, y: 800, fontSize: 18);
@@ -197,4 +197,4 @@ document.Info.CustomProperties["Department"] = "Finance";
 ---
 
 See the [API Reference](api/) for every type, overload, and option. A complete runnable program lives in
-`samples/PXA.Demo/Program.cs`.
+`samples/PVAD.Demo/Program.cs`.

@@ -1,0 +1,103 @@
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import {
+  FiFilePlus,
+  FiCode,
+  FiLayout as FiLayoutIcon,
+  FiUpload,
+  FiEye,
+  FiFileText,
+  FiGitMerge,
+  FiDollarSign,
+} from 'react-icons/fi';
+import AppHeader from './AppHeader';
+import HubSidebar, { type HubSidebarItem } from './HubSidebar';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import FeatureBadge from '@/product/FeatureBadge';
+import { useProductExperience } from '@/product/ProductExperienceProvider';
+import { useDesignerAuth } from '@/auth/DesignerAuthGate';
+import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
+
+const PdfLayout: React.FC = () => {
+  const { t } = useTranslation('common');
+  const [collapsed, toggleCollapsed] = useSidebarCollapsed('pvad-designer:pdf-sidebar-collapsed', 'pxa-designer:pdf-sidebar-collapsed');
+  const { features } = useProductExperience();
+  const { user } = useDesignerAuth();
+  const permissionRequired = t('permissions.sidebarRequired');
+  const pdfViewerFeature = features.find(feature => feature.id === 'designer.pdf-viewer');
+  const eInvoiceFeature = features.find(feature => feature.id === 'designer.e-invoice');
+
+  const pdfSidebarItems: HubSidebarItem[] = [
+    {
+      path: '/pdf/create',
+      label: t('pdfSidebar.createPdf'),
+      icon: FiFilePlus,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfCreate),
+      disabledReason: permissionRequired,
+      // /pdf/create and /pdf/edit both land on the same route (?mode=code
+      // just switches CreatePage's internal view), so pathname-only matching
+      // would always highlight this item — check the query string too.
+      isActive: (location) => location.pathname === '/pdf/create' && new URLSearchParams(location.search).get('mode') !== 'code',
+    },
+    {
+      path: '/pdf/edit',
+      label: t('pdfSidebar.editPdf'),
+      icon: FiCode,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfEdit),
+      disabledReason: permissionRequired,
+      isActive: (location) => location.pathname === '/pdf/create' && new URLSearchParams(location.search).get('mode') === 'code',
+    },
+    { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfTemplatesRead), disabledReason: permissionRequired },
+    { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport), disabledReason: permissionRequired },
+    { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye,
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfConvert), disabledReason: permissionRequired },
+    {
+      path: '/pdf/viewer',
+      label: t('pdfSidebar.pdfViewer'),
+      icon: FiFileText,
+      badge: pdfViewerFeature ? <FeatureBadge feature={pdfViewerFeature} /> : undefined,
+      disabled: (pdfViewerFeature ? !pdfViewerFeature.enabled : false)
+        || !hasDesignerPermission(user, designerPermissions.pdfViewerRead),
+      disabledReason: !hasDesignerPermission(user, designerPermissions.pdfViewerRead)
+        ? permissionRequired
+        : undefined,
+    },
+    {
+      path: '/pdf/e-invoice',
+      label: t('pdfSidebar.eInvoice'),
+      icon: FiDollarSign,
+      badge: eInvoiceFeature ? <FeatureBadge feature={eInvoiceFeature} /> : undefined,
+      disabled: (eInvoiceFeature ? !eInvoiceFeature.enabled : false)
+        || !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead),
+      disabledReason: !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead)
+        ? permissionRequired
+        : undefined,
+    },
+    { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge,
+      disabled: !hasAnyDesignerPermission(user, [
+        designerPermissions.migrationPdfExecute,
+        migrationKindPermission('pdf', 'code', 'execute'),
+        migrationKindPermission('pdf', 'viewer', 'execute'),
+        migrationKindPermission('pdf', 'designer', 'execute'),
+        designerPermissions.migrationReportExecute,
+        migrationKindPermission('report', 'designer', 'execute'),
+      ]), disabledReason: permissionRequired },
+  ];
+
+  return (
+    <div className="hub-layout">
+      <AppHeader activePage="pdf" />
+      <div className={`hub-layout-body${collapsed ? ' is-collapsed' : ''}`}>
+        <HubSidebar items={pdfSidebarItems} collapsed={collapsed} onToggle={toggleCollapsed} />
+        <main className="hub-layout-content">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default PdfLayout;

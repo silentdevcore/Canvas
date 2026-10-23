@@ -1,15 +1,15 @@
-# Power Dox Automation / PXA
+# PVADE / PVAD
 
-> Power Dox Automation (PXA) is a document-automation platform: a visual designer plus a .NET engine that
+> PVADE (technical name: PVAD) is a document-automation platform: a visual designer plus a .NET engine that
 > generates PDF, Word, and other formats. AI agents can generate documents two ways — a declarative
 > **design JSON** (`DesignExportDto`) posted to the render/export API, or imperative **C# code** with the
-> PXA-compatible PDF API.
+> PVAD-compatible PDF API.
 
 There are two generation surfaces:
 
 1. **Declarative design JSON** (`DesignExportDto`) — describe pages + elements, POST to the API, get a file.
    Best for templates and data-driven documents. Validate against the JSON Schema before posting.
-2. **Imperative C# code** (PXA-compatible PDF API, with legacy `PXA.Pdf` types) — `Pdf.CreateDocument()`,
+2. **Imperative C# code** (PVAD-compatible PDF API, with legacy `PVAD.Pdf` types) — `Pdf.CreateDocument()`,
    `AddPage()`, `page.DrawText(...)`, `document.ToBytes()`. Best for programmatic generation and SDK migrations.
 
 ## Quick start — design JSON
@@ -28,8 +28,8 @@ POST it to `/api/templates/render-design` (raw design → PDF) or `/api/export` 
 ## Quick start — C# code
 
 ```csharp
-using PXA.Pdf;
-using PXA.Generator;
+using PVAD.Pdf;
+using PVAD.Generator;
 var document = Pdf.CreateDocument();
 var page = document.AddPage();
 page.DrawText("Invoice 1001", x: 40, y: 800, new PdfDrawTextOptions { FontSize = 18, Bold = true });
@@ -48,15 +48,15 @@ contentcontrol, …). Each element's properties, format support, and examples ar
 - [Full AI reference](/llms-full.txt): every element with properties + examples, the API, and the
   generate→validate→post loop.
 - [Design JSON Schema](/docs/schema/design-export.schema.json): validate a `DesignExportDto` before posting.
-- [PXA Workbook JSON Schema](/docs/schema/pxa-workbook.schema.json): the canonical spreadsheet format. Validate a `SpreadsheetDto` workbook before posting to `/api/spreadsheet/*` (export/calculate/render/sort/find-replace/fill).
+- [PVADS Workbook JSON Schema](/docs/schema/pvad-workbook.schema.json): the canonical spreadsheet format. Validate a `SpreadsheetDto` workbook before posting to `/api/spreadsheet/*` (export/calculate/render/sort/find-replace/fill).
 - [OpenAPI](/docs/schema/openapi.json): the full HTTP API.
-- [C# Cookbook](/docs/csharp-cookbook.md): task-oriented PXA-compatible PDF recipes.
-- Element catalog (source of truth): `pxa-designer/src/docs/elementCatalog.ts`.
+- [C# Cookbook](/docs/csharp-cookbook.md): task-oriented PVAD-compatible PDF recipes.
+- Element catalog (source of truth): `pvad-designer/src/docs/elementCatalog.ts`.
 
 ## Key endpoints
 
 - `POST /api/templates/render-design` — raw `DesignExportDto` → PDF.
 - `POST /api/export` — `{ design, format, data? }` → file (pdf, docx, html, xlsx, …).
 - `POST /api/templates/validate` — validate a design without rendering.
-- `POST /api/templates/csharp-code-to-pdf` — compile PXA-compatible PDF C# → PDF.
+- `POST /api/templates/csharp-code-to-pdf` — compile PVAD-compatible PDF C# → PDF.
 - `GET  /api/export/formats` — list export formats.

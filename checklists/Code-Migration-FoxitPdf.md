@@ -1,5 +1,7 @@
 # PXA Migration: Foxit PDF SDK
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## V1 Pilot Analysis
 
 - [x] Foxit PDF SDK is a broad SDK with document generation, editing, annotations, forms, security, rendering, OCR/conversion, viewer, and redaction surfaces.

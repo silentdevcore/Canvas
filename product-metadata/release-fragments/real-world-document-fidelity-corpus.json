@@ -8,10 +8,10 @@
     "spreadsheet"
   ],
   "category": "improved",
-  "summary": "PXA now continuously measures structural, semantic, and visual fidelity against a licensed real-world PDF, DOCX, and XLSX corpus without overstating failed reviews.",
+  "summary": "PVAD now continuously measures structural, semantic, and visual fidelity against a licensed real-world PDF, DOCX, and XLSX corpus without overstating failed reviews.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Proven-Document-Fidelity.md"
+    "/checklists/PVAD.Proven-Document-Fidelity.md"
   ],
   "breaking": false,
   "reason": "Internal quality evidence and CI coverage do not change customer-facing behavior."

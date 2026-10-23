@@ -1,16 +1,16 @@
-# PXA Websites
+# PVADE Websites
 
-This folder contains the public-facing PXA web properties, the customer Account portal, and the shared design system.
+This folder contains the public-facing PVADE web properties, the customer Account portal, and the shared design system. Application directories use the technical PVAD prefix.
 
 ## Sites
 
 | Site | Purpose | Dev URL |
 | --- | --- | --- |
-| `PXA.Company` | Marketing, sales, product overview | `http://localhost:5173/` |
-| `PXA.Documentation` | Editor and SDK documentation | `http://localhost:5174/` |
-| `PXA.Demo` | Interactive demo gallery | `http://localhost:5175/` |
-| `PXA Designer` | Live product designer app | `http://localhost:5176/` |
-| `PXA.Account` | Customer registration, sign-in, and self-service | `http://localhost:5178/` |
+| `PVAD.Company` | Marketing, sales, product overview | `http://localhost:5173/` |
+| `PVAD.Documentation` | Editor and SDK documentation | `http://localhost:5174/` |
+| `PVAD.Demo` | Interactive demo gallery | `http://localhost:5175/` |
+| `PVADE Designer` | Live product designer app | `http://localhost:5176/` |
+| `PVAD.Account` | Customer registration, sign-in, and self-service | `http://localhost:5178/` |
 
 ## Shared Design System
 
@@ -27,22 +27,22 @@ Each site imports:
 Run each site in a separate terminal:
 
 ```bash
-cd websites/PXA.Company
+cd websites/PVAD.Company
 npm run dev
 ```
 
 ```bash
-cd websites/PXA.Documentation
+cd websites/PVAD.Documentation
 npm run dev
 ```
 
 ```bash
-cd websites/PXA.Demo
+cd websites/PVAD.Demo
 npm run dev
 ```
 
 ```bash
-cd websites/PXA.Account
+cd websites/PVAD.Account
 npm run dev
 ```
 
@@ -51,21 +51,27 @@ The local cross-site links currently target the fixed dev ports above.
 Each site has a `vite.config.js` that allows imports from `websites/shared` during local development.
 
 Cross-site URLs are centralized in `shared/siteLinks.js`. Local development uses the fixed
-ports above. Production builds default to the public domains and may override them with:
+ports above. Production builds retain the legacy host defaults documented in
+`HOSTING.md`; configure approved target hosts with the canonical keys:
 
-- `VITE_PXA_COMPANY_URL`
-- `VITE_PXA_DOCUMENTATION_URL`
-- `VITE_PXA_DEMO_URL`
-- `VITE_PXA_DESIGNER_URL`
-- `VITE_PXA_ACCOUNT_URL`
+- `VITE_PVAD_COMPANY_URL`
+- `VITE_PVAD_DOCUMENTATION_URL`
+- `VITE_PVAD_DEMO_URL`
+- `VITE_PVAD_DESIGNER_URL`
+- `VITE_PVAD_ACCOUNT_URL`
+- `VITE_PVAD_OPERATOR_URL`
+
+Corresponding `VITE_PXA_*` keys remain compatibility inputs. Matching aliases
+are accepted; conflicting canonical/legacy values are rejected. Listing proposed
+hosts below does not change the runtime defaults or authorize a DNS cutover.
 
 ## Build
 
 ```bash
-cd websites/PXA.Company && npm run build
-cd websites/PXA.Documentation && npm run build
-cd websites/PXA.Demo && npm run build
-cd websites/PXA.Account && npm run build
+cd websites/PVAD.Company && npm run build
+cd websites/PVAD.Documentation && npm run build
+cd websites/PVAD.Demo && npm run build
+cd websites/PVAD.Account && npm run build
 ```
 
 Build output is ignored by Git via `websites/*/dist/`.
@@ -74,12 +80,13 @@ Build output is ignored by Git via `websites/*/dist/`.
 
 Hosting strategy lives in [`HOSTING.md`](HOSTING.md).
 
-Recommended public properties:
+Proposed target properties for the selected PVADE domain, not verified live
+deployments. Retained runtime defaults are documented separately in `HOSTING.md`:
 
-- `powerdoxautomation.com`
-- `docs.powerdoxautomation.com`
-- `demos.powerdoxautomation.com`
-- `designer.powerdoxautomation.com`
-- `account.powerdoxautomation.com`
+- `pvade.com`
+- `docs.pvade.com`
+- `demos.pvade.com`
+- `designer.pvade.com`
+- `account.pvade.com`
 
 Each website should be deployed independently from its own `dist` folder.

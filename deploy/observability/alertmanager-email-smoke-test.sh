@@ -2,19 +2,23 @@
 
 set -euo pipefail
 
-alertmanager_container="${PXA_ALERTMANAGER_CONTAINER:-canvas-pxa-alertmanager-1}"
-mailpit_url="${PXA_MAILPIT_URL:-http://127.0.0.1:8025}"
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_ALERTMANAGER_CONTAINER PVAD_MAILPIT_URL
+
+alertmanager_container="${PVAD_ALERTMANAGER_CONTAINER:-$(node "$PVAD_CONFIG_ROOT/tools/configuration/pvad-compose.mjs" -f "$PVAD_CONFIG_ROOT/docker-compose.yml" --profile observability ps -q pvad-alertmanager)}"
+mailpit_url="${PVAD_MAILPIT_URL:-http://127.0.0.1:8025}"
 test_id="$(date +%s)"
 payload="$(
   jq -nc --arg test_id "${test_id}" '[{
     labels: {
-      alertname: ("PxaNotificationDeliveryTest" + $test_id),
+      alertname: ("PvadNotificationDeliveryTest" + $test_id),
       severity: "critical",
       service: "pxa-observability",
       environment: "local-evaluation"
     },
     annotations: {
-      summary: ("PXA operator notification delivery test pxa-alert-email-" + $test_id),
+      summary: ("PVAD operator notification delivery test pxa-alert-email-" + $test_id),
       description: "Synthetic technical alert used to verify independent Alertmanager SMTP delivery.",
       dashboard_path: "/d/pxa-platform-overview/pxa-platform-overview",
       runbook_id: "PXA-OBS-TEST"
@@ -33,7 +37,7 @@ message_id=""
 while (( SECONDS < deadline )); do
   messages="$(curl --fail --silent --show-error --max-time 10 "${mailpit_url}/api/v1/messages")"
   message_id="$(
-    jq -r --arg alert_name "PxaNotificationDeliveryTest${test_id}" '
+    jq -r --arg alert_name "PvadNotificationDeliveryTest${test_id}" '
       first(
         .messages[]
         | select(.From.Address == "pxa-alerts@powerdox.local")
@@ -57,8 +61,8 @@ message="$(
   curl --fail --silent --show-error --max-time 10 \
     "${mailpit_url}/api/v1/message/${message_id}"
 )"
-jq -e --arg test_id "pxa-alert-email-${test_id}" --arg alert_name "PxaNotificationDeliveryTest${test_id}" '
-  (.Subject | startswith("[PXA][FIRING][CRITICAL]")) and
+jq -e --arg test_id "pxa-alert-email-${test_id}" --arg alert_name "PvadNotificationDeliveryTest${test_id}" '
+  (.Subject | startswith("[PVAD][FIRING][CRITICAL]")) and
   (.Subject | contains($alert_name)) and
   (.Text | contains($test_id)) and
   (.Text | contains("Service: pxa-observability")) and
@@ -77,4 +81,4 @@ for forbidden in password cookie authorization api-key license-key request-body 
   fi
 done
 
-echo "PXA Alertmanager email smoke test passed for pxa-alert-email-${test_id}."
+echo "PVAD Alertmanager email smoke test passed for pxa-alert-email-${test_id}."

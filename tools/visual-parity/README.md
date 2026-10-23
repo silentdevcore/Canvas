@@ -27,13 +27,13 @@ node tools/visual-parity/pdf-trust-golden.mjs
 The default is report-only. CI can enforce the checked-in pixel baselines with:
 
 ```bash
-PXA_PDF_TRUST_VISUAL_ENFORCE=true node tools/visual-parity/pdf-trust-golden.mjs
+PVAD_PDF_TRUST_VISUAL_ENFORCE=true node tools/visual-parity/pdf-trust-golden.mjs
 ```
 
 Run operation output baselines with:
 
 ```bash
-PXA_PDF_TRUST_OPERATION_ENFORCE=true node tools/visual-parity/pdf-trust-operations.mjs
+PVAD_PDF_TRUST_OPERATION_ENFORCE=true node tools/visual-parity/pdf-trust-operations.mjs
 ```
 
 The command writes raster pages and a JSON report below

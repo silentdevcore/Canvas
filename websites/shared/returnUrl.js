@@ -1,7 +1,7 @@
 import { siteLinks } from './siteLinks.js';
 
 // Only these product surfaces are valid post-login return destinations.
-// PXA Admin has no entry in siteLinks.js at all, so it can never appear here.
+// PVADE Admin has no entry in siteLinks.js at all, so it can never appear here.
 const ALLOWED_KEYS = ['designer', 'demo', 'documentation', 'account', 'company'];
 
 function allowedOrigins(links) {
@@ -15,7 +15,7 @@ function allowedOrigins(links) {
 
 /**
  * Returns the given value if it is a safe, absolute http(s) URL pointing at
- * an allowlisted PXA product origin (Designer, Demo, Documentation, Company,
+ * an allowlisted PVADE product origin (Designer, Demo, Documentation, Company,
  * or Account itself) in the active runtime environment.
  * Rejects everything else — protocol-relative ("//host/..."), external
  * hosts, non-http(s) schemes, and relative paths — and returns null so
@@ -25,7 +25,7 @@ function allowedOrigins(links) {
 export function sanitizeReturnUrl(rawValue, links = siteLinks) {
   if (typeof rawValue !== 'string') return null;
   const trimmed = rawValue.trim();
-  if (!trimmed || !/^https?:\/\//i.test(trimmed)) return null;
+  if (!trimmed || !/^https?:\/\//i.test(trimmed) || /[\\\u0000-\u0020\u007f]/.test(trimmed)) return null;
 
   let parsed;
   try {
@@ -34,6 +34,7 @@ export function sanitizeReturnUrl(rawValue, links = siteLinks) {
     return null;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+  if (parsed.username || parsed.password) return null;
   if (!allowedOrigins(links).has(parsed.origin)) return null;
 
   return parsed.toString();

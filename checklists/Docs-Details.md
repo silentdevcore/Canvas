@@ -1,5 +1,7 @@
 # Docs Details — Detailed Documentation for C#, UI Designer & AI
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Detailed, demo-rich documentation for PXA's two API surfaces plus AI consumption. Mirrors how PDF SDK
 vendors document (DocFX API reference + how-to guides + example gallery + `llms.txt`/MCP), anchored on a
 single machine-readable **element catalog** so human docs, AI docs, and validation never drift.

@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "job-lease-cutover-reliability",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "observability"],
+  "category": "fixed",
+  "summary": "Background jobs recover interrupted work within retry limits, preserve active claims during cancellation, and prevent stale workers from publishing results.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-license-and-job-compatibility.md"],
+  "breaking": false
+}

@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS "${PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS+x}" "${PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS-}" "${PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS+x}" "${PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS-}"
+pvad_environment_alias PVAD_PDF_FUZZ_COVERAGE_OUTPUT PXA_PDF_FUZZ_COVERAGE_OUTPUT "${PVAD_PDF_FUZZ_COVERAGE_OUTPUT+x}" "${PVAD_PDF_FUZZ_COVERAGE_OUTPUT-}" "${PXA_PDF_FUZZ_COVERAGE_OUTPUT+x}" "${PXA_PDF_FUZZ_COVERAGE_OUTPUT-}"
+pvad_environment_alias PVAD_PDF_FUZZ_COVERAGE_SECONDS PXA_PDF_FUZZ_COVERAGE_SECONDS "${PVAD_PDF_FUZZ_COVERAGE_SECONDS+x}" "${PVAD_PDF_FUZZ_COVERAGE_SECONDS-}" "${PXA_PDF_FUZZ_COVERAGE_SECONDS+x}" "${PXA_PDF_FUZZ_COVERAGE_SECONDS-}"
+
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
-readonly PROJECT="$ROOT/tools/pdf-parser-fuzzer/PXA.PdfParserFuzzer.csproj"
-readonly OUTPUT="${PXA_PDF_FUZZ_COVERAGE_OUTPUT:-$ROOT/artifacts/pdf-fuzz/coverage}"
-readonly DURATION="${PXA_PDF_FUZZ_COVERAGE_SECONDS:-60}"
-readonly TIMEOUT_MILLISECONDS="${PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS:-2000}"
+readonly PROJECT="$ROOT/tools/pdf-parser-fuzzer/PVAD.PdfParserFuzzer.csproj"
+readonly OUTPUT="${PVAD_PDF_FUZZ_COVERAGE_OUTPUT:-$ROOT/artifacts/pdf-fuzz/coverage}"
+readonly DURATION="${PVAD_PDF_FUZZ_COVERAGE_SECONDS:-60}"
+readonly TIMEOUT_MILLISECONDS="${PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS:-2000}"
 readonly MANAGED_HEAP_MEGABYTES=512
 readonly PUBLISH="$OUTPUT/publish"
 readonly INPUTS="$OUTPUT/inputs"
@@ -30,17 +35,17 @@ if (( DURATION < 1 || TIMEOUT_MILLISECONDS < 100 )); then
 fi
 
 if [[ -e "$PUBLISH" || -e "$INPUTS" || -e "$FINDINGS" ]]; then
-  echo "Coverage output already exists; choose a fresh PXA_PDF_FUZZ_COVERAGE_OUTPUT directory." >&2
+  echo "Coverage output already exists; choose a fresh PVAD_PDF_FUZZ_COVERAGE_OUTPUT directory." >&2
   exit 73
 fi
 mkdir -p "$PUBLISH" "$INPUTS" "$FINDINGS"
-cp "$ROOT/tests/PXA.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf" "$INPUTS/seed.pdf"
+cp "$ROOT/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf" "$INPUTS/seed.pdf"
 
 dotnet publish "$PROJECT" \
   --configuration Release \
   --output "$PUBLISH" \
   --artifacts-path "$OUTPUT/build"
-DOTNET_ROLL_FORWARD=Major sharpfuzz "$PUBLISH/PXA.Importer.dll"
+DOTNET_ROLL_FORWARD=Major sharpfuzz "$PUBLISH/PVAD.Importer.dll"
 
 export AFL_NO_UI=1
 export AFL_SKIP_CPUFREQ=1
@@ -52,7 +57,7 @@ afl-fuzz \
   -t "$TIMEOUT_MILLISECONDS" \
   -i "$INPUTS" \
   -o "$FINDINGS" \
-  -- "$PUBLISH/PXA.PdfParserFuzzer" --afl
+  -- "$PUBLISH/PVAD.PdfParserFuzzer" --afl
 
 crashes="$(find "$FINDINGS" -path '*/crashes/id:*' -type f | wc -l | tr -d ' ')"
 hangs="$(find "$FINDINGS" -path '*/hangs/id:*' -type f | wc -l | tr -d ' ')"

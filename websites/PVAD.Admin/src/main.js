@@ -1,0 +1,3327 @@
+import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
+import { pvadCommit, pvadVersion } from '../../shared/buildInfo.js';
+import { siteLinks } from '../../shared/siteLinks.js';
+import { getStatusDefinition } from '../../shared/statusPages.ts';
+import pvadReleaseManifest from '../../../product-metadata/pvad-releases.json';
+import {
+  currentUser,
+  acceptInvitation,
+  addAdminOrganizationMember,
+  assignAdminSubscriptionSeat,
+  assignAdminRoleMember,
+  cancelAdminSubscription,
+  createAdminOrganization,
+  createAdminSubscription,
+  createAdminServiceAccount,
+  createAdminApiKey,
+  createAdminInvitation,
+  createAdminRole,
+  cancelAdminMail,
+  getAdminOrganization,
+  getAdminOrganizationMembers,
+  getAdminOrganizations,
+  getAdminSubscriptions,
+  getAdminSubscription,
+  getAdminSubscriptionHistory,
+  getAdminSubscriptionSeats,
+  getAdminSubscriptionUsage,
+  getAdminLicense,
+  getAdminLicenses,
+  getAdminServiceAccounts,
+  getAdminMail,
+  getAdminMailStatus,
+  getAdminSystemHealth,
+  getAdminDependencyCompliance,
+  getAdminRetentionStatus,
+  runAdminRetentionDryRun,
+  getAdminRetentionLegalHolds,
+  createAdminRetentionLegalHold,
+  releaseAdminRetentionLegalHold,
+  getAdminUser,
+  getAdminUserSessions,
+  getAdminUsers,
+  login,
+  logout,
+  revokeAdminUserSession,
+  revokeAllAdminUserSessions,
+  issueAdminLicense,
+  removeAdminOrganizationMember,
+  requestPasswordReset,
+  renewAdminSubscription,
+  revokeAdminSubscriptionSeat,
+  revokeAdminLicense,
+  revokeAdminApiKey,
+  revokeAdminServiceAccount,
+  retryAdminMail,
+  confirmPasswordReset,
+  confirmEmailChange,
+  bulkUpdateAdminUsers,
+  getAdminUserAudit,
+  requestAdminUserPasswordReset,
+  updateAdminUserDeletion,
+  updateAdminUserProfile,
+  switchOrganization,
+  startAdminGracePeriod,
+  updateAdminOrganization,
+  updateAdminSubscription,
+  updateAdminUserRoles,
+  updateAdminUserStatus,
+  extendAdminTrial,
+  exportAdminAudit,
+  getAdminAudit,
+  getAdminAuditEvent,
+  getAdminDocumentation,
+  getAdminRole,
+  getAdminRoles,
+  updateAdminRole,
+  cloneAdminRole,
+  setAdminRoleArchived,
+  revokeAdminRoleMember,
+  validateAdminLicense,
+  getAdminLegalDocuments,
+  importAdminLegalCandidates,
+  compareAdminLegalVersions,
+  getAdminLegalAcceptance,
+  exportAdminLegalAcceptance,
+  createAdminLegalDocument,
+  createAdminLegalVersion,
+  submitAdminLegalVersion,
+  reviewAdminLegalVersion,
+  publishAdminLegalVersion,
+  retireAdminLegalVersion,
+} from './api.js';
+
+initializeBrowserTelemetry({ application: 'admin' });
+
+const app = document.querySelector('#app');
+
+const navigation = [
+  { path: '/dashboard', label: 'Dashboard', group: 'Overview' },
+  { path: '/users', label: 'Users', group: 'Identity' },
+  { path: '/organizations', label: 'Organizations', group: 'Identity' },
+  { path: '/roles', label: 'Roles & permissions', group: 'Identity' },
+  { path: '/subscriptions', label: 'Subscriptions', group: 'Commercial' },
+  { path: '/licenses', label: 'Licenses', group: 'Commercial' },
+  { path: '/service-accounts', label: 'Service accounts', group: 'Access' },
+  { path: '/mail', label: 'Mail delivery', group: 'Operations' },
+  { path: '/audit', label: 'Audit', group: 'Operations' },
+  { path: '/system-status', label: 'System status', group: 'Operations', systemOnly: true },
+  { path: '/settings', label: 'Settings', group: 'Operations' },
+  { path: '/legal', label: 'Legal documents', group: 'Governance', systemOnly: true },
+  { path: '/dependency-compliance', label: 'Dependency compliance', group: 'Governance', systemOnly: true },
+  { path: '/release-notes', label: 'Release notes', group: 'Reference' },
+  { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
+];
+
+const releaseChangeCategories = [
+  ['added', 'Added'],
+  ['improved', 'Improved'],
+  ['fixed', 'Fixed'],
+  ['security', 'Security'],
+  ['deprecated', 'Deprecated'],
+  ['breaking', 'Breaking'],
+];
+
+const pageDetails = {
+  '/users': ['Users', 'Manage user status, memberships, roles, and active sessions.', ['Name', 'Email', 'Organization', 'Role', 'Status', 'Last login']],
+  '/organizations': ['Organizations', 'Manage tenant ownership, memberships, and organization status.', ['Organization', 'Status', 'Members', 'Subscription', 'Updated']],
+  '/mail': ['Mail delivery', 'Inspect transactional delivery state without exposing message secrets.', ['Recipient', 'Template', 'State', 'Attempts', 'Updated']],
+  '/settings': ['Settings', 'Configure organization defaults and operational administration settings.', ['Setting', 'Value', 'Scope', 'Updated']],
+};
+
+const state = {
+  user: null,
+  loading: true,
+  notice: null,
+  connection: { offline: !navigator.onLine, stale: false },
+  accessDenied: null,
+  users: {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 25,
+    search: '',
+    status: '',
+    loading: false,
+    loaded: false,
+    error: null,
+    notice: null, selected: [], access: null,
+  },
+  userDetail: {
+    id: null,
+    data: null,
+    sessions: [], audit: [], access: null, notice: null,
+    loading: false,
+    error: null,
+    saving: false,
+  },
+  organizations: {
+    items: [], total: 0, page: 1, pageSize: 25, search: '', status: '',
+    loading: false, loaded: false, error: null,
+  },
+  organizationDetail: {
+    id: null, data: null, members: [], audit: [], loading: false, error: null, saving: false,
+  },
+  mail: {
+    items: [], total: 0, page: 1, pageSize: 25, status: '', summary: null,
+    loading: false, loaded: false, saving: false, error: null,
+  },
+  subscriptions: {
+    items: [], total: 0, page: 1, pageSize: 25, status: '', edition: '',
+    loading: false, loaded: false, saving: false, error: null,
+  },
+  subscriptionDetail: {
+    id: null, data: null, seats: [], history: [], usage: null, loading: false, saving: false, error: null,
+  },
+  licenses: { items: [], loading: false, loaded: false, saving: false, error: null, notice: null },
+  licenseDetail: { id: null, data: null, audit: [], loading: false, saving: false, error: null, notice: null },
+  serviceAccounts: { items: [], loading: false, loaded: false, saving: false, error: null, secret: null },
+  audit: {
+    items: [], total: 0, page: 1, pageSize: 25, search: '', action: '', targetType: '', outcome: '',
+    from: '', to: '', direction: 'desc', actions: [], targetTypes: [], outcomes: [], canExport: false,
+    selected: null, loading: false, loaded: false, detailLoading: false, exporting: false, error: null,
+  },
+  roles: { items: [], permissions: [], loading: false, loaded: false, error: null },
+  roleDetail: {
+    key: null, data: null, users: [], page: 1, pageSize: 25, loading: false, saving: false, error: null,
+  },
+  documentation: {
+    groups: [], routeCoverage: [], loading: false, loaded: false, error: null,
+  },
+  systemHealth: {
+    data: null, loading: false, loaded: false, error: null,
+  },
+  dependencyCompliance: {
+    data: null, loading: false, loaded: false, error: null,
+  },
+  retention: {
+    data: null, dryRun: null, holds: [], loading: false, loaded: false,
+    running: false, saving: false, error: null, notice: null,
+  },
+  legal: {
+    documents: [],
+    versions: [],
+    loading: false,
+    loaded: false,
+    saving: false,
+    error: null,
+    notice: null,
+    previewId: null,
+    comparison: null,
+    comparisonDocumentId: null,
+    comparisonBaseId: null,
+    comparisonTargetId: null,
+    comparisonLoading: false,
+    acceptanceVersionId: null,
+    acceptance: null,
+    acceptanceFilters: { organizationId: '', accountType: '', locale: '', from: '', to: '' },
+    acceptanceLoading: false,
+    acceptanceExporting: false,
+  },
+};
+
+const organizationRoles = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
+const subscriptionCapabilities = [
+  ['generator', 'Generator'], ['designer', 'Designer'], ['migration', 'Migration'],
+  ['importer', 'Importer'], ['pdf-viewer', 'PDF Viewer'], ['spreadsheet', 'Spreadsheet'],
+  ['api', 'API'], ['sdk', 'SDK'],
+];
+const subscriptionTransitions = {
+  Pending: ['Trialing', 'Active', 'Cancelled'],
+  Trialing: ['Active', 'Suspended', 'Cancelled', 'Expired'],
+  Active: ['PastDue', 'Suspended', 'Cancelled'],
+  PastDue: ['Active', 'GracePeriod', 'Suspended', 'Cancelled'],
+  GracePeriod: ['Active', 'Suspended', 'Cancelled', 'Expired'],
+  Suspended: ['Active', 'Cancelled', 'Expired'],
+  Cancelled: ['Expired'],
+  Expired: [],
+};
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function dateInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function navigate(path, replace = false) {
+  if (replace) history.replaceState({}, '', path);
+  else history.pushState({}, '', path);
+  render();
+}
+
+function isAdministrator(user) {
+  return user?.roles?.some((role) =>
+    role === 'System Administrator' || role === 'Organization Administrator');
+}
+
+function isSystemAdministrator(user = state.user) {
+  return user?.roles?.includes('System Administrator');
+}
+
+function renderLogin() {
+  document.title = 'Sign in | PVADE Admin';
+  app.innerHTML = `
+    <main class="admin-login-shell">
+      <section class="admin-login-brand" aria-label="PVADE">
+        <div class="admin-brand-mark">PVADE</div>
+        <p class="pvad-kicker">PVADE</p>
+        <h1>Administration</h1>
+        <p>Secure access for authorized PVADE operators and organization administrators.</p>
+        <dl class="admin-login-context">
+          <div><dt>Identity</dt><dd>Persistent PVADE accounts</dd></div>
+          <div><dt>Scope</dt><dd>Organization isolated</dd></div>
+          <div><dt>Session</dt><dd>Protected browser cookie</dd></div>
+        </dl>
+      </section>
+      <section class="admin-login-form-wrap">
+        <form class="admin-login-form" id="login-form" novalidate>
+          <div>
+            <p class="pvad-kicker">Authorized access</p>
+            <h2>Sign in to PVADE Admin</h2>
+            <p class="admin-form-copy">Use your verified administrator account.</p>
+          </div>
+          <div class="admin-alert admin-alert--error" id="login-error" role="alert" hidden></div>
+          ${state.notice ? `<div class="admin-alert admin-alert--success" role="status">${escapeHtml(state.notice)}</div>` : ''}
+          <label class="admin-field">
+            <span>Email or username</span>
+            <input name="identifier" type="text" autocomplete="username" required autofocus>
+          </label>
+          <label class="admin-field">
+            <span>Password</span>
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <label class="admin-checkbox">
+            <input name="rememberMe" type="checkbox">
+            <span>Keep me signed in on this device</span>
+          </label>
+          <button class="pvad-button pvad-button--primary admin-submit" type="submit">Sign in</button>
+          <p class="admin-login-help"><a href="/forgot-password">Forgot your password?</a></p>
+        </form>
+      </section>
+    </main>
+  `;
+
+  document.querySelector('#login-form').addEventListener('submit', handleLogin);
+}
+
+function publicActionPage(kind) {
+  const token = new URLSearchParams(location.search).get('token') || '';
+  const invitation = kind === 'invitation';
+  const resetRequest = kind === 'request-reset';
+  const emailChange = kind === 'email-change';
+  const title = invitation ? 'Accept invitation' : resetRequest ? 'Reset your password' : emailChange ? 'Verify email address' : 'Choose a new password';
+  return `
+    <main class="admin-public-shell">
+      <form class="admin-login-form admin-public-form" id="public-action-form">
+        <div class="admin-brand-mark">PVADE</div>
+        <div><p class="pvad-kicker">PVADE</p><h1>${title}</h1></div>
+        <div class="admin-alert admin-alert--error" id="public-action-error" hidden></div>
+        <div class="admin-alert admin-alert--success" id="public-action-success" hidden></div>
+        ${emailChange ? `<p>Confirm the new email address for your PVADE account.</p><input name="token" type="hidden" value="${escapeHtml(token)}">` : resetRequest ? `
+          <label class="admin-field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
+        ` : `
+          ${invitation ? '<label class="admin-field"><span>Display name</span><input name="displayName" autocomplete="name"></label>' : ''}
+          <label class="admin-field"><span>New password</span><input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+          <input name="token" type="hidden" value="${escapeHtml(token)}">
+        `}
+        <button class="pvad-button pvad-button--primary" type="submit">${resetRequest ? 'Send reset link' : invitation ? 'Activate account' : emailChange ? 'Verify email' : 'Change password'}</button>
+        <a class="admin-back-link" href="/login">Return to sign in</a>
+      </form>
+    </main>`;
+}
+
+function bindPublicAction(kind) {
+  document.querySelector('#public-action-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const button = form.querySelector('button');
+    const error = document.querySelector('#public-action-error');
+    const success = document.querySelector('#public-action-success');
+    error.hidden = true;
+    success.hidden = true;
+    button.disabled = true;
+    try {
+      if (kind === 'request-reset') {
+        await requestPasswordReset(data.get('email'));
+        success.textContent = 'If the account exists, a password-reset message has been queued.';
+      } else if (kind === 'invitation') {
+        await acceptInvitation(data.get('token'), data.get('password'), data.get('displayName'));
+        success.textContent = 'Your account is active. You can now sign in.';
+      } else if (kind === 'email-change') {
+        await confirmEmailChange(data.get('token'));
+        success.textContent = 'Your email address was updated. Sign in again with the new address.';
+      } else {
+        await confirmPasswordReset(data.get('token'), data.get('password'));
+        success.textContent = 'Your password was changed. You can now sign in.';
+      }
+      success.hidden = false;
+      form.querySelectorAll('input').forEach((input) => { if (input.type !== 'hidden') input.disabled = true; });
+    } catch (requestError) {
+      error.textContent = requestError.message;
+      error.hidden = false;
+      button.disabled = false;
+    }
+  });
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const error = document.querySelector('#login-error');
+  const data = new FormData(form);
+
+  error.hidden = true;
+  button.disabled = true;
+  button.textContent = 'Signing in...';
+
+  try {
+    const response = await login(
+      data.get('identifier'),
+      data.get('password'),
+      data.get('rememberMe') === 'on');
+    state.user = response.user;
+    navigate('/dashboard', true);
+  } catch (requestError) {
+    error.textContent = requestError.message;
+    error.hidden = false;
+    button.disabled = false;
+    button.textContent = 'Sign in';
+  }
+}
+
+function renderNavigation() {
+  const visibleNavigation = navigation.filter((item) =>
+    !item.systemOnly || isSystemAdministrator());
+  const groups = [...new Set(visibleNavigation.map((item) => item.group))];
+  return groups.map((group) => `
+    <div class="admin-nav-group">
+      <span>${group}</span>
+      ${visibleNavigation.filter((item) => item.group === group).map((item) => `
+        <a href="${item.path}" ${location.pathname === item.path || location.pathname.startsWith(`${item.path}/`) ? 'aria-current="page"' : ''}>
+          ${item.label}
+        </a>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderShell(content, title) {
+  const activeOrganization = state.user.organizations?.find(
+    (organization) => organization.id === state.user.activeOrganizationId) || state.user.organizations?.[0];
+
+  document.title = `${title} | PVADE Admin`;
+  app.innerHTML = `
+    <a class="admin-skip-link" href="#admin-content">Skip to content</a>
+    <div class="admin-app-shell">
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-brand">
+          <span class="admin-brand-mark">PVADE</span>
+          <span><strong>PVADE</strong><small>Administration</small></span>
+        </div>
+        <nav class="admin-navigation" aria-label="Administration">${renderNavigation()}</nav>
+        <div class="admin-sidebar-footer">
+          <span>Signed in as</span>
+          <strong>${escapeHtml(state.user.displayName)}</strong>
+          <small>${escapeHtml(state.user.email)}</small>
+          <small title="Commit ${escapeHtml(pvadCommit)}">PVADE ${escapeHtml(pvadVersion)}</small>
+        </div>
+      </aside>
+      <div class="admin-workspace">
+        <header class="admin-topbar">
+          <button class="admin-menu-button" id="menu-button" type="button" aria-controls="admin-sidebar" aria-expanded="false">Menu</button>
+          <div class="admin-org-context">
+            <span>Organization</span>
+            <strong>${escapeHtml(activeOrganization?.name || 'System scope')}</strong>
+          </div>
+          <button class="admin-signout" id="signout-button" type="button">Sign out</button>
+        </header>
+        ${state.connection.offline ? `<div class="admin-connection-banner" role="status"><div><strong>API unavailable</strong><span>Showing the last loaded data. It may be stale.</span></div><button id="admin-retry-connection" type="button">Retry</button></div>` : ''}
+        <main class="admin-content" id="admin-content" tabindex="-1">${content}</main>
+      </div>
+    </div>
+  `;
+
+  const statusHeading = app.querySelector('[data-status-key] h1');
+  if (statusHeading) {
+    statusHeading.tabIndex = -1;
+    statusHeading.focus({ preventScroll: true });
+  }
+
+  bindShellEvents();
+}
+
+function dashboardPage() {
+  const organizations = state.user.organizations?.length || 0;
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Overview</p><h1>Dashboard</h1></div>
+      <span class="admin-status admin-status--active">Session active</span>
+    </header>
+    <section class="admin-metrics" aria-label="Account overview">
+      <article><span>Organizations</span><strong>${organizations}</strong><small>Available to this session</small></article>
+      <article><span>Assigned roles</span><strong>${state.user.roles.length}</strong><small>${escapeHtml(state.user.roles.join(', '))}</small></article>
+      <article><span>Last login</span><strong>${state.user.lastLoginAt ? new Date(state.user.lastLoginAt).toLocaleDateString() : 'First'}</strong><small>Security-stamp protected</small></article>
+    </section>
+    <section class="admin-section">
+      <div class="admin-section-heading">
+        <div><h2>Administration status</h2><p>Backend foundations currently available to this interface.</p></div>
+      </div>
+      <div class="admin-status-list">
+        <div><strong>Persistent identity</strong><span class="admin-status admin-status--ready">Ready</span><p>PostgreSQL-backed users, roles, and claims.</p></div>
+        <div><strong>Organization context</strong><span class="admin-status admin-status--ready">Ready</span><p>Active memberships are carried in the authenticated session.</p></div>
+        <div><strong>User administration API</strong><span class="admin-status admin-status--ready">Ready</span><p>Tenant-scoped search, status, roles, and audit-protected mutations.</p></div>
+        <div><strong>Mail and recovery</strong><span class="admin-status admin-status--planned">Planned</span><p>Password recovery depends on the transactional mail outbox.</p></div>
+      </div>
+    </section>
+  `;
+}
+
+function releaseNotesPage() {
+  const releases = pvadReleaseManifest.releases;
+  return `
+    <header class="admin-page-header">
+      <div>
+        <p class="pvad-kicker">Product updates</p>
+        <h1>Release notes</h1>
+        <p>Review shipped PVADE capabilities, improvements, fixes, and compatibility changes.</p>
+      </div>
+      <span class="admin-status admin-status--active">PVADE ${escapeHtml(pvadVersion)}</span>
+    </header>
+    <section class="admin-release-list" aria-label="PVADE release history">
+      ${releases.map((release) => {
+        const current = release.version === pvadVersion;
+        const statusClass = release.channel === 'stable'
+          ? 'admin-status--active'
+          : release.channel === 'beta'
+            ? 'admin-status--planned'
+            : 'admin-status--inactive';
+        const populatedCategories = releaseChangeCategories
+          .filter(([key]) => release.changes[key].length > 0);
+        return `
+          <article class="admin-release" id="release-${escapeHtml(release.version.replaceAll('.', '-'))}">
+            <header class="admin-release-header">
+              <div>
+                <div class="admin-release-title">
+                  <h2>${escapeHtml(release.title)}</h2>
+                  <span class="admin-status ${statusClass}">${escapeHtml(release.channel)}</span>
+                  ${current ? '<span class="admin-status admin-status--neutral">Current</span>' : ''}
+                </div>
+                <p>${escapeHtml(release.summary)}</p>
+              </div>
+              <time datetime="${escapeHtml(release.publishedAt)}">${escapeHtml(release.publishedAt)}</time>
+            </header>
+            <div class="admin-release-components" aria-label="Affected components">
+              ${release.components.map((component) => `<span>${escapeHtml(component)}</span>`).join('')}
+            </div>
+            <div class="admin-release-changes">
+              ${populatedCategories.map(([key, label]) => `
+                <section>
+                  <h3>${label}</h3>
+                  <ul>${release.changes[key].map((change) => `<li>${escapeHtml(change)}</li>`).join('')}</ul>
+                </section>
+              `).join('')}
+            </div>
+            <footer class="admin-release-footer">
+              <a href="${siteLinks.documentation}${release.documentationPath.replace(/^\/+/, '')}" target="_blank" rel="noreferrer">
+                Open detailed documentation
+              </a>
+            </footer>
+          </article>
+        `;
+      }).join('')}
+    </section>
+  `;
+}
+
+function formatSystemAge(seconds) {
+  if (seconds == null) return 'None waiting';
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}
+
+function retentionGovernanceSection() {
+  const retention = state.retention;
+  if (retention.loading && !retention.data) {
+    return '<section class="admin-section"><div class="admin-section-heading"><h2>Retention governance</h2><p>Loading protected retention policy status...</p></div></section>';
+  }
+  if (retention.error && !retention.data) {
+    return `<section class="admin-section"><div class="admin-section-heading"><h2>Retention governance</h2><p>${escapeHtml(retention.error)}</p></div><div class="admin-form-actions"><button class="pvad-button pvad-button--secondary" id="retention-retry" type="button">Retry</button></div></section>`;
+  }
+  if (!retention.data) return '';
+
+  const data = retention.data;
+  const policies = data.policies.map((policy) => `
+    <tr>
+      <td><strong>${escapeHtml(policy.name)}</strong><small>${escapeHtml(policy.id)}</small></td>
+      <td><span class="admin-status ${policy.approvalStatus === 'approved' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(policy.approvalStatus)}</span></td>
+      <td>${escapeHtml(policy.rule)}</td>
+      <td>${policy.effectiveConfiguration.length
+        ? policy.effectiveConfiguration.map((item) => `<small><strong>${escapeHtml(item.key)}</strong>: ${escapeHtml(item.value)}</small>`).join('')
+        : '<small>Catalog policy</small>'}</td>
+    </tr>
+  `).join('');
+  const decisions = retention.dryRun?.decisions.map((decision) => `
+    <div>
+      <strong>${escapeHtml(decision.name)}</strong>
+      <span class="admin-status admin-status--neutral">${escapeHtml(decision.action)}</span>
+      <p>${decision.candidateCount == null ? 'Policy only' : `${decision.actionableCount} actionable, ${decision.heldCount} held, ${decision.candidateCount} candidates`}. ${escapeHtml(decision.explanation)}</p>
+    </div>
+  `).join('') || '';
+  const holds = retention.holds.map((hold) => `
+    <div>
+      <strong>${escapeHtml(hold.category)}</strong>
+      <span class="admin-status admin-status--planned">${hold.organizationId ? 'Organization' : 'Global'}</span>
+      <p>${escapeHtml(hold.reason)} Created ${escapeHtml(new Date(hold.createdAt).toLocaleString())}${hold.organizationId ? ` for ${escapeHtml(hold.organizationId)}` : ''}.</p>
+      <form class="admin-inline-form retention-release-form" data-hold-id="${escapeHtml(hold.id)}">
+        <label class="admin-field">Release reason<input name="reason" minlength="10" maxlength="2000" required placeholder="Document why preservation may end"></label>
+        <button class="pvad-button pvad-button--secondary" type="submit" ${retention.saving ? 'disabled' : ''}>Release hold</button>
+      </form>
+    </div>
+  `).join('') || '<div><strong>No active legal holds</strong><p>Cleanup follows approved policies where destructive processing is enabled.</p></div>';
+
+  return `
+    ${retention.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert">${escapeHtml(retention.notice)}</div>` : ''}
+    ${retention.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(retention.error)}</div>` : ''}
+    <section class="admin-summary-grid" aria-label="Retention governance summary">
+      <article><span>Production gate</span><strong><span class="admin-status ${data.productionReady ? 'admin-status--ready' : 'admin-status--inactive'}">${data.productionReady ? 'Ready' : 'Blocked'}</span></strong></article>
+      <article><span>Pending approvals</span><strong>${data.pendingApprovalCount}</strong></article>
+      <article><span>Active legal holds</span><strong>${data.activeLegalHoldCount}</strong></article>
+      <article><span>Inventory reviewed</span><strong>${escapeHtml(data.reviewedAt)}</strong></article>
+    </section>
+    <section class="admin-table-section">
+      <div class="admin-section-heading"><h2>Retention policies</h2><p>Production remains blocked until every category is legally approved. This workspace never exposes a direct cleanup action.</p></div>
+      <div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Processing category</th><th>Approval</th><th>Rule</th><th>Effective configuration</th></tr></thead><tbody>${policies}</tbody></table></div>
+      <div class="admin-form-actions"><button class="pvad-button pvad-button--primary" id="retention-dry-run" type="button" ${retention.running ? 'disabled' : ''}>${retention.running ? 'Evaluating...' : 'Run safe dry run'}</button></div>
+    </section>
+    ${retention.dryRun ? `<section class="admin-section"><div class="admin-section-heading"><h2>Dry-run decisions</h2><p>Evaluated ${escapeHtml(new Date(retention.dryRun.evaluatedAt).toLocaleString())}. No records were changed.</p></div><div class="admin-status-list">${decisions}</div></section>` : ''}
+    <section class="admin-detail-grid">
+      <article class="admin-section">
+        <div class="admin-section-heading"><h2>Active legal holds</h2><p>Holds override cleanup for a complete category or one organization.</p></div>
+        <div class="admin-status-list">${holds}</div>
+      </article>
+      <article class="admin-section">
+        <div class="admin-section-heading"><h2>Create legal hold</h2><p>Use only for an authorized preservation requirement. Every change is audited.</p></div>
+        <form class="admin-form-stack" id="retention-hold-form">
+          <label class="admin-field">Processing category<select name="category" required>${data.policies.map((policy) => `<option value="${escapeHtml(policy.id)}">${escapeHtml(policy.name)}</option>`).join('')}</select></label>
+          <label class="admin-field">Organization ID (optional)<input name="organizationId" type="text" inputmode="text" placeholder="Blank creates a global hold"></label>
+          <label class="admin-field">Reason<textarea name="reason" minlength="10" maxlength="2000" required placeholder="Document the authority and preservation purpose"></textarea></label>
+          <button class="pvad-button pvad-button--primary" type="submit" ${retention.saving ? 'disabled' : ''}>Create hold</button>
+        </form>
+      </article>
+    </section>
+  `;
+}
+
+function systemStatusPage() {
+  const health = state.systemHealth;
+  if (health.loading && !health.data) {
+    return '<section class="admin-empty-state"><div class="admin-spinner" aria-hidden="true"></div><p>Checking protected system status...</p></section>';
+  }
+  if (health.error && !health.data) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>System status unavailable</h1><p>${escapeHtml(health.error)}</p><button class="pvad-button pvad-button--secondary" id="system-health-retry" type="button">Retry</button></section>`;
+  }
+
+  const data = health.data;
+  if (!data) return '';
+  const statusClass = (status) => ({
+    Healthy: 'admin-status--ready',
+    Degraded: 'admin-status--planned',
+    Unhealthy: 'admin-status--inactive',
+    Disabled: 'admin-status--neutral',
+  })[status] || 'admin-status--neutral';
+  const jobs = data.components.find((component) => component.key === 'jobs');
+  const componentRows = data.components.map((component) => `
+    <div>
+      <strong>${escapeHtml(component.name)}</strong>
+      <span class="admin-status ${statusClass(component.status)}">${escapeHtml(component.status)}</span>
+      <p>${escapeHtml(component.summary)}</p>
+    </div>
+  `).join('');
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Operator workspace</p><h1>System status</h1><p>Sanitized service availability and global queue signals for authorized system operators.</p></div>
+      <div class="admin-header-actions">
+        <a class="pvad-button pvad-button--primary" href="${siteLinks.operator}operator/grafana/" data-native>Open dashboards</a>
+        <button class="pvad-button pvad-button--secondary" id="system-health-refresh" type="button" ${health.loading ? 'disabled' : ''}>${health.loading ? 'Checking...' : 'Refresh'}</button>
+      </div>
+    </header>
+    ${health.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(health.error)} Showing the last successful result.</div>` : ''}
+    <section class="admin-summary-grid" aria-label="System summary">
+      <article><span>Overall status</span><strong><span class="admin-status ${statusClass(data.status)}">${escapeHtml(data.status)}</span></strong></article>
+      <article><span>Pending jobs</span><strong>${jobs?.pendingJobs ?? 0}</strong></article>
+      <article><span>Processing jobs</span><strong>${jobs?.processingJobs ?? 0}</strong></article>
+      <article><span>Dead-letter jobs</span><strong>${jobs?.deadLetterJobs ?? 0}</strong></article>
+      <article><span>Oldest pending</span><strong>${escapeHtml(formatSystemAge(jobs?.oldestPendingSeconds))}</strong></article>
+      <article><span>Checked</span><strong>${escapeHtml(new Date(data.checkedAt).toLocaleString())}</strong></article>
+    </section>
+    <section class="admin-section">
+      <div class="admin-section-heading"><h2>Components</h2><p>Descriptions are intentionally coarse. Raw logs, traces, identifiers, and configuration secrets are never returned here.</p></div>
+      <div class="admin-status-list">${componentRows}</div>
+    </section>
+    ${retentionGovernanceSection()}
+  `;
+}
+
+function dependencyCompliancePage() {
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Governance</p><h1>Dependency compliance</h1><p>Review supply-chain security gates, SBOM coverage, and third-party license decisions independently from customer Legal documents.</p></div>
+      <div class="admin-header-actions">
+        <a class="pvad-button pvad-button--secondary" href="/legal">Open Legal documents</a>
+        <button class="pvad-button pvad-button--primary" id="dependency-compliance-refresh" type="button" ${state.dependencyCompliance.loading ? 'disabled' : ''}>${state.dependencyCompliance.loading ? 'Checking...' : 'Refresh'}</button>
+      </div>
+    </header>
+    <div class="admin-alert admin-alert--warning admin-detail-alert">
+      Supplier-license decisions use separate APIs, records, permissions, and audit events. They never create or modify customer Legal acceptance evidence.
+    </div>
+    ${dependencyComplianceSection()}
+  `;
+}
+
+function dependencyComplianceSection() {
+  const compliance = state.dependencyCompliance;
+  if (compliance.loading && !compliance.data) {
+    return '<section class="admin-section"><div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>Loading protected supply-chain status...</p></div></section>';
+  }
+  if (compliance.error && !compliance.data) {
+    return `<section class="admin-section"><div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>${escapeHtml(compliance.error)}</p></div><div class="admin-form-actions"><button class="pvad-button pvad-button--secondary" id="dependency-compliance-retry" type="button">Retry</button></div></section>`;
+  }
+  if (!compliance.data) return '';
+
+  const data = compliance.data;
+  const decisions = data.licenseDecisions.map((decision) => `
+    <div>
+      <strong>${escapeHtml(decision.package)} ${escapeHtml(decision.version)}</strong>
+      <span class="admin-status ${decision.productionApproved ? 'admin-status--ready' : 'admin-status--inactive'}">${decision.productionApproved ? 'Approved' : 'Production blocker'}</span>
+      <p>${escapeHtml(decision.license)}: ${escapeHtml(decision.requiredAction)}</p>
+    </div>
+  `).join('');
+  return `
+    ${compliance.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(compliance.error)} Showing the last successful compliance result.</div>` : ''}
+    <section class="admin-summary-grid" aria-label="Dependency compliance summary">
+      <article><span>Production approval</span><strong><span class="admin-status ${data.productionReady ? 'admin-status--ready' : 'admin-status--inactive'}">${data.productionReady ? 'Ready' : 'Blocked'}</span></strong></article>
+      <article><span>NuGet gate</span><strong>${data.vulnerabilityPolicy.nuget.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
+      <article><span>npm gate</span><strong>${data.vulnerabilityPolicy.npm.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
+      <article><span>SBOM format</span><strong>${escapeHtml(data.sbom.format)} ${escapeHtml(data.sbom.version)}</strong></article>
+      <article><span>SBOM artifacts</span><strong>${data.sbom.artifacts.length}</strong></article>
+      <article><span>Open decisions</span><strong>${data.licenseDecisions.filter((decision) => !decision.productionApproved).length}</strong></article>
+    </section>
+    <section class="admin-section">
+      <div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>CI scans direct and transitive dependencies. Generated SBOMs provide the complete inventory; only decisions requiring operator attention appear here.</p></div>
+      <div class="admin-status-list">${decisions || '<div><strong>No open license decisions</strong><p>All recorded dependency decisions are approved.</p></div>'}</div>
+    </section>
+  `;
+}
+
+function bindSystemStatusEvents() {
+  document.querySelector('#system-health-refresh')?.addEventListener('click', () => {
+    loadSystemHealth();
+    loadRetentionGovernance();
+  });
+  document.querySelector('#system-health-retry')?.addEventListener('click', () => loadSystemHealth());
+  document.querySelector('#retention-retry')?.addEventListener('click', () => loadRetentionGovernance());
+  document.querySelector('#retention-dry-run')?.addEventListener('click', () => runRetentionDryRun());
+  document.querySelector('#retention-hold-form')?.addEventListener('submit', createRetentionHold);
+  document.querySelectorAll('.retention-release-form').forEach((form) =>
+    form.addEventListener('submit', releaseRetentionHold));
+}
+
+function bindDependencyComplianceEvents() {
+  document.querySelector('#dependency-compliance-refresh')?.addEventListener(
+    'click', () => loadDependencyCompliance());
+  document.querySelector('#dependency-compliance-retry')?.addEventListener(
+    'click', () => loadDependencyCompliance());
+}
+
+async function loadSystemHealth() {
+  state.systemHealth.loading = true;
+  state.systemHealth.error = null;
+  render();
+  try {
+    state.systemHealth.data = await getAdminSystemHealth();
+    state.systemHealth.loaded = true;
+  } catch (error) {
+    state.systemHealth.error = error.message;
+  } finally {
+    state.systemHealth.loading = false;
+    render();
+  }
+}
+
+async function loadDependencyCompliance() {
+  state.dependencyCompliance.loading = true;
+  state.dependencyCompliance.error = null;
+  render();
+  try {
+    state.dependencyCompliance.data = await getAdminDependencyCompliance();
+    state.dependencyCompliance.loaded = true;
+  } catch (error) {
+    state.dependencyCompliance.error = error.message;
+  } finally {
+    state.dependencyCompliance.loading = false;
+    render();
+  }
+}
+
+async function loadRetentionGovernance() {
+  state.retention.loading = true;
+  state.retention.error = null;
+  render();
+  try {
+    const [data, holds] = await Promise.all([
+      getAdminRetentionStatus(),
+      getAdminRetentionLegalHolds(),
+    ]);
+    state.retention.data = data;
+    state.retention.holds = holds;
+    state.retention.loaded = true;
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.loading = false;
+    render();
+  }
+}
+
+async function runRetentionDryRun() {
+  state.retention.running = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    state.retention.dryRun = await runAdminRetentionDryRun();
+    state.retention.notice = 'Dry run completed. No records were changed.';
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.running = false;
+    render();
+  }
+}
+
+async function createRetentionHold(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  state.retention.saving = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    await createAdminRetentionLegalHold(
+      form.get('category'),
+      String(form.get('organizationId') || '').trim(),
+      form.get('reason'));
+    state.retention.notice = 'Legal hold created and recorded in the audit trail.';
+    await loadRetentionGovernance();
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.saving = false;
+    render();
+  }
+}
+
+async function releaseRetentionHold(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  state.retention.saving = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    await releaseAdminRetentionLegalHold(event.currentTarget.dataset.holdId, form.get('reason'));
+    state.retention.notice = 'Legal hold released and recorded in the audit trail.';
+    await loadRetentionGovernance();
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.saving = false;
+    render();
+  }
+}
+
+function documentationSlug(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function documentationPage() {
+  if (state.documentation.loading && !state.documentation.loaded) {
+    return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading protected Admin documentation...</p></section>';
+  }
+  if (state.documentation.error && !state.documentation.loaded) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Documentation unavailable</h1><p>${escapeHtml(state.documentation.error)}</p><button class="pvad-button pvad-button--secondary" id="admin-help-retry" type="button">Retry</button></section>`;
+  }
+
+  const adminDocGroups = state.documentation.groups;
+  const adminRouteCoverage = state.documentation.routeCoverage;
+  const topics = adminDocGroups.flatMap((group) => group.topics);
+  if (!topics.length) {
+    return '<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Documentation unavailable</h1><p>The protected handbook contains no topics.</p></section>';
+  }
+  const requestedId = location.hash.replace(/^#/, '');
+  const selected = topics.find((topic) => `admin-${documentationSlug(topic.title)}` === requestedId) || topics[0];
+  const selectedIndex = topics.indexOf(selected);
+  const previous = topics[selectedIndex - 1];
+  const next = topics[selectedIndex + 1];
+  const related = topics
+    .filter((topic) => topic !== selected && topic.group === selected.group)
+    .slice(0, 2);
+
+  return `
+    <header class="admin-page-header">
+      <div>
+        <p class="pvad-kicker">Protected reference</p>
+        <h1>Admin documentation</h1>
+        <p>Administration workflows and integration guidance for authenticated PVADE administrators.</p>
+      </div>
+      <span class="admin-status admin-status--ready">Admin access only</span>
+    </header>
+    <div class="admin-help-boundary" role="note">
+      <strong>Protected content</strong>
+      <p>This handbook is available only inside PVADE Admin. Deployment recovery and emergency procedures remain in the separately restricted operator runbook.</p>
+    </div>
+    <div class="admin-help-layout">
+      <aside class="admin-help-sidebar">
+        <label class="admin-field">
+          <span>Search handbook</span>
+          <input id="admin-help-search" type="search" placeholder="Search Admin topics">
+        </label>
+        <nav id="admin-help-navigation" aria-label="Admin documentation topics">
+          ${adminDocGroups.map((group) => `
+            <details open>
+              <summary>${escapeHtml(group.title)}</summary>
+              <div>
+                ${group.topics.map((topic) => {
+                  const id = `admin-${documentationSlug(topic.title)}`;
+                  return `<a href="/documentation#${id}" ${topic === selected ? 'aria-current="page"' : ''}>${escapeHtml(topic.title)}</a>`;
+                }).join('')}
+              </div>
+            </details>
+          `).join('')}
+        </nav>
+        <p id="admin-help-search-empty" class="admin-help-search-empty" hidden>No matching Admin topics.</p>
+      </aside>
+      <article class="admin-help-topic" id="admin-${documentationSlug(selected.title)}">
+        <header>
+          <span class="admin-status admin-status--ready">${escapeHtml(selected.group)}</span>
+          <h2>${escapeHtml(selected.title)}</h2>
+          <p>${escapeHtml(selected.summary)}</p>
+        </header>
+        <div class="admin-help-permission">
+          <strong>Permission required</strong>
+          <span>${escapeHtml(selected.permission)}</span>
+        </div>
+        <div class="admin-help-procedure">
+          <section>
+            <h3>Prerequisites</h3>
+            <ul>${selected.prerequisites.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+          <section>
+            <h3>Procedure</h3>
+            <ol>${selected.steps.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ol>
+          </section>
+        </div>
+        <div class="admin-help-outcomes">
+          <section>
+            <h3>Expected result</h3>
+            <p>${escapeHtml(selected.result)}</p>
+          </section>
+          <section class="admin-help-warning">
+            <h3>Failure states and safeguards</h3>
+            <ul>${selected.failures.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+          <section class="admin-help-audit">
+            <h3>Audit effect</h3>
+            <p>${escapeHtml(selected.audit)}</p>
+          </section>
+        </div>
+        ${selected.notes.length ? `
+          <section class="admin-help-notes">
+            <h3>Operational and technical notes</h3>
+            <ul>${selected.notes.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+        ` : ''}
+        ${selected.apiExample ? `
+          <section class="admin-help-api">
+            <h3>Synthetic request and response</h3>
+            <div>
+              <pre><code>${escapeHtml(selected.apiExample.request)}</code></pre>
+              <pre><code>${escapeHtml(selected.apiExample.response)}</code></pre>
+            </div>
+          </section>
+        ` : ''}
+        <figure class="admin-help-screenshot">
+          <img src="/api/pvad/v1/admin/documentation/images/${encodeURIComponent(selected.screenshot)}" alt="${escapeHtml(selected.title)} workspace with synthetic masked data">
+          <figcaption>PVAD.Admin with synthetic organization and user data. Identifiers and secret material are not shown.</figcaption>
+        </figure>
+        <div class="admin-help-endpoint">
+          <strong>Related API</strong>
+          <code>${escapeHtml(selected.endpoint)}</code>
+        </div>
+        ${selected.title === 'Admin overview' ? `
+          <section class="admin-help-coverage">
+            <h3>Admin workspace coverage</h3>
+            <div class="admin-table-scroll">
+              <table>
+                <thead><tr><th>Admin route</th><th>Handbook topic</th></tr></thead>
+                <tbody>${adminRouteCoverage.map(([route, topic]) => `<tr><td><code>${escapeHtml(route)}</code></td><td>${escapeHtml(topic)}</td></tr>`).join('')}</tbody>
+              </table>
+            </div>
+          </section>
+        ` : ''}
+        ${related.length || selected.references.length ? `
+          <section class="admin-help-related">
+            <h3>Related topics</h3>
+            <div>
+              ${related.map((topic) => `<a href="/documentation#admin-${documentationSlug(topic.title)}">${escapeHtml(topic.title)}</a>`).join('')}
+              ${selected.references.map((reference) => `<a href="${reference.href}" data-native>${escapeHtml(reference.label)}</a>`).join('')}
+            </div>
+          </section>
+        ` : ''}
+        <nav class="admin-help-pagination" aria-label="Admin documentation topic navigation">
+          ${previous
+            ? `<a href="/documentation#admin-${documentationSlug(previous.title)}"><span>Previous</span><strong>${escapeHtml(previous.title)}</strong></a>`
+            : '<span></span>'}
+          ${next
+            ? `<a href="/documentation#admin-${documentationSlug(next.title)}"><span>Next</span><strong>${escapeHtml(next.title)}</strong></a>`
+            : '<span></span>'}
+        </nav>
+      </article>
+    </div>
+  `;
+}
+
+const legalDocumentTypes = [
+  'TermsAndConditions',
+  'PrivacyNotice',
+  'CookieAndStoragePolicy',
+  'Imprint',
+  'ConsumerWithdrawal',
+  'DataProcessingAgreement',
+  'LicenseAgreement',
+  'SubprocessorList',
+  'ServiceLevelAgreement',
+];
+
+const legalAudiences = [
+  'All', 'IndividualDeveloper', 'Company', 'Consumer', 'Business', 'Cloud', 'OnPremise',
+];
+
+function legalStatusClass(status) {
+  if (status === 'Published') return 'admin-status--ready';
+  if (status === 'Scheduled' || status === 'Approved') return 'admin-status--active';
+  if (status === 'Retired') return 'admin-status--inactive';
+  return 'admin-status--planned';
+}
+
+function hasRequiredLegalComparison(version) {
+  if (!version.previousVersionId) return true;
+  const comparison = state.legal.comparison;
+  return comparison?.targetVersion.id === version.id &&
+    comparison?.baseVersion.id === version.previousVersionId;
+}
+
+function legalVersionOption(version) {
+  return `${escapeHtml(version.version)} · ${escapeHtml(version.locale)} · ${escapeHtml(version.audience)} · ${escapeHtml(version.status)}`;
+}
+
+function renderLegalComparison() {
+  const legal = state.legal;
+  const comparison = legal.comparison;
+  const comparableDocuments = legal.documents.filter((document) =>
+    legal.versions.filter((version) => version.legalDocumentId === document.id).length >= 2);
+  const selectedDocumentId = legal.comparisonDocumentId ||
+    comparableDocuments[0]?.id ||
+    '';
+  const versions = legal.versions.filter((version) =>
+    version.legalDocumentId === selectedDocumentId);
+  const baseId = legal.comparisonBaseId || versions[1]?.id || versions[0]?.id || '';
+  const targetId = legal.comparisonTargetId || versions[0]?.id || '';
+  const lineRows = comparison?.lines.map((line) => `
+    <tr class="admin-legal-diff-row admin-legal-diff-row--${line.kind.toLowerCase()}">
+      <td class="admin-legal-diff-number">${line.baseLineNumber ?? ''}</td>
+      <td><pre>${escapeHtml(line.baseText ?? '')}</pre></td>
+      <td class="admin-legal-diff-number">${line.targetLineNumber ?? ''}</td>
+      <td><pre>${escapeHtml(line.targetText ?? '')}</pre></td>
+    </tr>`).join('') || '';
+  return `
+    <section class="admin-section admin-legal-comparison" aria-busy="${legal.comparisonLoading}">
+      <div class="admin-section-heading">
+        <div>
+          <h2>Compare versions</h2>
+          <p>Review exact Markdown and metadata changes before approving or publishing a successor version.</p>
+        </div>
+        ${comparison ? '<button type="button" id="legal-comparison-close">Close comparison</button>' : ''}
+      </div>
+      <form id="legal-comparison-form" class="admin-legal-comparison-controls">
+        <label class="admin-field">
+          <span>Document</span>
+          <select name="documentId" ${comparableDocuments.length ? '' : 'disabled'}>
+            ${comparableDocuments.map((document) =>
+              `<option value="${document.id}" ${document.id === selectedDocumentId ? 'selected' : ''}>${escapeHtml(document.displayName)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Base version</span>
+          <select name="baseVersionId" ${versions.length ? '' : 'disabled'}>
+            ${versions.map((version) =>
+              `<option value="${version.id}" ${version.id === baseId ? 'selected' : ''}>${legalVersionOption(version)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Target version</span>
+          <select name="targetVersionId" ${versions.length ? '' : 'disabled'}>
+            ${versions.map((version) =>
+              `<option value="${version.id}" ${version.id === targetId ? 'selected' : ''}>${legalVersionOption(version)}</option>`).join('')}
+          </select>
+        </label>
+        <button class="pvad-button pvad-button--secondary" type="submit"
+          ${legal.comparisonLoading || versions.length < 2 ? 'disabled' : ''}>
+          ${legal.comparisonLoading ? 'Comparing...' : 'Compare'}
+        </button>
+      </form>
+      ${comparableDocuments.length ? '' : '<div class="admin-empty-state"><strong>No comparable versions</strong><p>Create a second version of a document to enable comparison.</p></div>'}
+      ${comparison ? `
+        <div class="admin-legal-diff-summary" aria-label="Comparison summary">
+          <article><span>Unchanged</span><strong>${comparison.summary.unchanged}</strong></article>
+          <article><span>Modified</span><strong>${comparison.summary.modified}</strong></article>
+          <article><span>Added</span><strong>${comparison.summary.added}</strong></article>
+          <article><span>Removed</span><strong>${comparison.summary.removed}</strong></article>
+        </div>
+        <div class="admin-legal-diff-metadata">
+          <article>
+            <span>Base</span>
+            <strong>${legalVersionOption(comparison.baseVersion)}</strong>
+            <small>Hash ${escapeHtml(comparison.baseVersion.contentHash)} · Created ${escapeHtml(formatDate(comparison.baseVersion.createdAt))}</small>
+          </article>
+          <article>
+            <span>Target</span>
+            <strong>${legalVersionOption(comparison.targetVersion)}</strong>
+            <small>Hash ${escapeHtml(comparison.targetVersion.contentHash)} · Created ${escapeHtml(formatDate(comparison.targetVersion.createdAt))}</small>
+          </article>
+        </div>
+        <div class="admin-legal-diff-scroll" tabindex="0" aria-label="Side-by-side Markdown comparison">
+          <table class="admin-legal-diff-table">
+            <thead><tr><th colspan="2">Base · ${escapeHtml(comparison.baseVersion.version)}</th><th colspan="2">Target · ${escapeHtml(comparison.targetVersion.version)}</th></tr></thead>
+            <tbody>${lineRows}</tbody>
+          </table>
+        </div>` : ''}
+    </section>`;
+}
+
+function legalPage() {
+  const legal = state.legal;
+  const documentById = new Map(legal.documents.map((item) => [item.id, item]));
+  const preview = legal.versions.find((item) => item.id === legal.previewId);
+  const rows = legal.versions.map((version) => {
+    const document = documentById.get(version.legalDocumentId);
+    const authoredByCurrentUser = version.createdByUserId === state.user.id;
+    const approvedByCurrentUser = version.approvedByUserId === state.user.id;
+    const canSubmit = version.status === 'Draft' && authoredByCurrentUser;
+    const canReview = version.status === 'InReview' && !authoredByCurrentUser;
+    const canPublish = version.status === 'Approved' && !authoredByCurrentUser && approvedByCurrentUser;
+    const canRetire = version.status === 'Published' || version.status === 'Scheduled';
+    const comparisonReady = hasRequiredLegalComparison(version);
+    const comparisonTitle = comparisonReady
+      ? ''
+      : 'Compare this version with its recorded predecessor first.';
+    return `
+      <tr>
+        <td><strong>${escapeHtml(document?.displayName || 'Unknown document')}</strong><small>${escapeHtml(document?.type || '')}</small></td>
+        <td>${escapeHtml(version.version)}<small>${escapeHtml(version.contentHash.slice(0, 12))}</small></td>
+        <td>${escapeHtml(version.locale)} · ${escapeHtml(version.audience)}</td>
+        <td><span class="admin-status ${legalStatusClass(version.status)}">${escapeHtml(version.status)}</span></td>
+        <td>${escapeHtml(formatDate(version.effectiveAt || version.createdAt))}</td>
+        <td>
+          <div class="admin-row-actions admin-legal-actions">
+            <button type="button" class="legal-preview" data-version-id="${version.id}">Preview</button>
+            ${(version.status === 'Published' || version.status === 'Scheduled') ? `<button type="button" class="legal-acceptance" data-version-id="${version.id}">Acceptance</button>` : ''}
+            ${version.previousVersionId ? `<button type="button" class="legal-compare" data-base-version-id="${version.previousVersionId}" data-target-version-id="${version.id}">Compare</button>` : ''}
+            ${canSubmit ? `<button type="button" class="legal-submit" data-version-id="${version.id}">Submit</button>` : ''}
+            ${canReview ? `<button type="button" class="legal-review" data-version-id="${version.id}" data-approve="true" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Approve</button><button type="button" class="legal-review" data-version-id="${version.id}" data-approve="false" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Reject</button>` : ''}
+            ${canPublish ? `<button type="button" class="legal-publish" data-version-id="${version.id}" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Publish</button>` : ''}
+            ${canRetire ? `<button type="button" class="legal-retire" data-version-id="${version.id}">Retire</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Governance</p><h1>Legal documents</h1><p>Author, independently review, schedule, and publish immutable legal document versions.</p></div>
+      <div class="admin-header-actions">
+        <button class="pvad-button pvad-button--primary" id="legal-import-candidates" type="button" ${legal.saving ? 'disabled' : ''}>Import English candidates</button>
+        <a class="pvad-button pvad-button--secondary" href="/dependency-compliance">Dependency compliance</a>
+        <span class="admin-record-count">${legal.documents.length} documents · ${legal.versions.length} versions</span>
+      </div>
+    </header>
+    <div class="admin-alert admin-alert--warning admin-detail-alert">
+      English is the authoritative language and Swiss law is the baseline. Production publication requires verified operator details and approval by qualified Swiss counsel with international-market expertise.
+      Paid consumer checkout must remain disabled until its legal workflow is approved.
+    </div>
+    ${legal.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(legal.error)}</div>` : ''}
+    ${legal.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert" role="status">${escapeHtml(legal.notice)}</div>` : ''}
+    <div class="admin-detail-grid admin-legal-create-grid">
+      <section class="admin-section">
+        <form id="legal-document-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Create document</h2><p>Create the stable identity before adding localized versions.</p></div>
+          <label class="admin-field"><span>Type</span><select name="type">${legalDocumentTypes.map((type) => `<option>${type}</option>`).join('')}</select></label>
+          <label class="admin-field"><span>Key</span><input name="key" required maxlength="80" placeholder="terms"></label>
+          <label class="admin-field"><span>Display name</span><input name="displayName" required maxlength="200"></label>
+          <button class="pvad-button pvad-button--primary" type="submit" ${legal.saving ? 'disabled' : ''}>Create document</button>
+        </form>
+      </section>
+      <section class="admin-section">
+        <form id="legal-version-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Create draft version</h2><p>English is authoritative. Add localized notices later only where a target market requires them.</p></div>
+          <label class="admin-field"><span>Document</span><select name="documentId" required><option value="">Choose document</option>${legal.documents.map((item) => `<option value="${item.id}">${escapeHtml(item.displayName)}</option>`).join('')}</select></label>
+          <div class="admin-inline-form">
+            <label class="admin-field"><span>Version</span><input name="version" required maxlength="64" placeholder="2026-07"></label>
+            <label class="admin-field"><span>Locale</span><select name="locale"><option value="en">English</option><option value="de">German translation</option></select></label>
+            <label class="admin-field"><span>Audience</span><select name="audience">${legalAudiences.map((value) => `<option>${value}</option>`).join('')}</select></label>
+          </div>
+          <label class="admin-field"><span>Change summary</span><input name="changeSummary" maxlength="2000"></label>
+          <label class="admin-field"><span>Markdown content</span><textarea name="sourceMarkdown" rows="12" required placeholder="# Document title"></textarea></label>
+          <label class="admin-checkbox"><input type="checkbox" name="requiresAcceptance"> Require explicit acceptance</label>
+          <label class="admin-checkbox"><input type="checkbox" name="isAuthoritative" checked> Authoritative language</label>
+          <button class="pvad-button pvad-button--primary" type="submit" ${legal.saving || !legal.documents.length ? 'disabled' : ''}>Create draft</button>
+        </form>
+      </section>
+    </div>
+    ${renderLegalComparison()}
+    ${renderLegalAcceptance()}
+    <section class="admin-table-section" aria-busy="${legal.loading}">
+      <div class="admin-section-heading"><h2>Publication history</h2><p>Document bodies are immutable after publication or scheduling.</p></div>
+      ${legal.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading legal documents...</p></div>' : `
+        <div class="admin-table-scroll"><table><thead><tr><th>Document</th><th>Version</th><th>Scope</th><th>Status</th><th>Effective</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+        ${rows ? '' : '<div class="admin-empty-state"><strong>No legal documents</strong><p>Create a document and its first draft version.</p></div>'}
+      `}
+    </section>
+    ${preview ? `
+      <section class="admin-section admin-legal-preview">
+        <div class="admin-section-heading admin-section-heading--action">
+          <div><h2>Safe preview · ${escapeHtml(preview.version)}</h2><p>Hash ${escapeHtml(preview.contentHash)}</p></div>
+          <button type="button" id="legal-preview-close">Close</button>
+        </div>
+        <article>${preview.renderedHtml}</article>
+      </section>` : ''}
+  `;
+}
+
+function renderLegalAcceptance() {
+  const legal = state.legal;
+  if (!legal.acceptanceVersionId) return '';
+  const version = legal.versions.find((item) => item.id === legal.acceptanceVersionId);
+  const summary = legal.acceptance;
+  const filters = legal.acceptanceFilters;
+  const breakdownRows = (summary?.byLocale || []).map((item) => `
+    <tr><td>${escapeHtml(item.name || 'Unspecified')}</td><td>${item.completed}</td><td>${item.affectedAccounts - item.completed}</td><td>${item.affectedAccounts}</td></tr>`).join('');
+  return `
+    <section class="admin-section admin-legal-acceptance" aria-busy="${legal.acceptanceLoading || legal.acceptanceExporting}" aria-describedby="legal-acceptance-description">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div>
+          <h2>Acceptance progress · ${escapeHtml(version?.version || '')}</h2>
+          <p id="legal-acceptance-description">Exact-version evidence only. Terms acceptance and Privacy acknowledgement remain distinct decisions.</p>
+        </div>
+        <button id="legal-acceptance-close" type="button">Close</button>
+      </div>
+      <form id="legal-acceptance-filter" class="admin-legal-acceptance-filters">
+        <label class="admin-field"><span>Organization ID</span><input name="organizationId" value="${escapeHtml(filters.organizationId)}" placeholder="All organizations"></label>
+        <label class="admin-field"><span>Account type</span><select name="accountType"><option value="">All account types</option><option value="IndividualDeveloper" ${filters.accountType === 'IndividualDeveloper' ? 'selected' : ''}>Individual Developer</option><option value="Company" ${filters.accountType === 'Company' ? 'selected' : ''}>Company</option></select></label>
+        <label class="admin-field"><span>Locale</span><select name="locale"><option value="">All locales</option><option value="de" ${filters.locale === 'de' ? 'selected' : ''}>German</option><option value="en" ${filters.locale === 'en' ? 'selected' : ''}>English</option></select></label>
+        <label class="admin-field"><span>Accepted from</span><input name="from" type="datetime-local" value="${escapeHtml(filters.from)}"></label>
+        <label class="admin-field"><span>Accepted to</span><input name="to" type="datetime-local" value="${escapeHtml(filters.to)}"></label>
+        <button type="submit" ${legal.acceptanceLoading ? 'disabled' : ''}>Apply</button>
+      </form>
+      ${legal.acceptanceLoading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Calculating acceptance progress...</p></div>' : summary ? `
+        <div class="admin-summary-grid">
+          <article><span>Affected accounts</span><strong>${summary.affectedAccounts}</strong></article>
+          <article><span>Completed</span><strong>${summary.completed}</strong></article>
+          <article><span>Pending</span><strong>${summary.pending}</strong></article>
+          <article><span>Completion</span><strong>${summary.completionPercentage}%</strong></article>
+        </div>
+        <progress class="admin-legal-acceptance-progress" max="100" value="${summary.completionPercentage}" aria-label="Acceptance completion">${summary.completionPercentage}%</progress>
+        ${summary.requiresAcceptance ? '' : '<div class="admin-alert admin-alert--warning">This version does not require explicit Terms reacceptance. Privacy versions are acknowledged rather than accepted.</div>'}
+        <div class="admin-legal-acceptance-detail">
+          <div class="admin-table-scroll"><table><thead><tr><th>Locale</th><th>Completed</th><th>Pending</th><th>Affected</th></tr></thead><tbody>${breakdownRows || '<tr><td colspan="4">No affected accounts</td></tr>'}</tbody></table></div>
+          <div class="admin-audit-export">
+            <div><strong>Export minimized evidence</strong><p>Exports exclude names, email addresses, tokens, and document contents.</p></div>
+            <div><button type="button" class="legal-acceptance-export" data-format="csv" ${legal.acceptanceExporting ? 'disabled' : ''}>${legal.acceptanceExporting ? 'Exporting...' : 'Export CSV'}</button><button type="button" class="legal-acceptance-export" data-format="json" ${legal.acceptanceExporting ? 'disabled' : ''}>${legal.acceptanceExporting ? 'Exporting...' : 'Export JSON'}</button></div>
+          </div>
+          <span class="visually-hidden" role="status" aria-live="polite">${legal.acceptanceExporting ? 'Preparing minimized legal evidence export.' : ''}</span>
+        </div>` : ''}
+    </section>`;
+}
+
+async function loadLegalDocuments() {
+  Object.assign(state.legal, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminLegalDocuments();
+    Object.assign(state.legal, response, { loaded: true });
+  } catch (error) {
+    Object.assign(state.legal, { error: error.message, loaded: true });
+  } finally {
+    state.legal.loading = false;
+    render();
+  }
+}
+
+async function runLegalMutation(operation, message) {
+  Object.assign(state.legal, { saving: true, error: null, notice: null });
+  render();
+  try {
+    await operation();
+    state.legal.loaded = false;
+    state.legal.saving = false;
+    state.legal.notice = message;
+    await loadLegalDocuments();
+  } catch (error) {
+    Object.assign(state.legal, { saving: false, error: error.message });
+    render();
+  }
+}
+
+async function loadLegalComparison(baseVersionId, targetVersionId) {
+  Object.assign(state.legal, {
+    comparisonLoading: true,
+    comparisonBaseId: baseVersionId,
+    comparisonTargetId: targetVersionId,
+    comparison: null,
+    error: null,
+  });
+  const target = state.legal.versions.find((version) => version.id === targetVersionId);
+  state.legal.comparisonDocumentId = target?.legalDocumentId || null;
+  render();
+  try {
+    state.legal.comparison = await compareAdminLegalVersions(baseVersionId, targetVersionId);
+  } catch (error) {
+    state.legal.error = error.message;
+  } finally {
+    state.legal.comparisonLoading = false;
+    render();
+  }
+}
+
+async function loadLegalAcceptance(versionId = state.legal.acceptanceVersionId) {
+  if (!versionId) return;
+  Object.assign(state.legal, {
+    acceptanceVersionId: versionId,
+    acceptanceLoading: true,
+    acceptance: null,
+    error: null,
+  });
+  render();
+  try {
+    state.legal.acceptance = await getAdminLegalAcceptance(
+      versionId, state.legal.acceptanceFilters);
+  } catch (error) {
+    state.legal.error = error.message;
+  } finally {
+    state.legal.acceptanceLoading = false;
+    render();
+  }
+}
+
+async function downloadLegalAcceptance(format) {
+  const legal = state.legal;
+  if (!legal.acceptanceVersionId) return;
+  legal.acceptanceExporting = true;
+  legal.error = null;
+  render();
+  try {
+    const result = await exportAdminLegalAcceptance(
+      legal.acceptanceVersionId, format, legal.acceptanceFilters);
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    legal.error = error.message;
+  } finally {
+    legal.acceptanceExporting = false;
+    render();
+  }
+}
+
+function bindLegalEvents() {
+  document.querySelector('#legal-import-candidates')?.addEventListener('click', () =>
+    runLegalMutation(
+      () => importAdminLegalCandidates(),
+      'English Swiss-law candidates imported as drafts for independent review.'));
+  document.querySelector('#legal-document-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLegalMutation(() => createAdminLegalDocument({
+      type: data.get('type'), key: data.get('key'), displayName: data.get('displayName'),
+    }), 'Legal document created.');
+  });
+  document.querySelector('#legal-version-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLegalMutation(() => createAdminLegalVersion(data.get('documentId'), {
+      version: data.get('version'), locale: data.get('locale'), audience: data.get('audience'),
+      sourceMarkdown: data.get('sourceMarkdown'), changeSummary: data.get('changeSummary') || null,
+      requiresAcceptance: data.get('requiresAcceptance') === 'on',
+      isAuthoritative: data.get('isAuthoritative') === 'on',
+    }), 'Draft version created.');
+  });
+  document.querySelectorAll('.legal-preview').forEach((button) => button.addEventListener('click', () => {
+    state.legal.previewId = button.dataset.versionId;
+    render();
+  }));
+  document.querySelectorAll('.legal-acceptance').forEach((button) => button.addEventListener('click', () =>
+    loadLegalAcceptance(button.dataset.versionId)));
+  document.querySelector('#legal-acceptance-close')?.addEventListener('click', () => {
+    Object.assign(state.legal, { acceptanceVersionId: null, acceptance: null });
+    render();
+  });
+  document.querySelector('#legal-acceptance-filter')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.legal.acceptanceFilters = {
+      organizationId: data.get('organizationId')?.trim() || '',
+      accountType: data.get('accountType') || '',
+      locale: data.get('locale') || '',
+      from: data.get('from') ? new Date(data.get('from')).toISOString() : '',
+      to: data.get('to') ? new Date(data.get('to')).toISOString() : '',
+    };
+    loadLegalAcceptance();
+  });
+  document.querySelectorAll('.legal-acceptance-export').forEach((button) =>
+    button.addEventListener('click', () => downloadLegalAcceptance(button.dataset.format)));
+  document.querySelector('#legal-preview-close')?.addEventListener('click', () => {
+    state.legal.previewId = null;
+    render();
+  });
+  document.querySelector('#legal-comparison-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    if (data.get('baseVersionId') === data.get('targetVersionId')) {
+      state.legal.error = 'Choose two different versions to compare.';
+      render();
+      return;
+    }
+    loadLegalComparison(data.get('baseVersionId'), data.get('targetVersionId'));
+  });
+  document.querySelector('#legal-comparison-form select[name="documentId"]')?.addEventListener('change', (event) => {
+    Object.assign(state.legal, {
+      comparisonDocumentId: event.currentTarget.value,
+      comparisonBaseId: null,
+      comparisonTargetId: null,
+      comparison: null,
+      error: null,
+    });
+    render();
+  });
+  document.querySelectorAll('.legal-compare').forEach((button) => button.addEventListener('click', () =>
+    loadLegalComparison(button.dataset.baseVersionId, button.dataset.targetVersionId)));
+  document.querySelector('#legal-comparison-close')?.addEventListener('click', () => {
+    state.legal.comparison = null;
+    render();
+  });
+  document.querySelectorAll('.legal-submit').forEach((button) => button.addEventListener('click', () =>
+    runLegalMutation(() => submitAdminLegalVersion(button.dataset.versionId), 'Draft submitted for independent review.')));
+  document.querySelectorAll('.legal-review').forEach((button) => button.addEventListener('click', () => {
+    const approve = button.dataset.approve === 'true';
+    const version = state.legal.versions.find((item) => item.id === button.dataset.versionId);
+    const comparedToVersionId = version?.previousVersionId
+      ? state.legal.comparison?.baseVersion.id
+      : null;
+    const comment = window.prompt(`${approve ? 'Approval' : 'Rejection'} comment (optional):`) || null;
+    runLegalMutation(
+      () => reviewAdminLegalVersion(
+        button.dataset.versionId, approve, comment, comparedToVersionId),
+      approve ? 'Version approved.' : 'Version returned to draft.');
+  }));
+  document.querySelectorAll('.legal-publish').forEach((button) => button.addEventListener('click', () => {
+    const value = window.prompt('Effective date/time in ISO format, or leave blank for now:')?.trim();
+    if (value && Number.isNaN(Date.parse(value))) {
+      state.legal.error = 'Enter a valid ISO date/time.';
+      render();
+      return;
+    }
+    runLegalMutation(
+      () => {
+        const version = state.legal.versions.find((item) => item.id === button.dataset.versionId);
+        const comparedToVersionId = version?.previousVersionId
+          ? state.legal.comparison?.baseVersion.id
+          : null;
+        return publishAdminLegalVersion(
+          button.dataset.versionId,
+          value ? new Date(value).toISOString() : null,
+          comparedToVersionId);
+      },
+      value ? 'Version scheduled.' : 'Version published.');
+  }));
+  document.querySelectorAll('.legal-retire').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Retire this legal document version?'))
+      runLegalMutation(() => retireAdminLegalVersion(button.dataset.versionId), 'Version retired.');
+  }));
+}
+
+function bindDocumentationEvents() {
+  document.querySelector('#admin-help-retry')?.addEventListener('click', () => loadDocumentation());
+  const search = document.querySelector('#admin-help-search');
+  const navigation = document.querySelector('#admin-help-navigation');
+  const empty = document.querySelector('#admin-help-search-empty');
+  if (!search || !navigation) return;
+
+  search.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    const links = [...navigation.querySelectorAll('a')];
+    let visible = 0;
+    links.forEach((link) => {
+      const matches = !query || link.textContent.toLowerCase().includes(query);
+      link.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    navigation.querySelectorAll('details').forEach((group) => {
+      const hasVisibleTopic = [...group.querySelectorAll('a')].some((link) => !link.hidden);
+      group.hidden = !hasVisibleTopic;
+      if (query && hasVisibleTopic) group.open = true;
+    });
+    empty.hidden = visible > 0;
+  });
+}
+
+async function loadDocumentation() {
+  Object.assign(state.documentation, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminDocumentation();
+    Object.assign(state.documentation, response, { loaded: true });
+  } catch (error) {
+    state.documentation.error = error.message;
+  } finally {
+    state.documentation.loading = false;
+    render();
+  }
+}
+
+function formatDate(value) {
+  if (!value) return 'Never';
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
+function activeOrganization() {
+  return state.user.organizations?.find((organization) =>
+    organization.id === state.user.activeOrganizationId) || state.user.organizations?.[0] || null;
+}
+
+async function loadActiveProductAccess() {
+  const organization = activeOrganization();
+  if (!organization) return { organizationName: 'System scope', subscription: null, products: [], seats: [] };
+  const subscriptions = await getAdminSubscriptions({ pageSize: 100 });
+  const subscription = subscriptions.items.find((item) => item.organizationId === organization.id) || null;
+  if (!subscription) return { organizationName: organization.name, subscription: null, products: [], seats: [] };
+  const seats = await getAdminSubscriptionSeats(subscription.id);
+  return {
+    organizationName: organization.name,
+    subscription,
+    products: subscription.entitlements.filter((item) => item.enabled).map((item) => item.capability),
+    seats,
+  };
+}
+
+function productAccessMarkup(access, membershipId) {
+  if (!access?.subscription) return '<span class="admin-status admin-status--planned">No subscription</span>';
+  const assigned = access.seats.some((seat) => seat.membershipId === membershipId && seat.assigned);
+  const products = access.products.length
+    ? access.products.map((product) => `<span>${escapeHtml(product)}</span>`).join('')
+    : '<span>No products</span>';
+  return `<div class="admin-product-access"><div class="admin-role-list">${products}</div><small>${assigned ? 'Seat assigned' : 'No seat assigned'}</small></div>`;
+}
+
+function userStatus(user) {
+  if (!user.isActive) return 'Disabled';
+  return user.membershipStatus === 'Active' ? 'Active' : user.membershipStatus;
+}
+
+function userStatusClass(user) {
+  return user.isActive && user.membershipStatus === 'Active' ? 'admin-status--ready' : 'admin-status--inactive';
+}
+
+function usersPage() {
+  const users = state.users;
+  const totalPages = Math.max(1, Math.ceil(users.total / users.pageSize));
+  const rows = users.items.map((user) => `
+    <tr>
+      <td><input class="admin-user-select" type="checkbox" value="${user.id}" aria-label="Select ${escapeHtml(user.displayName)}" ${users.selected.includes(user.id) ? 'checked' : ''}></td>
+      <td><a class="admin-user-link" href="/users/${user.id}"><strong>${escapeHtml(user.displayName)}</strong><small>${escapeHtml(user.username)}</small></a></td>
+      <td>${escapeHtml(user.email)}</td>
+      <td>${escapeHtml(users.access?.organizationName || 'Active organization')}</td>
+      <td><div class="admin-role-list">${user.roles.length ? user.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
+      <td>${productAccessMarkup(users.access, user.membershipId)}</td>
+      <td><span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span></td>
+      <td>${escapeHtml(formatDate(user.lastLoginAt))}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Identity</p><h1>Users</h1><p>Manage user status, organization roles, and access within the active tenant.</p></div>
+      <span class="admin-record-count">${users.total} ${users.total === 1 ? 'user' : 'users'}</span>
+    </header>
+    <details class="admin-section admin-create-panel">
+      <summary>Invite user</summary>
+      <form class="admin-invitation-form" id="user-invitation-form">
+        <label class="admin-field"><span>Display name</span><input name="displayName" required maxlength="200"></label>
+        <label class="admin-field"><span>Email</span><input name="email" type="email" required></label>
+        <label class="admin-field"><span>Initial role</span><select name="role">${organizationRoles.map((role) => `<option>${role}</option>`).join('')}</select></label>
+        <button class="pvad-button pvad-button--primary" type="submit">Send invitation</button>
+      </form>
+    </details>
+    ${users.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert">${escapeHtml(users.notice)}</div>` : ''}
+    <section class="admin-table-section" aria-busy="${users.loading}">
+      <form class="admin-table-toolbar" id="users-filter-form">
+        <label><span class="visually-hidden">Search users</span><input name="search" type="search" placeholder="Search name, email, or username" value="${escapeHtml(users.search)}"></label>
+        <select name="status" aria-label="Filter by status">
+          <option value="" ${users.status === '' ? 'selected' : ''}>All statuses</option>
+          <option value="active" ${users.status === 'active' ? 'selected' : ''}>Active</option>
+          <option value="disabled" ${users.status === 'disabled' ? 'selected' : ''}>Disabled</option>
+          <option value="suspended" ${users.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+          <option value="invited" ${users.status === 'invited' ? 'selected' : ''}>Invited</option>
+          <option value="deleted" ${users.status === 'deleted' ? 'selected' : ''}>Deleted</option>
+        </select>
+        <button type="submit">Apply</button>
+      </form>
+      ${users.error ? `<div class="admin-alert admin-alert--error admin-inline-alert" role="alert">${escapeHtml(users.error)}</div>` : ''}
+      <form class="admin-table-toolbar admin-bulk-toolbar" id="users-bulk-form">
+        <strong>${users.selected.length} selected</strong>
+        <select name="action" aria-label="Bulk action" required>
+          <option value="">Choose action</option><option value="enable">Enable</option><option value="disable">Disable</option><option value="delete">Soft delete</option><option value="restore">Restore</option><option value="revoke-sessions">Revoke sessions</option>
+        </select>
+        <button type="submit" ${users.selected.length === 0 ? 'disabled' : ''}>Apply</button>
+      </form>
+      ${users.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading users...</p></div>' : `
+        <div class="admin-table-scroll">
+          <table>
+            <thead><tr><th><input id="users-select-page" type="checkbox" aria-label="Select page"></th><th>User</th><th>Email</th><th>Organization</th><th>Roles</th><th>Product access</th><th>Status</th><th>Last login</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        ${users.items.length === 0 ? '<div class="admin-empty-state"><strong>No users found</strong><p>Change the search or status filter to broaden the result.</p></div>' : ''}
+        <footer class="admin-pagination">
+          <span>Page ${users.page} of ${totalPages}</span>
+          <div>
+            <button id="users-previous" type="button" ${users.page <= 1 ? 'disabled' : ''}>Previous</button>
+            <button id="users-next" type="button" ${users.page >= totalPages ? 'disabled' : ''}>Next</button>
+          </div>
+        </footer>
+      `}
+    </section>
+  `;
+}
+
+function userDetailPage() {
+  const detail = state.userDetail;
+  if (detail.loading) {
+    return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading user...</p></section>';
+  }
+  if (!detail.data) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>User unavailable</h1><p>${escapeHtml(detail.error || 'The user could not be loaded.')}</p><a class="pvad-button pvad-button--secondary" href="/users">Return to users</a></section>`;
+  }
+
+  const user = detail.data;
+  const access = detail.access;
+  const assignedSeat = access?.seats.some((seat) => seat.membershipId === user.membershipId && seat.assigned) || false;
+  const globalRoles = user.roles.filter((role) => !organizationRoles.includes(role));
+  const activeSessions = detail.sessions.filter((session) => session.isActive);
+  const sessionRows = detail.sessions.map((session) => `
+    <tr>
+      <td><strong>${escapeHtml(session.userAgent)}</strong>${session.isCurrent ? '<small>Current session</small>' : ''}</td>
+      <td>${escapeHtml(formatDate(session.lastSeenAt))}</td>
+      <td>${escapeHtml(formatDate(session.expiresAt))}</td>
+      <td><span class="admin-status ${session.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${session.isActive ? 'Active' : 'Ended'}</span></td>
+      <td>${session.isActive && !session.isCurrent ? `<button class="admin-text-button admin-session-revoke" data-session-id="${session.id}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button>` : ''}</td>
+    </tr>`).join('');
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actor)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
+  const isDeleted = user.membershipStatus === 'Removed';
+  const isSelf = user.id === state.user?.id;
+  return `
+    <header class="admin-page-header">
+      <div><a class="admin-back-link" href="/users">Users</a><h1>${escapeHtml(user.displayName)}</h1><p>${escapeHtml(user.email)}</p></div>
+      <span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span>
+    </header>
+    ${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(detail.error)}</div>` : ''}
+    ${detail.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert" role="status">${escapeHtml(detail.notice)}</div>` : ''}
+    <div class="admin-detail-grid">
+      <section class="admin-section">
+        <form id="user-profile-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Account profile</h2><p>Changing the email address requires verification before it becomes active.</p></div>
+          <label class="admin-field"><span>Display name</span><input name="displayName" value="${escapeHtml(user.displayName)}" required maxlength="200"></label>
+          <label class="admin-field"><span>Email</span><input name="email" type="email" value="${escapeHtml(user.email)}" required></label>
+          ${user.pendingEmail ? `<div class="admin-alert admin-alert--success">Verification pending for ${escapeHtml(user.pendingEmail)}.</div>` : ''}
+          <div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving || isDeleted ? 'disabled' : ''}>Save profile</button></div>
+        </form>
+        <dl class="admin-detail-list">
+          <div><dt>Username</dt><dd>${escapeHtml(user.username)}</dd></div>
+          <div><dt>Created</dt><dd>${escapeHtml(formatDate(user.createdAt))}</dd></div>
+          <div><dt>Last login</dt><dd>${escapeHtml(formatDate(user.lastLoginAt))}</dd></div>
+          <div><dt>Membership</dt><dd>${escapeHtml(user.membershipStatus)}</dd></div>
+        </dl>
+        <div class="admin-detail-action">
+          <div><strong>${user.isActive ? 'Disable account' : 'Enable account'}</strong><p>${user.isActive ? 'Revoke this user\'s active access and sessions.' : 'Restore access to this organization.'}</p></div>
+          <button class="pvad-button ${user.isActive ? 'admin-danger-button' : 'pvad-button--primary'}" id="user-status-button" type="button" ${detail.saving || isDeleted || isSelf ? 'disabled' : ''}>${user.isActive ? 'Disable' : 'Enable'}</button>
+        </div>
+        <div class="admin-detail-action">
+          <div><strong>Password reset</strong><p>Queue a single-use reset link without exposing its token.</p></div>
+          <button class="pvad-button pvad-button--secondary" id="user-password-reset" type="button" ${detail.saving || isDeleted ? 'disabled' : ''}>Send reset</button>
+        </div>
+        <div class="admin-detail-action">
+          <div><strong>${isDeleted ? 'Restore membership' : 'Soft delete membership'}</strong><p>${isDeleted ? 'Restore this user inside the active organization.' : 'Retain audit history while removing tenant access.'}</p></div>
+          <button class="pvad-button ${isDeleted ? 'pvad-button--primary' : 'admin-danger-button'}" id="user-deletion-button" type="button" ${detail.saving || (!isDeleted && isSelf) ? 'disabled' : ''}>${isDeleted ? 'Restore' : 'Delete'}</button>
+        </div>
+      </section>
+      <section class="admin-section">
+        <form id="user-roles-form">
+          <div class="admin-section-heading"><h2>Organization roles</h2><p>Roles apply only inside the active organization.</p></div>
+          <div class="admin-role-options">
+            ${organizationRoles.map((role) => `<label><input type="checkbox" name="roles" value="${role}" ${user.roles.includes(role) ? 'checked' : ''} ${isDeleted || isSelf ? 'disabled' : ''}><span><strong>${role}</strong></span></label>`).join('')}
+          </div>
+          ${globalRoles.length ? `<div class="admin-global-roles"><span>System roles</span><strong>${globalRoles.map(escapeHtml).join(', ')}</strong></div>` : ''}
+          <div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving || isDeleted || isSelf ? 'disabled' : ''}>Save roles</button></div>
+        </form>
+      </section>
+    </div>
+    <section class="admin-section admin-user-product-access">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div><h2>Licensed product access</h2><p>Subscription entitlements and seat assignment remain independent from organization roles.</p></div>
+        ${access?.subscription ? `<span class="admin-status ${assignedSeat ? 'admin-status--ready' : 'admin-status--planned'}">${assignedSeat ? 'Seat assigned' : 'No seat'}</span>` : ''}
+      </div>
+      ${access?.subscription ? `<dl class="admin-detail-list admin-detail-list--compact"><div><dt>Organization</dt><dd>${escapeHtml(access.organizationName)}</dd></div><div><dt>Edition</dt><dd>${escapeHtml(access.subscription.edition)}</dd></div><div><dt>Products</dt><dd><div class="admin-role-list">${access.products.length ? access.products.map((product) => `<span>${escapeHtml(product)}</span>`).join('') : '<span>No enabled products</span>'}</div></dd></div></dl>${isSystemAdministrator() ? `<div class="admin-form-actions"><button class="pvad-button ${assignedSeat ? 'admin-danger-button' : 'pvad-button--primary'}" id="user-seat-button" type="button" ${detail.saving || user.membershipStatus !== 'Active' ? 'disabled' : ''}>${assignedSeat ? 'Revoke seat' : 'Assign seat'}</button></div>` : ''}` : '<div class="admin-empty-state"><strong>No subscription</strong><p>This organization has no configured product entitlements.</p></div>'}
+    </section>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div><h2>Active sessions</h2><p>Server-validated browser sessions for this user in the active organization.</p></div>
+        <button class="pvad-button pvad-button--secondary" id="user-sessions-revoke-all" type="button" ${detail.saving || activeSessions.filter((session) => !session.isCurrent).length === 0 ? 'disabled' : ''}>Revoke ${user.id === state.user?.id ? 'other sessions' : 'all sessions'}</button>
+      </div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Client</th><th>Last seen</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>${sessionRows}</tbody></table></div>
+      ${sessionRows ? '' : '<div class="admin-empty-state"><strong>No sessions recorded</strong><p>This user has not established a persistent browser session.</p></div>'}
+    </section>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>User audit history</h2><p>The latest tenant-scoped lifecycle and security events targeting this user.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>
+      ${auditRows ? '' : '<div class="admin-empty-state"><strong>No user events</strong></div>'}
+    </section>
+  `;
+}
+
+function organizationsPage() {
+  const organizations = state.organizations;
+  const totalPages = Math.max(1, Math.ceil(organizations.total / organizations.pageSize));
+  const rows = organizations.items.map((organization) => `
+    <tr>
+      <td><a class="admin-user-link" href="/organizations/${organization.id}"><strong>${escapeHtml(organization.name)}</strong><small>${escapeHtml(organization.slug)}</small></a></td>
+      <td><span class="admin-status ${organization.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(organization.status)}</span></td>
+      <td>${organization.memberCount}</td>
+      <td>${escapeHtml(formatDate(organization.updatedAt))}</td>
+    </tr>`).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Identity</p><h1>Organizations</h1><p>Manage tenant ownership, membership, status, and active administration context.</p></div>
+      <span class="admin-record-count">${organizations.total} ${organizations.total === 1 ? 'organization' : 'organizations'}</span>
+    </header>
+    ${isSystemAdministrator() ? `
+      <details class="admin-section admin-create-panel">
+        <summary>Create organization</summary>
+        <form class="admin-inline-form" id="organization-create-form">
+          <label class="admin-field"><span>Name</span><input name="name" required maxlength="200"></label>
+          <label class="admin-field"><span>Slug</span><input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="customer-name"></label>
+          <button class="pvad-button pvad-button--primary" type="submit">Create</button>
+        </form>
+      </details>` : ''}
+    <section class="admin-table-section" aria-busy="${organizations.loading}">
+      <form class="admin-table-toolbar" id="organizations-filter-form">
+        <label><span class="visually-hidden">Search organizations</span><input name="search" type="search" placeholder="Search name or slug" value="${escapeHtml(organizations.search)}"></label>
+        <select name="status" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          ${['Active', 'Suspended', 'Closed'].map((status) => `<option value="${status}" ${organizations.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+        </select>
+        <button type="submit">Apply</button>
+      </form>
+      ${organizations.error ? `<div class="admin-alert admin-alert--error admin-inline-alert">${escapeHtml(organizations.error)}</div>` : ''}
+      ${organizations.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading organizations...</p></div>' : `
+        <div class="admin-table-scroll"><table>
+          <thead><tr><th>Organization</th><th>Status</th><th>Members</th><th>Updated</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+        ${organizations.items.length ? '' : '<div class="admin-empty-state"><strong>No organizations found</strong><p>Change the search or status filter.</p></div>'}
+        <footer class="admin-pagination"><span>Page ${organizations.page} of ${totalPages}</span><div>
+          <button id="organizations-previous" type="button" ${organizations.page <= 1 ? 'disabled' : ''}>Previous</button>
+          <button id="organizations-next" type="button" ${organizations.page >= totalPages ? 'disabled' : ''}>Next</button>
+        </div></footer>`}
+    </section>`;
+}
+
+function organizationDetailPage() {
+  const detail = state.organizationDetail;
+  if (detail.loading) return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading organization...</p></section>';
+  if (!detail.data) return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Organization unavailable</h1><p>${escapeHtml(detail.error || 'The organization could not be loaded.')}</p><a class="pvad-button pvad-button--secondary" href="/organizations">Return to organizations</a></section>`;
+  const organization = detail.data;
+  const active = state.user.activeOrganizationId === organization.id;
+  const memberRows = detail.members.map((member) => `
+    <tr>
+      <td><a class="admin-user-link" href="/users/${member.userId}"><strong>${escapeHtml(member.displayName)}</strong><small>${escapeHtml(member.email)}</small></a></td>
+      <td><div class="admin-role-list">${member.roles.length ? member.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
+      <td><span class="admin-status ${member.membershipStatus === 'Active' && member.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td>
+      <td><button class="admin-text-danger organization-remove-member" type="button" data-user-id="${member.userId}" data-user-name="${escapeHtml(member.displayName)}" ${detail.saving ? 'disabled' : ''}>Remove</button></td>
+    </tr>`).join('');
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actorName)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><a class="admin-back-link" href="/organizations">Organizations</a><h1>${escapeHtml(organization.name)}</h1><p>${escapeHtml(organization.slug)}</p></div>
+      <div class="admin-header-actions">
+        <span class="admin-status ${organization.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(organization.status)}</span>
+        <button class="pvad-button pvad-button--secondary" id="organization-switch-button" type="button" ${active || organization.status !== 'Active' || detail.saving ? 'disabled' : ''}>${active ? 'Current organization' : 'Work in organization'}</button>
+      </div>
+    </header>
+    ${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}
+    <div class="admin-detail-grid">
+      <section class="admin-section">
+        <form id="organization-edit-form">
+          <div class="admin-section-heading"><h2>Organization details</h2><p>Update tenant identity and operational state.</p></div>
+          <div class="admin-form-stack">
+            <label class="admin-field"><span>Name</span><input name="name" value="${escapeHtml(organization.name)}" required maxlength="200"></label>
+            ${isSystemAdministrator() ? `<label class="admin-field"><span>Status</span><select name="status">${['Active', 'Suspended', 'Closed'].map((status) => `<option ${organization.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select></label>` : ''}
+            <dl class="admin-detail-list admin-detail-list--compact"><div><dt>Created</dt><dd>${escapeHtml(formatDate(organization.createdAt))}</dd></div><div><dt>Members</dt><dd>${organization.memberCount}</dd></div></dl>
+          </div>
+          <div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save details</button></div>
+        </form>
+      </section>
+      <section class="admin-section">
+        <form id="organization-add-member-form">
+          <div class="admin-section-heading"><h2>Add existing user</h2><p>Attach a verified PVADE account to this organization.</p></div>
+          <div class="admin-form-stack">
+            <label class="admin-field"><span>Email</span><input name="email" type="email" required></label>
+            <label class="admin-field"><span>Initial role</span><select name="role">${organizationRoles.map((role) => `<option>${role}</option>`).join('')}</select></label>
+          </div>
+          <div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Add member</button></div>
+        </form>
+      </section>
+    </div>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>Members</h2><p>Active and suspended memberships in this tenant.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Roles</th><th>Status</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>
+      ${detail.members.length ? '' : '<div class="admin-empty-state"><strong>No members</strong><p>Add an existing PVADE user to begin.</p></div>'}
+    </section>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>Organization audit history</h2><p>Tenant-scoped changes targeting this organization record.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>
+      ${auditRows ? '' : '<div class="admin-empty-state"><strong>No organization events</strong></div>'}
+    </section>`;
+}
+
+function mailPage() {
+  const mail = state.mail;
+  const totalPages = Math.max(1, Math.ceil(mail.total / mail.pageSize));
+  const rows = mail.items.map((message) => {
+    const canRetry = message.status === 'Failed' || message.status === 'DeadLetter';
+    const canCancel = ['Pending', 'Scheduled', 'Failed', 'DeadLetter'].includes(message.status);
+    return `
+    <tr>
+      <td>${escapeHtml(message.recipientEmail)}</td>
+      <td>${escapeHtml(message.templateKey)}</td>
+      <td><span class="admin-status ${message.status === 'Delivered' ? 'admin-status--ready' : message.status === 'DeadLetter' || message.status === 'Failed' ? 'admin-status--inactive' : 'admin-status--planned'}">${escapeHtml(message.status)}</span></td>
+      <td>${message.attempts}</td>
+      <td>${escapeHtml(formatDate(message.deliveredAt || message.createdAt))}</td>
+      <td><div class="admin-row-actions">${canRetry ? `<button class="mail-retry" data-message-id="${message.id}" type="button" ${mail.saving ? 'disabled' : ''}>Retry</button>` : ''}${canCancel ? `<button class="mail-cancel" data-message-id="${message.id}" type="button" ${mail.saving ? 'disabled' : ''}>Cancel</button>` : ''}</div></td>
+    </tr>`;
+  }).join('');
+  const summary = mail.summary;
+  return `
+    <header class="admin-page-header"><div><p class="pvad-kicker">Operations</p><h1>Mail delivery</h1><p>Inspect tenant-scoped transactional delivery metadata without exposing tokens or message bodies.</p></div><span class="admin-record-count">${mail.total} messages</span></header>
+    ${summary ? `<section class="admin-summary-grid" aria-label="Mail transport summary"><article><span>Transport</span><strong>${escapeHtml(summary.transport)}</strong></article><article><span>Delivery</span><strong>${summary.deliveryEnabled ? 'Enabled' : 'Disabled'}</strong></article><article><span>Pending</span><strong>${summary.pending}</strong></article><article><span>Needs attention</span><strong>${summary.failed + summary.deadLetter}</strong></article></section>` : ''}
+    <section class="admin-table-section" aria-busy="${mail.loading}">
+      <form class="admin-table-toolbar" id="mail-filter-form">
+        <select name="status" aria-label="Filter delivery status"><option value="">All statuses</option>${['Pending', 'Scheduled', 'Sending', 'Delivered', 'Failed', 'DeadLetter', 'Cancelled', 'Suppressed'].map((status) => `<option ${mail.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>
+        <button type="submit">Apply</button>
+      </form>
+      ${mail.error ? `<div class="admin-alert admin-alert--error admin-inline-alert">${escapeHtml(mail.error)}</div>` : ''}
+      ${mail.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading delivery status...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Recipient</th><th>Template</th><th>Status</th><th>Attempts</th><th>Updated</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${mail.items.length ? '' : '<div class="admin-empty-state"><strong>No mail messages</strong><p>Transactional messages for this organization will appear here.</p></div>'}<footer class="admin-pagination"><span>Page ${mail.page} of ${totalPages}</span><div><button id="mail-previous" type="button" ${mail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="mail-next" type="button" ${mail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}
+    </section>`;
+}
+
+function subscriptionsPage() {
+  const subscriptions = state.subscriptions;
+  const totalPages = Math.max(1, Math.ceil(subscriptions.total / subscriptions.pageSize));
+  const rows = subscriptions.items.map((subscription) => `
+    <tr>
+      <td><a class="admin-table-link" href="/subscriptions/${subscription.id}"><strong>${escapeHtml(subscription.organizationName)}</strong></a><small>${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))}</small></td>
+      <td>${escapeHtml(subscription.edition)}</td>
+      <td>${isSystemAdministrator() ? `<select class="subscription-status" data-subscription-id="${subscription.id}" aria-label="Status for ${escapeHtml(subscription.organizationName)}">${[subscription.status, ...(subscriptionTransitions[subscription.status] || [])].map((status) => `<option ${subscription.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>` : `<span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span>`}</td>
+      <td>${escapeHtml(subscription.deploymentMode)}</td>
+      <td>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</td>
+      <td>${escapeHtml(formatDate(subscription.trialEndsAt || subscription.currentPeriodEndsAt))}</td>
+      <td>${isSystemAdministrator() ? `<button class="subscription-save-status" data-subscription-id="${subscription.id}" type="button" ${subscriptions.saving ? 'disabled' : ''}>Save</button>` : ''}</td>
+    </tr>`).join('');
+  const availableOrganizations = state.organizations.items.filter((organization) =>
+    !subscriptions.items.some((subscription) => subscription.organizationId === organization.id));
+  return `
+    <header class="admin-page-header"><div><p class="pvad-kicker">Commercial</p><h1>Subscriptions</h1><p>Manage edition, lifecycle, deployment, seats, and explicit product entitlements independently from application roles.</p></div><span class="admin-record-count">${subscriptions.total} subscriptions</span></header>
+    ${subscriptions.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(subscriptions.error)}</div>` : ''}
+    ${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Create subscription</h2><p>No prices or quotas are inferred. Select only the capabilities approved for this organization.</p></div><form id="subscription-create-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Organization</span><select name="organizationId" required><option value="">Select organization</option>${availableOrganizations.map((organization) => `<option value="${organization.id}">${escapeHtml(organization.name)}</option>`).join('')}</select></label><label class="admin-field"><span>Edition</span><select name="edition">${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option>${value}</option>`).join('')}</select></label><label class="admin-field"><span>Account type</span><select name="accountType"><option value="Company">Company</option><option value="IndividualDeveloper">Individual Developer</option></select></label><label class="admin-field"><span>Status</span><select name="status"><option>Active</option><option>Trialing</option><option>Pending</option></select></label><label class="admin-field"><span>Billing</span><select name="billingPeriod"><option>None</option><option>Monthly</option><option>Annual</option></select></label><label class="admin-field"><span>Deployment</span><select name="deploymentMode"><option>Cloud</option><option>OnPremise</option><option>Hybrid</option></select></label><label class="admin-field"><span>Seat limit</span><input name="seatLimit" type="number" min="1" placeholder="No fixed limit"></label></div><fieldset class="admin-capability-options"><legend>Enabled capabilities</legend>${subscriptionCapabilities.map(([key, label]) => `<label><input type="checkbox" name="capability" value="${key}"><span>${label}</span></label>`).join('')}</fieldset><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${subscriptions.saving || !availableOrganizations.length ? 'disabled' : ''}>Create subscription</button></div></form></section>` : ''}
+    <section class="admin-table-section" aria-busy="${subscriptions.loading}"><form class="admin-table-toolbar" id="subscription-filter-form"><select name="edition" aria-label="Filter edition"><option value="">All editions</option>${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option ${subscriptions.edition === value ? 'selected' : ''}>${value}</option>`).join('')}</select><select name="status" aria-label="Filter lifecycle"><option value="">All states</option>${['Pending', 'Trialing', 'Active', 'PastDue', 'GracePeriod', 'Suspended', 'Cancelled', 'Expired'].map((value) => `<option ${subscriptions.status === value ? 'selected' : ''}>${value}</option>`).join('')}</select><button type="submit">Apply</button></form>${subscriptions.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading subscriptions...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Organization</th><th>Edition</th><th>State</th><th>Deployment</th><th>Seats</th><th>Renewal / expiry</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${subscriptions.items.length ? '' : '<div class="admin-empty-state"><strong>No subscriptions</strong><p>Create the first organization subscription to define licensed capabilities.</p></div>'}<footer class="admin-pagination"><span>Page ${subscriptions.page} of ${totalPages}</span><div><button id="subscription-previous" type="button" ${subscriptions.page <= 1 ? 'disabled' : ''}>Previous</button><button id="subscription-next" type="button" ${subscriptions.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>`;
+}
+
+function subscriptionDetailPage() {
+  const detail = state.subscriptionDetail;
+  if (detail.loading && !detail.data)
+    return '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading subscription...</p></div>';
+  if (!detail.data)
+    return `<div class="admin-alert admin-alert--error">${escapeHtml(detail.error || 'Subscription not found.')}</div>`;
+  const subscription = detail.data;
+  const entitlementKeys = [...new Set([
+    ...subscriptionCapabilities.map(([key]) => key),
+    ...subscription.entitlements.map((item) => item.capability),
+  ])];
+  const entitlementRows = entitlementKeys.map((capability) => {
+    const entitlement = subscription.entitlements.find((item) => item.capability === capability);
+    const label = subscriptionCapabilities.find(([key]) => key === capability)?.[1] || capability;
+    return `<tr data-entitlement-capability="${escapeHtml(capability)}"><td><strong>${escapeHtml(label)}</strong><small>${escapeHtml(capability)}</small></td><td><input class="entitlement-enabled" type="checkbox" ${entitlement?.enabled ? 'checked' : ''} ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><input class="entitlement-limit" type="number" min="0" value="${entitlement?.limit ?? ''}" placeholder="No limit" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><input class="entitlement-unit" value="${escapeHtml(entitlement?.unit || '')}" placeholder="operations" maxlength="40" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><select class="entitlement-source" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}>${['EditionDefault', 'NegotiatedOverride', 'TemporaryGrant'].map((source) => `<option ${entitlement?.source === source ? 'selected' : ''}>${source}</option>`).join('')}</select></td><td><input class="entitlement-expiry" type="datetime-local" value="${dateInputValue(entitlement?.expiresAt)}" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td></tr>`;
+  }).join('');
+  const seatRows = detail.seats.map((seat) => `<tr><td><strong>${escapeHtml(seat.displayName)}</strong><small>${escapeHtml(seat.email)}</small></td><td>${escapeHtml(seat.membershipStatus)}</td><td><span class="admin-status ${seat.assigned ? 'admin-status--ready' : 'admin-status--planned'}">${seat.assigned ? 'Assigned' : 'Not assigned'}</span></td><td>${isSystemAdministrator() ? `<button class="${seat.assigned ? 'subscription-revoke-seat' : 'subscription-assign-seat'}" data-membership-id="${seat.membershipId}" type="button" ${detail.saving || seat.membershipStatus !== 'Active' ? 'disabled' : ''}>${seat.assigned ? 'Revoke' : 'Assign'}</button>` : ''}</td></tr>`).join('');
+  const historyRows = detail.history.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td>${escapeHtml(event.action)}</td><td>${escapeHtml(event.previousStatus || 'New')} → ${escapeHtml(event.currentStatus)}</td><td><strong>${escapeHtml(event.actorName)}</strong><small>${escapeHtml(event.actorUserId)}</small></td></tr>`).join('');
+  const usageRows = (detail.usage?.items || []).map((item) => `<tr><td>${escapeHtml(item.capability)}</td><td>${escapeHtml(item.operation)}</td><td>${escapeHtml(item.source)}</td><td>${item.quantity}</td><td>${item.eventCount}</td><td>${escapeHtml(formatDate(item.lastOccurredAt))}</td></tr>`).join('');
+  const lifecycleActions = isSystemAdministrator() ? `<section class="admin-section admin-subscription-actions"><div class="admin-section-heading"><h2>Lifecycle actions</h2><p>Each operation is validated and written to subscription history and the audit log.</p></div><div class="admin-action-grid">${subscription.edition === 'Trial' && !['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-trial-form" class="admin-compact-action"><label class="admin-field"><span>Extend Trial by days</span><input name="days" type="number" min="1" max="365" value="7" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Extend Trial</button></form>` : ''}${!['Trialing', 'Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-renew-form" class="admin-compact-action"><label class="admin-field"><span>Renew until</span><input name="periodEndsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Renew</button></form>` : ''}${['PastDue', 'GracePeriod'].includes(subscription.status) ? `<form id="subscription-grace-form" class="admin-compact-action"><label class="admin-field"><span>Grace period until</span><input name="endsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Apply grace period</button></form>` : ''}${!['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-cancel-form" class="admin-compact-action"><label class="admin-field"><span>Cancellation effective</span><input name="effectiveAt" type="datetime-local" value="${dateInputValue(subscription.currentPeriodEndsAt)}"></label><button class="admin-danger-button" type="submit" ${detail.saving ? 'disabled' : ''}>Schedule cancellation</button></form>` : ''}</div></section>` : '';
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/subscriptions">Subscriptions</a><h1>${escapeHtml(subscription.organizationName)}</h1><p>${escapeHtml(subscription.edition)} · ${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))} · ${escapeHtml(subscription.deploymentMode)}</p></div><span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<section class="admin-summary-grid"><article><span>Billing</span><strong>${escapeHtml(subscription.billingPeriod)}</strong></article><article><span>Seats</span><strong>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</strong></article><article><span>Trial ends</span><strong>${escapeHtml(formatDate(subscription.trialEndsAt))}</strong></article><article><span>Period ends</span><strong>${escapeHtml(formatDate(subscription.currentPeriodEndsAt))}</strong></article></section>${lifecycleActions}<section class="admin-table-section"><form id="subscription-entitlements-form"><div class="admin-section-heading"><h2>Effective capability grants</h2><p>Limits and expiry are explicit. Application roles do not grant these products.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Enabled</th><th>Limit</th><th>Unit</th><th>Source</th><th>Expires</th></tr></thead><tbody>${entitlementRows}</tbody></table></div>${isSystemAdministrator() ? `<div class="admin-form-stack"><label class="admin-field"><span>Additional capability key</span><input id="subscription-custom-capability" pattern="[a-z][a-z0-9.-]*" placeholder="feature.capability"></label></div><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save entitlements</button></div>` : ''}</form></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Usage this period</h2><p>${escapeHtml(formatDate(detail.usage?.periodStartsAt))} to ${escapeHtml(formatDate(detail.usage?.periodEndsAt))} · ${detail.usage?.totalQuantity || 0} total units</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Operation</th><th>Source</th><th>Quantity</th><th>Events</th><th>Last activity</th></tr></thead><tbody>${usageRows}</tbody></table></div>${usageRows ? '' : '<div class="admin-empty-state"><strong>No usage recorded</strong><p>Metered product operations will appear here.</p></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Seat assignments</h2><p>Only active memberships in this organization can receive a seat.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Member</th><th>Membership</th><th>Seat</th><th></th></tr></thead><tbody>${seatRows}</tbody></table></div>${detail.seats.length ? '' : '<div class="admin-empty-state"><strong>No memberships</strong></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Lifecycle history</h2><p>Append-only commercial state transitions.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Transition</th><th>Actor</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
+}
+
+function licensesPage() {
+  const licenses = state.licenses;
+  const eligible = state.subscriptions.items.filter((item) => item.edition === 'Enterprise' && ['OnPremise', 'Hybrid'].includes(item.deploymentMode));
+  const rows = licenses.items.map((license) => `<tr><td><a class="admin-user-link" href="/licenses/${license.id}"><strong>${escapeHtml(license.licenseNumber)}</strong><small>${escapeHtml(license.keyId)}</small></a></td><td>${escapeHtml(license.organizationName)}</td><td>${escapeHtml(license.deploymentMode)}</td><td>${license.instanceLimit}</td><td>${escapeHtml(formatDate(license.validUntil))}</td><td><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></td><td><div class="admin-row-actions"><a data-native href="/api/pvad/v1/admin/licenses/${license.id}/download">Download</a><button class="license-validate" data-license-id="${license.id}" type="button">Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="license-revoke" data-license-id="${license.id}" type="button">Revoke</button>` : ''}</div></td></tr>`).join('');
+  const from = dateInputValue(new Date());
+  const until = dateInputValue(new Date(Date.now() + 365 * 86400000));
+  return `<header class="admin-page-header"><div><p class="pvad-kicker">Commercial</p><h1>Offline licenses</h1><p>Issue and verify signed licenses for approved Enterprise On-Premise and Hybrid deployments.</p></div><span class="admin-record-count">${licenses.items.length} licenses</span></header>${licenses.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(licenses.error)}</div>` : ''}${licenses.notice ? `<div class="admin-alert admin-detail-alert">${escapeHtml(licenses.notice)}</div>` : ''}${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Issue license</h2><p>Capabilities and limits are copied from the selected subscription into the signed envelope.</p></div><form id="license-issue-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Subscription</span><select name="subscriptionId" required><option value="">Select Enterprise subscription</option>${eligible.map((item) => `<option value="${item.id}">${escapeHtml(item.organizationName)}</option>`).join('')}</select></label><label class="admin-field"><span>Product version</span><input name="productVersion" value="1.0.0" pattern="[0-9]+\\.[0-9]+(?:\\.[0-9]+)?" required></label><label class="admin-field"><span>Deployment ID</span><input name="deploymentId" maxlength="160" pattern="[A-Za-z0-9][A-Za-z0-9._:-]*" placeholder="customer-production-1" required></label><label class="admin-field"><span>Valid from</span><input name="validFrom" type="datetime-local" value="${from}" required></label><label class="admin-field"><span>Valid until</span><input name="validUntil" type="datetime-local" value="${until}" required></label><label class="admin-field"><span>Instance limit</span><input name="instanceLimit" type="number" min="1" max="1000" value="1" required></label></div><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${licenses.saving || !eligible.length ? 'disabled' : ''}>Issue signed license</button></div></form></section>` : ''}<section class="admin-table-section" aria-busy="${licenses.loading}">${licenses.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading licenses...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>License</th><th>Organization</th><th>Deployment</th><th>Instances</th><th>Valid until</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No offline licenses</strong><p>Eligible Enterprise subscriptions can receive a signed license.</p></div>'}`}</section>`;
+}
+
+function licenseDetailPage() {
+  const detail = state.licenseDetail;
+  if (detail.loading) return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading license...</p></section>';
+  if (!detail.data) return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>License unavailable</h1><p>${escapeHtml(detail.error || 'The license could not be loaded.')}</p><a class="pvad-button pvad-button--secondary" href="/licenses">Return to licenses</a></section>`;
+  const license = detail.data;
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actorName)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/licenses">Offline licenses</a><h1>${escapeHtml(license.licenseNumber)}</h1><p>${escapeHtml(license.organizationName)} · ${escapeHtml(license.edition)} · ${escapeHtml(license.deploymentMode)}</p></div><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}${detail.notice ? `<div class="admin-alert admin-detail-alert">${escapeHtml(detail.notice)}</div>` : ''}<section class="admin-summary-grid"><article><span>Valid from</span><strong>${escapeHtml(formatDate(license.validFrom))}</strong></article><article><span>Valid until</span><strong>${escapeHtml(formatDate(license.validUntil))}</strong></article><article><span>Instance limit</span><strong>${license.instanceLimit}</strong></article><article><span>Algorithm</span><strong>${escapeHtml(license.algorithm)}</strong></article></section><section class="admin-section"><div class="admin-section-heading admin-section-heading--action"><div><h2>License operations</h2><p>Validate the signature, download the signed artifact, or revoke active access.</p></div><div class="admin-row-actions"><a data-native class="pvad-button pvad-button--secondary" href="/api/pvad/v1/admin/licenses/${license.id}/download">Download</a><button id="license-detail-validate" type="button" ${detail.saving ? 'disabled' : ''}>Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="admin-danger-button" id="license-detail-revoke" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button>` : ''}</div></div><dl class="admin-detail-list admin-detail-list--compact"><div><dt>Key ID</dt><dd>${escapeHtml(license.keyId)}</dd></div><div><dt>Issued</dt><dd>${escapeHtml(formatDate(license.issuedAt))}</dd></div>${license.revokedAt ? `<div><dt>Revoked</dt><dd>${escapeHtml(formatDate(license.revokedAt))}</dd></div><div><dt>Reason</dt><dd>${escapeHtml(license.revocationReason || 'Not provided')}</dd></div>` : ''}</dl></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>License audit history</h2><p>Issue and revocation evidence for this signed artifact.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>${auditRows ? '' : '<div class="admin-empty-state"><strong>No license events</strong></div>'}</section>`;
+}
+
+function serviceAccountsPage() {
+  const view = state.serviceAccounts;
+  const rows = view.items.flatMap((account) => {
+    const accountRow = `<tr><td><strong>${escapeHtml(account.name)}</strong><small>${account.id}</small></td><td><span class="admin-status ${account.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${account.isActive ? 'Active' : 'Revoked'}</span></td><td>${account.keys.length}</td><td>${escapeHtml(formatDate(account.createdAt))}</td><td>${account.isActive ? `<button class="service-account-revoke" data-account-id="${account.id}" type="button">Revoke account</button>` : ''}</td></tr>`;
+    const keyRows = account.keys.map((key) => `<tr class="admin-subrow"><td><span>API key</span><strong>${escapeHtml(key.name)}</strong><small>${escapeHtml(key.prefix)}...</small></td><td><span class="admin-status ${key.revokedAt ? 'admin-status--inactive' : 'admin-status--ready'}">${key.revokedAt ? 'Revoked' : 'Active'}</span></td><td>${escapeHtml(formatDate(key.lastUsedAt))}</td><td>${escapeHtml(formatDate(key.expiresAt))}</td><td>${!key.revokedAt && account.isActive ? `<button class="api-key-revoke" data-account-id="${account.id}" data-key-id="${key.id}" type="button">Revoke key</button>` : ''}</td></tr>`).join('');
+    const keyForm = account.isActive ? `<tr class="admin-subrow"><td colspan="5"><form class="api-key-create-form admin-inline-form" data-account-id="${account.id}"><label class="admin-field"><span>Key name</span><input name="name" maxlength="160" placeholder="Production SDK" required></label><label class="admin-field"><span>Expires</span><input name="expiresAt" type="datetime-local"></label><button type="submit" ${view.saving ? 'disabled' : ''}>Create key</button></form></td></tr>` : '';
+    return [accountRow, keyRows, keyForm];
+  }).join('');
+  const secret = view.secret ? `<section class="admin-section admin-secret-once"><div class="admin-section-heading"><h2>New API key</h2><p>This secret is shown once. Store it in a secret manager before leaving this page.</p></div><code>${escapeHtml(view.secret)}</code><button id="api-key-secret-dismiss" type="button">I have stored the key</button></section>` : '';
+  return `<header class="admin-page-header"><div><p class="pvad-kicker">Access</p><h1>Service accounts</h1><p>Create tenant-bound credentials for SDKs and automation. API keys never receive Admin permissions.</p></div><span class="admin-record-count">${view.items.length} accounts</span></header>${view.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(view.error)}</div>` : ''}${secret}<section class="admin-section"><div class="admin-section-heading"><h2>Create service account</h2><p>Use one account per application or deployment so access can be revoked independently.</p></div><form id="service-account-create-form" class="admin-inline-form"><label class="admin-field"><span>Name</span><input name="name" maxlength="160" placeholder="Production integration" required></label><button class="pvad-button pvad-button--primary" type="submit" ${view.saving ? 'disabled' : ''}>Create account</button></form></section><section class="admin-table-section" aria-busy="${view.loading}">${view.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading service accounts...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Account / key</th><th>State</th><th>Keys / last used</th><th>Created / expires</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No service accounts</strong><p>Create an account before issuing an API key.</p></div>'}`}</section>`;
+}
+
+function auditPage() {
+  const audit = state.audit;
+  const totalPages = Math.max(1, Math.ceil(audit.total / audit.pageSize));
+  const rows = audit.items.map((event) => `<tr class="${audit.selected?.id === event.id ? 'admin-row-selected' : ''}"><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.actorName)}</strong><small>${escapeHtml(event.actorEmail || 'System operation')}</small></td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.targetType)}<small>${escapeHtml(event.targetId)}</small></td><td><span class="admin-status ${event.outcome === 'succeeded' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(event.outcome)}</span></td><td><button class="audit-detail-button" data-event-id="${event.id}" type="button">${audit.selected?.id === event.id ? 'Close' : 'Details'}</button></td></tr>`).join('');
+  const selected = audit.selected;
+  const details = selected ? `<section class="admin-section admin-audit-detail"><div class="admin-section-heading"><div><h2>Event details</h2><p>${escapeHtml(selected.action)} at ${escapeHtml(formatDate(selected.createdAt))}</p></div><button id="audit-detail-close" type="button">Close</button></div>${audit.detailLoading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading event...</p></div>' : `<dl class="admin-detail-list"><div><dt>Actor</dt><dd>${escapeHtml(selected.actorName)}${selected.actorEmail ? ` (${escapeHtml(selected.actorEmail)})` : ''}</dd></div><div><dt>Target</dt><dd>${escapeHtml(selected.targetType)} / ${escapeHtml(selected.targetId)}</dd></div><div><dt>Outcome</dt><dd>${escapeHtml(selected.outcome)}</dd></div><div><dt>Event ID</dt><dd>${selected.id}</dd></div></dl><div class="admin-audit-json"><span>Recorded details</span><pre>${escapeHtml(selected.details ? JSON.stringify(selected.details, null, 2) : 'No additional details were recorded.')}</pre></div>`}</section>` : '';
+  return `<header class="admin-page-header"><div><p class="pvad-kicker">Operations</p><h1>Audit</h1><p>Trace privileged changes within the active organization. Events are read-only and ordered by their recorded timestamp.</p></div><span class="admin-record-count">${audit.total} events</span></header>${audit.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(audit.error)}</div>` : ''}<section class="admin-table-section"><form id="audit-filter-form" class="admin-audit-filters"><label class="admin-field admin-audit-search"><span>Search</span><input name="search" type="search" value="${escapeHtml(audit.search)}" placeholder="Actor, action, target, or ID"></label><label class="admin-field"><span>Action</span><select name="action"><option value="">All actions</option>${audit.actions.map((value) => `<option value="${escapeHtml(value)}" ${audit.action === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Target</span><select name="targetType"><option value="">All targets</option>${audit.targetTypes.map((value) => `<option value="${escapeHtml(value)}" ${audit.targetType === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Outcome</span><select name="outcome"><option value="">All outcomes</option>${audit.outcomes.map((value) => `<option value="${escapeHtml(value)}" ${audit.outcome === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>From</span><input name="from" type="datetime-local" value="${escapeHtml(audit.from)}"></label><label class="admin-field"><span>To</span><input name="to" type="datetime-local" value="${escapeHtml(audit.to)}"></label><label class="admin-field"><span>Order</span><select name="direction"><option value="desc" ${audit.direction === 'desc' ? 'selected' : ''}>Newest first</option><option value="asc" ${audit.direction === 'asc' ? 'selected' : ''}>Oldest first</option></select></label><div class="admin-audit-filter-actions"><button type="submit">Apply filters</button><button id="audit-clear-filters" type="button">Clear</button></div></form><div class="admin-audit-export"><div><strong>Export audit evidence</strong><p>${audit.canExport ? 'Download the current filtered result. The export itself is audited.' : 'CSV and JSON export require an Enterprise subscription.'}</p></div><div><button class="audit-export" data-format="csv" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export CSV</button><button class="audit-export" data-format="json" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export JSON</button></div></div>${audit.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading audit events...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Outcome</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No matching events</strong><p>Adjust the filters or perform an administrative operation.</p></div>'}<footer class="admin-pagination"><span>Page ${audit.page} of ${totalPages}</span><div><button id="audit-previous" type="button" ${audit.page <= 1 ? 'disabled' : ''}>Previous</button><button id="audit-next" type="button" ${audit.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>${details}`;
+}
+
+function rolesPage() {
+  const roles = state.roles;
+  const roleRows = roles.items.map((role) => `<tr><td><a class="admin-table-link" href="/roles/${role.key}"><strong>${escapeHtml(role.name)}</strong></a><small>${escapeHtml(role.description)}</small></td><td><span class="admin-status ${role.isArchived ? 'admin-status--inactive' : 'admin-status--ready'}">${role.isProtected ? 'Protected' : role.isArchived ? 'Archived' : 'Custom'}</span></td><td>${role.memberCount}</td><td>${role.permissions.length}</td><td><a href="/roles/${role.key}">View role</a></td></tr>`).join('');
+  const permissionRows = roles.permissions.map((permission) => `<tr><td><strong>${escapeHtml(permission.key)}</strong><small>${escapeHtml(permission.description)}</small></td><td>${escapeHtml(permission.group)}</td>${roles.items.map((role) => `<td class="admin-permission-cell"><span class="${role.permissions.some((item) => item.key === permission.key) ? 'admin-permission-granted' : 'admin-permission-none'}" aria-label="${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : 'Not granted'}">${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : '—'}</span></td>`).join('')}</tr>`).join('');
+  return `<header class="admin-page-header"><div><p class="pvad-kicker">Identity</p><h1>Roles & permissions</h1><p>Build tenant-owned roles from explicit permissions. Product entitlements remain separate.</p></div><span class="admin-record-count">${roles.items.length} roles</span></header>${roles.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(roles.error)}</div>` : ''}${roles.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading roles...</p></div>' : `<section class="admin-section"><div class="admin-section-heading"><h2>Create custom role</h2><p>Start with no permissions, then configure the exact PDF, Spreadsheet, migration, and administration access.</p></div><form id="custom-role-create-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Name</span><input name="name" maxlength="200" required placeholder="PDF migration specialist"></label><label class="admin-field"><span>Stable key (optional)</span><input name="key" maxlength="80" pattern="[a-z0-9-]+" placeholder="pdf-migration-specialist"></label></div><label class="admin-field"><span>Description</span><textarea name="description" maxlength="500" required></textarea></label><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit">Create role</button></div></form></section><section class="admin-table-section admin-members-section"><div class="admin-table-scroll"><table><thead><tr><th>Role</th><th>Definition</th><th>Members</th><th>Permissions</th><th></th></tr></thead><tbody>${roleRows}</tbody></table></div></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Permission matrix</h2><p>Permissions authorize actions; subscriptions still determine whether the product is licensed.</p></div><div class="admin-table-scroll"><table class="admin-permission-matrix"><thead><tr><th>Permission</th><th>Area</th>${roles.items.map((role) => `<th>${escapeHtml(role.name)}</th>`).join('')}</tr></thead><tbody>${permissionRows}</tbody></table></div></section>`}`;
+}
+
+function roleDetailPage() {
+  const detail = state.roleDetail;
+  if (detail.loading && !detail.data)
+    return '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading role...</p></div>';
+  if (!detail.data)
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Role unavailable</h1><p>${escapeHtml(detail.error || 'The role could not be loaded.')}</p><a class="pvad-button pvad-button--secondary" href="/roles">Return to roles</a></section>`;
+  const { role, members, total } = detail.data;
+  const totalPages = Math.max(1, Math.ceil(total / detail.pageSize));
+  const eligibleUsers = detail.users.filter((user) =>
+    user.id !== state.user?.id && !user.roles.includes(role.name) && user.membershipStatus !== 'Removed');
+  const groupedPermissions = Object.entries(role.permissions.reduce((groups, permission) => {
+    (groups[permission.group] ||= []).push(permission);
+    return groups;
+  }, {}));
+  const permissionSections = groupedPermissions.map(([group, permissions]) => `<section><h3>${escapeHtml(group)}</h3>${permissions.map((permission) => `<div class="admin-role-permission"><strong>${escapeHtml(permission.key)}</strong><p>${escapeHtml(permission.description)}</p></div>`).join('')}</section>`).join('');
+  const editablePermissionSections = Object.entries(state.roles.permissions.reduce((groups, permission) => {
+    (groups[permission.group] ||= []).push(permission);
+    return groups;
+  }, {})).map(([group, permissions]) => `<fieldset><legend>${escapeHtml(group)}</legend>${permissions.map((permission) => `<label><input type="checkbox" name="permissions" value="${escapeHtml(permission.key)}" ${role.permissions.some((item) => item.key === permission.key) ? 'checked' : ''}><span><strong>${escapeHtml(permission.key)}</strong><small>${escapeHtml(permission.description)}</small></span></label>`).join('')}</fieldset>`).join('');
+  const memberRows = members.map((member) => `<tr><td><a class="admin-table-link" href="/users/${member.userId}"><strong>${escapeHtml(member.displayName)}</strong></a><small>${escapeHtml(member.email)}</small></td><td><span class="admin-status ${member.isActive && member.membershipStatus === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td><td>${escapeHtml(formatDate(member.assignedAt))}<small>by ${escapeHtml(member.assignedByName)}</small></td><td><button class="role-member-revoke" data-user-id="${member.userId}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button></td></tr>`).join('');
+  const definitionPanel = role.isProtected ? `<section class="admin-section"><div class="admin-section-heading"><h2>Granted permissions</h2><p>This protected role is immutable. Clone it to create a tenant-owned variant.</p></div><div class="admin-role-permission-groups">${permissionSections}</div><div class="admin-form-actions"><button id="role-clone" type="button">Clone as custom role</button></div></section>` : `<section class="admin-section"><div class="admin-section-heading"><h2>Custom role definition</h2><p>Select only the actions this role should authorize.</p></div><form id="custom-role-edit-form" class="admin-form-stack"><label class="admin-field"><span>Name</span><input name="name" value="${escapeHtml(role.name)}" maxlength="200" required></label><label class="admin-field"><span>Description</span><textarea name="description" maxlength="500" required>${escapeHtml(role.description)}</textarea></label><div class="admin-permission-editor">${editablePermissionSections}</div><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save role</button><button id="role-archive-toggle" type="button">${role.isArchived ? 'Restore role' : 'Archive role'}</button></div></form></section>`;
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/roles">Roles & permissions</a><h1>${escapeHtml(role.name)}</h1><p>${escapeHtml(role.description)}</p></div><span class="admin-status ${role.isArchived ? 'admin-status--inactive' : 'admin-status--ready'}">${role.isProtected ? 'Protected definition' : role.isArchived ? 'Archived custom role' : 'Custom role'}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<div class="admin-detail-grid">${definitionPanel}<section class="admin-section"><div class="admin-section-heading"><h2>Assign member</h2><p>Role changes revoke active sessions so new claims take effect immediately.</p></div><form id="role-member-assign-form" class="admin-form-stack"><label class="admin-field"><span>Organization user</span><select name="userId" required ${role.isArchived ? 'disabled' : ''}><option value="">Select user</option>${eligibleUsers.map((user) => `<option value="${user.id}">${escapeHtml(user.displayName)} (${escapeHtml(user.email)})</option>`).join('')}</select></label><div class="admin-form-actions"><button class="pvad-button pvad-button--primary" type="submit" ${detail.saving || !eligibleUsers.length || role.isArchived ? 'disabled' : ''}>Assign role</button></div></form></section></div><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Role members</h2><p>${total} assignments in the active organization.</p></div><div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Membership</th><th>Assigned</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${memberRows ? '' : '<div class="admin-empty-state"><strong>No role members</strong></div>'}<footer class="admin-pagination"><span>Page ${detail.page} of ${totalPages}</span><div><button id="role-members-previous" type="button" ${detail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="role-members-next" type="button" ${detail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer></section>`;
+}
+
+function dataPage(path) {
+  const [title, description, columns] = pageDetails[path];
+  return `
+    <header class="admin-page-header">
+      <div><p class="pvad-kicker">Administration</p><h1>${title}</h1><p>${description}</p></div>
+      <button class="pvad-button pvad-button--primary" type="button" disabled>Add ${title === 'Users' ? 'user' : 'record'}</button>
+    </header>
+    <section class="admin-table-section">
+      <div class="admin-table-toolbar">
+        <label><span class="visually-hidden">Search ${title}</span><input type="search" placeholder="Search ${title.toLowerCase()}" disabled></label>
+        <button type="button" disabled>Filter</button>
+      </div>
+      <div class="admin-table-scroll">
+        <table>
+          <thead><tr>${columns.map((column) => `<th>${column}</th>`).join('')}</tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="admin-empty-state">
+        <strong>${title} API not connected yet</strong>
+        <p>The authenticated shell is ready. This area will become active with its tenant-scoped Admin API.</p>
+      </div>
+    </section>
+  `;
+}
+
+function forbiddenPage() {
+  const error = state.accessDenied;
+  const status = getStatusDefinition('forbidden');
+  return `
+    <section class="admin-message-page" data-status-key="forbidden" aria-live="polite" aria-atomic="true">
+      <span class="admin-error-code">${status.httpStatus}</span>
+      <h1>${escapeHtml(error ? 'Administrator access required' : status.title)}</h1>
+      <p>${escapeHtml(error?.message || status.message)}</p>
+      ${error?.code ? `<code>${escapeHtml(error.code)}${error.traceId ? ` · ${escapeHtml(error.traceId)}` : ''}</code>` : ''}
+      <button class="pvad-button pvad-button--secondary" id="forbidden-signout" type="button">Sign out</button>
+    </section>
+  `;
+}
+
+function notFoundPage() {
+  const status = getStatusDefinition('notFound');
+  return `
+    <section class="admin-message-page" data-status-key="notFound" aria-live="polite" aria-atomic="true">
+      <span class="admin-error-code">${status.httpStatus}</span>
+      <h1>${status.title}</h1>
+      <p>${status.message}</p>
+      <a class="pvad-button pvad-button--secondary" href="/dashboard">Return to dashboard</a>
+    </section>
+  `;
+}
+
+function bindShellEvents() {
+  document.querySelector('#menu-button')?.addEventListener('click', (event) => {
+    const sidebar = document.querySelector('#admin-sidebar');
+    const expanded = sidebar.classList.toggle('admin-sidebar--open');
+    event.currentTarget.setAttribute('aria-expanded', String(expanded));
+  });
+  document.querySelector('#signout-button')?.addEventListener('click', handleLogout);
+  document.querySelector('#forbidden-signout')?.addEventListener('click', handleLogout);
+  document.querySelector('#admin-retry-connection')?.addEventListener('click', () => window.location.reload());
+}
+
+function closeAdminSidebar(restoreFocus = false) {
+  const sidebar = document.querySelector('#admin-sidebar');
+  const menuButton = document.querySelector('#menu-button');
+  if (!sidebar?.classList.contains('admin-sidebar--open')) return;
+  sidebar.classList.remove('admin-sidebar--open');
+  menuButton?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) menuButton?.focus();
+}
+
+async function loadUsers() {
+  state.users.loading = true;
+  state.users.error = null;
+  render();
+  try {
+    const [response, access] = await Promise.all([
+      getAdminUsers(state.users),
+      loadActiveProductAccess(),
+    ]);
+    Object.assign(state.users, response, { access, loaded: true });
+  } catch (error) {
+    state.users.error = error.message;
+    state.users.loaded = true;
+  } finally {
+    state.users.loading = false;
+    render();
+  }
+}
+
+async function loadUserDetail(userId) {
+  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], audit: [], access: null, loading: true, error: null, notice: null });
+  render();
+  try {
+    const [user, sessions, audit, access] = await Promise.all([
+      getAdminUser(userId),
+      getAdminUserSessions(userId),
+      getAdminUserAudit(userId),
+      loadActiveProductAccess(),
+    ]);
+    state.userDetail.data = user;
+    state.userDetail.sessions = sessions;
+    state.userDetail.audit = audit;
+    state.userDetail.access = access;
+  } catch (error) {
+    state.userDetail.error = error.message;
+  } finally {
+    state.userDetail.loading = false;
+    render();
+  }
+}
+
+function bindUsersEvents() {
+  document.querySelectorAll('.admin-user-select').forEach((checkbox) => checkbox.addEventListener('change', () => {
+    state.users.selected = checkbox.checked
+      ? [...new Set([...state.users.selected, checkbox.value])]
+      : state.users.selected.filter((id) => id !== checkbox.value);
+    render();
+  }));
+  document.querySelector('#users-select-page')?.addEventListener('change', (event) => {
+    const pageIds = state.users.items.map((user) => user.id);
+    state.users.selected = event.currentTarget.checked
+      ? [...new Set([...state.users.selected, ...pageIds])]
+      : state.users.selected.filter((id) => !pageIds.includes(id));
+    render();
+  });
+  document.querySelector('#users-bulk-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const action = new FormData(event.currentTarget).get('action');
+    if (!action || !window.confirm(`Apply ${action} to ${state.users.selected.length} selected users?`)) return;
+    state.users.error = null;
+    try {
+      const result = await bulkUpdateAdminUsers(state.users.selected, action);
+      state.users.notice = `${result.succeededUserIds.length} users updated${result.rejectedUserIds.length ? `; ${result.rejectedUserIds.length} protected users skipped` : ''}.`;
+      state.users.selected = [];
+      await loadUsers();
+    } catch (error) {
+      state.users.error = error.message;
+      render();
+    }
+  });
+  document.querySelector('#user-invitation-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const button = form.querySelector('button');
+    button.disabled = true;
+    state.users.error = null;
+    state.users.notice = null;
+    try {
+      await createAdminInvitation(
+        data.get('email'),
+        data.get('displayName'),
+        [data.get('role')]);
+      state.users.notice = `Invitation queued for ${data.get('email')}.`;
+      state.users.loaded = false;
+      state.mail.loaded = false;
+      await loadUsers();
+    } catch (error) {
+      state.users.error = error.message;
+      render();
+    }
+  });
+  document.querySelector('#users-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.users.search = String(data.get('search') || '').trim();
+    state.users.status = String(data.get('status') || '');
+    state.users.page = 1;
+    loadUsers();
+  });
+  document.querySelector('#users-previous')?.addEventListener('click', () => {
+    state.users.page -= 1;
+    loadUsers();
+  });
+  document.querySelector('#users-next')?.addEventListener('click', () => {
+    state.users.page += 1;
+    loadUsers();
+  });
+}
+
+function bindUserDetailEvents() {
+  document.querySelector('#user-profile-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserProfile(
+        state.userDetail.id,
+        data.get('displayName'),
+        data.get('email'));
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.users.loaded = false;
+      state.mail.loaded = false;
+      state.userDetail.notice = 'Profile saved. Email verification is queued when the address changed.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-password-reset')?.addEventListener('click', async () => {
+    if (!window.confirm('Queue a password-reset message for this user?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      await requestAdminUserPasswordReset(state.userDetail.id);
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.mail.loaded = false;
+      state.userDetail.notice = 'Password-reset message queued.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-deletion-button')?.addEventListener('click', async () => {
+    const isDeleted = state.userDetail.data.membershipStatus === 'Removed';
+    if (!isDeleted && !window.confirm('Soft delete this organization membership and revoke its sessions?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserDeletion(state.userDetail.id, !isDeleted);
+      state.userDetail.sessions = isDeleted
+        ? await getAdminUserSessions(state.userDetail.id)
+        : state.userDetail.sessions.map((session) => ({ ...session, isActive: false }));
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.users.loaded = false;
+      state.userDetail.notice = isDeleted ? 'Organization membership restored.' : 'Organization membership soft deleted.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelectorAll('.admin-session-revoke').forEach((button) => button.addEventListener('click', async () => {
+    const sessionId = button.dataset.sessionId;
+    if (!window.confirm('Revoke this browser session?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      await revokeAdminUserSession(state.userDetail.id, sessionId);
+      state.userDetail.sessions = await getAdminUserSessions(state.userDetail.id);
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  }));
+  document.querySelector('#user-sessions-revoke-all')?.addEventListener('click', async () => {
+    if (!window.confirm('Revoke all revocable sessions for this user?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      await revokeAllAdminUserSessions(state.userDetail.id);
+      state.userDetail.sessions = await getAdminUserSessions(state.userDetail.id);
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-status-button')?.addEventListener('click', async () => {
+    const user = state.userDetail.data;
+    if (!user) return;
+    if (user.isActive && !window.confirm(`Disable ${user.displayName}? Their current sessions will be revoked.`)) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserStatus(user.id, !user.isActive);
+      state.users.loaded = false;
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-roles-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const roles = new FormData(event.currentTarget).getAll('roles');
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserRoles(state.userDetail.id, roles);
+      state.users.loaded = false;
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-seat-button')?.addEventListener('click', async () => {
+    const access = state.userDetail.access;
+    const user = state.userDetail.data;
+    if (!access?.subscription || !user) return;
+    const assigned = access.seats.some((seat) => seat.membershipId === user.membershipId && seat.assigned);
+    if (assigned && !window.confirm(`Revoke ${user.displayName}'s subscription seat?`)) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      if (assigned)
+        await revokeAdminSubscriptionSeat(access.subscription.id, user.membershipId);
+      else
+        await assignAdminSubscriptionSeat(access.subscription.id, user.membershipId);
+      state.userDetail.access = await loadActiveProductAccess();
+      state.users.loaded = false;
+      state.userDetail.notice = assigned ? 'Subscription seat revoked.' : 'Subscription seat assigned.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+}
+
+async function loadOrganizations() {
+  state.organizations.loading = true;
+  state.organizations.error = null;
+  render();
+  try {
+    const response = await getAdminOrganizations(state.organizations);
+    Object.assign(state.organizations, response, { loaded: true });
+  } catch (error) {
+    state.organizations.error = error.message;
+    state.organizations.loaded = true;
+  } finally {
+    state.organizations.loading = false;
+    render();
+  }
+}
+
+async function loadOrganizationDetail(organizationId) {
+  Object.assign(state.organizationDetail, { id: organizationId, data: null, members: [], audit: [], loading: true, error: null, saving: false });
+  render();
+  try {
+    const [organization, members, audit] = await Promise.all([
+      getAdminOrganization(organizationId),
+      getAdminOrganizationMembers(organizationId),
+      getAdminAudit({ targetType: 'organization', targetId: organizationId, pageSize: 20 }),
+    ]);
+    state.organizationDetail.data = organization;
+    state.organizationDetail.members = members;
+    state.organizationDetail.audit = audit.items;
+  } catch (error) {
+    state.organizationDetail.error = error.message;
+  } finally {
+    state.organizationDetail.loading = false;
+    render();
+  }
+}
+
+function bindOrganizationsEvents() {
+  document.querySelector('#organizations-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.organizations.search = String(data.get('search') || '').trim();
+    state.organizations.status = String(data.get('status') || '');
+    state.organizations.page = 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organizations-previous')?.addEventListener('click', () => {
+    state.organizations.page -= 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organizations-next')?.addEventListener('click', () => {
+    state.organizations.page += 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organization-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    try {
+      const organization = await createAdminOrganization(data.get('name'), data.get('slug'));
+      state.organizations.loaded = false;
+      navigate(`/organizations/${organization.id}`);
+    } catch (error) {
+      state.organizations.error = error.message;
+      render();
+    }
+  });
+}
+
+async function runOrganizationDetailMutation(operation) {
+  state.organizationDetail.saving = true;
+  state.organizationDetail.error = null;
+  render();
+  try {
+    await operation();
+    state.organizations.loaded = false;
+    state.organizationDetail.saving = false;
+    await loadOrganizationDetail(state.organizationDetail.id);
+  } catch (error) {
+    state.organizationDetail.error = error.message;
+    state.organizationDetail.saving = false;
+    render();
+  }
+}
+
+function bindOrganizationDetailEvents() {
+  document.querySelector('#organization-switch-button')?.addEventListener('click', async () => {
+    state.organizationDetail.saving = true;
+    render();
+    try {
+      const response = await switchOrganization(state.organizationDetail.id);
+      state.user = response.user;
+      state.users.loaded = false;
+      state.organizationDetail.saving = false;
+      render();
+    } catch (error) {
+      state.organizationDetail.error = error.message;
+      state.organizationDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#organization-edit-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runOrganizationDetailMutation(async () => {
+      state.organizationDetail.data = await updateAdminOrganization(state.organizationDetail.id, {
+        name: data.get('name'),
+        ...(data.has('status') ? { status: data.get('status') } : {}),
+      });
+    });
+  });
+  document.querySelector('#organization-add-member-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runOrganizationDetailMutation(() => addAdminOrganizationMember(
+      state.organizationDetail.id,
+      data.get('email'),
+      [data.get('role')]));
+  });
+  document.querySelectorAll('.organization-remove-member').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!window.confirm(`Remove ${button.dataset.userName} from this organization?`)) return;
+      runOrganizationDetailMutation(() => removeAdminOrganizationMember(
+        state.organizationDetail.id,
+        button.dataset.userId));
+    });
+  });
+}
+
+async function loadMail() {
+  state.mail.loading = true;
+  state.mail.error = null;
+  render();
+  try {
+    const [response, summary] = await Promise.all([getAdminMail(state.mail), getAdminMailStatus()]);
+    Object.assign(state.mail, response, { summary, loaded: true });
+  } catch (error) {
+    state.mail.error = error.message;
+    state.mail.loaded = true;
+  } finally {
+    state.mail.loading = false;
+    render();
+  }
+}
+
+async function loadSubscriptions() {
+  state.subscriptions.loading = true;
+  state.subscriptions.error = null;
+  render();
+  try {
+    const tasks = [getAdminSubscriptions(state.subscriptions)];
+    if (isSystemAdministrator())
+      tasks.push(getAdminOrganizations({ pageSize: 100 }));
+    const [response, organizations] = await Promise.all(tasks);
+    Object.assign(state.subscriptions, response, { loaded: true });
+    if (organizations) Object.assign(state.organizations, organizations, { loaded: true });
+  } catch (error) {
+    state.subscriptions.error = error.message;
+    state.subscriptions.loaded = true;
+  } finally {
+    state.subscriptions.loading = false;
+    render();
+  }
+}
+
+async function loadSubscriptionDetail(subscriptionId) {
+  Object.assign(state.subscriptionDetail, {
+    id: subscriptionId, data: null, seats: [], history: [], loading: true, error: null,
+  });
+  render();
+  try {
+    const [data, seats, history, usage] = await Promise.all([
+      getAdminSubscription(subscriptionId),
+      getAdminSubscriptionSeats(subscriptionId),
+      getAdminSubscriptionHistory(subscriptionId),
+      getAdminSubscriptionUsage(subscriptionId),
+    ]);
+    Object.assign(state.subscriptionDetail, { data, seats, history, usage });
+  } catch (error) {
+    state.subscriptionDetail.error = error.message;
+  } finally {
+    state.subscriptionDetail.loading = false;
+    render();
+  }
+}
+
+async function loadLicenses() {
+  state.licenses.loading = true;
+  state.licenses.error = null;
+  render();
+  try {
+    const tasks = [getAdminLicenses()];
+    if (isSystemAdministrator()) tasks.push(getAdminSubscriptions({ pageSize: 100 }));
+    const [items, subscriptions] = await Promise.all(tasks);
+    Object.assign(state.licenses, { items, loaded: true });
+    if (subscriptions) Object.assign(state.subscriptions, subscriptions, { loaded: true });
+  } catch (error) {
+    state.licenses.error = error.message;
+    state.licenses.loaded = true;
+  } finally {
+    state.licenses.loading = false;
+    render();
+  }
+}
+
+async function loadLicenseDetail(licenseId) {
+  Object.assign(state.licenseDetail, { id: licenseId, data: null, audit: [], loading: true, error: null, notice: null });
+  render();
+  try {
+    const [license, audit] = await Promise.all([
+      getAdminLicense(licenseId),
+      getAdminAudit({ targetType: 'offline-license', targetId: licenseId, pageSize: 20 }),
+    ]);
+    state.licenseDetail.data = license;
+    state.licenseDetail.audit = audit.items;
+  } catch (error) {
+    state.licenseDetail.error = error.message;
+  } finally {
+    state.licenseDetail.loading = false;
+    render();
+  }
+}
+
+function bindLicenseDetailEvents() {
+  document.querySelector('#license-detail-validate')?.addEventListener('click', async () => {
+    state.licenseDetail.saving = true;
+    state.licenseDetail.error = null;
+    render();
+    try {
+      const result = await validateAdminLicense(state.licenseDetail.id);
+      state.licenseDetail.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+    } catch (error) {
+      state.licenseDetail.error = error.message;
+    } finally {
+      state.licenseDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#license-detail-revoke')?.addEventListener('click', async () => {
+    const reason = window.prompt('Reason for revoking this offline license:');
+    if (!reason?.trim()) return;
+    state.licenseDetail.saving = true;
+    state.licenseDetail.error = null;
+    render();
+    try {
+      await revokeAdminLicense(state.licenseDetail.id, reason.trim());
+      state.licenses.loaded = false;
+      await loadLicenseDetail(state.licenseDetail.id);
+    } catch (error) {
+      state.licenseDetail.error = error.message;
+      state.licenseDetail.saving = false;
+      render();
+    }
+  });
+}
+
+async function runLicenseMutation(operation) {
+  state.licenses.saving = true;
+  state.licenses.error = null;
+  state.licenses.notice = null;
+  render();
+  try {
+    await operation();
+    state.licenses.saving = false;
+    await loadLicenses();
+  } catch (error) {
+    state.licenses.error = error.message;
+    state.licenses.saving = false;
+    render();
+  }
+}
+
+async function loadServiceAccounts() {
+  Object.assign(state.serviceAccounts, { loading: true, error: null });
+  render();
+  try {
+    state.serviceAccounts.items = await getAdminServiceAccounts();
+    state.serviceAccounts.loaded = true;
+  } catch (error) {
+    state.serviceAccounts.error = error.message;
+    state.serviceAccounts.loaded = true;
+  } finally {
+    state.serviceAccounts.loading = false;
+    render();
+  }
+}
+
+async function runServiceAccountMutation(operation, revealSecret = false) {
+  Object.assign(state.serviceAccounts, { saving: true, error: null });
+  render();
+  try {
+    const result = await operation();
+    if (revealSecret) state.serviceAccounts.secret = result.secret;
+    state.serviceAccounts.saving = false;
+    await loadServiceAccounts();
+  } catch (error) {
+    Object.assign(state.serviceAccounts, { saving: false, error: error.message });
+    render();
+  }
+}
+
+function bindServiceAccountEvents() {
+  document.querySelector('#service-account-create-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runServiceAccountMutation(() => createAdminServiceAccount(String(data.get('name') || '').trim()));
+  });
+  document.querySelectorAll('.api-key-create-form').forEach((form) => form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const expires = data.get('expiresAt');
+    runServiceAccountMutation(() => createAdminApiKey(
+      event.currentTarget.dataset.accountId,
+      String(data.get('name') || '').trim(),
+      expires ? new Date(expires).toISOString() : null), true);
+  }));
+  document.querySelectorAll('.api-key-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this API key immediately?'))
+      runServiceAccountMutation(() => revokeAdminApiKey(button.dataset.accountId, button.dataset.keyId));
+  }));
+  document.querySelectorAll('.service-account-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this service account and all of its API keys?'))
+      runServiceAccountMutation(() => revokeAdminServiceAccount(button.dataset.accountId));
+  }));
+  document.querySelector('#api-key-secret-dismiss')?.addEventListener('click', () => {
+    state.serviceAccounts.secret = null;
+    render();
+  });
+}
+
+function auditApiFilters() {
+  const audit = state.audit;
+  return {
+    search: audit.search,
+    action: audit.action,
+    targetType: audit.targetType,
+    outcome: audit.outcome,
+    from: audit.from ? new Date(audit.from).toISOString() : '',
+    to: audit.to ? new Date(audit.to).toISOString() : '',
+    direction: audit.direction,
+    page: audit.page,
+    pageSize: audit.pageSize,
+  };
+}
+
+async function loadAudit() {
+  Object.assign(state.audit, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminAudit(auditApiFilters());
+    Object.assign(state.audit, response, { loaded: true });
+  } catch (error) {
+    Object.assign(state.audit, { error: error.message, loaded: true });
+  } finally {
+    state.audit.loading = false;
+    render();
+  }
+}
+
+async function loadAuditDetail(eventId) {
+  if (state.audit.selected?.id === eventId) {
+    state.audit.selected = null;
+    render();
+    return;
+  }
+  state.audit.selected = state.audit.items.find((item) => item.id === eventId) || { id: eventId };
+  state.audit.detailLoading = true;
+  state.audit.error = null;
+  render();
+  try {
+    state.audit.selected = await getAdminAuditEvent(eventId);
+  } catch (error) {
+    state.audit.error = error.message;
+    state.audit.selected = null;
+  } finally {
+    state.audit.detailLoading = false;
+    render();
+  }
+}
+
+async function runAuditExport(format) {
+  Object.assign(state.audit, { exporting: true, error: null });
+  render();
+  try {
+    const result = await exportAdminAudit(format, auditApiFilters());
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    await loadAudit();
+  } catch (error) {
+    state.audit.error = error.message;
+  } finally {
+    state.audit.exporting = false;
+    render();
+  }
+}
+
+function bindAuditEvents() {
+  document.querySelector('#audit-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    Object.assign(state.audit, {
+      search: String(data.get('search') || '').trim(),
+      action: String(data.get('action') || ''),
+      targetType: String(data.get('targetType') || ''),
+      outcome: String(data.get('outcome') || ''),
+      from: String(data.get('from') || ''),
+      to: String(data.get('to') || ''),
+      direction: String(data.get('direction') || 'desc'),
+      page: 1,
+      selected: null,
+    });
+    loadAudit();
+  });
+  document.querySelector('#audit-clear-filters')?.addEventListener('click', () => {
+    Object.assign(state.audit, {
+      search: '', action: '', targetType: '', outcome: '', from: '', to: '', direction: 'desc',
+      page: 1, selected: null,
+    });
+    loadAudit();
+  });
+  document.querySelector('#audit-previous')?.addEventListener('click', () => {
+    state.audit.page -= 1;
+    state.audit.selected = null;
+    loadAudit();
+  });
+  document.querySelector('#audit-next')?.addEventListener('click', () => {
+    state.audit.page += 1;
+    state.audit.selected = null;
+    loadAudit();
+  });
+  document.querySelectorAll('.audit-detail-button').forEach((button) =>
+    button.addEventListener('click', () => loadAuditDetail(button.dataset.eventId)));
+  document.querySelector('#audit-detail-close')?.addEventListener('click', () => {
+    state.audit.selected = null;
+    render();
+  });
+  document.querySelectorAll('.audit-export').forEach((button) =>
+    button.addEventListener('click', () => runAuditExport(button.dataset.format)));
+}
+
+async function loadRoles() {
+  Object.assign(state.roles, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminRoles();
+    Object.assign(state.roles, { items: response.roles, permissions: response.permissions, loaded: true });
+  } catch (error) {
+    Object.assign(state.roles, { error: error.message, loaded: true });
+  } finally {
+    state.roles.loading = false;
+    render();
+  }
+}
+
+async function loadRoleDetail(roleKey) {
+  const page = state.roleDetail.key === roleKey ? state.roleDetail.page : 1;
+  Object.assign(state.roleDetail, { key: roleKey, page, data: null, users: [], loading: true, error: null });
+  render();
+  try {
+    const [data, users, catalog] = await Promise.all([
+      getAdminRole(roleKey, state.roleDetail),
+      getAdminUsers({ pageSize: 100 }),
+      state.roles.loaded ? Promise.resolve(null) : getAdminRoles(),
+    ]);
+    if (catalog)
+      Object.assign(state.roles, { items: catalog.roles, permissions: catalog.permissions, loaded: true });
+    Object.assign(state.roleDetail, { data, users: users.items, page: data.page, pageSize: data.pageSize });
+  } catch (error) {
+    state.roleDetail.error = error.message;
+  } finally {
+    state.roleDetail.loading = false;
+    render();
+  }
+}
+
+async function runRoleMutation(operation) {
+  Object.assign(state.roleDetail, { saving: true, error: null });
+  render();
+  try {
+    await operation();
+    state.roleDetail.saving = false;
+    state.roles.loaded = false;
+    await loadRoleDetail(state.roleDetail.key);
+  } catch (error) {
+    Object.assign(state.roleDetail, { saving: false, error: error.message });
+    render();
+  }
+}
+
+function bindRolesEvents() {
+  document.querySelector('#custom-role-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    Object.assign(state.roles, { loading: true, error: null });
+    render();
+    try {
+      const role = await createAdminRole({
+        key: data.get('key') || null,
+        name: data.get('name'),
+        description: data.get('description'),
+        permissions: [],
+      });
+      state.roles.loaded = false;
+      navigate(`/roles/${role.key}`);
+    } catch (error) {
+      Object.assign(state.roles, { loading: false, error: error.message });
+      render();
+    }
+  });
+}
+
+function bindRoleDetailEvents() {
+  document.querySelector('#custom-role-edit-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runRoleMutation(() => updateAdminRole(state.roleDetail.key, {
+      key: state.roleDetail.key,
+      name: data.get('name'),
+      description: data.get('description'),
+      permissions: data.getAll('permissions'),
+    }));
+  });
+  document.querySelector('#role-clone')?.addEventListener('click', () => {
+    const source = state.roleDetail.data.role;
+    const name = window.prompt('Name for the custom role', `${source.name} copy`);
+    if (!name) return;
+    runRoleMutation(async () => {
+      const role = await cloneAdminRole(state.roleDetail.key, {
+        key: null, name, description: source.description,
+      });
+      navigate(`/roles/${role.key}`);
+    });
+  });
+  document.querySelector('#role-archive-toggle')?.addEventListener('click', () => {
+    const role = state.roleDetail.data.role;
+    if (window.confirm(`${role.isArchived ? 'Restore' : 'Archive'} this custom role?`))
+      runRoleMutation(() => setAdminRoleArchived(state.roleDetail.key, !role.isArchived));
+  });
+  document.querySelector('#role-member-assign-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const userId = new FormData(event.currentTarget).get('userId');
+    if (userId) runRoleMutation(() => assignAdminRoleMember(state.roleDetail.key, userId));
+  });
+  document.querySelectorAll('.role-member-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this organization role from the selected user?'))
+      runRoleMutation(() => revokeAdminRoleMember(state.roleDetail.key, button.dataset.userId));
+  }));
+  document.querySelector('#role-members-previous')?.addEventListener('click', () => {
+    state.roleDetail.page -= 1;
+    loadRoleDetail(state.roleDetail.key);
+  });
+  document.querySelector('#role-members-next')?.addEventListener('click', () => {
+    state.roleDetail.page += 1;
+    loadRoleDetail(state.roleDetail.key);
+  });
+}
+
+function bindLicenseEvents() {
+  document.querySelector('#license-issue-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLicenseMutation(() => issueAdminLicense({
+      subscriptionId: data.get('subscriptionId'),
+      validFrom: new Date(data.get('validFrom')).toISOString(),
+      validUntil: new Date(data.get('validUntil')).toISOString(),
+      instanceLimit: Number(data.get('instanceLimit')),
+      productVersion: data.get('productVersion'),
+      deploymentId: data.get('deploymentId'),
+    }));
+  });
+  document.querySelectorAll('.license-validate').forEach((button) => button.addEventListener('click', async () => {
+    try {
+      const result = await validateAdminLicense(button.dataset.licenseId);
+      state.licenses.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+      render();
+    } catch (error) {
+      state.licenses.error = error.message;
+      render();
+    }
+  }));
+  document.querySelectorAll('.license-revoke').forEach((button) => button.addEventListener('click', () => {
+    const reason = window.prompt('Reason for revoking this offline license:');
+    if (reason?.trim()) runLicenseMutation(() => revokeAdminLicense(button.dataset.licenseId, reason.trim()));
+  }));
+}
+
+function bindSubscriptionEvents() {
+  document.querySelector('#subscription-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.subscriptions.edition = String(data.get('edition') || '');
+    state.subscriptions.status = String(data.get('status') || '');
+    state.subscriptions.page = 1;
+    loadSubscriptions();
+  });
+  document.querySelector('#subscription-previous')?.addEventListener('click', () => { state.subscriptions.page -= 1; loadSubscriptions(); });
+  document.querySelector('#subscription-next')?.addEventListener('click', () => { state.subscriptions.page += 1; loadSubscriptions(); });
+  document.querySelector('#subscription-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const seatLimit = data.get('seatLimit');
+    await runSubscriptionMutation(() => createAdminSubscription({
+      organizationId: data.get('organizationId'), edition: data.get('edition'), accountType: data.get('accountType'),
+      status: data.get('status'), billingPeriod: data.get('billingPeriod'), deploymentMode: data.get('deploymentMode'),
+      seatLimit: seatLimit ? Number(seatLimit) : null, startsAt: null, trialEndsAt: null, currentPeriodEndsAt: null,
+      entitlements: data.getAll('capability').map((capability) => ({ capability, enabled: true })),
+    }));
+  });
+  document.querySelectorAll('.subscription-save-status').forEach((button) => button.addEventListener('click', () => {
+    const select = document.querySelector(`.subscription-status[data-subscription-id="${button.dataset.subscriptionId}"]`);
+    runSubscriptionMutation(() => updateAdminSubscription(button.dataset.subscriptionId, { status: select.value }));
+  }));
+}
+
+async function runSubscriptionMutation(operation) {
+  state.subscriptions.saving = true;
+  state.subscriptions.error = null;
+  render();
+  try {
+    await operation();
+    state.subscriptions.loaded = false;
+    state.subscriptions.saving = false;
+    await loadSubscriptions();
+  } catch (error) {
+    state.subscriptions.error = error.message;
+    state.subscriptions.saving = false;
+    render();
+  }
+}
+
+async function runSubscriptionDetailMutation(operation) {
+  state.subscriptionDetail.saving = true;
+  state.subscriptionDetail.error = null;
+  render();
+  try {
+    await operation();
+    state.subscriptions.loaded = false;
+    state.subscriptionDetail.saving = false;
+    await loadSubscriptionDetail(state.subscriptionDetail.id);
+  } catch (error) {
+    state.subscriptionDetail.error = error.message;
+    state.subscriptionDetail.saving = false;
+    render();
+  }
+}
+
+function bindSubscriptionDetailEvents() {
+  const detail = state.subscriptionDetail;
+  document.querySelector('#subscription-entitlements-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const entitlements = [...document.querySelectorAll('[data-entitlement-capability]')].map((row) => ({
+      capability: row.dataset.entitlementCapability,
+      enabled: row.querySelector('.entitlement-enabled').checked,
+      limit: row.querySelector('.entitlement-limit').value ? Number(row.querySelector('.entitlement-limit').value) : null,
+      unit: row.querySelector('.entitlement-unit').value || null,
+      source: row.querySelector('.entitlement-source').value,
+      expiresAt: row.querySelector('.entitlement-expiry').value
+        ? new Date(row.querySelector('.entitlement-expiry').value).toISOString() : null,
+    }));
+    const customCapability = document.querySelector('#subscription-custom-capability')?.value.trim();
+    if (customCapability && !entitlements.some((item) => item.capability === customCapability))
+      entitlements.push({ capability: customCapability, enabled: true, limit: null, unit: null, source: 'NegotiatedOverride', expiresAt: null });
+    runSubscriptionDetailMutation(() => updateAdminSubscription(detail.id, { entitlements }));
+  });
+  document.querySelectorAll('.subscription-assign-seat').forEach((button) => button.addEventListener('click', () =>
+    runSubscriptionDetailMutation(() => assignAdminSubscriptionSeat(detail.id, button.dataset.membershipId))));
+  document.querySelectorAll('.subscription-revoke-seat').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this subscription seat?'))
+      runSubscriptionDetailMutation(() => revokeAdminSubscriptionSeat(detail.id, button.dataset.membershipId));
+  }));
+  document.querySelector('#subscription-trial-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runSubscriptionDetailMutation(() => extendAdminTrial(detail.id, Number(new FormData(event.currentTarget).get('days'))));
+  });
+  document.querySelector('#subscription-renew-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get('periodEndsAt');
+    runSubscriptionDetailMutation(() => renewAdminSubscription(detail.id, new Date(value).toISOString()));
+  });
+  document.querySelector('#subscription-grace-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get('endsAt');
+    runSubscriptionDetailMutation(() => startAdminGracePeriod(detail.id, new Date(value).toISOString()));
+  });
+  document.querySelector('#subscription-cancel-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!window.confirm('Schedule cancellation for this subscription?')) return;
+    const value = new FormData(event.currentTarget).get('effectiveAt');
+    runSubscriptionDetailMutation(() => cancelAdminSubscription(
+      detail.id, value ? new Date(value).toISOString() : null));
+  });
+}
+
+function bindMailEvents() {
+  document.querySelector('#mail-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.mail.status = String(new FormData(event.currentTarget).get('status') || '');
+    state.mail.page = 1;
+    loadMail();
+  });
+  document.querySelector('#mail-previous')?.addEventListener('click', () => {
+    state.mail.page -= 1;
+    loadMail();
+  });
+  document.querySelector('#mail-next')?.addEventListener('click', () => {
+    state.mail.page += 1;
+    loadMail();
+  });
+  document.querySelectorAll('.mail-retry').forEach((button) => {
+    button.addEventListener('click', () => runMailMutation(() => retryAdminMail(button.dataset.messageId)));
+  });
+  document.querySelectorAll('.mail-cancel').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (window.confirm('Cancel this queued mail message?'))
+        runMailMutation(() => cancelAdminMail(button.dataset.messageId));
+    });
+  });
+}
+
+async function runMailMutation(operation) {
+  state.mail.saving = true;
+  state.mail.error = null;
+  render();
+  try {
+    await operation();
+    state.mail.saving = false;
+    await loadMail();
+  } catch (error) {
+    state.mail.error = error.message;
+    state.mail.saving = false;
+    render();
+  }
+}
+
+async function handleLogout(event) {
+  event.currentTarget.disabled = true;
+  try {
+    await logout();
+  } finally {
+    state.user = null;
+    navigate('/login', true);
+  }
+}
+
+function render() {
+  if (state.loading) {
+    app.innerHTML = '<main class="admin-loading"><div class="admin-spinner" aria-hidden="true"></div><p>Checking secure session...</p></main>';
+    return;
+  }
+
+  if (!state.user && location.pathname === '/accept-invitation') {
+    document.title = 'Accept invitation | PVADE Admin';
+    app.innerHTML = publicActionPage('invitation');
+    bindPublicAction('invitation');
+    return;
+  }
+
+  if (!state.user && location.pathname === '/forgot-password') {
+    document.title = 'Reset password | PVADE Admin';
+    app.innerHTML = publicActionPage('request-reset');
+    bindPublicAction('request-reset');
+    return;
+  }
+
+  if (!state.user && location.pathname === '/reset-password') {
+    document.title = 'Choose password | PVADE Admin';
+    app.innerHTML = publicActionPage('confirm-reset');
+    bindPublicAction('confirm-reset');
+    return;
+  }
+
+  if (location.pathname === '/confirm-email') {
+    document.title = 'Verify email | PVADE Admin';
+    app.innerHTML = publicActionPage('email-change');
+    bindPublicAction('email-change');
+    return;
+  }
+
+  if (!state.user) {
+    if (location.pathname !== '/login') navigate('/login', true);
+    else renderLogin();
+    return;
+  }
+
+  if (!isAdministrator(state.user)) {
+    renderShell(forbiddenPage(), 'Access denied');
+    return;
+  }
+
+  if (location.pathname === '/forbidden') {
+    renderShell(forbiddenPage(), 'Access denied');
+    return;
+  }
+
+  if (location.pathname === '/' || location.pathname === '/login') {
+    navigate('/dashboard', true);
+    return;
+  }
+
+  if (location.pathname === '/dashboard') {
+    renderShell(dashboardPage(), 'Dashboard');
+    return;
+  }
+
+  if (location.pathname === '/system-status') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(systemStatusPage(), 'System status');
+    bindSystemStatusEvents();
+    if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
+    if (!state.retention.loaded && !state.retention.loading) loadRetentionGovernance();
+    return;
+  }
+
+  if (location.pathname === '/dependency-compliance') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(dependencyCompliancePage(), 'Dependency compliance');
+    bindDependencyComplianceEvents();
+    if (!state.dependencyCompliance.loaded && !state.dependencyCompliance.loading) loadDependencyCompliance();
+    return;
+  }
+
+  if (location.pathname === '/release-notes') {
+    renderShell(releaseNotesPage(), 'Release notes');
+    return;
+  }
+
+  if (location.pathname === '/legal') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(legalPage(), 'Legal documents');
+    bindLegalEvents();
+    if (!state.legal.loaded && !state.legal.loading) loadLegalDocuments();
+    return;
+  }
+
+  if (location.pathname === '/documentation') {
+    renderShell(documentationPage(), 'Admin documentation');
+    bindDocumentationEvents();
+    if (!state.documentation.loaded && !state.documentation.loading) loadDocumentation();
+    return;
+  }
+
+  if (location.pathname === '/users') {
+    renderShell(usersPage(), 'Users');
+    bindUsersEvents();
+    if (!state.users.loaded && !state.users.loading) loadUsers();
+    return;
+  }
+
+  if (location.pathname === '/organizations') {
+    renderShell(organizationsPage(), 'Organizations');
+    bindOrganizationsEvents();
+    if (!state.organizations.loaded && !state.organizations.loading) loadOrganizations();
+    return;
+  }
+
+  if (location.pathname === '/mail') {
+    renderShell(mailPage(), 'Mail delivery');
+    bindMailEvents();
+    if (!state.mail.loaded && !state.mail.loading) loadMail();
+    return;
+  }
+
+  if (location.pathname === '/subscriptions') {
+    renderShell(subscriptionsPage(), 'Subscriptions');
+    bindSubscriptionEvents();
+    if (!state.subscriptions.loaded && !state.subscriptions.loading) loadSubscriptions();
+    return;
+  }
+
+  if (location.pathname === '/licenses') {
+    renderShell(licensesPage(), 'Offline licenses');
+    bindLicenseEvents();
+    if (!state.licenses.loaded && !state.licenses.loading) loadLicenses();
+    return;
+  }
+
+  if (location.pathname === '/service-accounts') {
+    renderShell(serviceAccountsPage(), 'Service accounts');
+    bindServiceAccountEvents();
+    if (!state.serviceAccounts.loaded && !state.serviceAccounts.loading) loadServiceAccounts();
+    return;
+  }
+
+  if (location.pathname === '/audit') {
+    renderShell(auditPage(), 'Audit');
+    bindAuditEvents();
+    if (!state.audit.loaded && !state.audit.loading) loadAudit();
+    return;
+  }
+
+  if (location.pathname === '/roles') {
+    renderShell(rolesPage(), 'Roles & permissions');
+    bindRolesEvents();
+    if (!state.roles.loaded && !state.roles.loading) loadRoles();
+    return;
+  }
+
+  const roleDetailMatch = location.pathname.match(/^\/roles\/([a-z0-9-]+)$/i);
+  if (roleDetailMatch) {
+    renderShell(roleDetailPage(), state.roleDetail.data?.role?.name || 'Role');
+    bindRoleDetailEvents();
+    if (state.roleDetail.key !== roleDetailMatch[1] && !state.roleDetail.loading)
+      loadRoleDetail(roleDetailMatch[1]);
+    return;
+  }
+
+  const subscriptionDetailMatch = location.pathname.match(/^\/subscriptions\/([0-9a-f-]+)$/i);
+  if (subscriptionDetailMatch) {
+    renderShell(subscriptionDetailPage(), state.subscriptionDetail.data?.organizationName || 'Subscription');
+    bindSubscriptionDetailEvents();
+    if (state.subscriptionDetail.id !== subscriptionDetailMatch[1] && !state.subscriptionDetail.loading)
+      loadSubscriptionDetail(subscriptionDetailMatch[1]);
+    return;
+  }
+
+  const licenseDetailMatch = location.pathname.match(/^\/licenses\/([0-9a-f-]+)$/i);
+  if (licenseDetailMatch) {
+    renderShell(licenseDetailPage(), state.licenseDetail.data?.licenseNumber || 'Offline license');
+    bindLicenseDetailEvents();
+    if (state.licenseDetail.id !== licenseDetailMatch[1] && !state.licenseDetail.loading)
+      loadLicenseDetail(licenseDetailMatch[1]);
+    return;
+  }
+
+  const organizationDetailMatch = location.pathname.match(/^\/organizations\/([0-9a-f-]+)$/i);
+  if (organizationDetailMatch) {
+    renderShell(organizationDetailPage(), state.organizationDetail.data?.name || 'Organization');
+    bindOrganizationDetailEvents();
+    if (state.organizationDetail.id !== organizationDetailMatch[1] && !state.organizationDetail.loading) {
+      loadOrganizationDetail(organizationDetailMatch[1]);
+    }
+    return;
+  }
+
+  const userDetailMatch = location.pathname.match(/^\/users\/([0-9a-f-]+)$/i);
+  if (userDetailMatch) {
+    renderShell(userDetailPage(), state.userDetail.data?.displayName || 'User');
+    bindUserDetailEvents();
+    if (state.userDetail.id !== userDetailMatch[1] && !state.userDetail.loading) {
+      loadUserDetail(userDetailMatch[1]);
+    }
+    return;
+  }
+
+  if (pageDetails[location.pathname]) {
+    renderShell(dataPage(location.pathname), pageDetails[location.pathname][0]);
+    return;
+  }
+
+  renderShell(notFoundPage(), 'Page not found');
+}
+
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('a[href^="/"]');
+  if (!link || link.hasAttribute('data-native') || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  closeAdminSidebar();
+  navigate(link.getAttribute('href'));
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeAdminSidebar(true);
+});
+
+window.addEventListener('popstate', render);
+window.addEventListener('pvad:session-expired', () => {
+  if (!state.user) return;
+  state.user = null;
+  state.notice = 'Your secure session expired or was revoked. Sign in again.';
+  navigate('/login', true);
+});
+window.addEventListener('pvad:access-denied', (event) => {
+  if (!state.user) return;
+  state.accessDenied = event.detail;
+  navigate('/forbidden', true);
+});
+window.addEventListener('pvad:api-offline', () => {
+  state.connection = { offline: true, stale: true };
+  if (state.user) render();
+});
+window.addEventListener('pvad:api-online', () => {
+  if (!state.connection.offline) return;
+  state.connection = { offline: false, stale: false };
+  if (state.user) render();
+});
+window.addEventListener('offline', () => window.dispatchEvent(new Event('pvad:api-offline')));
+window.addEventListener('online', () => window.dispatchEvent(new Event('pvad:api-online')));
+
+async function bootstrap() {
+  try {
+    state.user = await currentUser();
+  } catch (error) {
+    if (error.status !== 401) state.notice = error.message;
+  } finally {
+    state.loading = false;
+    render();
+  }
+}
+
+bootstrap();

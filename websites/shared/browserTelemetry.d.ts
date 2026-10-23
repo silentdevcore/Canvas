@@ -1,4 +1,4 @@
-export type PxaBrowserApplication =
+export type PvadBrowserApplication =
   | 'company'
   | 'documentation'
   | 'demo'
@@ -6,7 +6,7 @@ export type PxaBrowserApplication =
   | 'admin'
   | 'designer';
 
-export function normalizeBrowserRoute(application: PxaBrowserApplication, pathname?: string): string;
+export function normalizeBrowserRoute(application: PvadBrowserApplication, pathname?: string): string;
 export function classifyBrowserApiOutcome(status: number): string;
 export function createBrowserEventDeduplicator(windowMs?: number): (
   event: { type: string; outcome: string; route: string; name?: string },
@@ -32,7 +32,7 @@ export function consumeStatusRecovery(
 ): { action: string; correlationId?: string } | undefined;
 export function recordBrowserUnknownDiagnosticMapping(): void;
 export function initializeBrowserTelemetry(options: {
-  application: PxaBrowserApplication;
+  application: PvadBrowserApplication;
   endpoint?: string;
   version?: string;
 }): void;

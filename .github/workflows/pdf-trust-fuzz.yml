@@ -1,4 +1,4 @@
-name: PXA PDF Trust Coverage Fuzzing
+name: PVADE PDF Trust Coverage Fuzzing
 
 on:
   schedule:
@@ -23,16 +23,16 @@ jobs:
           sudo apt-get install --yes --no-install-recommends afl++
           dotnet tool install --global SharpFuzz.CommandLine --version 2.2.0
       - name: Restore fuzzing harness
-        run: dotnet restore tools/pdf-parser-fuzzer/PXA.PdfParserFuzzer.csproj
+        run: dotnet restore tools/pdf-parser-fuzzer/PVAD.PdfParserFuzzer.csproj
       - name: Run bounded coverage-guided campaign
         env:
-          PXA_PDF_FUZZ_COVERAGE_SECONDS: 300
-          PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS: 2000
+          PVAD_PDF_FUZZ_COVERAGE_SECONDS: 300
+          PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS: 2000
         run: tools/pdf-parser-fuzzer/run-coverage.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: pxa-pdf-coverage-fuzz-${{ github.run_number }}-${{ github.sha }}
+          name: pvad-pdf-coverage-fuzz-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/pdf-fuzz/coverage
           if-no-files-found: error
           retention-days: 30

@@ -1,17 +1,18 @@
 import { companyPage, siteLinks } from './siteLinks.js';
-import { pxaCommit, pxaVersion } from './buildInfo.js';
+import { pvadCommit, pvadVersion } from './buildInfo.js';
+import { pvadBrand } from './brand.js';
 
 const footerGroups = [
   {
     title: 'Product',
     links: [
       { label: 'Products', href: companyPage('products') },
-      { label: 'Generator', href: companyPage('products/generator') },
+      { label: pvadBrand.products.pdf, href: companyPage('products/generator') },
       { label: 'Migration', href: companyPage('products/migration') },
       { label: 'Importer', href: companyPage('products/importer') },
       { label: 'Designer', href: companyPage('products/designer') },
       { label: 'PDF Viewer', href: companyPage('products/pdf-viewer') },
-      { label: 'Spreadsheet', href: companyPage('products/spreadsheet') },
+      { label: pvadBrand.products.spreadsheet, href: companyPage('products/spreadsheet') },
     ],
   },
   {
@@ -60,31 +61,31 @@ const currentYear = new Date().getFullYear();
 
 function renderFooterGroup(group) {
   return `
-    <nav class="pxa-footer-group" aria-label="${group.title}">
+    <nav class="pvad-footer-group" aria-label="${group.title}">
       <strong>${group.title}</strong>
       ${group.links.map((link) => `<a href="${link.href}">${link.label}</a>`).join('')}
     </nav>
   `;
 }
 
-export function renderPxaFooter(siteName) {
+export function renderPvadFooter(siteName) {
   return `
-    <footer class="pxa-site-footer">
-      <div class="pxa-container pxa-footer">
-        <div class="pxa-footer-brand">
-          <strong>Power Dox Automation</strong>
-          <p>${siteName} is part of the PXA product, documentation, and demo system.</p>
+    <footer class="pvad-site-footer">
+      <div class="pvad-container pvad-footer">
+        <div class="pvad-footer-brand">
+          <strong>${pvadBrand.displayName}</strong>
+          <p>${siteName} is part of the ${pvadBrand.displayName} product, documentation, and demo system.</p>
         </div>
-        <div class="pxa-footer-grid">
+        <div class="pvad-footer-grid">
           ${footerGroups.map(renderFooterGroup).join('')}
         </div>
-        <div class="pxa-footer-bottom">
-          <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
+        <div class="pvad-footer-bottom">
+          <span>Copyright © ${currentYear} ${pvadBrand.displayName}. All rights reserved.</span>
           <span>
-            <span title="Commit ${pxaCommit}">PXA ${pxaVersion}</span> ·
+            <span title="Commit ${pvadCommit}">${pvadBrand.displayName} ${pvadVersion}</span> ·
             <a href="${companyPage('terms')}">Terms</a> ·
             <a href="${companyPage('privacy')}">Privacy</a> ·
-            <button type="button" class="pxa-footer-link-button" data-pxa-storage-settings>Storage settings</button>
+            <button type="button" class="pvad-footer-link-button" data-pvad-storage-settings>Storage settings</button>
           </span>
         </div>
       </div>

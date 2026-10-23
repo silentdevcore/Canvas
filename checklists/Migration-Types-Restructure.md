@@ -1,5 +1,7 @@
 # Migration Types: Code Migration + DataSource / Format Migration
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Reorganizes the Migrations area into two clear **types**, each with its own view + sub-tabs. Frontend-only IA
 change; reuses existing converters/endpoints (no backend rewrite). See plan
 `~/.claude/plans/can-you-analyse-migrations-valiant-beaver.md`.

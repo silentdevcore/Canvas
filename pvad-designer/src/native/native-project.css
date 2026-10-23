@@ -1,0 +1,11 @@
+.designer-auth-state.native-project-launch section { width: min(620px, calc(100% - 24px)); box-sizing: border-box; }
+.designer-auth-state.native-project-launch h1 { font-size: 24px; letter-spacing: 0; }
+.native-project-name { overflow-wrap: anywhere; }
+.native-project-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.native-project-actions button, .native-project-actions a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+  padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px;
+  background: #fff; color: #20272e; font: inherit; text-decoration: none; cursor: pointer;
+}
+.native-project-actions button:disabled { opacity: .5; cursor: default; }
+.native-project-actions :focus-visible { outline: 2px solid #087f73; outline-offset: 3px; }

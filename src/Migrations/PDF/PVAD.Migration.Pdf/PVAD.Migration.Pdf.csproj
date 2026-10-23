@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../Common/PVAD.Migration.Roslyn/PVAD.Migration.Roslyn.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.ActivePdf/PVAD.Migration.Pdf.Code.ActivePdf.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Apryse/PVAD.Migration.Pdf.Code.Apryse.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Aspose/PVAD.Migration.Pdf.Code.Aspose.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.DevExpress/PVAD.Migration.Pdf.Code.DevExpress.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.DsPdf/PVAD.Migration.Pdf.Code.DsPdf.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Foxit/PVAD.Migration.Pdf.Code.Foxit.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.GemBox/PVAD.Migration.Pdf.Code.GemBox.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.IronPdf/PVAD.Migration.Pdf.Code.IronPdf.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Leadtools/PVAD.Migration.Pdf.Code.Leadtools.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Nutrient/PVAD.Migration.Pdf.Code.Nutrient.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.PdfKitNet/PVAD.Migration.Pdf.Code.PdfKitNet.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.PdfTools/PVAD.Migration.Pdf.Code.PdfTools.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.PdfToolsToolbox/PVAD.Migration.Pdf.Code.PdfToolsToolbox.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Spire/PVAD.Migration.Pdf.Code.Spire.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.Syncfusion/PVAD.Migration.Pdf.Code.Syncfusion.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Pdf.Code.IText7/PVAD.Migration.Pdf.Code.IText7.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

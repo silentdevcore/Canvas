@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-local-draft-recovery",
+  "impact": "major",
+  "components": ["designer", "spreadsheet", "migration", "company", "documentation"],
+  "category": "breaking",
+  "summary": "Workbook drafts are now scoped to your account and organization. Recover old workbooks explicitly as JSON. Document transfers expire after five minutes; repeat transfers from older tabs. Browser preferences use PVAD keys; already started sign-ins can complete once through a compatibility reader.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-rename-migration-notes.md"],
+  "breaking": true
+}

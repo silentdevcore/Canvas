@@ -3,8 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.powerdoxautomation.tools</groupId>
-  <artifactId>pxa-dss-validator</artifactId>
+  <groupId>com.pvad.tools</groupId>
+  <artifactId>pvad-dss-validator</artifactId>
   <version>1.0.0</version>
 
   <properties>
@@ -76,7 +76,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.powerdoxautomation.tools.DssValidator</mainClass>
+                  <mainClass>com.pvad.tools.DssValidator</mainClass>
                 </transformer>
               </transformers>
             </configuration>

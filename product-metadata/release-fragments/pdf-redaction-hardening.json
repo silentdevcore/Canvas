@@ -9,10 +9,10 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA strengthens irreversible PDF redaction with timestamped audit evidence, tenant-scoped retrieval, region-bound verification, stale-preflight protection, and a hash-pinned external recovery corpus that verifies supported output and fail-closed boundaries.",
+  "summary": "PVAD strengthens irreversible PDF redaction with timestamped audit evidence, tenant-scoped retrieval, region-bound verification, stale-preflight protection, and a hash-pinned external recovery corpus that verifies supported output and fail-closed boundaries.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false,
   "securityReviewed": true

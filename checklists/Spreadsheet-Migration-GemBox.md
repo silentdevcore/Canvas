@@ -1,5 +1,7 @@
 # Spreadsheet Migration — GemBox.Spreadsheet
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → PXA spreadsheet API (`PxaWorkbook`).
 GemBox cell indexes are **already 0-based** (no shift), bold is `Font.Weight = BoldWeight`, and a
 `SpreadsheetInfo.SetLicense(...)` call is dropped.

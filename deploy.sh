@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# PXA Designer Deployment Script
-# This script sets up and deploys the complete PXA Designer platform
+# PVADE Designer Deployment Script
+# This script sets up and deploys the complete PVADE Designer platform
 
 set -e
 
-echo "🎨 PXA Designer - Enterprise Document Automation Platform"
+echo "🎨 PVADE Designer - Enterprise Document Automation Platform"
 echo "======================================================"
 echo ""
 
@@ -80,9 +80,9 @@ check_prerequisites() {
 
 # Setup frontend
 setup_frontend() {
-    print_header "Setting up PXA Designer (Frontend)..."
+    print_header "Setting up PVADE Designer (Frontend)..."
 
-    cd pxa-designer
+    cd pvad-designer
 
     # Install dependencies
     print_status "Installing dependencies..."
@@ -102,7 +102,7 @@ setup_frontend() {
 setup_backend() {
     print_header "Setting up API Server (Backend)..."
 
-    cd PXA.WebApi
+    cd PVAD.WebApi
 
     # Restore packages
     print_status "Restoring .NET packages..."
@@ -127,7 +127,7 @@ run_tests() {
 
     # Frontend tests
     print_status "Running frontend tests..."
-    cd pxa-designer
+    cd pvad-designer
     if npm test -- --watchAll=false --passWithNoTests; then
         print_status "Frontend tests passed ✓"
     else
@@ -137,7 +137,7 @@ run_tests() {
 
     # Backend tests
     print_status "Running backend tests..."
-    if dotnet test PXA.sln --configuration Release --no-build; then
+    if dotnet test PVAD.sln --configuration Release --no-build; then
         print_status "Backend tests passed ✓"
     else
         print_warning "Some backend tests failed, but continuing..."
@@ -150,7 +150,7 @@ start_services() {
 
     # Start backend in background
     print_status "Starting API server..."
-    cd PXA.WebApi
+    cd PVAD.WebApi
     dotnet run --configuration Release > ../api.log 2>&1 &
     API_PID=$!
     echo $API_PID > ../api.pid
@@ -168,8 +168,8 @@ start_services() {
     fi
 
     # Start frontend
-    print_status "Starting PXA Designer..."
-    cd pxa-designer
+    print_status "Starting PVADE Designer..."
+    cd pvad-designer
     if [ "$BUILD_FRONTEND" = "true" ]; then
         # Serve built files
         npx serve -s dist -l 5173 > ../ui.log 2>&1 &
@@ -190,9 +190,9 @@ show_info() {
     print_header "Deployment Complete!"
 
     echo ""
-    echo "🎉 PXA Designer is now running!"
+    echo "🎉 PVADE Designer is now running!"
     echo ""
-    echo "📱 Frontend (PXA Designer): http://localhost:5173"
+    echo "📱 Frontend (PVADE Designer): http://localhost:5173"
     echo "🔧 Backend (API Server):   http://localhost:5000"
     echo "📚 API Documentation:      http://localhost:5000/swagger"
     echo ""
@@ -227,7 +227,7 @@ stop_services() {
     if [ -f ui.pid ]; then
         UI_PID=$(cat ui.pid)
         if kill -0 $UI_PID 2>/dev/null; then
-            print_status "Stopping PXA Designer..."
+            print_status "Stopping PVADE Designer..."
             kill $UI_PID
         fi
         rm -f ui.pid
@@ -297,7 +297,7 @@ main() {
         exit 0
     fi
 
-    print_status "Starting PXA Designer deployment..."
+    print_status "Starting PVADE Designer deployment..."
     echo ""
 
     check_prerequisites

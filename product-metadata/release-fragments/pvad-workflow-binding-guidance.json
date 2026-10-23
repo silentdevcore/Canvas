@@ -1,0 +1,9 @@
+{
+  "id": "pvad-workflow-binding-guidance",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Document retained release and deployment identities and extend local workflow syntax and reference checks without changing publication or approval behavior.",
+  "reason": "Source comments, internal guidance and validation contracts only; workflow definitions and remote infrastructure bindings remain unchanged.",
+  "breaking": false
+}

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="PVAD.Core.Contracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../../assets/fonts/liberation/*"
+             Link="fonts/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Core/PVAD.Application/PVAD.Application.csproj" />
+    <ProjectReference Include="../../src/Core/PVAD.Core/PVAD.Core.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PVAD.Infrastructure.Pdf/PVAD.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../src/Importing/PVAD.FileImporter/PVAD.FileImporter.csproj" />
+    <ProjectReference Include="../../PVAD.WebApi/PVAD.WebApi.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.DevExpress/PVAD.Migration.Report.Designer.DevExpress.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.FastReport/PVAD.Migration.Report.Designer.FastReport.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.JasperReports/PVAD.Migration.Report.Designer.JasperReports.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.Rdl/PVAD.Migration.Report.Designer.Rdl.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.Rpx/PVAD.Migration.Report.Designer.Rpx.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.Stimulsoft/PVAD.Migration.Report.Designer.Stimulsoft.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PVAD.Migration.Report.Designer.Telerik/PVAD.Migration.Report.Designer.Telerik.csproj" />
+  </ItemGroup>
+
+</Project>

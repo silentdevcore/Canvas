@@ -9,10 +9,10 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds conservative PDF/A-2b preflight and conversion for existing PDFs, with explicit loss diagnostics, signature-removal approval, Viewer controls, and original-file preservation on blocked conversions.",
+  "summary": "PVAD adds conservative PDF/A-2b preflight and conversion for existing PDFs, with explicit loss diagnostics, signature-removal approval, Viewer controls, and original-file preservation on blocked conversions.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

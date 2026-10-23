@@ -14,7 +14,7 @@
     "designer.release-notes"
   ],
   "documentation": [
-    "/checklists/PXA.Designer-Open-Work-Audit.md",
+    "/checklists/PVAD.Designer-Open-Work-Audit.md",
     "/checklists/UI-LivePreview.md"
   ],
   "breaking": false

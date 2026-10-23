@@ -10,11 +10,11 @@
     "importer"
   ],
   "category": "improved",
-  "summary": "PXA validates PDF trust settings consistently across Designer and code exports and provides an ordered final-byte pipeline for verified redaction, signing, sanitization, and trust inspection.",
+  "summary": "PVAD validates PDF trust settings consistently across Designer and code exports and provides an ordered final-byte pipeline for verified redaction, signing, sanitization, and trust inspection.",
   "featureIds": [],
   "documentation": [
-    "/docs/guides/PXA.Pdf-Trust-Generator-Examples.md",
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/docs/guides/PVAD.Pdf-Trust-Generator-Examples.md",
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

@@ -1,5 +1,7 @@
 # Migration Namespace Taxonomy
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Summary
 
 Tracker for restructuring migration projects and namespaces so that each provider clearly communicates:
@@ -19,7 +21,7 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 `domain`, `migrationKind`, and `provider`.
 
 The physical namespace work in this checklist is the implemented foundation for
-[`PXA.Unified-Migration-Frameworks.md`](PXA.Unified-Migration-Frameworks.md), which owns the canonical registry,
+[`PVAD.Unified-Migration-Frameworks.md`](PVAD.Unified-Migration-Frameworks.md), which owns the canonical registry,
 v1 API and permissions. Technical domains remain separate in the API, while Report Designer is intentionally
 presented inside the PDF product experience at `/pdf/migrations/designer`.
 

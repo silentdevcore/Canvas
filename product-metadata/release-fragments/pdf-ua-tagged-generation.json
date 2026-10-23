@@ -8,10 +8,10 @@
     "generator"
   ],
   "category": "added",
-  "summary": "PXA generates tagged PDF/UA version 1 output with tables, accessible links, native form controls, focus order, and provider-specific tags mapped to standard roles. Export is blocked when semantics are incomplete, and maintained fixtures are validated with veraPDF.",
+  "summary": "PVAD generates tagged PDF/UA version 1 output with tables, accessible links, native form controls, focus order, and provider-specific tags mapped to standard roles. Export is blocked when semantics are incomplete, and maintained fixtures are validated with veraPDF.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

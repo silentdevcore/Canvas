@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-active-guides-and-public-downloads",
+  "impact": "patch",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "Documentation ships the linked Chart and Code Workspace guides and explains current Designer groups, source markers and native project extensions. Public API-reference inputs include linked native and architecture guides while operator navigation remains excluded.",
+  "featureIds": [],
+  "documentation": ["/docs/charts.md", "/docs/code-designer-workspace.md"],
+  "breaking": false
+}

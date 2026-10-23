@@ -10,11 +10,11 @@
     "spreadsheet"
   ],
   "category": "improved",
-  "summary": "PXA now offers a searchable migration workbench with provider-specific file validation, previews, generated output, and diagnostics while keeping PDF and Spreadsheet workflows separate. Nutrient Viewer migration opens its editable design and rendered PDF directly in PXA Designer and PDF Viewer.",
+  "summary": "PVAD now offers a searchable migration workbench with provider-specific file validation, previews, generated output, and diagnostics while keeping PDF and Spreadsheet workflows separate. Nutrient Viewer migration opens its editable design and rendered PDF directly in PVADE Designer and PDF Viewer.",
   "documentation": [
-    "/checklists/PXA.Unified-Migration-Frameworks.md",
+    "/checklists/PVAD.Unified-Migration-Frameworks.md",
     "/checklists/Migration-Namespace-Taxonomy.md",
-    "/docs/guides/PXA.Unified-Migration-Provider-Coverage.md",
+    "/docs/guides/PVAD.Unified-Migration-Provider-Coverage.md",
     "/#provider-taxonomy"
   ],
   "breaking": false

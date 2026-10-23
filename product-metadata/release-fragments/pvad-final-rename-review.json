@@ -1,0 +1,8 @@
+{
+  "id": "pvad-final-rename-review",
+  "impact": "patch",
+  "components": ["api", "generator", "importer", "documentation", "company", "designer", "infrastructure"],
+  "category": "fixed",
+  "summary": "Align remaining sample PDF metadata, migration preview captions and integration guides with PVAD and PVADE, clarify historical checklist names, and install locked dependencies before configuration checks in CI.",
+  "breaking": false
+}

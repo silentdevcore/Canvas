@@ -1,4 +1,4 @@
-export type PxaStatusKey =
+export type PvadStatusKey =
   | 'badRequest' | 'unauthenticated' | 'sessionExpired' | 'forbidden'
   | 'entitlementDenied' | 'suspended' | 'trialExpired' | 'notFound'
   | 'conflict' | 'expiredLink' | 'fileTooLarge' | 'rateLimited'
@@ -6,26 +6,26 @@ export type PxaStatusKey =
   | 'unexpected' | 'upstreamUnavailable' | 'unavailable' | 'maintenance'
   | 'timeout' | 'offline' | 'incompatibleVersion' | 'unsupportedBrowser';
 
-export type PxaStatusAction = 'back' | 'home' | 'reload' | 'retry' | 'signIn' | 'subscription' | 'support';
-export type PxaStatusRetryPolicy = 'none' | 'manual';
+export type PvadStatusAction = 'back' | 'home' | 'reload' | 'retry' | 'signIn' | 'subscription' | 'support';
+export type PvadStatusRetryPolicy = 'none' | 'manual';
 
-export interface PxaStatusDefinition {
+export interface PvadStatusDefinition {
   httpStatus: number | null;
   title: string;
   message: string;
-  primaryAction: PxaStatusAction;
+  primaryAction: PvadStatusAction;
 }
 
-export interface PxaStatusPageOptions {
+export interface PvadStatusPageOptions {
   product?: string;
   title?: string;
   message?: string;
   workState?: string;
   diagnosticCode?: string;
   correlationId?: string;
-  primaryAction?: PxaStatusAction;
+  primaryAction?: PvadStatusAction;
   primaryLabel?: string;
-  secondaryAction?: PxaStatusAction;
+  secondaryAction?: PvadStatusAction;
   secondaryHref?: string;
   secondaryLabel?: string;
   backHref?: string;
@@ -36,34 +36,36 @@ export interface PxaStatusPageOptions {
   allowedOrigins?: string;
 }
 
-export interface PxaStatusPageModel extends PxaStatusDefinition {
-  statusKey: PxaStatusKey;
-  retryPolicy: PxaStatusRetryPolicy;
-  secondaryAction?: PxaStatusAction;
+export interface PvadStatusPageModel extends PvadStatusDefinition {
+  statusKey: PvadStatusKey;
+  retryPolicy: PvadStatusRetryPolicy;
+  secondaryAction?: PvadStatusAction;
   diagnosticCode?: string;
   correlationId?: string;
   supportHref: string;
 }
 
-interface PxaBrowserTelemetryBridge {
+interface PvadBrowserTelemetryBridge {
   record(type: string, outcome: string, values?: { name?: string; correlationId?: string }): void;
 }
 
-function browserTelemetry(): PxaBrowserTelemetryBridge | undefined {
-  return (globalThis as typeof globalThis & {
-    __pxaBrowserTelemetry?: PxaBrowserTelemetryBridge;
-  }).__pxaBrowserTelemetry;
+function browserTelemetry(): PvadBrowserTelemetryBridge | undefined {
+  const bridge = globalThis as typeof globalThis & {
+    __pvadBrowserTelemetry?: PvadBrowserTelemetryBridge;
+    __pxaBrowserTelemetry?: PvadBrowserTelemetryBridge;
+  };
+  return bridge.__pvadBrowserTelemetry ?? bridge.__pxaBrowserTelemetry;
 }
 
-export function recordStatusPageShown(statusKey: PxaStatusKey, correlationId?: string) {
+export function recordStatusPageShown(statusKey: PvadStatusKey, correlationId?: string) {
   browserTelemetry()?.record('status_page', 'shown', { name: statusKey, correlationId });
 }
 
-export function recordStatusRecoverySelected(action: PxaStatusAction | 'account', correlationId?: string) {
+export function recordStatusRecoverySelected(action: PvadStatusAction | 'account', correlationId?: string) {
   browserTelemetry()?.record('status_recovery', 'selected', { name: action, correlationId });
 }
 
-const STATUS_DEFINITIONS: Readonly<Record<PxaStatusKey, PxaStatusDefinition>> = Object.freeze({
+const STATUS_DEFINITIONS: Readonly<Record<PvadStatusKey, PvadStatusDefinition>> = Object.freeze({
   badRequest: {
     httpStatus: 400,
     title: 'Request could not be processed',
@@ -97,7 +99,7 @@ const STATUS_DEFINITIONS: Readonly<Record<PxaStatusKey, PxaStatusDefinition>> = 
   suspended: {
     httpStatus: 403,
     title: 'Account access is suspended',
-    message: 'Contact your organization administrator or PXA Support before trying again.',
+    message: 'Contact your organization administrator or PVADE Support before trying again.',
     primaryAction: 'support',
   },
   trialExpired: {
@@ -145,7 +147,7 @@ const STATUS_DEFINITIONS: Readonly<Record<PxaStatusKey, PxaStatusDefinition>> = 
   unexpected: {
     httpStatus: 500,
     title: 'Something went wrong',
-    message: 'PXA could not complete this request. Your saved work remains available.',
+    message: 'PVADE could not complete this request. Your saved work remains available.',
     primaryAction: 'retry',
   },
   upstreamUnavailable: {
@@ -157,13 +159,13 @@ const STATUS_DEFINITIONS: Readonly<Record<PxaStatusKey, PxaStatusDefinition>> = 
   unavailable: {
     httpStatus: 503,
     title: 'Service temporarily unavailable',
-    message: 'PXA is temporarily unavailable. Try again shortly.',
+    message: 'PVADE is temporarily unavailable. Try again shortly.',
     primaryAction: 'retry',
   },
   maintenance: {
     httpStatus: 503,
     title: 'Planned maintenance',
-    message: 'PXA is undergoing planned maintenance. Your stored documents are not affected.',
+    message: 'PVADE is undergoing planned maintenance. Your stored documents are not affected.',
     primaryAction: 'retry',
   },
   timeout: {
@@ -181,13 +183,13 @@ const STATUS_DEFINITIONS: Readonly<Record<PxaStatusKey, PxaStatusDefinition>> = 
   incompatibleVersion: {
     httpStatus: null,
     title: 'Update required',
-    message: 'This application version is not compatible with the PXA API. Reload to get the latest version.',
+    message: 'This application version is not compatible with the PVADE API. Reload to get the latest version.',
     primaryAction: 'reload',
   },
   unsupportedBrowser: {
     httpStatus: null,
     title: 'Browser not supported',
-    message: 'Open PXA in a current version of a supported browser.',
+    message: 'Open PVADE in a current version of a supported browser.',
     primaryAction: 'support',
   },
 });
@@ -223,9 +225,9 @@ function safeHref(value: string, fallback = '/', allowedOrigins: string[] = []) 
   }
 }
 
-export function getStatusDefinition(statusKey: PxaStatusKey) {
+export function getStatusDefinition(statusKey: PvadStatusKey) {
   const definition = STATUS_DEFINITIONS[statusKey];
-  if (!definition) throw new Error(`Unknown PXA status key: ${statusKey}`);
+  if (!definition) throw new Error(`Unknown PVADE status key: ${statusKey}`);
   return definition;
 }
 
@@ -237,9 +239,9 @@ export function getStatusCatalog() {
 }
 
 export function createStatusPageModel(
-  statusKey: PxaStatusKey,
-  options: PxaStatusPageOptions = {},
-): PxaStatusPageModel {
+  statusKey: PvadStatusKey,
+  options: PvadStatusPageOptions = {},
+): PvadStatusPageModel {
   const definition = getStatusDefinition(statusKey);
   return {
     statusKey,
@@ -255,14 +257,14 @@ export function createStatusPageModel(
   };
 }
 
-export function renderStatusPage(statusKey: PxaStatusKey, options: PxaStatusPageOptions = {}) {
+export function renderStatusPage(statusKey: PvadStatusKey, options: PvadStatusPageOptions = {}) {
   const definition = getStatusDefinition(statusKey);
-  const product = options.product || 'PXA';
+  const product = options.product || 'PVADE';
   const candidateAction = options.primaryAction;
-  const action: PxaStatusAction = candidateAction && candidateAction in ACTION_LABELS
+  const action: PvadStatusAction = candidateAction && candidateAction in ACTION_LABELS
     ? candidateAction
     : definition.primaryAction;
-  const hrefs: Record<PxaStatusAction, string> = {
+  const hrefs: Record<PvadStatusAction, string> = {
     back: options.backHref || '/',
     home: options.homeHref || '/',
     reload: window.location.href,
@@ -273,40 +275,40 @@ export function renderStatusPage(statusKey: PxaStatusKey, options: PxaStatusPage
   };
   const diagnosticParts = [options.diagnosticCode, options.correlationId].filter(Boolean);
   const allowedOrigins = (options.allowedOrigins || '').split(',').map(value => value.trim()).filter(Boolean);
-  const statusLabel = definition.httpStatus ? String(definition.httpStatus) : 'PXA';
+  const statusLabel = definition.httpStatus ? String(definition.httpStatus) : 'PVADE';
   const title = options.title || definition.title;
   const message = options.message || definition.message;
 
   return `
-    <main class="pxa-status-page" data-status-key="${escapeHtml(statusKey)}"${options.correlationId ? ` data-correlation-id="${escapeHtml(options.correlationId)}"` : ''} tabindex="-1">
-      <div class="pxa-status-page__brand" aria-label="${escapeHtml(product)}">
-        <span class="pxa-status-page__mark" aria-hidden="true">PXA</span>
+    <main class="pvad-status-page" data-status-key="${escapeHtml(statusKey)}"${options.correlationId ? ` data-correlation-id="${escapeHtml(options.correlationId)}"` : ''} tabindex="-1">
+      <div class="pvad-status-page__brand" aria-label="${escapeHtml(product)}">
+        <span class="pvad-status-page__mark" aria-hidden="true">PVADE</span>
         <span>${escapeHtml(product)}</span>
       </div>
-      <section class="pxa-status-page__content" aria-labelledby="pxa-status-title" aria-live="polite" aria-atomic="true">
-        <p class="pxa-status-page__code">${escapeHtml(statusLabel)}</p>
-        <h1 id="pxa-status-title" tabindex="-1">${escapeHtml(title)}</h1>
-        <p class="pxa-status-page__message">${escapeHtml(message)}</p>
-        ${options.workState ? `<p class="pxa-status-page__work-state">${escapeHtml(options.workState)}</p>` : ''}
-        <div class="pxa-status-page__actions">
-          <a class="pxa-button pxa-button--primary" href="${escapeHtml(safeHref(hrefs[action], '/', allowedOrigins))}" data-status-action="${escapeHtml(action)}">${escapeHtml(options.primaryLabel || ACTION_LABELS[action])}</a>
-          ${options.secondaryHref && options.secondaryLabel ? `<a class="pxa-button pxa-button--secondary" href="${escapeHtml(safeHref(options.secondaryHref, '/', allowedOrigins))}">${escapeHtml(options.secondaryLabel)}</a>` : ''}
+      <section class="pvad-status-page__content" aria-labelledby="pvad-status-title" aria-live="polite" aria-atomic="true">
+        <p class="pvad-status-page__code">${escapeHtml(statusLabel)}</p>
+        <h1 id="pvad-status-title" tabindex="-1">${escapeHtml(title)}</h1>
+        <p class="pvad-status-page__message">${escapeHtml(message)}</p>
+        ${options.workState ? `<p class="pvad-status-page__work-state">${escapeHtml(options.workState)}</p>` : ''}
+        <div class="pvad-status-page__actions">
+          <a class="pvad-button pvad-button--primary" href="${escapeHtml(safeHref(hrefs[action], '/', allowedOrigins))}" data-status-action="${escapeHtml(action)}">${escapeHtml(options.primaryLabel || ACTION_LABELS[action])}</a>
+          ${options.secondaryHref && options.secondaryLabel ? `<a class="pvad-button pvad-button--secondary" href="${escapeHtml(safeHref(options.secondaryHref, '/', allowedOrigins))}">${escapeHtml(options.secondaryLabel)}</a>` : ''}
         </div>
-        ${diagnosticParts.length ? `<div class="pxa-status-page__diagnostic"><span>Diagnostic details</span><code>${escapeHtml(diagnosticParts.join(' / '))}</code><button type="button" data-copy-diagnostic="${escapeHtml(diagnosticParts.join(' / '))}">Copy</button></div>` : ''}
+        ${diagnosticParts.length ? `<div class="pvad-status-page__diagnostic"><span>Diagnostic details</span><code>${escapeHtml(diagnosticParts.join(' / '))}</code><button type="button" data-copy-diagnostic="${escapeHtml(diagnosticParts.join(' / '))}">Copy</button></div>` : ''}
       </section>
-      <footer class="pxa-status-page__footer">Need help? <a href="${escapeHtml(safeHref(options.supportHref || '/support', '/', allowedOrigins))}">Contact PXA Support</a>.</footer>
+      <footer class="pvad-status-page__footer">Need help? <a href="${escapeHtml(safeHref(options.supportHref || '/support', '/', allowedOrigins))}">Contact PVADE Support</a>.</footer>
     </main>`;
 }
 
 export function bindStatusPage(container: Document | Element = document) {
-  const heading = container.querySelector<HTMLElement>('#pxa-status-title');
+  const heading = container.querySelector<HTMLElement>('#pvad-status-title');
   heading?.focus({ preventScroll: true });
-  const page = container.querySelector<HTMLElement>('.pxa-status-page');
+  const page = container.querySelector<HTMLElement>('.pvad-status-page');
   if (page?.dataset.statusKey)
-    recordStatusPageShown(page.dataset.statusKey as PxaStatusKey, page.dataset.correlationId);
+    recordStatusPageShown(page.dataset.statusKey as PvadStatusKey, page.dataset.correlationId);
   container.querySelector<HTMLElement>('[data-status-action]')?.addEventListener('click', (event) => {
     const action = (event.currentTarget as HTMLElement).dataset.statusAction;
-    if (action) recordStatusRecoverySelected(action as PxaStatusAction, page?.dataset.correlationId);
+    if (action) recordStatusRecoverySelected(action as PvadStatusAction, page?.dataset.correlationId);
   });
   container.querySelector('[data-copy-diagnostic]')?.addEventListener('click', async (event) => {
     const button = event.currentTarget as HTMLButtonElement;

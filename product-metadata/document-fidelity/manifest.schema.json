@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://powerdoxautomation.com/schemas/document-fidelity-manifest.schema.json",
-  "title": "PXA document fidelity corpus manifest",
+  "title": "PVAD document fidelity corpus manifest",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "policy", "fixtures"],

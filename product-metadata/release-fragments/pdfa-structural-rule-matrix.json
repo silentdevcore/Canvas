@@ -8,10 +8,10 @@
     "importer"
   ],
   "category": "fixed",
-  "summary": "PXA PDF/A validation now detects invalid annotation appearances, dynamic forms, optional-content configurations, rendering intents, and blend modes while preserving valid transparency.",
+  "summary": "PVAD PDF/A validation now detects invalid annotation appearances, dynamic forms, optional-content configurations, rendering intents, and blend modes while preserving valid transparency.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

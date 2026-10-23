@@ -1,6 +1,6 @@
 # Contributor Guide: Adding Renderers, Importers, and Migrations
 
-This guide covers the main extension patterns in Power Dox Automation / PXA:
+This guide covers the main extension patterns in PVADE / PVAD:
 
 - output renderers and exporters
 - file importers
@@ -8,7 +8,7 @@ This guide covers the main extension patterns in Power Dox Automation / PXA:
 - report-to-design converters
 - document operation endpoints
 
-Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change. PXA is now the active implementation identity. New developer-facing APIs and implementation projects should use `PXA.*` namespaces and project paths.
+Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change. PVAD is the technical identity; PVADE is the platform display name. New developer-facing APIs and implementation projects use `PVAD.*`. Preserve explicitly documented legacy readers and immutable historical evidence.
 
 ---
 
@@ -18,25 +18,25 @@ Keep new code inside the smallest project boundary that owns the feature, and up
 
 Use an existing infrastructure project when the format belongs to an established adapter family:
 
-- `src/Infrastructure/PXA.Infrastructure.Pdf` for PDF rendering services.
-- `src/Infrastructure/PXA.Infrastructure.Word` for DOCX/Word output.
-- `src/Infrastructure/PXA.Infrastructure.Spreadsheet` for XLSX output.
-- `src/Infrastructure/PXA.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
+- `src/Infrastructure/PVAD.Infrastructure.Pdf` for PDF rendering services.
+- `src/Infrastructure/PVAD.Infrastructure.Word` for DOCX/Word output.
+- `src/Infrastructure/PVAD.Infrastructure.Spreadsheet` for XLSX output.
+- `src/Infrastructure/PVAD.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
 
-Create `src/Infrastructure/PXA.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
+Create `src/Infrastructure/PVAD.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
 
-When the feature is public developer-facing API, add or update the corresponding `PXA.Infrastructure.*` or
-`PXA.Generator` facade so new examples do not need to start from old PXA names.
+When the feature is public developer-facing API, add or update the corresponding `PVAD.Infrastructure.*` or
+`PVAD.Generator` facade so new examples do not need to start from old PXA names.
 
 Dependencies:
 
-- Required: `PXA.Core`
-- Optional: `PXA.Application` only when orchestration helpers are explicitly needed
+- Required: `PVAD.Core`
+- Optional: `PVAD.Application` only when orchestration helpers are explicitly needed
 - Avoid references to other infrastructure projects
 
 ### 2. Implement the exporter
 
-Implement `IDocumentRenderer` or the existing format-specific equivalent from `PXA.Core.Abstractions`.
+Implement `IDocumentRenderer` or the existing format-specific equivalent from `PVAD.Core.Abstractions`.
 
 Naming convention:
 
@@ -60,7 +60,7 @@ Implement supporting services where applicable:
 
 ### 3. Register the backend
 
-Wire the exporter in `PXA.WebApi/Program.cs` and expose it through `ExportController`.
+Wire the exporter in `PVAD.WebApi/Program.cs` and expose it through `ExportController`.
 
 Update:
 
@@ -70,12 +70,12 @@ Update:
 
 ### 4. Add the frontend format entry
 
-In `pxa-designer/src/services/ExportService.ts`:
+In `pvad-designer/src/services/ExportService.ts`:
 
 - add the format literal to the `ExportFormat` union
 - add the extension to the extension map
 
-In `pxa-designer/src/components/Editor/ExportModal.tsx`:
+In `pvad-designer/src/components/Editor/ExportModal.tsx`:
 
 - add a format option in the appropriate group
 - keep server-side/client-side behavior consistent with existing options
@@ -84,7 +84,7 @@ In `pxa-designer/src/components/Editor/ExportModal.tsx`:
 
 Add or update tests in the closest project:
 
-- `tests/PXA.Export.Tests` for end-to-end export behavior
+- `tests/PVAD.Export.Tests` for end-to-end export behavior
 - a dedicated infrastructure test project if the renderer has substantial internal behavior
 - snapshot tests only when output is stable enough to make them meaningful
 
@@ -99,35 +99,35 @@ Add or update tests in the closest project:
 
 ## Pattern B - File Importer
 
-New file importers should expose a PXA-facing facade and use the dedicated PXA implementation project pattern.
+New file importers should expose a PVAD-facing facade and use the dedicated PVAD implementation project pattern.
 
 ### 1. Create the importer project
 
 Project layout:
 
 ```text
-src/Importing/PXA.FileImporter.<Format>/
-tests/PXA.FileImporter.<Format>.Tests/
+src/Importing/PVAD.FileImporter.<Format>/
+tests/PVAD.FileImporter.<Format>.Tests/
 ```
 
 Public facade target:
 
 ```text
-src/Importing/PXA.FileImporter.<Format>/
+src/Importing/PVAD.FileImporter.<Format>/
 ```
 
 Dependencies:
 
-- `PXA.FileImporter`
-- `PXA.Core`
+- `PVAD.FileImporter`
+- `PVAD.Core`
 - parser/conversion packages needed by that format only
-- `PXA.Importer` only for PDF-specific importers that need the PDF parser/editor engine
+- `PVAD.Importer` only for PDF-specific importers that need the PDF parser/editor engine
 
-Avoid placing new importers in `PXA.Infrastructure.Converters`; that project now owns converter-style exporters and shared converter infrastructure, not the preferred importer boundary.
+Avoid placing new importers in `PVAD.Infrastructure.Converters`; that project now owns converter-style exporters and shared converter infrastructure, not the preferred importer boundary.
 
 ### 2. Implement `IFileImporter`
 
-Implement the importer contract from `src/Importing/PXA.FileImporter`.
+Implement the importer contract from `src/Importing/PVAD.FileImporter`.
 
 Naming convention:
 
@@ -167,7 +167,7 @@ Current import endpoints include:
 
 ### 4. Add frontend support
 
-Update `pxa-designer`:
+Update `pvad-designer`:
 
 - `ExportService.ts`: service method calling the endpoint
 - `useTemplateLoader.ts`: file-extension dispatch
@@ -176,14 +176,14 @@ Update `pxa-designer`:
 
 ### 5. Add tests
 
-Add focused tests in `tests/PXA.FileImporter.<Format>.Tests`.
+Add focused tests in `tests/PVAD.FileImporter.<Format>.Tests`.
 
 Minimum coverage:
 
 - valid sample imports to `DesignExportDto`
 - invalid/empty input behavior
 - key layout and element mapping assertions
-- endpoint smoke test in `PXA.Api.Tests` when the WebApi route is new
+- endpoint smoke test in `PVAD.Api.Tests` when the WebApi route is new
 
 ### 6. Update docs
 
@@ -196,28 +196,28 @@ Minimum coverage:
 
 ## Pattern C - PDF Code Migration Provider
 
-Use this pattern when converting C# source from a third-party PDF library into PXA-compatible PDF C# source.
+Use this pattern when converting C# source from a third-party PDF library into PVAD-compatible PDF C# source.
 
 ### 1. Create provider project and tests
 
 Project layout:
 
 ```text
-src/PXA.Migration.<Provider>/
-tests/PXA.Migration.<Provider>.Tests/
+src/PVAD.Migration.<Provider>/
+tests/PVAD.Migration.<Provider>.Tests/
 ```
 
 Public facade target:
 
 ```text
-src/PXA.Migration.<Provider>/ or provider registry under src/Migrations/PDF/PXA.Migration.Pdf/
+src/PVAD.Migration.<Provider>/ or provider registry under src/Migrations/PDF/PVAD.Migration.Pdf/
 ```
 
 Dependencies:
 
-- `PXA.Migration.Abstractions`
-- `PXA.Migration.Roslyn` for C# source rewriting providers
-- `PXA.Core` only when DTO/contracts are required
+- `PVAD.Migration.Abstractions`
+- `PVAD.Migration.Roslyn` for C# source rewriting providers
+- `PVAD.Core` only when DTO/contracts are required
 
 Do not reference rendering/importer infrastructure from provider migration projects.
 
@@ -238,8 +238,8 @@ Keep the first slice conservative: document creation, page creation, simple text
 
 Preferred implementation:
 
-- Roslyn-backed rewriter under `src/PXA.Migration.<Provider>`
-- provider-neutral result and diagnostic contracts from `PXA.Migration.Abstractions`
+- Roslyn-backed rewriter under `src/PVAD.Migration.<Provider>`
+- provider-neutral result and diagnostic contracts from `PVAD.Migration.Abstractions`
 - no silent destructive rewrites
 - preserve source where manual follow-up is required
 
@@ -250,9 +250,9 @@ Add the converter to the appropriate typed aggregator and register one
 
 Ensure it appears in:
 
-- `GET /api/pxa/v1/migrations/catalog`
-- `POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/convert`
-- `POST /api/pxa/v1/migrations/{domain}/{kind}/{provider}/preview`, when preview is supported
+- `GET /api/pvad/v1/migrations/catalog`
+- `POST /api/pvad/v1/migrations/{domain}/{kind}/{provider}/convert`
+- `POST /api/pvad/v1/migrations/{domain}/{kind}/{provider}/preview`, when preview is supported
 
 The descriptor is the source for domain, kind, canonical key, historical aliases,
 inputs, artifacts, status, Documentation ID, feature gate, limits, and canonical
@@ -280,17 +280,17 @@ Provider tests should cover:
 
 ## Pattern D - Report-To-Design Converter
 
-Use this pattern when a reporting framework or report file format should become an editable PXA design.
+Use this pattern when a reporting framework or report file format should become an editable PVAD design.
 
 Existing examples:
 
-- `PXA.Migration.Report.Designer.DevExpress`: XtraReport C# and REPX
-- `PXA.Migration.Report.Designer.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
-- `PXA.Migration.Report.Designer.Rpx`: ActiveReports/GrapeCity section reports
+- `PVAD.Migration.Report.Designer.DevExpress`: XtraReport C# and REPX
+- `PVAD.Migration.Report.Designer.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
+- `PVAD.Migration.Report.Designer.Rpx`: ActiveReports/GrapeCity section reports
 
 ### 1. Target `DesignExportDto`
 
-Report converters output editable design JSON, not PXA-compatible PDF C# source.
+Report converters output editable design JSON, not PVAD-compatible PDF C# source.
 
 The converter should preserve:
 
@@ -306,11 +306,11 @@ The converter should preserve:
 Project layout:
 
 ```text
-src/PXA.Migration.<ReportFormat>/
-tests/PXA.Migration.<ReportFormat>.Tests/
+src/PVAD.Migration.<ReportFormat>/
+tests/PVAD.Migration.<ReportFormat>.Tests/
 ```
 
-Use `PXA.Migration.Abstractions` for diagnostics and `PXA.Core` for `DesignExportDto`.
+Use `PVAD.Migration.Abstractions` for diagnostics and `PVAD.Core` for `DesignExportDto`.
 
 ### 3. Wire endpoint routing
 
@@ -318,7 +318,7 @@ Register the converter in `MigrationProviderCatalog` with domain `report` and ki
 `designer`. The canonical endpoint is:
 
 ```text
-POST /api/pxa/v1/migrations/report/designer/{provider}/convert
+POST /api/pvad/v1/migrations/report/designer/{provider}/convert
 ```
 
 Normal requests select a provider explicitly. Detection must be explicit and
@@ -354,7 +354,7 @@ Use this pattern for operations such as clone, extract-pages, sign, find-replace
 Place orchestration in:
 
 ```text
-src/Core/PXA.Application/UseCases/<Name>UseCase.cs
+src/Core/PVAD.Application/UseCases/<Name>UseCase.cs
 ```
 
 Keep concrete file-format work in infrastructure/importer projects.
@@ -365,12 +365,12 @@ Add the route to the owning controller, usually `DocumentOpsController`.
 
 ### 3. Add frontend service support
 
-Add a static method in `pxa-designer/src/services/ExportService.ts` or a more specific service if one exists.
+Add a static method in `pvad-designer/src/services/ExportService.ts` or a more specific service if one exists.
 
 ### 4. Add tests and docs
 
-- Use-case tests in `PXA.Application.Tests`
-- endpoint tests in `PXA.Api.Tests`
+- Use-case tests in `PVAD.Application.Tests`
+- endpoint tests in `PVAD.Api.Tests`
 - README/API docs and relevant checklist entries
 
 ---

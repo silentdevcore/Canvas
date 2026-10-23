@@ -1,0 +1,6 @@
+@PVAD.WebApi_HostAddress = http://localhost:5086
+
+GET {{PVAD.WebApi_HostAddress}}/api/pvad/system/brand
+Accept: application/json
+
+###

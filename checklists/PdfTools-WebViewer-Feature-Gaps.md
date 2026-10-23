@@ -1,5 +1,7 @@
 # PDF Tools Web Viewer Feature Gaps
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Scope
 
 This checklist tracks ideas from the **Pdftools Web Viewer** demo (`https://viewer.pdf-tools.com/v5/`)
@@ -36,7 +38,7 @@ Observed demo/source facts:
 - [x] PXA.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
 - [x] PXA has file importer and PDF importer foundations for existing documents.
 - [x] PXA has a broader provider feature-gap roadmap in
-      [PxaPdf-Provider-Feature-Gaps.md](PxaPdf-Provider-Feature-Gaps.md).
+      [PvadPdf-Provider-Feature-Gaps.md](PvadPdf-Provider-Feature-Gaps.md).
 
 ## Current Implementation Status
 
@@ -63,7 +65,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       document-level carriers are sanitized, the result is saved as a full rewrite so no earlier
       revision retains the removed content, and it is verified before being returned. The former
       regenerate-the-whole-document path has been removed. Remaining Milestone 3 gaps are tracked
-      in `PXA.PDF-Trust-Foundation.md`.
+      in `PVAD.PDF-Trust-Foundation.md`.
 - [x] Redaction preflight: `POST /api/pxa/v1/pdf/redactions/preflight` reports per region what
       would be removed and what PXA cannot account for, without mutating the document
 - [x] Redaction audit record: apply returns the source and result hashes, regions, actor, reason,
@@ -368,7 +370,7 @@ redaction and form editing.
 ## References
 
 - Pdftools Web Viewer demo: https://viewer.pdf-tools.com/v5/
-- PXA.PDF provider gaps: [PxaPdf-Provider-Feature-Gaps.md](PxaPdf-Provider-Feature-Gaps.md)
-- Specialized PDF domains: [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md)
+- PXA.PDF provider gaps: [PvadPdf-Provider-Feature-Gaps.md](PvadPdf-Provider-Feature-Gaps.md)
+- Specialized PDF domains: [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md)
 - PDF Tools SDK migration checklist: [Code-Migration-PdfTools.md](Code-Migration-PdfTools.md)
 - PDF Toolbox migration checklist: [Code-Migration-PdfToolsToolbox.md](Code-Migration-PdfToolsToolbox.md)

@@ -24,7 +24,7 @@ test('status catalog contains unique keys and valid HTTP statuses', () => {
 });
 
 test('unknown status keys fail closed', () => {
-  assert.throws(() => getStatusDefinition('madeUp'), /Unknown PXA status key/);
+  assert.throws(() => getStatusDefinition('madeUp'), /Unknown PVADE status key/);
 });
 
 test('status model exposes bounded recovery and diagnostic fields', () => {

@@ -9,27 +9,27 @@ updates:
     open-pull-requests-limit: 10
 
   - package-ecosystem: "npm"
-    directory: "/pxa-designer"
+    directory: "/pvad-designer"
     target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
   - package-ecosystem: "npm"
-    directory: "/websites/PXA.Admin"
+    directory: "/websites/PVAD.Admin"
     target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
 
   - package-ecosystem: "npm"
-    directory: "/tools/PXA.Mcp"
+    directory: "/tools/PVAD.Mcp"
     target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
 
   - package-ecosystem: "docker"
-    directory: "/PXA.WebApi"
+    directory: "/PVAD.WebApi"
     target-branch: "develop"
     schedule:
       interval: "weekly"

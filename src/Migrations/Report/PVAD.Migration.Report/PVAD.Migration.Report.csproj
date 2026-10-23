@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.ActiveReportsJs/PVAD.Migration.Report.Designer.ActiveReportsJs.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.DevExpress/PVAD.Migration.Report.Designer.DevExpress.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.FastReport/PVAD.Migration.Report.Designer.FastReport.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.JasperReports/PVAD.Migration.Report.Designer.JasperReports.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.Rdl/PVAD.Migration.Report.Designer.Rdl.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.Rpx/PVAD.Migration.Report.Designer.Rpx.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.Stimulsoft/PVAD.Migration.Report.Designer.Stimulsoft.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Report.Designer.Telerik/PVAD.Migration.Report.Designer.Telerik.csproj" />
+    <ProjectReference Include="../../../Core/PVAD.Core/PVAD.Core.csproj" />
+    <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

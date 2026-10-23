@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-technical-namespace-rename",
+  "impact": "major",
+  "components": ["api", "generator", "importer", "infrastructure", "migration", "spreadsheet", "observability", "documentation", "designer", "company", "account", "admin", "demo", "sdk"],
+  "category": "breaking",
+  "summary": "PVADE adopts PVAD libraries, APIs, schemas and MCP, plus PVADP/PVADS projects. Legacy credentials, licenses and protected data remain supported. Generated code uses PVAD markers with legacy readers; diagnostics and migration artifacts add canonical aliases. Review the migration guide.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-rename-migration-notes.md", "/docs/pvad-http-compatibility.md", "/docs/pvad-identity-compatibility.md", "/docs/pvad-license-and-job-compatibility.md", "/docs/pvad-schema-and-client-contracts.md", "/docs/pvad-code-generation-compatibility.md", "/docs/pvad-frontend-host-validation.md", "/docs/pvad-observability-identity.md"],
+  "breaking": true
+}

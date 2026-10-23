@@ -1,0 +1,120 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using PVAD.Core.Contracts;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace PVAD.Api.Tests;
+
+public sealed class SpreadsheetControllerTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient client;
+
+    public SpreadsheetControllerTests(WebApplicationFactory<Program> factory)
+    {
+        client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task FromData_PvadRoute_ReturnsWorkbook()
+    {
+        var json = """
+            [
+              { "Name": "North", "Amount": 42 },
+              { "Name": "South", "Amount": 17 }
+            ]
+            """;
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("/api/pxa/spreadsheet/from-data?sheetName=Sales", content);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Sales", body.GetProperty("name").GetString());
+        Assert.Equal("Sales", body.GetProperty("sheets")[0].GetProperty("name").GetString());
+        Assert.NotEmpty(body.GetProperty("sheets")[0].GetProperty("cells").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Validate_PvadRoute_ReturnsValidationResult()
+    {
+        var json = JsonSerializer.Serialize(SampleWorkbook());
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("/api/pxa/spreadsheet/validate", content);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(body.GetProperty("valid").GetBoolean());
+        Assert.Equal("1.0", body.GetProperty("version").GetString());
+        Assert.Equal("1.0", body.GetProperty("supportedVersion").GetString());
+    }
+
+    [Theory]
+    [InlineData("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx", "504B")]
+    [InlineData("xls", "application/vnd.ms-excel", ".xls", "D0CF11E0")]
+    [InlineData("csv", "text/csv", ".csv", null)]
+    [InlineData("tsv", "text/tab-separated-values", ".tsv", null)]
+    public async Task Export_ReturnsBytesMatchingTheDeclaredSpreadsheetFormat(
+        string format, string mediaType, string extension, string? signatureHex)
+    {
+        var workbook = SampleWorkbook();
+        workbook.Name = "Quarterly: Sales";
+
+        var response = await client.PostAsJsonAsync($"/api/pxa/spreadsheet/export?format={format}", workbook);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(mediaType, response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith(extension, response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Quarterly-Sales", response.Content.Headers.ContentDisposition?.ToString());
+        Assert.NotEmpty(bytes);
+        if (signatureHex is not null)
+            Assert.True(bytes.AsSpan().StartsWith(Convert.FromHexString(signatureHex)));
+    }
+
+    [Fact]
+    public async Task Export_RejectsUnknownFormatsInsteadOfReturningMislabeledXlsx()
+    {
+        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/export?format=pdf", SampleWorkbook());
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+        Assert.Contains("not supported", body.GetProperty("error").GetString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("xlsx", body.GetProperty("supportedFormats").EnumerateArray().Select(value => value.GetString()));
+    }
+
+    [Fact]
+    public async Task RenderPdf_ReturnsARealPdfWithMatchingFilename()
+    {
+        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/render?format=pdf", SampleWorkbook());
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith("Budget.pdf", response.Content.Headers.ContentDisposition?.FileNameStar ??
+            response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.Ordinal);
+        Assert.True(bytes.AsSpan().StartsWith("%PDF-"u8));
+    }
+
+    private static SpreadsheetDto SampleWorkbook() => new()
+    {
+        Id = "workbook-1",
+        Name = "Budget",
+        Sheets =
+        [
+            new SheetDto
+            {
+                Id = "sheet-1",
+                Name = "Sheet1",
+                Cells =
+                [
+                    new CellDto { Row = 0, Col = 0, Type = "text", Value = "Name" },
+                    new CellDto { Row = 1, Col = 0, Type = "text", Value = "North" },
+                    new CellDto { Row = 1, Col = 1, Type = "number", Value = 42 }
+                ]
+            }
+        ]
+    };
+}

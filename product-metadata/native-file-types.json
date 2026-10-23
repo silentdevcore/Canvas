@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "application": "PVADE Designer",
+  "nativeFileOpenSupported": false,
+  "browserFileOpenImplemented": true,
+  "requires": ["supported-browser-pwa-installation", "per-os-install-open-and-uninstall-tests"],
+  "types": [
+    {
+      "kind": "pdf",
+      "extension": ".pvadp",
+      "mediaType": "application/vnd.pvad.pvadp+zip",
+      "description": "PVADE PDF project (PVADP)",
+      "macTypeIdentifier": "com.pvade.pvad.pdf-project",
+      "windowsProgId": "PVAD.Project.Pdf"
+    },
+    {
+      "kind": "spreadsheet",
+      "extension": ".pvads",
+      "mediaType": "application/vnd.pvad.pvads+zip",
+      "description": "PVADE Spreadsheet project (PVADS)",
+      "macTypeIdentifier": "com.pvade.pvad.spreadsheet-project",
+      "windowsProgId": "PVAD.Project.Spreadsheet"
+    }
+  ]
+}

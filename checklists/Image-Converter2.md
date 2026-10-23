@@ -1,7 +1,9 @@
 # Image-Converter2.md: New OCR-Based Image-to-PDF Converter
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 > The broader PDF document-capture milestone is centralized in
-> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md)
+> [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md)
 > and builds on the OCR and image-conversion foundation tracked here.
 
 ## Summary

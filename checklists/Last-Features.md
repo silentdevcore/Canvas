@@ -1,5 +1,7 @@
 # Last Features — Missing GemBox Document Capabilities
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Features available in [GemBox.Document](https://www.gemboxsoftware.com/document) compared to PXA.
 Items marked ✅ have been implemented. Items still open remain unchecked.
 

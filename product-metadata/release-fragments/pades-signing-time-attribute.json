@@ -6,6 +6,6 @@
     "importer"
   ],
   "category": "fixed",
-  "summary": "PXA PAdES and redaction audit signatures now carry consistently encoded signed signing-time metadata while trusted timestamps remain independently validated.",
+  "summary": "PVAD PAdES and redaction audit signatures now carry consistently encoded signed signing-time metadata while trusted timestamps remain independently validated.",
   "breaking": false
 }

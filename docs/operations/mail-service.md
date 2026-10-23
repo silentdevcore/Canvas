@@ -1,6 +1,6 @@
 # Mail Service Operations
 
-PXA queues transactional mail in PostgreSQL and delivers it through a configured transport. Queue payloads are protected with ASP.NET Core Data Protection. Rendered HTML and plain-text message bodies are created only during delivery and are not stored in the outbox.
+PVAD queues transactional mail in PostgreSQL and delivers it through a configured transport. Queue payloads are protected with ASP.NET Core Data Protection. Rendered HTML and plain-text message bodies are created only during delivery and are not stored in the outbox.
 
 ## Delivery modes
 
@@ -14,13 +14,13 @@ Use external secret storage for SMTP credentials and persist the configured Data
 
 ## Disabled mail
 
-Disabled mode is intended for isolated installations that cannot send email. The Admin mail status reports delivery as disabled, and queued messages remain pending. PXA does not expose invitation or password-reset tokens through the Admin API.
+Disabled mode is intended for isolated installations that cannot send email. The Admin mail status reports delivery as disabled, and queued messages remain pending. PVAD does not expose invitation or password-reset tokens through the Admin API.
 
 Administrators should either configure SMTP and let the queue resume or use an approved identity-administration procedure to restore account access. Do not copy protected payloads or token records from the database.
 
 ## Retry and recovery
 
-Transient failures use bounded exponential retries. A message moves to `dead_letter` after five failed attempts. Unknown or removed templates fail permanently. Authorized tenant administrators can inspect sanitized failure metadata and retry or cancel eligible messages through PXA Admin.
+Transient failures use bounded exponential retries. A message moves to `dead_letter` after five failed attempts. Unknown or removed templates fail permanently. Authorized tenant administrators can inspect sanitized failure metadata and retry or cancel eligible messages through PVAD Admin.
 
 Investigate SMTP connectivity, credentials, TLS configuration, and sender policy before retrying a failed batch. Retry actions are audited and idempotency keys prevent a workflow from enqueueing the same message twice.
 

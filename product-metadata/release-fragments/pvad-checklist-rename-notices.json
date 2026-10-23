@@ -1,0 +1,8 @@
+{
+  "id": "pvad-checklist-rename-notices",
+  "impact": "patch",
+  "components": ["documentation"],
+  "category": "improved",
+  "summary": "Clarify historical checklist names with an explicit technical rename notice and current market identity while preserving task status and implementation history.",
+  "breaking": false
+}

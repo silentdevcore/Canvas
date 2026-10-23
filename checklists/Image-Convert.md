@@ -1,5 +1,7 @@
 # Image -> PXA JSON / PDF Conversion Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Scope: build a custom raster-image analysis engine (`PXA.FileImporter.ImageAnalysis`) that converts images into editable PXA designs by recognizing layout, colors, shapes, and eventually text content without external OCR/CV binaries such as Tesseract. The engine should mirror the staged architecture of `PXA.Importer`, but stay deterministic, testable, and self-contained.
 
 ---

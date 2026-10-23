@@ -1,5 +1,7 @@
 # Phase 5 — Public API Stabilization Notes
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Stable façade entry point
 Use `PXA.Infrastructure.Pdf.PdfFacade` as the primary entry point for orchestration-based document generation.
 

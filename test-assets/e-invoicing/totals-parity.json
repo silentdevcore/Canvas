@@ -1,6 +1,6 @@
 {
   "schema": "pxa.e-invoice.totals-parity/1",
-  "purpose": "Pins invoice arithmetic so the Designer (TypeScript) and PXA.Generator (C#) can never drift. Amounts are fixed-point text with the case's currencyDecimalPlaces; rates and quantities use their shortest decimal form. Asserted by tests/PXA.Generator.Tests/EInvoiceTotalsParityTests.cs and pxa-designer/src/__tests__/eInvoiceTotalsParity.test.ts.",
+  "purpose": "Pins invoice arithmetic so the Designer (TypeScript) and PVAD.Generator (C#) can never drift. Amounts are fixed-point text with the case's currencyDecimalPlaces; rates and quantities use their shortest decimal form. Asserted by tests/PVAD.Generator.Tests/EInvoiceTotalsParityTests.cs and pvad-designer/src/__tests__/eInvoiceTotalsParity.test.ts.",
   "cases": [
     {
       "id": "single-standard-rate",

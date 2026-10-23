@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_RETENTION_KEEP_FAILED PVAD_TEST_LOG_RETENTION PVAD_TEST_METRIC_RETENTION PVAD_TEST_TRACE_RETENTION
+
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 compose_file="${root}/deploy/observability/retention-test/docker-compose.yml"
 project="pxa-retention-test"
@@ -25,7 +29,7 @@ cleanup() {
 
 finish() {
   local status=$?
-  if (( status != 0 )) && [[ "${PXA_RETENTION_KEEP_FAILED:-0}" == "1" ]]; then
+  if (( status != 0 )) && [[ "${PVAD_RETENTION_KEEP_FAILED:-0}" == "1" ]]; then
     rm -f "${metric_file}"
     echo "Retention test resources retained for diagnostics." >&2
     return
@@ -122,9 +126,9 @@ docker run --rm \
   prom/prometheus:v3.12.0 \
   tsdb create-blocks-from openmetrics /tmp/marker.prom /prometheus >/dev/null
 
-PXA_TEST_METRIC_RETENTION=365d \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=365d \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach
 wait_http http://127.0.0.1:19090/-/ready
 wait_http http://127.0.0.1:13101/ready
@@ -160,9 +164,9 @@ docker run --rm --user root \
         "${metadata}"
     done
   '
-PXA_TEST_METRIC_RETENTION=365d \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=365d \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach tempo
 wait_http http://127.0.0.1:13201/ready
 curl --fail --silent --show-error \
@@ -170,22 +174,22 @@ curl --fail --silent --show-error \
   http://127.0.0.1:13101/flush >/dev/null
 sleep 80
 
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate prometheus loki
 wait_http http://127.0.0.1:19090/-/ready
 wait_http http://127.0.0.1:13101/ready
 wait_http http://127.0.0.1:13201/ready
 sleep 80
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate loki
 wait_http http://127.0.0.1:13101/ready
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate tempo
 wait_http http://127.0.0.1:13201/ready
 

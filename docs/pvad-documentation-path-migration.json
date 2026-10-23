@@ -1,0 +1,297 @@
+{
+  "legacyContentPreserved": true,
+  "moves": [
+    {
+      "from": "checklists/PXA.Account-Branch-Review.md",
+      "to": "checklists/PVAD.Account-Branch-Review.md"
+    },
+    {
+      "from": "checklists/PXA.Account-Registration.md",
+      "to": "checklists/PVAD.Account-Registration.md"
+    },
+    {
+      "from": "checklists/PXA.Account.Portal-Implementation.md",
+      "to": "checklists/PVAD.Account.Portal-Implementation.md"
+    },
+    {
+      "from": "checklists/PXA.Account.md",
+      "to": "checklists/PVAD.Account.md"
+    },
+    {
+      "from": "checklists/PXA.Admin-Documentation.md",
+      "to": "checklists/PVAD.Admin-Documentation.md"
+    },
+    {
+      "from": "checklists/PXA.Admin.md",
+      "to": "checklists/PVAD.Admin.md"
+    },
+    {
+      "from": "checklists/PXA.Api-Docker.md",
+      "to": "checklists/PVAD.Api-Docker.md"
+    },
+    {
+      "from": "checklists/PXA.Application-Versioning-And-Releases.md",
+      "to": "checklists/PVAD.Application-Versioning-And-Releases.md"
+    },
+    {
+      "from": "checklists/PXA.Automated-Release-Notes.md",
+      "to": "checklists/PVAD.Automated-Release-Notes.md"
+    },
+    {
+      "from": "checklists/PXA.Brand-And-Logo-System.md",
+      "to": "checklists/PVAD.Brand-And-Logo-System.md"
+    },
+    {
+      "from": "checklists/PXA.CSharp-REST-SDK.md",
+      "to": "checklists/PVAD.CSharp-REST-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.Chart-Engine-And-PDF-Recognition.md",
+      "to": "checklists/PVAD.Chart-Engine-And-PDF-Recognition.md"
+    },
+    {
+      "from": "checklists/PXA.Code-Designer-Roundtrip.md",
+      "to": "checklists/PVAD.Code-Designer-Roundtrip.md"
+    },
+    {
+      "from": "checklists/PXA.Commercial-Launch-Decision-Packet.md",
+      "to": "checklists/PVAD.Commercial-Launch-Decision-Packet.md"
+    },
+    {
+      "from": "checklists/PXA.Company.md",
+      "to": "checklists/PVAD.Company.md"
+    },
+    {
+      "from": "checklists/PXA.Competitive-Feature-And-Pricing-Positioning.md",
+      "to": "checklists/PVAD.Competitive-Feature-And-Pricing-Positioning.md"
+    },
+    {
+      "from": "checklists/PXA.Competitive-Readiness-And-Milestones-DE.md",
+      "to": "checklists/PVAD.Competitive-Readiness-And-Milestones-DE.md"
+    },
+    {
+      "from": "checklists/PXA.Competitive-Readiness-And-Milestones.md",
+      "to": "checklists/PVAD.Competitive-Readiness-And-Milestones.md"
+    },
+    {
+      "from": "checklists/PXA.Database.md",
+      "to": "checklists/PVAD.Database.md"
+    },
+    {
+      "from": "checklists/PXA.Demo.md",
+      "to": "checklists/PVAD.Demo.md"
+    },
+    {
+      "from": "checklists/PXA.Dependency-Security-And-Compliance.md",
+      "to": "checklists/PVAD.Dependency-Security-And-Compliance.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Authentication.md",
+      "to": "checklists/PVAD.Designer-Authentication.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Canvas-Audit.md",
+      "to": "checklists/PVAD.Designer-Canvas-Audit.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Docker.md",
+      "to": "checklists/PVAD.Designer-Docker.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Document-Naming-And-Export-Audit.md",
+      "to": "checklists/PVAD.Designer-Document-Naming-And-Export-Audit.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Element-Library-And-Favorites.md",
+      "to": "checklists/PVAD.Designer-Element-Library-And-Favorites.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Home-Restructure.md",
+      "to": "checklists/PVAD.Designer-Home-Restructure.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Localization.md",
+      "to": "checklists/PVAD.Designer-Localization.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Open-Work-Audit.md",
+      "to": "checklists/PVAD.Designer-Open-Work-Audit.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-PDF-Visual-Parity.md",
+      "to": "checklists/PVAD.Designer-PDF-Visual-Parity.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Per-Page-Settings-And-Backend-Parity.md",
+      "to": "checklists/PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Redesign.md",
+      "to": "checklists/PVAD.Designer-Redesign.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Releases-And-Notifications.md",
+      "to": "checklists/PVAD.Designer-Releases-And-Notifications.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Restructure.md",
+      "to": "checklists/PVAD.Designer-Restructure.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Scrollable-Workspace.md",
+      "to": "checklists/PVAD.Designer-Scrollable-Workspace.md"
+    },
+    {
+      "from": "checklists/PXA.Designer-Template-Persistence.md",
+      "to": "checklists/PVAD.Designer-Template-Persistence.md"
+    },
+    {
+      "from": "checklists/PXA.Documentation.md",
+      "to": "checklists/PVAD.Documentation.md"
+    },
+    {
+      "from": "checklists/PXA.E-Invoicing.md",
+      "to": "checklists/PVAD.E-Invoicing.md"
+    },
+    {
+      "from": "checklists/PXA.Global-Commerce-And-Pricing.md",
+      "to": "checklists/PVAD.Global-Commerce-And-Pricing.md"
+    },
+    {
+      "from": "checklists/PXA.Go-SDK.md",
+      "to": "checklists/PVAD.Go-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.Hosting.md",
+      "to": "checklists/PVAD.Hosting.md"
+    },
+    {
+      "from": "checklists/PXA.Java-SDK.md",
+      "to": "checklists/PVAD.Java-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.Legal-Benchmark-And-Decision-Register.md",
+      "to": "checklists/PVAD.Legal-Benchmark-And-Decision-Register.md"
+    },
+    {
+      "from": "checklists/PXA.Legal-Terms-Privacy-And-Consent.md",
+      "to": "checklists/PVAD.Legal-Terms-Privacy-And-Consent.md"
+    },
+    {
+      "from": "checklists/PXA.Logging-Monitoring-Alerting.md",
+      "to": "checklists/PVAD.Logging-Monitoring-Alerting.md"
+    },
+    {
+      "from": "checklists/PXA.MCP-Server.md",
+      "to": "checklists/PVAD.MCP-Server.md"
+    },
+    {
+      "from": "checklists/PXA.Mail-Service.md",
+      "to": "checklists/PVAD.Mail-Service.md"
+    },
+    {
+      "from": "checklists/PXA.Migration-Nutrient-Code-And-Viewer.md",
+      "to": "checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md"
+    },
+    {
+      "from": "checklists/PXA.NPOI-License-Decision.md",
+      "to": "checklists/PVAD.NPOI-License-Decision.md"
+    },
+    {
+      "from": "checklists/PXA.Native-Designer-Formats.md",
+      "to": "checklists/PVAD.Native-Designer-Formats.md"
+    },
+    {
+      "from": "checklists/PXA.PDF-AES256-Security-Handler.md",
+      "to": "checklists/PVAD.PDF-AES256-Security-Handler.md"
+    },
+    {
+      "from": "checklists/PXA.PDF-Parser-Hardening.md",
+      "to": "checklists/PVAD.PDF-Parser-Hardening.md"
+    },
+    {
+      "from": "checklists/PXA.PDF-Redaction-Preflight.md",
+      "to": "checklists/PVAD.PDF-Redaction-Preflight.md"
+    },
+    {
+      "from": "checklists/PXA.PDF-Specialized-Features-Roadmap.md",
+      "to": "checklists/PVAD.PDF-Specialized-Features-Roadmap.md"
+    },
+    {
+      "from": "checklists/PXA.PDF-Trust-Foundation.md",
+      "to": "checklists/PVAD.PDF-Trust-Foundation.md"
+    },
+    {
+      "from": "checklists/PXA.PHP-SDK.md",
+      "to": "checklists/PVAD.PHP-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.PowerShell-SDK.md",
+      "to": "checklists/PVAD.PowerShell-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.Product-Roadmap.md",
+      "to": "checklists/PVAD.Product-Roadmap.md"
+    },
+    {
+      "from": "checklists/PXA.Proven-Document-Fidelity.md",
+      "to": "checklists/PVAD.Proven-Document-Fidelity.md"
+    },
+    {
+      "from": "checklists/PXA.Python-SDK.md",
+      "to": "checklists/PVAD.Python-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.SDK-Roadmap.md",
+      "to": "checklists/PVAD.SDK-Roadmap.md"
+    },
+    {
+      "from": "checklists/PXA.Software-Valuation-And-Value-Growth.md",
+      "to": "checklists/PVAD.Software-Valuation-And-Value-Growth.md"
+    },
+    {
+      "from": "checklists/PXA.Standard-Status-Pages.md",
+      "to": "checklists/PVAD.Standard-Status-Pages.md"
+    },
+    {
+      "from": "checklists/PXA.Subscription-Licensing.md",
+      "to": "checklists/PVAD.Subscription-Licensing.md"
+    },
+    {
+      "from": "checklists/PXA.TypeScript-JavaScript-SDK.md",
+      "to": "checklists/PVAD.TypeScript-JavaScript-SDK.md"
+    },
+    {
+      "from": "checklists/PXA.Unified-Migration-Frameworks.md",
+      "to": "checklists/PVAD.Unified-Migration-Frameworks.md"
+    },
+    {
+      "from": "checklists/PXA.Web-Design-System.md",
+      "to": "checklists/PVAD.Web-Design-System.md"
+    },
+    {
+      "from": "checklists/PxaPdf-Provider-Feature-Gaps.md",
+      "to": "checklists/PvadPdf-Provider-Feature-Gaps.md"
+    },
+    {
+      "from": "docs/guides/PXA.EInvoicing.md",
+      "to": "docs/guides/PVAD.EInvoicing.md"
+    },
+    {
+      "from": "docs/guides/PXA.Pdf-Trust-Generator-Examples.md",
+      "to": "docs/guides/PVAD.Pdf-Trust-Generator-Examples.md"
+    },
+    {
+      "from": "docs/guides/PXA.Pdf-Trust-Migration-Examples.md",
+      "to": "docs/guides/PVAD.Pdf-Trust-Migration-Examples.md"
+    },
+    {
+      "from": "docs/guides/PXA.Unified-Migration-Provider-Coverage.md",
+      "to": "docs/guides/PVAD.Unified-Migration-Provider-Coverage.md"
+    },
+    {
+      "from": "operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md",
+      "to": "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md"
+    }
+  ]
+}

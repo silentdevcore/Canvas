@@ -11,7 +11,7 @@
     "infrastructure"
   ],
   "category": "added",
-  "summary": "Charts now share a professional multi-series model and vector PDF renderer, with lossless PXA round trips and confidence-based PDF chart recognition.",
+  "summary": "Charts now share a professional multi-series model and vector PDF renderer, with lossless PVAD round trips and confidence-based PDF chart recognition.",
   "featureIds": [
     "designer.pdf-chart-recognition"
   ],

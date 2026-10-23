@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_OWNER_PASSWORD PXA_OWNER_PASSWORD "${PVAD_OWNER_PASSWORD+x}" "${PVAD_OWNER_PASSWORD-}" "${PXA_OWNER_PASSWORD+x}" "${PXA_OWNER_PASSWORD-}"
+pvad_environment_alias PVAD_USER_PASSWORD PXA_USER_PASSWORD "${PVAD_USER_PASSWORD+x}" "${PVAD_USER_PASSWORD-}" "${PXA_USER_PASSWORD+x}" "${PXA_USER_PASSWORD-}"
+
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 readonly TOOL_DIRECTORY="$ROOT/tools/pdf-trust-external-corpus"
 readonly SOURCE="$TOOL_DIRECTORY/sources/trust-profile.html"
-readonly FIXTURE_DIRECTORY="$ROOT/tests/PXA.Importer.Tests/Fixtures/PdfTrustExternal"
-readonly BASE_PDF="$ROOT/tests/PXA.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf"
-readonly IMAGE="pxa-pdf-trust-external-tools:1"
+readonly FIXTURE_DIRECTORY="$ROOT/tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal"
+readonly BASE_PDF="$ROOT/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf"
+readonly IMAGE="pvad-pdf-trust-external-tools:1"
 readonly USER_PASSWORD="PXA-reader-ä漢字"
 readonly OWNER_PASSWORD="PXA-owner-ßЖ"
 
@@ -46,17 +50,17 @@ docker build --tag "$IMAGE" "$TOOL_DIRECTORY"
 docker run --rm \
   --volume "$ROOT:/work" \
   --volume "$work/crypto:/crypto" \
-  --env "PXA_USER_PASSWORD=$USER_PASSWORD" \
-  --env "PXA_OWNER_PASSWORD=$OWNER_PASSWORD" \
+  --env "PVAD_USER_PASSWORD=$USER_PASSWORD" \
+  --env "PVAD_OWNER_PASSWORD=$OWNER_PASSWORD" \
   "$IMAGE" \
   sh -ec 'qpdf --password-mode=unicode \
-      --encrypt --user-password="$PXA_USER_PASSWORD" --owner-password="$PXA_OWNER_PASSWORD" \
+      --encrypt --user-password="$PVAD_USER_PASSWORD" --owner-password="$PVAD_OWNER_PASSWORD" \
       --bits=256 --modify=none --print=full -- \
-      /work/tests/PXA.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf \
+      /work/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf \
       /crypto/qpdf-aes256-unicode.pdf
-    qpdf --password="$PXA_USER_PASSWORD" --check /crypto/qpdf-aes256-unicode.pdf \
+    qpdf --password="$PVAD_USER_PASSWORD" --check /crypto/qpdf-aes256-unicode.pdf \
       > /crypto/qpdf-aes256-unicode-qpdf.txt 2>&1
-    qpdf --password="$PXA_OWNER_PASSWORD" --show-encryption /crypto/qpdf-aes256-unicode.pdf \
+    qpdf --password="$PVAD_OWNER_PASSWORD" --show-encryption /crypto/qpdf-aes256-unicode.pdf \
       >> /crypto/qpdf-aes256-unicode-qpdf.txt
     sed -i "s/[[:space:]]*$//" /crypto/qpdf-aes256-unicode-qpdf.txt'
 
@@ -69,7 +73,7 @@ docker run --rm \
       -keyout /crypto/signer.key.pem -out /crypto/signer.cert.pem >/dev/null 2>&1
     pyhanko sign addsig --field "1/40,40,240,100/SyntheticSignature" --use-pades \
       pemder --no-pass --key /crypto/signer.key.pem --cert /crypto/signer.cert.pem \
-      /work/tests/PXA.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf \
+      /work/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf \
       /crypto/pyhanko-pades-bb.pdf
     pyhanko sign validate --executive-summary --validation-time claimed \
       --no-revocation-check --trust /crypto/signer.cert.pem \
@@ -80,13 +84,13 @@ cp "$work/crypto/qpdf-aes256-unicode-qpdf.txt" "$FIXTURE_DIRECTORY/qpdf-aes256-u
 cp "$work/crypto/pyhanko-pades-bb.pdf" "$FIXTURE_DIRECTORY/pyhanko-pades-bb.pdf"
 cp "$work/crypto/pyhanko-pades-bb-validation.txt" "$FIXTURE_DIRECTORY/pyhanko-pades-bb-validation.txt"
 
-PXA_VERAPDF_IMAGE="ghcr.io/verapdf/cli:v1.31.166" \
-PXA_PDFA_REPORT_DIR="$FIXTURE_DIRECTORY" \
+PVAD_VERAPDF_IMAGE="ghcr.io/verapdf/cli:v1.31.166" \
+PVAD_PDFA_REPORT_DIR="$FIXTURE_DIRECTORY" \
   "$ROOT/tools/pdfa/validate-pdfa.sh" 2b "$FIXTURE_DIRECTORY/libreoffice-pdfa2b.pdf"
-PXA_VERAPDF_IMAGE="ghcr.io/verapdf/cli:v1.31.166" \
-PXA_PDFUA_REPORT_DIR="$FIXTURE_DIRECTORY" \
+PVAD_VERAPDF_IMAGE="ghcr.io/verapdf/cli:v1.31.166" \
+PVAD_PDFUA_REPORT_DIR="$FIXTURE_DIRECTORY" \
   "$ROOT/tools/pdfua/validate-pdfua.sh" "$FIXTURE_DIRECTORY/libreoffice-pdfua1.pdf"
 
-dotnet run --project "$TOOL_DIRECTORY/PXA.PdfTrustExternalCorpus.csproj" --no-restore
+dotnet run --project "$TOOL_DIRECTORY/PVAD.PdfTrustExternalCorpus.csproj" --no-restore
 
 echo "External PDF Trust profiles generated. Review all changed binaries and reports."

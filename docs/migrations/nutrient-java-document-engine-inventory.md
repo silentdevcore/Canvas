@@ -22,7 +22,7 @@ The labels in this document have precise meanings:
 
 - **Verified** means the current public Nutrient documentation explicitly
   shows the package, class, method, product, or workflow.
-- **Planned mapping** means a proposed PXA migration target that still needs a
+- **Planned mapping** means a proposed PVAD migration target that still needs a
   parser contract, implementation, and tests.
 - **Unknown or unsupported** means the public sources reviewed here do not
   establish a reliable mapping. It must not be presented as supported.
@@ -55,7 +55,7 @@ implementation group: 'io.nutrient', name: 'nutrient-java-sdk', version: '2.1.4'
 ```
 
 The same guide imports `io.nutrient.sdk.Document` and opens a document with
-`Document.open(...)`. The version above is a source snapshot, not a PXA
+`Document.open(...)`. The version above is a source snapshot, not a PVAD
 dependency recommendation or a compatibility guarantee.
 
 The current Java product pages describe one SDK covering document opening,
@@ -99,25 +99,25 @@ The following table records only families shown by official current Java pages
 or API reference pages. Method names are examples of observed public surface,
 not a complete SDK inventory.
 
-| Capability | Verified package/import family | Verified symbols or operations | Planned PXA mapping | Current state |
+| Capability | Verified package/import family | Verified symbols or operations | Planned PVAD mapping | Current state |
 | --- | --- | --- | --- | --- |
 | Open and lifecycle | `io.nutrient.sdk` | `Document`, `Document.open(path)`, try-with-resources / `AutoCloseable` usage | `PdfEditableDocument.LoadFromFile` or `LoadFromStream` with explicit source and lifetime diagnostics | Verified source; mapping planned |
-| Save and export | `io.nutrient.sdk`, `io.nutrient.sdk.exporters` | `save()`, `saveAs(path)`, `export(path, new PdfExporter())`, `exportAsPdf(path)`, `exportAsImage(path)` | Typed PXA save/export operations with output format and overwrite policy | Verified source; mapping planned |
+| Save and export | `io.nutrient.sdk`, `io.nutrient.sdk.exporters` | `save()`, `saveAs(path)`, `export(path, new PdfExporter())`, `exportAsPdf(path)`, `exportAsImage(path)` | Typed PVAD save/export operations with output format and overwrite policy | Verified source; mapping planned |
 | PDF editor | `io.nutrient.sdk.editors` | `PdfEditor.edit(document)`, `appendDocument`, editor close | `PdfEditableDocument` and explicit composition operations | Verified source; mapping planned |
-| Pages | `io.nutrient.sdk.editors.pdf.pages` | `PdfPage`, `PdfPageCollection`, `getPage(index)`, `getFirst()`, page collection add/custom page examples | `PdfPageEditor` / `PdfPageComposer`, with one-based PXA page diagnostics | Partially verified; index conversion planned |
+| Pages | `io.nutrient.sdk.editors.pdf.pages` | `PdfPage`, `PdfPageCollection`, `getPage(index)`, `getFirst()`, page collection add/custom page examples | `PdfPageEditor` / `PdfPageComposer`, with one-based PVAD page diagnostics | Partially verified; index conversion planned |
 | Page order and merge | `io.nutrient.sdk.editors`, `io.nutrient.sdk.editors.pdf.pages` | page management and `appendDocument` are documented; merge guide uses multiple `Document` instances | `AppendPages`, `ClonePages`, `ExtractPages` with source-graph validation | Verified workflow; edge semantics unknown |
-| Annotations | `io.nutrient.sdk.editors.pdf.annotations` | `PdfAnnotationCollection`, `PdfTextAnnotation`, `PdfHighlightAnnotation`, `PdfUnderlineAnnotation`, `PdfStrikeOutAnnotation`, `PdfSquigglyAnnotation`, `PdfStampAnnotation`, `PdfLinkAnnotation`, `PdfLineAnnotation`, `PdfCircleAnnotation`, `PdfSquareAnnotation`, `PdfFreeTextAnnotation`, `PdfRedactAnnotation` | PXA annotation DTOs and `PdfPageEditor` operations | Verified families; complete property parity unknown |
+| Annotations | `io.nutrient.sdk.editors.pdf.annotations` | `PdfAnnotationCollection`, `PdfTextAnnotation`, `PdfHighlightAnnotation`, `PdfUnderlineAnnotation`, `PdfStrikeOutAnnotation`, `PdfSquigglyAnnotation`, `PdfStampAnnotation`, `PdfLinkAnnotation`, `PdfLineAnnotation`, `PdfCircleAnnotation`, `PdfSquareAnnotation`, `PdfFreeTextAnnotation`, `PdfRedactAnnotation` | PVAD annotation DTOs and `PdfPageEditor` operations | Verified families; complete property parity unknown |
 | Annotation collection | `io.nutrient.sdk.editors.pdf.annotations` | add, iterate, `get`, `size`/`getCount`, `removeAt` | Stable IDs, page-relative geometry, and explicit unsupported-property diagnostics | Verified examples; mapping planned |
-| Forms | `io.nutrient.sdk.editors.pdf.formfields` | `PdfFormFieldCollection`, `PdfFormField`, `PdfTextField`, `PdfCheckBoxField`, `PdfRadioButtonField`, `PdfComboBoxField`, `PdfListBoxField`, `findByFullName`, field type/value operations | PXA form field model and typed form mutations | Verified families; full hierarchy and appearance parity unknown |
-| Vision and OCR | `io.nutrient.sdk` and `io.nutrient.sdk.enums` | `Vision`, `Vision.set(document)`, `VisionEngine.Ocr`, `getSettings().getVisionSettings().setEngine(...)`, `extractContent()` | PXA OCR job/service with bounded output and source-location diagnostics | Verified current example; mapping planned |
-| OCR/ICR/extraction | `io.nutrient.sdk` | current product documentation describes OCR, ICR, VLM, structured extraction, and word-level boxes | PXA OCR/analysis handoff, never a fabricated local equivalent | Product-level capability verified; exact Java API surface incomplete |
-| Redaction | `io.nutrient.sdk.editors.pdf.annotations` | `PdfRedactAnnotation`, `PdfAnnotationCollection.addRedact(...)`; official guide states save/apply removes underlying content | PXA redaction preflight, apply, verification, and audit workflow | Verified redaction family; apply/save semantics require fixture validation |
-| Signatures | `io.nutrient.sdk.signing` | official Java signing page shows `PdfSigner`, `DigitalSignatureOptions`, `SignatureAppearance`, `sign()`, and `signField()` | PXA Trust signing workflow with runtime-only credentials and post-save validation | Verified current family; target equivalence planned |
-| Signature key sources | `io.nutrient.sdk.enums` | `SignatureKeySource`: `Pkcs12`, `WindowsCertificateStore`, `SmartCard`, `Pkcs11` | PXA credential-provider policy; never copy secret material into generated code | Enum verified; policy mapping planned |
-| Security settings | `io.nutrient.sdk.settings`, `io.nutrient.sdk.enums` | official API reference exposes settings such as `AccessibilitySettings`; save preferences include `PreserveAnnotations` | PXA compliance/security profiles with explicit unsupported diagnostics | Partial public inventory; encryption/permission API surface unknown |
-| Conversion | `io.nutrient.sdk`, `io.nutrient.sdk.exporters` | current Java pages document PDF, Word, Excel, PowerPoint, HTML, Markdown conversion; examples use `exportAsPdf` and exporters | PXA conversion provider handoff with source and target format evidence | Capability verified; format-specific API matrix planned |
+| Forms | `io.nutrient.sdk.editors.pdf.formfields` | `PdfFormFieldCollection`, `PdfFormField`, `PdfTextField`, `PdfCheckBoxField`, `PdfRadioButtonField`, `PdfComboBoxField`, `PdfListBoxField`, `findByFullName`, field type/value operations | PVAD form field model and typed form mutations | Verified families; full hierarchy and appearance parity unknown |
+| Vision and OCR | `io.nutrient.sdk` and `io.nutrient.sdk.enums` | `Vision`, `Vision.set(document)`, `VisionEngine.Ocr`, `getSettings().getVisionSettings().setEngine(...)`, `extractContent()` | PVAD OCR job/service with bounded output and source-location diagnostics | Verified current example; mapping planned |
+| OCR/ICR/extraction | `io.nutrient.sdk` | current product documentation describes OCR, ICR, VLM, structured extraction, and word-level boxes | PVAD OCR/analysis handoff, never a fabricated local equivalent | Product-level capability verified; exact Java API surface incomplete |
+| Redaction | `io.nutrient.sdk.editors.pdf.annotations` | `PdfRedactAnnotation`, `PdfAnnotationCollection.addRedact(...)`; official guide states save/apply removes underlying content | PVAD redaction preflight, apply, verification, and audit workflow | Verified redaction family; apply/save semantics require fixture validation |
+| Signatures | `io.nutrient.sdk.signing` | official Java signing page shows `PdfSigner`, `DigitalSignatureOptions`, `SignatureAppearance`, `sign()`, and `signField()` | PVAD Trust signing workflow with runtime-only credentials and post-save validation | Verified current family; target equivalence planned |
+| Signature key sources | `io.nutrient.sdk.enums` | `SignatureKeySource`: `Pkcs12`, `WindowsCertificateStore`, `SmartCard`, `Pkcs11` | PVAD credential-provider policy; never copy secret material into generated code | Enum verified; policy mapping planned |
+| Security settings | `io.nutrient.sdk.settings`, `io.nutrient.sdk.enums` | official API reference exposes settings such as `AccessibilitySettings`; save preferences include `PreserveAnnotations` | PVAD compliance/security profiles with explicit unsupported diagnostics | Partial public inventory; encryption/permission API surface unknown |
+| Conversion | `io.nutrient.sdk`, `io.nutrient.sdk.exporters` | current Java pages document PDF, Word, Excel, PowerPoint, HTML, Markdown conversion; examples use `exportAsPdf` and exporters | PVAD conversion provider handoff with source and target format evidence | Capability verified; format-specific API matrix planned |
 | Exceptions | `io.nutrient.sdk.exceptions` | official examples import `NutrientException`; OCR documentation also shows `VisionException` | Stable `CANMIGNUTJAVA...` diagnostics preserving exception category without secrets | Exception family verified; complete hierarchy unknown |
-| Types and colors | `io.nutrient.sdk.types` | official examples use `Color.fromArgb(...)` | PXA color/value normalization | Verified example; full type inventory planned |
+| Types and colors | `io.nutrient.sdk.types` | official examples use `Color.fromArgb(...)` | PVAD color/value normalization | Verified example; full type inventory planned |
 
 ### Important API inconsistencies to preserve as evidence
 
@@ -139,25 +139,25 @@ The proposed intermediate model is intentionally smaller than the Java SDK:
 Java source
   -> Java AST + symbol model
   -> NutrientJavaOperation
-  -> language-neutral PXA migration operation
-  -> C# PXA output + diagnostics + source map
+  -> language-neutral PVAD migration operation
+  -> C# PVAD output + diagnostics + source map
 ```
 
 Planned operation families:
 
-| Java operation family | PXA target direction | Fidelity policy |
+| Java operation family | PVAD target direction | Fidelity policy |
 | --- | --- | --- |
 | `Document.open` and close | `PdfEditableDocument.LoadFromFile` / `LoadFromStream` and scoped lifecycle | Exact only after stream, password, and disposal behavior are proven |
 | `PdfEditor.edit` | existing-document editor session | Preserve an explicit edit-session boundary |
 | `saveAs` / `export` | typed save/export operation | Keep output format and overwrite behavior visible |
-| page access and mutation | page editor/composer operations | Convert Java zero-based indexes to PXA one-based indexes with diagnostics |
-| annotation creation and mutation | PXA annotation operations | Unsupported appearance/property fields remain review items |
-| form lookup and value mutation | PXA form operations | Preserve full field names and field-type checks |
-| `Vision` OCR | PXA OCR service/job | Preserve engine selection and output shape; do not claim ICR/VLM parity automatically |
-| redaction annotations and apply/save | PXA Trust redaction pipeline | Never replace permanent removal with a visual overlay |
-| signing and certificate selection | PXA Trust signing pipeline | Credentials remain runtime-only and external to generated source |
-| conversion/export | PXA conversion provider | Preserve source/target format, streams, and failure behavior |
-| exceptions and cleanup | PXA diagnostics and resource scope | Keep cleanup and failure paths visible in generated code |
+| page access and mutation | page editor/composer operations | Convert Java zero-based indexes to PVAD one-based indexes with diagnostics |
+| annotation creation and mutation | PVAD annotation operations | Unsupported appearance/property fields remain review items |
+| form lookup and value mutation | PVAD form operations | Preserve full field names and field-type checks |
+| `Vision` OCR | PVAD OCR service/job | Preserve engine selection and output shape; do not claim ICR/VLM parity automatically |
+| redaction annotations and apply/save | PVAD Trust redaction pipeline | Never replace permanent removal with a visual overlay |
+| signing and certificate selection | PVAD Trust signing pipeline | Credentials remain runtime-only and external to generated source |
+| conversion/export | PVAD conversion provider | Preserve source/target format, streams, and failure behavior |
+| exceptions and cleanup | PVAD diagnostics and resource scope | Keep cleanup and failure paths visible in generated code |
 
 These are planned mappings, not delivered functionality. N4 is blocked until
 the Java parser, symbol-resolution strategy, operation schema, and fixtures are
@@ -188,13 +188,13 @@ Document Engine input should be treated as a deployment/data-flow migration:
 
 - identify base URL, authentication mechanism, document/file identifiers,
   asset lifecycle, synchronization mode, and webhook/callback behavior;
-- generate a review report and PXA deployment mapping;
+- generate a review report and PVAD deployment mapping;
 - never copy source JWTs, API keys, private URLs, or customer document data;
 - do not interpret a Java `Document.open` call as a Document Engine REST call;
 - do not interpret an HTTP Document Engine operation as an in-process Java
   operation;
 - classify real-time collaboration and synchronization as separate work until
-  PXA has equivalent server contracts.
+  PVAD has equivalent server contracts.
 
 ### Planned Document Engine fixture fields
 
@@ -257,7 +257,7 @@ adaptation: synthetic-and-minimal
 ```
 
 The provenance record is descriptive and does not grant permission to
-redistribute Nutrient software. PXA work may refer to public API names and
+redistribute Nutrient software. PVAD work may refer to public API names and
 documentation links, but must not package or commit Nutrient binaries, native
 libraries, license files, private keys, real certificate material, customer
 source, customer documents, or captured production traffic.
@@ -303,7 +303,7 @@ start only after these gates are satisfied:
 4. Define a compatibility matrix for current SDK, legacy Java material, Web
    SDK/Instant JSON, and Document Engine.
 5. Implement detection and source mapping before code generation.
-6. Compile generated PXA output against the repository contracts.
+6. Compile generated PVAD output against the repository contracts.
 7. Validate Trust, OCR, conversion, and REST handoffs independently.
 
 Until then, this document is an evidence inventory and planning aid only.

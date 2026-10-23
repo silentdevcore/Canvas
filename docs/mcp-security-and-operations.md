@@ -1,12 +1,17 @@
-# PXA MCP Security and Operations
+# PVAD MCP Security and Operations
+
+The rename now uses canonical organization claims and `PVAD-MCP` internal delegation
+with explicit legacy readers. Public OAuth scope issuance and existing client/grant
+IDs remain in the legacy phase. See [identity compatibility](pvad-identity-compatibility.md)
+for the accepted signed identity combinations and coordinated rollout requirements.
 
 ## Security Boundary
 
-PXA MCP is an OAuth-protected, tenant-aware adapter. PXA WebApi remains authoritative for business
+PVAD MCP is an OAuth-protected, tenant-aware adapter. PVAD WebApi remains authoritative for business
 rules, tenant filtering, entitlements, persistence, rendering, and jobs. MCP input schemas improve
 client usability but are not an authorization or application-validation boundary.
 
-The remote MCP container has no direct PostgreSQL access. In the PXA Server Compose bundle it uses
+The remote MCP container has no direct PostgreSQL access. In the PVAD Server Compose bundle it uses
 an internal network shared only with WebApi and the reverse proxy. The container cannot make
 arbitrary internet requests. Public traffic reaches MCP only through the TLS reverse proxy.
 
@@ -23,7 +28,7 @@ arbitrary internet requests. Public traffic reaches MCP only through the TLS rev
 | Oversized or malicious payload | Header, JSON body, schema, document, response, duration and rate limits | Import and decompression-bomb defenses remain mandatory before binary tools ship |
 | Resource exhaustion | Stateless requests, bounded concurrency through the proxy/runtime, CPU, memory and PID limits | Alert on latency, server errors and rate limiting; scale only after load validation |
 | Secret or customer-data leakage | Arguments/results are never logged; identities are represented by truncated SHA-256 references | Operators must keep container and proxy debug logging disabled in production |
-| Dependency compromise or outage | Locked npm graph, dependency audit, readiness probes and fail-closed JWT verification | Readiness alerts and rollback use immutable PXA releases |
+| Dependency compromise or outage | Locked npm graph, dependency audit, readiness probes and fail-closed JWT verification | Readiness alerts and rollback use immutable PVAD releases |
 
 ## Logging and Metrics
 
@@ -42,7 +47,7 @@ Recommended retention:
 - request logs: 30 days unless a shorter customer policy applies;
 - aggregated metrics: 90 days by default;
 - no document payload retention in MCP;
-- authorization and service-account lifecycle events follow the PXA audit policy.
+- authorization and service-account lifecycle events follow the PVAD audit policy.
 
 Beta operational objectives are internal targets, not a contractual SLA:
 

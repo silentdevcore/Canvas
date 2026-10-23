@@ -45,13 +45,13 @@ for (const activity of inventory.activities ?? []) {
     errors.push(`Activity ${activity.id} cannot be approved while legal approval remains required.`);
 }
 
-const dbContext = readFileSync(join(root, 'src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs'), 'utf8');
+const dbContext = readFileSync(join(root, 'src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs'), 'utf8');
 const persistedEntities = [...dbContext.matchAll(/DbSet<([A-Za-z0-9_]+)>/g)].map(match => match[1]);
 for (const entity of persistedEntities) {
   if (!inventoriedEntities.has(entity)) errors.push(`Persisted entity is missing from the processing inventory: ${entity}`);
 }
 for (const entity of inventoriedEntities) {
-  if (!persistedEntities.includes(entity)) errors.push(`Inventoried persistence entity is not a PxaDbContext DbSet: ${entity}`);
+  if (!persistedEntities.includes(entity)) errors.push(`Inventoried persistence entity is not a PvadDbContext DbSet: ${entity}`);
 }
 
 const browserActivity = inventory.activities?.find(activity => activity.id === 'browser-storage');

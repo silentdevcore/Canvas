@@ -2,19 +2,25 @@
 
 set -euo pipefail
 
-api_url="${PXA_API_URL:-http://127.0.0.1:5086}"
-image_path="${PXA_OCR_TEST_IMAGE:-}"
-prometheus_container="${PXA_PROMETHEUS_CONTAINER:-canvas-pxa-prometheus-1}"
-alert_name="PxaOcrRepeatedFailures"
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_API_URL PVAD_OCR_FAILURE_INJECTION_CONFIRMED PVAD_OCR_TEST_IMAGE PVAD_PROMETHEUS_CONTAINER
 
-if [[ "${PXA_OCR_FAILURE_INJECTION_CONFIRMED:-}" != "1" ]]; then
-  echo "Set PXA_OCR_FAILURE_INJECTION_CONFIRMED=1 after enabling the bounded Development injection." >&2
+api_url="${PVAD_API_URL:-http://127.0.0.1:5086}"
+image_path="${PVAD_OCR_TEST_IMAGE:-}"
+prometheus_container="${PVAD_PROMETHEUS_CONTAINER:-}"
+alert_name="PvadOcrRepeatedFailures"
+
+if [[ "${PVAD_OCR_FAILURE_INJECTION_CONFIRMED:-}" != "1" ]]; then
+  echo "Set PVAD_OCR_FAILURE_INJECTION_CONFIRMED=1 after enabling the bounded Development injection." >&2
   exit 2
 fi
 if [[ -z "${image_path}" || ! -f "${image_path}" ]]; then
-  echo "Set PXA_OCR_TEST_IMAGE to a synthetic PNG, JPEG, TIFF, BMP, or WebP file." >&2
+  echo "Set PVAD_OCR_TEST_IMAGE to a synthetic PNG, JPEG, TIFF, BMP, or WebP file." >&2
   exit 2
 fi
+
+prometheus_container="${prometheus_container:-$(node "$PVAD_CONFIG_ROOT/tools/configuration/pvad-compose.mjs" -f "$PVAD_CONFIG_ROOT/docker-compose.yml" --profile observability ps -q pvad-prometheus)}"
 
 alert_state() {
   docker exec "${prometheus_container}" \
@@ -80,4 +86,4 @@ done
 wait_for_alert "firing" 120
 echo "Waiting for the ten-minute rolling failure window to expire."
 wait_for_alert "inactive" 720
-echo "PXA OCR failure and recovery smoke test passed."
+echo "PVAD OCR failure and recovery smoke test passed."

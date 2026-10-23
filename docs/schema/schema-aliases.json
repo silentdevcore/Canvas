@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "schemas": [
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pvad-project-manifest-reader.schema.json",
+      "path": "docs/schema/pvad-project-manifest-reader.schema.json",
+      "legacyIds": []
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/design-export.schema.json",
+      "path": "docs/schema/design-export.schema.json",
+      "legacyIds": [
+        "https://pxa/schema/design-export.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pvad-workbook.schema.json",
+      "path": "docs/schema/pvad-workbook.schema.json",
+      "legacyIds": [
+        "https://pxa/schema/pxa-workbook.schema.json",
+        "https://powerdoxautomation.com/schemas/pxa-workbook.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pvad-project-manifest.schema.json",
+      "path": "docs/schema/pvad-project-manifest.schema.json",
+      "legacyIds": []
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pxa-project-manifest.schema.json",
+      "path": "docs/schema/pxa-project-manifest.schema.json",
+      "legacyIds": []
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pvad-code-workspace.schema.json",
+      "path": "docs/schema/pvad-code-workspace.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/pxa-code-workspace.schema.json"
+      ]
+    }
+  ]
+}

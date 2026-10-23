@@ -7,9 +7,9 @@
     "company"
   ],
   "category": "added",
-  "summary": "Customers can review Legal publication details, change summaries, and immutable prior versions from the PXA Company Legal pages.",
+  "summary": "Customers can review Legal publication details, change summaries, and immutable prior versions from the PVAD Company Legal pages.",
   "documentation": [
-    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md"
+    "/checklists/PVAD.Legal-Terms-Privacy-And-Consent.md"
   ],
   "breaking": false
 }

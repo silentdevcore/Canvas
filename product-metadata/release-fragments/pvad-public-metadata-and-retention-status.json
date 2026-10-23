@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-public-metadata-and-retention-status",
+  "impact": "patch",
+  "components": ["api", "admin", "company", "demo", "documentation"],
+  "category": "fixed",
+  "summary": "Company page metadata and illustrative demo descriptors use the current identity. Admin retention status reports PVAD configuration values, accepts legacy keys and rejects conflicts without changing retention policies or approval status.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

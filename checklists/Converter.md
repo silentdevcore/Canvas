@@ -1,5 +1,7 @@
 # Export Converters — Implementation Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 > **Goal:** Let users export any PXA design to HTML, XML, Word (.docx), Excel (.xlsx),
 > Image (PNG / JPEG / SVG), CSV, and Markdown — in addition to the existing PDF and JSON.
 > The frontend sends the same `DesignExportDto` payload to a single new endpoint; the backend

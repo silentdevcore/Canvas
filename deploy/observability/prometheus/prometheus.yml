@@ -11,22 +11,22 @@ rule_files:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ["pxa-alertmanager:9093"]
+        - targets: ["pvad-alertmanager:9093"]
 
 scrape_configs:
   - job_name: pxa-otel-collector
     static_configs:
-      - targets: ["pxa-otel-collector:8889"]
+      - targets: ["pvad-otel-collector:8889"]
 
   - job_name: pxa-postgresql
     static_configs:
-      - targets: ["pxa-postgres-exporter:9187"]
+      - targets: ["pvad-postgres-exporter:9187"]
 
   - job_name: pxa-containers
     static_configs:
-      - targets: ["pxa-cadvisor:8080"]
+      - targets: ["pvad-cadvisor:8080"]
 
-  - job_name: pxa-mcp
+  - job_name: pvad-mcp
     file_sd_configs:
       - files:
           - /etc/prometheus/targets/mcp-targets.json
@@ -46,4 +46,4 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: pxa-blackbox-exporter:9115
+        replacement: pvad-blackbox-exporter:9115

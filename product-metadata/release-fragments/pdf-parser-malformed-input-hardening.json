@@ -10,7 +10,7 @@
   "summary": "PDF parsing now rejects malformed delimiter sequences without stalling document inspection.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false,
   "securityReviewed": true

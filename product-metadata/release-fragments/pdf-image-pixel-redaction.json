@@ -9,10 +9,10 @@
     "importer"
   ],
   "category": "security",
-  "summary": "PXA now removes covered PDF glyphs, bounded image pixels including managed JPX and embedded JBIG2 data, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths.",
+  "summary": "PVAD now removes covered PDF glyphs, bounded image pixels including managed JPX and embedded JBIG2 data, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false,
   "securityReviewed": true

@@ -21,12 +21,12 @@ fi
 SH
 chmod +x "$work/bin/docker"
 
-PATH="$work/bin:$PATH" PXA_PDFA_REPORT_DIR="$work/reports" \
+PATH="$work/bin:$PATH" PVAD_PDFA_REPORT_DIR="$work/reports" \
   "$SCRIPT" 2b "$work/pass.pdf"
 grep -q 'isCompliant="true"' "$work/reports/pass-2b-verapdf.xml"
 
 set +e
-PATH="$work/bin:$PATH" PXA_PDFA_REPORT_DIR="$work/failure-reports" \
+PATH="$work/bin:$PATH" PVAD_PDFA_REPORT_DIR="$work/failure-reports" \
   "$SCRIPT" 3b "$work/fail.pdf"
 status=$?
 set -e
@@ -34,7 +34,7 @@ set -e
 grep -q 'isCompliant="false"' "$work/failure-reports/fail-3b-verapdf.xml"
 
 set +e
-PATH="$work/bin:$PATH" PXA_PDFA_REPORT_DIR="$work/invalid-reports" \
+PATH="$work/bin:$PATH" PVAD_PDFA_REPORT_DIR="$work/invalid-reports" \
   "$SCRIPT" 4u "$work/pass.pdf"
 status=$?
 set -e

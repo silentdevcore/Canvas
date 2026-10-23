@@ -9,6 +9,6 @@ for tool in pdftotext pdfimages strings; do
 done
 
 PXA_RUN_PDF_RECOVERY_TESTS=1 dotnet test \
-  tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj \
+  tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
   --filter 'FullyQualifiedName~PdfRedactionExternalRecoveryTests' \
   -m:1

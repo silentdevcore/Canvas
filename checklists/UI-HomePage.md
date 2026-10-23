@@ -1,5 +1,7 @@
 # UI HomePage Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Scope
 Audit and fix all navigation, links, and interactive elements on the home/gallery page (`TemplateGallery.tsx`) and its sub-pages. The app uses a local `viewMode` state machine — no React Router. Every issue below was found by reading the source directly.
 

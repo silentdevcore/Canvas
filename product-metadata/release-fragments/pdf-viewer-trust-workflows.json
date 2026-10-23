@@ -8,10 +8,10 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA PDF Viewer adds accessible trust inspection, privileged PAdES signing, protected mutation workflows, localized diagnostics, and navigation to affected pages, objects, and Designer elements.",
+  "summary": "PVAD PDF Viewer adds accessible trust inspection, privileged PAdES signing, protected mutation workflows, localized diagnostics, and navigation to affected pages, objects, and Designer elements.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

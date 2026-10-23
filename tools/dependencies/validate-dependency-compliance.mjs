@@ -40,7 +40,7 @@ if (!npoi || npoi.version !== '2.8.0' || npoi.status !== 'pending-legal-review')
 }
 
 const spreadsheetProject = await read(
-  'src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj',
+  'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj',
 );
 if (!spreadsheetProject.includes('Include="NPOI" Version="2.8.0"')) {
   fail('NPOI project version and compliance decision differ');
@@ -50,21 +50,21 @@ if (spreadsheetProject.includes('AcceptNPOIOSMFLicense')) {
 }
 
 const converterProject = await read(
-  'src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj',
+  'src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj',
 );
 if (converterProject.includes('Include="NPOI"')) {
   fail('the converter project must not carry the NPOI runtime dependency');
 }
 
 const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock] = await Promise.all([
-  read('PXA.WebApi/PXA.WebApi.csproj'),
-  read('src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj'),
-  read('src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj'),
-  read('src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj'),
+  read('PVAD.WebApi/PVAD.WebApi.csproj'),
+  read('src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj'),
+  read('src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj'),
+  read('src/Infrastructure/PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj'),
   read('.github/dependabot.yml'),
   read('.github/workflows/ci.yml'),
-  read('tools/PXA.Mcp/.gitignore'),
-  read('tools/PXA.Mcp/package-lock.json'),
+  read('tools/PVAD.Mcp/.gitignore'),
+  read('tools/PVAD.Mcp/package-lock.json'),
 ]);
 if (mcpIgnore.split(/\r?\n/u).includes('package-lock.json') || !mcpLock.includes('"lockfileVersion"')) {
   fail('MCP must commit a valid package lock for reproducible audits');
@@ -77,7 +77,7 @@ for (const source of [spreadsheet, converters, word]) {
     fail('System.Security.Cryptography.Xml security pin is missing');
   }
 }
-for (const directory of ['/', '/pxa-designer', '/websites/PXA.Admin', '/tools/PXA.Mcp', '/PXA.WebApi']) {
+for (const directory of ['/', '/pvad-designer', '/websites/PVAD.Admin', '/tools/PVAD.Mcp', '/PVAD.WebApi']) {
   if (!dependabot.includes(`directory: "${directory}"`)) {
     fail(`Dependabot does not cover ${directory}`);
   }

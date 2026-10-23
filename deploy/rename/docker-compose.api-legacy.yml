@@ -1,0 +1,37 @@
+# Apply after deploy/api/docker-compose.api.yml, never by itself.
+services:
+  pvad-database:
+    environment:
+      POSTGRES_DB: ${PVAD_DATABASE_NAME:-pxa}
+      POSTGRES_USER: ${PVAD_DATABASE_USER:-pxa}
+      POSTGRES_PASSWORD: ${PVAD_DATABASE_PASSWORD:-pxa-local}
+    networks:
+      default:
+        aliases: [pxa-database]
+  pvad-webapi:
+    environment:
+      ConnectionStrings__PvadDatabase: Host=pvad-database;Port=5432;Database=${PVAD_DATABASE_NAME:-pxa};Username=${PVAD_DATABASE_USER:-pxa};Password=${PVAD_DATABASE_PASSWORD:-pxa-local}
+    networks:
+      default:
+        aliases: [pxa-webapi]
+      pvad-api-host:
+        aliases: [pxa-webapi]
+      pvad-mcp-internal:
+        aliases: [pxa-webapi]
+  pvad-mcp:
+    networks:
+      pvad-mcp-internal:
+        aliases: [pxa-mcp]
+
+volumes:
+  pvad-database-data:
+    external: true
+    name: ${PVAD_LEGACY_DATABASE_VOLUME:?Set the verified existing database volume ID}
+  pvad-api-data:
+    external: true
+    name: ${PVAD_LEGACY_API_VOLUME:?Set the verified existing API data and keyring volume ID}
+
+networks:
+  pvad-api-host: !override
+    external: true
+    name: ${PVAD_LEGACY_API_HOST_NETWORK:?Set the verified existing API host network ID}

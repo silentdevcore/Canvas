@@ -3,23 +3,27 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-operator_url="${PXA_OPERATOR_PUBLIC_URL:-http://127.0.0.1:3001}"
+source "$root_dir/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_OPERATOR_PUBLIC_URL PVAD_OPERATOR_IDENTIFIER PVAD_OPERATOR_PASSWORD \
+  PVAD_BOOTSTRAP_ADMIN_EMAIL PVAD_BOOTSTRAP_ADMIN_PASSWORD
+operator_url="${PVAD_OPERATOR_PUBLIC_URL:-http://127.0.0.1:3001}"
 grafana_url="${operator_url}/operator/grafana"
-operator_identifier="${PXA_OPERATOR_IDENTIFIER:-${PXA_BOOTSTRAP_ADMIN_EMAIL:-}}"
-operator_password="${PXA_OPERATOR_PASSWORD:-${PXA_BOOTSTRAP_ADMIN_PASSWORD:-}}"
+operator_identifier="${PVAD_OPERATOR_IDENTIFIER:-${PVAD_BOOTSTRAP_ADMIN_EMAIL:-}}"
+operator_password="${PVAD_OPERATOR_PASSWORD:-${PVAD_BOOTSTRAP_ADMIN_PASSWORD:-}}"
 cookie_jar="$(mktemp)"
 trap 'rm -f "${cookie_jar}"' EXIT
 
 cd "${root_dir}"
 
-docker compose --profile observability config --quiet
+compose=(node "$root_dir/tools/configuration/pvad-compose.mjs" -f "$root_dir/docker-compose.yml" --profile observability)
+"${compose[@]}" config --quiet
 jq empty deploy/observability/grafana/dashboards/*.json
 
 curl --fail --silent --show-error --max-time 10 http://127.0.0.1:13133/ >/dev/null
-docker exec canvas-pxa-alertmanager-1 \
+"${compose[@]}" exec -T pvad-alertmanager \
   wget -qO- http://127.0.0.1:9093/-/ready >/dev/null
-docker exec canvas-pxa-prometheus-1 \
-  wget -qO- http://pxa-blackbox-exporter:9115/-/healthy >/dev/null
+"${compose[@]}" exec -T pvad-prometheus \
+  wget -qO- http://pvad-blackbox-exporter:9115/-/healthy >/dev/null
 curl --fail --silent --show-error --max-time 10 "${operator_url}/operator-health" >/dev/null
 
 anonymous_status="$(
@@ -50,7 +54,7 @@ if [[ "${anonymous_documentation_root_status}" != "401" ]]; then
 fi
 
 if [[ -z "${operator_identifier}" || -z "${operator_password}" ]]; then
-  echo "Set PXA_OPERATOR_IDENTIFIER and PXA_OPERATOR_PASSWORD to run authenticated smoke checks." >&2
+  echo "Set PVAD_OPERATOR_IDENTIFIER and PVAD_OPERATOR_PASSWORD to run authenticated smoke checks." >&2
   exit 1
 fi
 
@@ -69,7 +73,7 @@ curl --fail --silent --show-error --max-time 10 \
   --cookie "${cookie_jar}" \
   --cookie-jar "${cookie_jar}" \
   --header "Content-Type: application/json" \
-  --header "X-PXA-CSRF: ${csrf}" \
+  --header "X-PVAD-CSRF: ${csrf}" \
   --data "${login_payload}" \
   "${operator_url}/api/pxa/v1/auth/login" >/dev/null
 
@@ -100,7 +104,7 @@ curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
 
 direct_runbook_status="$(
   curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
-    --cookie "${cookie_jar}" "${operator_url}/operator-docs/PXA.Admin-Operations.md"
+    --cookie "${cookie_jar}" "${operator_url}/operator-docs/PVAD.Admin-Operations.md"
 )"
 if [[ "${direct_runbook_status}" != "404" ]]; then
   echo "Expected direct runbook paths to return 404, got ${direct_runbook_status}." >&2
@@ -153,15 +157,15 @@ if [[ "$(jq -r '.jsonData.tracesToLogsV2.datasourceUid' <<<"${tempo_datasource}"
   exit 1
 fi
 
-docker exec canvas-pxa-prometheus-1 \
-  promtool check rules /etc/prometheus/rules/pxa-alerts.yml >/dev/null
-docker exec canvas-pxa-prometheus-1 \
-  promtool test rules /etc/prometheus/tests/pxa-alerts.test.yml >/dev/null
-docker exec canvas-pxa-alertmanager-1 \
+"${compose[@]}" exec -T pvad-prometheus \
+  promtool check rules /etc/prometheus/rules/pvad-alerts.yml >/dev/null
+"${compose[@]}" exec -T pvad-prometheus \
+  promtool test rules /etc/prometheus/tests/pvad-alerts.test.yml >/dev/null
+"${compose[@]}" exec -T pvad-alertmanager \
   amtool check-config /etc/alertmanager/alertmanager.yml >/dev/null
 
 targets_json="$(
-  docker exec canvas-pxa-prometheus-1 \
+  "${compose[@]}" exec -T pvad-prometheus \
     wget -qO- "http://localhost:9090/api/v1/targets?state=active"
 )"
 for job in pxa-otel-collector pxa-postgresql pxa-containers; do
@@ -175,7 +179,7 @@ done
 
 dashboards="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/search?query=PXA"
+    "${grafana_url}/api/search?query=PVAD"
 )"
 for dashboard_uid in \
   pxa-platform-overview \
@@ -190,4 +194,4 @@ for dashboard_uid in \
   fi
 done
 
-echo "PXA observability smoke test passed."
+echo "PVAD observability smoke test passed."

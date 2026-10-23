@@ -1,5 +1,7 @@
 # Rename PXA To PXA
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Summary
 
 Track the completed breaking rename from **PXA** to **Power Dox Automation / PXA**.
@@ -21,7 +23,7 @@ terms such as editor canvas surfaces, `PdfCanvas`, `SKCanvas`, and third-party A
 - [x] CLI name reserved: `pxa`
 - [x] Native Designer formats are `.pxap` and `.pxas`; the earlier generic
   `.pxa` reservation is retired. See
-  [PXA.Native-Designer-Formats.md](PXA.Native-Designer-Formats.md).
+  [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md).
 
 ## Namespace Mapping
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-deployment-artifact-validation",
+  "impact": "patch",
+  "components": [
+    "infrastructure",
+    "documentation"
+  ],
+  "category": "fixed",
+  "summary": "Deployment validation recognizes complete PVAD release archives and preserves verification of historical PVAD releases while rejecting mixed or duplicate archive sets.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

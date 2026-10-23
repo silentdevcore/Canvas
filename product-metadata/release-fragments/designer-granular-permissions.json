@@ -8,10 +8,10 @@
     "designer"
   ],
   "category": "added",
-  "summary": "PXA Designer now enforces granular role-based permissions across PDF and Spreadsheet workflows, templates, code, assets, exports, viewer tools, and every supported migration provider.",
+  "summary": "PVADE Designer now enforces granular role-based permissions across PDF and Spreadsheet workflows, templates, code, assets, exports, viewer tools, and every supported migration provider.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Designer-Authentication.md"
+    "/checklists/PVAD.Designer-Authentication.md"
   ],
   "breaking": false
 }

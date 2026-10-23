@@ -1,18 +1,19 @@
 #!/usr/bin/env node
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(import.meta.dirname, '../..');
-const fixture = path.resolve(process.env.PXA_AES256_FIXTURE ?? path.join(
-  root, 'tests/PXA.Importer.Tests/Fixtures/PdfTrustExternal/qpdf-aes256-unicode.pdf'));
-const reportPath = path.resolve(process.env.PXA_AES256_REPORT ?? path.join(
+const fixture = path.resolve(readPvadEnvironment('PVAD_AES256_FIXTURE') ?? path.join(
+  root, 'tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/qpdf-aes256-unicode.pdf'));
+const reportPath = path.resolve(readPvadEnvironment('PVAD_AES256_REPORT') ?? path.join(
   root, 'artifacts/pdf-security/aes256-interop.json'));
-const userPassword = process.env.PXA_AES256_USER_PASSWORD ?? 'PXA-reader-ä漢字';
-const ownerPassword = process.env.PXA_AES256_OWNER_PASSWORD ?? 'PXA-owner-ßЖ';
+const userPassword = readPvadEnvironment('PVAD_AES256_USER_PASSWORD') ?? 'PXA-reader-ä漢字';
+const ownerPassword = readPvadEnvironment('PVAD_AES256_OWNER_PASSWORD') ?? 'PXA-owner-ßЖ';
 const wrongPassword = 'PXA-intentionally-wrong';
-const qpdfImage = process.env.PXA_AES256_QPDF_IMAGE ?? 'pxa-pdf-trust-external-tools:1';
+const qpdfImage = readPvadEnvironment('PVAD_AES256_QPDF_IMAGE') ?? 'pvad-pdf-trust-external-tools:1';
 
 if (!fs.existsSync(fixture)) throw new Error(`AES-256 fixture not found: ${fixture}`);
 

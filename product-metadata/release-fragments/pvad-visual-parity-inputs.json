@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-visual-parity-inputs",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Visual parity test commands and backend artifact generation use canonical PVAD configuration names consistently. A repeatable browser check verifies all four bundled Designer font styles on desktop and mobile viewport sizes.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

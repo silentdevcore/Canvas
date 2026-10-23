@@ -2,17 +2,26 @@
 
 set -eu
 
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_BACKUP_NAME PXA_BACKUP_NAME "${PVAD_BACKUP_NAME+x}" "${PVAD_BACKUP_NAME-}" "${PXA_BACKUP_NAME+x}" "${PXA_BACKUP_NAME-}"
+pvad_environment_alias PVAD_DATABASE_URL PXA_DATABASE_URL "${PVAD_DATABASE_URL+x}" "${PVAD_DATABASE_URL-}" "${PXA_DATABASE_URL+x}" "${PXA_DATABASE_URL-}"
+pvad_environment_alias PVAD_DATABASE_URL_FILE PXA_DATABASE_URL_FILE "${PVAD_DATABASE_URL_FILE+x}" "${PVAD_DATABASE_URL_FILE-}" "${PXA_DATABASE_URL_FILE+x}" "${PXA_DATABASE_URL_FILE-}"
+pvad_environment_alias PVAD_POSTGRES_IMAGE PXA_POSTGRES_IMAGE "${PVAD_POSTGRES_IMAGE+x}" "${PVAD_POSTGRES_IMAGE-}" "${PXA_POSTGRES_IMAGE+x}" "${PXA_POSTGRES_IMAGE-}"
+pvad_environment_alias PVAD_POSTGRES_READY_ATTEMPTS PXA_POSTGRES_READY_ATTEMPTS "${PVAD_POSTGRES_READY_ATTEMPTS+x}" "${PVAD_POSTGRES_READY_ATTEMPTS-}" "${PXA_POSTGRES_READY_ATTEMPTS+x}" "${PXA_POSTGRES_READY_ATTEMPTS-}"
+pvad_environment_alias PVAD_POSTGRES_READY_DELAY_SECONDS PXA_POSTGRES_READY_DELAY_SECONDS "${PVAD_POSTGRES_READY_DELAY_SECONDS+x}" "${PVAD_POSTGRES_READY_DELAY_SECONDS-}" "${PXA_POSTGRES_READY_DELAY_SECONDS+x}" "${PXA_POSTGRES_READY_DELAY_SECONDS-}"
+pvad_environment_alias PVAD_POSTGRES_STARTUP_DELAY_SECONDS PXA_POSTGRES_STARTUP_DELAY_SECONDS "${PVAD_POSTGRES_STARTUP_DELAY_SECONDS+x}" "${PVAD_POSTGRES_STARTUP_DELAY_SECONDS-}" "${PXA_POSTGRES_STARTUP_DELAY_SECONDS+x}" "${PXA_POSTGRES_STARTUP_DELAY_SECONDS-}"
+
 repository_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 suffix="$$-$(date -u '+%Y%m%d%H%M%S')"
 network="pxa-legal-recovery-$suffix"
 source_container="pxa-legal-source-$suffix"
 target_container="pxa-legal-target-$suffix"
 backup_directory=$(mktemp -d "${TMPDIR:-/tmp}/pxa-legal-backup.XXXXXX")
-image=${PXA_POSTGRES_IMAGE:-postgres:17-alpine}
+image=${PVAD_POSTGRES_IMAGE:-postgres:17-alpine}
 password='synthetic-recovery-password'
-ready_attempts=${PXA_POSTGRES_READY_ATTEMPTS:-60}
-ready_delay=${PXA_POSTGRES_READY_DELAY_SECONDS:-1}
-startup_delay=${PXA_POSTGRES_STARTUP_DELAY_SECONDS:-0}
+ready_attempts=${PVAD_POSTGRES_READY_ATTEMPTS:-60}
+ready_delay=${PVAD_POSTGRES_READY_DELAY_SECONDS:-1}
+startup_delay=${PVAD_POSTGRES_STARTUP_DELAY_SECONDS:-0}
 
 require_non_negative_integer() {
   name=$1
@@ -25,16 +34,16 @@ require_non_negative_integer() {
   esac
 }
 
-require_non_negative_integer PXA_POSTGRES_READY_ATTEMPTS "$ready_attempts"
-require_non_negative_integer PXA_POSTGRES_READY_DELAY_SECONDS "$ready_delay"
-require_non_negative_integer PXA_POSTGRES_STARTUP_DELAY_SECONDS "$startup_delay"
+require_non_negative_integer PVAD_POSTGRES_READY_ATTEMPTS "$ready_attempts"
+require_non_negative_integer PVAD_POSTGRES_READY_DELAY_SECONDS "$ready_delay"
+require_non_negative_integer PVAD_POSTGRES_STARTUP_DELAY_SECONDS "$startup_delay"
 if [ "$ready_attempts" -eq 0 ]; then
-  printf '%s\n' 'PXA_POSTGRES_READY_ATTEMPTS must be greater than zero.' >&2
+  printf '%s\n' 'PVAD_POSTGRES_READY_ATTEMPTS must be greater than zero.' >&2
   exit 2
 fi
 
 cleanup() {
-  docker rm -f "$source_container" "$target_container" >/dev/null 2>&1 || true
+  docker rm -f -v "$source_container" "$target_container" >/dev/null 2>&1 || true
   docker network rm "$network" >/dev/null 2>&1 || true
   rm -rf "$backup_directory"
 }
@@ -109,7 +118,7 @@ SQL
 
 docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$source_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$source_container:5432/pxa" \
   "$image" /bin/sh /workspace/tools/legal/backup-postgres.sh /backup
 
 backup=$(find "$backup_directory" -name 'pxa-*.dump' -type f | head -n 1)
@@ -120,7 +129,7 @@ fi
 
 if docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup:ro" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
   "$image" /bin/sh /workspace/tools/legal/restore-postgres.sh "/backup/$(basename "$backup")" \
   >/dev/null 2>&1; then
   printf '%s\n' 'Restore unexpectedly succeeded without explicit confirmation.' >&2
@@ -129,15 +138,15 @@ fi
 
 corrupt_backup="$backup.corrupt"
 docker run --rm -v "$backup_directory:/backup" \
-  -e PXA_BACKUP_NAME="$(basename "$backup")" \
+  -e PVAD_BACKUP_NAME="$(basename "$backup")" \
   "$image" /bin/sh -c '
-    cp "/backup/$PXA_BACKUP_NAME" "/backup/$PXA_BACKUP_NAME.corrupt"
-    cp "/backup/$PXA_BACKUP_NAME.sha256" "/backup/$PXA_BACKUP_NAME.corrupt.sha256"
-    printf corrupt >> "/backup/$PXA_BACKUP_NAME.corrupt"
+    cp "/backup/$PVAD_BACKUP_NAME" "/backup/$PVAD_BACKUP_NAME.corrupt"
+    cp "/backup/$PVAD_BACKUP_NAME.sha256" "/backup/$PVAD_BACKUP_NAME.corrupt.sha256"
+    printf corrupt >> "/backup/$PVAD_BACKUP_NAME.corrupt"
   '
 if docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup:ro" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
   -e PXA_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
   "$image" /bin/sh /workspace/tools/legal/restore-postgres.sh "/backup/$(basename "$corrupt_backup")" \
   >/dev/null 2>&1; then
@@ -147,18 +156,18 @@ fi
 
 docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup:ro" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
   -e PXA_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
   "$image" /bin/sh /workspace/tools/legal/restore-postgres.sh "/backup/$(basename "$backup")"
 
 docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
   "$image" /bin/sh /workspace/tools/legal/verify-legal-recovery.sh
 
 if docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup:ro" \
-  -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
+  -e PVAD_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
   -e PXA_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
   "$image" /bin/sh /workspace/tools/legal/restore-postgres.sh "/backup/$(basename "$backup")" \
   >/dev/null 2>&1; then

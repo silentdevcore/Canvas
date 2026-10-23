@@ -1,0 +1,7 @@
+{
+  "normalizedModel": "PVAD.Core.Contracts.DesignExportDto",
+  "detectedFormat": "docx",
+  "pages": 3,
+  "elements": ["paragraph", "table", "image"],
+  "status": "planned"
+}

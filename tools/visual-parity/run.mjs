@@ -1,20 +1,21 @@
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import playwright from '../../pxa-designer/node_modules/@playwright/test/index.js';
-import { createServer } from '../../pxa-designer/node_modules/vite/dist/node/index.js';
+import playwright from '../../pvad-designer/node_modules/@playwright/test/index.js';
+import { createServer } from '../../pvad-designer/node_modules/vite/dist/node/index.js';
 
 const { chromium } = playwright;
 
 const toolDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(toolDir, '../..');
-const designerDir = path.join(root, 'pxa-designer');
+const designerDir = path.join(root, 'pvad-designer');
 const output = path.join(root, 'artifacts', 'visual-parity');
 const raw = path.join(output, 'raw');
-const configuredFixture = process.env.PXA_VISUAL_PARITY_FIXTURE ?? 'test-assets/visual-parity/all-elements.json';
+const configuredFixture = readPvadEnvironment('PVAD_VISUAL_PARITY_FIXTURE') ?? 'test-assets/visual-parity/all-elements.json';
 const fixturePath = path.isAbsolute(configuredFixture) ? configuredFixture : path.join(root, configuredFixture);
 // The key the browser route uses to pick the same fixture. Derived from the filename so adding a
 // fixture needs no change here.
@@ -70,12 +71,12 @@ async function renderBrowserSurfaces(fixture) {
       locale: 'en-US',
       timezoneId: 'UTC',
     });
-    await page.route('**/api/pxa/v1/auth/csrf', route => route.fulfill({
+    await page.route('**/api/pvad/v1/auth/csrf', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ token: 'visual-parity-csrf' }),
     }));
-    await page.route('**/api/pxa/v1/designer/symbols/render', async route => {
+    await page.route('**/api/pvad/v1/designer/symbols/render', async route => {
       const request = route.request();
       let type;
       try { type = request.postDataJSON()?.type; } catch { type = undefined; }
@@ -89,7 +90,7 @@ async function renderBrowserSurfaces(fixture) {
         path: path.join(raw, `${type}.png`),
       });
     });
-    await page.route('**/api/pxa/v1/designer/preferences/element-favorites', route => route.fulfill({
+    await page.route('**/api/pvad/v1/designer/preferences/element-favorites', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ elementTypes: [] }),
@@ -388,7 +389,7 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds, 
     surface: 'EInvoice.CreatePdf',
     description: 'The dedicated PDF/A-3 hybrid invoice, rendered from the canonical invoice by the '
       + 'generator. This is a separate surface from the DesignExport "backend" PDF, which renders '
-      + 'the Designer projection; only this one is evidence about the hybrid invoice PXA issues.',
+      + 'the Designer projection; only this one is evidence about the hybrid invoice PVAD issues.',
     designerPages: fixture.pages.length,
     hybridPages,
     pageCountAgrees: hybridPages === fixture.pages.length,
@@ -440,9 +441,9 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds, 
       surface !== 'hybrid' || existsSync(path.join(raw, `hybrid-page-${page.page}.png`))).map(surface =>
       `<figure><img src="raw/${surface}-page-${page.page}.png" alt="${surface} page ${page.page}"><figcaption>${surface}${surface === 'backend' ? ' (reference)' : ` · RMSE ${page.comparisons[surface]?.rmse?.toFixed(5) ?? 'n/a'}`}</figcaption></figure>`).join('') +
     `</div></section>`).join('\n');
-  await writeFile(path.join(output, 'visual-parity-report.html'), `<!doctype html><html><head><meta charset="utf-8"><title>PXA visual parity</title><style>
+  await writeFile(path.join(output, 'visual-parity-report.html'), `<!doctype html><html><head><meta charset="utf-8"><title>PVAD visual parity</title><style>
 body{font-family:Arial,sans-serif;margin:24px;color:#172033;background:#f4f7fa}h1,h2{letter-spacing:0}.summary{display:flex;gap:12px;margin:20px 0}.summary span{padding:8px 12px;background:#fff;border:1px solid #dbe2ea;border-radius:4px}.pages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.pages figure{margin:0}.pages img{width:100%;border:1px solid #aeb9c7;background:#fff}figcaption,small{display:block;color:#5b6777;margin-top:4px}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:8px;border:1px solid #dbe2ea;vertical-align:top}td img{width:150px;max-height:110px;object-fit:contain;object-position:left top;background:#fff}.p0{background:#fff1f2}.p1{background:#fff7ed}.p2{background:#fffbeb}.match{background:#f0fdf4}@media(max-width:1000px){.pages{grid-template-columns:1fr 1fr}table{display:block;overflow:auto}}</style></head><body>
-<h1>PXA Designer and PDF Visual Parity</h1><p>Backend PDF is the authoritative printable surface. Approved thresholds reject P0/P1 findings and geometry drift above one point${enforceThresholds ? ' in this enforced run' : ''}.</p>
+<h1>PVAD Designer and PDF Visual Parity</h1><p>Backend PDF is the authoritative printable surface. Approved thresholds reject P0/P1 findings and geometry drift above one point${enforceThresholds ? ' in this enforced run' : ''}.</p>
 <div class="summary"><span>${report.summary.pages} pages</span><span>${report.summary.elements} elements</span><span>${report.summary.elementTypes} element types</span><span>P0 ${report.summary.findings.P0}</span><span>P1 ${report.summary.findings.P1}</span><span>P2 ${report.summary.findings.P2}</span></div>
 ${pageCards}<h2>Per-element comparison</h2><table><thead><tr><th>Element</th><th>Status</th><th>Canvas</th><th>Preview</th><th>Backend PDF</th><th>C# PDF</th><th>Difference</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
   return report;
@@ -453,19 +454,19 @@ async function main() {
   requireTool('magick');
   requireTool('compare');
   requireTool('pdfimages');
-  const reuseArtifacts = process.env.PXA_VISUAL_PARITY_REUSE_ARTIFACTS === 'true';
-  const enforceThresholds = process.env.PXA_VISUAL_PARITY_ENFORCE === 'true';
+  const reuseArtifacts = readPvadEnvironment('PVAD_VISUAL_PARITY_REUSE_ARTIFACTS') === 'true';
+  const enforceThresholds = readPvadEnvironment('PVAD_VISUAL_PARITY_ENFORCE') === 'true';
   if (!reuseArtifacts) await rm(output, { recursive: true, force: true });
   await mkdir(raw, { recursive: true });
   const fixture = JSON.parse(await readFile(fixturePath, 'utf8'));
   if (!reuseArtifacts) {
     process.stdout.write('Generating backend and C# PDF artifacts...\n');
-    run('dotnet', ['test', 'tests/PXA.Api.Tests/PXA.Api.Tests.csproj', '--no-restore', '-m:1',
+    run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-restore', '-m:1',
       '-p:BuildInParallel=false', '--filter', 'FullyQualifiedName~VisualParityArtifactTests', '--nologo'], {
       env: {
         ...process.env,
-        PXA_VISUAL_PARITY_ARTIFACTS: raw,
-        PXA_VISUAL_PARITY_FIXTURE: fixturePath,
+        PVAD_VISUAL_PARITY_ARTIFACTS: raw,
+        PVAD_VISUAL_PARITY_FIXTURE: fixturePath,
       },
     });
   } else {

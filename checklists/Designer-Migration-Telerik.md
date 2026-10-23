@@ -1,5 +1,7 @@
 # Designer Migration: Telerik Reporting (`.trdx`) → PXA Designer
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 Telerik Reporting `.trdx` → PXA `DesignExportDto` converter.
 

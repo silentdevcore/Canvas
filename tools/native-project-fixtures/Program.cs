@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
-using PXA.Core.Contracts;
-using PXA.Core.ProjectFormats;
+using PVAD.Core.Contracts;
+using PVAD.Core.ProjectFormats;
 
 var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
 var outputDirectory = Path.Combine(repositoryRoot, "docs", "fixtures", "native-projects");
@@ -8,8 +8,8 @@ Directory.CreateDirectory(outputDirectory);
 
 var pdf = new DesignExportDto
 {
-    Id = "pxap-reference",
-    Name = "PXAP Reference",
+    Id = "pvadp-reference",
+    Name = "PVADP Reference",
     PageSettings = new PageSettingsDto { Width = 595, Height = 842, Orientation = "portrait" },
     Pages =
     [
@@ -20,7 +20,7 @@ var pdf = new DesignExportDto
             [
                 new ElementDto
                 {
-                    Id = "title", Type = "text", Content = "Portable PXA PDF Project",
+                    Id = "title", Type = "text", Content = "Portable PVAD PDF Project",
                     X = 36, Y = 48, Width = 300, Height = 30,
                 },
             ],
@@ -29,8 +29,8 @@ var pdf = new DesignExportDto
 };
 var spreadsheet = new SpreadsheetDto
 {
-    Id = "pxas-reference",
-    Name = "PXAS Reference",
+    Id = "pvads-reference",
+    Name = "PVADS Reference",
     Sheets =
     [
         new SheetDto
@@ -48,12 +48,12 @@ var spreadsheet = new SpreadsheetDto
 
 var fixtures = new Dictionary<string, byte[]>(StringComparer.Ordinal)
 {
-    ["minimal.pxap"] = PxaProjectArchive.WritePdf(pdf),
-    ["minimal.pxas"] = PxaProjectArchive.WriteSpreadsheet(spreadsheet),
+    ["minimal.pvadp"] = PvadProjectArchive.WritePdf(pdf),
+    ["minimal.pvads"] = PvadProjectArchive.WriteSpreadsheet(spreadsheet),
 };
 foreach (var fixture in fixtures)
     File.WriteAllBytes(Path.Combine(outputDirectory, fixture.Key), fixture.Value);
 
-var hashes = fixtures.Select(fixture =>
-    $"{Convert.ToHexString(SHA256.HashData(fixture.Value)).ToLowerInvariant()}  {fixture.Key}");
+var hashes = new[] { "minimal.pxap", "minimal.pxas", "minimal.pvadp", "minimal.pvads" }.Select(name =>
+    $"{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(outputDirectory, name)))).ToLowerInvariant()}  {name}");
 File.WriteAllText(Path.Combine(outputDirectory, "SHA256SUMS"), string.Join('\n', hashes) + "\n");

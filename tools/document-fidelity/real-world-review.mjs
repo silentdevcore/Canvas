@@ -205,9 +205,9 @@ function reportHtml(report) {
       <p><strong>${fixture.classification}</strong> · decision ${fixture.humanDecision} · pages ${fixture.sourcePages} → ${fixture.outputPages} · text preservation ${(fixture.semantics.sourcePreservationRatio * 100).toFixed(2)}%</p>
       <p>Reviewed by ${fixture.reviewer} on ${fixture.reviewedAt}.</p>
       <ul>${fixture.findings.map(finding => `<li>${finding}</li>`).join('')}</ul>
-      ${fixture.visualSamples.map(sample => `<figure><img src="${sample.sideBySideImage}" alt="Source and PXA output for page ${sample.page}"><figcaption>Page ${sample.page}: normalized RMSE ${sample.normalizedRmse.toFixed(4)}</figcaption></figure>`).join('')}
+      ${fixture.visualSamples.map(sample => `<figure><img src="${sample.sideBySideImage}" alt="Source and PVAD output for page ${sample.page}"><figcaption>Page ${sample.page}: normalized RMSE ${sample.normalizedRmse.toFixed(4)}</figcaption></figure>`).join('')}
     </section>`).join('');
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PXA real-world fidelity review</title><style>body{font:16px system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#17202a}section{border-top:1px solid #ccd2d8;padding:20px 0}img{max-width:100%;border:1px solid #ccd2d8}figure{margin:24px 0}figcaption{margin-top:6px;color:#59636e}</style></head><body><h1>PXA real-world fidelity review</h1><p>Report-only evidence. Rejected fixtures remain unsupported until their findings are corrected and reviewed again.</p>${fixtures}</body></html>\n`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PVAD real-world fidelity review</title><style>body{font:16px system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#17202a}section{border-top:1px solid #ccd2d8;padding:20px 0}img{max-width:100%;border:1px solid #ccd2d8}figure{margin:24px 0}figcaption{margin-top:6px;color:#59636e}</style></head><body><h1>PVAD real-world fidelity review</h1><p>Report-only evidence. Rejected fixtures remain unsupported until their findings are corrected and reviewed again.</p>${fixtures}</body></html>\n`;
 }
 
 async function main() {

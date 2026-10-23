@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-authentication-review-matrix",
+  "impact": "none",
+  "components": ["api"],
+  "category": "improved",
+  "summary": "Expanded rename compatibility tests cover current and legacy API keys across active, expired, revoked and disabled access states.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds internal authentication regression coverage and review evidence without changing runtime authentication behavior."
+}

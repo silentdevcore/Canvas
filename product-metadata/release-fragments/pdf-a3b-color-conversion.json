@@ -10,10 +10,10 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds independently validated PDF/A-3b generation and attachment-preserving conversion, selectable Viewer workflows, calibrated and ICC-managed color conversion, colored and uncolored tiling patterns, bounded lossless image conversion, and reproducible validation evidence.",
+  "summary": "PVAD adds independently validated PDF/A-3b generation and attachment-preserving conversion, selectable Viewer workflows, calibrated and ICC-managed color conversion, colored and uncolored tiling patterns, bounded lossless image conversion, and reproducible validation evidence.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

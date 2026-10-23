@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using PXA.Importer.Trust;
+using PVAD.Importer.Trust;
 
 var repositoryRoot = FindRepositoryRoot(AppContext.BaseDirectory);
 var outputDirectory = args.Length > 0
@@ -10,7 +10,7 @@ var outputDirectory = args.Length > 0
     : Path.Combine(
         repositoryRoot,
         "websites",
-        "PXA.Documentation",
+        "PVAD.Documentation",
         "public",
         "downloads",
         "pdf-trust",
@@ -28,7 +28,7 @@ var fixtures = new[]
         Path.Combine(
             repositoryRoot,
             "tests",
-            "PXA.Importer.Tests",
+            "PVAD.Importer.Tests",
             "Fixtures",
             "RedactionRecovery",
             "chromium-encoded-glyphs.pdf")),
@@ -41,7 +41,7 @@ var fixtures = new[]
         Path.Combine(
             repositoryRoot,
             "tests",
-            "PXA.Importer.Tests",
+            "PVAD.Importer.Tests",
             "Fixtures",
             "RedactionRecovery",
             "libreoffice-reusable-resources.pdf")),
@@ -51,40 +51,40 @@ var fixtures = new[]
         "qpdf",
         "12.2.0",
         "/CFM /AESV3",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "qpdf-aes256-unicode.pdf"),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "qpdf-aes256-unicode.pdf"),
         "qpdf 12.2.0",
         "PASS",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "qpdf-aes256-unicode-qpdf.txt")),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "qpdf-aes256-unicode-qpdf.txt")),
     new ExternalFixture(
         "pyhanko-pades-bb",
         "pyHanko PAdES Baseline B-B signed PDF",
         "pyHanko CLI",
         "0.37.0",
         "/Name /pyHanko#20CLI",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "pyhanko-pades-bb.pdf"),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "pyhanko-pades-bb.pdf"),
         "pyHanko 0.37.0",
         "PASS",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "pyhanko-pades-bb-validation.txt")),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "pyhanko-pades-bb-validation.txt")),
     new ExternalFixture(
         "libreoffice-pdfa2b",
         "LibreOffice PDF/A-2b document",
         "LibreOffice",
         "26.2.3.2",
         "LibreOffice 26.2.3.2",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfa2b.pdf"),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfa2b.pdf"),
         "veraPDF CLI 1.31.166",
         "PASS",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfa2b-2b-verapdf.xml")),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfa2b-2b-verapdf.xml")),
     new ExternalFixture(
         "libreoffice-pdfua1",
         "LibreOffice PDF/UA-1 document",
         "LibreOffice",
         "26.2.3.2",
         "LibreOffice 26.2.3.2",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfua1.pdf"),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfua1.pdf"),
         "veraPDF CLI 1.31.166",
         "PASS",
-        Path.Combine(repositoryRoot, "tests", "PXA.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfua1-ua1-verapdf.xml")),
+        Path.Combine(repositoryRoot, "tests", "PVAD.Importer.Tests", "Fixtures", "PdfTrustExternal", "libreoffice-pdfua1-ua1-verapdf.xml")),
 };
 
 var entries = new JsonArray();
@@ -224,9 +224,9 @@ static JsonObject ProjectClaim(PdfComplianceClaim claim) => new()
 static string FindRepositoryRoot(string start)
 {
     var directory = new DirectoryInfo(start);
-    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PXA.sln")))
+    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
         directory = directory.Parent;
-    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
 }
 
 internal sealed record ExternalFixture(

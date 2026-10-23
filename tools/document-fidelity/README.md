@@ -1,4 +1,4 @@
-# PXA document fidelity
+# PVAD document fidelity
 
 This tool keeps corpus scope and measured fidelity separate. It prevents synthetic fixtures,
 standards-only files, or absent evidence from inflating the official migration rate.
@@ -15,7 +15,7 @@ Replace reviewed baseline entries with fresh tool output when available:
 ```bash
 node tools/document-fidelity/fidelity.mjs evaluate \
   --visual-parity artifacts/visual-parity/visual-parity-report.json \
-  --word-fidelity tests/PXA.Export.Tests/Fidelity/artifacts/latest/fidelity-report.json \
+  --word-fidelity tests/PVAD.Export.Tests/Fidelity/artifacts/latest/fidelity-report.json \
   --spreadsheet-fidelity artifacts/spreadsheet-fidelity/fidelity-report.json \
   --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json \
   --real-world-fidelity artifacts/document-fidelity/real-world/fidelity-report.json \

@@ -1,3 +1,4 @@
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -6,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const corpusRoot = path.join(root, 'websites', 'PXA.Documentation', 'public', 'downloads', 'pdf-trust');
+const corpusRoot = path.join(root, 'websites', 'PVAD.Documentation', 'public', 'downloads', 'pdf-trust');
 const baselinePath = path.join(root, 'test-assets', 'pdf-trust', 'visual-baseline.json');
 const outputRoot = path.join(root, 'artifacts', 'pdf-trust-visual');
 const dpi = 72;
@@ -94,7 +95,7 @@ async function main() {
   for (const tool of ['pdftoppm', 'magick']) requireTool(tool);
   await rm(outputRoot, { recursive: true, force: true });
   await mkdir(outputRoot, { recursive: true });
-  const updateBaseline = process.env.PXA_PDF_TRUST_VISUAL_UPDATE_BASELINE === 'true';
+  const updateBaseline = readPvadEnvironment('PVAD_PDF_TRUST_VISUAL_UPDATE_BASELINE') === 'true';
   const baseline = updateBaseline
     ? { schemaVersion: 1, dpi, entries: [] }
     : validateBaseline(JSON.parse(await readFile(baselinePath, 'utf8')));
@@ -126,7 +127,7 @@ async function main() {
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    mode: process.env.PXA_PDF_TRUST_VISUAL_ENFORCE === 'true' ? 'enforced' : 'report-only',
+    mode: readPvadEnvironment('PVAD_PDF_TRUST_VISUAL_ENFORCE') === 'true' ? 'enforced' : 'report-only',
     rasterizer: { command: 'pdftoppm', dpi, format: 'png' },
     surfaces: ['digital-signature', 'redaction', 'pdf-a-2b', 'pdf-ua-1'],
     results,

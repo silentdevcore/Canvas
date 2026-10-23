@@ -1,0 +1,8 @@
+{
+  "id": "pvad-operator-example-alignment",
+  "impact": "patch",
+  "components": ["infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Align PDF encryption checks with the current local validation image, refresh operator examples and distinguish proposed deployment hosts from retained runtime defaults. Existing backup and authentication compatibility remains intact.",
+  "breaking": false
+}

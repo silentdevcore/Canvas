@@ -1,12 +1,12 @@
-# PXA Observability Deployment Contract
+# PVAD Observability Deployment Contract
 
-PXA uses one instrumentation and telemetry contract in local, On-Premise, and Cloud deployments.
+PVAD uses one instrumentation and telemetry contract in local, On-Premise, and Cloud deployments.
 Deployment variants may change storage and exposure, but they must not change telemetry names,
 privacy filtering, trace propagation, dashboards, alert semantics, or application availability.
 
 ## Shared Application Contract
 
-- PXA applications emit OTLP logs, metrics, and traces through the OpenTelemetry Collector.
+- PVAD applications emit OTLP logs, metrics, and traces through the OpenTelemetry Collector.
 - The OTLP endpoint and export signals are configured through `Observability__*`.
 - W3C trace context crosses browser, WebApi, database, queue, mail, storage, and OCR boundaries.
 - Operational telemetry excludes customer identifiers, document data, request bodies, secrets,

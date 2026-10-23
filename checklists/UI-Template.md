@@ -1,5 +1,7 @@
 # UI-Template Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Scope
 Create a dynamic template system similar to CraftMyPDF where users design reusable templates and generate final PDFs by merging template layout with runtime JSON data.
 

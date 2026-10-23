@@ -1,5 +1,7 @@
 # Spreadsheet Migration — ClosedXML
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Migrates ClosedXML (`XLWorkbook`) authoring code → the PXA spreadsheet API (`PxaWorkbook`,
 `PXA.Infrastructure.Spreadsheet.PxaWorkbookBuilder`). The **reference** spreadsheet migration —
 the other libraries (EPPlus / GemBox / Aspose) clone this structure.

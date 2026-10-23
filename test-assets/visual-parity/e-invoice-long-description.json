@@ -805,7 +805,7 @@
         {
           "id": "einv-conformanceNote-p1",
           "type": "text",
-          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PXA is not a conformance claim.",
+          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PVADE is not a conformance claim.",
           "x": 42,
           "y": 790,
           "width": 511,
@@ -1282,7 +1282,7 @@
         {
           "id": "einv-conformanceNote-p2",
           "type": "text",
-          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PXA is not a conformance claim.",
+          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PVADE is not a conformance claim.",
           "x": 42,
           "y": 790,
           "width": 511,

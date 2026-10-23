@@ -1,7 +1,7 @@
 global:
   resolve_timeout: 5m
   smtp_from: pxa-alerts@powerdox.local
-  smtp_smarthost: pxa-mailpit:1025
+  smtp_smarthost: pvad-mailpit:1025
   smtp_require_tls: false
 
 templates:
@@ -52,9 +52,9 @@ receivers:
       - to: pxa-operators@powerdox.local
         send_resolved: true
         headers:
-          Subject: '{{ template "pxa.email.subject" . }}'
-        html: '{{ template "pxa.email.html" . }}'
-        text: '{{ template "pxa.email.text" . }}'
+          Subject: '{{ template "pvad.email.subject" . }}'
+        html: '{{ template "pvad.email.html" . }}'
+        text: '{{ template "pvad.email.text" . }}'
         threading:
           enabled: true
           thread_by_date: none

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../../Infrastructure/PVAD.Infrastructure.Pdf/PVAD.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../../Infrastructure/PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../../Core/PVAD.Core/PVAD.Core.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

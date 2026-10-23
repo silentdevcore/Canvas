@@ -1,0 +1,9 @@
+{
+  "id": "pvad-local-cutover-validation",
+  "impact": "none",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Add repeatable local rename validation covering keyring recovery, database restore, proxy hosting, native project opening and release preparation checks.",
+  "reason": "Internal validation tooling, synthetic recovery tests and audit evidence only; no shipped runtime behavior or production configuration is changed.",
+  "breaking": false
+}

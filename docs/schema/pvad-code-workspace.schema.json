@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/pvad-code-workspace.schema.json",
+  "title": "PVAD Code Workspace Project Component",
+  "description": "Optional inert source drafts and source map stored in a PVADP project.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "revision",
+    "baseTemplateRevision",
+    "jsonDraft",
+    "cSharpModelDraft",
+    "cSharpPdfDraft",
+    "cSharpBase64Draft",
+    "canonicalDesignJson"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "baseTemplateRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "jsonDraft": {
+      "type": "string"
+    },
+    "cSharpModelDraft": {
+      "type": "string"
+    },
+    "cSharpPdfDraft": {
+      "type": "string"
+    },
+    "cSharpBase64Draft": {
+      "type": "string"
+    },
+    "canonicalDesignJson": {
+      "type": "string",
+      "contentMediaType": "application/json"
+    },
+    "sourceMap": {
+      "type": [
+        "array",
+        "object",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

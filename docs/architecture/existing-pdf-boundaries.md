@@ -1,13 +1,13 @@
 # Existing PDF Ownership Boundaries
 
-This document defines which PXA component owns each stage of an existing-PDF
+This document defines which PVAD component owns each stage of an existing-PDF
 workflow. It is a product contract, not an implementation suggestion.
 
 ## Component Responsibilities
 
-### `PXA.Importer`
+### `PVAD.Importer`
 
-`PXA.Importer` owns reading and changing existing PDF object graphs. Its typed
+`PVAD.Importer` owns reading and changing existing PDF object graphs. Its typed
 object model represents dictionaries, arrays, names, strings, numbers,
 references, streams, cross-reference data, trailers, object streams, page trees,
 and revision chains.
@@ -84,7 +84,7 @@ Trust evidence retains the source location of the invocation. This is evidence f
 review and source navigation, not a promise that every wrapper, extension,
 async, or dependency-injected pattern is understood.
 
-Official Nutrient signature and redaction calls are externalized as bounded PXA
+Official Nutrient signature and redaction calls are externalized as bounded PVAD
 Trust review evidence. The evidence records the recognized operation, source
 location, Trust status, and required next action. It does not execute signing,
 certificate validation, preflight, apply, or irreversible redaction as part of
@@ -94,15 +94,15 @@ diagnostics, evidence, or logs. A visual redaction mark remains a review
 item and is never reported as removed content.
 
 This boundary deliberately separates semantic detection from Trust execution:
-the migrator may point an operator to the PXA Trust workflow, while the Trust
+the migrator may point an operator to the PVAD Trust workflow, while the Trust
 pipeline remains responsible for credentials, policy, validation, full-rewrite
 decisions, and post-operation evidence.
 
-### `PXA.Pdf`
+### `PVAD.Pdf`
 
-`PXA.Pdf` owns new-document generation. Its public API creates pages, content,
+`PVAD.Pdf` owns new-document generation. Its public API creates pages, content,
 forms, annotations, navigation, accessibility structures, encryption, and
-compliance output from typed PXA inputs.
+compliance output from typed PVAD inputs.
 
 It is responsible for:
 
@@ -111,14 +111,14 @@ It is responsible for:
 - new-document encryption and signature preparation;
 - public drawing, layout, form, annotation, and document APIs.
 
-`PXA.Pdf` does not parse arbitrary existing object graphs. Existing-document
+`PVAD.Pdf` does not parse arbitrary existing object graphs. Existing-document
 editing reaches the generator only through an explicit bridge that reports any
 semantic loss.
 
-### `PXA.Infrastructure.Pdf`
+### `PVAD.Infrastructure.Pdf`
 
-`PXA.Infrastructure.Pdf` adapts application-level design documents to
-`PXA.Pdf`. It owns rendering orchestration, font and asset resolution, chart
+`PVAD.Infrastructure.Pdf` adapts application-level design documents to
+`PVAD.Pdf`. It owns rendering orchestration, font and asset resolution, chart
 rendering, localization, data binding, page-layout planning, and export
 integration.
 
@@ -136,7 +136,7 @@ The caller must select a save strategy explicitly:
   irreversible redaction, sanitization, encryption replacement, and compliance
   conversion. Signed input requires explicit acknowledgement of invalidation.
 - **Regeneration** converts a reconstructed design through
-  `PXA.Infrastructure.Pdf` and `PXA.Pdf`. It is never an exact existing-PDF edit
+  `PVAD.Infrastructure.Pdf` and `PVAD.Pdf`. It is never an exact existing-PDF edit
   unless the conversion report says `exact`.
 
 No component may choose a weaker strategy after a requested strategy fails.
@@ -146,7 +146,7 @@ Signing, redaction, and compliance conversion fail closed.
 
 ```text
 Existing PDF bytes
-  -> PXA.Importer parse and trust inspection
+  -> PVAD.Importer parse and trust inspection
   -> typed object graph
   -> bounded mutation
   -> incremental update or full rewrite
@@ -154,8 +154,8 @@ Existing PDF bytes
   -> output bytes and typed evidence
 
 DesignExportDto
-  -> PXA.Infrastructure.Pdf planning and resource resolution
-  -> PXA.Pdf generation
+  -> PVAD.Infrastructure.Pdf planning and resource resolution
+  -> PVAD.Pdf generation
   -> output bytes and generator diagnostics
 ```
 

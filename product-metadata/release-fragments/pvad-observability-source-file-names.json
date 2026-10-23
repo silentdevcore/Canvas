@@ -1,0 +1,8 @@
+{
+  "id": "pvad-observability-source-file-names",
+  "impact": "major",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Use PVAD filenames for bundled monitoring dashboards, alert rules and mail templates. Existing dashboard identities and legacy mail-template aliases are retained; update explicit configuration file mounts together.",
+  "breaking": true
+}

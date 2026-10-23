@@ -1,146 +1,149 @@
+# Fresh installations use PVAD. Existing data requires the explicit legacy overlay.
 services:
-  pxa-database:
-    image: postgres:17-alpine
+  pvad-database:
+    image: 'postgres:17-alpine'
     environment:
-      POSTGRES_DB: pxa
-      POSTGRES_USER: pxa
-      POSTGRES_PASSWORD: ${PXA_DATABASE_PASSWORD:-pxa-local}
+      POSTGRES_DB: ${PVAD_DATABASE_NAME:-pvad}
+      POSTGRES_USER: ${PVAD_DATABASE_USER:-pvad}
+      POSTGRES_PASSWORD: ${PVAD_DATABASE_PASSWORD:-pvad-local}
     volumes:
-      - pxa-database-data:/var/lib/postgresql/data
+      - 'pvad-database-data:/var/lib/postgresql/data'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pxa -d pxa"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 5s
     networks:
-      - default
+      default: {}
     restart: unless-stopped
-
-  pxa-webapi:
+  pvad-webapi:
     build:
       context: ../..
-      dockerfile: PXA.WebApi/Dockerfile
+      dockerfile: PVAD.WebApi/Dockerfile
       args:
-        PXA_VERSION: ${PXA_VERSION:-1.1.0}
-        PXA_COMMIT: ${PXA_COMMIT:-unknown}
-        PXA_BUILD_TIME: ${PXA_BUILD_TIME:-unknown}
+        PVAD_VERSION: '${PVAD_VERSION:-1.1.0}'
+        PVAD_COMMIT: '${PVAD_COMMIT:-unknown}'
+        PVAD_BUILD_TIME: '${PVAD_BUILD_TIME:-unknown}'
     environment:
-      HOSTNAME: pxa-webapi-container
-      ASPNETCORE_ENVIRONMENT: ${PXA_API_ENVIRONMENT:-Production}
-      ConnectionStrings__PxaDatabase: Host=pxa-database;Port=5432;Database=pxa;Username=pxa;Password=${PXA_DATABASE_PASSWORD:-pxa-local}
-      Mail__Transport: ${PXA_API_MAIL_TRANSPORT:-Disabled}
-      Observability__Enabled: ${PXA_OBSERVABILITY_ENABLED:-false}
-      Observability__OtlpEndpoint: ${PXA_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      HOSTNAME: pvad-webapi-container
+      ASPNETCORE_ENVIRONMENT: '${PVAD_API_ENVIRONMENT:-Production}'
+      ConnectionStrings__PvadDatabase: Host=pvad-database;Port=5432;Database=${PVAD_DATABASE_NAME:-pvad};Username=${PVAD_DATABASE_USER:-pvad};Password=${PVAD_DATABASE_PASSWORD:-pvad-local}
+      Mail__Transport: '${PVAD_API_MAIL_TRANSPORT:-Disabled}'
+      Observability__Enabled: '${PVAD_OBSERVABILITY_ENABLED:-false}'
+      Observability__OtlpEndpoint: '${PVAD_OTLP_ENDPOINT:-http://host.docker.internal:4317}'
       DataProtection__KeysDirectory: /app/data/data-protection-keys
       Storage__RootPath: /app/data/objects
       PdfViewer__AnnotationStoragePath: /app/data/pdf-viewer
       Pdf__FontsDirectory: /app/fonts
-      Ocr__UseIsolatedWorker: "true"
-      Ocr__WorkerPath: /app/ocr-worker/PXA.FileImporter.ImageOcr.Worker.dll
+      PdfTrust__RevocationEvidence__CacheDirectory: /app/data/pdf-trust/revocation-cache
+      Ocr__UseIsolatedWorker: 'true'
+      Ocr__WorkerPath: /app/ocr-worker/PVAD.FileImporter.ImageOcr.Worker.dll
       Ocr__TessDataPath: /usr/share/tesseract-ocr/5/tessdata
-      CodeWorker__Enabled: ${PXA_CODE_WORKER_ENABLED:-false}
-      CodeWorker__Hardened: ${PXA_CODE_WORKER_HARDENED:-false}
-      CodeWorker__WorkerPath: ${PXA_CODE_WORKER_PATH:-/app/code-worker}
-      OAuth__Enabled: ${PXA_OAUTH_ENABLED:-false}
-      OAuth__Issuer: ${PXA_OAUTH_ISSUER:-http://localhost:5178}
-      OAuth__McpResource: ${PXA_MCP_RESOURCE_URI:-http://localhost:8080/mcp}
-      OAuth__DynamicClientRegistrationEnabled: ${PXA_OAUTH_DYNAMIC_CLIENT_REGISTRATION_ENABLED:-true}
-      OAuth__McpDelegationSecret: ${PXA_MCP_DELEGATION_SECRET:-}
-      OAuth__SigningCertificatePath: ${PXA_OAUTH_SIGNING_CERTIFICATE_PATH:-}
-      OAuth__SigningCertificatePassword: ${PXA_OAUTH_SIGNING_CERTIFICATE_PASSWORD:-}
-      Licensing__PrivateKeyPath: /run/secrets/pxa_license_private_key
-      Licensing__PublicKeyPath: /run/secrets/pxa_license_public_key
+      CodeWorker__Enabled: '${PVAD_CODE_WORKER_ENABLED:-false}'
+      CodeWorker__Hardened: '${PVAD_CODE_WORKER_HARDENED:-false}'
+      CodeWorker__WorkerPath: '${PVAD_CODE_WORKER_PATH:-/app/code-worker}'
+      OAuth__Enabled: '${PVAD_OAUTH_ENABLED:-false}'
+      OAuth__Issuer: '${PVAD_OAUTH_ISSUER:-http://localhost:5178}'
+      OAuth__McpResource: '${PVAD_MCP_RESOURCE_URI:-http://localhost:8080/mcp}'
+      OAuth__DynamicClientRegistrationEnabled: '${PVAD_OAUTH_DYNAMIC_CLIENT_REGISTRATION_ENABLED:-true}'
+      OAuth__McpDelegationSecret: '${PVAD_MCP_DELEGATION_SECRET:-}'
+      OAuth__SigningCertificatePath: '${PVAD_OAUTH_SIGNING_CERTIFICATE_PATH:-}'
+      OAuth__SigningCertificatePassword: '${PVAD_OAUTH_SIGNING_CERTIFICATE_PASSWORD:-}'
+      Licensing__PrivateKeyPath: /run/secrets/pvad_license_private_key
+      Licensing__PublicKeyPath: /run/secrets/pvad_license_public_key
     ports:
-      - "${PXA_API_HOST_IP:-127.0.0.1}:${PXA_API_HOST_PORT:-5087}:8080"
+      - '${PVAD_API_HOST_IP:-127.0.0.1}:${PVAD_API_HOST_PORT:-5087}:8080'
     read_only: true
     tmpfs:
-      - /app/tmp:rw,noexec,nosuid,nodev,size=${PXA_API_TMP_LIMIT:-512m},uid=1654,gid=1654,mode=0700
+      - '/app/tmp:rw,noexec,nosuid,nodev,size=${PVAD_API_TMP_LIMIT:-512m},uid=1654,gid=1654,mode=0700'
     cap_drop:
       - ALL
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     volumes:
-      - pxa-api-data:/app/data
-      - ${PXA_API_FONTS_PATH:-./fonts}:/app/fonts:ro
+      - 'pvad-api-data:/app/data'
+      - '${PVAD_API_FONTS_PATH:-./fonts}:/app/fonts:ro'
     secrets:
-      - pxa_license_private_key
-      - pxa_license_public_key
+      - pvad_license_private_key
+      - pvad_license_public_key
     depends_on:
-      pxa-database:
+      pvad-database:
         condition: service_healthy
     networks:
-      - default
-      - pxa-api-host
-      - pxa-mcp-internal
+      default: {}
+      pvad-api-host: {}
+      pvad-mcp-internal: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_API_CPU_LIMIT:-2.0}"
-          memory: ${PXA_API_MEMORY_LIMIT:-2G}
-          pids: ${PXA_API_PID_LIMIT:-256}
+          cpus: '${PVAD_API_CPU_LIMIT:-2.0}'
+          memory: '${PVAD_API_MEMORY_LIMIT:-2G}'
+          pids: '${PVAD_API_PID_LIMIT:-256}'
     stop_grace_period: 30s
     restart: unless-stopped
-
-  pxa-mcp:
-    profiles: ["mcp"]
+  pvad-mcp:
+    profiles:
+      - mcp
     build:
       context: ../..
-      dockerfile: tools/PXA.Mcp/Dockerfile
+      dockerfile: tools/PVAD.Mcp/Dockerfile
     environment:
-      PXA_MCP_RESOURCE_URI: ${PXA_MCP_RESOURCE_URI:-http://localhost:8080/mcp}
-      PXA_MCP_OAUTH_ISSUER: ${PXA_OAUTH_ISSUER:-http://localhost:5178}
-      PXA_MCP_JWKS_URI: http://pxa-webapi:8080/.well-known/jwks.json
-      PXA_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES: "true"
-      PXA_MCP_ALLOWED_HOSTS: ${PXA_MCP_ALLOWED_HOSTS:-localhost,127.0.0.1}
-      PXA_MCP_ALLOWED_ORIGINS: ${PXA_MCP_ALLOWED_ORIGINS:-}
-      PXA_MCP_REQUESTS_PER_MINUTE: ${PXA_MCP_REQUESTS_PER_MINUTE:-120}
-      PXA_MCP_READINESS_TIMEOUT_MS: ${PXA_MCP_READINESS_TIMEOUT_MS:-3000}
-      PXA_API_URL: http://pxa-webapi:8080
-      PXA_API_KEY: ${PXA_MCP_API_KEY:-}
-      PXA_MCP_DELEGATION_SECRET: ${PXA_MCP_DELEGATION_SECRET:-}
+      PVAD_MCP_RESOURCE_URI: '${PVAD_MCP_RESOURCE_URI:-http://localhost:8080/mcp}'
+      PVAD_MCP_OAUTH_ISSUER: '${PVAD_OAUTH_ISSUER:-http://localhost:5178}'
+      PVAD_MCP_JWKS_URI: 'http://pvad-webapi:8080/.well-known/jwks.json'
+      PVAD_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES: 'true'
+      PVAD_MCP_ALLOWED_HOSTS: '${PVAD_MCP_ALLOWED_HOSTS:-localhost,127.0.0.1}'
+      PVAD_MCP_ALLOWED_ORIGINS: '${PVAD_MCP_ALLOWED_ORIGINS:-}'
+      PVAD_MCP_REQUESTS_PER_MINUTE: '${PVAD_MCP_REQUESTS_PER_MINUTE:-120}'
+      PVAD_MCP_READINESS_TIMEOUT_MS: '${PVAD_MCP_READINESS_TIMEOUT_MS:-3000}'
+      PVAD_API_URL: 'http://pvad-webapi:8080'
+      PVAD_API_KEY: '${PVAD_MCP_API_KEY:-}'
+      PVAD_MCP_DELEGATION_SECRET: '${PVAD_MCP_DELEGATION_SECRET:-}'
     read_only: true
     tmpfs:
-      - /tmp:rw,noexec,nosuid,nodev,size=32m
+      - '/tmp:rw,noexec,nosuid,nodev,size=32m'
     cap_drop:
       - ALL
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     depends_on:
-      pxa-webapi:
+      pvad-webapi:
         condition: service_healthy
     networks:
-      - pxa-mcp-internal
+      pvad-mcp-internal: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_MCP_CPU_LIMIT:-0.5}"
-          memory: ${PXA_MCP_MEMORY_LIMIT:-256M}
-          pids: ${PXA_MCP_PID_LIMIT:-128}
+          cpus: '${PVAD_MCP_CPU_LIMIT:-0.5}'
+          memory: '${PVAD_MCP_MEMORY_LIMIT:-256M}'
+          pids: '${PVAD_MCP_PID_LIMIT:-128}'
     restart: unless-stopped
-
-  pxa-mcp-gateway:
-    image: nginx:1.29-alpine
-    profiles: ["mcp"]
+  pvad-mcp-gateway:
+    image: 'nginx:1.29-alpine'
+    profiles:
+      - mcp
     environment:
-      PXA_MCP_SERVER_NAME: ${PXA_MCP_SERVER_NAME:-localhost}
-      NGINX_ENVSUBST_FILTER: ^PXA_
+      PVAD_MCP_SERVER_NAME: '${PVAD_MCP_SERVER_NAME:-localhost}'
+      NGINX_ENVSUBST_FILTER: ^PVAD_
     ports:
-      - "${PXA_MCP_HOST_IP:-127.0.0.1}:${PXA_MCP_HOST_PORT:-8080}:8080"
+      - '${PVAD_MCP_HOST_IP:-127.0.0.1}:${PVAD_MCP_HOST_PORT:-8080}:8080'
     volumes:
-      - ./mcp-gateway.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - './mcp-gateway.conf.template:/etc/nginx/templates/default.conf.template:ro'
     depends_on:
-      pxa-mcp:
+      pvad-mcp:
         condition: service_healthy
-      pxa-webapi:
+      pvad-webapi:
         condition: service_healthy
     networks:
-      - pxa-mcp-internal
+      - pvad-mcp-internal
     read_only: true
     tmpfs:
-      - /etc/nginx/conf.d:rw,noexec,nosuid,nodev,size=1m
-      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=16m
-      - /var/run:rw,noexec,nosuid,nodev,size=1m
+      - '/etc/nginx/conf.d:rw,noexec,nosuid,nodev,size=1m'
+      - '/var/cache/nginx:rw,noexec,nosuid,nodev,size=16m'
+      - '/var/run:rw,noexec,nosuid,nodev,size=1m'
     cap_drop:
       - ALL
     cap_add:
@@ -149,20 +152,17 @@ services:
       - SETGID
       - SETUID
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     restart: unless-stopped
-
 secrets:
-  pxa_license_private_key:
-    file: ${PXA_LICENSE_PRIVATE_KEY_FILE:?Set PXA_LICENSE_PRIVATE_KEY_FILE}
-  pxa_license_public_key:
-    file: ${PXA_LICENSE_PUBLIC_KEY_FILE:?Set PXA_LICENSE_PUBLIC_KEY_FILE}
-
+  pvad_license_private_key:
+    file: '${PVAD_LICENSE_PRIVATE_KEY_FILE:?Set PVAD_LICENSE_PRIVATE_KEY_FILE}'
+  pvad_license_public_key:
+    file: '${PVAD_LICENSE_PUBLIC_KEY_FILE:?Set PVAD_LICENSE_PUBLIC_KEY_FILE}'
 volumes:
-  pxa-api-data:
-  pxa-database-data:
-
+  pvad-api-data: null
+  pvad-database-data: null
 networks:
-  pxa-api-host:
-  pxa-mcp-internal:
+  pvad-api-host: null
+  pvad-mcp-internal:
     internal: true

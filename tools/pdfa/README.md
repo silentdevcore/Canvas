@@ -1,10 +1,10 @@
-# PXA PDF/A Validation
+# PVAD PDF/A Validation
 
 `validate-pdfa.sh` runs the pinned official veraPDF CLI container and stores one
 machine-readable XML report per input file.
 
 ```bash
-PXA_PDFA_REPORT_DIR=/tmp/pxa-pdfa-reports \
+PVAD_PDFA_REPORT_DIR=/tmp/pvad-pdfa-reports \
   tools/pdfa/validate-pdfa.sh 2b document.pdf
 
 tools/pdfa/validate-pdfa.sh 3b generated.pdf converted.pdf
@@ -15,7 +15,7 @@ The command exits unsuccessfully when a file is missing, the profile is not `2b`
 container only for an intentional validator upgrade:
 
 ```bash
-PXA_VERAPDF_IMAGE=ghcr.io/verapdf/cli:v1.31.166 \
+PVAD_VERAPDF_IMAGE=ghcr.io/verapdf/cli:v1.31.166 \
   tools/pdfa/validate-pdfa.sh 3b document.pdf
 ```
 
@@ -31,12 +31,23 @@ retains its detailed report, and records the profile, input SHA-256, validator v
 UTC validation time, and exit code as separate evidence.
 
 ```bash
-PXA_PDFA_SECONDARY_VALIDATOR=/opt/pdf-tools.com/bin/x64/pdfvalidator \
-PXA_PDFA_SECONDARY_REPORT_DIR=/tmp/pxa-pdfa-secondary \
+PVAD_PDFA_SECONDARY_VALIDATOR=/opt/pdf-tools.com/bin/x64/pdfvalidator \
+PVAD_PDFA_SECONDARY_REPORT_DIR=/tmp/pvad-pdfa-secondary \
   tools/pdfa/validate-pdfa-secondary.sh 2b document.pdf
 ```
 
 The wrapper accepts only PDF/A-2b and PDF/A-3b. It distinguishes non-conformance from
 license failure and never treats a missing validator, missing license, or processing error
 as a pass. The validator is a separately licensed commercial dependency; it is not bundled
-with PXA.
+with PVAD.
+
+## CI Artifact Names
+
+Current synthetic PDF/A producers and `.github/workflows/ci.yml` use matching
+`pvad-*.pdf` output names. Archived PDF/XML validation evidence and its hashes
+are not renamed or regenerated. Stable `PXAPDF...` diagnostics and intentional
+legacy metadata inside test documents remain compatibility inputs.
+
+New CI SBOMs use the selected `pvade.com` namespace for identifiers. These
+namespace URIs do not assert that a public SBOM download endpoint is deployed;
+previously recorded SBOM/evidence identifiers remain unchanged.

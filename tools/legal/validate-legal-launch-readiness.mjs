@@ -12,10 +12,10 @@ export function inspectLegalLaunchReadiness(repositoryRoot = root) {
     join(repositoryRoot, 'product-metadata/browser-storage.json'),
     'utf8'));
   const companyLegalSource = readFileSync(
-    join(repositoryRoot, 'websites/PXA.Company/src/main.js'),
+    join(repositoryRoot, 'websites/PVAD.Company/src/main.js'),
     'utf8');
   const productionSettings = JSON.parse(readFileSync(
-    join(repositoryRoot, 'PXA.WebApi/appsettings.Production.json'),
+    join(repositoryRoot, 'PVAD.WebApi/appsettings.Production.json'),
     'utf8'));
   const commerce = JSON.parse(readFileSync(
     join(repositoryRoot, 'product-metadata/global-commerce-catalog.json'),
@@ -76,7 +76,7 @@ export function inspectLegalLaunchReadiness(repositoryRoot = root) {
 }
 
 function printReport(result) {
-  console.log('PXA Legal launch readiness');
+  console.log('PVAD Legal launch readiness');
   console.log(`Structural violations: ${result.violations.length}`);
   console.log(`Launch blockers: ${result.blockers.length}`);
   for (const message of result.violations) console.log(`- VIOLATION: ${message}`);

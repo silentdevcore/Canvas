@@ -1,5 +1,7 @@
 # Removing PdfImporter & SvgPdfImporter
 
+> Naming history: This retained planning or migration note predates PVAD/PVADE. Legacy project names below are historical references, not current integration instructions. See README.md and the rename compatibility guides for the current contracts.
+
 ## Analysis
 
 ### Why removing them

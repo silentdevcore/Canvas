@@ -1,5 +1,7 @@
 # UI Elements Implementation Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Overview
 This checklist covers the implementation of additional UI elements for the PXA PDF Designer. Each element should follow the established pattern: update types, store logic, renderer, properties panel, sidebar, and codegen.
 

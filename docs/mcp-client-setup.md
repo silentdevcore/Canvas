@@ -1,11 +1,19 @@
-# PXA MCP Client Setup
+# PVAD MCP Client Setup
 
-PXA MCP Beta supports local `stdio` and remote Streamable HTTP. The remote endpoint uses OAuth 2.1,
+PVAD MCP Beta supports local `stdio` and remote Streamable HTTP. The remote endpoint uses OAuth 2.1,
 Protected Resource Metadata, Dynamic Client Registration (DCR), Authorization Code with PKCE, and
 service-account client credentials. Never place a user access token or one-time service-account
 secret in a checked-in client configuration.
 
 ## Supported Protocol Revisions
+
+The current Account discovery and stored client permissions still use `pxa.*`
+scope names; retain those scope requests in the examples below. Token readers also
+understand the corresponding three canonical read-only aliases. Organization
+claims default to `pvad_organization`, with a conflict-checked `pxa_organization`
+reader. Internal API delegation uses a separate canonical `PVAD-MCP` envelope;
+it is not a replacement OAuth client ID or grant. See
+[identity compatibility](pvad-identity-compatibility.md) for rollout boundaries.
 
 The Beta build uses the pinned official TypeScript MCP SDK and negotiates these revisions:
 
@@ -15,26 +23,31 @@ The Beta build uses the pinned official TypeScript MCP SDK and negotiates these 
 - `2024-11-05`
 - `2024-10-07`
 
-PXA tests every listed revision. A later SDK update may add a revision in a backward-compatible PXA
+PVAD tests every listed revision. A later SDK update may add a revision in a backward-compatible PVAD
 release. Removing a revision requires a documented compatibility notice and at least one minor
 release of advance notice.
 
 ## Codex
 
+The remote examples below use the proposed target `https://mcp.pvade.com/mcp`.
+It is not a verified live endpoint. Replace it with your deployed MCP URL before
+registering a client. This documentation change does not switch runtime OAuth
+identities, callback allowlists or retained host defaults.
+
 Register the remote server and start OAuth login with DCR:
 
 ```bash
-codex mcp add pxa --url https://mcp.powerdoxautomation.com/mcp
-codex mcp login pxa \
+codex mcp add pvad --url https://mcp.pvade.com/mcp
+codex mcp login pvad \
   --oauth-client-registration DCR \
   --scopes pxa.docs.read,pxa.templates.read,pxa.documents.validate
-codex mcp get pxa
+codex mcp get pvad
 ```
 
 For a local repository build:
 
 ```bash
-codex mcp add pxa-local -- node /absolute/path/to/tools/PXA.Mcp/dist/pxa-mcp.js
+codex mcp add pvad-local -- node /absolute/path/to/tools/PVAD.Mcp/dist/pvad-mcp.js
 ```
 
 ## Claude Code
@@ -42,8 +55,8 @@ codex mcp add pxa-local -- node /absolute/path/to/tools/PXA.Mcp/dist/pxa-mcp.js
 Add the Streamable HTTP endpoint and then use `/mcp` inside Claude Code to complete browser login:
 
 ```bash
-claude mcp add --transport http pxa https://mcp.powerdoxautomation.com/mcp
-claude mcp get pxa
+claude mcp add --transport http pvad https://mcp.pvade.com/mcp
+claude mcp get pvad
 ```
 
 For project-shared configuration, review the generated `.mcp.json` before committing it. The file
@@ -56,9 +69,9 @@ Create `.vscode/mcp.json` with the remote HTTP endpoint:
 ```json
 {
   "servers": {
-    "pxa": {
+    "pvad": {
       "type": "http",
-      "url": "https://mcp.powerdoxautomation.com/mcp"
+      "url": "https://mcp.pvade.com/mcp"
     }
   }
 }
@@ -69,7 +82,7 @@ browser for OAuth. Do not add a static `Authorization` header to a shared worksp
 
 ## Service Accounts
 
-Automation obtains the OAuth client ID and one-time secret from PXA Account. Request only required
+Automation obtains the OAuth client ID and one-time secret from PVAD Account. Request only required
 scopes from `/connect/token` using `client_credentials`. Store the secret in the operating-system or
 CI credential store, rotate it regularly, and revoke it immediately when a workload is retired.
 
@@ -78,7 +91,7 @@ CI credential store, rotate it regularly, and revoke it immediately when a workl
 - `401`: complete OAuth login or verify service-account credentials and token audience.
 - `403`: verify scope, active organization, entitlement, and browser Origin allowlist.
 - `429`: wait for the rate-limit reset instead of retrying immediately.
-- `503` from `/health/ready`: PXA WebApi or the identity JWKS endpoint is unavailable.
+- `503` from `/health/ready`: PVAD WebApi or the identity JWKS endpoint is unavailable.
 - OAuth callback rejection: use the exact HTTPS or loopback HTTP redirect URI registered by the
   client; redirects with fragments, credentials, or public clear-text HTTP are rejected.
 

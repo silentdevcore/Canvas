@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 /**
  * Runs the pinned veraPDF workflow over the deterministic electronic-invoice PDF/A fixtures and
  * records the evidence.
@@ -10,7 +11,7 @@
  *
  * What the evidence does and does not say:
  *   - veraPDF proves PDF/A properties. It is not a Factur-X, ZUGFeRD or XRechnung business
- *     conformance claim; that needs the official artifact sets PXA does not ship.
+ *     conformance claim; that needs the official artifact sets PVAD does not ship.
  *   - When the validator cannot run, every fixture is recorded `notEvaluated`. Nothing here can
  *     produce `valid` without a report from the container.
  *   - The corpus carries a deliberately non-PDF/A control. A run that calls it compliant is not
@@ -20,7 +21,7 @@
  *   node tools/pdfa/einvoice-pdfa-evidence.mjs
  *
  * Regenerate the fixtures first:
- *   dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj \
+ *   dotnet test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj \
  *     --filter FullyQualifiedName~EInvoicePdfaFixture
  */
 
@@ -34,7 +35,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const manifestPath = path.join(root, 'test-assets', 'e-invoicing', 'pdfa-fixtures.json');
 const validator = path.join(root, 'tools', 'pdfa', 'validate-pdfa.sh');
-const image = process.env.PXA_VERAPDF_IMAGE ?? 'ghcr.io/verapdf/cli:v1.31.166';
+const image = readPvadEnvironment('PVAD_VERAPDF_IMAGE') ?? 'ghcr.io/verapdf/cli:v1.31.166';
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const fixtureDirectory = path.join(root, manifest.outputDirectory);

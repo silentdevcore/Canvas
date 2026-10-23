@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-legacy-local-data-ignore-protection",
+  "impact": "patch",
+  "components": ["infrastructure"],
+  "category": "fixed",
+  "summary": "Keep local runtime data and generated Designer files private across directory renames. Ignore environment-specific configuration while allowing example files and explicitly shared VS Code settings.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

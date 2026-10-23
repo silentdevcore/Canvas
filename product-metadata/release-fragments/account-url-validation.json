@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "account-url-validation",
+  "impact": "patch",
+  "components": ["account", "designer", "infrastructure", "documentation"],
+  "category": "security",
+  "summary": "Account redirects and frontend URL configuration validate destination syntax more strictly while retaining configured product origins and compatibility aliases.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-frontend-host-validation.md"],
+  "breaking": false,
+  "securityReviewed": true
+}

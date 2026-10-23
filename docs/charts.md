@@ -1,10 +1,10 @@
 # Charts
 
-PXA uses one versioned `ChartDefinition` for the Designer, Live Preview, API, and PDF renderer. The supported chart types are `bar`, `line`, `area`, `pie`, `doughnut`, `stackedBar`, and `combo`.
+PVAD uses one versioned `ChartDefinition` for the Designer, Live Preview, API, and PDF renderer. The supported chart types are `bar`, `line`, `area`, `pie`, `doughnut`, `stackedBar`, and `combo`.
 
 ## Create and edit a chart
 
-Add **Chart** from **Visual Elements**, select it, and use the Inspector sections:
+Add **Chart** from **Tables and Charts** in the Elements sidebar, select it, and use the Inspector sections:
 
 1. **Data** edits categories and numeric values in a table.
 2. **Series** adds, removes, orders, colors, and types series.
@@ -32,9 +32,9 @@ Legacy `chartType` and `chartData` fields remain readable and are normalized to 
 
 ## PDF output
 
-Core chart types are drawn as PDF vectors, so lines, text, and shapes stay sharp when zoomed or printed. A 3x raster fallback is used only when vector rendering cannot complete. Missing or invalid data produces an explicit empty state; PXA never inserts sample data into a customer document.
+Core chart types are drawn as PDF vectors, so lines, text, and shapes stay sharp when zoomed or printed. A 3x raster fallback is used only when vector rendering cannot complete. Missing or invalid data produces an explicit empty state; PVAD never inserts sample data into a customer document.
 
-PXA-generated PDFs carry hashed chart metadata. Importing such a PDF restores the original editable definition with confidence `1.0` and suppresses duplicate visual primitives.
+PVAD-generated PDFs carry hashed chart metadata. Importing such a PDF restores the original editable definition with confidence `1.0` and suppresses duplicate visual primitives.
 
 ## Import charts from PDFs
 
@@ -44,6 +44,6 @@ The PDF importer accepts `chartRecognition=off`, `safe`, or `review`:
 - `safe` converts only candidates with confidence `0.85` or higher.
 - `review` also creates marked review candidates from confidence `0.60` through `0.849`.
 
-Recognition runs locally. It first reads PXA metadata, then inspects vector geometry. Exact labeled bar charts can be recovered automatically; approximate vector bars and line paths require review. Uncertain content stays in its original visual form and emits a diagnostic.
+Recognition runs locally. It first reads PVAD metadata, then inspects vector geometry. Exact labeled bar charts can be recovered automatically; approximate vector bars and line paths require review. Uncertain content stays in its original visual form and emits a diagnostic.
 
 PDF recognition is best effort. Raster/OCR recovery, original-asset restore for foreign PDFs, and reliable pie, doughnut, area, stacked, and combo inference remain limited in this release. Tables with uniform cells and decorative geometry are rejected by conservative structure checks.

@@ -19,8 +19,8 @@ exit 0
 SH
 chmod +x "$work/pdfvalidator-pass"
 
-PXA_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-pass" \
-PXA_PDFA_SECONDARY_REPORT_DIR="$work/reports" \
+PVAD_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-pass" \
+PVAD_PDFA_SECONDARY_REPORT_DIR="$work/reports" \
   "$SCRIPT" 2b "$work/fixture.pdf"
 
 grep -q 'document conforms' "$work/reports/fixture-2b-3heights.txt"
@@ -36,8 +36,8 @@ SH
 chmod +x "$work/pdfvalidator-fail"
 
 set +e
-PXA_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-fail" \
-PXA_PDFA_SECONDARY_REPORT_DIR="$work/failure-reports" \
+PVAD_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-fail" \
+PVAD_PDFA_SECONDARY_REPORT_DIR="$work/failure-reports" \
   "$SCRIPT" 2b "$work/fixture.pdf" >/dev/null 2>&1
 status=$?
 set -e
@@ -53,8 +53,8 @@ SH
 chmod +x "$work/pdfvalidator-license"
 
 set +e
-PXA_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-license" \
-PXA_PDFA_SECONDARY_REPORT_DIR="$work/license-reports" \
+PVAD_PDFA_SECONDARY_VALIDATOR="$work/pdfvalidator-license" \
+PVAD_PDFA_SECONDARY_REPORT_DIR="$work/license-reports" \
   "$SCRIPT" 3b "$work/fixture.pdf" >/dev/null 2>&1
 status=$?
 set -e

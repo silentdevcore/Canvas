@@ -1,5 +1,7 @@
 # UI Export: JSON ↔ C# Code Round-Trip Analysis
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Problem
 
 When you export a design from the UI as JSON, convert it to C# Code (`jsonToCode`), then convert that C# Code back to JSON (`csharp-code-to-json`), the resulting JSON does not match the original.

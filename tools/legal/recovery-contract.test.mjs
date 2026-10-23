@@ -9,8 +9,8 @@ const [backup, restore, verify, drill, runbook, publicDocumentation] = await Pro
   read('tools/legal/restore-postgres.sh'),
   read('tools/legal/verify-legal-recovery.sh'),
   read('tools/legal/run-backup-restore-smoke-test.sh'),
-  read('operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md'),
-  read('websites/PXA.Documentation/src/main.js'),
+  read('operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md'),
+  read('websites/PVAD.Documentation/src/main.js'),
 ]);
 
 test('backup and restore scripts require protected inputs and integrity checks', () => {
@@ -35,6 +35,7 @@ test('recovery drill is isolated, synthetic, and always cleans up', () => {
   assert.match(drill, /pxa-legal-source-/);
   assert.match(drill, /pxa-legal-target-/);
   assert.match(drill, /trap cleanup EXIT INT TERM/);
+  assert.match(drill, /docker rm -f -v "\$source_container" "\$target_container"/);
   assert.match(drill, /synthetic-recovery-password/);
   assert.match(drill, /verify-legal-recovery\.sh/);
 });

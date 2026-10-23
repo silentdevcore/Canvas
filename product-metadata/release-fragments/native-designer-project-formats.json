@@ -9,10 +9,10 @@
     "spreadsheet"
   ],
   "category": "added",
-  "summary": "Designer users can save and reopen portable PXA PDF and Spreadsheet projects with validated integrity, optional inert Code Workspace drafts, and atomic host-file writers.",
+  "summary": "Designer users can save and reopen portable PVAD PDF and Spreadsheet projects with validated integrity, optional inert Code Workspace drafts, and atomic host-file writers.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Native-Designer-Formats.md"
+    "/checklists/PVAD.Native-Designer-Formats.md"
   ],
   "breaking": false
 }

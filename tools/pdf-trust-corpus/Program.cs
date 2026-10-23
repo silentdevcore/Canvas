@@ -4,20 +4,20 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using PXA.Importer;
-using PXA.Importer.Objects;
-using PXA.Importer.Parsing;
-using PXA.Importer.Saving;
-using PXA.Importer.Signing;
-using PXA.Importer.Trust;
-using PXA.Importer.Xref;
-using PXA.Pdf;
+using PVAD.Importer;
+using PVAD.Importer.Objects;
+using PVAD.Importer.Parsing;
+using PVAD.Importer.Saving;
+using PVAD.Importer.Signing;
+using PVAD.Importer.Trust;
+using PVAD.Importer.Xref;
+using PVAD.Pdf;
 
 var repositoryRoot = FindRepositoryRoot(AppContext.BaseDirectory);
 var utf8WithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 var outputDirectory = args.Length > 0
     ? Path.GetFullPath(args[0])
-    : Path.Combine(repositoryRoot, "websites", "PXA.Documentation", "public", "downloads", "pdf-trust");
+    : Path.Combine(repositoryRoot, "websites", "PVAD.Documentation", "public", "downloads", "pdf-trust");
 Directory.CreateDirectory(outputDirectory);
 
 var signingTime = new DateTimeOffset(2026, 1, 15, 10, 30, 0, TimeSpan.Zero);
@@ -287,7 +287,7 @@ static JsonSerializerOptions JsonOptions()
 static string FindRepositoryRoot(string start)
 {
     var directory = new DirectoryInfo(start);
-    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PXA.sln")))
+    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
         directory = directory.Parent;
     return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
 }

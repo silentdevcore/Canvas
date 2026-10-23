@@ -4,11 +4,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TOOL_DIRECTORY="$ROOT/tools/pdf-trust-pades-interop"
 OUTPUT_DIRECTORY="${1:-$ROOT/artifacts/pdf-trust-pades-interop}"
-IMAGE="pxa-dss-validator:6.4"
+IMAGE="pvad-dss-validator:6.4"
 
 mkdir -p "$OUTPUT_DIRECTORY"
 OUTPUT_DIRECTORY="$(cd "$OUTPUT_DIRECTORY" && pwd)"
-dotnet run --project "$TOOL_DIRECTORY/PXA.PdfTrustPadesCorpus.csproj" -- "$OUTPUT_DIRECTORY"
+dotnet run --project "$TOOL_DIRECTORY/PVAD.PdfTrustPadesCorpus.csproj" -- "$OUTPUT_DIRECTORY"
 docker build --tag "$IMAGE" "$TOOL_DIRECTORY/dss-validator"
 
 for profile in b-t b-lt b-lta; do
@@ -74,4 +74,4 @@ done
 
 node "$TOOL_DIRECTORY/build-negative-manifest.mjs" "$OUTPUT_DIRECTORY"
 
-echo "PXA PAdES profiles and negative trust cases validated with EU DSS 6.4 in $OUTPUT_DIRECTORY."
+echo "PVAD PAdES profiles and negative trust cases validated with EU DSS 6.4 in $OUTPUT_DIRECTORY."

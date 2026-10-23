@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-host-and-guide-compatibility",
+  "impact": "patch",
+  "components": ["designer", "company", "documentation", "admin", "account", "demo", "api"],
+  "category": "fixed",
+  "summary": "PVADE applications use consistent API configuration and working documentation downloads, while recognizing previous storage-notice acknowledgements during the PVAD transition.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

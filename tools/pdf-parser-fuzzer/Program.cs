@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using PXA.Importer;
-using PXA.Importer.Trust;
-using PXA.Pdf;
+using PVAD.Importer;
+using PVAD.Importer.Trust;
+using PVAD.Pdf;
 using SharpFuzz;
 
 const int seed = 0x504841;
@@ -365,9 +365,9 @@ static bool IsExpectedMalformedInput(Exception exception) => exception is
     NotSupportedException or
     ArgumentException or
     CryptographicException or
-    PXA.Importer.Parsing.PdfParseLimitExceededException or
-    PXA.Importer.Security.PdfPasswordException or
-    PXA.Importer.Security.PdfEncryptionIntegrityException;
+    PVAD.Importer.Parsing.PdfParseLimitExceededException or
+    PVAD.Importer.Security.PdfPasswordException or
+    PVAD.Importer.Security.PdfEncryptionIntegrityException;
 
 static bool IsParseDiagnostic(PdfTrustDiagnostic diagnostic) =>
     diagnostic.Code.StartsWith("PXAPDFPARSE", StringComparison.Ordinal) ||
@@ -381,7 +381,7 @@ static string? ReadOption(string[] arguments, string option)
 
 static byte[] CreateMinimalPdf()
 {
-    var document = PXA.Generator.Pdf.CreateDocument();
+    var document = PVAD.Generator.Pdf.CreateDocument();
     document.AddPage(240, 160).DrawText("fuzz seed", 24, 24);
     return document.ToBytes();
 }

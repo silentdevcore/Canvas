@@ -1,0 +1,103 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using PVAD.WebApi.Application.Identity;
+using PVAD.WebApi.Infrastructure;
+using PVAD.WebApi.Security;
+
+namespace PVAD.WebApi.Controllers;
+
+[ApiController]
+[AllowAnonymous]
+[Route("api/pvad/v1/auth")]
+public sealed class AccountRegistrationController : ControllerBase
+{
+    private readonly CustomerRegistrationService registrationService;
+    private readonly RegistrationLegalPolicyService legalPolicy;
+
+    public AccountRegistrationController(
+        CustomerRegistrationService registrationService,
+        RegistrationLegalPolicyService legalPolicy)
+    {
+        this.registrationService = registrationService;
+        this.legalPolicy = legalPolicy;
+    }
+
+    [HttpGet("registration-policy")]
+    public async Task<ActionResult<RegistrationPolicyResponse>> GetRegistrationPolicy(
+        [FromQuery] string? locale,
+        CancellationToken cancellationToken)
+    {
+        var policy = await legalPolicy.ResolveAsync(locale, cancellationToken);
+        return policy.Available
+            ? Ok(policy.ToResponse())
+            : Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Registration policy unavailable",
+                detail: "The current legal documents could not be verified.");
+    }
+
+    [HttpPost("register")]
+    [PvadValidateAntiforgery]
+    [EnableRateLimiting("registration")]
+    public async Task<ActionResult<RegistrationAcceptedResponse>> Register(
+        RegisterAccountRequest request,
+        CancellationToken cancellationToken)
+    {
+        var outcome = await registrationService.RegisterAsync(request, cancellationToken);
+        return outcome.Status switch
+        {
+            CustomerRegistrationStatus.Accepted => Accepted(AcceptedResponse()),
+            CustomerRegistrationStatus.SlugConflict => StatusCode(
+                StatusCodes.Status409Conflict,
+                PvadApiProblems.Create(
+                    HttpContext,
+                    StatusCodes.Status409Conflict,
+                    "Organization unavailable",
+                    outcome.Detail,
+                    PvadApiProblems.OrganizationSlugUnavailable)),
+            CustomerRegistrationStatus.PolicyMismatch => StatusCode(
+                StatusCodes.Status409Conflict,
+                PvadApiProblems.Create(
+                    HttpContext,
+                    StatusCodes.Status409Conflict,
+                    "Legal documents changed",
+                    outcome.Detail,
+                    PvadApiProblems.PolicyAcceptanceRequired)),
+            CustomerRegistrationStatus.Unavailable => Problem(statusCode: 503, title: outcome.Detail),
+            _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid registration", detail: outcome.Detail),
+        };
+    }
+
+    [HttpPost("resend-verification")]
+    [PvadValidateAntiforgery]
+    [EnableRateLimiting("registration")]
+    public async Task<ActionResult<RegistrationAcceptedResponse>> ResendVerification(
+        ResendVerificationRequest request,
+        CancellationToken cancellationToken)
+    {
+        await registrationService.ResendVerificationAsync(request.Email, request.ReturnUrl, cancellationToken);
+        return Accepted(AcceptedResponse());
+    }
+
+    [HttpPost("verify-email")]
+    [PvadValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
+    public async Task<IActionResult> VerifyEmail(
+        VerifyRegistrationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var outcome = await registrationService.VerifyEmailAsync(request.Token, cancellationToken);
+        return outcome.Status == EmailVerificationStatus.Succeeded
+            ? NoContent()
+            : InvalidVerification();
+    }
+
+    private static RegistrationAcceptedResponse AcceptedResponse() => new(
+        "If the registration can be accepted, a verification message will be sent shortly.");
+
+    private ObjectResult InvalidVerification() => Problem(
+        statusCode: StatusCodes.Status400BadRequest,
+        title: "Invalid or expired verification",
+        detail: "Request a new registration or verification message.");
+}

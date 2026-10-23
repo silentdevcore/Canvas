@@ -1,0 +1,8 @@
+{
+  "id": "pvad-rename-context-and-index-review",
+  "impact": "patch",
+  "components": ["admin", "designer", "importer", "documentation", "infrastructure"],
+  "category": "fixed",
+  "summary": "Correct remaining operational and feature descriptions, support canonical Admin documentation capture settings, and validate retained compatibility names during continuous integration.",
+  "breaking": false
+}

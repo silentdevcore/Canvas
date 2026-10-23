@@ -9,11 +9,11 @@
     "sdk"
   ],
   "category": "added",
-  "summary": "PXA now provides compiled local and Beta remote MCP hosts with standards-based OAuth, service-account access, tenant-scoped template tools, TLS deployment validation, dependency health checks, and privacy-safe operational telemetry.",
+  "summary": "PVAD now provides compiled local and Beta remote MCP hosts with standards-based OAuth, service-account access, tenant-scoped template tools, TLS deployment validation, dependency health checks, and privacy-safe operational telemetry.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.MCP-Server.md",
-    "/tools/PXA.Mcp/README.md",
+    "/checklists/PVAD.MCP-Server.md",
+    "/tools/PVAD.Mcp/README.md",
     "/docs/mcp-client-setup.md",
     "/docs/mcp-security-and-operations.md",
     "/deploy/api/README.md"

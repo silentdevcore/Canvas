@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "api-container-trust-cache",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "The non-root API container stores its PDF Trust revocation cache in the writable application data area, preventing a startup permission failure.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-infrastructure-mapping.md"],
+  "breaking": false
+}

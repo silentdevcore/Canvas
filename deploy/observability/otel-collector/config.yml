@@ -13,8 +13,8 @@ receivers:
 processors:
   memory_limiter:
     check_interval: 1s
-    limit_mib: ${env:PXA_OTEL_MEMORY_LIMIT_MIB:-384}
-    spike_limit_mib: ${env:PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}
+    limit_mib: ${env:PVAD_OTEL_MEMORY_LIMIT_MIB:-384}
+    spike_limit_mib: ${env:PVAD_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}
   resource/privacy:
     attributes:
       - key: http.request.header.authorization
@@ -88,7 +88,7 @@ processors:
       - name: baseline
         type: probabilistic
         probabilistic:
-          sampling_percentage: ${env:PXA_TRACE_SAMPLE_PERCENTAGE:-10}
+          sampling_percentage: ${env:PVAD_TRACE_SAMPLE_PERCENTAGE:-10}
   batch:
     send_batch_size: 1024
     timeout: 5s
@@ -99,9 +99,9 @@ exporters:
     resource_to_telemetry_conversion:
       enabled: true
   otlp_http/loki:
-    endpoint: http://pxa-loki:3100/otlp
+    endpoint: http://pvad-loki:3100/otlp
   otlp_grpc/tempo:
-    endpoint: pxa-tempo:4317
+    endpoint: pvad-tempo:4317
     tls:
       insecure: true
 

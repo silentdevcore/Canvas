@@ -1,11 +1,12 @@
 import crypto from 'node:crypto';
 import http from 'node:http';
+import { readPvadEnvironment } from '../../../tools/configuration/environment.mjs';
 
 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
 const publicJwk = publicKey.export({ format: 'jwk' });
-const keyId = 'pxa-mcp-smoke-key';
-const issuer = 'https://account.pxa.test';
-const audience = process.env.PXA_MCP_SMOKE_RESOURCE ?? 'https://localhost:3443/mcp';
+const keyId = 'pvad-mcp-smoke-key';
+const issuer = 'https://account.pvad.test';
+const audience = readPvadEnvironment('PVAD_MCP_SMOKE_RESOURCE') ?? 'https://localhost:3443/mcp';
 
 const server = http.createServer((request, response) => {
   if (request.url === '/health/ready') return json(response, 200, { status: 'ready' });
@@ -20,8 +21,8 @@ const server = http.createServer((request, response) => {
         aud: audience,
         sub: 'smoke-user',
         client_id: 'smoke-client',
-        pxa_organization: 'smoke-organization',
-        scope: 'pxa.docs.read pxa.templates.read pxa.documents.validate',
+        pvad_organization: 'smoke-organization',
+        scope: 'pvad.docs.read pvad.templates.read pvad.documents.validate',
         iat: now,
         exp: now + 300,
       }),

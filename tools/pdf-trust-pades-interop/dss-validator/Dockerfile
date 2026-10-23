@@ -9,6 +9,6 @@ FROM eclipse-temurin:17-jre@sha256:c6f2875c05ea10f16398bdc5f73405c384991506f2f1e
 
 RUN groupadd --system validator && useradd --system --gid validator --home-dir /validator validator
 WORKDIR /validator
-COPY --from=build /src/target/pxa-dss-validator-1.0.0.jar /validator/validator.jar
+COPY --from=build /src/target/pvad-dss-validator-1.0.0.jar /validator/validator.jar
 USER validator
 ENTRYPOINT ["java", "-jar", "/validator/validator.jar"]

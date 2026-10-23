@@ -1,3 +1,4 @@
+import { readPvadEnvironment } from '../configuration/environment.mjs';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +47,7 @@ export async function exportLegalSnapshot({
   output,
   fetchImpl = fetch,
 }) {
-  const endpoint = new URL('/api/pxa/v1/legal/snapshot', apiBase);
+  const endpoint = new URL('/api/pvad/v1/legal/snapshot', apiBase);
   endpoint.searchParams.set('locale', locale);
   endpoint.searchParams.set('audience', audience);
   const response = await fetchImpl(endpoint, {
@@ -82,19 +83,19 @@ function parseArguments(arguments_) {
   }
   return {
     apiBase: values.get('api') ??
-      process.env.PXA_LEGAL_API_BASE ??
+      readPvadEnvironment('PVAD_LEGAL_API_BASE') ??
       'http://localhost:5086',
     locale: values.get('locale') ??
-      process.env.PXA_LEGAL_LOCALE ??
+      readPvadEnvironment('PVAD_LEGAL_LOCALE') ??
       'en',
     audience: values.get('audience') ??
-      process.env.PXA_LEGAL_AUDIENCE ??
+      readPvadEnvironment('PVAD_LEGAL_AUDIENCE') ??
       'All',
     output: values.get('output') ??
       resolve(
         repositoryRoot,
-        `websites/PXA.Company/public/legal-snapshots/${
-          values.get('locale') ?? process.env.PXA_LEGAL_LOCALE ?? 'en'
+        `websites/PVAD.Company/public/legal-snapshots/${
+          values.get('locale') ?? readPvadEnvironment('PVAD_LEGAL_LOCALE') ?? 'en'
         }.json`),
   };
 }

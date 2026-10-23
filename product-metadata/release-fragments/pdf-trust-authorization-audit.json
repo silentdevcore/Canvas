@@ -11,7 +11,7 @@
   "summary": "PDF Trust operations now use dedicated permissions and entitlements, recent authentication for sensitive changes, immutable audit evidence, and tenant-scoped inspection jobs with bounded retention. Missing trust dependencies fail closed.",
   "featureIds": [],
   "documentation": [
-    "/docs/guides/PXA.Pdf-Trust-Generator-Examples.html"
+    "/docs/guides/PVAD.Pdf-Trust-Generator-Examples.html"
   ],
   "breaking": false,
   "securityReviewed": true

@@ -100,7 +100,7 @@
       "domain": "pdf",
       "workflow": "standards-validation",
       "sourceFormat": "pdf",
-      "source": "tests/PXA.Importer.Tests/Fixtures/PdfTrustExternal",
+      "source": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal",
       "provenance": "third-party-generated",
       "redistribution": "allowed",
       "realWorld": true,

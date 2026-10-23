@@ -9,7 +9,7 @@
   "summary": "PDF Trust development now has repeatable differential parser fuzzing, modern encryption interoperability checks, and pinned standards and validator evidence contracts.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false,
   "reason": "This change strengthens internal validation and release governance without changing the shipped runtime behavior."

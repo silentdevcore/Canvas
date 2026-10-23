@@ -1,0 +1,8 @@
+{
+  "id": "pvad-ocr-worker-activity-identity",
+  "impact": "patch",
+  "components": ["importer", "observability"],
+  "category": "fixed",
+  "summary": "Use the current PVAD identity for new OCR worker process activities while retaining subscriptions to the legacy OCR activity source.",
+  "breaking": false
+}

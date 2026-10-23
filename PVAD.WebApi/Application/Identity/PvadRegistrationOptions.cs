@@ -1,0 +1,13 @@
+namespace PVAD.WebApi.Application.Identity;
+
+public sealed class PvadRegistrationOptions
+{
+    public const string SectionName = "Registration";
+
+    public string TermsVersion { get; set; } = string.Empty;
+    public string PrivacyVersion { get; set; } = string.Empty;
+    public string[] AllowedReturnOrigins { get; set; } = [];
+    public bool RequireCurrentTermsAcceptance { get; set; }
+    public bool RequireCurrentPrivacyAcknowledgement { get; set; }
+    public bool RequireDatabaseLegalDocuments { get; set; }
+}

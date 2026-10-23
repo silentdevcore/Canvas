@@ -1,6 +1,6 @@
-# PXA Capacity Profiles
+# PVADE Capacity Profiles
 
-These v1 profiles are release gates for the containerized PXA.WebApi and observability stack. They
+These v1 profiles are release gates for the containerized PVAD.WebApi and observability stack. They
 are sizing baselines, not commercial usage limits.
 
 ## On-Premise Small
@@ -22,14 +22,16 @@ are sizing baselines, not commercial usage limits.
 Run the same 100-page fixture under both container limits:
 
 ```bash
-PXA_CAPACITY_API_KEY='pxa_<synthetic-service-account-key>' \
+PVAD_CAPACITY_API_KEY='pvad_<synthetic-service-account-key>' \
   deploy/observability/capacity-profile-test.sh onprem-small 1 2147483648 4
-PXA_CAPACITY_API_KEY='pxa_<synthetic-service-account-key>' \
+PVAD_CAPACITY_API_KEY='pvad_<synthetic-service-account-key>' \
   deploy/observability/capacity-profile-test.sh cloud-standard 2 4294967296 8
 ```
 
 The gate requires zero failed requests, p95 at or below two seconds, and peak memory below 90% of
 the configured WebApi limit. Record p95, throughput, CPU, and memory for each release environment.
+The sample key is not usable; supply an actual synthetic test credential securely.
+New keys use `pvad_`; existing `pxa_` keys remain readable until revoked or expired.
 The local Rancher Desktop result validates the profile contract and workload; Cloud production
 must repeat the same command against its deployed container class.
 

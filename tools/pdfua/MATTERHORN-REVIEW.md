@@ -1,4 +1,4 @@
-# PXA PDF/UA Manual Accessibility Review
+# PVADE PDF/UA Manual Accessibility Review
 
 This review record complements the automated PDF/UA-1 preflight and the pinned
 veraPDF report. It is an evidence template, not a conformance claim. A record
@@ -16,7 +16,7 @@ listed platform and assistive technology.
 5. Save the completed record using `matterhorn-evidence.schema.json`.
 6. Keep `not-run` or `blocked` for checks that were not actually exercised.
 
-The controls below are PXA evidence controls mapped to the relevant Matterhorn
+The controls below are PVAD evidence controls mapped to the relevant Matterhorn
 Protocol areas. They do not replace a formal Matterhorn Protocol assessment by
 an accessibility specialist.
 

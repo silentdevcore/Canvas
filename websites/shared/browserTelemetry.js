@@ -1,10 +1,12 @@
-import { pxaVersion } from './buildInfo.js';
+import { pvadVersion } from './buildInfo.js';
+import { readMigratedStorage } from './storageMigration.js';
 
-const TELEMETRY_PATH = '/api/pxa/v1/telemetry/browser';
+const TELEMETRY_PATH = '/api/pvad/v1/telemetry/browser';
 const MAX_BATCH_SIZE = 20;
 const FLUSH_DELAY_MS = 1000;
-const STATUS_LOOP_STORAGE_KEY = 'pxa-status-loop-v1';
-const STATUS_RECOVERY_STORAGE_KEY = 'pxa-status-recovery-v1';
+const STATUS_LOOP_STORAGE_KEY = 'pvad-status-loop-v1';
+const STATUS_RECOVERY_STORAGE_KEY = 'pvad-status-recovery-v1';
+const currentTelemetry = () => globalThis.__pvadBrowserTelemetry ?? globalThis.__pxaBrowserTelemetry;
 const statusKeys = new Set([
   'badRequest', 'unauthenticated', 'sessionExpired', 'forbidden',
   'entitlementDenied', 'suspended', 'trialExpired', 'notFound', 'conflict',
@@ -21,7 +23,7 @@ export function createStatusLoopDetector({ threshold = 3, windowMs = 60_000, sto
   return (statusKey, route, now = Date.now()) => {
     if (!statusKeys.has(statusKey) || typeof route !== 'string' || !targetStorage) return false;
     try {
-      const previous = JSON.parse(targetStorage.getItem(STATUS_LOOP_STORAGE_KEY) || '[]');
+      const previous = JSON.parse(readMigratedStorage(targetStorage, STATUS_LOOP_STORAGE_KEY, 'pxa-status-loop-v1') || '[]');
       const recent = Array.isArray(previous)
         ? previous.filter(item => Number.isFinite(item?.at) && now - item.at <= windowMs)
         : [];
@@ -102,7 +104,7 @@ function boundedCorrelationId(value) {
 
 export function recordBrowserStatusPage(statusKey, correlationId) {
   if (!statusKeys.has(statusKey)) return;
-  globalThis.__pxaBrowserTelemetry?.record('status_page', 'shown', {
+  currentTelemetry()?.record('status_page', 'shown', {
     name: statusKey,
     correlationId: boundedCorrelationId(correlationId),
   });
@@ -111,7 +113,7 @@ export function recordBrowserStatusPage(statusKey, correlationId) {
 export function recordBrowserRecoveryAction(action, correlationId) {
   if (!recoveryActions.has(action)) return;
   rememberStatusRecovery(action, correlationId);
-  globalThis.__pxaBrowserTelemetry?.record('status_recovery', 'selected', {
+  currentTelemetry()?.record('status_recovery', 'selected', {
     name: action,
     correlationId: boundedCorrelationId(correlationId),
   });
@@ -134,8 +136,9 @@ export function rememberStatusRecovery(action, correlationId, storage = globalTh
 export function consumeStatusRecovery(storage = globalThis.sessionStorage, now = Date.now(), maxAgeMs = 120_000) {
   if (!storage) return undefined;
   try {
-    const value = JSON.parse(storage.getItem(STATUS_RECOVERY_STORAGE_KEY) || 'null');
+    const value = JSON.parse(readMigratedStorage(storage, STATUS_RECOVERY_STORAGE_KEY, 'pxa-status-recovery-v1') || 'null');
     storage.removeItem(STATUS_RECOVERY_STORAGE_KEY);
+    storage.removeItem('pxa-status-recovery-v1');
     if (!value || !recoveryActions.has(value.action) || !Number.isFinite(value.at) || now - value.at > maxAgeMs)
       return undefined;
     return {
@@ -149,7 +152,7 @@ export function consumeStatusRecovery(storage = globalThis.sessionStorage, now =
 }
 
 export function recordBrowserUnknownDiagnosticMapping() {
-  globalThis.__pxaBrowserTelemetry?.record('diagnostic_mapping', 'unknown');
+  currentTelemetry()?.record('diagnostic_mapping', 'unknown');
 }
 
 function randomHex(byteCount) {
@@ -225,8 +228,13 @@ function observeWebVitals(report) {
   };
 }
 
-export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_PATH, version = pxaVersion } = {}) {
-  if (!applicationRoutes[application] || globalThis.__pxaBrowserTelemetry) return;
+export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_PATH, version = pvadVersion } = {}) {
+  if (!applicationRoutes[application]) return;
+  const existing = currentTelemetry();
+  if (existing) {
+    globalThis.__pvadBrowserTelemetry = existing;
+    return;
+  }
 
   const nativeFetch = globalThis.fetch.bind(globalThis);
   const queue = [];
@@ -299,8 +307,8 @@ export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_P
     const headers = new Headers(input instanceof Request ? input.headers : undefined);
     new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     if (!headers.has('traceparent')) headers.set('traceparent', createTraceParent());
-    if (application === 'designer' && !headers.has('X-PXA-Application'))
-      headers.set('X-PXA-Application', 'designer');
+    if (application === 'designer' && !headers.has('X-PVAD-Application'))
+      headers.set('X-PVAD-Application', 'designer');
 
     try {
       const response = await nativeFetch(input, { ...init, headers });
@@ -345,5 +353,8 @@ export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_P
   const stopVitals = observeWebVitals((name, value, outcome) =>
     event('web_vital', outcome, { name, value }));
 
-  globalThis.__pxaBrowserTelemetry = { flush, stopVitals, record: event };
+  const bridge = { flush, stopVitals, record: event };
+  globalThis.__pvadBrowserTelemetry = bridge;
+  // One compatibility alias, not a second collector or a second fetch wrapper.
+  globalThis.__pxaBrowserTelemetry = bridge;
 }

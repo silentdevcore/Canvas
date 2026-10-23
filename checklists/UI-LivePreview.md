@@ -1,7 +1,7 @@
 # UI Live Code Editor & Preview Checklist
 
 > Status after the 2026-08-22 audit: this checklist records the original JSON-only editor. The
-> current source of truth is `PXA.Code-Designer-Roundtrip.md`, which adds independent JSON, C# Model,
+> current source of truth is `PVAD.Code-Designer-Roundtrip.md`, which adds independent JSON, C# Model,
 > C# PDF, and FromBase64String drafts, explicit conversion, worker execution, and transactional
 > Apply to Designer. Only the explicitly open presentation enhancements below remain active here.
 

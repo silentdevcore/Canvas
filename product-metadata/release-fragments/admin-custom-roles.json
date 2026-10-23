@@ -10,10 +10,10 @@
     "infrastructure"
   ],
   "category": "added",
-  "summary": "Organization administrators can create tenant-owned roles with precise PXA permissions, assign members, clone protected roles, and archive access definitions with immediate session enforcement.",
+  "summary": "Organization administrators can create tenant-owned roles with precise PVAD permissions, assign members, clone protected roles, and archive access definitions with immediate session enforcement.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Admin.md"
+    "/checklists/PVAD.Admin.md"
   ],
   "breaking": false
 }

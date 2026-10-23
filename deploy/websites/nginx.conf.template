@@ -8,7 +8,8 @@ server {
     # API failures keep their RFC 9457 response and status; they are never replaced
     # with an HTML status page.
     location /api/ {
-        proxy_pass ${PXA_API_UPSTREAM};
+        include /etc/nginx/pvad/*.headers.conf;
+        proxy_pass ${PVAD_API_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -19,13 +20,15 @@ server {
     }
 
     location @api_unavailable {
+        include /etc/nginx/pvad/*.headers.conf;
         default_type application/problem+json;
         add_header Cache-Control "no-store" always;
         add_header X-Content-Type-Options "nosniff" always;
-        return 503 '{"type":"about:blank","title":"PXA API is unavailable","status":503,"code":"PXAAPI018"}';
+        return 503 '{"type":"about:blank","title":"PVAD API is unavailable","status":503,"code":"PXAAPI018","canonicalCode":"PVADAPI018"}';
     }
 
     location = /index.html {
+        include /etc/nginx/pvad/*.headers.conf;
         add_header Cache-Control "no-cache, no-store, must-revalidate" always;
         add_header X-Content-Type-Options "nosniff" always;
         try_files /index.html =500;
@@ -34,6 +37,7 @@ server {
     # Repeated character classes avoid `${...}`-like regex quantifiers because
     # the official image processes this file with envsubst.
     location ~* ^/assets/.*[.-][a-z0-9_-][a-z0-9_-][a-z0-9_-][a-z0-9_-][a-z0-9_-][a-z0-9_-][a-z0-9_-][a-z0-9_-].*\.(css|js|map|png|jpe?g|gif|svg|webp|woff2?)$ {
+        include /etc/nginx/pvad/*.headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
         add_header X-Content-Type-Options "nosniff" always;
         try_files $uri =404;
@@ -41,12 +45,14 @@ server {
 
     # The pattern is application-specific. Only known SPA routes receive index.html
     # with HTTP 200. An unknown path reaches the real 404 handler below.
-    location ~ ${PXA_SPA_ROUTE_PATTERN} {
+    location ~ ${PVAD_SPA_ROUTE_PATTERN} {
+        include /etc/nginx/pvad/*.headers.conf;
         add_header Cache-Control "no-cache, no-store, must-revalidate" always;
         try_files $uri $uri/ /index.html;
     }
 
     location / {
+        include /etc/nginx/pvad/*.headers.conf;
         try_files $uri $uri/ =404;
     }
 
@@ -55,6 +61,7 @@ server {
     error_page 503 /maintenance.html;
 
     location = /404.html {
+        include /etc/nginx/pvad/*.headers.conf;
         internal;
         add_header Cache-Control "no-store" always;
         add_header X-Robots-Tag "noindex" always;
@@ -62,6 +69,7 @@ server {
     }
 
     location = /500.html {
+        include /etc/nginx/pvad/*.headers.conf;
         internal;
         add_header Cache-Control "no-store" always;
         add_header X-Robots-Tag "noindex" always;
@@ -69,6 +77,7 @@ server {
     }
 
     location = /maintenance.html {
+        include /etc/nginx/pvad/*.headers.conf;
         internal;
         add_header Cache-Control "no-store" always;
         add_header Retry-After "300" always;

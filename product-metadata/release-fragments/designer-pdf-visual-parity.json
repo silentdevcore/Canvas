@@ -11,7 +11,7 @@
   "summary": "Designer Canvas, Live Preview, backend PDF, and generated C# output now align more consistently for form controls, Rich Text, tables, shapes, charts, and symbols.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.Designer-PDF-Visual-Parity.md"
+    "/checklists/PVAD.Designer-PDF-Visual-Parity.md"
   ],
   "breaking": false
 }

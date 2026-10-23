@@ -1,15 +1,37 @@
 # Native Designer Project Formats
 
-PXA Designer uses two portable, editable project formats:
+PVADE Designer uses two portable, editable project formats:
 
 | Format | Purpose | Media type |
 | --- | --- | --- |
-| `.pxap` | PXA PDF Project | `application/vnd.powerdox.pxap+zip` |
-| `.pxas` | PXA Spreadsheet Project | `application/vnd.powerdox.pxas+zip` |
+| `.pvadp` | PVADP PDF Project | `application/vnd.pvad.pvadp+zip` |
+| `.pvads` | PVADS Spreadsheet Project | `application/vnd.pvad.pvads+zip` |
 
 These files preserve editable Designer state. They are not substitutes for a final PDF,
 XLSX, CSV, or other delivery format. No generic `.pxa` project format is defined;
-only `.pxap` and `.pxas` are accepted.
+new exports use `.pvadp` and `.pvads`.
+
+### Legacy Project Compatibility
+
+Existing `.pxap` and `.pxas` files remain readable in the matching Designer.
+Their original magic (`PXA-PXAP-1` / `PXA-PXAS-1`), format ID, MIME entry and
+`minimumPxaVersion` are validated as a complete legacy envelope. Mixed old/new
+identity fields and mismatched MIME entries are rejected. The canonical envelopes
+use `PVAD-PVADP-1` / `PVAD-PVADS-1`, `pvadp` / `pvads`, and
+`minimumPvadVersion`. Equal minimum-version aliases are accepted; conflicting
+aliases are rejected. These application media types are not claimed as IANA registrations.
+
+Opening never rewrites the original upload. Saving downloads a new canonical
+project with freshly calculated integrity hashes. Keep the original file for
+recovery. A compatibility review warns before opening a legacy envelope and lets
+the user keep the current document instead. It explains that Save project produces
+a new PVADP or PVADS copy; document-schema upgrades retain their existing report.
+
+Canonical schemas are `docs/schema/pvad-project-manifest.schema.json` and
+`docs/schema/pvad-code-workspace.schema.json`. Historical schemas remain available
+for legacy validation. The legacy manifest cannot simply alias the new schema,
+because its envelope constraints intentionally differ. Audit event names and
+`PXAPROJECT...` diagnostics remain stable during this migration.
 
 Unlike PostgreSQL template persistence, a project file is a user-controlled portable
 snapshot. It has no server revision, organization ownership, autosave history, published
@@ -19,8 +41,8 @@ for interoperability but do not provide the package envelope and binary asset in
 ## Open and save
 
 Use **Open project** and **Save project** in the PDF or Spreadsheet Designer toolbar.
-The two formats are intentionally separate: PDF Designer rejects `.pxas`, and
-Spreadsheet Designer rejects `.pxap`.
+The two formats are intentionally separate: PDF Designer rejects `.pvads`, and
+Spreadsheet Designer rejects `.pvadp`.
 
 Opening performs these steps before replacing the current document:
 
@@ -41,7 +63,7 @@ Both formats are ZIP-compatible packages with deterministic entry ordering:
 mimetype
 manifest.json
 document.json
-components/code-workspace.json          # optional, PXAP only
+components/code-workspace.json          # optional, PVADP only
 assets/images/<stable-package-asset-id>.png
 assets/fonts/<stable-package-asset-id>.woff2
 assets/previews/<stable-package-asset-id>.webp
@@ -50,21 +72,21 @@ assets/data/<stable-package-asset-id>.json
 ```
 
 `mimetype` is the first uncompressed entry. `manifest.json` records the format and
-schema versions, minimum PXA version, document identity, locale, timestamps, asset
+schema versions, minimum PVAD version, document identity, locale, timestamps, asset
 index, per-entry SHA-256 checksums, a canonical content hash, required Designer
 capabilities, and bounded compatibility diagnostics. `document.json` contains
-`DesignExportDto` for PXAP or the PXA Workbook model for PXAS.
+`DesignExportDto` for PVADP or the PVAD Workbook model for PVADS.
 
-PXAP may include `components/code-workspace.json`. This independently versioned,
+PVADP may include `components/code-workspace.json`. This independently versioned,
 `confidential-source` component preserves JSON, C# Model, C# PDF, and Base64 drafts
 plus the canonical design and source map. It is limited to 10 MiB, covered by the
 manifest checksums, and validated as inert JSON. Inspecting or opening a project never
-compiles or executes its source. PXAS rejects this PDF-specific component.
+compiles or executes its source. PVADS rejects this PDF-specific component.
 
 Each asset descriptor records a stable package-local ID, kind, canonical path, safe
 filename, MIME type, byte length, and SHA-256. The supported kinds are `image`, `font`,
 `preview`, `source`, and `data`. Current Designer flows externalize PNG and JPEG images
-instead of retaining Base64 in `document.json`. On open, PXA validates the bytes and
+instead of retaining Base64 in `document.json`. On open, PVAD validates the bytes and
 creates new organization-owned Asset Store IDs. Older development packages with flat
 image or font paths remain readable; all newly written packages use typed folders.
 
@@ -80,7 +102,7 @@ user before replacing the active document and identifies every missing capabilit
 The manifest also carries bounded, non-executable diagnostics. Imported Spreadsheet
 external-workbook formulas, preserved macro or VBA metadata, and provider-specific
 extension metadata produce review warnings. Macro and provider data remain inert
-extension data; opening a PXAS never executes it. Existing importer diagnostics survive
+extension data; opening a PVADS never executes it. Existing importer diagnostics survive
 the native project roundtrip with their code, severity, message, and source. Informational
 diagnostics do not require review, while warning and error diagnostics do.
 
@@ -93,7 +115,7 @@ remain mandatory and can still reject the file.
 
 The reader rejects:
 
-- renamed or mismatched PXAP/PXAS packages;
+- renamed or mismatched PVADP/PVADS packages;
 - absolute, parent-relative, duplicate, non-normalized, or control-character paths;
 - symbolic links, encrypted ZIP entries, unsupported compression, and nested archives;
 - missing, undeclared, tampered, or MIME-spoofed assets;
@@ -134,7 +156,7 @@ Document identity, PDF metadata, element content, and Rich Text have explicit le
 and control-character limits. Asset filenames must be normalized single-segment names
 without control or invisible format characters. Invalid metadata or filenames reject
 the package with a stable diagnostic rather than being silently rewritten. These rules
-also apply while writing a project, preventing PXA from producing a package it would
+also apply while writing a project, preventing PVAD from producing a package it would
 later refuse to open.
 
 Code Workspace content is not executed while inspecting or opening a package. Native
@@ -150,15 +172,15 @@ and the matching PDF or Spreadsheet permission.
 
 | Operation | PDF | Spreadsheet |
 | --- | --- | --- |
-| Save | `POST /api/pxa/v1/designer/projects/pdf/export` | `POST /api/pxa/v1/designer/projects/spreadsheet/export` |
-| Open | `POST /api/pxa/v1/designer/projects/pdf/open` | `POST /api/pxa/v1/designer/projects/spreadsheet/open` |
-| Validate | `POST /api/pxa/v1/designer/projects/pdf/validate` | `POST /api/pxa/v1/designer/projects/spreadsheet/validate` |
-| Inspect | `POST /api/pxa/v1/designer/projects/pdf/inspect` | `POST /api/pxa/v1/designer/projects/spreadsheet/inspect` |
+| Save | `POST /api/pvad/v1/designer/projects/pdf/export` | `POST /api/pvad/v1/designer/projects/spreadsheet/export` |
+| Open | `POST /api/pvad/v1/designer/projects/pdf/open` | `POST /api/pvad/v1/designer/projects/spreadsheet/open` |
+| Validate | `POST /api/pvad/v1/designer/projects/pdf/validate` | `POST /api/pvad/v1/designer/projects/spreadsheet/validate` |
+| Inspect | `POST /api/pvad/v1/designer/projects/pdf/inspect` | `POST /api/pvad/v1/designer/projects/spreadsheet/inspect` |
 
 Open, validate, and inspect accept multipart field `file`. Save accepts the matching
 canonical JSON document and returns the native media type with a sanitized download
 name. Rejections use Problem Details and a stable `PXAPROJECT...` diagnostic code.
-PDF Designer uses `POST /api/pxa/v1/designer/projects/pdf/export-with-workspace` when
+PDF Designer uses `POST /api/pvad/v1/designer/projects/pdf/export-with-workspace` when
 an optional Code Workspace is included. Existing clients remain compatible with the
 document-only export route.
 Inspect reads and validates the envelope, manifest, declared paths, sizes, versions,
@@ -199,40 +221,40 @@ Small public fixtures are available under `docs/fixtures/native-projects/`. They
 only synthetic content and include reproducible SHA-256 hashes. Regenerate them with:
 
 ```bash
-dotnet run --project tools/native-project-fixtures/PXA.NativeProjectFixtures.csproj
+dotnet run --project tools/native-project-fixtures/PVAD.NativeProjectFixtures.csproj
 ```
 
 ## Version compatibility
 
-Opening and upgrading are separate operations. PXA first validates the complete original package,
+Opening and upgrading are separate operations. PVAD first validates the complete original package,
 then applies registered document-schema migrations to an in-memory copy. Upgrade steps are ordered,
-forward-only, deterministic, and specific to PDF or Spreadsheet projects. PXA never downgrades a
+forward-only, deterministic, and specific to PDF or Spreadsheet projects. PVAD never downgrades a
 project and never modifies the source file while opening it.
 
 When an upgrade path is used, the open response includes `upgradeReport` with the source and target
 schema versions, every applied step, the original package SHA-256, loss indicators, and diagnostics.
 The Designer requires review before applying an upgraded project. The original package remains the
-recovery source until the user explicitly saves the upgraded project as a new PXAP or PXAS file.
+recovery source until the user explicitly saves the upgraded project as a new PVADP or PVADS file.
 Applying the imported design is one undoable transaction, so the previous active PDF or Spreadsheet
 state can also be restored before save.
-If no complete reviewed path exists, PXA rejects the package instead of partially upgrading it.
+If no complete reviewed path exists, PVAD rejects the package instead of partially upgrading it.
 
 The package envelope and embedded document schema have independent `major.minor`
-versions. PXA 1.1 writes envelope `1.0` and document schema `1.0`.
+versions. PVAD 1.1 writes envelope `1.0` and document schema `1.0`.
 
 - A lower minor version within the current major is backward compatible and can be
   opened without rewriting the source package.
-- A higher minor or major version requires a newer PXA application and fails with
+- A higher minor or major version requires a newer PVAD application and fails with
   `PXAPROJECT014` instead of being opened partially.
-- A previous major version is accepted only when PXA ships an explicit, pure upgrade
+- A previous major version is accepted only when PVAD ships an explicit, pure upgrade
   path. Such an upgrade must produce a new package and must never overwrite or
   downgrade the source file in place.
 - Schema versions use canonical `major.minor` notation. The minimum application
-  version uses canonical Semantic Versioning. PXA compares that minimum with the
+  version uses canonical Semantic Versioning. PVAD compares that minimum with the
   running product assembly version before reading document content; a package that
   requires a newer application fails with `PXAPROJECT014`.
 
-The compatibility decision is centralized in `PxaProjectVersionPolicy`, so API,
+The compatibility decision is centralized in `PvadProjectVersionPolicy`, so API,
 Designer, future SDKs, and upgrade steps use the same rules. No major-version upgrade
 is registered for schema `1.0` because there is no historical native format to migrate.
 Compatibility tests cover current PDF and Spreadsheet packages, unsupported historical
@@ -260,7 +282,7 @@ surface is keyboard accessible, scrollable, and adapts to narrow mobile viewport
 
 Published schema files:
 
-- [Project manifest schema](schema/pxa-project-manifest.schema.json)
+- [Project manifest schema](schema/pvad-project-manifest.schema.json)
 - [PDF design schema](schema/design-export.schema.json)
 - [Spreadsheet workbook schema](schema/pxa-workbook.schema.json)
 
@@ -270,7 +292,7 @@ accessibility, forms, charts, document settings, and forward-compatible extensio
 separate fully populated Workbook fixture covers sparse typed cells, formulas and cached
 values, styles, names, merges, filtering, frozen panes, print setup, validation,
 conditional formatting, images, and extension data. These tests cover the current
-canonical models; Spreadsheet tables and charts remain outside PXAS until they become
+canonical models; Spreadsheet tables and charts remain outside PVADS until they become
 part of the canonical Workbook contract.
 
 ## Current boundaries
@@ -280,7 +302,7 @@ part of the canonical Workbook contract.
   Designer save flows do not yet discover and attach every such resource.
 - PDF background images and Code Workspace snapshots are not yet package components.
 - Spreadsheet external workbook links are preserved as formulas and require review;
-  PXA does not fetch or refresh the referenced workbook while opening a project.
+  PVAD does not fetch or refresh the referenced workbook while opening a project.
 - Macro/VBA and provider-specific extension metadata remain inert and are reported;
   executable macro packages are not accepted as assets.
 - Package signing and project encryption are later milestones. Final PDF encryption

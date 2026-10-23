@@ -1,7 +1,9 @@
 # UI Page Settings Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 > PDF/X, print-production, marks, color, and imposition work is coordinated in
-> [PXA.PDF-Specialized-Features-Roadmap.md](PXA.PDF-Specialized-Features-Roadmap.md).
+> [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md).
 
 ## Scope
 Improve Page Settings so users can configure document/page behavior before designing or exporting PDFs.

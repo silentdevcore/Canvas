@@ -15,7 +15,7 @@ datasources:
     uid: pxa-prometheus
     type: prometheus
     access: proxy
-    url: http://pxa-prometheus:9090
+    url: http://pvad-prometheus:9090
     isDefault: true
     editable: false
     jsonData:
@@ -27,7 +27,7 @@ datasources:
     uid: pxa-loki
     type: loki
     access: proxy
-    url: http://pxa-loki:3100
+    url: http://pvad-loki:3100
     editable: false
     jsonData:
       derivedFields:
@@ -40,7 +40,7 @@ datasources:
     uid: pxa-tempo
     type: tempo
     access: proxy
-    url: http://pxa-tempo:3200
+    url: http://pvad-tempo:3200
     editable: false
     jsonData:
       tracesToLogsV2:

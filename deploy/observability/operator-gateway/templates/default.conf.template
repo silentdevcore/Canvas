@@ -5,7 +5,7 @@ map $http_upgrade $pxa_connection_upgrade {
 
 server {
     listen 8080;
-    server_name ${PXA_OPERATOR_SERVER_NAME};
+    server_name ${PVAD_OPERATOR_SERVER_NAME};
     server_tokens off;
 
     add_header X-Content-Type-Options "nosniff" always;
@@ -23,19 +23,21 @@ server {
 
     location = /_pxa_operator_auth {
         internal;
-        proxy_pass ${PXA_OPERATOR_API_UPSTREAM}/api/pxa/v1/admin/operator/access;
+        proxy_pass ${PVAD_OPERATOR_API_UPSTREAM}/api/pvad/v1/admin/operator/access;
         proxy_pass_request_body off;
         proxy_set_header Content-Length "";
         proxy_set_header Cookie $http_cookie;
         proxy_set_header Authorization "";
         proxy_set_header X-PXA-API-Key "";
         proxy_set_header X-PXA-Application "";
+        proxy_set_header X-PVAD-API-Key "";
+        proxy_set_header X-PVAD-Application "";
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location /api/ {
-        proxy_pass ${PXA_OPERATOR_API_UPSTREAM};
+        proxy_pass ${PVAD_OPERATOR_API_UPSTREAM};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -50,7 +52,7 @@ server {
         auth_request /_pxa_operator_auth;
         auth_request_set $pxa_operator $upstream_http_x_pxa_operator;
 
-        proxy_pass http://pxa-grafana:3000;
+        proxy_pass http://pvad-grafana:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -100,7 +102,7 @@ server {
     }
 
     location ~ ^/(login|forgot-password|reset-password|confirm-email|accept-invitation)$ {
-        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_pass ${PVAD_OPERATOR_UI_UPSTREAM};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -108,14 +110,14 @@ server {
     }
 
     location /assets/ {
-        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_pass ${PVAD_OPERATOR_UI_UPSTREAM};
         proxy_set_header Host $host;
         proxy_hide_header Server;
     }
 
     location / {
         auth_request /_pxa_operator_auth;
-        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_pass ${PVAD_OPERATOR_UI_UPSTREAM};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;

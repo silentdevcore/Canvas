@@ -9,7 +9,7 @@ external resources:
 Regenerate both deterministic packages and `SHA256SUMS` from the repository root:
 
 ```bash
-dotnet run --project tools/native-project-fixtures/PXA.NativeProjectFixtures.csproj
+dotnet run --project tools/native-project-fixtures/PVAD.NativeProjectFixtures.csproj
 ```
 
 The fixtures are compatibility examples, not exported PDF or XLSX documents. Tests open

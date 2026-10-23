@@ -1,4 +1,4 @@
-# PXA PDF Parser Fuzzing Foundation
+# PVAD PDF Parser Fuzzing Foundation
 
 The deterministic runner executes a bounded mutation corpus against the PDF
 importer, Trust Inspector, and every installed independent parser from qpdf,
@@ -8,7 +8,7 @@ hang or process-fatal parser failure cannot take down the parent runner.
 The report contains only mutation identifiers, SHA-256 hashes, parser decisions,
 exit codes, durations, and differential flags. It never stores source document
 content. Parser disagreement is evidence for review rather than an automatic
-failure; a crash or timeout fails the run. A PXA parser diagnostic must never
+failure; a crash or timeout fails the run. A PVAD parser diagnostic must never
 result in a valid structure verdict.
 
 Run from the repository root:
@@ -21,7 +21,7 @@ For a bounded coverage-guided AFL++ campaign, install `afl-fuzz` and the
 `SharpFuzz.CommandLine` tool, then run:
 
 ```bash
-PXA_PDF_FUZZ_COVERAGE_SECONDS=300 tools/pdf-parser-fuzzer/run-coverage.sh
+PVAD_PDF_FUZZ_COVERAGE_SECONDS=300 tools/pdf-parser-fuzzer/run-coverage.sh
 ```
 
 The coverage runner instruments only the disposable publish output, enforces

@@ -6,9 +6,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using PXA.Importer.Signing;
-using PXA.Importer.Trust;
-using PXA.Pdf;
+using PVAD.Importer.Signing;
+using PVAD.Importer.Trust;
+using PVAD.Pdf;
 
 var repositoryRoot = FindRepositoryRoot(AppContext.BaseDirectory);
 var outputDirectory = args.Length > 0
@@ -165,7 +165,7 @@ await File.WriteAllTextAsync(
     }.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine,
     new UTF8Encoding(false));
 
-Console.WriteLine($"Wrote {fixtures.Count} positive and 6 negative PXA PAdES fixtures to {outputDirectory}.");
+Console.WriteLine($"Wrote {fixtures.Count} positive and 6 negative PVAD PAdES fixtures to {outputDirectory}.");
 
 static byte[] CreatePdf(string id)
 {
@@ -249,9 +249,9 @@ static int ReadDerValueLength(ReadOnlySpan<byte> encoded)
 static string FindRepositoryRoot(string start)
 {
     var directory = new DirectoryInfo(start);
-    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PXA.sln")))
+    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
         directory = directory.Parent;
-    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
 }
 
 internal sealed record PadesFixture(

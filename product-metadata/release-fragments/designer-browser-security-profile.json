@@ -1,0 +1,8 @@
+{
+  "id": "designer-browser-security-profile",
+  "impact": "patch",
+  "components": ["designer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Provide an optional Designer hosting security profile with navigation and embedding restrictions and report-only resource diagnostics. Deployment requires completing browser compatibility checks.",
+  "breaking": false
+}

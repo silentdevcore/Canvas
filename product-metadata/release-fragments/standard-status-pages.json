@@ -13,6 +13,6 @@
     "observability"
   ],
   "category": "added",
-  "summary": "PXA applications now provide consistent, actionable status pages and local fallback pages for unavailable, unauthorized, missing, and failed experiences.",
+  "summary": "PVAD applications now provide consistent, actionable status pages and local fallback pages for unavailable, unauthorized, missing, and failed experiences.",
   "breaking": false
 }

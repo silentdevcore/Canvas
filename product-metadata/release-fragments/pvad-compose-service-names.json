@@ -1,0 +1,8 @@
+{
+  "id": "pvad-compose-service-names",
+  "impact": "major",
+  "components": ["api", "infrastructure", "observability", "documentation"],
+  "category": "breaking",
+  "summary": "Use PVAD names throughout fresh Compose deployments and local database defaults. Existing installations require explicit compatibility overlays with verified storage and network bindings. Update custom overlays and secret mount references before upgrading.",
+  "breaking": true
+}

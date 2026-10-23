@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-importer-api-and-webhook-identity",
+  "impact": "patch",
+  "components": ["api", "importer", "observability", "documentation"],
+  "category": "fixed",
+  "summary": "Importer messages, API descriptions, diagnostic reports and operational alerts use the current identity while stable diagnostic codes remain unchanged. Webhook configuration accepts PVAD settings with checked legacy aliases.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

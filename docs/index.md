@@ -1,12 +1,12 @@
-# PXA PDF API Reference
+# PVAD PDF API Reference
 
-The PXA PDF API is the imperative C# surface for generating PDFs in code. Create a
-[`PdfDocument`](xref:PXA.Pdf.PdfDocument), add [`PdfPage`](xref:PXA.Pdf.PdfPage)s, draw on them, and call
+The PVAD PDF API is the imperative C# surface for generating PDFs in code. Create a
+[`PdfDocument`](xref:PVAD.Pdf.PdfDocument), add [`PdfPage`](xref:PVAD.Pdf.PdfPage)s, draw on them, and call
 `ToBytes()`.
 
 ```csharp
-using PXA.Pdf;
-using PXA.Generator;
+using PVAD.Pdf;
+using PVAD.Generator;
 
 var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";

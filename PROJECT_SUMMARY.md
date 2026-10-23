@@ -1,8 +1,8 @@
-# Power Dox Automation / PXA - Project Summary
+# PVADE / PVAD - Project Summary
 
 ## Overview
 
-Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `pxa-designer` React/TypeScript frontend. The breaking PXA-to-PXA rename has been accepted: active source projects and namespaces use `PXA.*`.
+PVADE is the platform brand; PVAD is its technical identity. It provides a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `pvad-designer` React/TypeScript frontend. Projects and namespaces use `PVAD.*`; PXA names remain only in documented compatibility and historical contracts. PDF and Spreadsheet products are PVADP and PVADS.
 
 ---
 
@@ -12,15 +12,15 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 |-------|------------|
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
-| PDF export | PXA PDF renderer/writer, no external PDF library |
-| PDF import/edit model | PXA importer low-level parser, scene graph, editing model, regeneration bridge |
+| PDF export | PVAD PDF renderer/writer, no external PDF library |
+| PDF import/edit model | PVAD importer low-level parser, scene graph, editing model, regeneration bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX digital signing | System.Security.Cryptography.Xml 10.0.8 |
 | Excel export | ClosedXML |
-| File importers | Dedicated `PXA.FileImporter.*` projects |
-| Migration | `PXA.Migration.*` provider projects, Roslyn helpers, report converters |
+| File importers | Dedicated `PVAD.FileImporter.*` projects |
+| Migration | `PVAD.Migration.*` provider projects, Roslyn helpers, report converters |
 | ODT import/export | System.IO.Compression + LINQ to XML |
-| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis`, `PXA.FileImporter.ImageOcr`, isolated OCR worker |
+| Image analysis/OCR | `PVAD.FileImporter.ImageAnalysis`, `PVAD.FileImporter.ImageOcr`, isolated OCR worker |
 
 ---
 
@@ -28,23 +28,23 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 
 | Group | Projects | Role |
 |-------|----------|------|
-| Core | `PXA.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
-| Application | `PXA.Application` | Use-case orchestration |
-| PDF engine | `PXA.Pdf`, `PXA.Infrastructure.Pdf`, `PXA.Generator` | PDF generation API, renderer facade, public generator entry point |
-| Other exporters | `PXA.Infrastructure.Word`, `PXA.Infrastructure.Spreadsheet`, `PXA.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
-| File importers | `PXA.FileImporter.Abstractions`, `PXA.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
-| PDF importer SDK | `PXA.Importer` | PDF parser, editable DOM, graphics interpretation, regeneration bridge |
-| Migrations | `PXA.Migration.Abstractions`, `PXA.Migration.Roslyn`, `PXA.Migration.*` | Provider implementations for vendor code migration and report-to-design conversion |
-| API | `PXA.WebApi` | Presentation layer and composition root with legacy HTTP route aliases |
-| Domain | `PXA.Domain` | Template/domain models and repositories |
+| Core | `PVAD.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
+| Application | `PVAD.Application` | Use-case orchestration |
+| PDF engine | `PVAD.Pdf`, `PVAD.Infrastructure.Pdf`, `PVAD.Generator` | PDF generation API, renderer facade, public generator entry point |
+| Other exporters | `PVAD.Infrastructure.Word`, `PVAD.Infrastructure.Spreadsheet`, `PVAD.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
+| File importers | `PVAD.FileImporter.Abstractions`, `PVAD.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
+| PDF importer SDK | `PVAD.Importer` | PDF parser, editable DOM, graphics interpretation, regeneration bridge |
+| Migrations | `PVAD.Migration.Abstractions`, `PVAD.Migration.Roslyn`, `PVAD.Migration.*` | Provider implementations for vendor code migration and report-to-design conversion |
+| API | `PVAD.WebApi` | Presentation layer and composition root with legacy HTTP route aliases |
+| Domain | `PVAD.Domain` | Template/domain models and repositories |
 
 ---
 
-## Frontend Structure (`pxa-designer/src/`)
+## Frontend Structure (`pvad-designer/src/`)
 
 | Folder | Contents |
 |--------|----------|
-| `components/Editor/` | PXA editor, toolbar, inspector panels, export/code/modals |
+| `components/Editor/` | PVADE editor, toolbar, inspector panels, export/code/modals |
 | `components/Gallery/` | Template gallery and cards |
 | `components/Layout/` | App shell/header |
 | `components/CodeEditor/` | JSON/C# editor and PDF preview |
@@ -98,7 +98,7 @@ POST   /api/document/extract-pages         Extract pages
 POST   /api/document/sign-docx             Apply X.509 digital signature
 POST   /api/document/convert-image-to-pdf  Convert raster image to PDF
 
-POST   /api/document/import-pdf-engine     Import PDF through the PXA importer
+POST   /api/document/import-pdf-engine     Import PDF through the PVAD importer
 POST   /api/document/debug-pdf-engine      Debug PDF importer output
 POST   /api/document/import-docx           Import DOCX
 POST   /api/document/import-doc            Import DOC
@@ -109,9 +109,9 @@ POST   /api/document/import-pptx           Import PPTX
 POST   /api/document/import-image-analysis Import image through analysis pipeline
 
 GET    /api/migration/frameworks           List migration frameworks
-POST   /api/migration/convert              Convert vendor PDF code to PXA-compatible PDF C#
+POST   /api/migration/convert              Convert vendor PDF code to PVAD-compatible PDF C#
 POST   /api/migration/report-to-design     Convert report source to DesignExportDto
-POST   /api/migration/preview              Preview migrated PXA-compatible PDF code
+POST   /api/migration/preview              Preview migrated PVAD-compatible PDF code
 
 GET    /api/templates                      List templates
 POST   /api/templates                      Create template
@@ -138,12 +138,12 @@ Default local servers: frontend `http://localhost:5173`; API ports depend on lau
 
 | Group | Example projects |
 |-------|------------------|
-| Core/Application/API | `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Api.Tests` |
-| PDF engine/export | `PXA.Infrastructure.Pdf.Tests`, `PXA.Export.Tests` |
-| PDF importer SDK | `PXA.Importer.Tests` |
-| File importers | `PXA.FileImporter.*.Tests` |
-| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis.Tests`, `PXA.FileImporter.ImageOcr.Tests` |
-| PDF code migrations | `PXA.Migration.*Pdf.Tests`, `PXA.Migration.Pdf.Code.IText7.Tests`, provider-specific tests |
-| Report migrations | `PXA.Migration.Report.Designer.DevExpress.Tests`, `PXA.Migration.Report.Designer.Rdl.Tests`, `PXA.Migration.Report.Designer.Rpx.Tests` |
+| Core/Application/API | `PVAD.Core.Tests`, `PVAD.Application.Tests`, `PVAD.Api.Tests` |
+| PDF engine/export | `PVAD.Infrastructure.Pdf.Tests`, `PVAD.Export.Tests` |
+| PDF importer SDK | `PVAD.Importer.Tests` |
+| File importers | `PVAD.FileImporter.*.Tests` |
+| Image analysis/OCR | `PVAD.FileImporter.ImageAnalysis.Tests`, `PVAD.FileImporter.ImageOcr.Tests` |
+| PDF code migrations | `PVAD.Migration.*Pdf.Tests`, `PVAD.Migration.Pdf.Code.IText7.Tests`, provider-specific tests |
+| Report migrations | `PVAD.Migration.Report.Designer.DevExpress.Tests`, `PVAD.Migration.Report.Designer.Rdl.Tests`, `PVAD.Migration.Report.Designer.Rpx.Tests` |
 
 See `TESTING.md` for command examples and validation policy.

@@ -5,7 +5,7 @@ The Code workspace connects a saved Designer template to four independent source
 - **JSON** is the normalized `DesignExportDto` document.
 - **C# Model** is a readable object initializer made from `DesignExportDto`, `PageDto`, `ElementDto`,
   and their typed child contracts. It contains no hidden document payload.
-- **C# PDF** uses the semantic `PxaPdfCodeBuilder` and returns a `PxaPdfCodeDocument`. The legacy
+- **C# PDF** uses the semantic `PvadPdfCodeBuilder` and returns a `PvadPdfCodeDocument`. The legacy
   low-level `PdfDocument` API remains supported for one major version with reduced fidelity.
 - **FromBase64String** is the compact transport representation. It validates Base64, strict UTF-8,
   JSON, stable IDs, and the same 10 MiB canonical document limit before it can be applied.
@@ -49,7 +49,11 @@ bleed, localization, protection, metadata, bindings, RTL, charts, tables, forms,
 | `reviewRequired` | The conversion completed with simplifications or unsupported visual operations. |
 | `unsupported` | Errors prevent a safe canonical result. |
 
-Generated C# PDF includes `pxa-element-id` metadata comments. Source maps use these IDs to associate diagnostics and generated lines with Designer elements. Executed loops and conditions produce their resulting elements; their original source structure is not represented in the visual model.
+Generated C# PDF includes `pvad-element-id` metadata comments. The compatibility
+reader still accepts historical `pxa-element-id` comments without rewriting stored
+source. Source maps use these IDs to associate diagnostics and generated lines
+with Designer elements. Executed loops and conditions produce their resulting
+elements; their original source structure is not represented in the visual model.
 
 `documentFidelity` describes the resulting document. `sourcePreservation` independently reports
 `preserved`, `regenerated`, or `structureLost`. Converting handwritten C# can therefore produce an
@@ -57,14 +61,14 @@ exact document while correctly reporting that comments, variable names, loops, o
 regenerated. The older `fidelity` property remains an alias for `documentFidelity` during the
 compatibility period.
 
-PXA-generated JSON, C# Model, C# PDF builder code, and FromBase64String code roundtrip through the
+PVAD-generated JSON, C# Model, C# PDF builder code, and FromBase64String code roundtrip through the
 same normalized `DesignExportDto`. Pages, settings, bindings, localization, RTL, charts, tables,
 forms, tenant asset IDs, encryption settings, and unknown extension properties remain part of that
 canonical contract.
 
 ## Sandbox
 
-C# runs in `PXA.CodeWorker`, never in the WebApi process. The restricted language supports PXA APIs, collections, mathematics, dates, conditions, loops, and bounded string or LINQ operations. It rejects:
+C# runs in `PVAD.CodeWorker`, never in the WebApi process. The restricted language supports PVAD APIs, collections, mathematics, dates, conditions, loops, and bounded string or LINQ operations. It rejects:
 
 - files, directories, environment variables, processes, and additional assemblies;
 - network clients, sockets, URLs, and package references;
@@ -79,7 +83,7 @@ filesystem, temporary working directory, resource limits, and blocked egress.
 
 ## Legacy Base64 migration
 
-Older workspaces may contain `FromBase64String` code in the C# Model draft. On first load, PXA moves
+Older workspaces may contain `FromBase64String` code in the C# Model draft. On first load, PVAD moves
 that source unchanged into the FromBase64String draft and generates a readable C# Model initializer
 from the canonical JSON. The migration is tenant-scoped, revisioned, and audited; the original source
 is not discarded.
@@ -92,7 +96,7 @@ Code cannot load images from a local path or URL. Upload assets through the Desi
 
 The authenticated endpoints are rooted at:
 
-`/api/pxa/v1/designer/templates/{templateId}/code-workspace`
+`/api/pvad/v1/designer/templates/{templateId}/code-workspace`
 
 They provide workspace load/save, validation, conversion, execution, atomic apply, restore, and source-map retrieval. Every operation requires a Designer session, active organization, Designer entitlement, the `designer.code-workspace` Beta feature, and applicable request limits.
 
@@ -106,7 +110,7 @@ The visual Designer's **Export code** panel uses the same canonical document as 
   shared element, page override, document setting, binding, asset reference, and extension field.
   Selecting a Preview language does not remove other language content from the exported source.
 - **C# Code** sends that exact JSON to the authenticated backend converter and displays semantic
-  `PxaPdfCodeBuilder` code. It does not use the removed browser-only drawing-code generator.
+  `PvadPdfCodeBuilder` code. It does not use the removed browser-only drawing-code generator.
 
 Exact C# generation requires a persisted template so the server can enforce tenant access,
 entitlements, feature gates, limits, and audit. Save a new document before opening its C# tab. If

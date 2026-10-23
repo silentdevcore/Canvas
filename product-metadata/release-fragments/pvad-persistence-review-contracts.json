@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-persistence-review-contracts",
+  "impact": "none",
+  "components": ["api", "infrastructure"],
+  "category": "improved",
+  "summary": "Expanded rename validation covers retained database names, historical migration definitions and protected payload recovery across provider restarts.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds internal persistence compatibility coverage and corrects review-tool BOM classification without changing application persistence behavior."
+}

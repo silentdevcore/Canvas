@@ -1,32 +1,38 @@
-# PXA Versioning
+# PVAD Versioning
 
-`VERSION` is the only authoritative PXA product version.
+`VERSION` is the only authoritative PVAD product version. The public platform
+brand is PVADE. Release history is stored in `product-metadata/pvad-releases.json`;
+published release entries retain their original wording and identifiers.
+All new frontend and packaged API builds emit `pvad-build-info.json` with the
+technical product identity `PVAD`. Build compiler constants use `__PVAD_*`.
+Canonical `PVAD_BUILD_*` environment inputs and Docker build arguments are used
+for new builds. Historical `PXA_BUILD_*` inputs remain conflict-checked aliases.
 
 ```bash
-node tools/versioning/pxa-version.mjs current
-node tools/versioning/pxa-version.mjs check
-node tools/versioning/pxa-version.mjs fragments
-node tools/versioning/pxa-version.mjs validate-change --base-ref origin/develop
-node tools/versioning/pxa-version.mjs prepare patch
-node tools/versioning/pxa-version.mjs prepare minor
-node tools/versioning/pxa-version.mjs prepare major
-node tools/versioning/pxa-version.mjs prepare-fragments --dry-run \
+node tools/versioning/pvad-version.mjs current
+node tools/versioning/pvad-version.mjs check
+node tools/versioning/pvad-version.mjs fragments
+node tools/versioning/pvad-version.mjs validate-change --base-ref origin/develop
+node tools/versioning/pvad-version.mjs prepare patch
+node tools/versioning/pvad-version.mjs prepare minor
+node tools/versioning/pvad-version.mjs prepare major
+node tools/versioning/pvad-version.mjs prepare-fragments --dry-run \
   --summary "Customer-facing release summary." \
   --format markdown
-node tools/versioning/pxa-version.mjs prepare-fragments \
+node tools/versioning/pvad-version.mjs prepare-fragments \
   --summary "Customer-facing release summary."
-node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
-node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi pxa-designer/dist
-node tools/versioning/pxa-build-consistency.mjs verify-container pxa-webapi:local
+node tools/versioning/pvad-build-consistency.mjs write artifacts/webapi
+node tools/versioning/pvad-build-consistency.mjs verify artifacts/webapi pvad-designer/dist
+node tools/versioning/pvad-build-consistency.mjs verify-container pvad-webapi:local
 ```
 
 Every pull request to `develop` adds or updates one structured JSON file in
 `product-metadata/release-fragments/`. The fragment records its Semantic Version
 impact, affected components, change category, customer-facing summary, and
-optional feature or Documentation references. Use the `pxa-release-author`
+optional feature or Documentation references. Use the `pvad-release-author`
 skill to review a change and draft the fragment.
 
-The `Synchronize PXA Release Impact Label` workflow validates the changed
+The `Synchronize PVADE Release Impact Label` workflow validates the changed
 fragment with tooling checked out from the protected base commit and applies
 exactly one `impact:none`, `impact:patch`, `impact:minor`, or `impact:major`
 label. Pull-request source is inspected as Git data and is never executed with
@@ -46,7 +52,7 @@ With `--dry-run`, the command calculates the same release and renders JSON or
 Markdown without changing `VERSION`, the release manifest, or pending fragments.
 
 After `prepare`, replace every placeholder in
-`product-metadata/pxa-releases.json`, list the affected components and add
+`product-metadata/pvad-releases.json`, list the affected components and add
 customer-facing changes. The release PR from `develop` to `main` must carry
 exactly one matching `release:patch`, `release:minor` or `release:major` label.
 
@@ -62,7 +68,7 @@ reads the previous version from `main/VERSION`. For the historical `v1.0.0`
 baseline, which predates that file, it falls back to the newest stable `v*` tag
 already contained in `main`.
 
-Every shipped frontend and WebApi archive contains `pxa-build-info.json` with
+Every shipped frontend and WebApi archive contains `pvad-build-info.json` with
 the product version, source commit, and build time. CI validates these manifests
 against root `VERSION` before uploading artifacts. Container builds are checked
 against the same version through the immutable

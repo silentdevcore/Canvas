@@ -1,0 +1,47 @@
+namespace PVAD.WebApi.Security;
+
+public static class PvadPermissions
+{
+    public const string UsersRead = "users.read";
+    public const string UsersCreate = "users.create";
+    public const string UsersUpdate = "users.update";
+    public const string UsersDisable = "users.disable";
+    public const string RolesAssign = "roles.assign";
+    public const string OrganizationsRead = "organizations.read";
+    public const string OrganizationsManage = "organizations.manage";
+    public const string SubscriptionsRead = "subscriptions.read";
+    public const string SubscriptionsManage = "subscriptions.manage";
+    public const string LicensesRead = "licenses.read";
+    public const string LicensesManage = "licenses.manage";
+    public const string ServiceAccountsRead = "service_accounts.read";
+    public const string ServiceAccountsManage = "service_accounts.manage";
+    public const string AuditRead = "audit.read";
+    public const string MailRead = "mail.read";
+    public const string MailManage = "mail.manage";
+    public const string LegalRead = "legal.read";
+    public const string LegalAuthor = "legal.author";
+    public const string LegalApprove = "legal.approve";
+
+    public static IReadOnlyList<string> All { get; } =
+    [
+        UsersRead,
+        UsersCreate,
+        UsersUpdate,
+        UsersDisable,
+        RolesAssign,
+        OrganizationsRead,
+        OrganizationsManage,
+        SubscriptionsRead,
+        SubscriptionsManage,
+        LicensesRead,
+        LicensesManage,
+        ServiceAccountsRead,
+        ServiceAccountsManage,
+        AuditRead,
+        MailRead,
+        MailManage,
+        LegalRead,
+        LegalAuthor,
+        LegalApprove,
+    ];
+}

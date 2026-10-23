@@ -1,5 +1,7 @@
 # Code-Migrations-UI — Feature Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Overview
 
 A **Migrations** page in the PXA web app (`pxa-designer`) that lets developers paste code written for another PDF library, convert it to PXA.Pdf C# code, and preview the resulting PDF — all in the browser.

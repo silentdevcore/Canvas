@@ -1,10 +1,10 @@
-# PXA Deployment Control
+# PVAD Deployment Control
 
-PXA deployment validation consumes an existing immutable stable release. It
+PVAD deployment validation consumes an existing immutable stable release. It
 never calculates a version, changes `VERSION`, creates a tag, or rebuilds a
 release artifact.
 
-The `PXA Deployment Validation` workflow verifies:
+The `PVADE Deployment Validation` workflow verifies:
 
 - the requested stable `vX.Y.Z` tag and exact checked-out commit;
 - the shared stable release-manifest entry;
@@ -21,6 +21,17 @@ the evidence to `succeeded` or `failed` after target health checks.
 Retry and rollback are new workflow runs against an existing stable version.
 They require the source workflow run ID and never change version metadata or
 release notes.
+
+New archive sets use `pvad-*` names. Complete historical `pxa-*` archive sets
+remain valid inputs for immutable release verification; names and digests are
+not rewritten. Mixed, duplicate or incomplete sets are rejected. New evidence
+writes `product: PVAD` and records the artifact identity separately. The old
+`pxa-deployment.mjs` command delegates to `pvad-deployment.mjs` for compatibility.
+Published container repositories and protected GitHub environment names remain
+unchanged until an explicitly authorized infrastructure cutover.
+The [workflow binding register](../../docs/pvad-rename-release-approvals.md#retained-workflow-bindings)
+lists each retained identity and the coordinated changes needed. Source comments
+do not certify remote configuration, approve publication or execute a cutover.
 
 Repository environments:
 

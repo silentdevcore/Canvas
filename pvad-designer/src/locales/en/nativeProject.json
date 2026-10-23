@@ -1,0 +1,9 @@
+{
+  "title": "Open project", "noFile": "No project selected", "requiresSignIn": "Sign in to open this project.",
+  "login": "Sign in", "refresh": "Check access", "choose": "Choose project", "open": "Open in Designer", "discard": "Discard",
+  "accessDenied": "Designer access is unavailable for this account.", "permission": "You do not have permission to import this project.",
+  "unsupported": "Choose a PVADP or PVADS project.", "multiple": "Open one project at a time.",
+  "expired": "This file transfer has expired. Open the project again.", "tooLarge": "The project must contain data and be no larger than 25 MiB.",
+  "busy": "A project is already waiting. Open or discard it first.", "accountChanged": "Your account or organization changed. Check access and try again.",
+  "failed": "The project could not be opened. Check access and try again."
+}

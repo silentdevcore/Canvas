@@ -1,12 +1,12 @@
-// Single shared allowlist so PXA.Company (which appends these params to its
-// outgoing Account links) and PXA.Account (which reads them back at
+// Single shared allowlist so PVAD.Company (which appends these params to its
+// outgoing Account links) and PVAD.Account (which reads them back at
 // registration) can never drift out of sync with each other.
 export const CAMPAIGN_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign'];
 
 /**
  * Appends any allowlisted campaign params found in `search` (defaults to
- * the current page's query string) onto `url`. Used by PXA.Company when
- * building outgoing links to PXA.Account, so a visitor who arrived via a
+ * the current page's query string) onto `url`. Used by PVAD.Company when
+ * building outgoing links to PVAD.Account, so a visitor who arrived via a
  * campaign link keeps that attribution through to registration.
  */
 export function appendCampaignParams(url, search = window.location.search) {
@@ -24,7 +24,7 @@ export function appendCampaignParams(url, search = window.location.search) {
 /**
  * Extracts the allowlisted campaign params from `search` (defaults to the
  * current page's query string) as a plain object, or null if none are
- * present. Used by PXA.Account's registration form to pass the same
+ * present. Used by PVAD.Account's registration form to pass the same
  * privacy-safe context through to the backend.
  */
 export function extractCampaignContext(search = window.location.search) {

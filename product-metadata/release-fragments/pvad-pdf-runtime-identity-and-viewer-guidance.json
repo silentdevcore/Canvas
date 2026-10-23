@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-pdf-runtime-identity-and-viewer-guidance",
+  "impact": "patch",
+  "components": ["generator", "importer", "migration", "designer", "documentation"],
+  "category": "fixed",
+  "summary": "New PDF metadata and validation labels use PVAD while diagnostic identifiers remain compatible. Migration guidance links resolve correctly, and Designer and Viewer documentation shows the current interface with clearly labeled demonstration data.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

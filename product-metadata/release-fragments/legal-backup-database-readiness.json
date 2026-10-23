@@ -6,7 +6,7 @@
     "infrastructure"
   ],
   "category": "fixed",
-  "summary": "Legal recovery validation now waits for the PXA database and reports actionable PostgreSQL startup diagnostics.",
+  "summary": "Legal recovery validation now waits for the PVAD database and reports actionable PostgreSQL startup diagnostics.",
   "featureIds": [],
   "breaking": false
 }

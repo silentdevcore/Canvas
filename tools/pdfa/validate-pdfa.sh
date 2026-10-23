@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly IMAGE="${PXA_VERAPDF_IMAGE:-ghcr.io/verapdf/cli:v1.31.166}"
-readonly REPORT_DIRECTORY="${PXA_PDFA_REPORT_DIR:-artifacts/pdfa}"
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_PDFA_REPORT_DIR PXA_PDFA_REPORT_DIR "${PVAD_PDFA_REPORT_DIR+x}" "${PVAD_PDFA_REPORT_DIR-}" "${PXA_PDFA_REPORT_DIR+x}" "${PXA_PDFA_REPORT_DIR-}"
+pvad_environment_alias PVAD_VERAPDF_IMAGE PXA_VERAPDF_IMAGE "${PVAD_VERAPDF_IMAGE+x}" "${PVAD_VERAPDF_IMAGE-}" "${PXA_VERAPDF_IMAGE+x}" "${PXA_VERAPDF_IMAGE-}"
+
+readonly IMAGE="${PVAD_VERAPDF_IMAGE:-ghcr.io/verapdf/cli:v1.31.166}"
+readonly REPORT_DIRECTORY="${PVAD_PDFA_REPORT_DIR:-artifacts/pdfa}"
 
 usage() {
   echo "Usage: $0 <2b|3b> <pdf> [pdf ...]" >&2

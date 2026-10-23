@@ -11,11 +11,11 @@
     "migration"
   ],
   "category": "added",
-  "summary": "PXA adds fail-closed PDF/A-2b generation with embedded fonts, XMP and RGB output intent, structural validation in the Viewer and API, and Nutrient PDF/A-2b migration guidance.",
+  "summary": "PVAD adds fail-closed PDF/A-2b generation with embedded fonts, XMP and RGB output intent, structural validation in the Viewer and API, and Nutrient PDF/A-2b migration guidance.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md",
-    "/checklists/PXA.Migration-Nutrient-Code-And-Viewer.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md",
+    "/checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md"
   ],
   "breaking": false
 }

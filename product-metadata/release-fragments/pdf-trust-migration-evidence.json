@@ -11,9 +11,9 @@
   "summary": "PDF migrations now provide linked manual Trust workflows, structured capability evidence, and secret-free examples for eleven providers while conservatively identifying unsupported security mappings.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md",
-    "/docs/guides/PXA.Pdf-Trust-Generator-Examples.md",
-    "/docs/guides/PXA.Pdf-Trust-Migration-Examples.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md",
+    "/docs/guides/PVAD.Pdf-Trust-Generator-Examples.md",
+    "/docs/guides/PVAD.Pdf-Trust-Migration-Examples.md"
   ],
   "breaking": false
 }

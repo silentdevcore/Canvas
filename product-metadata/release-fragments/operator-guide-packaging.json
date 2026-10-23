@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "operator-guide-packaging",
+  "impact": "patch",
+  "components": ["api", "documentation"],
+  "category": "fixed",
+  "summary": "The protected operator documentation catalog includes the Admin operations guide under its registered filename.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

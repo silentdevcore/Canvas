@@ -1,0 +1,8 @@
+{
+  "id": "pvad-cutover-configuration-preparation",
+  "impact": "minor",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Configure explicit API CORS origins and prepare consistent host, native file-type and retained-volume service settings without changing existing deployments.",
+  "breaking": false
+}

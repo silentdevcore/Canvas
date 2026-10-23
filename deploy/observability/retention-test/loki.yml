@@ -45,4 +45,4 @@ compactor:
 limits_config:
   allow_structured_metadata: true
   reject_old_samples: false
-  retention_period: ${PXA_TEST_LOG_RETENTION}
+  retention_period: ${PVAD_TEST_LOG_RETENTION}

@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-admin-mail-and-operations-branding",
+  "impact": "patch",
+  "components": ["admin", "api", "observability", "documentation"],
+  "category": "fixed",
+  "summary": "Admin guidance includes current PVADE screenshots, transactional messages use the current brand in all supported languages, and operational test configuration supports PVAD names with checked legacy aliases.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

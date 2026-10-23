@@ -1,7 +1,7 @@
 # PDF Redaction Recovery Harness
 
-This opt-in security suite applies PXA redaction to synthetic text and masked-image
-fixtures, then searches the rewritten PDF with tools outside the PXA parser.
+This opt-in security suite applies PVAD redaction to synthetic text and masked-image
+fixtures, then searches the rewritten PDF with tools outside the PVAD parser.
 
 Requirements:
 
@@ -17,5 +17,5 @@ bash tools/pdf-redaction-recovery/run.sh
 
 The fixtures contain unique synthetic canaries. The suite fails when text extraction,
 binary string inspection, or extracted image/mask files contain a covered canary. This
-suite supplements PXA's structural verifier; it does not claim universal recovery
+suite supplements PVAD's structural verifier; it does not claim universal recovery
 resistance for unsupported codecs or arbitrary hostile PDFs.

@@ -16,7 +16,7 @@ ingester:
 compactor:
   compaction:
     compaction_window: 1h
-    block_retention: ${PXA_TEST_TRACE_RETENTION}
+    block_retention: ${PVAD_TEST_TRACE_RETENTION}
     compacted_block_retention: 10s
 
 storage:

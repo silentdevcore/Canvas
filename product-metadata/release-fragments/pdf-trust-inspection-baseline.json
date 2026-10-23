@@ -9,10 +9,10 @@
     "importer"
   ],
   "category": "added",
-  "summary": "PXA adds typed PAdES B-B through B-LTA signing with strong configurable digests, trusted timestamps, controlled certificate-status retrieval, hardened parsing, and verified redaction.",
+  "summary": "PVAD adds typed PAdES B-B through B-LTA signing with strong configurable digests, trusted timestamps, controlled certificate-status retrieval, hardened parsing, and verified redaction.",
   "featureIds": [],
   "documentation": [
-    "/checklists/PXA.PDF-Trust-Foundation.md"
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
   ],
   "breaking": false
 }

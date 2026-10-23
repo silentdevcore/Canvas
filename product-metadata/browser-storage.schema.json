@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://powerdoxautomation.com/schemas/browser-storage.schema.json",
-  "title": "PXA browser storage inventory",
+  "title": "PVAD browser storage inventory",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "reviewedAt", "optionalStorageEnabled", "entries"],
@@ -21,6 +21,7 @@
           "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$" },
           "mechanism": { "enum": ["cookie", "localStorage", "sessionStorage"] },
           "keys": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "recoveryOnlyKeys": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
           "applications": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
           "owner": { "type": "string", "minLength": 3 },
           "category": { "enum": ["strictly-necessary", "requested-preference", "requested-application-state", "analytics", "marketing"] },

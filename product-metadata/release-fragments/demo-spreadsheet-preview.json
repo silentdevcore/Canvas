@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "demo-spreadsheet-preview",
+  "impact": "patch",
+  "components": ["demo", "spreadsheet"],
+  "category": "fixed",
+  "summary": "The Spreadsheet demo renders its worksheet header and rows without failing when selected in the gallery.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

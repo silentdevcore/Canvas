@@ -1,5 +1,7 @@
 # Spreadsheet Import / Export Formats
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Expands the Spreadsheet Editor SDK's file in/out. Today only `.xlsx` round-trips; this adds the common
 lightweight formats (CSV, JSON) and tracks the heavier ones (xls/ods/pdf) as deferred.
 

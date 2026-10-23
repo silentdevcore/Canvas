@@ -1,0 +1,8 @@
+{
+  "id": "pvad-native-project-file-opener",
+  "impact": "minor",
+  "components": ["designer", "infrastructure", "documentation"],
+  "category": "added",
+  "summary": "Open native PDF and Spreadsheet projects through a supported installed Designer web app with explicit confirmation and account-bound import. Platform file associations still require installation validation.",
+  "breaking": false
+}

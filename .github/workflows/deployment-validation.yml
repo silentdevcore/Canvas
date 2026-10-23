@@ -1,10 +1,10 @@
-name: PXA Deployment Validation
+name: PVADE Deployment Validation
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Existing stable PXA version without the v prefix
+        description: Existing stable PVADE version without the v prefix
         required: true
         type: string
       environment:
@@ -40,6 +40,8 @@ permissions:
   deployments: write
 
 concurrency:
+  # Retained deployment lock; keep old/new workflow runs serialized until cutover.
+  # See docs/pvad-rename-release-approvals.md#retained-workflow-bindings.
   group: pxa-deployment-${{ inputs.environment }}
   cancel-in-progress: false
 
@@ -69,7 +71,7 @@ jobs:
             echo "Deployment validation requires explicit confirmation."
             exit 1
           fi
-          node tools/deployment/pxa-deployment.mjs request \
+          node tools/deployment/pvad-deployment.mjs request \
             --version "$VERSION" \
             --environment "$ENVIRONMENT" \
             --operation "$OPERATION" \
@@ -89,7 +91,7 @@ jobs:
           gh release view "v$VERSION" \
             --json tagName,name,isDraft,isPrerelease,publishedAt,url,assets \
             > artifacts/deployment/github-release.json
-          node tools/deployment/pxa-deployment.mjs verify \
+          node tools/deployment/pvad-deployment.mjs verify \
             --version "$VERSION" \
             --release-root release-source \
             --metadata artifacts/deployment/github-release.json \
@@ -105,6 +107,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
+      # Must match the retained registry targets in release.yml and the verifier.
       - name: Verify immutable container tags
         env:
           OWNER: ${{ github.repository_owner }}
@@ -129,7 +132,7 @@ jobs:
           ' "$WEBAPI" "$WEBAPI_DIGEST" "$RELAY" "$RELAY_DIGEST"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
         with:
-          name: pxa-deployment-preflight-${{ github.run_id }}
+          name: pvad-deployment-preflight-${{ github.run_id }}
           path: artifacts/deployment
           if-no-files-found: error
           retention-days: 30
@@ -138,6 +141,8 @@ jobs:
     needs: preflight
     runs-on: ubuntu-latest
     environment:
+      # Retained protected environment: verify reviewers, secrets and branch rules
+      # before changing its name. Do not bypass approvals with a new environment.
       name: pxa-${{ inputs.environment }}
       url: ${{ needs.preflight.outputs.release_url }}
     steps:
@@ -147,7 +152,7 @@ jobs:
           node-version: 22
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: pxa-deployment-preflight-${{ github.run_id }}
+          name: pvad-deployment-preflight-${{ github.run_id }}
           path: artifacts/deployment
       - name: Record protected validation evidence
         env:
@@ -158,7 +163,7 @@ jobs:
           SOURCE_RUN_ID: ${{ inputs.source_run_id }}
         run: |
           STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-          node tools/deployment/pxa-deployment.mjs record \
+          node tools/deployment/pvad-deployment.mjs record \
             --release artifacts/deployment/verified-release.json \
             --containers artifacts/deployment/containers.json \
             --environment "$ENVIRONMENT" \
@@ -173,7 +178,7 @@ jobs:
             --completed-at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
             --output artifacts/deployment/deployment-evidence.json
           {
-            printf '## PXA deployment validation\n\n'
+            printf '## PVADE deployment validation\n\n'
             printf -- '- Version: `%s`\n' "${{ inputs.version }}"
             printf -- '- Environment: `%s`\n' "$ENVIRONMENT"
             printf -- '- Operation: `%s`\n' "$OPERATION"
@@ -182,7 +187,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
         with:
-          name: pxa-deployment-evidence-${{ inputs.environment }}-${{ github.run_id }}
+          name: pvad-deployment-evidence-${{ inputs.environment }}-${{ github.run_id }}
           path: artifacts/deployment/deployment-evidence.json
           if-no-files-found: error
           retention-days: 90

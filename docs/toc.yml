@@ -9,16 +9,12 @@
 - name: Native Designer Project Formats
   href: native-designer-project-formats.md
 - name: PDF Trust Generator Examples
-  href: guides/PXA.Pdf-Trust-Generator-Examples.md
+  href: guides/PVAD.Pdf-Trust-Generator-Examples.md
 - name: PDF Trust Migration Examples
-  href: guides/PXA.Pdf-Trust-Migration-Examples.md
+  href: guides/PVAD.Pdf-Trust-Migration-Examples.md
 - name: API Reference
   href: api/
 - name: Architecture
   items:
   - name: Designer Image Assets
     href: architecture/designer-assets.md
-- name: Operations
-  items:
-  - name: Mail Service
-    href: operations/mail-service.md

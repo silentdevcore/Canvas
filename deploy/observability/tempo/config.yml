@@ -17,7 +17,7 @@ ingester:
 
 compactor:
   compaction:
-    block_retention: ${PXA_TRACE_RETENTION:-336h}
+    block_retention: ${PVAD_TRACE_RETENTION:-336h}
 
 storage:
   trace:

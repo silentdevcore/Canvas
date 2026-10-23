@@ -1,0 +1,9 @@
+{
+  "title": "Abrir proyecto", "noFile": "Ningún proyecto seleccionado", "requiresSignIn": "Inicie sesión para abrir este proyecto.",
+  "login": "Iniciar sesión", "refresh": "Comprobar acceso", "choose": "Elegir proyecto", "open": "Abrir en el Designer", "discard": "Descartar",
+  "accessDenied": "El acceso al Designer no está disponible para esta cuenta.", "permission": "No tiene permiso para importar este proyecto.",
+  "unsupported": "Elija un proyecto PVADP o PVADS.", "multiple": "Abra un solo proyecto a la vez.",
+  "expired": "Esta transferencia ha caducado. Vuelva a abrir el proyecto.", "tooLarge": "El proyecto no debe estar vacío ni superar los 25 MiB.",
+  "busy": "Ya hay un proyecto pendiente. Ábralo o descártelo primero.", "accountChanged": "Su cuenta u organización ha cambiado. Compruebe el acceso y vuelva a intentarlo.",
+  "failed": "No se pudo abrir el proyecto. Compruebe el acceso y vuelva a intentarlo."
+}

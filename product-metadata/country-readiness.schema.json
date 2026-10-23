@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://powerdoxautomation.com/schemas/country-readiness.schema.json",
-  "title": "PXA country readiness matrix",
+  "title": "PVAD country readiness matrix",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "reviewedAt", "productionApproved", "requirements", "regions", "countryOverrides"],

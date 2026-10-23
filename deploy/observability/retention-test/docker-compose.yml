@@ -4,7 +4,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=${PXA_TEST_METRIC_RETENTION}
+      - --storage.tsdb.retention.time=${PVAD_TEST_METRIC_RETENTION}
     ports:
       - "127.0.0.1:19090:9090"
     volumes:
@@ -17,7 +17,7 @@ services:
       - -config.file=/etc/loki/config.yml
       - -config.expand-env=true
     environment:
-      PXA_TEST_LOG_RETENTION: ${PXA_TEST_LOG_RETENTION}
+      PVAD_TEST_LOG_RETENTION: ${PVAD_TEST_LOG_RETENTION}
     ports:
       - "127.0.0.1:13101:3100"
     volumes:
@@ -30,7 +30,7 @@ services:
       - -config.file=/etc/tempo/config.yml
       - -config.expand-env=true
     environment:
-      PXA_TEST_TRACE_RETENTION: ${PXA_TEST_TRACE_RETENTION}
+      PVAD_TEST_TRACE_RETENTION: ${PVAD_TEST_TRACE_RETENTION}
     ports:
       - "127.0.0.1:13201:3200"
       - "127.0.0.1:14318:4318"

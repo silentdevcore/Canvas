@@ -1,12 +1,14 @@
 # PXA.Pdf Encryption (Password Protection & Permissions)
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Status
 
 > Legacy milestone record. The current implementation supersedes the V1 decisions below:
 > new encrypted Generator, Designer, and WebApi output defaults to PDF 2.0 AES-256 revision 6;
 > `Rc4_128` is an explicit legacy option, AES-128 is an interoperability bridge, and X.509
 > recipient encryption is available through `PdfCertificateEncryptionOptions`. See
-> `PXA.PDF-AES256-Security-Handler.md` for the current security contract.
+> `PVAD.PDF-AES256-Security-Handler.md` for the current security contract.
 
 Current delivered coverage:
 

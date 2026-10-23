@@ -1,80 +1,88 @@
+# Fresh installations use PVAD. Existing data requires the explicit legacy overlay.
 services:
-  pxa-database:
-    image: postgres:17-alpine
+  pvad-database:
+    image: 'postgres:17-alpine'
     environment:
-      POSTGRES_DB: pxa
-      POSTGRES_USER: pxa
-      POSTGRES_PASSWORD: pxa-local
+      POSTGRES_DB: ${PVAD_DATABASE_NAME:-pvad}
+      POSTGRES_USER: ${PVAD_DATABASE_USER:-pvad}
+      POSTGRES_PASSWORD: ${PVAD_DATABASE_PASSWORD:-pvad-local}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
-      - pxa-database-data:/var/lib/postgresql/data
+      - 'pvad-database-data:/var/lib/postgresql/data'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pxa -d pxa"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 5s
     networks:
-      - default
-      - pxa-observability
-
-  pxa-mailpit:
-    image: axllent/mailpit:v1.30.0
+      default: {}
+      pvad-observability: {}
+  pvad-mailpit:
+    image: 'axllent/mailpit:v1.30.0'
     environment:
       MP_DATABASE: /data/mailpit.db
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - '1025:1025'
+      - '8025:8025'
     volumes:
-      - pxa-mailpit-data:/data
+      - 'pvad-mailpit-data:/data'
     networks:
-      - default
-      - pxa-observability
-
-  pxa-otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.157.0
-    command: ["--config=/etc/otelcol-contrib/config.yml"]
-    profiles: ["observability"]
+      default: {}
+      pvad-observability: {}
+  pvad-otel-collector:
+    image: 'otel/opentelemetry-collector-contrib:0.157.0'
+    command:
+      - '--config=/etc/otelcol-contrib/config.yml'
+    profiles:
+      - observability
     depends_on:
-      - pxa-loki
-      - pxa-tempo
+      - pvad-loki
+      - pvad-tempo
     ports:
       - "127.0.0.1:4317:4317"
-      - "127.0.0.1:4318:4318"
-      - "127.0.0.1:13133:13133"
+      - '127.0.0.1:4318:4318'
+      - '127.0.0.1:13133:13133'
     environment:
-      PXA_TRACE_SAMPLE_PERCENTAGE: ${PXA_TRACE_SAMPLE_PERCENTAGE:-10}
-      PXA_OTEL_MEMORY_LIMIT_MIB: ${PXA_OTEL_MEMORY_LIMIT_MIB:-384}
-      PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB: ${PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}
+      PVAD_TRACE_SAMPLE_PERCENTAGE: '${PVAD_TRACE_SAMPLE_PERCENTAGE:-10}'
+      PVAD_OTEL_MEMORY_LIMIT_MIB: '${PVAD_OTEL_MEMORY_LIMIT_MIB:-384}'
+      PVAD_OTEL_MEMORY_SPIKE_LIMIT_MIB: '${PVAD_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}'
     volumes:
-      - ./deploy/observability/otel-collector/config.yml:/etc/otelcol-contrib/config.yml:ro
+      - './deploy/observability/otel-collector/config.yml:/etc/otelcol-contrib/config.yml:ro'
     networks:
-      - pxa-observability
-      - pxa-observability-ingress
-      - pxa-observability-host
+      pvad-observability: {}
+      pvad-observability-ingress: {}
+      pvad-observability-host: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_OTEL_CPU_LIMIT:-1.0}"
-          memory: ${PXA_OTEL_MEMORY_LIMIT:-512M}
+          cpus: '${PVAD_OTEL_CPU_LIMIT:-1.0}'
+          memory: '${PVAD_OTEL_MEMORY_LIMIT:-512M}'
     restart: unless-stopped
-
-  pxa-postgres-exporter:
-    image: quay.io/prometheuscommunity/postgres-exporter:v0.19.1
-    profiles: ["observability"]
+  pvad-postgres-exporter:
+    image: 'quay.io/prometheuscommunity/postgres-exporter:v0.19.1'
+    profiles:
+      - observability
     depends_on:
-      pxa-database:
+      pvad-database:
         condition: service_healthy
     environment:
-      DATA_SOURCE_URI: pxa-database:5432/pxa?sslmode=disable
-      DATA_SOURCE_USER: pxa
-      DATA_SOURCE_PASS: pxa-local
+      DATA_SOURCE_URI: pvad-database:5432/${PVAD_DATABASE_NAME:-pvad}?sslmode=disable
+      DATA_SOURCE_USER: ${PVAD_DATABASE_USER:-pvad}
+      DATA_SOURCE_PASS: ${PVAD_DATABASE_PASSWORD:-pvad-local}
       PG_EXPORTER_COLLECTION_TIMEOUT: 10s
     networks:
-      - pxa-observability
+      pvad-observability: {}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://localhost:9187/metrics'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -82,46 +90,51 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_POSTGRES_EXPORTER_CPU_LIMIT:-0.25}"
-          memory: ${PXA_POSTGRES_EXPORTER_MEMORY_LIMIT:-128M}
+          cpus: '${PVAD_POSTGRES_EXPORTER_CPU_LIMIT:-0.25}'
+          memory: '${PVAD_POSTGRES_EXPORTER_MEMORY_LIMIT:-128M}'
     restart: unless-stopped
-
-  pxa-cadvisor:
-    image: ghcr.io/google/cadvisor:0.55.1
+  pvad-cadvisor:
+    image: 'ghcr.io/google/cadvisor:0.55.1'
     command:
-      - --docker_only=true
-      - --housekeeping_interval=15s
-    profiles: ["observability"]
+      - '--docker_only=true'
+      - '--housekeeping_interval=15s'
+    profiles:
+      - observability
     privileged: true
     devices:
-      - /dev/kmsg:/dev/kmsg
+      - '/dev/kmsg:/dev/kmsg'
     volumes:
-      - /:/rootfs:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/run/docker/containerd:/run/containerd:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /dev/disk:/dev/disk:ro
+      - '/:/rootfs:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/var/run/docker/containerd:/run/containerd:ro'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker:/var/lib/docker:ro'
+      - '/dev/disk:/dev/disk:ro'
     networks:
-      - pxa-observability
+      pvad-observability: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_CADVISOR_CPU_LIMIT:-0.5}"
-          memory: ${PXA_CADVISOR_MEMORY_LIMIT:-256M}
+          cpus: '${PVAD_CADVISOR_CPU_LIMIT:-0.5}'
+          memory: '${PVAD_CADVISOR_MEMORY_LIMIT:-256M}'
     restart: unless-stopped
-
-  pxa-blackbox-exporter:
-    image: prom/blackbox-exporter:v0.26.0
+  pvad-blackbox-exporter:
+    image: 'prom/blackbox-exporter:v0.26.0'
     command:
-      - --config.file=/etc/blackbox_exporter/config.yml
-    profiles: ["observability"]
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    profiles:
+      - observability
     volumes:
-      - ./deploy/observability/blackbox/config.yml:/etc/blackbox_exporter/config.yml:ro
+      - './deploy/observability/blackbox/config.yml:/etc/blackbox_exporter/config.yml:ro'
     networks:
-      - pxa-observability
+      pvad-observability: {}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9115/-/healthy"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://localhost:9115/-/healthy'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -129,35 +142,40 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_BLACKBOX_CPU_LIMIT:-0.25}"
-          memory: ${PXA_BLACKBOX_MEMORY_LIMIT:-128M}
+          cpus: '${PVAD_BLACKBOX_CPU_LIMIT:-0.25}'
+          memory: '${PVAD_BLACKBOX_MEMORY_LIMIT:-128M}'
     restart: unless-stopped
-
-  pxa-prometheus:
-    image: prom/prometheus:v3.12.0
+  pvad-prometheus:
+    image: 'prom/prometheus:v3.12.0'
     command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=${PXA_METRIC_RETENTION:-90d}
-      - --storage.tsdb.retention.size=${PXA_METRIC_RETENTION_SIZE:-0B}
-      - --web.enable-lifecycle
-    profiles: ["observability"]
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PVAD_METRIC_RETENTION:-90d}'
+      - '--storage.tsdb.retention.size=${PVAD_METRIC_RETENTION_SIZE:-0B}'
+      - '--web.enable-lifecycle'
+    profiles:
+      - observability
     depends_on:
-      - pxa-otel-collector
-      - pxa-alertmanager
-      - pxa-postgres-exporter
-      - pxa-cadvisor
-      - pxa-blackbox-exporter
+      - pvad-otel-collector
+      - pvad-alertmanager
+      - pvad-postgres-exporter
+      - pvad-cadvisor
+      - pvad-blackbox-exporter
     volumes:
-      - ./deploy/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./deploy/observability/prometheus/rules:/etc/prometheus/rules:ro
-      - ./deploy/observability/prometheus/tests:/etc/prometheus/tests:ro
-      - ${PXA_TLS_TARGETS_PATH:-./deploy/observability/prometheus/targets}:/etc/prometheus/targets:ro
-      - ${PXA_PROMETHEUS_DATA_PATH:-pxa-prometheus-data}:/prometheus
+      - './deploy/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+      - './deploy/observability/prometheus/rules:/etc/prometheus/rules:ro'
+      - './deploy/observability/prometheus/tests:/etc/prometheus/tests:ro'
+      - '${PVAD_TLS_TARGETS_PATH:-./deploy/observability/prometheus/targets}:/etc/prometheus/targets:ro'
+      - '${PVAD_PROMETHEUS_DATA_PATH:-pvad-prometheus-data}:/prometheus'
     networks:
-      - pxa-observability
+      pvad-observability: {}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://localhost:9090/-/ready'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -165,30 +183,35 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_PROMETHEUS_CPU_LIMIT:-1.0}"
-          memory: ${PXA_PROMETHEUS_MEMORY_LIMIT:-1G}
+          cpus: '${PVAD_PROMETHEUS_CPU_LIMIT:-1.0}'
+          memory: '${PVAD_PROMETHEUS_MEMORY_LIMIT:-1G}'
     restart: unless-stopped
-
-  pxa-alertmanager:
-    image: prom/alertmanager:v0.32.1
+  pvad-alertmanager:
+    image: 'prom/alertmanager:v0.32.1'
     command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/alertmanager
-      - --data.retention=${PXA_ALERT_RETENTION:-120h}
-      - --web.external-url=${PXA_ALERTMANAGER_ROOT_URL:-http://pxa-alertmanager:9093}
-    profiles: ["observability"]
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--data.retention=${PVAD_ALERT_RETENTION:-120h}'
+      - '--web.external-url=${PVAD_ALERTMANAGER_ROOT_URL:-http://pvad-alertmanager:9093}'
+    profiles:
+      - observability
     depends_on:
-      pxa-mailpit:
+      pvad-mailpit:
         condition: service_healthy
     volumes:
-      - ./deploy/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - ./deploy/observability/alertmanager/templates:/etc/alertmanager/templates:ro
-      - ${PXA_ALERTMANAGER_DATA_PATH:-pxa-alertmanager-data}:/alertmanager
+      - './deploy/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro'
+      - './deploy/observability/alertmanager/templates:/etc/alertmanager/templates:ro'
+      - '${PVAD_ALERTMANAGER_DATA_PATH:-pvad-alertmanager-data}:/alertmanager'
     networks:
-      - pxa-observability
-      - pxa-observability-ingress
+      pvad-observability: {}
+      pvad-observability-ingress: {}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/ready"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://localhost:9093/-/ready'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -196,101 +219,106 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_ALERTMANAGER_CPU_LIMIT:-0.5}"
-          memory: ${PXA_ALERTMANAGER_MEMORY_LIMIT:-256M}
+          cpus: '${PVAD_ALERTMANAGER_CPU_LIMIT:-0.5}'
+          memory: '${PVAD_ALERTMANAGER_MEMORY_LIMIT:-256M}'
     restart: unless-stopped
-
-  pxa-loki:
-    image: grafana/loki:3.7.2
+  pvad-loki:
+    image: 'grafana/loki:3.7.2'
     command:
-      - -config.file=/etc/loki/config.yml
-      - -config.expand-env=true
-    profiles: ["observability"]
+      - '-config.file=/etc/loki/config.yml'
+      - '-config.expand-env=true'
+    profiles:
+      - observability
     environment:
-      PXA_LOG_RETENTION: ${PXA_LOG_RETENTION:-720h}
-      PXA_S3_ENDPOINT: ${PXA_S3_ENDPOINT:-}
-      PXA_S3_REGION: ${PXA_S3_REGION:-}
-      PXA_S3_FORCE_PATH_STYLE: ${PXA_S3_FORCE_PATH_STYLE:-false}
-      PXA_S3_INSECURE: ${PXA_S3_INSECURE:-false}
-      PXA_LOKI_S3_BUCKET: ${PXA_LOKI_S3_BUCKET:-}
+      PVAD_LOG_RETENTION: '${PVAD_LOG_RETENTION:-720h}'
+      PVAD_S3_ENDPOINT: '${PVAD_S3_ENDPOINT:-}'
+      PVAD_S3_REGION: '${PVAD_S3_REGION:-}'
+      PVAD_S3_FORCE_PATH_STYLE: '${PVAD_S3_FORCE_PATH_STYLE:-false}'
+      PVAD_S3_INSECURE: '${PVAD_S3_INSECURE:-false}'
+      PVAD_LOKI_S3_BUCKET: '${PVAD_LOKI_S3_BUCKET:-}'
     volumes:
-      - ${PXA_LOKI_CONFIG_PATH:-./deploy/observability/loki/config.yml}:/etc/loki/config.yml:ro
-      - ${PXA_LOKI_DATA_PATH:-pxa-loki-data}:/loki
+      - '${PVAD_LOKI_CONFIG_PATH:-./deploy/observability/loki/config.yml}:/etc/loki/config.yml:ro'
+      - '${PVAD_LOKI_DATA_PATH:-pvad-loki-data}:/loki'
     networks:
-      - pxa-observability
+      pvad-observability: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_LOKI_CPU_LIMIT:-1.0}"
-          memory: ${PXA_LOKI_MEMORY_LIMIT:-1G}
+          cpus: '${PVAD_LOKI_CPU_LIMIT:-1.0}'
+          memory: '${PVAD_LOKI_MEMORY_LIMIT:-1G}'
     restart: unless-stopped
-
-  pxa-tempo:
-    image: grafana/tempo:2.10.5
+  pvad-tempo:
+    image: 'grafana/tempo:2.10.5'
     command:
-      - -config.file=/etc/tempo/config.yml
-      - -config.expand-env=true
-    profiles: ["observability"]
+      - '-config.file=/etc/tempo/config.yml'
+      - '-config.expand-env=true'
+    profiles:
+      - observability
     environment:
-      PXA_TRACE_RETENTION: ${PXA_TRACE_RETENTION:-336h}
-      PXA_S3_ENDPOINT: ${PXA_S3_ENDPOINT:-}
-      PXA_S3_REGION: ${PXA_S3_REGION:-}
-      PXA_S3_FORCE_PATH_STYLE: ${PXA_S3_FORCE_PATH_STYLE:-false}
-      PXA_S3_INSECURE: ${PXA_S3_INSECURE:-false}
-      PXA_TEMPO_S3_BUCKET: ${PXA_TEMPO_S3_BUCKET:-}
+      PVAD_TRACE_RETENTION: '${PVAD_TRACE_RETENTION:-336h}'
+      PVAD_S3_ENDPOINT: '${PVAD_S3_ENDPOINT:-}'
+      PVAD_S3_REGION: '${PVAD_S3_REGION:-}'
+      PVAD_S3_FORCE_PATH_STYLE: '${PVAD_S3_FORCE_PATH_STYLE:-false}'
+      PVAD_S3_INSECURE: '${PVAD_S3_INSECURE:-false}'
+      PVAD_TEMPO_S3_BUCKET: '${PVAD_TEMPO_S3_BUCKET:-}'
     volumes:
-      - ${PXA_TEMPO_CONFIG_PATH:-./deploy/observability/tempo/config.yml}:/etc/tempo/config.yml:ro
-      - ${PXA_TEMPO_DATA_PATH:-pxa-tempo-data}:/var/tempo
+      - '${PVAD_TEMPO_CONFIG_PATH:-./deploy/observability/tempo/config.yml}:/etc/tempo/config.yml:ro'
+      - '${PVAD_TEMPO_DATA_PATH:-pvad-tempo-data}:/var/tempo'
     networks:
-      - pxa-observability
+      pvad-observability: {}
     deploy:
       resources:
         limits:
-          cpus: "${PXA_TEMPO_CPU_LIMIT:-1.0}"
-          memory: ${PXA_TEMPO_MEMORY_LIMIT:-1G}
+          cpus: '${PVAD_TEMPO_CPU_LIMIT:-1.0}'
+          memory: '${PVAD_TEMPO_MEMORY_LIMIT:-1G}'
     restart: unless-stopped
-
-  pxa-grafana:
-    image: grafana/grafana:13.1.0
-    profiles: ["observability"]
+  pvad-grafana:
+    image: 'grafana/grafana:13.1.0'
+    profiles:
+      - observability
     depends_on:
-      - pxa-prometheus
-      - pxa-alertmanager
-      - pxa-loki
-      - pxa-tempo
+      - pvad-prometheus
+      - pvad-alertmanager
+      - pvad-loki
+      - pvad-tempo
     environment:
-      GF_SECURITY_ADMIN_USER: ${PXA_GRAFANA_ADMIN_USER:-pxa-operator}
-      GF_SECURITY_ADMIN_PASSWORD: ${PXA_GRAFANA_ADMIN_PASSWORD:-pxa-local-observability}
-      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_USER: ${PVAD_GRAFANA_ADMIN_USER:-pvad-operator}
+      GF_SECURITY_ADMIN_PASSWORD: ${PVAD_GRAFANA_ADMIN_PASSWORD:-pvad-local-observability}
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
       GF_AUTH_BASIC_ENABLED: "false"
-      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
       GF_AUTH_PROXY_ENABLED: "true"
       GF_AUTH_PROXY_HEADER_NAME: X-WEBAUTH-USER
       GF_AUTH_PROXY_HEADER_PROPERTY: username
-      GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
-      GF_AUTH_PROXY_SYNC_TTL: "0"
+      GF_AUTH_PROXY_AUTO_SIGN_UP: 'true'
+      GF_AUTH_PROXY_SYNC_TTL: '0'
       GF_AUTH_PROXY_WHITELIST: 172.30.50.10
-      GF_AUTH_PROXY_HEADERS: Role:X-WEBAUTH-ROLE
-      GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: "false"
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_USERS_AUTO_ASSIGN_ORG: "true"
+      GF_AUTH_PROXY_HEADERS: 'Role:X-WEBAUTH-ROLE'
+      GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_USERS_AUTO_ASSIGN_ORG: 'true'
       GF_USERS_AUTO_ASSIGN_ORG_ROLE: Admin
-      GF_SERVER_ROOT_URL: ${PXA_OPERATOR_PUBLIC_URL:-http://localhost:3001}/operator/grafana/
-      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-      GF_PLUGINS_PREINSTALL_DISABLED: "true"
-      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
-      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
-      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_SERVER_ROOT_URL: '${PVAD_OPERATOR_PUBLIC_URL:-http://localhost:3001}/operator/grafana/'
+      GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
     volumes:
-      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - ${PXA_GRAFANA_DATA_PATH:-pxa-grafana-data}:/var/lib/grafana
+      - './deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro'
+      - './deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro'
+      - '${PVAD_GRAFANA_DATA_PATH:-pvad-grafana-data}:/var/lib/grafana'
     networks:
-      pxa-observability:
-      pxa-observability-ingress:
+      pvad-observability: {}
+      pvad-observability-ingress:
         ipv4_address: 172.30.50.11
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://localhost:3000/api/health'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -298,31 +326,38 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_GRAFANA_CPU_LIMIT:-1.0}"
-          memory: ${PXA_GRAFANA_MEMORY_LIMIT:-768M}
+          cpus: '${PVAD_GRAFANA_CPU_LIMIT:-1.0}'
+          memory: '${PVAD_GRAFANA_MEMORY_LIMIT:-768M}'
     restart: unless-stopped
-
-  pxa-operator-gateway:
-    image: nginx:1.29-alpine
-    profiles: ["observability"]
+  pvad-operator-gateway:
+    image: 'nginx:1.29-alpine'
+    profiles:
+      - observability
     depends_on:
-      pxa-grafana:
+      pvad-grafana:
         condition: service_healthy
     environment:
-      PXA_OPERATOR_SERVER_NAME: ${PXA_OPERATOR_SERVER_NAME:-localhost}
-      PXA_OPERATOR_API_UPSTREAM: ${PXA_OPERATOR_API_UPSTREAM:-http://host.docker.internal:5086}
-      PXA_OPERATOR_UI_UPSTREAM: ${PXA_OPERATOR_UI_UPSTREAM:-http://host.docker.internal:5177}
+      PVAD_OPERATOR_SERVER_NAME: '${PVAD_OPERATOR_SERVER_NAME:-localhost}'
+      PVAD_OPERATOR_API_UPSTREAM: '${PVAD_OPERATOR_API_UPSTREAM:-http://host.docker.internal:5086}'
+      PVAD_OPERATOR_UI_UPSTREAM: '${PVAD_OPERATOR_UI_UPSTREAM:-http://host.docker.internal:5177}'
     ports:
-      - "127.0.0.1:3001:8080"
+      - '127.0.0.1:3001:8080'
     volumes:
-      - ./deploy/observability/operator-gateway/templates:/etc/nginx/templates:ro
-      - ./deploy/observability/operator-gateway/site:/usr/share/nginx/html/documentation:ro
+      - './deploy/observability/operator-gateway/templates:/etc/nginx/templates:ro'
+      - './deploy/observability/operator-gateway/15-pvad-operator.envsh:/docker-entrypoint.d/15-pvad-operator.envsh:ro'
+      - './tools/configuration/environment.sh:/etc/pvad/environment.sh:ro'
+      - './deploy/observability/operator-gateway/site:/usr/share/nginx/html/documentation:ro'
     networks:
-      pxa-observability-ingress:
+      pvad-observability-ingress:
         ipv4_address: 172.30.50.10
-      pxa-operator-egress:
+      pvad-operator-egress: {}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/operator-health"]
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - 'http://127.0.0.1:8080/operator-health'
       interval: 15s
       timeout: 5s
       retries: 5
@@ -330,26 +365,24 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PXA_OPERATOR_GATEWAY_CPU_LIMIT:-0.25}"
-          memory: ${PXA_OPERATOR_GATEWAY_MEMORY_LIMIT:-128M}
+          cpus: '${PVAD_OPERATOR_GATEWAY_CPU_LIMIT:-0.25}'
+          memory: '${PVAD_OPERATOR_GATEWAY_MEMORY_LIMIT:-128M}'
     restart: unless-stopped
-
 volumes:
-  pxa-database-data:
-  pxa-mailpit-data:
-  pxa-prometheus-data:
-  pxa-loki-data:
-  pxa-tempo-data:
-  pxa-grafana-data:
-  pxa-alertmanager-data:
-
+  pvad-database-data: null
+  pvad-mailpit-data: null
+  pvad-prometheus-data: null
+  pvad-loki-data: null
+  pvad-tempo-data: null
+  pvad-grafana-data: null
+  pvad-alertmanager-data: null
 networks:
-  pxa-observability:
+  pvad-observability:
     internal: true
-  pxa-observability-ingress:
+  pvad-observability-ingress:
     internal: true
     ipam:
       config:
         - subnet: 172.30.50.0/24
-  pxa-observability-host:
-  pxa-operator-egress:
+  pvad-observability-host: null
+  pvad-operator-egress: null

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://powerdoxautomation.com/schemas/release-fragment.schema.json",
-  "title": "PXA release fragment",
+  "title": "PVAD release fragment",
   "type": "object",
   "additionalProperties": false,
   "required": [

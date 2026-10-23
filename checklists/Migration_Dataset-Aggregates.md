@@ -1,5 +1,7 @@
 # Migration: Dataset Aggregates in Migrated Expressions
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 > **Status:** shipped — PR [#17](https://github.com/silentdevcore/PXA/pull/17)
 > (branch `migration-dataset-aggregates`, commit `28ddb270`).
 
