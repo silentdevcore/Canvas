@@ -289,5 +289,5 @@ static string FindRepositoryRoot(string start)
     var directory = new DirectoryInfo(start);
     while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
         directory = directory.Parent;
-    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+    return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
 }

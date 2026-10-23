@@ -1,0 +1,8 @@
+{
+  "id": "pvad-internal-operator-names",
+  "impact": "patch",
+  "components": ["infrastructure", "observability", "documentation"],
+  "category": "improved",
+  "summary": "Align new backup filenames, internal proxy helpers and local test identities with PVAD naming while preserving existing backups and compatibility contracts.",
+  "breaking": false
+}

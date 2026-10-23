@@ -21,6 +21,6 @@ region, and expected result. Do not include customer files or personal data.
 The opt-in external suite requires `pdftotext`, `pdfimages`, and POSIX `strings`. Run it with:
 
 ```bash
-PXA_RUN_PDF_RECOVERY_TESTS=1 dotnet test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
+PVAD_RUN_PDF_RECOVERY_TESTS=1 dotnet test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
   --filter FullyQualifiedName~PdfRedactionExternalRecoveryTests
 ```

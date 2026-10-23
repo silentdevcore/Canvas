@@ -14,11 +14,11 @@ payload="$(
     labels: {
       alertname: ("PvadNotificationDeliveryTest" + $test_id),
       severity: "critical",
-      service: "pxa-observability",
+      service: "pvad-observability",
       environment: "local-evaluation"
     },
     annotations: {
-      summary: ("PVAD operator notification delivery test pxa-alert-email-" + $test_id),
+      summary: ("PVAD operator notification delivery test pvad-alert-email-" + $test_id),
       description: "Synthetic technical alert used to verify independent Alertmanager SMTP delivery.",
       dashboard_path: "/d/pxa-platform-overview/pxa-platform-overview",
       runbook_id: "PXA-OBS-TEST"
@@ -40,7 +40,7 @@ while (( SECONDS < deadline )); do
     jq -r --arg alert_name "PvadNotificationDeliveryTest${test_id}" '
       first(
         .messages[]
-        | select(.From.Address == "pxa-alerts@powerdox.local")
+        | select(.From.Address == "pvad-alerts@example.test")
         | select(.Subject | contains($alert_name))
         | .ID
       ) // empty
@@ -53,7 +53,7 @@ while (( SECONDS < deadline )); do
 done
 
 if [[ -z "${message_id}" ]]; then
-  echo "Alertmanager did not deliver pxa-alert-email-${test_id} to Mailpit within 50 seconds." >&2
+  echo "Alertmanager did not deliver pvad-alert-email-${test_id} to Mailpit within 50 seconds." >&2
   exit 1
 fi
 
@@ -61,11 +61,11 @@ message="$(
   curl --fail --silent --show-error --max-time 10 \
     "${mailpit_url}/api/v1/message/${message_id}"
 )"
-jq -e --arg test_id "pxa-alert-email-${test_id}" --arg alert_name "PvadNotificationDeliveryTest${test_id}" '
+jq -e --arg test_id "pvad-alert-email-${test_id}" --arg alert_name "PvadNotificationDeliveryTest${test_id}" '
   (.Subject | startswith("[PVAD][FIRING][CRITICAL]")) and
   (.Subject | contains($alert_name)) and
   (.Text | contains($test_id)) and
-  (.Text | contains("Service: pxa-observability")) and
+  (.Text | contains("Service: pvad-observability")) and
   (.Text | contains("Environment: local-evaluation")) and
   (.Text | contains("Dashboard: http://localhost:3001/operator/grafana/")) and
   (.Text | contains("Runbook: PXA-OBS-TEST")) and
@@ -81,4 +81,4 @@ for forbidden in password cookie authorization api-key license-key request-body 
   fi
 done
 
-echo "PVAD Alertmanager email smoke test passed for pxa-alert-email-${test_id}."
+echo "PVAD Alertmanager email smoke test passed for pvad-alert-email-${test_id}."

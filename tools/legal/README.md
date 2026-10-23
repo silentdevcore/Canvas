@@ -148,7 +148,7 @@ PGPASSFILE=/run/secrets/pvad_pgpass \
 PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
 PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
 PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
-  tools/legal/restore-postgres.sh /protected/pvad-backups/pxa-UTC.dump
+  tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump
 
 PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
 PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
@@ -162,9 +162,10 @@ for the isolated synthetic drill.
 These mount/directory names are examples for new operator-owned configuration,
 not instructions to move an existing secret or backup. Preserve installed paths
 unless a separate cutover is approved. Use the actual filename returned by the
-backup command: it currently emits `pxa-<timestamp>-<pid>.dump`, and restore still
-requires the exact confirmation `RESTORE PXA DATABASE`. Those operational
-compatibility values and existing checksum files are intentionally unchanged.
+backup command: new backups use `pvad-<timestamp>-<pid>.dump`. Existing `pxa-*`
+backups and their checksum files must not be renamed; restore accepts either
+basename and still requires the exact confirmation `RESTORE PXA DATABASE`.
+These compatibility values do not change the backup format or restored content.
 
 Restore accepts only a checksum-verified custom-format backup and an empty
 target database. The detailed incident, encryption, validation, rollback, and

@@ -17,6 +17,42 @@ legacy aliases, and internal Java/Maven/JAR/local-image identities. Results and
 index counts below refer to earlier checkpoints, not validation of these batches.
 No additional completed-test percentage is claimed.
 
+Internal-name follow-up (2026-10-23): Nginx auth subrequests and local variables,
+new backup filenames, ephemeral recovery/retention resource names, synthetic
+mail-test identities and the negative-path hosting probe now use PVAD. Existing
+backups/checksums, restore confirmation, upstream auth headers, legacy API paths,
+dashboard/runbook IDs and protected deployment bindings are retained. The
+retention project is unique per run; its fixed ports still require serial runs.
+48 focused tests pass, including mocked backup/restore flows for both filenames.
+No real database, Nginx container, mail delivery or retention run was executed.
+The patch fragment is `pvad-internal-operator-names`; VERSION stays 1.1.0.
+
+Operator/MCP guide and Grafana follow-up (2026-10-23): restricted Admin/recovery
+instructions match canonical API routes, mounted secret names and new backup
+outputs. The proposed Admin host remains explicitly unverified. MCP examples use
+the current Compose API hostname and canonical scopes while documenting retained
+discovery spellings and grants. Grafana datasource display names now use PVAD;
+UIDs, cross-links, provider/folder identity and permissions are not migrated.
+The deletion list no longer deletes active datasources during provisioning.
+67 focused tests pass; version/fragment validation passes. No actual Grafana
+upgrade, remote OAuth exchange, database recovery or deployment was performed.
+Patch fragment: `pvad-operator-guides-and-monitoring-labels`; VERSION stays 1.1.0.
+
+Validation-caller follow-up (2026-10-23): Legal PostgreSQL and Redaction Recovery
+launchers, Trust visual-artifact generation and the PDF/A evidence helper now
+pass canonical PVAD environment keys. The Redaction Recovery command example
+matches. Receiver aliases, conflict handling, evidence schema and pinned fixture
+bytes remain unchanged. Six focused contracts pass, including two fake-dotnet
+launches that stop before services; the combined focused selection passes 73/73.
+Node syntax, version and fragment checks pass. No real .NET suite, veraPDF,
+database, recovery, image comparison or baseline regeneration was run. Internal
+fragment: `pvad-validation-caller-keys` (impact none); VERSION stays 1.1.0.
+
+Final internal wording follow-up (2026-10-23): the corpus root-not-found message
+uses PVAD. Synthetic signer/author identity and fixture bytes remain unchanged.
+Open internal rename changes are being committed before the broader validation
+run; any results recorded earlier apply only to their named source checkpoints.
+
 Operator-example follow-up (2026-10-23): PDF/UA paths and new key/secret/directory
 examples use PVAD. Hosting/Company strategy separate unverified target domains
 from unchanged runtime fallbacks. The AES-256 runner now uses the canonical local

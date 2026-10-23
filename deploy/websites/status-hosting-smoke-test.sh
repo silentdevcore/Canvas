@@ -47,7 +47,7 @@ response_headers() {
 }
 
 valid=$(response_headers "http://localhost:$PORT/pricing")
-unknown=$(response_headers "http://localhost:$PORT/not-a-pxa-route")
+unknown=$(response_headers "http://localhost:$PORT/not-a-pvad-route")
 shell=$(response_headers "http://localhost:$PORT/index.html")
 asset_path=$(find "$DIST_DIR/assets" -maxdepth 1 -type f \( -name '*.js' -o -name '*.css' \) | head -n 1)
 asset=$(response_headers "http://localhost:$PORT/assets/$(basename "$asset_path")")

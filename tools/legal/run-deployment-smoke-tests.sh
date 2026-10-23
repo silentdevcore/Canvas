@@ -8,7 +8,7 @@ pvad_environment_alias PVAD_DATABASE_URL_FILE PXA_DATABASE_URL_FILE "${PVAD_DATA
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repository_root"
 
-PXA_RUN_POSTGRES_TESTS=1 dotnet test \
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test \
   tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj \
   --filter 'FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances' \
   -p:SkipOcrWorkerPackaging=true

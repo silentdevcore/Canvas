@@ -1,17 +1,12 @@
 apiVersion: 1
 
 deleteDatasources:
-  - name: PXA Prometheus
-    orgId: 1
-  - name: PXA Loki
-    orgId: 1
-  - name: PXA Tempo
-    orgId: 1
+  # Remove only the obsolete datasource, never delete active UIDs during rename.
   - name: PXA Alertmanager
     orgId: 1
 
 datasources:
-  - name: PXA Prometheus
+  - name: PVAD Prometheus
     uid: pxa-prometheus
     type: prometheus
     access: proxy
@@ -23,7 +18,7 @@ datasources:
         - name: trace_id
           datasourceUid: pxa-tempo
 
-  - name: PXA Loki
+  - name: PVAD Loki
     uid: pxa-loki
     type: loki
     access: proxy
@@ -36,7 +31,7 @@ datasources:
           datasourceUid: pxa-tempo
           url: "$${__value.raw}"
 
-  - name: PXA Tempo
+  - name: PVAD Tempo
     uid: pxa-tempo
     type: tempo
     access: proxy

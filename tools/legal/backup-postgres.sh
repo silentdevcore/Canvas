@@ -23,7 +23,7 @@ fi
 mkdir -p "$output_directory"
 chmod 700 "$output_directory"
 timestamp=$(date -u '+%Y%m%dT%H%M%SZ')
-backup="$output_directory/pxa-$timestamp-$$.dump"
+backup="$output_directory/pvad-$timestamp-$$.dump"
 temporary="$backup.tmp"
 checksum="$backup.sha256"
 

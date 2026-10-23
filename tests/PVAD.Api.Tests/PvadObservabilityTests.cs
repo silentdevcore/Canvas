@@ -881,7 +881,7 @@ public sealed class PvadObservabilityTests
         Assert.Contains("GF_AUTH_PROXY_ENABLED: \"true\"", compose, StringComparison.Ordinal);
         Assert.Contains("GF_AUTH_BASIC_ENABLED: \"false\"", compose, StringComparison.Ordinal);
         Assert.Contains("GF_AUTH_PROXY_WHITELIST: 172.30.50.10", compose, StringComparison.Ordinal);
-        Assert.Contains("auth_request /_pxa_operator_auth;", gateway, StringComparison.Ordinal);
+        Assert.Contains("auth_request /_pvad_operator_auth;", gateway, StringComparison.Ordinal);
         Assert.Contains(
             "/api/pvad/v1/admin/operator/access",
             gateway,
@@ -889,7 +889,7 @@ public sealed class PvadObservabilityTests
         Assert.Contains("proxy_set_header Authorization \"\";", gateway, StringComparison.Ordinal);
         Assert.Contains("proxy_set_header X-WEBAUTH-USER \"\";", gateway, StringComparison.Ordinal);
         Assert.Contains(
-            "proxy_set_header X-WEBAUTH-USER $pxa_operator;",
+            "proxy_set_header X-WEBAUTH-USER $pvad_operator;",
             gateway,
             StringComparison.Ordinal);
         Assert.DoesNotContain("/operator/grafana/", publicDocumentation, StringComparison.Ordinal);

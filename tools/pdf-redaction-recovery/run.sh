@@ -8,7 +8,7 @@ for tool in pdftotext pdfimages strings; do
   fi
 done
 
-PXA_RUN_PDF_RECOVERY_TESTS=1 dotnet test \
+PVAD_RUN_PDF_RECOVERY_TESTS=1 dotnet test \
   tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
   --filter 'FullyQualifiedName~PdfRedactionExternalRecoveryTests' \
   -m:1

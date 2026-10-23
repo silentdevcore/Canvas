@@ -12,7 +12,10 @@ This guide prepares a separately protected operator documentation deployment. It
 
 ## Operator Areas
 
-- Configure `admin.powerdoxautomation.com` for Cloud or `admin.{customer-host}` for On-Premise and route same-origin `/api` traffic to PVAD.WebApi.
+- The proposed Cloud target is `https://admin.pvade.com`; this is not evidence of
+  DNS, TLS or deployment readiness. Use the approved customer host such as
+  `admin.{customer-host}` for On-Premise and route same-origin `/api` to PVAD.WebApi.
+  Existing runtime URL defaults remain unchanged until an explicit host cutover.
 - Require secure host-only cookies, HTTPS, trusted proxy headers, and an explicit production operator allowlist.
 - Keep Development identity bootstrap disabled outside local Development.
 - Apply EF Core migrations before routing traffic to a new API version.
@@ -28,11 +31,12 @@ This guide prepares a separately protected operator documentation deployment. It
 - Publish Grafana only below `/operator/grafana/` on the protected operator host.
 - Keep Grafana port `3000` private to Docker networks.
 - Route `/api` on the operator host to PVAD.WebApi so the PVAD session cookie remains host-only.
-- Require `/api/pxa/v1/admin/operator/access` through an internal Nginx `auth_request` before
+- Require `/api/pvad/v1/admin/operator/access` through an internal Nginx `auth_request` before
   forwarding any Grafana request.
 - Permit only explicitly allowlisted System Administrators; Organization Administrators and
   anonymous users must receive `403` and `401` respectively.
-- Strip browser-supplied `Authorization`, `X-PXA-API-Key`, and `X-WEBAUTH-*` headers before
+- Strip browser-supplied `Authorization`, current and legacy API-key/Application
+  headers (`X-PVAD-*` and `X-PXA-*`), and `X-WEBAUTH-*` authentication headers before
   forwarding to Grafana.
 - Forward only the pseudonymous operator identifier returned by PVAD.WebApi.
 - Keep Grafana Auth Proxy limited to the fixed operator-gateway address on the internal ingress
@@ -68,7 +72,7 @@ This guide prepares a separately protected operator documentation deployment. It
   outbox are not dependencies of incident notification.
 - Use the local Mailpit receiver only for evaluation and delivery tests.
 - Require TLS for production SMTP and provide its password only through the mounted
-  `/run/secrets/pxa_alertmanager_smtp_password` file.
+  `/run/secrets/pvad_alertmanager_smtp_password` file in the current Compose overlay.
 - Keep production recipient addresses, SMTP settings, templates, and dashboard bases in
   deployment-owned configuration.
 - Render only status, severity, service, environment, start time, repository-controlled summary
@@ -79,7 +83,7 @@ This guide prepares a separately protected operator documentation deployment. It
 - Route generic webhooks only through the stateless PVAD relay. Never configure Alertmanager to
   call a customer destination directly.
 - Mount an independently generated signing secret of at least 32 bytes at
-  `/run/secrets/pxa_alert_webhook_signing_key`; never pass it through YAML or environment values.
+  `/run/secrets/pvad_alert_webhook_signing_key`; never pass it through YAML or environment values.
 - Configure one fixed, non-loopback HTTPS destination. Receivers must validate timestamp freshness,
   compare HMAC signatures in constant time, and deduplicate the supplied idempotency key.
 - Rotate the mounted signing key under a maintenance procedure coordinated with the receiver. The
@@ -89,7 +93,7 @@ This guide prepares a separately protected operator documentation deployment. It
 
 - Review retention governance in PVAD.Admin System status before enabling a production deployment.
   Production startup fails closed while the inventory or any category remains unapproved.
-- Use `POST /api/pxa/v1/admin/system/retention/dry-run` to inspect candidates and Legal Hold
+- Use `POST /api/pvad/v1/admin/system/retention/dry-run` to inspect candidates and Legal Hold
   effects. A dry run never changes records and Admin intentionally exposes no cleanup execution endpoint.
 - Create a global or organization-scoped Legal Hold only for an authorized preservation requirement.
   Record the authority in the reason, verify the audit event, and require a separate documented reason

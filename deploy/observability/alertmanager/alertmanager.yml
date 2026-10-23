@@ -1,6 +1,6 @@
 global:
   resolve_timeout: 5m
-  smtp_from: pxa-alerts@powerdox.local
+  smtp_from: pvad-alerts@example.test
   smtp_smarthost: pvad-mailpit:1025
   smtp_require_tls: false
 
@@ -49,7 +49,7 @@ time_intervals:
 receivers:
   - name: operator-email
     email_configs:
-      - to: pxa-operators@powerdox.local
+      - to: pvad-operators@example.test
         send_resolved: true
         headers:
           Subject: '{{ template "pvad.email.subject" . }}'

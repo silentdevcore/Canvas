@@ -20,6 +20,13 @@ defaults. The explicit `deploy/rename/docker-compose.legacy.yml` overlay retains
 old database/user settings, DNS aliases and verified external resources for an
 existing complete stack. Do not use fresh defaults as an automatic upgrade.
 Grafana UIDs and metric job labels remain stable; `instance` labels may change.
+Datasource display names now use PVAD while retaining their existing UIDs and
+trace/log cross-links. Active datasources are updated in place, not deleted by
+the provisioning deletion list. That list retains only the obsolete historical
+Alertmanager datasource. Inspect provisioning logs and saved dashboard queries
+after deployment; name-based custom queries may need manual updates.
+The dashboard provider identity and existing legacy folder are intentionally retained
+until dashboard placement and folder permissions can be migrated explicitly.
 See the [infrastructure mapping](../../docs/pvad-infrastructure-mapping.md) before
 an upgrade. Stop old writers first, preserve the installed project name and keys,
 and never run both generations on the same storage. Configuration checks are not
@@ -49,7 +56,7 @@ node tools/configuration/pvad-compose.mjs --profile observability up -d
 Open `http://localhost:3001/login`, sign in with the allowlisted PVAD operator, and open
 `http://localhost:3001/operator/grafana/`. Grafana has no direct host port and trusts only the
 operator gateway at its fixed internal network address. The gateway validates every request
-through `/api/pxa/v1/admin/operator/access`, removes client-supplied authentication headers, and
+through `/api/pvad/v1/admin/operator/access`, removes client-supplied authentication headers, and
 passes a pseudonymous operator name to Grafana Auth Proxy. Organization Administrators receive
 `403`; anonymous requests receive `401`.
 
@@ -66,6 +73,13 @@ Alertmanager, Prometheus, Loki, Tempo, PostgreSQL Exporter, and cAdvisor remain 
 inside the Docker network.
 Local Alertmanager notifications are delivered directly to Mailpit at
 `http://localhost:8025`; stopping PVAD.WebApi does not interrupt this path.
+The local sender `pvad-alerts@example.test` and recipient
+`pvad-operators@example.test` are synthetic Mailpit-only addresses, not production
+mailboxes. Configure approved delivery identities separately for deployment.
+
+Internal Nginx auth locations and helper variables use PVAD. The upstream
+`X-PXA-Operator` response header and legacy request-header stripping remain
+compatibility contracts; they are not public branding.
 
 Readiness endpoints are:
 
@@ -222,8 +236,8 @@ deployment file and set one fixed, non-loopback HTTPS destination. Start the pro
 and relay overrides together:
 
 ```bash
-PVAD_ALERT_WEBHOOK_URL=https://operator-webhook.example.test/pxa-alerts \
-PVAD_ALERT_WEBHOOK_SIGNING_KEY_FILE=/absolute/secrets/pxa-alert-webhook-key \
+PVAD_ALERT_WEBHOOK_URL=https://operator-webhook.example.test/pvad-alerts \
+PVAD_ALERT_WEBHOOK_SIGNING_KEY_FILE=/absolute/secrets/pvad-alert-webhook-key \
 docker compose \
   -f docker-compose.yml \
   -f deploy/observability/docker-compose.alerting-production.yml \
@@ -244,8 +258,8 @@ Retention is a deployment acceptance test, not a short unit test. Seed synthetic
 trace markers, wait for the configured retention and compaction boundary, then run:
 
 ```bash
-PVAD_RETENTION_METRIC_QUERY='pxa_retention_marker{marker="expired"}' \
-PVAD_RETENTION_LOG_QUERY='{service_name="pxa-retention-marker"}' \
+PVAD_RETENTION_METRIC_QUERY='pvad_retention_marker{marker="expired"}' \
+PVAD_RETENTION_LOG_QUERY='{service_name="pvad-retention-marker"}' \
 PVAD_RETENTION_TRACE_ID=00000000000000000000000000000001 \
   deploy/observability/retention-verification.sh
 ```
@@ -259,7 +273,11 @@ For an accelerated, isolated storage acceptance test, run:
 deploy/observability/retention-runtime-test.sh
 ```
 
-The script uses dedicated temporary volumes. It proves each synthetic marker is queryable before
+The script uses a per-run `pvad-retention-test-<timestamp>-<pid>` project and
+dedicated temporary volumes. Its local ports are fixed, so run only one instance
+at a time. If failed resources are retained, record the project name before
+manual cleanup; never clean up another installed stack.
+It proves each synthetic marker is queryable before
 aging it beyond the supported test retention boundary, then requires Prometheus and Loki to return
 zero results and Tempo to return `404`. It removes only its own containers and volumes.
 

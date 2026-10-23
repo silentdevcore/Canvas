@@ -144,7 +144,7 @@ function main() {
     spawnSync(validator, [fixture.pdfaFlavour, file], {
       cwd: root,
       encoding: 'utf8',
-      env: { ...process.env, PXA_PDFA_REPORT_DIR: reportDirectory, PXA_VERAPDF_IMAGE: image },
+      env: { ...process.env, PVAD_PDFA_REPORT_DIR: reportDirectory, PVAD_VERAPDF_IMAGE: image },
     });
 
     const reportFile = path.join(

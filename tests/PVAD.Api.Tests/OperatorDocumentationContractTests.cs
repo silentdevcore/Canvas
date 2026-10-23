@@ -35,7 +35,7 @@ public sealed class OperatorDocumentationContractTests
             "main.js"));
 
         Assert.Contains("location /documentation/", gateway, StringComparison.Ordinal);
-        Assert.Contains("auth_request /_pxa_operator_auth;", gateway, StringComparison.Ordinal);
+        Assert.Contains("auth_request /_pvad_operator_auth;", gateway, StringComparison.Ordinal);
         Assert.Contains("Content-Security-Policy", gateway, StringComparison.Ordinal);
         Assert.Contains("frame-ancestors 'none'", gateway, StringComparison.Ordinal);
         Assert.Contains(

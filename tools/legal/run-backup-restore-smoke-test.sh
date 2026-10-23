@@ -13,10 +13,10 @@ pvad_environment_alias PVAD_POSTGRES_STARTUP_DELAY_SECONDS PXA_POSTGRES_STARTUP_
 
 repository_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 suffix="$$-$(date -u '+%Y%m%d%H%M%S')"
-network="pxa-legal-recovery-$suffix"
-source_container="pxa-legal-source-$suffix"
-target_container="pxa-legal-target-$suffix"
-backup_directory=$(mktemp -d "${TMPDIR:-/tmp}/pxa-legal-backup.XXXXXX")
+network="pvad-legal-recovery-$suffix"
+source_container="pvad-legal-source-$suffix"
+target_container="pvad-legal-target-$suffix"
+backup_directory=$(mktemp -d "${TMPDIR:-/tmp}/pvad-legal-backup.XXXXXX")
 image=${PVAD_POSTGRES_IMAGE:-postgres:17-alpine}
 password='synthetic-recovery-password'
 ready_attempts=${PVAD_POSTGRES_READY_ATTEMPTS:-60}
@@ -121,7 +121,7 @@ docker run --rm --network "$network" \
   -e PVAD_DATABASE_URL="postgresql://pxa:$password@$source_container:5432/pxa" \
   "$image" /bin/sh /workspace/tools/legal/backup-postgres.sh /backup
 
-backup=$(find "$backup_directory" -name 'pxa-*.dump' -type f | head -n 1)
+backup=$(find "$backup_directory" -name 'pvad-*.dump' -type f | head -n 1)
 if [ -z "$backup" ]; then
   printf '%s\n' 'The recovery smoke test did not create a backup.' >&2
   exit 1

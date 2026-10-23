@@ -6,6 +6,9 @@ Use canonical `PVAD_*` environment keys; the conflict-checked `PXA_*` aliases
 remain accepted during migration. Existing mounted secret basenames, backup
 filenames and the explicit `RESTORE PXA DATABASE` safety phrase remain unchanged
 so this rename cannot silently select a different backup or recovery target.
+New backups use `pvad-<timestamp>-<pid>.dump`. Paths below are examples for new
+configuration, not permission to move installed secrets or rename existing
+backups/checksums. Restore accepts the original basename of either generation.
 
 ## Purpose And Boundary
 
@@ -51,9 +54,9 @@ commercial retention period.
 3. Run:
 
    ```bash
-   PVAD_DATABASE_URL_FILE=/run/secrets/pxa_database_url \
-   PGPASSFILE=/run/secrets/pxa_pgpass \
-     tools/legal/backup-postgres.sh /protected/pxa-backups
+   PVAD_DATABASE_URL_FILE=/run/secrets/pvad_database_url \
+   PGPASSFILE=/run/secrets/pvad_pgpass \
+     tools/legal/backup-postgres.sh /protected/pvad-backups
    ```
 
 4. Confirm that both the custom-format `.dump` and adjacent `.sha256` files exist.
@@ -86,10 +89,10 @@ commercial retention period.
 2. Execute the explicit restore:
 
    ```bash
-   PVAD_DATABASE_URL_FILE=/run/secrets/pxa_recovery_database_url \
-   PGPASSFILE=/run/secrets/pxa_recovery_pgpass \
+   PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
+   PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
    PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
-     tools/legal/restore-postgres.sh /protected/pxa-backups/pxa-UTC.dump
+     tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump
    ```
 
 3. The script verifies SHA-256, validates the archive catalog, confirms that the
@@ -98,8 +101,8 @@ commercial retention period.
 4. Run the domain verifier before starting PVAD:
 
    ```bash
-   PVAD_DATABASE_URL_FILE=/run/secrets/pxa_recovery_database_url \
-   PGPASSFILE=/run/secrets/pxa_recovery_pgpass \
+   PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
+   PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
      tools/legal/verify-legal-recovery.sh
    ```
 

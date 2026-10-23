@@ -75,7 +75,7 @@ PVAD_MCP_OAUTH_ISSUER=https://account.example.com \
 PVAD_MCP_JWKS_URI=https://account.example.com/.well-known/jwks.json \
 PVAD_MCP_ALLOWED_ORIGINS=https://client.example.com \
 PVAD_MCP_ALLOWED_HOSTS=mcp.example.com \
-PVAD_API_URL=http://pxa-api:8080 \
+PVAD_API_URL=http://pvad-webapi:8080 \
 PVAD_API_KEY='<internal-service-account-key>' \
 PVAD_MCP_DELEGATION_SECRET='<mounted-32-byte-or-longer-secret>' \
 npm run start:remote
@@ -87,8 +87,14 @@ credential used only for fixed global PVAD API routes. Tenant template calls use
 30-second internal delegation created from the already verified subject, organization, and scopes;
 the shared `PVAD_MCP_DELEGATION_SECRET` must be mounted into MCP Server and as
 `OAuth__McpDelegationSecret` into WebApi. The remote
-baseline requires `pxa.docs.read`; `validate_design` additionally requires
-`pxa.documents.validate`, while template tools require `pxa.templates.read`. Remote
+baseline requires `pvad.docs.read`; `validate_design` additionally requires
+`pvad.documents.validate`, while template tools require `pvad.templates.read`.
+The corresponding historical `pxa.*` scopes remain compatibility aliases.
+Protected-resource discovery still advertises the historical scope spellings
+for existing clients. Scope normalization accepts either form; existing stored
+OAuth grants are not rewritten by these documentation changes.
+The example API hostname assumes the shared Compose network; use the actual
+reachable API origin when running outside that network. Remote
 `render_preview` remains disabled until it can return a tenant-bound, expiring artifact instead of
 a local file path.
 

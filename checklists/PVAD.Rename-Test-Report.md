@@ -2507,3 +2507,65 @@ Inventory now contains 1,096 matching files. The repository-wide context/staged
 review and external gates remain open: **81/97 (83.5%)**, 16 open. The new patch
 fragment is `pvad-active-guides-and-public-downloads`; VERSION remains 1.1.0.
 No commit, push, tag, registry publication or deployment occurred.
+
+## Internal Operator Naming Follow-up (2026-10-23)
+
+- Renamed local Nginx helpers and all auth-subrequest consumers, including the
+  two .NET source assertions. The upstream legacy operator header and stripped
+  authentication header names remain unchanged.
+- New backups use `pvad-<timestamp>-<pid>.dump`; the recovery drill discovers
+  this filename. Existing backups and checksums are not moved or changed.
+  Restore still accepts either basename with the existing confirmation guard.
+- Disposable recovery/retention resources and synthetic retention telemetry use
+  PVAD. Each retention run gets its own project; fixed local ports still require
+  serial execution. Kept failed resources report their project for cleanup.
+- Local Mailpit sender/recipient addresses use the reserved example.test domain;
+  mail probes and expected synthetic service/message identifiers match. Existing
+  dashboard and runbook references, API aliases and live alert-rule labels stay
+  intact. The negative hosting probe now uses a PVAD-only nonexistent path.
+- 21 naming/documentation/script contracts and 27 version/release-author tests
+  pass (48 total, zero skips). Backup/restore checks use fake database executables
+  and real file/checksum logic; they do not validate actual PostgreSQL recovery.
+- Version synchronization and fragment validation pass. Patch fragment:
+  `pvad-internal-operator-names`. VERSION remains 1.1.0.
+- No real backup, database restore, container execution, Nginx runtime check, mail
+  delivery, deployment, complete build or .NET test run is claimed by this batch.
+
+## Operator Guides And Monitoring Labels (2026-10-23)
+
+- Restricted Admin and recovery runbooks use current API paths, mounted secret
+  paths and new backup names. Existing installed secrets/backups are not moved.
+  The proposed Admin domain is not reported as a verified deployment.
+- MCP setup uses the current Compose hostname and canonical scopes, explaining
+  compatibility normalization and retained discovery spellings. No stored grants
+  or runtime defaults were changed.
+- Grafana's three datasource display names use PVAD. Existing UIDs, trace/log
+  cross-links, dashboard provider/folder and permission bindings stay intact.
+  Removed active datasource names from deleteDatasources so provisioning updates
+  their existing UID entries instead of deleting/recreating them. The obsolete
+  historical Alertmanager removal remains. Name-based custom queries require
+  operator review after deployment; no automatic folder migration is claimed.
+- 67 focused naming, documentation, runtime-source-contract and version tests
+  pass without skips. Four new contracts cover source/API/example agreement,
+  recovery guidance, MCP scope guidance and Grafana provisioning references.
+  YAML is parsed locally; this does not establish a successful Grafana upgrade.
+- Version and release-fragment checks pass. Patch fragment:
+  `pvad-operator-guides-and-monitoring-labels`; VERSION remains 1.1.0.
+- No production configuration, database, OAuth grant, deployment or published
+  release was modified. Full builds and runtime validation remain deferred.
+
+## Canonical Validation Caller Keys (2026-10-23)
+
+- Four internal launchers now pass PVAD-prefixed test/validator settings to
+  existing canonical readers. The Redaction Recovery command example matches.
+- Added caller-to-receiver contracts and fake-dotnet shell launch tests. These
+  verify flag propagation, then deliberately stop before downstream commands.
+  Legacy receiver aliases and conflicting-value rejection remain unchanged.
+- Six focused tool-key contracts pass; the combined naming, guide, configuration
+  and release test selection passes 73/73 with no skips. Both edited JavaScript
+  tools pass Node syntax checks; version and fragment validation pass.
+- Existing evidence schema IDs, PDF fixtures, manifests and visual baselines
+  were not rewritten or regenerated. No real database, .NET suite, Docker image,
+  veraPDF validation or visual comparison was executed by this batch.
+- Internal-only fragment: `pvad-validation-caller-keys` (impact none).
+  VERSION remains 1.1.0; no commit, push or deployment was performed.

@@ -162,7 +162,7 @@ async function main() {
     'test', 'tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj',
     '--no-restore', '--disable-build-servers',
     '--filter', 'FullyQualifiedName~PdfTrustVisualArtifactTests'
-  ], { PXA_PDF_TRUST_OPERATION_ARTIFACT_DIR: artifactDirectory });
+  ], { PVAD_PDF_TRUST_OPERATION_ARTIFACT_DIR: artifactDirectory });
 
   const updateBaseline = readPvadEnvironment('PVAD_PDF_TRUST_OPERATION_UPDATE_BASELINE') === 'true';
   const baseline = updateBaseline

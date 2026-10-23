@@ -29,6 +29,7 @@ test('active feature and operational descriptions use current identities without
   for (const path of ['deploy.sh', 'deploy/observability/README.md', 'deploy/observability/CAPACITY-PROFILES.md']) {
     const source = readFileSync(resolve(root, path), 'utf8')
       .replaceAll('X-PXA-Webhook-Signature', 'retained-signature-header')
+      .replaceAll('X-PXA-Operator', 'retained-operator-header')
       .replaceAll('X-PXA-Webhook-Idempotency-Key', 'retained-idempotency-header');
     assert.doesNotMatch(source, /\bPXA\b/, path);
   }

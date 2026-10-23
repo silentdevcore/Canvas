@@ -133,11 +133,12 @@ test('operator examples retain executable backup contracts without recommending 
   const restore = read('tools/legal/restore-postgres.sh');
   assert.match(legal, /unverified deployment target example/);
   assert.ok(legal.includes(JSON.parse(read('deploy/rename/pvade-targets.candidate.json')).hosts.api));
-  assert.match(legal, /\/protected\/pvad-backups\/pxa-UTC\.dump/);
+  assert.match(legal, /\/protected\/pvad-backups\/pvad-UTC\.dump/);
   assert.match(legal, /compatibility values/);
   assert.ok(restore.includes("'RESTORE PXA DATABASE'"));
   assert.ok(legal.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'"));
-  assert.ok(backup.includes('/pxa-$timestamp-$$.dump'));
+  assert.ok(backup.includes('/pvad-$timestamp-$$.dump'));
+  assert.ok(legal.includes('Existing `pxa-*`'));
   assert.doesNotMatch(legal, /\/run\/secrets\/pxa_|\/protected\/pxa-backups/);
   assert.doesNotMatch(read('tools/pdfua/README.md'), /\/tmp\/pxa-/);
 });
