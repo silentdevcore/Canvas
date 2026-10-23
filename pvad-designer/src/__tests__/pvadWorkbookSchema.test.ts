@@ -18,7 +18,7 @@ const ALL_CELL_TYPES: CellType[] = ['number', 'text', 'boolean', 'date', 'formul
 
 describe('pvad-workbook.schema.json — stays in sync with the model', () => {
   test('the PVAD schema is primary and retains the legacy validation contract', () => {
-    expect(schema.$id).toBe('https://powerdoxautomation.com/schemas/pvad-workbook.schema.json');
+    expect(schema.$id).toBe('https://pvade.com/schemas/pvad-workbook.schema.json');
     expect(schema.title).toBe('PVADS Workbook JSON');
     const legacy = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../docs/schema/pxa-workbook.schema.json'), 'utf8'));
     const constraints = (value: any): any => Array.isArray(value) ? value.map(constraints)

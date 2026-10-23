@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/browser-storage.schema.json",
+  "$id": "https://pvade.com/schemas/browser-storage.schema.json",
   "title": "PVAD browser storage inventory",
   "type": "object",
   "additionalProperties": false,

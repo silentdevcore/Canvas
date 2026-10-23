@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/pvad-workbook.schema.json",
+  "$id": "https://pvade.com/schemas/pvad-workbook.schema.json",
   "title": "PVADS Workbook JSON",
   "description": "The canonical PVAD spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/PVAD.Core/Contracts/SpreadsheetDto.cs.",
   "type": "object",

@@ -7,6 +7,18 @@ public URL is already hosted. The offline mapping is
 [schema-aliases.json](schema/schema-aliases.json). MCP packages bundle every schema
 required by this registry, including both native envelope generations.
 
+New maintained schemas use `https://pvade.com/schemas/...` as their canonical
+`$id`. Previous `https://powerdoxautomation.com/schemas/...` IDs and older
+`https://pxa/schema/...` IDs are explicit aliases, resolved locally by the same
+registry. This is identifier migration, not a domain redirect or proof of public
+schema hosting. Root and definition-fragment references must work offline.
+
+The registry also covers maintained metadata schemas for releases, browser
+storage, data processing, country/commerce readiness, document fidelity and
+manual PDF/UA evidence. Only schema definitions are packaged for resolution;
+actual metadata documents, approvals, legal contents and review evidence are
+not added as MCP resources or copied through this schema packaging step.
+
 | Contract | Local schema |
 | --- | --- |
 | Designer document | [design-export.schema.json](schema/design-export.schema.json) |
@@ -20,6 +32,11 @@ PXAP and legacy PXAS. It rejects mixed magic/format/media identities. The histor
 PXA manifest schema is retained separately, not redirected to a schema that rejects
 its generation. Workbook and code-workspace aliases retain equivalent constraints.
 Existing legacy archive fixtures and their hashes remain unchanged.
+The three `pxa-*.schema.json` files retain their original bytes and identities.
+The legacy native manifest stays a distinct registry entry because its envelope
+constraints differ; it is not aliased to the current writer schema. New `$ref`
+values use canonical IDs where they target current contracts, but explicit
+legacy-reader references remain pointed at the original generation.
 
 ## Validation Boundaries
 

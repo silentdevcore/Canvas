@@ -42,6 +42,19 @@ the API or use PostgreSQL; the broad API integration blocker remains open.
 Override documentation explains indexed array merging. Patch fragment:
 `pvad-backend-origin-defaults`; VERSION stays 1.1.0. No deployment occurred.
 
+Schema-domain follow-up (2026-10-23): URL/auth defaults were committed separately
+as `fc223d97`. Thirteen maintained schema IDs now use the selected domain and
+retain explicit old-ID aliases in the fourteen-entry offline registry. The legacy
+native manifest remains a distinct entry; all three legacy schema files and the
+native fixtures keep their bytes. The resolver now supports alias definition
+fragments, not only root aliases. MCP packaging follows the registry and copies
+schema definitions only, not metadata documents or review records. Constraint-hash
+tests verify the thirteen ID-only migrations. 207 Node contracts, 27 MCP tests,
+MCP typecheck/build/distribution smoke, Designer typecheck/729 tests/build and
+Documentation 58 tests/build pass. Patch fragment: `pvad-schema-domain-aliases`.
+No schema hosting, live authentication, database change or API readiness claim;
+VERSION remains 1.1.0 and prior integration blockers remain open.
+
 Broad validation follow-up (2026-10-23, source commit `5a0f48c4`): the complete
 Solution builds with zero errors and 171 warnings. The full default test attempt
 was stopped after repeated API application-start failures caused by local

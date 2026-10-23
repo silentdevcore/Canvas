@@ -2688,3 +2688,37 @@ change or production deployment was performed. Full release readiness remains op
   Public host/DNS/TLS verification, authenticated browser testing and the earlier
   API integration/database-startup blocker remain open. No services were restarted,
   credentials changed, database migrated or remote configuration updated.
+
+## Canonical Schema Domain And Offline Aliases (2026-10-23)
+
+- Prerequisite URL/auth changes are committed as `fc223d97`. This follow-up changes
+  13 maintained schema IDs to the selected domain. Each prior domain ID remains an
+  explicit offline alias; older alias spellings remain present.
+- The registry has 14 entries, including the intentionally separate original
+  native-manifest schema. The three legacy schema files remain byte-identical.
+  Native legacy archive hashes also remain unchanged. No legal document, signed
+  evidence, approval or customer data is rewritten.
+- ID/constraint tests pin each maintained schema after excluding root ID and
+  normalizing current reference identities. Only schema IDs and the current
+  native-reader reference change; validation constraints remain unchanged.
+- Existing reference-wrapper aliases did not support fragment lookup. The registry
+  now registers the same schema object under each alias, preserving access to
+  `$defs`. Tests cover every definition under canonical and historical IDs.
+- MCP packaging uses the existing registry as its schema-file inventory. It copies
+  schema definitions, not actual metadata documents. Stdio tool/resource behavior
+  and legacy raw resources remain intact. The distribution smoke starts the built
+  server, validates good/bad examples and resolves every packaged schema identity.
+- Validation: 207/207 Node configuration/Legal/deployment/version/link contracts;
+  27/27 MCP tests; MCP typecheck/build/distribution smoke; Designer typecheck,
+  729 Jest tests and build; Documentation 58 tests and build. All pass. Version,
+  fragment and whitespace checks pass. No .NET or live browser/database run is
+  claimed for this schema follow-up; earlier API integration blockers remain open.
+- AJV's existing optional-format limitations remain: ignored date/time/URI/UUID
+  formats are not independent conformance or security evidence. Schema IDs are
+  identifiers, not tested public hosting endpoints. Offline resolution performs
+  no remote schema lookup.
+- Logs: `/tmp/pvad-schema-contracts.log`, `/tmp/pvad-schema-mcp-*.log`,
+  `/tmp/pvad-schema-designer-*.log`, `/tmp/pvad-schema-documentation-*.log`.
+  These temporary logs are not immutable approval records.
+- Patch fragment: `pvad-schema-domain-aliases`; VERSION remains 1.1.0.
+  No push, release, tag, infrastructure cutover or production deployment occurred.

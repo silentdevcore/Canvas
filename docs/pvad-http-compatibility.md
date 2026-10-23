@@ -276,10 +276,13 @@ OpenAPI advertises canonical branded routes only; the committed snapshot is
 generated from the running API contract, not edited by string replacement.
 
 New clients use `pvad://` MCP resources and the canonical workbook schema at
-`https://powerdoxautomation.com/schemas/pvad-workbook.schema.json`. Historical
+`https://pvade.com/schemas/pvad-workbook.schema.json`. Historical
 `pxa://` resources remain readable. `docs/schema/schema-aliases.json` maps old
-schema IDs to the bundled canonical schemas without a network lookup. Workbook
-validation constraints are unchanged. Native writers now emit PVADP/PVADS while
+schema IDs to the bundled canonical schemas without a network lookup. All
+maintained schema IDs use the selected domain; old-domain IDs remain
+explicit offline aliases, not remote HTTP redirects. No fixture or published
+evidence is rewritten by this identifier change. Workbook validation constraints
+are unchanged. Native writers now emit PVADP/PVADS while
 retaining legacy-envelope validation and original-preserving Save project downloads;
 see [native project formats](native-designer-project-formats.md). Legacy and
 canonical manifest schemas remain separate because their envelope constraints differ.

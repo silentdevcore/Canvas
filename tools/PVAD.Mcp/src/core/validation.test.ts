@@ -26,9 +26,30 @@ test('canonical schemas and historical identities resolve offline with identical
   }
 });
 
+test('canonical and legacy schema fragments resolve offline without changing validation', () => {
+  const registry = createSchemaRegistry(content);
+  const manifest = content.readJson('docs/schema/schema-aliases.json') as {
+    schemas: Array<{ canonicalId: string; path: string; legacyIds: string[] }>;
+  };
+  for (const entry of manifest.schemas) {
+    const schema = content.readJson(entry.path) as { $defs?: Record<string, unknown> };
+    for (const name of Object.keys(schema.$defs ?? {})) {
+      const fragment = `#/$defs/${name.replaceAll('~', '~0').replaceAll('/', '~1')}`;
+      const canonical = registry.getSchema(entry.canonicalId + fragment);
+      assert.ok(canonical, entry.canonicalId + fragment);
+      for (const alias of entry.legacyIds) {
+        const historical = registry.getSchema(alias + fragment);
+        assert.ok(historical, alias + fragment);
+        for (const sample of [{}, null, [], '', 1])
+          assert.equal(historical(sample), canonical(sample), alias + fragment);
+      }
+    }
+  }
+});
+
 test('native reader schema accepts each generation and rejects mixed identity tuples offline', () => {
   const registry = createSchemaRegistry(content);
-  const validate = registry.getSchema('https://powerdoxautomation.com/schemas/pvad-project-manifest-reader.schema.json')!;
+  const validate = registry.getSchema('https://pvade.com/schemas/pvad-project-manifest-reader.schema.json')!;
   const common = { envelopeVersion: '1.0', documentSchemaVersion: '1.0', documentId: 'synthetic',
     title: 'Synthetic', createdAtUtc: '2026-01-01T00:00:00Z', modifiedAtUtc: '2026-01-01T00:00:00Z',
     locale: 'en', entryDocument: 'document.json', contentHash: 'a'.repeat(64), assets: [],

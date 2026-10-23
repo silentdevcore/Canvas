@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/pvad-project-manifest.schema.json",
+  "$id": "https://pvade.com/schemas/pvad-project-manifest.schema.json",
   "title": "PVAD Native Project Manifest",
   "description": "Manifest shared by PVADP PDF (.pvadp) and PVADS Spreadsheet (.pvads) projects.",
   "type": "object",

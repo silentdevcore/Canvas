@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/document-fidelity-result.schema.json",
+  "$id": "https://pvade.com/schemas/document-fidelity-result.schema.json",
   "title": "PVAD document fidelity evidence",
   "type": "object",
   "additionalProperties": false,

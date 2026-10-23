@@ -6,6 +6,8 @@ const packageRoot = path.resolve(import.meta.dirname, '..');
 const repositoryRoot = path.resolve(packageRoot, '../..');
 const outputRoot = path.join(packageRoot, 'dist');
 const resourceRoot = path.join(outputRoot, 'resources');
+const schemaManifest = JSON.parse(await readFile(
+  path.join(repositoryRoot, 'docs/schema/schema-aliases.json'), 'utf8'));
 
 await mkdir(resourceRoot, { recursive: true });
 await build({
@@ -23,20 +25,15 @@ await build({
   sourcemap: true,
 });
 
-for (const relativePath of [
+for (const relativePath of new Set([
   'VERSION',
   'llms-full.txt',
   'docs/csharp-cookbook.md',
-  'docs/schema/design-export.schema.json',
   'docs/schema/pxa-workbook.schema.json',
-  'docs/schema/pvad-workbook.schema.json',
   'docs/schema/schema-aliases.json',
-  'docs/schema/pvad-project-manifest.schema.json',
-  'docs/schema/pvad-project-manifest-reader.schema.json',
-  'docs/schema/pxa-project-manifest.schema.json',
-  'docs/schema/pvad-code-workspace.schema.json',
+  ...schemaManifest.schemas.map(entry => entry.path),
   'docs/schema/openapi.json',
-]) {
+])) {
   const destination = path.join(resourceRoot, relativePath);
   await mkdir(path.dirname(destination), { recursive: true });
   await cp(path.join(repositoryRoot, relativePath), destination);

@@ -15,7 +15,8 @@ export function createSchemaRegistry(content: PvadMcpContentRepository): Ajv2020
     const schema = content.readJson(entry.path) as { $id?: string };
     if (schema.$id !== entry.canonicalId) throw new Error('Schema identity does not match the alias manifest.');
     registry.addSchema(schema);
-    for (const alias of entry.legacyIds) registry.addSchema({ $ref: entry.canonicalId }, alias);
+    // Register the same schema under each key so fragment references retain $defs.
+    for (const alias of entry.legacyIds) registry.addSchema(schema, alias);
   }
   return registry;
 }

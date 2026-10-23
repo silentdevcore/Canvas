@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/design-export.schema.json",
+  "$id": "https://pvade.com/schemas/design-export.schema.json",
   "title": "DesignExportDto",
   "description": "A PVAD document design. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/Core/PVAD.Core/Contracts/DesignExportDto.cs.",
   "type": "object",

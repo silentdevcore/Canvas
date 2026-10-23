@@ -1,0 +1,8 @@
+{
+  "id": "pvad-schema-domain-aliases",
+  "impact": "patch",
+  "components": ["designer", "sdk", "documentation", "infrastructure"],
+  "category": "improved",
+  "summary": "Use canonical PVADE schema identities with explicit offline aliases for historical IDs while preserving legacy document constraints and fixtures.",
+  "breaking": false
+}

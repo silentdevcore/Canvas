@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/data-processing-inventory.schema.json",
+  "$id": "https://pvade.com/schemas/data-processing-inventory.schema.json",
   "title": "PVAD data processing inventory",
   "type": "object",
   "additionalProperties": false,

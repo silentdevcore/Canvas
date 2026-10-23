@@ -1207,7 +1207,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "67bc6bcceb199a3fb46bab814cbbb2e2e3a1ddda8f75d61b1cce2403437b3e97",
+      "sha256": "e593088badbfc27d2ea658b8761911885c17b5b0bcf9b62f7deb67d38cb7a544",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1227,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "29e998bd6e14789db3fd3d1b00da21ede90898714359185feb086a8ca0908c7a",
+      "sha256": "cdfb385bd20bbe55569ad2349ff5e52c1a65756335f8caff09143bcabe0b8fc0",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Point-in-time history is retained with a scoped backend-origin checkpoint. Isolated configuration tests do not resolve earlier API database-startup failures or validate public hosts.",
+      "reviewNotes": "Point-in-time checkpoint records canonical schema IDs, retained aliases and immutable legacy files. Unit/distribution checks do not approve public hosting, format conformance or earlier API/database blockers.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1337,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "31d3c9092d5b33e0d02d0779847ec55fc9dc1b9045e776425706dedfcc0661b5",
+      "sha256": "04174cd477b3c582f52e544d1dbfddac291856ec8acebee77657cd01ae7dca6b",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Tracker records explicit canonical origin defaults, unchanged local origins and deferred live authentication validation without reapproving historical evidence.",
+      "reviewNotes": "Tracker preserves compatibility history and records schema-domain migration without reapproving protected deployment identifiers or historical evidence.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2287,12 +2287,12 @@
     },
     {
       "path": "docs/pvad-http-compatibility.md",
-      "sha256": "3a6b49fafcfae0655af7ddf6105b0b6ae42b8e6a26d061fb13d187ac76fe46d0",
+      "sha256": "6c6cd46630588b8123c695a249d86edfcee335e29069691556b2d7cac42d989e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-http-compatibility.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Current schema URLs use the selected domain; old API routes, diagnostic IDs and schema aliases remain explicit compatibility contracts.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2397,12 +2397,12 @@
     },
     {
       "path": "docs/pvad-schema-and-client-contracts.md",
-      "sha256": "46e6c9ab31a2b83a3d5c2913cb6faf2f9d153a1ecb06f009b205967812937930",
+      "sha256": "3181382a6db18998282d0b370dffb2655321ac119ad4121d74e1b793cb1080a7",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-schema-and-client-contracts.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Current canonical schema guidance documents retained historical aliases and legacy native constraints; no signed evidence, archive bytes or hosted endpoints are claimed changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2416,16 +2416,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "docs/schema/design-export.schema.json",
-      "sha256": "019910faada6aef852a8825dbc5838318ab6c9f91d7353705735dde1938aed56",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/design-export.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "docs/schema/openapi.json",
       "sha256": "0427aaf59601e12c710955dc480344e209537c86a094d7dbf581960dd9547107",
       "reasons": [
@@ -2436,43 +2426,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "docs/schema/pvad-code-workspace.schema.json",
-      "sha256": "6caecc831f92ee5dca68aefc899e68ed050cf134d83ac2d04df051b1af74de58",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/pvad-code-workspace.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "docs/schema/pvad-project-manifest-reader.schema.json",
-      "sha256": "c42caafac506fdbefe661cd03544d0f83a98b3ce76af3a36c537f5ccf11b416e",
+      "sha256": "ce542d19219b256b08051f445a530b85e736827be16c9c7ead9e6cb329391b69",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/pvad-project-manifest-reader.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/schema/pvad-project-manifest.schema.json",
-      "sha256": "7e5d5bbfccf70d135912b055c95211b46a5847455b4a8efc3710ab2c29c0106a",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/pvad-project-manifest.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/schema/pvad-workbook.schema.json",
-      "sha256": "79515749bb899266f02becb43d855b042325ab848e89aa1e37bf43e11e736c12",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/pvad-workbook.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
+      "reviewNotes": "Canonical reader/current-writer reference uses selected domain; explicit legacy manifest reference and original magic/media tuples remain to validate the old generation.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2507,12 +2467,12 @@
     },
     {
       "path": "docs/schema/schema-aliases.json",
-      "sha256": "93e939e0807c6c3c4777d75d1c40fda09044f8d10a3fc991629484e6bc7b5f52",
+      "sha256": "e51132ad377f0cc18f62df18f5db1bfcd5ac168bdec7325e379717f528be1d8d",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/schema-aliases.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
+      "reviewNotes": "Old domain and older synthetic schema IDs intentionally remain offline aliases; the legacy manifest remains a separate original schema rather than an incompatible alias.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2566,36 +2526,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "product-metadata/browser-storage.schema.json",
-      "sha256": "e6308747469f5a5b6b4b66dcebf5cfd9d0b601ed074dc1855a1ab7143bbcd62e",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/browser-storage.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/country-readiness.schema.json",
-      "sha256": "cb04098b79d50e8a9dfe29c5d4a0440adb58315d537242e086dc9d766a2b5ba3",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/country-readiness.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/data-processing-inventory.schema.json",
-      "sha256": "0cbca05bd957b96567a3121a96dbc00d9f0da3c2353d8722c068a6b6465af164",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/data-processing-inventory.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "product-metadata/document-fidelity/manifest.json",
       "sha256": "183f3c228b3aeb0e182f035e382910b3449f2c0073aa120675a891d2e9901790",
       "reasons": [
@@ -2607,12 +2537,12 @@
     },
     {
       "path": "product-metadata/document-fidelity/manifest.schema.json",
-      "sha256": "95d8b3894ded70b62edcf3855be92c28fe8a32edd100a6679e6c8b0bc4ebcb8a",
+      "sha256": "dca34ee48f524dcd6cb30c71f5b1e04bf1d4987304d1a78d975e78eca05bb092",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/document-fidelity/manifest.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
+      "reviewNotes": "Canonical root identity migrated; constraints are unchanged and actual metadata/evidence records are not rewritten.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2623,26 +2553,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "product-metadata/document-fidelity/real-world-review-decisions.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/document-fidelity/result.schema.json",
-      "sha256": "a80526d2d26f18492e1a1bdd92a8662df48fbe41423816f2c59b9cc2d20d1987",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/document-fidelity/result.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/global-commerce-catalog.schema.json",
-      "sha256": "4d0aa371bb093dd112347f0243453a72cda50449847ae2fa021d773ce2579951",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/global-commerce-catalog.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2743,16 +2653,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "product-metadata/pvad-releases.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/release-fragment.schema.json",
-      "sha256": "a637594b19e03bd83d4a928ccf12619b179a6c109aea7625cd5276995d00f0ed",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/release-fragment.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3227,12 +3127,12 @@
     },
     {
       "path": "pvad-designer/src/__tests__/pvadWorkbookSchema.test.ts",
-      "sha256": "c8c165f72449600510d39103f4c7db94d79cddddbbb24a14bdb7799e80328668",
+      "sha256": "019602fc4175803adc82321577c85c500a5cb3a4090e4d3d5b37a3ccf85e6bdc",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/pvadWorkbookSchema.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Current root identity is asserted while legacy schema path and structural comparisons intentionally preserve old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7737,12 +7637,12 @@
     },
     {
       "path": "tools/configuration/schema-identities.test.mjs",
-      "sha256": "061ab6ba3271be32969538584e736e4cb676cfd5bc28ff159e56a3c48e9e71b9",
+      "sha256": "266560c16e759ebae3c0c661225b9cf9af05d5ba4c2bed98f31a8146f0a6a9ee",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/configuration/schema-identities.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Explicit old-domain normalization, frozen legacy file hashes and native fixture hashes enforce identifier-only changes and continued historical compatibility.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8196,16 +8096,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tools/pdfua/matterhorn-evidence.schema.json",
-      "sha256": "91a04cda1e9086ccb727c755be7992c867d4fe21ca4120454ce462bae563a556",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/pdfua/matterhorn-evidence.schema.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tools/pdfua/matterhorn-evidence.template.json",
       "sha256": "3c50542a3460480ee81f72ccc12992a89b1a17e02004670a01ce74a27f2c4b56",
       "reasons": [
@@ -8257,22 +8147,22 @@
     },
     {
       "path": "tools/PVAD.Mcp/README.md",
-      "sha256": "27113e0e199f617bc0774eb4f748c1bfc0b2ad6695832845295c20c932fd17d8",
+      "sha256": "ed9c1bad1b61b1504d27e33c2b52870781255376874ebed12e1a8009fc051be9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical setup hostname and scope examples match source normalization; discovery still advertises historical scopes and stored grants are not automatically rewritten.",
+      "reviewNotes": "Current schema identities and offline fragment support are documented; legacy CLI/resource/scope IDs and old configuration aliases remain supported contracts.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/PVAD.Mcp/scripts/build.mjs",
-      "sha256": "d74cefd1409ee4827506e391fc318bea70de3f94e39719683bafdb2adb0bd450",
+      "sha256": "aaea8e4bddda37799065dfb594632a31f169ca1c52fc847757a44ae862b94cfd",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/scripts/build.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Registry drives current schema packaging; original legacy workbook remains explicitly bundled for its historical raw MCP resource.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8357,22 +8247,22 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/core/validation.test.ts",
-      "sha256": "16258dd98a5ad9779080643842570559d226bb7c94f709f9ab912ba1218ad452",
+      "sha256": "081c41c6ececec9265f4aab456f9d429590fd7e6927e6619f4b07634816c3c5c",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/core/validation.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Tests resolve current and historical IDs/fragments and preserve legacy tuple rejection. Old URIs and PXA magic/media/version keys are compatibility inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/PVAD.Mcp/src/core/validation.ts",
-      "sha256": "bc21dbf61ba5668d7bbff4e6447cb6ca54dbdf53f7d8a9423d7eb04a69b49fde",
+      "sha256": "a1431d9b19314aec882f8e9c0e38b7115af8af99fd3049e5cf0ac5828534a530",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/core/validation.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Registry now registers schema objects under aliases for fragment resolution; stable PXAMCP diagnostic IDs remain unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

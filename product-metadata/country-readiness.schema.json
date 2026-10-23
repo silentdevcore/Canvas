@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/country-readiness.schema.json",
+  "$id": "https://pvade.com/schemas/country-readiness.schema.json",
   "title": "PVAD country readiness matrix",
   "type": "object",
   "additionalProperties": false,

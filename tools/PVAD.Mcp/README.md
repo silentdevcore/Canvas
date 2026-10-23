@@ -35,6 +35,13 @@ Primary resources:
 
 Use `pvad://` for new clients. The five historical `pxa://` resource URIs remain readable as deprecated compatibility aliases. The legacy workbook resource retains its original schema identity; canonical and historical schema IDs resolve offline through the packaged alias manifest.
 
+Maintained schema IDs use `https://pvade.com/schemas/...`. The previous domain
+and older schema IDs remain explicit offline aliases, including `$defs` fragment
+references. The package contains every schema definition listed in the registry,
+not operational metadata documents or approval data. Legacy native schemas retain
+their generation-specific constraints. Schema URLs are identifiers, not proof
+that public endpoints are deployed.
+
 The `pxa-mcp`, `pxa-mcp-server`, and `canvas-mcp` commands and `PXA_*` environment names remain compatibility aliases. Conflicting canonical and legacy environment values fail startup. Organization claims default to `pvad_organization` with a conflict-checked legacy reader. Internal delegation now writes `PVAD-MCP` with canonical issuer/audience and read-only scopes; the API accepts both explicit historical formats. Canonical `pvad.*` scopes have explicit historical `pxa.*` equivalents. Existing stored grants are not rewritten automatically: apply and verify the opt-in store migration before switching public OAuth requests. See [identity compatibility](../../docs/pvad-identity-compatibility.md) before deploying mixed versions.
 
 ## Run

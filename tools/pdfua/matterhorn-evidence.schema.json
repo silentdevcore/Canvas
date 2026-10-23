@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://powerdoxautomation.com/schemas/pdfua/matterhorn-evidence.schema.json",
+  "$id": "https://pvade.com/schemas/pdfua/matterhorn-evidence.schema.json",
   "title": "PVAD PDF/UA manual accessibility evidence",
   "type": "object",
   "additionalProperties": false,
