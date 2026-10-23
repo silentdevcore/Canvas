@@ -24,6 +24,25 @@ test('defaults remain stable and aliases must agree without exposing values', ()
   });
 });
 
+test('production defaults use the selected domain while local ports remain unchanged', () => {
+  assert.deepEqual(resolveSiteLinks('production'), {
+    company: 'https://pvade.com/',
+    documentation: 'https://docs.pvade.com/',
+    demo: 'https://demos.pvade.com/',
+    designer: 'https://designer.pvade.com/',
+    account: 'https://account.pvade.com/',
+    operator: 'https://operator.pvade.com/',
+  });
+  assert.deepEqual(resolveSiteLinks('development'), {
+    company: 'http://localhost:5173/',
+    documentation: 'http://localhost:5174/',
+    demo: 'http://localhost:5175/',
+    designer: 'http://localhost:5176/',
+    account: 'http://localhost:5178/',
+    operator: 'http://localhost:3001/',
+  });
+});
+
 test('invalid website URL values never become links or appear in errors', () => {
   for (const value of ['javascript:alert(1)', 'https://user:secret@example.test/', '/relative', 'https://example.test/?secret=value']) {
     assert.throws(() => resolveSiteLinks('production', { VITE_PVAD_ACCOUNT_URL: value }), error => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
-import { siteLinkDefaults } from '../../shared/siteLinks.js';
+import { resolveSiteLinks, siteLinkDefaults } from '../../shared/siteLinks.js';
 
 test('accepts absolute URLs on allowlisted local product origins', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5176/templates/42'), 'http://localhost:5176/templates/42');
@@ -13,16 +13,16 @@ test('accepts absolute URLs on allowlisted local product origins', () => {
 
 test('accepts absolute URLs on allowlisted production product origins in production', () => {
   assert.equal(
-    sanitizeReturnUrl('https://designer.powerdoxautomation.com/doc/1', siteLinkDefaults.production),
-    'https://designer.powerdoxautomation.com/doc/1',
+    sanitizeReturnUrl('https://designer.pvade.com/doc/1', siteLinkDefaults.production),
+    'https://designer.pvade.com/doc/1',
   );
   assert.equal(
-    sanitizeReturnUrl('https://account.powerdoxautomation.com/profile', siteLinkDefaults.production),
-    'https://account.powerdoxautomation.com/profile',
+    sanitizeReturnUrl('https://account.pvade.com/profile', siteLinkDefaults.production),
+    'https://account.pvade.com/profile',
   );
   assert.equal(
-    sanitizeReturnUrl('https://powerdoxautomation.com/pricing', siteLinkDefaults.production),
-    'https://powerdoxautomation.com/pricing',
+    sanitizeReturnUrl('https://pvade.com/pricing', siteLinkDefaults.production),
+    'https://pvade.com/pricing',
   );
 });
 
@@ -32,9 +32,18 @@ test('does not mix local and production origins', () => {
     null,
   );
   assert.equal(
-    sanitizeReturnUrl('https://designer.powerdoxautomation.com/doc/1', siteLinkDefaults.local),
+    sanitizeReturnUrl('https://designer.pvade.com/doc/1', siteLinkDefaults.local),
     null,
   );
+});
+
+test('legacy deployments require an explicit origin override, not an implicit second trust set', () => {
+  const legacy = 'https://designer.powerdoxautomation.com/doc/1';
+  assert.equal(sanitizeReturnUrl(legacy, siteLinkDefaults.production), null);
+  const configured = resolveSiteLinks('production', {
+    VITE_PXA_DESIGNER_URL: 'https://designer.powerdoxautomation.com/',
+  });
+  assert.equal(sanitizeReturnUrl(legacy, configured), legacy);
 });
 
 test('rejects protocol-relative URLs', () => {
@@ -43,7 +52,7 @@ test('rejects protocol-relative URLs', () => {
 
 test('rejects external hosts even when they look like a PXA path', () => {
   assert.equal(sanitizeReturnUrl('https://evil.com/designer'), null);
-  assert.equal(sanitizeReturnUrl('https://powerdoxautomation.com.evil.com/'), null);
+  assert.equal(sanitizeReturnUrl('https://pvade.com.evil.com/'), null);
 });
 
 test('rejects non-http(s) schemes', () => {
@@ -59,7 +68,7 @@ test('rejects relative paths (no scheme/host to validate against)', () => {
 
 test('rejects any Admin-shaped origin', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5177/'), null);
-  assert.equal(sanitizeReturnUrl('https://admin.powerdoxautomation.com/'), null);
+  assert.equal(sanitizeReturnUrl('https://admin.pvade.com/'), null);
 });
 
 test('rejects empty, missing, or non-string values', () => {

@@ -85,7 +85,7 @@ PVAD.WebApi/Services/Mail/SmtpMailTransport.cs	source	1	false
 PVAD.WebApi/Services/MigrationResult.cs	source	1	false
 PVAD.WebApi/Services/Pdf/PvadEInvoiceValidationEvidenceService.cs	source	1	false
 PVAD.WebApi/Services/PdfViewerAnnotationFlatteningService.cs	source	2	false
-PVAD.WebApi/appsettings.json	source	10	false
+PVAD.WebApi/appsettings.json	source	4	false
 README.md	documentation-or-history	5	false
 Removing-PDFImporter.md	documentation-or-history	11	false
 TESTING.md	documentation-or-history	1	false
@@ -256,7 +256,7 @@ checklists/word-fidelity-samples/richtext-link-list.json	source	1	false
 checklists/word-fidelity-samples/text-table-basic.json	source	1	false
 deploy/api/README.md	documentation-or-history	2	false
 deploy/observability/CAPACITY-PROFILES.md	documentation-or-history	1	false
-deploy/observability/README.md	documentation-or-history	4	false
+deploy/observability/README.md	documentation-or-history	3	false
 deploy/observability/alertmanager-email-smoke-test.sh	configuration	3	false
 deploy/observability/alertmanager/alertmanager.production.yml.example	configuration	4	false
 deploy/observability/alertmanager/alertmanager.yml	configuration	4	false
@@ -424,7 +424,7 @@ pvad-designer/src/__tests__/toast.test.tsx	source	1	false
 pvad-designer/src/__tests__/visualParityCoverage.test.ts	source	4	false
 pvad-designer/src/accessibility/designerAccessibility.ts	source	26	false
 pvad-designer/src/auth/DesignerAuthGate.tsx	source	14	false
-pvad-designer/src/auth/designerAuth.ts	source	29	false
+pvad-designer/src/auth/designerAuth.ts	source	28	false
 pvad-designer/src/auth/designerTenantState.ts	source	4	false
 pvad-designer/src/auth/securityHeaders.ts	source	1	false
 pvad-designer/src/chart/types.ts	source	1	false
@@ -619,7 +619,7 @@ tests/PVAD.Api.Tests/AdminUsersControllerTests.cs	source	30	false
 tests/PVAD.Api.Tests/AuthControllerTests.cs	source	20	false
 tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs	source	22	false
 tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs	source	42	false
-tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs	source	6	false
+tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs	source	7	false
 tests/PVAD.Api.Tests/DesignerProductExperienceTests.cs	source	11	false
 tests/PVAD.Api.Tests/DesignerProjectsControllerTests.cs	source	36	false
 tests/PVAD.Api.Tests/DesignerSymbolRendererTests.cs	source	3	false
@@ -834,7 +834,7 @@ tools/configuration/generated-code-contract.test.mjs	configuration	3	false
 tools/configuration/internal-naming-contract.test.mjs	configuration	12	false
 tools/configuration/migration-diagnostic-contract.test.mjs	configuration	6	false
 tools/configuration/observability-script-contract.test.mjs	configuration	3	false
-tools/configuration/operator-guide-contract.test.mjs	configuration	13	false
+tools/configuration/operator-guide-contract.test.mjs	configuration	15	false
 tools/configuration/operator-proxy-smoke.mjs	configuration	3	false
 tools/configuration/persistence-rename-contract.test.mjs	configuration	5	false
 tools/configuration/pvad-compose.test.mjs	configuration	1	false
@@ -909,7 +909,7 @@ tools/versioning/pvad-build-consistency.test.mjs	source	3	false
 tools/versioning/pvad-version.mjs	source	3	false
 tools/versioning/pvad-version.test.mjs	source	7	false
 tools/visual-parity/run.mjs	source	10	false
-websites/HOSTING.md	documentation-or-history	12	false
+websites/HOSTING.md	documentation-or-history	9	false
 websites/PVAD.Account/src/api.ts	source	1	false
 websites/PVAD.Account/src/authI18n.ts	source	1	false
 websites/PVAD.Account/src/designerAccessPresentation.ts	source	16	false
@@ -919,14 +919,14 @@ websites/PVAD.Account/tests/accountPermissions.test.ts	source	2	false
 websites/PVAD.Account/tests/authI18n.test.ts	source	4	false
 websites/PVAD.Account/tests/designerAccessPresentation.test.ts	source	11	false
 websites/PVAD.Account/tests/registrationEntryPoints.test.ts	source	3	false
-websites/PVAD.Account/tests/returnUrl.test.ts	source	10	false
+websites/PVAD.Account/tests/returnUrl.test.ts	source	3	false
 websites/PVAD.Account/tests/signedInSignal.test.ts	source	6	false
 websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs	source	2	false
 websites/PVAD.Admin/src/api.js	source	1	false
 websites/PVAD.Admin/tests/documentation-contract.test.js	source	3	false
 websites/PVAD.Admin/tests/export-branding.test.js	source	3	false
 websites/PVAD.Admin/tests/release-notes-contract.test.js	source	1	false
-websites/PVAD.Company/COMPANY_STRATEGY.md	documentation-or-history	5	false
+websites/PVAD.Company/COMPANY_STRATEGY.md	documentation-or-history	1	false
 websites/PVAD.Company/src/main.js	source	4	false
 websites/PVAD.Demo/public/examples/provider-migration-examples/output.json	source	2	false
 websites/PVAD.Demo/public/examples/provider-migration-examples/source.js	source	2	false
@@ -1031,7 +1031,6 @@ websites/shared/brand.test.js	source	6	false
 websites/shared/browserTelemetry.js	source	5	false
 websites/shared/browserTelemetry.test.js	source	17	false
 websites/shared/signedInSignal.js	source	1	false
-websites/shared/siteLinks.js	source	6	false
 websites/shared/siteLinks.test.js	source	3	false
 websites/shared/statusPages.test.js	source	2	false
 websites/shared/statusPages.ts	source	2	false

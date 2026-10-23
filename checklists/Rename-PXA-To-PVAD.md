@@ -20,6 +20,28 @@ legacy aliases, and internal Java/Maven/JAR/local-image identities. Results and
 index counts below refer to earlier checkpoints, not validation of these batches.
 No additional completed-test percentage is claimed.
 
+Production-link follow-up (2026-10-23): shared defaults use `pvade.com` and the
+selected docs/demos/designer/account/operator subdomains. The Designer Account
+fallback matches. Local ports, current/legacy configuration overrides and URL
+validation remain unchanged. Old origins are not implicitly trusted in the
+frontend return allowlist. Backend authentication allowlists, mail sender and
+cookie scope are not changed; deployment must configure approved origins before
+traffic cutover. Targets remain unverified until DNS/TLS/routing tests pass.
+205 Node contracts, all Website tests/builds, Account typecheck and Designer
+typecheck/729 tests/build pass. Patch fragment: `pvad-production-link-defaults`.
+VERSION stays 1.1.0; the previously recorded API-test blocker remains open.
+
+Backend-origin follow-up (2026-10-23): registration return defaults now match the
+five canonical production product origins. Designer authorization permits the
+canonical Designer origin plus the unchanged two local origins. Legacy domains
+are not automatically trusted; reviewed deployments can explicitly override the
+arrays. Admin/Operator destinations and wildcard domains are excluded. Mail,
+CORS, cookies and per-client OAuth registrations are unchanged. 22 isolated .NET
+security/configuration tests and 205 Node contracts pass. These tests do not start
+the API or use PostgreSQL; the broad API integration blocker remains open.
+Override documentation explains indexed array merging. Patch fragment:
+`pvad-backend-origin-defaults`; VERSION stays 1.1.0. No deployment occurred.
+
 Broad validation follow-up (2026-10-23, source commit `5a0f48c4`): the complete
 Solution builds with zero errors and 171 warnings. The full default test attempt
 was stopped after repeated API application-start failures caused by local

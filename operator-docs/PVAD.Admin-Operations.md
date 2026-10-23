@@ -15,7 +15,12 @@ This guide prepares a separately protected operator documentation deployment. It
 - The proposed Cloud target is `https://admin.pvade.com`; this is not evidence of
   DNS, TLS or deployment readiness. Use the approved customer host such as
   `admin.{customer-host}` for On-Premise and route same-origin `/api` to PVAD.WebApi.
-  Existing runtime URL defaults remain unchanged until an explicit host cutover.
+  Shared production link defaults now use the selected domain. Backend authentication allowlists
+  use matching explicit product origins; they do not authorize Admin/Operator
+  return destinations or change installed routing. Configure and verify approved
+  deployment origins explicitly before sending traffic to these hosts.
+  Legacy origins require explicit configuration, not automatic dual trust; see
+  `websites/HOSTING.md` for configuration-array merge behavior and override examples.
 - Require secure host-only cookies, HTTPS, trusted proxy headers, and an explicit production operator allowlist.
 - Keep Development identity bootstrap disabled outside local Development.
 - Apply EF Core migrations before routing traffic to a new API version.

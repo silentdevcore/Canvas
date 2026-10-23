@@ -15,7 +15,8 @@ test('operator guidance uses current routes and mounted secret paths without app
   const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
   assert.ok(admin.includes(targets.hosts.admin));
   assert.ok(admin.includes('not evidence of'));
-  assert.ok(admin.includes('Existing runtime URL defaults remain unchanged'));
+  assert.ok(admin.includes('Shared production link defaults now use the selected domain'));
+  assert.match(admin, /backend authentication allowlists/i);
   for (const source of [admin, observability]) {
     assert.ok(source.includes('/api/pvad/v1/admin/operator/access'));
     assert.ok(!source.includes('/api/pxa/v1/admin/operator/access'));
@@ -55,6 +56,29 @@ test('MCP setup describes canonical scopes and retained discovery spellings accu
   assert.ok(doc.includes('discovery still advertises the historical scope spellings'));
   assert.ok(read('tools/PVAD.Mcp/src/remote/config.ts').includes("['pxa.docs.read']"));
   assert.ok(read('tools/PVAD.Mcp/src/remote/auth.ts').includes('compatibleScopes(readScopes('));
+});
+
+test('production link defaults and backend allowlists use the same explicit candidate origins', async () => {
+  const { siteLinkDefaults } = await import('../../websites/shared/siteLinks.js');
+  const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
+  for (const [role, url] of Object.entries(siteLinkDefaults.production))
+    assert.equal(url, `${targets.hosts[role]}/`, role);
+  const auth = read('pvad-designer/src/auth/designerAuth.ts');
+  assert.ok(auth.includes("return local ? 'http://localhost:5178/' : 'https://account.pvade.com/';"));
+  assert.ok(auth.includes('if (configured) return configured;'));
+  assert.ok(!auth.includes('account.powerdoxautomation.com'));
+  const configuration = JSON.parse(read('PVAD.WebApi/appsettings.json'));
+  const names = ['company', 'documentation', 'demo', 'designer', 'account'];
+  assert.deepEqual(configuration.Registration.AllowedReturnOrigins.filter(value => value.startsWith('https:')),
+    names.map(name => targets.hosts[name]));
+  assert.deepEqual(configuration.DesignerAuthentication.AllowedOrigins,
+    ['http://localhost:5173', 'http://localhost:5176', targets.hosts.designer]);
+  for (const blocked of ['admin', 'operator', 'api', 'mcp'])
+    assert.ok(!configuration.Registration.AllowedReturnOrigins.includes(targets.hosts[blocked]));
+  assert.equal(configuration.Mail.SenderAddress, 'no-reply@powerdoxautomation.com');
+  const guidance = read('websites/HOSTING.md');
+  assert.ok(guidance.includes('Backend authentication allowlists now use the same exact product origins'));
+  assert.ok(guidance.includes('new hosts use host-only notices'));
 });
 
 test('Grafana changes datasource labels without deleting active identities or changing cross-links', () => {

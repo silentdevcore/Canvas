@@ -2,9 +2,9 @@
 
 ## Websites
 
-PVADE uses separate website deployments. The table records retained legacy host
-defaults, not approved target DNS. The selected target root domain is `pvade.com`;
-subdomain, proxy, callback and mail cutover still require coordinated validation.
+PVADE uses separate website deployments. Current source link defaults use the
+selected target root domain `pvade.com`; they are not proof of approved DNS.
+Subdomain, proxy, callback and mail cutover still require coordinated validation.
 
 ## Proposed Deployment Targets
 
@@ -23,18 +23,17 @@ host inventory. Confirm ownership, DNS, TLS and routing before selecting them.
 
 ### Current Source Defaults
 
-The existing fallback table below remains accurate for source compatibility.
-It is not a recommendation to launch on the legacy domains or evidence that
-either the old or proposed hosts are live. This documentation does not change
-shared runtime defaults or configure any remote host.
+The fallback table below describes the shared production link configuration.
+It does not establish that any host is live. Existing deployments can override
+these defaults explicitly; this source change does not configure remote hosts.
 
-| Website | Source | Build output | Local dev | Local preview | Retained legacy host default |
+| Website | Source | Build output | Local dev | Local preview | Production link default (unverified) |
 | --- | --- | --- | --- | --- | --- |
-| `PVAD.Company` | `websites/PVAD.Company` | `websites/PVAD.Company/dist` | `http://localhost:5173/` | `http://localhost:4173/` | `powerdoxautomation.com` |
-| `PVAD.Documentation` | `websites/PVAD.Documentation` | `websites/PVAD.Documentation/dist` | `http://localhost:5174/` | `http://localhost:4174/` | `docs.powerdoxautomation.com` |
-| `PVAD.Demo` | `websites/PVAD.Demo` | `websites/PVAD.Demo/dist` | `http://localhost:5175/` | `http://localhost:4175/` | `demos.powerdoxautomation.com` |
-| `PVADE Designer` | `pvad-designer` | app build output | `http://localhost:5176/` | app preview output | `designer.powerdoxautomation.com` |
-| `PVAD.Account` | `websites/PVAD.Account` | `websites/PVAD.Account/dist` | `http://localhost:5178/` | `http://localhost:4178/` | `account.powerdoxautomation.com` |
+| `PVAD.Company` | `websites/PVAD.Company` | `websites/PVAD.Company/dist` | `http://localhost:5173/` | `http://localhost:4173/` | `pvade.com` |
+| `PVAD.Documentation` | `websites/PVAD.Documentation` | `websites/PVAD.Documentation/dist` | `http://localhost:5174/` | `http://localhost:4174/` | `docs.pvade.com` |
+| `PVAD.Demo` | `websites/PVAD.Demo` | `websites/PVAD.Demo/dist` | `http://localhost:5175/` | `http://localhost:4175/` | `demos.pvade.com` |
+| `PVADE Designer` | `pvad-designer` | app build output | `http://localhost:5176/` | app preview output | `designer.pvade.com` |
+| `PVAD.Account` | `websites/PVAD.Account` | `websites/PVAD.Account/dist` | `http://localhost:5178/` | `http://localhost:4178/` | `account.pvade.com` |
 
 ## Build Commands
 
@@ -84,12 +83,13 @@ npm run build
   - Demo -> `http://localhost:5175/`
   - Designer -> `http://localhost:5176/`
   - Account -> `http://localhost:5178/`
-- Current source production fallbacks (legacy; not verified live):
-  - Company -> `https://powerdoxautomation.com/`
-  - Documentation -> `https://docs.powerdoxautomation.com/`
-  - Demo -> `https://demos.powerdoxautomation.com/`
-  - Designer -> `https://designer.powerdoxautomation.com/`
-  - Account -> `https://account.powerdoxautomation.com/`
+- Current source production fallbacks (not verified live):
+  - Company -> `https://pvade.com/`
+  - Documentation -> `https://docs.pvade.com/`
+  - Demo -> `https://demos.pvade.com/`
+  - Designer -> `https://designer.pvade.com/`
+  - Account -> `https://account.pvade.com/`
+  - Operator -> `https://operator.pvade.com/`
 - Production overrides use canonical Vite environment keys:
   - `VITE_PVAD_COMPANY_URL`
   - `VITE_PVAD_DOCUMENTATION_URL`
@@ -99,7 +99,40 @@ npm run build
   - `VITE_PVAD_OPERATOR_URL`
 - Old `VITE_PXA_*` keys remain compatibility aliases. Matching values are accepted;
   contradictory old/new values fail validation. Configure approved origins at
-  build time instead of assuming that this document changes application defaults.
+  build time. Legacy deployments must explicitly set their installed origins;
+  old domains are not automatically added to the frontend return-URL allowlist.
+- Before deploying the new domains, configure backend registration return origins,
+  Designer authorization origins, OAuth callbacks, public URLs and proxy routing
+  together. Backend authentication allowlists now use the same exact product origins;
+  they do not include Admin, Operator, wildcards or a second legacy trust set.
+  Email sender settings are unchanged. Do not broaden allowlists with wildcard domains.
+- Backend registration defaults retain the five local product origins. Designer
+  authorization retains local ports 5173 and 5176 plus the canonical Designer
+  HTTPS origin. Frontend return links and backend handoff origins serve different
+  purposes; CORS and per-client OAuth callback registrations remain separate.
+- Existing installations must explicitly override approved origins through
+  `Registration:AllowedReturnOrigins` and `DesignerAuthentication:AllowedOrigins`.
+  .NET configuration arrays merge by index across providers: a shorter overlay
+  does not remove trailing defaults. Verify the complete effective arrays before
+  deployment. For the existing legacy domain layout, these explicit replacements
+  preserve local entries without implicitly trusting both generations:
+
+  ```text
+  Registration__AllowedReturnOrigins__5=https://powerdoxautomation.com
+  Registration__AllowedReturnOrigins__6=https://docs.powerdoxautomation.com
+  Registration__AllowedReturnOrigins__7=https://demos.powerdoxautomation.com
+  Registration__AllowedReturnOrigins__8=https://designer.powerdoxautomation.com
+  Registration__AllowedReturnOrigins__9=https://account.powerdoxautomation.com
+  DesignerAuthentication__AllowedOrigins__2=https://designer.powerdoxautomation.com
+  ```
+
+  These are compatibility examples only, not proof of domain ownership. On-Premise
+  owners must use their actual reviewed origins and inspect merged configuration.
+- The Designer's default Account destination follows the new Account origin;
+  existing and On-Premise installations can override it through runtime config
+  `__PVAD_CONFIG__.accountUrl` (legacy `__PXA_CONFIG__` remains supported).
+- Storage Notice cookie scope is unchanged: the new hosts use host-only notices;
+  this change does not share authentication cookies across subdomains.
 - Company page links use static HTML entries such as `/products.html`, `/pricing.html`, `/about.html`, `/support.html`, and `/contact.html`.
 - Company legal links use `/terms.html`, `/privacy.html`, and `/license.html`.
 - Company product detail links use nested static entries such as `/products/generator.html` and `/products/pdf-viewer.html`.

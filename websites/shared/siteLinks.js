@@ -10,12 +10,12 @@ const defaultSiteLinks = {
 };
 
 const productionSiteLinks = {
-  company: 'https://powerdoxautomation.com/',
-  documentation: 'https://docs.powerdoxautomation.com/',
-  demo: 'https://demos.powerdoxautomation.com/',
-  designer: 'https://designer.powerdoxautomation.com/',
-  account: 'https://account.powerdoxautomation.com/',
-  operator: 'https://operator.powerdoxautomation.com/',
+  company: 'https://pvade.com/',
+  documentation: 'https://docs.pvade.com/',
+  demo: 'https://demos.pvade.com/',
+  designer: 'https://designer.pvade.com/',
+  account: 'https://account.pvade.com/',
+  operator: 'https://operator.pvade.com/',
 };
 
 function normalizeUrl(value) {

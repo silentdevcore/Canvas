@@ -108,7 +108,7 @@ The following environment variables override evaluation defaults:
 | `PVAD_OPERATOR_SERVER_NAME` | `localhost` | Hostname accepted by the operator gateway |
 | `PVAD_OPERATOR_API_UPSTREAM` | `http://host.docker.internal:5086` | Same-origin WebApi upstream |
 | `PVAD_OPERATOR_UI_UPSTREAM` | `http://host.docker.internal:5177` | PVAD.Admin upstream |
-| `VITE_PVAD_OPERATOR_URL` | `https://operator.powerdoxautomation.com/` in production | Operator host used by the PVAD.Admin dashboard link |
+| `VITE_PVAD_OPERATOR_URL` | `https://operator.pvade.com/` in production (unverified deployment target) | Operator host used by the PVAD.Admin dashboard link |
 | `PVAD_OPERATOR_IDENTIFIER` | none | System Operator login used only by the smoke test |
 | `PVAD_OPERATOR_PASSWORD` | none | System Operator password used only by the smoke test |
 | `PVAD_METRIC_RETENTION` | `90d` | Prometheus retention |

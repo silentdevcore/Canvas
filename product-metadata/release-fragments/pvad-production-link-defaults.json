@@ -1,0 +1,8 @@
+{
+  "id": "pvad-production-link-defaults",
+  "impact": "patch",
+  "components": ["company", "documentation", "demo", "account", "admin", "designer"],
+  "category": "fixed",
+  "summary": "Align default production website links and the Designer Account destination with the PVADE domain while retaining configurable deployment overrides and local development URLs.",
+  "breaking": false
+}

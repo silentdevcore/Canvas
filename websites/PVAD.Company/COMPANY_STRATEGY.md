@@ -10,21 +10,24 @@
   - `https://docs.pvade.com` for Documentation
   - `https://demos.pvade.com` for Demo
   - `https://account.pvade.com` for Account
-- These are planning targets, not active links or evidence of available services.
+- These origins now supply production link defaults, not evidence of available services.
 - MVP local sites map to future public properties:
   - `PVAD.Company` -> main marketing website
   - `PVAD.Documentation` -> documentation website
   - `PVAD.Demo` -> demo gallery
   - `PVAD.Account` -> customer registration and self-service
-- Current source fallbacks (retained legacy hosts), pending a coordinated deployment:
-  - `powerdoxautomation.com` for Company
-  - `docs.powerdoxautomation.com` for Documentation
-  - `demos.powerdoxautomation.com` for Demo
-  - `account.powerdoxautomation.com` for Account
+- Current source fallbacks, pending a coordinated deployment:
+  - `https://pvade.com/` for Company
+  - `https://docs.pvade.com/` for Documentation
+  - `https://demos.pvade.com/` for Demo
+  - `https://account.pvade.com/` for Account
 - Keep local development ports unchanged for now: Company `5173`, Documentation `5174`, Demo `5175`, Account `5178`.
 - New deployment configuration uses `VITE_PVAD_*_URL`; `VITE_PXA_*` remains a
-  conflict-checked compatibility input. The host examples above do not change
-  runtime defaults, routing, callback allowlists or mail configuration.
+  conflict-checked compatibility input. Configure installed origins explicitly
+  when retaining legacy hosts. Backend product-return and Designer handoff defaults
+  match the chosen product origins without automatically trusting old domains.
+  DNS, routing, per-client OAuth callbacks and mail delivery still require
+  deployment configuration and validation.
 
 ## Pricing And Trial
 - MVP pricing remains placeholder content.

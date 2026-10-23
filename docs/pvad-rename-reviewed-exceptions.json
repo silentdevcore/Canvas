@@ -1207,7 +1207,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "68f007b46f64f0237b0af189c9e46d82a0cf48c5f267e78c2c43f728fdf45f2b",
+      "sha256": "67bc6bcceb199a3fb46bab814cbbb2e2e3a1ddda8f75d61b1cce2403437b3e97",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1227,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "cc5777072f920c573108c81b1ae55b970519a39b279f7e82e3f37e93e34216d6",
+      "sha256": "29e998bd6e14789db3fd3d1b00da21ede90898714359185feb086a8ca0908c7a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Historical results are retained with a new checkpoint distinguishing successful builds and non-API suites from aborted API validation, skipped database tests and unperformed live deployment checks.",
+      "reviewNotes": "Point-in-time history is retained with a scoped backend-origin checkpoint. Isolated configuration tests do not resolve earlier API database-startup failures or validate public hosts.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1337,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "084e6cb69f773891fbf497cf35b48b9cb51d2d1571ea86797c8ffc35868109a3",
+      "sha256": "31d3c9092d5b33e0d02d0779847ec55fc9dc1b9045e776425706dedfcc0661b5",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current validation status records successful local builds/tests without reapproving historical compatibility identifiers or treating incomplete API integration as release readiness.",
+      "reviewNotes": "Tracker records explicit canonical origin defaults, unchanged local origins and deferred live authentication validation without reapproving historical evidence.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1927,12 +1927,12 @@
     },
     {
       "path": "deploy/observability/README.md",
-      "sha256": "03114029c16d6b48dc2fff0c2213919bcf03c8ea7cae773572fe4821622ba1c7",
+      "sha256": "2c56ac60acea88594b2c4a5249ecc2720b4994d2b28e48f2fecd754650ecccb9",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current examples use canonical routes and new secret paths; retained runtime host fallback, upstream headers, webhook wire IDs and explicit legacy compatibility guidance remain unchanged.",
+      "reviewNotes": "Default Operator link now uses the selected domain. Legacy wire headers, retained monitoring bindings and compatibility overlays remain explicit; the target is not verified live.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -2537,12 +2537,12 @@
     },
     {
       "path": "operator-docs/PVAD.Admin-Operations.md",
-      "sha256": "bad24d09aa05b180401ab6d6465ed4d5ee2d0fff38023fb4f46155b65d2d6b4e",
+      "sha256": "78992a12c24861fd9509f321ed64e7473fa09fe60b2a081a229ab7aa998779e1",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical API/secret examples and unverified candidate host replace obsolete instructions; legacy request-header stripping remains a compatibility security contract.",
+      "reviewNotes": "Current guidance documents canonical auth defaults and explicit legacy overrides; old authentication header names are compatibility security contracts, not current product naming.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3307,12 +3307,12 @@
     },
     {
       "path": "pvad-designer/src/auth/designerAuth.ts",
-      "sha256": "73519ae5d572674ffe6bf4fb43f0715bc832cfea5a0f1f64c2719492a5258466",
+      "sha256": "eecb97d82d583d8f8b75923e955b94b1055204406aaba29bba5cdc50d38c46a8",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retained stable auth diagnostics and the one-major legacy transaction reader; added validated CSRF headers for non-Fetch requests.",
+      "reviewNotes": "Account URL fallback uses the selected domain; stable legacy diagnostic/session codes and compatibility behavior remain unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3917,12 +3917,12 @@
     },
     {
       "path": "PVAD.WebApi/appsettings.json",
-      "sha256": "7f0c13115ebe3e00a305c1a024d0312a668b02bf32b1ff4a16335ef5f2c92f5e",
+      "sha256": "0e2d4d914b90b4212f8a40d610433f9647fc84d2cdee46ee2bd8d2df9502185c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh database defaults now use PVAD; retained signing key IDs and OAuth client/resource identities are explicit compatibility contracts. No real keys, sessions or installed databases were changed.",
+      "reviewNotes": "Registration and Designer production-origin defaults use the selected domain. The old mail sender remains deliberately unchanged pending verified sender configuration; no implicit legacy-domain trust is added.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -5737,12 +5737,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs",
-      "sha256": "52e6040760906a1488901c95d88671331f4eab72aa0bb70f41a2930ecd77ac68",
+      "sha256": "fe4f051508246e856070ae90db38f428f306f90d91348eac8371abc916a7f0ba",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Legacy host literals remain intentional syntactic normalization and negative default-trust inputs. Current production origins are covered alongside local defaults and PKCE; no live authentication is asserted.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8487,12 +8487,12 @@
     },
     {
       "path": "websites/HOSTING.md",
-      "sha256": "e0ca941062dd3c30c40cc66ed60ab728413b6fd2b3d5a13fbb13f5dfc6b20667",
+      "sha256": "32818d8f7b9c280440a6f922e93d12479be8deed0a5e1c9ee3fdd24ae121b680",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
+      "reviewNotes": "Canonical link and auth defaults are documented with explicit legacy-origin override examples and array-merge warnings. Those examples do not approve domain ownership, wildcards or remote cutover.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -8587,12 +8587,12 @@
     },
     {
       "path": "websites/PVAD.Account/tests/returnUrl.test.ts",
-      "sha256": "6c84cdc0e58ad3298838e7ba3ea6fbc2bf9e925c2fc970ca3abc4f4f44d54fde",
+      "sha256": "ed551c0afd32a917c3bdd6e4cbf80c3ed41910a938622189c61d8c44f1f5f3e4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Account/tests/returnUrl.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Canonical production origin tests and explicit legacy override test preserve URL validation; old hosts are synthetic negative or compatibility inputs, not implicit trust.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8657,12 +8657,12 @@
     },
     {
       "path": "websites/PVAD.Company/COMPANY_STRATEGY.md",
-      "sha256": "55087ceb2a6b8f5f514db31397a261441d1063651bc4c3b7019f59e2532a1672",
+      "sha256": "6545c2debe5547d2a4b32f179a8e8c480745dac3c1383551db09fe5dabb67ea3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
+      "reviewNotes": "Current product origins match backend defaults; legacy configuration keys remain explicit aliases. DNS, OAuth callbacks and sender readiness remain deployment gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -9396,23 +9396,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "websites/shared/siteLinks.js",
-      "sha256": "0f4182b1fc7c6e1c17c61e5574aeb7d93f7ab5f5d20cbd394f6bff0fa48b7d86",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/shared/siteLinks.js: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing host/sender defaults are retained pending the explicitly open coordinated domain/mail cutover.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "websites/shared/siteLinks.test.js",
-      "sha256": "58a23eae3fa819067127828d188def5a557eeb2cbf24b3c233c50aa50db8aeb3",
+      "sha256": "990b47018e18552b964a58922eb31d78c5328d3020bc7dada702c4f102e81adc",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/shared/siteLinks.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. Existing host/sender defaults are retained pending the explicitly open coordinated domain/mail cutover.",
+      "reviewNotes": "Canonical defaults and unchanged local URLs are asserted exactly; retained old environment keys are intentional alias and conflict-validation test inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9500,12 +9490,12 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "f91c75e70f4c3250c0297ca8595376239b029ebc450f8ba65f8daa269a9153d7",
+      "sha256": "38fa08b26a2478bf4e3ed6da6168677a47c51ad407c9413043695dd7e8f338e0",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Contracts explicitly test current operator/MCP guidance while retaining historical discovery scope values, Grafana UIDs, provider/folder identities and restore guard. No runtime deployment validation is implied.",
+      "reviewNotes": "Contract checks canonical frontend/backend origin agreement while preserving historical scope, Grafana, restore and unchanged mail-sender assertions.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     }
   ],

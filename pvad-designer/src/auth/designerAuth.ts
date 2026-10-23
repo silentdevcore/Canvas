@@ -244,7 +244,7 @@ export function accountBaseUrl(): string {
   const configured = readDesignerRuntimeConfig().accountUrl;
   if (configured) return configured;
   const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  return local ? 'http://localhost:5178/' : 'https://account.powerdoxautomation.com/';
+  return local ? 'http://localhost:5178/' : 'https://account.pvade.com/';
 }
 
 export function accountPageUrl(path: string): string {

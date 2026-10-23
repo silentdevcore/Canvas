@@ -2636,3 +2636,55 @@ These temporary files are diagnostic artifacts, not committed immutable evidence
 
 VERSION stays 1.1.0. No release, tag, push, registry publication, protected-environment
 change or production deployment was performed. Full release readiness remains open.
+
+## Production Link Defaults (2026-10-23)
+
+- Shared production defaults now match the selected candidate domain/subdomains.
+  The Designer Account fallback matches; local ports remain unchanged. Canonical
+  and legacy configuration overrides still work and reject conflicting values.
+- Frontend return-origin tests use the new defaults. An old origin is rejected
+  unless explicitly configured; no automatic second trust set was added.
+- Hosting, Company strategy and operator instructions distinguish source defaults
+  from actual DNS/TLS/host readiness. Backend registration/Designer allowlists,
+  OAuth callbacks, SMTP sender and Storage Notice cookie scope are not migrated.
+  Existing installations must set their approved origins explicitly; authentication
+  cookies are not shared across subdomains by this change.
+- 205 configuration/Legal/deployment/version/link contracts pass. All five Website
+  test suites and production builds pass; Account typecheck passes. Designer
+  typecheck, all 729 Jest tests and production build pass. Version and fragment
+  checks pass. No new .NET or authenticated browser run was performed; the API
+  startup/database authentication blocker above remains open.
+- Local logs: `/tmp/pvad-production-links-contracts.log`,
+  `/tmp/pvad-links-PVAD.*-*.log` and `/tmp/pvad-links-designer-*.log`.
+  These are temporary diagnostic outputs, not remote deployment evidence.
+- Patch fragment: `pvad-production-link-defaults`; VERSION remains 1.1.0.
+  No remote DNS, TLS, mailbox, registry or protected-environment change was made.
+
+## Backend Origin Defaults (2026-10-23)
+
+- Registration return origins now use the canonical Company, Documentation,
+  Demo, Designer and Account HTTPS hosts, retaining the five local product
+  origins. Designer authorization uses only the canonical Designer HTTPS host
+  and its two existing local origins.
+- Neither Admin nor Operator is added as a customer return destination. Legacy
+  domains are not implicitly allowed; existing installations can explicitly
+  configure their approved origins. The guide explains .NET's indexed array
+  merging, including that shorter overrides do not clear trailing defaults.
+- Unchanged: mail sender/configuration, CORS defaults, OAuth client registrations,
+  cookies, code handoff lifetime and compatibility route/diagnostic identifiers.
+- The focused DesignerAuthorizationSecurityTests selection passes 22/22 with
+  zero skips. It binds the actual JSON defaults and checks exact origin sets,
+  negative host/port cases, origin normalization, return paths and PKCE. These
+  are unit/configuration tests without WebApplicationFactory or database access;
+  they do not prove a live authorization-code handoff.
+- The complete current Node configuration/Legal/deployment/version/link contract
+  selection passes 205/205; version and fragment validation pass. Local .NET
+  compilation still reports existing warnings, including unavailable NuGet
+  security-feed information. No dependency change or security-scan approval.
+- Logs: `/tmp/pvad-origin-default-dotnet.log`,
+  `/tmp/pvad-origin-default-tests/` and
+  `/tmp/pvad-origin-default-contracts-final.log`. These are temporary evidence.
+- Patch fragment: `pvad-backend-origin-defaults`. VERSION remains 1.1.0.
+  Public host/DNS/TLS verification, authenticated browser testing and the earlier
+  API integration/database-startup blocker remain open. No services were restarted,
+  credentials changed, database migrated or remote configuration updated.
