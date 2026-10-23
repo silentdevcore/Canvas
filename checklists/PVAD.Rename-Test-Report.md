@@ -2569,3 +2569,70 @@ No commit, push, tag, registry publication or deployment occurred.
   veraPDF validation or visual comparison was executed by this batch.
 - Internal-only fragment: `pvad-validation-caller-keys` (impact none).
   VERSION remains 1.1.0; no commit, push or deployment was performed.
+
+## Broad Build And Test Follow-up (2026-10-23)
+
+Source checkpoint: `5a0f48c4` (internal operator names and validation callers).
+The only subsequent executable-source correction changes two stale temporary
+container-prefix expectations in `tools/legal/recovery-contract.test.mjs`.
+No product implementation, dependency or golden baseline was changed in testing.
+
+| Selection | Result |
+| --- | --- |
+| `dotnet build PVAD.sln --no-restore --disable-build-servers -m:1` | Passed; 0 errors, 171 warnings |
+| Default complete Solution tests | Not complete; stopped after repeated API startup/database-authentication failures |
+| Solution tests with `FullyQualifiedName!~PVAD.Api.Tests` | Passed; 2,264 passed, 2 skipped, 0 failed; 53 TRX files including the excluded API runner |
+| Export suite within the non-API run | 221/221 passed, 0 skipped |
+| Designer typecheck / Jest / production build | Passed; 729 tests in 83 suites |
+| Company tests / build | Passed after stale test-prefix correction; 57 tests |
+| Documentation tests / build | Passed; 58 tests |
+| Demo tests / build | Passed; 4 tests |
+| Account typecheck / tests / build | Passed; 52 tests |
+| Admin tests / build | Passed; 37 tests |
+| MCP typecheck / tests / build | Passed; 26 tests |
+| Configuration, Legal, deployment and version Node contracts | 199/199 passed |
+
+Counts are per selection and must not be added as unique coverage: some Website
+commands include shared/Legal tests that also occur in the Node selection.
+The two skipped tests are the opt-in PostgreSQL Persistence migration cases;
+they are not successful database-validation evidence.
+
+### Failure Analysis And Corrections
+
+- The sandbox initially denied VSTest TCP sockets and tsx IPC sockets. Those
+  starts were stopped/retried with approved access. They are not product failures.
+- The unfiltered API run reached application startup, then repeatedly failed
+  PostgreSQL authentication for the fresh local PVAD database/user defaults.
+  Plain WebApplicationFactory fixtures start normal application services. No
+  credentials were changed, database initialized or migrations applied to make
+  these tests pass. API integration validation is still open; do not reuse an
+  installed database merely to satisfy it.
+- Company tests found two remaining assertions for old disposable recovery
+  container prefixes. Only those expectations were changed to the canonical
+  prefixes. Cleanup, synthetic-data, checksum and fail-closed assertions remain.
+  Company and the broader Node selection pass after this correction.
+- Build warnings include compiler nullability/obsolete API warnings and NuGet
+  security-feed retrieval failures. Successful compilation is not an up-to-date
+  dependency vulnerability assessment. The Designer build also warns about large
+  chunks; this pass does not claim a performance improvement.
+
+### Evidence And Remaining Work
+
+Local logs: `/tmp/pvad-rename-solution-build.log`,
+`/tmp/pvad-rename-solution-tests-unsandboxed.log`,
+`/tmp/pvad-rename-nonapi-tests.log` and `/tmp/pvad-rename-nonapi-results/`.
+Frontend/tool logs use `/tmp/pvad-designer-*`, `/tmp/pvad.*-*`,
+`/tmp/pvad-mcp-*` and `/tmp/pvad-node-contracts-rerun.log`.
+These temporary files are diagnostic artifacts, not committed immutable evidence.
+
+1. Isolate API test startup from installed development databases and run the
+   complete API suite against deliberate test services/configuration.
+2. Run opt-in database integration tests against disposable databases and repeat
+   the complete unfiltered Solution selection once the startup issue is resolved.
+3. Complete authenticated browser/visual and live Docker/cutover validation on the
+   final source; no such runtime claim is made by production builds/unit tests.
+4. Refresh dependency security assessment when the package security feed is
+   available and address advisories through a separate reviewed change.
+
+VERSION stays 1.1.0. No release, tag, push, registry publication, protected-environment
+change or production deployment was performed. Full release readiness remains open.

@@ -1207,7 +1207,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "e6c0233a0f0c9fce773ee8003a39b8e6fcb26a54bade4b3bc56c5b1cb77c6100",
+      "sha256": "68f007b46f64f0237b0af189c9e46d82a0cf48c5f267e78c2c43f728fdf45f2b",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1227,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "8506862458bb37be6d9911e83818a2d53cb5cf0f8aede1c4340d102318a41dfb",
+      "sha256": "cc5777072f920c573108c81b1ae55b970519a39b279f7e82e3f37e93e34216d6",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Scoped validation-caller follow-up records canonical test environment writers and simulated launch evidence, preserving prior test history and deferred runtime checks.",
+      "reviewNotes": "Historical results are retained with a new checkpoint distinguishing successful builds and non-API suites from aborted API validation, skipped database tests and unperformed live deployment checks.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1337,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "bfeffb024fe3145a455c4431aeee7cf5faa0de08ac5de6746d7519d2b2707fa0",
+      "sha256": "084e6cb69f773891fbf497cf35b48b9cb51d2d1571ea86797c8ffc35868109a3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Tracker records canonical test callers without changing legacy compatibility requirements or treating static and mocked checks as production validation. Final root-error wording uses PVAD; corpus signer/author identities and compatibility assertions are retained. No signed fixture regeneration.",
+      "reviewNotes": "Current validation status records successful local builds/tests without reapproving historical compatibility identifiers or treating incomplete API integration as release readiness.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2387,12 +2387,12 @@
     },
     {
       "path": "docs/pvad-rename-validation-blockers.md",
-      "sha256": "a79def27de7af885a6ece8a23292116cd18994827e64073d8e0030ead1fb5702",
+      "sha256": "498761b3d250d62d84b5bb3ba15af91353f36af5439bc6874429c4c53f3f99a5",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-rename-validation-blockers.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Preserve earlier findings while recording the later API startup/database authentication blocker. Earlier successes do not validate final local defaults or approve installed-resource cutover.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7947,12 +7947,12 @@
     },
     {
       "path": "tools/legal/recovery-contract.test.mjs",
-      "sha256": "4a84e56fd892bf7a39e8c671d8e73a38fe7090ae1ce183283e47d8460600c812",
+      "sha256": "1f49c74f0a27e5b3a6407d813159e92bb2df855308d3c8f61a9386338e1058df",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retained synthetic legacy storage/configuration assertions and added exact anonymous-volume cleanup coverage; no active old branding introduced.",
+      "reviewNotes": "Current temporary resource-prefix assertions match the renamed drill. Legacy restore guard, readiness aliases and synthetic legacy database checks remain explicit compatibility tests.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

@@ -32,8 +32,8 @@ test('recovery verification protects Legal relationships and fail-closed policy'
 });
 
 test('recovery drill is isolated, synthetic, and always cleans up', () => {
-  assert.match(drill, /pxa-legal-source-/);
-  assert.match(drill, /pxa-legal-target-/);
+  assert.match(drill, /pvad-legal-source-/);
+  assert.match(drill, /pvad-legal-target-/);
   assert.match(drill, /trap cleanup EXIT INT TERM/);
   assert.match(drill, /docker rm -f -v "\$source_container" "\$target_container"/);
   assert.match(drill, /synthetic-recovery-password/);

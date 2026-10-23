@@ -1,5 +1,28 @@
 # PVAD Rename Validation Blockers
 
+## Current Follow-up: 2026-10-23
+
+The later source checkpoint `5a0f48c4` builds successfully as a complete Solution
+(0 errors, 171 warnings). The current unfiltered test attempt is **not green**:
+plain API WebApplicationFactory fixtures fail application startup while attempting
+to authenticate against the installed local PostgreSQL service using the new fresh
+database/user defaults. The run was stopped after repeated failures. Do not change
+installed database credentials or initialize/migrate a local database merely to
+obtain a passing validation run.
+
+A separate Solution run excluding the API namespace passes 2,264 tests, with two
+PostgreSQL Persistence opt-ins skipped. All 221 Export tests pass in that run.
+Designer, all five Websites and MCP build successfully; their local test suites
+also pass. A stale pair of recovery-container-prefix test assertions was corrected.
+See [the current report](../checklists/PVAD.Rename-Test-Report.md#broad-build-and-test-follow-up-2026-10-23)
+for exact selections, counts and limitations.
+
+Next: isolate API startup from installed development services, run deliberate
+disposable-database integration tests and repeat the complete unfiltered run.
+Dependency security-feed retrieval, authenticated browser/visual checks and final
+live infrastructure validation remain separate open gates. Earlier results below
+describe earlier source checkpoints, not approval of the final renamed defaults.
+
 ## Broad .NET Run
 
 The initial full solution run was interrupted. The first API run passed

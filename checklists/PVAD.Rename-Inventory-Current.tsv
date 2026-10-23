@@ -876,7 +876,7 @@ tools/legal/README.md	documentation-or-history	5	false
 tools/legal/backup-postgres.sh	source	2	false
 tools/legal/browser-storage-catalog.test.mjs	source	1	false
 tools/legal/export-legal-snapshot.test.mjs	source	2	false
-tools/legal/recovery-contract.test.mjs	source	9	false
+tools/legal/recovery-contract.test.mjs	source	7	false
 tools/legal/restore-postgres.sh	source	5	false
 tools/legal/run-backup-restore-smoke-test.sh	source	22	false
 tools/legal/run-deployment-smoke-tests.sh	source	2	false

@@ -4,18 +4,34 @@
 
 ## Status And Naming Authority
 
-**Source rename: provisionally complete for the reviewed scope. Validation: deferred.**
+**Source rename: provisionally complete for the reviewed scope. Broad validation:
+partly passed; the API suite remains blocked by local database authentication.**
 This is not release readiness or proof that all features work on the final source
 revision. Further changes start only from a concrete naming finding or the later
 validation results, not from a target percentage.
 
-Current scope: rename only; full builds, runtime tests, deployment and functional
-expansion are deferred. The latest request explicitly includes focused Compose
+Current scope includes the local build/test follow-up recorded below. Production
+deployment, live multi-host/browser validation and functional expansion remain
+deferred. Earlier entries retain their point-in-time scopes and counts; they do
+not establish validation of every later change. The earlier request included focused Compose
 configuration verification, recorded below. Earlier source-only batches rename ten
 Observability files and their references, canonical mail-template names with
 legacy aliases, and internal Java/Maven/JAR/local-image identities. Results and
 index counts below refer to earlier checkpoints, not validation of these batches.
 No additional completed-test percentage is claimed.
+
+Broad validation follow-up (2026-10-23, source commit `5a0f48c4`): the complete
+Solution builds with zero errors and 171 warnings. The full default test attempt
+was stopped after repeated API application-start failures caused by local
+PostgreSQL authentication; it is not a passing full-Solution test result. A
+separate Solution run excluding API tests passes 2,264 tests with two PostgreSQL
+Persistence opt-ins skipped. All 221 Export tests pass. Designer typecheck,
+729 Jest tests and production build pass. All five Website builds/tests pass;
+Account typecheck passes. MCP typecheck, 26 tests and build pass. The expanded
+Node contract selection passes 199/199 after correcting two stale recovery-test
+prefix expectations. Details, limitations and next steps are in
+[the validation report](PVAD.Rename-Test-Report.md#broad-build-and-test-follow-up-2026-10-23).
+No database credentials, installed resources, VERSION or public release were changed.
 
 Internal-name follow-up (2026-10-23): Nginx auth subrequests and local variables,
 new backup filenames, ephemeral recovery/retention resource names, synthetic
