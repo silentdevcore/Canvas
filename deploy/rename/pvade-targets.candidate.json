@@ -3,6 +3,7 @@
   "status": "candidate",
   "baseDomain": "pvade.com",
   "supportAddress": "support@pvade.com",
+  "senderAddress": "no-reply@pvade.com",
   "hosts": {
     "company": "https://pvade.com",
     "documentation": "https://docs.pvade.com",

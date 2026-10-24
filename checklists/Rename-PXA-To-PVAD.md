@@ -905,6 +905,22 @@ separate operations; this planning step performs none of them.
 - [ ] External systems have confirmed owners and tested cutover/rollback evidence.
 - [x] Test report distinguishes passed, skipped, blocked and unrun checks.
 
+## Approved Mail Sender Follow-up (2026-10-24)
+
+- [x] Use the explicitly selected technical sender `no-reply@pvade.com` in the
+  WebApi default and offline deployment candidate, separately from support.
+- [x] Keep mail delivery disabled and package publishers unselected. The owner's
+  report of no publication does not identify a registry account.
+- [x] Test candidate sender validation, support/sender separation and unchanged
+  delivery/publication gates. All 217 selected Node contracts pass without skips;
+  version/fragment checks pass. VERSION remains 1.1.0.
+- [ ] Verify SMTP/provider authorization, mailbox readiness, SPF/DKIM/DMARC and
+  actual delivery before enabling production mail. No live mail test was run.
+
+Earlier notes preserving the configured sender describe their historical
+checkpoints; this approval supersedes that default only. Existing environment
+overrides, stored message payloads, tokens and audit evidence are not rewritten.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

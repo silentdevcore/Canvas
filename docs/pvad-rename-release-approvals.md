@@ -8,7 +8,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
 | Installed product inventory | Owner reports no publication/customer installations; current scope is local development/testing. | Product owner | Confirmed in conversation, 2026-10-21 |
-| Public identities | Owner selects pvade.com and support@pvade.com. Package publishers/registries explicitly unregistered; mail sender and infrastructure ownership not approved. | Business owner and operations | Domain/support names confirmed 2026-10-21; publisher and deployment gates remain open |
+| Public identities | Owner selects pvade.com, support@pvade.com and technical sender no-reply@pvade.com. Package publishers remain unselected; actual infrastructure/mail ownership and delivery are not verified. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; publisher and deployment gates remain open |
 | Compatibility policy | .pvadp/.pvads, stable diagnostic IDs, old API/format readers for one major release. | Product owner | Confirmed in conversation, 2026-10-21 |
 | Cutover and rollback | Repository owner accepts responsibility for local development backup, restore and rollout. Production/customer procedures are not approved. | Repository owner (local only) | Local owner confirmed, 2026-10-21; production approval pending |
 | Protected material | Verify actual keyring access and retained encrypted payload recovery without exposing or rewriting secrets. | Security and operations | Pending |
@@ -76,7 +76,14 @@ This records the intended name, not registrar/DNS/TLS ownership evidence.
 Owner confirmation also selects `support@pvade.com` as the support address.
 Package publishers and registry organizations are explicitly not registered or
 chosen yet. Selecting a support address does not prove a configured mailbox.
-Publisher ownership, mail sender configuration and actual domain control remain
+Owner confirmation on 2026-10-24 selects `no-reply@pvade.com` as the technical
+sender, separately from `support@pvade.com`. The application default and offline
+candidate now use that sender; delivery remains disabled. SMTP credentials,
+mailbox/provider configuration, SPF/DKIM/DMARC and delivery verification are not
+approved or configured by this naming decision.
+The owner again reports no publication; this does not identify a registered
+container publisher. All three publisher selections remain null.
+Publisher ownership, actual sender verification and domain control remain
 publication gates; no DNS, account registration or mail setup was executed.
 
 These questions prepare approval; writing an answer does not execute a deployment.

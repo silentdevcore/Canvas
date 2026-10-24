@@ -75,10 +75,24 @@ test('production link defaults and backend allowlists use the same explicit cand
     ['http://localhost:5173', 'http://localhost:5176', targets.hosts.designer]);
   for (const blocked of ['admin', 'operator', 'api', 'mcp'])
     assert.ok(!configuration.Registration.AllowedReturnOrigins.includes(targets.hosts[blocked]));
-  assert.equal(configuration.Mail.SenderAddress, 'no-reply@powerdoxautomation.com');
+  assert.equal(configuration.Mail.SenderAddress, targets.senderAddress);
   const guidance = read('websites/HOSTING.md');
   assert.ok(guidance.includes('Backend authentication allowlists now use the same exact product origins'));
   assert.ok(guidance.includes('new hosts use host-only notices'));
+});
+
+test('approved transactional sender is distinct from support and does not enable delivery or select publishers', () => {
+  const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
+  const configuration = JSON.parse(read('PVAD.WebApi/appsettings.json'));
+  assert.equal(targets.senderAddress, 'no-reply@pvade.com');
+  assert.equal(targets.supportAddress, 'support@pvade.com');
+  assert.notEqual(targets.senderAddress, targets.supportAddress);
+  assert.equal(configuration.Mail.SenderAddress, targets.senderAddress);
+  assert.equal(configuration.Mail.Transport, 'Disabled');
+  assert.equal(configuration.Mail.SenderName, 'PVADE');
+  assert.deepEqual(targets.publishers, { nuget: null, npm: null, container: null });
+  assert.ok(targets.unverified.includes('mail-delivery'));
+  assert.ok(targets.unverified.includes('publisher-ownership'));
 });
 
 test('Grafana changes datasource labels without deleting active identities or changing cross-links', () => {

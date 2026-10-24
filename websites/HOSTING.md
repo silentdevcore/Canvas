@@ -105,7 +105,9 @@ npm run build
   Designer authorization origins, OAuth callbacks, public URLs and proxy routing
   together. Backend authentication allowlists now use the same exact product origins;
   they do not include Admin, Operator, wildcards or a second legacy trust set.
-  Email sender settings are unchanged. Do not broaden allowlists with wildcard domains.
+  The selected technical sender is `no-reply@pvade.com`, separately from
+  `support@pvade.com`. Mail transport remains disabled until SMTP/provider and
+  domain verification are complete. Do not broaden allowlists with wildcard domains.
 - Backend registration defaults retain the five local product origins. Designer
   authorization retains local ports 5173 and 5176 plus the canonical Designer
   HTTPS origin. Frontend return links and backend handoff origins serve different

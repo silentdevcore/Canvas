@@ -85,7 +85,7 @@ PVAD.WebApi/Services/Mail/SmtpMailTransport.cs	source	1	false
 PVAD.WebApi/Services/MigrationResult.cs	source	1	false
 PVAD.WebApi/Services/Pdf/PvadEInvoiceValidationEvidenceService.cs	source	1	false
 PVAD.WebApi/Services/PdfViewerAnnotationFlatteningService.cs	source	2	false
-PVAD.WebApi/appsettings.json	source	4	false
+PVAD.WebApi/appsettings.json	source	3	false
 README.md	documentation-or-history	5	false
 Removing-PDFImporter.md	documentation-or-history	11	false
 TESTING.md	documentation-or-history	1	false
@@ -824,7 +824,7 @@ tools/configuration/generated-code-contract.test.mjs	configuration	3	false
 tools/configuration/internal-naming-contract.test.mjs	configuration	12	false
 tools/configuration/migration-diagnostic-contract.test.mjs	configuration	6	false
 tools/configuration/observability-script-contract.test.mjs	configuration	3	false
-tools/configuration/operator-guide-contract.test.mjs	configuration	15	false
+tools/configuration/operator-guide-contract.test.mjs	configuration	14	false
 tools/configuration/operator-proxy-smoke.mjs	configuration	3	false
 tools/configuration/persistence-rename-contract.test.mjs	configuration	5	false
 tools/configuration/pvad-compose.test.mjs	configuration	1	false

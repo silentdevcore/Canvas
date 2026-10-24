@@ -7,7 +7,8 @@ partial work does not close the nine combined release/cutover gates.
 
 ## Confirmed And Proposed Values
 
-The owner selected `pvade.com` and `support@pvade.com`. DNS/TLS/mailbox ownership
+The owner selected `pvade.com`, support address `support@pvade.com`, and technical
+sender `no-reply@pvade.com` (2026-10-24). DNS/TLS/mailbox ownership
 and delivery are not verified. Subdomains in `pvade-targets.candidate.json` are
 **proposals**, not confirmed deployed hosts. NuGet, npm and container publishers
 remain unselected. No registry ownership is inferred from a proposed name.
@@ -27,7 +28,8 @@ network access or file-write operations. The candidate contains:
 - Explicit API host/CORS lists, public registration return origins and isolated
   Designer origins. Admin and Operator are not public registration destinations
   and no Company-to-Admin link is added.
-- Consistent transactional mail URLs and the selected address. Mail delivery and
+- Consistent transactional mail URLs and the independently selected sender.
+  The support address is not implicitly used as the mail sender. Mail delivery and
   OAuth stay disabled until the existing certificate/provider requirements are
   separately met. Existing OAuth client/resource IDs are not replaced.
 - Canonical image names only when a publisher is explicitly selected. Selection

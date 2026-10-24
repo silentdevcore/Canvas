@@ -2773,3 +2773,19 @@ change or production deployment was performed. Full release readiness remains op
 - Patch fragment: `pvad-grafana-rename-preparation`. VERSION stays 1.1.0. No
   container, registry, live Grafana, remote GitHub or deployment operation was
   executed. Earlier API/PostgreSQL and live-host validation blockers remain open.
+
+## Approved Technical Mail Sender (2026-10-24)
+
+- Owner selects `no-reply@pvade.com` for transactional sending; support remains
+  `support@pvade.com`. WebApi defaults and the offline candidate use the approved
+  sender. Explicit environment overrides and existing stored mail are untouched.
+- Candidate validation requires a separate sender, rejects missing, cross-domain
+  and control-character values without echoing them, and no longer falls back
+  to the support contact. Mail transport remains Disabled. Publisher selections
+  remain null; no published package is not proof of registry ownership.
+- All 217 selected Node configuration, Legal, deployment, versioning and link
+  contracts pass without skips; version/fragment checks pass. Log:
+  `/tmp/pvad-mail-sender-contracts.log`. Patch fragment:
+  `pvad-approved-mail-sender`; VERSION remains 1.1.0.
+- No SMTP test, mail delivery, domain verification, application restart or remote
+  configuration was executed. Existing API/database and live-host blockers remain.

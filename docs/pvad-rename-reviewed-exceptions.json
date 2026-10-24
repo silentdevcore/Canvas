@@ -1207,7 +1207,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "0773ebaf303e7585b49cd218c769f44c74cfdfb98e05f59fba0966dfba48f168",
+      "sha256": "d1625935501f88678a071cf738a7b229ca73ddd6253899d1903324c97dceb742",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1227,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "ac8123bd99b6b34bc5027949ff1f1d0635eecde99029b4a7327c0474d121a4b9",
+      "sha256": "9b8532b9b0d9113fbc67e25004038f2a3b2536f9d42307b0f2db689185649087",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record 215 passing offline contracts and the explicit limits of Grafana source preparation; retain previous validation history.",
+      "reviewNotes": "Record offline sender validation results with explicit unrun mail and runtime tests; preserve historical validation evidence.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1337,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "1ed0a4ea7441cad2b51532575ea453fbcfabb5655968601e4ef8f7d6cbec98a7",
+      "sha256": "f409d9b5747d0962d60ccd4c94c9434938ede8eff23ea34c5766c860e105dcb9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record tested offline Grafana preparation without claiming active infrastructure migration or closing API and external readiness gates.",
+      "reviewNotes": "Record approved sender follow-up and 217 passing contracts; retain historical status, stable diagnostics and incomplete external activation gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2367,12 +2367,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "c8b06646756fae0803103f90c1ab07a71bc87834bdba7fded03a0df5781471af",
+      "sha256": "1b370737fe18698f339fadbcdeed9fbbf28dbe7dcfd54216304fa013eee84cef",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Document offline Grafana preparation, preserving external approval gates and all historical identity decisions.",
+      "reviewNotes": "Record approved technical sender selection without claiming domain/mailbox ownership, registry selection, live delivery or rollout approval.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -3817,12 +3817,12 @@
     },
     {
       "path": "PVAD.WebApi/appsettings.json",
-      "sha256": "0e2d4d914b90b4212f8a40d610433f9647fc84d2cdee46ee2bd8d2df9502185c",
+      "sha256": "fdefae234aa78dc1fba57e9355d9ab1fe0158a76b03ba36ae8e44ead14f5a942",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Registration and Designer production-origin defaults use the selected domain. The old mail sender remains deliberately unchanged pending verified sender configuration; no implicit legacy-domain trust is added.",
+      "reviewNotes": "Owner-approved technical mail sender uses the selected domain; retain Disabled transport, existing key/OAuth bindings and explicit environment override behavior.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -7519,9 +7519,9 @@
       "reasons": [
         "compatibility-contract"
       ],
-      "reviewNotes": "Read-only service mapping recognizes the exact legacy service prefix and preserves its DNS alias and internal API host; original physical volume IDs, secrets and stored values are never text-replaced.",
+      "reviewNotes": "Preserve existing infrastructure and OAuth bindings; validate separate selected support and sender addresses without enabling delivery or publication.",
       "path": "tools/configuration/rename-cutover-candidate.mjs",
-      "sha256": "c3b3a6674f5e48a53d6911863671cb799b6e522924b054f4d9f1439d2b2081fe",
+      "sha256": "817564fa0f9cb66436850a42f6ea4a02e4a526bfcb82a21cc4261c599a33c389",
       "reviewStatus": "reviewed",
       "boundaryGuide": "deploy/rename/README.md"
     },
@@ -7529,9 +7529,9 @@
       "reasons": [
         "test-contract"
       ],
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
+      "reviewNotes": "Retain deliberate legacy service inputs and test sender validation, support separation and disabled delivery in the offline candidate.",
       "path": "tools/configuration/rename-cutover-candidate.test.mjs",
-      "sha256": "0c5ca89f42a0ea7c5066a27e207ce3fee7e020d754c285ed9d21fe95da6a106e",
+      "sha256": "24cec84f072575f12ca6b8c6ecdeab7def2790c0d253256910c72fea887b38b0",
       "reviewStatus": "reviewed",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
@@ -8377,12 +8377,12 @@
     },
     {
       "path": "websites/HOSTING.md",
-      "sha256": "32818d8f7b9c280440a6f922e93d12479be8deed0a5e1c9ee3fdd24ae121b680",
+      "sha256": "6aaaf261bede1db5da1bdbdfd7a0cc847189de8b2d1145ed3378099385728083",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical link and auth defaults are documented with explicit legacy-origin override examples and array-merge warnings. Those examples do not approve domain ownership, wildcards or remote cutover.",
+      "reviewNotes": "Document approved sender naming separately from SMTP/provider readiness; preserve legacy configuration aliases and host-only security boundaries.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -9380,12 +9380,12 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "38fa08b26a2478bf4e3ed6da6168677a47c51ad407c9413043695dd7e8f338e0",
+      "sha256": "99786cbb804a1d0a8bc8e0ef6d1c1b9bb88bebc0028b44f6aa6aedfbd6abb9da",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Contract checks canonical frontend/backend origin agreement while preserving historical scope, Grafana, restore and unchanged mail-sender assertions.",
+      "reviewNotes": "Verify the selected sender independently of support while retaining compatibility assertions and proving no delivery enablement or publisher selection.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

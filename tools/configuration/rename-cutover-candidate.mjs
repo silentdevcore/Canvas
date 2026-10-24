@@ -24,9 +24,12 @@ export function prepareCandidate(profile, version) {
     if (host !== profile.baseDomain && !host.endsWith(`.${profile.baseDomain}`))
       throw new Error('Candidate host is outside the selected domain.');
   }
-  if (typeof profile.supportAddress !== 'string'
-      || !new RegExp(`^[a-zA-Z0-9._+-]+@${profile.baseDomain.replaceAll('.', '\\.')}$`).test(profile.supportAddress))
-    throw new Error('Invalid candidate support address.');
+  for (const [key, label] of [['supportAddress', 'support'], ['senderAddress', 'sender']]) {
+    const address = profile[key];
+    if (typeof address !== 'string' || /[\s\u0000-\u001f\u007f]/.test(address)
+        || !new RegExp(`^[a-zA-Z0-9._+-]+@${profile.baseDomain.replaceAll('.', '\\.')}$`).test(address))
+      throw new Error(`Invalid candidate ${label} address.`);
+  }
   const publishers = profile.publishers;
   if (!publishers || Object.keys(publishers).sort().join(',') !== 'container,npm,nuget')
     throw new Error('Candidate must declare each publisher independently.');
@@ -69,7 +72,7 @@ export function prepareCandidate(profile, version) {
       Cors: { AllowedOrigins: [hosts.api] },
       Registration: { AllowedReturnOrigins: publicReturns.map(role => hosts[role]) },
       DesignerAuthentication: { AllowedOrigins: [hosts.designer] },
-      Mail: { Transport: 'Disabled', SenderAddress: profile.supportAddress, SenderName: 'PVADE',
+      Mail: { Transport: 'Disabled', SenderAddress: profile.senderAddress, SenderName: 'PVADE',
         AccountBaseUrl: hosts.account, CompanyBaseUrl: hosts.company, DesignerBaseUrl: hosts.designer, AdminBaseUrl: hosts.admin,
         SupportUrl: `${hosts.company}/support.html` },
       OAuth: { Enabled: false, Issuer: hosts.account, McpResource: `${hosts.mcp}/mcp` },

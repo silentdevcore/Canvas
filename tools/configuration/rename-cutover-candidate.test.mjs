@@ -28,6 +28,8 @@ test('one offline candidate aligns links, Designer handoff, CORS, registration a
   for (const host of ['localhost', '127.0.0.1', 'pvad-webapi', 'pxa-webapi'])
     assert.ok(result.apiSettings.AllowedHosts.split(';').includes(host));
   assert.equal(result.apiSettings.Mail.Transport, 'Disabled');
+  assert.equal(result.apiSettings.Mail.SenderAddress, input.senderAddress);
+  assert.notEqual(result.apiSettings.Mail.SenderAddress, input.supportAddress);
   assert.equal(result.apiSettings.OAuth.Enabled, false);
   assert.equal(result.apiSettings.OAuth.Issuer + '/', links.account);
   assert.equal(result.apiSettings.OAuth.McpResource, 'https://mcp.pvade.com/mcp');
@@ -82,6 +84,18 @@ test('publisher and webhook validation rejects injected credentials or commands'
     const input = profile(); input.webhookUrl = value;
     assert.throws(() => prepareCandidate(input, version), { message: 'Invalid candidate webhook URL.' });
   }
+});
+
+test('candidate requires a valid sender independently of support, without echoing rejected values', () => {
+  for (const value of [undefined, null, '', 'support@example.test', 'sender@pvade.com.evil.test',
+    'sender@pvade.com\n', 'sender@pvade.com\r\nBcc:private@example.test', 'Name <sender@pvade.com>']) {
+    const input = profile();
+    input.senderAddress = value;
+    assert.throws(() => prepareCandidate(input, version), { message: 'Invalid candidate sender address.' });
+  }
+  const input = profile();
+  input.supportAddress = 'help@pvade.com';
+  assert.equal(prepareCandidate(input, version).apiSettings.Mail.SenderAddress, 'no-reply@pvade.com');
 });
 
 test('native type descriptors match canonical Core identities and do not invent a working native opener', () => {
