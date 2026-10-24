@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "aed35845f84a2f466e42115443dd1add202f2c6a24fda788177df610da7cdfe1",
+      "sha256": "8bb2d26c52333d59620b63900c810b087980f12c4ac8a8ab4453ed2000c8313d",
       "reasons": [
         "historical-document"
       ],
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "a04c8627d330a6b5a83771602c02ef8a121c370c2b68dcfe967c1630f1b1f627",
+      "sha256": "9895475e003be25dcc8ee3b0466530f018c503f7e43f790162d4e086634b85f4",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record semantic YAML comparison, passing contracts and limited read-only GitHub inspection; retain prior blockers and distinguish local edits from remote activation.",
+      "reviewNotes": "Record 217 contract, 38 Admin and two isolated .NET passes, Admin build and synthetic browser smoke, including sandbox retries and remaining runtime readiness limits.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "0130318e1397ad7b9fc9bad7e6016835b7fb4763e2bf9cff462cf64f128891bb",
+      "sha256": "26e92eb432a013c71df04778b161d953ad6577ec1ab48daa71aa43f2b5f8bf6d",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record local workflow concurrency migration and 217 passing contracts without closing external environment, publisher or coordinated activation gates.",
+      "reviewNotes": "Record Admin/mail naming package and focused validation, distinguishing mocked browser and isolated unit results from open external and API integration gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2347,12 +2347,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "8de97c03174886b8ab28dda08454cab148fe750b9e8d8d0c6c84bd667e177bf6",
+      "sha256": "91a8ec87c8ef849e2f3088b97d6a301d3b2b8db20a2963caf1af20be2110a781",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record local concurrency rename and read-only remote environment verification, with explicit limited-run-snapshot scope and no secret or remote mutation claims.",
+      "reviewNotes": "Record aligned C# fallback and selected Admin/Operator handbook links without implying deployed host availability, verified mail delivery or altered security boundaries.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -3747,12 +3747,12 @@
     },
     {
       "path": "PVAD.WebApi/AdminDocumentation/admin-documentation.json",
-      "sha256": "95dd9ea743775e290599c29f2400a6b36508b4e9b55f81ab1a971869e0813d87",
+      "sha256": "cdedf7ec3157fe520a27252214ca164ecd203ebbb84960617394aef500190df9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/AdminDocumentation/admin-documentation.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Update six obsolete domain occurrences to selected Admin/Operator hosts. Retain stable Grafana dashboard UIDs, local links, CSRF aliases and diagnostic IDs; protected content remains behind Admin API authorization.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4363,16 +4363,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "PVAD.WebApi/Services/Licensing/PvadOfflineLicenseValidator.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Services/Mail/PvadMailOptions.cs",
-      "sha256": "772a146cb91c74a4c504b8178fde29e86361851545c6c967156d3daf490509af",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Services/Mail/PvadMailOptions.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing host/sender defaults are retained pending the explicitly open coordinated domain/mail cutover.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8497,12 +8487,12 @@
     },
     {
       "path": "websites/PVAD.Admin/tests/documentation-contract.test.js",
-      "sha256": "9ef741d28f76ff3740197bd213085bec9eea782b886997eded9797aacd698f97",
+      "sha256": "9db57771336672bb695377f990e4d5a1d211f079766bea212faac2b5069ecac8",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Admin/tests/documentation-contract.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Verify canonical protected handbook links, real dashboard UID references and exclusion from public Company/Documentation. Deliberate old-name assertions cover compatibility and regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9360,12 +9350,12 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "99786cbb804a1d0a8bc8e0ef6d1c1b9bb88bebc0028b44f6aa6aedfbd6abb9da",
+      "sha256": "946490f5f5a9235642db6e7859942535fd397e5f81cc7b60cf6f5c91620c84cc",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Verify the selected sender independently of support while retaining compatibility assertions and proving no delivery enablement or publisher selection.",
+      "reviewNotes": "Check approved sender and display-name defaults across configuration and C# options; retain compatibility assertions and disabled delivery/publication gates.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

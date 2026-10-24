@@ -2810,3 +2810,31 @@ change or production deployment was performed. Full release readiness remains op
   dispatch, publication, push or deployment was executed. Prior API/database,
   Grafana and live-host blockers remain open.
 - Patch fragment: `pvad-workflow-lock-names`.
+
+## Protected Admin Links And Mail Fallback (2026-10-24)
+
+- Workflow work is committed as `3f8ba8af`. The protected Admin handbook now uses
+  the selected Admin/Operator domains for its host instruction and five reference
+  links. Dashboard UIDs, local links, CSRF compatibility headers and diagnostics
+  are retained. No protected guidance or images moved into public bundles.
+- `PvadMailOptions` now matches the approved sender in appsettings and the offline
+  profile. Default delivery stays disabled; customer sender, display-name and
+  reply-to configuration remain supported. Existing queued mail is untouched.
+- All 217 configuration/Legal/deployment/versioning/link contracts and 38 Admin
+  tests pass without skips; Admin production build and version/fragment checks
+  pass. Logs: `/tmp/pvad-admin-mail-contracts.log`,
+  `/tmp/pvad-admin-guide-tests.log`, `/tmp/pvad-admin-guide-build.log`.
+- The .NET test command built the API/test dependency graph, with existing
+  compiler, unavailable vulnerability-feed and NPOI license warnings. Its first
+  test launch was blocked by the sandbox's local socket restriction. An approved
+  no-build rerun passes both isolated `PvadMailOptionsTests` (zero skips); it does
+  not start WebApplicationFactory, contact PostgreSQL or close the API integration
+  startup blocker. No package license acceptance was changed.
+- Desktop/mobile production-preview handbook smoke passes using synthetic
+  intercepted auth/handbook/image responses. It covers anonymous redirect,
+  selected-topic focus, search, image loading and horizontal overflow. Chromium
+  needed approved execution outside the sandbox. The temporary preview server
+  was stopped. Log: `/tmp/pvad-admin-guide-browser.log` (successful silent exit).
+- Tests do not prove actual customer authentication, DNS/TLS, external route
+  availability or SMTP delivery. No mail, remote write, push or deployment ran.
+  Patch fragment: `pvad-admin-guide-and-mail-defaults`; VERSION remains 1.1.0.

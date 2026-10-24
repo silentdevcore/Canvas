@@ -31,7 +31,33 @@ test('Admin handbook is an authenticated PVAD.Admin route', () => {
 
 test('public Documentation and Company do not expose Admin guidance', () => {
   assert.doesNotMatch(publicDocumentationSource, /adminDocGroups|id="administration"|renderAdminDocumentation|Admin documentation/);
-  assert.doesNotMatch(companySource, /admin\.powerdoxautomation\.com|\/documentation#admin-/);
+  assert.doesNotMatch(companySource, /admin\.(?:powerdoxautomation|pvade)\.com|\/documentation#admin-/);
+});
+
+test('protected handbook uses selected host targets and retains dashboard and diagnostic identities', async () => {
+  const targets = JSON.parse(await readFile(
+    new URL('../../../deploy/rename/pvade-targets.candidate.json', import.meta.url), 'utf8'));
+  assert.doesNotMatch(handbookJson, /powerdoxautomation\.com/i);
+  const links = topics.flatMap(topic => (topic.references ?? []).map(reference => reference.href));
+  for (const [role, path] of [
+    ['admin', '/system-status'],
+    ['admin', '/dependency-compliance'],
+    ['admin', '/openapi/v1.json'],
+    ['operator', '/operator/grafana/'],
+    ['operator', '/documentation/'],
+  ]) assert.ok(links.includes(targets.hosts[role] + path), `${role}${path}`);
+  assert.ok(topics.some(topic => topic.notes.some(note => note.includes(new URL(targets.hosts.admin).hostname))));
+  const dashboardIds = ['pxa-platform-overview', 'pxa-infrastructure', 'pxa-operations',
+    'pxa-document-operations', 'pxa-browser-health'];
+  for (const id of dashboardIds) {
+    const dashboard = JSON.parse(await readFile(new URL(
+      `../../../deploy/observability/grafana/dashboards/${id.replace(/^pxa-/, 'pvad-')}.json`,
+      import.meta.url), 'utf8'));
+    assert.equal(dashboard.uid, id);
+    assert.ok(links.some(link => new URL(link).pathname.includes(`/d/${dashboard.uid}/`)), id);
+  }
+  assert.match(handbookJson, /X-PXA-CSRF remains a compatibility alias/);
+  assert.match(handbookJson, /PXAAPI001/);
 });
 
 test('handbook content is fetched after authentication instead of bundled in the SPA', () => {

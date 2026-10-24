@@ -111,6 +111,12 @@ sender, separately from `support@pvade.com`. The application default and offline
 candidate now use that sender; delivery remains disabled. SMTP credentials,
 mailbox/provider configuration, SPF/DKIM/DMARC and delivery verification are not
 approved or configured by this naming decision.
+The C# mail-options fallback is aligned with the same approved sender, including
+when the address is omitted from configuration. Explicit customer overrides
+remain supported. Protected Admin handbook host and reference links now use the
+selected Admin/Operator hosts. Existing Grafana dashboard UIDs, CSRF compatibility
+headers and diagnostic IDs remain unchanged; these link corrections do not prove
+DNS/TLS availability or widen access to the protected handbook.
 The owner again reports no publication; this does not identify a registered
 container publisher. All three publisher selections remain null.
 Publisher ownership, actual sender verification and domain control remain

@@ -90,6 +90,10 @@ test('approved transactional sender is distinct from support and does not enable
   assert.equal(configuration.Mail.SenderAddress, targets.senderAddress);
   assert.equal(configuration.Mail.Transport, 'Disabled');
   assert.equal(configuration.Mail.SenderName, 'PVADE');
+  const defaults = read('PVAD.WebApi/Services/Mail/PvadMailOptions.cs');
+  assert.ok(defaults.includes(`public string SenderAddress { get; set; } = "${targets.senderAddress}";`));
+  assert.ok(defaults.includes(`public string SenderName { get; set; } = "${configuration.Mail.SenderName}";`));
+  assert.ok(defaults.includes(`public string Transport { get; set; } = "${configuration.Mail.Transport}";`));
   assert.deepEqual(targets.publishers, { nuget: null, npm: null, container: null });
   assert.ok(targets.unverified.includes('mail-delivery'));
   assert.ok(targets.unverified.includes('publisher-ownership'));

@@ -27,7 +27,7 @@
           "endpoint": "GET /api/pvad/v1/auth/me",
           "screenshot": "dashboard.png",
           "notes": [
-            "Use the dedicated Admin host: admin.powerdoxautomation.com for PVADE Cloud or admin.{customer-host} for a customer deployment.",
+            "Use the dedicated Admin host: admin.pvade.com for PVADE Cloud or admin.{customer-host} for a customer deployment.",
             "The browser calls the API through same-origin /api; PVAD.Company intentionally does not expose an Admin navigation link.",
             "The active organization controls tenant-scoped lists and mutations."
           ],
@@ -370,7 +370,7 @@
           "references": [
             {
               "label": "Production Admin system status",
-              "href": "https://admin.powerdoxautomation.com/system-status"
+              "href": "https://admin.pvade.com/system-status"
             },
             {
               "label": "Local Admin system status",
@@ -378,7 +378,7 @@
             },
             {
               "label": "Production operator dashboards",
-              "href": "https://operator.powerdoxautomation.com/operator/grafana/"
+              "href": "https://operator.pvade.com/operator/grafana/"
             },
             {
               "label": "Local operator dashboards",
@@ -576,7 +576,7 @@
           "references": [
             {
               "label": "Production Dependency compliance",
-              "href": "https://admin.powerdoxautomation.com/dependency-compliance"
+              "href": "https://admin.pvade.com/dependency-compliance"
             },
             {
               "label": "Local Dependency compliance",
@@ -619,7 +619,7 @@
           "references": [
             {
               "label": "Protected operator runbooks",
-              "href": "https://operator.powerdoxautomation.com/documentation/"
+              "href": "https://operator.pvade.com/documentation/"
             },
             {
               "label": "Local protected operator runbooks",
@@ -703,7 +703,7 @@
           "references": [
             {
               "label": "Admin OpenAPI document",
-              "href": "https://admin.powerdoxautomation.com/openapi/v1.json"
+              "href": "https://admin.pvade.com/openapi/v1.json"
             }
           ],
           "apiExample": {

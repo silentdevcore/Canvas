@@ -6,7 +6,7 @@ path	classification	old_name_lines	path_match
 ARCHITECTURE.md	documentation-or-history	3	false
 CONTRIBUTING_RENDERERS.md	documentation-or-history	1	false
 PROJECT_SUMMARY.md	documentation-or-history	1	false
-PVAD.WebApi/AdminDocumentation/admin-documentation.json	legal-or-retained-contract	14	false
+PVAD.WebApi/AdminDocumentation/admin-documentation.json	legal-or-retained-contract	8	false
 PVAD.WebApi/AdminDocumentation/images/audit.png	binary-review-required	0	false
 PVAD.WebApi/AdminDocumentation/images/dashboard-mobile.png	binary-review-required	0	false
 PVAD.WebApi/AdminDocumentation/images/dashboard.png	binary-review-required	0	false
@@ -78,7 +78,6 @@ PVAD.WebApi/Services/Jobs/PvadJobProcessor.cs	source	3	false
 PVAD.WebApi/Services/Licensing/PvadLicenseDownload.cs	source	1	false
 PVAD.WebApi/Services/Licensing/PvadLicenseSigningService.cs	source	1	false
 PVAD.WebApi/Services/Licensing/PvadOfflineLicenseValidator.cs	source	28	false
-PVAD.WebApi/Services/Mail/PvadMailOptions.cs	source	1	false
 PVAD.WebApi/Services/Mail/SmtpMailTransport.cs	source	1	false
 PVAD.WebApi/Services/MigrationResult.cs	source	1	false
 PVAD.WebApi/Services/Pdf/PvadEInvoiceValidationEvidenceService.cs	source	1	false
@@ -913,7 +912,7 @@ websites/PVAD.Account/tests/returnUrl.test.ts	source	3	false
 websites/PVAD.Account/tests/signedInSignal.test.ts	source	6	false
 websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs	source	2	false
 websites/PVAD.Admin/src/api.js	source	1	false
-websites/PVAD.Admin/tests/documentation-contract.test.js	source	3	false
+websites/PVAD.Admin/tests/documentation-contract.test.js	source	9	false
 websites/PVAD.Admin/tests/export-branding.test.js	source	3	false
 websites/PVAD.Admin/tests/release-notes-contract.test.js	source	1	false
 websites/PVAD.Company/COMPANY_STRATEGY.md	documentation-or-history	1	false

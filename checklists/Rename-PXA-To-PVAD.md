@@ -942,6 +942,26 @@ See [workflow lock cutover](../docs/pvad-rename-release-approvals.md#workflow-lo
 Patch fragment: `pvad-workflow-lock-names`. Earlier API, live-host, Grafana and
 publisher gates remain open; this follow-up does not close them.
 
+## Admin Guide And Mail Defaults Follow-up (2026-10-24)
+
+- [x] Commit workflow concurrency migration separately (`3f8ba8af`).
+- [x] Align all six obsolete domain occurrences in the protected Admin handbook
+  with the selected Admin/Operator hosts (one host instruction and five links).
+  Keep local endpoints, dashboard UIDs, diagnostics and compatibility headers.
+- [x] Align the C# mail-options fallback with the approved sender, appsettings and
+  offline deployment profile. Preserve explicit customer configuration overrides
+  and Disabled default transport.
+- [x] Validate 217 Node contracts, 38 Admin tests, the Admin production build and
+  two isolated .NET mail-options tests. Desktop/mobile handbook smoke passes with
+  synthetic intercepted API responses, including anonymous-login redirect,
+  topic navigation, search, protected images and overflow checks.
+- [ ] Validate deployed hosts, DNS/TLS, actual authentication and mail delivery
+  under the existing external readiness gates. Local source/link checks and
+  mocked browser responses do not establish those properties.
+
+Patch fragment: `pvad-admin-guide-and-mail-defaults`. VERSION stays 1.1.0. No
+stored messages, secrets, authentication boundaries or remote resources changed.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

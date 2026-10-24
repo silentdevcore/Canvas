@@ -9,7 +9,7 @@ public sealed class PvadMailOptions
     public string DesignerBaseUrl { get; set; } = "http://localhost:5176";
     public string SupportUrl { get; set; } = "http://localhost:5173/support.html";
     public string SenderName { get; set; } = "PVADE";
-    public string SenderAddress { get; set; } = "no-reply@powerdoxautomation.com";
+    public string SenderAddress { get; set; } = "no-reply@pvade.com";
     public string? ReplyToAddress { get; set; }
     public bool Enabled { get; set; } = true;
     public string SmtpHost { get; set; } = "localhost";
