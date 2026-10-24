@@ -157,14 +157,17 @@ export function createDeploymentEvidence({
   });
   if (normalizedContainers.length !== 2)
     throw new Error('Deployment evidence requires WebApi and Observability Relay container digests.');
-  const expectedContainerSuffixes = [
-    `/pxa-webapi:${release.version}`,
-    `/pxa-observability-webhook-relay:${release.version}`,
-  ];
-  for (const suffix of expectedContainerSuffixes) {
-    if (!normalizedContainers.some(container => container.image.endsWith(suffix)))
-      throw new Error(`Deployment evidence is missing immutable container ${suffix.slice(1)}.`);
-  }
+  const normalizedRepository = requireText(repository, 'Repository');
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(normalizedRepository))
+    throw new Error('Repository must identify one GitHub owner and repository.');
+  const publisher = `ghcr.io/${normalizedRepository.split('/')[0].toLowerCase()}`;
+  const identities = ['PVAD', 'PXA'].filter(identity => {
+    const prefix = identity.toLowerCase();
+    return [`${prefix}-webapi`, `${prefix}-observability-webhook-relay`].every(name =>
+      normalizedContainers.some(container => container.image === `${publisher}/${name}:${release.version}`));
+  });
+  if (identities.length !== 1)
+    throw new Error('Deployment evidence requires one complete immutable container family from the repository publisher.');
 
   const normalizedStartedAt = new Date(requireText(startedAt, 'Started timestamp'));
   const normalizedCompletedAt = new Date(requireText(completedAt, 'Completed timestamp'));
@@ -177,6 +180,7 @@ export function createDeploymentEvidence({
     schemaVersion: 1,
     product: 'PVAD',
     artifactIdentity: release.artifactIdentity ?? 'PXA',
+    containerIdentity: identities[0],
     deploymentId: `${request.environment}-${release.version}-${normalizedWorkflowRunId}`,
     version: release.version,
     tag: release.tag,
@@ -188,7 +192,7 @@ export function createDeploymentEvidence({
     workflowRunId: normalizedWorkflowRunId,
     workflowRunUrl: requireText(workflowRunUrl, 'Workflow run URL'),
     actor: requireText(actor, 'Actor'),
-    repository: requireText(repository, 'Repository'),
+    repository: normalizedRepository,
     status: normalizedStatus,
     adapter: normalizedAdapter,
     startedAt: normalizedStartedAt.toISOString(),

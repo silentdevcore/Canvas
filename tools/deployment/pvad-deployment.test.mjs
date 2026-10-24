@@ -256,7 +256,7 @@ test('records validated, successful, failed, retry, and rollback evidence immuta
     startedAt: '2026-08-03T12:00:00Z',
     completedAt: '2026-08-03T12:01:00Z',
     containers: [containers[0], containers[0]],
-  }), /missing immutable container/);
+  }), /complete immutable container family/);
   for (const operation of ['retry', 'rollback']) {
     const evidence = createDeploymentEvidence({
       release,
@@ -276,6 +276,35 @@ test('records validated, successful, failed, retry, and rollback evidence immuta
     assert.equal(evidence.sourceRunId, '6999');
     assert.equal(evidence.version, version);
   }
+});
+
+test('container generations remain independent of archive names and preserve immutable evidence', () => {
+  const release = verifiedRelease();
+  const args = {
+    release, environment: 'staging', operation: 'deploy', workflowRunId: '7005',
+    workflowRunUrl: 'https://github.com/silentdevcore/Canvas/actions/runs/7005',
+    actor: 'test-operator', repository: 'silentdevcore/Canvas', status: 'validated',
+    startedAt: '2026-08-03T12:00:00Z', completedAt: '2026-08-03T12:01:00Z',
+  };
+  const canonical = containers.map(value => ({ ...value, image: value.image.replace('/pxa-', '/pvad-') }));
+  for (const [identity, images] of [['PVAD', canonical], ['PXA', containers]]) {
+    const before = JSON.stringify({ release, images });
+    for (const operation of ['deploy', 'retry', 'rollback']) {
+      const evidence = createDeploymentEvidence({ ...args, operation,
+        sourceRunId: operation === 'deploy' ? undefined : '6999', containers: images });
+      assert.equal(evidence.containerIdentity, identity);
+      assert.equal(evidence.artifactIdentity, 'PVAD');
+      assert.deepEqual(evidence.containers, images);
+    }
+    assert.equal(JSON.stringify({ release, images }), before);
+  }
+  for (const images of [
+    [canonical[0], containers[1]], [canonical[0], canonical[0]],
+    canonical.map(value => ({ ...value, image: value.image.replace('ghcr.io/silentdevcore', 'other.example/silentdevcore') })),
+    canonical.map(value => ({ ...value, image: value.image.replace('/silentdevcore/', '/other-owner/') })),
+    canonical.map(value => ({ ...value, image: value.image.replace(':1.1.0', ':latest') })),
+    canonical.map(value => ({ ...value, image: value.image.replace(':1.1.0', ':1.1.1') })),
+  ]) assert.throws(() => createDeploymentEvidence({ ...args, containers: images }), /complete immutable container family/);
 });
 
 test('workflow binds immutable tags to protected serialized environments without deploying', async () => {

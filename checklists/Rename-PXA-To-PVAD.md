@@ -55,6 +55,31 @@ Documentation 58 tests/build pass. Patch fragment: `pvad-schema-domain-aliases`.
 No schema hosting, live authentication, database change or API readiness claim;
 VERSION remains 1.1.0 and prior integration blockers remain open.
 
+Container/workflow preparation (2026-10-23): schema work was committed separately
+as `6875a258`. An offline generator now creates paired release/deployment YAML
+candidates in ignored artifacts. New publication, pull and metadata-check names
+are coordinated in the candidate; historical inspection selects its exact image
+family explicitly. Active workflow YAML, concurrency groups, protected environment
+bindings, action pins and permissions remain unchanged. The evidence verifier
+accepts either complete family from the repository-owner GHCR namespace and
+rejects mixed, duplicate, mutable-tag or foreign-publisher inputs. New evidence
+records container identity separately from archive identity, without relabeling
+historical records. 212 Node contracts and version/fragment checks pass. No Docker,
+registry, GitHub or deployment operation was executed. Publisher ownership and
+immutable-version image mapping remain external gates. Patch fragment:
+`pvad-container-workflow-preparation`; VERSION remains 1.1.0.
+
+Grafana preparation (2026-10-24): the remaining dashboard provider and folder
+labels have a tested offline PVAD candidate, original provisioning copy and
+source-hash report. Active provisioning and installed data remain untouched.
+Unexpected configuration shapes fail preparation. The
+[cutover guide](../docs/pvad-grafana-provider-cutover.md) requires folder/access
+inventory, state backup and restore, placement validation and staging rollback;
+restoring YAML alone is not state recovery. All 215 Node contracts pass without
+skips; version/fragment checks pass. This is preparation, not an activated rename
+or runtime Grafana validation. Patch fragment: `pvad-grafana-rename-preparation`.
+Prior API/database and external publication gates remain open. VERSION is 1.1.0.
+
 Broad validation follow-up (2026-10-23, source commit `5a0f48c4`): the complete
 Solution builds with zero errors and 171 warnings. The full default test attempt
 was stopped after repeated API application-start failures caused by local

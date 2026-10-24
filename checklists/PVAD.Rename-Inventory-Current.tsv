@@ -204,7 +204,7 @@ checklists/PVAD.Proven-Document-Fidelity.md	documentation-or-history	3	false
 checklists/PVAD.Python-SDK.md	documentation-or-history	8	false
 checklists/PVAD.Rename-Audit.md	documentation-or-history	22	false
 checklists/PVAD.Rename-Inventory.tsv	documentation-or-history	2002	false
-checklists/PVAD.Rename-Test-Report.md	documentation-or-history	73	false
+checklists/PVAD.Rename-Test-Report.md	documentation-or-history	74	false
 checklists/PVAD.SDK-Roadmap.md	documentation-or-history	9	false
 checklists/PVAD.Serialized-Contract-Inventory.tsv	documentation-or-history	137	false
 checklists/PVAD.Software-Valuation-And-Value-Growth.md	documentation-or-history	8	false
@@ -328,7 +328,7 @@ docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
 docs/pvad-rename-phase-review.md	documentation-or-history	6	false
 docs/pvad-rename-release-approvals.md	documentation-or-history	12	false
-docs/pvad-rename-reviewed-exceptions.json	source	285	false
+docs/pvad-rename-reviewed-exceptions.json	source	287	false
 docs/pvad-rename-rollback.md	documentation-or-history	1	false
 docs/pvad-rename-validation-blockers.md	documentation-or-history	1	false
 docs/pvad-schema-and-client-contracts.md	documentation-or-history	5	false
@@ -831,6 +831,8 @@ tools/configuration/pvad-compose.test.mjs	configuration	1	false
 tools/configuration/rename-artifact-audit.mjs	configuration	6	false
 tools/configuration/rename-artifact-audit.test.mjs	configuration	2	false
 tools/configuration/rename-boundaries.test.mjs	configuration	2	false
+tools/configuration/rename-container-workflows.mjs	configuration	6	false
+tools/configuration/rename-container-workflows.test.mjs	configuration	5	false
 tools/configuration/rename-content-review.mjs	configuration	3	false
 tools/configuration/rename-content-review.test.mjs	configuration	7	false
 tools/configuration/rename-cutover-candidate.mjs	configuration	2	false
@@ -838,6 +840,7 @@ tools/configuration/rename-cutover-candidate.test.mjs	configuration	9	false
 tools/configuration/rename-documentation.mjs	configuration	4	false
 tools/configuration/rename-file-pairs.mjs	configuration	4	false
 tools/configuration/rename-file-pairs.test.mjs	configuration	7	false
+tools/configuration/rename-grafana-provider.mjs	configuration	1	false
 tools/configuration/rename-ignore-contract.test.mjs	configuration	2	false
 tools/configuration/rename-index-review.mjs	configuration	2	false
 tools/configuration/rename-index-review.test.mjs	configuration	2	false
@@ -851,9 +854,9 @@ tools/configuration/shell-environment.test.mjs	configuration	10	false
 tools/configuration/telemetry-contract.test.mjs	configuration	7	false
 tools/configuration/tool-key-contract.test.mjs	configuration	14	false
 tools/configuration/workflow-identity.test.mjs	configuration	14	false
-tools/deployment/README.md	documentation-or-history	4	false
-tools/deployment/pvad-deployment.mjs	source	7	false
-tools/deployment/pvad-deployment.test.mjs	source	24	false
+tools/deployment/README.md	documentation-or-history	6	false
+tools/deployment/pvad-deployment.mjs	source	6	false
+tools/deployment/pvad-deployment.test.mjs	source	28	false
 tools/deployment/pxa-deployment.mjs	source	0	true
 tools/document-fidelity/fidelity.mjs	source	1	false
 tools/document-fidelity/fidelity.test.mjs	source	2	false

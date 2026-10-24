@@ -29,6 +29,11 @@ writes `product: PVAD` and records the artifact identity separately. The old
 `pxa-deployment.mjs` command delegates to `pvad-deployment.mjs` for compatibility.
 Published container repositories and protected GitHub environment names remain
 unchanged until an explicitly authorized infrastructure cutover.
+The local evidence verifier additionally accepts a complete PVAD image pair and
+records `containerIdentity` separately from archive identity. It requires exact
+immutable version tags and the GHCR namespace matching the supplied repository
+owner. Mixed generations, duplicate roles, other publishers and mutable tags are
+rejected. Existing records, archives, image strings and digests are never relabeled.
 The [workflow binding register](../../docs/pvad-rename-release-approvals.md#retained-workflow-bindings)
 lists each retained identity and the coordinated changes needed. Source comments
 do not certify remote configuration, approve publication or execute a cutover.
@@ -42,3 +47,36 @@ Repository environments:
 Both environments are serialized independently by workflow concurrency. The
 workflow requires explicit confirmation and fails before release downloads when
 the operation, version, environment, or source run is invalid.
+
+## Offline Container Workflow Candidate
+
+Generate a candidate from the current active workflow definitions:
+
+```bash
+node tools/configuration/rename-container-workflows.mjs
+node --test tools/configuration/rename-container-workflows.test.mjs tools/deployment/pvad-deployment.test.mjs
+```
+
+Output under `artifacts/rename/container-workflows/` is ignored local preparation:
+
+- `release.candidate.yml`: both image producers and pull/metadata checks use
+  canonical repository leaf names. The GitHub owner expression is retained as a
+  template; it does not establish an approved publisher or registry permission.
+- `deployment-validation.candidate.yml`: an explicit image-family choice selects
+  the original PXA or new PVAD names for the requested immutable version. It
+  defaults to PXA for historical releases; new PVAD images require selecting PVAD.
+  Archive names are never used to guess the image family.
+- `report.json`: `deploymentAuthorized: false` and outstanding approval gates.
+
+The generator performs no Docker, GitHub, registry or deployment operation and
+does not edit `.github/workflows`. It accepts no apply/publish flags and refuses
+unexpected producer/consumer structure. Local tests parse candidate YAML, check
+Bash syntax and simulate image selection; they do not verify actual image
+availability or registry digests.
+
+Before activating a candidate, obtain publisher/repository ownership approval,
+record the actual image family and digests per immutable version, and validate
+registry access plus a non-production run. Review and switch both active
+workflows together. Keep existing concurrency groups and protected environment
+bindings until their own coordinated migration is approved. Do not republish,
+retag, overwrite or invent historical images to make a rollback pass.

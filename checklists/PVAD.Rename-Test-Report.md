@@ -2722,3 +2722,54 @@ change or production deployment was performed. Full release readiness remains op
   These temporary logs are not immutable approval records.
 - Patch fragment: `pvad-schema-domain-aliases`; VERSION remains 1.1.0.
   No push, release, tag, infrastructure cutover or production deployment occurred.
+
+## Offline Container Workflow Preparation (2026-10-23)
+
+- Prerequisite schema changes are committed as `6875a258`. Active `.github/workflows`
+  files are byte-unchanged in this follow-up. No GitHub setting or workflow run
+  was modified or triggered.
+- `rename-container-workflows.mjs` reads the current release/deployment definitions
+  and emits ignored candidates under `artifacts/rename/container-workflows/`.
+  It renames both image publishers and pull/metadata consumers together. The
+  candidate deployment inspector has an explicit image-family choice, defaulting
+  to PXA for historical versions rather than guessing from archive names.
+- Workflow permissions, action pins, locks and protected-environment bindings are
+  retained. Unknown source shapes or duplicate/missing image publishers/consumers
+  fail preparation. There is no apply, publish or deploy command.
+- The deployment evidence verifier accepts one complete canonical or historical
+  image family with exact immutable tags and digests, bound to the repository-owner
+  GHCR namespace. Mixed families, duplicate roles, wrong versions, mutable tags,
+  alternate namespaces and registries are rejected. New evidence includes
+  `containerIdentity` independently of `artifactIdentity`; no prior record or
+  image digest is renamed. The verifier does not prove registry ownership or image
+  availability by itself.
+- 212 Node contracts pass without skips. Tests parse generated YAML, check Bash
+  syntax and preserved workflow boundaries, simulate image selection and exercise
+  both families for deploy/retry/rollback without mutating source evidence.
+  No real Docker command, registry lookup or image publication was executed.
+- Version/fragment validation passes. Patch fragment:
+  `pvad-container-workflow-preparation`; VERSION stays 1.1.0.
+- Logs: `/tmp/pvad-container-workflow-contracts.log`. Generated candidates and the
+  report carry `deploymentAuthorized: false`. Actual publisher ownership, registry
+  access, immutable-version mapping, staging validation and owner approval remain
+  open; concurrency/environment renaming needs its own coordinated review.
+  Prior API/database and live-host validation blockers remain unchanged.
+
+## Offline Grafana Provider Preparation (2026-10-24)
+
+- Added an offline generator for canonical provider/folder labels. Outputs include
+  candidate YAML, exact original YAML and a source-checksum report with
+  `deploymentAuthorized: false`. Active provisioning, Compose, databases,
+  datasource and dashboard UIDs are unchanged.
+- Three new tests cover the exact two-label change, YAML serialization, original
+  byte preservation, configuration drift rejection and rejection of an apply
+  command. These tests do not start Grafana or prove a persisted-state migration.
+- The cutover guide requires a folder/permission inventory, consistent state
+  backup and tested restoration, approved placement strategy, staging checks and
+  rollback. An original provisioning copy is explicitly not a database backup.
+- Validation: all 215 selected configuration, Legal, deployment, versioning and
+  shared-link Node contracts pass; zero skips. Version and release-fragment
+  checks pass. Log: `/tmp/pvad-grafana-rename-contracts.log`.
+- Patch fragment: `pvad-grafana-rename-preparation`. VERSION stays 1.1.0. No
+  container, registry, live Grafana, remote GitHub or deployment operation was
+  executed. Earlier API/PostgreSQL and live-host validation blockers remain open.

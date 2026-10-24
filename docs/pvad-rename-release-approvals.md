@@ -48,11 +48,28 @@ job dependencies, action pins, filesystem references and Bash syntax only.
 Before a future image-name switch, explicitly decide how historical versions map
 to image repositories. Archive identity and container identity are distinct in
 the current transition: deployment accepts both complete archive generations,
-but the current publisher and container evidence verifier still use the retained
-image names. Never silently relabel, overwrite or invent an immutable historical
-container digest. This gate remains open until authorized and tested.
+but the active workflow publisher and inspector still use retained image names.
+The evidence verifier now supports either complete image family, with strict
+publisher/version checks and an explicit `containerIdentity` in new records.
+Never silently relabel, overwrite or invent an immutable historical container
+digest. This gate remains open until authorized and tested.
+
+Local preparation now exists in `tools/configuration/rename-container-workflows.mjs`.
+It generates ignored YAML candidates under `artifacts/rename/container-workflows/`
+and never edits active workflows, contacts GitHub or publishes images. The candidate
+updates the two producers and their consumers together, preserving permissions,
+action pins, concurrency groups and protected-environment bindings. Historical
+container family selection is explicit and independent of archive names.
+This is not approval of a publisher, proof of image availability or a completed
+remote cutover. See [deployment control](../tools/deployment/README.md#offline-container-workflow-candidate).
 
 ## Concrete Answers Needed
+
+Grafana provider/folder labels have an
+[offline candidate and cutover guide](pvad-grafana-provider-cutover.md).
+This does not authorize active provisioning changes or prove permission migration.
+Folder inventory, consistent state backup, staging checks and rollback rehearsal
+remain required before activation.
 
 Owner confirmation on 2026-10-21 selects `pvade.com` as the target domain.
 This records the intended name, not registrar/DNS/TLS ownership evidence.

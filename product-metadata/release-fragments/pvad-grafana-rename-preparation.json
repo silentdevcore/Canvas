@@ -1,0 +1,8 @@
+{
+  "id": "pvad-grafana-rename-preparation",
+  "impact": "patch",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Add an offline Grafana rename candidate and migration guidance that preserve active dashboard provisioning until placement and access checks are approved.",
+  "breaking": false
+}

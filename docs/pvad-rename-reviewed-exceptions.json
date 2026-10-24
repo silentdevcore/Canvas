@@ -1207,7 +1207,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "e593088badbfc27d2ea658b8761911885c17b5b0bcf9b62f7deb67d38cb7a544",
+      "sha256": "0773ebaf303e7585b49cd218c769f44c74cfdfb98e05f59fba0966dfba48f168",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1227,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "cdfb385bd20bbe55569ad2349ff5e52c1a65756335f8caff09143bcabe0b8fc0",
+      "sha256": "ac8123bd99b6b34bc5027949ff1f1d0635eecde99029b4a7327c0474d121a4b9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Point-in-time checkpoint records canonical schema IDs, retained aliases and immutable legacy files. Unit/distribution checks do not approve public hosting, format conformance or earlier API/database blockers.",
+      "reviewNotes": "Record 215 passing offline contracts and the explicit limits of Grafana source preparation; retain previous validation history.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1337,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "04174cd477b3c582f52e544d1dbfddac291856ec8acebee77657cd01ae7dca6b",
+      "sha256": "1ed0a4ea7441cad2b51532575ea453fbcfabb5655968601e4ef8f7d6cbec98a7",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Tracker preserves compatibility history and records schema-domain migration without reapproving protected deployment identifiers or historical evidence.",
+      "reviewNotes": "Record tested offline Grafana preparation without claiming active infrastructure migration or closing API and external readiness gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1927,12 +1927,12 @@
     },
     {
       "path": "deploy/observability/README.md",
-      "sha256": "2c56ac60acea88594b2c4a5249ecc2720b4994d2b28e48f2fecd754650ecccb9",
+      "sha256": "4ab2d95acf538cbc0da22c738bc1618b8216ec0d2546b864d7d212e806b159c6",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Default Operator link now uses the selected domain. Legacy wire headers, retained monitoring bindings and compatibility overlays remain explicit; the target is not verified live.",
+      "reviewNotes": "Link offline Grafana provider preparation while keeping active placement, UIDs, permissions and cutover boundaries unchanged.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -2367,12 +2367,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "ff256ede2b8acd3de4e7f3513e3cbb501592b78584f5c6a75263c7341d6050cd",
+      "sha256": "c8b06646756fae0803103f90c1ab07a71bc87834bdba7fded03a0df5781471af",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Document offline Grafana preparation, preserving external approval gates and all historical identity decisions.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -7697,22 +7697,22 @@
     },
     {
       "path": "tools/deployment/pvad-deployment.mjs",
-      "sha256": "4dabf643261b7cb5beb10d8eb32bb4c8b2a0155cc381b299c8efd2f3caf982c6",
+      "sha256": "cfbcf8a6f2cf472b4d54e72f0e171aafcddb40c7eda1fce2d30201b33fe7496d",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/deployment/pvad-deployment.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Both complete image generations are explicitly validated against exact immutable version and repository-owner GHCR namespace; retained PXA names and archive readers support existing evidence without relabeling.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/deployment/pvad-deployment.test.mjs",
-      "sha256": "0c088aa56d8168ab0ff6fab8c51a03913b57c06ff715055fbd90f75f496ea257",
+      "sha256": "4335a71820e1749f1872e4bedf5a66d12e054b33270166a7148f936e940c84a3",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/deployment/pvad-deployment.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Legacy image/tag/archive fixtures remain explicit compatibility tests. New tests require complete canonical pairs, reject mixed/foreign/mutable inputs and preserve original evidence across retry/rollback.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7727,12 +7727,12 @@
     },
     {
       "path": "tools/deployment/README.md",
-      "sha256": "8b1766d27cbb3992619530a9eaddc27ea457c4da95862448b57fa97a3abe5b49",
+      "sha256": "87a29afcad61021c3b552ab716ef659e56e143c33ee5ce6102e90d21d03ed8cb",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Document distinct artifact/container identity and candidate-only activation. Historical image names and protected environment IDs remain required compatibility and deployment-boundary references.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -9387,6 +9387,36 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Contract checks canonical frontend/backend origin agreement while preserving historical scope, Grafana, restore and unchanged mail-sender assertions.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/rename-container-workflows.mjs",
+      "sha256": "70dee2a90cba3d1c7a9989f91072c818e04c8b121303e4e5bf6f8601bc82c32e",
+      "reasons": [
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Offline source transformation intentionally reads retained PXA image leaves and produces canonical candidates outside active workflows, preserving protected identifiers and reporting approval blockers.",
+      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+    },
+    {
+      "path": "tools/configuration/rename-container-workflows.test.mjs",
+      "sha256": "7ea1a960e92a0b3a731bf876cf8dd971b3e1bf2676e0786da228e7407e04f11d",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Synthetic old names verify paired cutover transformation, historical image selection and unchanged locks/environments. Shell simulation stops before any real registry access.",
+      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+    },
+    {
+      "path": "tools/configuration/rename-grafana-provider.mjs",
+      "sha256": "86d1ea6efdb85416f62df4dbe796206a3886594b57e89a26d2af8203d0c2e67a",
+      "reasons": [
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Read the exact legacy Grafana provisioning and emit an offline canonical candidate only; reject changed placement policy and never apply it.",
+      "boundaryGuide": "docs/pvad-grafana-provider-cutover.md"
     }
   ],
   "reviewStatus": "reviewed"

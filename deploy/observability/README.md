@@ -27,6 +27,8 @@ Alertmanager datasource. Inspect provisioning logs and saved dashboard queries
 after deployment; name-based custom queries may need manual updates.
 The dashboard provider identity and existing legacy folder are intentionally retained
 until dashboard placement and folder permissions can be migrated explicitly.
+An [offline provider rename candidate and cutover guide](../../docs/pvad-grafana-provider-cutover.md)
+prepare the remaining folder/provider labels without changing installed state.
 See the [infrastructure mapping](../../docs/pvad-infrastructure-mapping.md) before
 an upgrade. Stop old writers first, preserve the installed project name and keys,
 and never run both generations on the same storage. Configuration checks are not
