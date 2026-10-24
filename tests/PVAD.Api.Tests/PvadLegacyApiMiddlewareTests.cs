@@ -54,6 +54,34 @@ public sealed class PvadLegacyApiMiddlewareTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.InvokeAsync(context));
 
         Assert.Equal("/api/pxa/v1/version", context.Request.Path.Value);
+        context.Request.Path = "/api/pvad/v1/version";
+        Assert.False(PvadLegacyApiMiddleware.IsLegacyRequest(context));
+    }
+
+    [Theory]
+    [InlineData("/api/pxa/v1/designer/templates", true)]
+    [InlineData("/api/pxa/templates/render-design", true)]
+    [InlineData("/api/templates/render-design", true)]
+    [InlineData("/api/pvad/v1/designer/templates", false)]
+    public async Task Rewritten_requests_keep_their_error_type_identity(string path, bool legacy)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = path;
+        var middleware = new PvadLegacyApiMiddleware(request =>
+        {
+            Assert.Equal(legacy, PvadLegacyApiMiddleware.IsLegacyRequest(request));
+            var problem = PvadApiProblems.Create(request, 409);
+            Assert.Equal(problem.Extensions[legacy ? "legacyType" : "canonicalType"], problem.Type);
+            var conflict = PvadApiProblems.TemplateConflictTypeIdentity(request);
+            Assert.Equal(legacy ? conflict.LegacyType : conflict.CanonicalType, conflict.Type);
+            return Task.CompletedTask;
+        });
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(path, context.Request.Path.Value);
+        context.Request.Path = "/api/pvad/v1/version";
+        Assert.False(PvadLegacyApiMiddleware.IsLegacyRequest(context));
     }
 }
 

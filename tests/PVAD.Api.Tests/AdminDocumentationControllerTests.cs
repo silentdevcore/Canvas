@@ -55,8 +55,12 @@ public sealed class AdminDocumentationControllerTests : IClassFixture<WebApplica
     [Fact]
     public void Protected_handbook_covers_system_status_and_operator_links()
     {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
+            directory = directory.Parent;
         var path = Path.Combine(
-            factory.Services.GetRequiredService<IWebHostEnvironment>().ContentRootPath,
+            directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the repository root."),
+            "PVAD.WebApi",
             "AdminDocumentation",
             "admin-documentation.json");
         using var handbook = JsonDocument.Parse(File.ReadAllText(path));
@@ -72,8 +76,8 @@ public sealed class AdminDocumentationControllerTests : IClassFixture<WebApplica
             .Select(reference => reference.GetProperty("href").GetString())
             .ToArray();
 
-        Assert.Contains("https://admin.powerdoxautomation.com/system-status", links);
-        Assert.Contains("https://operator.powerdoxautomation.com/operator/grafana/", links);
+        Assert.Contains("https://admin.pvade.com/system-status", links);
+        Assert.Contains("https://operator.pvade.com/operator/grafana/", links);
         Assert.Contains("http://localhost:3001/operator/grafana/", links);
         Assert.Contains("http://localhost:5087/health/live", links);
         Assert.Contains("http://localhost:5087/health/ready", links);

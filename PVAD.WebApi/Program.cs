@@ -569,8 +569,8 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "X-PVAD-CSRF";
 });
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<PvadDbContext>("pxa-database", tags: ["ready"])
-    .AddCheck<PvadMailHealthCheck>("pxa-mail", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
+    .AddDbContextCheck<PvadDbContext>(PvadHealthCheckNames.Database, tags: ["ready"])
+    .AddCheck<PvadMailHealthCheck>(PvadHealthCheckNames.Mail, tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddScoped<PvadSystemHealthService>();
 builder.Services.AddSingleton<PvadDependencyComplianceCatalog>();
 builder.Services.AddCors(options =>

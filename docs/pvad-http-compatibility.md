@@ -5,8 +5,9 @@ This is an in-progress rename contract, not a deployment completion statement.
 ## Common API Diagnostic Aliases
 
 The 18 common API diagnostics keep their existing `code` values `PXAAPI001`
-through `PXAAPI018` and existing problem type URLs. Responses created or completed
-through `PvadApiProblems` add `canonicalCode`, explicitly mapping each identifier
+through `PXAAPI018`. Legacy routes retain their existing generated problem type
+URLs; canonical routes now use the selected PVAD documentation domain. Responses
+created or completed through `PvadApiProblems` add `canonicalCode`, explicitly mapping each identifier
 to `PVADAPI001` through `PVADAPI018` without changing its numeric meaning.
 Existing clients can continue inspecting `code`; new clients may display or index
 `canonicalCode` and fall back to `code` when absent.
@@ -77,7 +78,9 @@ reviewed diagnostic identifier. Audit-export edition denial keeps its historical
 PXA_AUDIT_EXPORT_REQUIRES_ENTERPRISE title and PXAAPI002 code, adding separate
 PVAD_AUDIT_EXPORT_REQUIRES_ENTERPRISE and PVADAPI002 aliases. Completion removes a
 stale canonicalTitle if the final title is unknown or ordinary prose. Existing
-problem type URLs remain unchanged.
+explicit problem type URLs remain unchanged. Generated types follow the
+[route-aware identity contract](pvad-api-problem-and-health-identities.md), with
+separate `canonicalType` and `legacyType` references.
 
 PvadUsageResult receives canonicalCode only under configured API serialization.
 Recorded/duplicate flags, event ID, reason and legacy code remain authoritative.

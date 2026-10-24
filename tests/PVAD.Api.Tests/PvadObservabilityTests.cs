@@ -850,7 +850,8 @@ public sealed class PvadObservabilityTests
     [Fact]
     public void PostgreSql_metrics_use_a_safe_data_source_name()
     {
-        Assert.Equal("pxa-database", PersistenceServiceCollectionExtensions.DataSourceName);
+        Assert.Equal("pvad-database", PersistenceServiceCollectionExtensions.DataSourceName);
+        Assert.Equal("pxa-database", PersistenceServiceCollectionExtensions.LegacyDataSourceName);
         Assert.DoesNotContain(
             "Password",
             PersistenceServiceCollectionExtensions.DataSourceName,
@@ -1061,7 +1062,7 @@ public sealed class PvadObservabilityTests
             "alertmanager",
             "alertmanager.production.yml.example"));
 
-        Assert.Contains("job_name: pxa-tls", prometheus, StringComparison.Ordinal);
+        Assert.Contains("job_name: pvad-tls", prometheus, StringComparison.Ordinal);
         Assert.Contains("PvadTlsCertificateExpiringSoon", rules, StringComparison.Ordinal);
         Assert.Contains("PvadTlsProbeUnavailable", rules, StringComparison.Ordinal);
         Assert.Contains("pvad-blackbox-exporter:9115/-/healthy", File.ReadAllText(Path.Combine(

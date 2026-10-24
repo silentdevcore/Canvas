@@ -10,6 +10,7 @@ using PVAD.Domain.Entities;
 using PVAD.Infrastructure.Persistence;
 using PVAD.WebApi.Application.Designer;
 using PVAD.WebApi.Security;
+using PVAD.WebApi.Infrastructure;
 
 namespace PVAD.WebApi.Controllers;
 
@@ -492,9 +493,12 @@ public sealed class DesignerTemplatesController(
             .Where(value => value.Id == template.UpdatedByUserId)
             .Select(value => value.DisplayName)
             .SingleOrDefaultAsync(cancellationToken);
+        var identity = PvadApiProblems.TemplateConflictTypeIdentity(HttpContext);
         return new
         {
-            type = "https://powerdoxautomation.com/problems/designer-template-conflict",
+            type = identity.Type,
+            canonicalType = identity.CanonicalType,
+            legacyType = identity.LegacyType,
             title = "Template revision conflict",
             status = StatusCodes.Status409Conflict,
             detail = "The template was changed by another session. Reload it before saving again.",

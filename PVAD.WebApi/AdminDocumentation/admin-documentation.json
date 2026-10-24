@@ -689,7 +689,7 @@
           ],
           "result": "Clients receive bounded tenant-scoped data and stable error contracts.",
           "failures": [
-            "PXAAPI001-008 distinguish validation, authentication, authorization, CSRF, conflict, rate limit, unavailable, and internal failures.",
+            "Use the diagnostic code, not the problem-type hostname, to classify failures. PXAAPI001 is authentication required, PXAAPI002 is permission denied, and PXAAPI008 is invalid CSRF.",
             "Never log cookies, raw API keys, reset tokens, or mail payloads."
           ],
           "audit": "Every successful privileged mutation declares and persists its expected audit action.",
@@ -697,7 +697,8 @@
           "screenshot": "audit.png",
           "notes": [
             "Public Admin operations use /api/pvad/v1/admin and bounded pagination. OpenAPI is available from the deployment API reference.",
-            "Problem Details diagnostics remain stable: PXAAPI001 validation, 002 authentication, 003 authorization, 004 CSRF, 005 conflict, 006 rate limit, 007 unavailable, and 008 internal failure.",
+            "Problem Details codes remain stable: PXAAPI001 authentication required, PXAAPI002 permission denied, PXAAPI003 organization required, PXAAPI004 resource not found, PXAAPI005 invalid request, PXAAPI006 conflict, PXAAPI007 rate limited, PXAAPI008 invalid CSRF, and PXAAPI018 unexpected server error.",
+            "Generated problem types on /api/pvad routes use the selected PVAD documentation domain. Legacy API routes keep their original type URLs; canonicalType and legacyType identify the same generated problem across both representations. Explicit custom problem types are not replaced.",
             "Retain the diagnostic code and trace ID for support, but never log cookies, raw keys, tokens, or customer document data."
           ],
           "references": [

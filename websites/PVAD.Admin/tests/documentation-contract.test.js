@@ -67,6 +67,28 @@ test('handbook content is fetched after authentication instead of bundled in the
   assert.doesNotMatch(adminSource, /PXAAPI001-008 distinguish validation/);
 });
 
+test('Admin diagnostic examples preserve actual server meanings and explain route-aware type aliases', async () => {
+  const source = await readFile(new URL('../../../PVAD.WebApi/Infrastructure/PvadApiProblems.cs', import.meta.url), 'utf8');
+  const diagnostic = topics.find(topic => topic.title === 'Admin API and diagnostics');
+  const text = diagnostic.notes.join(' ');
+  for (const [constant, code, meaning] of [
+    ['AuthenticationRequired', 'PXAAPI001', 'authentication required'],
+    ['PermissionDenied', 'PXAAPI002', 'permission denied'],
+    ['OrganizationRequired', 'PXAAPI003', 'organization required'],
+    ['ResourceNotFound', 'PXAAPI004', 'resource not found'],
+    ['InvalidRequest', 'PXAAPI005', 'invalid request'],
+    ['Conflict', 'PXAAPI006', 'conflict'],
+    ['RateLimited', 'PXAAPI007', 'rate limited'],
+    ['InvalidCsrf', 'PXAAPI008', 'invalid CSRF'],
+    ['UnexpectedError', 'PXAAPI018', 'unexpected server error'],
+  ]) {
+    assert.ok(source.includes(`const string ${constant} = "${code}";`));
+    assert.ok(text.includes(`${code} ${meaning}`));
+  }
+  assert.ok(text.includes('canonicalType and legacyType'));
+  assert.ok(text.includes('Legacy API routes keep their original type URLs'));
+});
+
 test('all protected handbook topics have complete workflow contracts', () => {
   assert.ok(topics.length >= 13);
   for (const topic of topics) {

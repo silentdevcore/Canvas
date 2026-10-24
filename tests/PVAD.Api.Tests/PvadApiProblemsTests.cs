@@ -145,7 +145,7 @@ public sealed class PvadApiProblemsTests
         Assert.Equal("trace-123", problem.Extensions["traceId"]);
         Assert.Equal("/api/pvad/v1/account/profile", problem.Instance);
         Assert.Equal(
-            $"https://docs.powerdoxautomation.com/problems/{PvadApiProblems.AccountLocked.ToLowerInvariant()}",
+            "https://docs.pvade.com/problems/pvadapi009",
             problem.Type);
     }
 
@@ -176,5 +176,72 @@ public sealed class PvadApiProblemsTests
         ];
 
         Assert.Equal(codes.Length, codes.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Theory]
+    [InlineData("/api/pvad/v1/account/profile", false)]
+    [InlineData("/API/PVAD/templates/render-design", false)]
+    [InlineData("/api/pxa/v1/account/profile", true)]
+    [InlineData("/api/templates/render-design", true)]
+    public void Problem_types_use_route_identity_without_changing_codes(string path, bool legacy)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = path;
+        var problem = PvadApiProblems.Create(context, 409);
+        const string canonicalType = "https://docs.pvade.com/problems/pvadapi006";
+        const string legacyType = "https://docs.powerdoxautomation.com/problems/pxaapi006";
+
+        Assert.Equal(legacy ? legacyType : canonicalType, problem.Type);
+        Assert.Equal(canonicalType, problem.Extensions["canonicalType"]);
+        Assert.Equal(legacyType, problem.Extensions["legacyType"]);
+        Assert.Equal("PXAAPI006", problem.Extensions["code"]);
+        Assert.Equal("PVADAPI006", problem.Extensions["canonicalCode"]);
+        PvadApiProblems.Complete(context, problem, 409);
+        Assert.Equal(legacy ? legacyType : canonicalType, problem.Type);
+    }
+
+    [Theory]
+    [InlineData("/api/pvad/v1/designer/templates", false)]
+    [InlineData("/api/pxa/v1/designer/templates", true)]
+    public void Template_conflict_type_preserves_the_original_legacy_host(string path, bool legacy)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = path;
+        var identity = PvadApiProblems.TemplateConflictTypeIdentity(context);
+
+        Assert.Equal("https://docs.pvade.com/problems/designer-template-conflict", identity.CanonicalType);
+        Assert.Equal("https://powerdoxautomation.com/problems/designer-template-conflict", identity.LegacyType);
+        Assert.Equal(legacy ? identity.LegacyType : identity.CanonicalType, identity.Type);
+    }
+
+    [Fact]
+    public void Completing_explicit_types_preserves_custom_semantics_and_clears_stale_aliases()
+    {
+        var context = new DefaultHttpContext();
+        var problem = PvadApiProblems.Create(context, 403);
+        problem.Type = "https://customer.example.test/problems/custom";
+
+        PvadApiProblems.Complete(context, problem, 403);
+
+        Assert.Equal("https://customer.example.test/problems/custom", problem.Type);
+        Assert.False(problem.Extensions.ContainsKey("canonicalType"));
+        Assert.False(problem.Extensions.ContainsKey("legacyType"));
+        Assert.Equal("PXAAPI002", problem.Extensions["code"]);
+    }
+
+    [Fact]
+    public void Completing_explicit_legacy_type_keeps_it_and_adds_the_canonical_reference()
+    {
+        var context = new DefaultHttpContext();
+        var problem = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Type = "https://docs.powerdoxautomation.com/problems/pxaapi006",
+            Status = 409,
+        };
+
+        PvadApiProblems.Complete(context, problem, 409);
+
+        Assert.Equal("https://docs.powerdoxautomation.com/problems/pxaapi006", problem.Type);
+        Assert.Equal("https://docs.pvade.com/problems/pvadapi006", problem.Extensions["canonicalType"]);
     }
 }

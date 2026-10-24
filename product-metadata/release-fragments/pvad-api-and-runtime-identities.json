@@ -1,0 +1,8 @@
+{
+  "id": "pvad-api-and-runtime-identities",
+  "impact": "major",
+  "components": ["api", "admin", "observability", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Use canonical problem-type URLs on current API routes and canonical runtime telemetry names. Legacy routes retain generated error types; custom queries and exact-match current-route integrations require migration.",
+  "breaking": true
+}

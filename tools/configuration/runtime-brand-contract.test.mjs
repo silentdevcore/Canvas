@@ -265,3 +265,35 @@ test('unpublished release summaries use the current brand', () => {
     assert.doesNotMatch(fragment.summary, /\bPXA\b/, name);
   }
 });
+
+test('runtime health registrations and browser trace writers use canonical identities', () => {
+  const read = path => readFileSync(resolve(root, path), 'utf8');
+  const program = read('PVAD.WebApi/Program.cs');
+  const names = read('PVAD.WebApi/Observability/PvadHealthCheckNames.cs');
+  assert.ok(program.includes('AddDbContextCheck<PvadDbContext>(PvadHealthCheckNames.Database'));
+  assert.ok(program.includes('AddCheck<PvadMailHealthCheck>(PvadHealthCheckNames.Mail'));
+  assert.doesNotMatch(program, /AddDbContextCheck<[^>]+>\("pxa-|AddCheck<[^>]+>\("pxa-/);
+  for (const [name, value] of [['Database', 'pvad-database'], ['Mail', 'pvad-mail'],
+    ['LegacyDatabase', 'pxa-database'], ['LegacyMail', 'pxa-mail']])
+    assert.ok(names.includes(`const string ${name} = "${value}";`));
+  const persistence = read('src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs');
+  assert.ok(persistence.includes('const string DataSourceName = "pvad-database";'));
+  assert.ok(persistence.includes('const string LegacyDataSourceName = "pxa-database";'));
+  const browser = read('PVAD.WebApi/Controllers/BrowserTelemetryController.cs');
+  assert.doesNotMatch(browser, /"pxa\.browser\./);
+  for (const suffix of ['application', 'version', 'event_count', 'status.correlation', 'source_correlation_id'])
+    assert.ok(browser.includes(`"pvad.browser.${suffix}"`));
+});
+
+test('template conflict URLs use the shared route-aware problem identity contract', () => {
+  const controller = readFileSync(resolve(root, 'PVAD.WebApi/Controllers/DesignerTemplatesController.cs'), 'utf8');
+  assert.ok(controller.includes('PvadApiProblems.TemplateConflictTypeIdentity(HttpContext)'));
+  for (const key of ['Type', 'CanonicalType', 'LegacyType']) assert.ok(controller.includes(`identity.${key}`));
+  assert.doesNotMatch(controller, /powerdoxautomation\.com/);
+  assert.ok(controller.includes('code = "PXADESIGNER001"'));
+  const problems = readFileSync(resolve(root, 'PVAD.WebApi/Infrastructure/PvadApiProblems.cs'), 'utf8');
+  assert.ok(problems.includes('https://docs.pvade.com/problems/'));
+  assert.ok(problems.includes('https://docs.powerdoxautomation.com/problems/'));
+  assert.ok(problems.includes('PvadLegacyApiMiddleware.IsLegacyRequest(context)'));
+  assert.ok(problems.includes('problem.Type ??= identity.Type;'));
+});

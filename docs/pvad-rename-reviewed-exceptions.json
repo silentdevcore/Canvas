@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "12fb39284b4d8eb2ab5d668803db80f351c91b00503067cad84b5ad36baf9717",
+      "sha256": "53efbd963c83ea066a1cb8db0364b91684c8fe8916ab92b2640e9c5d607f817f",
       "reasons": [
         "historical-document"
       ],
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "e5689294f18249b9157e37f09ecf78c0495ee855919bf2270fff8444ac6e0ec3",
+      "sha256": "f635305abcfded28db42cf6a4a6c76f40f22767c8b17d7f39624344269e8c835",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record native syntax/identity tests and exact unrun live checks; retain prior evidence and infrastructure/API blockers.",
+      "reviewNotes": "Record 128 targeted .NET passes after correcting an isolated test path and sandbox retry, plus Node/Admin/Designer checks; no full-host, live E2E or production-readiness claim.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "d3298937b8a3932f25c6733c90698596e2c642addf2c2a4735f37fec2aaff7a8",
+      "sha256": "f04b9a8700d9069d16ac41fd92b8d193036c1263bce80f85e681985b01c60df3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record local monitoring package, 220 passing contracts, native tool validation and Major-impact compatibility limits without closing live operational gates.",
+      "reviewNotes": "Record API/runtime source migration and focused green validation with explicit hosted/database and deployment limits; preserve historical checkpoint statuses.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2227,12 +2227,12 @@
     },
     {
       "path": "docs/pvad-http-compatibility.md",
-      "sha256": "6c6cd46630588b8123c695a249d86edfcee335e29069691556b2d7cac42d989e",
+      "sha256": "fa010ec7edf53849f3ef2e7b8478a4fdd02fe26710957d0f69ffe37ca413658c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current schema URLs use the selected domain; old API routes, diagnostic IDs and schema aliases remain explicit compatibility contracts.",
+      "reviewNotes": "Document generated type migration and explicit-type preservation alongside unchanged diagnostic meanings and legacy API compatibility.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2307,12 +2307,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "fa1b5abab7b78e3e18774dcbfb5cad7b010a959af9a53461c469251a3e253f0c",
+      "sha256": "76f89da376da9e46dfea53366b1e8b6b4f260b891e2ecd7c21ae6e0e7cbe0fc0",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record source monitoring changes separately from required silence/routing migration and authorized live activation.",
+      "reviewNotes": "Link API/runtime migration while retaining external activation, exact-match integration, secret, database and deployed-host verification gates.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -2647,12 +2647,12 @@
     },
     {
       "path": "pvad-designer/e2e/account-designer-flow.spec.ts",
-      "sha256": "fd390bb43f616a8d9ddfefcd8df4d4b4183eb8bfc5271371e1a8ebe20157ab11",
+      "sha256": "7d1e99be141c32526eac3d2da23579c1ca9ffd08420be652f9590949fc7e0d6d",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/account-designer-flow.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Current denial example uses canonical type metadata and Account label while retaining the original diagnostic and explicit legacy type reference; complete browser flow was not rerun.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3707,12 +3707,12 @@
     },
     {
       "path": "PVAD.WebApi/AdminDocumentation/admin-documentation.json",
-      "sha256": "cdedf7ec3157fe520a27252214ca164ecd203ebbb84960617394aef500190df9",
+      "sha256": "4c2807f9670c8160b91720380e557556f519834e888eb97e198da4a1f552f4cf",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Update six obsolete domain occurrences to selected Admin/Operator hosts. Retain stable Grafana dashboard UIDs, local links, CSRF aliases and diagnostic IDs; protected content remains behind Admin API authorization.",
+      "reviewNotes": "Correct Admin diagnostic meanings to match unchanged server constants and document route-aware problem type aliases; stable diagnostics, dashboard references and protected access remain.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3796,16 +3796,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "PVAD.WebApi/Controllers/BrowserTelemetryController.cs",
-      "sha256": "96a4c08d9cdd23b9e0dd7af5178714e0b38d4b02d34c99612d44e91d3193f815",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Controllers/BrowserTelemetryController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "PVAD.WebApi/Controllers/DesignerAssetsController.cs",
       "sha256": "0fcdb6155b4dcdde1f0b3843180c8d2fc997875037f13fabd32bfe59bf59c68f",
       "reasons": [
@@ -3837,12 +3827,12 @@
     },
     {
       "path": "PVAD.WebApi/Controllers/DesignerTemplatesController.cs",
-      "sha256": "e7ad3f021b35d4f28bab43c6dab98f0e06a8ec488d76432fed7c5e99f176108f",
+      "sha256": "16ae63e57867e75db3d2ae2cbb4e34dfe5ae017e6112c5eec5b2200f37668a9f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Controllers/DesignerTemplatesController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Use shared route-aware conflict type references while preserving the authoritative diagnostic, current revision, audit and tenant behavior.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3987,12 +3977,12 @@
     },
     {
       "path": "PVAD.WebApi/Infrastructure/PvadApiProblems.cs",
-      "sha256": "b3182586b3b1da6a01aa3b685624dc867f529155d44c74317ba6d9e41c57b301",
+      "sha256": "6d0a9b96cde02bcc65e46a96bae544d2b20b0ee54f9445f78a10f8eeec57d939",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/PvadApiProblems.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "New generated types use canonical domain and bounded diagnostic aliases; retain original code values and legacy type URLs for old routes/explicit types. No broad diagnostic rewrite.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4037,12 +4027,12 @@
     },
     {
       "path": "PVAD.WebApi/Infrastructure/PvadLegacyApiMiddleware.cs",
-      "sha256": "79ef90a3cb37b1e42166145322abef4258859e84b6de4a5c0ef0c0eda30d25a5",
+      "sha256": "aeb3b2e6db2f71b25bda08794f94258f850c0c4576f6d352927360b3dbadbf41",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/PvadLegacyApiMiddleware.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Retain old API route adapters and deprecation behavior. Internal request marker preserves legacy error identity across rewrites and is cleaned up on return or failure.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4083,26 +4073,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "PVAD.WebApi/Observability/PvadJsonConsoleFormatter.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Observability/PvadSystemHealthService.cs",
-      "sha256": "229c8a61782dea9c4e633463f0e2a903f445b4e9d152fdb16b9ec9494ea59e11",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Observability/PvadSystemHealthService.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Program.cs",
-      "sha256": "d69960b0becf3929e131ba9ef0ad7fe7e7a00b96797b65ce8cab7abeaca067df",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Program.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5007,12 +4977,12 @@
     },
     {
       "path": "src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs",
-      "sha256": "f4fccb2f08972ea8f1ccdc1d70bdd1abe1e995df60c2c2d2bbcb0664571f62ac",
+      "sha256": "580ce0d9ebcff6fc59da4b93fc7e44264fe61dd7237671d1acfcd07fefe7a084",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Canonical instrumentation datasource name with an explicit historical constant; no physical database, role, schema, connection string or duplicate pool migration.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5476,16 +5446,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tests/PVAD.Api.Tests/AdminDocumentationControllerTests.cs",
-      "sha256": "68ae5abcbdcdaa6852846a01583c44f0b05d78f8c009708e3cd2faaabf4411f7",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AdminDocumentationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tests/PVAD.Api.Tests/AdminMailPrivacyTests.cs",
       "sha256": "99ba95df6225e8e26f64b5071f5166c6a26c6320212a8ccfb621f302c4c415a0",
       "reasons": [
@@ -5937,12 +5897,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadApiProblemsTests.cs",
-      "sha256": "a8057a1cc4c5b2e033257c0e7fc42cc875056c00125bab585d61eb438cee8148",
+      "sha256": "16682aa9d954dccd80532f95c412baf145a2773768046ab66b57a40dd4cb783d",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadApiProblemsTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Retain authoritative diagnostics and original URI assertions for legacy routes/custom explicit types; test canonical type aliases without changing code meanings.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6097,12 +6057,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs",
-      "sha256": "380e942e2c5fe35cb82161f9725ee26264c3e084ffc175bcc03e5a47ebd6298c",
+      "sha256": "dbd293108ea9310ad1855aa029c2c63bd28fe44099b6336651e523458225e204",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Synthetic old routes test canonical dispatch with retained legacy error identity, unchanged request content and marker/path cleanup on failure.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6177,12 +6137,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadObservabilityTests.cs",
-      "sha256": "538bce35d371a466f28d4d7f0df8724685c9392cd2270c570f093799e64cef4d",
+      "sha256": "bcee7e86c384790527c250d816d8c9a11e76dd0abb3a0dc7f94d706f80e19abf",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
+      "reviewNotes": "Canonical datasource and TLS-job expectations follow current writers. Other old strings remain synthetic privacy, compatibility, fixture or historical metadata inputs.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -7557,12 +7517,12 @@
     },
     {
       "path": "tools/configuration/runtime-brand-contract.test.mjs",
-      "sha256": "3cdd8e1ad5c7706724be3f386bb88c446beff7c2d4a8176f7085ca1886f253be",
+      "sha256": "7f58dd689cb94bbbcfac47ff6a0ea81292c999794556a66c83963b2e4f2920d5",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Exact retained upstream operator-header literal is allowed alongside previously reviewed compatibility exceptions; current branding assertions remain enforced.",
+      "reviewNotes": "Guard canonical health and trace producers while asserting bounded retained old health/URI/diagnostic identities and shared route-aware error handling.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -8447,12 +8407,12 @@
     },
     {
       "path": "websites/PVAD.Admin/tests/documentation-contract.test.js",
-      "sha256": "9db57771336672bb695377f990e4d5a1d211f079766bea212faac2b5069ecac8",
+      "sha256": "93c2432b7762a8338eb0948ad745071a76591607528b267b880073358e59a062",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Verify canonical protected handbook links, real dashboard UID references and exclusion from public Company/Documentation. Deliberate old-name assertions cover compatibility and regression inputs.",
+      "reviewNotes": "Verify protected guidance matches server diagnostic meanings and current host targets; old codes, aliases and dashboard UIDs remain deliberate contract expectations.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9357,6 +9317,36 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Generate synthetic native PromQL cases for old/new monitoring identities and mixed heartbeat generations; retained legacy strings are required test inputs, not current writer branding.",
       "boundaryGuide": "docs/pvad-monitoring-identity-migration.md"
+    },
+    {
+      "path": "PVAD.WebApi/Observability/PvadHealthCheckNames.cs",
+      "sha256": "3fce6d8c0104a30884a6e9eef18fd09683f2a528d30e6d80a28a510aaca92a70",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Explicit old health registration constants are bounded compatibility readers; new default registrations use canonical values.",
+      "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadRuntimeIdentityTests.cs",
+      "sha256": "1345d309af0b51edfae4575c44ad7dec7f7cd1c16f018c0d0176f71fbb3efc2c",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Synthetic legacy/current health reports and negative old-prefix assertions test fallback, privacy, current trace writes and rejection before trace emission.",
+      "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
+    },
+    {
+      "path": "docs/pvad-api-problem-and-health-identities.md",
+      "sha256": "d5ef69b01b9f592b5ad766804c164a0e45391b780079ae4dbfebc4e6055f986e",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Explain canonical writers and bounded legacy readers without relabeling stored history, redefining diagnostics, changing physical databases or claiming URI hosting/live deployment.",
+      "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
     }
   ],
   "reviewStatus": "reviewed"

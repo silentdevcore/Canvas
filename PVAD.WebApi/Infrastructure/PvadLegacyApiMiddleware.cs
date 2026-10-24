@@ -5,6 +5,12 @@ public sealed class PvadLegacyApiMiddleware(RequestDelegate next)
 {
     public const string LegacyPrefix = "/api/pxa/v1";
     public const string CanonicalPrefix = "/api/pvad/v1";
+    private static readonly object LegacyRequestMarker = new();
+
+    public static bool IsLegacyRequest(HttpContext context) =>
+        context.Items.ContainsKey(LegacyRequestMarker) ||
+        (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase) &&
+         !context.Request.Path.StartsWithSegments("/api/pvad", StringComparison.OrdinalIgnoreCase));
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -25,7 +31,9 @@ public sealed class PvadLegacyApiMiddleware(RequestDelegate next)
             }
         }
         var originalPath = context.Request.Path;
+        var alreadyMarked = context.Items.ContainsKey(LegacyRequestMarker);
         var canonicalPath = new PathString(canonicalBase).Add(remainder);
+        context.Items[LegacyRequestMarker] = true;
         context.Request.Path = canonicalPath;
         context.Response.OnStarting(() =>
         {
@@ -42,6 +50,8 @@ public sealed class PvadLegacyApiMiddleware(RequestDelegate next)
         finally
         {
             context.Request.Path = originalPath;
+            if (!alreadyMarked)
+                context.Items.Remove(LegacyRequestMarker);
         }
     }
 }

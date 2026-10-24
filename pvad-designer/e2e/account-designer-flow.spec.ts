@@ -440,7 +440,9 @@ test('mobile Designer shows an explicit entitlement denial state', async ({ brow
     status: 403,
     contentType: 'application/problem+json',
     body: JSON.stringify({
-      type: 'https://powerdoxautomation.com/problems/designer-access',
+      type: 'https://docs.pvade.com/problems/pvad_trial_expired',
+      canonicalType: 'https://docs.pvade.com/problems/pvad_trial_expired',
+      legacyType: 'https://docs.powerdoxautomation.com/problems/pxa_trial_expired',
       title: 'Designer access denied',
       status: 403,
       code: 'PXA_TRIAL_EXPIRED',
@@ -449,7 +451,7 @@ test('mobile Designer shows an explicit entitlement denial state', async ({ brow
 
   await page.goto(`${designerUrl}/pdf/create`);
   await expect(page.getByRole('heading', { name: 'Designer subscription expired' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Open PXA Account' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open PVADE Account' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1))
     .toBe(true);
 

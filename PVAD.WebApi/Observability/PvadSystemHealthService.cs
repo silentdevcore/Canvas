@@ -19,7 +19,8 @@ public sealed class PvadSystemHealthService(
         var report = await healthChecks.CheckHealthAsync(
             registration => registration.Tags.Contains("ready"),
             cancellationToken);
-        var database = FromHealthCheck(report, "pxa-database", "database", "PostgreSQL");
+        var database = FromHealthCheck(report, PvadHealthCheckNames.Database,
+            PvadHealthCheckNames.LegacyDatabase, "database", "PostgreSQL");
         var components = new List<PvadSystemHealthComponent>
         {
             Component("webapi", "Web API", PvadSystemHealthStatus.Healthy,
@@ -37,7 +38,8 @@ public sealed class PvadSystemHealthService(
             "The isolated OCR worker is configured."));
 
         components.Add(mailOptions.Value.IsDeliveryEnabled
-            ? FromHealthCheck(report, "pxa-mail", "mail", "Mail delivery")
+            ? FromHealthCheck(report, PvadHealthCheckNames.Mail,
+                PvadHealthCheckNames.LegacyMail, "mail", "Mail delivery")
             : Component(
                 "mail",
                 "Mail delivery",
@@ -135,13 +137,15 @@ public sealed class PvadSystemHealthService(
         }
     }
 
-    private static PvadSystemHealthComponent FromHealthCheck(
+    internal static PvadSystemHealthComponent FromHealthCheck(
         HealthReport report,
         string healthCheckName,
+        string legacyHealthCheckName,
         string key,
         string name)
     {
-        if (!report.Entries.TryGetValue(healthCheckName, out var entry))
+        if (!report.Entries.TryGetValue(healthCheckName, out var entry) &&
+            !report.Entries.TryGetValue(legacyHealthCheckName, out entry))
         {
             return Component(
                 key,

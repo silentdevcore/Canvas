@@ -2874,3 +2874,45 @@ change or production deployment was performed. Full release readiness remains op
 - No running stack, database, stored measurements, Grafana provider/folder or
   permission was migrated. No failure injection, live delivery, push, deployment
   or remote write ran. Prior API/database, publisher and live-host gates remain.
+
+## API Problem And Runtime Identities (2026-10-24)
+
+- Prerequisite monitoring work is committed as `e549281b`. Current-route generated
+  problem types use the selected PVAD documentation domain and bounded diagnostic
+  aliases. Legacy routes retain original types; an internal request marker
+  preserves their identity through routing rewrites and is cleaned up on exit.
+  Explicit custom types are not rewritten. Template conflict responses use the
+  same route-aware contract, preserving diagnostics and concurrency fields.
+- Browser trace attributes/events now write PVAD names. Database/mail health
+  registrations and Npgsql datasource telemetry use canonical names. System health
+  accepts old-only reports, prefers canonical registrations and keeps sanitized,
+  stable Admin component keys. Physical databases and existing trace history are
+  unchanged. No duplicate metric emission or connection pool is introduced.
+- Added isolated runtime tests and expanded problem/middleware contracts. Corrected
+  stale Admin host and TLS-job expectations; the handbook source contract no longer
+  starts the full API merely to read JSON. Protected Admin notes now match actual
+  server diagnostic meanings and explain generated type references.
+- 222 selected Node contracts, 39 Admin tests, Admin production build, 17 Designer
+  auth tests and Designer type-check pass. Logs: `/tmp/pvad-api-runtime-contracts.log`,
+  `/tmp/pvad-runtime-admin-tests.log`, `/tmp/pvad-runtime-admin-build.log`,
+  `/tmp/pvad-runtime-designer-auth.log`, `/tmp/pvad-runtime-designer-typecheck.log`.
+- The initial sandbox .NET build stalled without progress and was terminated
+  (exit 137 after cancellation/TERM did not stop it). It is not a passing test run.
+  The first approved retry passed 127 tests and exposed one incorrect repository
+  fixture path in the isolated handbook test. After correcting that path, the
+  approved rebuild/final run passes 128 targeted contracts with zero skips.
+  It includes problem/middleware/runtime tests, non-hosted observability tests and
+  two Admin documentation contracts. Four hosted test methods/variants are
+  excluded by the filter, not counted as skips. Existing compiler, dependency
+  advisory and NPOI license warnings remain; no package or license setting was
+  changed. Logs: `/tmp/pvad-runtime-identity-tests.log`,
+  `/tmp/pvad-runtime-identity-tests-approved.log`,
+  `/tmp/pvad-runtime-admin-contract-detail.log` and
+  `/tmp/pvad-runtime-identity-tests-final.log`.
+- The Designer E2E denial fixture now uses current problem metadata and the
+  current Account button text. Full browser E2E was not run for this follow-up;
+  the isolated Designer auth suite and type-check passed as recorded above.
+- Full WebApplicationFactory/Identity/PostgreSQL tests and live deployed URI,
+  SMTP, proxy and telemetry-consumer validation remain separate open gates. No
+  running application, physical database, keyring or remote setting was changed.
+- Fragment: `pvad-api-and-runtime-identities` (Major impact); VERSION stays 1.1.0.

@@ -988,6 +988,35 @@ because exact-match job/service consumers and alert fingerprints change. This
 does not bump VERSION (still 1.1.0) or publish a release. Grafana provider/folder,
 installed permissions, stored data and remote infrastructure remain unchanged.
 
+## API And Runtime Identity Follow-up (2026-10-24)
+
+- [x] Commit monitoring work separately (`e549281b`).
+- [x] Centralize generated problem-type identities. Canonical routes use the
+  selected documentation domain; legacy routes retain original type URLs even
+  after path rewriting. Add explicit canonical/legacy references and preserve
+  authoritative diagnostics, custom types, status and authorization boundaries.
+- [x] Apply the same contract to Designer template conflicts without changing
+  revision or concurrency semantics. Update the synthetic Designer access example.
+- [x] Canonicalize browser span/event keys, readiness registration and Npgsql
+  instrumentation datasource names. Keep legacy health-name fallback, stable Admin
+  component keys, current-registration precedence and sanitized summaries.
+- [x] Correct stale .NET assertions and the protected Admin diagnostic mapping;
+  the existing server code meanings, not an earlier prose table, are authoritative.
+- [x] Pass 222 selected Node contracts, 39 Admin tests and production build,
+  17 Designer auth tests and Designer type-check.
+- [x] Pass 128 targeted .NET API/runtime/telemetry/documentation contracts without
+  skips after an approved build outside the sandbox. The initial stalled sandbox
+  run was terminated; a test fixture-path error in the first approved run was
+  corrected before the final green run. Hosted API/database tests were excluded.
+- [ ] Verify full API/PostgreSQL integration, deployed problem-URI hosting and
+  exact-match telemetry consumers under the existing rollout gates.
+
+See [API and runtime identity migration](../docs/pvad-api-problem-and-health-identities.md).
+The fragment `pvad-api-and-runtime-identities` declares Major impact for changed
+current-route type URLs and emitted telemetry identifiers. VERSION stays 1.1.0.
+No physical database, role, key, stored history, authentication or remote setting
+is migrated by this source change.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

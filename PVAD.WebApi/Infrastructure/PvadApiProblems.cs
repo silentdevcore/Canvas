@@ -26,6 +26,24 @@ public static class PvadApiProblems
     public static string? CanonicalCode(string code) =>
         PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(code);
 
+    public static (string Type, string CanonicalType, string LegacyType) TypeIdentity(
+        HttpContext context, string code)
+    {
+        var canonical = "https://docs.pvade.com/problems/" +
+            Uri.EscapeDataString((CanonicalCode(code) ?? code).ToLowerInvariant());
+        var legacy = "https://docs.powerdoxautomation.com/problems/" +
+            Uri.EscapeDataString(code.ToLowerInvariant());
+        return (PvadLegacyApiMiddleware.IsLegacyRequest(context) ? legacy : canonical, canonical, legacy);
+    }
+
+    public static (string Type, string CanonicalType, string LegacyType) TemplateConflictTypeIdentity(
+        HttpContext context)
+    {
+        const string canonical = "https://docs.pvade.com/problems/designer-template-conflict";
+        const string legacy = "https://powerdoxautomation.com/problems/designer-template-conflict";
+        return (PvadLegacyApiMiddleware.IsLegacyRequest(context) ? legacy : canonical, canonical, legacy);
+    }
+
     public static ProblemDetails Create(
         HttpContext context,
         int status,
@@ -40,13 +58,9 @@ public static class PvadApiProblems
             Title = title ?? ResolveTitle(status),
             Detail = detail,
             Instance = context.Request.Path,
-            Type = $"https://docs.powerdoxautomation.com/problems/{code.ToLowerInvariant()}",
         };
         problem.Extensions["code"] = code;
-        if (CanonicalCode(code) is { } canonicalCode)
-            problem.Extensions["canonicalCode"] = canonicalCode;
-        problem.Extensions["traceId"] = context.TraceIdentifier;
-        CompleteTitle(problem);
+        Complete(context, problem, status);
         return problem;
     }
 
@@ -59,7 +73,18 @@ public static class PvadApiProblems
         problem.Status = status;
         problem.Title ??= ResolveTitle(status);
         problem.Instance ??= context.Request.Path;
-        problem.Type ??= $"https://docs.powerdoxautomation.com/problems/{code.ToLowerInvariant()}";
+        var identity = TypeIdentity(context, code);
+        problem.Type ??= identity.Type;
+        if (problem.Type == identity.CanonicalType || problem.Type == identity.LegacyType)
+        {
+            problem.Extensions["canonicalType"] = identity.CanonicalType;
+            problem.Extensions["legacyType"] = identity.LegacyType;
+        }
+        else
+        {
+            problem.Extensions.Remove("canonicalType");
+            problem.Extensions.Remove("legacyType");
+        }
         problem.Extensions["code"] = code;
         if (CanonicalCode(code) is { } canonicalCode)
             problem.Extensions["canonicalCode"] = canonicalCode;

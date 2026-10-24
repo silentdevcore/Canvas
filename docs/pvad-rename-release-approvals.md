@@ -95,6 +95,13 @@ No remote environment, secret, workflow run or repository setting was changed.
 
 ## Concrete Answers Needed
 
+Current-route generated API problem types and runtime telemetry identifiers now
+follow the [API/runtime migration](pvad-api-problem-and-health-identities.md).
+Legacy routes retain their generated type identifiers; explicit custom types are
+not rewritten. New health-name and trace writers require matching custom-query
+updates. This source change does not prove URI hosting or authorize database,
+key, session, remote telemetry or deployment changes.
+
 Monitoring source identities now use PVAD scrape jobs and alert service labels,
 with dual-generation query support. The
 [monitoring migration](pvad-monitoring-identity-migration.md) requires an explicit

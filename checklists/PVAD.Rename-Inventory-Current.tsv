@@ -25,11 +25,10 @@ PVAD.WebApi/Application/Identity/DesignerAuthorizationCodeService.cs	source	10	f
 PVAD.WebApi/Controllers/AccountProfileController.cs	source	1	false
 PVAD.WebApi/Controllers/AdminAuditController.cs	source	1	false
 PVAD.WebApi/Controllers/AdminOperatorAccessController.cs	source	1	false
-PVAD.WebApi/Controllers/BrowserTelemetryController.cs	source	5	false
 PVAD.WebApi/Controllers/DesignerAssetsController.cs	source	3	false
 PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs	source	11	false
 PVAD.WebApi/Controllers/DesignerProjectsController.cs	source	27	false
-PVAD.WebApi/Controllers/DesignerTemplatesController.cs	source	3	false
+PVAD.WebApi/Controllers/DesignerTemplatesController.cs	source	2	false
 PVAD.WebApi/Controllers/MigrationController.cs	source	2	false
 PVAD.WebApi/Controllers/OAuthController.cs	source	1	false
 PVAD.WebApi/Controllers/PdfEInvoicesController.cs	source	35	false
@@ -53,9 +52,8 @@ PVAD.WebApi/Infrastructure/PvadLegacyApiMiddleware.cs	source	2	false
 PVAD.WebApi/Infrastructure/PvadProjectAssetMapper.cs	source	3	false
 PVAD.WebApi/Infrastructure/PvadResponseHeaders.cs	source	4	false
 PVAD.WebApi/Infrastructure/PvadSecurityHeaderMiddleware.cs	source	1	false
+PVAD.WebApi/Observability/PvadHealthCheckNames.cs	source	2	false
 PVAD.WebApi/Observability/PvadJsonConsoleFormatter.cs	source	1	false
-PVAD.WebApi/Observability/PvadSystemHealthService.cs	source	2	false
-PVAD.WebApi/Program.cs	source	2	false
 PVAD.WebApi/Security/PvadApiKeySecret.cs	source	1	false
 PVAD.WebApi/Security/PvadAuthenticationSchemes.cs	source	4	false
 PVAD.WebApi/Security/PvadAuthorizationPaths.cs	source	2	false
@@ -308,6 +306,7 @@ docs/fixtures/native-projects/minimal.pxas	binary-review-required	0	true
 docs/guides/PVAD.EInvoicing.md	documentation-or-history	33	false
 docs/mcp-client-setup.md	documentation-or-history	3	false
 docs/native-designer-project-formats.md	documentation-or-history	10	false
+docs/pvad-api-problem-and-health-identities.md	documentation-or-history	4	false
 docs/pvad-brand-asset-inventory.md	documentation-or-history	3	false
 docs/pvad-code-generation-compatibility.md	documentation-or-history	3	false
 docs/pvad-documentation-path-migration.json	source	74	false
@@ -355,7 +354,7 @@ product-metadata/release-fragments/release-1.1.0-verification.json	fixture-or-co
 pvad-designer/DESIGN.md	documentation-or-history	17	false
 pvad-designer/MULTILANGUAGE.md	documentation-or-history	10	false
 pvad-designer/e2e/account-accessibility.spec.ts	source	2	false
-pvad-designer/e2e/account-designer-flow.spec.ts	source	20	false
+pvad-designer/e2e/account-designer-flow.spec.ts	source	19	false
 pvad-designer/e2e/code-workspace-authenticated.spec.ts	source	4	false
 pvad-designer/e2e/company-account-flow.spec.ts	source	2	false
 pvad-designer/e2e/e-invoice-authenticated.spec.ts	source	6	false
@@ -593,7 +592,6 @@ tests/PVAD.Api.Tests/AccountProfileControllerTests.cs	source	19	false
 tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs	source	16	false
 tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs	source	22	false
 tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs	source	11	false
-tests/PVAD.Api.Tests/AdminDocumentationControllerTests.cs	legal-or-retained-contract	2	false
 tests/PVAD.Api.Tests/AdminMailPrivacyTests.cs	source	1	false
 tests/PVAD.Api.Tests/AdminOrganizationsControllerTests.cs	source	13	false
 tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs	source	17	false
@@ -639,7 +637,7 @@ tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs	source	1	false
 tests/PVAD.Api.Tests/PdfViewerRedactionControllerTests.cs	source	7	false
 tests/PVAD.Api.Tests/PvadAntiforgeryCookieCompatibilityTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs	source	5	false
-tests/PVAD.Api.Tests/PvadApiProblemsTests.cs	source	33	false
+tests/PVAD.Api.Tests/PvadApiProblemsTests.cs	source	40	false
 tests/PVAD.Api.Tests/PvadAuthorizationPathCompatibilityTests.cs	source	6	false
 tests/PVAD.Api.Tests/PvadClaimCompatibilityTests.cs	source	11	false
 tests/PVAD.Api.Tests/PvadCodeElementMarkerTests.cs	source	1	false
@@ -655,7 +653,7 @@ tests/PVAD.Api.Tests/PvadExportBrandingTests.cs	source	5	false
 tests/PVAD.Api.Tests/PvadJobBinaryCutoverTests.cs	source	1	false
 tests/PVAD.Api.Tests/PvadJobCutoverCompatibilityTests.cs	source	5	false
 tests/PVAD.Api.Tests/PvadJobProcessorTests.cs	source	8	false
-tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs	source	17	false
+tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs	source	19	false
 tests/PVAD.Api.Tests/PvadLicenseRenameCompatibilityTests.cs	source	8	false
 tests/PVAD.Api.Tests/PvadLicenseReplacementTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs	source	13	false
@@ -663,13 +661,14 @@ tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs	source	4	false
 tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs	source	7	false
 tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs	source	1	false
 tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs	source	5	false
-tests/PVAD.Api.Tests/PvadObservabilityTests.cs	source	14	false
+tests/PVAD.Api.Tests/PvadObservabilityTests.cs	source	13	false
 tests/PVAD.Api.Tests/PvadOfflineLicenseValidatorTests.cs	source	13	false
 tests/PVAD.Api.Tests/PvadPdfLongTermValidationMaterialProviderTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadPdfRevocationEvidenceProviderTests.cs	source	7	false
 tests/PVAD.Api.Tests/PvadPdfTrustPolicyProviderTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadPdfTrustSecurityTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadRetentionGovernanceTests.cs	source	5	false
+tests/PVAD.Api.Tests/PvadRuntimeIdentityTests.cs	source	1	false
 tests/PVAD.Api.Tests/PvadSecurityHeaderMiddlewareTests.cs	source	8	false
 tests/PVAD.Api.Tests/PvadSystemOperatorAccessTests.cs	source	3	false
 tests/PVAD.Api.Tests/RegistrationConflictTests.cs	source	8	false
@@ -841,7 +840,7 @@ tools/configuration/rename-index-review.test.mjs	configuration	2	false
 tools/configuration/rename-residual-review.mjs	configuration	2	false
 tools/configuration/rename-residual-review.test.mjs	configuration	1	false
 tools/configuration/rename-screenshot-audit.mjs	configuration	1	false
-tools/configuration/runtime-brand-contract.test.mjs	configuration	56	false
+tools/configuration/runtime-brand-contract.test.mjs	configuration	63	false
 tools/configuration/schema-identities.test.mjs	configuration	15	false
 tools/configuration/service-cutover-smoke.mjs	configuration	2	false
 tools/configuration/shell-environment.test.mjs	configuration	10	false
@@ -909,7 +908,7 @@ websites/PVAD.Account/tests/returnUrl.test.ts	source	3	false
 websites/PVAD.Account/tests/signedInSignal.test.ts	source	6	false
 websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs	source	2	false
 websites/PVAD.Admin/src/api.js	source	1	false
-websites/PVAD.Admin/tests/documentation-contract.test.js	source	9	false
+websites/PVAD.Admin/tests/documentation-contract.test.js	source	18	false
 websites/PVAD.Admin/tests/export-branding.test.js	source	3	false
 websites/PVAD.Admin/tests/release-notes-contract.test.js	source	1	false
 websites/PVAD.Company/COMPANY_STRATEGY.md	documentation-or-history	1	false

@@ -66,19 +66,19 @@ public sealed class BrowserTelemetryController : ControllerBase
                 Detail = error,
             });
 
-        Activity.Current?.SetTag("pxa.browser.application", request.Application);
-        Activity.Current?.SetTag("pxa.browser.version", request.Version);
-        Activity.Current?.SetTag("pxa.browser.event_count", request.Events.Count);
+        Activity.Current?.SetTag("pvad.browser.application", request.Application);
+        Activity.Current?.SetTag("pvad.browser.version", request.Version);
+        Activity.Current?.SetTag("pvad.browser.event_count", request.Events.Count);
         foreach (var browserEvent in request.Events)
         {
             var route = NormalizeRoute(request.Application, browserEvent.Route);
             if (browserEvent.CorrelationId is not null)
             {
                 Activity.Current?.AddEvent(new ActivityEvent(
-                    "pxa.browser.status.correlation",
+                    "pvad.browser.status.correlation",
                     tags: new ActivityTagsCollection
                     {
-                        { "pxa.browser.source_correlation_id", browserEvent.CorrelationId },
+                        { "pvad.browser.source_correlation_id", browserEvent.CorrelationId },
                     }));
             }
             PvadTelemetry.RecordBrowserEvent(

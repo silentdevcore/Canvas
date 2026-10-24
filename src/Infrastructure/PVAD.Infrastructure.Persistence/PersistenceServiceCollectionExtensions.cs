@@ -7,7 +7,8 @@ namespace PVAD.Infrastructure.Persistence;
 
 public static class PersistenceServiceCollectionExtensions
 {
-    public const string DataSourceName = "pxa-database";
+    public const string DataSourceName = "pvad-database";
+    public const string LegacyDataSourceName = "pxa-database";
 
     public static IServiceCollection AddPvadPersistence(
         this IServiceCollection services,
