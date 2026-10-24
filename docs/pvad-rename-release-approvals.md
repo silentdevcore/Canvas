@@ -33,17 +33,17 @@ renaming does not establish ownership or permission to publish.
 | --- | --- | --- |
 | `release.yml`, `deployment-validation.yml`, deployment evidence verifier | GHCR `pxa-webapi`, `pxa-observability-webhook-relay` | Approve publisher and target image repositories; change publisher, pull/inspect steps and verifier together; retain immutable historical records |
 | `deployment-validation.yml` | `pxa-staging`, `pxa-production` via its environment expression | Inspect actual GitHub configuration, then verify reviewers, secrets, branch restrictions and approval behavior before changing workflow bindings |
-| `release.yml` | `pxa-stable-release` concurrency group | Drain earlier runs and switch every applicable branch/workflow consistently |
-| `prepare-release.yml` | `pxa-release-preparation` concurrency group | Drain preparation runs and retain single-writer release preparation |
-| `release-dry-run.yml` | `pxa-release-dry-run` concurrency group | Coordinate old/new run cancellation and lock identity |
-| `deployment-validation.yml` | `pxa-deployment-*` concurrency groups | Preserve per-environment serialization during the transition |
+| `release.yml` | Old protected-branch runs may still use `pxa-stable-release`; local source uses `pvad-stable-release` | Drain earlier runs and switch every applicable branch/workflow consistently |
+| `prepare-release.yml` | Old runs may still use `pxa-release-preparation`; local source uses `pvad-release-preparation` | Drain preparation runs and retain single-writer release preparation |
+| `release-dry-run.yml` | Old runs may still use `pxa-release-dry-run`; local source uses `pvad-release-dry-run` | Coordinate old/new run cancellation and lock identity |
+| `deployment-validation.yml` | Old runs may still use `pxa-deployment-*`; local source uses `pvad-deployment-*` | Preserve per-environment serialization during the transition |
 | `job-binary-cutover.yml` | PXA in the historical worker step name | Keep identifying the real pinned old binary; it is not a PVAD build renamed cosmetically |
 
-These entries describe source bindings, not proof that a remote environment or
-package exists. No GitHub workflow, registry publication or remote configuration
-was triggered during review. Source comments identify the retained boundaries;
-their parsed workflow definitions remain unchanged. Local checks inspect YAML,
-job dependencies, action pins, filesystem references and Bash syntax only.
+These entries do not prove a published package exists. The read-only follow-up
+below confirms actual protected environments, but does not change them or run a
+workflow. Prior unchanged-workflow comparisons describe earlier checkpoints;
+the four local concurrency group names are now explicitly migrated. Job steps,
+permissions, action pins and environment bindings remain unchanged.
 
 Before a future image-name switch, explicitly decide how historical versions map
 to image repositories. Archive identity and container identity are distinct in
@@ -60,8 +60,38 @@ and never edits active workflows, contacts GitHub or publishes images. The candi
 updates the two producers and their consumers together, preserving permissions,
 action pins, concurrency groups and protected-environment bindings. Historical
 container family selection is explicit and independent of archive names.
+The generator preserves whichever lock names the input workflows currently use;
+it does not activate or validate a remote lock cutover.
 This is not approval of a publisher, proof of image availability or a completed
 remote cutover. See [deployment control](../tools/deployment/README.md#offline-container-workflow-candidate).
+
+## Workflow Lock Cutover
+
+The four active source definitions now use `pvad-*` concurrency groups. Their
+existing `cancel-in-progress` values are unchanged: stable release, preparation
+and deployment serialize without cancellation; dry-run supersession still
+cancels the earlier run. Deployment remains scoped by target environment.
+
+Before activating these sources on protected branches, pause dispatch/release
+triggers and drain all legacy queued, requested, pending, waiting and running
+jobs. Switch every applicable branch together, including historical manual refs;
+do not dispatch old and new lock generations concurrently. GitHub does not alias
+different concurrency group names. Repeat the drain check immediately before
+rollout; a point-in-time read is not an ongoing cross-generation lock.
+
+Read-only GitHub inspection on 2026-10-24 found the two existing environments
+`pxa-staging` and `pxa-production`, both restricted to protected branches.
+Production has a required reviewer; staging has no required reviewer in the
+returned configuration. Their names are retained to preserve those bindings.
+No secret values were requested. The most recent 100 workflow runs contained no
+non-completed runs; this limited snapshot is not an exhaustive drain certificate
+and does not authorize publishing or deployment.
+
+Before changing an environment name, inventory its secrets, variables, reviewers,
+branch restrictions and any custom protection rules. A new environment must not
+silently replace an approved old environment with weaker settings. Environment
+secrets cannot be recovered from their read API; coordinate the secret owner.
+No remote environment, secret, workflow run or repository setting was changed.
 
 ## Concrete Answers Needed
 

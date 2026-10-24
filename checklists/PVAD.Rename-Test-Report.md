@@ -2789,3 +2789,24 @@ change or production deployment was performed. Full release readiness remains op
   `pvad-approved-mail-sender`; VERSION remains 1.1.0.
 - No SMTP test, mail delivery, domain verification, application restart or remote
   configuration was executed. Existing API/database and live-host blockers remain.
+
+## Workflow Concurrency Names (2026-10-24)
+
+- Sender work is committed as `18f9cab6`. Follow-up source edits rename the four
+  workflow concurrency groups to PVAD. Parsed YAML comparison against that commit
+  confirms no semantic changes to triggers, job steps, pins, permissions,
+  cancellation behavior or protected environment names.
+- All 217 selected configuration, Legal, deployment, versioning and shared-link
+  contracts pass without skips. Version/fragment checks pass; VERSION is 1.1.0.
+  Log: `/tmp/pvad-workflow-lock-contracts.log`. The offline image candidates were
+  regenerated to retain the new source lock names, without activating anything.
+- Read-only GitHub queries found `pxa-staging` and `pxa-production`, both limited
+  to protected branches; production has a required reviewer. No secret values
+  were requested. The most recent 100 workflow runs returned no non-completed
+  runs; this is not an exhaustive drain or an activation approval.
+- Existing environment bindings remain unchanged. Actual lock activation needs
+  a coordinated legacy-run drain across applicable refs; environment migration
+  needs equivalent protection and secret/variable owner review. No remote write,
+  dispatch, publication, push or deployment was executed. Prior API/database,
+  Grafana and live-host blockers remain open.
+- Patch fragment: `pvad-workflow-lock-names`.

@@ -9,9 +9,9 @@ permissions:
   packages: write
 
 concurrency:
-  # Retained lock identity; change only after previous runs are drained.
-  # See docs/pvad-rename-release-approvals.md#retained-workflow-bindings.
-  group: pxa-stable-release
+  # Canonical lock: drain legacy runs before activating on protected branches.
+  # See docs/pvad-rename-release-approvals.md#workflow-lock-cutover.
+  group: pvad-stable-release
   cancel-in-progress: false
 
 jobs:

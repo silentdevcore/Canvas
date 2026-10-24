@@ -252,10 +252,14 @@ without adding a legacy manifest copy to the current source tree or rewriting
 release entries. Artifact-family checks still reject incomplete or mixed archives.
 
 Ephemeral CI artifact labels, local SBOM image tags and temporary PR-body files
-now use PVAD. External GHCR repositories, workflow concurrency groups and protected
-GitHub environments retain their existing names until explicitly authorized.
-They are not merely display text: changing them can publish elsewhere, bypass
-environment approval configuration or permit concurrent release operations.
+now use PVAD. The four workflow concurrency groups now use canonical PVAD names
+in local source, with their original cancellation rules. Their activation still
+requires draining old runs across applicable branches, as described in the
+[lock cutover](pvad-rename-release-approvals.md#workflow-lock-cutover).
+External GHCR repositories and protected GitHub environments retain their existing
+names. They are not merely display text: changing them can publish elsewhere or
+bypass environment approval configuration. A point-in-time read-only inspection
+does not approve remote changes or safely serialize old and new lock generations.
 
 ## Active Guides Versus Historical Evidence
 

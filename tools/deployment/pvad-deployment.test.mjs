@@ -310,7 +310,7 @@ test('container generations remain independent of archive names and preserve imm
 test('workflow binds immutable tags to protected serialized environments without deploying', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/deployment-validation.yml', import.meta.url), 'utf8');
   assert.match(workflow, /environment:\s*[\s\S]*name: pxa-\$\{\{ inputs\.environment \}\}/);
-  assert.match(workflow, /group: pxa-deployment-\$\{\{ inputs\.environment \}\}/);
+  assert.match(workflow, /group: pvad-deployment-\$\{\{ inputs\.environment \}\}/);
   assert.match(workflow, /ref: v\$\{\{ inputs\.version \}\}/);
   assert.match(workflow, /gh release view "v\$VERSION"/);
   assert.match(workflow, /docker buildx imagetools inspect/);

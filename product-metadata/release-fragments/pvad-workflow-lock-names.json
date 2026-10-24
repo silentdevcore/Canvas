@@ -1,0 +1,8 @@
+{
+  "id": "pvad-workflow-lock-names",
+  "impact": "patch",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Use canonical workflow concurrency names while preserving cancellation behavior and existing protected deployment environment bindings.",
+  "breaking": false
+}

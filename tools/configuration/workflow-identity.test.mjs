@@ -94,27 +94,27 @@ test('deployment artifact handoff is renamed together without bypassing existing
   const source = read('deployment-validation');
   const names = [...source.matchAll(/name: (pvad-deployment-preflight-\$\{\{ github.run_id \}\})/g)];
   assert.equal(names.length, 2, 'Upload and download must refer to the same preflight artifact');
-  assert.match(source, /group: pxa-deployment-/);
+  assert.match(source, /group: pvad-deployment-/);
   assert.match(source, /name: pxa-\$\{\{ inputs.environment \}\}/);
   assert.match(source, /WEBAPI="ghcr.io\/\$OWNER\/pxa-webapi:\$VERSION"/);
   assert.match(read('release'), /ghcr.io\/\$\{\{ github.repository_owner \}\}\/pxa-webapi:/);
 });
 
-test('retained workflow locks and environment names are explicit and documented', () => {
+test('canonical workflow locks retain serialization and protected environment bindings', () => {
   const mapping = readFileSync(resolve(root, 'docs/pvad-rename-release-approvals.md'), 'utf8');
   const locks = {
-    release: ['pxa-stable-release', false],
-    'prepare-release': ['pxa-release-preparation', false],
-    'release-dry-run': ['pxa-release-dry-run', true],
-    'deployment-validation': ['pxa-deployment-${{ inputs.environment }}', false],
+    release: ['pvad-stable-release', false],
+    'prepare-release': ['pvad-release-preparation', false],
+    'release-dry-run': ['pvad-release-dry-run', true],
+    'deployment-validation': ['pvad-deployment-${{ inputs.environment }}', false],
   };
   for (const [name, [group, cancel]] of Object.entries(locks)) {
     const source = read(name);
     const workflow = load(source);
     assert.equal(workflow.concurrency.group, group);
     assert.equal(workflow.concurrency['cancel-in-progress'], cancel);
-    assert.match(source, /# Retained .*lock identity|# Retained deployment lock/);
-    assert.ok(source.includes('docs/pvad-rename-release-approvals.md#retained-workflow-bindings'));
+    assert.match(source, /# Canonical lock: drain legacy runs/);
+    assert.ok(source.includes('docs/pvad-rename-release-approvals.md#workflow-lock-cutover'));
     assert.ok(mapping.includes(`\`${name}.yml\``));
   }
   const deployment = load(read('deployment-validation'));

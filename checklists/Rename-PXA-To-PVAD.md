@@ -921,6 +921,27 @@ Earlier notes preserving the configured sender describe their historical
 checkpoints; this approval supersedes that default only. Existing environment
 overrides, stored message payloads, tokens and audit evidence are not rewritten.
 
+## Workflow Lock Rename Follow-up (2026-10-24)
+
+- [x] Commit the approved sender changes separately (`18f9cab6`).
+- [x] Rename concurrency groups in stable release, preparation, dry-run and
+  deployment validation to `pvad-*`. Preserve cancellation and environment scoping.
+- [x] Compare all four parsed definitions against the sender commit: concurrency
+  group names are the only semantic differences. All 217 selected Node contracts
+  pass without skips; version/fragment checks pass. VERSION remains 1.1.0.
+- [x] Read actual GitHub environment metadata without modifying remote settings:
+  both legacy environments exist and restrict deployment to protected branches;
+  production requires a reviewer. Preserve their existing bindings.
+- [ ] Before activation, drain all legacy workflow generations and coordinate
+  protected-branch updates. The most recent 100 runs had no non-completed entries;
+  this point-in-time limited snapshot does not certify an exhaustive drain.
+- [ ] Migrate protected environment names only after reviewing secret/variable
+  owners and equivalent protection. No remote mutation or publication was run.
+
+See [workflow lock cutover](../docs/pvad-rename-release-approvals.md#workflow-lock-cutover).
+Patch fragment: `pvad-workflow-lock-names`. Earlier API, live-host, Grafana and
+publisher gates remain open; this follow-up does not close them.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

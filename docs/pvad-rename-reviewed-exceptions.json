@@ -27,12 +27,12 @@
     },
     {
       "path": ".github/workflows/deployment-validation.yml",
-      "sha256": "e7147db39c2d2e4754332f3eb70c4851af62cb0f8ec81f8c526cc334e31dc652",
+      "sha256": "ef5f4a79158bf521176c0002cb8f585e76abc83f147379659bbeae8f5135d735",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Canonical per-environment concurrency name only; retain verified existing protected environment and registry bindings to avoid bypassing approvals or inventing publisher ownership.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -46,33 +46,13 @@
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
-      "path": ".github/workflows/prepare-release.yml",
-      "sha256": "240ee70a1f6861e442c5e0b9be19f06ef550f62af0dcbc1a2e3ee70f3f149a3d",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
-    },
-    {
-      "path": ".github/workflows/release-dry-run.yml",
-      "sha256": "1e89e572507100a425c6d39a700ce43e7cc7229d6f2b18b87989b8592f4f7c2f",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
-    },
-    {
       "path": ".github/workflows/release.yml",
-      "sha256": "77ba1424d48ed771f591de0c9299157cbd658e601f70857d45b2a4909111b11d",
+      "sha256": "03dda2ab4a4aefe6c71ef4eb0f92db7a77b95bf166d503c0a6ab6f1268a627b4",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Canonical workflow concurrency name only; preserve the unapproved historical image publisher destinations, permissions, action pins and all release operations.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -1207,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "d1625935501f88678a071cf738a7b229ca73ddd6253899d1903324c97dceb742",
+      "sha256": "aed35845f84a2f466e42115443dd1add202f2c6a24fda788177df610da7cdfe1",
       "reasons": [
         "historical-document"
       ],
@@ -1227,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "9b8532b9b0d9113fbc67e25004038f2a3b2536f9d42307b0f2db689185649087",
+      "sha256": "a04c8627d330a6b5a83771602c02ef8a121c370c2b68dcfe967c1630f1b1f627",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record offline sender validation results with explicit unrun mail and runtime tests; preserve historical validation evidence.",
+      "reviewNotes": "Record semantic YAML comparison, passing contracts and limited read-only GitHub inspection; retain prior blockers and distinguish local edits from remote activation.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1337,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "f409d9b5747d0962d60ccd4c94c9434938ede8eff23ea34c5766c860e105dcb9",
+      "sha256": "0130318e1397ad7b9fc9bad7e6016835b7fb4763e2bf9cff462cf64f128891bb",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record approved sender follow-up and 217 passing contracts; retain historical status, stable diagnostics and incomplete external activation gates.",
+      "reviewNotes": "Record local workflow concurrency migration and 217 passing contracts without closing external environment, publisher or coordinated activation gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -2337,12 +2317,12 @@
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
-      "sha256": "4a90111db97aa3a6e3f29ce6db4f67f0f221156a310a6111e5e572b49a5d94f7",
+      "sha256": "780023cb9d8c1967754f591969ffc985831f5be9bade2dd8bef753b506dba065",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-rename-exceptions.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Update concurrency naming boundary while retaining historical evidence, actual protected environments and unapproved publisher bindings.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2367,12 +2347,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "1b370737fe18698f339fadbcdeed9fbbf28dbe7dcfd54216304fa013eee84cef",
+      "sha256": "8de97c03174886b8ab28dda08454cab148fe750b9e8d8d0c6c84bd667e177bf6",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record approved technical sender selection without claiming domain/mailbox ownership, registry selection, live delivery or rollout approval.",
+      "reviewNotes": "Record local concurrency rename and read-only remote environment verification, with explicit limited-run-snapshot scope and no secret or remote mutation claims.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -7687,12 +7667,12 @@
     },
     {
       "path": "tools/configuration/workflow-identity.test.mjs",
-      "sha256": "3afe8689c241ccfaeea1c611c49bd867de88068f40af0c5accbafde416248e0e",
+      "sha256": "b2fd685e1a19249e41b59dd1b5baf7376a61048f98ac1b4b5c96e2786205019f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Assert canonical lock names and original cancellation rules while retaining compatibility assertions for protected environments and image publishers.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -7707,12 +7687,12 @@
     },
     {
       "path": "tools/deployment/pvad-deployment.test.mjs",
-      "sha256": "4335a71820e1749f1872e4bedf5a66d12e054b33270166a7148f936e940c84a3",
+      "sha256": "b26e8ef053ae51fdde6c69ed273b8bb1ccd4656a0d87dfc42dd20e0d2a143ac0",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Legacy image/tag/archive fixtures remain explicit compatibility tests. New tests require complete canonical pairs, reject mixed/foreign/mutable inputs and preserve original evidence across retry/rollback.",
+      "reviewNotes": "Assert canonical deployment lock with unchanged real protected-environment bindings; retain deliberate old image and artifact inputs for historical deployment coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

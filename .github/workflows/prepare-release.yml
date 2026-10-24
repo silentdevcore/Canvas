@@ -22,9 +22,9 @@ permissions:
   pull-requests: write
 
 concurrency:
-  # Retained lock identity; drain previous runs before a coordinated rename.
-  # See docs/pvad-rename-release-approvals.md#retained-workflow-bindings.
-  group: pxa-release-preparation
+  # Canonical lock: drain legacy runs before activating on protected branches.
+  # See docs/pvad-rename-release-approvals.md#workflow-lock-cutover.
+  group: pvad-release-preparation
   cancel-in-progress: false
 
 jobs:

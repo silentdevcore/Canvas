@@ -40,9 +40,9 @@ permissions:
   deployments: write
 
 concurrency:
-  # Retained deployment lock; keep old/new workflow runs serialized until cutover.
-  # See docs/pvad-rename-release-approvals.md#retained-workflow-bindings.
-  group: pxa-deployment-${{ inputs.environment }}
+  # Canonical lock: drain legacy runs before activating on protected branches.
+  # See docs/pvad-rename-release-approvals.md#workflow-lock-cutover.
+  group: pvad-deployment-${{ inputs.environment }}
   cancel-in-progress: false
 
 jobs:

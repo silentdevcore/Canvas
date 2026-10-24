@@ -20,9 +20,9 @@ permissions:
   contents: read
 
 concurrency:
-  # Retained lock identity, not active branding; coordinate with previous runs.
-  # See docs/pvad-rename-release-approvals.md#retained-workflow-bindings.
-  group: pxa-release-dry-run
+  # Canonical lock: drain legacy runs before activating on protected branches.
+  # See docs/pvad-rename-release-approvals.md#workflow-lock-cutover.
+  group: pvad-release-dry-run
   cancel-in-progress: true
 
 jobs:
