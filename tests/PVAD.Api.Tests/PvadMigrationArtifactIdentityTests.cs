@@ -31,6 +31,7 @@ public sealed class PvadMigrationArtifactIdentityTests
     [InlineData("pxa-csharp", "text/x-csharp", ".cs", "pvad-csharp")]
     [InlineData("pvad-csharp", "text/x-csharp", ".cs", "pvad-csharp")]
     [InlineData("pxa-spreadsheet-csharp", "text/x-csharp", ".cs", "pvad-spreadsheet-csharp")]
+    [InlineData("pvad-spreadsheet-csharp", "text/x-csharp", ".cs", "pvad-spreadsheet-csharp")]
     [InlineData("pxa-viewer-package", "application/vnd.pxa.viewer+json", ".pxaviewer.json", "pvad-viewer-package")]
     [InlineData("pvad-viewer-package", "application/vnd.pvad.viewer+json", ".pvadviewer.json", "pvad-viewer-package")]
     public void ReviewedTuples_HaveMatchingCatalogAndResponseAliases(string id, string mime, string extension, string canonical)
@@ -54,6 +55,20 @@ public sealed class PvadMigrationArtifactIdentityTests
     [InlineData("pxa-unknown", "application/json", ".json")]
     public void MixedUnknownAndNeutralTuples_AreNotReclassified(string id, string mime, string extension) =>
         Assert.Null(MigrationArtifactIdentities.Resolve(id, mime, extension));
+
+    [Fact]
+    public void Legacy_projection_roundtrips_each_known_identity_and_does_not_reclassify_unknowns()
+    {
+        foreach (var canonical in new[] { MigrationArtifactIdentities.PdfCode, MigrationArtifactIdentities.SpreadsheetCode, MigrationArtifactIdentities.ViewerPackage })
+        {
+            Assert.Equal(canonical, MigrationArtifactIdentities.ForOutput(canonical, false));
+            var legacy = MigrationArtifactIdentities.ForOutput(canonical, true);
+            Assert.StartsWith("pxa-", legacy.Id);
+            Assert.Equal(canonical, MigrationArtifactIdentities.Resolve(legacy.Id, legacy.MediaType, legacy.FileExtension));
+        }
+        var neutral = new MigrationArtifactIdentity("design", "application/json", ".json");
+        Assert.Same(neutral, MigrationArtifactIdentities.ForOutput(neutral, true));
+    }
 
     [Fact]
     public void ProviderDiagnostics_KeepStableCanmigIds()

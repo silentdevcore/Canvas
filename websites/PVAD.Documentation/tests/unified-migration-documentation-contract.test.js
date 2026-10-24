@@ -21,3 +21,11 @@ test('legacy migration routes are documented only as compatibility routes', () =
   assert.match(source, /\/api\/migration\/report-to-design/);
   assert.match(source, /one major release/);
 });
+
+test('migration output guidance matches the canonical writer contract without claiming a package importer', () => {
+  for (const identity of ['pvad-csharp', 'pvad-spreadsheet-csharp', 'pvad-viewer-package',
+    'application/vnd.pvad.viewer+json', '.pvadviewer.json', 'pvad.pdf-viewer-package'])
+    assert.ok(source.includes(`<code>${identity}</code>`) || source.includes(`<code>kind: ${identity}</code>`), identity);
+  assert.match(source, /not array position/);
+  assert.match(source, /No standalone package upload is available/);
+});

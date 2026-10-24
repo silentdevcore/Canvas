@@ -6,6 +6,7 @@ using PVAD.Migration.Abstractions;
 using PVAD.Migration.Pdf;
 using PVAD.Migration.Pdf.Code.Nutrient;
 using PVAD.Migration.Pdf.Viewer.Nutrient;
+using PVAD.WebApi.Infrastructure;
 using PVAD.WebApi.Security;
 using PVAD.WebApi.Services;
 
@@ -282,7 +283,7 @@ public sealed class UnifiedMigrationsController(
                 result.Summary.WarningCount,
                 result.Summary.ErrorCount,
                 result.Summary.TotalDiagnostics),
-            [new MigrationArtifactResponse(descriptor.Artifacts[0].Id, descriptor.Artifacts[0].MediaType, descriptor.Artifacts[0].FileExtension, result.PvadCode)],
+            [CreateArtifact(descriptor.Artifacts[0], result.PvadCode)],
             result.Diagnostics.Select(static item => new MigrationDiagnosticResponse(item.Code, item.Severity, item.Message)).ToArray(),
             result.Summary.ErrorCount == 0 ? "compatible" : "reviewRequired",
             "regenerated",
@@ -348,7 +349,7 @@ public sealed class UnifiedMigrationsController(
         return Ok(ViewerResponse(descriptor, inputType, sourceResult, request.Pages));
     }
 
-    private static UnifiedMigrationResponse ViewerResponse(
+    private UnifiedMigrationResponse ViewerResponse(
         MigrationProviderDescriptor descriptor,
         string inputType,
         NutrientViewerSourceResult result,
@@ -364,7 +365,7 @@ public sealed class UnifiedMigrationsController(
         return new(
             descriptor.ProviderKey, descriptor.ProviderFamily, descriptor.Domain, descriptor.MigrationKind, inputType, "completed",
             CapabilitySummary(result.CapabilityReport),
-            [new("pxa-viewer-package", "application/vnd.pxa.viewer+json", ".pxaviewer.json", package)],
+            [CreateArtifact(descriptor.Artifacts[0], package)],
             result.Diagnostics.Select(static item => new MigrationDiagnosticResponse(item.Code, item.Severity, item.Message)).ToArray(),
             result.DocumentFidelity, result.SourcePreservation, result.SourceMap,
             new Dictionary<string, string>
@@ -375,7 +376,7 @@ public sealed class UnifiedMigrationsController(
             }, result.CapabilityReport, CreatePdfTrustResponse(result.PdfTrust));
     }
 
-    private static UnifiedMigrationResponse ViewerResponse(
+    private UnifiedMigrationResponse ViewerResponse(
         MigrationProviderDescriptor descriptor,
         string inputType,
         NutrientInstantJsonResult result,
@@ -391,7 +392,7 @@ public sealed class UnifiedMigrationsController(
         return new(
             descriptor.ProviderKey, descriptor.ProviderFamily, descriptor.Domain, descriptor.MigrationKind, inputType, "completed",
             CapabilitySummary(result.CapabilityReport),
-            [new("pxa-viewer-package", "application/vnd.pxa.viewer+json", ".pxaviewer.json", package)],
+            [CreateArtifact(descriptor.Artifacts[0], package)],
             result.Diagnostics.Select(static item => new MigrationDiagnosticResponse(item.Code, item.Severity, item.Message)).ToArray(),
             result.DocumentFidelity, result.SourcePreservation, null,
             new Dictionary<string, string>
@@ -402,7 +403,7 @@ public sealed class UnifiedMigrationsController(
             }, result.CapabilityReport, CreatePdfTrustResponse(result.PdfTrust));
     }
 
-    private static JsonObject CreateViewerPackage(
+    private JsonObject CreateViewerPackage(
         string inputType,
         JsonNode? viewerSettings,
         string? integrationModule,
@@ -411,7 +412,8 @@ public sealed class UnifiedMigrationsController(
         IReadOnlyList<NutrientPageGeometry>? pages) => new()
     {
         ["schemaVersion"] = 1,
-        ["kind"] = MigrationArtifactIdentities.LegacyViewerPackageKind,
+        ["kind"] = PvadLegacyApiMiddleware.IsLegacyRequest(HttpContext)
+            ? MigrationArtifactIdentities.LegacyViewerPackageKind : MigrationArtifactIdentities.ViewerPackageKind,
         ["canonicalKind"] = MigrationArtifactIdentities.ViewerPackageKind,
         ["provider"] = "nutrient",
         ["sourceType"] = inputType,
@@ -576,10 +578,24 @@ public sealed class UnifiedMigrationsController(
         return StatusCode(status, problem);
     }
 
-    private static MigrationProviderResponse ToCatalogResponse(MigrationProviderDescriptor descriptor) => new(
+    private MigrationArtifactDescriptor OutputDescriptor(MigrationArtifactDescriptor descriptor)
+    {
+        var canonical = MigrationArtifactIdentities.Resolve(descriptor.Id, descriptor.MediaType, descriptor.FileExtension);
+        if (canonical is null) return descriptor;
+        var identity = MigrationArtifactIdentities.ForOutput(canonical, PvadLegacyApiMiddleware.IsLegacyRequest(HttpContext));
+        return new(identity.Id, identity.MediaType, identity.FileExtension);
+    }
+
+    private MigrationArtifactResponse CreateArtifact(MigrationArtifactDescriptor descriptor, object content)
+    {
+        var output = OutputDescriptor(descriptor);
+        return new(output.Id, output.MediaType, output.FileExtension, content);
+    }
+
+    private MigrationProviderResponse ToCatalogResponse(MigrationProviderDescriptor descriptor) => new(
         descriptor.ProviderKey, descriptor.ProviderFamily, descriptor.DisplayName, descriptor.Domain,
         descriptor.MigrationKind, descriptor.Status, descriptor.Description, descriptor.Aliases,
-        descriptor.Inputs, descriptor.Artifacts, descriptor.SupportsPreview, descriptor.HasExamples,
+        descriptor.Inputs, descriptor.Artifacts.Select(OutputDescriptor).ToArray(), descriptor.SupportsPreview, descriptor.HasExamples,
         descriptor.DocumentationId, descriptor.FeatureId, descriptor.MaximumInputBytes, descriptor.PermissionKey);
 }
 

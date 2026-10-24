@@ -4,8 +4,13 @@
 
 ## Status And Naming Authority
 
-**Source rename: provisionally complete for the reviewed scope. Broad validation:
-partly passed; the API suite remains blocked by local database authentication.**
+**Current audit, 2026-10-24: not complete. The counted acceptance plan is
+86/98 complete (87.8%), with 12/98 open (12.2%).** OAuth/MCP still has legacy
+writer defaults, and final-candidate validation and external release gates remain
+open. See [the current audit and counting rule](#current-audit-and-progress-2026-10-24).
+Earlier 88/97 and other percentages below are historical checkpoints, not the
+current total. The latest full API attempt remains blocked by local database
+authentication; isolated API tests do not close that blocker.
 This is not release readiness or proof that all features work on the final source
 revision. Further changes start only from a concrete naming finding or the later
 validation results, not from a target percentage.
@@ -184,9 +189,11 @@ for this final naming pass remains deferred.
 
 The combined 88/97 score below is the earlier acceptance checkpoint, not a
 percentage for source-name replacement alone. No new build/test result is claimed
-for the latest rename-only changes. Remaining old-name files are compatibility
+by that historical score. Most remaining old-name files are compatibility
 entrypoints, legacy schemas/fixtures, archived signed evidence or historical/
-neutral Canvas terminology; they are not all outstanding product renames.
+neutral Canvas terminology. The current audit additionally identifies unfinished
+OAuth/MCP writers and explicit infrastructure bindings; not every residual is an
+outstanding cosmetic rename.
 
 ### Remaining Old Names And Their Treatment
 
@@ -226,7 +233,8 @@ unverified. See [native opening](../docs/pvad-native-project-opening.md).
 An isolated PostgreSQL service-name cutover and rollback preserved both synthetic
 rows, with no concurrent writers or customer mounts; owned test resources were
 removed. These partial internal deliverables do not close the combined external
-gates, so the honest total remains **88/97 (90.7%)**, not 95%.
+gates, so that checkpoint remained **88/97 (90.7%)**, not 95%. The current audit
+below supersedes this historical total.
 The earlier complete browser launch-to-editor flow passed for both project kinds on
 desktop and mobile with synthetic API responses. It verifies one file read, one
 upload, Designer/CSRF headers and visible imported content. Fixed the missing
@@ -285,7 +293,7 @@ Optional Word/Viewer/Converter/Automation brands remain unconfirmed.
 | tools/versioning/pxa-* | tools/versioning/pvad-* | Scripts, tests, workflows and skill references |
 | product-metadata/pxa-releases.json | product-metadata/pvad-releases.json | Preserve version history and IDs; update schema/readers coherently |
 | pxa-build-info.json | pvad-build-info.json | All writers, packaging checks and UI readers |
-| .pxap / .pxas | .pvadp / .pvads | Proposed canonical extensions; legacy import retained |
+| .pxap / .pxas | .pvadp / .pvads | Confirmed canonical extensions; legacy import retained |
 | pxap / pxas format IDs | pvadp / pvads | Versioned reader/writer migration |
 | PXA-PXAP-1 / PXA-PXAS-1 | PVAD-PVADP-1 / PVAD-PVADS-1 | Explicit new envelope identities |
 | application/vnd.powerdox.pxap+zip | application/vnd.pvad.pvadp+zip | Internal media type; do not claim IANA registration |
@@ -301,7 +309,7 @@ Optional Word/Viewer/Converter/Automation brands remain unconfirmed.
 | powerdoxautomation.com URLs | Confirmed market-brand domain | PVADE branding does not imply domain ownership; deployment configuration after verification |
 | pxa-release-author skill | pvad-release-author | Rename repo instructions, tests and references during implementation |
 
-These are proposed technical targets for execution, including extensions.
+These are the rename targets; the owner has confirmed the native extensions.
 A complete rename does not mean corrupting immutable historical evidence or
 discarding compatibility. Such remaining old strings must be explicitly listed.
 
@@ -444,8 +452,10 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   A shared exact allowlist covers 494 API, PDF-Trust, E-Invoice, migration API, code-worker/workspace,
   license, Designer-access/feature/asset and entitlement/subscription IDs.
   `canonicalCode` (or `canonicalDecisionCode` on feature entries) is additive;
-  old codes, permission decisions, type URLs and signed license bytes remain
-  unchanged. A source contract guards the reviewed families against missing
+  old codes, permission decisions and signed license bytes remain unchanged.
+  Current-route generated problem type URLs now use the selected domain; legacy
+  routes retain old generated types and explicit custom types are preserved.
+  A source contract guards the reviewed families against missing
   mappings. Template conflict and native project diagnostics now have aliases;
   project-open compatibility uses an API projection without adding properties to
   archive manifests. Historical CANMIG/provider diagnostics and retained history
@@ -480,10 +490,15 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   plus equal legacy aliases in compatibility HTTP responses and new job output.
   Internal service and Designer consumers use the canonical name. Existing stored
   result bytes remain untouched; this does not complete the wider event/type audit.
-  Three migration artifact identities now have additive canonical ID/MIME/extension
-  metadata shared by catalog and result responses. Viewer output adds canonicalKind
-  while retaining the legacy kind and primary fields; stored packages are not rewritten.
-- [x] Read legacy names where needed; write PVAD canonical names in new contracts.
+  Three migration artifact identities have shared canonical ID/MIME/extension
+  metadata. The current working-tree follow-up writes canonical primary fields
+  and Viewer kind on current routes, retaining old primary fields/kind only on
+  legacy routes. Stored packages are not rewritten. See the writer follow-up.
+- [ ] Read legacy names where needed; write PVAD canonical names in new contracts.
+  Reopened by the 2026-10-24 audit: the completed header/cookie/claim substages
+  below do not close OAuth/MCP defaults. Remaining client IDs, resource identity,
+  scope writers/discovery and service-account parsing are listed in the current
+  audit. Existing scope alias support is implemented, not the entire cutover.
   Security request headers are canonical with a pre-auth legacy normalizer;
   conflicting/duplicate aliases fail closed. Four response-header families write
   both names. Cookies, credentials, signed webhook envelopes and other serialized
@@ -497,7 +512,8 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   An opt-in, idempotent client/grant alias migration now preserves credentials,
   metadata, revoked grants and issued tokens under InMemory and PostgreSQL tests.
   Existing stores remain unchanged unless enabled; issuance preserves requested
-  scopes. New dynamic clients receive PVAD IDs. Existing-client login examples
+  scopes. Only new dynamic-registration clients currently receive PVAD IDs;
+  built-in/public/service-account defaults still use the old IDs. Existing-client login examples
   stay legacy until the target-store maintenance procedure is applied and verified.
   Necessary-storage acknowledgements now write PVAD.StorageNotice and migrate
   compatible legacy acknowledgements; unit/browser tests and the storage inventory
@@ -518,7 +534,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   chunk cleanup and conflict rejection are covered by real TestServer ticket/CSRF
   tests and actual application-option checks. Production-host and PostgreSQL
   session verification remain separate gates, not implied by this source migration.
-- [ ] Migrate Data Protection consumers, purpose strings, key access and encrypted retained job data.
+- [ ] Complete authorized retained-key access, recovery and protected-consumer cutover.
   Additional local tests cover both retained payload purposes through real
   file-keyring provider restarts, old/new tampering and unrelated-app rejection.
   Production key mounts/recovery remain unverified; migration notes now warn
@@ -531,6 +547,8 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   has no application Data Protection envelope to rename. Do not invent an
   encrypted-data migration or claim encryption at rest. Actual production key
   access and the deployment owner sign-off remain open.
+  This is an operational recovery gate, not permission to rename the retained
+  application discriminator or invent job/object encryption as a rename task.
 - [x] Preserve host-only Account/Designer/Admin boundaries, CSRF, PKCE and active-tenant authorization.
   Source/in-process coverage includes actual cookie configuration, ticket isolation,
   real antiforgery validation, PKCE/state/tenant handoffs and conflicting claim
@@ -595,7 +613,9 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   2026-10-22: product-metadata/native-file-types.json and the candidate compiler
   now prepare Linux MIME, macOS exported types and Windows ProgIDs, checked
   against Core's canonical formats. No fake open command or default .zip handler
-  is registered. A packaged native/PWA opener and actual per-OS tests remain open.
+  is registered. The later PWA launch handler and synthetic browser intake tests
+  are implemented. Installed per-OS associations, approved artwork and the final
+  packaging decision remain open; do not describe the PWA handler as missing.
 
 ## P1 - Infrastructure And Operations
 
@@ -617,6 +637,11 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   PVAD; strict CI container metadata validation includes commit and build time.
   Existing registry repositories and protected workflow/environment identities
   remain explicitly retained pending external owner approval.
+  Current source now uses canonical Compose defaults, health/data-source/span
+  names, scrape jobs and alert labels. Remaining identity activation includes
+  GHCR repositories, protected GitHub environments and Grafana provider/folder
+  names. Offline candidates are preparation, not applied cutovers. Stable
+  dashboard/data-source UIDs and historical evidence are intentional exceptions.
 - [x] Accept legacy config during a documented transition; new keys win and conflicting values fail clearly.
   Shared shell/Node/.NET adapters, actual Compose resolution, Nginx canonical/legacy/
   conflict checks and the containerized MCP TLS smoke passed. Conflicts fail before
@@ -690,6 +715,11 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
 - [x] Record test results and residual exceptions in PVAD.Rename-Test-Report.md and docs/pvad-rename-migration-notes.md before rollout.
 
 ## Validation Gates
+
+Checked executions below retain their recorded historical source checkpoints.
+They do not certify the latest dirty working tree. The final-candidate gate at
+the end of this section requires a consistent source revision and closes the
+currently blocked full API/PostgreSQL validation explicitly.
 
 - [x] Run dotnet build PVAD.sln and independently validate PVAD.slnx's intended scope.
 - [x] Run core, application, persistence, API, Generator, importer, migration and export suites.
@@ -801,6 +831,14 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   an isolated temporary repository. This validates the audit tool, not approval
   of the entire index. The overall count remains 85/97 (87.6%).
 - [ ] Perform externally authorized staging/deployment smoke tests before production cutover.
+- [ ] Revalidate and review the final rename release candidate on one recorded source revision.
+  Run the complete Solution/API with isolated disposable PostgreSQL rather than
+  changing installed development credentials. Repeat Designer, all websites,
+  MCP, worker/converter and packaging checks together; build DocFX and check its
+  generated links. Finish authenticated desktop/mobile CSP, Monaco/font/asset,
+  native PDF display/print and migration/export smoke tests. Review the final diff,
+  retained-name ledger, compatibility boundaries and release metadata. Earlier
+  selected green suites cannot be substituted for this final acceptance gate.
 
 ## Delivery And Commit Order
 
@@ -879,7 +917,10 @@ separate operations; this planning step performs none of them.
 
 ## Completion Criteria
 
-- [x] Active platform surfaces consistently display PVADE; first-party technical identities consistently use PVAD.
+- [ ] Active platform surfaces consistently display PVADE; first-party technical identities consistently use PVAD.
+  Reopened by the 2026-10-24 audit because active OAuth/MCP writer defaults still
+  use legacy identities. This does not reopen intentionally retained diagnostics,
+  cryptographic purposes, third-party APIs or historical evidence for replacement.
   Current shared-brand/localization contracts and desktop/mobile host screenshots
   verify active surfaces. Current documentation images were regenerated as
   recorded above; retained compatibility contracts and historical evidence remain
@@ -904,6 +945,69 @@ separate operations; this planning step performs none of them.
 - [ ] Breaking package/namespace changes have a major release and actionable migration instructions.
 - [ ] External systems have confirmed owners and tested cutover/rollback evidence.
 - [x] Test report distinguishes passed, skipped, blocked and unrun checks.
+
+## Current Audit And Progress (2026-10-24)
+
+### Counting Rule
+
+Count only the primary checkbox lines in P0, the seven P1 sections, Validation
+Gates and Completion Criteria. The original baseline had 97 acceptance tasks;
+this audit adds one final-candidate validation gate, making 98. Two previously
+checked broad canonical-writer/naming criteria are reopened because OAuth/MCP
+defaults are still legacy. Therefore **86/98 are complete (87.8%) and 12/98 are
+open (12.2%)**. This is an equal-weight acceptance-task count, not an estimate of
+remaining engineering hours, changed-file percentage or production readiness.
+
+Dated follow-up checkboxes are supporting evidence/substeps and overlap the
+primary gates; do not count them again. The work breakdown below expands those
+open gates and deliberately does not add duplicate score-bearing checkboxes.
+Additional findings may change the scope and denominator; do not target a score
+by marking incomplete work done.
+
+### Missing Or Incomplete Work
+
+| ID | Concrete remaining work | Existing primary gate / dependency |
+| --- | --- | --- |
+| R01 | Change new OAuth API resource, public/MCP client and service-account client defaults to PVAD; align option defaults, configuration, registration and strict old/new service-account ID parsing. | API canonical writers; technical naming completion. Local implementation possible. |
+| R02 | Make server and MCP default scope writers/discovery canonical, with explicit known aliases and tests. Refactor the C# canonicalizer that currently derives aliases from the old scope list. Keep the three MCP read scopes distinct from unsupported write capabilities; do not expand authority during rename. | Same canonical-writer gate. Local implementation possible. |
+| R03 | Complete an explicit client/resource identity transition for existing stores, building on the existing opt-in scope migration. Test dry-run, idempotency, credentials, permissions, revoked grants, issued tokens, audience validation and rollback using disposable stores. Do not rewrite retained tokens or silently recreate registered clients. | Same canonical-writer gate; actual environment activation requires its owner. |
+| R04 | Run the final whole-repository build/test and release-metadata review, including the currently blocked hosted API suite against deliberately isolated PostgreSQL, worker/converter compatibility and clean final diff review. | New final-candidate validation gate. Local work; environment permission may be required. |
+| R05 | Complete final authenticated desktop/mobile tests on current assets, especially Account handoff, CSP, code editor, fonts/images, PDF display/print, project opening, migration preview and downloads. | Same final-candidate gate. Earlier partial/synthetic evidence is not this final run. |
+| R06 | Install or use an approved CI DocFX toolchain, generate the technical documentation and verify its links, schema references and exclusion of protected operator content. The Vite Documentation build passes but is not a DocFX build. | Same final-candidate gate. Local/CI work; no paid external dependency. |
+| R07 | Select and establish NuGet/npm/container publishers; activate paired container publishers/consumers only after ownership is confirmed. Drain old workflow generations and migrate protected GitHub environments with their reviewers, secrets, variables and branch restrictions intact. | Public identities; infrastructure identity and authorized external-system gates. Owner/remote access required. |
+| R08 | Apply the prepared Grafana provider/folder transition with state backup, permissions/placement checks and rollback; validate live monitoring jobs, alert routing/silences, custom queries and mail delivery after identity changes. Do not rename stable UIDs or stored history cosmetically. | Infrastructure identity; external owners/rollback and staging gates. Operator authorization required. |
+| R09 | Verify chosen domains and addresses in real DNS/TLS/proxy/authentication/CORS/CSP/mail/webhook configuration. The selected domain/support/sender names are confirmed; ownership, deliverability and callback behavior are not. | Host/callback and authorized external-system gates. Infrastructure evidence required. |
+| R10 | Verify actual keyring mounts, signing-key recovery, retained protected payloads, volume bindings and stop/start/rollback with the environment owner. No published/customer installations are confirmed; do not invent a production inventory. | Protected-consumer recovery; external owner/rollback and staging gates. |
+| R11 | Decide supported installed file-association targets, approve artwork if required, package the already implemented opener and test actual associations per OS. The manual/PWA opening path remains available. | Native open/save/association gate; product/packaging approval required. |
+| R12 | Approve the Major release and migration/removal window, then prepare/review the version, tag, packages/images and release notes through the normal workflow. Current VERSION remains 1.1.0 and no release/push/deployment is authorized by this audit. | Major-release completion; publisher, staging and owner approvals. |
+
+### Verified Boundaries And Caveats
+
+- Source review found remaining writer defaults in `PvadOAuthOptions.cs`,
+  `PvadOAuthClients`, `OAuthController.TryParseServiceAccountClientId`, MCP
+  `remote/config.ts` and `remote/app.ts`. Existing canonical scope aliases and
+  the opt-in scope/grant migration are present; they are not missing from scratch.
+- Project/solution/package names and fresh Compose defaults are canonical in the
+  reviewed scan. Job-cutover references, MCP legacy executables and explicit
+  legacy Compose overlays are intentional compatibility inputs, not new defaults.
+- Active workflows retain GHCR `pxa-*` image names and `pxa-staging`/
+  `pxa-production`; Grafana provisioning retains provider/folder `PXA`. Offline
+  candidate generators exist, but activation has not occurred.
+- The current migration writer package is implemented and selectively tested in
+  the working tree, not yet committed. Its recorded 90 .NET, 41 Designer,
+  59 Documentation and 222 selected Node tests are not a full final-candidate run.
+- No implementation, database, credentials, installed resources, remote settings,
+  version or published manifest are changed by this documentation audit.
+- Stable diagnostic IDs, legacy readers, retained cryptographic identifiers,
+  customer/vendor text, neutral drawing APIs and signed/legal evidence are not
+  remaining rename work. Dependency advisories and unrelated product features
+  stay in their own release/security roadmaps rather than inflating this score.
+
+Evidence: [validation blockers](../docs/pvad-rename-validation-blockers.md),
+[identity compatibility](../docs/pvad-identity-compatibility.md),
+[release approvals](../docs/pvad-rename-release-approvals.md),
+[Designer security profile](../deploy/websites/DESIGNER-SECURITY.md),
+[migration artifact identities](../docs/pvad-migration-artifact-identities.md).
 
 ## Approved Mail Sender Follow-up (2026-10-24)
 
@@ -1016,6 +1120,33 @@ The fragment `pvad-api-and-runtime-identities` declares Major impact for changed
 current-route type URLs and emitted telemetry identifiers. VERSION stays 1.1.0.
 No physical database, role, key, stored history, authentication or remote setting
 is migrated by this source change.
+
+## Migration Artifact Writer Follow-up (2026-10-24)
+
+- [x] Commit the completed API/runtime identity package separately (`f2a90213`).
+- [x] Make the shared catalog authoritative for canonical PDF code, Spreadsheet
+  code and Viewer package output identities, media types and extensions.
+- [x] Emit current primary identities on current routes and complete legacy
+  tuples on compatibility routes, including after middleware path rewriting.
+  Keep the registry immutable across requests and preserve canonical projections.
+- [x] Emit the current Viewer package kind without rewriting saved packages,
+  source data, checksums, provider IDs, diagnostics or neutral design artifacts.
+- [x] Select Designer code by validated domain and complete artifact identity,
+  not array position. Accept old/current tuples and test actual C# downloads.
+- [x] Document the package-versus-design boundary in public Documentation and
+  the technical guide. Do not claim or introduce a standalone package importer.
+- [x] Pass 25 isolated API/artifact contracts, 43 PDF, 11 Spreadsheet and 11 Report
+  provider contracts; 41 Designer tests; 59 Documentation tests; 27 versioning
+  tests; Designer type-check and Designer/Documentation production builds.
+- [x] Pass 222 selected configuration, legal, deployment, versioning and site-link
+  contracts, refresh the residual inventory and validate its scoped review ledger.
+- [ ] Verify full hosted API/PostgreSQL and authenticated browser/SDK consumers
+  under the existing rollout gates before shipping this identity transition.
+
+See [migration artifact identities](../docs/pvad-migration-artifact-identities.md).
+Fragment `pvad-migration-artifact-writers` declares Major impact for changed
+primary identities on current routes. VERSION stays 1.1.0. OAuth clients, scopes,
+publisher selection and live infrastructure cutover remain separate work.
 
 ## Related Work
 

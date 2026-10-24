@@ -13,6 +13,7 @@ import { designerDocumentationUrl } from '@/product/productMetadata';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { migrationProviderPermission } from '@/auth/designerPermissions';
 import { transpileNutrientViewerTypeScript } from '@/features/pdf-viewer/nutrientTypeScript';
+import { migrationCodeArtifact } from '@/features/migrations/artifacts';
 import {
   acceptsMigrationFile,
   bytesToBase64,
@@ -1269,8 +1270,10 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail ?? e.error ?? `HTTP ${res.status}`); }
       const data = await res.json();
+      const artifact = migrationCodeArtifact(data.artifacts, domain);
+      if (!artifact) throw new Error(t('errors.conversionFailed'));
       applyConvertResult({
-        pvadCode: data.artifacts?.[0]?.content,
+        pvadCode: artifact.content,
         diagnostics: data.diagnostics,
         summary: data.summary,
         pdfTrust: data.pdfTrust,
@@ -1329,7 +1332,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       });
       if (convertRes.ok) {
         const data = await convertRes.json();
-        applyConvertResult({ pvadCode: data.artifacts?.[0]?.content, diagnostics: data.diagnostics, summary: data.summary, pdfTrust: data.pdfTrust });
+        const artifact = migrationCodeArtifact(data.artifacts, domain);
+        if (!artifact) throw new Error(t('errors.conversionFailed'));
+        applyConvertResult({ pvadCode: artifact.content, diagnostics: data.diagnostics, summary: data.summary, pdfTrust: data.pdfTrust });
       }
 
       const res = await fetch(`${endpoint}/preview`, {

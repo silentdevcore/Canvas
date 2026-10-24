@@ -1,10 +1,33 @@
 # PVAD Rename Phase Review
 
 This records the repository rename review, not publication, legal approval or
-authorization to cut over external infrastructure. The full rename is staged;
-no commit or push has been made. See the [tracker](../checklists/Rename-PXA-To-PVAD.md).
+authorization to cut over external infrastructure. See the
+[tracker](../checklists/Rename-PXA-To-PVAD.md).
 
-## Current Source-only Closeout
+## Current Audit: 2026-10-24
+
+The rename is not complete. The tracker counts 86/98 primary acceptance gates
+complete (87.8%) and 12/98 open (12.2%). Dated follow-up checkboxes are supporting
+evidence and are not added a second time. This is task completion, not an effort
+estimate or production readiness percentage.
+
+The repository now contains committed rename follow-ups through `f2a90213`.
+The migration artifact writer follow-up is still uncommitted in the working tree.
+The old statements about an entirely staged, uncommitted rename below refer to
+their historical checkpoints, not current Git state.
+
+Concrete remaining source work includes OAuth/MCP default resources, built-in and
+service-account clients, scope discovery/writers and coordinated stored-client
+compatibility. Known scope aliases and opt-in grant migration already exist.
+Final-source full API/PostgreSQL, browser/CSP and DocFX validation are not closed
+by earlier successful or selectively filtered runs. Infrastructure activation,
+publisher ownership, artwork/installed associations and Major release approvals
+remain separate gates. The tracker's R01-R12 breakdown lists the exact tasks.
+
+## Historical Source-only Closeout
+
+This subsection records an earlier reviewed scope, not the current completion
+claim. The current audit above supersedes it where later findings differ.
 
 The reviewed source rename is provisionally closed. The follow-up Observability
 file/template changes and Java/Maven/JAR/image renames are staged, but their builds

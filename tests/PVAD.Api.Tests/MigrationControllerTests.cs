@@ -95,14 +95,15 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var artifact = Assert.Single(body.GetProperty("artifacts").EnumerateArray());
-        Assert.Equal("pxa-viewer-package", artifact.GetProperty("id").GetString());
+        Assert.Equal("pvad-viewer-package", artifact.GetProperty("id").GetString());
         Assert.Equal("pvad-viewer-package", artifact.GetProperty("canonicalId").GetString());
         Assert.Equal("application/vnd.pvad.viewer+json", artifact.GetProperty("canonicalMediaType").GetString());
         Assert.Equal(".pvadviewer.json", artifact.GetProperty("canonicalFileExtension").GetString());
-        Assert.Equal("application/vnd.pxa.viewer+json", artifact.GetProperty("mediaType").GetString());
+        Assert.Equal("application/vnd.pvad.viewer+json", artifact.GetProperty("mediaType").GetString());
+        Assert.Equal(".pvadviewer.json", artifact.GetProperty("fileExtension").GetString());
         var package = artifact.GetProperty("content");
         Assert.Equal(1, package.GetProperty("schemaVersion").GetInt32());
-        Assert.Equal("pxa.pdf-viewer-package", package.GetProperty("kind").GetString());
+        Assert.Equal("pvad.pdf-viewer-package", package.GetProperty("kind").GetString());
         Assert.Equal("pvad.pdf-viewer-package", package.GetProperty("canonicalKind").GetString());
         Assert.Equal("nutrient", package.GetProperty("provider").GetString());
         Assert.Equal(595, package.GetProperty("pageGeometry")[0].GetProperty("width").GetDouble());
@@ -173,7 +174,7 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("pdf", body.GetProperty("domain").GetString());
         Assert.Equal("code", body.GetProperty("kind").GetString());
-        Assert.Equal("pxa-csharp", body.GetProperty("artifacts")[0].GetProperty("id").GetString());
+        Assert.Equal("pvad-csharp", body.GetProperty("artifacts")[0].GetProperty("id").GetString());
         Assert.Contains("PVAD.Pdf", body.GetProperty("artifacts")[0].GetProperty("content").GetString());
     }
 

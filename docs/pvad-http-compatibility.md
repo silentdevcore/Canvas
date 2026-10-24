@@ -155,20 +155,27 @@ Catalog artifact descriptors and converted artifacts add `canonicalId`,
 | pxa-spreadsheet-csharp | pvad-spreadsheet-csharp | text/x-csharp | .cs |
 | pxa-viewer-package | pvad-viewer-package | application/vnd.pvad.viewer+json | .pvadviewer.json |
 
-The existing id/mediaType/fileExtension fields remain unchanged for compatibility.
-Consumers may prefer the canonical tuple when present and otherwise retain the
-primary tuple; null canonical fields do not make a neutral artifact unsupported.
+Current `/api/pvad/v1/migrations` responses write the canonical tuple in the
+primary `id`, `mediaType` and `fileExtension` fields. The canonical metadata
+fields remain available and equal the primary tuple for these known artifacts.
+Legacy `/api/pxa/v1/migrations` adapters retain the old primary tuple, including
+when the middleware rewrites the request path. Their canonical metadata still
+identifies the current format. Null canonical fields do not make a neutral
+artifact unsupported.
 Aliases are derived only from a complete known legacy or canonical tuple; mixed
 tuples, unknown provider artifacts and neutral design JSON are not reclassified.
 Each conversion still returns the same number of artifacts, not duplicate files.
 
-New Viewer package output adds `canonicalKind: pvad.pdf-viewer-package` while
-retaining `kind: pxa.pdf-viewer-package`. Existing stored packages are not rewritten.
+Current Viewer package output writes `kind: pvad.pdf-viewer-package`; legacy
+routes retain `kind: pxa.pdf-viewer-package`. Both include
+`canonicalKind: pvad.pdf-viewer-package`. Existing stored packages are not rewritten.
 Source/normalized/generated checksums retain their existing meanings; these are
 not signatures over the entire newly extended package. This identity projection
 does not add a standalone Viewer-package upload workflow, new provider capabilities
 or claim that Designer consumers import a new file format. The current Designer
 flows continue using the neutral artifact content/design document as before.
+See [migration artifact identities](pvad-migration-artifact-identities.md) for
+the writer/reader boundary, downloads and validation limits.
 
 ## E-Invoice And Trust Report Projections
 

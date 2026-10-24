@@ -149,4 +149,51 @@ describe('migration provider permissions', () => {
     root = await renderPage(container, 'pdf', canonicalUser);
     await waitForOptions(container, ['syncfusion-pdf']);
   });
+
+  it.each([
+    ['pdf', 'pvad-csharp'], ['pdf', 'pxa-csharp'],
+    ['spreadsheet', 'pvad-spreadsheet-csharp'], ['spreadsheet', 'pxa-spreadsheet-csharp'],
+  ] as const)('downloads only the selected %s code artifact (%s)', async (domain, id) => {
+    const code = '// Downloaded verbatim\nusing PVAD.Pdf;';
+    (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => Promise.resolve({
+      ok: true,
+      json: async () => String(input).endsWith('/convert')
+        ? { artifacts: [
+            { id: 'design', mediaType: 'application/json', fileExtension: '.json', content: {} },
+            { id, mediaType: 'text/x-csharp', fileExtension: '.cs', content: code },
+          ], diagnostics: [] }
+        : { providers: providers.filter(item => item.domain === domain) },
+    }));
+    root = await renderPage(container, domain);
+    await waitForOptions(container, [domain === 'pdf' ? 'syncfusion-pdf' : 'aspose-cells']);
+    await act(async () => { container.querySelector<HTMLButtonElement>('.mgr-example-btn')!.click(); });
+    await act(async () => { container.querySelector<HTMLButtonElement>('.mgr-btn-primary')!.click(); });
+    expect(Array.from(container.querySelectorAll('textarea')).some(area => area.value === code)).toBe(true);
+
+    let downloaded: Blob | undefined;
+    let fileName = '';
+    const create = URL.createObjectURL;
+    const revoke = URL.revokeObjectURL;
+    URL.createObjectURL = jest.fn(blob => { downloaded = blob as Blob; return 'blob:migration-download'; });
+    URL.revokeObjectURL = jest.fn();
+    const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      fileName = this.download;
+    });
+    try {
+      await act(async () => { container.querySelector<HTMLButtonElement>('button[title="downloadCsFile"]')!.click(); });
+      expect(fileName).toBe('migration.cs');
+      expect(downloaded?.type).toBe('text/x-csharp');
+      expect(click).toHaveBeenCalledTimes(1);
+      const text = await new Promise<string>(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(downloaded!);
+      });
+      expect(text).toBe(code);
+    } finally {
+      click.mockRestore();
+      URL.createObjectURL = create;
+      URL.revokeObjectURL = revoke;
+    }
+  });
 });

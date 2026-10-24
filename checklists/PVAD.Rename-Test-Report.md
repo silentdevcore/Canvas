@@ -2916,3 +2916,88 @@ change or production deployment was performed. Full release readiness remains op
   SMTP, proxy and telemetry-consumer validation remain separate open gates. No
   running application, physical database, keyring or remote setting was changed.
 - Fragment: `pvad-api-and-runtime-identities` (Major impact); VERSION stays 1.1.0.
+
+## Migration Artifact Writers (2026-10-24)
+
+- Previous API/runtime work was committed as `f2a90213`; this follow-up is a
+  separate source package. Unrelated local `.vscode` settings were not included.
+- Current catalog and convert responses write PVAD PDF code, Spreadsheet code
+  and Viewer package identities. Compatibility routes retain complete old
+  tuples and the old Viewer kind, including under middleware path rewriting.
+  Existing canonical projections, provider IDs, diagnostics and neutral designs
+  are preserved. The provider registry is never mutated per request.
+- Designer conversion and preview synchronization select the validated code
+  artifact by domain instead of the first output. Four UI cases verify old/new
+  PDF and Spreadsheet downloads: one `.cs`, correct MIME and verbatim content.
+  Additional selector cases reject malformed, mixed and cross-domain output.
+- The current Designer has no standalone Viewer-package upload. Documentation
+  makes this explicit and directs editable imports through the original-PDF
+  Designer migration; this follow-up does not invent an unused importer.
+- 25 isolated API/artifact tests pass after an approved build. The first approved
+  run passed 23 and exposed two test comparisons that incorrectly assumed equal
+  Instant JSON export timestamps across independent conversions. Tests now check
+  each timestamp, compare all other payload content and preserve existing checksum
+  semantics. The final run passes all 25 without skips. The sandbox MSBuild attempt
+  failed to bind local communication pipes and was terminated before retrying;
+  it is not counted as a successful run.
+- Provider contracts pass: PDF 43, Spreadsheet 11, Report 11. Together with the
+  isolated API contracts, this is 90 passing targeted .NET tests, not a full
+  solution or hosted API run. Existing compiler/dependency warnings remain.
+- Designer: 41 tests, type-check and production build pass. Documentation:
+  59 tests and production build pass. Versioning: 27 tests, version consistency
+  and release-fragment validation pass. Existing bundle-size warnings remain.
+- The broader selected Node contract group passes 222 tests without skips,
+  including the 27 versioning tests above. Residual-name inventory and exact
+  path/hash/reason review checks pass; counts are not completion percentages.
+- Logs: `/tmp/pvad-migration-output-tests-approved.log` (initial failed comparison),
+  `/tmp/pvad-migration-output-tests-final.log`,
+  `/tmp/pvad-migration-pdf-providers.log`,
+  `/tmp/pvad-migration-spreadsheet-providers.log`,
+  `/tmp/pvad-migration-report-providers.log`,
+  `/tmp/pvad-migration-designer-tests.log`,
+  `/tmp/pvad-migration-designer-typecheck.log`,
+  `/tmp/pvad-migration-designer-build.log`, `/tmp/pvad-migration-doc-tests.log`,
+  `/tmp/pvad-migration-doc-build.log`, `/tmp/pvad-migration-version-tests.log`.
+  Broader contracts: `/tmp/pvad-migration-contracts.log`.
+- Fragment `pvad-migration-artifact-writers` declares Major impact; VERSION and
+  published release history remain unchanged. Hosted PostgreSQL/API, real browser,
+  SDK and deployment validation remain open. No database, keyring, remote setting,
+  running application or installed resource was changed.
+
+## Rename Plan Audit (2026-10-24)
+
+- Reviewed all primary checklist sections and dated follow-ups against the latest
+  working tree, current OAuth/MCP source, workflow and Grafana bindings, security
+  profile and recorded validation blockers. This is a documentation/status audit,
+  not a new full application test run or permission to cut over infrastructure.
+- Reopened canonical-contract writers and overall technical naming completion:
+  built-in/public/service-account IDs, API resource and default/discovered scopes
+  still use legacy names. New dynamic-registration IDs and known scope aliases
+  already exist, as does opt-in scope/grant migration; these are not absent.
+- Added one explicit final-candidate acceptance gate. Historical green full-suite,
+  host and image results do not certify the latest dirty working tree. The latest
+  broad API attempt remains blocked by local PostgreSQL authentication. Its safe
+  follow-up is isolation with a disposable database, not changing installed data.
+- Added the R01-R12 remaining-work breakdown, including final browser/CSP/native
+  PDF tests, DocFX generation, stored OAuth clients, publisher/workflow/Grafana
+  activation, real hosts/mail, key recovery, OS associations and Major release.
+  Those rows expand the primary open gates and are not counted again.
+- Clarified already implemented migration writers and PWA intake, stale problem
+  type wording, and historical staged/uncommitted claims in the phase review.
+  Domain/support/sender choices stay confirmed; ownership/publication does not.
+- Reproducible count: primary checkboxes under P0, the seven P1 sections,
+  Validation Gates and Completion Criteria only. Original 97 tasks plus the new
+  final-candidate gate = 98; two broad criteria reopened = 86 done, 12 open.
+  Completion is 87.8%, remaining 12.2%. This is equal-weight gate completion,
+  not remaining hours, a residual-file ratio or production readiness.
+- Dated follow-up checkboxes are evidence with overlapping scope and excluded
+  from this denominator. The earlier 88/97 (90.7%) remains a historical checkpoint.
+- No implementation, dependency, VERSION, published manifest, database, service,
+  Git branch, commit, push or remote setting is changed by this audit.
+- Audit validation: all 67 relative file links across the five edited narrative
+  documents resolve; 11 documentation contracts and the broader 222-contract
+  selection pass without skips (the 11 are included in 222). The primary-task
+  count is asserted programmatically. Residual path/hash/reason validation and
+  `git diff --check` pass. Logs: `/tmp/pvad-rename-plan-audit-doc-tests.log` and
+  `/tmp/pvad-rename-plan-audit-contracts.log`. No new application build, browser
+  E2E, DocFX or PostgreSQL run is claimed by this documentation audit.

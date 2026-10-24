@@ -157,6 +157,9 @@ These questions prepare approval; writing an answer does not execute a deploymen
 7. Which staging environment may be tested, who approves the window, and who
    authorizes the major release after that evidence is reviewed?
 
-The repository [phase review](pvad-rename-phase-review.md) separates completed
-local checks from pending exhaustive semantic/staged review. Neither document
-turns external owner or production evidence gates into completed code tasks.
+The repository [phase review](pvad-rename-phase-review.md) separates historical
+reviewed checkpoints from the current uncommitted migration follow-up and final
+candidate acceptance. The [current audit](../checklists/Rename-PXA-To-PVAD.md#current-audit-and-progress-2026-10-24)
+also records remaining OAuth/MCP writers and local validation work, not only
+external approvals. Neither document turns owner decisions or production evidence
+gates into completed code tasks.

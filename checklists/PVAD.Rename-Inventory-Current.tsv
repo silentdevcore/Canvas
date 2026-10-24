@@ -38,7 +38,7 @@ PVAD.WebApi/Controllers/PdfTrustController.cs	source	15	false
 PVAD.WebApi/Controllers/PdfViewerAnnotationsController.cs	source	6	false
 PVAD.WebApi/Controllers/SystemController.cs	source	3	false
 PVAD.WebApi/Controllers/TemplatesController.cs	source	2	false
-PVAD.WebApi/Controllers/UnifiedMigrationsController.cs	source	22	false
+PVAD.WebApi/Controllers/UnifiedMigrationsController.cs	source	20	false
 PVAD.WebApi/Dockerfile	configuration	16	false
 PVAD.WebApi/Infrastructure/DesignJsonMapper.cs	source	2	false
 PVAD.WebApi/Infrastructure/OpenApi/PvadDesignerProjectsOpenApiTransformer.cs	source	2	false
@@ -212,7 +212,7 @@ checklists/PVAD.Web-Design-System.md	documentation-or-history	10	false
 checklists/Pdf-Encryption.md	documentation-or-history	12	false
 checklists/PdfTools-WebViewer-Feature-Gaps.md	documentation-or-history	28	false
 checklists/PvadPdf-Provider-Feature-Gaps.md	documentation-or-history	25	false
-checklists/Rename-PXA-To-PVAD.md	documentation-or-history	58	true
+checklists/Rename-PXA-To-PVAD.md	documentation-or-history	60	true
 checklists/Rename-To-PXA.md	documentation-or-history	726	true
 checklists/Spreadsheet-Backend-Engine.md	documentation-or-history	6	false
 checklists/Spreadsheet-Import-Export.md	documentation-or-history	3	false
@@ -311,16 +311,17 @@ docs/pvad-brand-asset-inventory.md	documentation-or-history	3	false
 docs/pvad-code-generation-compatibility.md	documentation-or-history	3	false
 docs/pvad-documentation-path-migration.json	source	74	false
 docs/pvad-frontend-host-validation.md	documentation-or-history	4	false
-docs/pvad-http-compatibility.md	documentation-or-history	30	false
+docs/pvad-http-compatibility.md	documentation-or-history	31	false
 docs/pvad-identity-compatibility.md	documentation-or-history	20	false
 docs/pvad-infrastructure-mapping.md	documentation-or-history	6	false
 docs/pvad-license-and-job-compatibility.md	documentation-or-history	11	false
+docs/pvad-migration-artifact-identities.md	documentation-or-history	3	false
 docs/pvad-observability-identity.md	documentation-or-history	10	false
 docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
 docs/pvad-rename-phase-review.md	documentation-or-history	6	false
-docs/pvad-rename-release-approvals.md	documentation-or-history	13	false
-docs/pvad-rename-reviewed-exceptions.json	source	287	false
+docs/pvad-rename-release-approvals.md	documentation-or-history	14	false
+docs/pvad-rename-reviewed-exceptions.json	source	293	false
 docs/pvad-rename-rollback.md	documentation-or-history	1	false
 docs/pvad-rename-validation-blockers.md	documentation-or-history	1	false
 docs/pvad-schema-and-client-contracts.md	documentation-or-history	5	false
@@ -388,6 +389,8 @@ pvad-designer/src/__tests__/expressionEngine.test.ts	source	1	false
 pvad-designer/src/__tests__/legacyWorkbookRecovery.test.ts	source	5	false
 pvad-designer/src/__tests__/legacyWorkbookRecoveryUi.test.tsx	source	4	false
 pvad-designer/src/__tests__/localeCatalog.test.ts	source	1	false
+pvad-designer/src/__tests__/migrationArtifacts.test.ts	source	1	false
+pvad-designer/src/__tests__/migrationProviderPermissions.test.tsx	source	2	false
 pvad-designer/src/__tests__/newFeatures.test.ts	source	2	false
 pvad-designer/src/__tests__/pageLayout.test.ts	source	2	false
 pvad-designer/src/__tests__/pdfTrustApi.test.ts	source	4	false
@@ -429,6 +432,7 @@ pvad-designer/src/features/e-invoice/invoicePagination.ts	source	1	false
 pvad-designer/src/features/e-invoice/invoiceTemplates.ts	source	2	false
 pvad-designer/src/features/e-invoice/invoiceValidation.ts	source	22	false
 pvad-designer/src/features/e-invoice/useEInvoiceDocument.ts	source	3	false
+pvad-designer/src/features/migrations/artifacts.ts	source	1	false
 pvad-designer/src/hooks/useElementFavorites.ts	source	1	false
 pvad-designer/src/hooks/useTemplateLoader.ts	source	1	false
 pvad-designer/src/i18n/index.ts	source	1	false
@@ -544,8 +548,7 @@ src/Infrastructure/PVAD.Infrastructure.Pdf/Charts/PvadChartPdfRenderer.cs	source
 src/Infrastructure/PVAD.Infrastructure.Persistence/Configuration/PvadEnvironment.cs	configuration	1	false
 src/Infrastructure/PVAD.Infrastructure.Persistence/Migrations/20260927050514_AddEInvoiceValidationRecords.cs	source	2	false
 src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs	source	1	false
-src/Migrations/Common/PVAD.Migration.Abstractions/MigrationArtifactIdentities.cs	source	4	false
-src/Migrations/Common/PVAD.Migration.Abstractions/MigrationProviderCatalog.cs	source	3	false
+src/Migrations/Common/PVAD.Migration.Abstractions/MigrationArtifactIdentities.cs	source	7	false
 src/Migrations/Common/PVAD.Migration.Abstractions/PdfEInvoiceMigrationModels.cs	source	2	false
 src/Migrations/PDF/PVAD.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs	source	2	false
 src/Migrations/PDF/PVAD.Migration.Pdf.Code.Apryse/ApryseMigration.cs	source	2	false
@@ -612,7 +615,7 @@ tests/PVAD.Api.Tests/IdentityMailFlowTests.cs	source	24	false
 tests/PVAD.Api.Tests/ImageConversionControllerTests.cs	source	3	false
 tests/PVAD.Api.Tests/LegalDocumentGovernanceTests.cs	source	1	false
 tests/PVAD.Api.Tests/MailDeliveryLifecycleTests.cs	source	8	false
-tests/PVAD.Api.Tests/MigrationControllerTests.cs	source	22	false
+tests/PVAD.Api.Tests/MigrationControllerTests.cs	source	18	false
 tests/PVAD.Api.Tests/MigrationGeneratedCodeExecutionTests.cs	source	1	false
 tests/PVAD.Api.Tests/MigrationServiceTests.cs	source	3	false
 tests/PVAD.Api.Tests/OperatorDocumentationContractTests.cs	source	1	false
@@ -658,7 +661,8 @@ tests/PVAD.Api.Tests/PvadLicenseRenameCompatibilityTests.cs	source	8	false
 tests/PVAD.Api.Tests/PvadLicenseReplacementTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs	source	13	false
 tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs	source	4	false
-tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs	source	7	false
+tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs	source	8	false
+tests/PVAD.Api.Tests/PvadMigrationOutputTests.cs	source	4	false
 tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs	source	1	false
 tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs	source	5	false
 tests/PVAD.Api.Tests/PvadObservabilityTests.cs	source	13	false

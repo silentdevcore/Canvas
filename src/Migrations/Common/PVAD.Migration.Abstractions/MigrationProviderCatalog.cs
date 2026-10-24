@@ -69,9 +69,9 @@ public static class MigrationProviderCatalog
     private static readonly MigrationInputDescriptor CSharp =
         new("csharp", "text/x-csharp", [".cs"]);
     private static readonly MigrationArtifactDescriptor PdfCode =
-        new("pxa-csharp", "text/x-csharp", ".cs");
+        Artifact(MigrationArtifactIdentities.PdfCode);
     private static readonly MigrationArtifactDescriptor SpreadsheetCode =
-        new("pxa-spreadsheet-csharp", "text/x-csharp", ".cs");
+        Artifact(MigrationArtifactIdentities.SpreadsheetCode);
     private static readonly MigrationArtifactDescriptor DesignJson =
         new("design", "application/json", ".json");
 
@@ -105,7 +105,7 @@ public static class MigrationProviderCatalog
                 new("instantJson", "application/json", [".json"])
             ],
             [
-                new("pxa-viewer-package", "application/vnd.pxa.viewer+json", ".pxaviewer.json")
+                Artifact(MigrationArtifactIdentities.ViewerPackage)
             ],
             false, true, "nutrient-viewer-migration", "designer.nutrient-viewer-migration"),
 
@@ -148,6 +148,9 @@ public static class MigrationProviderCatalog
     ];
 
     private static readonly IReadOnlyDictionary<string, MigrationProviderDescriptor> Lookup = BuildLookup();
+
+    private static MigrationArtifactDescriptor Artifact(MigrationArtifactIdentity identity) =>
+        new(identity.Id, identity.MediaType, identity.FileExtension);
 
     public static MigrationProviderDescriptor Get(string domain, string kind, string provider)
     {

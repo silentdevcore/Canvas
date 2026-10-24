@@ -4523,6 +4523,9 @@ source={ "format": "https://pspdfkit.com/instant-json/v1", "annotations": [] }</
       </ol>
       <div class="pvad-callout pvad-callout--warning"><strong>Synthetic data only.</strong> The example contains no Nutrient binaries, valid license keys, customer URLs, certificates, or customer documents.</div>
       <p>The response contains one <code>design</code> artifact with editable imported PDF content and supported Nutrient overlays. Viewer settings, unmatched form values, and normalized sidecars remain in versioned design metadata; unsupported content is reported through stable diagnostics. The lower-level <code>pdf/viewer/nutrient-viewer</code> package API remains a compatibility and SDK contract, not the primary Designer workflow.</p>
+      <h4>Migration output identities</h4>
+      <p>Current migration APIs identify PDF code as <code>pvad-csharp</code>, Spreadsheet code as <code>pvad-spreadsheet-csharp</code>, and Viewer packages as <code>pvad-viewer-package</code>. Code downloads remain <code>.cs</code> with media type <code>text/x-csharp</code>. Viewer packages use <code>application/vnd.pvad.viewer+json</code>, extension <code>.pvadviewer.json</code>, and <code>kind: pvad.pdf-viewer-package</code>.</p>
+      <p>The previous branded API prefix retains its legacy primary identities for one major release; canonical identity metadata is provided on both routes. Select artifacts by their complete identity tuple and document domain, not array position. A Viewer package contains configuration or overlays, not the source PDF, and is not a design JSON file: use the PDF Designer migration above to obtain an editable design. No standalone package upload is available in the current Designer.</p>
       <h4>Troubleshooting</h4>
       ${renderMigrationProviderTable(['Diagnostic family', 'Meaning'], nutrientDiagnosticRows)}
       <div class="pvad-doc-related-links">

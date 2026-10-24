@@ -1187,13 +1187,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "53efbd963c83ea066a1cb8db0364b91684c8fe8916ab92b2640e9c5d607f817f",
+      "sha256": "e91f5e330e71ac5b012f911919336cac044635d3d7d597c727b4b59fbdf3d71c",
       "reasons": [
-        "historical-document"
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "checklists/PVAD.Rename-Inventory.tsv",
@@ -1207,13 +1207,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "f635305abcfded28db42cf6a4a6c76f40f22767c8b17d7f39624344269e8c835",
+      "sha256": "0b08cbd384706be93e8bfa71e8efa5613ec1c1dd3d2baa8a1ad2f6e4bb3e282a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record 128 targeted .NET passes after correcting an isolated test path and sandbox retry, plus Node/Admin/Designer checks; no full-host, live E2E or production-readiness claim.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "checklists/PVAD.SDK-Roadmap.md",
@@ -1317,13 +1317,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "f04b9a8700d9069d16ac41fd92b8d193036c1263bce80f85e681985b01c60df3",
+      "sha256": "a8b6b67acf0ac6077d1b80f3c158f9ae7311982e931289e5e6af28ca6ec5024e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record API/runtime source migration and focused green validation with explicit hosted/database and deployment limits; preserve historical checkpoint statuses.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "checklists/Rename-To-PXA.md",
@@ -2227,13 +2227,13 @@
     },
     {
       "path": "docs/pvad-http-compatibility.md",
-      "sha256": "fa010ec7edf53849f3ef2e7b8478a4fdd02fe26710957d0f69ffe37ca413658c",
+      "sha256": "aad349ef3dda48c0b62a83be7fbba97ed584659488f7a1a2076354286da21b77",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Document generated type migration and explicit-type preservation alongside unchanged diagnostic meanings and legacy API compatibility.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "docs/pvad-identity-compatibility.md",
@@ -2297,23 +2297,23 @@
     },
     {
       "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "a99537b487b71fbc0c1fb1f3229056e32fbbeeb5d95fe81cea7ea5de54b2fa3f",
+      "sha256": "a29331a71fd0186a947a7a7e2a39cf3c6585c7fcd869941eb59d66ed660de603",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "76f89da376da9e46dfea53366b1e8b6b4f260b891e2ecd7c21ae6e0e7cbe0fc0",
+      "sha256": "8f5a81e2c2c716f49b636dbbdfe13b62d7ce541d222aa4824d2ab5e2f9e150b9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Link API/runtime migration while retaining external activation, exact-match integration, secret, database and deployed-host verification gates.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "docs/pvad-rename-rollback.md",
@@ -2347,13 +2347,13 @@
     },
     {
       "path": "docs/pvad-serialized-contract-inventory.md",
-      "sha256": "56822215c2267074e8b6388ab531f45556a1cfa2f419557c27c4761407e15e9f",
+      "sha256": "8307cfa94dd4cbecba74577abbe345d09091fa273e938a2419ee431b3c3c0245",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-serialized-contract-inventory.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
+      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
     },
     {
       "path": "docs/schema/openapi.json",
@@ -3567,13 +3567,13 @@
     },
     {
       "path": "pvad-designer/src/pages/MigrationsPage.tsx",
-      "sha256": "4870055ab20c9f81347a1c9106cd008c04e8a334863874b98ed6ccc70a210aae",
+      "sha256": "b934e431d26077ed440db2425762801b6cd9c8e5eaf8af7e9bb699f9ba74de84",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/pages/MigrationsPage.tsx: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Retain third-party PdfCanvas and page.Canvas drawing examples, not first-party branding. Current code artifacts are selected by complete known identity and domain, with legacy tuple inputs preserved.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "pvad-designer/src/pages/SpreadsheetEditorPage.tsx",
@@ -3927,13 +3927,13 @@
     },
     {
       "path": "PVAD.WebApi/Controllers/UnifiedMigrationsController.cs",
-      "sha256": "5d9bf6228e0023be01a2caf588279f437470da454da90250d19857997724bb09",
+      "sha256": "cd4af00b2bc43b2d557e02950d23d88acd3a1dc11a41e9aab5f6ce51de889e2a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Controllers/UnifiedMigrationsController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "PVAD.WebApi/Dockerfile",
@@ -4987,23 +4987,13 @@
     },
     {
       "path": "src/Migrations/Common/PVAD.Migration.Abstractions/MigrationArtifactIdentities.cs",
-      "sha256": "a23482ecfd6376e3e5150409486cc13ea8786e25684660b9a4c3ee2fe9f73771",
+      "sha256": "1b1e26ffc9116dce2588eb54fafb83bad2fc4fbf1dca4802a6ab5b1dd2db4a92",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Migrations/Common/PVAD.Migration.Abstractions/MigrationArtifactIdentities.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "src/Migrations/Common/PVAD.Migration.Abstractions/MigrationProviderCatalog.cs",
-      "sha256": "893efd193e41a317fd6db0f2bf50bea7809d71d3d177eab825a97f847b6ba2b5",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "src/Migrations/Common/PVAD.Migration.Abstractions/MigrationProviderCatalog.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "src/Migrations/Common/PVAD.Migration.Abstractions/PdfEInvoiceMigrationModels.cs",
@@ -5647,13 +5637,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationControllerTests.cs",
-      "sha256": "954faddeed3f3945a6a8715bdc24ab572bc2e1cef194aeea9e9064bc93503cf4",
+      "sha256": "33f0aac7c2c287d9cb1767db6ee09b0a6860715c100ef75f80747433a2a7d614",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/MigrationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationGeneratedCodeExecutionTests.cs",
@@ -6107,13 +6097,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs",
-      "sha256": "c3a05d0c2ce720765dcf50769b1c482243f3910d82b6def5f2fe0f920de843fd",
+      "sha256": "9962003ff710925476adc2d2eacd84f4e2d8d9e5ee2f450e632e0bfae29005a9",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs",
@@ -9077,13 +9067,13 @@
     },
     {
       "path": "websites/PVAD.Documentation/src/main.js",
-      "sha256": "c63419503c0f01e6ce0b1aeffaea6a30cecc1e00e9564e1650f8c0c6e85ba611",
+      "sha256": "b226577a64c757bc96f145a98ef644467cf31dac085097e78413a6e9c83fdc88",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Documentation naming-only review: current captions/source paths and explicitly proposed host examples updated; legacy aliases, diagnostics, historical checklist status and signed corpus evidence retained. No build, link/browser test or deployment approval is implied.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
       "path": "websites/PVAD.Documentation/src/site.css",
@@ -9347,6 +9337,56 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Explain canonical writers and bounded legacy readers without relabeling stored history, redefining diagnostics, changing physical databases or claiming URI hosting/live deployment.",
       "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
+    },
+    {
+      "path": "docs/pvad-migration-artifact-identities.md",
+      "sha256": "dd9c4e4770fa2c5e3b2f430bc9524edce73a289b04432a0ed9c830a17dd9f358",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/migrationArtifacts.test.ts",
+      "sha256": "41290d89c11632a8cd00e4d873b48aa5e8d2d708833015bed3518862125da1e6",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/migrationProviderPermissions.test.tsx",
+      "sha256": "acfe8b77f3aeaaffe2d94569e79890a0b54d5a7cf5312f321fd493a7701b90d2",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+    },
+    {
+      "path": "pvad-designer/src/features/migrations/artifacts.ts",
+      "sha256": "3189892e74af06460a3f61ff308fa7cb31b7a36afa67492b8d07bcf6569a6fbc",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadMigrationOutputTests.cs",
+      "sha256": "dc936513d9467c607c210d8ba23ff543a4d9c390b5176e1ab47b1b1671c1c336",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     }
   ],
   "reviewStatus": "reviewed"
