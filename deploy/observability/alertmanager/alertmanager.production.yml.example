@@ -21,17 +21,17 @@ route:
     - receiver: operator-email
       matchers:
         - severity="critical"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 30m
     - receiver: operator-email
       matchers:
         - severity="warning"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 2h
     - receiver: operator-email
       matchers:
         - severity="info"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 12h
 
 inhibit_rules:
@@ -42,7 +42,7 @@ inhibit_rules:
     equal: [service, environment]
 
 time_intervals:
-  - name: pxa-maintenance-window
+  - name: pvad-maintenance-window
     time_intervals:
       - weekdays: [saturday, sunday]
         times:

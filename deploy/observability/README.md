@@ -19,7 +19,12 @@ Fresh defaults now use PVAD for services, storage/network keys and credential
 defaults. The explicit `deploy/rename/docker-compose.legacy.yml` overlay retains
 old database/user settings, DNS aliases and verified external resources for an
 existing complete stack. Do not use fresh defaults as an automatic upgrade.
-Grafana UIDs and metric job labels remain stable; `instance` labels may change.
+Grafana UIDs remain stable. New scrape jobs, platform and alert service labels
+use PVAD; rules and dashboard queries accept both generations. Label changes
+affect alert fingerprints, silences and notification groups, even though stored
+history is not rewritten. Follow the
+[monitoring identity migration](../../docs/pvad-monitoring-identity-migration.md)
+before reloading an existing stack; `instance` labels may also change.
 Datasource display names now use PVAD while retaining their existing UIDs and
 trace/log cross-links. Active datasources are updated in place, not deleted by
 the provisioning deletion list. That list retains only the obsolete historical

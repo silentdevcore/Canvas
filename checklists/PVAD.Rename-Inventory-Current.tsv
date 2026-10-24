@@ -255,10 +255,7 @@ deploy/api/README.md	documentation-or-history	2	false
 deploy/observability/CAPACITY-PROFILES.md	documentation-or-history	1	false
 deploy/observability/README.md	documentation-or-history	3	false
 deploy/observability/alertmanager-email-smoke-test.sh	configuration	3	false
-deploy/observability/alertmanager/alertmanager.production.yml.example	configuration	4	false
-deploy/observability/alertmanager/alertmanager.yml	configuration	4	false
 deploy/observability/alertmanager/templates/pvad-email.tmpl	configuration	3	false
-deploy/observability/failure-recovery-smoke-test.sh	configuration	3	false
 deploy/observability/grafana/dashboards/pvad-browser-health.json	configuration	14	false
 deploy/observability/grafana/dashboards/pvad-document-operations.json	configuration	30	false
 deploy/observability/grafana/dashboards/pvad-infrastructure.json	configuration	10	false
@@ -269,12 +266,11 @@ deploy/observability/grafana/provisioning/datasources/datasources.yml	configurat
 deploy/observability/operator-gateway/site/index.html	configuration	1	false
 deploy/observability/operator-gateway/templates/default.conf.template	configuration	3	false
 deploy/observability/performance-request.json	configuration	5	false
-deploy/observability/prometheus/prometheus.yml	configuration	5	false
-deploy/observability/prometheus/rules/pvad-alerts.yml	configuration	138	false
+deploy/observability/prometheus/rules/pvad-alerts.yml	configuration	104	false
 deploy/observability/prometheus/rules/pvad-mcp-alerts.yml	configuration	3	false
-deploy/observability/prometheus/rules/pvad-webapi-container-alerts.yml	configuration	6	false
-deploy/observability/prometheus/tests/pvad-alerts.test.yml	configuration	88	false
-deploy/observability/smoke-test.sh	configuration	20	false
+deploy/observability/prometheus/rules/pvad-webapi-container-alerts.yml	configuration	4	false
+deploy/observability/prometheus/tests/pvad-alerts.test.yml	configuration	63	false
+deploy/observability/smoke-test.sh	configuration	19	false
 deploy/rename/docker-compose.api-legacy.yml	configuration	9	false
 deploy/rename/docker-compose.legacy.yml	configuration	27	false
 deploy/rename/legacy-bindings.env.example	configuration	3	false
@@ -825,6 +821,7 @@ tools/configuration/operator-guide-contract.test.mjs	configuration	14	false
 tools/configuration/operator-proxy-smoke.mjs	configuration	3	false
 tools/configuration/persistence-rename-contract.test.mjs	configuration	5	false
 tools/configuration/pvad-compose.test.mjs	configuration	1	false
+tools/configuration/pvad-telemetry-contract.mjs	configuration	4	false
 tools/configuration/rename-artifact-audit.mjs	configuration	6	false
 tools/configuration/rename-artifact-audit.test.mjs	configuration	2	false
 tools/configuration/rename-boundaries.test.mjs	configuration	2	false
@@ -848,7 +845,7 @@ tools/configuration/runtime-brand-contract.test.mjs	configuration	56	false
 tools/configuration/schema-identities.test.mjs	configuration	15	false
 tools/configuration/service-cutover-smoke.mjs	configuration	2	false
 tools/configuration/shell-environment.test.mjs	configuration	10	false
-tools/configuration/telemetry-contract.test.mjs	configuration	7	false
+tools/configuration/telemetry-contract.test.mjs	configuration	14	false
 tools/configuration/tool-key-contract.test.mjs	configuration	14	false
 tools/configuration/workflow-identity.test.mjs	configuration	9	false
 tools/deployment/README.md	documentation-or-history	6	false

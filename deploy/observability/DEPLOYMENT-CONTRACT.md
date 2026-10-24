@@ -46,6 +46,10 @@ secret before sending it to one fixed, non-loopback HTTPS destination.
 - New application telemetry must work with the existing Collector pipeline before release.
 - Changes to metric names, labels, alert names, dashboard UIDs, or runbook IDs are compatibility
   changes and require migration notes.
+  The [monitoring identity migration](../../docs/pvad-monitoring-identity-migration.md)
+  covers canonical scrape jobs and service labels, dual-generation query support,
+  silence/fingerprint effects and coordinated configuration rollback. Dashboard,
+  datasource and runbook IDs remain stable.
 - Environment-specific storage configuration must not be embedded in application code.
 - Production configurations must not expose Prometheus, Loki, Tempo, Alertmanager, or Grafana
   directly to public networks.

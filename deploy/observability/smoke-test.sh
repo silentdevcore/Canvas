@@ -168,7 +168,7 @@ targets_json="$(
   "${compose[@]}" exec -T pvad-prometheus \
     wget -qO- "http://localhost:9090/api/v1/targets?state=active"
 )"
-for job in pxa-otel-collector pxa-postgresql pxa-containers; do
+for job in pvad-otel-collector pvad-postgresql pvad-containers; do
   if ! jq -e --arg job "${job}" \
     '.data.activeTargets[] | select(.labels.job == $job and .health == "up")' \
     <<<"${targets_json}" >/dev/null; then

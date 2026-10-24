@@ -95,6 +95,13 @@ No remote environment, secret, workflow run or repository setting was changed.
 
 ## Concrete Answers Needed
 
+Monitoring source identities now use PVAD scrape jobs and alert service labels,
+with dual-generation query support. The
+[monitoring migration](pvad-monitoring-identity-migration.md) requires an explicit
+silence/routing and alert-fingerprint review before live activation. Offline
+native tool checks do not approve remote reloads or prove notification delivery.
+Grafana UIDs, provider/folder names and installed permissions remain retained.
+
 Grafana provider/folder labels have an
 [offline candidate and cutover guide](pvad-grafana-provider-cutover.md).
 This does not authorize active provisioning changes or prove permission migration.

@@ -2838,3 +2838,39 @@ change or production deployment was performed. Full release readiness remains op
 - Tests do not prove actual customer authentication, DNS/TLS, external route
   availability or SMTP delivery. No mail, remote write, push or deployment ran.
   Patch fragment: `pvad-admin-guide-and-mail-defaults`; VERSION remains 1.1.0.
+
+## Monitoring Identity Coverage (2026-10-24)
+
+- Prerequisite Admin/guide/mail changes are committed as `f8f8545e`. Follow-up
+  source changes canonicalize four Prometheus jobs, external platform label,
+  main/container rule groups, alert service labels and both maintenance interval
+  definitions. Scrape/recovery scripts select the matching canonical jobs.
+- Readers accept both job/service generations and all heartbeat metric/instance
+  prefix combinations. CPU/RAM alerts and dashboard expressions no longer exclude
+  canonical Compose services. Three infrastructure-panel queries changed; all
+  five dashboards and their stable UIDs/datasources remain present.
+- Semantic comparison against the prerequisite commit verifies unchanged alert
+  names, timers, severity, environment, descriptions, runbook IDs and dashboard
+  references. Alertmanager routing, timing, SMTP/relay configuration and template
+  settings differ only in the maintenance interval name and matching references.
+- 220 selected Node configuration/Legal/deployment/versioning/link contracts pass
+  without skips. Native promtool validates 37 alert rules and 40 dashboard
+  expressions, and passes 20 retained fixtures plus nine generated compatibility
+  scenarios. The generated scenarios evaluate actual CPU/RAM and exporter-health
+  dashboard expressions, exclude unrelated sources, exercise both TLS/job
+  generations, test heartbeat firing/recovery in all four prefix combinations and
+  verify that fresh current heartbeats coexist with stale old history.
+- amtool validates both local and production-example configuration, including
+  templates. The existing pinned images run with no network, read-only mounts,
+  dropped capabilities and no new privileges. No real SMTP credentials were
+  supplied; syntax validation is not live SMTP/webhook delivery evidence.
+- CI now runs the identity scenarios and both amtool checks. Local Node log:
+  `/tmp/pvad-monitoring-contracts.log`; generated inputs remain ignored under
+  `artifacts/rename-pvad/observability/`. Version/fragment validation passes.
+- The migration guide explains new series identities, alert fingerprints,
+  pending-timer resets, silence/routing review and coordinated rollback. The
+  fragment `pvad-monitoring-identity-coverage` declares Major impact rather than
+  claiming exact-match external consumers remain compatible. VERSION is 1.1.0.
+- No running stack, database, stored measurements, Grafana provider/folder or
+  permission was migrated. No failure injection, live delivery, push, deployment
+  or remote write ran. Prior API/database, publisher and live-host gates remain.

@@ -2,7 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    platform: pxa
+    platform: pvad
     environment: local-evaluation
 
 rule_files:
@@ -14,15 +14,15 @@ alerting:
         - targets: ["pvad-alertmanager:9093"]
 
 scrape_configs:
-  - job_name: pxa-otel-collector
+  - job_name: pvad-otel-collector
     static_configs:
       - targets: ["pvad-otel-collector:8889"]
 
-  - job_name: pxa-postgresql
+  - job_name: pvad-postgresql
     static_configs:
       - targets: ["pvad-postgres-exporter:9187"]
 
-  - job_name: pxa-containers
+  - job_name: pvad-containers
     static_configs:
       - targets: ["pvad-cadvisor:8080"]
 
@@ -32,7 +32,7 @@ scrape_configs:
           - /etc/prometheus/targets/mcp-targets.json
         refresh_interval: 1m
 
-  - job_name: pxa-tls
+  - job_name: pvad-tls
     metrics_path: /probe
     params:
       module: [https_2xx]

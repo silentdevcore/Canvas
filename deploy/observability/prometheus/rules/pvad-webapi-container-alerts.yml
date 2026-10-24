@@ -1,16 +1,16 @@
 groups:
-  - name: pxa-api-container
+  - name: pvad-api-container
     rules:
       - alert: PvadWebApiContainerTelemetryMissing
         expr: |
           time() - max(
             {__name__=~"(pvad|pxa)_service_heartbeat_seconds",
-              service_instance_id="pxa-webapi-container"
+              service_instance_id=~"(pvad|pxa)-webapi-container"
             }
           ) > 120
         labels:
           severity: critical
-          service: pxa-webapi
+          service: pvad-webapi
           environment: container
         annotations:
           summary: The PVAD WebApi container telemetry is missing

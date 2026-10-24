@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "8bb2d26c52333d59620b63900c810b087980f12c4ac8a8ab4453ed2000c8313d",
+      "sha256": "12fb39284b4d8eb2ab5d668803db80f351c91b00503067cad84b5ad36baf9717",
       "reasons": [
         "historical-document"
       ],
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "9895475e003be25dcc8ee3b0466530f018c503f7e43f790162d4e086634b85f4",
+      "sha256": "e5689294f18249b9157e37f09ecf78c0495ee855919bf2270fff8444ac6e0ec3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record 217 contract, 38 Admin and two isolated .NET passes, Admin build and synthetic browser smoke, including sandbox retries and remaining runtime readiness limits.",
+      "reviewNotes": "Record native syntax/identity tests and exact unrun live checks; retain prior evidence and infrastructure/API blockers.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "26e92eb432a013c71df04778b161d953ad6577ec1ab48daa71aa43f2b5f8bf6d",
+      "sha256": "d3298937b8a3932f25c6733c90698596e2c642addf2c2a4735f37fec2aaff7a8",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record Admin/mail naming package and focused validation, distinguishing mocked browser and isolated unit results from open external and API integration gates.",
+      "reviewNotes": "Record local monitoring package, 220 passing contracts, native tool validation and Major-impact compatibility limits without closing live operational gates.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -1706,26 +1706,6 @@
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
-      "path": "deploy/observability/alertmanager/alertmanager.production.yml.example",
-      "sha256": "044a7fa8f513274e1e185af7262a8b403932377e6daf489a2eabd74f03b26397",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
-      "path": "deploy/observability/alertmanager/alertmanager.yml",
-      "sha256": "17dc6c10f0bb9dfff203041dfe21459d150ed54074af7244b0a9edcc438ce8fb",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only Compose context review: canonical service keys, internal targets and operational selectors; retained DNS aliases, physical storage/network/secret bindings, monitoring identities and historical or test contracts remain intentional. Builds, tests, Docker execution and rollout are deferred; this is not runtime or cutover approval. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
       "path": "deploy/observability/alertmanager/templates/pvad-email.tmpl",
       "sha256": "8e649ef9224a2dd1e9a9139d202593d6edc9265fc4810c0d639bcf4064888923",
       "reasons": [
@@ -1744,16 +1724,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
-    },
-    {
-      "path": "deploy/observability/failure-recovery-smoke-test.sh",
-      "sha256": "3d6c71a5b114830d52cb905d340a43c035e31e04f57ac8ae89b08b8d517f7dec",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only Compose context review: canonical service keys, internal targets and operational selectors; retained DNS aliases, physical storage/network/secret bindings, monitoring identities and historical or test contracts remain intentional. Builds, tests, Docker execution and rollout are deferred; this is not runtime or cutover approval.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
       "path": "deploy/observability/grafana/dashboards/pvad-browser-health.json",
@@ -1777,12 +1747,12 @@
     },
     {
       "path": "deploy/observability/grafana/dashboards/pvad-infrastructure.json",
-      "sha256": "c907749faf0230be53ac7b0d907eecc1517c74fdaf1346d95e274ffd770bb704",
+      "sha256": "3dd9153816aab04bc2530f17f4ced3e6e5bceff28765159a9738f977212a8359",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only context review: canonical Observability source filenames and references; stable diagnostics, infrastructure identities and legacy template aliases retained. Builds and tests explicitly deferred; not validation of runtime behavior.",
+      "reviewNotes": "Expand exactly three selectors for current and historical jobs/containers, preserving UID, datasource references and panel appearance.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1856,23 +1826,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "deploy/observability/prometheus/prometheus.yml",
-      "sha256": "49f2ea23cf80276fb792cd43b834c11c2e5161a1143034d40db066d5a9c9eb16",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only Compose context review: canonical service keys, internal targets and operational selectors; retained DNS aliases, physical storage/network/secret bindings, monitoring identities and historical or test contracts remain intentional. Builds, tests, Docker execution and rollout are deferred; this is not runtime or cutover approval.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
       "path": "deploy/observability/prometheus/rules/pvad-alerts.yml",
-      "sha256": "1f492c2ccf079f2ac151725bf8fec497b5dd066d63f18d052a737a8fd2cb4314",
+      "sha256": "476ee7f8cce287b9123ca816edf946b34cdbcd0bb84dfbbeaa5b969e97a68b36",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only context review: canonical Observability source filenames and references; stable diagnostics, infrastructure identities and legacy template aliases retained. Builds and tests explicitly deferred; not validation of runtime behavior.",
+      "reviewNotes": "Retain dashboard/runbook references and alert semantics. New service labels and group names are canonical; selectors accept old and current jobs and Compose services.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1887,42 +1847,42 @@
     },
     {
       "path": "deploy/observability/prometheus/rules/pvad-webapi-container-alerts.yml",
-      "sha256": "8f2d94bcb714c74e23823226ac790d7e3ca42e1776302b86e4a8eefbf9a72c51",
+      "sha256": "06d33f78e1751b3c7d4fd85602eb2521fac797d28d4fdf34c789284c437c20f9",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only context review: canonical Observability source filenames and references; stable diagnostics, infrastructure identities and legacy template aliases retained. Builds and tests explicitly deferred; not validation of runtime behavior.",
+      "reviewNotes": "Canonical group/service output and dual-generation heartbeat instance reader; stable alert, dashboard and runbook references remain.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "deploy/observability/prometheus/tests/pvad-alerts.test.yml",
-      "sha256": "2a3ff6070b3f4bf255be16c946e4f0f62b6a5364c95423f2b5f461ef243b9503",
+      "sha256": "7f3652fa87fac2cf7934cde5da188c8ad9d46c9dbfa23fa0f022b4d4b0e47dfc",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only context review: canonical Observability source filenames and references; stable diagnostics, infrastructure identities and legacy template aliases retained. Builds and tests explicitly deferred; not validation of runtime behavior.",
+      "reviewNotes": "Legacy input samples intentionally prove old-generation compatibility; canonical metric cases now include new job identities. Expected service output labels migrate but dashboard/runbook references remain stable.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "deploy/observability/README.md",
-      "sha256": "4ab2d95acf538cbc0da22c738bc1618b8216ec0d2546b864d7d212e806b159c6",
+      "sha256": "5e27dff6466f1e41f0620328972d17dd1ab73bb45efb5646ca5fa14ceac2693b",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Link offline Grafana provider preparation while keeping active placement, UIDs, permissions and cutover boundaries unchanged.",
+      "reviewNotes": "Explain canonical monitoring labels, dual-generation readers and unchanged UIDs; require silence/fingerprint and live-cutover review.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
       "path": "deploy/observability/smoke-test.sh",
-      "sha256": "9566ffa62229ddaa8ca8f272b5fe5de1d00976bfbd4525d93aeebd38eaae278c",
+      "sha256": "994a74a777913aaebe167a95c20834d99da3692ba5809ba2360fff871eb40861",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-only Compose context review: canonical service keys, internal targets and operational selectors; retained DNS aliases, physical storage/network/secret bindings, monitoring identities and historical or test contracts remain intentional. Builds, tests, Docker execution and rollout are deferred; this is not runtime or cutover approval.",
+      "reviewNotes": "Canonical scrape target checks; preserve historical API aliases, datasource/dashboard UIDs and original recovery evidence contracts.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -2317,12 +2277,12 @@
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
-      "sha256": "780023cb9d8c1967754f591969ffc985831f5be9bade2dd8bef753b506dba065",
+      "sha256": "2446de1452ad3028231659b6e01b8b462bdb396926c8c84c3676a2727257bb33",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Update concurrency naming boundary while retaining historical evidence, actual protected environments and unapproved publisher bindings.",
+      "reviewNotes": "Clarify new monitoring writer labels and dual-generation readers without rewriting history or approving installed infrastructure changes.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2347,12 +2307,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "91a8ec87c8ef849e2f3088b97d6a301d3b2b8db20a2963caf1af20be2110a781",
+      "sha256": "fa1b5abab7b78e3e18774dcbfb5cad7b010a959af9a53461c469251a3e253f0c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Record aligned C# fallback and selected Admin/Operator handbook links without implying deployed host availability, verified mail delivery or altered security boundaries.",
+      "reviewNotes": "Record source monitoring changes separately from required silence/routing migration and authorized live activation.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -7637,12 +7597,12 @@
     },
     {
       "path": "tools/configuration/telemetry-contract.test.mjs",
-      "sha256": "22b14bb4f69e80f0c5ffdf42dbb93399cc0e81b2cef1980fdab8fd01d09bdc49",
+      "sha256": "c23a0f0bc985b91e9d5307f736c4be323d56a6cca9e377cfd8af901469aa04ff",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/configuration/telemetry-contract.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Assert canonical writers and dual-generation readers while preserving stable dashboard UIDs/runbooks and intentional old-name regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9387,6 +9347,16 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Read the exact legacy Grafana provisioning and emit an offline canonical candidate only; reject changed placement policy and never apply it.",
       "boundaryGuide": "docs/pvad-grafana-provider-cutover.md"
+    },
+    {
+      "path": "tools/configuration/pvad-telemetry-contract.mjs",
+      "sha256": "9fbc606b5f735cd98b58663167c42b1b84c1156c42519944fdec90a6838b7adb",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Generate synthetic native PromQL cases for old/new monitoring identities and mixed heartbeat generations; retained legacy strings are required test inputs, not current writer branding.",
+      "boundaryGuide": "docs/pvad-monitoring-identity-migration.md"
     }
   ],
   "reviewStatus": "reviewed"

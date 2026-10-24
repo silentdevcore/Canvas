@@ -246,7 +246,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "min(up{job=~\"pxa-postgresql|pxa-containers\"})",
+          "expr": "min(up{job=~\"(pvad|pxa)-(postgresql|containers)\"})",
           "legendFormat": "Exporters",
           "range": true,
           "refId": "A"
@@ -298,7 +298,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * sum by (container_label_com_docker_compose_service) (rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"pxa-.+\",cpu=\"total\"}[5m])) / max by (container_label_com_docker_compose_service) (container_spec_cpu_quota{container_label_com_docker_compose_service=~\"pxa-.+\"} / container_spec_cpu_period{container_label_com_docker_compose_service=~\"pxa-.+\"})",
+          "expr": "100 * sum by (container_label_com_docker_compose_service) (rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\",cpu=\"total\"}[5m])) / max by (container_label_com_docker_compose_service) (container_spec_cpu_quota{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"} / container_spec_cpu_period{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"})",
           "legendFormat": "{{container_label_com_docker_compose_service}}",
           "range": true,
           "refId": "A"
@@ -350,7 +350,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * container_memory_working_set_bytes{container_label_com_docker_compose_service=~\"pxa-.+\"} / container_spec_memory_limit_bytes{container_label_com_docker_compose_service=~\"pxa-.+\"}",
+          "expr": "100 * container_memory_working_set_bytes{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"} / container_spec_memory_limit_bytes{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"}",
           "legendFormat": "{{container_label_com_docker_compose_service}}",
           "range": true,
           "refId": "A"

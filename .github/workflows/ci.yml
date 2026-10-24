@@ -35,7 +35,7 @@ jobs:
         run: node tools/versioning/pvad-version.mjs check
       - name: Validate canonical and legacy telemetry queries
         run: |
-          node tools/configuration/pvad-telemetry-contract.mjs artifacts/rename-pvad/observability/dashboard-queries.json
+          node tools/configuration/pvad-telemetry-contract.mjs artifacts/rename-pvad/observability/dashboard-queries.json artifacts/rename-pvad/observability/identity-tests.json
           docker run --rm --network none --read-only \
             --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
             --security-opt no-new-privileges:true \
@@ -49,8 +49,15 @@ jobs:
             --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
             --security-opt no-new-privileges:true \
             --volume "$GITHUB_WORKSPACE/deploy/observability/prometheus:/etc/prometheus:ro" \
+            --volume "$GITHUB_WORKSPACE/artifacts/rename-pvad/observability:/checks:ro" \
             --entrypoint /bin/promtool prom/prometheus:v3.12.0 test rules \
-            /etc/prometheus/tests/pvad-alerts.test.yml
+            /etc/prometheus/tests/pvad-alerts.test.yml /checks/identity-tests.json
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --volume "$GITHUB_WORKSPACE/deploy/observability/alertmanager:/etc/alertmanager:ro" \
+            --entrypoint /bin/amtool prom/alertmanager:v0.32.1 check-config \
+            /etc/alertmanager/alertmanager.yml /etc/alertmanager/alertmanager.production.yml.example
       - name: Validate PDF Trust governance and pinned evidence
         run: |
           node tools/pdf-trust/validate-standards-baseline.mjs

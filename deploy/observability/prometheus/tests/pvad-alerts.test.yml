@@ -17,7 +17,7 @@ tests:
               alertname: PvadTelemetryPipelineUnavailable
               environment: local-evaluation
               job: pxa-otel-collector
-              service: pxa-observability
+              service: pvad-observability
               severity: critical
             exp_annotations:
               summary: PVAD telemetry pipeline is unavailable
@@ -41,7 +41,7 @@ tests:
               environment: local-evaluation
               instance: 'pxa-postgres-exporter:9187'
               job: pxa-postgresql
-              service: pxa-postgresql
+              service: pvad-postgresql
               severity: critical
             exp_annotations:
               summary: PVAD PostgreSQL is unavailable
@@ -61,7 +61,7 @@ tests:
               alertname: PvadMailDeadLetter
               environment: local-evaluation
               mail_outcome: dead_letter
-              service: pxa-mail
+              service: pvad-mail
               severity: critical
             exp_annotations:
               summary: A PVAD mail delivery entered the dead-letter state
@@ -80,7 +80,7 @@ tests:
           - exp_labels:
               alertname: PvadOcrRepeatedFailures
               environment: local-evaluation
-              service: pxa-ocr
+              service: pvad-ocr
               severity: warning
             exp_annotations:
               summary: PVAD OCR has repeated failures
@@ -100,7 +100,7 @@ tests:
               alertname: PvadJobQueueOld
               environment: local-evaluation
               job_type: document.import
-              service: pxa-jobs
+              service: pvad-jobs
               severity: warning
             exp_annotations:
               summary: The oldest PVAD background job is over ten minutes old
@@ -119,7 +119,7 @@ tests:
           - exp_labels:
               alertname: PvadAuthorizationDenialSpike
               environment: local-evaluation
-              service: pxa-security
+              service: pvad-security
               severity: warning
             exp_annotations:
               summary: PVAD authorization denials increased sharply
@@ -140,7 +140,7 @@ tests:
           - exp_labels:
               alertname: PvadStorageFailureRateHigh
               environment: local-evaluation
-              service: pxa-storage
+              service: pvad-storage
               severity: critical
             exp_annotations:
               summary: PVAD object-storage failure rate is above ten percent
@@ -159,7 +159,7 @@ tests:
           - exp_labels:
               alertname: PvadLicenseValidationFailure
               environment: local-evaluation
-              service: pxa-licensing
+              service: pvad-licensing
               severity: critical
             exp_annotations:
               summary: PVAD detected a critical offline-license validation failure
@@ -181,7 +181,7 @@ tests:
               alertname: PvadOfflineLicenseExpiringSoon
               environment: local-evaluation
               license_state: expiring_14d
-              service: pxa-licensing
+              service: pvad-licensing
               severity: warning
             exp_annotations:
               summary: A PVAD offline license expires within 14 days
@@ -195,7 +195,7 @@ tests:
               alertname: PvadOfflineLicenseExpiredActive
               environment: local-evaluation
               license_state: expired_active
-              service: pxa-licensing
+              service: pvad-licensing
               severity: critical
             exp_annotations:
               summary: An expired PVAD offline license is still marked active
@@ -215,7 +215,7 @@ tests:
               alertname: PvadBrowserErrorSpike
               browser_application: designer
               environment: local-evaluation
-              service: pxa-browser
+              service: pvad-browser
               severity: warning
             exp_annotations:
               summary: A PVAD browser application has repeated JavaScript failures
@@ -238,7 +238,7 @@ tests:
               environment: local-evaluation
               instance: 'https://admin.example.test'
               job: pxa-tls
-              service: pxa-edge
+              service: pvad-edge
               severity: warning
             exp_annotations:
               summary: A monitored PVAD TLS certificate expires within 14 days
@@ -248,9 +248,9 @@ tests:
   - name: Telemetry pipeline outage fires and recovers (PVAD metrics)
     interval: 1m
     input_series:
-      - series: 'up{job="pxa-otel-collector"}'
+      - series: 'up{job="pvad-otel-collector"}'
         values: 1 0 0 0 1
-      - series: 'pvad_dependencies_health{service_name="pxa-webapi",deployment_environment_name="test"}'
+      - series: 'pvad_dependencies_health{service_name="pvad-webapi",deployment_environment_name="test"}'
         values: 1 1 1 1 1
     alert_rule_test:
       - eval_time: 3m
@@ -259,8 +259,8 @@ tests:
           - exp_labels:
               alertname: PvadTelemetryPipelineUnavailable
               environment: local-evaluation
-              job: pxa-otel-collector
-              service: pxa-observability
+              job: pvad-otel-collector
+              service: pvad-observability
               severity: critical
             exp_annotations:
               summary: PVAD telemetry pipeline is unavailable
@@ -283,7 +283,7 @@ tests:
               alertname: PvadMailDeadLetter
               environment: local-evaluation
               mail_outcome: dead_letter
-              service: pxa-mail
+              service: pvad-mail
               severity: critical
             exp_annotations:
               summary: A PVAD mail delivery entered the dead-letter state
@@ -302,7 +302,7 @@ tests:
           - exp_labels:
               alertname: PvadOcrRepeatedFailures
               environment: local-evaluation
-              service: pxa-ocr
+              service: pvad-ocr
               severity: warning
             exp_annotations:
               summary: PVAD OCR has repeated failures
@@ -322,7 +322,7 @@ tests:
               alertname: PvadJobQueueOld
               environment: local-evaluation
               job_type: document.import
-              service: pxa-jobs
+              service: pvad-jobs
               severity: warning
             exp_annotations:
               summary: The oldest PVAD background job is over ten minutes old
@@ -341,7 +341,7 @@ tests:
           - exp_labels:
               alertname: PvadAuthorizationDenialSpike
               environment: local-evaluation
-              service: pxa-security
+              service: pvad-security
               severity: warning
             exp_annotations:
               summary: PVAD authorization denials increased sharply
@@ -362,7 +362,7 @@ tests:
           - exp_labels:
               alertname: PvadStorageFailureRateHigh
               environment: local-evaluation
-              service: pxa-storage
+              service: pvad-storage
               severity: critical
             exp_annotations:
               summary: PVAD object-storage failure rate is above ten percent
@@ -381,7 +381,7 @@ tests:
           - exp_labels:
               alertname: PvadLicenseValidationFailure
               environment: local-evaluation
-              service: pxa-licensing
+              service: pvad-licensing
               severity: critical
             exp_annotations:
               summary: PVAD detected a critical offline-license validation failure
@@ -403,7 +403,7 @@ tests:
               alertname: PvadOfflineLicenseExpiringSoon
               environment: local-evaluation
               license_state: expiring_14d
-              service: pxa-licensing
+              service: pvad-licensing
               severity: warning
             exp_annotations:
               summary: A PVAD offline license expires within 14 days
@@ -417,7 +417,7 @@ tests:
               alertname: PvadOfflineLicenseExpiredActive
               environment: local-evaluation
               license_state: expired_active
-              service: pxa-licensing
+              service: pvad-licensing
               severity: critical
             exp_annotations:
               summary: An expired PVAD offline license is still marked active
@@ -437,7 +437,7 @@ tests:
               alertname: PvadBrowserErrorSpike
               browser_application: designer
               environment: local-evaluation
-              service: pxa-browser
+              service: pvad-browser
               severity: warning
             exp_annotations:
               summary: A PVAD browser application has repeated JavaScript failures

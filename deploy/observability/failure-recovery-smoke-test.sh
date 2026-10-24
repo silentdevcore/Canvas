@@ -129,14 +129,14 @@ run_collector_scenario() {
   local started_at
   started_at="$(date +%s)"
 
-  wait_for_value "collector target baseline" "up" 30 target_health "pxa-otel-collector"
+  wait_for_value "collector target baseline" "up" 30 target_health "pvad-otel-collector"
   wait_for_value "${alert_name} baseline" "inactive" 30 alert_state "${alert_name}"
   stop_container "${container}"
   wait_for_value "${alert_name}" "firing" 210 alert_state "${alert_name}"
   wait_for_mail "FIRING" "${alert_name}" "${started_at}"
 
   start_container "${container}"
-  wait_for_value "collector target recovery" "up" 90 target_health "pxa-otel-collector"
+  wait_for_value "collector target recovery" "up" 90 target_health "pvad-otel-collector"
   wait_for_value "${alert_name} recovery" "inactive" 90 alert_state "${alert_name}"
   wait_for_mail "RESOLVED" "${alert_name}" "${started_at}"
 }
@@ -148,7 +148,7 @@ run_postgresql_scenario() {
   local started_at
   started_at="$(date +%s)"
 
-  wait_for_value "PostgreSQL target baseline" "up" 30 target_health "pxa-postgresql"
+  wait_for_value "PostgreSQL target baseline" "up" 30 target_health "pvad-postgresql"
   wait_for_value "${alert_name} baseline" "inactive" 30 alert_state "${alert_name}"
   stop_container "${container}"
   wait_for_value "${alert_name}" "firing" 210 alert_state "${alert_name}"

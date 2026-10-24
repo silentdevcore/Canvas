@@ -962,6 +962,32 @@ publisher gates remain open; this follow-up does not close them.
 Patch fragment: `pvad-admin-guide-and-mail-defaults`. VERSION stays 1.1.0. No
 stored messages, secrets, authentication boundaries or remote resources changed.
 
+## Monitoring Identity Follow-up (2026-10-24)
+
+- [x] Commit Admin/guide/mail work separately (`f8f8545e`).
+- [x] Canonicalize four scrape jobs, external platform label, main/container rule
+  groups, new alert service labels and local/production maintenance-window names.
+- [x] Make job, Compose-service and heartbeat-instance selectors read both name
+  generations. Preserve all alert names, timers, severity, dashboard/datasource
+  UIDs, runbook IDs and notification templates. Do not relabel stored history.
+- [x] Inspect all five dashboards and validate all 40 metric expressions. Correct
+  the three infrastructure expressions that excluded canonical jobs/containers.
+- [x] Update smoke/recovery target checks and CI. Test canonical and old jobs,
+  actual resource expressions, unrelated-container exclusion, all four heartbeat
+  metric/instance combinations, recovery and stale-legacy/fresh-current overlap.
+- [x] Pass 220 selected Node contracts, native checks for 37 alert rules and 40
+  dashboard queries, 20 retained plus nine generated PromQL test scenarios, and
+  local/production-example amtool checks. Version/fragment and whitespace checks
+  pass. Test containers have no network and start no monitoring services.
+- [ ] Approve and execute live monitoring activation, silence/routing migration,
+  notification delivery and rollback under the existing operational gates.
+
+See [monitoring identity migration](../docs/pvad-monitoring-identity-migration.md).
+The release fragment `pvad-monitoring-identity-coverage` declares Major impact
+because exact-match job/service consumers and alert fingerprints change. This
+does not bump VERSION (still 1.1.0) or publish a release. Grafana provider/folder,
+installed permissions, stored data and remote infrastructure remain unchanged.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)
