@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { createWriteStream, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createWriteStream, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:net';
@@ -16,6 +16,8 @@ const output = resolve(root, 'artifacts/rename/authenticated-final', runId);
 mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, '../latest.json'), `${JSON.stringify({ runId, output: `artifacts/rename/authenticated-final/${runId}` })}\n`);
 const schema = readFileSync(resolve(process.env.PVAD_RENAME_SCHEMA));
+const nginxProfile = process.env.PVAD_RENAME_NGINX === '1';
+let nginxImage;
 const containers = [], children = [], logs = [];
 const docker = (args, input) => execFileSync('docker', args, { input, encoding: 'utf8', timeout: 60_000 }).trim();
 
@@ -32,13 +34,15 @@ async function run(command, args, cwd, env, logName) {
 }
 async function waitFor(url, process) {
   for (let attempt = 0; attempt < 120; attempt++) {
-    assert.equal(process.child.exitCode, null, 'A test service exited; inspect its local log.');
+    if (process) assert.equal(process.child.exitCode, null, 'A test service exited; inspect its local log.');
     let ready = false;
     try { ready = (await fetch(url, { signal: AbortSignal.timeout(1500) })).ok; } catch { }
     if (ready) {
       await delay(250);
-      assert.equal(process.child.exitCode, null, 'The test service lost its port during startup.');
-      assert.equal(process.child.signalCode, null, 'The test service was terminated during startup.');
+      if (process) {
+        assert.equal(process.child.exitCode, null, 'The test service lost its port during startup.');
+        assert.equal(process.child.signalCode, null, 'The test service was terminated during startup.');
+      }
       return;
     }
     await delay(500);
@@ -92,6 +96,38 @@ try {
   for (const [directory, uiPort, name] of [['pvad-designer', 16176, 'designer'], ['websites/PVAD.Account', 16178, 'account']]) {
     const build = await run('npm', ['run', 'build'], directory, env, `${name}-build.log`);
     assert.equal((await build.exited).code, 0, `${name} build failed.`);
+    if (nginxProfile && name === 'designer') {
+      nginxImage = docker(['image', 'inspect', '--format', '{{.Id}}', 'nginx:1.29-alpine']);
+      assert.match(nginxImage, /^sha256:[a-f0-9]{64}$/);
+      const key = 'PVAD_DESIGNER_ROUTE_PATTERN=';
+      const pattern = readFileSync(resolve(root, 'deploy/websites/route-patterns.env.example'), 'utf8')
+        .split('\n').find(line => line.startsWith(key))?.slice(key.length);
+      assert.ok(pattern?.startsWith('^/'));
+      const mount = (source, target) => ['--mount', `type=bind,src=${resolve(root, source)},dst=${target},readonly`];
+      const proxy = docker(['run', '--rm', '-d', '--name', `pvad-browser-proxy-${runId}`,
+        '--label', 'pvade.scope=disposable-final-browser', '-p', `127.0.0.1:${uiPort}:8080`,
+        '-e', 'PVAD_API_UPSTREAM=http://host.docker.internal:16096', '-e', `PVAD_SPA_ROUTE_PATTERN=${pattern}`,
+        ...mount('pvad-designer/dist', '/usr/share/nginx/html'),
+        ...mount('deploy/websites/nginx.conf.template', '/etc/nginx/templates/default.conf.template'),
+        ...mount('deploy/websites/designer.headers.conf', '/etc/nginx/pvad/designer.headers.conf'),
+        ...mount('deploy/websites/15-pvad-environment.envsh', '/docker-entrypoint.d/15-pvad-environment.envsh'), nginxImage]);
+      containers.push(proxy);
+      await waitFor(`http://localhost:${uiPort}/`);
+      const response = await fetch(`http://localhost:${uiPort}/pdf/create`);
+      const headers = readFileSync(resolve(root, 'deploy/websites/designer.headers.conf'), 'utf8');
+      for (const header of ['Content-Security-Policy', 'Content-Security-Policy-Report-Only'])
+        assert.equal(response.headers.get(header), headers.match(new RegExp(`add_header ${header} "([^"]+)" always;`))?.[1]);
+      const apiProbe = await fetch(`http://localhost:${uiPort}/api/pvad/v1/version`);
+      assert.equal(apiProbe.status, 200, 'The isolated Nginx proxy must reach the real local API.');
+      const workers = readdirSync(resolve(root, 'pvad-designer/dist/assets')).filter(file => file.endsWith('.mjs'));
+      assert.ok(workers.length > 0, 'The built PDF module worker must exist.');
+      for (const worker of workers) {
+        const response = await fetch(`http://localhost:${uiPort}/assets/${worker}`);
+        assert.equal(response.status, 200);
+        assert.match(response.headers.get('content-type') ?? '', /(?:application|text)\/javascript/);
+      }
+      continue;
+    }
     const ui = await run(process.execPath, [resolve(root, 'pvad-designer/node_modules/vite/bin/vite.js'), 'preview', '--host', 'localhost', '--port', String(uiPort), '--strictPort'], directory, env, `${name}.log`);
     await waitFor(`http://localhost:${uiPort}/`, ui);
   }
@@ -104,7 +140,9 @@ try {
   }, 'browser.log');
   const result = await test.exited;
   writeFileSync(resolve(output, 'report.json'), `${JSON.stringify({ sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-    syntheticDataOnly: true, scope: 'Three real authenticated API/PostgreSQL/SMTP cases plus two separate mocked denial/layout cases; not deployed CSP or native print certification.',
+    uncommittedTrackedChanges: execFileSync('git', ['diff', '--name-only', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim().length > 0,
+    syntheticDataOnly: true, designerHosting: nginxProfile ? 'exact-repository-nginx-csp-profile' : 'vite-preview', nginxImage,
+    scope: 'Three real authenticated API/PostgreSQL/SMTP cases including local fonts/images, binding preservation, PDF code/report migrations, preview, artifact downloads and Viewer handoff; two separate mocked denial/layout cases. Not public-host, binding substitution, every-provider or native OS print certification.',
     status: result.code === 0 ? 'passed' : 'failed', exitCode: result.code }, null, 2)}\n`);
   assert.equal(result.code, 0, 'Authenticated browser tests failed; inspect browser.log.');
   console.log('Isolated authenticated browser tests passed.');

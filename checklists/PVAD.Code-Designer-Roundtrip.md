@@ -84,6 +84,26 @@ isolated, tenant-aware PXA sandbox.
   local CodeWorker for autosave, conversion review, apply, preview, and restore.
 - [x] Run the same authenticated workspace smoke flow on supported mobile layouts.
 
+## Reviewed Apply Follow-up (2026-10-25)
+
+- [x] Compare an older workspace with the current tenant-owned template without
+  rebasing or regenerating language drafts.
+- [x] Require explicit replacement approval, with element/page/document-field
+  changes and full document inspection in all six Designer languages.
+- [x] Send reviewed revisions and canonical checksum; reject concurrent changes
+  or a changed execution result without partial writes.
+- [x] Test real PostgreSQL rollback of template/workspace/audit on concurrent writes.
+- [x] Flush visual autosave before comparison and acknowledge atomic Apply without
+  issuing an immediate second visual save.
+- [x] Pass the full customer workflow behind the repository Nginx/CSP profile,
+  including desktop/mobile comparison screenshots and four code representations.
+- [x] Extend that real workflow with local font/image checks, binding-preserving
+  JSON export and separate PDF/Report/Spreadsheet migration previews/downloads.
+
+See [scoped validation and remaining rename acceptance boundaries](../docs/pvad-code-workspace-apply-validation.md).
+This evidence does not certify native OS printing, public deployment, or every
+migration workflow. Historical completed tasks above keep their original scope.
+
 ## Deferred
 
 - [ ] General-purpose C#, external packages, internet access, and offline code execution.

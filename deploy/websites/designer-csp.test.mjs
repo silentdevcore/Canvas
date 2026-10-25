@@ -26,7 +26,7 @@ test('strict resource candidate is explicitly report-only without third-party re
 });
 test('optional profile is included in every location despite Nginx header inheritance', () => {
   const locations = nginx.split(/\n    location /).slice(1);
-  assert.equal(locations.length, 9);
+  assert.equal(locations.length, 10);
   for (const location of locations) assert.match(location.split('\n    }')[0], /include \/etc\/nginx\/pvad\/\*\.headers\.conf;/);
   assert.match(policy, /Referrer-Policy "strict-origin-when-cross-origin" always;/);
 });

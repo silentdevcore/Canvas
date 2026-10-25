@@ -1212,9 +1212,11 @@ changes and the required explicit retained-client transition; VERSION stays 1.1.
   Exclude runtime App_Data files and validate the seven build-info records.
 - [x] Reproduce real Account registration/verification/Designer handoff on desktop
   and mobile. Verify actual backend PDF display and an intercepted print request.
-- [ ] Resolve the stale code-workspace base after project import/autosave with
+- [x] Resolve the stale code-workspace base after project import/autosave with
   explicit comparison/rebase, preserving drafts and optimistic concurrency;
-  repeat the complete customer workflow, currently 4/5 browser cases passing.
+  repeat the complete customer workflow. Follow-up run `3cb3292bb4bd` passes all
+  five cases behind the repository Nginx/CSP profile; three use real authentication,
+  and two are separate mocked denial/layout cases. See the follow-up below.
 - [ ] Finish authenticated workflows behind the exact Nginx/CSP profile and
   the manual native print-dialog/output check, then review one final source snapshot.
 
@@ -1224,6 +1226,33 @@ Do not advance to 89/98 because only some parts of that gate passed. The source
 base is `f49df8c2` plus uncommitted validation/packaging corrections; no publication,
 live-store migration, remote host mutation, VERSION increase or push occurred.
 See the [full results, corrections and blocker](../docs/pvad-final-candidate-validation.md).
+
+### Reviewed Code Apply and Authenticated Nginx Follow-up (2026-10-25)
+
+- [x] Add a non-mutating tenant-bound comparison and explicit Apply confirmation
+  against the reviewed template/workspace revisions and canonical checksum.
+- [x] Preserve all other language drafts, cancellation behavior and local source
+  during conflicts; prevent redundant visual autosave after successful Apply.
+- [x] Test real PostgreSQL concurrent writes during Apply and atomic rollback.
+- [x] Pass the complete local customer flow behind the exact Designer Nginx/CSP
+  profile, including four-language code conversion and reviewed stale-base Apply.
+- [x] Correct missing legacy Nginx routes, guard app routes with an AST contract,
+  and fix the API-upstream path-preservation guidance.
+- [x] Verify local fonts/images, binding preservation and real representative
+  Syncfusion PDF/DevExpress report conversion, Preview, Viewer handoff and
+  byte-identical PDF downloads behind that profile. Verify ClosedXML separately
+  as a Spreadsheet grid, not as a PDF. Expanded run `946ac88ab10c`: 5/5 passed.
+- [x] Correct the actual Nginx `.mjs` worker MIME defect found by the real Viewer
+  workflow; keep the existing enforced/report-only CSP boundaries unchanged.
+- [ ] Perform the manual native OS print-dialog/output check and final aggregate
+  candidate source review. No runtime binding-substitution or every-provider
+  certification is inferred from representative rename checks.
+
+Evidence: [Code Apply validation](../docs/pvad-code-workspace-apply-validation.md).
+These subtasks do not change the primary denominator or close the combined gate:
+**88/98 (89.8%) complete; 10/98 (10.2%) open**. The source is `4f51ac1d` plus this
+uncommitted follow-up. No commit, push, version bump or installed-data cutover is
+part of this step.
 
 ## Related Work
 

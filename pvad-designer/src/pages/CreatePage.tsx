@@ -327,6 +327,7 @@ const CreatePage: React.FC = () => {
       undoStack: [],
       redoStack: [],
     });
+    autosave.acknowledgeSaved();
   };
 
   return (
@@ -444,6 +445,7 @@ const CreatePage: React.FC = () => {
             templateRevision={currentTemplate.persistence?.revision}
             initialDesign={codeDesign}
             onApply={handleCodeApply}
+            onBeforeCompare={autosave.flush}
           />
         </motion.div>
       )}

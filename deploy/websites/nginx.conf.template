@@ -43,6 +43,15 @@ server {
         try_files $uri =404;
     }
 
+    # Some image MIME maps omit .mjs. PDF.js module workers must be served as JavaScript.
+    location ~* ^/assets/.*\.mjs$ {
+        include /etc/nginx/pvad/*.headers.conf;
+        default_type application/javascript;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+
     # The pattern is application-specific. Only known SPA routes receive index.html
     # with HTTP 200. An unknown path reaches the real 404 handler below.
     location ~ ${PVAD_SPA_ROUTE_PATTERN} {

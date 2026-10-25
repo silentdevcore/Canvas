@@ -10,6 +10,16 @@
   "actions": { "validate": "Validate", "run": "Run", "convert": "Convert", "restore": "Restore", "apply": "Apply to Designer", "accept": "Apply generated draft", "cancel": "Cancel", "importLegacy": "Import draft", "dismiss": "Dismiss" },
   "status": { "saved": "Saved", "modified": "Modified", "generated": "Generated", "outdated": "Outdated", "invalid": "Invalid", "conflict": "Conflict" },
   "workspace": { "legacy": "A local draft from the previous editor is available.", "waiting": "The server workspace becomes available after the template is saved.", "target": "Conversion target", "fidelity": "Fidelity", "documentFidelity": "Document fidelity", "sourcePreservation": "Source preservation", "added": "Added", "changed": "Changed", "removed": "Removed" },
+  "applyReview": {
+    "title": "Compare with Designer", "confirm": "Replace reviewed Designer draft",
+    "staleBase": "The code workspace is based on revision {{base}}. The Designer is now at revision {{current}}.",
+    "replaceWarning": "Confirm to replace the reviewed Designer draft with this code result. Other language drafts are kept unchanged. Later server changes will block this operation.",
+    "pageChanges": "Page order or layout changed", "settingsChanges": "Document fields changed",
+    "currentDesigner": "Current Designer document", "codeResult": "Proposed code result",
+    "yes": "Yes", "no": "No", "none": "None",
+    "sourceChanged": "The source changed during comparison. Compare again.",
+    "saveRequired": "Save or resolve the Designer changes before comparing code."
+  },
   "converting": "Converting…",
   "generating": "Generating…",
   "exportPdf": "Export PDF",

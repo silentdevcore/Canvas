@@ -677,12 +677,12 @@
     },
     {
       "path": "checklists/PVAD.Code-Designer-Roundtrip.md",
-      "sha256": "59b4b2d9f5459ce6e7a476b94c9de33cd770b0e2596a454772dbced7982a8e92",
+      "sha256": "68bcc60992f4f5773ddc3e714de144598e7f2e7abbe80048ea24a8760a9250b8",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1187,12 +1187,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "25c748462d087085cd80c9928b05cdd4642d2e7ec4475d20f0fd9bb881cad7ed",
+      "sha256": "ceeefb95e2a17a714f2406bc13bb77d17cbd4e4b9b375c3a805163ff7fae2883",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "5d2fdae4216bc5e6ff1e26773897063b3029fed0cc0f4174a27eae1ba9e0b213",
+      "sha256": "68552f49ea1b4a83fa0d93f3a886c9d06d509efa56dfe3f6a40ec6513c979c16",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "f1c1baaa45d46649e1de0d17ea9bdff5f44baf5f4e10f24e54ed8cef53783d02",
+      "sha256": "af941f5c9191d65d98853d0216b06ab5142b9c8ecd62826192be3b19a6518294",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1907,22 +1907,22 @@
     },
     {
       "path": "deploy/websites/nginx.conf.template",
-      "sha256": "ce73e6aaabf1bf28b2dc5b4049511468e3d436dc6b9825b63562ed55c63dff17",
+      "sha256": "4e3e55487bf047ef4e6c5c41d45c9c10cc6e619c36f8421780b1974db098367b",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Legacy error diagnostic remains a stable response contract; optional security-profile includes do not rename its value or alter API status behavior.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "deploy/websites/README.md",
-      "sha256": "78d2e822e992aa825ddc47ab311c3bec69f55f1e6bc0695855a3193c32bae918",
+      "sha256": "858e4f3c21d8812b3ac960eeff761017e3eede2f640485fdda5aed6ac1b086f7",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Kept documented compatibility environment aliases; linked the optional unapproved Designer security profile without changing naming authority.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1937,12 +1937,12 @@
     },
     {
       "path": "deploy/websites/status-hosting.test.mjs",
-      "sha256": "bf3fa3872630b250f00b6fab3d329156dd0ff3de3ab1a0b9d4238e6dfe206ea0",
+      "sha256": "89ddd7f824c7d3f6156d5a482ab8e62196125ae4be844e189cc6653dc8edc93b",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retained synthetic legacy error/alias assertions while accounting for optional header includes in the known SPA-route contract.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2127,12 +2127,12 @@
     },
     {
       "path": "docs/code-designer-workspace.md",
-      "sha256": "e5eb2ffd6ca3cbc1e00407e599ba3c6d9857823952a97ff81c38f835ab65d42a",
+      "sha256": "8218538283be2b1314c819bfd7ddd45b51aa2725bfa48e3b2870e285b2a77e72",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/code-designer-workspace.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2297,12 +2297,12 @@
     },
     {
       "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "21c06c449f76df10a50112e958b7180570c77d23ba27281298c0a1d311562a47",
+      "sha256": "196346047555283caee13dada1de1990465ef4968b8e99d4f62e4a3c7678e169",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2647,12 +2647,12 @@
     },
     {
       "path": "pvad-designer/e2e/account-designer-flow.spec.ts",
-      "sha256": "4923d06499d7b70a133007c571b6fc010c03f052c1444e32abcd0847c8ae689e",
+      "sha256": "34349a0ada070d1feecf50c6059898c852cbc3378d37c0542f66c277d11a5b68",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3177,12 +3177,12 @@
     },
     {
       "path": "pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx",
-      "sha256": "fd7a515a10de16da1b4c92487cc25200cdcd72b9da9d8ab587beb2d26c73fe0d",
+      "sha256": "f8e59c6a113c3a54d5322c90165c8b4030df1a486ffa005a75b9e747a7088cd7",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3527,12 +3527,12 @@
     },
     {
       "path": "pvad-designer/src/pages/CreatePage.tsx",
-      "sha256": "0635ac724a65361e5cfa1f5a521e255e354e3ef48df7239a53698fb7f387ee26",
+      "sha256": "f680250ba7ed31da7cf4ab0261150be6f1d787df5a9dc0a7946eee65cc3e7fdb",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Legacy package extensions and media types remain explicit import compatibility inputs; native launches do not retain template persistence.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3627,12 +3627,12 @@
     },
     {
       "path": "pvad-designer/src/styles/editor.css",
-      "sha256": "569c2004a3f9e5915871e2e4f16e0cd9562f670ccba95c43fb17afdd1463f1c1",
+      "sha256": "02a7ff0b60aa7de7e18e93ad10c06742ef03db72a899bc9941f19d6b71dab0d0",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/styles/editor.css: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3787,12 +3787,12 @@
     },
     {
       "path": "PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs",
-      "sha256": "bed5cd43b22ce0ef87a75d1a5aa12df44b3dad5e740935da9bc72b4adec6eff6",
+      "sha256": "101987c06e9ea0e7e72954943fb2947009f5557c3705abe7b527f7576fec065f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9017,12 +9017,12 @@
     },
     {
       "path": "websites/PVAD.Documentation/src/main.js",
-      "sha256": "b226577a64c757bc96f145a98ef644467cf31dac085097e78413a6e9c83fdc88",
+      "sha256": "cb8bd918a3512b9316419d639a4b4a7e357811eaeccbca1a36a410eeca476215",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
@@ -9360,13 +9360,33 @@
     },
     {
       "path": "docs/pvad-final-candidate-validation.md",
-      "sha256": "8192b37e4d68608e8d41d176e79884cdf4ea6523ab4cc4b53f2340ca4703e713",
+      "sha256": "f03a0930212dc5e23a82202a5b71475b333d9ffdd5d2b888bf6e4606fd983e12",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
       "boundaryGuide": "docs/pvad-final-candidate-validation.md"
+    },
+    {
+      "path": "docs/pvad-code-workspace-apply-validation.md",
+      "reasons": [
+        "historical-document"
+      ],
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "sha256": "b22fbf486e0f29f577728e7c0475697d6eb84e1432495e1a3be3c6b2be178522",
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied."
+    },
+    {
+      "path": "pvad-designer/e2e/support/rename-rendering-checks.ts",
+      "reasons": [
+        "test-contract"
+      ],
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "sha256": "d22210d4ecc3c3c897babfa0aa17060687e30a151f7e683448e55889612f1ca4",
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied."
     }
   ],
   "reviewStatus": "reviewed"

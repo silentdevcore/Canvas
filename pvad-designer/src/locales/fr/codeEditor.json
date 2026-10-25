@@ -10,6 +10,16 @@
   "actions": { "validate": "Valider", "run": "Exécuter", "convert": "Convertir", "restore": "Restaurer", "apply": "Appliquer au Designer", "accept": "Appliquer le brouillon généré", "cancel": "Annuler", "importLegacy": "Importer le brouillon", "dismiss": "Fermer" },
   "status": { "saved": "Enregistré", "modified": "Modifié", "generated": "Généré", "outdated": "Obsolète", "invalid": "Invalide", "conflict": "Conflit" },
   "workspace": { "legacy": "Un brouillon local de l'ancien éditeur est disponible.", "waiting": "L'espace serveur sera disponible après l'enregistrement du modèle.", "target": "Cible de conversion", "fidelity": "Fidélité", "documentFidelity": "Fidélité du document", "sourcePreservation": "Préservation du code source", "added": "Ajouté", "changed": "Modifié", "removed": "Supprimé" },
+  "applyReview": {
+    "title": "Comparer avec le Designer", "confirm": "Remplacer le brouillon Designer vérifié",
+    "staleBase": "L'espace de code repose sur la révision {{base}}. Le Designer est maintenant à la révision {{current}}.",
+    "replaceWarning": "Confirmez pour remplacer le brouillon Designer vérifié par ce résultat. Les autres brouillons de code sont conservés. Toute modification ultérieure du serveur bloquera cette opération.",
+    "pageChanges": "Ordre ou mise en page modifiés", "settingsChanges": "Champs du document modifiés",
+    "currentDesigner": "Document Designer actuel", "codeResult": "Résultat proposé",
+    "yes": "Oui", "no": "Non", "none": "Aucun",
+    "sourceChanged": "Le code a changé pendant la comparaison. Comparez à nouveau.",
+    "saveRequired": "Enregistrez ou résolvez les modifications du Designer avant de comparer le code."
+  },
   "converting": "Conversion en cours…",
   "generating": "Génération en cours…",
   "exportPdf": "Exporter en PDF",

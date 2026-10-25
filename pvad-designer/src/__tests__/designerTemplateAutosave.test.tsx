@@ -266,4 +266,57 @@ describe('Designer template autosave', () => {
 
     expect(event.defaultPrevented).toBe(true);
   });
+
+  test('flush waits for an in-flight save and saves newer visual edits before comparison', async () => {
+    const source = template('flush', 1);
+    resetStore(source);
+    let resolveFirst!: (value: DesignerTemplateDocument) => void;
+    updateMock.mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve; }))
+      .mockResolvedValueOnce(serverResult(source, 3));
+    const result = renderAutosave();
+    act(() => useEditorStore.setState({ currentTemplate: { ...source, name: 'First' } }));
+    act(() => jest.advanceTimersByTime(2000));
+    act(() => useEditorStore.setState({ currentTemplate: { ...source, name: 'Second' } }));
+    let finished = false;
+    let flushing!: Promise<void>;
+    act(() => { flushing = result.current.flush().then(() => { finished = true; }); });
+    await flushPromises();
+    expect(finished).toBe(false);
+    await act(async () => { resolveFirst(serverResult(source, 2)); await flushing; });
+    expect(updateMock).toHaveBeenCalledTimes(2);
+    expect(updateMock.mock.calls[1][1]).toBe(2);
+    expect(finished).toBe(true);
+  });
+
+  test('acknowledges an atomic code apply without immediately autosaving it again', async () => {
+    const source = template('applied', 4);
+    resetStore(source);
+    const result = renderAutosave();
+    act(() => {
+      useEditorStore.setState({ currentTemplate: { ...source, name: 'Applied', persistence: { ...source.persistence!, revision: 5 } } });
+      result.current.acknowledgeSaved();
+    });
+    act(() => jest.advanceTimersByTime(2500));
+    await flushPromises();
+    expect(updateMock).not.toHaveBeenCalled();
+    expect(result.current.state).toBe('saved');
+    const event = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  test('flush refuses an unresolved visual conflict instead of advancing its revision', async () => {
+    const source = template('flush-conflict', 4);
+    resetStore(source);
+    const conflict = new DesignerTemplateApiError('Concurrent edit.'); conflict.status = 409;
+    updateMock.mockRejectedValue(conflict);
+    const result = renderAutosave();
+    act(() => useEditorStore.setState({ currentTemplate: { ...source, name: 'Keep my changes' } }));
+    act(() => jest.advanceTimersByTime(2000));
+    await flushPromises();
+    await expect(result.current.flush()).rejects.toThrow('Resolve');
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    expect(useEditorStore.getState().currentTemplate?.persistence?.revision).toBe(4);
+    expect(useEditorStore.getState().currentTemplate?.name).toBe('Keep my changes');
+  });
 });

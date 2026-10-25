@@ -47,6 +47,9 @@ test('authenticated customer completes the Code Designer roundtrip', async ({ pa
 
   await expect(page.getByRole('tab', { name: /C# Model Generated/ })).toBeVisible();
   await page.getByRole('button', { name: 'Apply to Designer' }).click();
+  const comparison = page.getByRole('dialog', { name: 'Compare with Designer' });
+  await expect(comparison).toBeVisible();
+  await comparison.getByRole('button', { name: 'Replace reviewed Designer draft' }).click();
   await expect(page.getByRole('tab', { name: /C# Model Saved/ })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText('Hello, PVADP!')).toBeVisible();
 

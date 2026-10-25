@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { createRequire } from 'node:module';
 
 const configuration = await readFile(new URL('./nginx.conf.template', import.meta.url), 'utf8');
 const patterns = await readFile(new URL('./route-patterns.env.example', import.meta.url), 'utf8');
@@ -24,6 +25,13 @@ test('API Problem Details are not replaced with HTML', () => {
   assert.match(configuration, /"title":"PVAD API is unavailable"/);
 });
 
+test('hosting guidance preserves the API path when selecting the upstream origin', async () => {
+  const guide = await readFile(new URL('./README.md', import.meta.url), 'utf8');
+  assert.match(guide, /upstream origin without a trailing slash/);
+  assert.match(guide, /`http:\/\/pvad-api:8080`/);
+  assert.doesNotMatch(guide, /`http:\/\/pvad-api:8080\/`/);
+});
+
 test('status documents and the app shell cannot trap users in stale errors', () => {
   for (const file of ['404', '500', 'maintenance']) {
     assert.match(configuration, new RegExp(`location = /${file}\\.html \\{[\\s\\S]*?Cache-Control \\"no-store\\"`));
@@ -32,9 +40,39 @@ test('status documents and the app shell cannot trap users in stale errors', () 
   assert.match(configuration, /max-age=31536000, immutable/);
 });
 
+test('PDF module workers have a JavaScript MIME fallback without SPA fallback', () => {
+  const worker = configuration.split('location ~* ^/assets/.*\\.mjs$ {')[1]?.split('\n    }')[0];
+  assert.ok(worker);
+  assert.match(worker, /default_type application\/javascript;/);
+  assert.match(worker, /X-Content-Type-Options "nosniff" always;/);
+  assert.match(worker, /try_files \$uri =404;/);
+});
+
 test('every browser application has one anchored route allowlist', () => {
   for (const app of ['COMPANY', 'DOCUMENTATION', 'DEMO', 'ACCOUNT', 'ADMIN', 'DESIGNER']) {
     assert.match(patterns, new RegExp(`PVAD_${app}_ROUTE_PATTERN=\\^/`));
   }
   assert.match(configuration, /location ~ \$\{PVAD_SPA_ROUTE_PATTERN\}/);
+});
+
+test('Designer hosting serves every registered absolute route, including legacy redirects', async () => {
+  const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
+  const ts = require('typescript');
+  const source = await readFile(new URL('../../pvad-designer/src/App.tsx', import.meta.url), 'utf8');
+  const tree = ts.createSourceFile('App.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const pattern = new RegExp(patterns.split('\n').find(line => line.startsWith('PVAD_DESIGNER_ROUTE_PATTERN=')).split('=')[1]);
+  const routes = [];
+  function visit(node) {
+    if ((ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) && node.tagName.getText(tree) === 'Route') {
+      const path = node.attributes.properties.find(attribute => ts.isJsxAttribute(attribute) && attribute.name.text === 'path');
+      if (path?.initializer && ts.isStringLiteral(path.initializer) && path.initializer.text.startsWith('/'))
+        routes.push(path.initializer.text);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(tree);
+  assert.ok(routes.length > 20);
+  for (const route of routes) assert.ok(pattern.test(route), `Nginx must serve the app shell for ${route}`);
+  for (const route of ['/not-a-pvad-route', '/template-other', '/importer-other', '/report-other'])
+    assert.equal(pattern.test(route), false, `Unknown path must retain HTTP 404: ${route}`);
 });

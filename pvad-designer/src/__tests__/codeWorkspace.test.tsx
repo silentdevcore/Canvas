@@ -5,6 +5,7 @@ import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
 import type { ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
 import {
   applyCodeDraft,
+  compareCodeDraft,
   convertCodeDraft,
   executeCodeDraft,
   getCodeWorkspace,
@@ -24,6 +25,7 @@ jest.mock('@/components/CodeEditor/JsonEditorPane', () => ({
     <section>
       <output data-testid="draft">{value}</output>
       <button onClick={() => onChange(JSON.stringify(changedDesign))}>edit draft</button>
+      <button onClick={() => onChange(JSON.stringify({ ...changedDesign, name: 'Newer edit' }))}>edit again</button>
     </section>
   ),
 }));
@@ -49,6 +51,7 @@ jest.mock('@/services/codeWorkspaceApi', () => {
     convertCodeDraft: jest.fn(),
     executeCodeDraft: jest.fn(),
     applyCodeDraft: jest.fn(),
+    compareCodeDraft: jest.fn(),
   };
 });
 
@@ -84,6 +87,7 @@ const getMock = getCodeWorkspace as jest.MockedFunction<typeof getCodeWorkspace>
 const saveMock = saveCodeDraft as jest.MockedFunction<typeof saveCodeDraft>;
 const convertMock = convertCodeDraft as jest.MockedFunction<typeof convertCodeDraft>;
 const applyMock = applyCodeDraft as jest.MockedFunction<typeof applyCodeDraft>;
+const compareMock = compareCodeDraft as jest.MockedFunction<typeof compareCodeDraft>;
 const executeMock = executeCodeDraft as jest.MockedFunction<typeof executeCodeDraft>;
 const roots: Root[] = [];
 
@@ -94,7 +98,7 @@ async function flush(): Promise<void> {
   });
 }
 
-async function renderWorkspace(onApply = jest.fn()) {
+async function renderWorkspace(onApply = jest.fn(), onBeforeCompare = jest.fn().mockResolvedValue(undefined)) {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -106,6 +110,7 @@ async function renderWorkspace(onApply = jest.fn()) {
       templateRevision={4}
       initialDesign={initialDesign}
       onApply={onApply}
+      onBeforeCompare={onBeforeCompare}
     />,
   ));
   await flush();
@@ -125,6 +130,9 @@ describe('Code workspace', () => {
     jest.clearAllMocks();
     getMock.mockResolvedValue(workspace());
     saveMock.mockResolvedValue(workspace(2));
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true, value: function (this: HTMLDialogElement) { this.open = true; },
+    });
   });
 
   afterEach(() => {
@@ -169,6 +177,8 @@ describe('Code workspace', () => {
       canonicalChecksum: 'canonical',
     };
     convertMock.mockResolvedValue(converted);
+    compareMock.mockResolvedValue({ templateRevision: 6, workspaceRevision: 1, baseTemplateRevision: 4,
+      templateDesign: initialDesign, conversion: converted });
     applyMock.mockResolvedValue({
       templateRevision: 5,
       workspaceRevision: 2,
@@ -186,12 +196,16 @@ describe('Code workspace', () => {
 
     await act(async () => button(container, 'actions.apply').click());
     await flush();
+    expect(applyMock).not.toHaveBeenCalled();
+    expect(container.querySelector('dialog')?.textContent).toContain('applyReview.staleBase');
+    await act(async () => button(container, 'applyReview.confirm').click());
     expect(applyMock).toHaveBeenCalledWith(
       'template-1',
       1,
-      4,
+      6,
       'csharpModel',
       converted.generatedSource,
+      'canonical',
     );
     expect(onApply).toHaveBeenCalledWith(changedDesign, 5);
 
@@ -209,6 +223,56 @@ describe('Code workspace', () => {
     expect(container.textContent).toContain('lang.csharpDto');
     expect(container.textContent).toContain('lang.csharpCode');
     expect(container.textContent).toContain('lang.csharpBase64');
+  });
+
+  const comparison = () => ({
+    templateRevision: 8, workspaceRevision: 1, baseTemplateRevision: 4,
+    templateDesign: changedDesign,
+    conversion: {
+      sourceLanguage: 'json' as const, targetLanguage: 'json' as const,
+      fidelity: 'exact' as const, documentFidelity: 'exact' as const, sourcePreservation: 'preserved' as const,
+      generatedSource: JSON.stringify(initialDesign), canonicalDesign: initialDesign,
+      diagnostics: [], sourceMap: [], sourceChecksum: 'source', resultChecksum: 'result', canonicalChecksum: 'reviewed',
+    },
+  });
+
+  test('cancelling a stale-base comparison preserves all drafts and performs no mutation', async () => {
+    compareMock.mockResolvedValue(comparison());
+    getMock.mockResolvedValue({ ...workspace(), cSharpModel: { source: '// my draft', checksum: 'model' } });
+    const { container, onApply } = await renderWorkspace();
+    act(() => button(container, 'edit draft').click());
+    await act(async () => button(container, 'actions.apply').click());
+    expect(container.querySelector('dialog')?.textContent).toContain('applyReview.currentDesigner');
+    act(() => button(container, 'actions.cancel').click());
+    expect(container.querySelector('[data-testid="draft"]')?.textContent).toBe(JSON.stringify(changedDesign));
+    act(() => button(container, 'lang.csharpDto').click());
+    expect(container.querySelector('[data-testid="draft"]')?.textContent).toBe('// my draft');
+    expect(applyMock).not.toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  test('preserves drafts and demands a new comparison after a competing server edit', async () => {
+    compareMock.mockResolvedValue(comparison());
+    applyMock.mockRejectedValue(Object.assign(new Error('Compare again.'), { status: 409 }));
+    const { container, onApply } = await renderWorkspace();
+    await act(async () => button(container, 'actions.apply').click());
+    await act(async () => button(container, 'applyReview.confirm').click());
+    expect(container.querySelector('dialog')).toBeNull();
+    expect(container.textContent).toContain('status.conflict');
+    expect(container.querySelector('[data-testid="draft"]')?.textContent).toBe(JSON.stringify(initialDesign));
+    expect(onApply).not.toHaveBeenCalled();
+    await act(async () => button(container, 'actions.apply').click());
+    expect(compareMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('waits for visual autosave before comparison and stops if it fails', async () => {
+    const flush = jest.fn().mockRejectedValue(new Error('Unsaved visual conflict.'));
+    const { container } = await renderWorkspace(jest.fn(), flush);
+    await act(async () => button(container, 'actions.apply').click());
+    expect(flush).toHaveBeenCalledTimes(1);
+    expect(compareMock).not.toHaveBeenCalled();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('applyReview.saveRequired');
   });
 
   test('shows generated-code preview only for the exact source that produced it', async () => {
@@ -289,5 +353,20 @@ describe('Code workspace', () => {
 
     expect(container.textContent).toContain('status.conflict');
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('Workspace revision is stale.');
+  });
+
+  test('does not mark a newer edit saved when an older request completes', async () => {
+    let finish!: (value: ReturnType<typeof workspace>) => void;
+    saveMock.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const { container } = await renderWorkspace();
+    act(() => button(container, 'edit draft').click());
+    act(() => jest.advanceTimersByTime(2000));
+    act(() => button(container, 'edit again').click());
+    await act(async () => finish(workspace(2)));
+    expect(container.querySelector('[data-testid="draft"]')?.textContent).toContain('Newer edit');
+    expect(container.textContent).toContain('status.modified');
+    act(() => jest.advanceTimersByTime(2000));
+    await flush();
+    expect(saveMock.mock.calls[1]).toEqual(['template-1', 2, 'json', JSON.stringify({ ...changedDesign, name: 'Newer edit' })]);
   });
 });

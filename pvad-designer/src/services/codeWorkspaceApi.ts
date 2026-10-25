@@ -101,8 +101,22 @@ export const executeCodeDraft = (templateId: string, language: CodeLanguage, sou
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language, source }),
   });
 
-export const applyCodeDraft = (templateId: string, workspaceRevision: number, templateRevision: number, language: CodeLanguage, source: string) =>
+export interface CodeWorkspaceComparison {
+  templateRevision: number;
+  workspaceRevision: number;
+  baseTemplateRevision: number;
+  templateDesign: any;
+  conversion: CodeConversionResult;
+}
+
+export const compareCodeDraft = (templateId: string, workspaceRevision: number, language: CodeLanguage, source: string) =>
+  request<CodeWorkspaceComparison>(templateId, '/compare', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ workspaceRevision, language, source }),
+  });
+
+export const applyCodeDraft = (templateId: string, workspaceRevision: number, templateRevision: number, language: CodeLanguage, source: string, reviewedChecksum?: string) =>
   request<{ templateRevision: number; workspaceRevision: number; conversion: CodeConversionResult }>(templateId, '/apply', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ workspaceRevision, templateRevision, language, source }),
+    body: JSON.stringify({ workspaceRevision, templateRevision, language, source, reviewedChecksum }),
   });

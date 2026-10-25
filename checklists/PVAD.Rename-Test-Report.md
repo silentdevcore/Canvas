@@ -2,6 +2,21 @@
 
 > Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
 
+## Reviewed Apply And Real Nginx Workflows (2026-10-25)
+
+The follow-up to `4f51ac1d` resolves the stale Code Workspace base through explicit
+comparison and confirmed revision/checksum-protected Apply. The expanded isolated
+browser run `946ac88ab10c` passes 5/5 behind the repository Nginx/CSP profile,
+including real PDF/Report/Spreadsheet migration examples, PDF Viewer handoff,
+artifact downloads, local fonts/images and binding preservation. Three cases use
+real authentication; two remain separate mocked denial/layout checks.
+
+The tests also found and fixed missing legacy SPA routes and the PDF.js `.mjs`
+worker MIME type. See [scoped evidence and limitations](../docs/pvad-code-workspace-apply-validation.md).
+The manual native OS print/output check and aggregate final-candidate acceptance
+remain open: **88/98 (89.8%) complete; 10/98 (10.2%) open**. Binding substitution,
+all-provider certification and public deployment are not inferred from this run.
+
 ## Operator And Hosting Examples (2026-10-23)
 
 PDF/UA temporary paths, new secret/directory examples and capacity API-key

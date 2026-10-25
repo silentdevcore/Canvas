@@ -188,6 +188,36 @@ public sealed class DesignerCodeWorkspacesController(
         return Ok(result);
     }
 
+    [HttpPost("compare")]
+    [Authorize(Policy = PvadDesignerPermissions.CodeApply)]
+    public async Task<ActionResult<CompareCodeWorkspaceResponse>> Compare(
+        Guid templateId, CompareCodeWorkspaceRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(out var organizationId, out _)) return Unauthorized();
+        var template = await FindTemplate(templateId, organizationId, tracked: false, cancellationToken);
+        var workspace = await dbContext.DesignerCodeWorkspaces.AsNoTracking().SingleOrDefaultAsync(value =>
+            value.TemplateId == templateId && value.OrganizationId == organizationId, cancellationToken);
+        if (template is null || workspace is null) return NotFound();
+        if (workspace.Revision != request.WorkspaceRevision)
+            return Conflict(Problem("PXACODE122", "The code workspace changed. Preserve your drafts and reload before comparing."));
+
+        PvadCodeConversionResultDto conversion;
+        try
+        {
+            conversion = await conversionService.ConvertAsync(request.Language, PvadCodeLanguages.Json, request.Source, cancellationToken);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(Problem("PXACODE120", exception.Message));
+        }
+        if (conversion.CanonicalDesign is null || conversion.Diagnostics.Any(value => value.Severity == "error"))
+            return UnprocessableEntity(conversion);
+
+        // Reading a comparison never rebases the workspace or replaces any language draft.
+        return Ok(new CompareCodeWorkspaceResponse(template.Revision, workspace.Revision,
+            workspace.BaseTemplateRevision, Parse(CanonicalFromStoredDesign(template.DraftJson)), conversion));
+    }
+
     [HttpPost("apply")]
     [Authorize(Policy = PvadDesignerPermissions.CodeApply)]
     public async Task<ActionResult<ApplyCodeWorkspaceResponse>> Apply(
@@ -213,6 +243,8 @@ public sealed class DesignerCodeWorkspacesController(
         }
         if (result.CanonicalDesign is null || result.Diagnostics.Any(value => value.Severity == "error"))
             return UnprocessableEntity(result);
+        if (request.ReviewedChecksum is not null && request.ReviewedChecksum != result.CanonicalChecksum)
+            return Conflict(Problem("PXACODE123", "The code result changed since comparison. Compare again before applying."));
 
         var canonical = JsonSerializer.Serialize(result.CanonicalDesign, JsonOptions);
         var persistedDesign = ApplyCanonicalToStoredDesign(template.DraftJson, result.CanonicalDesign);
@@ -231,7 +263,15 @@ public sealed class DesignerCodeWorkspacesController(
         SetDraft(workspace, request.Language, request.Source);
         AddAudit(organizationId, userId, workspace.Id, "designer.code-workspace.applied",
             new { request.Language, result.Fidelity, templateRevision = template.Revision, workspaceRevision = workspace.Revision });
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return Conflict(Problem("PXACODE123", "Template or code workspace changed. Compare and retry."));
+        }
         await transaction.CommitAsync(cancellationToken);
         SetEtag(workspace.Revision);
         return Ok(new ApplyCodeWorkspaceResponse(template.Revision, workspace.Revision, result));
@@ -372,6 +412,10 @@ public sealed record CodeWorkspaceDocument(Guid Id, Guid TemplateId, long Revisi
 public sealed record SaveCodeWorkspaceRequest(long Revision, string Language, string Source);
 public sealed record CodeOperationRequest(string Language, string Source);
 public sealed record ConvertCodeWorkspaceRequest(string SourceLanguage, string TargetLanguage, string Source);
-public sealed record ApplyCodeWorkspaceRequest(long WorkspaceRevision, long TemplateRevision, string Language, string Source);
+public sealed record CompareCodeWorkspaceRequest(long WorkspaceRevision, string Language, string Source);
+public sealed record CompareCodeWorkspaceResponse(long TemplateRevision, long WorkspaceRevision, long BaseTemplateRevision,
+    JsonElement TemplateDesign, PvadCodeConversionResultDto Conversion);
+public sealed record ApplyCodeWorkspaceRequest(long WorkspaceRevision, long TemplateRevision, string Language, string Source,
+    string? ReviewedChecksum = null);
 public sealed record RestoreCodeWorkspaceRequest(long Revision, string Language);
 public sealed record ApplyCodeWorkspaceResponse(long TemplateRevision, long WorkspaceRevision, PvadCodeConversionResultDto Conversion);

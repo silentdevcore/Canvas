@@ -24,6 +24,8 @@ export interface AutosaveResult {
   reloadServer: () => Promise<void>;
   saveAsNew: () => Promise<void>;
   downloadLocal: () => void;
+  flush: () => Promise<void>;
+  acknowledgeSaved: () => void;
 }
 
 const retryDelays = [500, 1000, 2000];
@@ -50,6 +52,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
   const savedSerialized = useRef('');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saving = useRef(false);
+  const saveFinished = useRef<Promise<void>>(Promise.resolve());
+  const conflict = useRef(false);
   const queued = useRef(false);
   const blocked = useRef(false);
   const activeDocumentKey = useRef('');
@@ -102,6 +106,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
     latestSnapshot.current = nextSnapshot;
     latestSerialized.current = nextSerialized;
     savedSerialized.current = nextSerialized;
+    conflict.current = false;
     setState('saved');
     setMessage('Saved');
   }, []);
@@ -114,6 +119,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
     }
     const attemptedDocumentKey = sourceTemplate.persistence?.id || sourceTemplate.id;
     saving.current = true;
+    let finishSave!: () => void;
+    saveFinished.current = new Promise(resolve => { finishSave = resolve; });
     queued.current = false;
     const attemptedSnapshot = latestSnapshot.current;
     const attemptedSerialized = latestSerialized.current;
@@ -167,12 +174,14 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
         });
       }
       savedSerialized.current = attemptedSerialized;
+      conflict.current = false;
       setState(latestSerialized.current === attemptedSerialized ? 'saved' : 'changed');
       setMessage(latestSerialized.current === attemptedSerialized ? 'Saved' : 'Unsaved changes');
     } catch (caught) {
       if (!mounted.current) return;
       const error = caught as DesignerTemplateApiError;
       if (error.status === 409) {
+        conflict.current = true;
         terminalFailure = true;
         setState('conflict');
         setMessage(error.updatedBy
@@ -191,6 +200,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
       }
     } finally {
       saving.current = false;
+      finishSave();
       if (mounted.current &&
           !terminalFailure &&
           latestSerialized.current !== savedSerialized.current &&
@@ -201,6 +211,38 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
     }
   }, []);
 
+  const flush = useCallback(async () => {
+    const documentKey = useEditorStore.getState().currentTemplate?.persistence?.id;
+    if (timer.current) clearTimeout(timer.current);
+    await saveFinished.current;
+    if (blocked.current || conflict.current)
+      throw new Error('Resolve the Designer save conflict or access error before comparing code.');
+    if (latestSerialized.current !== savedSerialized.current) await persist();
+    if (timer.current) clearTimeout(timer.current);
+    if (!documentKey || useEditorStore.getState().currentTemplate?.persistence?.id !== documentKey ||
+        latestSerialized.current !== savedSerialized.current || blocked.current || conflict.current)
+      throw new Error('The Designer has unsaved changes. Save them before comparing code.');
+  }, [persist]);
+
+  const acknowledgeSaved = useCallback(() => {
+    if (saving.current) throw new Error('Wait for the Designer save before applying code.');
+    const current = useEditorStore.getState();
+    if (!current.currentTemplate?.persistence) return;
+    const saved: PersistedDesignDocument = {
+      template: withoutPersistence(current.currentTemplate),
+      pageSettings: current.pageSettings,
+      jsonData: current.jsonData,
+      documentMode: current.documentMode,
+      currentPageIndex: current.currentPageIndex,
+    };
+    if (timer.current) clearTimeout(timer.current);
+    latestSnapshot.current = saved;
+    latestSerialized.current = savedSerialized.current = JSON.stringify(saved);
+    conflict.current = false;
+    setState('saved');
+    setMessage('Saved');
+  }, []);
+
   useEffect(() => {
     latestSnapshot.current = snapshot;
     latestSerialized.current = serialized;
@@ -208,6 +250,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
       activeDocumentKey.current = '';
       savedSerialized.current = '';
       blocked.current = false;
+      conflict.current = false;
       setState('idle');
       return;
     }
@@ -218,6 +261,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
       activeDocumentKey.current = documentKey;
       savedSerialized.current = currentTemplate?.persistence ? serialized : '';
       blocked.current = false;
+      conflict.current = false;
       queued.current = false;
       if (currentTemplate?.persistence) {
         setState('saved');
@@ -270,6 +314,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
   const saveAsNew = useCallback(async () => {
     savedSerialized.current = '';
     blocked.current = false;
+    conflict.current = false;
     setState('changed');
     await persist(true);
   }, [persist]);
@@ -286,5 +331,5 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
     URL.revokeObjectURL(link.href);
   }, [currentTemplate?.name]);
 
-  return { state, message, reloadServer, saveAsNew, downloadLocal };
+  return { state, message, reloadServer, saveAsNew, downloadLocal, flush, acknowledgeSaved };
 }

@@ -21,9 +21,36 @@ Changing tabs never converts or replaces another draft. Use **Convert**, inspect
 5. Choose a target language and **Convert**.
 6. Review added, changed, and removed elements plus the fidelity result.
 7. Review both document fidelity and source preservation, then accept the generated target draft.
-8. Choose **Apply to Designer** to update the visual template atomically.
+8. Choose **Apply to Designer** to compare against the latest saved visual template.
+9. Inspect page/layout changes, document fields, element additions, changes and removals. Expand
+   **Current Designer document** and **Proposed code result** to inspect the complete documents.
+10. Choose **Replace reviewed Designer draft** to update that exact revision atomically, or
+    **Cancel** to keep both the visual template and all four source drafts unchanged.
 
 Autosave stores only the active language after a two-second pause. A stale workspace or template revision returns HTTP 409 and does not overwrite either side.
+
+## Comparing an older code workspace
+
+A code workspace can be based on an earlier template revision after visual editing, native project
+import, or publishing. The revision notice is not a conversion failure. Applying an old draft without
+comparison could replace newer visual work, so the Designer never silently advances its base revision.
+
+Before comparison, pending visual autosave must finish successfully. The comparison reads the current
+tenant-owned server document and converts only the selected source; it does not save, regenerate, or
+rebase any draft. The dialog shows the workspace base and reviewed template revisions when they differ.
+Confirmation deliberately replaces the reviewed visual draft, not an automatically merged document.
+Other language drafts are preserved, including handwritten code and comments.
+
+If another session changes either revision after comparison, confirmation returns HTTP 409 and closes
+the stale review. Your local sources remain intact. Compare again to review the newer template. If a
+different session changed the code workspace itself, preserve your local source before reloading and
+reconcile the drafts; a comparison never adopts that session's revision automatically. If executing code
+produces a different canonical checksum than the reviewed result, a fresh comparison is also required.
+Time-dependent code may need fixed input data to produce a stable reviewable result.
+
+A successful apply advances the template and workspace together and acknowledges the applied visual
+snapshot as already saved. It does not immediately issue a second visual autosave. Concurrency failures
+during database persistence roll back the template, workspace and success audit entry together.
 
 ## Preview freshness
 
@@ -98,7 +125,13 @@ The authenticated endpoints are rooted at:
 
 `/api/pvad/v1/designer/templates/{templateId}/code-workspace`
 
-They provide workspace load/save, validation, conversion, execution, atomic apply, restore, and source-map retrieval. Every operation requires a Designer session, active organization, Designer entitlement, the `designer.code-workspace` Beta feature, and applicable request limits.
+They provide workspace load/save, validation, conversion, execution, comparison, atomic apply, restore, and source-map retrieval. Every operation requires a Designer session, active organization, Designer entitlement, the `designer.code-workspace` Beta feature, and applicable request limits.
+
+`POST /compare` requires the apply permission and accepts `workspaceRevision`, `language` and `source`.
+It returns the reviewed template/workspace revisions, the old base revision, current template design,
+and conversion result. `POST /apply` sends those reviewed revisions and `reviewedChecksum` alongside
+the exact reviewed language/source. Existing API callers may omit the checksum for compatibility;
+the Designer always sends it. Revision checks remain mandatory for every caller.
 
 The old `/api/templates/csharp-*` endpoints remain protected compatibility adapters for one major release. They delegate to the same isolated worker and return deprecation headers.
 

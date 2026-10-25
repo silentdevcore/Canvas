@@ -7,6 +7,7 @@ import { readMigratedStorage } from '@/utils/storageMigration';
 import { ExportService } from '@/services/ExportService';
 import {
   applyCodeDraft,
+  compareCodeDraft,
   convertCodeDraft,
   executeCodeDraft,
   getCodeWorkspace,
@@ -15,6 +16,7 @@ import {
   type CodeConversionResult,
   type CodeDiagnostic,
   type CodeLanguage,
+  type CodeWorkspaceComparison,
   type DraftStatus,
 } from '@/services/codeWorkspaceApi';
 
@@ -39,6 +41,7 @@ interface Props {
   templateRevision?: number;
   initialDesign: ParsedDesign;
   onApply: (design: ParsedDesign, templateRevision: number) => void;
+  onBeforeCompare?: () => Promise<void>;
 }
 
 function parseAndValidate(raw: string, t: TFunction): { validation: ValidationResult; parsed: ParsedDesign | null } {
@@ -65,13 +68,55 @@ function parseAndValidate(raw: string, t: TFunction): { validation: ValidationRe
 }
 
 function designDiff(before: ParsedDesign | null, after: ParsedDesign | null) {
-  const elements = (value: ParsedDesign | null) => new Map((value?.pages ?? []).flatMap(page => page.elements ?? []).map(element => [element.id, JSON.stringify(element)]));
+  const elements = (value: ParsedDesign | null) => new Map((value?.pages ?? []).flatMap(page =>
+    (page.elements ?? []).map(element => [`${page.id}/${element.id}`, JSON.stringify(element)])));
   const left = elements(before); const right = elements(after);
+  const fields = (left: Record<string, unknown>, right: Record<string, unknown>) =>
+    [...new Set([...Object.keys(left), ...Object.keys(right)])].filter(key => JSON.stringify(left[key]) !== JSON.stringify(right[key]));
+  const { pages: beforePages = [], ...beforeSettings } = before ?? {};
+  const { pages: afterPages = [], ...afterSettings } = after ?? {};
+  const pageSettings = (pages: typeof beforePages) => pages.map(({ elements: _elements, ...page }) => page);
   return {
     added: [...right.keys()].filter(id => !left.has(id)).length,
     removed: [...left.keys()].filter(id => !right.has(id)).length,
     changed: [...right.keys()].filter(id => left.has(id) && left.get(id) !== right.get(id)).length,
+    settings: fields(beforeSettings, afterSettings),
+    pagesChanged: JSON.stringify(pageSettings(beforePages)) !== JSON.stringify(pageSettings(afterPages)),
   };
+}
+
+type ApplyReview = CodeWorkspaceComparison & { language: CodeLanguage; source: string };
+
+function CodeApplyReview({ review, busy, onConfirm, onCancel }: {
+  review: ApplyReview; busy: boolean; onConfirm: () => void; onCancel: () => void;
+}) {
+  const { t } = useTranslation('codeEditor');
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  const diff = designDiff(review.templateDesign, review.conversion.canonicalDesign);
+  return <dialog ref={dialog} className="code-apply-review" aria-labelledby="code-apply-title"
+    onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }}>
+    <h2 id="code-apply-title">{t('applyReview.title')}</h2>
+    {review.baseTemplateRevision !== review.templateRevision && <p role="status">{t('applyReview.staleBase', {
+      base: review.baseTemplateRevision, current: review.templateRevision,
+    })}</p>}
+    <p>{t('applyReview.replaceWarning')}</p>
+    <p>{t('workspace.documentFidelity')}: {review.conversion.documentFidelity}</p>
+    <p>{t('workspace.sourcePreservation')}: {review.conversion.sourcePreservation}</p>
+    <dl>
+      <dt>{t('workspace.added')}</dt><dd>{diff.added}</dd>
+      <dt>{t('workspace.changed')}</dt><dd>{diff.changed}</dd>
+      <dt>{t('workspace.removed')}</dt><dd>{diff.removed}</dd>
+      <dt>{t('applyReview.pageChanges')}</dt><dd>{t(diff.pagesChanged ? 'applyReview.yes' : 'applyReview.no')}</dd>
+      <dt>{t('applyReview.settingsChanges')}</dt><dd>{diff.settings.join(', ') || t('applyReview.none')}</dd>
+    </dl>
+    <details><summary>{t('applyReview.currentDesigner')}</summary><pre>{JSON.stringify(review.templateDesign, null, 2)}</pre></details>
+    <details><summary>{t('applyReview.codeResult')}</summary><pre>{JSON.stringify(review.conversion.canonicalDesign, null, 2)}</pre></details>
+    <div className="code-apply-actions">
+      <button type="button" className="code-editor-btn" autoFocus disabled={busy} onClick={onCancel}>{t('actions.cancel')}</button>
+      <button type="button" className="live-code-export-btn" disabled={busy} onClick={onConfirm}>{t('applyReview.confirm')}</button>
+    </div>
+  </dialog>;
 }
 
 function pdfUrl(base64?: string) {
@@ -81,23 +126,24 @@ function pdfUrl(base64?: string) {
   return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
 }
 
-export default function LiveCodeEditor({ onBack, templateId, templateRevision = 0, initialDesign, onApply }: Props) {
+export default function LiveCodeEditor({ onBack, templateId, templateRevision = 0, initialDesign, onApply, onBeforeCompare }: Props) {
   const { t } = useTranslation('codeEditor');
   const [language, setLanguage] = useState<CodeLanguage>('json');
   const [drafts, setDrafts] = useState<Record<CodeLanguage, string>>({ ...EMPTY_DRAFTS, json: JSON.stringify(initialDesign, null, 2) });
   const [statuses, setStatuses] = useState<Record<CodeLanguage, DraftStatus>>(EMPTY_STATUS);
   const [workspaceRevision, setWorkspaceRevision] = useState(0);
-  const [activeTemplateRevision, setActiveTemplateRevision] = useState(templateRevision);
+  const [baseTemplateRevision, setBaseTemplateRevision] = useState(templateRevision);
   const [persisted, setPersisted] = useState(false);
   const [diagnostics, setDiagnostics] = useState<CodeDiagnostic[]>([]);
   const [previewDesign, setPreviewDesign] = useState<ParsedDesign | null>(initialDesign);
   const [previewProvenance, setPreviewProvenance] = useState<{ language: CodeLanguage; source: string } | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfSource, setPdfSource] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'loading' | 'saving' | 'validating' | 'running' | 'converting' | 'applying' | null>('loading');
+  const [busy, setBusy] = useState<'loading' | 'saving' | 'validating' | 'running' | 'converting' | 'comparing' | 'applying' | null>('loading');
   const [error, setError] = useState('');
   const [targetLanguage, setTargetLanguage] = useState<CodeLanguage>('csharpModel');
   const [pendingConversion, setPendingConversion] = useState<CodeConversionResult | null>(null);
+  const [pendingApply, setPendingApply] = useState<ApplyReview | null>(null);
   const [legacyDraft, setLegacyDraft] = useState<string | null>(null);
   const [splitPct, setSplitPct] = useState(50);
   const [editorKey, setEditorKey] = useState(0);
@@ -105,6 +151,8 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const activeSource = drafts[language];
+  const latestDrafts = useRef(drafts);
+  latestDrafts.current = drafts;
   const jsonState = useMemo(
     () => parseAndValidate(language === 'json' ? activeSource : '', t),
     [activeSource, language, t],
@@ -139,7 +187,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       setDrafts({ json: workspace.json.source, csharpModel: workspace.cSharpModel.source, csharpPdf: workspace.cSharpPdf.source, csharpBase64: workspace.cSharpBase64.source });
       setStatuses({ json: 'Saved', csharpModel: workspace.cSharpModel.source ? 'Saved' : 'Outdated', csharpPdf: workspace.cSharpPdf.source ? 'Saved' : 'Outdated', csharpBase64: workspace.cSharpBase64.source ? 'Saved' : 'Outdated' });
       setWorkspaceRevision(workspace.revision);
-      setActiveTemplateRevision(workspace.baseTemplateRevision);
+      setBaseTemplateRevision(workspace.baseTemplateRevision);
       setPersisted(workspace.persisted);
       setPreviewDesign(workspace.canonicalDesign as ParsedDesign);
       setPreviewProvenance(null);
@@ -151,20 +199,21 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   }, [templateId]);
 
   useEffect(() => {
-    if (!templateId || statuses[language] !== 'Modified' || saving.current) return;
+    if (!templateId || !['Modified', 'Generated'].includes(statuses[language]) || saving.current || busy || pendingApply) return;
     const timer = window.setTimeout(async () => {
       saving.current = true; setBusy('saving');
       try {
         const workspace = await saveCodeDraft(templateId, workspaceRevision, language, drafts[language]);
         setWorkspaceRevision(workspace.revision); setPersisted(true);
-        setStatuses(current => ({ ...current, [language]: 'Saved' }));
+        if (latestDrafts.current[language] === drafts[language])
+          setStatuses(current => ({ ...current, [language]: 'Saved' }));
       } catch (cause: any) {
         setStatuses(current => ({ ...current, [language]: cause?.status === 409 ? 'Conflict' : 'Modified' }));
         setError(cause instanceof Error ? cause.message : String(cause));
       } finally { saving.current = false; setBusy(null); }
     }, 2000);
     return () => window.clearTimeout(timer);
-  }, [drafts, language, statuses, templateId, workspaceRevision]);
+  }, [drafts, language, statuses, templateId, workspaceRevision, busy, pendingApply]);
 
   const handleChange = useCallback((value: string) => {
     setDrafts(current => ({ ...current, [language]: value }));
@@ -248,18 +297,37 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   };
 
   const apply = async () => {
-    setBusy('applying'); setError('');
+    if (saving.current || busy) return;
+    setBusy('comparing'); setError('');
     try {
-      const result = await applyCodeDraft(requireTemplate(), workspaceRevision, activeTemplateRevision, language, activeSource);
-      setWorkspaceRevision(result.workspaceRevision); setActiveTemplateRevision(result.templateRevision);
-      setPreviewDesign(result.conversion.canonicalDesign as ParsedDesign);
-      setPreviewProvenance({ language, source: activeSource });
-      onApply(result.conversion.canonicalDesign as ParsedDesign, result.templateRevision);
-      setStatuses(current => ({ ...current, [language]: 'Saved' }));
+      try { await onBeforeCompare?.(); }
+      catch { throw new Error(t('applyReview.saveRequired')); }
+      const review = await compareCodeDraft(requireTemplate(), workspaceRevision, language, activeSource);
+      setDiagnostics(review.conversion.diagnostics);
+      if (latestDrafts.current[language] !== activeSource) throw new Error(t('applyReview.sourceChanged'));
+      setPendingApply({ ...review, language, source: activeSource });
     } catch (cause: any) {
       if (cause?.status === 409) setStatuses(current => ({ ...current, [language]: 'Conflict' }));
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally { setBusy(null); }
+  };
+
+  const confirmApply = async () => {
+    if (!pendingApply || busy || saving.current) return;
+    const review = pendingApply;
+    setBusy('applying'); setError('');
+    try {
+      const result = await applyCodeDraft(requireTemplate(), review.workspaceRevision, review.templateRevision,
+        review.language, review.source, review.conversion.canonicalChecksum);
+      setWorkspaceRevision(result.workspaceRevision); setBaseTemplateRevision(result.templateRevision);
+      setPreviewDesign(result.conversion.canonicalDesign as ParsedDesign);
+      setPreviewProvenance({ language: review.language, source: review.source });
+      onApply(result.conversion.canonicalDesign as ParsedDesign, result.templateRevision);
+      setStatuses(current => ({ ...current, [review.language]: latestDrafts.current[review.language] === review.source ? 'Saved' : 'Modified' }));
+    } catch (cause: any) {
+      if (cause?.status === 409) setStatuses(current => ({ ...current, [language]: 'Conflict' }));
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally { setPendingApply(null); setBusy(null); }
   };
 
   const restore = () => {
@@ -311,6 +379,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
       <span className="live-code-topbar-title">{t('title')}</span>
       <div className="live-code-lang-toggle" role="tablist">
         {LANGUAGES.map(item => <button key={item} role="tab" aria-selected={language === item}
+          disabled={!!busy || !!pendingApply}
           className={`live-code-lang-btn${language === item ? ' is-active' : ''}`} onClick={() => setLanguage(item)}>
           {t(languageLabelKey(item))}
           <small className={`code-draft-status status-${statuses[item].toLowerCase()}`}>{t(`status.${statuses[item].toLowerCase()}`)}</small>
@@ -331,6 +400,11 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     {legacyDraft && <aside className="code-workspace-banner">{t('workspace.legacy')}
       <button onClick={importLegacy}>{t('actions.importLegacy')}</button><button onClick={() => setLegacyDraft(null)}>{t('actions.dismiss')}</button></aside>}
     {!templateId && <aside className="code-workspace-banner">{t('workspace.waiting')}</aside>}
+    {templateRevision > baseTemplateRevision && <aside className="code-workspace-banner" role="status">{t('applyReview.staleBase', {
+      base: baseTemplateRevision, current: templateRevision,
+    })}</aside>}
+    {pendingApply && <CodeApplyReview review={pendingApply} busy={!!busy}
+      onConfirm={() => void confirmApply()} onCancel={() => setPendingApply(null)} />}
     {busy && <div className="code-workspace-progress" role="status">{busy}...</div>}
     {error && <div className="code-workspace-error" role="alert">{error}</div>}
     {pendingConversion && diff && <section className="code-conversion-review" role="dialog" aria-label="Conversion review">

@@ -10,6 +10,16 @@
   "actions": { "validate": "Prüfen", "run": "Ausführen", "convert": "Konvertieren", "restore": "Wiederherstellen", "apply": "Im Designer übernehmen", "accept": "Erzeugten Entwurf übernehmen", "cancel": "Abbrechen", "importLegacy": "Entwurf importieren", "dismiss": "Schließen" },
   "status": { "saved": "Gespeichert", "modified": "Geändert", "generated": "Erzeugt", "outdated": "Veraltet", "invalid": "Ungültig", "conflict": "Konflikt" },
   "workspace": { "legacy": "Ein lokaler Entwurf aus dem bisherigen Editor ist verfügbar.", "waiting": "Der Server-Workspace ist verfügbar, sobald das Template gespeichert wurde.", "target": "Konvertierungsziel", "fidelity": "Qualität", "documentFidelity": "Dokumenttreue", "sourcePreservation": "Quellcode-Erhaltung", "added": "Hinzugefügt", "changed": "Geändert", "removed": "Entfernt" },
+  "applyReview": {
+    "title": "Mit Designer vergleichen", "confirm": "Geprüften Designer-Entwurf ersetzen",
+    "staleBase": "Der Code-Workspace basiert auf Revision {{base}}. Der Designer ist jetzt bei Revision {{current}}.",
+    "replaceWarning": "Bestätigen Sie, um den geprüften Designer-Entwurf durch dieses Code-Ergebnis zu ersetzen. Andere Sprachentwürfe bleiben unverändert. Spätere Serveränderungen verhindern die Übernahme.",
+    "pageChanges": "Seitenreihenfolge oder Layout geändert", "settingsChanges": "Geänderte Dokumentfelder",
+    "currentDesigner": "Aktuelles Designer-Dokument", "codeResult": "Vorgeschlagenes Code-Ergebnis",
+    "yes": "Ja", "no": "Nein", "none": "Keine",
+    "sourceChanged": "Der Quelltext wurde während des Vergleichs geändert. Vergleichen Sie erneut.",
+    "saveRequired": "Speichern oder klären Sie die Designer-Änderungen vor dem Code-Vergleich."
+  },
   "converting": "Wird konvertiert…",
   "generating": "Wird erstellt…",
   "exportPdf": "PDF exportieren",

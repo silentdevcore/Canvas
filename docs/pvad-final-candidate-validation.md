@@ -2,6 +2,11 @@
 
 ## Status: Local Validation, Acceptance Still Open
 
+Follow-up: the code-workspace blocker below is resolved by explicit reviewed
+Apply, and the complete browser selection now passes 5/5 behind repository
+Nginx/CSP. See [current scoped results and remaining boundaries](pvad-code-workspace-apply-validation.md).
+The results and failed attempts below retain their original source scope.
+
 Review date: 2026-10-25. Base source commit: `f49df8c24fad4be41e6033fc3e3ab1c61775c804`,
 plus the reviewed uncommitted validation, documentation and packaging corrections.
 This is not a clean committed release, deployment approval or a security certification.

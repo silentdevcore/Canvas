@@ -10,6 +10,16 @@
   "actions": { "validate": "Validar", "run": "Ejecutar", "convert": "Convertir", "restore": "Restaurar", "apply": "Aplicar al Designer", "accept": "Aplicar borrador generado", "cancel": "Cancelar", "importLegacy": "Importar borrador", "dismiss": "Cerrar" },
   "status": { "saved": "Guardado", "modified": "Modificado", "generated": "Generado", "outdated": "Desactualizado", "invalid": "No válido", "conflict": "Conflicto" },
   "workspace": { "legacy": "Hay disponible un borrador local del editor anterior.", "waiting": "El espacio de trabajo del servidor estará disponible después de guardar la plantilla.", "target": "Destino de conversión", "fidelity": "Fidelidad", "documentFidelity": "Fidelidad del documento", "sourcePreservation": "Conservación del código fuente", "added": "Añadido", "changed": "Modificado", "removed": "Eliminado" },
+  "applyReview": {
+    "title": "Comparar con el Designer", "confirm": "Reemplazar el borrador revisado del Designer",
+    "staleBase": "El espacio de código se basa en la revisión {{base}}. El Designer está ahora en la revisión {{current}}.",
+    "replaceWarning": "Confirme para reemplazar el borrador revisado del Designer por este resultado. Los demás borradores de código se conservan. Los cambios posteriores del servidor bloquearán esta operación.",
+    "pageChanges": "Orden o diseño de páginas modificado", "settingsChanges": "Campos del documento modificados",
+    "currentDesigner": "Documento actual del Designer", "codeResult": "Resultado propuesto",
+    "yes": "Sí", "no": "No", "none": "Ninguno",
+    "sourceChanged": "El código cambió durante la comparación. Vuelva a comparar.",
+    "saveRequired": "Guarde o resuelva los cambios del Designer antes de comparar el código."
+  },
   "converting": "Convirtiendo…",
   "generating": "Generando…",
   "exportPdf": "Exportar PDF",

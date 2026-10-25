@@ -6,6 +6,12 @@ authorization to cut over external infrastructure. See the
 
 ## Current Follow-up: 2026-10-25
 
+The later follow-up to `4f51ac1d` resolves the code-workspace browser blocker and
+passes the expanded 5/5 Account/Designer selection behind repository Nginx/CSP.
+It also fixes legacy route hosting and the PDF.js module-worker MIME type. See
+[current results and remaining manual/final-candidate boundaries](pvad-code-workspace-apply-validation.md).
+This does not close the aggregate gate or advance the primary 88/98 count.
+
 OAuth/MCP defaults, discovery and the explicitly approved client transition are
 implemented and locally tested. The tracker now records 88/98 primary gates done
 (89.8%), with 10/98 open (10.2%). The earlier audit below explains the two gates

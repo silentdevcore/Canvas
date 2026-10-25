@@ -1,5 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { checkRenderingAssets } from './support/rename-rendering-checks';
 
 const accountUrl = process.env.PVAD_SMOKE_ACCOUNT_URL ?? 'http://localhost:5178';
 const designerUrl = process.env.PVAD_SMOKE_DESIGNER_URL ?? 'http://localhost:5176';
@@ -72,8 +74,9 @@ test('customer can register, verify, enter Designer, persist and version a templ
   browser,
   page,
   request,
-}) => {
-  test.setTimeout(180_000);
+}, testInfo) => {
+  test.setTimeout(300_000);
+  page.setDefaultTimeout(30_000);
   const unique = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const email = `designer-e2e-${unique}@example.test`;
   const password = 'Pvad-E2E-Password-2026!';
@@ -360,6 +363,17 @@ test('customer can register, verify, enter Designer, persist and version a templ
   await expect(page.locator('.diagnostic-error')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Apply to Designer' })).toBeEnabled();
   await page.getByRole('button', { name: 'Apply to Designer' }).click();
+  const applyReview = page.getByRole('dialog', { name: 'Compare with Designer' });
+  await expect(applyReview).toBeVisible();
+  await expect(applyReview).toContainText('Current Designer document');
+  await page.screenshot({ path: testInfo.outputPath('code-apply-review-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(applyReview).toBeVisible();
+  const comparisonBounds = await applyReview.boundingBox();
+  expect(comparisonBounds!.width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: testInfo.outputPath('code-apply-review-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await applyReview.getByRole('button', { name: 'Replace reviewed Designer draft' }).click();
   await expect(page.getByRole('tab', { name: /JSON Saved/ })).toBeVisible({ timeout: 20_000 });
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -468,7 +482,7 @@ test('customer can register, verify, enter Designer, persist and version a templ
   expect(JSON.parse(await readFile((await recovered.path())!, 'utf8')).name).toBe('Legacy browser workbook');
   expect(await page.evaluate(() => localStorage.getItem('canvas-spreadsheet'))).toBe(legacyWorkbook);
 
-  await page.evaluate(() => sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify({
+  const handoffPayload = {
     template: {
       id: 'migration-handoff',
       name: 'Migration Handoff Report',
@@ -477,11 +491,27 @@ test('customer can register, verify, enter Designer, persist and version a templ
       pages: [{ id: 'handoff-page', elements: [] }],
     },
     pageSettings: { width: 595, height: 842 },
-  })));
+  };
+  await page.evaluate(payload => sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify(payload)), handoffPayload);
   await page.goto(`${designerUrl}/create`);
   await expect(page).toHaveURL(`${designerUrl}/pdf/create`);
+  await expect(page.getByRole('button', { name: 'Rename Untitled document' })).toBeVisible();
+  expect(await page.evaluate(() => sessionStorage.getItem('pxa_migration_designer_handoff'))).toBe(JSON.stringify(handoffPayload));
+
+  // Current handoffs must belong to the actual authenticated user and active tenant.
+  await page.evaluate(async payload => {
+    const response = await fetch('/api/pvad/v1/auth/me', { headers: { 'X-PVAD-Application': 'designer' } });
+    if (!response.ok) throw new Error('Cannot resolve the authenticated handoff owner.');
+    const identity = await response.json();
+    if (!identity.id || !identity.activeOrganizationId) throw new Error('Missing handoff owner.');
+    sessionStorage.setItem('pvad_migration_designer_handoff', JSON.stringify({
+      schemaVersion: 1, owner: { userId: identity.id, organizationId: identity.activeOrganizationId },
+      expiresAt: Date.now() + 4 * 60_000, payload,
+    }));
+  }, handoffPayload);
+  await page.goto(`${designerUrl}/create`);
   await expect(page.getByRole('button', { name: 'Rename Migration Handoff Report' })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('pxa_migration_designer_handoff'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('pvad_migration_designer_handoff'))).toBeNull();
 
   const languageSettings = page.locator('.editor-language-multiselect');
   await languageSettings.locator('summary').click();
@@ -498,6 +528,96 @@ test('customer can register, verify, enter Designer, persist and version a templ
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1))
       .toBe(true);
   }
+
+  await checkRenderingAssets(page, designerUrl, testInfo);
+
+  for (const migration of [
+    { route: '/pdf/migrations/code', provider: 'syncfusion-pdf', endpoint: '/pdf/code/syncfusion-pdf', download: 'Download .cs' },
+    { route: '/pdf/migrations/designer', provider: 'devexpress-report', endpoint: '/report/designer/devexpress-report', download: 'Download JSON' },
+  ]) {
+    console.log(`Checking real ${migration.provider} conversion and Viewer handoff.`);
+    await page.goto(`${designerUrl}${migration.route}`);
+    await page.locator(`[data-provider-id="${migration.provider}"]`).click();
+    await page.getByRole('button', { name: 'Load example', exact: true }).click();
+    const [convertedResponse] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith(`/migrations${migration.endpoint}/convert`), { timeout: 30_000 }),
+      page.getByRole('button', { name: /^Convert/ }).click(),
+    ]);
+    expect(convertedResponse.ok()).toBe(true);
+    const conversion = await convertedResponse.json();
+    expect(conversion.artifacts.length).toBeGreaterThan(0);
+    const artifactDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: migration.download, exact: true }).click();
+    const artifact = await artifactDownload;
+    expect(await artifact.failure()).toBeNull();
+    const artifactText = await readFile((await artifact.path())!, 'utf8');
+    if (migration.provider === 'devexpress-report') {
+      expect(JSON.parse(artifactText)).toEqual(conversion.artifacts.find((value: any) => value.id === 'design').content);
+    } else {
+      expect(artifactText).toContain('PVAD');
+    }
+
+    const [renderedResponse] = await Promise.all([
+      page.waitForResponse(response => migration.provider === 'devexpress-report'
+        ? response.url().endsWith('/api/templates/render-design')
+        : response.url().endsWith(`/migrations${migration.endpoint}/preview`), { timeout: 30_000 }),
+      page.getByRole('button', { name: 'Generate Preview', exact: true }).click(),
+    ]);
+    expect(renderedResponse.ok()).toBe(true);
+    expect(renderedResponse.headers()['content-type']).toContain('application/pdf');
+    await page.getByRole('tab', { name: 'Preview', exact: true }).click();
+    await expect(page.locator('.mgr-pdf-frame')).toBeVisible();
+    const previewBytes = await page.locator('.mgr-pdf-frame').evaluate(async (frame: HTMLIFrameElement) =>
+      Array.from(new Uint8Array(await (await fetch(frame.src)).arrayBuffer())));
+    expect(Buffer.from(previewBytes).subarray(0, 5).toString()).toBe('%PDF-');
+    await page.getByRole('button', { name: 'Open in PDF Viewer', exact: true }).click();
+    await expect(page).toHaveURL(/\/pdf\/viewer\?handoff=session/);
+    await expect(page.locator('.pdfv-page-stack .react-pdf__Page__canvas')).toBeVisible();
+    await expect(page.locator('.pdfv-page-stack .react-pdf__Page__textContent')).toContainText(
+      migration.provider === 'devexpress-report' ? 'Invoice #2024-117' : 'Hello from Syncfusion');
+    const viewerDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download', exact: true }).click();
+    const pdfDownload = await viewerDownload;
+    expect(pdfDownload.suggestedFilename()).toBe(`${migration.provider}-migration-preview.pdf`);
+    const downloadedBytes = await readFile((await pdfDownload.path())!);
+    expect(createHash('sha256').update(downloadedBytes).digest('hex'))
+      .toBe(createHash('sha256').update(Buffer.from(previewBytes)).digest('hex'));
+    await page.screenshot({ path: testInfo.outputPath(`${migration.provider}-viewer-handoff.png`) });
+
+    if (migration.provider === 'devexpress-report') {
+      await page.goto(`${designerUrl}${migration.route}`);
+      await page.locator(`[data-provider-id="${migration.provider}"]`).click();
+      await page.getByRole('button', { name: 'Load example', exact: true }).click();
+      await page.getByRole('button', { name: /^Convert/ }).click();
+      await expect(page.getByRole('button', { name: 'Open in Designer', exact: true })).toBeEnabled();
+      await page.getByRole('button', { name: 'Open in Designer', exact: true }).click();
+      await expect(page).toHaveURL(/\/pdf\/create/);
+      await expect(page.locator('.editor-page')).toContainText('Invoice #2024-117');
+      await waitUntilSaved(page);
+    }
+  }
+
+  await page.goto(`${designerUrl}/spreadsheet/migrations/code`);
+  await page.locator('[data-provider-id="closedxml"]').click();
+  await page.getByRole('button', { name: 'Load example', exact: true }).click();
+  const [spreadsheetConversion] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith('/migrations/spreadsheet/code/closedxml/convert'), { timeout: 30_000 }),
+    page.getByRole('button', { name: /^Convert/ }).click(),
+  ]);
+  expect(spreadsheetConversion.ok()).toBe(true);
+  const spreadsheetDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download .cs', exact: true }).click();
+  const spreadsheetCode = await spreadsheetDownload;
+  expect(await readFile((await spreadsheetCode.path())!, 'utf8')).toContain('PVAD');
+  const [spreadsheetPreview] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith('/migrations/spreadsheet/code/closedxml/preview'), { timeout: 30_000 }),
+    page.getByRole('button', { name: 'Generate Preview', exact: true }).click(),
+  ]);
+  expect(spreadsheetPreview.ok()).toBe(true);
+  expect(spreadsheetPreview.headers()['content-type']).toContain('text/html');
+  await expect(page.frameLocator('.mgr-pdf-frame').getByText('Coffee', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open in PDF Viewer', exact: true })).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath('closedxml-grid-preview.png') });
 
 });
 

@@ -18,8 +18,9 @@ The hook must retain executable permissions in the image or read-only bind mount
 
 Required environment values:
 
-- `PVAD_API_UPSTREAM`: same-origin API upstream, including the trailing slash,
-  for example `http://pvad-api:8080/`.
+- `PVAD_API_UPSTREAM`: API upstream origin without a trailing slash,
+  for example `http://pvad-api:8080`. This preserves the `/api/` prefix. A trailing
+  slash makes Nginx replace that prefix and causes normal PVAD API routes to return 404.
 - `PVAD_SPA_ROUTE_PATTERN`: the anchored route pattern for the deployed app.
   Approved patterns are listed in `route-patterns.env.example`.
 

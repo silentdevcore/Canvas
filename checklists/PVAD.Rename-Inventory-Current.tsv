@@ -26,7 +26,7 @@ PVAD.WebApi/Controllers/AccountProfileController.cs	source	1	false
 PVAD.WebApi/Controllers/AdminAuditController.cs	source	1	false
 PVAD.WebApi/Controllers/AdminOperatorAccessController.cs	source	1	false
 PVAD.WebApi/Controllers/DesignerAssetsController.cs	source	3	false
-PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs	source	11	false
+PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs	source	15	false
 PVAD.WebApi/Controllers/DesignerProjectsController.cs	source	27	false
 PVAD.WebApi/Controllers/DesignerTemplatesController.cs	source	2	false
 PVAD.WebApi/Controllers/MigrationController.cs	source	2	false
@@ -308,6 +308,7 @@ docs/native-designer-project-formats.md	documentation-or-history	9	false
 docs/pvad-api-problem-and-health-identities.md	documentation-or-history	4	false
 docs/pvad-brand-asset-inventory.md	documentation-or-history	3	false
 docs/pvad-code-generation-compatibility.md	documentation-or-history	3	false
+docs/pvad-code-workspace-apply-validation.md	documentation-or-history	3	false
 docs/pvad-documentation-path-migration.json	source	74	false
 docs/pvad-final-candidate-validation.md	documentation-or-history	2	false
 docs/pvad-frontend-host-validation.md	documentation-or-history	4	false
@@ -322,7 +323,7 @@ docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
 docs/pvad-rename-phase-review.md	documentation-or-history	6	false
 docs/pvad-rename-release-approvals.md	documentation-or-history	14	false
-docs/pvad-rename-reviewed-exceptions.json	source	287	false
+docs/pvad-rename-reviewed-exceptions.json	source	288	false
 docs/pvad-rename-rollback.md	documentation-or-history	1	false
 docs/pvad-rename-validation-blockers.md	documentation-or-history	1	false
 docs/pvad-schema-and-client-contracts.md	documentation-or-history	5	false
@@ -356,7 +357,7 @@ product-metadata/release-fragments/release-1.1.0-verification.json	fixture-or-co
 pvad-designer/DESIGN.md	documentation-or-history	17	false
 pvad-designer/MULTILANGUAGE.md	documentation-or-history	10	false
 pvad-designer/e2e/account-accessibility.spec.ts	source	2	false
-pvad-designer/e2e/account-designer-flow.spec.ts	source	14	false
+pvad-designer/e2e/account-designer-flow.spec.ts	source	15	false
 pvad-designer/e2e/company-account-flow.spec.ts	source	2	false
 pvad-designer/e2e/e-invoice-authenticated.spec.ts	source	4	false
 pvad-designer/e2e/legal-account-admin.spec.ts	source	3	false
@@ -364,6 +365,7 @@ pvad-designer/e2e/legal-storage-notice.spec.ts	source	1	false
 pvad-designer/e2e/pdf-viewer-trust-authenticated.spec.ts	source	5	false
 pvad-designer/e2e/rename-hosts.spec.ts	source	2	false
 pvad-designer/e2e/status-pages.spec.ts	source	7	false
+pvad-designer/e2e/support/rename-rendering-checks.ts	source	1	false
 pvad-designer/package-lock.json	source	50	false
 pvad-designer/package.json	source	1	false
 pvad-designer/public/icons/project-192.png	binary-review-required	0	false

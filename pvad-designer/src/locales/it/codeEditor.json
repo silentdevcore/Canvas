@@ -10,6 +10,16 @@
   "actions": { "validate": "Convalida", "run": "Esegui", "convert": "Converti", "restore": "Ripristina", "apply": "Applica al Designer", "accept": "Applica bozza generata", "cancel": "Annulla", "importLegacy": "Importa bozza", "dismiss": "Chiudi" },
   "status": { "saved": "Salvato", "modified": "Modificato", "generated": "Generato", "outdated": "Obsoleto", "invalid": "Non valido", "conflict": "Conflitto" },
   "workspace": { "legacy": "È disponibile una bozza locale dell'editor precedente.", "waiting": "Lo spazio di lavoro del server sarà disponibile dopo il salvataggio del modello.", "target": "Destinazione conversione", "fidelity": "Fedeltà", "documentFidelity": "Fedeltà del documento", "sourcePreservation": "Conservazione del codice sorgente", "added": "Aggiunto", "changed": "Modificato", "removed": "Rimosso" },
+  "applyReview": {
+    "title": "Confronta con il Designer", "confirm": "Sostituisci la bozza Designer verificata",
+    "staleBase": "Lo spazio di codice si basa sulla revisione {{base}}. Il Designer è ora alla revisione {{current}}.",
+    "replaceWarning": "Conferma per sostituire la bozza Designer verificata con questo risultato. Le altre bozze di codice restano invariate. Modifiche successive sul server bloccheranno l'operazione.",
+    "pageChanges": "Ordine o impaginazione modificati", "settingsChanges": "Campi del documento modificati",
+    "currentDesigner": "Documento Designer attuale", "codeResult": "Risultato proposto",
+    "yes": "Sì", "no": "No", "none": "Nessuno",
+    "sourceChanged": "Il codice è cambiato durante il confronto. Ripeti il confronto.",
+    "saveRequired": "Salva o risolvi le modifiche del Designer prima di confrontare il codice."
+  },
   "converting": "Conversione in corso…",
   "generating": "Generazione in corso…",
   "exportPdf": "Esporta PDF",

@@ -1,0 +1,8 @@
+{
+  "id": "pvad-code-workspace-reviewed-apply",
+  "impact": "patch",
+  "components": ["designer", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Code Designer now compares older code drafts with the current visual document before applying, preserves other language drafts, and prevents concurrent changes from being overwritten.",
+  "breaking": false
+}
