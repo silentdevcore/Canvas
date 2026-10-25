@@ -21,7 +21,7 @@ File.WriteAllBytes("hello.pdf", pdf);
 
 - **[C# Cookbook](csharp-cookbook.md)** — task-oriented recipes (text, shapes, images, tables, links,
   forms, watermark, TOC, encryption, flow).
-- **[API Reference](api/)** — the full generated reference for every public type and member.
+- **[API Reference](xref:PVAD.Pdf)** — the full generated reference for every public type and member.
 
 > The visual designer and its declarative `DesignExportDto` element model are documented separately in the
 > in-app docs (the **Elements Reference** at `/docs` in the designer app).

@@ -284,7 +284,7 @@ Published schema files:
 
 - [Project manifest schema](schema/pvad-project-manifest.schema.json)
 - [PDF design schema](schema/design-export.schema.json)
-- [Spreadsheet workbook schema](schema/pxa-workbook.schema.json)
+- [Spreadsheet workbook schema](schema/pvad-workbook.schema.json)
 
 Contract tests roundtrip every current PDF Designer element type and a fully populated
 PDF contract covering mixed page layouts, styles, bindings, localization, RTL,

@@ -108,7 +108,7 @@ protected synchronous compatibility endpoint for existing integrations.
 
 ## Downloadable Synthetic Corpus
 
-The [PDF Trust synthetic corpus](../../websites/PVAD.Documentation/public/downloads/pdf-trust/index.html)
+The [PDF Trust synthetic corpus](/downloads/pdf-trust/index.html)
 contains clean, malformed, AES-256 encrypted, PAdES B-B signed, PDF/A-2b archived,
 PDF/UA-1 accessible, and active-content/redaction-risk PDFs. Every document has a
 stable expected-report sidecar, and `corpus.json` pins its SHA-256 and byte length.
@@ -118,7 +118,7 @@ published with the corpus.
 
 ### External Producer Baseline
 
-The [external producer corpus](../../websites/PVAD.Documentation/public/downloads/pdf-trust/external/index.html)
+The [external producer corpus](/downloads/pdf-trust/external/index.html)
 adds synthetic PDFs created by Chromium/Skia, LibreOffice, qpdf, and pyHanko. Its
 separate manifest pins the original bytes, producer marker, producer version, stable
 PVAD inspection result, and available independent validator evidence. The positive

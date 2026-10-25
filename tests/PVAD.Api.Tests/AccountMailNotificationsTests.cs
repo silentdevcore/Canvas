@@ -153,7 +153,7 @@ public sealed class AccountMailNotificationsTests
         var messages = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages;
         Assert.Contains(messages, message =>
             message.RecipientEmail == email &&
-            message.Subject == "Reset your Power Dox Automation password");
+            message.Subject == "Reset your PVADE password");
 
         await using var assertScope = factory.Services.CreateAsyncScope();
         var finalDbContext = assertScope.ServiceProvider.GetRequiredService<PvadDbContext>();

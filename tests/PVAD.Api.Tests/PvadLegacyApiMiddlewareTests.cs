@@ -2,6 +2,8 @@ using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using PVAD.WebApi.Infrastructure;
+using PVAD.Migration.Abstractions;
+using System.Text.Json.Nodes;
 
 namespace PVAD.Api.Tests;
 
@@ -132,7 +134,30 @@ public sealed class PvadApiPrefixIntegrationTests(WebApplicationFactory<Program>
 
         Assert.Equal(HttpStatusCode.OK, canonical.StatusCode);
         Assert.Equal(canonical.StatusCode, legacy.StatusCode);
-        Assert.Equal(await canonical.Content.ReadAsStringAsync(), await legacy.Content.ReadAsStringAsync());
+        var current = JsonNode.Parse(await canonical.Content.ReadAsStringAsync())!;
+        var previous = JsonNode.Parse(await legacy.Content.ReadAsStringAsync())!;
+        var providers = previous["providers"]!.AsArray();
+        Assert.NotEmpty(providers);
+        foreach (var provider in providers)
+        {
+            Assert.Equal("spreadsheet", provider!["domain"]!.GetValue<string>());
+            Assert.Equal("code", provider["kind"]!.GetValue<string>());
+            foreach (var artifact in provider["artifacts"]!.AsArray())
+            {
+                var identity = MigrationArtifactIdentities.Resolve(
+                    artifact!["id"]!.GetValue<string>(), artifact["mediaType"]!.GetValue<string>(),
+                    artifact["fileExtension"]!.GetValue<string>());
+                Assert.Equal(MigrationArtifactIdentities.SpreadsheetCode, identity);
+                Assert.Equal(MigrationArtifactIdentities.ForOutput(identity!, true).Id, artifact["id"]!.GetValue<string>());
+                Assert.Equal(identity!.Id, artifact["canonicalId"]!.GetValue<string>());
+                Assert.Equal(identity.MediaType, artifact["canonicalMediaType"]!.GetValue<string>());
+                Assert.Equal(identity.FileExtension, artifact["canonicalFileExtension"]!.GetValue<string>());
+                artifact["id"] = identity.Id;
+                artifact["mediaType"] = identity.MediaType;
+                artifact["fileExtension"] = identity.FileExtension;
+            }
+        }
+        Assert.True(JsonNode.DeepEquals(current, previous), "Only the reviewed legacy artifact identity tuple may differ.");
     }
 
     [Fact]

@@ -117,7 +117,7 @@ test('Account legal review is keyboard operable, fails closed, and submits exact
   await page.goto(`${accountUrl}/dashboard`);
   await expect(page).toHaveURL(`${accountUrl}/legal-review`);
   await expect(page.getByRole('heading', { name: 'Review updated legal documents' })).toBeVisible();
-  await page.locator('[data-pxa-storage-notice]').getByRole('button', { name: 'Understood' }).click();
+  await page.locator('[data-pvad-storage-notice]').getByRole('button', { name: 'Understood' }).click();
   await expect(page.getByText('This acknowledgement is not consent to marketing.')).toBeVisible();
 
   for (const checkbox of [

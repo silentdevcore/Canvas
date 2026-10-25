@@ -14,6 +14,7 @@ export default defineConfig({
     ['html', { open: 'never' }],
   ],
   use: {
+    channel: process.env.PVAD_SMOKE_CHROMIUM_CHANNEL === 'chromium' ? 'chromium' : undefined,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

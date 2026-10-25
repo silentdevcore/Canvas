@@ -58,7 +58,7 @@ async function registerAndEnterDesigner(
   const password = 'Pvad-Trust-E2E-2026!';
 
   await page.goto(`${accountUrl}/register?returnUrl=${encodeURIComponent(returnUrl)}`);
-  const storageNotice = page.locator('[data-pxa-storage-notice]');
+  const storageNotice = page.locator('[data-pvad-storage-notice]');
   if (await storageNotice.isVisible()) {
     await storageNotice.getByRole('button', { name: 'Understood' }).click();
   }
@@ -84,7 +84,7 @@ async function registerAndEnterDesigner(
 }
 
 async function dismissProductPanel(page: Page): Promise<void> {
-  const panel = page.locator('.pxa-product-overlay');
+  const panel = page.locator('.pvad-product-overlay');
   try {
     await panel.waitFor({ state: 'visible', timeout: 3_000 });
     await panel.getByRole('button', { name: 'Close panel' }).click();

@@ -22,6 +22,10 @@
       { "files": ["api/**.yml", "api/index.md"] },
       { "files": ["index.md", "csharp-cookbook.md", "charts.md", "code-designer-workspace.md", "native-designer-project-formats.md", "architecture/designer-assets.md", "architecture/existing-pdf-boundaries.md", "guides/**.md", "toc.yml"] }
     ],
+    "resource": [
+      { "files": ["schema/design-export.schema.json", "schema/pvad-project-manifest.schema.json", "schema/pvad-workbook.schema.json"] },
+      { "files": ["downloads/pdf-trust/**"], "src": "../websites/PVAD.Documentation/public" }
+    ],
     "output": "_site",
     "template": ["default", "modern"],
     "globalMetadata": {

@@ -3067,3 +3067,47 @@ change or production deployment was performed. Full release readiness remains op
   The 88/98 primary-task count is verified programmatically. Legacy-name review
   remains limited to the changed file hashes and documented compatibility/history
   boundaries; it is not renewed approval of unrelated content or live deployment.
+
+## Full Candidate Validation And Remaining Browser Blocker (2026-10-25)
+
+Base: `f49df8c2` plus uncommitted validation/documentation/packaging corrections.
+The [full report](../docs/pvad-final-candidate-validation.md) records commands,
+failed attempts, fixes, local evidence paths and acceptance boundaries.
+
+- Complete Solution build passed. Unfiltered Solution tests produced 53 TRX files:
+  **3,506 passed, zero failed, one skipped**. The skipped paired-binary case was
+  executed separately and passed 1/1. Only disposable PostgreSQL data was used.
+- Designer: 745 tests in 84 suites, typecheck/build passed. Company 58,
+  Documentation 59, Demo 4, Account 53 and Admin 39 tests plus all builds passed;
+  Account typecheck also passed. MCP 27 tests/typecheck/build/distribution passed.
+  Counts overlap shared test selections and must not be summed as unique coverage.
+- All seven local frontend host tests passed after fixing old UI selectors.
+  Actual Account/Designer browser selection remains **4/5**, with the full customer
+  workflow blocked at Code Workspace Apply after native project reimport.
+- Native backend-PDF display and target signature are verified in full Chromium.
+  Automated print interception proves one request to the PDF target, not native
+  OS dialog completion or printed output. The Nginx/CSP synthetic test passed,
+  but real authenticated code-editor/CSP acceptance is still separate and open.
+- DocFX 2.81.0 full generation passed with 21 dependency/MSBuild warnings and no
+  invalid file-link/cref warnings. The HTML-only rebuild was warning-free; generated
+  output has 582 HTML files and 8,046 verified local references with zero failures.
+- Actual publishing exposed an unintended local App_Data JSON copy. Project-item
+  exclusion now prevents it independently of Docker. A clean local API/worker
+  Release package was checked; the rejected generated copy was removed without
+  touching the original runtime file. Seven build-info records agree on 1.1.0.
+- Initial API failures came from stale mail/domain/legacy-identity expectations
+  and the runner's wrong environment for Development-only OpenAPI. Corrected tests
+  retain full alias comparison and authority checks. A transient image-analysis
+  timing failure passed on rerun without changing its existing limit.
+- The remaining workspace conflict is real: stored BaseTemplateRevision predates
+  project/autosave changes. The backend correctly returns PXACODE123. A future
+  compare/rebase fix must preserve source drafts and current revision checks.
+  Later actions in that failed browser case were not reached or certified.
+- Existing dependency advisories, NPOI licensing and operator/publication decisions
+  remain unresolved; no upgrade or license acceptance was made. Two Patch release
+  fragments cover DocFX and publish isolation. VERSION and published history stay
+  unchanged; no commit or push occurs in this validation step.
+- The aggregate gate remains open: **88/98 (89.8%) complete, 10/98 (10.2%) open**.
+- Final configuration/legal/deployment/version/hosting selection: **236/236 passed**.
+  Audit-guide links resolve; temporary custom test services were removed. Residual
+  review is updated only for the exact changed, reviewed files, not unrelated work.

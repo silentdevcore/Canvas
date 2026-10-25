@@ -1193,10 +1193,37 @@ The complete full-API test blocker is not declared resolved by this filtered run
 
 See [OAuth client transition](../docs/pvad-oauth-client-transition.md).
 The prior migration/artifact and audit package was committed as `1bbcca5e`.
-This OAuth follow-up is uncommitted. Existing `.vscode` settings, installed
+This OAuth follow-up was subsequently committed as `f49df8c2`. Existing `.vscode` settings, installed
 databases, keyrings, remote configuration and running applications were untouched.
 Fragment `pvad-oauth-client-identities` declares Major impact for default/discovery
 changes and the required explicit retained-client transition; VERSION stays 1.1.0.
+
+## Final Candidate Validation Follow-up (2026-10-25)
+
+- [x] Run the complete Solution build and unfiltered tests with an isolated,
+  migrated PostgreSQL base: 3,506 passed, zero failed, one explicit binary skip.
+- [x] Execute that paired PXA/PVAD binary case separately: 1/1 passed, with the
+  immutable baseline and disposable data, not installed application stores.
+- [x] Pass Designer and all five Website tests/builds, MCP validation and the
+  seven-case local frontend host matrix. Preserve separate mocked/real evidence.
+- [x] Generate DocFX API metadata/site and verify all 8,046 local references
+  across 582 HTML files. Correct missing resources and broken references.
+- [x] Generate and inspect a local API Release package with both workers.
+  Exclude runtime App_Data files and validate the seven build-info records.
+- [x] Reproduce real Account registration/verification/Designer handoff on desktop
+  and mobile. Verify actual backend PDF display and an intercepted print request.
+- [ ] Resolve the stale code-workspace base after project import/autosave with
+  explicit comparison/rebase, preserving drafts and optimistic concurrency;
+  repeat the complete customer workflow, currently 4/5 browser cases passing.
+- [ ] Finish authenticated workflows behind the exact Nginx/CSP profile and
+  the manual native print-dialog/output check, then review one final source snapshot.
+
+These are evidence subtasks within the existing combined final-candidate gate,
+not new primary acceptance items. **88/98 (89.8%) complete; 10/98 (10.2%) open.**
+Do not advance to 89/98 because only some parts of that gate passed. The source
+base is `f49df8c2` plus uncommitted validation/packaging corrections; no publication,
+live-store migration, remote host mutation, VERSION increase or push occurred.
+See the [full results, corrections and blocker](../docs/pvad-final-candidate-validation.md).
 
 ## Related Work
 

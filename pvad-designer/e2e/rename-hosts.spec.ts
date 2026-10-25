@@ -84,12 +84,12 @@ test('Designer uses canonical runtime Account configuration and preserves a safe
 
 test('storage acknowledgements use PVAD while honoring the previous cookie', async ({ page, context }) => {
   await page.goto(sites.company);
-  await page.locator('[data-pxa-storage-understood]').click();
+  await page.locator('[data-pvad-storage-understood]').click();
   expect((await context.cookies()).some(cookie => cookie.name === 'PVAD.StorageNotice')).toBe(true);
   expect((await context.cookies()).some(cookie => cookie.name === 'PXA.StorageNotice')).toBe(false);
   await context.clearCookies();
   await context.addCookies([{ name: 'PXA.StorageNotice', value: '2026-08', url: sites.company }]);
   await page.reload();
-  await expect(page.locator('[data-pxa-storage-notice]')).toHaveCount(0);
+  await expect(page.locator('[data-pvad-storage-notice]')).toHaveCount(0);
   expect((await context.cookies()).some(cookie => cookie.name === 'PVAD.StorageNotice')).toBe(true);
 });

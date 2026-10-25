@@ -1,8 +1,15 @@
 import { expect, test } from '@playwright/test';
 
-const account = 'http://localhost:5178';
-const designer = 'http://localhost:5176';
-const mailpit = 'http://localhost:8025';
+const account = process.env.PVAD_SMOKE_ACCOUNT_URL ?? 'http://localhost:5178';
+const designer = process.env.PVAD_SMOKE_DESIGNER_URL ?? 'http://localhost:5176';
+const mailpit = process.env.PVAD_SMOKE_MAILPIT_URL ?? 'http://localhost:8025';
+
+test.beforeEach(async ({ page }) => {
+  if (process.env.PVAD_SMOKE_ACCOUNT_URL)
+    await page.addInitScript(accountUrl => {
+      (window as any).__PVAD_CONFIG__ = { accountUrl: `${accountUrl}/` };
+    }, account);
+});
 
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 900 },
@@ -19,7 +26,7 @@ for (const viewport of [
     // Start from the protected product to exercise the real redirect and PKCE handoff.
     await page.goto(`${designer}/pdf/create`);
     await expect(page).toHaveURL(new RegExp(`^${account}/login`));
-    const notice = page.locator('[data-pxa-storage-notice]');
+    const notice = page.locator('[data-pvad-storage-notice]');
     if (await notice.isVisible()) await notice.getByRole('button', { name: 'Understood' }).click();
     await page.getByRole('link', { name: 'Create account' }).click();
     await expect(page).toHaveURL(/\/register/);
@@ -45,7 +52,8 @@ for (const viewport of [
       if (!message) return false;
       const detail = await (await request.get(`${mailpit}/api/v1/message/${message.ID}`)).json();
       verificationUrl = `${detail.Text ?? ''}\n${detail.HTML ?? ''}`.replaceAll('&amp;', '&')
-        .match(/http:\/\/localhost:5178\/verify-email\?[^\s"'<>]+/)?.[0] ?? '';
+        .match(/http:\/\/localhost:\d+\/verify-email\?[^\s"'<>]+/)?.[0] ?? '';
+      if (verificationUrl) expect(new URL(verificationUrl).origin).toBe(account);
       return Boolean(verificationUrl);
     }, { timeout: 30_000 }).toBe(true);
 
@@ -60,7 +68,9 @@ for (const viewport of [
     expect(new URL(page.url()).searchParams.has('state')).toBe(false);
     await expect(page.getByRole('button', { name: 'Rename Untitled document' })).toBeVisible();
 
-    const session = await page.request.get(`${designer}/api/pvad/v1/auth/me`);
+    const session = await page.request.get(`${designer}/api/pvad/v1/auth/me`, {
+      headers: { 'X-PVAD-Application': 'designer' },
+    });
     expect(session.ok()).toBe(true);
     expect((await session.json()).email).toBe(email);
     await page.reload();

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 namespace PVAD.Pdf;
 
 /// <summary>
-/// A single page you draw onto. Obtain one from <see cref="PdfDocument.AddPage()"/>. Coordinates are in
+/// A single page you draw onto. Obtain one from <see cref="PdfDocument.AddPage(double, double)"/>. Coordinates are in
 /// points (1/72 inch) with the origin at the bottom-left of the page; <c>x</c> increases to the right and
 /// <c>y</c> increases upward (standard PDF coordinates). Many drawing methods also have a <c>*FromTop</c>
 /// variant that measures <c>y</c> from the top of the page instead.

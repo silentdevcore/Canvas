@@ -6,7 +6,7 @@ namespace PVAD.Pdf;
 
 /// <summary>
 /// The root of the imperative PDF API: create a document, add <see cref="PdfPage"/>s, draw on them,
-/// then call <see cref="ToBytes()"/> to produce the PDF bytes. New code should create documents
+/// then call <see cref="ToBytes(PdfSaveOptions)"/> to produce the PDF bytes. New code should create documents
 /// through <c>PVAD.Generator.Pdf.CreateDocument()</c> so the product entry point remains centralized.
 /// </summary>
 /// <example>
@@ -57,7 +57,7 @@ public sealed class PdfDocument
         _associatedFilesView = _associatedFiles.AsReadOnly();
     }
 
-    /// <summary>The pages of the document, in order. Add pages with <see cref="AddPage()"/>.</summary>
+    /// <summary>The pages of the document, in order. Add pages with <see cref="AddPage(double, double)"/>.</summary>
     public IReadOnlyList<PdfPage> Pages => _pages;
 
     /// <summary>Files embedded in and associated with the complete document.</summary>

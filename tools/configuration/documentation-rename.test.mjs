@@ -79,7 +79,10 @@ test('relative file links in renamed documents resolve after the move', () => {
       const href = match[1];
       if (href.startsWith('#') || /^[a-z]+:/i.test(href) || href.includes('<')) continue;
       const target = decodeURIComponent(href.split('#')[0]);
-      assert.equal(existsSync(resolve(fileURLToPath(new URL('../../', import.meta.url)), dirname(to), target)), true, `${to}: ${href}`);
+      const path = target.startsWith('/downloads/pdf-trust/')
+        ? resolve(root, 'websites/PVAD.Documentation/public', `.${target}`)
+        : resolve(root, dirname(to), target);
+      assert.equal(existsSync(path), true, `${to}: ${href}`);
     }
   }
 });

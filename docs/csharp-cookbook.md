@@ -196,5 +196,5 @@ document.Info.CustomProperties["Department"] = "Finance";
 
 ---
 
-See the [API Reference](api/) for every type, overload, and option. A complete runnable program lives in
+See the [API Reference](xref:PVAD.Pdf) for every type, overload, and option. A complete runnable program lives in
 `samples/PVAD.Demo/Program.cs`.

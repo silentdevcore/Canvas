@@ -185,7 +185,7 @@ public sealed class AccountRegistrationControllerTests
                 acceptTerms = true,
                 acceptPrivacy = true,
                 subscribeToNewsletter = true,
-                returnUrl = "https://designer.powerdoxautomation.com/auth/callback?document=42",
+                returnUrl = "https://designer.pvade.com/auth/callback?document=42",
             });
         var registrationResponse = await client.SendAsync(register);
         Assert.Equal(HttpStatusCode.Accepted, registrationResponse.StatusCode);
@@ -275,7 +275,7 @@ public sealed class AccountRegistrationControllerTests
         }
         var mail = Assert.Single(factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages);
         Assert.Contains(
-            "returnUrl=https%3A%2F%2Fdesigner.powerdoxautomation.com%2Fauth%2Fcallback%3Fdocument%3D42",
+            "returnUrl=https%3A%2F%2Fdesigner.pvade.com%2Fauth%2Fcallback%3Fdocument%3D42",
             mail.TextBody,
             StringComparison.Ordinal);
         var verificationToken = GetToken(mail.TextBody);

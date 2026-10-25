@@ -1187,12 +1187,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "413d831527108dcf1c0d77274ba5ac3af8092193b2728feefb513fe89d68be02",
+      "sha256": "25c748462d087085cd80c9928b05cdd4642d2e7ec4475d20f0fd9bb881cad7ed",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "ed9834193c0dd3516fb7f3e68588d8c89d21c4745fd602d5525db955913d990e",
+      "sha256": "5d2fdae4216bc5e6ff1e26773897063b3029fed0cc0f4174a27eae1ba9e0b213",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "bf1c70f8fc3439b7a208360d8773570b49bbf661f337130618098be52d1c7938",
+      "sha256": "f1c1baaa45d46649e1de0d17ea9bdff5f44baf5f4e10f24e54ed8cef53783d02",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2177,12 +2177,12 @@
     },
     {
       "path": "docs/native-designer-project-formats.md",
-      "sha256": "c051fde5364fe3c05d317367b61fa70667b3fad660277b2877f24cf744fc3283",
+      "sha256": "bddf1cb4ee16ed1507b2ab90d76eda8d2fe95658d842202c6a97ff7f2fba0c20",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/native-designer-project-formats.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2297,12 +2297,12 @@
     },
     {
       "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "7803a23e8888eadf85162af2413c43cd036f4376571ce77e4b872cf3a04a8115",
+      "sha256": "21c06c449f76df10a50112e958b7180570c77d23ba27281298c0a1d311562a47",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2647,22 +2647,12 @@
     },
     {
       "path": "pvad-designer/e2e/account-designer-flow.spec.ts",
-      "sha256": "7d1e99be141c32526eac3d2da23579c1ca9ffd08420be652f9590949fc7e0d6d",
+      "sha256": "4923d06499d7b70a133007c571b6fc010c03f052c1444e32abcd0847c8ae689e",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current denial example uses canonical type metadata and Account label while retaining the original diagnostic and explicit legacy type reference; complete browser flow was not rerun.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "pvad-designer/e2e/code-workspace-authenticated.spec.ts",
-      "sha256": "acde37a8ad0734015189cc88c4f6c463f816d816a6778e62291d59c86d0cd990",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/code-workspace-authenticated.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2677,62 +2667,52 @@
     },
     {
       "path": "pvad-designer/e2e/e-invoice-authenticated.spec.ts",
-      "sha256": "57d471e6bc32d83502ee0b9742c4d617355025f0b2f16d359634f681b7ebcfdd",
+      "sha256": "d26c1629a87cb129f265116191783ff700f33203850f0d1c8d7f775a94bc098f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/e-invoice-authenticated.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/e2e/legal-account-admin.spec.ts",
-      "sha256": "dd394f59173a3b1ced251d562bc94fe674a283b523bcef0d525a9a9f7cf0c93f",
+      "sha256": "7c6043e84cdc07013ebae26b62a0bf50ea358a0a836f2841bb2b12ce6a188f07",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/legal-account-admin.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/e2e/legal-storage-notice.spec.ts",
-      "sha256": "f74564d95542fb84ea1214116a92c2dc410dc992be61bb7c74b8cf43047f7532",
+      "sha256": "98aae99651afb8eff3a870b5b63b0dfd7b721922e7acbb7b6304e986d21891f9",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/legal-storage-notice.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/e2e/pdf-viewer-trust-authenticated.spec.ts",
-      "sha256": "bda60dfa45fddb3a681fceaee16fe8691667daf81b5980409ae56c4da9808c41",
+      "sha256": "141a349d174bc907d123b292b10a0828e7d5309d296ee26b69d9bbf26aced626",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/pdf-viewer-trust-authenticated.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "pvad-designer/e2e/rename-account-designer.spec.ts",
-      "sha256": "71ba307a0938893c9c33a96083d219640c4652da35c0d0f5f5f6127583ed1671",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/rename-account-designer.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/e2e/rename-hosts.spec.ts",
-      "sha256": "0ecc3ffe021ad59b9f26b6bfd779b2cf7b1f80d4e2e5b28f6e4ee66d855ba4b7",
+      "sha256": "fecbc03deef7dda8d61c7ee6bc31ac684d6cca736e15c631196488000833b229",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/e2e/rename-hosts.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4577,12 +4557,12 @@
     },
     {
       "path": "src/Generation/PVAD.Pdf/PdfDocument.cs",
-      "sha256": "d0e48df25375f10b300f1083f22da6dc5791fdef21d45c004a51caa84bf3a48f",
+      "sha256": "dbb9c0b4c89641e454ed929998b99c5907bd6130c2c15faacc22e0990157ae04",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Generation/PVAD.Pdf/PdfDocument.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 final validation review: correct XML method references only; retain original obsolete-constructor diagnostic PXA0001 without changing PDF behavior or cryptographic evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5367,12 +5347,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountMailNotificationsTests.cs",
-      "sha256": "306c4fdcec6ba624d59d7749423399fd8126fd3cd8142398c1b388183936715d",
+      "sha256": "1d83c8e4527d9fad8d22f74ea75b0c2042fc97f5da7f4bc544e6924d51c280a2",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AccountMailNotificationsTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5397,12 +5377,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs",
-      "sha256": "d6413c4fc02e43f1049737cf35bf5106c97fd92932d447a1ba2385035f6a3ef7",
+      "sha256": "d7d0b46b0266f32afe0043891334728f9de59775f6d9c821dfdd74570c1aeea7",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5447,12 +5427,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs",
-      "sha256": "b459d8a8c0e4f6abb16988aeef0cea196a2d47ce35418d32f2d71fa0fea49395",
+      "sha256": "60bd5989a3613df9072faf0612cd16a3105b114a826aede3309284f4793faaae",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6037,12 +6017,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs",
-      "sha256": "dbd293108ea9310ad1855aa029c2c63bd28fe44099b6336651e523458225e204",
+      "sha256": "56475de07e4baebf2f405b121ad7999c757e7ef92609bc2cbbe5200ac3b2ccad",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Synthetic old routes test canonical dispatch with retained legacy error identity, unchanged request content and marker/path cleanup on failure.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7217,22 +7197,22 @@
     },
     {
       "path": "tools/configuration/container-contract.test.mjs",
-      "sha256": "916b1cd0ede9078835ea248fa592f4b66d9264c9f93b277338cea667961d4899",
+      "sha256": "578099d2795eeebd992b7be56ec4dcc311b70804024ab58429e102a59f1aabe1",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "8c8232d66b8fcc2ecb3cf7d48576ec767988dd7e9a7c24cabe529920efbec920",
+      "sha256": "1cafa6b175d51ec661d30e815d5fc3cf4a1c7bd7f5d6d5743eda0aabe59c7f95",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -9377,6 +9357,16 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+    },
+    {
+      "path": "docs/pvad-final-candidate-validation.md",
+      "sha256": "8192b37e4d68608e8d41d176e79884cdf4ea6523ab4cc4b53f2340ca4703e713",
+      "reasons": [
+        "historical-document"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "boundaryGuide": "docs/pvad-final-candidate-validation.md"
     }
   ],
   "reviewStatus": "reviewed"

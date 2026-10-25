@@ -1,8 +1,16 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
-const accountUrl = 'http://localhost:5178';
-const designerUrl = 'http://localhost:5176';
-const mailpitUrl = 'http://localhost:8025';
+const accountUrl = process.env.PVAD_SMOKE_ACCOUNT_URL ?? 'http://localhost:5178';
+const designerUrl = process.env.PVAD_SMOKE_DESIGNER_URL ?? 'http://localhost:5176';
+const mailpitUrl = process.env.PVAD_SMOKE_MAILPIT_URL ?? 'http://localhost:8025';
+
+test.beforeEach(async ({ page }) => {
+  if (process.env.PVAD_SMOKE_ACCOUNT_URL)
+    await page.addInitScript(accountUrl => {
+      (window as any).__PVAD_CONFIG__ = { accountUrl: `${accountUrl}/` };
+    }, accountUrl);
+});
 
 type MailpitMessage = {
   ID: string;
@@ -28,7 +36,8 @@ async function findVerificationUrl(request: APIRequestContext, email: string): P
 
     const detail = await messageResponse.json() as { Text?: string; HTML?: string };
     const body = `${detail.Text ?? ''}\n${detail.HTML ?? ''}`.replaceAll('&amp;', '&');
-    verificationUrl = body.match(/http:\/\/localhost:5178\/verify-email\?[^\s"'<>]+/)?.[0] ?? '';
+    verificationUrl = body.match(/http:\/\/localhost:\d+\/verify-email\?[^\s"'<>]+/)?.[0] ?? '';
+    if (verificationUrl) expect(new URL(verificationUrl).origin).toBe(accountUrl);
     return verificationUrl;
   }, {
     message: `verification email for ${email}`,
@@ -50,7 +59,7 @@ async function addElement(page: Page, name: RegExp): Promise<void> {
 }
 
 async function dismissProductPanel(page: Page): Promise<void> {
-  const panel = page.locator('.pxa-product-overlay');
+  const panel = page.locator('.pvad-product-overlay');
   try {
     await panel.waitFor({ state: 'visible', timeout: 3_000 });
     await panel.getByRole('button', { name: 'Close panel' }).click();
@@ -71,7 +80,7 @@ test('customer can register, verify, enter Designer, persist and version a templ
   const returnUrl = `${designerUrl}/pdf/create`;
 
   await page.goto(`${accountUrl}/register?returnUrl=${encodeURIComponent(returnUrl)}`);
-  const storageNotice = page.locator('[data-pxa-storage-notice]');
+  const storageNotice = page.locator('[data-pvad-storage-notice]');
   if (await storageNotice.isVisible()) {
     await storageNotice.getByRole('button', { name: 'Understood' }).click();
     await expect(storageNotice).toBeHidden();
@@ -98,9 +107,16 @@ test('customer can register, verify, enter Designer, persist and version a templ
 
   await page.locator('[name="identifier"]').fill(email);
   await page.locator('[name="password"]').fill(password);
+  const productBootstrap = Promise.all(['/features', '/releases', '/notifications', '/notifications/unread-count']
+    .map(suffix => page.waitForResponse(response => new URL(response.url()).pathname === `/api/pvad/v1/designer${suffix}`)
+      .then(async response => {
+        expect(response.ok()).toBe(true);
+        await response.finished();
+      })));
   await page.locator('#login-form').getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL(new RegExp(`^${designerUrl.replaceAll('.', '\\.')}/pdf/create`));
+  await productBootstrap;
   await dismissProductPanel(page);
   expect(new URL(page.url()).searchParams.has('code')).toBe(false);
   expect(new URL(page.url()).searchParams.has('state')).toBe(false);
@@ -219,7 +235,9 @@ test('customer can register, verify, enter Designer, persist and version a templ
   await page.getByRole('button', { name: 'Export' }).click();
   const pdfDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: /Export PDF/ }).click();
-  await expect((await pdfDownload).suggestedFilename()).toBe('Designer-E2E-Report.pdf');
+  const exportedPdf = await pdfDownload;
+  expect(exportedPdf.suggestedFilename()).toBe('Designer-E2E-Report.pdf');
+  expect((await readFile((await exportedPdf.path())!)).subarray(0, 5).toString()).toBe('%PDF-');
 
   await expect(page.getByRole('button', { name: 'Export' })).toBeVisible({ timeout: 5_000 });
   await page.getByRole('button', { name: 'Export' }).click();
@@ -229,11 +247,43 @@ test('customer can register, verify, enter Designer, persist and version a templ
 
   await expect(page.getByRole('button', { name: 'Export' })).toBeVisible({ timeout: 5_000 });
   await page.getByRole('button', { name: 'Export' }).click();
+  // Verify the real PDF target and print request without invoking an OS printer.
+  // Native print-dialog completion is a separate manual acceptance check.
+  let printRequests = 0;
+  await page.exposeFunction('__pvadPrintRequested', () => { printRequests++; });
+  await page.evaluate(() => {
+    const nativeOpen = window.open;
+    (window as any).__pvadOriginalOpen = nativeOpen;
+    window.open = function (...args) {
+      const opened = nativeOpen.apply(window, args);
+      return opened && new Proxy(opened, {
+        get(target, property) {
+          if (property === 'print') return () => { void (window as any).__pvadPrintRequested(); };
+          const value = Reflect.get(target, property, target);
+          return typeof value === 'function' ? value.bind(target) : value;
+        },
+        set(target, property, value) { return Reflect.set(target, property, value, target); },
+      });
+    };
+  });
   const printTarget = page.waitForEvent('popup');
+  const printResponse = page.waitForResponse(response => response.request().method() === 'POST'
+    && new URL(response.url()).pathname.endsWith('/templates/render-design'));
   await page.getByRole('button', { name: /^Print/ }).click();
   const pdfPrintPage = await printTarget;
+  const printPdf = await printResponse;
+  expect(printPdf.ok()).toBe(true);
+  expect(printPdf.headers()['content-type']).toContain('application/pdf');
   await expect.poll(() => pdfPrintPage.url()).toMatch(/^blob:/);
+  const printSignature = await page.evaluate(async url => {
+    const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+    return new TextDecoder().decode(bytes.subarray(0, 5));
+  }, pdfPrintPage.url());
+  expect(printSignature).toBe('%PDF-');
+  await expect.poll(() => printRequests).toBe(1);
+  await pdfPrintPage.screenshot({ path: test.info().outputPath('pdf-print-preview.png') });
   await pdfPrintPage.close();
+  await page.evaluate(() => { window.open = (window as any).__pvadOriginalOpen; });
 
   await expect(page.getByRole('button', { name: 'Export' })).toBeVisible({ timeout: 5_000 });
   await page.getByRole('button', { name: 'Export' }).click();
@@ -249,17 +299,27 @@ test('customer can register, verify, enter Designer, persist and version a templ
   await page.getByRole('button', { name: 'Back to editor' }).click();
 
   const projectDownload = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save PXA PDF project' }).click();
+  await page.getByRole('button', { name: 'Save PVADP project' }).click();
   const savedProject = await projectDownload;
-  expect(savedProject.suggestedFilename()).toBe('Designer-E2E-Report.pxap');
+  expect(savedProject.suggestedFilename()).toBe('Designer-E2E-Report.pvadp');
   const savedProjectPath = await savedProject.path();
   expect(savedProjectPath).not.toBeNull();
-  await page.locator('input[accept*=".pxap"]').setInputFiles(savedProjectPath!);
+  const projectOpenResponse = page.waitForResponse(response => response.request().method() === 'POST'
+    && new URL(response.url()).pathname.endsWith('/designer/projects/pdf/open'));
+  await page.locator('input[accept*=".pvadp"]').setInputFiles({
+    name: savedProject.suggestedFilename(),
+    mimeType: 'application/vnd.pvad.pvadp+zip',
+    buffer: await readFile(savedProjectPath!),
+  });
+  const projectResult = await projectOpenResponse;
+  expect(projectResult.ok()).toBe(true);
+  const projectCompatibility = (await projectResult.json()).compatibility;
   const reviewNotice = page.locator('.project-import-notice.is-review');
-  if (await reviewNotice.isVisible().catch(() => false)) {
+  if (projectCompatibility?.requiresReview) {
+    await expect(reviewNotice).toBeVisible();
     await reviewNotice.getByRole('button', { name: 'Open project' }).click();
   }
-  await expect(page.getByText('PXA PDF project opened.')).toBeVisible();
+  await expect(page.getByText('PVADP project opened.')).toBeVisible();
   await expect(page.locator('.project-import-notice')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Rename Designer E2E Report' })).toBeVisible();
 
@@ -388,16 +448,25 @@ test('customer can register, verify, enter Designer, persist and version a templ
     await expect.poll(() => new URL(page.url()).pathname).toBe(legacyRoute[1]);
   }
 
-  await page.evaluate(() => {
+  const legacyWorkbook = JSON.stringify({ state: {
+    name: 'Legacy browser workbook', sheets: [{ id: 'legacy-sheet', name: 'Sheet1', rowCount: 20, colCount: 6,
+      cells: {}, colWidths: {}, merges: [] }],
+  }, version: 0 });
+  await page.evaluate(raw => {
     localStorage.removeItem('pxa-spreadsheet');
-    localStorage.setItem('canvas-spreadsheet', JSON.stringify({
-      state: { name: 'Legacy browser workbook' },
-      version: 0,
-    }));
-  });
+    localStorage.setItem('canvas-spreadsheet', raw);
+  }, legacyWorkbook);
   await page.goto(`${designerUrl}/spreadsheet/create`);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('pxa-spreadsheet'))).not.toBeNull();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('canvas-spreadsheet'))).toBeNull();
+  await expect(page.getByRole('button', { name: 'Find old local drafts' })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('canvas-spreadsheet'))).toBe(legacyWorkbook);
+  expect(await page.evaluate(() => localStorage.getItem('pxa-spreadsheet'))).toBeNull();
+  await page.getByRole('button', { name: 'Find old local drafts' }).click();
+  const recoveryDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download workbook 1' }).click();
+  const recovered = await recoveryDownload;
+  expect(recovered.suggestedFilename()).toBe('recovered-workbook.json');
+  expect(JSON.parse(await readFile((await recovered.path())!, 'utf8')).name).toBe('Legacy browser workbook');
+  expect(await page.evaluate(() => localStorage.getItem('canvas-spreadsheet'))).toBe(legacyWorkbook);
 
   await page.evaluate(() => sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify({
     template: {

@@ -338,11 +338,11 @@ public sealed class AdminSubscriptionsControllerTests
         }
         var deliveredMessages = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages;
         Assert.Contains(deliveredMessages, value =>
-            value.Subject == "Your Power Dox Automation subscription changed");
+            value.Subject == "Your PVADE subscription changed");
         Assert.Contains(deliveredMessages, value =>
-            value.Subject == "Your Power Dox Automation license changed");
+            value.Subject == "Your PVADE license changed");
         Assert.Contains(deliveredMessages, value =>
-            value.Subject == "Security change in your Power Dox Automation organization");
+            value.Subject == "Security change in your PVADE organization");
 
         var foreignOrganization = new Organization { Name = "Foreign Audit Tenant", Slug = "foreign-audit-tenant" };
         var foreignAuditEvent = new AuditEvent

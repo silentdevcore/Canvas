@@ -128,3 +128,11 @@ test('both dotnet container definitions pass canonical build metadata and retain
     assert.match(source, /Conflicting PVAD_VERSION and PXA_VERSION/);
   }
 });
+
+test('local WebApi publish excludes runtime data independently of the Docker context', async () => {
+  const project = await readFile(resolve(root, 'PVAD.WebApi/PVAD.WebApi.csproj'), 'utf8');
+  assert.match(project, /<DefaultItemExcludes>\$\(DefaultItemExcludes\);App_Data\/\*\*\/\*<\/DefaultItemExcludes>/);
+  assert.match(project, /CopyToPublishDirectory="PreserveNewest"/);
+  assert.match(project, /AdminDocumentation/);
+  assert.match(project, /assets\/fonts\/liberation/);
+});

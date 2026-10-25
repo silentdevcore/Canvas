@@ -13,10 +13,18 @@ that were reopened and are now closed. Full final-candidate acceptance and real
 store/infrastructure activation remain open; no percentage claims production
 readiness. See the [client-transition guide](pvad-oauth-client-transition.md).
 
-The migration/artifact audit package is committed as `1bbcca5e`; the current
-OAuth follow-up is uncommitted. Retained IDs and credentials are not rewritten
+The migration/artifact audit package is committed as `1bbcca5e`; the OAuth
+follow-up is committed as `f49df8c2`. The subsequent validation fixes are uncommitted.
+Retained IDs and credentials are not rewritten
 in an installed database. The source-level local checks do not activate a live
 store migration or close publisher, host, keyring, artwork or release approvals.
+
+The [final-candidate validation report](pvad-final-candidate-validation.md) now
+records the complete Solution/API run, separate paired-binary test, all frontend
+builds, DocFX output/link checks and local Release package inspection. It also
+records the reproducible stale code-workspace revision conflict and distinguishes
+native PDF display from manual print and real authenticated CSP acceptance.
+These findings keep the aggregate gate open; the task-count percentage is unchanged.
 
 ## Historical Audit: 2026-10-24
 

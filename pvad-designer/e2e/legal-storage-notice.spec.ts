@@ -21,7 +21,7 @@ test('necessary-storage notice is keyboard accessible and remembered on every pu
     await context.clearCookies();
     await page.goto(url);
 
-    const notice = page.locator('[data-pxa-storage-notice]');
+    const notice = page.locator('[data-pvad-storage-notice]');
     await expect(notice, `${name} storage notice`).toBeVisible();
     await expect(notice).toHaveAttribute('aria-labelledby', 'pvad-storage-notice-title');
     await expect(notice.getByText('Optional analytics and marketing storage are not used.')).toBeVisible();
@@ -54,10 +54,10 @@ test('Company footer can reopen storage settings without creating optional conse
     url: 'http://localhost:5173',
   }]);
   await page.goto('http://localhost:5173/');
-  await expect(page.locator('[data-pxa-storage-notice]')).toHaveCount(0);
+  await expect(page.locator('[data-pvad-storage-notice]')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Storage settings' }).click();
-  const notice = page.locator('[data-pxa-storage-notice]');
+  const notice = page.locator('[data-pvad-storage-notice]');
   await expect(notice).toBeVisible();
   await expect(notice.getByRole('button', { name: /accept all|reject all|customize/i })).toHaveCount(0);
 });

@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { readPvadEnvironment } from '../../tools/configuration/environment.mjs';
 
 const accountUrl = 'http://localhost:5178';
 const designerUrl = 'http://localhost:5176';
-const email = process.env.PXA_SMOKE_EMAIL;
-const password = process.env.PXA_SMOKE_PASSWORD;
+const email = readPvadEnvironment('PVAD_SMOKE_EMAIL');
+const password = readPvadEnvironment('PVAD_SMOKE_PASSWORD');
 
 test('authenticated customer completes the Code Designer roundtrip', async ({ page }) => {
-  test.skip(!email || !password, 'Set PXA_SMOKE_EMAIL and PXA_SMOKE_PASSWORD for the live smoke test.');
+  test.skip(!email || !password, 'Set PVAD_SMOKE_EMAIL and PVAD_SMOKE_PASSWORD for the live smoke test.');
 
   await page.goto(`${designerUrl}/pdf/create?mode=code`);
   await expect(page).toHaveURL(new RegExp(`^${accountUrl}/login\\?returnUrl=`));
@@ -47,7 +48,7 @@ test('authenticated customer completes the Code Designer roundtrip', async ({ pa
   await expect(page.getByRole('tab', { name: /C# Model Generated/ })).toBeVisible();
   await page.getByRole('button', { name: 'Apply to Designer' }).click();
   await expect(page.getByRole('tab', { name: /C# Model Saved/ })).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText('Hello, PXA PDF!')).toBeVisible();
+  await expect(page.getByText('Hello, PVADP!')).toBeVisible();
 
   await page.getByRole('button', { name: 'Restore' }).click();
   await expect(page.getByRole('tab', { name: /C# Model Outdated/ })).toBeVisible();

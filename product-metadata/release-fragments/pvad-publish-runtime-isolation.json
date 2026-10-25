@@ -1,0 +1,8 @@
+{
+  "id": "pvad-publish-runtime-isolation",
+  "impact": "patch",
+  "components": ["api", "infrastructure"],
+  "category": "fixed",
+  "summary": "WebApi distribution packages exclude local runtime storage files while retaining the application configuration and packaged workers.",
+  "breaking": false
+}
