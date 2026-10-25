@@ -211,7 +211,7 @@ checklists/PVAD.Web-Design-System.md	documentation-or-history	10	false
 checklists/Pdf-Encryption.md	documentation-or-history	12	false
 checklists/PdfTools-WebViewer-Feature-Gaps.md	documentation-or-history	28	false
 checklists/PvadPdf-Provider-Feature-Gaps.md	documentation-or-history	25	false
-checklists/Rename-PXA-To-PVAD.md	documentation-or-history	61	true
+checklists/Rename-PXA-To-PVAD.md	documentation-or-history	62	true
 checklists/Rename-To-PXA.md	documentation-or-history	726	true
 checklists/Spreadsheet-Backend-Engine.md	documentation-or-history	6	false
 checklists/Spreadsheet-Import-Export.md	documentation-or-history	3	false
@@ -268,6 +268,8 @@ deploy/observability/prometheus/rules/pvad-mcp-alerts.yml	configuration	3	false
 deploy/observability/prometheus/rules/pvad-webapi-container-alerts.yml	configuration	4	false
 deploy/observability/prometheus/tests/pvad-alerts.test.yml	configuration	63	false
 deploy/observability/smoke-test.sh	configuration	19	false
+deploy/rename/LOCAL-VALIDATION.md	documentation-or-history	1	false
+deploy/rename/README.md	documentation-or-history	1	false
 deploy/rename/docker-compose.api-legacy.yml	configuration	9	false
 deploy/rename/docker-compose.legacy.yml	configuration	27	false
 deploy/rename/legacy-bindings.env.example	configuration	3	false
@@ -316,6 +318,7 @@ docs/pvad-http-compatibility.md	documentation-or-history	31	false
 docs/pvad-identity-compatibility.md	documentation-or-history	19	false
 docs/pvad-infrastructure-mapping.md	documentation-or-history	6	false
 docs/pvad-license-and-job-compatibility.md	documentation-or-history	11	false
+docs/pvad-local-staging-validation.md	documentation-or-history	3	false
 docs/pvad-migration-artifact-identities.md	documentation-or-history	3	false
 docs/pvad-native-project-platform-validation.md	documentation-or-history	1	false
 docs/pvad-oauth-client-transition.md	documentation-or-history	6	false
@@ -323,7 +326,7 @@ docs/pvad-observability-identity.md	documentation-or-history	10	false
 docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
 docs/pvad-rename-phase-review.md	documentation-or-history	6	false
-docs/pvad-rename-release-approvals.md	documentation-or-history	14	false
+docs/pvad-rename-release-approvals.md	documentation-or-history	16	false
 docs/pvad-rename-reviewed-exceptions.json	source	286	false
 docs/pvad-rename-rollback.md	documentation-or-history	1	false
 docs/pvad-rename-validation-blockers.md	documentation-or-history	1	false
@@ -828,6 +831,7 @@ tools/configuration/pvad-compose.test.mjs	configuration	1	false
 tools/configuration/pvad-telemetry-contract.mjs	configuration	4	false
 tools/configuration/rename-artifact-audit.mjs	configuration	6	false
 tools/configuration/rename-artifact-audit.test.mjs	configuration	2	false
+tools/configuration/rename-authenticated-browser.mjs	documentation-or-history	1	false
 tools/configuration/rename-boundaries.test.mjs	configuration	2	false
 tools/configuration/rename-container-workflows.mjs	configuration	6	false
 tools/configuration/rename-container-workflows.test.mjs	configuration	5	false

@@ -76,3 +76,33 @@ test('Designer hosting serves every registered absolute route, including legacy 
   for (const route of ['/not-a-pvad-route', '/template-other', '/importer-other', '/report-other'])
     assert.equal(pattern.test(route), false, `Unknown path must retain HTTP 404: ${route}`);
 });
+
+test('Account hosting serves every public, portal and legal-review route on direct navigation', async () => {
+  const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
+  const ts = require('typescript');
+  const source = await readFile(new URL('../../websites/PVAD.Account/src/main.ts', import.meta.url), 'utf8');
+  const tree = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
+  const pattern = new RegExp(patterns.split('\n').find(line => line.startsWith('PVAD_ACCOUNT_ROUTE_PATTERN=')).split('=')[1]);
+  const routes = new Set();
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+      if (node.name.text === 'publicPaths' && ts.isNewExpression(node.initializer)
+          && ts.isArrayLiteralExpression(node.initializer.arguments?.[0])) {
+        for (const item of node.initializer.arguments[0].elements)
+          if (ts.isStringLiteral(item)) routes.add(item.text);
+      }
+      if (node.name.text === 'portalPages' && ts.isObjectLiteralExpression(node.initializer))
+        for (const item of node.initializer.properties)
+          if (item.name && ts.isStringLiteral(item.name)) routes.add(item.name.text);
+    }
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
+        && node.expression.expression.getText(tree) === 'portalPaths' && node.expression.name.text === 'add'
+        && ts.isStringLiteral(node.arguments[0])) routes.add(node.arguments[0].text);
+    ts.forEachChild(node, visit);
+  }
+  visit(tree);
+  assert.ok(routes.size >= 20, 'Account route extraction must not silently stop matching.');
+  for (const route of routes) assert.ok(pattern.test(route), `Nginx must serve the Account app shell for ${route}`);
+  for (const route of ['/not-an-account-route', '/reset-password-other', '/legal-review-other'])
+    assert.equal(pattern.test(route), false, `Unknown path must retain HTTP 404: ${route}`);
+});

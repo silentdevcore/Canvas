@@ -42,23 +42,30 @@ under their existing artifact directories. Reports contain scoped synthetic test
 results, not release approval. A failed step makes the aggregate command fail;
 later steps still run so one report records all attempted checks.
 
-## Remaining Internal Work
+## Later Validation And Remaining Boundaries
 
 Without an optional header profile the public website template still has no CSP.
 The [Designer profile draft](../websites/DESIGNER-SECURITY.md) adds a baseline and
-report-only resource diagnostics when mounted explicitly. The final browser run
-was not approved; full resource enforcement, native PDF/print and code-editor
-compatibility remain unverified. The earlier successful twelve-step report
-predates this draft. Do not call that report validation of the current profile.
-This remains an internal prerequisite, not an external-provider dependency.
+report-only resource diagnostics when mounted explicitly. The earlier twelve-step
+report predates later CSP/browser work and must not be relabeled. Subsequent
+authenticated browser runs, including code editor, fonts, PDF Viewer and
+migration/export flows, passed behind repository Nginx/CSP; the user also
+confirmed the Chrome print workflow. See the [source-specific final candidate
+evidence](../../docs/pvad-final-candidate-validation.md).
+Full resource enforcement is still report-only and public host behavior remains
+unverified. The [localhost follow-up](../../docs/pvad-local-staging-validation.md)
+serves both Account and Designer through their production proxy templates.
 
 ## Separate Acceptance
 
-- Real supported-OS PWA installation, permission, file-open and uninstall checks.
+- The selected macOS/Chrome PWA checks passed; manual first-run prompts and other
+  platforms remain untested. See the [platform record](../../docs/pvad-native-project-platform-validation.md).
 - Existing deployment key mounts, certificate access and owner-approved recovery.
 - Confirmed public hosts, TLS, OAuth redirects, mail and webhook delivery.
 - Registered publishers, approved major-release preparation and publication.
 - Full multi-host staging with the real API and authentication flows.
 
-The local bundle does not authorize any of these operations or close the nine
-combined release/cutover gates. Overall checklist completion remains 88/97.
+The local bundle does not authorize real infrastructure changes, release
+publication or an external deployment. Refer to the [rename tracker](../../checklists/Rename-PXA-To-PVAD.md)
+for the current denominator and source-scoped completion, not the earlier 88/97
+checkpoint.

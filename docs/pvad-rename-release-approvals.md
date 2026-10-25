@@ -14,7 +14,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 | Protected material | Verify actual keyring access and retained encrypted payload recovery without exposing or rewriting secrets. | Security and operations | Pending |
 | External infrastructure | Verify real DNS, TLS, reverse proxy, CSP, authentication redirects, webhooks and sender configuration. | Infrastructure owners | Pending |
 | Native association and artwork | First installation-test scope is macOS/Chrome with the existing generic project icons; final corporate artwork and other platforms are separate. | Product owner and packaging | Owner confirmed scope/icons 2026-10-25; real default association/import/revocation/uninstall tests passed locally. Manual first-run prompts, public deployment and other platforms remain untested. See [platform evidence](pvad-native-project-platform-validation.md). |
-| Staging acceptance | Authorize and execute a representative deployed environment with real host boundaries. | Release owner and operations | Pending |
+| Staging acceptance | Authorize and execute a representative deployed environment with real host boundaries. | Release owner and operations | Owner selected localhost on 2026-10-25; local verification is separate from the still-pending external deployment gate. See [local scope and evidence](pvad-local-staging-validation.md). |
 | Release publication | Approve the major version, migration instructions, tags and registry publication. | Release owner | Pending |
 
 Before closing a row, record the approver, UTC date, target environment and a
@@ -92,6 +92,17 @@ branch restrictions and any custom protection rules. A new environment must not
 silently replace an approved old environment with weaker settings. Environment
 secrets cannot be recovered from their read API; coordinate the secret owner.
 No remote environment, secret, workflow run or repository setting was changed.
+
+GET-only follow-up on 2026-10-25 reconfirmed the `pxa-staging` branch restriction
+and an empty environment-variable list, without requesting secret values. GitHub
+also contains a historical `v1.1.0` release from 2026-08-03 with seven complete
+PXA-named archives and advertised SHA-256 digests. No archive was downloaded,
+renamed or independently hashed by that metadata check. This is not a PVAD rename
+release, proof of package-publisher ownership or evidence of customer rollout.
+The earlier owner report of no publication remains dated information; reconcile
+distribution inventory before external cutover rather than claiming no repository
+release exists. The owner-selected [localhost validation](pvad-local-staging-validation.md)
+does not authorize changes to GitHub environments, public hosts or registries.
 
 ## Concrete Answers Needed
 

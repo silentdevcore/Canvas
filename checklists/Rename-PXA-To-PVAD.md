@@ -1322,6 +1322,27 @@ are not certified. The global support flag remains conservative. Source is
 `d4f9767f` plus the recorded hash-bound follow-up, not a new clean full-Solution
 candidate. See [the platform evidence and repeat procedure](../docs/pvad-native-project-platform-validation.md).
 
+### Owner-Selected Localhost Staging Follow-up (2026-10-25)
+
+The owner selected localhost, not an external target. The expanded local runner
+serves Account and Designer through real Nginx templates with isolated API,
+PostgreSQL, SMTP and storage. It found and corrected seven missing Account
+direct-navigation routes; the AST contract failed before the correction.
+Run `9d73db87f67c` passes 5/5 browser cases (three live API flows and two explicit
+mocks), ten hosting probes, anonymous/CORS checks and controlled API stop/start.
+Both proxies return JSON 503 while the API is stopped; current/legacy routes
+recover and four templates plus one immutable version remain unchanged.
+WebApi builds with zero errors and 57 existing warnings; 53 Account tests and
+51 selected configuration/deployment contracts pass. Test resources are removed.
+
+Read-only GitHub inspection found a historical `v1.1.0` with seven PXA archives;
+it was not changed or treated as the current PVAD build. The existing workflow
+has no target deployment adapter. No remote settings, DNS, registry or release
+were changed. The explicitly external staging gate stays open, so completion
+remains **90/98 (91.8%)**, not 92.9%. Public HTTPS/host isolation, actual key
+recovery, mail delivery and version rollback need their separate evidence.
+See [the scoped local staging record](../docs/pvad-local-staging-validation.md).
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

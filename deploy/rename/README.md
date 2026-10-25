@@ -2,8 +2,9 @@
 
 This directory prepares the remaining internal rename work. It does not deploy,
 register packages, install OS associations, send mail, inspect real keys or alter
-the current application defaults. Current completion remains 88/97 (90.7%);
-partial work does not close the nine combined release/cutover gates.
+the current application defaults. The [rename tracker](../../checklists/Rename-PXA-To-PVAD.md)
+records current completion; older 88/97 figures belong to earlier checkpoints.
+Offline preparation does not close real release/cutover gates.
 
 ## Confirmed And Proposed Values
 
@@ -103,8 +104,10 @@ commands. `nativeFileOpenSupported` remains false.
 
 The Designer now includes a PWA launch handler and authenticated, explicitly
 confirmed in-memory file transfer. See [installation and boundaries](../../docs/pvad-native-project-opening.md).
-The file chooser is a fallback, not evidence of OS integration. Real macOS,
-Windows and Linux installation/open/uninstall tests remain required. Do not
+The file chooser is a fallback, not evidence of OS integration. The selected
+macOS/Chrome installation, actual associations, import, revocation and uninstall
+checks now pass; see the [scoped platform record](../../docs/pvad-native-project-platform-validation.md).
+Other platforms and manual first-run prompts remain untested. Do not
 register a nonexistent executable or send local paths in public URLs.
 
 ## Isolated Local Service Cutover
@@ -129,9 +132,18 @@ the Operator CSP does not substitute for it.
 | --- | --- | --- |
 | Publishers | Separate validated fields and canonical image naming | Registration, ownership and actual release approval |
 | Data Protection | Existing old/new consumer and keyring restart tests; no new envelope invented for unencrypted stores | Real key mounts, recovery and operator sign-off |
-| Native file opening | PWA launch handler, authenticated file handoff and canonical type contracts | Real per-OS install/open/uninstall tests |
+| Native file opening | PWA launch handler, authenticated handoff and real macOS/Chrome association/revocation/uninstall checks | Other platforms and manual first-run prompts are not certified |
 | Services/images | Read-only canonical model, retained volumes/DNS and Compose config tests | Owner-selected images, stopped-writer cutover and rollback |
 | Hosts/auth/mail | Shared candidate plus configurable CORS and real in-process preflight tests | Confirmed subdomains, DNS/TLS, CSP/proxy, OAuth and delivery verification |
 
 Keep these parent tasks open until all of their acceptance evidence exists. A
 passing candidate validation is not proof of an external deployment.
+
+## Localhost Staging Scope
+
+The owner selected localhost for the next acceptance run on 2026-10-25. Use the
+[local staging record](../../docs/pvad-local-staging-validation.md) for the real
+API/PostgreSQL/SMTP and paired Nginx frontend results. This does not turn proposed
+public subdomains into approved targets or the protected GitHub environment into
+a configured deployment adapter. Historical release archives are retained, not
+renamed, republished or treated as the current branch's build.

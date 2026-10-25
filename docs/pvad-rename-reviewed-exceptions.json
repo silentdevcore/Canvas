@@ -1187,12 +1187,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "e7f45e5f58f5d97dc01e76951833607db0684664787a9ffba53811d10454a540",
+      "sha256": "dd44295e1309644c71b1d92cb69376341069a26e6fd98ef099a1951d099a11aa",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "6b5f10a813d86d4460f96a78db683b387594ea08779bb70bfed66242cddc738a",
+      "sha256": "c8b23ef62aa3ee8f669e3071c098c4a28d9ded528b11f9811b094e939a13e5f6",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1886,6 +1886,26 @@
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
+      "path": "deploy/rename/LOCAL-VALIDATION.md",
+      "sha256": "065391ada95a285d078d6c01db2b96e677cdabc9f41aee1a99a7fd79eae6b4fa",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "deploy/rename/README.md",
+      "sha256": "533893e1d70d448760cd3f43e27bff3404fc513333906e28ea0403b48fc98ee6",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
       "path": "deploy/websites/15-pvad-environment.envsh",
       "sha256": "bfbb4e14e199fe043cf00e6262111307aa6d10b73d23a48208127a212398a09d",
       "reasons": [
@@ -1937,12 +1957,12 @@
     },
     {
       "path": "deploy/websites/status-hosting.test.mjs",
-      "sha256": "89ddd7f824c7d3f6156d5a482ab8e62196125ae4be844e189cc6653dc8edc93b",
+      "sha256": "a072efb3029c3c1c905b4c11cea8fcef3d442714e0a0214ee7d5abf0a50f1d65",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2266,6 +2286,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "docs/pvad-local-staging-validation.md",
+      "sha256": "a74c9362f91b7638e8d799f12aca4db1bdfd51fd4e03578a02ede4c384c1625c",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
       "path": "docs/pvad-native-project-platform-validation.md",
       "sha256": "d4694d5bb0a6cf774b91167e2f3293191e0fb27bd246c2887fc666610464282a",
       "reasons": [
@@ -2317,12 +2347,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "bc5b69e3f37c2aa0ec812751ead0e486824bddd1873f9eed4bc6cdc4079ae8d4",
+      "sha256": "e23dd8ed0c5243ae813311809cfdd2b3689a6f39628da2b0c2f0540d01d4b829",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -7343,6 +7373,16 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/configuration/rename-artifact-audit.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. Old names occur in the rename audit/parser itself and do not rename arbitrary file contents.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/rename-authenticated-browser.mjs",
+      "sha256": "8649401478f47789b04a00042550dcb4170c207ed3e15097e0e66244476638bb",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

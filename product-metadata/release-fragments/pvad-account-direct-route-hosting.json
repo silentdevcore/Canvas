@@ -1,0 +1,8 @@
+{
+  "id": "pvad-account-direct-route-hosting",
+  "impact": "patch",
+  "components": ["account", "infrastructure"],
+  "category": "fixed",
+  "summary": "Account invitation, password recovery, email confirmation and legal review pages now remain reachable through the production proxy when opened directly or reloaded.",
+  "breaking": false
+}
