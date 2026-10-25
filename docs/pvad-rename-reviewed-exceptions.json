@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "ceeefb95e2a17a714f2406bc13bb77d17cbd4e4b9b375c3a805163ff7fae2883",
+      "sha256": "cc43cec57aa1d593fd906f79b2fc3bceec8dec5b50d0a146d10c74a139e35722",
       "reasons": [
         "compatibility-contract"
       ],
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "68552f49ea1b4a83fa0d93f3a886c9d06d509efa56dfe3f6a40ec6513c979c16",
+      "sha256": "e3923ec171cfc5e27cc6b7f676c87e531648d52351abcde2dd98a889f4cf84d5",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "af941f5c9191d65d98853d0216b06ab5142b9c8ecd62826192be3b19a6518294",
+      "sha256": "8d2f4309aa77dc19f09c3d9e4f4b277fad06888f85f65488267904cd71f91ac9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2297,12 +2297,12 @@
     },
     {
       "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "196346047555283caee13dada1de1990465ef4968b8e99d4f62e4a3c7678e169",
+      "sha256": "0dd8e12f981c94fe97bf1ad5341319623093a48d88d238946e84bbd0f226d8b1",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -9360,12 +9360,12 @@
     },
     {
       "path": "docs/pvad-final-candidate-validation.md",
-      "sha256": "f03a0930212dc5e23a82202a5b71475b333d9ffdd5d2b888bf6e4606fd983e12",
+      "sha256": "a94afed94608c9d424ce705022725fa5bfc3c500a29ec60cceb76def09c0a942",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
       "boundaryGuide": "docs/pvad-final-candidate-validation.md"
     },
     {
@@ -9374,9 +9374,9 @@
         "historical-document"
       ],
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "sha256": "b22fbf486e0f29f577728e7c0475697d6eb84e1432495e1a3be3c6b2be178522",
+      "sha256": "95fabc9547276ef13c47c7ab02798809418abe6ab11fe3f9a6d9bf420695818d",
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied."
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval."
     },
     {
       "path": "pvad-designer/e2e/support/rename-rendering-checks.ts",

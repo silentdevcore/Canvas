@@ -1,5 +1,12 @@
 # Code Workspace Apply Validation
 
+Current acceptance update, 2026-10-25: the corrections below were committed as
+`16c4264e`. Full committed-candidate validation passed and the user confirmed the
+requested Chrome print check completed and working. The combined local gate is
+closed at **89/98 (90.8%)**, with **9/98 (9.2%)** external gates open. See the
+[final-candidate acceptance](pvad-final-candidate-validation.md). The scoped
+results, source labels and then-open boundaries below remain historical evidence.
+
 Date: 2026-10-25. Source base: `4f51ac1d` plus the uncommitted corrections described
 here. This is scoped local evidence, not a clean release-candidate approval.
 

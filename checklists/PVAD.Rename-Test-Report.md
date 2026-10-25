@@ -2,6 +2,40 @@
 
 > Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
 
+## Committed Candidate Revalidation (2026-10-25)
+
+Source: `16c4264eb192e2cebbe3d03c9aafcc0803ad36ec`, tracked-clean before and after
+the combined automated run. Solution build passed with zero errors and 196 known
+warnings. All 53 test-result files report 3,513 successful tests and no failures;
+one explicit binary skip was executed separately and passed 1/1. The API portion
+passed 1,247 tests using migrated disposable PostgreSQL, not the installed database.
+
+Designer typecheck/752 tests/build, every Website test/build, Account typecheck,
+MCP typecheck/27 tests/build/distribution smoke, 239 Node contracts and the 7/7
+synthetic frontend-host selection pass. Full DocFX generation passes with 21
+known warnings; 582 generated pages and 8,046 references have no link failures.
+API and both published workers identify as 1.1.0, contain required runtime files
+and bundled fonts, and exclude runtime App_Data. All seven build-info records
+match the exact commit. Major 2.0.0 remains a dry-run proposal from 128 fragments;
+VERSION and published releases are unchanged.
+
+Real Nginx/CSP browser run `2a19b45622a3` passes 5/5 with clean-source metadata:
+three real Account/API/PostgreSQL/SMTP cases plus two separately mocked cases.
+The real migration, fonts/assets, reviewed Apply and PDF Viewer checks retain the
+scope and limitations documented below. Do not add overlapping suite totals or
+count the paired binary case as new unique coverage.
+
+Evidence: `artifacts/rename/committed-final/da5f3fffee91/` and
+[the current validation report](../docs/pvad-final-candidate-validation.md).
+The user confirmed the supplied Chrome print test completed and working on
+2026-10-25. Manual setup `02ad7f318b3e` has a separate `user-acceptance.json`;
+automated reports retain their original scope and pending-manual status.
+Browser/OS versions and physical output method were not supplied. This is
+user-reported local acceptance, not automated OS or printer certification.
+The combined final-candidate gate is closed: **89/98 (90.8%) complete,
+9/98 (9.2%) open**. Earlier totals below are historical. No publication, real-store cutover or security/license
+approval follows from passing these local tests.
+
 ## Reviewed Apply And Real Nginx Workflows (2026-10-25)
 
 The follow-up to `4f51ac1d` resolves the stale Code Workspace base through explicit

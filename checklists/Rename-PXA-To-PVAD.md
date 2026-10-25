@@ -5,14 +5,17 @@
 ## Status And Naming Authority
 
 **Current status, 2026-10-25: not complete. The counted acceptance plan is
-88/98 complete (89.8%), with 10/98 open (10.2%).** OAuth/MCP writer defaults and
+89/98 complete (90.8%), with 9/98 open (9.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate
-validation and external release gates remain open. See
+validation now passes, including the user-confirmed Chrome print check; external
+release gates remain open. See
 [the OAuth/MCP completion](#oauth-and-mcp-writer-completion-2026-10-25) and
 [the counting rule](#current-audit-and-progress-2026-10-24).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
-current total. The latest full API attempt remains blocked by local database
-authentication; isolated API tests do not close that blocker.
+current total. The full API suite now passes against deliberately isolated
+PostgreSQL on commit `16c4264e`; the earlier local-database blocker is historical.
+The user confirmed the requested Chrome print test completed successfully;
+the combined local final-candidate gate is closed, not the external release gates.
 This is not release readiness or proof that all features work on the final source
 revision. Further changes start only from a concrete naming finding or the later
 validation results, not from a target percentage.
@@ -837,7 +840,7 @@ currently blocked full API/PostgreSQL validation explicitly.
   an isolated temporary repository. This validates the audit tool, not approval
   of the entire index. The overall count remains 85/97 (87.6%).
 - [ ] Perform externally authorized staging/deployment smoke tests before production cutover.
-- [ ] Revalidate and review the final rename release candidate on one recorded source revision.
+- [x] Revalidate and review the final rename release candidate on one recorded source revision.
   Run the complete Solution/API with isolated disposable PostgreSQL rather than
   changing installed development credentials. Repeat Designer, all websites,
   MCP, worker/converter and packaging checks together; build DocFX and check its
@@ -845,6 +848,9 @@ currently blocked full API/PostgreSQL validation explicitly.
   native PDF display/print and migration/export smoke tests. Review the final diff,
   retained-name ledger, compatibility boundaries and release metadata. Earlier
   selected green suites cannot be substituted for this final acceptance gate.
+  Accepted on 2026-10-25: full committed-candidate checks on `16c4264e`, final
+  evidence/diff review and the user's successful Chrome print confirmation.
+  This is local acceptance only; external staging and publication remain open.
 
 ## Delivery And Commit Order
 
@@ -1217,8 +1223,10 @@ changes and the required explicit retained-client transition; VERSION stays 1.1.
   repeat the complete customer workflow. Follow-up run `3cb3292bb4bd` passes all
   five cases behind the repository Nginx/CSP profile; three use real authentication,
   and two are separate mocked denial/layout cases. See the follow-up below.
-- [ ] Finish authenticated workflows behind the exact Nginx/CSP profile and
+- [x] Finish authenticated workflows behind the exact Nginx/CSP profile and
   the manual native print-dialog/output check, then review one final source snapshot.
+  Closed by committed-candidate revalidation and user confirmation below; the
+  point-in-time counts in this earlier subsection remain historical.
 
 These are evidence subtasks within the existing combined final-candidate gate,
 not new primary acceptance items. **88/98 (89.8%) complete; 10/98 (10.2%) open.**
@@ -1244,15 +1252,43 @@ See the [full results, corrections and blocker](../docs/pvad-final-candidate-val
   as a Spreadsheet grid, not as a PDF. Expanded run `946ac88ab10c`: 5/5 passed.
 - [x] Correct the actual Nginx `.mjs` worker MIME defect found by the real Viewer
   workflow; keep the existing enforced/report-only CSP boundaries unchanged.
-- [ ] Perform the manual native OS print-dialog/output check and final aggregate
+- [x] Perform the manual native OS print-dialog/output check and final aggregate
   candidate source review. No runtime binding-substitution or every-provider
   certification is inferred from representative rename checks.
+  User confirmed the supplied Chrome test completed and working on 2026-10-25.
+  Browser/OS versions and the physical output device were not reported.
 
 Evidence: [Code Apply validation](../docs/pvad-code-workspace-apply-validation.md).
 These subtasks do not change the primary denominator or close the combined gate:
 **88/98 (89.8%) complete; 10/98 (10.2%) open**. The source is `4f51ac1d` plus this
 uncommitted follow-up. No commit, push, version bump or installed-data cutover is
 part of this step.
+
+### Committed Candidate Revalidation (2026-10-25)
+
+The automated final-candidate selection now passes on the single, tracked-clean
+commit `16c4264eb192e2cebbe3d03c9aafcc0803ad36ec`: complete Solution build and
+53 test-result files (3,513 passed, zero failed, one explicit binary skip), that
+same binary case passed separately, Designer typecheck/752 tests/build, all five
+Website test/build selections, MCP, 239 combined Node contracts, DocFX and all
+8,046 generated links. Seven API/frontend build-info records match that commit
+and version 1.1.0. The isolated Release package contains both workers and bundled
+fonts, with no runtime App_Data files. The 128-fragment release dry run proposes
+Major 2.0.0 without changing VERSION or published history.
+
+Authenticated browser run `2a19b45622a3` passes 5/5 behind repository Nginx/CSP,
+including actual migration previews and Viewer downloads; three cases use real
+authentication and two use explicit mocks. The source was clean throughout.
+This supersedes the earlier uncommitted-source evidence for automated R04-R06
+checks, not their historical results or the separate external release gates.
+
+The user subsequently confirmed the requested Chrome test completed and working
+on 2026-10-25 using the disposable test setup. This is user-reported manual
+acceptance, not an automated OS observation or hardware certification. Together
+with the committed-candidate checks and final evidence review, it closes the
+combined primary gate: **89/98 (90.8%) complete, 9/98 (9.2%) open**. No new primary
+tasks or score-bearing subtasks are added. Earlier 88/98 figures are historical.
+See [the committed-candidate results and manual acceptance](../docs/pvad-final-candidate-validation.md#committed-candidate-local-acceptance-passed).
 
 ## Related Work
 

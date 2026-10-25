@@ -1,6 +1,103 @@
 # PVAD Final Candidate Validation
 
-## Status: Local Validation, Acceptance Still Open
+## Committed Candidate: Local Acceptance Passed
+
+Date: 2026-10-25. All automated checks below ran against the same commit,
+`16c4264eb192e2cebbe3d03c9aafcc0803ad36ec`, with no tracked source changes before
+or after the run. Subsequent evidence-document edits are not application changes
+and were not present during this run. Unrelated untracked editor settings remain
+outside the reviewed change.
+
+| Area | Current committed-candidate result |
+| --- | --- |
+| Complete Solution build | Passed, zero errors and 196 compiler/dependency/license warnings |
+| Complete unfiltered Solution tests | 53 TRX files; 3,513 passed, zero failed; one explicit binary case skipped |
+| Separate paired-binary execution | That same skipped case passed 1/1 using the immutable old source and current worker; not additional unique coverage |
+| API within the full Solution run | 1,247 passed, zero failed, one binary skip as above; disposable migrated PostgreSQL with PostgreSQL opt-ins enabled |
+| Designer | Typecheck, 752 tests in 84 suites, production build passed |
+| Websites | Company 58, Documentation 59, Demo 4, Admin 39, Account 53 tests passed; all five production builds and Account typecheck passed |
+| MCP | Typecheck, 27 tests, build and packaged-distribution smoke passed |
+| Combined Node contracts | 239 passed, zero failed or skipped; selections overlap website coverage |
+| Frontend host matrix | 7/7 passed using synthetic transport responses; not real authentication evidence |
+| Authenticated Nginx/CSP browser selection | 5/5 passed: three real API/PostgreSQL/SMTP cases and two separately mocked denial/layout cases |
+| DocFX metadata/site generation | Passed with 21 known dependency/MSBuild warnings and zero errors |
+| Generated DocFX links | 582 HTML files, 8,046 checked references, zero failures |
+| API and separately published OCR/Code workers | All three dependency identities are version 1.1.0; runtime configuration files and four bundled Liberation Sans faces exist; no App_Data file is packaged |
+| Seven API/frontend build-info records | All identify version 1.1.0 and the exact source commit above |
+| Release preparation dry run | 128 fragments, Major impact, proposed 2.0.0; VERSION and the published manifest are unchanged |
+| Residual-name ledger and whitespace | Passed before evidence edits; evidence hashes and whitespace are reviewed again afterward |
+| Native Chrome print workflow | User reported the requested test completed and working on 2026-10-25; separate manual acceptance, not an automated result |
+
+TRX skipped outcomes are counted from individual `UnitTestResult` entries. The
+current test runner reports zero in its `notExecuted` summary attribute despite
+the explicit skipped binary result. Do not report that as a skip-free full run.
+
+Local evidence directory: `artifacts/rename/committed-final/da5f3fffee91/`.
+It contains per-step logs, the generated schema, 53 TRX files, `report.json`,
+`summary.json`, the isolated Release package and `release-dry-run.json`.
+Browser evidence is recorded separately at
+`artifacts/rename/authenticated-final/2a19b45622a3/report.json`; it records
+`uncommittedTrackedChanges: false` and the repository Nginx image identity.
+These local artifacts are not published or immutable release evidence.
+Representative native-PDF, mobile comparison and report-to-Viewer screenshots
+from that run were visually inspected; this is not approval of all visual baselines.
+
+The real customer case covers reviewed stale-base Apply, concurrent-editor
+conflicts, native project compatibility, local fonts/images, binding preservation,
+representative PDF/Report/Spreadsheet migrations, Viewer handoff and artifact
+downloads. It does not certify runtime binding substitution or every provider.
+The stricter resource CSP remains report-only as in the repository; the baseline
+CSP is enforced. The automated print check intercepts the print request and
+therefore cannot approve the native dialog or saved/printed output.
+
+### Manual Chrome Acceptance
+
+The user requested a separate disposable test environment with a synthetic,
+email-verified account and a two-page sample. This is temporary local tooling,
+not an application or authentication-policy change. Use a Chrome Incognito
+window so cookies for other localhost applications are not replaced.
+
+Manual setup run `02ad7f318b3e` was prepared with successful registration, email
+verification, normal login/handoff and a saved two-page sample: text on the first
+page and a QR code on the second. Its ignored `ready.json` records the local
+addresses, source commit and two-hour expiry; credentials are not stored in this
+document. The API, PostgreSQL, mail catcher, keys and document storage are separate
+test resources. The free default local Account port is used because the Designer
+expects it without a custom runtime bootstrap. Existing applications were not
+replaced. The environment removes its own services at expiry or controlled stop.
+
+Earlier temporary-helper attempts corrected an Account-port mismatch, an
+uncontrolled browser locale, registration before legal-policy readiness and an
+ambiguous gallery selector. Their services were removed. None is native-print
+acceptance evidence, and no application/authentication policy was changed to
+make the setup pass. The following procedure was supplied for the user's
+separate Chrome check.
+
+1. Sign in and open the prepared two-page sample in the visual Designer.
+2. Open Preview, then Export and Print. Allow the dedicated PDF popup.
+3. Confirm the print target contains the PDF, not the editor, navigation or panels.
+4. Inspect both pages in Chrome's print preview and open the system print dialog.
+5. Save a PDF or print, reopen/inspect the output, and verify both pages and their
+   text/QR content without missing content or unexpected clipping.
+6. Record the Chrome and OS versions, dialog result, output method, page count
+   and any observed defect. Readiness to test is not a passing result.
+
+On 2026-10-25 the user confirmed that the test was completed and working.
+Record this as user-reported acceptance of the requested Chrome print workflow,
+not agent-observed OS automation. Exact Chrome/OS versions, output method and
+printer hardware were not provided; no hardware certification is inferred.
+Separate evidence: `artifacts/rename/manual-print/02ad7f318b3e/user-acceptance.json`.
+The earlier automated report retains its original pending-manual status; this
+later confirmation does not retroactively change its execution evidence.
+
+The combined final-candidate gate is now checked: **89/98 (90.8%) complete,
+9/98 (9.2%) open**. This closes one existing local acceptance gate, not production approval.
+Public hosts, publishers, real-store recovery, installed OS associations and
+release authorization retain their separate gates. Dependency advisories and
+NPOI license decisions remain separate unresolved release/security work; no
+upgrade or license acceptance was performed. No tag, push or deployment occurred.
+
+## Earlier Uncommitted Candidate (Historical)
 
 Follow-up: the code-workspace blocker below is resolved by explicit reviewed
 Apply, and the complete browser selection now passes 5/5 behind repository

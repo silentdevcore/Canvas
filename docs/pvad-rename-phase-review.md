@@ -6,31 +6,33 @@ authorization to cut over external infrastructure. See the
 
 ## Current Follow-up: 2026-10-25
 
-The later follow-up to `4f51ac1d` resolves the code-workspace browser blocker and
-passes the expanded 5/5 Account/Designer selection behind repository Nginx/CSP.
-It also fixes legacy route hosting and the PDF.js module-worker MIME type. See
-[current results and remaining manual/final-candidate boundaries](pvad-code-workspace-apply-validation.md).
-This does not close the aggregate gate or advance the primary 88/98 count.
+The code-workspace, legacy-route and PDF.js module-worker corrections were
+committed as `16c4264e`. The complete Solution/API, frontend, MCP, DocFX,
+packaging, release-metadata and 5/5 Nginx/CSP browser checks pass on that single
+tracked-clean candidate. The user subsequently confirmed the supplied Chrome
+print test completed and working. See
+[the final-candidate acceptance and evidence boundaries](pvad-final-candidate-validation.md).
 
 OAuth/MCP defaults, discovery and the explicitly approved client transition are
-implemented and locally tested. The tracker now records 88/98 primary gates done
-(89.8%), with 10/98 open (10.2%). The earlier audit below explains the two gates
-that were reopened and are now closed. Full final-candidate acceptance and real
-store/infrastructure activation remain open; no percentage claims production
+implemented and locally tested. The tracker now records 89/98 primary gates done
+(90.8%), with 9/98 open (9.2%). The combined local final-candidate gate is closed;
+real store/infrastructure activation and publication remain open. The earlier
+audit below explains the previously reopened writer gates. No percentage claims production
 readiness. See the [client-transition guide](pvad-oauth-client-transition.md).
 
 The migration/artifact audit package is committed as `1bbcca5e`; the OAuth
-follow-up is committed as `f49df8c2`. The subsequent validation fixes are uncommitted.
+follow-up is committed as `f49df8c2`. Subsequent validation fixes are committed as
+`16c4264e`; acceptance evidence is recorded in a separate documentation follow-up.
 Retained IDs and credentials are not rewritten
 in an installed database. The source-level local checks do not activate a live
 store migration or close publisher, host, keyring, artwork or release approvals.
 
 The [final-candidate validation report](pvad-final-candidate-validation.md) now
 records the complete Solution/API run, separate paired-binary test, all frontend
-builds, DocFX output/link checks and local Release package inspection. It also
-records the reproducible stale code-workspace revision conflict and distinguishes
-native PDF display from manual print and real authenticated CSP acceptance.
-These findings keep the aggregate gate open; the task-count percentage is unchanged.
+builds, DocFX output/link checks and local Release package inspection. It preserves
+the earlier stale code-workspace conflict and its correction, and distinguishes
+automated PDF display/print-request checks from user-reported manual acceptance.
+No hardware certification, publication or external cutover approval is implied.
 
 ## Historical Audit: 2026-10-24
 
