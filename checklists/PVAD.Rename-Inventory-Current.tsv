@@ -577,6 +577,7 @@ test-assets/document-fidelity/real-world/suffolk-buildings-2026.xlsx	binary-revi
 test-assets/document-fidelity/real-world/suffolk-public-mapping-guidance.docx	binary-review-required	0	false
 test-assets/document-fidelity/real-world/ukgi-annual-report-2019.pdf	binary-review-required	0	false
 test-assets/document-fidelity/spreadsheet-roundtrip.json	fixture-or-contract	2	false
+test-assets/e-invoicing/baselines/dotnet-10.0.5-pdfa-fixtures.json	fixture-or-contract	16	false
 test-assets/e-invoicing/corpus/manifest.json	fixture-or-contract	39	false
 test-assets/e-invoicing/pagination-contract.json	fixture-or-contract	3	false
 test-assets/e-invoicing/pdfa-fixtures.json	fixture-or-contract	16	false

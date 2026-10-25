@@ -47,9 +47,10 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Normalize the synthetic OCSP fixture clock to whole seconds without relaxing production validation or test assertions.
 - [x] Verify that the loaded PKCS and XML shared-framework assemblies are both `10.0.13`.
 - [x] Add the owner-reviewed customer-facing Patch security fragment without changing the product version or published manifest.
-- [ ] Review the two runtime-dependent compressed-archive byte baselines while preserving original fixtures and exact uncompressed content.
-- [ ] Independently validate the patched-runtime invoice PDFs before approving any replacement PDF/A validation-input hashes; retain previous evidence.
-- [ ] Obtain a green full regression run on the patched target runtime after those explicit baseline decisions.
+- [x] Review the two runtime-dependent compressed-archive byte baselines while preserving original fixtures, exact uncompressed content, metadata, order and same-runtime byte determinism; reject content/metadata/entry mutations.
+- [x] Independently validate all seven patched-runtime invoice PDFs before approving replacement PDF/A validation-input hashes; preserve the previous manifest byte-for-byte, retain raw evidence, and compare all 11 raster pages at 144 DPI, extracted text and attachments.
+- [x] Prevent fixture tests from rewriting approved manifests and bind current/previous hashes to the recorded validation outcomes.
+- [x] Obtain a green full regression run on the patched target runtime after those explicit baseline decisions: 53 completed project reports, 3,437 passed, 82 skipped, zero failed, process exit code 0; disposable database removed. Keep the initial timeout/failed reports as evidence.
 - [ ] Update the system-wide developer runtime; the existing `10.0.5` installation is not covered by the isolated test SDK.
 - [ ] Rebuild, inventory, and scan final runtime/container artifacts before production release; a clean package audit does not validate shared-framework, OS, or native-library patch levels.
 - [ ] Re-run deployment smoke tests on those exact release artifacts.

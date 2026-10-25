@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-25T19:42:26.238Z",
+  "productVersion": "1.1.0",
+  "source": "c4285d8a plus current working-tree test and documentation changes; production renderers unchanged",
+  "previousRuntime": "10.0.5",
+  "candidateRuntime": "10.0.13",
+  "previousManifestSha256": "18ac85666ed6aa4211db76c72a78c587863eb87d62c4629c0e80534c7f80db46",
+  "candidateManifestSha256": "1a789ef08d77e7534bc2fb45a21790f09402633f1b263c13540b966328f167dc",
+  "validator": {
+    "name": "veraPDF",
+    "image": "ghcr.io/verapdf/cli@sha256:b334d330037bba9b641ff3f8b1acb29beadee9060b3028aa297d0b0f9393e17a",
+    "version": "veraPDF 1.31.166\nBuilt: Thu Aug 27 17:13:00 GMT 2026\nDeveloped and released by the veraPDF Consortium.\nFunded by the PREFORMA project.\nReleased under the GNU General Public License v3\nand the Mozilla Public License v2 or later.",
+    "network": "none"
+  },
+  "comparison": {
+    "tool": "Poppler",
+    "version": "pdftoppm version 26.04.0",
+    "rasterDpi": 144
+  },
+  "limitation": "PDF/A-3b and old/new rendering/content checks only. Not business-invoice conformance, secondary-validator approval, runtime deployment or production release approval.",
+  "results": [
+    {
+      "id": "factur-x-single-page",
+      "previousSha256": "9261c97dbd90a442b1719a545a8b78a526d412f1b01e5a35238c0446f8f1e2e3",
+      "candidateSha256": "f85620682124130ae189c0951cdbb3c78f1f4317db655cb06d6b27d824bd42e7",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 1,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "e1ecd834756a2bc3d0afbfa6549d341c1df925262e61fc5cb7afab1567bc741f",
+      "attachments": [
+        {
+          "name": "factur-x.xml",
+          "sha256": "8af29f4a3ca58800261aa49a627b5aedae7c7e198a3f3ab8834cb9fc563388ae"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/factur-x-single-page/verapdf.xml",
+      "reportSha256": "fd9a2c7be55b0fecb35b76d8c897b802244b7eedabbee6c7e4e4405596e73cfd"
+    },
+    {
+      "id": "zugferd-single-page",
+      "previousSha256": "5fde6e9f21fc2c2a08a1f52689d2eb4e8594c9400b5d060649e644e2856b6994",
+      "candidateSha256": "03af61e734bea7a4a8dbdcac4c8d6f4d192abdbfb73727f9a144c5dc0930c633",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 1,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "dcfb18b2eb0e0732e1c94e24e095b8f963f661ff62722399061691d6ad10720b",
+      "attachments": [
+        {
+          "name": "factur-x.xml",
+          "sha256": "317df364b2dd1d046343afe4996e4caddf92fc3b5b04481fee426878450aa9fa"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/zugferd-single-page/verapdf.xml",
+      "reportSha256": "236836a2825f4b5dfd7854aa3652ad1b0c10f378ed67d9241ec28edff89a2dcb"
+    },
+    {
+      "id": "xrechnung-single-page",
+      "previousSha256": "cfee68f0d9a6baddb947d908e01d820d81671008987df339ab5f2d868a341361",
+      "candidateSha256": "32dffa9a5a1b1e1f7e28eac4322dbba9c22210a5db912c30c4b6acf454ef2104",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 1,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "bf6da7b09befb85216716e586e10d50811e119abf02a5b7436aa29550a732fa3",
+      "attachments": [
+        {
+          "name": "xrechnung.xml",
+          "sha256": "d757d825dbb606880761577de42134f4a7d65bea74a339a70e0ca8f3c0582a97"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/xrechnung-single-page/verapdf.xml",
+      "reportSha256": "9acb42c75b9e9251cecba904ac15f48cc726893fb7bf4be1b87350354a122593"
+    },
+    {
+      "id": "factur-x-multi-page",
+      "previousSha256": "f056aeb23a08e8fc04d96b0d69d8cb36f79478d719f9c570044c500dfa8daad4",
+      "candidateSha256": "c47dd7e661cc351f342d21e87303a92904435ffa2c98d23a0534262fc829a5e2",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 3,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "54152448ea5801972e976672237ea1e9128204d149269dd6cc1512c42f5518b2",
+      "attachments": [
+        {
+          "name": "factur-x.xml",
+          "sha256": "e1b5b6c7416bbe749cece533caa271bcfaa16a0fac350e9d9615ef1dffe8b6fd"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/factur-x-multi-page/verapdf.xml",
+      "reportSha256": "6dab6cd2ced8b1ea49b0cf884d0848fe58f9b2c1cca1ec71831384f521b593a5"
+    },
+    {
+      "id": "factur-x-long-description",
+      "previousSha256": "1098f6333718e12684df15e3dd6e1eeea131c5f2391ffd0c41f54c6af9379638",
+      "candidateSha256": "d3bb37298d4e28f5c5ca83e7defa7a2c272eb5b16e00a4424f2d35baac8fdb71",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 2,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "54945cf52d6424a03a20c4641755b109189e33297e3e82dbbc426086273056aa",
+      "attachments": [
+        {
+          "name": "factur-x.xml",
+          "sha256": "a4908cdd2f92e9416ce8d9a49f9e7f34a67074c1c2af004ccf21ceb391878920"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/factur-x-long-description/verapdf.xml",
+      "reportSha256": "437f242b26b075170b74d011f3d9b1d1ff1e7654702db5b8637e35c0e674d1d3"
+    },
+    {
+      "id": "factur-x-many-tax-groups",
+      "previousSha256": "4a4bc3ebef317d793c02a31892eb9738fcf5dda2db97e315f1a6c909a8aead16",
+      "candidateSha256": "6da5333febd87764c18155ab580eeedf4dbb958fde6ab5ec1e0f6cdd1217dc1d",
+      "expectedResult": "compliant",
+      "observedResult": "compliant",
+      "pages": 2,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "11f1c67df949e6dad8353274bbd52f7d5c45540c829132b391dd333d5cd9a986",
+      "attachments": [
+        {
+          "name": "factur-x.xml",
+          "sha256": "7af7e76fee6834b45322d5655b3c6a89d07eebfe4780490cd274ea25210249f7"
+        }
+      ],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/factur-x-many-tax-groups/verapdf.xml",
+      "reportSha256": "2666ca3bb00b97eade4bced2691b8457ecd0068ee3d925c6ccd32aaa26f966dc"
+    },
+    {
+      "id": "control-not-pdfa",
+      "previousSha256": "c05408d255db1ba5718935851360172652911139bd3a54c13936b8d9b6d66bf1",
+      "candidateSha256": "4f64ca29885f083c2019483061ad82f9e5f313573fe8424bca3718ec5da9bd00",
+      "expectedResult": "nonCompliant",
+      "observedResult": "nonCompliant",
+      "pages": 1,
+      "rasterDpi": 144,
+      "rasterEqual": true,
+      "textEqual": true,
+      "attachmentsEqual": true,
+      "textSha256": "372a39479c609d6b390cd1c03ec2e12874cf844e002532235779f2df09b3b753",
+      "attachments": [],
+      "rawReport": "artifacts/dependencies/crypto-baselines-2026-10-25/review/control-not-pdfa/verapdf.xml",
+      "reportSha256": "dc3a8f5d1847754792e6ede3b24ff65ae9d8009ae7be134a4315130a9de4409f"
+    }
+  ],
+  "environment": {
+    "os": "macOS",
+    "generatorArchitecture": "x64",
+    "sdk": "10.0.113",
+    "runtime": "10.0.13"
+  }
+}

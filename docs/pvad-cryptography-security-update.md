@@ -75,9 +75,9 @@ The owner approved the exact customer-facing security summary in
 2026-10-25. Its impact is `patch`; the fragment does not publish a release or
 approve deployment.
 
-## Remaining Runtime Baseline Review
+## Initial Runtime Baseline Findings
 
-The full patched-runtime suite deliberately remains failed for these cases:
+The initial patched-runtime suite at `c4285d8a` remained failed for these cases:
 
 - `EInvoicePdfaFixtureTests.The_fixtures_and_their_manifest_are_written_and_pinned`:
   regenerated invoice PDFs have different size/hash values from the committed
@@ -105,6 +105,59 @@ whether to approve new PDF/A fixture hashes. Do not suppress the
 tests, replace historical validation evidence, or reuse old validator reports
 for PDFs with new hashes.
 
+## Baseline Follow-Up - 2026-10-25
+
+The ZIP reference tests now compare exact uncompressed contents, entry order,
+names, timestamps and attributes. Repeat writes must still be byte-identical on
+the current runtime. Additional regression cases reject changed content,
+timestamps, attributes, entry order, missing entries and extra entries, while
+accepting recompression alone. Original project archives are unchanged.
+
+The invoice fixture test now writes only an ignored candidate manifest and never
+modifies the approved source manifest. Regression cases verify that mismatched
+and missing approved manifests are preserved rather than implicitly accepted.
+An additional contract binds the approved manifest and each fixture hash to the
+review record and the archived previous manifest.
+
+All seven patched-runtime PDFs were validated before adopting their new hashes:
+veraPDF 1.31.166, pinned by image digest and run without network access, confirmed
+the six expected PDF/A-3b examples and rejected the negative control. All 11 pages
+are pixel-identical at 144 DPI to their checksum-verified previous versions;
+extracted text and attachments also match exactly. Previous reports were not
+reused or overwritten. The former approved manifest is archived byte-for-byte.
+
+See [the baseline evidence and future review workflow](../test-assets/e-invoicing/baselines/README.md).
+New local evidence is under `artifacts/dependencies/crypto-baselines-2026-10-25/`.
+This is approval of these technical fixture hashes only, not business-invoice,
+secondary-validator, license, production-runtime or deployment approval.
+
+The first follow-up full run reported no failed assertions but still exited
+with an interrupted Export test host. Its local 120-second hang collector
+terminated the real-world corpus test, which includes a 62-page PDF and DOCX/XLSX
+roundtrips. Running that test alone succeeded in about 115 seconds on emulated
+x64, leaving too little headroom at the original diagnostic threshold. The final
+repeat uses a local 300-second per-test collector limit and an overall
+900-second process limit; CI and production limits are unchanged. The original
+aborted reports are retained, and zero failed assertions alone is not sufficient
+to mark a full run green.
+
+The final full-solution repeat passed: **53 completed project reports, 3,437
+passed, 82 skipped, zero failed**, process exit code **0**, and the disposable
+database removed. The real-world corpus case completed in that same run; the
+Export suite reports 221 passes. See `final-test-summary.json`,
+`final-solution-test-run.json`, `final-solution-tests.log`, and
+`final-solution-tests/` under the follow-up evidence directory. The full build
+also passed, with zero errors and 110 existing warnings. The 35 release,
+compliance and residual-review contracts and 15 documentation/native-project
+contracts pass. Source code under `src/`, API implementation, CI rules, `VERSION`
+and the published release manifest are unchanged by this follow-up.
+
+The earlier 3,428/82/3 result remains historical evidence and is not relabeled
+green; its aggregate also omitted the interrupted corpus case. The final total
+includes five added regression cases and that completed corpus case. Skipped
+tests remain unverified, not passes. This closes the three baseline follow-ups,
+not the remaining runtime deployment, license, external validation or rename gates.
+
 ## Runtime And Deployment Boundary
 
 The system-wide developer SDK is `10.0.105`, with .NET and ASP.NET Core runtimes
@@ -123,8 +176,8 @@ libraries. Do not reuse the earlier API image as evidence for this update.
 
 Before a production release:
 
-- Resolve the patched-runtime baseline failures above and obtain a green full
-  regression run without unreviewed baseline replacement.
+- Retain the reviewed baseline contracts and rerun regression validation for the
+  exact production artifacts; the green local follow-up is not deployment approval.
 - Update the runtime used to run API and worker processes to the supported
   patched .NET 10 servicing release, at least `10.0.13` for these advisories.
 - Rebuild deployment images with refreshed SDK and runtime base images; record

@@ -16,9 +16,9 @@ namespace PVAD.Generator.Tests;
 /// <para>
 /// PDF/A conformance is checked by an external validator, so the inputs it is given have to be
 /// reproducible or the evidence means nothing. This writes every fixture from a pinned synthetic
-/// invoice, proves the bytes are identical across two generations in the same process, and pins each
-/// one's SHA-256 in <c>test-assets/e-invoicing/pdfa-fixtures.json</c>. A generation change moves the
-/// hash and fails here rather than silently invalidating a stored validator report.
+/// invoice, proves the bytes are identical across two generations in the same process, and compares
+/// their SHA-256 values with <c>test-assets/e-invoicing/pdfa-fixtures.json</c>. A generation change
+/// writes a candidate manifest and fails here without overwriting approved validation evidence.
 /// </para>
 /// <para>
 /// The PDFs themselves are written to the ignored <c>artifacts/</c> tree rather than committed:
@@ -121,7 +121,8 @@ public sealed class EInvoicePdfaFixtureTests
     [Fact]
     public void The_fixtures_and_their_manifest_are_written_and_pinned()
     {
-        var outputDirectory = Path.Combine(RepositoryRoot, "artifacts", "e-invoicing", "pdfa");
+        var outputDirectory = Environment.GetEnvironmentVariable("PVAD_EINVOICE_PDFA_OUTPUT_DIRECTORY")
+            ?? Path.Combine(RepositoryRoot, "artifacts", "e-invoicing", "pdfa");
         Directory.CreateDirectory(outputDirectory);
 
         var entries = new JsonArray();
@@ -169,12 +170,68 @@ public sealed class EInvoicePdfaFixtureTests
         var expected = manifest.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
         var manifestPath = Path.Combine(
             RepositoryRoot, "test-assets", "e-invoicing", "pdfa-fixtures.json");
-        var actual = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : string.Empty;
+        VerifyApprovedManifest(manifestPath, Path.Combine(outputDirectory, "candidate-pdfa-fixtures.json"), expected);
+    }
 
-        if (!string.Equals(actual, expected, StringComparison.Ordinal))
+    [Theory]
+    [InlineData(null)]
+    [InlineData("previous approved content")]
+    public void Manifest_mismatch_writes_only_a_candidate_and_preserves_approved_evidence(string? approved)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "pvad-pdfa-manifest-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
         {
-            File.WriteAllText(manifestPath, expected);
-            Assert.Fail($"{manifestPath} was out of date and has been regenerated. Review the diff.");
+            var manifest = Path.Combine(directory, "approved.json");
+            var candidate = Path.Combine(directory, "candidate.json");
+            if (approved is not null) File.WriteAllText(manifest, approved);
+
+            Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => VerifyApprovedManifest(manifest, candidate, "new candidate"));
+
+            Assert.Equal("new candidate", File.ReadAllText(candidate));
+            if (approved is null) Assert.False(File.Exists(manifest));
+            else Assert.Equal(approved, File.ReadAllText(manifest));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    private static void VerifyApprovedManifest(string manifestPath, string candidatePath, string expected)
+    {
+        File.WriteAllText(candidatePath, expected);
+        var actual = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : string.Empty;
+        Assert.True(string.Equals(actual, expected, StringComparison.Ordinal),
+            $"{manifestPath} does not match the generated fixtures. Review and validate {candidatePath}; the approved manifest was not changed.");
+    }
+
+    [Fact]
+    public void Approved_runtime_baseline_is_bound_to_validation_and_preserved_previous_hashes()
+    {
+        var directory = Path.Combine(RepositoryRoot, "test-assets", "e-invoicing");
+        var current = File.ReadAllBytes(Path.Combine(directory, "pdfa-fixtures.json"));
+        var previous = File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.5-pdfa-fixtures.json"));
+        var review = JsonNode.Parse(File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.13-validation.json")))!;
+        Assert.Equal(Sha256(current), review["candidateManifestSha256"]!.GetValue<string>());
+        Assert.Equal(Sha256(previous), review["previousManifestSha256"]!.GetValue<string>());
+        Assert.Equal("10.0.13", review["candidateRuntime"]!.GetValue<string>());
+        var approved = JsonNode.Parse(current)!["fixtures"]!.AsArray();
+        var historical = JsonNode.Parse(previous)!["fixtures"]!.AsArray();
+        var results = review["results"]!.AsArray();
+        Assert.Equal(approved.Count, results.Count);
+        Assert.Equal(6, results.Count(result => result!["observedResult"]!.GetValue<string>() == "compliant"));
+        Assert.Equal(1, results.Count(result => result!["observedResult"]!.GetValue<string>() == "nonCompliant"));
+        foreach (var fixture in approved)
+        {
+            var id = fixture!["id"]!.GetValue<string>();
+            var result = Assert.Single(results, item => item!["id"]!.GetValue<string>() == id)!;
+            var old = Assert.Single(historical, item => item!["id"]!.GetValue<string>() == id)!;
+            Assert.Equal(fixture["sha256"]!.GetValue<string>(), result["candidateSha256"]!.GetValue<string>());
+            Assert.Equal(old["sha256"]!.GetValue<string>(), result["previousSha256"]!.GetValue<string>());
+            Assert.Equal(fixture["expectedResult"]!.GetValue<string>(), result["observedResult"]!.GetValue<string>());
+            Assert.True(result["rasterEqual"]!.GetValue<bool>());
+            Assert.True(result["textEqual"]!.GetValue<bool>());
+            Assert.True(result["attachmentsEqual"]!.GetValue<bool>());
+            Assert.True(result["pages"]!.GetValue<int>() > 0);
+            Assert.Equal(144, result["rasterDpi"]!.GetValue<int>());
         }
     }
 

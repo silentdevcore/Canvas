@@ -777,7 +777,7 @@
     },
     {
       "path": "checklists/PVAD.Dependency-Security-And-Compliance.md",
-      "sha256": "33378769dd61e24d3698f08ef2000901872ea68d229ffa84701a3d56274d3959",
+      "sha256": "4510e3b710aff732206c2efbcd4b8dce4fef44e87d6ec40366d3d08182ed2b8c",
       "reasons": [
         "historical-checklist"
       ],
@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "0eb115583600188f14e0aad2911536a88626360d4419fc0aa8186c93a2b76ae5",
+      "sha256": "2ea9f310aee309e1f3bc1cada5c19abbdb457fb8f8afea4271257dc6305e6f61",
       "reasons": [
         "compatibility-contract"
       ],
@@ -2157,12 +2157,12 @@
     },
     {
       "path": "docs/fixtures/native-projects/README.md",
-      "sha256": "b5cdbe133afce05eecc2c6976d1eadc212880e6fadd1eba2ecaeaff8e37fd2a1",
+      "sha256": "057584f61ff7788e14ed3f60ab4afaa7620cd6100e94b78e3cc9501a50195b81",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/fixtures/native-projects/README.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-25 runtime-baseline follow-up: retain original legacy example filenames and bytes. Clarify exact entry-content/metadata/order compatibility and same-runtime byte determinism without claiming compression is identical across servicing releases. No installed association or external release approval is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2197,12 +2197,12 @@
     },
     {
       "path": "docs/native-designer-project-formats.md",
-      "sha256": "bddf1cb4ee16ed1507b2ab90d76eda8d2fe95658d842202c6a97ff7f2fba0c20",
+      "sha256": "bd8f398b7bf82e41d0d22adb5e3be9b639cb7d60d50366988e08707d86aad6ae",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: retain explicit naming/compatibility history and document actual full-suite, package, DocFX and browser evidence. Keep 88/98 acceptance unchanged and record the stale-workspace conflict, authenticated CSP gap and manual print limitation; no remote or legal approval is implied.",
+      "reviewNotes": "2026-10-25 runtime-baseline follow-up: retain legacy envelope names, reader compatibility and stable diagnostics. Clarify that cross-runtime Deflate bytes are not part of the format contract; exact payloads, metadata, ordering and repeated-write determinism remain checked. No application behavior, rename gate, production or legal approval changes.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5206,6 +5206,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "test-assets/e-invoicing/baselines/dotnet-10.0.5-pdfa-fixtures.json",
+      "sha256": "18ac85666ed6aa4211db76c72a78c587863eb87d62c4629c0e80534c7f80db46",
+      "reasons": [
+        "retained-evidence"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Byte-identical archived invoice fixture manifest from c4285d8a, retained after independent validation of the newer runtime baseline. Original schema, provenance and license strings are historical evidence, not active branding or new legal approval; the baseline README records the boundary.",
+      "boundaryGuide": "test-assets/e-invoicing/baselines/README.md"
+    },
+    {
       "path": "test-assets/e-invoicing/corpus/manifest.json",
       "sha256": "d1573d7a24ee800647b223cbb4b5f10d135f4fde29eb0510a37fef327bbcffff",
       "reasons": [
@@ -5227,12 +5237,12 @@
     },
     {
       "path": "test-assets/e-invoicing/pdfa-fixtures.json",
-      "sha256": "18ac85666ed6aa4211db76c72a78c587863eb87d62c4629c0e80534c7f80db46",
+      "sha256": "1a789ef08d77e7534bc2fb45a21790f09402633f1b263c13540b966328f167dc",
       "reasons": [
         "retained-evidence"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/e-invoicing/pdfa-fixtures.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
+      "reviewNotes": "2026-10-25 reviewed runtime-baseline update: change only seven PDF hashes and sizes after pinned veraPDF checks (six conforming examples, one correctly rejected control) and identical 144-DPI pages, text and attachments. Preserve the former manifest byte-for-byte in baselines/dotnet-10.0.5-pdfa-fixtures.json and retain raw old reports. Historical schema, provenance, license strings, fixture IDs and descriptions remain unchanged; no business-conformance, secondary-validator, legal or deployment approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6327,12 +6337,12 @@
     },
     {
       "path": "tests/PVAD.Core.Tests/PvadProjectArchiveTests.cs",
-      "sha256": "15b17f4da6f54fa3082bcec8d23e1ac29901225b9c458e3ad5d1ad56672d3c19",
+      "sha256": "2e05c8d3e3a2de491ba32f1dc846f0670715f51aee93c74514c16b47d641babe",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Core.Tests/PvadProjectArchiveTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 runtime-baseline review: retain synthetic legacy envelopes and stable diagnostic expectations. Replace only cross-runtime compressed-byte equality with exact entry payload/metadata/order comparison plus same-runtime byte determinism. Explicit negative cases reject content, timestamps, attributes, ordering, missing entries and extra entries; production readers/writers and original fixtures are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6577,12 +6587,12 @@
     },
     {
       "path": "tests/PVAD.Generator.Tests/EInvoicePdfaFixtureTests.cs",
-      "sha256": "6c3208efc6ea6d385da007d7224fd651a98312ec829c1cd6c27489ee3a2482e3",
+      "sha256": "d5ddd4f391ea26c18af69d4a8bf2f02103368cf54ac80f5084b4a576a358f040",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Generator.Tests/EInvoicePdfaFixtureTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 runtime-baseline review: retain historical synthetic invoice text, source schema and provenance identifiers so review isolates compression changes. Fixture mismatches now write only a candidate, never the approved manifest; regression cases preserve missing/mismatched baselines and bind both manifests and document hashes to the recorded validation. Rendering code, tax/business conformance and legal approval remain outside this change.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

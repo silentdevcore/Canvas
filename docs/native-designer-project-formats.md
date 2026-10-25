@@ -57,7 +57,15 @@ it was exported and never carries a usable tenant asset ID.
 
 ## Package layout
 
-Both formats are ZIP-compatible packages with deterministic entry ordering:
+Both formats are ZIP-compatible packages with deterministic entry ordering.
+
+Determinism covers entry order, names, timestamps, attributes and exact uncompressed
+payload bytes for the same canonical document. Repeated writes on the same runtime
+also produce identical archive bytes. Deflate implementations may change between
+.NET servicing releases, so cross-runtime archive byte equality is not a format
+guarantee. Content hashes and entry checksums remain independent of compression.
+Compatibility fixtures are retained unchanged and compared entry by entry; an
+export never rewrites a previously uploaded file.
 
 ```text
 mimetype

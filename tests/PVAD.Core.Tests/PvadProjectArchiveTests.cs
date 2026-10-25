@@ -463,15 +463,104 @@ public sealed class PvadProjectArchiveTests
             manifest.DocumentId.StartsWith("pvad", StringComparison.Ordinal));
         Assert.Equal(DateTimeOffset.UnixEpoch, manifest.CreatedAtUtc);
         using var packageStream = new MemoryStream(bytes);
-        var regenerated = kind == PvadProjectKind.Pdf
-            ? PvadProjectArchive.WritePdf(PvadProjectArchive.ReadPdf(packageStream).Document)
-            : PvadProjectArchive.WriteSpreadsheet(PvadProjectArchive.ReadSpreadsheet(packageStream).Document);
+        byte[] Regenerate()
+        {
+            packageStream.Position = 0;
+            return kind == PvadProjectKind.Pdf
+                ? PvadProjectArchive.WritePdf(PvadProjectArchive.ReadPdf(packageStream).Document)
+                : PvadProjectArchive.WriteSpreadsheet(PvadProjectArchive.ReadSpreadsheet(packageStream).Document);
+        }
+        var regenerated = Regenerate();
         using var converted = new MemoryStream(regenerated);
         var canonical = PvadProjectArchive.Inspect(converted, kind);
         Assert.Equal(PvadProjectFormat.FormatId(kind), canonical.FormatId);
         Assert.Equal(manifest.DocumentId, canonical.DocumentId);
         Assert.Equal(bytes, File.ReadAllBytes(Path.Combine(root, "docs", "fixtures", "native-projects", fileName)));
-        if (formatId == PvadProjectFormat.FormatId(kind)) Assert.Equal(bytes, regenerated);
+        Assert.Equal(regenerated, Regenerate());
+        if (formatId == PvadProjectFormat.FormatId(kind)) AssertArchiveContentsEqual(bytes, regenerated);
+    }
+
+    [Theory]
+    [InlineData("minimal.pvadp")]
+    [InlineData("minimal.pvads")]
+    public void Reference_archive_comparison_accepts_only_compression_changes(string fileName)
+    {
+        var bytes = File.ReadAllBytes(Path.Combine(FindRepositoryRoot(), "docs", "fixtures", "native-projects", fileName));
+        using var original = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+        using var recompressed = new MemoryStream();
+        using (var archive = new ZipArchive(recompressed, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var entry in original.Entries)
+            {
+                var copy = archive.CreateEntry(entry.FullName, CompressionLevel.NoCompression);
+                copy.LastWriteTime = entry.LastWriteTime;
+                copy.ExternalAttributes = entry.ExternalAttributes;
+                using var source = entry.Open();
+                using var destination = copy.Open();
+                source.CopyTo(destination);
+            }
+        }
+
+        var equivalent = recompressed.ToArray();
+        Assert.False(bytes.AsSpan().SequenceEqual(equivalent));
+        AssertArchiveContentsEqual(bytes, equivalent);
+
+        foreach (var mutation in new[] { "content", "timestamp", "attributes", "missing", "extra", "order" })
+        {
+            using var changed = new MemoryStream();
+            changed.Write(equivalent);
+            changed.Position = 0;
+            using (var archive = new ZipArchive(changed, ZipArchiveMode.Update, leaveOpen: true))
+            {
+                var document = archive.GetEntry(PvadProjectFormat.DocumentEntry)!;
+                switch (mutation)
+                {
+                    case "content":
+                        using (var stream = document.Open())
+                            stream.WriteByte((byte)'!');
+                        break;
+                    case "timestamp": document.LastWriteTime = document.LastWriteTime.AddDays(1); break;
+                    case "attributes": document.ExternalAttributes ^= 1; break;
+                    case "missing": document.Delete(); break;
+                    case "extra": archive.CreateEntry("extra.json"); break;
+                    case "order":
+                        var first = archive.GetEntry(PvadProjectFormat.MimeTypeEntry)!;
+                        var timestamp = first.LastWriteTime;
+                        var attributes = first.ExternalAttributes;
+                        using (var content = new MemoryStream())
+                        {
+                            using (var input = first.Open()) input.CopyTo(content);
+                            first.Delete();
+                            var last = archive.CreateEntry(PvadProjectFormat.MimeTypeEntry, CompressionLevel.NoCompression);
+                            last.LastWriteTime = timestamp;
+                            last.ExternalAttributes = attributes;
+                            using var destination = last.Open();
+                            destination.Write(content.ToArray());
+                        }
+                        break;
+                }
+            }
+            Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => AssertArchiveContentsEqual(bytes, changed.ToArray()));
+        }
+    }
+
+    private static void AssertArchiveContentsEqual(byte[] expected, byte[] actual)
+    {
+        using var reference = new ZipArchive(new MemoryStream(expected), ZipArchiveMode.Read);
+        using var rewritten = new ZipArchive(new MemoryStream(actual), ZipArchiveMode.Read);
+        Assert.Equal(reference.Entries.Select(entry => entry.FullName), rewritten.Entries.Select(entry => entry.FullName));
+        foreach (var entry in reference.Entries)
+        {
+            var other = rewritten.GetEntry(entry.FullName)!;
+            Assert.Equal(entry.LastWriteTime, other.LastWriteTime);
+            Assert.Equal(entry.ExternalAttributes, other.ExternalAttributes);
+            Assert.Equal(entry.Length, other.Length);
+            using var expectedStream = new MemoryStream();
+            using var actualStream = new MemoryStream();
+            using (var input = entry.Open()) input.CopyTo(expectedStream);
+            using (var input = other.Open()) input.CopyTo(actualStream);
+            Assert.Equal(expectedStream.ToArray(), actualStream.ToArray());
+        }
     }
 
     private static string FindRepositoryRoot()
