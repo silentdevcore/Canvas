@@ -64,7 +64,7 @@ export function createRemoteMcpApp(config: RemoteMcpConfig, options: RemoteMcpAp
   const metadata = {
     resource: config.resourceUri.href,
     authorization_servers: [config.issuer],
-    scopes_supported: [...REMOTE_READ_SCOPES, 'pxa.documents.validate'],
+    scopes_supported: [...REMOTE_READ_SCOPES, 'pvad.documents.validate'],
     bearer_methods_supported: ['header'],
     resource_name: 'PVADE MCP',
   };

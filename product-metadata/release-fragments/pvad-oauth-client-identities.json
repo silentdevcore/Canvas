@@ -1,0 +1,8 @@
+{
+  "id": "pvad-oauth-client-identities",
+  "impact": "major",
+  "components": ["account", "admin", "api", "infrastructure", "sdk", "documentation"],
+  "category": "breaking",
+  "summary": "New OAuth clients and scope discovery use PVAD identities. Existing registrations and tokens remain valid; built-in client counterparts require explicit maintenance approval. Follow the transition guide before switching retained integrations.",
+  "breaking": true
+}

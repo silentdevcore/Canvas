@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
 using PVAD.Domain.Entities;
 using PVAD.Infrastructure.Persistence;
 using PVAD.Infrastructure.Persistence.Identity;
@@ -110,7 +111,14 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
     }
 
     [PostgreSqlFact]
-    public async Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once()
+    public Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once() =>
+        ExerciseServiceAccountLifecycleAsync(legacyClient: false);
+
+    [PostgreSqlFact]
+    public Task Retained_legacy_service_account_can_exchange_both_scope_generations_and_be_revoked() =>
+        ExerciseServiceAccountLifecycleAsync(legacyClient: true);
+
+    private static async Task ExerciseServiceAccountLifecycleAsync(bool legacyClient)
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
@@ -137,7 +145,21 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         Assert.False(string.IsNullOrWhiteSpace(secret));
         var keyId = key.GetProperty("id").GetGuid();
         var oauthClientId = key.GetProperty("oAuthClientId").GetString();
-        Assert.Equal($"pxa-sa-{keyId:N}", oauthClientId);
+        Assert.Equal($"pvad-sa-{keyId:N}", oauthClientId);
+
+        if (legacyClient)
+        {
+            // Seed the pre-rename registration before issuing any tokens.
+            await using var legacyScope = factory.Services.CreateAsyncScope();
+            var manager = legacyScope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+            var legacyDb = legacyScope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            var application = (OpenIddictEntityFrameworkCoreApplication)(await manager.FindByClientIdAsync(oauthClientId!))!;
+            oauthClientId = PvadOAuthClients.LegacyForApiKey(keyId);
+            application.ClientId = oauthClientId;
+            await manager.UpdateAsync(application);
+            (await legacyDb.ApiKeys.SingleAsync(value => value.Id == keyId)).OAuthClientId = oauthClientId;
+            await legacyDb.SaveChangesAsync();
+        }
 
         using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
@@ -263,7 +285,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         await scope.ServiceProvider.GetRequiredService<PvadMailProcessor>()
             .ProcessPendingAsync(CancellationToken.None);
         Assert.Equal(4, factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages.Count(value =>
-            value.Subject == "Security change in your Power Dox Automation organization"));
+            value.Subject == "Security change in your PVADE organization"));
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
         var securityMessages = await dbContext.MailOutboxMessages.AsNoTracking()
             .Where(value => value.TemplateKey == "security.organization-changed")

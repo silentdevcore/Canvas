@@ -77,9 +77,11 @@ public sealed class PvadOAuthClientRegistry(
         if (!settings.Enabled)
             return;
 
-        var application = await applicationManager.FindByClientIdAsync(
-            GetServiceAccountClientId(apiKeyId), cancellationToken);
-        if (application is not null)
-            await applicationManager.DeleteAsync(application, cancellationToken);
+        foreach (var clientId in new[] { GetServiceAccountClientId(apiKeyId), PvadOAuthClients.LegacyForApiKey(apiKeyId) })
+        {
+            var application = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
+            if (application is not null)
+                await applicationManager.DeleteAsync(application, cancellationToken);
+        }
     }
 }

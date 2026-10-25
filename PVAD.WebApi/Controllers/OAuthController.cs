@@ -102,7 +102,7 @@ public sealed class OAuthController(
         OpenIddictRequest request,
         CancellationToken cancellationToken)
     {
-        if (!TryParseServiceAccountClientId(request.ClientId, out var apiKeyId))
+        if (!PvadOAuthClients.TryParseServiceAccountId(request.ClientId, out var apiKeyId))
             return OAuthForbid(OpenIddictConstants.Errors.InvalidClient, "The OAuth client is invalid.");
 
         var now = DateTimeOffset.UtcNow;
@@ -155,14 +155,6 @@ public sealed class OAuthController(
         access.Key.LastUsedAt = now;
         await dbContext.SaveChangesAsync(cancellationToken);
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-    }
-
-    private static bool TryParseServiceAccountClientId(string? clientId, out Guid apiKeyId)
-    {
-        const string prefix = "pxa-sa-";
-        apiKeyId = Guid.Empty;
-        return clientId?.StartsWith(prefix, StringComparison.Ordinal) == true &&
-               Guid.TryParseExact(clientId[prefix.Length..], "N", out apiKeyId);
     }
 
     private async Task<InteractiveAccess> ResolveInteractiveAccessAsync(

@@ -29,6 +29,10 @@ public static class PvadOAuthServiceCollectionExtensions
                 "OAuth public-client redirect URIs must be absolute HTTP(S) URLs.")
             .Validate(options => options.DynamicClientMaximumRedirectUris is >= 1 and <= 20,
                 "OAuth dynamic-client redirect URI limit must be between 1 and 20.")
+            .Validate(options => !options.Enabled ||
+                (!string.IsNullOrWhiteSpace(options.PublicClientId) && !string.IsNullOrWhiteSpace(options.McpServerClientId)
+                 && options.PublicClientId != options.McpServerClientId),
+                "OAuth public and internal client identities must be non-empty and distinct.")
             .Validate(options =>
                 string.IsNullOrWhiteSpace(options.McpDelegationSecret) ||
                 System.Text.Encoding.UTF8.GetByteCount(options.McpDelegationSecret) >= 32,

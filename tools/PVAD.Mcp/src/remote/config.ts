@@ -1,6 +1,6 @@
 import { normalizePvadEnvironment } from '../../../configuration/environment.mjs';
 
-export const REMOTE_READ_SCOPES = ['pxa.docs.read'] as const;
+export const REMOTE_READ_SCOPES = ['pvad.docs.read'] as const;
 
 export interface RemoteMcpConfig {
   host: string;

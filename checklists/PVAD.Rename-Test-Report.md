@@ -3001,3 +3001,69 @@ change or production deployment was performed. Full release readiness remains op
   `git diff --check` pass. Logs: `/tmp/pvad-rename-plan-audit-doc-tests.log` and
   `/tmp/pvad-rename-plan-audit-contracts.log`. No new application build, browser
   E2E, DocFX or PostgreSQL run is claimed by this documentation audit.
+
+## OAuth And MCP Canonical Writers (2026-10-25)
+
+- New defaults now use `pvad-api`, `pvad-mcp-public`, `pvad-mcp-server` and
+  `pvad-sa-<id>`. Twelve canonical scope constants retain known historical aliases;
+  MCP metadata advertises current read scopes without adding write/render powers.
+  The reserved API resource option is not used to widen token audiences. Existing
+  exact issuer/MCP-resource validation and signed delegation tuples are unchanged.
+- Service-account parsing accepts only the two bounded prefixes and a nonempty
+  N-format key GUID. Exchange still matches the exact stored client ID, active
+  tenant/account and usable key. New keys use current IDs; old registrations and
+  credentials remain under their retained ID until explicit key rotation.
+  Revocation looks up both exact generations for that key.
+- A new `PvadOAuthClientTransition` offers count-only dry-run and explicit apply.
+  Fresh stores initialize normally. A missing current built-in with an old
+  counterpart requires the maintenance flag or explicit operation; bootstrap
+  preflights this requirement before scope migration. Current counterparts copy
+  retained redirect/consent/requirement/permission metadata, adding known aliases
+  only where already granted. Type mismatch and nonmatching configured secret fail
+  preflight. Stored secret hashes are not reinterpreted as plaintext. Retained
+  client rows are unchanged; their grants and token rows are neither copied to
+  counterparts nor reassigned. Only reviewed new built-ins are registered.
+- The client operation is not one all-or-nothing transaction across registrations.
+  Retry is idempotent; no concurrent administration or live multi-replica cache
+  safety is asserted. Rollback selects retained configured IDs without token or
+  grant rewriting. These procedures are documented in the new transition guide.
+- Initial compile validation found and corrected a misplaced using directive.
+  The first isolated test run passed 23/25; two revocation tests used EF InMemory,
+  which cannot execute OpenIddict's relational bulk DELETE. Real revocation checks
+  were moved to disposable PostgreSQL, with production deletion behavior retained.
+  The first 32-test PostgreSQL/HTTP selection passed 30 and exposed two stale mail
+  subject expectations. Those now assert the actual existing PVADE subject without
+  weakening the four-message/outbox/idempotency or secret-redaction assertions.
+- The corrected selection passes 32/32. The final expanded selection, including
+  client-type failure and all Account service-account/session tests, passes
+  **36/36 with zero skips**. Real PostgreSQL checks cover scope/grant migration,
+  retained built-ins/metadata/credentials/tokens, rollback, deletion of both service
+  client generations and complete HTTP exchange/revocation with both ID and scope
+  generations. Only new short-lived PostgreSQL containers and synthetic data are
+  used; installed development databases and running application hosts are untouched.
+- MCP passes all 27 tests, typecheck, build and packaged distribution smoke. Existing
+  AJV unknown-format warnings remain visible. The broader configuration/legal/
+  deployment/versioning/link selection passes 222/222 after updating a source
+  contract that still expected legacy discovery output. API compilation retains
+  existing compiler, dependency-advisory and NPOI license warnings; no package
+  versions or license acceptance were changed.
+- Logs: `/tmp/pvad-oauth-identity-tests.log` (initial compile failure),
+  `/tmp/pvad-oauth-identity-tests-final.log` (initial InMemory limitation),
+  `/tmp/pvad-oauth-postgres-tests.log` (stale mail assertion),
+  `/tmp/pvad-oauth-postgres-tests-final.log` (32 passing),
+  `/tmp/pvad-oauth-postgres-expanded-tests.log` (36 passing),
+  `/tmp/pvad-oauth-postgres-release-check.log` (final strict-ID rerun),
+  `/tmp/pvad-oauth-mcp-tests.log`, `/tmp/pvad-oauth-mcp-typecheck.log`,
+  `/tmp/pvad-oauth-mcp-build.log`, `/tmp/pvad-oauth-mcp-smoke.log`,
+  `/tmp/pvad-oauth-contracts-final.log` and `/tmp/pvad-oauth-fragments.log`.
+- The two reopened source/writer criteria are closed: **88/98 (89.8%) complete,
+  10/98 (10.2%) open**. No extra dated checkboxes are counted. Full final-candidate
+  Solution/API, browser/CSP/DocFX, real-store activation, publication and external
+  infrastructure gates remain open; selected green tests do not close them.
+- Fragment `pvad-oauth-client-identities` declares Major impact. VERSION stays
+  1.1.0; published history, current branches, remote settings, installed keyrings
+  and `.vscode` files are unchanged. No commit or push was requested for this batch.
+- All 69 relative file links across the eight updated guides/tracker resolve.
+  The 88/98 primary-task count is verified programmatically. Legacy-name review
+  remains limited to the changed file hashes and documented compatibility/history
+  boundaries; it is not renewed approval of unrelated content or live deployment.

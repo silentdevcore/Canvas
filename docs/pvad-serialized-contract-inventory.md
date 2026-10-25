@@ -19,7 +19,7 @@ the current writer. Existing schema/DTO coverage tests remain the behavior gate.
 | Native archive manifest | PVAD format identities, `minimumPvadVersion` | Exact old tuples/version aliases remain readable; conflicts rejected |
 | Permission/org/active-org/service/session claims | Five `pvad_*` names | Legacy aliases recognized with conflicting-value rejection |
 | OAuth issuer and resource audience | Configured URI identity | Do not derive new domains from branding or rewrite issued tokens/grants |
-| OAuth scopes/client IDs | Known canonical scope aliases and new PVAD dynamic-registration IDs; built-in/public/service-account defaults and MCP discovery still require writer cutover | Existing scope/grant migration is opt-in; client/resource identity transition and final verification remain open |
+| OAuth scopes/client IDs | Canonical scope defaults/discovery and new PVAD built-in, service-account and dynamic-registration IDs | Retained IDs remain registered. Explicit parallel built-in provisioning and opt-in scope aliases preserve credentials/grants/tokens; service-account replacement uses normal key rotation. See the client-transition guide. |
 | Browser events and handoffs | Documented `pvad:` events/envelopes | Owner-bound legacy recovery where specified; no new cross-tenant adoption |
 | Jobs and worker messages | Neutral typed JSON/protocol fields | Preserve job IDs, payload fields and result aliases; deploy paired worker/API |
 | Legal/license/audit content | Existing immutable/versioned contracts | No in-place reserialization of accepted/signed retained evidence |

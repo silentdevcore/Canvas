@@ -106,9 +106,11 @@ where the matching known historical scope is already present. It does not create
 new clients, rotate secrets or rewrite issued tokens. Canonical discovery alone
 does not upgrade an existing client: without the migration it may still reject
 canonical requests. Keep legacy login examples until all target stores are migrated.
-Client IDs, issuer URLs and the configured OAuth API resource are not renamed by
-the internal HMAC audience transition. Newly dynamically registered clients now
-receive opaque `pvad-mcp-dcr-*` IDs; existing dynamic IDs are retained unchanged.
+The internal HMAC audience transition does not itself rename OAuth clients or
+issuer URLs. The later [client transition](pvad-oauth-client-transition.md) now
+uses canonical built-in, new service-account and dynamic-registration IDs, plus
+canonical default/discovered scopes. Retained clients and issued tokens keep their
+IDs. Issuer/MCP resource URLs and token audiences are not widened by this rename.
 
 ### Scope Migration Procedure
 
@@ -139,9 +141,9 @@ abort startup rather than overwriting another writer.
 | --- | --- | --- |
 | Authentication schemes | `PXA.Combined`, `PXA.ApiKey`, `PXA.McpDelegation`, `PXA.Designer.Cookie` | Scheme changes can change ticket protection purposes |
 | Legacy claim values | Existing user, organization, service-account and session IDs | Canonical claim names do not replace the identifiers themselves |
-| OAuth registrations/scopes | Existing twelve `pxa.*` scopes in `PvadOAuthScopes.All` | Apply the opt-in alias migration to each target store and verify client login before switching requests |
-| OAuth API audience | `pxa-api` | Accept old/new audiences only under an explicit policy |
-| OAuth client identities | `pxa-mcp-public`, `pxa-mcp-server`, `pxa-sa-<id>` | Preserve existing client registrations and grants |
+| OAuth registrations/scopes | Canonical twelve `pvad.*` scopes with known `pxa.*` aliases | Apply the opt-in alias migration to each retained store and verify client login before switching requests |
+| OAuth API resource setting | New default `pvad-api`; retained overrides may use `pxa-api` | This reserved option is not used to expand token audiences. Actual issuance/remote validation still uses the exact configured MCP resource URI. |
+| OAuth client identities | New `pvad-mcp-public`, `pvad-mcp-server`, `pvad-sa-<id>`; old counterparts remain registered | Explicit parallel built-in transition; retained service-account IDs remain exact until key rotation. No issued-token/grant rewriting. |
 | Legacy signed MCP delegation | The two explicit historical combinations above | Compatibility readers retain original signed bytes |
 | License signatures | Existing envelope JSON, key ID and `ECDSA_P256_SHA256` | No signed-byte replacement by rename |
 

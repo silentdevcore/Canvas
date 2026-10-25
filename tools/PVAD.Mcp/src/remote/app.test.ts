@@ -86,11 +86,12 @@ test('remote host exposes health and protected-resource metadata without authent
     assert.equal(health.status, 200);
     const metadata = await fetch(new URL('/.well-known/oauth-protected-resource/mcp', running.baseUrl));
     assert.equal(metadata.status, 200);
-    const body = await metadata.json() as { resource_name: string; authorization_servers: string[] };
+    const body = await metadata.json() as { resource_name: string; authorization_servers: string[]; scopes_supported: string[] };
     assert.equal(body.resource_name, 'PVADE MCP');
     assert.deepEqual(body.authorization_servers, [
       'http://127.0.0.1:5178',
     ]);
+    assert.deepEqual(body.scopes_supported, ['pvad.docs.read', 'pvad.documents.validate']);
   } finally {
     await close(running.server);
   }

@@ -7,9 +7,9 @@ secret in a checked-in client configuration.
 
 ## Supported Protocol Revisions
 
-The current Account discovery and stored client permissions still use `pxa.*`
-scope names; retain those scope requests in the examples below. Token readers also
-understand the corresponding three canonical read-only aliases. Organization
+Current discovery advertises `pvad.*` scope names. New clients accept the three
+canonical read-only scopes and their known `pxa.*` aliases. Retained clients may
+still require legacy requests until their opt-in scope migration is verified. Organization
 claims default to `pvad_organization`, with a conflict-checked `pxa_organization`
 reader. Internal API delegation uses a separate canonical `PVAD-MCP` envelope;
 it is not a replacement OAuth client ID or grant. See
@@ -40,7 +40,7 @@ Register the remote server and start OAuth login with DCR:
 codex mcp add pvad --url https://mcp.pvade.com/mcp
 codex mcp login pvad \
   --oauth-client-registration DCR \
-  --scopes pxa.docs.read,pxa.templates.read,pxa.documents.validate
+  --scopes pvad.docs.read,pvad.templates.read,pvad.documents.validate
 codex mcp get pvad
 ```
 
@@ -85,6 +85,10 @@ browser for OAuth. Do not add a static `Authorization` header to a shared worksp
 Automation obtains the OAuth client ID and one-time secret from PVAD Account. Request only required
 scopes from `/connect/token` using `client_credentials`. Store the secret in the operating-system or
 CI credential store, rotate it regularly, and revoke it immediately when a workload is retired.
+Use the stored client ID returned by Account: new keys use `pvad-sa-<id>`, while
+retained registrations may still use `pxa-sa-<id>`. Do not rewrite IDs locally.
+The [client-transition guide](pvad-oauth-client-transition.md) covers parallel
+built-in clients, scope migration, maintenance and rollback without token rewriting.
 
 ## Troubleshooting
 

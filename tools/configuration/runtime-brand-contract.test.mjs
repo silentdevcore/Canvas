@@ -83,7 +83,7 @@ test('Designer product notifications and their stylesheet use the same current c
   assert.doesNotMatch(css, /\.pxa-/);
 });
 
-test('Designer help and starter use current names while MCP discovery keeps its compatibility scopes', () => {
+test('Designer help and starter use current names while MCP discovery writes canonical scopes', () => {
   for (const path of [
     'pvad-designer/src/pages/DocsPage.tsx',
     'pvad-designer/src/components/CodeEditor/starterTemplates.ts',
@@ -94,7 +94,8 @@ test('Designer help and starter use current names while MCP discovery keeps its 
   assert.match(help, /docs\/README\.md/);
   const remote = readFileSync(resolve(root, 'tools/PVAD.Mcp/src/remote/app.ts'), 'utf8');
   assert.match(remote, /resource_name: 'PVADE MCP'/);
-  assert.match(remote, /'pxa\.documents\.validate'/);
+  assert.match(remote, /'pvad\.documents\.validate'/);
+  assert.match(remote, /compatibleScopes\(auth\.scopes\)/);
 });
 
 function sources(directory) {

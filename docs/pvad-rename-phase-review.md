@@ -4,9 +4,23 @@ This records the repository rename review, not publication, legal approval or
 authorization to cut over external infrastructure. See the
 [tracker](../checklists/Rename-PXA-To-PVAD.md).
 
-## Current Audit: 2026-10-24
+## Current Follow-up: 2026-10-25
 
-The rename is not complete. The tracker counts 86/98 primary acceptance gates
+OAuth/MCP defaults, discovery and the explicitly approved client transition are
+implemented and locally tested. The tracker now records 88/98 primary gates done
+(89.8%), with 10/98 open (10.2%). The earlier audit below explains the two gates
+that were reopened and are now closed. Full final-candidate acceptance and real
+store/infrastructure activation remain open; no percentage claims production
+readiness. See the [client-transition guide](pvad-oauth-client-transition.md).
+
+The migration/artifact audit package is committed as `1bbcca5e`; the current
+OAuth follow-up is uncommitted. Retained IDs and credentials are not rewritten
+in an installed database. The source-level local checks do not activate a live
+store migration or close publisher, host, keyring, artwork or release approvals.
+
+## Historical Audit: 2026-10-24
+
+At that audit, the tracker counted 86/98 primary acceptance gates
 complete (87.8%) and 12/98 open (12.2%). Dated follow-up checkboxes are supporting
 evidence and are not added a second time. This is task completion, not an effort
 estimate or production readiness percentage.

@@ -157,9 +157,15 @@ These questions prepare approval; writing an answer does not execute a deploymen
 7. Which staging environment may be tested, who approves the window, and who
    authorizes the major release after that evidence is reviewed?
 
+The 2026-10-25 [OAuth client transition](pvad-oauth-client-transition.md) implements
+canonical writers and an explicit maintenance procedure. Disposable-store tests
+do not approve applying either migration flag to an installed environment.
+Retained service-account IDs remain until normal key rotation, and built-in
+counterparts require reviewed metadata/permissions and matching credentials.
+
 The repository [phase review](pvad-rename-phase-review.md) separates historical
 reviewed checkpoints from the current uncommitted migration follow-up and final
 candidate acceptance. The [current audit](../checklists/Rename-PXA-To-PVAD.md#current-audit-and-progress-2026-10-24)
-also records remaining OAuth/MCP writers and local validation work, not only
-external approvals. Neither document turns owner decisions or production evidence
+records the earlier writer findings, closed by the dated OAuth follow-up, and
+remaining local validation work, not only external approvals. Neither document turns owner decisions or production evidence
 gates into completed code tasks.

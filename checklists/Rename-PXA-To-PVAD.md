@@ -4,10 +4,12 @@
 
 ## Status And Naming Authority
 
-**Current audit, 2026-10-24: not complete. The counted acceptance plan is
-86/98 complete (87.8%), with 12/98 open (12.2%).** OAuth/MCP still has legacy
-writer defaults, and final-candidate validation and external release gates remain
-open. See [the current audit and counting rule](#current-audit-and-progress-2026-10-24).
+**Current status, 2026-10-25: not complete. The counted acceptance plan is
+88/98 complete (89.8%), with 10/98 open (10.2%).** OAuth/MCP writer defaults and
+the local tested identity transition are now implemented. Final-candidate
+validation and external release gates remain open. See
+[the OAuth/MCP completion](#oauth-and-mcp-writer-completion-2026-10-25) and
+[the counting rule](#current-audit-and-progress-2026-10-24).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
 current total. The latest full API attempt remains blocked by local database
 authentication; isolated API tests do not close that blocker.
@@ -494,11 +496,12 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   metadata. The current working-tree follow-up writes canonical primary fields
   and Viewer kind on current routes, retaining old primary fields/kind only on
   legacy routes. Stored packages are not rewritten. See the writer follow-up.
-- [ ] Read legacy names where needed; write PVAD canonical names in new contracts.
-  Reopened by the 2026-10-24 audit: the completed header/cookie/claim substages
-  below do not close OAuth/MCP defaults. Remaining client IDs, resource identity,
-  scope writers/discovery and service-account parsing are listed in the current
-  audit. Existing scope alias support is implemented, not the entire cutover.
+- [x] Read legacy names where needed; write PVAD canonical names in new contracts.
+  Reopened by the 2026-10-24 audit and closed on 2026-10-25 after canonical
+  OAuth/MCP defaults/discovery, bounded service-account parsing and the explicit
+  retained-client transition passed isolated and real PostgreSQL/HTTP tests.
+  Environment activation is still separate; existing registrations/tokens are
+  retained rather than silently rewritten.
   Security request headers are canonical with a pre-auth legacy normalizer;
   conflicting/duplicate aliases fail closed. Four response-header families write
   both names. Cookies, credentials, signed webhook envelopes and other serialized
@@ -512,9 +515,12 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   An opt-in, idempotent client/grant alias migration now preserves credentials,
   metadata, revoked grants and issued tokens under InMemory and PostgreSQL tests.
   Existing stores remain unchanged unless enabled; issuance preserves requested
-  scopes. Only new dynamic-registration clients currently receive PVAD IDs;
-  built-in/public/service-account defaults still use the old IDs. Existing-client login examples
-  stay legacy until the target-store maintenance procedure is applied and verified.
+  scopes. New built-in, public, service-account and dynamic-registration clients
+  now receive PVAD IDs. Existing service-account IDs remain exact until explicit
+  key rotation. Canonical built-in counterparts require maintenance approval and
+  preserve retained permissions, requirements and redirects; no extra capability
+  is granted. Existing clients may keep legacy scope requests until their store's
+  scope maintenance is applied and verified.
   Necessary-storage acknowledgements now write PVAD.StorageNotice and migrate
   compatible legacy acknowledgements; unit/browser tests and the storage inventory
   cover this boundary. Retained signed payloads and existing OAuth grants are the
@@ -917,10 +923,11 @@ separate operations; this planning step performs none of them.
 
 ## Completion Criteria
 
-- [ ] Active platform surfaces consistently display PVADE; first-party technical identities consistently use PVAD.
-  Reopened by the 2026-10-24 audit because active OAuth/MCP writer defaults still
-  use legacy identities. This does not reopen intentionally retained diagnostics,
-  cryptographic purposes, third-party APIs or historical evidence for replacement.
+- [x] Active platform surfaces consistently display PVADE; first-party technical identities consistently use PVAD.
+  The OAuth/MCP writer gap from the 2026-10-24 audit is closed by the 2026-10-25
+  follow-up. This is reviewed source-level completion, not activation of retained
+  external infrastructure. Diagnostics, protected purposes, old readers, vendor
+  APIs and historical evidence remain intentional exceptions.
   Current shared-brand/localization contracts and desktop/mobile host screenshots
   verify active surfaces. Current documentation images were regenerated as
   recorded above; retained compatibility contracts and historical evidence remain
@@ -947,6 +954,10 @@ separate operations; this planning step performs none of them.
 - [x] Test report distinguishes passed, skipped, blocked and unrun checks.
 
 ## Current Audit And Progress (2026-10-24)
+
+Historical finding snapshot: the two writer/naming gaps below are resolved by the
+2026-10-25 follow-up. Its 88/98 total supersedes this audit's 86/98. The counting
+rule and unclosed final-candidate/external gates still apply.
 
 ### Counting Rule
 
@@ -1147,6 +1158,45 @@ See [migration artifact identities](../docs/pvad-migration-artifact-identities.m
 Fragment `pvad-migration-artifact-writers` declares Major impact for changed
 primary identities on current routes. VERSION stays 1.1.0. OAuth clients, scopes,
 publisher selection and live infrastructure cutover remain separate work.
+
+## OAuth And MCP Writer Completion (2026-10-25)
+
+- [x] Write canonical OAuth resource-option and built-in/public/service-account
+  IDs and the twelve known scope defaults. Preserve explicit custom settings,
+  exact legacy-ID readers and known-only aliases without widening authority.
+- [x] Advertise canonical MCP scopes, keep the three read capabilities separate
+  from unsupported write/render operations and preserve exact resource/issuer
+  JWT validation. Do not reinterpret the reserved API resource option as a new
+  audience policy.
+- [x] Provide dry-run and explicit maintenance approval for parallel built-in
+  registrations. Copy retained metadata/permissions, add only granted known
+  aliases, validate type/secret and retain all old client/grant/token rows.
+- [x] Keep old service-account IDs/credentials usable, issue current IDs for new
+  keys, require exact stored-key binding and revoke both ID generations. Normal
+  key rotation, not hidden credential rewriting, replaces a retained client.
+- [x] Pass 36 targeted .NET tests with real disposable PostgreSQL/HTTP checks,
+  no skips; 27 MCP tests, typecheck, build and distribution smoke; 222 selected
+  configuration/legal/deployment/versioning/link contracts without skips.
+- [x] Update setup, compatibility, rollback and serialized-contract guidance and
+  add a Major release fragment without changing VERSION or published history.
+- [ ] Apply reviewed scope/client maintenance to each real store only after its
+  owner's approval; verify deployed client login, caches, secrets and rollback.
+- [ ] Complete the existing final-candidate full Solution/API, browser/CSP and
+  DocFX gates; selected OAuth success does not replace them.
+
+This closes R01-R03 at implementation/synthetic-validation level and the two
+primary canonical-writer/technical-naming criteria reopened by the earlier audit.
+The counting denominator remains 98; these dated evidence checkboxes are not
+counted again. **88/98 (89.8%) complete; 10/98 (10.2%) remain.** R04-R12 and actual
+environment activation retain their existing approvals and acceptance boundaries.
+The complete full-API test blocker is not declared resolved by this filtered run.
+
+See [OAuth client transition](../docs/pvad-oauth-client-transition.md).
+The prior migration/artifact and audit package was committed as `1bbcca5e`.
+This OAuth follow-up is uncommitted. Existing `.vscode` settings, installed
+databases, keyrings, remote configuration and running applications were untouched.
+Fragment `pvad-oauth-client-identities` declares Major impact for default/discovery
+changes and the required explicit retained-client transition; VERSION stays 1.1.0.
 
 ## Related Work
 

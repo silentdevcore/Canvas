@@ -64,8 +64,8 @@ public sealed class PvadOAuthScopeMigration(
         var result = values.ToBuilder();
         foreach (var scope in PvadOAuthScopes.All)
         {
-            var legacy = prefix + scope;
-            var canonical = prefix + PvadScopeCompatibility.Canonical(scope);
+            var legacy = prefix + PvadScopeCompatibility.Legacy(scope);
+            var canonical = prefix + scope;
             if (values.Contains(legacy, StringComparer.Ordinal) && !result.Contains(canonical))
                 result.Add(canonical);
         }

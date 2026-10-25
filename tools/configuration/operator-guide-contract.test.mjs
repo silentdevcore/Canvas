@@ -45,7 +45,7 @@ test('restricted recovery examples agree with the new filename producer and pres
   assert.ok(read('tools/legal/backup-postgres.sh').includes('/pvad-$timestamp-$$.dump'));
 });
 
-test('MCP setup describes canonical scopes and retained discovery spellings accurately', () => {
+test('MCP setup describes canonical discovery and retained scope readers accurately', () => {
   const doc = read('tools/PVAD.Mcp/README.md');
   assert.ok(doc.includes('PVAD_API_URL=http://pvad-webapi:8080'));
   assert.doesNotMatch(doc, /http:\/\/pxa-api:/);
@@ -53,8 +53,8 @@ test('MCP setup describes canonical scopes and retained discovery spellings accu
     assert.ok(doc.includes('`pvad.' + scope + '`'));
     assert.ok(read('tools/PVAD.Mcp/src/core/scopeCompatibility.ts').includes("'" + scope + "'"));
   }
-  assert.ok(doc.includes('discovery still advertises the historical scope spellings'));
-  assert.ok(read('tools/PVAD.Mcp/src/remote/config.ts').includes("['pxa.docs.read']"));
+  assert.ok(doc.includes('discovery now advertises canonical scope spellings'));
+  assert.ok(read('tools/PVAD.Mcp/src/remote/config.ts').includes("['pvad.docs.read']"));
   assert.ok(read('tools/PVAD.Mcp/src/remote/auth.ts').includes('compatibleScopes(readScopes('));
 });
 

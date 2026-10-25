@@ -30,7 +30,6 @@ PVAD.WebApi/Controllers/DesignerCodeWorkspacesController.cs	source	11	false
 PVAD.WebApi/Controllers/DesignerProjectsController.cs	source	27	false
 PVAD.WebApi/Controllers/DesignerTemplatesController.cs	source	2	false
 PVAD.WebApi/Controllers/MigrationController.cs	source	2	false
-PVAD.WebApi/Controllers/OAuthController.cs	source	1	false
 PVAD.WebApi/Controllers/PdfEInvoicesController.cs	source	35	false
 PVAD.WebApi/Controllers/PdfRedactionsController.cs	source	22	false
 PVAD.WebApi/Controllers/PdfSignaturesController.cs	source	16	false
@@ -62,10 +61,10 @@ PVAD.WebApi/Security/PvadCookieNames.cs	source	3	false
 PVAD.WebApi/Security/PvadDataProtection.cs	source	3	false
 PVAD.WebApi/Security/PvadDesignerPermissions.cs	source	7	false
 PVAD.WebApi/Security/PvadMcpDelegationAuthenticationHandler.cs	source	3	false
-PVAD.WebApi/Security/PvadOAuthOptions.cs	source	16	false
+PVAD.WebApi/Security/PvadOAuthOptions.cs	source	4	false
 PVAD.WebApi/Security/PvadPdfTrustAvailabilityMiddleware.cs	source	1	false
 PVAD.WebApi/Security/PvadProductAccessMiddleware.cs	source	8	false
-PVAD.WebApi/Security/PvadScopeCompatibility.cs	source	1	false
+PVAD.WebApi/Security/PvadScopeCompatibility.cs	source	2	false
 PVAD.WebApi/Security/PvadStepUpAuthorization.cs	source	5	false
 PVAD.WebApi/Services/Converters/BasePdfConverter.cs	source	2	false
 PVAD.WebApi/Services/Converters/IText7PdfConverter.cs	source	1	false
@@ -80,7 +79,7 @@ PVAD.WebApi/Services/Mail/SmtpMailTransport.cs	source	1	false
 PVAD.WebApi/Services/MigrationResult.cs	source	1	false
 PVAD.WebApi/Services/Pdf/PvadEInvoiceValidationEvidenceService.cs	source	1	false
 PVAD.WebApi/Services/PdfViewerAnnotationFlatteningService.cs	source	2	false
-PVAD.WebApi/appsettings.json	source	3	false
+PVAD.WebApi/appsettings.json	source	1	false
 README.md	documentation-or-history	5	false
 Removing-PDFImporter.md	documentation-or-history	11	false
 TESTING.md	documentation-or-history	1	false
@@ -312,10 +311,11 @@ docs/pvad-code-generation-compatibility.md	documentation-or-history	3	false
 docs/pvad-documentation-path-migration.json	source	74	false
 docs/pvad-frontend-host-validation.md	documentation-or-history	4	false
 docs/pvad-http-compatibility.md	documentation-or-history	31	false
-docs/pvad-identity-compatibility.md	documentation-or-history	20	false
+docs/pvad-identity-compatibility.md	documentation-or-history	19	false
 docs/pvad-infrastructure-mapping.md	documentation-or-history	6	false
 docs/pvad-license-and-job-compatibility.md	documentation-or-history	11	false
 docs/pvad-migration-artifact-identities.md	documentation-or-history	3	false
+docs/pvad-oauth-client-transition.md	documentation-or-history	6	false
 docs/pvad-observability-identity.md	documentation-or-history	10	false
 docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
@@ -593,7 +593,7 @@ tests/PVAD.Api.Tests/AccountMailNotificationsTests.cs	source	7	false
 tests/PVAD.Api.Tests/AccountOrganizationControllerTests.cs	source	13	false
 tests/PVAD.Api.Tests/AccountProfileControllerTests.cs	source	19	false
 tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs	source	16	false
-tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs	source	22	false
+tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs	source	20	false
 tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs	source	11	false
 tests/PVAD.Api.Tests/AdminMailPrivacyTests.cs	source	1	false
 tests/PVAD.Api.Tests/AdminOrganizationsControllerTests.cs	source	13	false
@@ -663,7 +663,8 @@ tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs	source	13	false
 tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs	source	4	false
 tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs	source	8	false
 tests/PVAD.Api.Tests/PvadMigrationOutputTests.cs	source	4	false
-tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs	source	1	false
+tests/PVAD.Api.Tests/PvadOAuthClientTransitionTests.cs	source	10	false
+tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs	source	3	false
 tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs	source	5	false
 tests/PVAD.Api.Tests/PvadObservabilityTests.cs	source	13	false
 tests/PVAD.Api.Tests/PvadOfflineLicenseValidatorTests.cs	source	13	false
@@ -787,7 +788,7 @@ tests/PVAD.Migration.Spreadsheet.Code.ClosedXml.Tests/ClosedXmlSpreadsheetMigrat
 tests/PVAD.Observability.WebhookRelay.Tests/WebhookRelayTests.cs	source	15	false
 tests/Shared/PvadTestEnvironment.cs	source	1	false
 tools/PVAD.Mcp/Dockerfile	configuration	3	false
-tools/PVAD.Mcp/README.md	documentation-or-history	4	false
+tools/PVAD.Mcp/README.md	documentation-or-history	5	false
 tools/PVAD.Mcp/package-lock.json	source	3	false
 tools/PVAD.Mcp/package.json	source	3	false
 tools/PVAD.Mcp/scripts/build.mjs	source	1	false
@@ -802,11 +803,9 @@ tools/PVAD.Mcp/src/core/server.ts	source	17	false
 tools/PVAD.Mcp/src/core/validation.test.ts	source	6	false
 tools/PVAD.Mcp/src/core/validation.ts	source	3	false
 tools/PVAD.Mcp/src/remote/app.test.ts	source	4	false
-tools/PVAD.Mcp/src/remote/app.ts	source	1	false
 tools/PVAD.Mcp/src/remote/auth.test.ts	source	13	false
 tools/PVAD.Mcp/src/remote/auth.ts	source	1	false
 tools/PVAD.Mcp/src/remote/config.test.ts	configuration	19	false
-tools/PVAD.Mcp/src/remote/config.ts	configuration	1	false
 tools/configuration/capture-admin-rename.mjs	configuration	1	false
 tools/configuration/clean-legacy-build-artifacts.mjs	configuration	3	false
 tools/configuration/compose-contract.test.mjs	configuration	12	false
@@ -820,7 +819,7 @@ tools/configuration/generated-code-contract.test.mjs	configuration	3	false
 tools/configuration/internal-naming-contract.test.mjs	configuration	12	false
 tools/configuration/migration-diagnostic-contract.test.mjs	configuration	6	false
 tools/configuration/observability-script-contract.test.mjs	configuration	3	false
-tools/configuration/operator-guide-contract.test.mjs	configuration	14	false
+tools/configuration/operator-guide-contract.test.mjs	configuration	13	false
 tools/configuration/operator-proxy-smoke.mjs	configuration	3	false
 tools/configuration/persistence-rename-contract.test.mjs	configuration	5	false
 tools/configuration/pvad-compose.test.mjs	configuration	1	false
@@ -844,7 +843,7 @@ tools/configuration/rename-index-review.test.mjs	configuration	2	false
 tools/configuration/rename-residual-review.mjs	configuration	2	false
 tools/configuration/rename-residual-review.test.mjs	configuration	1	false
 tools/configuration/rename-screenshot-audit.mjs	configuration	1	false
-tools/configuration/runtime-brand-contract.test.mjs	configuration	63	false
+tools/configuration/runtime-brand-contract.test.mjs	configuration	62	false
 tools/configuration/schema-identities.test.mjs	configuration	15	false
 tools/configuration/service-cutover-smoke.mjs	configuration	2	false
 tools/configuration/shell-environment.test.mjs	configuration	10	false

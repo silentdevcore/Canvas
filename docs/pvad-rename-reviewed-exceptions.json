@@ -1187,13 +1187,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "e91f5e330e71ac5b012f911919336cac044635d3d7d597c727b4b59fbdf3d71c",
+      "sha256": "413d831527108dcf1c0d77274ba5ac3af8092193b2728feefb513fe89d68be02",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "checklists/PVAD.Rename-Inventory.tsv",
@@ -1207,13 +1207,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "0b08cbd384706be93e8bfa71e8efa5613ec1c1dd3d2baa8a1ad2f6e4bb3e282a",
+      "sha256": "ed9834193c0dd3516fb7f3e68588d8c89d21c4745fd602d5525db955913d990e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "checklists/PVAD.SDK-Roadmap.md",
@@ -1317,13 +1317,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "a8b6b67acf0ac6077d1b80f3c158f9ae7311982e931289e5e6af28ca6ec5024e",
+      "sha256": "bf1c70f8fc3439b7a208360d8773570b49bbf661f337130618098be52d1c7938",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "checklists/Rename-To-PXA.md",
@@ -2167,13 +2167,13 @@
     },
     {
       "path": "docs/mcp-client-setup.md",
-      "sha256": "8956def2b32c2542c52c54f4c73dc6442148f1984905153b4c10bf418e434b17",
+      "sha256": "30daccdcb6a54af37fb5c3e9aa900fc0e59fb1996d6ee05c86733b53131b6aba",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Documentation naming-only review: current captions/source paths and explicitly proposed host examples updated; legacy aliases, diagnostics, historical checklist status and signed corpus evidence retained. No build, link/browser test or deployment approval is implied.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/native-designer-project-formats.md",
@@ -2237,13 +2237,13 @@
     },
     {
       "path": "docs/pvad-identity-compatibility.md",
-      "sha256": "da16dac0096869d99513aba33fa03b72871efd8555411672dd261389c095ff3f",
+      "sha256": "3b24c3357644a888639f1bf9ec17cb546b78267b8b14338488b14d364adeecdd",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-identity-compatibility.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/pvad-infrastructure-mapping.md",
@@ -2297,23 +2297,23 @@
     },
     {
       "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "a29331a71fd0186a947a7a7e2a39cf3c6585c7fcd869941eb59d66ed660de603",
+      "sha256": "7803a23e8888eadf85162af2413c43cd036f4376571ce77e4b872cf3a04a8115",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "8f5a81e2c2c716f49b636dbbdfe13b62d7ce541d222aa4824d2ab5e2f9e150b9",
+      "sha256": "51c973d0f75bd9565a13ba5df18f6d55759815af8ff9844c606913a7ba23e701",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/pvad-rename-rollback.md",
@@ -2347,13 +2347,13 @@
     },
     {
       "path": "docs/pvad-serialized-contract-inventory.md",
-      "sha256": "8307cfa94dd4cbecba74577abbe345d09091fa273e938a2419ee431b3c3c0245",
+      "sha256": "2df48178a35001a32c4d85b609cebc00686bdeccdebb6e64a5230e4ef9029bc3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Rename-plan status audit: retain historical scores, evidence, stable contracts and known legacy OAuth/infrastructure identities while explicitly documenting unfinished canonical writers, final-candidate validation and external approvals. No runtime identity, saved evidence or release is migrated by these documentation changes.",
-      "boundaryGuide": "checklists/Rename-PXA-To-PVAD.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/schema/openapi.json",
@@ -3757,13 +3757,13 @@
     },
     {
       "path": "PVAD.WebApi/appsettings.json",
-      "sha256": "fdefae234aa78dc1fba57e9355d9ab1fe0158a76b03ba36ae8e44ead14f5a942",
+      "sha256": "64cbf7fc4306f38ecfb1d256c60fcfd2fd6bd5f1478b58bd5daa0c8b8d4bc905",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Owner-approved technical mail sender uses the selected domain; retain Disabled transport, existing key/OAuth bindings and explicit environment override behavior.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "PVAD.WebApi/Controllers/AccountProfileController.cs",
@@ -3843,16 +3843,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "PVAD.WebApi/Controllers/MigrationController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Controllers/OAuthController.cs",
-      "sha256": "04ee16b260b55558a59c77cb46d7c562aab70d7fbe101fec6cf78dda8b44a30a",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Controllers/OAuthController.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4157,13 +4147,13 @@
     },
     {
       "path": "PVAD.WebApi/Security/PvadOAuthOptions.cs",
-      "sha256": "128dee77d58a11bf980a932281113863385a94d13a946e6797edafef8b4e429c",
+      "sha256": "c0215c65dc5d88eec88cbef7d79a9adc5676b51a70217a1eba862be90cb12fbd",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Security/PvadOAuthOptions.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "PVAD.WebApi/Security/PvadPdfTrustAvailabilityMiddleware.cs",
@@ -4187,13 +4177,13 @@
     },
     {
       "path": "PVAD.WebApi/Security/PvadScopeCompatibility.cs",
-      "sha256": "df903870f91db505b734eb5ca70f2cddb46e40aa8d1c85606196cab7b67de7b3",
+      "sha256": "62f28eeebd5fcb0edc05ab3eb4d530ef72f89c84e388598c8e3a5443fef7a696",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Security/PvadScopeCompatibility.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "PVAD.WebApi/Security/PvadStepUpAuthorization.cs",
@@ -5417,13 +5407,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs",
-      "sha256": "c0684d10836b5b5794e9c078d58c7ac37921046443c9c6fb14dc9b8c3b11ce60",
+      "sha256": "5e86dcbf4905ff3c4a9b92617a955259fd86fbfca5b6eece1046c374c2340594",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs",
@@ -6107,13 +6097,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs",
-      "sha256": "6edda98a2b4b2a7ea23263ec7688bbb9ea9fe0ba582d3a959c1cdc066aae2d40",
+      "sha256": "e49f1d949f3baa6987933027c067f2a7a6617868da0f48f46a5a8a57c102f7db",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs",
@@ -7507,13 +7497,13 @@
     },
     {
       "path": "tools/configuration/runtime-brand-contract.test.mjs",
-      "sha256": "7f58dd689cb94bbbcfac47ff6a0ea81292c999794556a66c83963b2e4f2920d5",
+      "sha256": "adaca7c8d3198c121298ca2020a434e6d40b9f6687564b94ae496907c83946ad",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Guard canonical health and trace producers while asserting bounded retained old health/URI/diagnostic identities and shared route-aware error handling.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tools/configuration/schema-identities.test.mjs",
@@ -8027,13 +8017,13 @@
     },
     {
       "path": "tools/PVAD.Mcp/README.md",
-      "sha256": "ed9c1bad1b61b1504d27e33c2b52870781255376874ebed12e1a8009fc051be9",
+      "sha256": "3b1a85ca34c54baa4477a4dd4a7a0234bae88fc6d0e5125f2cad8864f64bcfb8",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current schema identities and offline fragment support are documented; legacy CLI/resource/scope IDs and old configuration aliases remain supported contracts.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tools/PVAD.Mcp/scripts/build.mjs",
@@ -8147,23 +8137,13 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/app.test.ts",
-      "sha256": "a8242888af6969950b363a9f4cf88ee4dea6d5e8c6b3597d84c6debedda5d7d8",
+      "sha256": "b36dcc5b92364948401bf7f5d403faf43032b4951008f7a2db9e383e1bede14f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/remote/app.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "tools/PVAD.Mcp/src/remote/app.ts",
-      "sha256": "f7e9f81db12b791b6a73d3173a71c913c646f2587ea9239b90fbb5537a097592",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/remote/app.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/auth.test.ts",
@@ -8193,16 +8173,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/src/remote/config.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "tools/PVAD.Mcp/src/remote/config.ts",
-      "sha256": "3299787f0b64b13a1a923015b97cf28620952f574335b2e4ac613087e45a625d",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/remote/config.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9260,13 +9230,13 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "946490f5f5a9235642db6e7859942535fd397e5f81cc7b60cf6f5c91620c84cc",
+      "sha256": "68b9b8b0f8c1178dbc4b05ae4dd6035d5828145e3ccae767193c1b180666c666",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Check approved sender and display-name defaults across configuration and C# options; retain compatibility assertions and disabled delivery/publication gates.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tools/configuration/rename-container-workflows.mjs",
@@ -9387,6 +9357,26 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+    },
+    {
+      "path": "docs/pvad-oauth-client-transition.md",
+      "sha256": "aa3b31cbc4ef588f8b5604ec34b02b787d498d8782947e460de1e05f0b9e9f8b",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadOAuthClientTransitionTests.cs",
+      "sha256": "e36f794ae7eb876fcd69739a89e7c5e1ee73c5a8572b4f23d556796bb9b7b1f5",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     }
   ],
   "reviewStatus": "reviewed"

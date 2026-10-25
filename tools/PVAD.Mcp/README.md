@@ -97,9 +97,10 @@ the shared `PVAD_MCP_DELEGATION_SECRET` must be mounted into MCP Server and as
 baseline requires `pvad.docs.read`; `validate_design` additionally requires
 `pvad.documents.validate`, while template tools require `pvad.templates.read`.
 The corresponding historical `pxa.*` scopes remain compatibility aliases.
-Protected-resource discovery still advertises the historical scope spellings
-for existing clients. Scope normalization accepts either form; existing stored
-OAuth grants are not rewritten by these documentation changes.
+Protected-resource discovery now advertises canonical scope spellings.
+Scope normalization still accepts either form; existing stored OAuth grants
+are not rewritten automatically. Apply the opt-in scope migration before
+requesting canonical scopes with a retained registration.
 The example API hostname assumes the shared Compose network; use the actual
 reachable API origin when running outside that network. Remote
 `render_preview` remains disabled until it can return a tenant-bound, expiring artifact instead of
@@ -116,6 +117,12 @@ as service-account `client_credentials`. Compatible interactive MCP clients may 
 PKCE client through the discovery-advertised `/connect/register` endpoint. Registration accepts
 only HTTPS or loopback HTTP callbacks and never issues a client secret. Service-account key creation returns `oAuthClientId` beside
 the one-time secret; revoking the key or service account also revokes the OAuth client.
+New keys receive `pvad-sa-<id>` clients. Retained `pxa-sa-<id>` registrations keep
+their stored IDs and credentials; use the ID returned by Account, never construct
+one from a prefix. Revocation checks both generations. Built-in client defaults
+are `pvad-mcp-public` and `pvad-mcp-server`. Stores containing their old counterparts
+require explicit maintenance approval before parallel registrations are created.
+See [OAuth client transition](../../docs/pvad-oauth-client-transition.md).
 
 `/health/ready` checks both PVAD WebApi readiness and the configured JWKS endpoint and returns `503`
 when either dependency is unavailable. `PVAD_MCP_READINESS_TIMEOUT_MS` controls the bounded probe.

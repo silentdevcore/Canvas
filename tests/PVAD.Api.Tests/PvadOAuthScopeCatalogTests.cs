@@ -10,10 +10,15 @@ public sealed class PvadOAuthScopeCatalogTests
         var scopes = PvadScopeCompatibility.SupportedScopes;
         Assert.Equal(PvadOAuthScopes.All.Length * 2, scopes.Length);
         Assert.Equal(scopes.Length, scopes.Distinct(StringComparer.Ordinal).Count());
-        foreach (var legacy in PvadOAuthScopes.All)
+        foreach (var canonical in PvadOAuthScopes.All)
         {
+            Assert.StartsWith("pvad.", canonical);
+            var legacy = PvadScopeCompatibility.Legacy(canonical);
+            Assert.StartsWith("pxa.", legacy);
             Assert.Contains(legacy, scopes);
-            Assert.Contains(PvadScopeCompatibility.Canonical(legacy), scopes);
+            Assert.Contains(canonical, scopes);
+            Assert.Equal(canonical, PvadScopeCompatibility.Canonical(legacy));
+            Assert.Equal(canonical, PvadScopeCompatibility.Canonical(canonical));
         }
         Assert.DoesNotContain("pvad.unknown", scopes);
     }
@@ -26,6 +31,8 @@ public sealed class PvadOAuthScopeCatalogTests
         Assert.DoesNotContain("pvad.templates.write", PvadScopeCompatibility.ReadOnlyScopes);
         Assert.False(PvadScopeCompatibility.IsReadOnly("pvad.unknown"));
         Assert.False(PvadScopeCompatibility.IsReadOnly("PVAD.templates.read"));
+        Assert.Equal("pxa.unknown", PvadScopeCompatibility.Canonical("pxa.unknown"));
+        Assert.Equal("pvad.unknown", PvadScopeCompatibility.Legacy("pvad.unknown"));
     }
 
     [Theory]
