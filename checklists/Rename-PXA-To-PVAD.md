@@ -5,10 +5,13 @@
 ## Status And Naming Authority
 
 **Current status, 2026-10-25: not complete. The counted acceptance plan is
-89/98 complete (90.8%), with 9/98 open (9.2%).** OAuth/MCP writer defaults and
+90/98 complete (91.8%), with 8/98 open (8.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate
 validation now passes, including the user-confirmed Chrome print check; external
-release gates remain open. See
+release gates remain open. The installed association criterion now passes for
+the owner's selected macOS/Chrome scope with approved generic project icons;
+other platforms and manual first-run prompts remain untested. See
+[the installed platform validation](../docs/pvad-native-project-platform-validation.md),
 [the OAuth/MCP completion](#oauth-and-mcp-writer-completion-2026-10-25) and
 [the counting rule](#current-audit-and-progress-2026-10-24).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
@@ -618,13 +621,19 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   All 76 PvadProjectArchiveTests pass, including current/legacy tuples, hostile
   packages, alias conflicts, renamed formats and cancelled atomic operations.
 - [x] Publish synthetic new fixtures while keeping old fixtures for backward-compatibility tests.
-- [ ] Update Designer open/save filters, SDK helpers, download filenames and eventual OS associations. Designer filters, MIME checks, stream helpers and download names use PVADP/PVADS; OS associations remain open.
+- [x] Update Designer open/save filters, SDK helpers, download filenames and eventual OS associations. Designer filters, MIME checks, stream helpers and download names use PVADP/PVADS. Real installed associations pass for the owner-approved macOS/Chrome scope only; other platforms are not certified.
   2026-10-22: product-metadata/native-file-types.json and the candidate compiler
   now prepare Linux MIME, macOS exported types and Windows ProgIDs, checked
   against Core's canonical formats. No fake open command or default .zip handler
   is registered. The later PWA launch handler and synthetic browser intake tests
   are implemented. Installed per-OS associations, approved artwork and the final
   packaging decision remain open; do not describe the PWA handler as missing.
+  Superseded within the selected scope on 2026-10-25: the owner approved
+  macOS/Chrome and the generic project icons for installation testing. Real
+  default-handler dispatch, both formats signed in/out, protection of an edited
+  window, actual Chrome revocation, manual fallback and uninstall passed.
+  Manual first-run dialogs, final artwork and other platforms remain separate
+  boundaries. See the [platform validation](../docs/pvad-native-project-platform-validation.md).
 
 ## P1 - Infrastructure And Operations
 
@@ -1289,6 +1298,29 @@ with the committed-candidate checks and final evidence review, it closes the
 combined primary gate: **89/98 (90.8%) complete, 9/98 (9.2%) open**. No new primary
 tasks or score-bearing subtasks are added. Earlier 88/98 figures are historical.
 See [the committed-candidate results and manual acceptance](../docs/pvad-final-candidate-validation.md#committed-candidate-local-acceptance-passed).
+
+### Installed PWA Association Acceptance (2026-10-25)
+
+The owner selected macOS/Chrome and approved the generic project icons for the
+first installation test. Actual run `865a2d9a7e7a` passed on macOS 26.6.2 with
+Chrome 155.0.8059.85: both file extensions opened through the default OS handler,
+signed-in and signed-out imports used the real authorized API, and an edited
+PDF window remained unchanged. Chrome app-settings revocation removed the OS
+handlers; the manual chooser still imported both formats. Uninstall removed
+the bundle and restored both original default-handler results.
+
+Two observed bugs were corrected: an empty ordinary launch no longer reports a
+multiple-file error, and a project with null optional global page settings now
+uses defaults. Designer 759 tests/85 suites, typecheck and build pass. New Patch
+fragments do not change VERSION (1.1.0) or published release history.
+
+This closes R11/the existing native-association primary gate **only for the
+explicitly selected macOS/Chrome scope**: **90/98 (91.8%) complete, 8/98 (8.2%)
+open**. No score-bearing tasks were added. Windows/Linux and other browsers,
+manual install/first-run prompts, public distribution and final corporate artwork
+are not certified. The global support flag remains conservative. Source is
+`d4f9767f` plus the recorded hash-bound follow-up, not a new clean full-Solution
+candidate. See [the platform evidence and repeat procedure](../docs/pvad-native-project-platform-validation.md).
 
 ## Related Work
 

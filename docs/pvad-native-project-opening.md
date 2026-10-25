@@ -8,6 +8,11 @@ can offer `.pvadp` and `.pvads` to the installed PWA. This is not an Electron
 application, command-line opener, or promise of support in every browser.
 
 The icons are generic project-file icons, not approved corporate logo artwork.
+The product owner approved these icons for the initial macOS/Chrome installation
+test on 2026-10-25. Real installation, default associations, both formats signed
+in/out, existing-window protection, revocation, manual fallback and uninstall
+passed in that scope. See the [platform validation record](pvad-native-project-platform-validation.md)
+for source hashes, evidence and the remaining manual/platform boundaries.
 The app requires HTTPS in production and a working same-origin API. There is no
 offline document editing or background upload.
 
@@ -24,7 +29,9 @@ offline document editing or background upload.
 
 Record browser, OS, installed app identity and each result before declaring that
 platform supported. Manifest validation or a simulated launch is not this test.
-No registration commands are automatically executed by repository tooling.
+Normal builds and contract tests do not register an app. The separately opted-in
+installed smoke runner performs a real local installation and removes only its
+own test app; it requires an explicitly disposable environment.
 
 ## Authentication And Data Handling
 
@@ -58,8 +65,11 @@ single use, cancellation, size and extension limits, and explicit opening.
 Browser smoke tests use synthetic sessions and launch handles; they must be
 reported separately from real installed-app and live authenticated API tests.
 
-`nativeFileOpenSupported` remains false until real platform association tests pass;
-`browserFileOpenImplemented` records implementation without implying certification.
+`nativeFileOpenSupported` remains false to avoid an unconditional cross-platform
+claim. The real macOS/Chrome association result is recorded separately;
+`browserFileOpenImplemented` records implementation without implying certification
+for other platforms. Manual install UI and first-run permission prompts remain
+distinct from the automated installation and app-settings revocation tests.
 
 ## Platform References
 

@@ -80,7 +80,8 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   localizedProperties: [],
 };
 
-export function normalizePageSettings(settings: Partial<PageSettings> = {}): PageSettings {
+export function normalizePageSettings(settings: Partial<PageSettings> | null = {}): PageSettings {
+  settings ??= {};
   return {
     ...DEFAULT_PAGE_SETTINGS,
     ...settings,

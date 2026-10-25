@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import { NativeProjectInbox, NativeProjectError, nativeProjectKind, nativePackageLimit,
-  stageNativeProject, takeNativeProject, clearNativeProjects, canImportNativeProject } from '@/native/nativeProjectLaunch';
+  stageNativeProject, takeNativeProject, clearNativeProjects, canImportNativeProject,
+  installNativeProjectLaunch, nativeProjectInbox } from '@/native/nativeProjectLaunch';
 import type { DesignerUser } from '@/auth/designerAuth';
 import { designerPermissions } from '@/auth/designerPermissions';
 
@@ -71,4 +72,33 @@ test('import permission and active organization are required, not just create pe
   expect(() => stageNativeProject(file(), denied)).toThrow(NativeProjectError);
   const absent = user(); absent.activeOrganizationId = null;
   expect(canImportNativeProject(absent, 'spreadsheet')).toBe(false);
+});
+
+test('normal installed-app launches without files leave the intake empty without an error', () => {
+  let consume!: (request: { files?: Parameters<NativeProjectInbox['enqueue']>[0] }) => void;
+  const target = { isSecureContext: true, launchQueue: { setConsumer(callback: typeof consume) { consume = callback; } } } as unknown as Window;
+  expect(installNativeProjectLaunch(target)).toBe(true);
+  consume({});
+  consume({ files: [] });
+  expect(nativeProjectInbox.getSnapshot()).toEqual({ name: null, error: null });
+});
+
+test('a fileless relaunch preserves a pending file and file launches still require explicit reading', async () => {
+  let consume!: (request: { files?: Parameters<NativeProjectInbox['enqueue']>[0] }) => void;
+  const target = { isSecureContext: true, launchQueue: { setConsumer(callback: typeof consume) { consume = callback; } } } as unknown as Window;
+  installNativeProjectLaunch(target);
+  const selected = file(), read = jest.fn(async () => selected);
+  consume({ files: [{ kind: 'file', name: selected.name, getFile: read }] });
+  consume({ files: [] });
+  consume({});
+  expect(nativeProjectInbox.getSnapshot()).toEqual({ name: selected.name, error: null });
+  expect(read).not.toHaveBeenCalled();
+  expect(await nativeProjectInbox.read()).toBe(selected);
+});
+
+test('unsupported browsers and insecure contexts do not install a launch consumer', () => {
+  const setConsumer = jest.fn();
+  expect(installNativeProjectLaunch({ isSecureContext: true } as Window)).toBe(false);
+  expect(installNativeProjectLaunch({ isSecureContext: false, launchQueue: { setConsumer } } as unknown as Window)).toBe(false);
+  expect(setConsumer).not.toHaveBeenCalled();
 });

@@ -13,7 +13,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 | Cutover and rollback | Repository owner accepts responsibility for local development backup, restore and rollout. Production/customer procedures are not approved. | Repository owner (local only) | Local owner confirmed, 2026-10-21; production approval pending |
 | Protected material | Verify actual keyring access and retained encrypted payload recovery without exposing or rewriting secrets. | Security and operations | Pending |
 | External infrastructure | Verify real DNS, TLS, reverse proxy, CSP, authentication redirects, webhooks and sender configuration. | Infrastructure owners | Pending |
-| Native association and artwork | Approve final artwork, installer file associations and target operating systems. | Product owner and packaging | Pending |
+| Native association and artwork | First installation-test scope is macOS/Chrome with the existing generic project icons; final corporate artwork and other platforms are separate. | Product owner and packaging | Owner confirmed scope/icons 2026-10-25; real default association/import/revocation/uninstall tests passed locally. Manual first-run prompts, public deployment and other platforms remain untested. See [platform evidence](pvad-native-project-platform-validation.md). |
 | Staging acceptance | Authorize and execute a representative deployed environment with real host boundaries. | Release owner and operations | Pending |
 | Release publication | Approve the major version, migration instructions, tags and registry publication. | Release owner | Pending |
 

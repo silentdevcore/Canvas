@@ -94,6 +94,9 @@ export function clearNativeProjects(): void { clearTimeout(expiryTimer); transfe
 export function installNativeProjectLaunch(target: Window = window): boolean {
   const queue = (target as Window & { launchQueue?: { setConsumer(callback: (request: { files?: NativeFileHandle[] }) => void): void } }).launchQueue;
   if (!queue || !target.isSecureContext) return false;
-  queue.setConsumer(request => nativeProjectInbox.enqueue(request.files ?? []));
+  queue.setConsumer(request => {
+    // Normal app launches have no files and must not disturb a pending intake.
+    if (request.files?.length) nativeProjectInbox.enqueue(request.files);
+  });
   return true;
 }

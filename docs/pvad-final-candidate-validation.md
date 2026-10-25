@@ -97,6 +97,15 @@ release authorization retain their separate gates. Dependency advisories and
 NPOI license decisions remain separate unresolved release/security work; no
 upgrade or license acceptance was performed. No tag, push or deployment occurred.
 
+Later scoped follow-up (2026-10-25): real macOS/Chrome installation, default file
+dispatch, signed-in/out imports, edited-window protection, Chrome revocation,
+manual fallback and uninstall now pass. The owner selected that platform and
+approved generic icons for the test. This closes the separate local association
+gate for that scope and advances the tracker to **90/98 (91.8%)**. See
+[the platform validation](pvad-native-project-platform-validation.md) for the
+dirty-source hashes and untested manual/other-platform boundaries. It does not
+change the source or results of the committed-candidate run above.
+
 ## Earlier Uncommitted Candidate (Historical)
 
 Follow-up: the code-workspace blocker below is resolved by explicit reviewed

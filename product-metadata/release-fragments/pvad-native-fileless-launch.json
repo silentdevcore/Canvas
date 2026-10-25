@@ -1,0 +1,8 @@
+{
+  "id": "pvad-native-fileless-launch",
+  "impact": "patch",
+  "category": "fixed",
+  "components": ["designer"],
+  "summary": "Opening the installed Designer without a project no longer shows a file-selection error or interrupts a waiting project.",
+  "breaking": false
+}

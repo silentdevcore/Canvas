@@ -1187,12 +1187,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "cc43cec57aa1d593fd906f79b2fc3bceec8dec5b50d0a146d10c74a139e35722",
+      "sha256": "e7f45e5f58f5d97dc01e76951833607db0684664787a9ffba53811d10454a540",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "8d2f4309aa77dc19f09c3d9e4f4b277fad06888f85f65488267904cd71f91ac9",
+      "sha256": "6b5f10a813d86d4460f96a78db683b387594ea08779bb70bfed66242cddc738a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2266,6 +2266,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "docs/pvad-native-project-platform-validation.md",
+      "sha256": "d4694d5bb0a6cf774b91167e2f3293191e0fb27bd246c2887fc666610464282a",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
       "path": "docs/pvad-observability-identity.md",
       "sha256": "93a9b60b03cb8d4d5ebbd88a91c09b323865ac4e5a35b49836b2f30a58064d07",
       "reasons": [
@@ -2307,12 +2317,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "51c973d0f75bd9565a13ba5df18f6d55759815af8ff9844c606913a7ba23e701",
+      "sha256": "bc5b69e3f37c2aa0ec812751ead0e486824bddd1873f9eed4bc6cdc4079ae8d4",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
+      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -9360,12 +9370,12 @@
     },
     {
       "path": "docs/pvad-final-candidate-validation.md",
-      "sha256": "a94afed94608c9d424ce705022725fa5bfc3c500a29ec60cceb76def09c0a942",
+      "sha256": "19754c6c7af3f4d1e65708ed5d77670889362d9a118d7951550ae626374d54c2",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries.",
       "boundaryGuide": "docs/pvad-final-candidate-validation.md"
     },
     {
