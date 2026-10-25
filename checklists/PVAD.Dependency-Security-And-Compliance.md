@@ -33,6 +33,30 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [ ] Surface dependency age and unresolved update risk without exposing internal package paths publicly.
 - [ ] Document customer access to SBOMs and security advisories for Enterprise deployments.
 
+## Cryptographic Dependency Remediation - 2026-10-25
+
+- [x] Record the online baseline: 111 projects, 103 repeated finding instances, and five distinct Microsoft advisories.
+- [x] Update both direct PKCS references and all three direct XML references to the patched .NET 10 package version `10.0.13`.
+- [x] Correct the compliance validator's obsolete XML pin and add enforcement for both PKCS references.
+- [x] Add a regression contract for all five direct pins and verify red/green behavior.
+- [x] Restore the entire solution and verify all retained crypto package entries resolve to `10.0.13`.
+- [x] Pass the online direct/transitive NuGet scan and existing CI vulnerability gate for all 111 projects with zero known findings.
+- [x] Verify an isolated SDK `10.0.113` archive against the official SHA-512 and build the full solution with patched runtimes `10.0.13`.
+- [x] Run and record the full patched-runtime x64 .NET suite: 3,428 passed, 82 skipped, three failed baseline checks; do not claim a green full suite.
+- [x] Pass all 646 importer/signing tests, 1,168 API tests, 81 infrastructure tests, and 220 export tests; remove the disposable API test database.
+- [x] Normalize the synthetic OCSP fixture clock to whole seconds without relaxing production validation or test assertions.
+- [x] Verify that the loaded PKCS and XML shared-framework assemblies are both `10.0.13`.
+- [x] Add the owner-reviewed customer-facing Patch security fragment without changing the product version or published manifest.
+- [ ] Review the two runtime-dependent compressed-archive byte baselines while preserving original fixtures and exact uncompressed content.
+- [ ] Independently validate the patched-runtime invoice PDFs before approving any replacement PDF/A validation-input hashes; retain previous evidence.
+- [ ] Obtain a green full regression run on the patched target runtime after those explicit baseline decisions.
+- [ ] Update the system-wide developer runtime; the existing `10.0.5` installation is not covered by the isolated test SDK.
+- [ ] Rebuild, inventory, and scan final runtime/container artifacts before production release; a clean package audit does not validate shared-framework, OS, or native-library patch levels.
+- [ ] Re-run deployment smoke tests on those exact release artifacts.
+
+See [the evidence and runtime boundary](../docs/pvad-cryptography-security-update.md).
+NPOI approval and the remaining rename gates are not completed by this maintenance.
+
 ## Dependencies and Ownership
 
 - [ ] Security owns vulnerability policy and exception approval.

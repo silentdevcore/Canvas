@@ -23,6 +23,20 @@ test('SBOM coverage includes every shipped execution surface', async () => {
   assert.equal(catalog.sbom.version, '2.2-or-later');
 });
 
+test('cryptographic dependencies retain the reviewed security patches', async () => {
+  const packages = [
+    ['System.Security.Cryptography.Pkcs', 'src/Generation/PVAD.Pdf/PVAD.Pdf.csproj'],
+    ['System.Security.Cryptography.Pkcs', 'src/Importing/PVAD.Importer/PVAD.Importer.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj'],
+  ];
+  for (const [name, path] of packages) {
+    const source = await read(path);
+    assert.ok(source.includes(`Include="${name}" Version="10.0.13"`), `${path}: missing ${name} security pin`);
+  }
+});
+
 test('external GitHub Actions use immutable commit pins', async () => {
   const workflowDirectory = new URL('.github/workflows/', root);
   const workflowFiles = (await readdir(workflowDirectory)).filter((name) => name.endsWith('.yml'));

@@ -777,12 +777,12 @@
     },
     {
       "path": "checklists/PVAD.Dependency-Security-And-Compliance.md",
-      "sha256": "3ed0f3a14ee04fa1c99880bd7ca98b998354f8b26fe5f1ce623fa60b16360f57",
+      "sha256": "33378769dd61e24d3698f08ef2000901872ea68d229ffa84701a3d56274d3959",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "2026-10-25 scoped cryptographic dependency follow-up: retain the explicit naming-history notice and historical branding. New maintenance tasks document reviewed package pins and actual local evidence separately from unapproved runtime deployment, NPOI licensing and rename gates; no blanket release approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1187,7 +1187,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "dd44295e1309644c71b1d92cb69376341069a26e6fd98ef099a1951d099a11aa",
+      "sha256": "0eb115583600188f14e0aad2911536a88626360d4419fc0aa8186c93a2b76ae5",
       "reasons": [
         "compatibility-contract"
       ],
@@ -2367,12 +2367,12 @@
     },
     {
       "path": "docs/pvad-rename-validation-blockers.md",
-      "sha256": "498761b3d250d62d84b5bb3ba15af91353f36af5439bc6874429c4c53f3f99a5",
+      "sha256": "c8e89a663b89d7250b4440f6f9c7596b5509aa91b21582db1625941f29b11920",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Preserve earlier findings while recording the later API startup/database authentication blocker. Earlier successes do not validate final local defaults or approve installed-resource cutover.",
+      "reviewNotes": "2026-10-25 scoped dependency follow-up: preserve original compatibility and build evidence. Link the subsequent package remediation without relabeling earlier images as patched; runtime deployment, license approval and rename gates remain separate.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6787,12 +6787,12 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfOcspEvidenceTests.cs",
-      "sha256": "a444fb43bc7a1ab9aa461475d829ef2dd285e0a032b338082c9af0d64ba50d1a",
+      "sha256": "49c85935cf4640635292360674188cea08b7e4b699cb87e7badac21bf95fd4fa",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Importer.Tests/PdfOcspEvidenceTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-25 scoped OCSP fixture review: retain synthetic historical certificate subjects and compatibility coverage. Only fixture clock precision changes to whole seconds to remove a fractional-time rounding flake; production signature validation and trust policy are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

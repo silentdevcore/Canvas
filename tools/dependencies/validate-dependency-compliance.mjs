@@ -73,8 +73,17 @@ if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.7.5"')) {
   fail('Microsoft.OpenApi security pin is missing');
 }
 for (const source of [spreadsheet, converters, word]) {
-  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.10"')) {
+  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.13"')) {
     fail('System.Security.Cryptography.Xml security pin is missing');
+  }
+}
+for (const project of [
+  'src/Generation/PVAD.Pdf/PVAD.Pdf.csproj',
+  'src/Importing/PVAD.Importer/PVAD.Importer.csproj',
+]) {
+  const source = await read(project);
+  if (!source.includes('Include="System.Security.Cryptography.Pkcs" Version="10.0.13"')) {
+    fail(`System.Security.Cryptography.Pkcs security pin is missing: ${project}`);
   }
 }
 for (const directory of ['/', '/pvad-designer', '/websites/PVAD.Admin', '/tools/PVAD.Mcp', '/PVAD.WebApi']) {

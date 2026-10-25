@@ -1,0 +1,15 @@
+{
+  "id": "crypto-dependency-security-patches",
+  "impact": "patch",
+  "components": [
+    "api",
+    "generator",
+    "importer",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "security",
+  "summary": "Updated cryptographic dependencies used by PDF and document import and export to supported security-patched versions.",
+  "breaking": false,
+  "securityReviewed": true
+}

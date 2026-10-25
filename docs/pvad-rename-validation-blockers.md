@@ -117,3 +117,10 @@ System.Security.Cryptography.Pkcs (10.0.8/10.0.10) and
 System.Security.Cryptography.Xml (10.0.10). No dependency update was smuggled into
 the rename. Review affected paths, select supported fixes, rerun security tests
 and scan final images before release. Build success is not security approval.
+
+Subsequent maintenance on 2026-10-25 updates the five direct crypto references to
+`10.0.13` and passes the online NuGet gate for all 111 projects. The earlier image
+and build logs above remain historical evidence, not patched release artifacts.
+See [the cryptographic update record](pvad-cryptography-security-update.md) for
+the isolated patched test toolchain and outstanding runtime/image checks. NPOI
+approval and rename completion are unchanged.

@@ -130,7 +130,8 @@ public sealed class PdfOcspEvidenceTests
 
         public static OcspFixture Create(string? ocspEndpoint = null)
         {
-            var now = DateTimeOffset.UtcNow.AddMinutes(-1);
+            // OCSP fixture timestamps use whole seconds, as certificate validity does.
+            var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()).AddMinutes(-1);
             var issuerKey = RSA.Create(2048);
             var issuerRequest = new CertificateRequest(
                 "CN=PXA OCSP Test Root",
