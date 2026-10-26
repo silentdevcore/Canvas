@@ -327,7 +327,7 @@ docs/pvad-rename-exceptions.md	documentation-or-history	35	false
 docs/pvad-rename-migration-notes.md	documentation-or-history	24	false
 docs/pvad-rename-phase-review.md	documentation-or-history	6	false
 docs/pvad-rename-release-approvals.md	documentation-or-history	16	false
-docs/pvad-rename-reviewed-exceptions.json	source	285	false
+docs/pvad-rename-reviewed-exceptions.json	source	284	false
 docs/pvad-rename-rollback.md	documentation-or-history	1	false
 docs/pvad-rename-validation-blockers.md	documentation-or-history	1	false
 docs/pvad-schema-and-client-contracts.md	documentation-or-history	5	false
@@ -834,8 +834,8 @@ tools/configuration/rename-artifact-audit.mjs	configuration	6	false
 tools/configuration/rename-artifact-audit.test.mjs	configuration	2	false
 tools/configuration/rename-authenticated-browser.mjs	documentation-or-history	1	false
 tools/configuration/rename-boundaries.test.mjs	configuration	2	false
-tools/configuration/rename-container-workflows.mjs	configuration	6	false
-tools/configuration/rename-container-workflows.test.mjs	configuration	5	false
+tools/configuration/rename-container-workflows.mjs	configuration	10	false
+tools/configuration/rename-container-workflows.test.mjs	configuration	8	false
 tools/configuration/rename-content-review.mjs	configuration	3	false
 tools/configuration/rename-content-review.test.mjs	configuration	7	false
 tools/configuration/rename-cutover-candidate.mjs	configuration	2	false
@@ -857,7 +857,7 @@ tools/configuration/shell-environment.test.mjs	configuration	10	false
 tools/configuration/telemetry-contract.test.mjs	configuration	14	false
 tools/configuration/tool-key-contract.test.mjs	configuration	14	false
 tools/configuration/workflow-identity.test.mjs	configuration	9	false
-tools/deployment/README.md	documentation-or-history	6	false
+tools/deployment/README.md	documentation-or-history	7	false
 tools/deployment/pvad-deployment.mjs	source	6	false
 tools/deployment/pvad-deployment.test.mjs	source	27	false
 tools/deployment/pxa-deployment.mjs	source	0	true

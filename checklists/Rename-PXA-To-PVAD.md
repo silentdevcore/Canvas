@@ -1343,6 +1343,25 @@ remains **90/98 (91.8%)**, not 92.9%. Public HTTPS/host isolation, actual key
 recovery, mail delivery and version rollback need their separate evidence.
 See [the scoped local staging record](../docs/pvad-local-staging-validation.md).
 
+## Offline Protected Environment Preparation Follow-up (2026-10-26)
+
+The owner reconfirmed that the container publisher is not selected and only
+local preparation is authorized. The current source workflows, remote settings,
+registries, secret values, product version and published release history remain
+unchanged. This follow-up supports the existing R07/infrastructure gates and
+does not add score-bearing primary tasks.
+
+- [x] Bind generated container-workflow candidates and input workflows to SHA-256 receipts; invalidate stale output after failed preparation.
+- [x] Add an offline paired-environment comparison for reviewers, self-review protection, timers, administrator bypass, branch/tag policies and secret/variable names without reading or reporting their values.
+- [x] Reject foreign-repository, missing, stale, future, incomplete and unsupported snapshots; require all relevant workflow generations to be drained and preserve active bindings.
+- [x] Verify 22 additional synthetic comparison/CLI cases, including weaker protection, stale-candidate removal, sanitized failure output and unchanged workflow sources; the combined workflow/deployment selection passes 44 tests.
+- [x] Pass the expanded 118-test configuration, deployment, versioning, build-metadata and release-author selection without failures or skips; keep this separate from application/runtime certification.
+- [ ] Obtain owner-approved publishers and a provenance-reviewed current environment snapshot, securely verify secret/variable values and complete the authorized remote protection/cutover/rollback checks.
+
+See [the local comparison contract](../tools/deployment/README.md#offline-protected-environment-comparison).
+No remote evidence is implied by synthetic tests. Completion remains
+**90/98 (91.8%), with 8/98 (8.2%) open**; this preparation closes no primary gate.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

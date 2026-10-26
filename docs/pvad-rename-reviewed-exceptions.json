@@ -1187,12 +1187,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "2ea9f310aee309e1f3bc1cada5c19abbdb457fb8f8afea4271257dc6305e6f61",
+      "sha256": "4b59a1bf1241cd2c1c8a884c380dc7f1c7979755a1cf4b287b6d50d17928e895",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "reviewNotes": "2026-10-26 scoped inventory review: only line counts for the reviewed offline workflow tool, its tests, deployment guide and review ledger changed. Historical source bindings remain intentional; no unrelated untracked files were inventoried and no publication or remote migration is inferred.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "c8b23ef62aa3ee8f669e3071c098c4a28d9ded528b11f9811b094e939a13e5f6",
+      "sha256": "53636ad4b6bb03b4a91ae05511d793e87d1b60b26ffdf595ff87019c6783041e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "reviewNotes": "2026-10-26 scoped environment-preparation review: retain historical compatibility names, source-specific acceptance evidence and checklist references. The owner leaves publishers undecided and permits local preparation only. New subtasks record offline protection comparison and synthetic tests without changing the 90/98 total or approving remote cutover, actual key recovery, publication or production readiness.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2347,12 +2347,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "e23dd8ed0c5243ae813311809cfdd2b3689a6f39628da2b0c2f0540d01d4b829",
+      "sha256": "bade9df9d067b89d707bdeaa7e00984e725542482f35e3a9658e89e304b6b99f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. 2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "reviewNotes": "2026-10-26 scoped decision-register review: retained image/environment identities identify real infrastructure and historical records, not current product branding. Record the explicit local-only instruction and undecided publisher. Offline snapshot comparison and candidate generation are not remote ownership, authenticated protection state, secret-value verification or activation approval.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -7637,12 +7637,12 @@
     },
     {
       "path": "tools/deployment/README.md",
-      "sha256": "87a29afcad61021c3b552ab716ef659e56e143c33ee5ce6102e90d21d03ed8cb",
+      "sha256": "38e5532326a60b630baf2cdabc4c8d9e08e500f84767537e9045a8fbc8d37b7c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Document distinct artifact/container identity and candidate-only activation. Historical image names and protected environment IDs remain required compatibility and deployment-boundary references.",
+      "reviewNotes": "2026-10-26 scoped operator-guide review: historical image families and protected environment names remain explicit cutover inputs. New guidance defines metadata-only offline comparison, unverified value/provenance boundaries and owner approvals; no real publisher or migrated environment is claimed.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -9280,22 +9280,22 @@
     },
     {
       "path": "tools/configuration/rename-container-workflows.mjs",
-      "sha256": "70dee2a90cba3d1c7a9989f91072c818e04c8b121303e4e5bf6f8601bc82c32e",
+      "sha256": "07c3b0bce74edb1ddc943ff33f18adf76cee38674c37844627ce003fac3cae43",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Offline source transformation intentionally reads retained PXA image leaves and produces canonical candidates outside active workflows, preserving protected identifiers and reporting approval blockers.",
+      "reviewNotes": "2026-10-26 scoped tool review: old image/environment names are bounded source bindings for paired offline transformation and comparison. Fresh repository-bound metadata and exact protections are required for an optional environment candidate; active workflows remain unchanged and deployment authorization is always false. No registry or GitHub network operation is introduced.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
       "path": "tools/configuration/rename-container-workflows.test.mjs",
-      "sha256": "7ea1a960e92a0b3a731bf876cf8dd971b3e1bf2676e0786da228e7407e04f11d",
+      "sha256": "1431769b592b4dbfb1104b6b0a9514712c609a90cc93c1c50d446b43658d2728",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Synthetic old names verify paired cutover transformation, historical image selection and unchanged locks/environments. Shell simulation stops before any real registry access.",
+      "reviewNotes": "2026-10-26 scoped test review: synthetic legacy image/environment names verify source compatibility and exact protection preservation. Temporary repositories exercise the local CLI without external accounts, registry calls or deployment; failures remove stale generated candidates and do not reveal synthetic secret values.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {

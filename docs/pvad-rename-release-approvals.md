@@ -93,6 +93,15 @@ silently replace an approved old environment with weaker settings. Environment
 secrets cannot be recovered from their read API; coordinate the secret owner.
 No remote environment, secret, workflow run or repository setting was changed.
 
+Local preparation follow-up, 2026-10-26: the owner explicitly leaves the
+container publisher undecided and authorizes local preparation only. The
+[offline environment comparison](../tools/deployment/README.md#offline-protected-environment-comparison)
+now checks paired protection metadata, complete/fresh snapshots and drained
+workflow generations before generating an optional binding candidate. It
+compares secret/variable names, not values, and never authorizes activation.
+The default report records missing snapshot evidence. No new remote inspection,
+environment migration, publisher selection or publication was performed.
+
 GET-only follow-up on 2026-10-25 reconfirmed the `pxa-staging` branch restriction
 and an empty environment-variable list, without requesting secret values. GitHub
 also contains a historical `v1.1.0` release from 2026-08-03 with seven complete
