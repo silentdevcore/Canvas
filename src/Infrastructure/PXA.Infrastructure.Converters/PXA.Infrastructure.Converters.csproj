@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.13" />
   </ItemGroup>
 
   <PropertyGroup>
