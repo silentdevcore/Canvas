@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-upload-artifact-7-0-2",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Update the pinned artifact-upload action used by build and validation workflows.",
+  "breaking": false,
+  "reason": "Internal CI dependency maintenance; application behavior and existing workflow permissions, triggers and artifact contracts remain unchanged."
+}

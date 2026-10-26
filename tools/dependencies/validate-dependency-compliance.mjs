@@ -86,7 +86,7 @@ for (const marker of [
   'check-nuget-vulnerabilities.mjs',
   'audit --omit=dev --audit-level=high',
   'Microsoft.Sbom.DotNetTool',
-  'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610',
+  'anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c',
   'webapi-container',
 ]) {
   if (!ci.includes(marker)) fail(`CI marker is missing: ${marker}`);
@@ -111,7 +111,7 @@ const requiredActionPins = new Map([
   ['actions/checkout', '3d3c42e5aac5ba805825da76410c181273ba90b1'],
   ['actions/setup-node', '820762786026740c76f36085b0efc47a31fe5020'],
   ['actions/setup-dotnet', 'a98b56852c35b8e3190ac28c8c2271da59106c68'],
-  ['actions/upload-artifact', '043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'],
+  ['actions/upload-artifact', 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'],
   ['docker/setup-buildx-action', 'f87e5991a6d7451dcb8d9637bfbc97413f497069'],
   ['docker/login-action', 'dbcb813823bdd20940b903addbd779551569679f'],
   ['docker/build-push-action', '53b7df96c91f9c12dcc8a07bcb9ccacbed38856a'],
