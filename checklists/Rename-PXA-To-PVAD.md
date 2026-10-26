@@ -15,8 +15,10 @@ other platforms and manual first-run prompts remain untested. See
 [the OAuth/MCP completion](#oauth-and-mcp-writer-completion-2026-10-25) and
 [the counting rule](#current-audit-and-progress-2026-10-24).
 The owner-selected container publisher and paired workflow sources are now
-configured; actual registry access/publication and protected environment cutover
-remain open. See [the source transition](#confirmed-container-publisher-source-transition-2026-10-26).
+configured; historical package read access and the visible package/tag inventory
+are verified. Canonical publication permissions, publication and protected
+environment cutover remain open. See [the source transition](#confirmed-container-publisher-source-transition-2026-10-26)
+and [the approved package inventory](#approved-package-inventory-follow-up-2026-10-26).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
 current total. The full API suite now passes against deliberately isolated
 PostgreSQL on commit `16c4264e`; the earlier local-database blocker is historical.
@@ -1406,13 +1408,32 @@ or settings. See [the dated audit and exact boundaries](../docs/pvad-rename-rele
 - [x] Read both historical 1.1.0 API/Relay manifests and preserve their real registry digests without downloading layers, republishing or relabeling them.
 - [x] Record the package-list HTTP 403/read-scope blocker and inaccessible canonical manifests as unknowns, not empty inventories or proof of absence.
 - [x] Read environment-level secret metadata only; explicitly leave repository/organization secrets and value-returning variable endpoints unqueried.
-- [ ] Obtain owner-controlled read-only package scope and complete the package/tag inventory; do not request that credentials or tokens be pasted into documents or chat.
+- [x] Obtain owner-controlled read-only package scope and complete the visible package/tag inventory; do not request that credentials or tokens be pasted into documents or chat. Completed in the approved follow-up below; this does not establish publishing rights.
 - [ ] Review environment self-review/administrator bypass and the required CI-check set, then separately approve protected-environment/workflow activation, staging and rollback.
 
 No remote setting or release artifact was modified. These observations support
 existing primary gates but do not complete them: **90/98 (91.8%) complete,
 8/98 (8.2%) open**. Earlier unpublished/local-only owner statements remain dated
 history; the newly observed historical container artifacts must not be erased.
+
+## Approved Package Inventory Follow-up (2026-10-26)
+
+The owner approved a `read:packages` addition for `silentdevcore`. The successful
+retry preserved the account and its existing scopes, without adding package
+write/delete scopes. The earlier wrong-account attempt was rejected. See
+[the dated inventory and authorization boundaries](../docs/pvad-rename-release-approvals.md#approved-package-read-access-and-inventory-2026-10-26).
+
+- [x] Verify the expected active account and effective scopes without reading, logging or requesting tokens or credential-store contents.
+- [x] Read the complete visible container inventory and complete active-version lists, checking both package-detail counts and duplicate identities; deleted/unreadable versions remain outside scope.
+- [x] Record two public historical packages with three digest records each: one record tagged 1.1.0/1.1/latest and two untagged records; match both release digests to earlier registry observations.
+- [x] Record canonical package names as not listed in the visible owner inventory, not proof of global absence, reserved names or publishing permissions.
+- [x] Preserve the initial missing-count verification attempt separately from the corrected package-detail audit; retain original reports rather than overwriting them.
+- [ ] Select NuGet/npm publishers and separately verify canonical publication permissions and release authorization without overwriting historical images.
+
+Only the approved CLI scope was extended. No image, tag, environment, branch
+policy, workflow or deployment was changed. These supporting tasks do not add
+new primary criteria or close an existing gate: **90/98 (91.8%) complete,
+8/98 (8.2%) open**.
 
 ## Related Work
 

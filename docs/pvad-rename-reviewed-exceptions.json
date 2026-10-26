@@ -1177,12 +1177,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "23270fcbfc305177c5d98bac808a8fa7c0ee96c52631007de82827d1b983dd03",
+      "sha256": "d09fa4f7ee706354a9c519e4958f4223274577a0564603b79d059df0d09aa4db",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped remote-audit inventory: refresh only the reviewed checklist, operator record and review-ledger line counts/hash. Actual historical image and protected environment identities are retained as evidence; no unrelated untracked file or secret value is inventoried.",
+      "reviewNotes": "2026-10-26 bounded package-audit inventory: refresh only the reviewed checklist, operator record and ledger counts/hash. Historical package names remain real evidence; unrelated untracked files, credential contents and secret values remain excluded.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1307,12 +1307,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "9e011677a045a45ce57acbdcae63774d625dde15802f46665e3976f392c1730a",
+      "sha256": "959b3b2c4028cc4c7478182f008cca5339fe7b29d7d77bfdcba3cc7fc1005c01",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped read-only remote audit: retain historical image/environment/workflow names because the observed remote systems still use them. Record two real historical manifests, complete paginated workflow observations and explicit package-scope/canonical-image unknowns. Prior unpublished statements remain dated evidence; no parent gate, registry ACL, secret value or deployment is approved.",
+      "reviewNotes": "2026-10-26 approved package-read follow-up: retain historical package names and earlier denied-scope evidence. The expected account now has read-only package scope and a complete visible active-version inventory; no primary gate, publication right, global absence or deployment is approved.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2337,12 +2337,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "d61984cbd229aeba502cf8e3bdca781e01623475470b9779742c6183449a2fd4",
+      "sha256": "07fb41b86648e1c5d93ceefab3459b72f468acb7d12e5e3331c3eae0966b968d",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped live-read record: historical image names identify actual remotely readable manifests, while environment and workflow names identify unchanged protected bindings. Preserve exact original digests and dated source distinctions; package listing is blocked and canonical manifest absence is not established. Read-only evidence is not publication, remote activation, policy acceptance or key recovery.",
+      "reviewNotes": "2026-10-26 scoped package-read evidence: preserve historical names and exact digests, distinguish earlier denied-scope and missing-count attempts from the completed detail-count audit, and record only the owner-approved CLI scope addition. Visible inventory does not approve publication, environment activation or customer recovery.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {

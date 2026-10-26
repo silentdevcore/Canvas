@@ -8,7 +8,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
 | Installed product inventory | Earlier owner report covered local development/testing and no customer installations; historical release archives and legacy GHCR images are now observed. | Product owner | Owner statement dated 2026-10-21; artifact evidence updated 2026-10-26; no customer installation independently inspected |
-| Public identities | Owner selects pvade.com, support@pvade.com, technical sender no-reply@pvade.com and GHCR target ghcr.io/silentdevcore. NuGet/npm publishers, actual registry access and infrastructure/mail verification remain open. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; container target and local workflow changes confirmed 2026-10-26; no publication approval |
+| Public identities | Owner selects pvade.com, support@pvade.com, technical sender no-reply@pvade.com and GHCR target ghcr.io/silentdevcore. Historical container read access and visible package/tag inventory are verified; NuGet/npm publishers, publishing permissions and infrastructure/mail verification remain open. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; container target, local workflow changes and read-only package inventory confirmed 2026-10-26; no publication approval |
 | Compatibility policy | .pvadp/.pvads, stable diagnostic IDs, old API/format readers for one major release. | Product owner | Confirmed in conversation, 2026-10-21 |
 | Cutover and rollback | Repository owner accepts responsibility for local development backup, restore and rollout. Production/customer procedures are not approved. | Repository owner (local only) | Local owner confirmed, 2026-10-21; production approval pending |
 | Protected material | Verify actual keyring access and retained encrypted payload recovery without exposing or rewriting secrets. | Security and operations | Pending |
@@ -33,7 +33,7 @@ Local source renaming does not establish registry access or permission to publis
 
 | Source | Retained identity | Required coordinated action |
 | --- | --- | --- |
-| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | New images use GHCR `pvad-webapi` and `pvad-observability-webhook-relay`; historical `pxa-*` images remain explicit inputs | Source changes complete for owner-selected ghcr.io/silentdevcore; registry access, immutable image availability and real release approval remain unverified |
+| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | New images use GHCR `pvad-webapi` and `pvad-observability-webhook-relay`; historical `pxa-*` images remain explicit inputs | Source changes and historical read inventory complete for owner-selected ghcr.io/silentdevcore; canonical image availability, publishing permissions and real release approval remain unverified |
 | `deployment-validation.yml` | `pxa-staging`, `pxa-production` via its environment expression | Inspect actual GitHub configuration, then verify reviewers, secrets, branch restrictions and approval behavior before changing workflow bindings |
 | `release.yml` | Old protected-branch runs may still use `pxa-stable-release`; local source uses `pvad-stable-release` | Drain earlier runs and switch every applicable branch/workflow consistently |
 | `prepare-release.yml` | Old runs may still use `pxa-release-preparation`; local source uses `pvad-release-preparation` | Drain preparation runs and retain single-writer release preparation |
@@ -121,7 +121,7 @@ non-atomic observation, not ongoing authorization or a release attestation.
 - The authenticated GitHub account and repository owner are both `silentdevcore`.
   Repository metadata reports administrator access and default branch `develop`.
   Repository administration is not proof of package ACLs or publishing rights.
-- The authenticated container-package list returned HTTP 403 because the current
+- At this checkpoint, the authenticated container-package list returned HTTP 403 because the
   GitHub credential lacks `read:packages`. The inventory is incomplete, not an
   empty namespace. No authentication scopes or credentials were changed.
 - Exact-tag registry inspection read both historical `1.1.0` image manifests:
@@ -175,12 +175,60 @@ canonical workflow changes are therefore not evidence of protected-branch
 activation. The two branch tips, workflow blob/source hashes and request outcomes
 are preserved in the local report; they are not silently treated as this branch.
 
-Still required: owner-controlled read-only package access, complete package/tag
+At this checkpoint, still required: owner-controlled read-only package access, complete package/tag
 inventory, NuGet/npm selection, permission review, provenance-reviewed environment
 and variable metadata, deliberate self-review/bypass policy, protected-branch
 workflow rollout, a fresh drain check, staging and release authorization. No
 remote setting, environment, permission, workflow run, tag or package was changed.
 The eight primary rename gates stay open; completion remains 90/98 (91.8%).
+The package-scope blocker was subsequently resolved by the approved follow-up below;
+the original observation remains unchanged as dated evidence.
+
+## Approved Package Read Access and Inventory (2026-10-26)
+
+The owner authorized adding only `read:packages` to the existing GitHub CLI
+account `silentdevcore`. The first browser authorization used a different account
+and was rejected; it did not replace the active account. The successful retry
+retained `gist`, `read:org`, `repo` and `workflow`, adding `read:packages` without
+`write:packages` or `delete:packages`. No tokens or credential-store contents were
+read, displayed or persisted in audit evidence. Git credential setup was declined.
+
+The successful GET-only audit is preserved under ignored local evidence at
+`artifacts/rename/github-packages-verified-2026-10-26/report.json`, from
+`2026-10-26T12:56:42.055Z` through `2026-10-26T12:56:46.365Z`, on baseline
+`e62bc33c`. Its SHA-256 is
+`97ba8696acd6b4100b6271d113fa8a82932377a81ac20f180ff2a94c0f1b7418`.
+All six API requests succeeded. The complete visible owner container list contains
+two public packages, with complete active-version pagination and counts verified against
+their individual package-detail responses:
+
+| Package | Version records | Tagged record | Untagged records |
+| --- | --- | --- | --- |
+| `pxa-webapi` | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
+| `pxa-observability-webhook-relay` | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
+
+Both `1.1.0` digests match the earlier exact-tag manifest observations above.
+Three version records do not mean three product releases. Untagged records are
+retained without assuming their contents, platform or provenance. The canonical
+`pvad-webapi` and `pvad-observability-webhook-relay` packages are not listed in
+this account's visible inventory; global absence and publishing rights are not
+established. These are dated, non-atomic observations, not a durable reservation
+or proof that future publication will succeed.
+Deleted or otherwise unreadable versions were not inventoried.
+
+The earlier local attempt at
+`artifacts/rename/github-packages-2026-10-26/report.json` remains incomplete:
+the list endpoint omits version counts, so its collector could not verify counts.
+The corrected attempt queries package details rather than treating missing counts
+as zero or silently changing the failed report.
+
+Only the explicitly authorized CLI scope changed. No Docker authentication,
+package/tag mutation, image pull, environment/branch policy change, workflow run,
+deployment or publication was performed. NuGet/npm publisher selection,
+publishing permission review, protected-environment metadata/policy decisions,
+coordinated workflow activation, fresh drain verification and real staging/release
+approval remain open. This closes a supporting inventory task, not a primary
+acceptance gate: **90/98 (91.8%) complete, 8/98 (8.2%) open**.
 
 ## Workflow Lock Cutover
 
