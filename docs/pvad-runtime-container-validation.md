@@ -187,6 +187,78 @@ The owner approved the exact public security-fragment text before it was added.
 The separate OCR fix fragment describes the compatible packaging correction.
 Neither fragment increments `VERSION` or authorizes publication.
 
+## Production Startup Exit Follow-Up - 2026-10-26
+
+The previously unresolved abort/exit diagnostic is now fixed and independently
+regression-tested. The earlier failed attempts above remain failed evidence;
+this follow-up does not retroactively approve them or the Production policies.
+
+A minimal console/host probe in the unchanged API image reproduced the delayed
+exit for an unhandled exception without an API database, worker or network.
+Returning an exit code or catching the typed host startup failure completed
+promptly. The observed process reported `CoreDumping: 0`; this does not establish
+a general .NET defect or a kernel core-dump cause.
+
+The retention gate still checks exactly the same approval conditions. It now
+logs `PVADSTART001` (Critical, event 1001) and throws a dedicated
+`PvadRetentionApprovalRequiredException`. The application lifetime wrapper
+handles only that sealed exception after `RunAsync` disposes the host and
+returns configuration exit code `78`. It does not force termination, catch
+unrelated failures, match exception messages or turn rejection into exit `0`.
+Normal graceful shutdown continues to return `0`.
+
+The new candidate is based on commit
+`669d00bb65a761eb98e349531be99d4f304fea96`, plus the recorded uncommitted startup
+changes. Its receipt binds the entry point, gate, lifetime wrapper and Dockerfile
+hashes to build time `2026-10-26T07:14:50.472Z` and immutable image
+`sha256:17f07bd1a5efbe06ea291595ffe85fb12814b98972e6c323aabfc5faa8c34b89`.
+It is an unpublished Linux/arm64 candidate, not a release tag.
+
+Evidence is retained separately under
+`artifacts/dependencies/startup-exit-2026-10-26/`:
+
+- The actual old image fails the new container regression: it remains running
+  beyond the 15-second bound and is cleaned up after the failed verdict.
+- The new image independently exits `78` in 548 ms, with `PVADSTART001`, no HTTP
+  listener, no unhandled exception and no OOM kill. The fixture keys, helper
+  container, API container and dedicated volume are removed.
+- A separate normal Staging control on the same image returns HTTP 200 for
+  liveness and version, then exits `0` within 139 ms of SIGTERM. This control
+  does not claim database-backed workflows or Production approval.
+- All 12 focused retention/lifetime tests pass, including host disposal, normal
+  shutdown and propagation of unrelated, cancellation and aggregate failures.
+- The complete API project passes 1,174 tests with 80 explicitly skipped and
+  zero failures against a disposable PostgreSQL database. The initial database
+  preparation failure remains separately recorded; only the successful repeat
+  is counted. This is not a new full-solution or Linux test total.
+- A fresh Trivy scan of the exact new image reports zero Critical/High findings
+  and zero secrets, retaining 49 Medium and 9 Low findings. Its matching SPDX
+  inventory contains 400 packages. Raw JSON and SHA-256 receipts are under
+  `scan/`; no severity, unfixed-finding or secret exclusions are used.
+
+The permanent CI regression runs immediately after the API image build:
+
+```bash
+node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
+node --test tools/configuration/production-startup-smoke.test.mjs
+```
+
+The smoke test resolves an immutable local image ID, uses a network-isolated,
+read-only, capability-dropped, bounded non-root API with synthetic keys only,
+and requires independent exit before cleanup. It needs no real database or
+retention-policy edits. If the source inventory is genuinely approved later,
+the report explicitly says `not-applicable` rather than manufacturing a
+rejection or claiming successful Production startup. Reports are written to
+`artifacts/sbom/webapi-startup/` and included in the existing CI artifact upload.
+The ten Node contracts reject forced kills, OOM, timeout, missing diagnostics,
+an HTTP listener and unhandled aborts as successful rejection evidence.
+
+The new Patch release fragment describes delayed-startup-shutdown correction.
+`VERSION`, published release history, NPOI licensing and retention approvals
+remain unchanged. The previous Relay scan remains historical evidence for its
+unchanged image, not a new Relay scan. Remaining Medium/Low risk, approved
+release scans and deployed Production smoke tests are still open.
+
 ## Related Records
 
 - [Cryptographic dependency update](pvad-cryptography-security-update.md)

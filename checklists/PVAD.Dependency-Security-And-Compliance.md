@@ -69,7 +69,11 @@ NPOI approval and the remaining rename gates are not completed by this maintenan
 - [x] Pass the final candidate scan without hiding unfixed/lower-severity findings: zero High/Critical vulnerabilities and zero secrets; API retains 49 Medium/9 Low and Relay 21 Medium/5 Low findings, with no fix version offered by that scan.
 - [x] Pass the separate Staging integration run against those same image IDs: 14 expected HTTP outcomes, valid PDF/PNG, actual OCR, disabled CodeWorker, hardened non-root container, database-loss readiness, Relay health and malformed-alert rejection. Remove the disposable resources.
 - [x] Pass 42 Node configuration/compliance/release contracts; verify the default system SDK with 285 Core/Generator tests. Do not present these as a new full Linux solution run.
-- [ ] Investigate the separate Production abort/exit diagnostic: retention rejection is logged, but the local process did not reach an exited state within the 10/30-second diagnostic bounds. Preserve the failed attempts and do not treat the Staging pass as Production approval.
+- [x] Investigate the separate Production abort/exit diagnostic with a minimal runtime/host probe; preserve the original failed attempts and do not interpret this fix as Production approval.
+- [x] Handle only the dedicated retention rejection after host disposal, emit `PVADSTART001` and exit `78`; retain the original approval conditions and propagate unrelated failures.
+- [x] Add a real-container CI regression and ten Node contracts requiring independent, bounded exit, safe diagnostics and owned-resource cleanup; demonstrate failure on the old image and success on the new image without editing approval data.
+- [x] Verify normal Staging startup and graceful exit `0` on the same new image; pass 12 focused retention/lifetime tests and the complete API project (1,174 passed, 80 skipped, zero failed) with an isolated database removed afterward.
+- [x] Bind the new local API image to its source hashes, OCI metadata, fresh Trivy scan (zero Critical/High/secrets; 49 Medium/9 Low remain) and matching 400-package SPDX inventory; add a Patch fix fragment without changing the product version.
 - [ ] Review residual Medium/Low risk before release and rescan the final approved artifacts against the current vulnerability database.
 
 See [runtime and container validation](../docs/pvad-runtime-container-validation.md)

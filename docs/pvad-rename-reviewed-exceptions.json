@@ -777,12 +777,12 @@
     },
     {
       "path": "checklists/PVAD.Dependency-Security-And-Compliance.md",
-      "sha256": "cf5f567a12902c177d9d99b8115741e505c3eef911b7e49473a702c54b62b8d1",
+      "sha256": "5a002518d3d15ab28049ff160ee5f07b88bd8c38c7173ca3b256046f97ebdd36",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped cryptographic dependency follow-up: retain the explicit naming-history notice and historical branding. New maintenance tasks document reviewed package pins and actual local evidence separately from unapproved runtime deployment, NPOI licensing and rename gates; no blanket release approval is implied. Reviewed follow-up: record system CLI and local container checks while keeping Production, retention, license and abort diagnostics open.",
+      "reviewNotes": "2026-10-26 scoped startup-exit follow-up: retain the naming-history notice and original historical product wording. Newly completed maintenance tasks bind typed rejection, independent exit, normal shutdown, fresh scans and regression evidence; actual Production retention, NPOI approval, remaining scanner risk and rename gates remain open. Only this reviewed file hash is updated.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6207,12 +6207,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadRetentionGovernanceTests.cs",
-      "sha256": "eda7227f01412270a4309e254953fbf1e66d78bdfff469905ed2559b91ed960c",
+      "sha256": "29b0ad0ab9d4eee91a8a461f1be1e462d582f4bc9c55d8df6e33695e4feed8b9",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadRetentionGovernanceTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-26 scoped retention test review: the assertion now expects the dedicated approval-rejection exception without changing governance conditions or catalog approval data. Retain the existing synthetic legacy ApplicationName as test-only compatibility identity; it is not current product branding.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

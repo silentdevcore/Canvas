@@ -9,8 +9,9 @@ public sealed class PvadRetentionStartupGate(
     {
         if (environment.IsProduction() && !catalog.IsProductionReady)
         {
-            throw new InvalidOperationException(
-                "Production startup is blocked because retention policies or their legal approvals are incomplete.");
+            logger.LogCritical(new EventId(1001, "RetentionApprovalRequired"),
+                "PVADSTART001: Production startup is blocked because retention policies or their legal approvals are incomplete.");
+            throw new PvadRetentionApprovalRequiredException();
         }
 
         if (!catalog.IsProductionReady)
@@ -24,3 +25,6 @@ public sealed class PvadRetentionStartupGate(
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
+
+public sealed class PvadRetentionApprovalRequiredException() : InvalidOperationException(
+    "Production startup is blocked because retention policies or their legal approvals are incomplete.");

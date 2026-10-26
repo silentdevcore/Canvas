@@ -1,0 +1,13 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "production-retention-startup-exit",
+  "impact": "patch",
+  "components": [
+    "api",
+    "infrastructure",
+    "documentation"
+  ],
+  "category": "fixed",
+  "summary": "Fixed delayed shutdown when the API rejects production startup.",
+  "breaking": false
+}

@@ -593,6 +593,8 @@ jobs:
           test -n "$PVAD_BUILD_TIME"
           docker build --file PVAD.WebApi/Dockerfile --tag pvad-webapi:sbom --build-arg PVAD_VERSION="$VERSION" --build-arg PVAD_COMMIT="$GITHUB_SHA" --build-arg PVAD_BUILD_TIME="$PVAD_BUILD_TIME" .
           node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
+      - name: Verify fail-closed production startup exits independently
+        run: node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
       - name: Generate WebApi and Designer SPDX SBOMs
         run: |
           VERSION="$(cat VERSION)"

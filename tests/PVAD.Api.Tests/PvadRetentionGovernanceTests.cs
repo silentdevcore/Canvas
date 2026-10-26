@@ -77,7 +77,7 @@ public sealed class PvadRetentionGovernanceTests
             catalog,
             new TestHostEnvironment(Environments.Production),
             NullLogger<PvadRetentionStartupGate>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<PvadRetentionApprovalRequiredException>(() =>
             productionGate.StartAsync(CancellationToken.None));
 
         var developmentGate = new PvadRetentionStartupGate(

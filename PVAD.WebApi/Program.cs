@@ -738,6 +738,6 @@ static void AddStepUpPolicy(AuthorizationOptions options, string policyName, str
     });
 }
 
-app.Run();
+Environment.ExitCode = await PvadApplicationLifetime.RunAsync(app);
 
 public partial class Program {}
