@@ -182,7 +182,7 @@ runtime compatibility.
 - [x] Confirm the EF model remains unchanged with the updated compiler graph.
 - [x] Rerun all 556 migration tests across 34 projects without skips.
 - [x] Pass all 29 version/compliance contracts; keep product version at 1.1.0.
-- [ ] Validate the committed Roslyn release fragment against merged `develop`.
+- [x] Validate the committed Roslyn release fragment against merged `develop`.
 - [ ] Obtain exact-head green CI and a disclosed technical review.
 - [ ] Merge normally and close #74 and #75 as superseded with replacement links.
 
