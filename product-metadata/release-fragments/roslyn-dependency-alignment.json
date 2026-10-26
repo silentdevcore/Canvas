@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "roslyn-dependency-alignment",
+  "impact": "patch",
+  "components": ["api", "migration"],
+  "category": "improved",
+  "summary": "Updated the C# migration and scripting components to a consistent compiler version.",
+  "breaking": false
+}

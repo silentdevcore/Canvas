@@ -59,13 +59,13 @@ Updating a branch invalidates any earlier approval.
 | #95 | MCP SDK 1.32.0 | Closed as superseded by merged baseline PR #102 using 1.32.2; do not downgrade. |
 | #94 | MCP tsx 4.23.15 | Test types and stdio smoke. |
 | #89 | Zod 4.6.5 | Closed with replacement explanation: this target remains affected by GHSA-mrhx-c7xc-m3w5; merged baseline PR #102 uses 4.6.7. |
-| #78 | EF Core Design 10.0.11 | Check runtime/design patch alignment and database tests. |
+| #78 | EF Core Design 10.0.11 | Superseded by merged platform PR #103 (`865007bd7283540867d716b1dddcc058425d7fa0`), with exact-head CI and disclosed technical review. |
 | #75 | Roslyn Scripting 5.9.0 | Check the full Roslyn package graph and code execution tests. |
 | #74 | Roslyn CSharp 5.9.0 | Coordinate with scripting/workspace dependencies; test migrations. |
-| #73 | ASP.NET OpenAPI 10.0.11 | Check API schema compatibility and API tests. |
-| #72 | ASP.NET MVC Testing 10.0.11 | Run API and relay test suites. |
-| #71 | Identity EF 10.0.11 | Check EF package graph, identity and PostgreSQL tests. |
-| #70 | dotnet-ef 10.0.11 | Check tool restore and migration compatibility. |
+| #73 | ASP.NET OpenAPI 10.0.11 | Superseded by merged platform PR #103; API contracts and PostgreSQL tests passed. |
+| #72 | ASP.NET MVC Testing 10.0.11 | Superseded by merged platform PR #103; API and relay tests passed. |
+| #71 | Identity EF 10.0.11 | Superseded by merged platform PR #103; EF graph, identity and PostgreSQL tests passed. |
+| #70 | dotnet-ef 10.0.11 | Superseded by merged platform PR #103; local tool restore and unchanged model confirmed. |
 | #45 | Markdig 1.3.2 | Major dependency update: run Markdown importer regressions. |
 | #43 | coverlet 10.0.1 | Major dependency update across test projects: verify test SDK/collector compatibility. |
 | #41 | ClosedXML 0.105.1 | Run Spreadsheet import/export regressions. |
@@ -125,8 +125,16 @@ previously recorded macOS native-library limitation is not claimed as resolved.
 - [x] Pass 355 updated API tests with PostgreSQL enabled and no skipped cases.
 - [x] Pass all 8 persistence tests and 5 relay tests without skips.
 - [x] Pass the 29 versioning, release-author and dependency compliance tests.
-- [ ] Record final CI against the exact maintenance commit and obtain a technical review.
-- [ ] Merge the maintenance change normally, then close replaced PRs with cross-links.
+- [x] Record final CI against the exact maintenance commit and obtain a technical review.
+- [x] Merge the maintenance change normally (`865007bd7283540867d716b1dddcc058425d7fa0`).
+- [x] Close #70, #71, #72, #73 and #78 with cross-links without deleting their source branches.
+
+Platform PR [#103](https://github.com/silentdevcore/Canvas/pull/103) passed
+version-policy, .NET, frontend, dependency-security, artifact-contract, impact
+label synchronization and supply-chain checks at exact head
+`d90e6ace30495f83d1e3a84a6a2f7d317aa42fba` before its normal squash merge.
+The `mabadev` review explicitly identifies the owner's secondary account and
+is not an independent human production approval.
 
 No database migrations, product version changes, production deployments or
 changes to the uncommitted rename worktree are part of this maintenance batch.
@@ -146,7 +154,38 @@ sub-microsecond validity dates; it is not an authorization or dependency bypass.
 - [x] Add timestamp precision and tampering regression tests.
 - [x] Pass all 363 API tests with PostgreSQL after the fix, with no skipped cases.
 - [x] Confirm the EF model is unchanged and pass all 29 release/compliance tests again.
-- [ ] Pass exact-head Linux CI after the fix.
+- [x] Pass exact-head Linux CI after the fix.
 
 Existing inconsistent signed records are not silently rewritten or re-signed;
 they require normal authorized license replacement. No database migration is needed.
+
+## Roslyn Alignment Follow-Up
+
+Combine #74 and #75 into one compatibility-tested update. Both migration
+compiler references and API Scripting, CSharp Workspaces and MSBuild Workspaces
+must move together to 5.9.0. EF tooling remains independently aligned at 10.0.11;
+no provider behavior or sandbox policy change is planned.
+
+Before updating Roslyn, all 556 migration tests in 34 projects passed without
+skips against the platform maintenance baseline. Keep those TRX artifacts as
+the before/after comparison rather than assuming a successful build proves
+runtime compatibility.
+
+- [x] Review the original two PRs and all five direct Roslyn references.
+- [x] Record the complete 34-project migration baseline: 556 passed, 0 failed, 0 skipped.
+- [x] Align all five direct compiler, scripting and workspace references.
+- [x] Add project-reference and resolved-runtime graph contract tests.
+- [x] Add the complete migration-provider regression matrix to CI.
+- [x] Restore and build all 105 solution projects with Roslyn 5.9.0 (0 errors; 65 existing warnings).
+- [x] Pass the NuGet direct/transitive vulnerability gate for all 105 projects.
+- [x] Pass all 28 alignment contracts and 375 PostgreSQL-enabled API tests without skips.
+- [x] Confirm the EF model remains unchanged with the updated compiler graph.
+- [x] Rerun all 556 migration tests across 34 projects without skips.
+- [x] Pass all 29 version/compliance contracts; keep product version at 1.1.0.
+- [x] Validate the committed Roslyn release fragment against merged `develop`.
+- [ ] Obtain exact-head green CI and a disclosed technical review.
+- [ ] Merge normally and close #74 and #75 as superseded with replacement links.
+
+The Roslyn work started on the platform maintenance branch, then incorporated
+the merged `develop` baseline before its own PR. Do not treat the owner's
+secondary GitHub account as an independent production approver.
