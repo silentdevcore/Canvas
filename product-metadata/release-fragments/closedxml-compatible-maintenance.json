@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "closedxml-compatible-maintenance",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "spreadsheet"],
+  "category": "improved",
+  "summary": "Updated Excel workbook processing to a compatible maintenance release.",
+  "breaking": false
+}

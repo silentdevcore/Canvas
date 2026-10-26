@@ -6,7 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="NPOI" Version="2.8.0" />
     <!-- Override the vulnerable build task brought in by NPOI's SourceLink dependency. -->
     <PackageReference Include="Microsoft.Build.Tasks.Git" Version="10.0.400" PrivateAssets="all" />
