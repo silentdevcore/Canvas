@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-build-push-action-7-4-0",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Updated the pinned container build action used by release automation.",
+  "breaking": false,
+  "reason": "Build infrastructure maintenance leaves container inputs, publication permissions and product contracts unchanged."
+}
