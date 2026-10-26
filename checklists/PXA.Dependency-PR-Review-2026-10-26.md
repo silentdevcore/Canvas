@@ -55,13 +55,13 @@ Updating a branch invalidates any earlier approval.
 | #91 | build-push-action 7.4.0 | Merged as `66253cb311589cdb12aa734c7176f8b6d72425b2`; all applicable CI passed, including an actual action build with publishing disabled, image-version verification and container SPDX generation. |
 | #90 | setup-buildx-action 4.4.1 | Merged as `90c8bf74ae9239d23bb21988e3e15e4e7b6886a2`; all applicable CI passed including actual builder setup/bootstrap, container build and SBOM. |
 | #100 | Admin Vite 8.3.4 | Fragment added; 26 local Admin tests, production build and full npm audit passed. Final tested head, CI, review and merge are recorded in [PR #100](https://github.com/silentdevcore/Canvas/pull/100). |
-| #97 | MCP Node types 26.6.4 | Test MCP types and stdio smoke. |
+| #97 | MCP Node types 26.6.5 | Reviewed: targets Node 26 declarations while CI runs Node 22. Replace with runtime-aligned Node 22 types and tests; do not approve the original head. |
 | #95 | MCP SDK 1.32.0 | Closed as superseded by merged baseline PR #102 using 1.32.2; do not downgrade. |
 | #94 | MCP tsx 4.23.15 | Test types and stdio smoke. |
 | #89 | Zod 4.6.5 | Closed with replacement explanation: this target remains affected by GHSA-mrhx-c7xc-m3w5; merged baseline PR #102 uses 4.6.7. |
 | #78 | EF Core Design 10.0.11 | Superseded by merged platform PR #103 (`865007bd7283540867d716b1dddcc058425d7fa0`), with exact-head CI and disclosed technical review. |
-| #75 | Roslyn Scripting 5.9.0 | Check the full Roslyn package graph and code execution tests. |
-| #74 | Roslyn CSharp 5.9.0 | Coordinate with scripting/workspace dependencies; test migrations. |
+| #75 | Roslyn Scripting 5.9.0 | Closed as superseded by merged PR #104 (`9903b202400127420ec3d3eb9455e682319f6d28`), with full graph alignment and exact-head CI. |
+| #74 | Roslyn CSharp 5.9.0 | Closed as superseded by merged PR #104; all 556 migration tests and 375 PostgreSQL-enabled API tests passed. |
 | #73 | ASP.NET OpenAPI 10.0.11 | Superseded by merged platform PR #103; API contracts and PostgreSQL tests passed. |
 | #72 | ASP.NET MVC Testing 10.0.11 | Superseded by merged platform PR #103; API and relay tests passed. |
 | #71 | Identity EF 10.0.11 | Superseded by merged platform PR #103; EF graph, identity and PostgreSQL tests passed. |
@@ -183,9 +183,46 @@ runtime compatibility.
 - [x] Rerun all 556 migration tests across 34 projects without skips.
 - [x] Pass all 29 version/compliance contracts; keep product version at 1.1.0.
 - [x] Validate the committed Roslyn release fragment against merged `develop`.
-- [ ] Obtain exact-head green CI and a disclosed technical review.
-- [ ] Merge normally and close #74 and #75 as superseded with replacement links.
+- [x] Obtain exact-head green CI and a disclosed technical review.
+- [x] Merge normally and close #74 and #75 as superseded with replacement links.
+
+Roslyn PR [#104](https://github.com/silentdevcore/Canvas/pull/104) merged as
+`9903b202400127420ec3d3eb9455e682319f6d28` after all applicable checks passed at
+`183753268599d6cd7b29dc1338cdf89c32c8a259`. The owner's secondary-account
+technical review was explicitly disclosed. Both original source branches were
+preserved. Eleven original dependency PRs remained open after that merge.
 
 The Roslyn work started on the platform maintenance branch, then incorporated
 the merged `develop` baseline before its own PR. Do not treat the owner's
 secondary GitHub account as an independent production approver.
+
+## MCP Toolchain Follow-Up
+
+Review #94 (`tsx` 4.23.15) and #97 (`@types/node` 26.6.5) together. Existing
+CI and local validation use Node 22; the previous declarations targeted Node
+26 despite that runtime baseline. Use `@types/node` 22.20.5 instead, keeping
+the API surface checked by TypeScript aligned with the runtime actually tested.
+This is a development-only declaration correction, not a Node runtime upgrade
+or a new minimum imposed on shipped applications. Keep TypeScript 5.9.3,
+MCP SDK 1.32.2 and Zod 4.6.7 unchanged.
+
+Before the update, typecheck and all 14 stdio smoke assertions passed on Node
+22.14.0. The replacement must retain those results after a clean install.
+The smoke test exercises tool discovery, examples, defaults, validation errors,
+search and resource discovery. Real backend rendering, credentials and customer
+data are outside this dependency test.
+
+- [x] Inspect both exact original PR diffs and upstream npm metadata.
+- [x] Record the unchanged Node 22 typecheck and stdio baseline.
+- [x] Update the runner and align declarations with Node 22.
+- [x] Add declaration/lockfile/installed-tooling contracts to CI.
+- [x] Start the stdio server through the current Node and local `tsx`, not `npx`.
+- [x] Record the completed Roslyn review and merge evidence above.
+- [x] Complete a clean install, all 3 contracts, typecheck and all 14 stdio assertions on Node 22.14.0.
+- [x] Pass the complete MCP npm vulnerability audit (0 findings) and inspect the lockfile diff.
+- [x] Pass all 29 release/version/compliance tests and fragment validation; keep version 1.1.0.
+- [ ] Pass exact-head CI and obtain the disclosed technical review.
+- [ ] Merge the replacement normally, then close #94 and #97 with cross-links.
+
+Primary references: [DefinitelyTyped version numbers](https://github.com/DefinitelyTyped/DefinitelyTyped#version-numbers),
+[tsx package](https://www.npmjs.com/package/tsx/v/4.23.15).

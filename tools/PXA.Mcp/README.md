@@ -28,14 +28,27 @@ Use the `pxa://` scheme for all resources.
 
 ## Run
 
+The validated runtime baseline is Node.js 22. Node declarations track that
+major so compilation does not assume newer Node APIs than CI exercises. This
+does not upgrade the runtime or change the upstream SDK's minimum requirement.
+Use Node 22 for the compatibility check; passing on a newer runtime alone does
+not establish compatibility with the baseline.
+
 ```bash
 cd tools/PXA.Mcp
-npm install
+npm ci
+npm run test:contracts
+npm run typecheck
+npm run test:smoke
 # the render_preview tool needs the Power Dox Automation backend (default http://localhost:5086)
 PXA_API_URL=http://localhost:5086 npm start     # stdio transport
-
-npx tsx smoke.ts        # smoke test (spawns the server, exercises the tools)
 ```
+
+The smoke test starts the server with the current Node executable and the
+locally installed, lockfile-pinned `tsx` import hook. It does not download a
+runner through `npx`. It tests the actual stdio protocol, schema defaults,
+validation failures and resource discovery; it does not claim a backend PDF
+rendering or authenticated deployment test.
 
 ## Use from Claude Desktop / Claude Code
 
