@@ -24,8 +24,12 @@ human production approval.
 - [x] Pass Word (3), Spreadsheet (6) and Converter (9) tests.
 - [x] Pass MCP typecheck and expanded stdio smoke tests.
 - [x] Pass 31 versioning/deployment tests and 3 dependency compliance tests.
-- [ ] Obtain successful remote CI including PostgreSQL and supply-chain checks.
-- [ ] Review the tested head and merge the baseline using normal protection rules.
+- [x] Obtain successful remote CI including PostgreSQL and supply-chain checks.
+- [x] Review the tested head and merge the baseline using normal protection rules.
+
+Baseline PR #102 merged as `a4675af4227d8de5690ef47447933d084b3789ad`.
+CI run `40344560266` passed every applicable job. This CI run does not replace
+the explicitly recorded full local API/OCR results below.
 
 Local API result: 280 passed, 61 skipped, 3 OCR tests failed. The isolated macOS
 checkout has language data but no native OCR libraries in the test output.
@@ -44,7 +48,7 @@ receives a recorded review. Updating a branch invalidates any earlier approval.
 
 | PR | Update | Review requirement / current status |
 | --- | --- | --- |
-| #101 | upload-artifact 7.0.2 | Official pin verified; release fragment and comments corrected; shared security baseline blocks CI. Update compliance pin with the action. |
+| #101 | upload-artifact 7.0.2 | Official pin verified; release fragment, comments and compliance pin corrected; security baseline integrated; final CI/review/merge pending. |
 | #98 | sbom-action 0.24.3 | Annotated official tag resolved; fragment corrected; shared security baseline blocks CI. Update compliance pin with the action. |
 | #99 | download-artifact 8.0.2 | Official pin verified; major artifact handoff behavior needs a test. |
 | #91 | build-push-action 7.4.0 | Official pin verified; update compliance pin and test CI. |
