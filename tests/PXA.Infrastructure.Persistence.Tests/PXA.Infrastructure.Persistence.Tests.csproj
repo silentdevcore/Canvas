@@ -11,6 +11,8 @@
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <!-- Keep Testcontainers' transitive SSH transport on its patched release. -->
+    <PackageReference Include="SSH.NET" Version="2026.0.0" PrivateAssets="all" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>

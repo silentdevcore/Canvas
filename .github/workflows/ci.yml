@@ -197,11 +197,12 @@ jobs:
           path: artifacts/frontends
           if-no-files-found: error
           retention-days: 14
-      - name: Install and type-check MCP tool
+      - name: Install, type-check and smoke-test MCP tool
         working-directory: tools/PXA.Mcp
         run: |
           npm ci
           npm run typecheck
+          npm run test:smoke
 
   snapshot:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'

@@ -29,6 +29,30 @@ assert(textDoc.type === 'text' && Array.isArray(textDoc.properties), `get_elemen
 const example = JSON.parse(firstText(await client.callTool({ name: 'get_example', arguments: { type: 'table', surface: 'json' } })));
 assert(example.pages?.[0]?.elements?.[0]?.type === 'table', `get_example("table") returns a DesignExportDto`);
 
+const defaultExample = JSON.parse(firstText(await client.callTool({ name: 'get_example', arguments: { type: 'table' } })));
+assert(defaultExample.pages?.[0]?.elements?.[0]?.type === 'table', 'Zod default selects the JSON example surface');
+
+const category = list[0].category;
+const filtered = JSON.parse(firstText(await client.callTool({ name: 'list_elements', arguments: { category } })));
+assert(filtered.length > 0 && filtered.every((item: any) => item.category === category), 'Zod enum accepts a catalog category');
+
+async function assertInvalidArguments(name: string, args: Record<string, unknown>) {
+  let rejected = false;
+  try {
+    const result = await client.callTool({ name, arguments: args });
+    rejected = result.isError === true;
+  } catch (error) {
+    rejected = error instanceof Error && /invalid|validation/i.test(error.message);
+  }
+  assert(rejected, `${name} rejects invalid arguments`);
+}
+await assertInvalidArguments('list_elements', { category: 'not-a-category' });
+await assertInvalidArguments('get_example', { type: 'table', surface: 'unsupported' });
+await assertInvalidArguments('search_docs', { query: 'text', limit: 0 });
+
+const search = firstText(await client.callTool({ name: 'search_docs', arguments: { query: 'text' } }));
+assert(search.includes('llms-full.txt:') || search.includes('docs/csharp-cookbook.md:'), 'Zod default search limit executes successfully');
+
 const validRes = firstText(await client.callTool({ name: 'validate_design', arguments: { design: JSON.stringify(example) } }));
 assert(validRes === 'valid', `validate_design accepts a catalog example`);
 
