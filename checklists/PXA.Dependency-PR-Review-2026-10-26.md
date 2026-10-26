@@ -51,10 +51,10 @@ Updating a branch invalidates any earlier approval.
 | --- | --- | --- |
 | #101 | upload-artifact 7.0.2 | Merged as `8e58ba9bc39dfb7ddf82b7e559c4b8858ccef9e1`; official pin, fragment, comments and compliance corrected; all applicable CI passed including artifact upload. |
 | #98 | sbom-action 0.24.3 | Merged as `e7fe6f2aaf9c84c569530d3af453c21ccd776a02`; official annotated tag verified; fragment/compliance corrected; all applicable CI passed including actual container SPDX generation. |
-| #99 | download-artifact 8.0.2 | Official pin verified; real CI artifact handoff added with nested paths, spaces, empty files and binary hashes; 11 local contract tests passed; final CI/review/merge pending. |
-| #91 | build-push-action 7.4.0 | Official pin verified; fragment and compliance corrected; final base integration and actual action runtime test pending. |
-| #90 | setup-buildx-action 4.4.1 | Official pin verified; fragment/compliance corrected; non-publishing builder bootstrap smoke added; final CI/review/merge pending. |
-| #100 | Admin Vite 8.3.4 | Fragment added; 26 local Admin tests, production build and full npm audit passed; final base integration/review/merge pending. |
+| #99 | download-artifact 8.0.2 | Merged as `7ab074a10b53a0c182ee939dbb73fe116a4000bb`; all applicable CI passed, including real artifact handoff with nested paths, spaces, empty files and binary SHA-256 checks. |
+| #91 | build-push-action 7.4.0 | Merged as `66253cb311589cdb12aa734c7176f8b6d72425b2`; all applicable CI passed, including an actual action build with publishing disabled, image-version verification and container SPDX generation. |
+| #90 | setup-buildx-action 4.4.1 | Merged as `90c8bf74ae9239d23bb21988e3e15e4e7b6886a2`; all applicable CI passed including actual builder setup/bootstrap, container build and SBOM. |
+| #100 | Admin Vite 8.3.4 | Fragment added; 26 local Admin tests, production build and full npm audit passed. Final tested head, CI, review and merge are recorded in [PR #100](https://github.com/silentdevcore/Canvas/pull/100). |
 | #97 | MCP Node types 26.6.4 | Test MCP types and stdio smoke. |
 | #95 | MCP SDK 1.32.0 | Closed as superseded by merged baseline PR #102 using 1.32.2; do not downgrade. |
 | #94 | MCP tsx 4.23.15 | Test types and stdio smoke. |
@@ -86,3 +86,7 @@ Updating a branch invalidates any earlier approval.
 
 Primary references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
 [Zod migration guide](https://zod.dev/v4/changelog).
+
+All three changed npm lockfiles were checked structurally: package download
+sources use `https://registry.npmjs.org` without embedded credentials and every
+resolved package has SHA-256, SHA-384 or SHA-512 integrity metadata.
