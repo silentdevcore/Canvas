@@ -53,3 +53,8 @@ test('Legal acceptance export is CSRF protected, audited, and accessibly announc
   assert.match(source, /Preparing minimized legal evidence export/);
   assert.match(source, /legal\.acceptanceExporting \? 'disabled' : ''/);
 });
+
+test('Legal workspace links to separately governed dependency compliance', () => {
+  assert.match(source, /href="\/dependency-compliance">Dependency compliance<\/a>/);
+  assert.doesNotMatch(source, /legal_acceptance_events.*dependency/i);
+});
