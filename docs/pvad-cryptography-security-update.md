@@ -158,7 +158,7 @@ includes five added regression cases and that completed corpus case. Skipped
 tests remain unverified, not passes. This closes the three baseline follow-ups,
 not the remaining runtime deployment, license, external validation or rename gates.
 
-## Runtime And Deployment Boundary
+## Initial Runtime And Deployment Boundary
 
 The system-wide developer SDK is `10.0.105`, with .NET and ASP.NET Core runtimes
 `10.0.5`. It was not upgraded by this change. Tests use isolated SDKs `10.0.113`
@@ -189,3 +189,13 @@ Before a production release:
 
 No runtime deployment, image publication, registry ownership, or NPOI EULA
 approval is implied by these local results.
+
+## System and Container Follow-Up - 2026-10-26
+
+The later [runtime and container validation](pvad-runtime-container-validation.md)
+records the system CLI update, fresh image builds and scans, native OCR
+packaging corrections, and the unchanged Production retention gate. The initial
+system-runtime description above is historical; it must not be used as the
+current default-CLI inventory. This follow-up does not change the approved
+invoice baselines, product version, published release history, NPOI approval or
+rename percentage.

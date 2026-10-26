@@ -53,10 +53,25 @@ RUN apt-get update \
         tesseract-ocr \
         tesseract-ocr-deu \
         tesseract-ocr-eng \
+        zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY --from=build /app/publish ./
+
+# Tesseract 5.2 uses "x64" for its 64-bit search path, including arm64.
+RUN case "$(dpkg --print-architecture)" in \
+        amd64) native_dir=/usr/lib/x86_64-linux-gnu ;; \
+        arm64) native_dir=/usr/lib/aarch64-linux-gnu ;; \
+        *) echo "Unsupported OCR container architecture" >&2; exit 1 ;; \
+    esac \
+    && mkdir -p /app/ocr-worker/native/x64 \
+    && ln -s "$native_dir/liblept.so.5" /app/ocr-worker/native/x64/libleptonica-1.82.0.so \
+    && ln -s "$native_dir/libtesseract.so.5" /app/ocr-worker/native/x64/libtesseract50.so \
+    && ln -s "$native_dir/libdl.so.2" /app/ocr-worker/libdl.so \
+    && test -r /app/ocr-worker/native/x64/libleptonica-1.82.0.so \
+    && test -r /app/ocr-worker/native/x64/libtesseract50.so \
+    && test -r /app/ocr-worker/libdl.so
 
 RUN mkdir -p \
         /app/data/data-protection-keys \

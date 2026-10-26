@@ -25,5 +25,12 @@ The dylibs are relinked to use `@loader_path` for non-system transitive
 dependencies, so the macOS x64 test/runtime output does not depend on Homebrew
 paths such as `/usr/local/opt/...`.
 
-Additional runtime bundles still need to be supplied for other deployment RIDs,
-for example macOS arm64, Linux x64, and Windows x64.
+The API's Linux container uses distribution-maintained Tesseract and Leptonica
+libraries instead of this macOS bundle. Its Dockerfile creates the wrapper's
+expected `.so` names in the isolated worker and selects the library directory
+for `amd64` or `arm64`. See the [container validation scope](../../../../docs/pvad-runtime-container-validation.md).
+
+Additional standalone runtime bundles still need to be supplied for other
+deployment RIDs, including macOS arm64, Linux outside that container, and
+Windows x64. A Dockerfile architecture mapping alone is not a successful OCR
+execution test for every RID.

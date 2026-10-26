@@ -51,12 +51,29 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Independently validate all seven patched-runtime invoice PDFs before approving replacement PDF/A validation-input hashes; preserve the previous manifest byte-for-byte, retain raw evidence, and compare all 11 raster pages at 144 DPI, extracted text and attachments.
 - [x] Prevent fixture tests from rewriting approved manifests and bind current/previous hashes to the recorded validation outcomes.
 - [x] Obtain a green full regression run on the patched target runtime after those explicit baseline decisions: 53 completed project reports, 3,437 passed, 82 skipped, zero failed, process exit code 0; disposable database removed. Keep the initial timeout/failed reports as evidence.
-- [ ] Update the system-wide developer runtime; the existing `10.0.5` installation is not covered by the isolated test SDK.
-- [ ] Rebuild, inventory, and scan final runtime/container artifacts before production release; a clean package audit does not validate shared-framework, OS, or native-library patch levels.
-- [ ] Re-run deployment smoke tests on those exact release artifacts.
+- [x] Update the default system-wide developer CLI to verified SDK `10.0.113` / runtimes `10.0.13`, retain the older Homebrew installation for explicit rollback, and verify the selected CoreLib/PKCS/XML paths plus 145 Core and 140 Generator tests. Existing processes and IDE-managed runtimes are not silently switched.
+- [ ] Rebuild, inventory, and scan the exact approved production release artifacts; the unpublished local candidate validation below is not stable-release or license approval.
+- [ ] Re-run Production deployment smoke tests on those exact release artifacts after retention and license approval. The current Production retention startup gate correctly blocks startup; do not bypass it for a green result.
 
 See [the evidence and runtime boundary](../docs/pvad-cryptography-security-update.md).
 NPOI approval and the remaining rename gates are not completed by this maintenance.
+
+## Runtime and Container Follow-Up - 2026-10-26
+
+- [x] Preserve the first system-installation rollback, original scan results and unsuccessful synthetic smoke attempts separately from final evidence.
+- [x] Explicitly service the API base image's `zlib1g` package without vulnerability exclusions or warning suppression.
+- [x] Correct Linux OCR package names and the worker-local `libdl` alias, with fail-closed architecture/target checks and regression contracts.
+- [x] Keep Production retention governance and NPOI approval unchanged; use synthetic Staging data for technical integration checks, not invented Production approval.
+- [x] Add the owner-approved public security fragment and a separate compatible OCR packaging fix fragment; leave `VERSION` and published releases unchanged.
+- [x] Rebuild both local Linux/arm64 candidates, verify complete commit/version/build metadata, and bind the final image IDs to fresh Trivy reports and SPDX inventories (400 API packages and 105 Relay packages).
+- [x] Pass the final candidate scan without hiding unfixed/lower-severity findings: zero High/Critical vulnerabilities and zero secrets; API retains 49 Medium/9 Low and Relay 21 Medium/5 Low findings, with no fix version offered by that scan.
+- [x] Pass the separate Staging integration run against those same image IDs: 14 expected HTTP outcomes, valid PDF/PNG, actual OCR, disabled CodeWorker, hardened non-root container, database-loss readiness, Relay health and malformed-alert rejection. Remove the disposable resources.
+- [x] Pass 42 Node configuration/compliance/release contracts; verify the default system SDK with 285 Core/Generator tests. Do not present these as a new full Linux solution run.
+- [ ] Investigate the separate Production abort/exit diagnostic: retention rejection is logged, but the local process did not reach an exited state within the 10/30-second diagnostic bounds. Preserve the failed attempts and do not treat the Staging pass as Production approval.
+- [ ] Review residual Medium/Low risk before release and rescan the final approved artifacts against the current vulnerability database.
+
+See [runtime and container validation](../docs/pvad-runtime-container-validation.md)
+for exact toolchain, execution scope, evidence and remaining deployment boundaries.
 
 ## Dependencies and Ownership
 

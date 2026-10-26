@@ -1,0 +1,8 @@
+{
+  "id": "container-ocr-native-library-resolution",
+  "impact": "patch",
+  "components": ["api", "importer", "infrastructure"],
+  "category": "fixed",
+  "summary": "Fixed native OCR library resolution in the API container.",
+  "breaking": false
+}

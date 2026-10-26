@@ -777,12 +777,12 @@
     },
     {
       "path": "checklists/PVAD.Dependency-Security-And-Compliance.md",
-      "sha256": "4510e3b710aff732206c2efbcd4b8dce4fef44e87d6ec40366d3d08182ed2b8c",
+      "sha256": "cf5f567a12902c177d9d99b8115741e505c3eef911b7e49473a702c54b62b8d1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped cryptographic dependency follow-up: retain the explicit naming-history notice and historical branding. New maintenance tasks document reviewed package pins and actual local evidence separately from unapproved runtime deployment, NPOI licensing and rename gates; no blanket release approval is implied.",
+      "reviewNotes": "2026-10-25 scoped cryptographic dependency follow-up: retain the explicit naming-history notice and historical branding. New maintenance tasks document reviewed package pins and actual local evidence separately from unapproved runtime deployment, NPOI licensing and rename gates; no blanket release approval is implied. Reviewed follow-up: record system CLI and local container checks while keeping Production, retention, license and abort diagnostics open.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3947,12 +3947,12 @@
     },
     {
       "path": "PVAD.WebApi/Dockerfile",
-      "sha256": "1628e0dd620efd76149a4cce18a46d243df3d3110fca4f874a1e5cfd581d74ca",
+      "sha256": "6c65bbef586c06ab97bc6891b3e380e233abd68db5f51df8455b0c4db9a49ff4",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Dockerfile: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover.",
+      "reviewNotes": "PVAD.WebApi/Dockerfile: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover. Reviewed follow-up: explicitly service zlib and map distro OCR/libdl libraries; retained build-argument aliases are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7247,12 +7247,12 @@
     },
     {
       "path": "tools/configuration/container-contract.test.mjs",
-      "sha256": "578099d2795eeebd992b7be56ec4dcc311b70804024ab58429e102a59f1aabe1",
+      "sha256": "924942e377e1352f95c477f26b8362642420a16abb3375779f4621457d7da4af",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. Reviewed follow-up: add zlib and Linux OCR packaging contracts without altering the retained compatibility test inputs.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {

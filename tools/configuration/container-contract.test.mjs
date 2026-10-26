@@ -103,6 +103,23 @@ test('non-root API PDF Trust cache stays inside the owned persistent data direct
   assert.match(dockerfile, /USER \$APP_UID/);
 });
 
+test('API image explicitly services the base-image zlib package alongside OCR dependencies', async () => {
+  const dockerfile = await readFile(resolve(root, 'PVAD.WebApi/Dockerfile'), 'utf8');
+  assert.match(dockerfile, /apt-get update[\s\S]*?apt-get install --yes --no-install-recommends[\s\S]*?\n\s+zlib1g\s+\\/);
+});
+
+test('isolated OCR worker resolves distro libraries through the wrapper names for both Linux architectures', async () => {
+  const dockerfile = await readFile(resolve(root, 'PVAD.WebApi/Dockerfile'), 'utf8');
+  assert.match(dockerfile, /amd64\) native_dir=\/usr\/lib\/x86_64-linux-gnu/);
+  assert.match(dockerfile, /arm64\) native_dir=\/usr\/lib\/aarch64-linux-gnu/);
+  for (const [system, wrapper] of [['liblept.so.5', 'libleptonica-1.82.0.so'], ['libtesseract.so.5', 'libtesseract50.so']]) {
+    assert.ok(dockerfile.includes(`ln -s "$native_dir/${system}" /app/ocr-worker/native/x64/${wrapper}`));
+    assert.ok(dockerfile.includes(`test -r /app/ocr-worker/native/x64/${wrapper}`));
+  }
+  assert.ok(dockerfile.includes('ln -s "$native_dir/libdl.so.2" /app/ocr-worker/libdl.so'));
+  assert.ok(dockerfile.includes('test -r /app/ocr-worker/libdl.so'));
+});
+
 test('MCP container defaults do not conflict with user-supplied legacy or canonical hosts', () => {
   for (const environment of [{}, { PVAD_MCP_HOST: '127.0.0.1' }, { PXA_MCP_HOST: '127.0.0.1' }]) {
     const run = spawnSync('sh', [resolve(root, 'tools/PVAD.Mcp/scripts/container-entrypoint.sh'),
