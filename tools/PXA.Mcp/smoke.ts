@@ -12,7 +12,7 @@ function assert(cond: unknown, msg: string) {
 }
 const firstText = (r: any): string => r.content?.find((c: any) => c.type === 'text')?.text ?? '';
 
-const transport = new StdioClientTransport({ command: 'npx', args: ['tsx', 'src/index.ts'] });
+const transport = new StdioClientTransport({ command: process.execPath, args: ['--import', 'tsx', 'src/index.ts'] });
 const client = new Client({ name: 'smoke', version: '0.0.0' });
 await client.connect(transport);
 
