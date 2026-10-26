@@ -17,7 +17,7 @@ accepted or privacy notice acknowledged by a user.
 - [x] Never store an NPOI EULA approval or another supplier-license decision in `legal_acceptance_events`; those events represent customer or user actions only.
 - [x] Share qualified Legal ownership and review standards across customer Legal content and third-party license compliance without combining their records, permissions, or approval states.
 - [x] Reference `PXA.Dependency-Security-And-Compliance.md` and `PXA.NPOI-License-Decision.md` as separate production-gate records.
-- [ ] Define a protected Admin navigation relationship between Legal documents and Dependency Compliance while retaining separate APIs, data models, permissions, and audit event types.
+- [x] Define a protected Admin navigation relationship between Legal documents and Dependency Compliance while retaining separate APIs, data models, permissions, and audit event types.
 
 ## Priorities
 
@@ -30,7 +30,7 @@ accepted or privacy notice acknowledged by a user.
 - [ ] P0: Replace all draft legal copy with counsel-approved German text.
 - [ ] P0: Add the real operator name, legal form, address, representatives, register, VAT ID, and contact details.
 - [ ] P0: Approve category-specific retention periods and legal holds.
-- [ ] P0: Keep paid B2C checkout disabled until pricing, payment, withdrawal, and legal review are complete.
+- [x] P0: Keep paid B2C checkout technically disabled until pricing, payment, withdrawal, and legal review are complete.
 
 ## Legal Documents
 
@@ -61,7 +61,8 @@ accepted or privacy notice acknowledged by a user.
 - [x] Return only public published or effective scheduled versions.
 - [x] Make production registration fail closed when current Terms and Privacy versions cannot be verified.
 - [x] Generate a deployment-time last-known-good static snapshot.
-- [ ] Make checkout fail closed when required active versions cannot be verified.
+- [x] Add a shared checkout-readiness gate that fails closed unless Consumer Terms, Privacy, and Withdrawal versions are current and the commercial checkout switch is explicitly enabled.
+- [ ] Require every future paid checkout mutation to consume the shared readiness gate before payment-provider or order work begins.
 
 ## Admin Legal Workflow
 
@@ -97,7 +98,7 @@ accepted or privacy notice acknowledged by a user.
 - [x] Reject stale Account acknowledgements with stable `PXAAPI017` diagnostics.
 - [x] Make exact-version evidence idempotent under concurrent Account submissions with row serialization and database uniqueness.
 - [ ] Define pseudonymized evidence retention and account-deletion behavior with legal counsel.
-- [ ] Avoid storing full IP addresses unless a documented necessity and retention rule are approved.
+- [x] Avoid storing full IP addresses in Legal acceptance evidence; enforce the minimized evidence shape with model and export tests unless a documented necessity and retention rule is approved later.
 
 ## Necessary Storage Notice
 
@@ -151,6 +152,9 @@ accepted or privacy notice acknowledged by a user.
 - [x] Add recovery-contract coverage for database-level readiness, timeout diagnostics, and delayed startup.
 - [x] Run a development safety scan confirming no tracked secrets, customer data, obsolete ODR links, or legacy Canvas branding in the Legal implementation; remaining draft copy and operator details are explicit launch blockers.
 - [x] Add deployed-environment smoke tests for PostgreSQL migration, published snapshot generation, fail-closed registration, last-known-good fallback, stale snapshots, corrupt snapshots, and Legal API outages.
+- [x] Add fail-closed Consumer checkout-readiness coverage for missing documents, disabled commercial rollout, authenticated API access, and complete effective document sets.
+- [x] Add protected Admin contract coverage for the separate Dependency Compliance workspace, cross-navigation, and route documentation.
+- [x] Add a model contract preventing network-address fields from entering minimized Legal acceptance evidence.
 - [ ] Repeat the legal-content scan after counsel-approved copy and operator details are installed and before production launch.
 
 ## Acceptance Criteria
@@ -161,5 +165,6 @@ accepted or privacy notice acknowledged by a user.
 - [x] PXA.Admin exposes a protected Legal workflow without linking Admin from PXA.Company.
 - [x] Necessary storage is explained without pretending that consent is required.
 - [ ] Counsel-approved German documents and complete operator data replace all launch-blocking placeholders.
-- [ ] Paid B2C checkout remains unavailable until every consumer-law task above is approved and tested.
+- [x] Paid B2C checkout remains unavailable by default and cannot report readiness without every required Consumer document.
+- [ ] Enable paid B2C checkout only after every consumer-law task above is approved, implemented, and tested.
 - [x] Customer Legal acceptance cannot approve, clear, or otherwise mutate a third-party dependency-license decision.
