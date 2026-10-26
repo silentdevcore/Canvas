@@ -55,9 +55,9 @@ Updating a branch invalidates any earlier approval.
 | #91 | build-push-action 7.4.0 | Merged as `66253cb311589cdb12aa734c7176f8b6d72425b2`; all applicable CI passed, including an actual action build with publishing disabled, image-version verification and container SPDX generation. |
 | #90 | setup-buildx-action 4.4.1 | Merged as `90c8bf74ae9239d23bb21988e3e15e4e7b6886a2`; all applicable CI passed including actual builder setup/bootstrap, container build and SBOM. |
 | #100 | Admin Vite 8.3.4 | Fragment added; 26 local Admin tests, production build and full npm audit passed. Final tested head, CI, review and merge are recorded in [PR #100](https://github.com/silentdevcore/Canvas/pull/100). |
-| #97 | MCP Node types 26.6.5 | Reviewed: targets Node 26 declarations while CI runs Node 22. Replace with runtime-aligned Node 22 types and tests; do not approve the original head. |
+| #97 | MCP Node types 26.6.5 | Closed as superseded by merged PR #105 (`168e84a319a8ee3bf40a39ec27267f9f76d6d736`): Node 22 declarations match the validated runtime; the Node 26 proposal was not approved. |
 | #95 | MCP SDK 1.32.0 | Closed as superseded by merged baseline PR #102 using 1.32.2; do not downgrade. |
-| #94 | MCP tsx 4.23.15 | Test types and stdio smoke. |
+| #94 | MCP tsx 4.23.15 | Closed automatically after merged PR #105; exact-head CI, tooling contracts, typecheck and all 14 stdio assertions passed. |
 | #89 | Zod 4.6.5 | Closed with replacement explanation: this target remains affected by GHSA-mrhx-c7xc-m3w5; merged baseline PR #102 uses 4.6.7. |
 | #78 | EF Core Design 10.0.11 | Superseded by merged platform PR #103 (`865007bd7283540867d716b1dddcc058425d7fa0`), with exact-head CI and disclosed technical review. |
 | #75 | Roslyn Scripting 5.9.0 | Closed as superseded by merged PR #104 (`9903b202400127420ec3d3eb9455e682319f6d28`), with full graph alignment and exact-head CI. |
@@ -221,8 +221,54 @@ data are outside this dependency test.
 - [x] Complete a clean install, all 3 contracts, typecheck and all 14 stdio assertions on Node 22.14.0.
 - [x] Pass the complete MCP npm vulnerability audit (0 findings) and inspect the lockfile diff.
 - [x] Pass all 29 release/version/compliance tests and fragment validation; keep version 1.1.0.
-- [ ] Pass exact-head CI and obtain the disclosed technical review.
-- [ ] Merge the replacement normally, then close #94 and #97 with cross-links.
+- [x] Pass exact-head CI and obtain the disclosed technical review.
+- [x] Merge the replacement normally, then close #94 and #97 with cross-links.
+
+MCP PR [#105](https://github.com/silentdevcore/Canvas/pull/105) merged as
+`168e84a319a8ee3bf40a39ec27267f9f76d6d736` after all applicable checks passed at
+`e7bedc33ab43f90e0e376e28d4d66f2001444185`. The technical secondary-account
+review was disclosed, not represented as independent human approval.
+Nine original dependency PRs remained open afterwards.
 
 Primary references: [DefinitelyTyped version numbers](https://github.com/DefinitelyTyped/DefinitelyTyped#version-numbers),
 [tsx package](https://www.npmjs.com/package/tsx/v/4.23.15).
+
+## ClosedXML Compatibility Follow-Up
+
+Review #41 against current `develop`, not its older dependency graph. Apply
+only ClosedXML 0.105.0 to 0.105.1; retain the existing cryptography 10.0.13
+and private build-task 10.0.400 security pins. NPOI remains unchanged and its
+outstanding legal approval is not granted by this update.
+
+The upstream patch bounds SixLabors.Fonts to `[1.0.0,3.0.0)`. Before the update,
+the resolved Spreadsheet graph uses Fonts 1.0.0, OpenXML 3.1.1 and Parser 2.0.0.
+The API/export composition can resolve a newer compatible OpenXML package;
+test both the standalone infrastructure and existing composed export paths.
+This change does not add new workbook features or claim complete format fidelity.
+
+Baseline: 6 infrastructure tests and 26 selected Spreadsheet/Excel export tests
+passed without skips on 0.105.0. Six additional compatibility cases also passed
+against that same old package before changing the pin. These validate real
+XLSX packages with OpenXML validation and exercise culture-independent JSON
+values, cross-sheet named formulas, styles, merged cells, frozen panes, print
+settings, validation, protection and font measurement in design exports.
+
+- [x] Review the exact original diff and the official upstream release metadata.
+- [x] Pass the existing 32-test baseline before changing the dependency.
+- [x] Add and pass six compatibility cases on the old package (12 infrastructure cases total).
+- [x] Apply only the workbook patch and preserve existing security pins.
+- [x] Add the focused Spreadsheet/Excel regression matrix to CI.
+- [x] Record the completed MCP merge and original PR dispositions above.
+- [x] Restore and build all 105 solution projects against the patched dependency (0 errors; 65 existing warnings).
+- [x] Compare the inspected before/after graph and pass the vulnerability gate for all 105 projects.
+- [x] Pass all 12 infrastructure and 26 selected export cases on the new package, without skips.
+- [x] Pass all 375 PostgreSQL-enabled API cases, including the Excel endpoint, without skips in the established matrix.
+- [x] Pass all 29 version/release/compliance contracts and fragment validation; keep product version 1.1.0.
+- [ ] Obtain exact-head CI and the disclosed technical review.
+- [ ] Merge normally and close original #41 as superseded with replacement evidence.
+
+Primary references: [ClosedXML 0.105.1 release](https://github.com/ClosedXML/ClosedXML/releases/tag/0.105.1),
+[NuGet dependency contract](https://www.nuget.org/packages/ClosedXML/0.105.1).
+
+The five native image/OCR API cases remain outside the established maintenance
+matrix and are not claimed as fixed. No existing test or security gate is weakened.
