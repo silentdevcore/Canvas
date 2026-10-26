@@ -1435,6 +1435,25 @@ policy, workflow or deployment was changed. These supporting tasks do not add
 new primary criteria or close an existing gate: **90/98 (91.8%) complete,
 8/98 (8.2%) open**.
 
+## GitHub Protection and Cutover Preparation (2026-10-26)
+
+Seven read-only requests rechecked branch protection, commit-pinned CI source
+and the complete environment list. The three existing required checks match
+both remote sources and the local candidate, including App ID 15368. Optional
+MCP/visual checks are not yet present on either remote source. See
+[the operator plan and evidence boundaries](../docs/pvad-github-cutover-plan.md).
+
+- [x] Match required contexts and source App IDs without changing strict checks, branch reviews, history policy or active workflow files.
+- [x] Add a pure, tested static reviewer for absent/ambiguous names, filtered/conditional jobs, dynamic matrices, tolerated errors and missing/cyclic dependencies; never equate static resolution with runtime enforcement.
+- [x] Separate current remote jobs from the local candidate and proposed additional required checks; exclude the push-only snapshot job as a PR validation gate.
+- [x] Document exact environment mappings, current self-review/bypass decisions, secure configuration transfer, ordered source rollout, writer draining, abort conditions and rollback.
+- [x] Pass 134 selected configuration, deployment, versioning and build-metadata tests with no failures or skips; validate release fragments without changing VERSION, published releases or active workflow definitions.
+- [ ] Obtain policy and activation approvals, verify real positive/negative PR enforcement and effective rulesets, compare fresh source/target controls and securely verify configuration values before authorized cutover.
+
+Active workflows, environment names and branch rules remain unchanged. These
+are supporting tasks, not new primary criteria: **90/98 (91.8%) complete,
+8/98 (8.2%) open**.
+
 ## Related Work
 
 - [Previous rename](Rename-To-PXA.md)

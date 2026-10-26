@@ -173,3 +173,14 @@ and custom protection apps, repeat the complete drain check immediately before
 activation and approve rollback. No candidate can be applied or published by
 this tool. Earlier snapshots and local synthetic tests never close a remote
 cutover gate.
+
+## GitHub Activation and Rollback Plan
+
+The [dated GitHub cutover plan](../../docs/pvad-github-cutover-plan.md) compares
+current required contexts and their App IDs with commit-pinned remote CI sources
+and the local candidate. It separates optional check recommendations, environment
+policy decisions, protected source rollout, writer draining and rollback.
+`reviewCiChecks` in `tools/configuration/rename-ci-check-review.mjs` is a pure
+offline reviewer covered by the configuration test suite. Its static name match
+never verifies a real PR result, effective rulesets or permission to activate
+settings. Existing workflows and protected environment bindings remain unchanged.

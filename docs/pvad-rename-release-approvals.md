@@ -232,6 +232,11 @@ acceptance gate: **90/98 (91.8%) complete, 8/98 (8.2%) open**.
 
 ## Workflow Lock Cutover
 
+See the [dated protection and environment cutover plan](pvad-github-cutover-plan.md)
+for the current CI context/App ID comparison, optional-check recommendations,
+environment policy decisions, ordered activation and abort/rollback procedure.
+This is preparation only, not permission to change protected settings.
+
 The four active source definitions now use `pvad-*` concurrency groups. Their
 existing `cancel-in-progress` values are unchanged: stable release, preparation
 and deployment serialize without cancellation; dry-run supersession still

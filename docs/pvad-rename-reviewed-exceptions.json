@@ -1177,12 +1177,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "d09fa4f7ee706354a9c519e4958f4223274577a0564603b79d059df0d09aa4db",
+      "sha256": "477fd48901781704d24b3d5bd3215856f9af0d89a4ab5595dc2241a2df761aed",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 bounded package-audit inventory: refresh only the reviewed checklist, operator record and ledger counts/hash. Historical package names remain real evidence; unrelated untracked files, credential contents and secret values remain excluded.",
+      "reviewNotes": "2026-10-26 bounded cutover-review inventory: update only the reviewed tracker, operator guides, new cutover plan and ledger counts/hash. Historical remote resource names remain deliberate evidence; unrelated untracked files and credential values are excluded.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1307,12 +1307,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "959b3b2c4028cc4c7478182f008cca5339fe7b29d7d77bfdcba3cc7fc1005c01",
+      "sha256": "59fdf069e3c38ad05a8f890509e013222d042423c3aa641bd5f935137a65432c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 approved package-read follow-up: retain historical package names and earlier denied-scope evidence. The expected account now has read-only package scope and a complete visible active-version inventory; no primary gate, publication right, global absence or deployment is approved.",
+      "reviewNotes": "2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2236,6 +2236,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "docs/pvad-github-cutover-plan.md",
+      "sha256": "b509a3c95a031520ee0d27e680806569098f93cdf0a2423f86db9e5da2d73843",
+      "reasons": [
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-26 exact new operator plan: historical package, environment and repository names identify observed remote resources and rollback inputs, not canonical defaults. Source hashes, check-source App IDs and policy proposals remain distinct from approval, secret verification and real cutover evidence.",
+      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+    },
+    {
       "path": "docs/pvad-http-compatibility.md",
       "sha256": "aad349ef3dda48c0b62a83be7fbba97ed584659488f7a1a2076354286da21b77",
       "reasons": [
@@ -2337,12 +2347,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "07fb41b86648e1c5d93ceefab3459b72f468acb7d12e5e3331c3eae0966b968d",
+      "sha256": "d746fe5741edb84cc9be632445f9e315217543e8a06e256cf030e4a518009f55",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped package-read evidence: preserve historical names and exact digests, distinguish earlier denied-scope and missing-count attempts from the completed detail-count audit, and record only the owner-approved CLI scope addition. Visible inventory does not approve publication, environment activation or customer recovery.",
+      "reviewNotes": "2026-10-26 scoped cutover-plan cross-link: historical package, environment and lock names remain evidence of actual remote bindings. The linked static review preserves check-source identities and separates policy proposals from approvals; no publication or environment activation is certified.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -7627,12 +7637,12 @@
     },
     {
       "path": "tools/deployment/README.md",
-      "sha256": "b758b35ae6a62f62fb6d279832dcef78c93878ce593297a891b1368762cb1a00",
+      "sha256": "613fc6af5ac777b45841ccf230848fe550c690b9422823af34138cd254da3337",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped deployment guidance: document selected canonical source targets and explicit historical image selection without retagging old releases. Retained protected environment names are operational bindings. Local tests are not actual registry access, protected-branch activation or publication approval.",
+      "reviewNotes": "2026-10-26 scoped offline-review guidance: retain historical image-family and environment inputs while linking the new static CI reviewer and ordered cutover/rollback plan. Local evidence does not authorize remote policy edits, verify secret values or certify deployment.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
