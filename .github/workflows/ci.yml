@@ -90,6 +90,20 @@ jobs:
           --no-build
           --filter "FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances|FullyQualifiedName~AdminSystemControllerTests"
           -p:SkipOcrWorkerPackaging=true
+      - name: Verify local EF tooling and unchanged database model
+        env:
+          PXA_DATABASE_CONNECTION: Host=127.0.0.1;Port=1;Database=dependency_contract;Username=contract;Password=unused
+        run: |
+          dotnet tool restore
+          dotnet ef --version
+          dotnet ef migrations has-pending-model-changes --project src/Infrastructure/PXA.Infrastructure.Persistence --startup-project PXA.WebApi --context PxaDbContext --configuration Release --no-build
+      - name: Test API platform contracts with isolated PostgreSQL
+        timeout-minutes: 15
+        env:
+          PXA_RUN_POSTGRES_TESTS: "1"
+        run: |
+          dotnet test tests/PXA.Infrastructure.Persistence.Tests/PXA.Infrastructure.Persistence.Tests.csproj --configuration Release --no-build -- xUnit.ParallelizeTestCollections=false
+          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
       - name: Test isolated Legal backup and restore
         env:
           PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"

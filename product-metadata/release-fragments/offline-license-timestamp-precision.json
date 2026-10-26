@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "offline-license-timestamp-precision",
+  "impact": "patch",
+  "components": ["account", "admin", "api"],
+  "category": "fixed",
+  "summary": "Fixed newly issued offline licenses failing validation after database storage on platforms with high-precision clocks.",
+  "breaking": false
+}

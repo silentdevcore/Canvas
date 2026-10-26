@@ -90,3 +90,63 @@ Primary references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-
 All three changed npm lockfiles were checked structurally: package download
 sources use `https://registry.npmjs.org` without embedded credentials and every
 resolved package has SHA-256, SHA-384 or SHA-512 integrity metadata.
+
+## .NET Platform Alignment Follow-Up
+
+Combine the overlapping updates from #70, #71, #72, #73 and #78 into one
+compatibility-tested maintenance change. Align local `dotnet-ef`, EF Design,
+Identity EF, OpenAPI, both MVC test hosts, InMemory and EF health checks at
+10.0.11. Keep Npgsql at its existing compatible provider version. Roslyn is a
+separate follow-up, not an implicit compiler upgrade in this batch.
+
+Before any package change, the PostgreSQL-enabled API baseline ran 339 tests:
+338 passed and one failed. The failing Admin test expected 401 for a correct
+password on a disabled account; the existing implementation and dedicated Auth
+contract already require 403 with `PXAAPI015`. Correct that obsolete expectation,
+assert the explicit diagnostic, and retain the check that protected Admin
+requests remain unauthenticated. Do not change application authorization.
+
+The same older scenario also lacked an active organization for its non-allowlisted
+legacy operator. Verify that login is denied without a membership, then add an
+ordinary Viewer membership and retain the assertions that the legacy global
+role is not exposed and Admin access is denied. Production authorization is
+unchanged; no permission assertion is removed.
+
+The five native image/OCR API cases are outside this platform matrix. Their
+previously recorded macOS native-library limitation is not claimed as resolved.
+
+- [x] Review the five original dependency diffs and the additional alignment pins.
+- [x] Record an unchanged database model before the update.
+- [x] Restore and build all 105 solution projects with aligned packages.
+- [x] Pass the NuGet direct/transitive vulnerability gate for all 105 projects.
+- [x] Add and pass 16 project-reference/resolved-graph alignment contracts.
+- [x] Restore local EF tooling and verify no pending model changes after the update.
+- [x] Add PostgreSQL-enabled API, persistence and read-only EF checks to CI.
+- [x] Pass 355 updated API tests with PostgreSQL enabled and no skipped cases.
+- [x] Pass all 8 persistence tests and 5 relay tests without skips.
+- [x] Pass the 29 versioning, release-author and dependency compliance tests.
+- [ ] Record final CI against the exact maintenance commit and obtain a technical review.
+- [ ] Merge the maintenance change normally, then close replaced PRs with cross-links.
+
+No database migrations, product version changes, production deployments or
+changes to the uncommitted rename worktree are part of this maintenance batch.
+
+### Linux CI Precision Regression
+
+The first PR #103 Linux run passed build, dependency security, EF model checks
+and all 8 persistence tests, but failed 2 of the 355 API tests. PostgreSQL stores
+microsecond timestamps, while a Linux clock may supply sub-microsecond ticks.
+Signing those extra ticks before persistence caused strict envelope comparison
+to fail after reload. The same failure was reproduced locally using explicit
+sub-microsecond validity dates; it is not an authorization or dependency bypass.
+
+- [x] Reproduce the failure deterministically before changing issuance.
+- [x] Normalize issuance dates to UTC microseconds before signing and persistence.
+- [x] Preserve exact timestamp comparison and signature verification.
+- [x] Add timestamp precision and tampering regression tests.
+- [x] Pass all 363 API tests with PostgreSQL after the fix, with no skipped cases.
+- [x] Confirm the EF model is unchanged and pass all 29 release/compliance tests again.
+- [ ] Pass exact-head Linux CI after the fix.
+
+Existing inconsistent signed records are not silently rewritten or re-signed;
+they require normal authorized license replacement. No database migration is needed.
