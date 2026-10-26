@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-admin-vite-8-3-4",
+  "impact": "none",
+  "components": ["admin"],
+  "category": "improved",
+  "summary": "Updated the Admin build tooling within the supported major release.",
+  "breaking": false,
+  "reason": "Development-only build tooling maintenance does not add features or change public application contracts."
+}
