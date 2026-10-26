@@ -68,7 +68,7 @@ Updating a branch invalidates any earlier approval.
 | #70 | dotnet-ef 10.0.11 | Superseded by merged platform PR #103; local tool restore and unchanged model confirmed. |
 | #45 | Markdig 1.3.2 | Major dependency update: run Markdown importer regressions. |
 | #43 | coverlet 10.0.1 | Major dependency update across test projects: verify test SDK/collector compatibility. |
-| #41 | ClosedXML 0.105.1 | Run Spreadsheet import/export regressions. |
+| #41 | ClosedXML 0.105.1 | Closed automatically after merged PR #106 (`c4c62ae110442a08a87c6e56a51f35c040ce0080`); all 38 workbook/export cases and 375 PostgreSQL-enabled API cases passed, followed by exact-head CI. |
 | #40 | Recharts 3.10.1 | Run Designer tests and chart rendering smoke tests. |
 | #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
 | #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
@@ -264,11 +264,59 @@ settings, validation, protection and font measurement in design exports.
 - [x] Pass all 12 infrastructure and 26 selected export cases on the new package, without skips.
 - [x] Pass all 375 PostgreSQL-enabled API cases, including the Excel endpoint, without skips in the established matrix.
 - [x] Pass all 29 version/release/compliance contracts and fragment validation; keep product version 1.1.0.
-- [ ] Obtain exact-head CI and the disclosed technical review.
-- [ ] Merge normally and close original #41 as superseded with replacement evidence.
+- [x] Obtain exact-head CI and the disclosed technical review.
+- [x] Merge normally and close original #41 as superseded with replacement evidence.
+
+ClosedXML PR [#106](https://github.com/silentdevcore/Canvas/pull/106) merged as
+`c4c62ae110442a08a87c6e56a51f35c040ce0080` after all applicable checks passed at
+`f230cc73d5ab4f913012863edfa8b01021b1ad13`. The technical review explicitly
+disclosed the owner's secondary account; it was not independent human approval.
+The original #41 source branch was preserved. Eight original dependency PRs
+remained open after that merge.
 
 Primary references: [ClosedXML 0.105.1 release](https://github.com/ClosedXML/ClosedXML/releases/tag/0.105.1),
 [NuGet dependency contract](https://www.nuget.org/packages/ClosedXML/0.105.1).
 
 The five native image/OCR API cases remain outside the established maintenance
 matrix and are not claimed as fixed. No existing test or security gate is weakened.
+
+## Designer Icon Compatibility Follow-Up
+
+Review #36 against merged `develop`. Update only `react-icons` 5.6.0 to 5.7.0,
+with the matching manifest range and registry integrity. Keep React, React DOM,
+types, router, charts and all other resolved packages unchanged. The existing
+peer-install configuration is unchanged, not introduced to bypass this review.
+
+The source imports Feather icons only. Add a TypeScript-AST contract that
+discovers every production icon import, verifies the exports, renders them in
+the DOM, and checks SVG geometry, dimensions, color and accessible titles.
+Capture its aggregate SVG fingerprint on the old package first; require the
+same fingerprint after the update without refreshing the snapshot.
+
+- [x] Inspect the exact original PR diff and official release/npm metadata.
+- [x] Pass the original 288 Designer tests and typecheck before the update.
+- [x] Pass the expanded 290-test suite, SVG baseline and production build on 5.6.0.
+- [x] Update only the icon dependency and its lockfile entries on current `develop`.
+- [x] Perform a clean install and pass all 290 tests, typecheck and production build on 5.7.0.
+- [x] Preserve the old-package SVG fingerprint without updating the snapshot.
+- [x] Confirm no other resolved package entries changed and pass the production high/critical audit gate.
+- [x] Record completed ClosedXML CI, technical review, merge and original PR closure.
+- [x] Pass all 29 release/version/compliance contracts and version/fragment validation.
+- [ ] Validate the committed release fragment against `origin/develop`.
+- [ ] Obtain exact-head green CI and a disclosed technical review.
+- [ ] Merge normally and close original #36 as superseded with replacement evidence.
+
+The production audit still reports two moderate router findings. The complete
+development-inclusive audit reports eight affected package entries: two moderate,
+five high and one critical. The six additional entries are brace-expansion,
+handlebars, js-yaml, nanoid, source-map-js and Vite, all unchanged by this icon
+update. A separate development-tool security review is required; this batch does
+not claim a clean full audit, suppress advisories or run forced major upgrades.
+The Vite configuration and bundle-size warnings also predate this change.
+
+The new checks run in the existing Designer Jest CI step. They are DOM component
+tests, not a real authenticated browser/backend or production deployment test.
+Keep `VERSION` at 1.1.0 and leave the uncommitted rename worktree untouched.
+
+Primary references: [react-icons 5.7.0 release](https://github.com/react-icons/react-icons/releases/tag/v5.7.0),
+[npm package](https://www.npmjs.com/package/react-icons/v/5.7.0).
