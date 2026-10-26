@@ -134,12 +134,13 @@ test('old command delegates to canonical validation without changing versions or
   }
 });
 
-test('release archive contract matches the canonical producer while registry names stay stable', async () => {
+test('release archives and new container producers use canonical names without changing historical readers', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/release.yml', import.meta.url), 'utf8');
   assert.match(workflow, /artifacts\/pvad-webapi-\$\{\{/);
   assert.match(workflow, /artifacts\/pvad-designer-\$\{\{/);
   assert.match(workflow, /for site in PVAD\.Account PVAD\.Admin PVAD\.Company PVAD\.Demo PVAD\.Documentation/);
-  assert.match(workflow, /ghcr\.io\/\$\{\{ github\.repository_owner \}\}\/pxa-webapi:/);
+  assert.match(workflow, /ghcr\.io\/\$\{\{ env\.PVAD_CONTAINER_PUBLISHER \}\}\/pvad-webapi:/);
+  assert.doesNotMatch(workflow, /\/pxa-(?:webapi|observability-webhook-relay):/);
   assert.deepEqual(expectedReleaseAssets(version).sort(),
     ['webapi', 'designer', 'account', 'admin', 'company', 'demo', 'documentation']
       .map(component => `pvad-${component}-${version}.tar.gz`).sort());

@@ -35,9 +35,10 @@ test('one offline candidate aligns links, Designer handoff, CORS, registration a
   assert.equal(result.apiSettings.OAuth.McpResource, 'https://mcp.pvade.com/mcp');
   for (const role of ['admin', 'operator']) assert.ok(!result.apiSettings.Registration.AllowedReturnOrigins.includes(result.hosts[role]));
   assert.ok(!Object.keys(result.frontendEnvironment).some(key => key.includes('ADMIN')));
-  assert.equal(result.images, null);
+  assert.deepEqual(result.images, { api: `ghcr.io/silentdevcore/pvad-webapi:${version}`,
+    relay: `ghcr.io/silentdevcore/pvad-observability-webhook-relay:${version}` });
   assert.equal(result.deploymentAuthorized, false);
-  assert.equal(result.blockers.filter(value => value.startsWith('publisher-unselected:')).length, 3);
+  assert.deepEqual(result.blockers.filter(value => value.startsWith('publisher-unselected:')), ['publisher-unselected:nuget', 'publisher-unselected:npm']);
   assert.equal(result.apiSettings.OAuth.ApiResource, undefined);
   assert.equal(result.apiSettings.DataProtection, undefined);
 });

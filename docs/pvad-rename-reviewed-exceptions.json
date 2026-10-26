@@ -27,12 +27,12 @@
     },
     {
       "path": ".github/workflows/deployment-validation.yml",
-      "sha256": "ef5f4a79158bf521176c0002cb8f585e76abc83f147379659bbeae8f5135d735",
+      "sha256": "3048f386679822e55bfa3e3b644bd751ada0aed5c112257c14b7a73b0db20c37",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical per-environment concurrency name only; retain verified existing protected environment and registry bindings to avoid bypassing approvals or inventing publisher ownership.",
+      "reviewNotes": "2026-10-26 scoped publisher transition: new canonical image selection uses the owner-selected namespace. Retain the explicit historical family choice and protected environment names until separate approval; Action pins, permissions and concurrency are unchanged. This source review is not registry access or deployment evidence.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -43,16 +43,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
-    },
-    {
-      "path": ".github/workflows/release.yml",
-      "sha256": "03dda2ab4a4aefe6c71ef4eb0f92db7a77b95bf166d503c0a6ab6f1268a627b4",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical workflow concurrency name only; preserve the unapproved historical image publisher destinations, permissions, action pins and all release operations.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -1187,12 +1177,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "4b59a1bf1241cd2c1c8a884c380dc7f1c7979755a1cf4b287b6d50d17928e895",
+      "sha256": "14b2727162a50dd443c23ed8d7881d227cc5b1c08c366fa57904a545e7c30442",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped inventory review: only line counts for the reviewed offline workflow tool, its tests, deployment guide and review ledger changed. Historical source bindings remain intentional; no unrelated untracked files were inventoried and no publication or remote migration is inferred.",
+      "reviewNotes": "2026-10-26 scoped publisher-transition inventory: retire the fully canonical release workflow row and update only reviewed changed-file line counts and ledger hash. Explicit old image readers, test models and protected environment bindings remain classified; unrelated untracked files are excluded.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1317,12 +1307,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "53636ad4b6bb03b4a91ae05511d793e87d1b60b26ffdf595ff87019c6783041e",
+      "sha256": "3cc0fe18ba09631f229429dd851229e3ded10ec8fdbea8312eeb2f6a95593681",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped environment-preparation review: retain historical compatibility names, source-specific acceptance evidence and checklist references. The owner leaves publishers undecided and permits local preparation only. New subtasks record offline protection comparison and synthetic tests without changing the 90/98 total or approving remote cutover, actual key recovery, publication or production readiness.",
+      "reviewNotes": "2026-10-26 scoped publisher source transition: preserve historical names and evidence; record the confirmed container target and paired source changes while NuGet/npm, actual registry access and external cutover remain open. The 90/98 count is unchanged; synthetic tests and the failed initial stub attempt are scoped explicitly.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1897,12 +1887,12 @@
     },
     {
       "path": "deploy/rename/README.md",
-      "sha256": "533893e1d70d448760cd3f43e27bff3404fc513333906e28ea0403b48fc98ee6",
+      "sha256": "7b98f23de9b470322ae5089e09d159821c4d3664656b460b1713d55de9934123",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged.",
+      "reviewNotes": "2026-10-26 scoped operator preparation update: record selected container namespace separately from still-unselected package publishers and unverified registry access. Retain compatibility overlays and historical checklist references; no installed storage, secret, host or remote binding was changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2347,12 +2337,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "bade9df9d067b89d707bdeaa7e00984e725542482f35e3a9658e89e304b6b99f",
+      "sha256": "5bf7d280e5e562fa11145171fd235e0e63e1551e550f6293669cded49f4a537a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped decision-register review: retained image/environment identities identify real infrastructure and historical records, not current product branding. Record the explicit local-only instruction and undecided publisher. Offline snapshot comparison and candidate generation are not remote ownership, authenticated protection state, secret-value verification or activation approval.",
+      "reviewNotes": "2026-10-26 scoped owner-decision review: record the subsequent confirmed container target, canonical source writers and explicit historical readers. Preserve dated earlier decisions and actual protected environment names; initial failed stub evidence is not relabeled green. Registry permissions, publication, environment activation and package publishers remain open.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -7439,9 +7429,9 @@
       "reasons": [
         "test-contract"
       ],
-      "reviewNotes": "Retain deliberate legacy service inputs and test sender validation, support separation and disabled delivery in the offline candidate.",
+      "reviewNotes": "2026-10-26 scoped target-profile contract: verify the selected canonical container pair while leaving package publisher and live-ownership gates open. Existing legacy service aliases and synthetic old Compose models remain required compatibility assertions.",
       "path": "tools/configuration/rename-cutover-candidate.test.mjs",
-      "sha256": "24cec84f072575f12ca6b8c6ecdeab7def2790c0d253256910c72fea887b38b0",
+      "sha256": "95121f029ef07b715a71e06f667fcd9e4d8cce4605bf8b990d3083be0ca33188",
       "reviewStatus": "reviewed",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
@@ -7597,12 +7587,12 @@
     },
     {
       "path": "tools/configuration/workflow-identity.test.mjs",
-      "sha256": "b2fd685e1a19249e41b59dd1b5baf7376a61048f98ac1b4b5c96e2786205019f",
+      "sha256": "cced38aa6adcf1570dd71031436f658e2c982f05c0344530977010e244754b0e",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Assert canonical lock names and original cancellation rules while retaining compatibility assertions for protected environments and image publishers.",
+      "reviewNotes": "2026-10-26 scoped workflow contract: canonical publisher/image producers and consumers are asserted together with foreign-owner rejection. Historical image selection and protected environment identities remain explicit, while exact Action pins, permissions and workflow locks retain their prior semantics.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -7617,12 +7607,12 @@
     },
     {
       "path": "tools/deployment/pvad-deployment.test.mjs",
-      "sha256": "b26e8ef053ae51fdde6c69ed273b8bb1ccd4656a0d87dfc42dd20e0d2a143ac0",
+      "sha256": "5438e6a142954a912018da890071fb6ef510d1d483e40ecba69f3255cc272348",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Assert canonical deployment lock with unchanged real protected-environment bindings; retain deliberate old image and artifact inputs for historical deployment coverage.",
+      "reviewNotes": "2026-10-26 scoped deployment tests: new producer assertions use canonical images under the selected publisher. Retain original synthetic historical archive/container identities and strict immutable evidence verification for retry and rollback; no record is cosmetically rewritten.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7637,12 +7627,12 @@
     },
     {
       "path": "tools/deployment/README.md",
-      "sha256": "38e5532326a60b630baf2cdabc4c8d9e08e500f84767537e9045a8fbc8d37b7c",
+      "sha256": "b758b35ae6a62f62fb6d279832dcef78c93878ce593297a891b1368762cb1a00",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped operator-guide review: historical image families and protected environment names remain explicit cutover inputs. New guidance defines metadata-only offline comparison, unverified value/provenance boundaries and owner approvals; no real publisher or migrated environment is claimed.",
+      "reviewNotes": "2026-10-26 scoped deployment guidance: document selected canonical source targets and explicit historical image selection without retagging old releases. Retained protected environment names are operational bindings. Local tests are not actual registry access, protected-branch activation or publication approval.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -9270,32 +9260,32 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "68b9b8b0f8c1178dbc4b05ae4dd6035d5828145e3ccae767193c1b180666c666",
+      "sha256": "b23726740746725e42c66e7a6b66444528d7f99568451f7ebf3fbfce2e822ae7",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
+      "reviewNotes": "2026-10-26 scoped contract update: the container target is selected independently of unchanged mail-disabled settings and unselected NuGet/npm publishers. Existing legacy dashboard IDs and compatibility guide assertions remain intentional test inputs, not product branding.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "tools/configuration/rename-container-workflows.mjs",
-      "sha256": "07c3b0bce74edb1ddc943ff33f18adf76cee38674c37844627ce003fac3cae43",
+      "sha256": "e24bcea3ae94e5dfbf78222f8f32f2dc7297eecec31974f3e3af39736ad3f649",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped tool review: old image/environment names are bounded source bindings for paired offline transformation and comparison. Fresh repository-bound metadata and exact protections are required for an optional environment candidate; active workflows remain unchanged and deployment authorization is always false. No registry or GitHub network operation is introduced.",
+      "reviewNotes": "2026-10-26 scoped source-generator review: legacy image names remain bounded compatibility inputs. Canonical workflow preparation is idempotent and paired publisher/family/tag checks fail closed; protected environment comparison and source-only authorization boundaries remain intact.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
       "path": "tools/configuration/rename-container-workflows.test.mjs",
-      "sha256": "1431769b592b4dbfb1104b6b0a9514712c609a90cc93c1c50d446b43658d2728",
+      "sha256": "8dbdd14f675435f0a1b27297b525da0b1c6f60bd9b02cdb87e2e73c9918a1b51",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped test review: synthetic legacy image/environment names verify source compatibility and exact protection preservation. Temporary repositories exercise the local CLI without external accounts, registry calls or deployment; failures remove stale generated candidates and do not reveal synthetic secret values.",
+      "reviewNotes": "2026-10-26 scoped generator test review: synthetic old workflow/image/environment names preserve compatibility coverage. New checks exercise canonical idempotence, mixed-source rejection and full inspection output with a verified isolated Docker stub. The initial host-client DNS failure is separately recorded and is not a registry success.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {

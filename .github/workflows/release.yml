@@ -14,6 +14,9 @@ concurrency:
   group: pvad-stable-release
   cancel-in-progress: false
 
+env:
+  PVAD_CONTAINER_PUBLISHER: silentdevcore
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -27,6 +30,15 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+      - name: Require approved container publisher
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          OWNER="$(printf '%s' "$REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          if [ "$OWNER" != "$PVAD_CONTAINER_PUBLISHER" ]; then
+            echo "Container publication requires the approved repository owner." >&2
+            exit 1
+          fi
       - name: Validate immutable release version
         id: version
         run: |
@@ -88,8 +100,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # Registry targets are retained pending an owner-approved publisher cutover.
-      # Canonical product names do not establish registry ownership or permission.
+      # Owner-selected namespace; registry access and release approval remain required.
       - name: Build and publish WebApi container
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
@@ -101,14 +112,14 @@ jobs:
             PVAD_COMMIT=${{ github.sha }}
             PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.minor }}
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:latest
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.minor }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:latest
       - name: Verify published WebApi container version
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }}
           node tools/versioning/pvad-build-consistency.mjs verify-container-metadata \
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }} \
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }} \
             "${{ github.sha }}" "${{ github.event.head_commit.timestamp }}"
       - name: Build and publish observability relay container
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
@@ -121,14 +132,14 @@ jobs:
             PVAD_COMMIT=${{ github.sha }}
             PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.minor }}
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:latest
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.minor }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:latest
       - name: Verify published observability relay container version
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }}
           node tools/versioning/pvad-build-consistency.mjs verify-container-metadata \
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }} \
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }} \
             "${{ github.sha }}" "${{ github.event.head_commit.timestamp }}"
       - name: Create immutable tag and GitHub Release
         env:

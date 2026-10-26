@@ -81,7 +81,7 @@ test('production link defaults and backend allowlists use the same explicit cand
   assert.ok(guidance.includes('new hosts use host-only notices'));
 });
 
-test('approved transactional sender is distinct from support and does not enable delivery or select publishers', () => {
+test('approved sender keeps delivery disabled while container selection remains separate from package publishers', () => {
   const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
   const configuration = JSON.parse(read('PVAD.WebApi/appsettings.json'));
   assert.equal(targets.senderAddress, 'no-reply@pvade.com');
@@ -94,7 +94,7 @@ test('approved transactional sender is distinct from support and does not enable
   assert.ok(defaults.includes(`public string SenderAddress { get; set; } = "${targets.senderAddress}";`));
   assert.ok(defaults.includes(`public string SenderName { get; set; } = "${configuration.Mail.SenderName}";`));
   assert.ok(defaults.includes(`public string Transport { get; set; } = "${configuration.Mail.Transport}";`));
-  assert.deepEqual(targets.publishers, { nuget: null, npm: null, container: null });
+  assert.deepEqual(targets.publishers, { nuget: null, npm: null, container: 'ghcr.io/silentdevcore' });
   assert.ok(targets.unverified.includes('mail-delivery'));
   assert.ok(targets.unverified.includes('publisher-ownership'));
 });

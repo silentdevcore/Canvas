@@ -141,7 +141,13 @@ function replaceRequired(source, from, to) {
 export function prepareContainerWorkflows(releaseSource, deploymentSource, environmentSnapshot = null, environmentReviewOptions = {}) {
   const release = structuredClone(releaseSource);
   const deployment = structuredClone(deploymentSource);
-  const publisher = 'ghcr.io/${{ github.repository_owner }}';
+  const configured = release.env?.PVAD_CONTAINER_PUBLISHER;
+  if (configured !== undefined) {
+    assert.equal(configured, 'silentdevcore', 'Unexpected configured container publisher.');
+    assert.equal(deployment.env?.PVAD_CONTAINER_PUBLISHER, configured, 'Workflow publishers must match.');
+  } else assert.equal(deployment.env?.PVAD_CONTAINER_PUBLISHER, undefined, 'Workflow publishers must match.');
+  const publisher = configured ? 'ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}' : 'ghcr.io/${{ github.repository_owner }}';
+  const sourceFamilies = new Set();
   for (const component of ['webapi', 'observability-webhook-relay']) {
     const steps = release.jobs.release.steps;
     const builds = steps.filter(step => step.with?.file === (component === 'webapi'
@@ -150,27 +156,50 @@ export function prepareContainerWorkflows(releaseSource, deploymentSource, envir
     const build = builds[0];
     const oldImage = `${publisher}/pxa-${component}:`;
     const newImage = `${publisher}/pvad-${component}:`;
-    build.with.tags = replaceRequired(build.with.tags, oldImage, newImage);
-    const verifications = steps.filter(step => step.run?.includes(`docker pull ${oldImage}`));
+    assert.equal(typeof build.with.tags, 'string', 'Missing image tags.');
+    const family = build.with.tags.includes(oldImage) ? 'PXA' : 'PVAD';
+    const sourceImage = family === 'PXA' ? oldImage : newImage;
+    sourceFamilies.add(family);
+    assert.deepEqual(build.with.tags.trim().split('\n'), ['${{ steps.version.outputs.version }}', '${{ steps.version.outputs.minor }}', 'latest']
+      .map(tag => `${sourceImage}${tag}`), 'Unexpected publisher, mixed image tags or incomplete version tags.');
+    const verifications = steps.filter(step => step.run?.includes(`docker pull ${sourceImage}`));
     if (verifications.length !== 1) throw new Error('Missing or duplicate matching published-image verification step.');
-    verifications[0].run = replaceRequired(verifications[0].run, oldImage, newImage);
+    assert.ok(verifications[0].run.includes('node tools/versioning/pvad-build-consistency.mjs verify-container-metadata'),
+      'Missing immutable metadata verification.');
+    assert.equal(verifications[0].run.split(`${sourceImage}\${{ steps.version.outputs.version }}`).length, 3,
+      'Pull and metadata verification must use the same immutable version.');
+    if (family === 'PXA') {
+      build.with.tags = replaceRequired(build.with.tags, oldImage, newImage);
+      verifications[0].run = replaceRequired(verifications[0].run, oldImage, newImage);
+    }
   }
+  assert.equal(sourceFamilies.size, 1, 'Mixed image families require explicit review.');
 
-  deployment.on.workflow_dispatch.inputs.container_identity = {
+  const identityInput = {
     description: 'Exact image family published for this immutable release; never infer it from archive names',
     required: true,
     default: 'PXA',
     type: 'choice',
     options: ['PXA', 'PVAD'],
   };
+  if (deployment.on.workflow_dispatch.inputs.container_identity !== undefined)
+    assert.deepEqual(deployment.on.workflow_dispatch.inputs.container_identity, identityInput, 'Unexpected image-family input.');
+  else deployment.on.workflow_dispatch.inputs.container_identity = identityInput;
   const inspections = deployment.jobs.preflight.steps.filter(step => step.name === 'Verify immutable container tags');
   if (inspections.length !== 1) throw new Error('Missing or duplicate immutable container inspection step.');
   const inspect = inspections[0];
-  inspect.env.CONTAINER_IDENTITY = '${{ inputs.container_identity }}';
-  inspect.run = replaceRequired(inspect.run,
-    'WEBAPI="ghcr.io/$OWNER/pxa-webapi:$VERSION"\nRELAY="ghcr.io/$OWNER/pxa-observability-webhook-relay:$VERSION"',
-    'case "$CONTAINER_IDENTITY" in\n  PVAD) PREFIX=pvad ;;\n  PXA) PREFIX=pxa ;;\n  *) echo "Unknown container identity." >&2; exit 1 ;;\nesac\n'
-    + 'WEBAPI="ghcr.io/$OWNER/$PREFIX-webapi:$VERSION"\nRELAY="ghcr.io/$OWNER/$PREFIX-observability-webhook-relay:$VERSION"');
+  const legacyInspection = 'WEBAPI="ghcr.io/$OWNER/pxa-webapi:$VERSION"\nRELAY="ghcr.io/$OWNER/pxa-observability-webhook-relay:$VERSION"';
+  const canonicalInspection = 'case "$CONTAINER_IDENTITY" in\n  PVAD) PREFIX=pvad ;;\n  PXA) PREFIX=pxa ;;\n  *) echo "Unknown container identity." >&2; exit 1 ;;\nesac\n'
+    + 'WEBAPI="ghcr.io/$OWNER/$PREFIX-webapi:$VERSION"\nRELAY="ghcr.io/$OWNER/$PREFIX-observability-webhook-relay:$VERSION"';
+  assert.equal(inspect.env.OWNER, configured ? '${{ env.PVAD_CONTAINER_PUBLISHER }}' : '${{ github.repository_owner }}');
+  if (inspect.run.includes(legacyInspection)) {
+    assert.equal(inspect.env.CONTAINER_IDENTITY, undefined);
+    inspect.env.CONTAINER_IDENTITY = '${{ inputs.container_identity }}';
+    inspect.run = replaceRequired(inspect.run, legacyInspection, canonicalInspection);
+  } else {
+    assert.ok(inspect.run.includes(canonicalInspection), 'Workflow shape changed; review the container cutover candidate manually.');
+    assert.equal(inspect.env.CONTAINER_IDENTITY, '${{ inputs.container_identity }}');
+  }
 
   for (const workflow of [release, deployment]) {
     if (/\/pxa-(?:webapi|observability-webhook-relay):/.test(JSON.stringify(workflow)))
@@ -181,7 +210,8 @@ export function prepareContainerWorkflows(releaseSource, deploymentSource, envir
     schemaVersion: 1,
     scope: 'Offline source candidate only; not approval to publish, deploy or change protected GitHub configuration.',
     deploymentAuthorized: false,
-    blockers: ['publisher-ownership-and-repositories-unapproved', 'immutable-version-image-family-review-required',
+    containerPublisher: { configuredNamespace: configured ? `ghcr.io/${configured}` : null, registryAccessVerified: false },
+    blockers: [configured ? 'registry-ownership-and-access-unverified' : 'publisher-ownership-and-repositories-unapproved', 'immutable-version-image-family-review-required',
       'workflow-and-environment-owner-approval-required', 'registry-access-and-staging-validation-required'],
     retainedBindings: ['workflow-concurrency-groups', 'protected-environment-names', 'action-pins', 'token-permissions'],
     protectedEnvironmentReview: reviewProtectedEnvironments(environmentSnapshot, environmentReviewOptions),

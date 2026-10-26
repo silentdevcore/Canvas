@@ -8,7 +8,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
 | Installed product inventory | Owner reports no publication/customer installations; current scope is local development/testing. | Product owner | Confirmed in conversation, 2026-10-21 |
-| Public identities | Owner selects pvade.com, support@pvade.com and technical sender no-reply@pvade.com. Package publishers remain unselected; actual infrastructure/mail ownership and delivery are not verified. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; publisher and deployment gates remain open |
+| Public identities | Owner selects pvade.com, support@pvade.com, technical sender no-reply@pvade.com and GHCR target ghcr.io/silentdevcore. NuGet/npm publishers, actual registry access and infrastructure/mail verification remain open. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; container target and local workflow changes confirmed 2026-10-26; no publication approval |
 | Compatibility policy | .pvadp/.pvads, stable diagnostic IDs, old API/format readers for one major release. | Product owner | Confirmed in conversation, 2026-10-21 |
 | Cutover and rollback | Repository owner accepts responsibility for local development backup, restore and rollout. Production/customer procedures are not approved. | Repository owner (local only) | Local owner confirmed, 2026-10-21; production approval pending |
 | Protected material | Verify actual keyring access and retained encrypted payload recovery without exposing or rewriting secrets. | Security and operations | Pending |
@@ -23,15 +23,17 @@ documents or unredacted configuration in this document.
 
 ## Retained Workflow Bindings
 
-Review checkpoint: 2026-10-23. The remaining old names in release/deployment
+Initial review checkpoint: 2026-10-23; source status updated 2026-10-26.
+The remaining old names in release/deployment
 workflows are explicit compatibility or infrastructure bindings, not additional
 current product names. There are no confirmed published packages or customer
-installations. Publisher accounts remain unselected/unregistered; local source
-renaming does not establish ownership or permission to publish.
+installations in the owner-reported inventory. NuGet and npm publisher accounts
+remain unselected/unregistered; the container target is now owner-selected.
+Local source renaming does not establish registry access or permission to publish.
 
 | Source | Retained identity | Required coordinated action |
 | --- | --- | --- |
-| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | GHCR `pxa-webapi`, `pxa-observability-webhook-relay` | Approve publisher and target image repositories; change publisher, pull/inspect steps and verifier together; retain immutable historical records |
+| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | New images use GHCR `pvad-webapi` and `pvad-observability-webhook-relay`; historical `pxa-*` images remain explicit inputs | Source changes complete for owner-selected ghcr.io/silentdevcore; registry access, immutable image availability and real release approval remain unverified |
 | `deployment-validation.yml` | `pxa-staging`, `pxa-production` via its environment expression | Inspect actual GitHub configuration, then verify reviewers, secrets, branch restrictions and approval behavior before changing workflow bindings |
 | `release.yml` | Old protected-branch runs may still use `pxa-stable-release`; local source uses `pvad-stable-release` | Drain earlier runs and switch every applicable branch/workflow consistently |
 | `prepare-release.yml` | Old runs may still use `pxa-release-preparation`; local source uses `pvad-release-preparation` | Drain preparation runs and retain single-writer release preparation |
@@ -42,13 +44,14 @@ renaming does not establish ownership or permission to publish.
 These entries do not prove a published package exists. The read-only follow-up
 below confirms actual protected environments, but does not change them or run a
 workflow. Prior unchanged-workflow comparisons describe earlier checkpoints;
-the four local concurrency group names are now explicitly migrated. Job steps,
-permissions, action pins and environment bindings remain unchanged.
+the four local concurrency group names are now explicitly migrated. Container
+producer/consumer sources now use the selected canonical family. Permissions,
+action pins and protected environment bindings remain unchanged.
 
-Before a future image-name switch, explicitly decide how historical versions map
-to image repositories. Archive identity and container identity are distinct in
-the current transition: deployment accepts both complete archive generations,
-but the active workflow publisher and inspector still use retained image names.
+Historical versions retain their exact image repositories. Archive identity and
+container identity are distinct in the current transition: deployment accepts
+both complete archive generations, and its source now requires an explicit image
+family choice. New release sources publish only the canonical image family.
 The evidence verifier now supports either complete image family, with strict
 publisher/version checks and an explicit `containerIdentity` in new records.
 Never silently relabel, overwrite or invent an immutable historical container
@@ -62,8 +65,47 @@ action pins, concurrency groups and protected-environment bindings. Historical
 container family selection is explicit and independent of archive names.
 The generator preserves whichever lock names the input workflows currently use;
 it does not activate or validate a remote lock cutover.
-This is not approval of a publisher, proof of image availability or a completed
-remote cutover. See [deployment control](../tools/deployment/README.md#offline-container-workflow-candidate).
+The generator records the configured publisher separately from unverified
+registry access. This is not proof of image availability or a completed remote
+cutover. See [deployment control](../tools/deployment/README.md#offline-container-workflow-candidate).
+
+## Container Publisher Source Transition (2026-10-26)
+
+The owner subsequently confirmed `silentdevcore`, the current GitHub repository
+owner, as the GHCR target for local workflow changes. This supersedes the earlier
+same-day undecided-container-publisher instruction for this source-only step.
+
+New release source targets:
+
+- `ghcr.io/silentdevcore/pvad-webapi`
+- `ghcr.io/silentdevcore/pvad-observability-webhook-relay`
+
+Both workflow sources declare the same publisher and reject a different
+repository owner before registry operations. API and Relay version/minor/latest
+tags, immutable-version pulls and OCI metadata checks change together. Deployment
+requests select `PVAD` or historical `PXA` explicitly; the historical default
+remains conservative, and archives do not imply an image family. The existing
+evidence verifier continues rejecting mixed families, other publishers and
+mutable tags without rewriting retained records.
+
+The offline generator now accepts canonical sources idempotently and retains
+support for legacy input models. Its report distinguishes a configured namespace
+from unverified registry access. Protected environment names, reviewers, secret
+values, Action pins, permissions and concurrency settings are not changed.
+
+An initial additional shell-stub test unexpectedly selected the host Docker
+client because the shell's startup path prepended the Rancher CLI directory.
+Its registry hostname lookup failed; this is neither passing offline evidence
+nor verification of registry access. The final test resets and freezes its
+isolated PATH inside the shell, verifies the selected Docker stub before running
+the inspection block, and exercises both image families without registry access.
+The initial failed result remains separately recorded in ignored local artifacts.
+
+No successful registry contact, push, workflow dispatch, image/tag publication,
+protected environment edit, merge or product-version change occurred. Actual registry
+permissions, image availability, remote workflow drain, staging and release
+approval remain open, as do NuGet/npm publisher selection. The combined primary
+rename gates are not completed by this source transition.
 
 ## Workflow Lock Cutover
 
@@ -138,8 +180,9 @@ remain required before activation.
 Owner confirmation on 2026-10-21 selects `pvade.com` as the target domain.
 This records the intended name, not registrar/DNS/TLS ownership evidence.
 Owner confirmation also selects `support@pvade.com` as the support address.
-Package publishers and registry organizations are explicitly not registered or
-chosen yet. Selecting a support address does not prove a configured mailbox.
+NuGet/npm publishers remain unregistered or unselected. The subsequent container
+selection below does not prove registry access. Selecting a support address does
+not prove a configured mailbox.
 Owner confirmation on 2026-10-24 selects `no-reply@pvade.com` as the technical
 sender, separately from `support@pvade.com`. The application default and offline
 candidate now use that sender; delivery remains disabled. SMTP credentials,
@@ -151,8 +194,8 @@ remain supported. Protected Admin handbook host and reference links now use the
 selected Admin/Operator hosts. Existing Grafana dashboard UIDs, CSRF compatibility
 headers and diagnostic IDs remain unchanged; these link corrections do not prove
 DNS/TLS availability or widen access to the protected handbook.
-The owner again reports no publication; this does not identify a registered
-container publisher. All three publisher selections remain null.
+The earlier owner report of no publication did not identify a container
+publisher; at that checkpoint all three selections remained null.
 Publisher ownership, actual sender verification and domain control remain
 publication gates; no DNS, account registration or mail setup was executed.
 
@@ -163,10 +206,10 @@ These questions prepare approval; writing an answer does not execute a deploymen
 2. What are the approved Company, Documentation, Demo, Account, Admin, Designer
    and API hosts, support address and mail sender? Confirm ownership separately
    from a proposed spelling; no domain availability is assumed.
-3. Should new images retain the existing GHCR `pxa-webapi` and
-   `pxa-observability-webhook-relay` repositories, publish under approved PVAD
-   repositories, or be dual-published? Identify the owner and access approver.
-   Do not change publication destinations until this is explicitly decided.
+3. New images now target the owner-selected canonical GHCR repositories described
+   below; historical versions keep their original repositories, without dual
+   publication. Verify actual registry permissions and identify the release
+   approver before publishing. NuGet/npm publisher selection remains open.
 4. Confirm `.pvadp` and `.pvads`, old `.pxap`/`.pxas` readers, the stable diagnostic
    policy and the exact compatibility-release window. Identify integrations that
    need the explicit legacy XML envelope rather than the new default root.

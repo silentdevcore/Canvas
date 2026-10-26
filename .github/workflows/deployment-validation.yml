@@ -7,6 +7,12 @@ on:
         description: Existing stable PVADE version without the v prefix
         required: true
         type: string
+      container_identity:
+        description: Exact image family published for this immutable release; never infer it from archive names
+        required: true
+        default: PXA
+        type: choice
+        options: [PXA, PVAD]
       environment:
         description: Protected target environment
         required: true
@@ -45,6 +51,9 @@ concurrency:
   group: pvad-deployment-${{ inputs.environment }}
   cancel-in-progress: false
 
+env:
+  PVAD_CONTAINER_PUBLISHER: silentdevcore
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -56,6 +65,15 @@ jobs:
           fetch-depth: 0
       - name: Require protected control branch
         run: test "$GITHUB_REF" = refs/heads/develop
+      - name: Require approved container publisher
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          OWNER="$(printf '%s' "$REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          if [ "$OWNER" != "$PVAD_CONTAINER_PUBLISHER" ]; then
+            echo "Container inspection requires the approved repository owner." >&2
+            exit 1
+          fi
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -107,15 +125,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      # Must match the retained registry targets in release.yml and the verifier.
+      # Preserve each historical image family; new releases use PVAD in release.yml.
       - name: Verify immutable container tags
         env:
-          OWNER: ${{ github.repository_owner }}
+          OWNER: ${{ env.PVAD_CONTAINER_PUBLISHER }}
           VERSION: ${{ inputs.version }}
+          CONTAINER_IDENTITY: ${{ inputs.container_identity }}
         run: |
           OWNER="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
-          WEBAPI="ghcr.io/$OWNER/pxa-webapi:$VERSION"
-          RELAY="ghcr.io/$OWNER/pxa-observability-webhook-relay:$VERSION"
+          case "$CONTAINER_IDENTITY" in
+            PVAD) PREFIX=pvad ;;
+            PXA) PREFIX=pxa ;;
+            *) echo "Unknown container identity." >&2; exit 1 ;;
+          esac
+          WEBAPI="ghcr.io/$OWNER/$PREFIX-webapi:$VERSION"
+          RELAY="ghcr.io/$OWNER/$PREFIX-observability-webhook-relay:$VERSION"
           docker buildx imagetools inspect "$WEBAPI" > artifacts/deployment/webapi-image.txt
           docker buildx imagetools inspect "$RELAY" > artifacts/deployment/relay-image.txt
           WEBAPI_DIGEST="$(awk '/^Digest:/ {print $2; exit}' artifacts/deployment/webapi-image.txt)"

@@ -18,7 +18,8 @@ test('offline candidate changes image producers/consumers together and preserves
   const before = JSON.stringify({ release, deployment });
   const result = prepareContainerWorkflows(release, deployment);
   assert.equal(result.deploymentAuthorized, false);
-  assert.ok(result.blockers.includes('publisher-ownership-and-repositories-unapproved'));
+  assert.ok(result.blockers.includes('registry-ownership-and-access-unverified'));
+  assert.equal(result.containerPublisher.configuredNamespace, 'ghcr.io/silentdevcore');
   assert.equal(JSON.stringify({ release, deployment }), before);
   for (const [current, candidate] of [[release, result.releaseWorkflow], [deployment, result.deploymentWorkflow]]) {
     assert.deepEqual(candidate.concurrency, current.concurrency);
@@ -39,7 +40,7 @@ test('offline candidate changes image producers/consumers together and preserves
     const tags = steps.find(step => step.with?.tags?.includes(`/pvad-${component}:`)).with.tags;
     assert.equal(tags.trim().split('\n').length, 3);
     assert.ok(!tags.includes(`/pxa-${component}:`));
-    const consumer = steps.find(step => step.run?.includes(`docker pull ghcr.io/\${{ github.repository_owner }}/pvad-${component}:`));
+    const consumer = steps.find(step => step.run?.includes(`docker pull ghcr.io/\${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-${component}:`));
     assert.ok(consumer);
   }
   assert.deepEqual(result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity.options, ['PXA', 'PVAD']);
@@ -72,6 +73,43 @@ test('candidate inspection shell selects exact immutable families without invoki
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
+test('the active deployment inspection emits the exact selected immutable image pair using only a Docker stub', () => {
+  const step = read('deployment-validation').jobs.preflight.steps.find(value => value.name === 'Verify immutable container tags');
+  const parent = mkdtempSync(resolve(tmpdir(), 'pvad-container-inspection-'));
+  try {
+    const bin = resolve(parent, 'bin'); mkdirSync(bin);
+    for (const [name, source] of [['node', process.execPath], ['tr', '/usr/bin/tr'], ['awk', '/usr/bin/awk']])
+      symlinkSync(source, resolve(bin, name));
+    writeFileSync(resolve(bin, 'docker'), '#!/usr/bin/env node\n'
+      + 'const fs = require("node:fs"); const args = process.argv.slice(2);\n'
+      + 'if (args.slice(0, 3).join(" ") !== "buildx imagetools inspect") process.exit(91);\n'
+      + 'fs.appendFileSync("docker-requests.jsonl", JSON.stringify(args) + "\\n");\n'
+      + 'console.log("Digest: sha256:" + "a".repeat(64));\n', { mode: 0o700 });
+    for (const identity of ['PVAD', 'PXA', 'unknown', '']) {
+      const directory = resolve(parent, identity || 'missing');
+      mkdirSync(resolve(directory, 'artifacts/deployment'), { recursive: true });
+      const run = spawnSync('/bin/bash', ['-e', '-c',
+        'PATH="$TEST_BIN"\nreadonly PATH\nhash -r\n'
+          + 'if [ "$(command -v docker)" != "$EXPECTED_DOCKER" ]; then echo "Docker stub was not selected; test refused to run." >&2; exit 91; fi\n' + step.run],
+        { encoding: 'utf8', cwd: directory,
+          env: { PATH: bin, TEST_BIN: bin, EXPECTED_DOCKER: resolve(bin, 'docker'), OWNER: 'silentdevcore', VERSION: '1.2.3', CONTAINER_IDENTITY: identity } });
+      const valid = ['PVAD', 'PXA'].includes(identity);
+      assert.equal(run.status === 0, valid, run.stderr);
+      if (valid) {
+        const images = [`ghcr.io/silentdevcore/${identity.toLowerCase()}-webapi:1.2.3`,
+          `ghcr.io/silentdevcore/${identity.toLowerCase()}-observability-webhook-relay:1.2.3`];
+        const requests = readFileSync(resolve(directory, 'docker-requests.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+        assert.deepEqual(requests.map(value => value[3]), images);
+        assert.deepEqual(JSON.parse(readFileSync(resolve(directory, 'artifacts/deployment/containers.json'))),
+          images.map(image => ({ image, digest: `sha256:${'a'.repeat(64)}` })));
+      } else {
+        assert.equal(existsSync(resolve(directory, 'docker-requests.jsonl')), false);
+        assert.equal(existsSync(resolve(directory, 'artifacts/deployment/containers.json')), false);
+      }
+    }
+  } finally { rmSync(parent, { recursive: true, force: true }); }
+});
+
 test('candidate generation rejects source drift instead of silently omitting consumers', () => {
   const release = read('release');
   release.jobs.release.steps = release.jobs.release.steps.filter(step => !step.run?.includes('docker pull'));
@@ -95,6 +133,78 @@ test('candidate CLI offers no publication or application command', () => {
     { encoding: 'utf8' });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /No deployment or publishing arguments/);
+});
+
+function legacyWorkflowSources() {
+  const release = read('release'), deployment = read('deployment-validation');
+  delete release.env; delete deployment.env;
+  for (const workflow of [release, deployment]) {
+    for (const job of Object.values(workflow.jobs))
+      job.steps = job.steps.filter(step => step.name !== 'Require approved container publisher');
+  }
+  for (const step of release.jobs.release.steps) {
+    for (const component of ['webapi', 'observability-webhook-relay']) {
+      const current = `ghcr.io/\${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-${component}:`;
+      const legacy = `ghcr.io/\${{ github.repository_owner }}/pxa-${component}:`;
+      if (step.with?.tags) step.with.tags = step.with.tags.replaceAll(current, legacy);
+      if (step.run) step.run = step.run.replaceAll(current, legacy);
+    }
+  }
+  delete deployment.on.workflow_dispatch.inputs.container_identity;
+  const inspection = deployment.jobs.preflight.steps.find(step => step.name === 'Verify immutable container tags');
+  inspection.env.OWNER = '${{ github.repository_owner }}';
+  delete inspection.env.CONTAINER_IDENTITY;
+  const start = inspection.run.indexOf('case "$CONTAINER_IDENTITY"'), end = inspection.run.indexOf('docker buildx imagetools inspect');
+  assert.ok(start >= 0 && end > start);
+  inspection.run = inspection.run.slice(0, start)
+    + 'WEBAPI="ghcr.io/$OWNER/pxa-webapi:$VERSION"\nRELAY="ghcr.io/$OWNER/pxa-observability-webhook-relay:$VERSION"\n'
+    + inspection.run.slice(end);
+  return { release, deployment };
+}
+
+test('candidate preparation accepts the canonical workflows unchanged and is idempotent', () => {
+  const release = read('release'), deployment = read('deployment-validation');
+  const result = prepareContainerWorkflows(release, deployment);
+  assert.deepEqual(result.releaseWorkflow, release);
+  assert.deepEqual(result.deploymentWorkflow, deployment);
+  const repeated = prepareContainerWorkflows(result.releaseWorkflow, result.deploymentWorkflow);
+  assert.deepEqual(repeated.releaseWorkflow, release);
+  assert.deepEqual(repeated.deploymentWorkflow, deployment);
+});
+
+test('older workflow models remain supported as offline candidates without granting publisher approval', () => {
+  const { release, deployment } = legacyWorkflowSources();
+  const before = structuredClone({ release, deployment });
+  const result = prepareContainerWorkflows(release, deployment);
+  assert.deepEqual({ release, deployment }, before);
+  assert.equal(result.containerPublisher.configuredNamespace, null);
+  assert.ok(result.blockers.includes('publisher-ownership-and-repositories-unapproved'));
+  for (const component of ['webapi', 'observability-webhook-relay']) {
+    const prefix = `ghcr.io/\${{ github.repository_owner }}/pvad-${component}:`;
+    assert.ok(result.releaseWorkflow.jobs.release.steps.some(step => step.with?.tags?.includes(prefix)));
+  }
+  const repeated = prepareContainerWorkflows(result.releaseWorkflow, result.deploymentWorkflow);
+  assert.deepEqual(repeated.releaseWorkflow, result.releaseWorkflow);
+  assert.deepEqual(repeated.deploymentWorkflow, result.deploymentWorkflow);
+});
+
+test('mixed publishers, mixed image families, incomplete tags and missing metadata checks require review', () => {
+  for (const change of [
+    ({ release }) => { release.env.PVAD_CONTAINER_PUBLISHER = 'unselected-owner'; },
+    ({ deployment }) => { deployment.env.PVAD_CONTAINER_PUBLISHER = 'different-owner'; },
+    ({ release }) => { release.jobs.release.steps.find(step => step.with?.tags).with.tags += 'ghcr.io/foreign/pvad-webapi:latest\n'; },
+    ({ release }) => { const build = release.jobs.release.steps.find(step => step.with?.tags); build.with.tags = build.with.tags.trim().split('\n').slice(0, 2).join('\n'); },
+    ({ release }) => { const step = release.jobs.release.steps.find(step => step.run?.includes('docker pull')); step.run = step.run.replace('verify-container-metadata', 'omitted-verification'); },
+    ({ release }) => {
+      for (const step of release.jobs.release.steps) {
+        if (step.with?.tags) step.with.tags = step.with.tags.replaceAll('/pvad-observability-webhook-relay:', '/pxa-observability-webhook-relay:');
+        if (step.run) step.run = step.run.replaceAll('/pvad-observability-webhook-relay:', '/pxa-observability-webhook-relay:');
+      }
+    },
+  ]) {
+    const value = { release: read('release'), deployment: read('deployment-validation') }; change(value);
+    assert.throws(() => prepareContainerWorkflows(value.release, value.deployment));
+  }
 });
 
 const capturedAt = '2026-10-26T09:00:00.000Z';

@@ -15,7 +15,7 @@
     "api": "https://api.pvade.com",
     "mcp": "https://mcp.pvade.com"
   },
-  "publishers": { "nuget": null, "npm": null, "container": null },
+  "publishers": { "nuget": null, "npm": null, "container": "ghcr.io/silentdevcore" },
   "webhookUrl": null,
   "unverified": ["subdomain-routing", "dns-and-tls", "mail-delivery", "publisher-ownership", "key-access", "rollout-and-rollback"]
 }

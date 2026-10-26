@@ -11,8 +11,11 @@ Offline preparation does not close real release/cutover gates.
 The owner selected `pvade.com`, support address `support@pvade.com`, and technical
 sender `no-reply@pvade.com` (2026-10-24). DNS/TLS/mailbox ownership
 and delivery are not verified. Subdomains in `pvade-targets.candidate.json` are
-**proposals**, not confirmed deployed hosts. NuGet, npm and container publishers
-remain unselected. No registry ownership is inferred from a proposed name.
+**proposals**, not confirmed deployed hosts. On 2026-10-26 the owner selected
+`ghcr.io/silentdevcore` for the API and Relay container targets and authorized
+local workflow source changes only. NuGet and npm publishers remain unselected.
+Registry access, image availability and publication approval are not verified
+by this selection; no registry was created or contacted.
 
 ## Read-only Candidate
 

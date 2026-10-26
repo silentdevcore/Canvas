@@ -4,7 +4,7 @@
 
 ## Status And Naming Authority
 
-**Current status, 2026-10-25: not complete. The counted acceptance plan is
+**Current status, 2026-10-26: not complete. The counted acceptance plan is
 90/98 complete (91.8%), with 8/98 open (8.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate
 validation now passes, including the user-confirmed Chrome print check; external
@@ -14,6 +14,9 @@ other platforms and manual first-run prompts remain untested. See
 [the installed platform validation](../docs/pvad-native-project-platform-validation.md),
 [the OAuth/MCP completion](#oauth-and-mcp-writer-completion-2026-10-25) and
 [the counting rule](#current-audit-and-progress-2026-10-24).
+The owner-selected container publisher and paired workflow sources are now
+configured; actual registry access/publication and protected environment cutover
+remain open. See [the source transition](#confirmed-container-publisher-source-transition-2026-10-26).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
 current total. The full API suite now passes against deliberately isolated
 PostgreSQL on commit `16c4264e`; the earlier local-database blocker is historical.
@@ -335,14 +338,15 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   and there are no published/customer installations in scope. Existing evidence
   covers local development/test deployments only, not a production inventory.
 - [ ] Confirm target domain, public publisher scopes, registry ownership and support addresses.
-  2026-10-22 preparation: deploy/rename/pvade-targets.candidate.json keeps each
-  publisher explicitly null. The offline compiler validates independent publisher
+  2026-10-22 preparation kept each publisher explicitly null in the target profile.
+  The offline compiler validates independent publisher
   selections but never asserts ownership or authorizes publishing. Proposed
   subdomains are distinguished from the confirmed base-domain/address choice.
   Target domain pvade.com confirmed by the repository owner on 2026-10-21.
-  Support address support@pvade.com also confirmed. Package publishers and
-  registries are explicitly not registered/chosen yet. Mailbox/DNS ownership
-  and sender configuration are not implied; this combined gate remains open.
+  Support address support@pvade.com also confirmed. On 2026-10-26 the owner selected
+  ghcr.io/silentdevcore for local container workflow changes. NuGet/npm selection,
+  registry access and mailbox/DNS verification remain open; the combined gate
+  is not closed by selecting one publisher.
 - [x] Encode the confirmed distinction: technicalName PVAD, displayName PVADE, PDF PVADP, Spreadsheet PVADS, full name and claim from the handoff.
 - [x] Ratify proposed file extensions, diagnostic mapping and API compatibility window.
   Repository owner explicitly confirmed on 2026-10-21: .pvadp and .pvads,
@@ -660,6 +664,10 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   GHCR repositories, protected GitHub environments and Grafana provider/folder
   names. Offline candidates are preparation, not applied cutovers. Stable
   dashboard/data-source UIDs and historical evidence are intentional exceptions.
+  Follow-up 2026-10-26: paired API/Relay release and deployment source paths now
+  use the owner-selected canonical GHCR namespace, with explicit historical
+  image selection. No images were published or protected environments changed;
+  remote activation and registry access remain unverified.
 - [x] Accept legacy config during a documented transition; new keys win and conflicting values fail clearly.
   Shared shell/Node/.NET adapters, actual Compose resolution, Nginx canonical/legacy/
   conflict checks and the containerized MCP TLS smoke passed. Conflicts fail before
@@ -1361,6 +1369,26 @@ does not add score-bearing primary tasks.
 See [the local comparison contract](../tools/deployment/README.md#offline-protected-environment-comparison).
 No remote evidence is implied by synthetic tests. Completion remains
 **90/98 (91.8%), with 8/98 (8.2%) open**; this preparation closes no primary gate.
+
+## Confirmed Container Publisher Source Transition (2026-10-26)
+
+The owner confirmed `silentdevcore` as the container publisher target and
+authorized local source edits and tests, not publication or protected environment
+changes. This supersedes the earlier same-day undecided-container selection.
+NuGet and npm publishers remain unselected.
+
+- [x] Record `ghcr.io/silentdevcore` in the target profile and both workflow sources; distinguish selection from actual registry access.
+- [x] Use canonical API/Relay image leaves for new releases and update matching immutable pull/metadata checks together.
+- [x] Add explicit historical/canonical image-family selection for deployment and retain original archive/image evidence without retagging old versions.
+- [x] Reject foreign repository owners before registry operations; preserve Action pins, token permissions, concurrency and protected environment bindings.
+- [x] Keep the offline generator idempotent on canonical inputs, compatible with older workflow models and strict against mixed publishers/families and incomplete tags.
+- [x] Pass synthetic publisher guards and historical image compatibility checks; separately exercise the complete inspection/output block through a verified, PATH-isolated Docker stub and retain the initial failed stub attempt as evidence, not registry verification.
+- [x] Pass the expanded 150-test configuration/deployment/versioning selection with zero failures or skips and validate the new Patch fragment without changing VERSION or published releases.
+- [ ] Verify actual GHCR access, immutable published images, drained remote workflows, protected environment migration, staging and release approval before activating the full cutover.
+
+See [the decision and operational boundaries](../docs/pvad-rename-release-approvals.md#container-publisher-source-transition-2026-10-26).
+These are supporting subtasks for existing gates, not new primary criteria.
+Completion remains **90/98 (91.8%), with 8/98 (8.2%) open**.
 
 ## Related Work
 

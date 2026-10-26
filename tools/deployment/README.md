@@ -27,8 +27,13 @@ remain valid inputs for immutable release verification; names and digests are
 not rewritten. Mixed, duplicate or incomplete sets are rejected. New evidence
 writes `product: PVAD` and records the artifact identity separately. The old
 `pxa-deployment.mjs` command delegates to `pvad-deployment.mjs` for compatibility.
-Published container repositories and protected GitHub environment names remain
-unchanged until an explicitly authorized infrastructure cutover.
+New release workflow sources now target `ghcr.io/silentdevcore/pvad-webapi` and
+`ghcr.io/silentdevcore/pvad-observability-webhook-relay`, selected by the owner
+on 2026-10-26. The two workflows reject a repository owner outside the selected
+namespace before registry operations. No image was published by this source
+change, and registry permissions or package availability are not certified.
+Protected GitHub environment names remain unchanged pending their separate
+authorized infrastructure cutover.
 The local evidence verifier additionally accepts a complete PVAD image pair and
 records `containerIdentity` separately from archive identity. It requires exact
 immutable version tags and the GHCR namespace matching the supplied repository
@@ -60,13 +65,20 @@ node --test tools/configuration/rename-container-workflows.test.mjs tools/deploy
 Output under `artifacts/rename/container-workflows/` is ignored local preparation:
 
 - `release.candidate.yml`: both image producers and pull/metadata checks use
-  canonical repository leaf names. The GitHub owner expression is retained as a
-  template; it does not establish an approved publisher or registry permission.
+  canonical repository leaf names and the configured owner-selected publisher.
+  Already migrated sources are preserved; older input models remain supported
+  as offline candidates without inventing a confirmed publisher.
 - `deployment-validation.candidate.yml`: an explicit image-family choice selects
   the original PXA or new PVAD names for the requested immutable version. It
   defaults to PXA for historical releases; new PVAD images require selecting PVAD.
   Archive names are never used to guess the image family.
 - `report.json`: `deploymentAuthorized: false` and outstanding approval gates.
+
+For deployment/retry/rollback, select the exact `container_identity` explicitly:
+`PVAD` for new canonical images and `PXA` for historical images. The conservative
+default stays `PXA` for historical requests; archive names never select the image
+family automatically. Missing or invalid identities fail before inspection.
+Do not republish old versions under new image names or use `latest` for rollback.
 
 The generator performs no Docker, GitHub, registry or deployment operation and
 does not edit `.github/workflows`. It accepts no apply/publish flags and refuses
@@ -80,19 +92,21 @@ environment candidate as the current result. Source-only generation explicitly
 reports `protected-environment-snapshot-required`; it does not manufacture a
 matching remote environment.
 
-Before activating a candidate, obtain publisher/repository ownership approval,
+Before release activation, verify access to the selected publisher/repositories,
 record the actual image family and digests per immutable version, and validate
-registry access plus a non-production run. Review and switch both active
-workflows together. Keep existing concurrency groups and protected environment
+registry access plus a non-production run. The local release/deployment sources
+are updated together; this does not activate them on protected branches.
+Keep existing concurrency groups and protected environment
 bindings until their own coordinated migration is approved. Do not republish,
 retag, overwrite or invent historical images to make a rollback pass.
 
 ## Offline Protected Environment Comparison
 
-The owner reconfirmed on 2026-10-26 that the publisher is not selected and only
-local preparation is authorized. The active container targets and environment
-bindings remain unchanged. No account, repository, secret or environment is
-created or migrated by the commands below.
+The earlier local-only preparation checkpoint on 2026-10-26 left the publisher
+unselected. The subsequent owner decision selects `ghcr.io/silentdevcore` for
+local container workflow changes, not publication. Environment bindings remain
+unchanged. No account, repository, secret or environment is created or migrated
+by the commands below.
 
 An operator can supply a reviewed, metadata-only snapshot later:
 

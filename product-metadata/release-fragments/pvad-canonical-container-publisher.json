@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-canonical-container-publisher",
+  "impact": "patch",
+  "components": ["infrastructure", "observability", "documentation"],
+  "category": "improved",
+  "summary": "Use canonical container image names for new releases while preserving explicit selection of historical images.",
+  "breaking": false
+}

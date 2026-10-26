@@ -96,8 +96,9 @@ test('deployment artifact handoff is renamed together without bypassing existing
   assert.equal(names.length, 2, 'Upload and download must refer to the same preflight artifact');
   assert.match(source, /group: pvad-deployment-/);
   assert.match(source, /name: pxa-\$\{\{ inputs.environment \}\}/);
-  assert.match(source, /WEBAPI="ghcr.io\/\$OWNER\/pxa-webapi:\$VERSION"/);
-  assert.match(read('release'), /ghcr.io\/\$\{\{ github.repository_owner \}\}\/pxa-webapi:/);
+  assert.match(source, /WEBAPI="ghcr.io\/\$OWNER\/\$PREFIX-webapi:\$VERSION"/);
+  assert.match(source, /CONTAINER_IDENTITY: \$\{\{ inputs.container_identity \}\}/);
+  assert.match(read('release'), /ghcr.io\/\$\{\{ env.PVAD_CONTAINER_PUBLISHER \}\}\/pvad-webapi:/);
 });
 
 test('canonical workflow locks retain serialization and protected environment bindings', () => {
@@ -120,6 +121,48 @@ test('canonical workflow locks retain serialization and protected environment bi
   const deployment = load(read('deployment-validation'));
   assert.equal(deployment.jobs['validate-environment'].environment.name, 'pxa-${{ inputs.environment }}');
   assert.match(read('deployment-validation'), /# Retained protected environment/);
-  assert.match(mapping, /Publisher accounts remain unselected\/unregistered/);
+  assert.match(mapping, /NuGet and npm publisher accounts\s+remain unselected\/unregistered/);
   assert.match(read('job-binary-cutover'), /# PXA identifies the pinned historical binary/);
+});
+
+test('both workflows use the selected GHCR namespace and reject foreign owners before registry operations', () => {
+  const targets = JSON.parse(readFileSync(resolve(root, 'deploy/rename/pvade-targets.candidate.json'), 'utf8'));
+  assert.equal(targets.publishers.container, 'ghcr.io/silentdevcore');
+  assert.equal(targets.publishers.nuget, null);
+  assert.equal(targets.publishers.npm, null);
+  for (const name of ['release', 'deployment-validation']) {
+    const workflow = load(read(name));
+    assert.equal(`ghcr.io/${workflow.env.PVAD_CONTAINER_PUBLISHER}`, targets.publishers.container);
+    const steps = workflow.jobs[name === 'release' ? 'release' : 'preflight'].steps;
+    const guardIndex = steps.findIndex(step => step.name === 'Require approved container publisher');
+    assert.ok(guardIndex >= 0 && guardIndex < steps.findIndex(step => step.uses?.startsWith('docker/login-action@')));
+    assert.equal(steps[guardIndex].env.REPOSITORY_OWNER, '${{ github.repository_owner }}');
+    for (const owner of ['silentdevcore', 'SilentDevCore', 'foreign-owner', '', 'silentdevcore.evil']) {
+      const result = spawnSync('bash', ['-e', '-c', steps[guardIndex].run], { encoding: 'utf8',
+        env: { PATH: process.env.PATH, PVAD_CONTAINER_PUBLISHER: workflow.env.PVAD_CONTAINER_PUBLISHER, REPOSITORY_OWNER: owner } });
+      assert.equal(result.status === 0, ['silentdevcore', 'SilentDevCore'].includes(owner), `${name}: ${owner}`);
+    }
+  }
+});
+
+test('new release image tags and metadata checks stay paired while deployment retains explicit historical selection', () => {
+  const release = load(read('release'));
+  for (const component of ['webapi', 'observability-webhook-relay']) {
+    const steps = release.jobs.release.steps;
+    const prefix = `ghcr.io/\${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-${component}:`;
+    const build = steps.find(step => step.with?.tags?.includes(prefix));
+    assert.equal(build.with.push, true);
+    assert.deepEqual(build.with.tags.trim().split('\n'),
+      ['${{ steps.version.outputs.version }}', '${{ steps.version.outputs.minor }}', 'latest'].map(tag => prefix + tag));
+    const verify = steps.find(step => step.run?.includes(`docker pull ${prefix}`));
+    assert.ok(verify.run.includes('node tools/versioning/pvad-build-consistency.mjs verify-container-metadata'));
+    assert.equal(verify.run.split(prefix + '${{ steps.version.outputs.version }}').length, 3);
+  }
+  const deployment = load(read('deployment-validation'));
+  assert.deepEqual(deployment.on.workflow_dispatch.inputs.container_identity.options, ['PXA', 'PVAD']);
+  assert.equal(deployment.on.workflow_dispatch.inputs.container_identity.default, 'PXA');
+  const inspect = deployment.jobs.preflight.steps.find(step => step.name === 'Verify immutable container tags');
+  assert.equal(inspect.env.OWNER, '${{ env.PVAD_CONTAINER_PUBLISHER }}');
+  assert.equal(inspect.env.CONTAINER_IDENTITY, '${{ inputs.container_identity }}');
+  assert.equal(deployment.jobs['validate-environment'].environment.name, 'pxa-${{ inputs.environment }}');
 });
