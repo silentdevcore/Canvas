@@ -43,21 +43,22 @@ The NPOI legal approval remains a production blocker.
 
 ## Dependency PR Queue
 
-Every row remains pending until its final head passes the applicable tests and
-receives a recorded review. Updating a branch invalidates any earlier approval.
+Only explicitly recorded merges are complete. All other rows remain pending
+until the final head passes the applicable tests and receives a recorded review.
+Updating a branch invalidates any earlier approval.
 
 | PR | Update | Review requirement / current status |
 | --- | --- | --- |
-| #101 | upload-artifact 7.0.2 | Official pin verified; release fragment, comments and compliance pin corrected; security baseline integrated; final CI/review/merge pending. |
-| #98 | sbom-action 0.24.3 | Annotated official tag resolved; fragment corrected; shared security baseline blocks CI. Update compliance pin with the action. |
-| #99 | download-artifact 8.0.2 | Official pin verified; major artifact handoff behavior needs a test. |
-| #91 | build-push-action 7.4.0 | Official pin verified; update compliance pin and test CI. |
-| #90 | setup-buildx-action 4.4.1 | Official pin verified; update compliance pin and test CI. |
-| #100 | Admin Vite 8.3.4 | Test Admin contract suite and production build. |
+| #101 | upload-artifact 7.0.2 | Merged as `8e58ba9bc39dfb7ddf82b7e559c4b8858ccef9e1`; official pin, fragment, comments and compliance corrected; all applicable CI passed including artifact upload. |
+| #98 | sbom-action 0.24.3 | Merged as `e7fe6f2aaf9c84c569530d3af453c21ccd776a02`; official annotated tag verified; fragment/compliance corrected; all applicable CI passed including actual container SPDX generation. |
+| #99 | download-artifact 8.0.2 | Official pin verified; real CI artifact handoff added with nested paths, spaces, empty files and binary hashes; 11 local contract tests passed; final CI/review/merge pending. |
+| #91 | build-push-action 7.4.0 | Official pin verified; fragment and compliance corrected; final base integration and actual action runtime test pending. |
+| #90 | setup-buildx-action 4.4.1 | Official pin verified; fragment/compliance corrected; non-publishing builder bootstrap smoke added; final CI/review/merge pending. |
+| #100 | Admin Vite 8.3.4 | Fragment added; 26 local Admin tests, production build and full npm audit passed; final base integration/review/merge pending. |
 | #97 | MCP Node types 26.6.4 | Test MCP types and stdio smoke. |
-| #95 | MCP SDK 1.32.0 | Baseline targets 1.32.2; do not downgrade after baseline integration. |
+| #95 | MCP SDK 1.32.0 | Closed as superseded by merged baseline PR #102 using 1.32.2; do not downgrade. |
 | #94 | MCP tsx 4.23.15 | Test types and stdio smoke. |
-| #89 | Zod 4.6.5 | Do not merge this target: advisory GHSA-mrhx-c7xc-m3w5 requires at least 4.6.6. Baseline uses 4.6.7. |
+| #89 | Zod 4.6.5 | Closed with replacement explanation: this target remains affected by GHSA-mrhx-c7xc-m3w5; merged baseline PR #102 uses 4.6.7. |
 | #78 | EF Core Design 10.0.11 | Check runtime/design patch alignment and database tests. |
 | #75 | Roslyn Scripting 5.9.0 | Check the full Roslyn package graph and code execution tests. |
 | #74 | Roslyn CSharp 5.9.0 | Coordinate with scripting/workspace dependencies; test migrations. |
@@ -69,8 +70,8 @@ receives a recorded review. Updating a branch invalidates any earlier approval.
 | #43 | coverlet 10.0.1 | Major dependency update across test projects: verify test SDK/collector compatibility. |
 | #41 | ClosedXML 0.105.1 | Run Spreadsheet import/export regressions. |
 | #40 | Recharts 3.10.1 | Run Designer tests and chart rendering smoke tests. |
-| #39 | React 19 | Do not merge independently of React DOM and unsupported peer migrations. |
-| #38 | React DOM 19 | Coordinate with React and peer dependency support; no ignored peer conflicts. |
+| #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
+| #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
 | #37 | jest-dom 7 | Major test dependency update: run the full Designer test suite. |
 | #36 | react-icons 5.7 | Run Designer typecheck and build. |
 | #31 | TypeScript 7 | Major compiler upgrade: verify SDK/compiler configuration and MCP smoke. |
