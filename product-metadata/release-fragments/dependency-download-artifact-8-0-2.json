@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-download-artifact-8-0-2",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Updated release artifact retrieval with an automated file-integrity handoff check.",
+  "breaking": false,
+  "reason": "Release infrastructure maintenance preserves the existing named artifact download contract and does not change public product APIs."
+}
