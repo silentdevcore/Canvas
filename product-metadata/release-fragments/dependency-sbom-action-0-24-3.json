@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-sbom-action-0-24-3",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Update the pinned action used to generate container software bills of materials.",
+  "breaking": false,
+  "reason": "Internal CI dependency maintenance; the existing image input, SBOM format, permissions and application behavior remain unchanged."
+}
