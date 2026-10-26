@@ -112,7 +112,7 @@ const requiredActionPins = new Map([
   ['actions/setup-node', '820762786026740c76f36085b0efc47a31fe5020'],
   ['actions/setup-dotnet', 'a98b56852c35b8e3190ac28c8c2271da59106c68'],
   ['actions/upload-artifact', 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'],
-  ['docker/setup-buildx-action', 'bb05f3f5519dd87d3ba754cc423b652a5edd6d2c'],
+  ['docker/setup-buildx-action', 'f87e5991a6d7451dcb8d9637bfbc97413f497069'],
   ['docker/login-action', 'dbcb813823bdd20940b903addbd779551569679f'],
   ['docker/build-push-action', '53b7df96c91f9c12dcc8a07bcb9ccacbed38856a'],
 ]);
