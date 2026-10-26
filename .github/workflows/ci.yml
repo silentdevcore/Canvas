@@ -104,6 +104,12 @@ jobs:
         run: |
           dotnet test tests/PXA.Infrastructure.Persistence.Tests/PXA.Infrastructure.Persistence.Tests.csproj --configuration Release --no-build -- xUnit.ParallelizeTestCollections=false
           dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+      - name: Test Roslyn-dependent migration providers
+        timeout-minutes: 15
+        run: |
+          for project in tests/PXA.Migration.*.Tests/*.csproj; do
+            dotnet test "$project" --configuration Release --no-build --no-restore
+          done
       - name: Test isolated Legal backup and restore
         env:
           PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"
