@@ -536,6 +536,48 @@
           }
         },
         {
+          "title": "Dependency security and compliance",
+          "group": "Governance",
+          "permission": "System Administrator",
+          "summary": "Review SBOM coverage, vulnerability gates, and supplier-license decisions without mixing them with customer Legal documents or acceptance evidence.",
+          "prerequisites": [
+            "Use an active, email-verified System Administrator account.",
+            "Confirm that the dependency inventory and compliance decision catalog belong to the deployed build.",
+            "Keep supplier-license review separate from customer Terms, Privacy, and consent workflows."
+          ],
+          "steps": [
+            "Open Dependency compliance in the protected Governance navigation.",
+            "Review the NuGet and npm vulnerability gates and the expected SPDX SBOM artifacts.",
+            "Inspect every open supplier-license decision and its required production action.",
+            "Open Legal documents only when customer-facing terms or notices need separate review."
+          ],
+          "result": "The operator can identify dependency production blockers without creating, approving, or mutating customer Legal evidence.",
+          "failures": [
+            "Anonymous users receive 401 and non-system administrators receive 403.",
+            "A missing or stale compliance catalog blocks a production-readiness conclusion.",
+            "Customer Legal approval never resolves a supplier-license decision."
+          ],
+          "audit": "Dependency decisions use their own compliance records and audit event types. Reads do not create Legal acceptance events.",
+          "endpoint": "GET /api/pxa/v1/admin/system/dependency-compliance",
+          "screenshot": "dashboard.png",
+          "notes": [
+            "Generated SPDX SBOMs remain the complete dependency inventory; the Admin workspace shows only actionable status.",
+            "The Legal and Dependency compliance workspaces cross-link for navigation but retain separate APIs, models, permissions, and evidence.",
+            "Never store a supplier EULA decision in legal_acceptance_events."
+          ],
+          "references": [
+            {
+              "label": "Production Dependency compliance",
+              "href": "https://admin.powerdoxautomation.com/dependency-compliance"
+            },
+            {
+              "label": "Local Dependency compliance",
+              "href": "http://localhost:5177/dependency-compliance"
+            }
+          ],
+          "apiExample": null
+        },
+        {
           "title": "Legal continuity and recovery escalation",
           "group": "Governance",
           "permission": "System Administrator",
@@ -743,6 +785,10 @@
     [
       "/legal",
       "Legal documents and version review"
+    ],
+    [
+      "/dependency-compliance",
+      "Dependency security and compliance"
     ],
     [
       "/system-status",

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-security-baseline-recovery",
+  "impact": "patch",
+  "components": ["api", "designer", "infrastructure", "sdk", "spreadsheet"],
+  "category": "security",
+  "summary": "Updated document-processing and build-tool dependencies to supported security-patched versions.",
+  "breaking": false,
+  "securityReviewed": true
+}
