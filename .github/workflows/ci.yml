@@ -190,7 +190,7 @@ jobs:
           for site in PXA.Account PXA.Admin PXA.Company PXA.Demo PXA.Documentation; do
             cp -R "websites/$site/dist" "artifacts/frontends/$site"
           done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         with:
           name: pxa-frontends-${{ github.run_number }}-${{ github.sha }}
@@ -229,7 +229,7 @@ jobs:
           node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
           node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi
           printf '%s\n' "$VERSION-develop.${{ github.run_number }}-${GITHUB_SHA::12}" > artifacts/SNAPSHOT
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pxa-${{ github.run_number }}-${{ github.sha }}
           path: artifacts
@@ -264,6 +264,10 @@ jobs:
           npm --prefix pxa-designer ci
           npm --prefix pxa-designer run build
           node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi pxa-designer/dist
+      - name: Set up the release container builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Verify the container builder
+        run: docker buildx inspect --bootstrap
       - name: Build WebApi container
         run: |
           VERSION="$(cat VERSION)"
@@ -277,7 +281,7 @@ jobs:
       - name: Prepare container SBOM output
         run: mkdir -p artifacts/sbom/webapi-container
       - name: Generate container SPDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: pxa-webapi:sbom
           format: spdx-json
@@ -289,7 +293,7 @@ jobs:
           mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
           cp -R pxa-designer/dist/_manifest/. artifacts/sbom/designer/
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pxa-sbom-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/sbom

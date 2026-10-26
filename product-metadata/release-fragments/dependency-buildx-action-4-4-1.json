@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-buildx-action-4-4-1",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Updated the pinned container builder setup used by release validation.",
+  "breaking": false,
+  "reason": "Build infrastructure maintenance does not change shipped product behavior or public contracts."
+}
