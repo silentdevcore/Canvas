@@ -364,15 +364,51 @@ public sealed class AdminUsersControllerTests
         Assert.Equal(HttpStatusCode.OK, (await administratorClient.SendAsync(disableUser)).StatusCode);
 
         using var suspendedClient = CreateClient(factory);
-        Assert.Equal(HttpStatusCode.Unauthorized, await LoginAsync(
-            suspendedClient,
-            "member@pxa.test",
-            "Pxa-Member-Integration-42!"));
+        using var suspendedLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            await GetCsrfAsync(suspendedClient),
+            new { identifier = "member@pxa.test", password = "Pxa-Member-Integration-42!" });
+        var suspendedLoginResponse = await suspendedClient.SendAsync(suspendedLogin);
+        Assert.Equal(HttpStatusCode.Forbidden, suspendedLoginResponse.StatusCode);
+        await AssertProblemCodeAsync(suspendedLoginResponse, PxaApiProblems.AccountDisabled);
         var suspendedResponse = await suspendedClient.GetAsync("/api/pxa/v1/admin/users");
         Assert.Equal(HttpStatusCode.Unauthorized, suspendedResponse.StatusCode);
         await AssertProblemCodeAsync(suspendedResponse, PxaApiProblems.AuthenticationRequired);
 
         using var unapprovedOperatorClient = CreateClient(factory);
+        using var operatorWithoutOrganizationLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            await GetCsrfAsync(unapprovedOperatorClient),
+            new { identifier = "unapproved-operator@pxa.test", password = "Pxa-Unapproved-Operator-42!" });
+        var operatorWithoutOrganizationResponse = await unapprovedOperatorClient.SendAsync(operatorWithoutOrganizationLogin);
+        Assert.Equal(HttpStatusCode.Forbidden, operatorWithoutOrganizationResponse.StatusCode);
+        await AssertProblemCodeAsync(operatorWithoutOrganizationResponse, PxaApiProblems.OrganizationSuspended);
+
+        // Give the legacy operator ordinary member access without granting operator authorization.
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var operatorId = await dbContext.Users.Where(user => user.Email == "unapproved-operator@pxa.test")
+                .Select(user => user.Id).SingleAsync();
+            var viewerRoleId = await dbContext.Roles.Where(role => role.Name == PxaRoles.Viewer)
+                .Select(role => role.Id).SingleAsync();
+            var membership = new OrganizationMembership
+            {
+                OrganizationId = seeded.OrganizationId,
+                UserId = operatorId,
+            };
+            dbContext.OrganizationMemberships.Add(membership);
+            dbContext.OrganizationMembershipRoles.Add(new OrganizationMembershipRole
+            {
+                OrganizationMembershipId = membership.Id,
+                RoleId = viewerRoleId,
+                AssignedByUserId = seeded.AdministratorUserId,
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             unapprovedOperatorClient,
             "unapproved-operator@pxa.test",

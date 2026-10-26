@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dotnet-platform-dependency-alignment",
+  "impact": "patch",
+  "components": ["account", "admin", "api", "infrastructure", "observability"],
+  "category": "improved",
+  "summary": "Updated the API, identity and database components to a consistent supported .NET patch level.",
+  "breaking": false
+}

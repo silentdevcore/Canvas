@@ -90,3 +90,43 @@ Primary references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-
 All three changed npm lockfiles were checked structurally: package download
 sources use `https://registry.npmjs.org` without embedded credentials and every
 resolved package has SHA-256, SHA-384 or SHA-512 integrity metadata.
+
+## .NET Platform Alignment Follow-Up
+
+Combine the overlapping updates from #70, #71, #72, #73 and #78 into one
+compatibility-tested maintenance change. Align local `dotnet-ef`, EF Design,
+Identity EF, OpenAPI, both MVC test hosts, InMemory and EF health checks at
+10.0.11. Keep Npgsql at its existing compatible provider version. Roslyn is a
+separate follow-up, not an implicit compiler upgrade in this batch.
+
+Before any package change, the PostgreSQL-enabled API baseline ran 339 tests:
+338 passed and one failed. The failing Admin test expected 401 for a correct
+password on a disabled account; the existing implementation and dedicated Auth
+contract already require 403 with `PXAAPI015`. Correct that obsolete expectation,
+assert the explicit diagnostic, and retain the check that protected Admin
+requests remain unauthenticated. Do not change application authorization.
+
+The same older scenario also lacked an active organization for its non-allowlisted
+legacy operator. Verify that login is denied without a membership, then add an
+ordinary Viewer membership and retain the assertions that the legacy global
+role is not exposed and Admin access is denied. Production authorization is
+unchanged; no permission assertion is removed.
+
+The five native image/OCR API cases are outside this platform matrix. Their
+previously recorded macOS native-library limitation is not claimed as resolved.
+
+- [x] Review the five original dependency diffs and the additional alignment pins.
+- [x] Record an unchanged database model before the update.
+- [x] Restore and build all 105 solution projects with aligned packages.
+- [x] Pass the NuGet direct/transitive vulnerability gate for all 105 projects.
+- [x] Add and pass 16 project-reference/resolved-graph alignment contracts.
+- [x] Restore local EF tooling and verify no pending model changes after the update.
+- [x] Add PostgreSQL-enabled API, persistence and read-only EF checks to CI.
+- [x] Pass 355 updated API tests with PostgreSQL enabled and no skipped cases.
+- [x] Pass all 8 persistence tests and 5 relay tests without skips.
+- [x] Pass the 29 versioning, release-author and dependency compliance tests.
+- [ ] Record final CI against the exact maintenance commit and obtain a technical review.
+- [ ] Merge the maintenance change normally, then close replaced PRs with cross-links.
+
+No database migrations, product version changes, production deployments or
+changes to the uncommitted rename worktree are part of this maintenance batch.
