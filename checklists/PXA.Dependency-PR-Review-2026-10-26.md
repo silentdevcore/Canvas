@@ -186,6 +186,6 @@ runtime compatibility.
 - [ ] Obtain exact-head green CI and a disclosed technical review.
 - [ ] Merge normally and close #74 and #75 as superseded with replacement links.
 
-The Roslyn work is temporarily based on the platform PR while its Linux CI
-runs. Update against merged `develop` before final review; do not treat the
-owner's secondary GitHub account as an independent production approver.
+The Roslyn work started on the platform maintenance branch, then incorporated
+the merged `develop` baseline before its own PR. Do not treat the owner's
+secondary GitHub account as an independent production approver.
