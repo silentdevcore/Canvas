@@ -1177,12 +1177,12 @@
     },
     {
       "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
-      "sha256": "14b2727162a50dd443c23ed8d7881d227cc5b1c08c366fa57904a545e7c30442",
+      "sha256": "23270fcbfc305177c5d98bac808a8fa7c0ee96c52631007de82827d1b983dd03",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped publisher-transition inventory: retire the fully canonical release workflow row and update only reviewed changed-file line counts and ledger hash. Explicit old image readers, test models and protected environment bindings remain classified; unrelated untracked files are excluded.",
+      "reviewNotes": "2026-10-26 scoped remote-audit inventory: refresh only the reviewed checklist, operator record and review-ledger line counts/hash. Actual historical image and protected environment identities are retained as evidence; no unrelated untracked file or secret value is inventoried.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1307,12 +1307,12 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "3cc0fe18ba09631f229429dd851229e3ded10ec8fdbea8312eeb2f6a95593681",
+      "sha256": "9e011677a045a45ce57acbdcae63774d625dde15802f46665e3976f392c1730a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped publisher source transition: preserve historical names and evidence; record the confirmed container target and paired source changes while NuGet/npm, actual registry access and external cutover remain open. The 90/98 count is unchanged; synthetic tests and the failed initial stub attempt are scoped explicitly.",
+      "reviewNotes": "2026-10-26 scoped read-only remote audit: retain historical image/environment/workflow names because the observed remote systems still use them. Record two real historical manifests, complete paginated workflow observations and explicit package-scope/canonical-image unknowns. Prior unpublished statements remain dated evidence; no parent gate, registry ACL, secret value or deployment is approved.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2337,12 +2337,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "5bf7d280e5e562fa11145171fd235e0e63e1551e550f6293669cded49f4a537a",
+      "sha256": "d61984cbd229aeba502cf8e3bdca781e01623475470b9779742c6183449a2fd4",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped owner-decision review: record the subsequent confirmed container target, canonical source writers and explicit historical readers. Preserve dated earlier decisions and actual protected environment names; initial failed stub evidence is not relabeled green. Registry permissions, publication, environment activation and package publishers remain open.",
+      "reviewNotes": "2026-10-26 scoped live-read record: historical image names identify actual remotely readable manifests, while environment and workflow names identify unchanged protected bindings. Preserve exact original digests and dated source distinctions; package listing is blocked and canonical manifest absence is not established. Read-only evidence is not publication, remote activation, policy acceptance or key recovery.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {

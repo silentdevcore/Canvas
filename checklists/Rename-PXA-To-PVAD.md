@@ -337,6 +337,10 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   Repository owner confirmed on 2026-10-21 that the product is not published
   and there are no published/customer installations in scope. Existing evidence
   covers local development/test deployments only, not a production inventory.
+  The 2026-10-26 read-only follow-up confirms two historical GHCR images at
+  version 1.1.0, in addition to the earlier observed release archives. The dated
+  owner statement is not a complete published-artifact inventory. Package listing
+  remains blocked by read scope; no customer installation was independently inspected.
 - [ ] Confirm target domain, public publisher scopes, registry ownership and support addresses.
   2026-10-22 preparation kept each publisher explicitly null in the target profile.
   The offline compiler validates independent publisher
@@ -1389,6 +1393,26 @@ NuGet and npm publishers remain unselected.
 See [the decision and operational boundaries](../docs/pvad-rename-release-approvals.md#container-publisher-source-transition-2026-10-26).
 These are supporting subtasks for existing gates, not new primary criteria.
 Completion remains **90/98 (91.8%), with 8/98 (8.2%) open**.
+
+## Read-Only Remote Verification Follow-up (2026-10-26)
+
+The owner authorized inspection only. Repository/account ownership and effective
+repository administrator rights were read without changing credentials, scopes
+or settings. See [the dated audit and exact boundaries](../docs/pvad-rename-release-approvals.md#read-only-github-and-registry-audit-2026-10-26).
+
+- [x] Read the complete two-environment list and current branch protection; preserve existing reviewer, bypass, branch, permission and concurrency policies.
+- [x] Read all four workflow-run pages (372 distinct runs); record that none was non-completed during the non-atomic observation, not a lasting drain certificate.
+- [x] Inspect protected-branch workflow sources and distinguish their historical bindings from the local canonical source changes; retain the main deployment-source HTTP 404 as unavailable evidence.
+- [x] Read both historical 1.1.0 API/Relay manifests and preserve their real registry digests without downloading layers, republishing or relabeling them.
+- [x] Record the package-list HTTP 403/read-scope blocker and inaccessible canonical manifests as unknowns, not empty inventories or proof of absence.
+- [x] Read environment-level secret metadata only; explicitly leave repository/organization secrets and value-returning variable endpoints unqueried.
+- [ ] Obtain owner-controlled read-only package scope and complete the package/tag inventory; do not request that credentials or tokens be pasted into documents or chat.
+- [ ] Review environment self-review/administrator bypass and the required CI-check set, then separately approve protected-environment/workflow activation, staging and rollback.
+
+No remote setting or release artifact was modified. These observations support
+existing primary gates but do not complete them: **90/98 (91.8%) complete,
+8/98 (8.2%) open**. Earlier unpublished/local-only owner statements remain dated
+history; the newly observed historical container artifacts must not be erased.
 
 ## Related Work
 

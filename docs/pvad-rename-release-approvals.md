@@ -7,7 +7,7 @@ The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
-| Installed product inventory | Owner reports no publication/customer installations; current scope is local development/testing. | Product owner | Confirmed in conversation, 2026-10-21 |
+| Installed product inventory | Earlier owner report covered local development/testing and no customer installations; historical release archives and legacy GHCR images are now observed. | Product owner | Owner statement dated 2026-10-21; artifact evidence updated 2026-10-26; no customer installation independently inspected |
 | Public identities | Owner selects pvade.com, support@pvade.com, technical sender no-reply@pvade.com and GHCR target ghcr.io/silentdevcore. NuGet/npm publishers, actual registry access and infrastructure/mail verification remain open. | Business owner and operations | Domain/support names confirmed 2026-10-21; sender selected 2026-10-24; container target and local workflow changes confirmed 2026-10-26; no publication approval |
 | Compatibility policy | .pvadp/.pvads, stable diagnostic IDs, old API/format readers for one major release. | Product owner | Confirmed in conversation, 2026-10-21 |
 | Cutover and rollback | Repository owner accepts responsibility for local development backup, restore and rollout. Production/customer procedures are not approved. | Repository owner (local only) | Local owner confirmed, 2026-10-21; production approval pending |
@@ -26,8 +26,8 @@ documents or unredacted configuration in this document.
 Initial review checkpoint: 2026-10-23; source status updated 2026-10-26.
 The remaining old names in release/deployment
 workflows are explicit compatibility or infrastructure bindings, not additional
-current product names. There are no confirmed published packages or customer
-installations in the owner-reported inventory. NuGet and npm publisher accounts
+current product names. The read-only audit below confirms historical published
+container artifacts; customer installations remain unverified. NuGet and npm publisher accounts
 remain unselected/unregistered; the container target is now owner-selected.
 Local source renaming does not establish registry access or permission to publish.
 
@@ -106,6 +106,81 @@ protected environment edit, merge or product-version change occurred. Actual reg
 permissions, image availability, remote workflow drain, staging and release
 approval remain open, as do NuGet/npm publisher selection. The combined primary
 rename gates are not completed by this source transition.
+
+## Read-Only GitHub and Registry Audit (2026-10-26)
+
+The owner authorized read-only inspection, not publication or configuration
+changes. Evidence is recorded under ignored local artifacts at
+`artifacts/rename/github-readonly-2026-10-26/report.json`, covering
+`2026-10-26T09:00:26.003Z` through `2026-10-26T09:00:58.114Z`. Source baseline is
+`47fe1501`. Retain this report before cleaning the workspace. It is a dated,
+non-atomic observation, not ongoing authorization or a release attestation.
+
+### Account, Packages and Images
+
+- The authenticated GitHub account and repository owner are both `silentdevcore`.
+  Repository metadata reports administrator access and default branch `develop`.
+  Repository administration is not proof of package ACLs or publishing rights.
+- The authenticated container-package list returned HTTP 403 because the current
+  GitHub credential lacks `read:packages`. The inventory is incomplete, not an
+  empty namespace. No authentication scopes or credentials were changed.
+- Exact-tag registry inspection read both historical `1.1.0` image manifests:
+
+| Image | Observed immutable registry digest |
+| --- | --- |
+| `ghcr.io/silentdevcore/pxa-webapi:1.1.0` | `sha256:16ced89a510a01a8ac20e892969261504fd6992e83c1dbed02e5970ae73fbd97` |
+| `ghcr.io/silentdevcore/pxa-observability-webhook-relay:1.1.0` | `sha256:24630bcab45727f32caec03ebfd8358bf8fb04d4a4a340e2db8431a26b26e401` |
+
+The canonical API/Relay `pvad-*` manifest requests for `1.1.0` were unavailable
+with an authorization/not-public response. This does not prove that the image
+repositories are absent or that publishing them would succeed. No image layers
+were pulled, run, rewritten, retagged or published. Manifest readability is not
+validation of image contents, runtime version, signatures or deployment safety.
+Keep these registry digests distinct from local test image IDs and archive hashes.
+
+### Environments and Branch Protection
+
+The complete environment list contains only `pxa-staging` and `pxa-production`;
+no canonical counterpart appeared. Both allow only protected branches. Production
+requires one environment reviewer but does not prevent self-review. Both
+environments permit administrator bypass. These existing settings were observed,
+not approved as a future security policy, weakened or changed.
+
+Both environment-level secret metadata lists were successfully read and empty.
+This does not imply that repository/organization secrets are absent. Variable
+endpoints were deliberately not queried because their responses include values;
+the variable-name inventory remains unknown. No secret values were requested,
+printed or saved; existing CLI authentication remained opaque and unchanged.
+This is not a complete migration snapshot.
+
+Both `main` and `develop` are protected with administrator enforcement, one
+approving pull-request review, stale-review dismissal, last-push approval and
+strict required checks `version-policy`, `dotnet` and `frontend`. Force pushes
+and branch deletion are disabled. Linear history is required on `develop`, not
+on `main`. These branch rules are separate from environment self-review/bypass.
+Review the required-check set against the current CI jobs before activation;
+this audit does not change repository policy.
+
+### Workflows and Remaining Activation
+
+All four pages of the workflow-run listing were read: 372 distinct runs, with
+no non-completed run observed. This is not an atomic drain certificate; repeat
+the check immediately before any coordinated old/new lock activation.
+
+Remote release sources on both protected branches still use historical image
+leaves and the old release concurrency group. The deployment-validation source
+on `develop` retains the old environment/lock bindings and has no explicit
+image-family input; its source request on `main` returned HTTP 404. The local
+canonical workflow changes are therefore not evidence of protected-branch
+activation. The two branch tips, workflow blob/source hashes and request outcomes
+are preserved in the local report; they are not silently treated as this branch.
+
+Still required: owner-controlled read-only package access, complete package/tag
+inventory, NuGet/npm selection, permission review, provenance-reviewed environment
+and variable metadata, deliberate self-review/bypass policy, protected-branch
+workflow rollout, a fresh drain check, staging and release authorization. No
+remote setting, environment, permission, workflow run, tag or package was changed.
+The eight primary rename gates stay open; completion remains 90/98 (91.8%).
 
 ## Workflow Lock Cutover
 
