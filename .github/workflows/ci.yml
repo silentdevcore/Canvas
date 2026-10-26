@@ -264,6 +264,10 @@ jobs:
           npm --prefix pxa-designer ci
           npm --prefix pxa-designer run build
           node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi pxa-designer/dist
+      - name: Set up the release container builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Verify the container builder
+        run: docker buildx inspect --bootstrap
       - name: Build WebApi container
         run: |
           VERSION="$(cat VERSION)"
