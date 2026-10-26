@@ -130,3 +130,23 @@ previously recorded macOS native-library limitation is not claimed as resolved.
 
 No database migrations, product version changes, production deployments or
 changes to the uncommitted rename worktree are part of this maintenance batch.
+
+### Linux CI Precision Regression
+
+The first PR #103 Linux run passed build, dependency security, EF model checks
+and all 8 persistence tests, but failed 2 of the 355 API tests. PostgreSQL stores
+microsecond timestamps, while a Linux clock may supply sub-microsecond ticks.
+Signing those extra ticks before persistence caused strict envelope comparison
+to fail after reload. The same failure was reproduced locally using explicit
+sub-microsecond validity dates; it is not an authorization or dependency bypass.
+
+- [x] Reproduce the failure deterministically before changing issuance.
+- [x] Normalize issuance dates to UTC microseconds before signing and persistence.
+- [x] Preserve exact timestamp comparison and signature verification.
+- [x] Add timestamp precision and tampering regression tests.
+- [x] Pass all 363 API tests with PostgreSQL after the fix, with no skipped cases.
+- [x] Confirm the EF model is unchanged and pass all 29 release/compliance tests again.
+- [ ] Pass exact-head Linux CI after the fix.
+
+Existing inconsistent signed records are not silently rewritten or re-signed;
+they require normal authorized license replacement. No database migration is needed.

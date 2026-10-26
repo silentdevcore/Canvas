@@ -103,6 +103,27 @@ public sealed class PxaOfflineLicenseValidatorTests
         Assert.Contains("signature_invalid", outcomes);
     }
 
+    [Theory]
+    [InlineData("validFrom")]
+    [InlineData("validUntil")]
+    [InlineData("issuedAt")]
+    public void Sub_microsecond_timestamp_tampering_is_not_ignored(string field)
+    {
+        var scenario = CreateScenario();
+        switch (field)
+        {
+            case "validFrom": scenario.License.ValidFrom = scenario.License.ValidFrom.AddTicks(1); break;
+            case "validUntil": scenario.License.ValidUntil = scenario.License.ValidUntil.AddTicks(1); break;
+            case "issuedAt": scenario.License.IssuedAt = scenario.License.IssuedAt.AddTicks(1); break;
+        }
+
+        var result = scenario.Validator.Validate(scenario.License, scenario.Subscription, Now);
+
+        Assert.False(result.Valid);
+        Assert.True(result.SignatureValid);
+        Assert.Equal("PXA_LICENSE_ENVELOPE_MISMATCH", result.Code);
+    }
+
     [Fact]
     public void Signed_malformed_envelope_returns_stable_diagnostic()
     {

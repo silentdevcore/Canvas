@@ -76,7 +76,9 @@ public sealed class AdminLicensesController : ControllerBase
             return Forbid();
         if (tenantContext.UserId is not { } actorUserId)
             return Unauthorized();
-        if (request.ValidFrom >= request.ValidUntil || request.ValidUntil <= DateTimeOffset.UtcNow ||
+        var validFrom = PxaLicenseTimestamps.Normalize(request.ValidFrom);
+        var validUntil = PxaLicenseTimestamps.Normalize(request.ValidUntil);
+        if (validFrom >= validUntil || validUntil <= DateTimeOffset.UtcNow ||
             request.InstanceLimit is < 1 or > 1000)
             return ValidationProblem("Validity and instance limit are invalid.");
         if (!Version.TryParse(request.ProductVersion, out _) ||
@@ -119,8 +121,9 @@ public sealed class AdminLicensesController : ControllerBase
             Signature = string.Empty,
             KeyId = signingService.KeyId,
             Algorithm = "ECDSA_P256_SHA256",
-            ValidFrom = request.ValidFrom,
-            ValidUntil = request.ValidUntil,
+            ValidFrom = validFrom,
+            ValidUntil = validUntil,
+            IssuedAt = PxaLicenseTimestamps.Normalize(DateTimeOffset.UtcNow),
             InstanceLimit = request.InstanceLimit,
             IssuedByUserId = actorUserId,
         };
