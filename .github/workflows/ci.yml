@@ -217,6 +217,21 @@ jobs:
           path: artifacts/designer-tooling-smoke
           if-no-files-found: ignore
           retention-days: 7
+      - name: Test actual Designer chart components
+        timeout-minutes: 5
+        run: |
+          npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json
+          node tools/dependencies/designer-chart-smoke.mjs
+      - name: Collect Designer chart evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: designer-chart-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/designer-chart-smoke/current/*.png
+            artifacts/designer-chart-smoke/current/report.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Test legal browser workflows
         working-directory: pxa-designer
         run: npm run test:e2e:legal

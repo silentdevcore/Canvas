@@ -72,7 +72,7 @@ Updating a branch invalidates any earlier approval.
 | #40 | Recharts 3.10.1 | Run Designer tests and chart rendering smoke tests. |
 | #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
 | #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
-| #37 | jest-dom 7 | Major test dependency update: run the full Designer test suite. |
+| #37 | jest-dom 7 | Closed automatically after merged PR #122 (`2084e3a4f2faf89ec7d8649760bbbde438028cd3`); explicit DOM peer, 295 tests, typecheck, build and exact-head CI passed. |
 | #36 | react-icons 5.7 | Closed automatically after merged PR #107 (`afeac1b3f8ee7ba590b23423539f7f5bf1374318`); 290 Designer cases, unchanged 97-icon SVG fingerprint, typecheck, build and exact-head CI passed. |
 | #31 | TypeScript 7 | Major compiler upgrade: verify SDK/compiler configuration and MCP smoke. |
 
@@ -443,9 +443,15 @@ Synthetic form controls test the toolchain; they do not add product features.
 - [x] Record the completed #121 review and normal merge above.
 - [x] Repeat the final clean install and all four desktop/mobile development/preview bundle smoke checks.
 - [x] Pass all 30 release/version/compliance contracts, policy validation, version synchronization and fragment validation.
-- [ ] Validate the final committed fragment against `origin/develop`.
-- [ ] Obtain exact-head Linux CI and a disclosed technical review.
-- [ ] Merge normally and close original #37 as superseded with replacement evidence.
+- [x] Validate the final committed fragment against `origin/develop`.
+- [x] Obtain exact-head Linux CI and a disclosed technical review.
+- [x] Merge normally and close original #37 as superseded with replacement evidence.
+
+Jest-DOM PR [#122](https://github.com/silentdevcore/Canvas/pull/122) merged as
+`2084e3a4f2faf89ec7d8649760bbbde438028cd3` after all applicable checks passed at
+`77f5b8ce0cdd02e8538c4eaec400b760e3aea131`. The owner's secondary-account
+technical review was disclosed and is not independent human production approval.
+Seventeen other dependency proposals remained open afterwards.
 
 Release impact is `none` with an explicit reason: only development dependencies,
 regression tests and contributor test instructions change. The dependency's
@@ -457,3 +463,69 @@ the existing router, telemetry, mobile-layout and NPOI follow-ups stay open.
 Primary references: [Jest-DOM 7.0.0 requirements](https://github.com/testing-library/jest-dom/releases/tag/v7.0.0),
 [Jest-DOM 7.0.1 correction](https://github.com/testing-library/jest-dom/releases/tag/v7.0.1),
 [DOM Testing Library](https://www.npmjs.com/package/@testing-library/dom/v/10.4.2).
+
+## Designer Recharts Compatibility Follow-Up - 2026-10-27
+
+Review original #40 at `21fb1f50b0a32b7e5308446983a24d703ff92ae2` against
+current `develop`, preserving the completed tooling/security updates. Recharts
+3.10.1 supports the existing React 18 runtime. Its required runtime graph changes
+Immer 10 to 11 and Reselect 5.1.1 to 5.2.0; inspect the resolved graph rather
+than copying the older lockfile from the original proposal.
+
+The current consumers support bar, line and pie. Live Preview uses Recharts;
+the normal Canvas still uses a simplified independent renderer. No seven-type
+chart engine or backend PDF parity is claimed by this dependency update.
+
+- [x] Review exact source diff, upstream releases, peers and package lifecycle scripts.
+- [x] Pass the unchanged 295-case Designer suite and typecheck on Recharts 3.8.1.
+- [x] Add a browser fixture importing actual Preview and Canvas components, not chart mocks.
+- [x] Record 60 before-update Preview cases and six Canvas screenshots across development/production and desktop/mobile.
+- [x] Update only Recharts and its required dependency graph; inspect clean-install integrity and peers.
+- [x] Compare all 60 updated cases, inspect geometry/pixel changes, and verify tooltips and negative values.
+- [x] Pass the full Designer suite, typecheck, build and development-inclusive vulnerability gate.
+- [x] Confirm the normal production build excludes the test fixture.
+- [x] Add CI chart contracts and retained screenshots without weakening existing checks.
+- [x] Repeat the final browser checks after hardening test transport and Canvas comparison assertions.
+- [ ] Validate the final committed patch fragment against `origin/develop`.
+- [x] Pass all 30 release/version/compliance contracts.
+- [ ] Obtain exact-head green Linux CI and a disclosed technical review.
+- [ ] Merge normally and close original #40 with final evidence.
+
+Transient ResponsiveContainer measurement warnings already occur in the old
+development build before ResizeObserver measures its parent. The test requires
+the settled chart to have finite geometry and its exact allocated dimensions;
+the warning is not silently treated as a new regression or claimed fixed.
+Null input is converted to zero by the existing application mapping. Long labels
+and narrow charts are inspected rather than claimed universally unclipped.
+
+The test-only HTML entry is included only by an explicit isolated fixture build,
+not the ordinary application build. Servers bind loopback on ephemeral ports
+and close in cleanup. No real login, external font, backend PDF, or deployment
+claim is made. Product `VERSION` remains 1.1.0 and rename changes stay untouched.
+
+Clean installation resolves Recharts 3.10.1, Immer 11.2.9 and Reselect 5.2.0.
+Only these required nodes and deduplication of the former nested Immer change.
+All package sources and integrity fields were inspected; the registry package
+has no install lifecycle hook. Its source-repository `prepare` hook is Husky.
+
+The final comparison passes all 60 cases and all six byte-identical Canvas
+screenshots, plus the four existing application tooling smoke scenarios.
+Fifty-four Preview screenshots are byte-identical PNGs; the report also records
+differences with a per-channel tolerance of 16. Six desktop
+bar cases (standard, edge, gaps in both build modes) change bar width by one pixel
+and the second series offset by one pixel. The largest changed-pixel fraction is
+1.67%. Axes, labels, dimensions, colors, legends and data remain unchanged.
+These actual differences were inspected, not hidden by replacing a baseline.
+All 295 Designer tests, ordinary build, both source/fixture typechecks and 30
+release/compliance contracts pass. The npm high/critical gate passes with the
+same two existing moderate router entries.
+
+The broad `npm ls` check exits with existing React peer-range conflicts from
+`react-json-view` and its `flux` dependency. Their entries and peer declarations
+are unchanged from `develop`; Recharts accepts the installed React 18 runtime.
+Do not claim the entire dependency graph has clean peers. Replacing the legacy
+JSON-view package belongs with the separately reviewed React migration; no new
+force-install option or peer-conflict suppression was added here.
+
+Primary references: [Recharts 3.10.0](https://github.com/recharts/recharts/releases/tag/v3.10.0),
+[Recharts 3.10.1](https://github.com/recharts/recharts/releases/tag/v3.10.1).
