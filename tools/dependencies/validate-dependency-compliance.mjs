@@ -20,6 +20,13 @@ if (catalog.vulnerabilityPolicy?.nuget?.maximumAllowedSeverity !== 'none') {
 if (catalog.vulnerabilityPolicy?.npm?.maximumAllowedSeverity !== 'moderate') {
   fail('npm must reject high and critical production findings');
 }
+const developmentPolicy = catalog.vulnerabilityPolicy?.npmDevelopment;
+if (developmentPolicy?.scope !== 'production-and-development'
+    || developmentPolicy.maximumAllowedSeverity !== 'moderate'
+    || developmentPolicy.ciGate !== true
+    || JSON.stringify(developmentPolicy.workspaces) !== JSON.stringify(['pxa-designer'])) {
+  fail('Designer npm auditing must include development dependencies and reject high/critical findings');
+}
 
 const artifacts = new Set(catalog.sbom?.artifacts ?? []);
 if (catalog.sbom?.format !== 'SPDX-JSON' || catalog.sbom?.version !== '2.2-or-later') {
@@ -90,6 +97,9 @@ for (const marker of [
   'webapi-container',
 ]) {
   if (!ci.includes(marker)) fail(`CI marker is missing: ${marker}`);
+}
+if (!/^\s*run: npm --prefix pxa-designer audit --audit-level=high\s*$/mu.test(ci)) {
+  fail('Designer development dependency audit gate is missing');
 }
 
 const workflowDirectory = resolve(root, '.github/workflows');

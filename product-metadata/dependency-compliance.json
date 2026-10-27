@@ -11,6 +11,12 @@
       "scope": "production",
       "maximumAllowedSeverity": "moderate",
       "ciGate": true
+    },
+    "npmDevelopment": {
+      "scope": "production-and-development",
+      "workspaces": ["pxa-designer"],
+      "maximumAllowedSeverity": "moderate",
+      "ciGate": true
     }
   },
   "sbom": {

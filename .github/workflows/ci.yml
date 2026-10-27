@@ -146,6 +146,8 @@ jobs:
           npm --prefix pxa-designer audit --omit=dev --audit-level=high
           npm --prefix websites/PXA.Admin audit --omit=dev --audit-level=high
           npm --prefix tools/PXA.Mcp audit --omit=dev --audit-level=high
+      - name: Reject high and critical Designer development vulnerabilities
+        run: npm --prefix pxa-designer audit --audit-level=high
       - name: Validate dependency compliance policy
         run: |
           node tools/dependencies/validate-dependency-compliance.mjs
@@ -204,6 +206,17 @@ jobs:
       - name: Install Playwright Chromium
         working-directory: pxa-designer
         run: npx playwright install --with-deps chromium
+      - name: Test Designer development and production bundles
+        timeout-minutes: 3
+        run: node tools/dependencies/designer-tooling-smoke.mjs
+      - name: Collect Designer tooling smoke evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: designer-tooling-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/designer-tooling-smoke
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Test legal browser workflows
         working-directory: pxa-designer
         run: npm run test:e2e:legal
