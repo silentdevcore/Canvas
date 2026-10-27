@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-chart-rendering-compatibility",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "improved",
+  "summary": "Updated Designer chart rendering with compatibility checks for bar, line and pie previews.",
+  "breaking": false
+}

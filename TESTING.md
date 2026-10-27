@@ -80,6 +80,29 @@ repository root exercises development/production bundles on desktop and mobile.
 Install Playwright Chromium first. Its API responses are synthetic; this is not
 an authenticated backend or PDF-generation test.
 
+Chart dependency changes also run the actual Live Preview and Canvas components:
+
+```bash
+npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json
+node tools/dependencies/designer-chart-smoke.mjs --label baseline
+# After the targeted dependency update and a clean install:
+node tools/dependencies/designer-chart-smoke.mjs --label updated \
+  --compare artifacts/designer-chart-smoke/baseline/report.json
+```
+
+The fixture covers the current bar, line and pie consumers with normal, negative,
+zero, null, empty and long-label inputs. Desktop/mobile development and explicit
+production fixture builds produce 60 Preview screenshots, six desktop Canvas
+screenshots and geometry/pixel reports. Comparison requires the same platform
+and Chromium build. Labels, legends and dimensions must remain stable; path and
+pixel differences are reported for inspection rather than silently rebaselined.
+CI runs the current-version contracts and retains screenshots on success/failure.
+The fixture is not an application route and is excluded from the ordinary
+Designer production build. All inputs are synthetic, external font CSS is stubbed,
+and other external/API requests are rejected. This does not certify backend PDF fidelity, extra chart types or
+existing Canvas/Preview equivalence; the current Canvas uses a separate simplified
+renderer, and null values retain the existing zero-value fallback.
+
 ## Recommended Scope By Change Type
 
 | Change type | Minimum validation |
