@@ -66,14 +66,14 @@ Updating a branch invalidates any earlier approval.
 | #72 | ASP.NET MVC Testing 10.0.11 | Superseded by merged platform PR #103; API and relay tests passed. |
 | #71 | Identity EF 10.0.11 | Superseded by merged platform PR #103; EF graph, identity and PostgreSQL tests passed. |
 | #70 | dotnet-ef 10.0.11 | Superseded by merged platform PR #103; local tool restore and unchanged model confirmed. |
-| #45 | Markdig 1.3.2 | Major dependency update: run Markdown importer regressions. |
-| #43 | coverlet 10.0.1 | Major dependency update across test projects: verify test SDK/collector compatibility. |
+| #45 | Markdig 1.3.2 | Closed by Dependabot without merge; replacement #114 proposes 1.5.0 and still requires Markdown importer regressions. |
+| #43 | coverlet 10.0.1 | Closed by Dependabot without merge; replacement #112 proposes 10.1.0 and still requires collector compatibility tests. |
 | #41 | ClosedXML 0.105.1 | Closed automatically after merged PR #106 (`c4c62ae110442a08a87c6e56a51f35c040ce0080`); all 38 workbook/export cases and 375 PostgreSQL-enabled API cases passed, followed by exact-head CI. |
 | #40 | Recharts 3.10.1 | Run Designer tests and chart rendering smoke tests. |
 | #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
 | #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
 | #37 | jest-dom 7 | Major test dependency update: run the full Designer test suite. |
-| #36 | react-icons 5.7 | Run Designer typecheck and build. |
+| #36 | react-icons 5.7 | Closed automatically after merged PR #107 (`afeac1b3f8ee7ba590b23423539f7f5bf1374318`); 290 Designer cases, unchanged 97-icon SVG fingerprint, typecheck, build and exact-head CI passed. |
 | #31 | TypeScript 7 | Major compiler upgrade: verify SDK/compiler configuration and MCP smoke. |
 
 ## Completion
@@ -302,9 +302,14 @@ same fingerprint after the update without refreshing the snapshot.
 - [x] Confirm no other resolved package entries changed and pass the production high/critical audit gate.
 - [x] Record completed ClosedXML CI, technical review, merge and original PR closure.
 - [x] Pass all 29 release/version/compliance contracts and version/fragment validation.
-- [ ] Validate the committed release fragment against `origin/develop`.
-- [ ] Obtain exact-head green CI and a disclosed technical review.
-- [ ] Merge normally and close original #36 as superseded with replacement evidence.
+- [x] Validate the committed release fragment against `origin/develop`.
+- [x] Obtain exact-head green CI and a disclosed technical review.
+- [x] Merge normally and close original #36 as superseded with replacement evidence.
+
+Icon PR [#107](https://github.com/silentdevcore/Canvas/pull/107) merged as
+`afeac1b3f8ee7ba590b23423539f7f5bf1374318` after all applicable checks passed at
+`123b37bbe8025fac1b6c99ec047a934eca998a98`. The technical review disclosed the
+owner's secondary account, not independent human production approval.
 
 The production audit still reports two moderate router findings. The complete
 development-inclusive audit reports eight affected package entries: two moderate,
@@ -320,3 +325,82 @@ Keep `VERSION` at 1.1.0 and leave the uncommitted rename worktree untouched.
 
 Primary references: [react-icons 5.7.0 release](https://github.com/react-icons/react-icons/releases/tag/v5.7.0),
 [npm package](https://www.npmjs.com/package/react-icons/v/5.7.0).
+
+## Designer Development Security Follow-Up - 2026-10-27
+
+The previous icon batch identified six unchanged high/critical development
+package entries. Correct those without forcing a router or React major update.
+The baseline passes 290 Designer tests, typecheck and production build, but its
+full npm audit reports two moderate, five high and one critical package entries.
+
+| Package | Before | Updated |
+| --- | --- | --- |
+| Vite | 8.2.0 | 8.3.5 |
+| Handlebars | 4.7.9 | 4.7.10 |
+| js-yaml | 3.15.1 | 3.15.2 |
+| nanoid | 3.3.16 | 3.3.20 |
+| source-map-js | 1.2.1 | 1.2.2 |
+| test-exclude's brace-expansion | 1.1.18 | 1.1.21 |
+
+Vite's required development graph also updates Rolldown, native bindings, OXC
+types, PostCSS and picomatch. Removed optional WASI bindings follow the upstream
+Rolldown dependency declaration. All other production dependency entries remain
+unchanged. Registry download origins and integrity metadata are validated.
+No override, forced major upgrade or peer-policy change is introduced.
+
+- [x] Verify advisory ranges, compatible fixes and the existing dependency paths.
+- [x] Record the 290-test, typecheck, build and eight-entry full-audit baseline.
+- [x] Update the six affected tools and only their required development graph.
+- [x] Perform a clean install; pass all 290 cases with coverage, typecheck and production build.
+- [x] Pass the full development-inclusive npm high/critical gate; only two moderate router entries remain.
+- [x] Add an explicit Designer development audit to CI without removing any production gate.
+- [x] Add a compliance policy and contract test for the stronger audit scope.
+- [x] Pass all 30 version/release/compliance tests and the policy validator.
+- [x] Add development-server and production-preview browser smoke tests with desktop/mobile screenshots.
+- [x] Pass four local Chromium scenarios covering Home, SPA gallery deep links and search/reset.
+- [x] Obtain human approval of the exact public security summary before adding the fragment.
+- [x] Record the actual icon merge and reconcile the changed Dependabot queue.
+- [ ] Validate the final committed fragment and diff against `origin/develop`.
+- [ ] Pass exact-head Linux CI, including the new full audit and four browser scenarios.
+- [ ] Obtain a disclosed technical review and merge normally without bypassing protection.
+
+Smoke evidence is generated in `artifacts/designer-tooling-smoke/`: eight viewport
+screenshots plus `report.json`. API responses use synthetic users and workspaces;
+external font CSS is stubbed and other external requests are rejected. This proves
+frontend bundle loading and interactions, not real authentication, backend PDF
+generation, font parity, Windows support or deployment readiness. The mobile
+scenario closes the existing navigation drawer through its normal button before
+interacting with the gallery; no forced click or application CSS change is used.
+The smoke servers use loopback and ephemeral ports and are closed after testing.
+Run `node tools/dependencies/designer-tooling-smoke.mjs` after installing Designer
+dependencies, building the Designer, and installing Playwright Chromium.
+Synthetic CSRF and telemetry responses prevent real backend traffic. Aborted
+requests during navigation or development StrictMode cleanup are recorded in
+the report, separately from unexpected transport errors. Existing telemetry may
+classify an intentional fetch cancellation as `api_failure/network_error`; this
+tooling smoke does not certify telemetry semantics. Runtime/unhandled errors,
+non-abort transport errors, failed scripts/styles and unexpected API operations
+remain failures.
+
+Coverage reporting runs successfully but remains limited by the existing suite
+(approximately 40% statements); it is not a claim of full application coverage.
+Existing Vite configuration and chunk warnings remain; the newer bundler also
+reports already-mixed static/dynamic locale imports. No warning is suppressed.
+`VERSION` stays 1.1.0, NPOI legal approval stays blocked, and rename work is untouched.
+
+Queue reconciliation: after #107, 18 dependency PRs were open: five original
+proposals (#31, #37, #38, #39, #40), plus #108-#120. The new proposals have not
+been implicitly approved. #108 repeats the unvalidated Node 26 types proposal;
+keep runtime-aligned Node 22 declarations until a separately tested runtime change.
+#109 targets Admin Vite, not Designer Vite, and is not fulfilled by this batch.
+
+Separate follow-ups, not acceptance claims of this security batch:
+
+- [ ] Test and migrate React Router to a corrected major version for the two moderate findings.
+- [ ] Review existing browser telemetry classification of intentional fetch cancellation.
+- [ ] Correct the existing mobile sidebar toggle overlap with the header logo; application CSS is unchanged here.
+
+Primary references: [Handlebars advisory](https://github.com/advisories/GHSA-p8wg-vrv2-v86f),
+[js-yaml advisory](https://github.com/advisories/GHSA-2883-xcg3-v3hh),
+[source-map-js advisory](https://github.com/advisories/GHSA-68fv-2mgg-jv7q),
+[Vite advisory](https://github.com/advisories/GHSA-587h-7wmj-h5pm).
