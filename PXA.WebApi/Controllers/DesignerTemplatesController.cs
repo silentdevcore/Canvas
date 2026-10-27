@@ -647,7 +647,11 @@ public sealed record UpdateDesignerTemplateDraftRequest(
     long Revision,
     JsonElement DesignDocument,
     string? SchemaVersion = null,
-    string? DesignerVersion = null);
+    string? DesignerVersion = null)
+{
+    // Avoid MVC's lazy record-constructor mapping during concurrent first autosaves.
+    public UpdateDesignerTemplateDraftRequest() : this(0, default) { }
+}
 
 public sealed record TemplateRevisionRequest(long Revision);
 public sealed record CreateDesignerTemplateVersionRequest(long Revision, string? Label = null);

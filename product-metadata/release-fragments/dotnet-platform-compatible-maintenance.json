@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dotnet-platform-compatible-maintenance",
+  "impact": "patch",
+  "components": ["api", "infrastructure"],
+  "category": "improved",
+  "summary": "Updated API and database dependencies with compatibility checks for authentication, template storage and API schemas.",
+  "breaking": false
+}

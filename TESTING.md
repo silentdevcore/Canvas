@@ -46,6 +46,35 @@ dotnet test tests/PXA.Migration.Report.Designer.Rdl.Tests
 dotnet test tests/PXA.Migration.Report.Designer.Rpx.Tests
 ```
 
+For ASP.NET, Identity, EF or OpenAPI dependency changes, run the focused contracts
+and the PostgreSQL-enabled API/persistence matrix before and after the update:
+
+```bash
+dotnet tool restore
+dotnet ef --version
+dotnet test tests/PXA.Api.Tests --filter "FullyQualifiedName~DotnetDependencyAlignmentTests|FullyQualifiedName~OpenApiCompatibilityTests"
+PXA_RUN_POSTGRES_TESTS=1 dotnet test tests/PXA.Infrastructure.Persistence.Tests -- xUnit.ParallelizeTestCollections=false
+PXA_RUN_POSTGRES_TESTS=1 dotnet test tests/PXA.Api.Tests --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+dotnet test tests/PXA.Observability.WebhookRelay.Tests
+```
+
+Docker must be available to Testcontainers; use isolated containers, never a
+customer database. Also check `dotnet ef migrations has-pending-model-changes`
+against `PxaDbContext` without applying migrations. Keep the local EF tool,
+Identity, Design, InMemory, MVC test hosts and EF health checks aligned. The
+OpenAPI model library has its own version and must match its resolved runtime
+reference. The OpenAPI test generates a document from the actual controller
+assembly in a minimal TestServer, verifies canonical/legacy paths and resolves
+all local schema references without starting application workers or a database.
+Its generated interceptor namespace is enabled only in the test project.
+This is a schema-generation test, not a replacement for real authentication tests.
+`DesignerDraftValidationTests` also protects the draft request's property-based
+MVC validation path, optional JSON fields, existing positional API and concurrent
+first-use validation. Keep the authenticated PostgreSQL draft/concurrency test;
+do not replace it with the focused metadata test.
+The native ImageConversion/OCR cases remain outside this maintenance matrix;
+their previously recorded platform limitation is not claimed fixed.
+
 Frontend:
 
 Use the CI-validated Node.js 22 toolchain (22.12 or newer within that major).

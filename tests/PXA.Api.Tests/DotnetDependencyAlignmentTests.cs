@@ -16,11 +16,7 @@ public sealed class DotnetDependencyAlignmentTests
     [InlineData("tests/PXA.Observability.WebhookRelay.Tests/PXA.Observability.WebhookRelay.Tests.csproj", "Microsoft.AspNetCore.Mvc.Testing")]
     public void Platform_references_match_the_local_EF_tool(string project, string package)
     {
-        var document = XDocument.Load(Path.Combine(FindRepositoryRoot(), project));
-        var reference = Assert.Single(document.Descendants("PackageReference"),
-            element => (string?)element.Attribute("Include") == package);
-
-        Assert.Equal(ExpectedVersion(), (string?)reference.Attribute("Version"));
+        Assert.Equal(ExpectedVersion(), ReferenceVersion(project, package));
     }
 
     [Theory]
@@ -34,9 +30,38 @@ public sealed class DotnetDependencyAlignmentTests
     [InlineData("Microsoft.AspNetCore.OpenApi")]
     public void Resolved_platform_dependencies_match_the_local_EF_tool(string package)
     {
+        AssertResolvedVersion(package, ExpectedVersion());
+    }
+
+    [Fact]
+    public void Resolved_OpenApi_library_matches_the_explicit_project_reference()
+    {
+        const string package = "Microsoft.OpenApi";
+        AssertResolvedVersion(package, ReferenceVersion("PXA.WebApi/PXA.WebApi.csproj", package));
+    }
+
+    [Theory]
+    [InlineData("PXA.WebApi/PXA.WebApi.csproj", "Npgsql.OpenTelemetry")]
+    [InlineData("src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj", "Npgsql.EntityFrameworkCore.PostgreSQL")]
+    public void PostgreSql_provider_references_remain_on_the_validated_version(string project, string package)
+    {
+        Assert.Equal("10.0.3", ReferenceVersion(project, package));
+        AssertResolvedVersion(package, "10.0.3");
+    }
+
+    private static string ReferenceVersion(string project, string package)
+    {
+        var document = XDocument.Load(Path.Combine(FindRepositoryRoot(), project));
+        var reference = Assert.Single(document.Descendants("PackageReference"),
+            element => (string?)element.Attribute("Include") == package);
+        return Assert.IsType<string>((string?)reference.Attribute("Version"));
+    }
+
+    private static void AssertResolvedVersion(string package, string version)
+    {
         using var dependencies = JsonDocument.Parse(File.ReadAllText(
             Path.ChangeExtension(typeof(DotnetDependencyAlignmentTests).Assembly.Location, ".deps.json")));
-        var expected = $"{package}/{ExpectedVersion()}";
+        var expected = $"{package}/{version}";
 
         Assert.True(dependencies.RootElement.GetProperty("libraries").TryGetProperty(expected, out _),
             $"The resolved test dependency graph does not contain {expected}.");
