@@ -360,9 +360,15 @@ No override, forced major upgrade or peer-policy change is introduced.
 - [x] Pass four local Chromium scenarios covering Home, SPA gallery deep links and search/reset.
 - [x] Obtain human approval of the exact public security summary before adding the fragment.
 - [x] Record the actual icon merge and reconcile the changed Dependabot queue.
-- [ ] Validate the final committed fragment and diff against `origin/develop`.
-- [ ] Pass exact-head Linux CI, including the new full audit and four browser scenarios.
-- [ ] Obtain a disclosed technical review and merge normally without bypassing protection.
+- [x] Validate the final committed fragment and diff against `origin/develop`.
+- [x] Pass exact-head Linux CI, including the new full audit and four browser scenarios.
+- [x] Obtain a disclosed technical review and merge normally without bypassing protection.
+
+Security PR [#121](https://github.com/silentdevcore/Canvas/pull/121) merged as
+`84a48364465079ff28760ff924dcce9219033ebc` after all applicable checks passed at
+`3ccfe2b4b57183281b4140ec0394e1cfe4d2abe7`. The owner's secondary-account
+technical review was explicitly disclosed, not independent human production
+approval. Eighteen other dependency PRs remained open afterwards.
 
 Smoke evidence is generated in `artifacts/designer-tooling-smoke/`: eight viewport
 screenshots plus `report.json`. API responses use synthetic users and workspaces;
@@ -404,3 +410,50 @@ Primary references: [Handlebars advisory](https://github.com/advisories/GHSA-p8w
 [js-yaml advisory](https://github.com/advisories/GHSA-2883-xcg3-v3hh),
 [source-map-js advisory](https://github.com/advisories/GHSA-68fv-2mgg-jv7q),
 [Vite advisory](https://github.com/advisories/GHSA-587h-7wmj-h5pm).
+
+## Designer Jest-DOM Compatibility Follow-Up - 2026-10-27
+
+Review #37 on the merged security baseline. Its original head
+`297ecd95cf6145cb0a5d7dc0ccc6ae39bdab6c3c` proposes 7.0.0 but omits the newly
+required `@testing-library/dom` peer. The existing React Testing Library also
+requires DOM 10. Use the current compatible correction 7.0.1 and explicitly
+declare DOM 10.4.2; Vitest remains optional and is not installed.
+
+Jest-DOM 7 requires Node 22. CI and local review already use Node 22; document
+22.12 or newer within that major to satisfy Vite as well. Correct the obsolete
+Node 18 contributor prerequisite without changing API, browser or deployed
+application runtime contracts. Do not modify the existing peer-install setting
+or force an incompatible installation.
+
+The original 290 cases pass before any changes. With the DOM peer added, four
+new standard matcher cases and stronger real release-history assertions pass
+on Jest-DOM 6.9.1: 294 cases total. Those same 294 also pass on 7.0.1. Add one
+v7-specific query-matcher case to verify that the required DOM peer is actually
+used, including single/multiple matches and failure behavior: 295 cases total.
+Synthetic form controls test the toolchain; they do not add product features.
+
+- [x] Review the exact original diff and upstream Node/peer/release metadata.
+- [x] Pass all 290 original tests and typecheck before the update.
+- [x] Add the explicit DOM peer and pass the expanded 294-case baseline on 6.9.1.
+- [x] Use Jest-DOM 7.0.1 and DOM 10.4.2 without installing optional Vitest.
+- [x] Pass all 295 cases with coverage, unchanged icon snapshot, typecheck and production build.
+- [x] Pass the full development-inclusive npm high/critical audit; two moderate router entries remain unchanged.
+- [x] Confirm only development dependency entries change; retain the prior security fixes and CI gates.
+- [x] Document the contributor toolchain and matcher setup in README and TESTING.
+- [x] Record the completed #121 review and normal merge above.
+- [x] Repeat the final clean install and all four desktop/mobile development/preview bundle smoke checks.
+- [x] Pass all 30 release/version/compliance contracts, policy validation, version synchronization and fragment validation.
+- [ ] Validate the final committed fragment against `origin/develop`.
+- [ ] Obtain exact-head Linux CI and a disclosed technical review.
+- [ ] Merge normally and close original #37 as superseded with replacement evidence.
+
+Release impact is `none` with an explicit reason: only development dependencies,
+regression tests and contributor test instructions change. The dependency's
+major version does not change shipped product behavior or public SDK/API contracts.
+`VERSION` remains 1.1.0. Existing coverage remains approximately 40% statements,
+not complete product coverage. Browser smoke responses remain synthetic, and
+the existing router, telemetry, mobile-layout and NPOI follow-ups stay open.
+
+Primary references: [Jest-DOM 7.0.0 requirements](https://github.com/testing-library/jest-dom/releases/tag/v7.0.0),
+[Jest-DOM 7.0.1 correction](https://github.com/testing-library/jest-dom/releases/tag/v7.0.1),
+[DOM Testing Library](https://www.npmjs.com/package/@testing-library/dom/v/10.4.2).

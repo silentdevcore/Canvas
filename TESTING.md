@@ -48,12 +48,37 @@ dotnet test tests/PXA.Migration.Report.Designer.Rpx.Tests
 
 Frontend:
 
+Use the CI-validated Node.js 22 toolchain (22.12 or newer within that major).
+Jest-DOM 7 requires Node 22; the Vite toolchain additionally requires 22.12 in
+that major. This is a contributor build/test requirement, not a browser or
+deployed application runtime requirement.
+
 ```bash
 cd pxa-designer
-npm test
-npm run test:coverage
+npm ci
+npm run type-check
+npm test -- --runInBand
+npm run test:coverage -- --runInBand
 npm run build
 ```
+
+The Designer declares `@testing-library/dom` explicitly as a development
+dependency because both Jest-DOM 7 and React Testing Library require it. Keep
+the DOM peer in the compatible 10.x range; do not rely on an undeclared peer
+or use forced dependency installation to hide a mismatch.
+
+DOM test files use `@jest-environment jsdom` and import
+`@testing-library/jest-dom` before using its matchers. The default Jest environment
+remains Node for non-DOM tests. The focused
+`src/__tests__/jestDomCompatibility.test.tsx` suite checks accessible queries,
+form interaction, invalid assertions, and v7 query-matcher integration with
+the actual DOM peer. The release-history component test also uses real DOM
+matchers; it is not sufficient merely to import the new package.
+
+After building, `node tools/dependencies/designer-tooling-smoke.mjs` from the
+repository root exercises development/production bundles on desktop and mobile.
+Install Playwright Chromium first. Its API responses are synthetic; this is not
+an authenticated backend or PDF-generation test.
 
 ## Recommended Scope By Change Type
 

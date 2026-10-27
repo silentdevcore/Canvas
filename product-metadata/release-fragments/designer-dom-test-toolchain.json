@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-dom-test-toolchain",
+  "impact": "none",
+  "components": ["designer"],
+  "category": "improved",
+  "summary": "Maintained the Designer DOM regression test toolchain.",
+  "breaking": false,
+  "reason": "Only development dependencies, DOM regression tests and contributor test instructions change; shipped application behavior, runtime dependencies and public contracts remain unchanged."
+}

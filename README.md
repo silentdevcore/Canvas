@@ -74,7 +74,7 @@ A production-ready document automation platform with a visual template designer,
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 22 (22.12 or newer within Node 22) for Designer development and tests
 - .NET 10 SDK
 
 ### Frontend

@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { act } from 'react';
+import '@testing-library/jest-dom';
 import { createRoot } from 'react-dom/client';
 import ProductExperiencePanel from '@/product/ProductExperiencePanel';
 
@@ -76,6 +77,9 @@ describe('ProductExperiencePanel release history', () => {
     const release = [...container.querySelectorAll('button')]
       .find(button => button.textContent === 'PXA 1.1.0');
     expect(release).toBeDefined();
+    expect(release).toBeInTheDocument();
+    expect(release).toBeEnabled();
+    expect(release).toHaveAccessibleName('PXA 1.1.0');
     expect(release?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => release?.click());
