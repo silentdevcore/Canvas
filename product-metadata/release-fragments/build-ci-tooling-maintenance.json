@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "build-ci-tooling-maintenance",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Maintained build and continuous-integration tooling with additional compatibility checks.",
+  "breaking": false,
+  "reason": "Only the private SourceLink build task, pinned CI actions and internal regression tests change; product versions, public contracts and shipped runtime behavior remain unchanged."
+}

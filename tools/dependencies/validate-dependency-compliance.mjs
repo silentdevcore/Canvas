@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { validateWorkflowActionPins } from './workflow-action-pins.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
 const read = (path) => readFile(resolve(root, path), 'utf8');
@@ -107,30 +108,6 @@ const workflowFiles = (await readdir(workflowDirectory)).filter((name) => name.e
 const workflowSources = await Promise.all(
   workflowFiles.map(async (name) => ({ name, source: await read(`.github/workflows/${name}`) })),
 );
-for (const { name, source } of workflowSources) {
-  for (const match of source.matchAll(/^\s*(?:-\s*)?uses:\s*([^@\s]+)@([^\s#]+)/gmu)) {
-    const [, action, reference] = match;
-    if (action.startsWith('./')) continue;
-    if (!/^[a-f0-9]{40}$/u.test(reference)) {
-      fail(`${name} must pin ${action} to a full commit SHA`);
-    }
-  }
-}
-
-const requiredActionPins = new Map([
-  ['actions/checkout', '3d3c42e5aac5ba805825da76410c181273ba90b1'],
-  ['actions/setup-node', '820762786026740c76f36085b0efc47a31fe5020'],
-  ['actions/setup-dotnet', 'a98b56852c35b8e3190ac28c8c2271da59106c68'],
-  ['actions/upload-artifact', 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'],
-  ['docker/setup-buildx-action', 'f87e5991a6d7451dcb8d9637bfbc97413f497069'],
-  ['docker/login-action', 'dbcb813823bdd20940b903addbd779551569679f'],
-  ['docker/build-push-action', 'c3c9e263c25d99ce0380d002d59b67737d91b0dc'],
-]);
-const allWorkflowSource = workflowSources.map(({ source }) => source).join('\n');
-for (const [action, sha] of requiredActionPins) {
-  if (!allWorkflowSource.includes(`uses: ${action}@${sha}`)) {
-    fail(`required Node.js 24 action pin is missing: ${action}@${sha}`);
-  }
-}
+validateWorkflowActionPins(workflowSources);
 
 console.log(`Dependency compliance metadata is valid (${pending.length} production blocker).`);

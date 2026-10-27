@@ -49,6 +49,28 @@ public sealed class DotnetDependencyAlignmentTests
         AssertResolvedVersion(package, "10.0.3");
     }
 
+    [Fact]
+    public void Git_build_task_is_resolved_as_a_private_build_only_dependency()
+    {
+        const string project = "src/Infrastructure/PXA.Infrastructure.Spreadsheet";
+        const string package = "Microsoft.Build.Tasks.Git";
+        var document = XDocument.Load(Path.Combine(FindRepositoryRoot(), project, "PXA.Infrastructure.Spreadsheet.csproj"));
+        var reference = Assert.Single(document.Descendants("PackageReference"),
+            element => (string?)element.Attribute("Include") == package);
+        Assert.Equal("10.0.403", (string?)reference.Attribute("Version"));
+        Assert.Equal("all", (string?)reference.Attribute("PrivateAssets"));
+        using var assets = JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(FindRepositoryRoot(), project, "obj/project.assets.json")));
+        Assert.True(assets.RootElement.GetProperty("libraries").TryGetProperty($"{package}/10.0.403", out _));
+        var dependency = assets.RootElement.GetProperty("project").GetProperty("frameworks")
+            .GetProperty("net10.0").GetProperty("dependencies").GetProperty(package);
+        Assert.Equal("All", dependency.GetProperty("suppressParent").GetString());
+        using var runtime = JsonDocument.Parse(File.ReadAllText(
+            Path.ChangeExtension(typeof(DotnetDependencyAlignmentTests).Assembly.Location, ".deps.json")));
+        Assert.DoesNotContain(runtime.RootElement.GetProperty("libraries").EnumerateObject(),
+            property => property.Name.StartsWith($"{package}/", StringComparison.Ordinal));
+    }
+
     private static string ReferenceVersion(string project, string package)
     {
         var document = XDocument.Load(Path.Combine(FindRepositoryRoot(), project));
