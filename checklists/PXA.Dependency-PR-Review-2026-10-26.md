@@ -648,9 +648,9 @@ Review these three proposals together without changing product versions:
 - [x] Pass 25 focused API contracts, including resolved task version, private assets and runtime exclusion.
 - [x] Pass all 35 release/compliance/registry contract tests, including verified TLS, with no skips.
 - [x] Add an isolated real-action TLS login CI job with synthetic credentials and no publishing.
-- [ ] Pass that actual action job, invalid-password rejection, explicit logout and post-job cleanup on Linux.
-- [ ] Pass every applicable exact-head CI job and review the complete diff and changed release fragment.
-- [ ] Obtain a disclosed technical review, merge normally and close all three source proposals.
+- [x] Pass that actual action job, invalid-password rejection, explicit logout and post-job cleanup on Linux.
+- [x] Pass every applicable exact-head CI job and review the complete diff and changed release fragment.
+- [x] Obtain a disclosed technical review, merge normally and close all three source proposals.
 
 The SourceLink task's upstream metadata declares a development dependency and
 System.IO.Hashing 10.0.14. Its resolved graph is checked rather than assuming a
@@ -664,10 +664,11 @@ the CLI required HTTPS; the first cleanup additionally exposed a missing-config
 fixture error. These are recorded fixture failures, not successful logins.
 The revised CI test uses TLS, a per-process CA and an isolated credential file,
 and does not access Rancher settings or the system certificate/keychain store.
-Linux action execution is still required before marking the login item done.
+Linux action execution was required before marking the login item done; the
+final successful exact-head run below provides that evidence.
 The first hosted run (`40572294385`) stops at workflow validation before any
 job starts. Job-level environment paths now use allowed `github` context values
-instead of the step-only `runner` context. This failed run is not counted as
+instead of `runner`, which is unavailable in job-level `env`. This failed run is not counted as
 action execution evidence.
 No production GHCR, ECR, OIDC, main release, public image or deployment is tested
 or authorized by this fixture. The NPOI legal blocker remains unchanged.
@@ -675,3 +676,68 @@ or authorized by this fixture. The NPOI legal blocker remains unchanged.
 Primary references: [Setup Node 7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0),
 [Docker Login 4.7.0](https://github.com/docker/login-action/releases/tag/v4.7.0),
 [Git build task 10.0.403](https://www.nuget.org/packages/Microsoft.Build.Tasks.Git/10.0.403).
+
+Final build/CI evidence: [PR #162](https://github.com/silentdevcore/Canvas/pull/162)
+passed all eight applicable checks at exact head
+`74bb656c219c29cc9f94fb9cbdb95c01f8208b88` (CI `40572902323`, synchronization
+`40572898671`). The real pinned login action passed TLS authentication, scoped
+credentials, bad-password rejection, explicit logout and post-job logout.
+Snapshot was intentionally skipped. Normal protected squash merge produced
+`919140aec7823d6b2f72186f2fda72d99f4db5c2`; source PRs #118, #110 and #111
+closed automatically. Disclosed owner-secondary-account technical approval is
+not independent human approval or production authorization. The fetched
+`develop` tree matched the tested tree; the isolated worktree was clean and the
+four user rename files stayed untouched.
+
+## Admin Vite Patch Review - 2026-10-27
+
+Review [PR #109](https://github.com/silentdevcore/Canvas/pull/109), exact source
+head `2fcc36324f7208f86f3bf70e81ab8eb7030fa9de`, against current `develop`.
+Vite 8.3.5 replaces 8.3.4. Its dependency graph requires Rolldown 1.2.15 and
+Oxc types 0.155.0; fresh lock resolution selects compatible PostCSS 8.5.32
+rather than the source proposal's earlier 8.5.31. No application dependency,
+source behavior, authorization contract or product version is intentionally
+changed.
+
+- [x] Read the full source diff and official Vite and resolved PostCSS patch notes.
+- [x] Pass all 26 existing Admin contracts, old production build and full old npm audit.
+- [x] Add and pass four real-bundle development/preview desktop/mobile scenarios on the old graph.
+- [x] Pass the existing protected-handbook smoke in both old bundle modes.
+- [x] Update only Vite and its necessary transitive subtree, preserving native libc metadata.
+- [x] Reinstall from the new lock, pass all 26 Admin contracts, build and npm dependency-tree validation.
+- [x] Pass the full new npm audit with zero findings, including development dependencies.
+- [x] Pass the same four bundle scenarios and both protected-handbook runs after updating.
+- [x] Compare genuine old/new bundles: both JS/CSS assets and all 24 normalized screenshots are byte-identical.
+- [x] Add Admin development auditing to CI without weakening production or Designer gates.
+- [x] Pass all 35 release, registry and dependency-compliance contracts with no skips.
+- [x] Keep protected-handbook screenshots out of CI artifacts; retain only synthetic UI screenshots/report.
+- [ ] Validate the committed internal-only fragment and pass every applicable exact-head Linux CI check.
+- [ ] Obtain a disclosed technical review, merge normally and close source proposal #109.
+
+An initial raw screenshot comparison detects one mismatch in the mobile release
+view: browser scroll restoration shifts the viewport by five pixels. That result
+is retained under `artifacts/admin-tooling-smoke/before`, not overwritten or
+misreported as identical. The test now resets scroll position before capture.
+A separate detached worktree at the unchanged base commit and original lockfile
+provides the normalized old-version comparison; it is not generated using the
+new Vite graph. All 24 normalized old/new screenshots then match exactly, as do
+the actual production JS and CSS bytes. The normal UI layout and styles are not
+changed to accommodate the test.
+
+The smoke checks actual browser bundles with synthetic transport fixtures; it
+does not establish real login, cookies, CSRF enforcement, permissions or tenant
+isolation. Existing backend tests remain required. The protected handbook smoke
+is reused with screenshot capture disabled so internal guidance does not enter
+public CI artifacts. Optional peers and non-host native bindings are correctly
+optional; `npm ls --all` exits successfully without force-install options.
+The existing shared-config native-loader compatibility warning is present before
+and after the update; it is neither suppressed nor claimed fixed.
+
+Node 22 and all application versions remain unchanged. This is an internal-only
+`none`/`improved` fragment, not an unreviewed public security claim. The full audit
+is clean on both old and new graphs. The NPOI legal blocker, user rename work,
+runtime/API implementation, SQL schema, main branch and production deployment
+are outside this patch.
+
+Primary references: [Vite 8.3.5](https://github.com/vitejs/vite/releases/tag/v8.3.5),
+[PostCSS 8.5.32](https://github.com/postcss/postcss/releases/tag/8.5.32).

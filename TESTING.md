@@ -80,6 +80,27 @@ their previously recorded platform limitation is not claimed fixed.
 
 Frontend:
 
+For Admin bundler maintenance, run its 26 Node contracts, production build and
+full npm audit, then `node tools/dependencies/admin-tooling-smoke.mjs` from the
+repository root. Designer dependencies provide the pinned Playwright browser.
+The runner starts disposable loopback development and production-preview servers
+and checks desktop/mobile login, failed login, navigation, users, empty search,
+release-note deep links/reload and the role-denied UI. It reuses the protected
+handbook smoke in both modes. Synthetic API fixtures do not prove real
+authentication, session cookies, tenant isolation or backend authorization.
+
+The report and 24 screenshots contain only synthetic test data. Protected
+handbook screenshots are explicitly disabled and must not enter public CI
+artifacts. Output defaults to `artifacts/admin-tooling-smoke/current`; an optional
+first argument selects a separate output directory. `PXA_ADMIN_SMOKE_ROOT` can
+point to an isolated old-version Admin worktree for a genuine before comparison.
+Screenshots reset browser scroll restoration so scroll timing cannot
+be confused with a bundler regression. Do not silently regenerate an old-version
+baseline using new dependencies. Keep platform-specific native binding metadata
+in the lockfile and verify the actual Linux graph through CI as well as macOS.
+The development audit policy covers both Designer and Admin; neither gate
+replaces the existing production dependency audits.
+
 CI action maintenance also runs the `registry-login` job. It uses the pinned
 Docker login action against a loopback-only TLS Registry V2 ping server with
 random synthetic credentials, an isolated Docker configuration and a temporary
