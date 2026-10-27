@@ -24,17 +24,18 @@ test('SBOM coverage includes every shipped execution surface', async () => {
   assert.equal(catalog.sbom.version, '2.2-or-later');
 });
 
-test('Designer audits include development tools without weakening production gates', async () => {
+test('Designer and Admin audits include development tools without weakening production gates', async () => {
   const catalog = JSON.parse(await read('product-metadata/dependency-compliance.json'));
   assert.deepEqual(catalog.vulnerabilityPolicy.npmDevelopment, {
     scope: 'production-and-development',
-    workspaces: ['pxa-designer'],
+    workspaces: ['pxa-designer', 'websites/PXA.Admin'],
     maximumAllowedSeverity: 'moderate',
     ciGate: true,
   });
   assert.equal(catalog.vulnerabilityPolicy.npm.maximumAllowedSeverity, 'moderate');
   const workflow = await read('.github/workflows/ci.yml');
   assert.match(workflow, /^\s*run: npm --prefix pxa-designer audit --audit-level=high\s*$/mu);
+  assert.match(workflow, /^\s*run: npm --prefix websites\/PXA\.Admin audit --audit-level=high\s*$/mu);
   for (const workspace of ['pxa-designer', 'websites/PXA.Admin', 'tools/PXA.Mcp']) {
     assert.ok(workflow.includes(`npm --prefix ${workspace} audit --omit=dev --audit-level=high`));
   }
