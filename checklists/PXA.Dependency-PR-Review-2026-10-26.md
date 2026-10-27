@@ -665,6 +665,10 @@ fixture error. These are recorded fixture failures, not successful logins.
 The revised CI test uses TLS, a per-process CA and an isolated credential file,
 and does not access Rancher settings or the system certificate/keychain store.
 Linux action execution is still required before marking the login item done.
+The first hosted run (`40572294385`) stops at workflow validation before any
+job starts. Job-level environment paths now use allowed `github` context values
+instead of the step-only `runner` context. This failed run is not counted as
+action execution evidence.
 No production GHCR, ECR, OIDC, main release, public image or deployment is tested
 or authorized by this fixture. The NPOI legal blocker remains unchanged.
 

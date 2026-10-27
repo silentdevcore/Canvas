@@ -320,12 +320,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      DOCKER_CONFIG: ${{ runner.temp }}/pxa-login-smoke/docker
-      PXA_REGISTRY_SMOKE_DIR: ${{ runner.temp }}/pxa-login-smoke
+      DOCKER_CONFIG: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/docker
+      PXA_REGISTRY_SMOKE_DIR: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}
       # Force client-side registry auth with a process-local test trust root.
-      DOCKER_HOST: unix://${{ runner.temp }}/pxa-login-smoke/no-daemon.sock
+      DOCKER_HOST: unix:///tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/no-daemon.sock
       DOCKER_CONTEXT: ''
-      SSL_CERT_FILE: ${{ runner.temp }}/pxa-login-smoke/ca.pem
+      SSL_CERT_FILE: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/ca.pem
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
