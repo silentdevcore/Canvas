@@ -833,3 +833,31 @@ new counters are a changed measurement contract, not evidence of changed
 application behavior. Additional post-update runs pass all 384 API tests and
 eight persistence tests with isolated PostgreSQL and no skips; the existing
 native image-conversion exclusion remains explicit and unchanged.
+
+Reviewing the Linux graph additionally finds a missing test prerequisite:
+SkiaSharp's managed package brings only Windows/macOS native assets. The two
+image and image-analysis coverage hosts now reference matching
+`SkiaSharp.NativeAssets.Linux.NoDependencies` 3.119.2 with `PrivateAssets=all`
+and a Linux-only condition. Official package metadata is MIT and excludes the
+Fontconfig dependency. Contracts check the condition, version and platform
+resolution. This does not add a native package to product projects, repair
+Tesseract or change the known native API OCR exclusion. Mac coverage graphs
+remain unchanged. The fake-OCR host already receives those assets transitively
+through NPOI; it does not need another reference. An initial contract wrongly
+assumed that a conditional direct reference also controls all transitive
+presence, and fails 39/40 locally. The corrected contract checks direct
+dependency activation separately from the resolved library graph. The remaining
+48 project files retain exactly the original
+two tooling-reference changes, including BOM and EOF preservation.
+
+First hosted CI `40588898143`, head
+`3079727e41e0e3c6e105a51590a8096ebba06dec`, confirms the missing Linux
+library: seven of eight image-import tests fail with `libSkiaSharp` not found.
+The full API, migration and frontend steps preceding it pass; the coverage
+matrix stops at that host and is not counted complete. Supply-chain is skipped
+because of that failed dependency, not accepted as a pass. The two private
+Linux native-asset references address that actual prerequisite; no image test
+is removed, bypassed or made conditional on native availability.
+After correction, all 40 local contracts pass again and all 105 solution
+projects rebuild with zero errors. Final hosted acceptance must use the
+corrected head, not the earlier failed run.

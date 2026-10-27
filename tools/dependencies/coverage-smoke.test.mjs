@@ -105,5 +105,13 @@ test('every collector host resolves compatible private VSTest tools on net10', (
     assert.equal(xpath(imports, "count(//*[local-name()='Import' and contains(@Project,'coverlet.collector/10.1.0/')])"), '1', `${name} must import the new collector target`);
     const deps = JSON.parse(readFileSync(join(dirname(path), 'bin/Release/net10.0', `${name}.deps.json`), 'utf8'));
     assert.ok(deps.libraries['Microsoft.TestPlatform.TestHost/18.5.1'], `${name} must build with the new test host`);
+    if (['PXA.FileImporter.Image.Tests', 'PXA.FileImporter.ImageAnalysis.Tests'].includes(name)) {
+      const native = 'SkiaSharp.NativeAssets.Linux.NoDependencies';
+      assert.equal(reference(native, 'Version'), '3.119.2', name);
+      assert.equal(reference(native, 'PrivateAssets'), 'all', name);
+      assert.equal(reference(native, 'Condition'), "$([MSBuild]::IsOSPlatform('Linux'))", name);
+      assert.equal(Boolean(assets.project.frameworks['net10.0'].dependencies[native]), process.platform === 'linux', name);
+      if (process.platform === 'linux') assert.ok(assets.libraries[`${native}/3.119.2`], name);
+    }
   }
 });
