@@ -76,7 +76,7 @@ const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock
 if (mcpIgnore.split(/\r?\n/u).includes('package-lock.json') || !mcpLock.includes('"lockfileVersion"')) {
   fail('MCP must commit a valid package lock for reproducible audits');
 }
-if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.7.5"')) {
+if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.12.2"')) {
   fail('Microsoft.OpenApi security pin is missing');
 }
 for (const source of [spreadsheet, converters, word]) {

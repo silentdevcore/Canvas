@@ -69,7 +69,7 @@ Updating a branch invalidates any earlier approval.
 | #45 | Markdig 1.3.2 | Closed by Dependabot without merge; replacement #114 proposes 1.5.0 and still requires Markdown importer regressions. |
 | #43 | coverlet 10.0.1 | Closed by Dependabot without merge; replacement #112 proposes 10.1.0 and still requires collector compatibility tests. |
 | #41 | ClosedXML 0.105.1 | Closed automatically after merged PR #106 (`c4c62ae110442a08a87c6e56a51f35c040ce0080`); all 38 workbook/export cases and 375 PostgreSQL-enabled API cases passed, followed by exact-head CI. |
-| #40 | Recharts 3.10.1 | Run Designer tests and chart rendering smoke tests. |
+| #40 | Recharts 3.10.1 | Closed automatically after merged PR #123 (`4aa7efa47fc2a3d7b6072c6f5b64408fc358ee40`); 295 tests, 60 Preview cases, six unchanged Canvas images and exact-head CI passed. |
 | #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
 | #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
 | #37 | jest-dom 7 | Closed automatically after merged PR #122 (`2084e3a4f2faf89ec7d8649760bbbde438028cd3`); explicit DOM peer, 295 tests, typecheck, build and exact-head CI passed. |
@@ -486,10 +486,16 @@ chart engine or backend PDF parity is claimed by this dependency update.
 - [x] Confirm the normal production build excludes the test fixture.
 - [x] Add CI chart contracts and retained screenshots without weakening existing checks.
 - [x] Repeat the final browser checks after hardening test transport and Canvas comparison assertions.
-- [ ] Validate the final committed patch fragment against `origin/develop`.
+- [x] Validate the final committed patch fragment against `origin/develop`.
 - [x] Pass all 30 release/version/compliance contracts.
-- [ ] Obtain exact-head green Linux CI and a disclosed technical review.
-- [ ] Merge normally and close original #40 with final evidence.
+- [x] Obtain exact-head green Linux CI and a disclosed technical review.
+- [x] Merge normally and close original #40 with final evidence.
+
+Recharts PR [#123](https://github.com/silentdevcore/Canvas/pull/123) merged as
+`4aa7efa47fc2a3d7b6072c6f5b64408fc358ee40` after all applicable checks passed at
+`c7809664b4624457cba5c1bcf81c625e54c06c87`, including the new Linux chart test
+and screenshot collection. The disclosed secondary-account technical review
+is not independent human production approval. Sixteen proposals remained open.
 
 Transient ResponsiveContainer measurement warnings already occur in the old
 development build before ResizeObserver measures its parent. The test requires
@@ -529,3 +535,87 @@ force-install option or peer-conflict suppression was added here.
 
 Primary references: [Recharts 3.10.0](https://github.com/recharts/recharts/releases/tag/v3.10.0),
 [Recharts 3.10.1](https://github.com/recharts/recharts/releases/tag/v3.10.1).
+
+## .NET Platform Maintenance Follow-Up - 2026-10-27
+
+Combine the six overlapping proposals against current `develop` instead of
+merging individually inconsistent dependency graphs:
+
+| PR | Reviewed head | Scope |
+| --- | --- | --- |
+| #113 | `1e0e77accc9db986971904e196013b18a4f2e822` | Local dotnet-ef 10.0.14 |
+| #115 | `f9b479c8998376a0a0fd84b51212eeec0ea469ac` | Identity EF 10.0.14 |
+| #116 | `cc9fbb1c622ee489e33937516adf3d64958bf713` | Both MVC test hosts 10.0.14 |
+| #117 | `c39e577cb40b18ba0dd521a202a835cae989f8db` | ASP.NET OpenAPI 10.0.14 and OpenAPI model 2.12.2 |
+| #119 | `96e99efa1ef6941fe5d82b879d9dc2dac453b623` | Both EF Design references 10.0.14 |
+| #120 | `ec0c9105f1738eeae37854f60bea12595122993d` | EF InMemory 10.0.14 |
+
+Include EF health checks in the aligned 10.0.14 matrix. Keep Npgsql provider and
+telemetry at validated 10.0.3, Roslyn at 5.9.0, the existing cryptography/build
+task pins and all application versions unchanged. Build-task, Markdig and
+coverage-collector proposals remain separate, not implicitly approved here.
+
+Before changing package versions, all 375 API maintenance cases and all eight
+persistence cases pass with isolated PostgreSQL and no skips. The read-only EF
+model check reports no pending changes. The new actual-controller OpenAPI schema
+test also passes on the old library after enabling its required generated
+interceptor namespace in the test project. Its first compile failure was test
+setup, not an application regression; no production setting is changed.
+
+- [x] Inspect all six exact source diffs and upstream package dependencies.
+- [x] Record the 375-case API and eight-case persistence baseline without skips.
+- [x] Confirm the pre-update EF model has no pending changes.
+- [x] Add and pass actual-controller OpenAPI generation and reference checks on the old version.
+- [x] Align the eight project references and local EF tool; update the explicit OpenAPI compliance pin.
+- [x] Restore all 105 projects and verify the local EF tool reports 10.0.14.
+- [x] Add resolved OpenAPI and unchanged PostgreSQL-provider graph contracts.
+- [x] Build all 105 projects and pass the full direct/transitive NuGet vulnerability gate.
+- [x] Pass the expanded PostgreSQL-enabled API matrix, all persistence cases and relay tests.
+- [x] Confirm the updated EF model remains unchanged without applying or generating migrations.
+- [x] Pass all 30 version, release-author and dependency-compliance tests and check synchronized version metadata.
+- [ ] Validate both committed patch fragments against `origin/develop`.
+- [ ] Pass exact-head Linux CI, including API, migrations, frontend charts and container/SBOM checks.
+- [ ] Obtain a disclosed technical review, merge normally and close the six superseded PRs.
+
+The OpenAPI test uses real controller metadata but a minimal isolated TestServer;
+it neither starts workers nor accesses a real database or authenticates a user.
+The full API matrix covers authentication, organization isolation, legal records,
+subscriptions and template persistence against disposable PostgreSQL containers.
+No customer database, SQL migration, rename change, release tag, version bump,
+deployment, peer bypass or NPOI license acceptance is part of this batch.
+The native OCR/API exclusions remain explicit; they are not silently marked fixed.
+
+### Concurrent Draft Validation Finding
+
+The first updated API run reports 378 passed, one failed and no skips out of
+379 cases. The failure is MVC record-constructor metadata lookup during two
+concurrent first draft-save requests; an isolated repeat passes. This matches
+the documented upstream lazy-metadata race and is not evidence that the package
+patch introduced it. Local shared ASP.NET runtime is 10.0.13; changing NuGet
+packages does not itself patch that shared runtime.
+
+- [x] Keep the original failing API/TRX evidence and reproduce the unsafe record-validation path with a deterministic guard.
+- [x] Add a parameterless constructor only to the draft request, avoiding record-constructor mapping while retaining JSON fields, positional construction and deconstruction.
+- [x] Pass all 24 focused contracts, including JSON with/without optional versions and 128 concurrent validations across 16 fresh metadata providers.
+- [x] Repeat the complete API matrix after the targeted fix, including the original optimistic-concurrency and tenant-isolation scenario.
+
+Final local results: all 383 API cases, eight persistence cases and five relay
+cases pass with no skips. The expanded API count includes the original 375,
+three additional resolved-graph contracts, one OpenAPI generation test and four
+draft-validation cases. All 105 projects build after the mitigation, the NuGet
+direct/transitive gate passes, both post-update EF checks report no changes, and
+all 30 release/compliance contracts pass. The initial failed 378/379 run remains
+recorded; it has not been overwritten or reclassified as a success.
+
+No validation, authorization, CSRF, tenant, ETag or conflict assertion is removed.
+This is a narrow mitigation for the draft DTO, not a global fix for the upstream
+framework race. Track a future supported runtime fix and review other concurrent
+record consumers separately. A second patch fragment describes the observed
+Designer save fix independently from the compatible dependency maintenance.
+
+Primary race references: [upstream MVC issue](https://github.com/dotnet/aspnetcore/issues/59384),
+[proposed framework fix](https://github.com/dotnet/aspnetcore/pull/69888).
+
+Primary references: [EF Design 10.0.14](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Design/10.0.14),
+[OpenAPI model 2.12.2](https://www.nuget.org/packages/Microsoft.OpenApi/2.12.2),
+[Npgsql EF 10.0.3](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/10.0.3).
