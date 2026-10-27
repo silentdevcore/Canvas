@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-icon-compatible-maintenance",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "improved",
+  "summary": "Updated Designer icon dependencies while preserving existing toolbar and navigation icons.",
+  "breaking": false
+}
