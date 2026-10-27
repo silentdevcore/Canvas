@@ -65,6 +65,9 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
       - name: Restore
         run: dotnet restore PXA.sln
       - name: Build
@@ -116,6 +119,21 @@ jobs:
           for project in tests/PXA.Migration.*.Tests/*.csproj; do
             dotnet test "$project" --configuration Release --no-build --no-restore
           done
+      - name: Verify real coverage for every collector test host
+        timeout-minutes: 15
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+          node --test tools/dependencies/coverage-smoke.test.mjs
+          node tools/dependencies/coverage-smoke.mjs artifacts/coverage-smoke
+      - name: Upload synthetic coverage evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/coverage-smoke
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Test isolated Legal backup and restore
         env:
           PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"

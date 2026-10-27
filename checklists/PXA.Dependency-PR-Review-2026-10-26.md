@@ -67,7 +67,7 @@ Updating a branch invalidates any earlier approval.
 | #71 | Identity EF 10.0.11 | Superseded by merged platform PR #103; EF graph, identity and PostgreSQL tests passed. |
 | #70 | dotnet-ef 10.0.11 | Superseded by merged platform PR #103; local tool restore and unchanged model confirmed. |
 | #45 | Markdig 1.3.2 | Closed by Dependabot without merge; replacement #114 proposes 1.5.0 and still requires Markdown importer regressions. |
-| #43 | coverlet 10.0.1 | Closed by Dependabot without merge; replacement #112 proposes 10.1.0 and still requires collector compatibility tests. |
+| #43 | coverlet 10.0.1 | Closed without merge; #112 was replaced by 50 per-project proposals. See the collector follow-up below. |
 | #41 | ClosedXML 0.105.1 | Closed automatically after merged PR #106 (`c4c62ae110442a08a87c6e56a51f35c040ce0080`); all 38 workbook/export cases and 375 PostgreSQL-enabled API cases passed, followed by exact-head CI. |
 | #40 | Recharts 3.10.1 | Closed automatically after merged PR #123 (`4aa7efa47fc2a3d7b6072c6f5b64408fc358ee40`); 295 tests, 60 Preview cases, six unchanged Canvas images and exact-head CI passed. |
 | #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
@@ -711,8 +711,8 @@ changed.
 - [x] Add Admin development auditing to CI without weakening production or Designer gates.
 - [x] Pass all 35 release, registry and dependency-compliance contracts with no skips.
 - [x] Keep protected-handbook screenshots out of CI artifacts; retain only synthetic UI screenshots/report.
-- [ ] Validate the committed internal-only fragment and pass every applicable exact-head Linux CI check.
-- [ ] Obtain a disclosed technical review, merge normally and close source proposal #109.
+- [x] Validate the committed internal-only fragment and pass every applicable exact-head Linux CI check.
+- [x] Obtain a disclosed technical review, merge normally and close source proposal #109.
 
 An initial raw screenshot comparison detects one mismatch in the mobile release
 view: browser scroll restoration shifts the viewport by five pixels. That result
@@ -741,3 +741,95 @@ are outside this patch.
 
 Primary references: [Vite 8.3.5](https://github.com/vitejs/vite/releases/tag/v8.3.5),
 [PostCSS 8.5.32](https://github.com/postcss/postcss/releases/tag/8.5.32).
+
+Final Admin evidence: [PR #176](https://github.com/silentdevcore/Canvas/pull/176)
+passed all eight applicable checks at exact head
+`b6d5bcb17931523059d1b8e11f3bd0ba68a5e07e`, CI `40579279964`, synchronization
+`40579280020`. Normal protected squash merge produced
+`12cf4f5280f3bf38575b5ba9efb983a5e3174581`; source #109 closed automatically.
+The owner's secondary-account technical approval was disclosed and is not
+independent human approval or production authorization. The isolated tree
+matched fetched `develop`; the four user rename files remained untouched.
+
+## Coverage Collector Follow-Up - 2026-10-27
+
+Scope: 50 one-file proposals, #125 through #161 and #163 through #175.
+Each actual patch changes only Coverlet collector 6.0.4 to 10.1.0. Their
+unmodified proposals omit the upstream minimum test SDK requirement: 18.4.0.
+The controlled replacement aligns these same 50 test hosts to collector 10.1.0
+and test SDK 18.5.1, retaining VSTest, xUnit 2.9.3 and existing runner versions.
+The relay test project does not use the collector and is outside this update.
+
+- [x] Read every source proposal's actual patch and record its exact head locally.
+- [x] Verify official collector/VSTest prerequisites and NuGet package metadata.
+- [x] Add shared filters, real TRX/Cobertura/JSON validation and negative contract tests.
+- [x] Pass the old-version filtered matrix for all 50 hosts without skipped tests.
+- [x] Align only private test tooling references; restore and build all 105 projects.
+- [x] Pass the same new-version matrix and review line-level instrumentation drift.
+- [x] Verify production hits, test/tool exclusions and generated-source filtering.
+- [x] Pass existing release/compliance contracts and NuGet vulnerability policy.
+- [ ] Pass every applicable exact-head Linux CI check, including the real collector matrix.
+- [ ] Obtain a disclosed technical review and merge normally, closing all 50 proposals.
+
+The initial sandbox attempt cannot open VSTest's local communication socket and
+is not a successful test run. The authorized initial API attempt uses an overly
+broad substring filter, accidentally selecting five native image-conversion
+tests as well as the version test: three pass and three fail with the known
+native OCR limitation. These failed artifacts remain separate. A fully qualified
+version-controller filter resolves the selection error without suppressing or
+changing any product test. A complete unchanged Release rebuild precedes the
+clean baseline. The native OCR limitation is not claimed fixed.
+
+The smoke covers all migration suites and selected real production paths for
+the other hosts; it is not a full product coverage percentage or a replacement
+for existing CI suites. Collector reports include only PXA production modules,
+not test/tool assemblies or `obj` source. JSON and XML module sets must agree.
+New output directories prevent stale attachments from becoming false evidence.
+Line-denominator and hit-set changes are reported explicitly because upstream
+instrumentation has changed. Product source, API contracts, database schema,
+VERSION, published releases, production deployment, NPOI licensing and the
+user's rename work remain outside this batch.
+
+Primary references: [VSTest prerequisites](https://github.com/coverlet-coverage/coverlet/blob/v10.1.0/Documentation/VSTestIntegration.md),
+[collector release](https://github.com/coverlet-coverage/coverlet/releases/tag/v10.1.0),
+[test SDK 18.5.1](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.5.1).
+
+The clean old matrix passes 675 tests across all 50 hosts, including all 556
+migration cases, without skips. A second parse of the retained raw attachments
+uses the final validation logic and records exact test names; every host has
+hits in its expected production module. All 105 projects then restore and build
+with the new tooling and zero errors. The five new coverage contracts pass,
+including resolved package versions and private assets in every host. All 35
+existing release/compliance/registry contracts and the direct/transitive NuGet
+vulnerability gate pass. Existing xUnit/runner versions, application code and
+product versions are unchanged.
+
+The new matrix also passes all 675 cases. Exact test names, module sets, line
+denominators and covered source-line sets are identical in all 50 hosts: no
+lost or gained covered locations. Branch counters change in 49 hosts and are
+explicitly retained, not described as identical. For example, Core changes from
+642/956 covered/valid branches to 567/902. Changes include upstream branch
+instrumentation and phantom compiler-generated delegate branches; see the
+[upstream branch fix](https://github.com/coverlet-coverage/coverlet/pull/1938).
+
+A separate ignored synthetic probe holds test SDK 18.5.1, compiler, Release
+configuration, tests and source constant while varying only collector version.
+Its production method runs `while (i < value.Length && char.IsLetter(value[i]))`
+and returns the first non-letter index. The single `"A1"` case never reaches
+the false length-condition path. Old collector 6.0.4 nevertheless reports every
+branch covered; 10.1.0 correctly leaves that path uncovered. Adding empty and
+all-letter inputs covers the missing path in both collectors:
+
+| Collector | Only `A1` | `A1`, empty, and `A` |
+| --- | --- | --- |
+| 6.0.4 | 4/4 (false positive) | 4/4 |
+| 10.1.0 | 3/4 | 4/4 |
+
+All four probe runs pass. Raw reports, branch samples and the complete 50-host
+comparison remain under ignored `artifacts/coverage-review`. This confirms the
+specific short-circuit overcount, not the correctness of every possible branch
+in every product method. No percentage threshold is lowered or hidden. The
+new counters are a changed measurement contract, not evidence of changed
+application behavior. Additional post-update runs pass all 384 API tests and
+eight persistence tests with isolated PostgreSQL and no skips; the existing
+native image-conversion exclusion remains explicit and unchanged.
