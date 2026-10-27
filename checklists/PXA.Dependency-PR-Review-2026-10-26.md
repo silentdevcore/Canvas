@@ -573,9 +573,9 @@ setup, not an application regression; no production setting is changed.
 - [x] Pass the expanded PostgreSQL-enabled API matrix, all persistence cases and relay tests.
 - [x] Confirm the updated EF model remains unchanged without applying or generating migrations.
 - [x] Pass all 30 version, release-author and dependency-compliance tests and check synchronized version metadata.
-- [ ] Validate both committed patch fragments against `origin/develop`.
-- [ ] Pass exact-head Linux CI, including API, migrations, frontend charts and container/SBOM checks.
-- [ ] Obtain a disclosed technical review, merge normally and close the six superseded PRs.
+- [x] Validate both committed patch fragments against `origin/develop`.
+- [x] Pass exact-head Linux CI, including API, migrations, frontend charts and container/SBOM checks.
+- [x] Obtain a disclosed technical review, merge normally and close the six superseded PRs.
 
 The OpenAPI test uses real controller metadata but a minimal isolated TestServer;
 it neither starts workers nor accesses a real database or authenticates a user.
@@ -619,3 +619,55 @@ Primary race references: [upstream MVC issue](https://github.com/dotnet/aspnetco
 Primary references: [EF Design 10.0.14](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Design/10.0.14),
 [OpenAPI model 2.12.2](https://www.nuget.org/packages/Microsoft.OpenApi/2.12.2),
 [Npgsql EF 10.0.3](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/10.0.3).
+
+Final platform evidence: replacement [PR #124](https://github.com/silentdevcore/Canvas/pull/124)
+passed CI `40562903832` and label synchronization `40562903875` at exact head
+`f44074af593a0b6f78c3bec4c2a14786e1dc4e4e`. It merged normally as
+`241e559e564cbc7c6dca468f9607811d8cbed823`; all six source proposals closed.
+The owner's secondary-account approval was disclosed as technical review,
+not independent human approval or production authorization. Snapshot was
+intentionally skipped on the pull request. The isolated worktree matched the
+fetched `develop` tree and the four user rename changes stayed untouched.
+
+## Build and CI Tooling Follow-Up - 2026-10-27
+
+Review these three proposals together without changing product versions:
+
+| PR | Reviewed head | Scope |
+| --- | --- | --- |
+| #118 | `b432828505f529d47fd1d1c6a4d76c366ed8d017` | Private Git build task 10.0.403 |
+| #110 | `e770439a7c1751fa607a68db1568e8a8fabc9774` | Setup Node action 7.1.0 |
+| #111 | `b2c80b9f20441efb4097424ab3461896fe98e565` | Docker login action 4.7.0 |
+
+- [x] Inspect original diffs and verify both official action tags resolve to the proposed full SHAs.
+- [x] Review release notes and unchanged action inputs/runtime contracts; retain selected Node 22.
+- [x] Verify official build-task metadata and retain its private build-only scope.
+- [x] Update every workflow occurrence, including release/deployment workflows, without running those workflows.
+- [x] Reject stale duplicate action pins rather than accepting one correct occurrence elsewhere.
+- [x] Restore and build all 105 projects; pass the full NuGet vulnerability gate.
+- [x] Pass 25 focused API contracts, including resolved task version, private assets and runtime exclusion.
+- [x] Pass all 35 release/compliance/registry contract tests, including verified TLS, with no skips.
+- [x] Add an isolated real-action TLS login CI job with synthetic credentials and no publishing.
+- [ ] Pass that actual action job, invalid-password rejection, explicit logout and post-job cleanup on Linux.
+- [ ] Pass every applicable exact-head CI job and review the complete diff and changed release fragment.
+- [ ] Obtain a disclosed technical review, merge normally and close all three source proposals.
+
+The SourceLink task's upstream metadata declares a development dependency and
+System.IO.Hashing 10.0.14. Its resolved graph is checked rather than assuming a
+patch cannot change dependencies. All 105 projects build locally with zero
+errors and 65 existing warnings; no warning suppression or EULA acceptance is
+added. The new task does not enter the test/API runtime manifest.
+
+Initial loopback server unit tests were blocked by sandbox port restrictions;
+the authorized retry passes. Three local Docker HTTP attempts failed because
+the CLI required HTTPS; the first cleanup additionally exposed a missing-config
+fixture error. These are recorded fixture failures, not successful logins.
+The revised CI test uses TLS, a per-process CA and an isolated credential file,
+and does not access Rancher settings or the system certificate/keychain store.
+Linux action execution is still required before marking the login item done.
+No production GHCR, ECR, OIDC, main release, public image or deployment is tested
+or authorized by this fixture. The NPOI legal blocker remains unchanged.
+
+Primary references: [Setup Node 7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0),
+[Docker Login 4.7.0](https://github.com/docker/login-action/releases/tag/v4.7.0),
+[Git build task 10.0.403](https://www.nuget.org/packages/Microsoft.Build.Tasks.Git/10.0.403).

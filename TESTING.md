@@ -72,10 +72,29 @@ This is a schema-generation test, not a replacement for real authentication test
 MVC validation path, optional JSON fields, existing positional API and concurrent
 first-use validation. Keep the authenticated PostgreSQL draft/concurrency test;
 do not replace it with the focused metadata test.
+`DotnetDependencyAlignmentTests` also verifies that the Git build task resolves
+to its reviewed version with `PrivateAssets=all` and stays out of the API runtime
+dependency manifest.
 The native ImageConversion/OCR cases remain outside this maintenance matrix;
 their previously recorded platform limitation is not claimed fixed.
 
 Frontend:
+
+CI action maintenance also runs the `registry-login` job. It uses the pinned
+Docker login action against a loopback-only TLS Registry V2 ping server with
+random synthetic credentials, an isolated Docker configuration and a temporary
+process-local trust root. It verifies credential scoping, invalid-password
+rejection and explicit logout; the action's post-job logout must also succeed.
+The test forces client-side authentication and never uses the host daemon,
+real registry credentials, image publication or deployment. This is not proof
+of production GHCR authorization, OIDC or ECR behavior. Do not install its test
+CA globally. The initial macOS HTTP fixture attempts failed before login because
+the Docker client required TLS; their failures are not classified as passes.
+
+```bash
+node --test tools/dependencies/dependency-compliance.test.mjs tools/dependencies/registry-login-smoke.test.mjs
+node tools/dependencies/validate-dependency-compliance.mjs
+```
 
 Use the CI-validated Node.js 22 toolchain (22.12 or newer within that major).
 Jest-DOM 7 requires Node 22; the Vite toolchain additionally requires 22.12 in

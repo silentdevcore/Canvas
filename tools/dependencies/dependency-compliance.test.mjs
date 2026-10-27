@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { requiredActionPins, validateWorkflowActionPins } from './workflow-action-pins.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
@@ -51,4 +52,24 @@ test('external GitHub Actions use immutable commit pins', async () => {
       assert.match(reference, /^[a-f0-9]{40}$/u, `${name}: ${action} is not SHA-pinned`);
     }
   }
+});
+
+test('every occurrence uses the reviewed action pin, including duplicate uses', () => {
+  const source = [...requiredActionPins].map(([action, sha]) => `- uses: ${action}@${sha}`).join('\n');
+  const valid = [{ name: 'reviewed.yml', source }];
+  validateWorkflowActionPins(valid);
+  assert.throws(() => validateWorkflowActionPins([...valid, {
+    name: 'stale.yml', source: `- uses: actions/setup-node@${'a'.repeat(40)}`,
+  }]), /stale.yml has an unexpected actions\/setup-node pin/u);
+  assert.throws(() => validateWorkflowActionPins([...valid, {
+    name: 'mutable.yml', source: '- uses: unknown/action@v1',
+  }]), /full commit SHA/u);
+  assert.throws(() => validateWorkflowActionPins([]), /Required action pin is missing/u);
+});
+
+test('actual workflows consistently use all reviewed action pins', async () => {
+  const names = (await readdir(new URL('.github/workflows/', root))).filter((name) => name.endsWith('.yml'));
+  const sources = [];
+  for (const name of names) sources.push({ name, source: await read(`.github/workflows/${name}`) });
+  validateWorkflowActionPins(sources);
 });
