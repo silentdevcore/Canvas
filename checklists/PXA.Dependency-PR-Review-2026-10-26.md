@@ -2,7 +2,8 @@
 
 ## Scope And Guardrails
 
-Review the 26 Dependabot pull requests targeting `develop`. Perform corrections
+Review the original 26 Dependabot pull requests and the subsequent proposals
+targeting `develop`. Perform corrections
 in an isolated worktree; do not include the pending PVAD rename changes.
 Keep `VERSION`, published releases, branch protection, and production unchanged.
 An automated review through the owner's secondary account is not independent
@@ -70,8 +71,8 @@ Updating a branch invalidates any earlier approval.
 | #43 | coverlet 10.0.1 | Closed without merge; #112 was replaced by 50 per-project proposals. See the collector follow-up below. |
 | #41 | ClosedXML 0.105.1 | Closed automatically after merged PR #106 (`c4c62ae110442a08a87c6e56a51f35c040ce0080`); all 38 workbook/export cases and 375 PostgreSQL-enabled API cases passed, followed by exact-head CI. |
 | #40 | Recharts 3.10.1 | Closed automatically after merged PR #123 (`4aa7efa47fc2a3d7b6072c6f5b64408fc358ee40`); 295 tests, 60 Preview cases, six unchanged Canvas images and exact-head CI passed. |
-| #39 | React 19 | Changes requested on `728054e1`: React 19 with React DOM/types 18; current react-beautiful-dnd peers exclude 19. Requires a coordinated migration. |
-| #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
+| #39 | React 19 | Closed without merge on 2026-10-28 following the owner's stable React 18/Grid decision. Compatible preparation merged in #190; coordinated major upgrade remains tracked in #191. |
+| #38 | React DOM 19 | Closed without merge on 2026-10-28 following the same owner decision. React/DOM/types stay coordinated on 18; see #191. |
 | #37 | jest-dom 7 | Closed automatically after merged PR #122 (`2084e3a4f2faf89ec7d8649760bbbde438028cd3`); explicit DOM peer, 295 tests, typecheck, build and exact-head CI passed. |
 | #36 | react-icons 5.7 | Closed automatically after merged PR #107 (`afeac1b3f8ee7ba590b23423539f7f5bf1374318`); 290 Designer cases, unchanged 97-icon SVG fingerprint, typecheck, build and exact-head CI passed. |
 | #31 | TypeScript 7 | Closed as superseded by merged PR #178 (`016e2100e344569e7238054a04114245a2f6cb52`); six compiler contracts, typecheck, 14 stdio assertions and all eight exact-head CI checks passed. |
@@ -1003,7 +1004,10 @@ The two React-major proposals remain deferred, not accepted by this work.
 - [x] Inspect actual JSON, legacy drag-cancel and Spreadsheet screenshots on desktop/mobile.
 - [x] Confirm full/production audit findings do not worsen and review lockfile origins,
   licenses, integrity and retained runtime versions.
-- [ ] Pass all applicable exact-head CI checks, record technical review and merge normally.
+- [x] Pass all applicable exact-head CI checks, record technical review and merge normally.
+  PR #190 passed all eight checks at `04ea81884c789119becf3a73824bd642d729b356`
+  and merged as `8d35d348e47b57478677b4afa2beda0e72d4dec3`.
+  [Final technical audit](https://github.com/silentdevcore/Canvas/pull/190#issuecomment-6475676441).
 
 The source inventory finds `ComplexEditor`, `PxaSurface` and `JsonEditorPanel`
 are legacy components with no current application route. Keep their behavior
@@ -1086,3 +1090,78 @@ Primary sources: [Grid stable metadata](https://registry.npmjs.org/@glideapps%2f
 [Grid alpha metadata](https://registry.npmjs.org/@glideapps%2fglide-data-grid/6.0.4-alpha24),
 [maintained drag/drop](https://github.com/hello-pangea/dnd),
 [maintained JSON widget](https://github.com/microlinkhq/react-json-view).
+
+## Final Dependency Queue Closure - 2026-10-28
+
+The owner's request is to finish the dependency queue before resuming the rename,
+not to merge every proposal indiscriminately. The queue contains twelve proposals
+at this checkpoint. Preserve the separate dirty rename worktree and do not merge
+`develop` into it implicitly. Stable `develop` still uses PXA technical names.
+
+| Proposals | Disposition | Evidence / follow-up |
+| --- | --- | --- |
+| #38, #39 | Closed without merge | Owner-selected React 18.3.1 and stable Grid 6.0.3; #190 completed compatible preparation, not React 19. |
+| #179 | Closed without merge | Node 26 declarations do not match the validated Node 22 runtime. Keep Node 22 types. |
+| #183 | Closed without merge | Upstream requires OpenAPI.NET 2.x for ASP.NET Core 10. Keep explicit 2.12.2 and actual OpenAPI generation tests. |
+| #184 | Closed without merge | NPOI 2.8.1 retains unresolved OSMF EULA/commercial terms. The existing 2.8.0 production blocker remains, not an implicit license approval. |
+| #185, #186, #187, #188, #189 | Consolidated replacement, awaiting exact-head CI/merge | Align the five direct telemetry components and their resolved core APIs to 1.20.1. Keep Npgsql 10.0.3 and all privacy controls. |
+| #182 | Consolidated replacement, awaiting exact-head CI/merge | Align all 51 Test SDK consumers to private 18.11.0 instead of upgrading only Relay. Keep Coverlet 10.1.0, xUnit and VSTest integration unchanged. |
+| #180 | Consolidated replacement, awaiting exact-head CI/merge | Playwright Test/Playwright/Core 1.64.1 and its corresponding Chromium; development-only change. |
+
+Deferred work is retained in [issue #191](https://github.com/silentdevcore/Canvas/issues/191),
+with explicit acceptance triggers. Closing these PRs does not complete those
+upgrades. Dependabot groups telemetry and test-platform proposals; version-major
+proposals for the selected React/Node/OpenAPI baselines are deferred. Compatible
+updates and mandatory security gates remain. NPOI is not blanket-ignored: new
+advisories and proposals still require triage. `productionReady` stays false.
+
+- [x] Verify exact proposal heads and individually explain the five deferrals.
+- [x] Record unresolved work outside the PR queue without a legal/security waiver.
+- [x] Update coordinated telemetry, all private test hosts and browser tooling.
+- [x] Retain real unchanged 50-host coverage evidence before restoring/building updates.
+- [x] Pass all 105 project restores/builds and the direct/transitive NuGet gate.
+- [x] Pass 81 focused telemetry/OpenAPI/alignment cases and five Relay cases.
+- [x] Pass all 395 selected API cases against isolated PostgreSQL, with no skips.
+- [x] Pass all 675 selected cases across 50 coverage hosts and compare raw-derived summaries.
+- [x] Retain identical test names, module sets, line/branch counters and hit-line sets.
+- [x] Pass 298 Designer tests, typecheck, build and five runtime/tool compatibility contracts.
+- [x] Pass four real routed development/production desktop/mobile scenarios.
+- [x] Pass twelve real StrictMode JSON, drag-cancel and Spreadsheet scenarios.
+- [x] Pass 60 chart Preview cases and six actual Canvas cases; inspect current mobile screenshots.
+- [x] Verify official origins, integrity and Apache-2.0 licenses for the three changed npm packages.
+- [x] Keep all non-Playwright lock entries identical; remove only Playwright's obsolete optional fsevents entry.
+- [x] Confirm unchanged audit totals: two moderate production and five low development findings, zero high/critical.
+- [x] Pass six coverage/tool contracts, six compliance and 26 release-author/versioning contracts.
+- [ ] Complete exact-head hosted CI, record technical review and merge the replacement normally.
+- [ ] Close the seven replaced proposals after merge and verify the entire live queue.
+
+Coverage output is retained under `artifacts/dependency-closure-20261028/before`
+and `after`; each contains the actual TRX, Cobertura, JSON and complete summary.
+Comparison reports zero lost/gained hits and zero changed line or branch counters.
+This is the existing selected collector matrix, not a claim of full-suite product
+coverage or native OCR validation. API selection retains the existing
+ImageConversionController exclusion. SDK tests additionally export real traces,
+metrics and logs into synthetic local capture, including pooled-record-safe
+snapshots and actual privacy processors. Existing unavailable-collector cases pass;
+this is not validation of production collectors, hosts or customer configuration.
+The experimental OTLP disk retry feature is not enabled by repository configuration
+or this update; any externally enabled deployment must review its changed storage
+semantics separately before rollout.
+
+Initial browser attempts are failures, not acceptance: simultaneous Vite runners
+conflict through their shared optimization cache. Sequential routed runs pass.
+The JSON widget resets hover after source mutation; selecting the last visible
+Add icon can target the nested object. Leave the widget, re-enter the actual root
+metadata and select its direct-child action. Keep the original strict expected
+root object, nested data and null type unchanged. No product behavior, forced
+pointer event or weakened assertion is introduced. Final twelve scenarios pass
+with the matching new Chromium. Older/newer browser screenshots are not presented
+as byte-identical evidence. VERSION 1.1.0, published manifests, protected settings,
+production, authentication, persistence and pending rename changes stay untouched.
+
+Primary sources: [OpenAPI.NET compatibility](https://github.com/microsoft/OpenAPI.NET/blob/main/docs/upgrade-guide-3.md),
+[OTel core 1.20.1](https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.20.1),
+[OTel Runtime 1.20.1](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases/tag/Instrumentation.Runtime-1.20.1),
+[VSTest 18.11.0](https://github.com/microsoft/vstest/releases/tag/v18.11.0),
+[Playwright 1.64.1](https://github.com/microsoft/playwright/releases/tag/v1.64.1),
+[NPOI commercial notice](https://github.com/nissl-lab/npoi/discussions/1864).

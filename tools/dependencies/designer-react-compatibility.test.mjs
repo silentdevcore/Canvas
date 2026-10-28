@@ -25,6 +25,15 @@ test('Designer retains the approved stable React 18 and Grid baseline', () => {
   assert.equal(installed('@glideapps/glide-data-grid').version, '6.0.3');
 });
 
+test('browser tools stay coordinated and declarations match the validated Node 22 runtime', () => {
+  assert.equal(major(installed('@types/node').version), 22);
+  for (const name of ['@playwright/test', 'playwright', 'playwright-core']) {
+    assert.equal(installed(name).version, '1.64.1', name);
+    assert.equal(lock.packages[`node_modules/${name}`].version, '1.64.1', name);
+    assert.ok(satisfies('22.14.0', installed(name).engines.node), name);
+  }
+});
+
 test('replacement components declare compatibility with the installed runtime and each other', () => {
   for (const name of ['@hello-pangea/dnd', '@microlink/react-json-view', '@glideapps/glide-data-grid']) {
     const entry = installed(name);

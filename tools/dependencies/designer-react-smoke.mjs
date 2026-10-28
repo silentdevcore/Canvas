@@ -59,8 +59,10 @@ try {
               await quantity.hover();
               await quantity.locator('.click-to-remove').click();
               await expect(page.locator('#json-state')).not.toContainText('quantity');
-              await page.locator('.object-key-val').first().hover();
-              await page.locator('.object-meta-data .click-to-add-icon:visible').last().click();
+              const rootMetadata = page.locator('.object-key-val').first().locator(':scope > .object-meta-data');
+              await page.mouse.move(0, 0);
+              await rootMetadata.hover();
+              await rootMetadata.locator('.click-to-add-icon').click();
               await page.locator('.key-modal-input').fill('reference');
               await page.locator('.key-modal-input').press('Enter');
               await expect(page.locator('#json-state')).toContainText('"reference":null');

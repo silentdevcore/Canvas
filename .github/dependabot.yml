@@ -3,6 +3,15 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/"
     target-branch: "develop"
+    groups:
+      opentelemetry:
+        patterns: ["OpenTelemetry.*"]
+      test-platform:
+        patterns: ["Microsoft.NET.Test.Sdk"]
+    # ASP.NET Core 10 requires OpenAPI.NET 2.x. Revisit with a platform upgrade.
+    ignore:
+      - dependency-name: "Microsoft.OpenApi"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"
@@ -14,6 +23,19 @@ updates:
     groups:
       react-runtime:
         patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+    # Owner-selected stable Grid requires React 18; Node types follow Node 22.
+    # Compatible updates and the existing security-update policy remain enabled.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"

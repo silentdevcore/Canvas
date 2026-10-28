@@ -94,17 +94,17 @@ test('every collector host resolves compatible private VSTest tools on net10', (
     const reference = (id, attribute) => xpath(path, `string(/Project/ItemGroup/PackageReference[@Include='${id}']/@${attribute})`);
     assert.equal(reference('coverlet.collector', 'Version'), '10.1.0', name);
     assert.equal(reference('coverlet.collector', 'PrivateAssets'), 'all', name);
-    assert.equal(reference('Microsoft.NET.Test.Sdk', 'Version'), '18.5.1', name);
+    assert.equal(reference('Microsoft.NET.Test.Sdk', 'Version'), '18.11.0', name);
     assert.equal(reference('Microsoft.NET.Test.Sdk', 'PrivateAssets'), 'all', name);
     assert.equal(xpath(path, 'string(/Project/PropertyGroup/TargetFramework)'), 'net10.0', name);
     const assets = JSON.parse(readFileSync(join(dirname(path), 'obj/project.assets.json'), 'utf8'));
-    for (const id of ['coverlet.collector/10.1.0', 'Microsoft.NET.Test.Sdk/18.5.1', 'Microsoft.TestPlatform.TestHost/18.5.1']) {
+    for (const id of ['coverlet.collector/10.1.0', 'Microsoft.NET.Test.Sdk/18.11.0', 'Microsoft.TestPlatform.TestHost/18.11.0']) {
       assert.ok(assets.libraries[id], `${name} must resolve ${id}`);
     }
     const imports = join(dirname(path), 'obj', `${name}.csproj.nuget.g.targets`);
     assert.equal(xpath(imports, "count(//*[local-name()='Import' and contains(@Project,'coverlet.collector/10.1.0/')])"), '1', `${name} must import the new collector target`);
     const deps = JSON.parse(readFileSync(join(dirname(path), 'bin/Release/net10.0', `${name}.deps.json`), 'utf8'));
-    assert.ok(deps.libraries['Microsoft.TestPlatform.TestHost/18.5.1'], `${name} must build with the new test host`);
+    assert.ok(deps.libraries['Microsoft.TestPlatform.TestHost/18.11.0'], `${name} must build with the new test host`);
     if (['PXA.FileImporter.Image.Tests', 'PXA.FileImporter.ImageAnalysis.Tests', 'PXA.Infrastructure.Converters.Tests'].includes(name)) {
       const native = 'SkiaSharp.NativeAssets.Linux.NoDependencies';
       assert.equal(reference(native, 'Version'), '3.119.2', name);
@@ -114,4 +114,13 @@ test('every collector host resolves compatible private VSTest tools on net10', (
       if (process.platform === 'linux') assert.ok(assets.libraries[`${native}/3.119.2`], name);
     }
   }
+});
+
+test('the collector-free relay uses the same private VSTest SDK', () => {
+  const project = new URL('../../tests/PXA.Observability.WebhookRelay.Tests/', import.meta.url);
+  const path = new URL('PXA.Observability.WebhookRelay.Tests.csproj', project).pathname;
+  assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@Version)"), '18.11.0');
+  assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@PrivateAssets)"), 'all');
+  const dependencies = JSON.parse(readFileSync(new URL('bin/Release/net10.0/PXA.Observability.WebhookRelay.Tests.deps.json', project), 'utf8'));
+  assert.ok(dependencies.libraries['Microsoft.TestPlatform.TestHost/18.11.0']);
 });

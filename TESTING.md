@@ -19,9 +19,20 @@
 ### Coverage collector maintenance
 
 The 50 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
-Microsoft.NET.Test.Sdk 18.5.1. Coverlet's VSTest integration requires test SDK
+Microsoft.NET.Test.Sdk 18.11.0. The collector-free Webhook Relay uses the same
+private SDK version. Coverlet's VSTest integration requires test SDK
 18.4.0 or newer; it is not an MTP v2 collector. Keep the existing xUnit and
 runner versions unless a separately reviewed update requires changes.
+
+Playwright Test, Playwright and Playwright Core resolve together to 1.64.1.
+Use its matching Chromium installation, not an older cached browser. Run Vite
+smoke scripts sequentially: they share the Designer dependency optimization
+cache. A separate browser-tool version does not change the shipped React 18,
+Grid 6.0.3 or Node 22 contract. OpenAPI.NET remains on 2.x while ASP.NET Core 10
+is used. Telemetry components resolve together to 1.20.1; API tests exercise
+real SDK export with synthetic trace, metric and log capture, privacy processors,
+and the existing unavailable-collector integration cases. Local capture is not
+proof of a deployed OTLP collector or production routing.
 
 After restoring and building Release, install `xmllint` (`libxml2-utils` on
 Ubuntu; supplied by macOS) and run:
