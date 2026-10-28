@@ -41,6 +41,23 @@ public sealed class DotnetDependencyAlignmentTests
     }
 
     [Theory]
+    [InlineData("OpenTelemetry")]
+    [InlineData("OpenTelemetry.Api")]
+    [InlineData("OpenTelemetry.Api.ProviderBuilderExtensions")]
+    [InlineData("OpenTelemetry.Exporter.OpenTelemetryProtocol")]
+    [InlineData("OpenTelemetry.Extensions.Hosting")]
+    [InlineData("OpenTelemetry.Instrumentation.AspNetCore")]
+    [InlineData("OpenTelemetry.Instrumentation.Http")]
+    [InlineData("OpenTelemetry.Instrumentation.Runtime")]
+    public void Telemetry_components_resolve_as_one_reviewed_version(string package)
+    {
+        const string version = "1.20.1";
+        if (package is not ("OpenTelemetry" or "OpenTelemetry.Api" or "OpenTelemetry.Api.ProviderBuilderExtensions"))
+            Assert.Equal(version, ReferenceVersion("PXA.WebApi/PXA.WebApi.csproj", package));
+        AssertResolvedVersion(package, version);
+    }
+
+    [Theory]
     [InlineData("PXA.WebApi/PXA.WebApi.csproj", "Npgsql.OpenTelemetry")]
     [InlineData("src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj", "Npgsql.EntityFrameworkCore.PostgreSQL")]
     public void PostgreSql_provider_references_remain_on_the_validated_version(string project, string package)

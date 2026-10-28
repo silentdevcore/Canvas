@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "telemetry-dependency-maintenance",
+  "impact": "patch",
+  "components": ["api", "observability"],
+  "category": "improved",
+  "summary": "Updated application telemetry dependencies while retaining existing privacy controls.",
+  "breaking": false
+}
