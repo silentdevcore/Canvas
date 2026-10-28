@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-localization-compatible-maintenance",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Improved translation updates when switching Designer languages and content sections.",
+  "breaking": false
+}

@@ -34,6 +34,18 @@ test('browser tools stay coordinated and declarations match the validated Node 2
   }
 });
 
+test('translation and testing adapters accept the actual stable peer versions', () => {
+  for (const [name, version, peers] of [
+    ['react-i18next', '17.1.9', ['react', 'i18next', 'typescript']],
+    ['@testing-library/react', '16.3.3', ['react', 'react-dom', '@types/react', '@types/react-dom', '@testing-library/dom']],
+  ]) {
+    const entry = installed(name);
+    assert.equal(entry.version, version);
+    assert.equal(lock.packages[`node_modules/${name}`].version, version);
+    for (const peer of peers) assert.ok(satisfies(installed(peer).version, entry.peerDependencies[peer]), `${name}/${peer}`);
+  }
+});
+
 test('replacement components declare compatibility with the installed runtime and each other', () => {
   for (const name of ['@hello-pangea/dnd', '@microlink/react-json-view', '@glideapps/glide-data-grid']) {
     const entry = installed(name);
