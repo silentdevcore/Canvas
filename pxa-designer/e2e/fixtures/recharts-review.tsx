@@ -44,7 +44,7 @@ const noop = () => {};
 const canvas = query.get('view') === 'canvas';
 
 createRoot(document.getElementById('root')!).render(
-  <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+  <MemoryRouter>
     {canvas ? <SimplePxaSurface template={template} elements={[element]} pages={pages}
       currentPageIndex={0} sharedElements={[]} onElementAdd={noop} onElementUpdate={noop}
       onElementDelete={noop} onElementReorder={noop} onPreview={noop} onBack={noop}

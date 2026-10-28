@@ -1336,6 +1336,13 @@ three new cases then pass. Existing BrowserRouter imports continue through the
 supported DOM compatibility package; this change does not adopt SSR, Framework
 Mode, server handlers, React 19, MTP or a new routing architecture.
 
+The first hosted frontend run fails its separate chart-fixture typecheck:
+`MemoryRouter` still receives removed v6 future options in the old fixture.
+The ordinary typecheck excludes e2e fixtures and Vite transpilation does not
+typecheck them. Remove those obsolete options: their semantics are already the
+Router 7 defaults. Keep the separate strict fixture typecheck and full browser
+matrix; do not bypass the check, cast away the error or call the first run green.
+
 The production audit's SSR-hydration advisory does not apply to declarative
 mode, but the graph is upgraded rather than suppressing it or making that an
 excuse to ignore the navigation advisory. The five development findings remain
