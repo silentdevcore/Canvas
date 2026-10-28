@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Importing/PXA.FileImporter/PXA.FileImporter.csproj" />
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp" Version="4.154.0" />
   </ItemGroup>
 
 </Project>
