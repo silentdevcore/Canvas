@@ -2,9 +2,13 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 
-const root = fileURLToPath(new URL('../../pxa-designer/', import.meta.url));
-const output = new URL('../../artifacts/designer-tooling-smoke/', import.meta.url);
+const root = process.env.PXA_DESIGNER_SMOKE_ROOT ?? fileURLToPath(new URL('../../pxa-designer/', import.meta.url));
+const output = process.argv[2]
+  ? pathToFileURL(`${resolve(process.argv[2])}/`)
+  : new URL('../../artifacts/designer-tooling-smoke/', import.meta.url);
+const baselineOnly = process.argv.includes('--baseline-only');
 const require = createRequire(new URL('../../pxa-designer/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const { createServer, preview } = await import(pathToFileURL(require.resolve('vite')).href);
@@ -115,18 +119,44 @@ try {
           await expect(page.locator('.pdf-empty-results')).toBeVisible();
           await page.locator('.pdf-empty-results button').click();
           await expect(page.locator('.pdf-template-grid')).toBeVisible();
+          await page.mouse.move(0, 0);
           await expect(page.locator('.pdf-template-card').first().locator('..')).toHaveCSS('opacity', '1');
+          await page.waitForFunction(() => [...document.querySelectorAll('.pdf-template-card')].every(card => {
+            const style = getComputedStyle(card.parentElement);
+            return style.opacity === '1' && (style.transform === 'none' || new DOMMatrixReadOnly(style.transform).m42 === 0);
+          }));
           await page.evaluate(() => {
             window.scrollTo(0, 0);
             document.querySelector('.hub-layout-content')?.scrollTo(0, 0);
           });
           await page.screenshot({ path: fileURLToPath(new URL(`${mode}-${device}-gallery.png`, output)) });
+
+          if (!baselineOnly) {
+            const spreadsheet = await page.goto(`${origin}/spreadsheet/create`, { waitUntil: 'networkidle' });
+            assert.equal(spreadsheet.status(), 200);
+            if (device === 'mobile') {
+              const toggle = page.locator('.hub-sidebar-toggle');
+              if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
+              await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            }
+            const grid = page.locator('.dvn-scroller');
+            await expect(grid).toBeVisible();
+            await grid.click({ position: { x: 80, y: 50 } });
+            await page.locator('[data-testid="data-grid-canvas"]').press('Enter');
+            const cellEditor = page.locator('.gdg-input');
+            await expect(cellEditor).toBeVisible();
+            await cellEditor.fill('17');
+            await cellEditor.press('Enter');
+            await grid.dblclick({ position: { x: 80, y: 50 } });
+            await expect(cellEditor).toHaveValue('17');
+            await cellEditor.press('Escape');
+          }
         } finally {
           await context.close();
         }
         assert.deepEqual(errors, [], `${mode}/${device} must have no runtime or asset failures`);
-        results.push({ mode, device, home: true, gallery: true, search: true, errors, abortedRequests, telemetryOutcomes });
-        console.log(`PASS Designer tooling: ${mode}/${device}, home, SPA gallery and search`);
+        results.push({ mode, device, home: true, gallery: true, search: true, spreadsheetInput: !baselineOnly, errors, abortedRequests, telemetryOutcomes });
+        console.log(`PASS Designer tooling: ${mode}/${device}, home, SPA gallery, search${baselineOnly ? '' : ' and actual Spreadsheet input'}`);
       }
     } finally {
       await server.close();

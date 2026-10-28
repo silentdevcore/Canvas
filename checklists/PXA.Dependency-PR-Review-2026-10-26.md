@@ -74,7 +74,7 @@ Updating a branch invalidates any earlier approval.
 | #38 | React DOM 19 | Changes requested on `0cfc53f0`: React DOM/types 19 with React/types 18; same unsupported drag-and-drop peers. Do not bypass peer validation. |
 | #37 | jest-dom 7 | Closed automatically after merged PR #122 (`2084e3a4f2faf89ec7d8649760bbbde438028cd3`); explicit DOM peer, 295 tests, typecheck, build and exact-head CI passed. |
 | #36 | react-icons 5.7 | Closed automatically after merged PR #107 (`afeac1b3f8ee7ba590b23423539f7f5bf1374318`); 290 Designer cases, unchanged 97-icon SVG fingerprint, typecheck, build and exact-head CI passed. |
-| #31 | TypeScript 7 | Major compiler upgrade: verify SDK/compiler configuration and MCP smoke. |
+| #31 | TypeScript 7 | Closed as superseded by merged PR #178 (`016e2100e344569e7238054a04114245a2f6cb52`); six compiler contracts, typecheck, 14 stdio assertions and all eight exact-head CI checks passed. |
 
 ## Completion
 
@@ -909,8 +909,8 @@ proposals reviewed:
 - [x] Pass all six final contracts, typecheck, stdio smoke and complete npm audit.
 - [x] Verify only compiler/platform lock entries changed and production dependencies did not.
 - [x] Pass release and dependency-policy validation with VERSION unchanged.
-- [ ] Pass every applicable exact-head Linux CI check, including the native compiler contracts.
-- [ ] Record disclosed technical review and normal merge; close the superseded compiler
+- [x] Pass every applicable exact-head Linux CI check, including the native compiler contracts.
+- [x] Record disclosed technical review and normal merge; close the superseded compiler
   and incompatible declaration proposals with explicit explanations.
 
 The original strict/ES2022/ESNext/Bundler configuration needs no relaxation.
@@ -966,3 +966,123 @@ References: [React upgrade guide](https://react.dev/blog/2024/04/25/react-19-upg
 [Glide peers](https://registry.npmjs.org/@glideapps%2fglide-data-grid/6.0.3),
 [drag/drop peers](https://registry.npmjs.org/react-beautiful-dnd/13.1.1),
 [JSON editor peers](https://registry.npmjs.org/react-json-view/1.21.3).
+
+MCP final acceptance: PR #178, tested head
+`c7a495e7426ded397f08834146f7d5c687cc84de`, passes all eight applicable checks
+in CI `40716381614` / synchronization `40716381694`. The push-only snapshot is
+intentionally skipped. Linux logs explicitly confirm six compiler contracts,
+the MCP protocol smoke, 50 coverage hosts / 675 selected cases and 384 API
+cases. Normal squash merge is `016e2100e344569e7238054a04114245a2f6cb52`.
+#31 and #108 are closed without individually merging their heads; Node 26
+declarations are declined, not implemented. The owner-controlled second account
+provides disclosed technical review only, not independent human or production
+approval. [Final audit](https://github.com/silentdevcore/Canvas/pull/178#issuecomment-6473616863).
+
+## Stable React Preparation - Owner Decision 2026-10-28
+
+The owner explicitly selects stable Grid 6.0.3 and React 18, not the official
+6.0.4-alpha24 Grid with React 19. The upstream main branch advertises React 19,
+but npm `latest` is still 6.0.3; `beta` resolves to 6.0.4-alpha24. Do not confuse
+unreleased upstream support or an alpha package with the selected stable release.
+The two React-major proposals remain deferred, not accepted by this work.
+
+- [x] Record the owner decision and keep React/DOM 18.3.1, 18.x declarations,
+  stable Grid 6.0.3 and existing document/API contracts unchanged.
+- [x] Establish 295 passing Designer cases, typecheck, production build and four
+  development/production desktop/mobile application smoke scenarios before edits.
+- [x] Replace deprecated `react-beautiful-dnd` with `@hello-pangea/dnd` 18.0.1,
+  using bundled types instead of the retired separate declaration package.
+- [x] Replace `react-json-view` with compatible `@microlink/react-json-view` 1.31.43
+  and remove Flux and obsolete transitive dependencies.
+- [x] Resolve the Redux 5 peer explicitly; application state remains Zustand.
+- [x] Add SemVer-based runtime/component contracts and inspect the complete
+  installed tree without pretending it is strict-peer clean.
+- [x] Group future React, DOM and declaration version proposals for joint review.
+- [x] Pass all final unit, dependency, typecheck, production and browser tests.
+- [x] Compare active-application screenshots with the retained unchanged baseline.
+- [x] Inspect actual JSON, legacy drag-cancel and Spreadsheet screenshots on desktop/mobile.
+- [x] Confirm full/production audit findings do not worsen and review lockfile origins,
+  licenses, integrity and retained runtime versions.
+- [ ] Pass all applicable exact-head CI checks, record technical review and merge normally.
+
+The source inventory finds `ComplexEditor`, `PxaSurface` and `JsonEditorPanel`
+are legacy components with no current application route. Keep their behavior
+compatible rather than claiming new routed functionality. `PxaSurface` already
+has a no-op reorder callback; this change does not silently implement or claim
+working legacy reordering. The actual current surface is `SimplePxaSurface`.
+`SpreadsheetGrid` is routed and retains the stable upstream package. Actual
+browser tests expose two existing integration defects: its selection callback
+does not pass controlled selection back to Glide, and ordinary `index.html`
+lacks the required overlay portal. The minimal correction supplies local
+controlled selection (cleared on sheet change) and one portal host. Neither
+the workbook model, formula engine nor backend APIs change. Three Jest
+regressions cover selection/range feedback, sheet reset and the actual HTML
+portal. Real routed desktop/mobile input is additionally tested in the bundle
+smoke. The original route fails to open its input before correction; that
+failed run is not acceptance evidence.
+
+Initial `npm ls --all --json` reports five peer problems: React, React DOM,
+marked, missing Monaco and Redux. The compatible replacements plus explicit
+Redux 5 remove the React/DOM/Redux problems. Two pre-existing debts remain:
+
+- Grid 6.0.3 requires marked 4.x; root resolves marked 18.0.5. No parser downgrade
+  or peer override is introduced merely to obtain a clean report.
+- Monaco React 4.7.0 has a missing `monaco-editor` peer. This batch does not
+  change its existing loading configuration or claim offline-editor support.
+
+The existing `.npmrc` `legacy-peer-deps=true` is unchanged. Four dependency
+contracts report this explicitly and fail for any additional tree problem.
+Normal installation is tested with the existing policy; a fully strict clean
+installation is not claimed. The new component peers themselves accept React
+18 and 19; this does not make the entire Designer React-19-ready.
+
+The fresh full npm baseline reports five low development findings through
+Jest/deepmerge and the existing two moderate Router findings; no high/critical
+findings. These are recorded, not suppressed, not described as zero and not
+fixed by downgrading Jest or expanding this batch into a Router migration.
+The replacement resolution retains exactly those counts. Existing security
+gates, NPOI licensing blocker, VERSION and release preparation remain unchanged.
+
+Browser fixtures exercise real components under StrictMode with synthetic local
+data. Initial harness runs fail on hidden hover actions, selector assumptions,
+the numeric-versus-string confirmation and a fixture assertion against template
+data instead of the store's actual `jsonData`. Correct the harness to follow
+the component/store contracts; do not change product persistence or hide
+failures to make the tests pass. The fixture is not shipped in the ordinary
+Designer build. The Grid's actual scroller, keyboard activation and required
+portal are used; no pointer-event bypass or force click is used. A mobile
+application attempt is blocked by the still-open sidebar; the corrected test
+uses the real collapse control instead of disabling the overlay.
+
+Initial home images are identical but gallery comparisons fail because the
+old runner only waits for the first card's opacity, not all staggered transforms.
+The corrected runner waits for every card to settle. A separate detached
+unchanged-develop worktree with original dependencies generates a new controlled
+baseline; do not claim the initial gallery diff passed or regenerate a baseline
+using new packages. One remaining mobile preview difference comes from a hover
+state left under the pointer. Both old/new captures now move the pointer to a
+neutral location before waiting for settled animations; no CSS, screenshot
+threshold or product layout is changed. All eight controlled old/new Home and
+Gallery screenshots are then byte-identical. The unchanged baseline is a
+separate worktree at `016e2100e344569e7238054a04114245a2f6cb52` with original
+packages, not the new branch relabeled as old evidence.
+
+Final local results: 298/298 Designer tests in 35 suites, unchanged typecheck,
+production build, four dependency contracts and 32 release/compliance contracts
+pass. All 12 actual StrictMode component scenarios and all four routed
+application scenarios pass in development/production and desktop/mobile.
+JSON edit/add/delete retains types and nested data; the Grid input changes A1
+and recalculates B1 while preserving its formula. Native canvas pixels are
+checked for nonblank output; desktop/mobile widget screenshots are inspected.
+All 60 Preview chart fixtures and six actual Canvas chart cases also pass
+after the Redux peer changes. Production audit retains two moderate Router
+findings; full audit retains those and five low development findings, with
+zero high/critical findings in both old/new graphs. `.npmrc`, VERSION 1.1.0,
+published releases, actual authentication/backends and the rename work remain
+unchanged. Hosted acceptance is still open until the final exact head passes.
+See [testing scope](../TESTING.md#stable-react-compatibility).
+
+Primary sources: [Grid stable metadata](https://registry.npmjs.org/@glideapps%2fglide-data-grid/6.0.3),
+[Grid alpha metadata](https://registry.npmjs.org/@glideapps%2fglide-data-grid/6.0.4-alpha24),
+[maintained drag/drop](https://github.com/hello-pangea/dnd),
+[maintained JSON widget](https://github.com/microlinkhq/react-json-view).
