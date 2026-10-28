@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-routing-dependency-security",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "security",
+  "summary": "Updated Designer routing dependencies to supported security-patched versions.",
+  "securityReviewed": true,
+  "breaking": false
+}

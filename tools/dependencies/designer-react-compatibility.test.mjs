@@ -46,6 +46,19 @@ test('translation and testing adapters accept the actual stable peer versions', 
   }
 });
 
+test('the patched Router stays coordinated and supports React 18 and Node 22', () => {
+  for (const name of ['react-router', 'react-router-dom']) {
+    const entry = installed(name);
+    assert.equal(entry.version, '7.18.5', name);
+    assert.equal(lock.packages[`node_modules/${name}`].version, entry.version, name);
+    for (const peer of ['react', 'react-dom']) {
+      if (entry.peerDependencies[peer]) assert.ok(satisfies(installed(peer).version, entry.peerDependencies[peer]), `${name}/${peer}`);
+    }
+    assert.ok(satisfies('22.14.0', entry.engines.node), name);
+  }
+  assert.ok(!lock.packages['node_modules/@remix-run/router']);
+});
+
 test('replacement components declare compatibility with the installed runtime and each other', () => {
   for (const name of ['@hello-pangea/dnd', '@microlink/react-json-view', '@glideapps/glide-data-grid']) {
     const entry = installed(name);

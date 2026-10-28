@@ -132,6 +132,20 @@ try {
           await page.screenshot({ path: fileURLToPath(new URL(`${mode}-${device}-gallery.png`, output)) });
 
           if (!baselineOnly) {
+            const toggle = page.locator('.hub-sidebar-toggle');
+            if (device === 'mobile' && await toggle.getAttribute('aria-expanded') === 'false') await toggle.click();
+            await page.locator('a[href="/pdf/import"]').click();
+            await expect(page).toHaveURL(`${origin}/pdf/import`);
+            await expect(page.locator('.importer-page')).toBeVisible();
+            await page.goBack();
+            await expect(page).toHaveURL(`${origin}/pdf/template`);
+            await expect(page.locator('.pdf-template-grid')).toBeVisible();
+            await page.goForward();
+            await expect(page).toHaveURL(`${origin}/pdf/import`);
+            await expect(page.locator('.importer-page')).toBeVisible();
+          }
+
+          if (!baselineOnly) {
             const spreadsheet = await page.goto(`${origin}/spreadsheet/create`, { waitUntil: 'networkidle' });
             assert.equal(spreadsheet.status(), 200);
             if (device === 'mobile') {
@@ -155,7 +169,7 @@ try {
           await context.close();
         }
         assert.deepEqual(errors, [], `${mode}/${device} must have no runtime or asset failures`);
-        results.push({ mode, device, home: true, gallery: true, search: true, spreadsheetInput: !baselineOnly, errors, abortedRequests, telemetryOutcomes });
+        results.push({ mode, device, home: true, gallery: true, search: true, historyNavigation: !baselineOnly, spreadsheetInput: !baselineOnly, errors, abortedRequests, telemetryOutcomes });
         console.log(`PASS Designer tooling: ${mode}/${device}, home, SPA gallery, search${baselineOnly ? '' : ' and actual Spreadsheet input'}`);
       }
     } finally {
