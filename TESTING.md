@@ -171,6 +171,49 @@ node --test tools/dependencies/dependency-compliance.test.mjs tools/dependencies
 node tools/dependencies/validate-dependency-compliance.mjs
 ```
 
+### Stable React Compatibility
+
+The approved baseline remains React/React DOM 18.3.1, matching 18.x declarations
+and stable Glide Data Grid 6.0.3. Do not install the official Grid alpha solely
+to merge a React-major update. Future React, DOM and declaration updates are
+grouped for coordinated review.
+
+```bash
+node --test tools/dependencies/designer-react-compatibility.test.mjs
+node tools/dependencies/designer-react-smoke.mjs
+```
+
+Run after `npm ci` and the ordinary Designer production build. Four dependency
+contracts verify the approved versions, replacement peers, removed legacy
+packages and the complete installed npm tree. Two existing debts remain visible:
+Grid expects `marked` 4.x while the root resolves 18.0.5, and Monaco React's
+`monaco-editor` peer is not installed. The existing `.npmrc` legacy-peer setting
+is not expanded or described as strict resolution. Any additional peer problem
+fails the contract. Do not add a new exception without explicit investigation.
+
+The browser runner checks actual components under StrictMode in development
+and an isolated production fixture build, on desktop and mobile viewports.
+It exercises JSON edit/add/delete callbacks, selection and keyboard drag
+cancellation in the legacy surface, and editing/formula recalculation in the
+stable Spreadsheet grid. Three additional Jest regressions cover controlled
+selection feedback, sheet-switch reset and the application's required single
+overlay portal. `ComplexEditor` and its legacy `PxaSurface` and
+`JsonEditorPanel` are not routed from the current application; their compatibility
+test does not claim new active-Designer functionality or a working legacy
+reorder operation. The ordinary application is tested separately by the existing
+bundle smoke runner. Test fixtures are excluded from ordinary production output.
+That runner also edits and reopens a cell on the actual `/spreadsheet/create`
+route in all four modes/viewports, using the real sidebar control on mobile.
+The Grid wrapper must pass its selected state back when using a selection
+callback, and `index.html` must retain the `portal` host required by Glide.
+For a genuine old-dependency visual baseline only, use
+`PXA_DESIGNER_SMOKE_ROOT=/absolute/old/pxa-designer node tools/dependencies/designer-tooling-smoke.mjs artifacts/before --baseline-only`.
+That explicit mode covers home/gallery/search only, not Spreadsheet editing.
+Both comparison captures wait for every staggered gallery animation to finish;
+do not replace an old-dependency baseline with a new-dependency render.
+Screenshots and reports contain only synthetic data and make no real backend,
+authentication, cloud deployment or native mobile/touch claim.
+
 Use the CI-validated Node.js 22 toolchain (22.12 or newer within that major).
 Jest-DOM 7 requires Node 22; the Vite toolchain additionally requires 22.12 in
 that major. This is a contributor build/test requirement, not a browser or

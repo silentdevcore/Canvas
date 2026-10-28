@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactJson from 'react-json-view';
+import ReactJson from '@microlink/react-json-view';
 
 interface JsonEditorPanelProps {
   jsonData: Record<string, any>;

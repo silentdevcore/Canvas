@@ -11,6 +11,9 @@ updates:
   - package-ecosystem: "npm"
     directory: "/pxa-designer"
     target-branch: "develop"
+    groups:
+      react-runtime:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
     schedule:
       interval: "weekly"
       day: "monday"
