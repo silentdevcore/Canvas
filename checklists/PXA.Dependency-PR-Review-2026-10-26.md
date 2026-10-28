@@ -835,8 +835,8 @@ eight persistence tests with isolated PostgreSQL and no skips; the existing
 native image-conversion exclusion remains explicit and unchanged.
 
 Reviewing the Linux graph additionally finds a missing test prerequisite:
-SkiaSharp's managed package brings only Windows/macOS native assets. The two
-image and image-analysis coverage hosts now reference matching
+SkiaSharp's managed package brings only Windows/macOS native assets. The three
+image, image-analysis and converter coverage hosts now reference matching
 `SkiaSharp.NativeAssets.Linux.NoDependencies` 3.119.2 with `PrivateAssets=all`
 and a Linux-only condition. Official package metadata is MIT and excludes the
 Fontconfig dependency. Contracts check the condition, version and platform
@@ -847,7 +847,7 @@ through NPOI; it does not need another reference. An initial contract wrongly
 assumed that a conditional direct reference also controls all transitive
 presence, and fails 39/40 locally. The corrected contract checks direct
 dependency activation separately from the resolved library graph. The remaining
-48 project files retain exactly the original
+47 project files retain exactly the original
 two tooling-reference changes, including BOM and EOF preservation.
 
 First hosted CI `40588898143`, head
@@ -861,3 +861,14 @@ is removed, bypassed or made conditional on native availability.
 After correction, all 40 local contracts pass again and all 105 solution
 projects rebuild with zero errors. Final hosted acceptance must use the
 corrected head, not the earlier failed run.
+
+Second hosted CI `40590621278`, head
+`3a94e0eec9ebd16f7f89539485f20fe39eee4549`, passes both image hosts but
+exposes the same missing native dependency in the SVG converter case: five
+converter cases pass and one fails on `SKTypeface` initialization. The converter
+host receives the same private Linux-only reference; its SVG test stays in the
+matrix. A complete scan of all 50 resolved graphs identifies no further missing
+native dependency in the selected paths. The file-importer host also lacks a
+Linux native asset but its selected DOCX/ODT text-import paths are managed and
+already pass on Linux. Full unselected image-import coverage is not claimed.
+Both failed CI runs and their partial artifacts remain evidence, not successes.

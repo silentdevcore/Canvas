@@ -50,7 +50,7 @@ This is a collector compatibility smoke, not a full-suite coverage target or a
 claim about native OCR accuracy. The existing full CI suites, PostgreSQL tests
 and documented native OCR limitation remain unchanged. The OCR smoke uses a
 fake OCR engine but real image-to-design mapping rather than silently returning
-when native libraries are unavailable. Image and image-analysis hosts use a private,
+when native libraries are unavailable. Image, image-analysis and converter hosts use a private,
 Linux-only Skia native-assets reference matching their managed 3.119.2 version;
 this is test support, not a shipped native-runtime or OCR deployment change.
 The API filter uses the fully qualified
