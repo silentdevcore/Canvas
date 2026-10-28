@@ -59,12 +59,25 @@ test('replacement components declare compatibility with the installed runtime an
 });
 
 test('retired components, their declarations and Flux are absent from the lockfile', () => {
-  for (const name of ['react-beautiful-dnd', '@types/react-beautiful-dnd', 'react-json-view', 'flux']) {
+  for (const name of ['react-beautiful-dnd', '@types/react-beautiful-dnd', 'react-json-view', 'flux', 'chart.js', 'react-chartjs-2']) {
     assert.ok(!manifest.dependencies[name] && !manifest.devDependencies[name], name);
     assert.ok(!Object.keys(lock.packages).some(path => path.endsWith(`node_modules/${name}`)), name);
   }
   assert.deepEqual(lock.packages[''].dependencies, manifest.dependencies);
   assert.deepEqual(lock.packages[''].devDependencies, manifest.devDependencies);
+});
+
+test('Jest and jsdom stay aligned with the supported TypeScript transformer', () => {
+  for (const name of ['jest', 'jest-environment-jsdom', '@jest/core']) {
+    assert.equal(installed(name).version, '30.5.2', name);
+  }
+  for (const [name, range] of Object.entries(installed('ts-jest').peerDependencies)) {
+    if (['jest', 'jest-util', 'babel-jest', 'typescript', '@jest/types', '@jest/transform'].includes(name)) {
+      assert.ok(satisfies(installed(name).version, range), `ts-jest/${name}`);
+    }
+  }
+  assert.equal(execFileSync(process.execPath, [fileURLToPath(new URL('node_modules/jest/bin/jest.js', root)), '--version'],
+    { encoding: 'utf8' }).trim(), '30.5.2');
 });
 
 test('the full installed tree exposes only the two documented pre-existing peer debts', () => {

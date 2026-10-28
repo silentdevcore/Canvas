@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-qr-export-compatible-maintenance",
+  "impact": "patch",
+  "components": ["api", "infrastructure"],
+  "category": "fixed",
+  "summary": "Fixed QR codes appearing as placeholder text in PDF exports and updated compatible document-processing dependencies.",
+  "breaking": false
+}

@@ -1102,11 +1102,11 @@ at this checkpoint. Preserve the separate dirty rename worktree and do not merge
 | --- | --- | --- |
 | #38, #39 | Closed without merge | Owner-selected React 18.3.1 and stable Grid 6.0.3; #190 completed compatible preparation, not React 19. |
 | #179 | Closed without merge | Node 26 declarations do not match the validated Node 22 runtime. Keep Node 22 types. |
-| #183 | Closed without merge | Upstream requires OpenAPI.NET 2.x for ASP.NET Core 10. Keep explicit 2.12.2 and actual OpenAPI generation tests. |
+| #183 | Closed without merge | Upstream requires OpenAPI.NET 2.x for ASP.NET Core 10. Keep the supported 2.x line and actual OpenAPI generation tests; the subsequent 2.13.0 update is reviewed below. |
 | #184 | Closed without merge | NPOI 2.8.1 retains unresolved OSMF EULA/commercial terms. The existing 2.8.0 production blocker remains, not an implicit license approval. |
-| #185, #186, #187, #188, #189 | Consolidated replacement, awaiting exact-head CI/merge | Align the five direct telemetry components and their resolved core APIs to 1.20.1. Keep Npgsql 10.0.3 and all privacy controls. |
-| #182 | Consolidated replacement, awaiting exact-head CI/merge | Align all 51 Test SDK consumers to private 18.11.0 instead of upgrading only Relay. Keep Coverlet 10.1.0, xUnit and VSTest integration unchanged. |
-| #180 | Consolidated replacement, awaiting exact-head CI/merge | Playwright Test/Playwright/Core 1.64.1 and its corresponding Chromium; development-only change. |
+| #185, #186, #187, #188, #189 | Replaced by merged #192, source PRs closed | Five direct telemetry components and resolved core APIs aligned to 1.20.1. Npgsql 10.0.3 and privacy controls retained. |
+| #182 | Replaced by merged #192, source PR closed | All 51 Test SDK consumers aligned to private 18.11.0 instead of upgrading only Relay. Coverlet 10.1.0, xUnit framework and VSTest integration retained. |
+| #180 | Replaced by merged #192, source PR closed | Playwright Test/Playwright/Core 1.64.1 and its corresponding Chromium; development-only change. |
 
 Deferred work is retained in [issue #191](https://github.com/silentdevcore/Canvas/issues/191),
 with explicit acceptance triggers. Closing these PRs does not complete those
@@ -1189,9 +1189,16 @@ Review them together on a separate branch based on the actual merged develop.
 - [x] Pass 306 cases in 36 suites, typecheck, production build and six stable runtime/adapter contracts.
 - [x] Pass all four actual routed development/production desktop/mobile scenarios.
 - [x] Confirm full/production audit totals remain five low development and two moderate production, zero high/critical.
-- [ ] Complete final component/chart browser matrices and exact-head hosted checks.
-- [ ] Record technical review, merge normally and close #193/#194 as replaced.
-- [ ] Query the live PR list again; record new arrivals honestly rather than claiming an unverified empty queue.
+- [x] Complete final component/chart browser matrices and exact-head hosted checks.
+- [x] Record technical review, merge normally and close #193/#194 as replaced.
+- [x] Query the live PR list again; record new arrivals honestly rather than claiming an unverified empty queue.
+
+PR #199 passed all eight checks at `c8266ff277ef13021aa17f057b267af9b7b25660`
+and merged as `48da4155a280c3d6e9b875472d795bbd83674891`. Both source PRs
+were closed after merge. All twelve component cases, 60 Preview charts and six
+Canvas chart cases passed. [Post-merge evidence](https://github.com/silentdevcore/Canvas/pull/199#issuecomment-6478544961).
+New proposals #195-#198 and #200-#204 appeared as queue slots became available;
+their disposition is separate from the earlier completed checkpoints.
 
 The new tests initialize real i18next instances and load the existing six local
 catalogs. No mock translation hook or network translation backend is substituted.
@@ -1204,3 +1211,92 @@ work remain unchanged.
 
 Primary sources: [React Testing Library 16.3.3](https://github.com/testing-library/react-testing-library/releases/tag/v16.3.3),
 [react-i18next 17.1.9 changelog](https://github.com/i18next/react-i18next/blob/v17.1.9/CHANGELOG.md).
+
+## Final Runtime And Tooling Follow-up - 2026-10-28
+
+| Proposals | Reviewed disposition |
+| --- | --- |
+| #195 | Coordinate Jest and jsdom 30.5.2; validate ts-jest peers and real test discovery. |
+| #196 | Remove unused chart.js/react-chartjs-2 instead of upgrading a second, unreferenced chart library. Recharts remains the actual renderer. |
+| #197 | Update OpenAPI.NET within its supported 2.x line to 2.13.0. |
+| #198 | Align both QRCoder consumers to 1.8.1 and fix the previously failing real PDF QR image path. |
+| #200, #201 | Closed without merge: isolated managed/native Skia 4 updates leave an inconsistent graphics graph. Keep paired 3.119.2 pending a dedicated migration. |
+| #202 | Align all three explicit XML cryptography references to 10.0.14. |
+| #203 | Align both PostgreSQL Testcontainers consumers to 4.16.0; exercise real isolated databases. |
+| #204 | Align all 51 xUnit VSTest adapters to private 4.0.1, including the two existing 3.1.5 consumers omitted by the proposal. Keep framework 2.9.3. |
+
+Skia follow-up and acceptance conditions remain in
+[issue #191](https://github.com/silentdevcore/Canvas/issues/191#issuecomment-6478722706).
+No NPOI EULA is accepted, no production license blocker is cleared, and no
+review rule, security threshold or dependency-compliance requirement is weakened.
+
+- [x] Review actual upstream contracts and current resolved graphs before changing dependencies.
+- [x] Build all 105 solution projects after coordinated restore.
+- [x] Retain QR baseline evidence: six passing cases and three failed PDF image cases, not a falsely clean baseline.
+- [x] Fix PDF QR embedding through the existing 8-bit grayscale helper and direct byte-image overload, without temporary files.
+- [x] Pass all ten QR regressions and the complete selected 407-case API suite against PostgreSQL before the adapter change.
+- [x] Pass eight PostgreSQL persistence cases and 53 selected export cases before the adapter change.
+- [x] Verify seven Designer runtime/tool contracts, 306 cases in 36 suites, typecheck and production build.
+- [x] Pass four actual routed cases, twelve component scenarios, 60 Preview charts and six Canvas charts.
+- [x] Verify official npm origins, archive integrity and licenses for all 152 changed retained development archives.
+- [x] Verify no retained production npm archive changes; remove only the unused chart graph from production dependencies.
+- [x] Keep audit totals explicit: five low development findings and two moderate production Router findings, zero high/critical.
+- [x] Complete the new adapter's 50-host collector matrix and raw-report comparison.
+- [x] Repeat actual API, persistence and collector-free Relay tests with adapter 4.0.1.
+- [ ] Complete final exact-head hosted checks and record technical review.
+- [ ] Merge normally, then close replaced proposals against their freshly verified source heads.
+- [ ] Verify the final live queue and preserve any distinct security follow-up instead of silently closing it.
+
+The initial QR regression is real: QRCoder's default packed PNG is not accepted
+by the existing PDF image reader, so the mapper silently substitutes text.
+Tests inspect the actual mapped PDF and independently decode the module matrix.
+The fix reuses the already supported grayscale helper; Word output retains its
+own normal PNG writer. An initial test compile incorrectly referenced a facade
+not available to the API test project; the corrected test exercises the same
+low-level reader as production instead of adding an unnecessary dependency.
+
+Adapter 4 is not xUnit framework 4: upstream explicitly supports xUnit 1.9.2+
+on .NET 8+, including the existing xUnit 2.9.3/net10 tests. Do not move to MTP,
+change filters, silently drop discovered tests or present modified source-line
+denominators as unchanged instrumentation. The QR source fix may legitimately
+change line positions and denominators; report those differences explicitly.
+
+The final adapter matrix passes all 675 selected cases on all 50 hosts. Test
+names, instrumented modules and executed hit sets are identical to the retained
+previous matrix. API, Export and ImageOcr hosts include the mapper and therefore
+have seven fewer valid lines (88911 to 88904); all branch counters and all other
+host counters are unchanged. This is the reviewed QR source simplification,
+not missing discovery or a silently accepted coverage loss. The complete API
+407, persistence eight and Relay five cases also pass with adapter 4.0.1, with
+no skips. Evidence is retained under `artifacts/final-runtime-review/adapter4-*`.
+
+## Temporary Version Proposal Pause
+
+The owner explicitly approved pausing normal version PRs until rename acceptance.
+All six Dependabot update blocks use `open-pull-requests-limit: 0`; schedules,
+directories, target branch and security CI remain in place. This takes effect
+for version proposals after the configuration reaches the default `develop`
+branch, not merely when changed in a local worktree.
+
+GitHub inspection found automatic security fixes disabled, and an activation
+attempt exposed disabled vulnerability alerts as well. Enable both repository
+features, then verify `enabled: true, paused: false` for security fixes. This
+was completed on 2026-10-28; no alerts are dismissed or ignored. The first newly
+created Router 7 security proposal (#205) is explicitly a separate compatibility
+review, not silently included or suppressed by the version pause.
+
+- [x] Record explicit owner approval for a temporary normal-version pause.
+- [x] Set all six version-PR limits to zero without disabling audit workflows.
+- [x] Enable GitHub vulnerability alerts and automatic security-update PRs; verify the effective remote settings.
+- [ ] Verify the merged configuration on the actual default branch.
+- [ ] After rename acceptance, restore NuGet's limit to 10 and the other five ecosystems' limits to 5.
+- [ ] Run the dependency/security checks and confirm the resumed proposal policy before merging the restoration.
+
+Keep the coordinated telemetry/test-platform groups. Security updates use their
+own GitHub behavior and are not disabled by the version-PR limit. Restoration is
+a real follow-up, not a completed task or a permanent dependency freeze.
+
+Primary sources: [Dependabot security configuration](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates),
+[xUnit adapter 4.0.0](https://xunit.net/releases/visualstudio/4.0.0),
+[xUnit adapter 4.0.1](https://xunit.net/releases/visualstudio/4.0.1),
+[adapter framework support](https://github.com/xunit/visualstudio.xunit/blob/4.0.1/README.md).

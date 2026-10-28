@@ -19,10 +19,11 @@
 ### Coverage collector maintenance
 
 The 50 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
-Microsoft.NET.Test.Sdk 18.11.0. The collector-free Webhook Relay uses the same
-private SDK version. Coverlet's VSTest integration requires test SDK
-18.4.0 or newer; it is not an MTP v2 collector. Keep the existing xUnit and
-runner versions unless a separately reviewed update requires changes.
+Microsoft.NET.Test.Sdk 18.11.0 and xUnit VSTest adapter 4.0.1. All 51 adapter
+references are private, including the collector-free Webhook Relay. The test
+framework remains xUnit 2.9.3; adapter 4 supports this framework on net10 and
+does not require an MTP migration. Coverlet's VSTest integration requires test
+SDK 18.4.0 or newer; it is not an MTP v2 collector.
 
 Playwright Test, Playwright and Playwright Core resolve together to 1.64.1.
 Use its matching Chromium installation, not an older cached browser. Run Vite
@@ -33,6 +34,21 @@ is used. Telemetry components resolve together to 1.20.1; API tests exercise
 real SDK export with synthetic trace, metric and log capture, privacy processors,
 and the existing unavailable-collector integration cases. Local capture is not
 proof of a deployed OTLP collector or production routing.
+
+`QrDependencyCompatibilityTests` independently decodes synthetic QR module
+matrices, verifies real PDF image objects rather than text fallbacks, and checks
+Word PNG embedding. The PDF mapper reuses the existing 8-bit grayscale PNG
+helper because the low-level reader does not accept QRCoder's default packed
+PNG output. No native image library or temporary file is needed for this path.
+The compatible OpenAPI 2.13.0 update is checked through actual document generation.
+Managed/native Skia 3.119.2 remains coordinated; a Skia 4 migration is separate.
+
+Normal Dependabot version proposals are temporarily paused during rename using
+`open-pull-requests-limit: 0` in all six update entries. Security alerts and
+automatic security-update PRs are enabled separately on GitHub; security audits
+and required CI checks are unchanged. Restore version proposals after rename
+acceptance using the recorded limits in the
+[dependency closure checklist](checklists/PXA.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
 
 After restoring and building Release, install `xmllint` (`libxml2-utils` on
 Ubuntu; supplied by macOS) and run:

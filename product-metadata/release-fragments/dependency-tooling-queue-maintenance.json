@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-tooling-queue-maintenance",
+  "impact": "none",
+  "components": ["designer", "api"],
+  "category": "improved",
+  "summary": "Aligned test tooling and removed an unused chart dependency while preserving the supported Designer runtime.",
+  "reason": "Test adapters, test-only PostgreSQL tooling, Jest maintenance and an unreferenced chart package do not add or change a supported product capability.",
+  "breaking": false
+}

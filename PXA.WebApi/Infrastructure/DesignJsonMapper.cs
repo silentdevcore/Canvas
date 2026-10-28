@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using PXA.Pdf;
-using QRCoder;
 using SkiaSharp;
 using ZXing;
 using ZXing.Common;
@@ -941,10 +940,7 @@ public static class DesignJsonMapper
                 try
                 {
                     var pngBytes = GenerateQrPng(value);
-                    var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ".png");
-                    File.WriteAllBytes(tempPath, pngBytes);
-                    try { page.DrawImage(tempPath, elX, RectBottomY(pageH, elY, h), w, h); }
-                    finally { TryDelete(tempPath); }
+                    page.DrawImage(pngBytes, elX, RectBottomY(pageH, elY, h), w, h);
                 }
                 catch { DrawPlaceholder(page, el, pageH, $"QR: {value}"); }
                 break;
@@ -1448,13 +1444,7 @@ public static class DesignJsonMapper
         catch { return null; }
     }
 
-    private static byte[] GenerateQrPng(string value)
-    {
-        var gen = new QRCodeGenerator();
-        using var data = gen.CreateQrCode(value, QRCodeGenerator.ECCLevel.M);
-        var qr = new PngByteQRCode(data);
-        return qr.GetGraphic(10);
-    }
+    private static byte[] GenerateQrPng(string value) => ScriptHelpers.GenerateQrPng(value);
 
     private static byte[] GenerateBarcodePng(string value, string? barcodeType, int width, int height)
     {

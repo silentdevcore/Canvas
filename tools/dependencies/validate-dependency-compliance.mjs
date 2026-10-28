@@ -77,11 +77,11 @@ const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock
 if (mcpIgnore.split(/\r?\n/u).includes('package-lock.json') || !mcpLock.includes('"lockfileVersion"')) {
   fail('MCP must commit a valid package lock for reproducible audits');
 }
-if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.12.2"')) {
+if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.13.0"')) {
   fail('Microsoft.OpenApi security pin is missing');
 }
 for (const source of [spreadsheet, converters, word]) {
-  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.13"')) {
+  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.14"')) {
     fail('System.Security.Cryptography.Xml security pin is missing');
   }
 }

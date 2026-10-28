@@ -41,6 +41,15 @@ public sealed class DotnetDependencyAlignmentTests
     }
 
     [Theory]
+    [InlineData("PXA.WebApi/PXA.WebApi.csproj")]
+    [InlineData("src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj")]
+    public void Qr_consumers_resolve_the_same_reviewed_version(string project)
+    {
+        Assert.Equal("1.8.1", ReferenceVersion(project, "QRCoder"));
+        AssertResolvedVersion("QRCoder", "1.8.1");
+    }
+
+    [Theory]
     [InlineData("OpenTelemetry")]
     [InlineData("OpenTelemetry.Api")]
     [InlineData("OpenTelemetry.Api.ProviderBuilderExtensions")]

@@ -96,9 +96,11 @@ test('every collector host resolves compatible private VSTest tools on net10', (
     assert.equal(reference('coverlet.collector', 'PrivateAssets'), 'all', name);
     assert.equal(reference('Microsoft.NET.Test.Sdk', 'Version'), '18.11.0', name);
     assert.equal(reference('Microsoft.NET.Test.Sdk', 'PrivateAssets'), 'all', name);
+    assert.equal(reference('xunit.runner.visualstudio', 'Version'), '4.0.1', name);
+    assert.equal(reference('xunit.runner.visualstudio', 'PrivateAssets'), 'all', name);
     assert.equal(xpath(path, 'string(/Project/PropertyGroup/TargetFramework)'), 'net10.0', name);
     const assets = JSON.parse(readFileSync(join(dirname(path), 'obj/project.assets.json'), 'utf8'));
-    for (const id of ['coverlet.collector/10.1.0', 'Microsoft.NET.Test.Sdk/18.11.0', 'Microsoft.TestPlatform.TestHost/18.11.0']) {
+    for (const id of ['coverlet.collector/10.1.0', 'Microsoft.NET.Test.Sdk/18.11.0', 'Microsoft.TestPlatform.TestHost/18.11.0', 'xunit.runner.visualstudio/4.0.1']) {
       assert.ok(assets.libraries[id], `${name} must resolve ${id}`);
     }
     const imports = join(dirname(path), 'obj', `${name}.csproj.nuget.g.targets`);
@@ -121,6 +123,8 @@ test('the collector-free relay uses the same private VSTest SDK', () => {
   const path = new URL('PXA.Observability.WebhookRelay.Tests.csproj', project).pathname;
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@Version)"), '18.11.0');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@PrivateAssets)"), 'all');
+  assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@Version)"), '4.0.1');
+  assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@PrivateAssets)"), 'all');
   const dependencies = JSON.parse(readFileSync(new URL('bin/Release/net10.0/PXA.Observability.WebhookRelay.Tests.deps.json', project), 'utf8'));
   assert.ok(dependencies.libraries['Microsoft.TestPlatform.TestHost/18.11.0']);
 });
