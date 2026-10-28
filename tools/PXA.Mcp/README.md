@@ -50,6 +50,27 @@ runner through `npx`. It tests the actual stdio protocol, schema defaults,
 validation failures and resource discovery; it does not claim a backend PDF
 rendering or authenticated deployment test.
 
+### Compiler Maintenance
+
+Type checking uses the lockfile-pinned TypeScript 7 native CLI. `tsx` still
+executes the server; no compiler API, emitted application JavaScript or runtime
+dependency changes. The existing strict, ES2022, ESNext/Bundler configuration
+and explicit Node types remain unchanged. Do not apply this compiler upgrade
+automatically to the Designer, where Jest/compiler-API consumers need separate
+compatibility work.
+
+`npm ci` must include optional dependencies so the matching native compiler is
+installed. Contracts check all locked compiler-platform packages, the installed
+platform package and actual CLI version. They compile valid Node/type-narrowing
+code and require diagnostics for incorrect types, nulls, implicit `any` and an
+unknown Node export. A nonzero diagnostic exit is required; old and new compilers
+do not necessarily use the same numeric exit code.
+
+Validation covers macOS ARM64 locally and Linux x64 in CI. Other native packages
+are retained in the lockfile but are not claimed runtime-tested. Dependabot
+continues compatible Node-type updates; major declarations are deferred until
+the runtime baseline itself is reviewed and upgraded.
+
 ## Use from Claude Desktop / Claude Code
 
 Add to your MCP config (e.g. Claude Desktop `claude_desktop_config.json`):
