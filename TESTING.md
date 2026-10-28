@@ -16,6 +16,60 @@
 
 ## Running Tests
 
+### Coverage collector maintenance
+
+The 50 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
+Microsoft.NET.Test.Sdk 18.5.1. Coverlet's VSTest integration requires test SDK
+18.4.0 or newer; it is not an MTP v2 collector. Keep the existing xUnit and
+runner versions unless a separately reviewed update requires changes.
+
+After restoring and building Release, install `xmllint` (`libxml2-utils` on
+Ubuntu; supplied by macOS) and run:
+
+```bash
+node --test tools/dependencies/coverage-smoke.test.mjs
+node tools/dependencies/coverage-smoke.mjs artifacts/coverage-smoke-local
+# Revalidate the retained old/new matrix attachments without rerunning tests:
+node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-review/before-filtered-exact
+node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-review/after
+node tools/dependencies/coverage-smoke.mjs --compare \
+  artifacts/coverage-review/before-filtered-exact/audited-summary.json \
+  artifacts/coverage-review/after/audited-summary.json
+```
+
+Use a fresh output directory for every run. The runner requires exactly 50
+collector hosts, uses all migration tests and focused production-exercising
+tests for the other hosts, and fails on missing attachments, zero tests,
+non-passing or unexecuted tests, empty denominators, absent production hits,
+test/tool assemblies, generated `obj` sources and inconsistent XML/JSON modules.
+It parses TRX and Cobertura with a non-network XML parser and retains both raw
+reports and a machine-readable summary. CI uploads synthetic evidence for seven
+days even when a later host fails. No customer database or documents are used.
+
+This is a collector compatibility smoke, not a full-suite coverage target or a
+claim about native OCR accuracy. The existing full CI suites, PostgreSQL tests
+and documented native OCR limitation remain unchanged. The OCR smoke uses a
+fake OCR engine but real image-to-design mapping rather than silently returning
+when native libraries are unavailable. Image, image-analysis and converter hosts use a private,
+Linux-only Skia native-assets reference matching their managed 3.119.2 version;
+this is test support, not a shipped native-runtime or OCR deployment change.
+The API filter uses the fully qualified
+class name: `VersionControllerTests` alone also matches
+`ImageConversionControllerTests` with VSTest's case-insensitive substring filter.
+
+Comparison requires identical project sets, discovered/executed/passed counts,
+test names and instrumented assemblies, with hits in each expected product
+module. It reports line denominators and every lost/gained
+covered source location without silently rebaselining them. Coverage 10 fixes
+record, branch and async instrumentation, so changed percentages need review;
+they do not by themselves prove a product regression or improvement. Collector
+integration does not enforce percentage thresholds automatically.
+
+References: [Coverlet VSTest integration](https://github.com/coverlet-coverage/coverlet/blob/v10.1.0/Documentation/VSTestIntegration.md),
+[Coverlet 10.1.0 changes](https://github.com/coverlet-coverage/coverlet/releases/tag/v10.1.0).
+
+### Test groups
+
 ```bash
 # All .NET projects
 dotnet build PXA.sln
