@@ -1132,8 +1132,14 @@ advisories and proposals still require triage. `productionReady` stays false.
 - [x] Keep all non-Playwright lock entries identical; remove only Playwright's obsolete optional fsevents entry.
 - [x] Confirm unchanged audit totals: two moderate production and five low development findings, zero high/critical.
 - [x] Pass six coverage/tool contracts, six compliance and 26 release-author/versioning contracts.
-- [ ] Complete exact-head hosted CI, record technical review and merge the replacement normally.
-- [ ] Close the seven replaced proposals after merge and verify the entire live queue.
+- [x] Complete exact-head hosted CI, record technical review and merge the replacement normally.
+- [x] Close the seven replaced proposals after merge and verify the entire live queue.
+  PR #192 passed all eight checks at `19a9f87be2aad94cd62338fb36992fe60f9d83ca`
+  and merged as `0b97c48503a155289c7f8bf12facdd6563791da4`. The fetched develop
+  tree equals the tested head. All twelve original proposals have a final disposition.
+  [Post-merge evidence](https://github.com/silentdevcore/Canvas/pull/192#issuecomment-6477660133).
+  Queue verification found two newly created proposals, #193 and #194, handled
+  separately below; the earlier checkpoint is not a claim of an empty future queue.
 
 Coverage output is retained under `artifacts/dependency-closure-20261028/before`
 and `after`; each contains the actual TRX, Cobertura, JSON and complete summary.
@@ -1165,3 +1171,36 @@ Primary sources: [OpenAPI.NET compatibility](https://github.com/microsoft/OpenAP
 [VSTest 18.11.0](https://github.com/microsoft/vstest/releases/tag/v18.11.0),
 [Playwright 1.64.1](https://github.com/microsoft/playwright/releases/tag/v1.64.1),
 [NPOI commercial notice](https://github.com/nissl-lab/npoi/discussions/1864).
+
+## Newly Arrived Designer Follow-up - 2026-10-28
+
+After PR #192 merged and the original twelve proposals were closed, Dependabot
+created #193 (React Testing Library 16.3.3) and #194 (react-i18next 17.1.9).
+These are new compatible proposals, not failures of the earlier closure.
+Review them together on a separate branch based on the actual merged develop.
+
+- [x] Inspect the exact source heads, upstream changes, peers and runtime compatibility.
+- [x] Upgrade React Testing Library 16.3.2 to 16.3.3 without changing React/DOM 18.
+- [x] Upgrade react-i18next 17.0.10 to 17.1.9; keep i18next 26.3.6 and TypeScript 6.0.3.
+- [x] Review the required HTML parser 4.0.1 and Babel runtime 7.29.10; remove unused void-elements only.
+- [x] Verify MIT licenses, official npm origins and downloaded archive integrity for all four changed packages.
+- [x] Confirm every unrelated lock entry remains identical.
+- [x] Add six actual-catalog language/direction tests plus mounted namespace add/remove and Trans interpolation/markup tests.
+- [x] Pass 306 cases in 36 suites, typecheck, production build and six stable runtime/adapter contracts.
+- [x] Pass all four actual routed development/production desktop/mobile scenarios.
+- [x] Confirm full/production audit totals remain five low development and two moderate production, zero high/critical.
+- [ ] Complete final component/chart browser matrices and exact-head hosted checks.
+- [ ] Record technical review, merge normally and close #193/#194 as replaced.
+- [ ] Query the live PR list again; record new arrivals honestly rather than claiming an unverified empty queue.
+
+The new tests initialize real i18next instances and load the existing six local
+catalogs. No mock translation hook or network translation backend is substituted.
+The initial test compile failed for an unused React import under automatic JSX;
+remove that unused import, without disabling diagnostics. All eight new tests
+then pass. Existing gallery, data, document and authentication behavior stays
+unchanged. Do not claim deployed localization, independent human approval or a
+zero-advisory graph. VERSION, published releases, NPOI blocker and pending rename
+work remain unchanged.
+
+Primary sources: [React Testing Library 16.3.3](https://github.com/testing-library/react-testing-library/releases/tag/v16.3.3),
+[react-i18next 17.1.9 changelog](https://github.com/i18next/react-i18next/blob/v17.1.9/CHANGELOG.md).
