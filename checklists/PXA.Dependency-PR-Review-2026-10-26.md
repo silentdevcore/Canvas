@@ -768,8 +768,8 @@ The relay test project does not use the collector and is outside this update.
 - [x] Pass the same new-version matrix and review line-level instrumentation drift.
 - [x] Verify production hits, test/tool exclusions and generated-source filtering.
 - [x] Pass existing release/compliance contracts and NuGet vulnerability policy.
-- [ ] Pass every applicable exact-head Linux CI check, including the real collector matrix.
-- [ ] Obtain a disclosed technical review and merge normally, closing all 50 proposals.
+- [x] Pass every applicable exact-head Linux CI check, including the real collector matrix.
+- [x] Obtain a disclosed technical review and merge normally, closing all 50 proposals.
 
 The initial sandbox attempt cannot open VSTest's local communication socket and
 is not a successful test run. The authorized initial API attempt uses an overly
@@ -872,3 +872,97 @@ native dependency in the selected paths. The file-importer host also lacks a
 Linux native asset but its selected DOCX/ODT text-import paths are managed and
 already pass on Linux. Full unselected image-import coverage is not claimed.
 Both failed CI runs and their partial artifacts remain evidence, not successes.
+
+Final coverage PR #177, head `4bcdb98d5f98474d5d0d83bfcd5ee0c1c49bf34a`,
+passes all eight applicable checks in CI `40709358800` and synchronization
+`40709355412`. The push-only snapshot is intentionally skipped. Its actual
+Linux TRX/Cobertura/JSON artifacts were downloaded and re-audited: all 675 cases
+pass in 50 hosts, without skips, missing production hits or test/tool leakage.
+Artifact `12825627373` has SHA-256
+`b4cf3ba4f8ccc39e172fbbac2b1d9391d9aeaa29f421730f3446d5377e590b7d`.
+The disclosed technical review uses the owner's second account, not an
+independent person. Normal squash merge is
+`0f2665d49b87fd0bb76984db5a253c6cbe6f983e`; all 50 original collector proposals
+are closed as superseded, not individually merged. Permanent final evidence:
+[PR #177 audit](https://github.com/silentdevcore/Canvas/pull/177#issuecomment-6472748717).
+
+## Remaining Major Toolchain Proposals - 2026-10-28
+
+The next isolated branch starts from the merged coverage work. Exact source
+proposals reviewed:
+
+| PR | Reviewed head | Disposition |
+| --- | --- | --- |
+| #31 | `be38ea3b4fd4772930d5312b27dc82c4bbea86d3` | Rebuild TypeScript 7.0.2 upgrade on current develop; retain Node 22 types and current tsx instead of restoring stale tooling from this proposal. |
+| #108 | `fc6f142390c91ce1222899d848737748d090a8b3` | Do not merge Node 26 declarations into the validated Node 22 baseline. Compatible updates remain enabled; declaration-major proposals wait for a deliberate runtime upgrade. |
+| #39 | `728054e1705db212ab48c43860d12108e54a842f` | React 19 paired with React DOM/types 18 is not acceptable. Requires coordinated runtime/types and component migration. |
+| #38 | `0cfc53f00178656ed05a78122eee7ef5674ee740` | React DOM/types 19 paired with React/types 18 is not acceptable. Same coordinated migration is required. |
+
+### MCP Compiler
+
+- [x] Establish unchanged TypeScript 5.9.3 typecheck, three tooling contracts,
+  14 actual stdio assertions and full development/production npm audit baseline.
+- [x] Review TypeScript 7 native CLI prerequisites and actual package provenance.
+- [x] Upgrade only the development compiler to 7.0.2 with complete platform lock entries.
+- [x] Keep Node declarations 22.20.5, tsx 4.23.15, SDK 1.32.2 and Zod 4.6.7 unchanged.
+- [x] Add compiler CLI/platform, positive compilation and negative diagnostics contracts.
+- [x] Pass all six final contracts, typecheck, stdio smoke and complete npm audit.
+- [x] Verify only compiler/platform lock entries changed and production dependencies did not.
+- [x] Pass release and dependency-policy validation with VERSION unchanged.
+- [ ] Pass every applicable exact-head Linux CI check, including the native compiler contracts.
+- [ ] Record disclosed technical review and normal merge; close the superseded compiler
+  and incompatible declaration proposals with explicit explanations.
+
+The original strict/ES2022/ESNext/Bundler configuration needs no relaxation.
+The MCP uses the compiler CLI only; execution remains the existing tsx hook.
+TypeScript 7 changes the compiler implementation and platform distribution,
+not this server's protocol or runtime. No Designer compiler or .NET project is
+updated. Optional dependencies are required for the native compiler.
+
+The first new negative contract correctly receives all four expected diagnostic
+classes but incorrectly assumes the older compiler's numeric exit code 2.
+TypeScript 7 returns 1. The corrected test requires a nonzero exit plus every
+specific diagnostic; launch failures and termination signals still fail.
+This is a test assumption correction, not suppression of a compiler diagnostic.
+
+Final local checks pass on Node 22.14.0 / macOS ARM64: all six tooling contracts,
+the unchanged MCP project typecheck and all 14 actual stdio assertions. The
+complete npm audit, including development and optional packages, reports zero
+findings both before and after. A structured old/new lock comparison confirms
+only the root development declaration, compiler and its 20 platform packages
+change; every other resolved entry and production dependency is identical.
+The modified Dependabot configuration is parsed as YAML and contains exactly
+the scoped declaration-major rule, not a global ignore. All 32 release/compliance
+contracts and dependency metadata validation pass. The existing NPOI licensing
+blocker remains unresolved; this tooling work does not waive it. Product
+VERSION remains 1.1.0. Hosted Linux acceptance and merge stay open until proven.
+
+Primary references: [Microsoft's native compiler transition](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0-rc/),
+[TypeScript 6 transition/deprecations](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html),
+[exact compiler metadata](https://registry.npmjs.org/typescript/7.0.2).
+
+### Coordinated React Upgrade: Required Follow-up
+
+- [ ] Keep React, React DOM and their two declaration packages on matching majors.
+- [ ] Replace or upgrade `react-beautiful-dnd` and exercise the actual PxaSurface
+  drag/drop, reorder, selection and undo behavior; current 13.1.1 is deprecated
+  and its React/DOM peers stop at 18.
+- [ ] Upgrade or replace Glide Data Grid with an implementation declaring React 19
+  support and exercise Spreadsheet editing, selection, clipboard and virtualization;
+  the installed 6.0.3 declares only React/DOM 16/17/18.
+- [ ] Replace or upgrade the JSON editor; current `react-json-view` 1.21.3 declares
+  React/DOM 15/16/17 only. This is an existing peer mismatch even on React 18,
+  not a regression caused by the MCP work.
+- [ ] Inspect remaining resolved peers, removed APIs, callback refs and React 19
+  type changes without `--force`, `--legacy-peer-deps` or added suppression.
+- [ ] Pass clean installation, Designer tests/typecheck/build and actual desktop/mobile
+  Canvas, Preview, PDF Viewer, code/JSON editor and Spreadsheet interaction smoke.
+- [ ] Review visual changes and exact-head CI before claiming either React PR complete.
+
+The current batch does not change any React package, replace components or
+claim a successful React 19 runtime test. The declared blockers are confirmed
+against the package publishers' own metadata, not inferred from the PR titles.
+References: [React upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide),
+[Glide peers](https://registry.npmjs.org/@glideapps%2fglide-data-grid/6.0.3),
+[drag/drop peers](https://registry.npmjs.org/react-beautiful-dnd/13.1.1),
+[JSON editor peers](https://registry.npmjs.org/react-json-view/1.21.3).
