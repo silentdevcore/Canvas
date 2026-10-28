@@ -14,11 +14,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.14" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" PrivateAssets="all" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.16.0" />
     <!-- Keep Testcontainers' transitive SSH transport on its patched release. -->
     <PackageReference Include="SSH.NET" Version="2026.0.0" PrivateAssets="all" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

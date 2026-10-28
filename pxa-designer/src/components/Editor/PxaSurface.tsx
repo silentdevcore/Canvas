@@ -30,7 +30,7 @@ const PxaSurface: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
       case 'circle':
         return <div style={{ ...element.style, borderRadius: '50%', backgroundColor: element.style?.backgroundColor || 'gray' }}>Circle</div>;
       case 'chart':
-        return <div>Chart: {element.chartType}</div>; // Placeholder, integrate react-chartjs-2
+        return <div>Chart: {element.chartType}</div>; // Legacy placeholder; routed charts use Recharts.
       case 'subsection':
         return <div style={element.style}>Subsection</div>;
       case 'area':

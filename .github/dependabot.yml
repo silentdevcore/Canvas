@@ -1,4 +1,7 @@
 version: 2
+# Owner-approved temporary version-PR pause during the PVAD rename (2026-10-28).
+# Security updates are not paused. Restore the limits after rename acceptance;
+# see checklists/PXA.Dependency-PR-Review-2026-10-26.md.
 updates:
   - package-ecosystem: "nuget"
     directory: "/"
@@ -7,24 +10,30 @@ updates:
       opentelemetry:
         patterns: ["OpenTelemetry.*"]
       test-platform:
-        patterns: ["Microsoft.NET.Test.Sdk"]
+        patterns: ["Microsoft.NET.Test.Sdk", "xunit.runner.visualstudio"]
     # ASP.NET Core 10 requires OpenAPI.NET 2.x. Revisit with a platform upgrade.
     ignore:
       - dependency-name: "Microsoft.OpenApi"
         update-types: ["version-update:semver-major"]
+      # Managed/native Skia must move together in a dedicated renderer migration.
+      - dependency-name: "SkiaSharp"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "SkiaSharp.NativeAssets.*"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
 
   - package-ecosystem: "npm"
     directory: "/pxa-designer"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     groups:
       react-runtime:
         patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
     # Owner-selected stable Grid requires React 18; Node types follow Node 22.
-    # Compatible updates and the existing security-update policy remain enabled.
+    # Normal version proposals are temporarily paused; security updates remain enabled.
     ignore:
       - dependency-name: "react"
         update-types: ["version-update:semver-major"]
@@ -42,6 +51,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/websites/PXA.Admin"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"
@@ -49,8 +59,9 @@ updates:
   - package-ecosystem: "npm"
     directory: "/tools/PXA.Mcp"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     # Node declarations follow the validated runtime. Revisit with a Node upgrade;
-    # compatible updates remain enabled and security-update policy is unchanged.
+    # normal version proposals are temporarily paused; security updates remain enabled.
     ignore:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
@@ -61,6 +72,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/PXA.WebApi"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"
@@ -68,6 +80,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"
