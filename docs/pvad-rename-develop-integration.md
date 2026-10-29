@@ -203,3 +203,29 @@ retained-key compatibility cases, including real PostgreSQL rollback and
 concurrent-replacement tests. All four original macOS operation pairs still
 match, and all eight added Linux operation PNG hashes match the downloaded CI
 artifacts exactly. These local results do not replace final-head Linux CI.
+
+## Final PR Acceptance And Merge (2026-10-29)
+
+Final-head workflow [40947719236](https://github.com/silentdevcore/Canvas/actions/runs/40947719236)
+completed successfully for `52aab9a442b4cdd350e2676499e898f1d37bdbce`.
+Version policy, registry login, dependency security, frontend, .NET, MCP beta,
+visual parity, artifact contracts and supply-chain all passed. The push-only
+snapshot job was intentionally skipped. The .NET job includes isolated
+PostgreSQL/API tests, migration providers, coverage and Legal backup/restore.
+Supply-chain built the container without publication, verified build metadata
+and fail-closed startup, and generated application/container SBOMs.
+
+The owner separately approved the native Linux corpus and operation references.
+The new run matched all four operation pairs exactly; original Mac references
+and all comparison thresholds remained unchanged. The deterministic replacement
+license regression and its exact 36-test compatibility group also pass locally.
+
+GitHub recorded APPROVED at the exact final PR head. After the owner's explicit
+merge instruction, develop's linear-history rule was respected with a squash
+merge, producing `fdc9ac41a971892f185be1db72824feb7311ebd6` at
+2026-10-29T20:59:52Z. No protection bypass was used. The separate develop workflow
+40953916620 was still running at the closeout checkpoint; its result must not be
+inferred from the PR run. Main, VERSION, published manifests, tags, registries
+and production environments were not changed. Repository approval is not
+independent production approval. Remaining gates and policy decisions are tracked
+in the [updated cutover plan](pvad-github-cutover-plan.md#post-merge-closeout-2026-10-29).

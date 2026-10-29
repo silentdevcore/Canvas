@@ -96,3 +96,45 @@ test('the current CI keeps all existing required names and exposes optional cand
     assert.ok(result.nonRequiredJobs.some(row => row.jobId === 'snapshot' && row.conditional));
   }
 });
+
+test('the dated closeout candidate preserves strict source bindings and does not authorize activation', () => {
+  const candidate = JSON.parse(readFileSync(new URL('../../docs/pvad-github-required-checks-candidate.json', import.meta.url), 'utf8'));
+  const workflow = load(readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8'));
+  const existing = ['version-policy', 'dotnet', 'frontend'];
+  const additions = ['dependency-security', 'mcp-beta', 'visual-parity', 'supply-chain'];
+  assert.equal(candidate.schemaVersion, 1);
+  assert.equal(candidate.protectionChangeAuthorized, false);
+  assert.equal(candidate.deploymentAuthorized, false);
+  assert.equal(candidate.negativeEnforcementVerified, false);
+  assert.equal(candidate.method, 'PATCH');
+  assert.equal(candidate.endpointTemplate, `repos/${candidate.repository}/branches/{branch}/protection/required_status_checks`);
+  assert.deepEqual(candidate.rollbackBody, candidate.observedProtection);
+  assert.deepEqual(candidate.rollbackBody.checks.map(check => check.context), existing);
+  assert.deepEqual(candidate.candidateBody.checks.map(check => check.context), [...existing, ...additions]);
+  for (const body of [candidate.candidateBody, candidate.rollbackBody]) {
+    assert.equal(body.strict, true);
+    assert.deepEqual(Object.keys(body).sort(), ['checks', 'strict']);
+    assert.ok(body.checks.every(check => check.app_id === 15368));
+  }
+  const evidence = candidate.positivePrEvidence;
+  assert.equal(evidence.baseRef, 'develop');
+  assert.equal(evidence.event, 'pull_request');
+  assert.equal(evidence.conclusion, 'success');
+  assert.match(evidence.headSha, /^[a-f0-9]{40}$/);
+  assert.deepEqual(evidence.checks.map(({ context, app_id }) => ({ context, app_id })), candidate.candidateBody.checks);
+  assert.equal(new Set(evidence.checks.map(check => check.jobId)).size, 7);
+  assert.ok(evidence.checks.every(check => check.status === 'completed' && check.conclusion === 'success'));
+  const result = reviewCiChecks(workflow, {
+    ...candidate.observedProtection, contexts: existing,
+  }, { branch: 'develop', proposed: additions });
+  assert.equal(result.requiredChecksResolve, true);
+  assert.equal(result.proposedChecksResolve, true);
+  assert.equal(candidate.branches.develop.targetJobsPresent, true);
+  assert.equal(candidate.branches.develop.commit, evidence.mergeCommit);
+  assert.deepEqual(candidate.branches.main.missingTargetJobs, ['mcp-beta', 'visual-parity']);
+  for (const branch of ['develop', 'main']) {
+    assert.equal(candidate.branches[branch].readyToActivate, false);
+    assert.ok(candidate.branches[branch].blockers.includes('operator-activation-approval'));
+    assert.ok(candidate.branches[branch].blockers.includes('negative-required-check-enforcement'));
+  }
+});

@@ -1307,13 +1307,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "717b85859bdeaa16f0258df2fb9bbfcc65af74bed44a1e8202cb64c1d21fe3f4",
+      "sha256": "846b9b9a7e48f5242a6e4b23bc35394cdf0fd532ecc9b981a3bf03a691414d88",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses.",
+      "reviewNotes": "2026-10-26 owner-policy follow-up: retain dated historical infrastructure names while recording the conditional seven-check target, stricter production policy and the second-account independence blocker. Repository write access is not an independent human review or cutover approval. Integration evidence retained separately: 2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2238,13 +2238,24 @@
     },
     {
       "path": "docs/pvad-github-cutover-plan.md",
-      "sha256": "b509a3c95a031520ee0d27e680806569098f93cdf0a2423f86db9e5da2d73843",
+      "sha256": "bd79c21d8471d9e0e06217f0805d8e1dca9f762664a2c061f2100b4329198455",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 exact new operator plan: historical package, environment and repository names identify observed remote resources and rollback inputs, not canonical defaults. Source hashes, check-source App IDs and policy proposals remain distinct from approval, secret verification and real cutover evidence.",
+      "reviewNotes": "2026-10-26 owner-decision update: historical environment/repository identities remain observed resources and rollback inputs. Record existing write access for the nominee and the owner statement that this is a second account, not a different person. No independent reviewer, live protection change or production approval is claimed.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+    },
+    {
+      "path": "docs/pvad-github-required-checks-candidate.json",
+      "sha256": "c0481c58e0aba701ec1177a0014cd5a65d03c6120f187406699c71082bdfd521",
+      "reasons": [
+        "retained-evidence",
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 reviewed inert protection candidate: the historical repository name and actual check-run URLs identify observed GitHub resources, not product branding. Exact source revisions and App IDs are retained; negative enforcement and activation approval remain false.",
+      "boundaryGuide": "docs/pvad-github-cutover-plan.md"
     },
     {
       "path": "docs/pvad-http-compatibility.md",
@@ -2348,12 +2359,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "d746fe5741edb84cc9be632445f9e315217543e8a06e256cf030e4a518009f55",
+      "sha256": "07037126ac6995951fc386db786ac0f013c518d4949f43b88a1568be931c5145",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped cutover-plan cross-link: historical package, environment and lock names remain evidence of actual remote bindings. The linked static review preserves check-source identities and separates policy proposals from approvals; no publication or environment activation is certified.",
+      "reviewNotes": "2026-10-26 exact policy-register update: preserve historical package/environment evidence; distinguish selected policy from verified PR runs, independent reviewer availability and operational authorization. A nominated second account does not satisfy four-eyes review.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -9512,7 +9523,7 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "ac63c93867e914da48b9c44455d1e628fa62f99675823d733079600543fb8333",
+      "sha256": "49c818186e861cc6d526458857bc232df141b5c72346358e79b49e10439c8d7e",
       "reasons": [
         "historical-document"
       ],

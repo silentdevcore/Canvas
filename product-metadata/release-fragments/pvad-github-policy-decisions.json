@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-github-policy-decisions",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Document completed source integration and prepare the remaining workflow protection review.",
+  "breaking": false,
+  "reason": "Internal closeout records and inert branch-specific check proposals only; no active workflow, permission, remote setting, deployment or product version changes."
+}
