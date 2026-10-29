@@ -168,3 +168,14 @@ RMSE dropped from approximately 0.315 to 0.029, with zero geometry drift and
 exact backend/C# raster equivalence. A static Roman-numbered list is added as
 an additional regression fixture. Existing thresholds and approved baselines
 are unchanged. See [the validator build instructions](../tools/pdf-trust/verapdf/README.md).
+
+The Linux run at `41a5f53a` passed the Designer parity matrix and all independent
+PDF/UA and PDF/A checks. It then exposed two later validation issues: native
+Helvetica substitution differed from the original Mac PNGs, and a PostgreSQL
+invariance test captured the pre-roundtrip 100 ns value rather than the stored
+microsecond timestamp. The owner explicitly approved separate strict Linux
+corpus references after the side-by-side review; original Mac files remain
+unchanged. The migration test now reloads its baseline token after the initial
+save and uses a deterministic submicrosecond fixture, without excluding the
+expiry field or weakening the final equality assertion. All three migration
+tests, including the real PostgreSQL variant, pass locally.

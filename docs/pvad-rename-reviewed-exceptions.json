@@ -5270,6 +5270,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "test-assets/pdf-trust/visual-baseline.linux.json",
+      "sha256": "84c1071c92120ae51369464b0757d937bcb9f3cdf3f4fee66393357960a7c693",
+      "reasons": [
+        "retained-evidence"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Owner-approved Linux visual references retain the actual CI evidence URL under the historical repository name; this provenance is not product branding. Original Mac baselines and source PDFs are unchanged.",
+      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+    },
+    {
       "path": "test-assets/visual-parity/all-elements.json",
       "sha256": "1b8861ba91cbebd3d74a8ab58497dde16f38f7f0c7662ef3077293731b4f5648",
       "reasons": [
@@ -6159,12 +6169,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs",
-      "sha256": "34f0755cb5069dd2a898b82448ce2d86c6269b456a22f69a59337e09845d8795",
+      "sha256": "4fc79ae3523b7527454d52ee8608081f02af7db34fcb3c95d38d9666a26768ce",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadOAuthScopeMigrationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 native-platform validation review: preserve compatibility inputs and prior failed-run evidence; compare persisted timestamps and record explicit owner approval of separate Linux visual references.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9492,12 +9502,12 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "a94e4afdc1a4bde7fa5bba939ffc731f7ff64f18d763d87e25c44e37c7961098",
+      "sha256": "810eb038dd5b7ed4de2e6f47e9268a0e5304fc601105ef566ad6234b2513de4d",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates. 2026-10-29 follow-up review: record original-version validator recovery and option-list regressions, preserving the failed-run history and final CI gate.",
+      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates. 2026-10-29 follow-up review: record original-version validator recovery and option-list regressions, preserving the failed-run history and final CI gate. 2026-10-29 native-platform validation review: preserve compatibility inputs and prior failed-run evidence; compare persisted timestamps and record explicit owner approval of separate Linux visual references.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

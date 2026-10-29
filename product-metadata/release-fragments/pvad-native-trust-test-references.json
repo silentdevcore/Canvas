@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-native-trust-test-references",
+  "impact": "none",
+  "components": ["generator", "documentation", "api"],
+  "category": "fixed",
+  "summary": "Made native visual references and database migration assertions platform-aware.",
+  "reason": "Adds explicitly reviewed Linux image hashes without changing Mac references or thresholds, and compares persisted timestamp precision in migration tests; shipped application behavior is unchanged.",
+  "breaking": false
+}

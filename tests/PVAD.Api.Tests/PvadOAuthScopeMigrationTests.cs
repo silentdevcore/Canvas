@@ -83,10 +83,12 @@ public sealed class PvadOAuthScopeMigrationTests
             Application = client, Authorization = grant,
             Subject = "synthetic-subject", Status = OpenIddictConstants.Statuses.Valid,
             Type = OpenIddictConstants.TokenTypeHints.AccessToken, Payload = "synthetic-signed-bytes-unchanged",
-            ExpirationDate = DateTime.UtcNow.AddMinutes(5),
+            ExpirationDate = new DateTime(2035, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(7),
         };
         db.Add(token);
         await db.SaveChangesAsync();
+        // Compare persisted values, including PostgreSQL's microsecond timestamp precision.
+        await db.Entry(token).ReloadAsync();
         var clientBefore = Snapshot(db, client, "Permissions", "ConcurrencyToken");
         var grantBefore = Snapshot(db, grant, "Scopes", "ConcurrencyToken");
         var revokedBefore = Snapshot(db, revoked);

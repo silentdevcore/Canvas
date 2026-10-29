@@ -46,6 +46,14 @@ The operation runner adds real service outputs for redaction, signing, PDF/A,
 and PDF/UA. Reviewed reference images and visual diff masks remain a follow-up
 milestone.
 
+Native renderer baselines are platform-specific. The original
+`test-assets/pdf-trust/visual-baseline.json` remains the macOS reference.
+`visual-baseline.linux.json` is a separate owner-approved Ubuntu/Poppler
+reference, not a tolerance increase or a replacement of the original images.
+The source PDF hashes, page geometry, page count, and exact PNG hashes are
+still enforced. Unknown platforms fail closed. A change to native font
+substitution requires an explicit image review, not an automatic baseline update.
+
 The operation runner additionally verifies that the real service outputs keep
 the source page count and geometry, and protects their rasterized output
 against checked-in baselines. For every page it writes a side-by-side comparison,

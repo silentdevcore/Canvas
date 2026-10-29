@@ -27,7 +27,7 @@ jobs:
       - name: Test version tooling
         run: |
           node --test tools/configuration/*.test.mjs
-          node --test tools/visual-parity/image-tools.test.mjs
+          node --test tools/visual-parity/image-tools.test.mjs tools/visual-parity/trust-baseline.test.mjs
           node -e 'require("node:assert/strict").match(process.version, /^v22\./)'
           node --test tools/versioning/pvad-version.test.mjs
           node --test tools/versioning/pvad-release-author.test.mjs
