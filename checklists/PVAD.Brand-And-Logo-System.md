@@ -184,4 +184,3 @@ future PXAP/PXAS project formats.
 - Logo creation does not replace formal trademark clearance.
 - Product-specific labels extend one brand system rather than creating separate
   logos for every application.
-

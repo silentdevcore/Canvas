@@ -637,12 +637,12 @@
     },
     {
       "path": "checklists/PVAD.Brand-And-Logo-System.md",
-      "sha256": "d98a2b65716fb8fa1f07a50638dcfb532773b31fd713b87976e3e42d188feca8",
+      "sha256": "f45eb5f3db9bbb2e2603ccb9e947e73d29d011123b9c084d8a1759c7ab67ffc7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-29 PR formatting review: only existing line endings or a trailing empty line changed; retained identifiers and historical task statuses are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
