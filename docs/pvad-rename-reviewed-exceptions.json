@@ -6128,7 +6128,7 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLicenseReplacementTests.cs",
-      "sha256": "a9f3a53c547799c0b798e78764a71f8cc51e72ca2e08d9dac07491cfd55927a8",
+      "sha256": "c15a8cd8ba0c9877497a679e3099df99529bf8c46126b13bd7d056390a4a3340",
       "reasons": [
         "test-contract"
       ],
@@ -9512,7 +9512,7 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "56916a5340719210a7f9aad93b8c1fb20e76469b1c8e9bde739594b7ac20e7d6",
+      "sha256": "ac63c93867e914da48b9c44455d1e628fa62f99675823d733079600543fb8333",
       "reasons": [
         "historical-document"
       ],

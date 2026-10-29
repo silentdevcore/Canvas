@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-offline-license-replacement-precision",
+  "impact": "patch",
+  "components": ["admin", "api"],
+  "category": "fixed",
+  "summary": "Fixed replacement offline licenses failing validation after database storage on high-precision clocks.",
+  "breaking": false
+}

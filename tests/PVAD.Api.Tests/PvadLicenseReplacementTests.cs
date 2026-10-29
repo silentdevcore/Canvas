@@ -49,7 +49,8 @@ public sealed class PvadLicenseReplacementTests
         await using var harness = await Harness.CreateAsync();
         await using var db = new PvadDbContext(harness.Options);
         var before = await db.OfflineLicenses.AsNoTracking().SingleAsync();
-        var controller = harness.Controller(db);
+        var replacementTime = PvadLicenseTimestamps.Normalize(DateTimeOffset.UtcNow).AddTicks(7);
+        var controller = harness.Controller(db, new FixedTimeProvider(replacementTime));
         var rebinding = await controller.ReplaceLicense(before.Id, new("Synthetic reason", "9.0.0"), default);
         Assert.Equal(400, Assert.IsType<BadRequestObjectResult>(rebinding.Result).StatusCode);
         var response = await controller.ReplaceLicense(before.Id, new("Technical rename"), default);
@@ -69,12 +70,15 @@ public sealed class PvadLicenseReplacementTests
         Assert.Equal(before.ValidFrom, replacement.ValidFrom);
         Assert.Equal(before.ValidUntil, replacement.ValidUntil);
         Assert.Equal(before.InstanceLimit, replacement.InstanceLimit);
+        Assert.Equal(PvadLicenseTimestamps.Normalize(replacementTime), replacement.IssuedAt);
         var oldEnvelope = JsonSerializer.Deserialize<PvadOfflineLicenseEnvelope>(before.EnvelopeJson, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
         var newEnvelope = JsonSerializer.Deserialize<PvadOfflineLicenseEnvelope>(replacement.EnvelopeJson, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        Assert.Equal(replacement.IssuedAt, newEnvelope.IssuedAt);
         Assert.Equal(oldEnvelope.Entitlements.ToArray(), newEnvelope.Entitlements.ToArray());
         var subscription = await db.OrganizationSubscriptions.SingleAsync();
         var validator = new PvadOfflineLicenseValidator(harness.Signer);
-        Assert.True(validator.Validate(replacement, subscription, DateTimeOffset.UtcNow).Valid);
+        var validation = validator.Validate(replacement, subscription, DateTimeOffset.UtcNow);
+        Assert.True(validation.Valid, validation.Code);
         Assert.Equal("PXA_LICENSE_REPLACED", validator.Validate(previous, subscription, DateTimeOffset.UtcNow).Code);
         Assert.Single(await db.AuditEvents.Where(value => value.Action == "licenses.replace").ToArrayAsync());
         Assert.Single(await db.MailOutboxMessages.ToArrayAsync());
@@ -167,6 +171,11 @@ public sealed class PvadLicenseReplacementTests
 
     private sealed record Tenant(Guid? UserId, Guid? OrganizationId) : IPvadTenantContext;
 
+    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
+    }
+
     private sealed class Harness : IAsyncDisposable
     {
         private readonly PostgreSqlContainer postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
@@ -224,11 +233,11 @@ public sealed class PvadLicenseReplacementTests
             LicenseId = license.Id;
         }
 
-        public AdminLicensesController Controller(PvadDbContext db)
+        public AdminLicensesController Controller(PvadDbContext db, TimeProvider? timeProvider = null)
         {
             var queue = new PvadMailQueue(db, new EphemeralDataProtectionProvider());
             var notifications = new OrganizationNotificationService(db, queue, Microsoft.Extensions.Options.Options.Create(new PvadMailOptions()));
-            return new(db, new Tenant(UserId, OrganizationId), Signer, new(Signer), notifications)
+            return new(db, new Tenant(UserId, OrganizationId), Signer, new(Signer), notifications, timeProvider)
             {
                 ControllerContext = new()
                 {

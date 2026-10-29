@@ -189,3 +189,17 @@ side-by-side review, the owner explicitly approved additional strict Linux
 operation references. They retain both input/output hashes and page geometry;
 neither original Mac reference file nor any tolerance is changed. A successful
 full final-head run, including supply-chain, is still required before merging.
+
+The same run subsequently reached retained-license compatibility and exposed a
+production replacement-path defect: its new `IssuedAt` was signed with 100 ns
+precision, but PostgreSQL stores microseconds. New issuance already normalized
+before signing; replacement now uses the same normalization with the existing
+registered `TimeProvider`. The PostgreSQL regression supplies a deterministic
+submicrosecond clock and asserts exact persisted/envelope timestamp equality.
+Signature validation and existing signed history remain unchanged.
+
+Local follow-up validation passed all 29 replacement, strict-validator and
+retained-key compatibility cases, including real PostgreSQL rollback and
+concurrent-replacement tests. All four original macOS operation pairs still
+match, and all eight added Linux operation PNG hashes match the downloaded CI
+artifacts exactly. These local results do not replace final-head Linux CI.

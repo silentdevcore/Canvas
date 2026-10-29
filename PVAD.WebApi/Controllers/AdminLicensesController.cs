@@ -21,19 +21,22 @@ public sealed class AdminLicensesController : ControllerBase
     private readonly IPvadLicenseSigningService signingService;
     private readonly PvadOfflineLicenseValidator licenseValidator;
     private readonly OrganizationNotificationService notifications;
+    private readonly TimeProvider timeProvider;
 
     public AdminLicensesController(
         PvadDbContext dbContext,
         IPvadTenantContext tenantContext,
         IPvadLicenseSigningService signingService,
         PvadOfflineLicenseValidator licenseValidator,
-        OrganizationNotificationService notifications)
+        OrganizationNotificationService notifications,
+        TimeProvider? timeProvider = null)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
         this.signingService = signingService;
         this.licenseValidator = licenseValidator;
         this.notifications = notifications;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     [HttpGet]
@@ -214,7 +217,7 @@ public sealed class AdminLicensesController : ControllerBase
                 deployment.Length > 160 || !Regex.IsMatch(deployment, "^[A-Za-z0-9][A-Za-z0-9._:-]*$"))
                 return ValidationProblem("A valid product version and deployment ID are required.");
 
-            var now = DateTimeOffset.UtcNow;
+            var now = PvadLicenseTimestamps.Normalize(timeProvider.GetUtcNow());
             var replacement = new OfflineLicense
             {
                 OrganizationId = previous.OrganizationId, SubscriptionId = previous.SubscriptionId,
