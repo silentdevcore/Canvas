@@ -1243,9 +1243,16 @@ review rule, security threshold or dependency-compliance requirement is weakened
 - [x] Keep audit totals explicit: five low development findings and two moderate production Router findings, zero high/critical.
 - [x] Complete the new adapter's 50-host collector matrix and raw-report comparison.
 - [x] Repeat actual API, persistence and collector-free Relay tests with adapter 4.0.1.
-- [ ] Complete final exact-head hosted checks and record technical review.
-- [ ] Merge normally, then close replaced proposals against their freshly verified source heads.
-- [ ] Verify the final live queue and preserve any distinct security follow-up instead of silently closing it.
+- [x] Complete final exact-head hosted checks and record technical review.
+- [x] Merge normally, then close replaced proposals against their freshly verified source heads.
+- [x] Verify the final live queue and preserve any distinct security follow-up instead of silently closing it.
+
+PR #206 passed all eight checks at `a63612e964b3b18b2814e6eff45b7ae518cb5630`
+and merged normally as `2fe4e185c7c3db0d8e9a8f704fa2540d16783593`. The
+fetched develop tree equals that exact tested source tree. All seven replaced
+source PRs are closed; #200/#201 retain explicit deferrals. The remaining #205
+is the newly enabled security-update follow-up, not an ordinary version proposal.
+[Post-merge evidence](https://github.com/silentdevcore/Canvas/pull/206#issuecomment-6479908937).
 
 The initial QR regression is real: QRCoder's default packed PNG is not accepted
 by the existing PDF image reader, so the mapper silently substitutes text.
@@ -1288,7 +1295,7 @@ review, not silently included or suppressed by the version pause.
 - [x] Record explicit owner approval for a temporary normal-version pause.
 - [x] Set all six version-PR limits to zero without disabling audit workflows.
 - [x] Enable GitHub vulnerability alerts and automatic security-update PRs; verify the effective remote settings.
-- [ ] Verify the merged configuration on the actual default branch.
+- [x] Verify the merged configuration on the actual default branch.
 - [ ] After rename acceptance, restore NuGet's limit to 10 and the other five ecosystems' limits to 5.
 - [ ] Run the dependency/security checks and confirm the resumed proposal policy before merging the restoration.
 
@@ -1300,3 +1307,51 @@ Primary sources: [Dependabot security configuration](https://docs.github.com/en/
 [xUnit adapter 4.0.0](https://xunit.net/releases/visualstudio/4.0.0),
 [xUnit adapter 4.0.1](https://xunit.net/releases/visualstudio/4.0.1),
 [adapter framework support](https://github.com/xunit/visualstudio.xunit/blob/4.0.1/README.md).
+
+## Separate Router Security Follow-up - 2026-10-28
+
+With GitHub security updates now enabled, #205 proposes Router 7.18.5. The owner
+explicitly authorizes a separate compatibility review and the exact public
+release sentence. Do not hide this proposal with the normal-version pause.
+
+- [x] Verify upstream patched ranges and Router 7 requirements against the current React 18/Node 22 runtime.
+- [x] Retain declarative BrowserRouter/Routes mode, current routes, auth boundaries and compatibility redirects.
+- [x] Run three actual Router navigation tests and the existing nine app-route cases on the original Router 6 graph first.
+- [x] Exercise actual gallery/import navigation, Back/Forward and Spreadsheet input in both original dev/preview bundles and both viewport sizes.
+- [x] Update only Router/Router-DOM 7.18.5 and their two required cookie dependencies; remove obsolete @remix-run/router.
+- [x] Verify all four official retained archives, integrity hashes and MIT licenses, leaving every unrelated lock entry unchanged.
+- [x] Pass 309 Designer cases in 37 suites, unchanged snapshot, typecheck, production build and eight dependency contracts.
+- [x] Pass all four extended actual routed desktop/mobile scenarios and twelve real StrictMode component scenarios.
+- [x] Confirm all eight controlled old/new Home/Gallery PNGs are byte-identical.
+- [x] Confirm production audit reports zero known findings; full audit retains five low development findings only.
+- [x] Complete the chart browser matrix and final release/compliance checks.
+- [ ] Pass all exact-head hosted checks, record technical review and merge normally.
+- [ ] Close #205 as replaced only after merge; verify the entire live PR queue again.
+
+Jest initially fails before discovery in three jsdom suites because Router 7
+uses TextEncoder, which jsdom omits. The shared test setup supplies Node's real
+UTF-8 TextEncoder/TextDecoder only when absent. This is not a Router mock,
+disabled diagnostic or a shipped browser polyfill. All original cases and the
+three new cases then pass. Existing BrowserRouter imports continue through the
+supported DOM compatibility package; this change does not adopt SSR, Framework
+Mode, server handlers, React 19, MTP or a new routing architecture.
+
+The first hosted frontend run fails its separate chart-fixture typecheck:
+`MemoryRouter` still receives removed v6 future options in the old fixture.
+The ordinary typecheck excludes e2e fixtures and Vite transpilation does not
+typecheck them. Remove those obsolete options: their semantics are already the
+Router 7 defaults. Keep the separate strict fixture typecheck and full browser
+matrix; do not bypass the check, cast away the error or call the first run green.
+
+The production audit's SSR-hydration advisory does not apply to declarative
+mode, but the graph is upgraded rather than suppressing it or making that an
+excuse to ignore the navigation advisory. The five development findings remain
+visible: upstream deepmerge/Jest needs review, and the audit suggestion to
+downgrade Jest to 25.1.0 is not a tested or acceptable compatibility fix.
+No alert is dismissed and no security threshold is reduced. Browser fixture
+API responses remain synthetic; these runs are not live customer authentication
+or backend integration acceptance. VERSION and published releases remain unchanged.
+
+Primary sources: [version-specific Router migration guide](https://github.com/remix-run/react-router/blob/react-router%407.18.5/docs/upgrading/v6.md),
+[navigation advisory](https://github.com/advisories/GHSA-wrjc-x8rr-h8h6),
+[SSR-mode advisory scope](https://github.com/advisories/GHSA-337j-9hxr-rhxg).

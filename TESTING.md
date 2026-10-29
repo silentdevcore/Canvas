@@ -35,6 +35,19 @@ real SDK export with synthetic trace, metric and log capture, privacy processors
 and the existing unavailable-collector integration cases. Local capture is not
 proof of a deployed OTLP collector or production routing.
 
+Router/Router-DOM 7.18.5 retains declarative BrowserRouter mode on React 18 and
+Node 22. Three actual Router tests cover nested index redirects, relative links,
+active state, query/fragment retention, domain navigation and Back/Forward. The
+existing application route suite still exercises legacy redirects and Designer
+code-mode switching. jsdom uses Node's real TextEncoder/TextDecoder when absent;
+the Router is not mocked. The routed browser smoke also clicks from the gallery
+to PDF import and exercises browser history in desktop/mobile dev/preview builds.
+These frontend fixtures use synthetic API responses, not real session acceptance.
+Also run `npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json`:
+the ordinary Designer typecheck excludes this e2e fixture, while Vite only
+transpiles it. Router 7 already applies the former v6 future-option behaviors;
+the fixture must not pass the removed `future` prop.
+
 `QrDependencyCompatibilityTests` independently decodes synthetic QR module
 matrices, verifies real PDF image objects rather than text fallbacks, and checks
 Word PNG embedding. The PDF mapper reuses the existing 8-bit grayscale PNG
