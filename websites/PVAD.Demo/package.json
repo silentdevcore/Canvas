@@ -1,0 +1,13 @@
+{
+  "name": "pvad-demo",
+  "version": "1.1.0",
+  "private": true,
+  "description": "PVAD.Demo interactive demo gallery website",
+  "type": "module",
+  "scripts": {
+    "dev": "../../pvad-designer/node_modules/.bin/vite --host localhost --port 5175",
+    "build": "../../pvad-designer/node_modules/.bin/vite build",
+    "test": "node --test tests/*.test.js",
+    "preview": "../../pvad-designer/node_modules/.bin/vite preview --host localhost --port 4175"
+  }
+}

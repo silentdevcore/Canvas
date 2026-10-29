@@ -1,0 +1,8 @@
+{
+  "id": "pvad-project-page-defaults",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Project files without optional global page settings now open with the standard page layout instead of failing during import.",
+  "breaking": false
+}

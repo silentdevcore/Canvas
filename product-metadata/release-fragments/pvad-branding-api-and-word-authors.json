@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-branding-api-and-word-authors",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "The branding API reports PVADE, PVAD and the current PDF and Spreadsheet project extensions. New Word comments and revisions default to PVADE without rewriting explicitly supplied author names.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

@@ -1,0 +1,8 @@
+{
+  "id": "runtime-fixture-contract-validation",
+  "impact": "patch",
+  "components": ["documentation", "generator"],
+  "category": "improved",
+  "summary": "Clarified native project compatibility across .NET servicing releases and strengthened PDF fixture validation.",
+  "breaking": false
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "policyId": "pxa-pdf-trust",
+  "reviewStatus": "pending-external-approval",
+  "standards": [
+    {
+      "id": "iso-32000",
+      "title": "PDF specification",
+      "requiredFor": ["existing-pdf", "encryption", "signatures"],
+      "edition": null,
+      "corrigenda": [],
+      "licenseStatus": "license-required",
+      "approved": false
+    },
+    {
+      "id": "iso-19005",
+      "title": "PDF/A",
+      "requiredFor": ["pdfa-2b", "pdfa-3b"],
+      "edition": null,
+      "corrigenda": [],
+      "licenseStatus": "license-required",
+      "approved": false
+    },
+    {
+      "id": "iso-14289",
+      "title": "PDF/UA",
+      "requiredFor": ["pdfua-1"],
+      "edition": null,
+      "corrigenda": [],
+      "licenseStatus": "license-required",
+      "approved": false
+    },
+    {
+      "id": "etsi-en-319-142-1",
+      "title": "PAdES digital signatures",
+      "requiredFor": ["pades-b-b", "pades-b-t", "pades-b-lt", "pades-b-lta"],
+      "edition": "ETSI EN 319 142-1 V1.2.1",
+      "corrigenda": [],
+      "licenseStatus": "public-copy-recorded",
+      "approved": false
+    }
+  ],
+  "errataReviews": []
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-redaction-hardening",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "security",
+  "summary": "PVAD strengthens irreversible PDF redaction with timestamped audit evidence, tenant-scoped retrieval, region-bound verification, stale-preflight protection, and a hash-pinned external recovery corpus that verifies supported output and fail-closed boundaries.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

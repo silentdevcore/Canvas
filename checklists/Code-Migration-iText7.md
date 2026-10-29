@@ -1,5 +1,7 @@
 # PXA Migration: iText7
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using iText7.

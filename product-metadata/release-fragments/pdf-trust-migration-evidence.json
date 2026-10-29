@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-migration-evidence",
+  "impact": "minor",
+  "components": [
+    "api",
+    "documentation",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "PDF migrations now provide linked manual Trust workflows, structured capability evidence, and secret-free examples for eleven providers while conservatively identifying unsupported security mappings.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md",
+    "/docs/guides/PVAD.Pdf-Trust-Generator-Examples.md",
+    "/docs/guides/PVAD.Pdf-Trust-Migration-Examples.md"
+  ],
+  "breaking": false
+}

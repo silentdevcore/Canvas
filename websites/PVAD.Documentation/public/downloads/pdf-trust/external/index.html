@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PVADE PDF Trust External Producer Corpus</title>
+    <style>
+      :root {
+        color: #18212b;
+        background: #f4f6f8;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0 72px; }
+      h1 { max-width: 780px; margin: 0 0 12px; font-size: 3.25rem; line-height: 1.08; letter-spacing: 0; }
+      p { max-width: 760px; color: #52606d; line-height: 1.65; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0; }
+      .actions a { padding: 10px 14px; border: 1px solid #b9c3cc; color: #18212b; background: #fff; text-decoration: none; }
+      .actions a:first-child { border-color: #146c5a; color: #fff; background: #146c5a; }
+      .table-wrap { margin-top: 32px; overflow-x: auto; border: 1px solid #d7dde3; background: #fff; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 14px 16px; border-bottom: 1px solid #e5e9ed; text-align: left; vertical-align: top; }
+      th { color: #33404c; background: #eef1f4; font-size: 0.78rem; text-transform: uppercase; }
+      tr:last-child td { border-bottom: 0; }
+      td a { color: #0969a7; }
+      .notice { margin-top: 28px; padding-left: 14px; border-left: 3px solid #146c5a; }
+
+      @media (max-width: 560px) {
+        main { padding-top: 36px; }
+        h1 { font-size: 2rem; }
+        th, td { padding: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PVADE PDF Trust External Producer Corpus</h1>
+      <p>Inspect synthetic PDFs created with independent browser and desktop PDF producers.</p>
+      <div class="actions">
+        <a href="external-corpus.json">Download manifest</a>
+        <a href="../">Back to synthetic corpus</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Producer</th><th>Document</th><th>Expected report</th></tr></thead>
+          <tbody>
+            <tr><td>Chromium 152 / Skia PDF m152</td><td><a href="chromium-skia-tagged.pdf">chromium-skia-tagged.pdf</a></td><td><a href="chromium-skia-tagged.expected.json">View JSON</a></td></tr>
+            <tr><td>LibreOffice 26.2.3.2</td><td><a href="libreoffice-tagged.pdf">libreoffice-tagged.pdf</a></td><td><a href="libreoffice-tagged.expected.json">View JSON</a></td></tr>
+            <tr><td>qpdf 12.2.0, AES-256/R6</td><td><a href="qpdf-aes256-unicode.pdf">qpdf-aes256-unicode.pdf</a></td><td><a href="qpdf-aes256-unicode.expected.json">View JSON</a> | <a href="qpdf-aes256-unicode-qpdf.txt">Validation</a></td></tr>
+            <tr><td>pyHanko 0.37.0, PAdES B-B</td><td><a href="pyhanko-pades-bb.pdf">pyhanko-pades-bb.pdf</a></td><td><a href="pyhanko-pades-bb.expected.json">View JSON</a> | <a href="pyhanko-pades-bb-validation.txt">Validation</a></td></tr>
+            <tr><td>LibreOffice PDF/A-2b</td><td><a href="libreoffice-pdfa2b.pdf">libreoffice-pdfa2b.pdf</a></td><td><a href="libreoffice-pdfa2b.expected.json">View JSON</a> | <a href="libreoffice-pdfa2b-2b-verapdf.xml">veraPDF</a></td></tr>
+            <tr><td>LibreOffice PDF/UA-1</td><td><a href="libreoffice-pdfua1.pdf">libreoffice-pdfua1.pdf</a></td><td><a href="libreoffice-pdfua1.expected.json">View JSON</a> | <a href="libreoffice-pdfua1-ua1-verapdf.xml">veraPDF</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="notice">This baseline verifies positive independent producer paths. Long-term signatures, revocation, tampering, invalid compliance documents, and the complete encryption matrix remain separate milestones.</p>
+    </main>
+  </body>
+</html>

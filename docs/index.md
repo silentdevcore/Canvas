@@ -1,12 +1,12 @@
-# PXA PDF API Reference
+# PVAD PDF API Reference
 
-The PXA PDF API is the imperative C# surface for generating PDFs in code. Create a
-[`PdfDocument`](xref:PXA.Pdf.PdfDocument), add [`PdfPage`](xref:PXA.Pdf.PdfPage)s, draw on them, and call
+The PVAD PDF API is the imperative C# surface for generating PDFs in code. Create a
+[`PdfDocument`](xref:PVAD.Pdf.PdfDocument), add [`PdfPage`](xref:PVAD.Pdf.PdfPage)s, draw on them, and call
 `ToBytes()`.
 
 ```csharp
-using PXA.Pdf;
-using PXA.Generator;
+using PVAD.Pdf;
+using PVAD.Generator;
 
 var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";
@@ -21,7 +21,7 @@ File.WriteAllBytes("hello.pdf", pdf);
 
 - **[C# Cookbook](csharp-cookbook.md)** — task-oriented recipes (text, shapes, images, tables, links,
   forms, watermark, TOC, encryption, flow).
-- **[API Reference](api/)** — the full generated reference for every public type and member.
+- **[API Reference](xref:PVAD.Pdf)** — the full generated reference for every public type and member.
 
 > The visual designer and its declarative `DesignExportDto` element model are documented separately in the
 > in-app docs (the **Elements Reference** at `/docs` in the designer app).

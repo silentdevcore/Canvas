@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pxa/schema/pxa-workbook.schema.json",
   "title": "PXA Workbook JSON",
-  "description": "The canonical PXA spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/PXA.Core/Contracts/SpreadsheetDto.cs.",
+  "description": "The canonical PXA spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/PVAD.Core/Contracts/SpreadsheetDto.cs.",
   "type": "object",
   "required": ["id", "name", "sheets"],
   "properties": {
@@ -11,10 +11,25 @@
     "id": { "type": "string", "description": "Unique workbook id." },
     "name": { "type": "string", "description": "Human-readable workbook name." },
     "sheets": { "type": "array", "description": "Worksheets, in order.", "items": { "$ref": "#/$defs/sheet" } },
-    "definedNames": { "type": "array", "description": "Named ranges.", "items": { "$ref": "#/$defs/definedName" } }
+    "definedNames": { "type": "array", "description": "Named ranges.", "items": { "$ref": "#/$defs/definedName" } },
+    "importDiagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/importDiagnostic" }
+    }
   },
   "additionalProperties": true,
   "$defs": {
+    "importDiagnostic": {
+      "type": "object",
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "type": "string" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" },
+        "source": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "sheet": {
       "type": "object",
       "required": ["id", "name"],
@@ -33,7 +48,8 @@
         "pageSetup": { "$ref": "#/$defs/pageSetup" },
         "protection": { "$ref": "#/$defs/protection" },
         "conditionalFormats": { "type": "array", "items": { "$ref": "#/$defs/conditionalFormat" } },
-        "dataValidations": { "type": "array", "items": { "$ref": "#/$defs/dataValidation" } }
+        "dataValidations": { "type": "array", "items": { "$ref": "#/$defs/dataValidation" } },
+        "images": { "type": "array", "description": "Images anchored to worksheet cells. Persisted workbooks use assetId; data is transient import/export content.", "items": { "$ref": "#/$defs/image" } }
       },
       "additionalProperties": true
     },
@@ -63,6 +79,23 @@
         "textAlign": { "type": "string", "enum": ["left", "center", "right"] },
         "fontFamily": { "type": "string" },
         "fontSize": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "required": ["id", "row", "col", "width", "height"],
+      "properties": {
+        "id": { "type": "string" },
+        "assetId": { "type": "string", "format": "uuid", "description": "Organization-owned Designer asset identifier." },
+        "fileName": { "type": "string" },
+        "contentType": { "type": "string", "enum": ["image/png", "image/jpeg"] },
+        "data": { "type": "string", "description": "Transient data URL used only at the XLSX import/export boundary." },
+        "row": { "type": "integer", "minimum": 0 },
+        "col": { "type": "integer", "minimum": 0 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "altText": { "type": "string" }
       },
       "additionalProperties": true
     },

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "dpi": 72,
+  "description": "Native Linux PDF Trust visual references; original macOS baseline is retained unchanged.",
+  "renderer": {
+    "platform": "linux",
+    "environment": "Ubuntu 24.04 GitHub-hosted runner",
+    "poppler": "24.02.0",
+    "package": "24.02.0-1ubuntu9.11",
+    "fontPolicy": "Native runner substitution for unembedded Helvetica; embedded-font fixtures remain unchanged."
+  },
+  "review": {
+    "status": "approved",
+    "approvedBy": "repository owner",
+    "approvedAt": "2026-10-29",
+    "sourceCommit": "41a5f53aaccd875c4f401f84c7cc844b5868814f",
+    "sourceRun": "https://github.com/silentdevcore/Canvas/actions/runs/40942578230",
+    "scope": "Additional strict Linux references explicitly approved after comparison with the unchanged Mac corpus images."
+  },
+  "entries": [
+    {
+      "id": "signed",
+      "pdfSha256": "3cd872d7f90d2bbee7dc8fa50ddb0af74f6f69e7507c6d8ddcb813e3eed2c5ee",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "fbaea4dc967b83141d10200a1a1da4dd269a7b6c5c9530e1230a3072be8d7eff",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "redaction-risk",
+      "pdfSha256": "8e2d2b45b9a7b1b0724d2f8fb078c3b0ffbfb86f1b3f4fbf44c8beecc194334b",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "da2a08ebb1bd2c79bb355859a3591e8574b437d830d27bb2cf518669afb4220b",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "archived",
+      "pdfSha256": "dbd0405efd5603b42ee2e0bb51ada25d8a8f1dc2317ecfe965bd7ebe54072012",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "bf2b539f1d2a1900307af19e8e30a7ebe0c61d1d2e18a8a1090f520dfc84bd39",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "accessible",
+      "pdfSha256": "0d6a2a59dc54dca020effd9f7ad7fac8818326f3317938124a0151e96caa673d",
+      "pages": [
+        {
+          "page": 1,
+          "pngSha256": "152e3159f2d38ed34c0049433e4c98a95b26f79a8c3d0f3bba811ee2b5039ced",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    }
+  ]
+}

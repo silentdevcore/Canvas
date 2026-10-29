@@ -1,0 +1,29 @@
+namespace PVAD.WebApi.Services.Mail;
+
+public sealed class PvadMailOptions
+{
+    public string Transport { get; set; } = "Disabled";
+    public string AdminBaseUrl { get; set; } = "http://localhost:5177";
+    public string AccountBaseUrl { get; set; } = "http://localhost:5178";
+    public string CompanyBaseUrl { get; set; } = "http://localhost:5173";
+    public string DesignerBaseUrl { get; set; } = "http://localhost:5176";
+    public string SupportUrl { get; set; } = "http://localhost:5173/support.html";
+    public string SenderName { get; set; } = "PVADE";
+    public string SenderAddress { get; set; } = "no-reply@pvade.com";
+    public string? ReplyToAddress { get; set; }
+    public bool Enabled { get; set; } = true;
+    public string SmtpHost { get; set; } = "localhost";
+    public int SmtpPort { get; set; } = 1025;
+    public bool SmtpUseTls { get; set; }
+    public string? SmtpUsername { get; set; }
+    public string? SmtpPassword { get; set; }
+    public int SmtpTimeoutSeconds { get; set; } = 30;
+    public int DeliveredRetentionDays { get; set; } = 30;
+    public int CancelledRetentionDays { get; set; } = 14;
+    public int DeadLetterRetentionDays { get; set; } = 90;
+    public int RetentionCleanupIntervalMinutes { get; set; } = 60;
+    public int RetentionBatchSize { get; set; } = 500;
+
+    public bool IsDeliveryEnabled =>
+        Enabled && !string.Equals(Transport, "Disabled", StringComparison.OrdinalIgnoreCase);
+}

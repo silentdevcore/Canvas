@@ -1,0 +1,9 @@
+{
+  "id": "pvad-ci-artifact-identities",
+  "impact": "none",
+  "components": ["infrastructure", "importer", "documentation"],
+  "category": "improved",
+  "summary": "Align CI PDF/A output filenames with their PVAD test producers and use the current domain for new SBOM namespace identifiers. Archived evidence remains unchanged.",
+  "reason": "Internal CI artifact naming and validation contracts only; public APIs, deployed services and archived validation evidence are unchanged.",
+  "breaking": false
+}

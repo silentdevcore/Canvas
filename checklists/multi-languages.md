@@ -1,5 +1,7 @@
 # Multi-Language PDF Support — Implementation Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 **Status: COMPLETE** — Core implemented 2026-05-24 (99 tests). Phase 11 (Inspector UX + Element-Level Scope) completed 2026-05-25.
 
 ## What Was Built

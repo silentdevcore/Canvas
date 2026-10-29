@@ -1,5 +1,7 @@
 # PXA Migration: ActivePDF
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## V1 Pilot Analysis
 
 - [x] Added cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf`

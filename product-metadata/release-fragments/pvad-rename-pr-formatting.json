@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-pr-formatting",
+  "impact": "none",
+  "components": ["generator", "documentation"],
+  "category": "improved",
+  "summary": "Normalized formatting in renamed examples and planning documentation.",
+  "reason": "Whitespace-only maintenance of existing files; no executable code or application contract changes.",
+  "breaking": false
+}

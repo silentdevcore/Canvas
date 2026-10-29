@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Core/PVAD.Domain/PVAD.Domain.csproj" />
+    <Project Path="src/Infrastructure/PVAD.Infrastructure.Persistence/PVAD.Infrastructure.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/PVAD.Core/PVAD.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Execution/">
+    <Project Path="src/Execution/PVAD.CodeWorker/PVAD.CodeWorker.csproj" />
+  </Folder>
+  <Folder Name="/src/Generation/">
+    <Project Path="src/Generation/PVAD.Pdf/PVAD.Pdf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PVAD.Infrastructure.Persistence.Tests/PVAD.Infrastructure.Persistence.Tests.csproj" />
+  </Folder>
+</Solution>

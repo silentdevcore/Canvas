@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-document-naming-export-reliability",
+  "impact": "patch",
+  "components": [
+    "api",
+    "designer",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "fixed",
+  "summary": "Designer document names now persist across reloads, and PDF, Spreadsheet, data, image, Viewer download, and print actions produce one validated, correctly named artifact in the requested format.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

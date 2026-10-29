@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-container-context-packaging",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "observability"],
+  "category": "fixed",
+  "summary": "Container builds consistently exclude local runtime state and deployment secrets through a versioned build-context configuration.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

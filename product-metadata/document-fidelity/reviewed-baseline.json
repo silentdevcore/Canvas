@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "results": [
+    {
+      "fixtureId": "designer-all-elements",
+      "metrics": {
+        "sourceElements": 39,
+        "matchedElements": 39,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0.15,
+        "pageCountMatches": true
+      },
+      "limitations": ["Reviewed P2 differences are limited to browser and PDF rasterization."]
+    },
+    {
+      "fixtureId": "designer-mixed-page-layout",
+      "metrics": {
+        "sourceElements": 6,
+        "matchedElements": 6,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0,
+        "pageCountMatches": true
+      },
+      "limitations": []
+    },
+    {
+      "fixtureId": "word-fidelity-sample-pack",
+      "metrics": {
+        "sourceElements": 13,
+        "matchedElements": 13,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "maximumGeometryDriftPoints": 0.304,
+        "textPreservationRatio": 1,
+        "maximumVisualDifferenceRatio": 0.155105,
+        "pageCountMatches": true
+      },
+      "limitations": ["The current pack is synthetic.", "The worst LibreOffice visual difference exceeds the current 0.15 policy by 0.005105."]
+    },
+    {
+      "fixtureId": "pdf-trust-external-producer-corpus",
+      "forcedClassification": "compatible",
+      "metrics": {
+        "sourceElements": 4,
+        "matchedElements": 4,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "pageCountMatches": true
+      },
+      "limitations": ["This corpus proves standards and security interoperability, not general layout migration fidelity."]
+    },
+    {
+      "fixtureId": "spreadsheet-xlsx-roundtrip",
+      "metrics": {
+        "sourceElements": 18,
+        "matchedElements": 18,
+        "missingElements": 0,
+        "duplicateElements": 0,
+        "sheetCountMatches": true
+      },
+      "limitations": ["The current fidelity fixture is synthetic and does not establish real-world XLSX compatibility."]
+    },
+    {
+      "fixtureId": "pdf-code-migration-provider-smoke",
+      "metrics": {
+        "sourceElements": 16,
+        "matchedElements": 0,
+        "missingElements": 16,
+        "duplicateElements": 0
+      },
+      "limitations": [
+        "The provider suites prove registry and synthetic conversion coverage, not operation-level fidelity.",
+        "PDF Trust operations remain subject to their structured review-required or unsupported diagnostics."
+      ]
+    },
+    {
+      "fixtureId": "spreadsheet-code-migration-provider-smoke",
+      "metrics": {
+        "sourceElements": 8,
+        "matchedElements": 0,
+        "missingElements": 8,
+        "duplicateElements": 0
+      },
+      "limitations": [
+        "The provider suites prove registry and synthetic conversion coverage, not workbook-level fidelity.",
+        "Real-world formulas, charts, macros, external links, and provider-specific options are not measured by this smoke report."
+      ]
+    },
+    {
+      "fixtureId": "report-designer-migration-provider-smoke",
+      "metrics": {
+        "sourceElements": 8,
+        "matchedElements": 0,
+        "missingElements": 8,
+        "duplicateElements": 0
+      },
+      "limitations": [
+        "The provider suites prove registry and synthetic converter coverage, not complete report-design fidelity.",
+        "Production reports with scripts, custom controls, subreports, data sources, and vendor extensions still require reviewed corpus evidence."
+      ]
+    },
+    {
+      "fixtureId": "real-world-pdf-ukgi-annual-report",
+      "forcedClassification": "reviewRequired",
+      "metrics": {
+        "sourceElements": 21576,
+        "outputElements": 25930,
+        "matchedElements": 18654,
+        "missingElements": 2922,
+        "duplicateElements": 0,
+        "textPreservationRatio": 0.8645717463848721,
+        "maximumVisualDifferenceRatio": 0.366678,
+        "pageCountMatches": true
+      },
+      "limitations": [
+        "The cover background, lower color panel, logo treatment, and typography are not reproduced faithfully.",
+        "Text extraction contains missing and additional tokens; visual and semantic fidelity are not approved."
+      ]
+    },
+    {
+      "fixtureId": "real-world-docx-suffolk-mapping-guidance",
+      "forcedClassification": "reviewRequired",
+      "metrics": {
+        "sourceElements": 182,
+        "outputElements": 47,
+        "matchedElements": 47,
+        "missingElements": 135,
+        "duplicateElements": 0,
+        "textPreservationRatio": 0.25824175824175827,
+        "maximumVisualDifferenceRatio": 0.172889,
+        "pageCountMatches": false
+      },
+      "limitations": [
+        "The three-page source is collapsed to one page and later content is lost.",
+        "Headings and images overflow the right page edge, and source pagination is not preserved."
+      ]
+    },
+    {
+      "fixtureId": "real-world-xlsx-suffolk-buildings",
+      "forcedClassification": "reviewRequired",
+      "metrics": {
+        "sourceElements": 140049,
+        "outputElements": 116645,
+        "matchedElements": 103973,
+        "missingElements": 36076,
+        "duplicateElements": 0,
+        "textPreservationRatio": 0.7424044441588301,
+        "maximumVisualDifferenceRatio": 0.109645,
+        "pageCountMatches": false,
+        "sheetCountMatches": true
+      },
+      "limitations": [
+        "Column widths, wrapped text, row heights, and print pagination differ from the source workbook.",
+        "The roundtrip adds 60 printed pages and clips header and cell content."
+      ]
+    }
+  ]
+}

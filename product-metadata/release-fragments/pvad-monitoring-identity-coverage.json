@@ -1,0 +1,8 @@
+{
+  "id": "pvad-monitoring-identity-coverage",
+  "impact": "major",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Rename default monitoring jobs and alert service labels, requiring existing routing and silence matchers to be migrated. Queries retain legacy measurement support and now include current containers and heartbeat identities.",
+  "breaking": true
+}

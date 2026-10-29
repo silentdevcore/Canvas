@@ -1,0 +1,8 @@
+{
+  "id": "pvad-docfx-reference-links",
+  "impact": "patch",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "The PDF API reference now includes downloadable project schemas and synthetic PDF examples, with corrected API and download links.",
+  "breaking": false
+}

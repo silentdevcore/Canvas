@@ -1,0 +1,645 @@
+@import '../../shared/styles/index.css';
+
+.pvad-header-account-link {
+  padding: var(--pvad-space-2);
+  color: var(--pvad-color-brand-700);
+  font-size: var(--pvad-text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pvad-site--company .pvad-site-header__inner {
+  width: calc(100% - 32px);
+  max-width: 1280px;
+}
+
+.pvad-company-hero__grid,
+.pvad-company-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: var(--pvad-space-8);
+  align-items: center;
+}
+
+.pvad-company-hero .pvad-heading {
+  max-width: 760px;
+  font-size: var(--pvad-text-4xl);
+}
+
+.pvad-company-hero .pvad-lede {
+  max-width: 700px;
+}
+
+.pvad-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pvad-space-3);
+  margin-top: var(--pvad-space-6);
+}
+
+.pvad-company-trial-note {
+  margin: var(--pvad-space-3) 0 0;
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-sm);
+}
+
+.pvad-company-proof-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 680px;
+  gap: var(--pvad-space-3);
+  margin-top: var(--pvad-space-8);
+}
+
+.pvad-company-proof-strip div {
+  padding: var(--pvad-space-4);
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid var(--pvad-color-border);
+  border-radius: var(--pvad-radius-lg);
+  box-shadow: var(--pvad-shadow-sm);
+}
+
+.pvad-company-proof-strip strong {
+  display: block;
+  color: var(--pvad-color-brand-700);
+  font-size: var(--pvad-text-2xl);
+  line-height: 1;
+}
+
+.pvad-company-proof-strip span {
+  display: block;
+  margin-top: var(--pvad-space-2);
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-sm);
+}
+
+.pvad-company-snapshot dl {
+  display: grid;
+  gap: var(--pvad-space-4);
+  margin: var(--pvad-space-5) 0 0;
+}
+
+.pvad-company-snapshot div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pvad-space-4);
+  padding-bottom: var(--pvad-space-3);
+  border-bottom: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-snapshot dt {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-snapshot dd {
+  margin: 0;
+  color: var(--pvad-color-ink);
+  font-weight: 700;
+  text-align: right;
+}
+
+.pvad-company-about-stack {
+  display: grid;
+  gap: var(--pvad-space-4);
+}
+
+.pvad-company-about-card {
+  display: grid;
+  gap: var(--pvad-space-2);
+}
+
+.pvad-company-about-card h3,
+.pvad-company-about-card p {
+  margin: 0;
+}
+
+.pvad-company-about-card p {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-grid {
+  margin-top: var(--pvad-space-8);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pvad-product-card__label {
+  width: fit-content;
+  padding: var(--pvad-space-1) var(--pvad-space-2);
+  color: var(--pvad-color-brand-700);
+  background: var(--pvad-color-brand-50);
+  border: 1px solid var(--pvad-color-brand-100);
+  border-radius: var(--pvad-radius-sm);
+  font-size: var(--pvad-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvad-company-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pvad-space-3);
+  margin-top: auto;
+}
+
+.pvad-company-card-actions a,
+.pvad-product-card a {
+  font-weight: 700;
+}
+
+.pvad-product-card ul {
+  display: grid;
+  gap: var(--pvad-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pvad-product-card li {
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-sm);
+}
+
+.pvad-product-card li::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: var(--pvad-space-2);
+  background: var(--pvad-color-teal-600);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.pvad-section--soft {
+  background: var(--pvad-color-surface);
+  border-block: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pvad-space-2);
+  margin-top: var(--pvad-space-5);
+}
+
+.pvad-company-use-grid,
+.pvad-company-showcase-grid,
+.pvad-company-pricing-grid,
+.pvad-company-story-grid,
+.pvad-company-support-grid,
+.pvad-company-contact-grid,
+.pvad-company-legal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pvad-space-5);
+  margin-top: var(--pvad-space-8);
+}
+
+.pvad-company-use-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pvad-company-use-card,
+.pvad-company-showcase-card,
+.pvad-company-pricing-card,
+.pvad-company-about-card,
+.pvad-company-story-card,
+.pvad-company-support-card,
+.pvad-company-contact-card,
+.pvad-company-legal-section {
+  display: grid;
+  align-content: start;
+  gap: var(--pvad-space-3);
+}
+
+.pvad-company-use-card h3,
+.pvad-company-showcase-card h3,
+.pvad-company-pricing-card h3,
+.pvad-company-story-card h3,
+.pvad-company-support-card h3,
+.pvad-company-contact-card h3,
+.pvad-company-legal-section h2,
+.pvad-company-use-card p,
+.pvad-company-showcase-card p,
+.pvad-company-pricing-card p,
+.pvad-company-story-card p,
+.pvad-company-support-card p,
+.pvad-company-contact-card p,
+.pvad-company-legal-section p {
+  margin: 0;
+}
+
+.pvad-company-legal-section h2 {
+  font-size: var(--pvad-text-xl);
+}
+
+.pvad-company-use-card p,
+.pvad-company-showcase-card p,
+.pvad-company-pricing-card p,
+.pvad-company-story-card p,
+.pvad-company-support-card p,
+.pvad-company-contact-card p,
+.pvad-company-legal-section p {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-pricing-card strong,
+.pvad-company-pricing-note strong,
+.pvad-company-support-topics strong {
+  color: var(--pvad-color-ink);
+}
+
+.pvad-company-pricing-card ul,
+.pvad-company-support-topics ul {
+  display: grid;
+  gap: var(--pvad-space-2);
+  margin: 0;
+  padding-left: var(--pvad-space-5);
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-pricing-card .pvad-button {
+  margin-top: var(--pvad-space-2);
+}
+
+.pvad-company-pricing-note,
+.pvad-company-support-topics,
+.pvad-company-contact-note,
+.pvad-company-legal-notice {
+  display: grid;
+  max-width: 860px;
+  gap: var(--pvad-space-3);
+  margin-top: var(--pvad-space-6);
+}
+
+.pvad-company-pricing-note p,
+.pvad-company-contact-note ul {
+  margin: 0;
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-contact-card span {
+  width: fit-content;
+  color: var(--pvad-color-brand-700);
+  font-weight: 800;
+}
+
+.pvad-company-contact-note ul {
+  display: grid;
+  gap: var(--pvad-space-2);
+  padding-left: var(--pvad-space-5);
+}
+
+.pvad-company-legal-notice strong {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-support-card a {
+  width: fit-content;
+  font-weight: 700;
+}
+
+.pvad-company-roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pvad-space-5);
+  margin-top: var(--pvad-space-8);
+}
+
+.pvad-company-roadmap-card {
+  display: grid;
+  align-content: start;
+  gap: var(--pvad-space-3);
+}
+
+.pvad-company-roadmap-card h3,
+.pvad-company-roadmap-card p {
+  margin: 0;
+}
+
+.pvad-company-contact,
+.pvad-company-legal {
+  max-width: 920px;
+}
+
+.pvad-company-contact .pvad-lede {
+  margin-inline: 0;
+}
+
+.pvad-company-product-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: var(--pvad-space-8);
+  align-items: start;
+}
+
+.pvad-company-product-summary {
+  display: grid;
+  gap: var(--pvad-space-4);
+}
+
+.pvad-company-product-summary p {
+  margin: 0;
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-product-summary ul,
+.pvad-company-product-content ul,
+.pvad-company-legal ul {
+  display: grid;
+  gap: var(--pvad-space-2);
+  margin: 0;
+  padding-left: var(--pvad-space-5);
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-product-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pvad-space-5);
+  margin-top: var(--pvad-space-8);
+}
+
+.pvad-company-product-content article {
+  display: grid;
+  align-content: start;
+  gap: var(--pvad-space-3);
+}
+
+.pvad-company-product-content h2 {
+  margin: 0;
+  font-size: var(--pvad-text-xl);
+}
+
+.pvad-company-legal {
+  display: grid;
+  max-width: 860px;
+  gap: var(--pvad-space-4);
+}
+
+.pvad-company-legal .pvad-lede {
+  margin: 0;
+}
+
+.pvad-company-legal-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) minmax(0, 820px);
+  gap: var(--pvad-space-10);
+  align-items: start;
+  margin-top: var(--pvad-space-10);
+}
+
+.pvad-company-legal-sidebar {
+  position: sticky;
+  top: calc(var(--pvad-header-height) + var(--pvad-space-5));
+  padding-right: var(--pvad-space-5);
+  border-right: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-legal-sidebar h2 {
+  margin: 0 0 var(--pvad-space-3);
+  font-size: var(--pvad-text-sm);
+  text-transform: uppercase;
+}
+
+.pvad-company-legal-sidebar nav {
+  display: grid;
+  gap: var(--pvad-space-1);
+}
+
+.pvad-company-legal-sidebar a {
+  padding: var(--pvad-space-2) var(--pvad-space-3);
+  color: var(--pvad-color-muted);
+  border-left: 3px solid transparent;
+  font-size: var(--pvad-text-sm);
+  font-weight: 650;
+}
+
+.pvad-company-legal-sidebar a:hover,
+.pvad-company-legal-sidebar a[aria-current="page"] {
+  color: var(--pvad-color-brand-700);
+  background: var(--pvad-color-brand-50);
+  border-left-color: var(--pvad-color-brand-600);
+}
+
+.pvad-company-legal-main {
+  min-width: 0;
+}
+
+.pvad-company-legal-metadata {
+  display: grid;
+  gap: var(--pvad-space-4);
+  padding-block: var(--pvad-space-5);
+  border-block: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-legal-metadata > p,
+.pvad-company-legal-metadata dl,
+.pvad-company-legal-metadata dd {
+  margin: 0;
+}
+
+.pvad-company-legal-publication-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pvad-space-3);
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-sm);
+}
+
+.pvad-company-legal-metadata dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pvad-space-4);
+}
+
+.pvad-company-legal-metadata dl > div:last-child {
+  grid-column: 1 / -1;
+}
+
+.pvad-company-legal-metadata dt {
+  margin-bottom: var(--pvad-space-1);
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pvad-company-legal-metadata dd {
+  color: var(--pvad-color-ink);
+  font-weight: 650;
+}
+
+.pvad-company-legal-metadata code {
+  display: block;
+  overflow: hidden;
+  color: var(--pvad-color-muted);
+  font-size: var(--pvad-text-xs);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvad-company-legal-change-summary {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-legal-document {
+  padding-block: var(--pvad-space-8);
+  color: var(--pvad-color-text);
+}
+
+.pvad-company-legal-document h1 {
+  display: none;
+}
+
+.pvad-company-legal-document h2 {
+  margin: var(--pvad-space-8) 0 var(--pvad-space-3);
+  color: var(--pvad-color-ink);
+  font-size: var(--pvad-text-2xl);
+}
+
+.pvad-company-legal-document h3 {
+  margin: var(--pvad-space-6) 0 var(--pvad-space-2);
+  color: var(--pvad-color-ink);
+  font-size: var(--pvad-text-lg);
+}
+
+.pvad-company-legal-document p,
+.pvad-company-legal-document li {
+  line-height: 1.7;
+}
+
+.pvad-company-legal-document a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pvad-company-legal-notice {
+  padding: var(--pvad-space-4) var(--pvad-space-5);
+  color: var(--pvad-color-muted);
+  background: var(--pvad-color-brand-50);
+  border-left: 4px solid var(--pvad-color-brand-600);
+}
+
+.pvad-company-legal-history {
+  display: grid;
+  gap: var(--pvad-space-6);
+  margin-top: var(--pvad-space-12);
+  padding-top: var(--pvad-space-8);
+  border-top: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-legal-history h2,
+.pvad-company-legal-history p {
+  margin: 0;
+}
+
+.pvad-company-legal-history > div:first-child {
+  display: grid;
+  gap: var(--pvad-space-2);
+}
+
+.pvad-company-legal-history > div:first-child > p:last-child,
+.pvad-company-legal-version-list li > p {
+  color: var(--pvad-color-muted);
+}
+
+.pvad-company-legal-version-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-legal-version-list li {
+  display: grid;
+  gap: var(--pvad-space-2);
+  padding-block: var(--pvad-space-4);
+  border-bottom: 1px solid var(--pvad-color-border);
+}
+
+.pvad-company-legal-version-list li > div {
+  display: flex;
+  align-items: center;
+  gap: var(--pvad-space-3);
+}
+
+.pvad-company-legal-version-list a {
+  color: var(--pvad-color-ink);
+  font-weight: 750;
+}
+
+.pvad-company-legal-version-list a[aria-current="page"] {
+  color: var(--pvad-color-brand-700);
+}
+
+@media (max-width: 860px) {
+  .pvad-company-hero__grid,
+  .pvad-company-two-column,
+  .pvad-company-product-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .pvad-company-proof-strip,
+  .pvad-company-roadmap,
+  .pvad-company-grid,
+  .pvad-company-use-grid,
+  .pvad-company-showcase-grid,
+  .pvad-company-pricing-grid,
+  .pvad-company-story-grid,
+  .pvad-company-support-grid,
+  .pvad-company-contact-grid,
+  .pvad-company-legal-grid,
+  .pvad-company-product-content {
+    grid-template-columns: 1fr;
+  }
+
+  .pvad-company-hero .pvad-heading {
+    font-size: var(--pvad-text-3xl);
+  }
+
+  .pvad-company-snapshot div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pvad-space-1);
+  }
+
+  .pvad-company-snapshot dd {
+    text-align: left;
+  }
+
+  .pvad-company-legal-layout {
+    grid-template-columns: 1fr;
+    gap: var(--pvad-space-6);
+  }
+
+  .pvad-company-legal-sidebar {
+    position: static;
+    padding: 0 0 var(--pvad-space-4);
+    border-right: 0;
+    border-bottom: 1px solid var(--pvad-color-border);
+  }
+
+  .pvad-company-legal-sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pvad-company-legal-metadata dl {
+    grid-template-columns: 1fr;
+  }
+
+  .pvad-company-legal-metadata dl > div:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .pvad-company-legal-sidebar nav {
+    grid-template-columns: 1fr;
+  }
+}

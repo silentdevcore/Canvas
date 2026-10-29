@@ -1,5 +1,7 @@
 # PXA Migration: Spire.PDF
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## V1 Pilot Analysis
 
 - [x] Spire.PDF is a good fit for simple generation flows: document, page, canvas text, shapes, and save.

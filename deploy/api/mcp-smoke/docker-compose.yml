@@ -1,0 +1,60 @@
+services:
+  mock:
+    image: node:22-alpine
+    command: ["node", "/app/deploy/api/mcp-smoke/mock-server.mjs"]
+    environment:
+      PVAD_MCP_SMOKE_RESOURCE: https://localhost:${PVAD_MCP_SMOKE_TLS_PORT:-3443}/mcp
+    volumes:
+      - ./mock-server.mjs:/app/deploy/api/mcp-smoke/mock-server.mjs:ro
+      - ../../../tools/configuration/environment.mjs:/app/tools/configuration/environment.mjs:ro
+    ports:
+      - "127.0.0.1:${PVAD_MCP_SMOKE_MOCK_PORT:-39090}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  pvad-mcp:
+    build:
+      context: ../../..
+      dockerfile: tools/PVAD.Mcp/Dockerfile
+    environment:
+      PVAD_MCP_RESOURCE_URI: https://localhost:${PVAD_MCP_SMOKE_TLS_PORT:-3443}/mcp
+      PVAD_MCP_OAUTH_ISSUER: https://account.pvad.test
+      PVAD_MCP_JWKS_URI: http://mock:8080/.well-known/jwks.json
+      PVAD_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES: "true"
+      PVAD_MCP_ALLOWED_HOSTS: localhost
+      PVAD_API_URL: http://mock:8080
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      mock:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  gateway:
+    image: nginx:1.29-alpine
+    ports:
+      - "127.0.0.1:${PVAD_MCP_SMOKE_TLS_PORT:-3443}:8443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${PVAD_MCP_SMOKE_CERT:?Set PVAD_MCP_SMOKE_CERT}:/certs/tls.crt:ro
+      - ${PVAD_MCP_SMOKE_KEY:?Set PVAD_MCP_SMOKE_KEY}:/certs/tls.key:ro
+    depends_on:
+      pvad-mcp:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=8m
+      - /var/run:rw,noexec,nosuid,nodev,size=1m
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "NET_BIND_SERVICE", "SETGID", "SETUID"]
+    security_opt: ["no-new-privileges:true"]

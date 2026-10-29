@@ -1,0 +1,8 @@
+{
+  "id": "pvad-admin-guide-and-mail-defaults",
+  "impact": "patch",
+  "components": ["admin", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Align protected administration guide links and fallback mail sender defaults with the selected brand while preserving customer configuration and dashboard identities.",
+  "breaking": false
+}

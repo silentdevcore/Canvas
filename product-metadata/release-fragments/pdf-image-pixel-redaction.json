@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-image-pixel-redaction",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "security",
+  "summary": "PVAD now removes covered PDF glyphs, bounded image pixels including managed JPX and embedded JBIG2 data, attached masks, and supported pattern-painted content while preserving unaffected uses and independently checking recovery paths.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

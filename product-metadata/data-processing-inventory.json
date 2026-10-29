@@ -30,7 +30,7 @@
       "systems": ["PostgreSQL", "ASP.NET Core Identity", "host-only security cookies"],
       "entities": ["IdentityActionToken", "UserSession", "DesignerAuthorizationCode", "ServiceAccount", "ApiKey", "UserConsentEvent"],
       "providerIds": ["postgresql"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default",
       "retention": {
         "status": "legal-review-required",
@@ -38,7 +38,7 @@
         "rule": "Session and action-token expiry is enforced, but final account, credential-metadata, and consent-evidence deletion periods are not approved.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Program.cs", "PXA.WebApi/Security/PxaSessionService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+      "sources": ["PVAD.WebApi/Program.cs", "PVAD.WebApi/Security/PvadSessionService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs"]
     },
     {
       "id": "organizations-and-access",
@@ -47,10 +47,10 @@
       "purposes": ["Provide tenant workspaces", "Authorize organization operations", "Administer users and seats"],
       "dataSubjects": ["organization members", "organization administrators"],
       "dataCategories": ["organization identity", "membership status", "role and permission assignments", "administrative timestamps"],
-      "systems": ["PostgreSQL", "PXA Account", "PXA Admin"],
+      "systems": ["PostgreSQL", "PVAD Account", "PVAD Admin"],
       "entities": ["Organization", "OrganizationMembership", "OrganizationMembershipRole"],
       "providerIds": ["postgresql"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default",
       "retention": {
         "status": "legal-review-required",
@@ -58,7 +58,7 @@
         "rule": "Closed organizations are retained; deletion, anonymization, and legal-hold periods require approval.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Application/Organizations/OrganizationMembershipService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+      "sources": ["PVAD.WebApi/Application/Organizations/OrganizationMembershipService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs"]
     },
     {
       "id": "subscriptions-usage-and-licensing",
@@ -67,18 +67,18 @@
       "purposes": ["Deliver subscribed products", "Enforce quotas and seats", "Manage Trial and license lifecycle", "Prepare future billing integration"],
       "dataSubjects": ["subscribers", "organization members", "billing contacts"],
       "dataCategories": ["subscription edition and state", "seat assignment", "product entitlements", "aggregated usage events", "license identifiers and validity", "lifecycle history"],
-      "systems": ["PostgreSQL", "PXA API", "PXA Admin"],
+      "systems": ["PostgreSQL", "PVAD API", "PVAD Admin"],
       "entities": ["OrganizationSubscription", "SubscriptionEntitlement", "SubscriptionSeatAssignment", "SubscriptionLifecycleEvent", "SubscriptionUsageEvent", "OfflineLicense"],
       "providerIds": ["postgresql"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default; a future payment provider requires a reviewed processor entry before activation",
       "retention": {
         "status": "legal-review-required",
         "approvalStatus": "pending-legal",
-        "rule": "Commercial and tax retention periods are not yet approved; no payment-card data is currently processed by PXA.",
+        "rule": "Commercial and tax retention periods are not yet approved; no payment-card data is currently processed by PVAD.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Services/Entitlements/PxaUsageService.cs", "PXA.WebApi/Application/Subscriptions/SubscriptionQueryService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+      "sources": ["PVAD.WebApi/Services/Entitlements/PvadUsageService.cs", "PVAD.WebApi/Application/Subscriptions/SubscriptionQueryService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs"]
     },
     {
       "id": "designer-content",
@@ -87,10 +87,10 @@
       "purposes": ["Create and save document templates", "Publish immutable template versions", "Apply feature preferences", "Deliver product notifications"],
       "dataSubjects": ["template authors", "document subjects whose data users place in templates"],
       "dataCategories": ["template metadata", "design JSON", "customer-entered document content", "feature preferences", "release read state", "notification state"],
-      "systems": ["PostgreSQL", "PXA Designer"],
-      "entities": ["DesignerTemplate", "DesignerTemplateVersion", "DesignerFeaturePreference", "DesignerFeaturePolicy", "DesignerReleaseRead", "DesignerNotification", "DesignerNotificationState"],
+      "systems": ["PostgreSQL", "PVAD Designer"],
+      "entities": ["DesignerTemplate", "DesignerTemplateVersion", "DesignerCodeWorkspace", "DesignerCodeWorkspaceVersion", "DesignerElementFavorite", "DesignerFeaturePreference", "DesignerFeaturePolicy", "DesignerReleaseRead", "DesignerNotification", "DesignerNotificationState"],
       "providerIds": ["postgresql", "browser-storage"],
-      "region": "PXA Server deployment region and the user's browser for disclosed local working state",
+      "region": "PVAD Server deployment region and the user's browser for disclosed local working state",
       "transfer": "none-by-default",
       "retention": {
         "status": "legal-review-required",
@@ -98,7 +98,7 @@
         "rule": "Templates support soft deletion and tenant-state clearing, but archive, purge, and account-closure periods require approval.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Controllers/DesignerTemplatesController.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs", "product-metadata/browser-storage.json"]
+      "sources": ["PVAD.WebApi/Controllers/DesignerTemplatesController.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs", "product-metadata/browser-storage.json"]
     },
     {
       "id": "synchronous-document-processing",
@@ -107,10 +107,10 @@
       "purposes": ["Perform the document operation requested by the customer", "Return generated or transformed output", "Diagnose operation failures without logging document bodies"],
       "dataSubjects": ["API users", "persons represented in customer documents"],
       "dataCategories": ["uploaded documents", "source code", "template JSON", "images", "OCR text", "generated outputs", "operation metadata"],
-      "systems": ["PXA WebApi process memory", "local temporary files", "in-process PXA and third-party document libraries", "local OCR worker"],
+      "systems": ["PVAD WebApi process memory", "local temporary files", "in-process PVAD and third-party document libraries", "local OCR worker"],
       "entities": [],
       "providerIds": ["local-ocr", "embedded-document-libraries"],
-      "region": "PXA Server execution region",
+      "region": "PVAD Server execution region",
       "transfer": "none-by-default; document libraries execute locally and are not configured as network recipients",
       "retention": {
         "status": "transient",
@@ -118,7 +118,7 @@
         "rule": "Request content and temporary files are processed for the operation and released or deleted when it completes; application logs must not contain document bodies.",
         "legalApprovalRequired": false
       },
-      "sources": ["PXA.WebApi/Controllers/DocumentOpsController.cs", "PXA.WebApi/Controllers/ExportController.cs", "PXA.WebApi/Controllers/MigrationController.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
+      "sources": ["PVAD.WebApi/Controllers/DocumentOpsController.cs", "PVAD.WebApi/Controllers/ExportController.cs", "PVAD.WebApi/Controllers/MigrationController.cs", "PVAD.WebApi/Services/Storage/PvadStoredObjectService.cs"]
     },
     {
       "id": "background-document-jobs",
@@ -127,19 +127,19 @@
       "purposes": ["Execute long-running document operations", "Permit status polling and result download", "Retry bounded failures"],
       "dataSubjects": ["API users", "persons represented in customer documents"],
       "dataCategories": ["job metadata", "organization and creator identifiers", "uploaded input objects", "generated result objects", "trace correlation", "failure summary"],
-      "systems": ["PostgreSQL", "configured object storage", "PXA background workers"],
-      "entities": ["PxaBackgroundJob", "PxaStoredObject"],
+      "systems": ["PostgreSQL", "configured object storage", "PVAD background workers"],
+      "entities": ["PvadBackgroundJob", "PvadStoredObject", "PdfTrustOperationJob", "EInvoiceValidationRecord"],
       "providerIds": ["postgresql", "filesystem-object-storage"],
-      "region": "PXA Server and object-storage deployment region",
+      "region": "PVAD Server and object-storage deployment region",
       "transfer": "none-by-default",
       "retention": {
-        "status": "partially-enforced",
+        "status": "enforced",
         "approvalStatus": "pending-legal",
-        "rule": "Input and result objects expire seven days after terminal completion by default. Expired job metadata remains and needs an approved purge or minimization period.",
-        "configuration": ["Jobs:ResultRetentionDays", "Jobs:CleanupIntervalMinutes"],
+        "rule": "Transient jobs are the default: input and result content is purged after successful result download or no later than 24 hours after terminal completion. Explicit Retained jobs keep content for seven days. Payloads and diagnostics are scrubbed with content, and minimized terminal job metadata expires after 30 days. Active Legal Holds suspend both cleanup stages.",
+        "configuration": ["Jobs:TransientRetentionHours", "Jobs:ResultRetentionDays", "Jobs:TerminalMetadataRetentionDays", "Jobs:CleanupIntervalMinutes"],
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Services/Jobs/PxaJobOptions.cs", "PXA.WebApi/Services/Jobs/PxaJobRetentionService.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
+      "sources": ["PVAD.WebApi/Controllers/DocumentJobsController.cs", "PVAD.WebApi/Controllers/JobsController.cs", "PVAD.WebApi/Services/Jobs/PvadJobOptions.cs", "PVAD.WebApi/Services/Jobs/PvadJobRetentionService.cs", "PVAD.WebApi/Services/Storage/PvadStoredObjectService.cs"]
     },
     {
       "id": "transactional-mail",
@@ -151,7 +151,7 @@
       "systems": ["PostgreSQL mail outbox", "disabled, development, or SMTP transport"],
       "entities": ["MailOutboxMessage"],
       "providerIds": ["postgresql", "smtp-transport"],
-      "region": "PXA Server region and the configured SMTP provider region",
+      "region": "PVAD Server region and the configured SMTP provider region",
       "transfer": "conditional-on-smtp-configuration",
       "retention": {
         "status": "enforced",
@@ -160,7 +160,7 @@
         "configuration": ["Mail:DeliveredRetentionDays", "Mail:CancelledRetentionDays", "Mail:DeadLetterRetentionDays"],
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Services/Mail/PxaMailOptions.cs", "PXA.WebApi/Services/Mail/PxaMailRetentionService.cs", "PXA.WebApi/Services/Mail/SmtpMailTransport.cs"]
+      "sources": ["PVAD.WebApi/Services/Mail/PvadMailOptions.cs", "PVAD.WebApi/Services/Mail/PvadMailRetentionService.cs", "PVAD.WebApi/Services/Mail/SmtpMailTransport.cs"]
     },
     {
       "id": "legal-governance-and-evidence",
@@ -172,7 +172,7 @@
       "systems": ["PostgreSQL", "verified public snapshot"],
       "entities": ["LegalDocument", "LegalDocumentVersion", "LegalPublicationApproval", "LegalAcceptanceEvent", "RetentionLegalHold"],
       "providerIds": ["postgresql", "filesystem-object-storage"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default",
       "retention": {
         "status": "legal-review-required",
@@ -180,7 +180,7 @@
         "rule": "Publication and acceptance evidence is append-only. Pseudonymization, legal holds, and final evidence retention need approval.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Application/Legal/PxaLegalDocumentService.cs", "PXA.WebApi/Application/Retention/PxaRetentionLegalHoldService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs", "tools/legal/README.md"]
+      "sources": ["PVAD.WebApi/Application/Legal/PvadLegalDocumentService.cs", "PVAD.WebApi/Application/Retention/PvadRetentionLegalHoldService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs", "tools/legal/README.md"]
     },
     {
       "id": "administrative-audit",
@@ -189,10 +189,10 @@
       "purposes": ["Investigate privileged changes", "Demonstrate tenant and authorization controls", "Support security incident response"],
       "dataSubjects": ["administrators", "organization members affected by changes"],
       "dataCategories": ["actor and organization identifiers", "action", "target type and identifier", "outcome", "minimized metadata", "timestamp"],
-      "systems": ["PostgreSQL", "PXA Admin"],
+      "systems": ["PostgreSQL", "PVAD Admin"],
       "entities": ["AuditEvent"],
       "providerIds": ["postgresql"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default",
       "retention": {
         "status": "legal-review-required",
@@ -200,13 +200,13 @@
         "rule": "Audit events are append-only; an approved retention, legal-hold, and pseudonymization policy is not yet implemented.",
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Controllers/AdminAuditController.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/Configurations/AuditEventConfiguration.cs"]
+      "sources": ["PVAD.WebApi/Controllers/AdminAuditController.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/Configurations/AuditEventConfiguration.cs"]
     },
     {
       "id": "product-observability",
       "name": "Operational logs, metrics, traces, alerts, and minimized browser telemetry",
       "role": "controller",
-      "purposes": ["Operate and secure PXA", "Measure reliability and capacity", "Diagnose failures", "Alert operators"],
+      "purposes": ["Operate and secure PVAD", "Measure reliability and capacity", "Diagnose failures", "Alert operators"],
       "dataSubjects": ["API users", "administrators", "public-site visitors in aggregate"],
       "dataCategories": ["route groups", "operation and outcome labels", "timings", "trace identifiers", "service health", "minimized error metadata", "browser Web Vitals without user identifiers"],
       "systems": ["OpenTelemetry Collector", "Prometheus", "Loki", "Tempo", "Alertmanager", "Grafana"],
@@ -218,10 +218,10 @@
         "status": "enforced",
         "approvalStatus": "pending-legal",
         "rule": "Defaults are 90 days for metrics, 30 days for logs, 14 days for traces, and 5 days for Alertmanager state; production approval remains required.",
-        "configuration": ["PXA_METRIC_RETENTION", "PXA_LOG_RETENTION", "PXA_TRACE_RETENTION", "PXA_ALERT_RETENTION"],
+        "configuration": ["PVAD_METRIC_RETENTION", "PVAD_LOG_RETENTION", "PVAD_TRACE_RETENTION", "PVAD_ALERT_RETENTION"],
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Controllers/BrowserTelemetryController.cs", "PXA.WebApi/Observability/PxaTelemetry.cs", "docker-compose.yml", "deploy/observability/README.md"]
+      "sources": ["PVAD.WebApi/Controllers/BrowserTelemetryController.cs", "PVAD.WebApi/Observability/PvadTelemetry.cs", "docker-compose.yml", "deploy/observability/README.md"]
     },
     {
       "id": "browser-storage",
@@ -250,10 +250,10 @@
       "purposes": ["Allow cancellation of an accidental closure", "Revoke sessions and access", "Close the personal organization safely"],
       "dataSubjects": ["users requesting account closure"],
       "dataCategories": ["user and organization identifiers", "request, cancellation, and processing timestamps", "closure status"],
-      "systems": ["PostgreSQL", "PXA Account"],
+      "systems": ["PostgreSQL", "PVAD Account"],
       "entities": ["AccountClosureRequest"],
       "providerIds": ["postgresql"],
-      "region": "PXA Server deployment region",
+      "region": "PVAD Server deployment region",
       "transfer": "none-by-default",
       "retention": {
         "status": "partially-enforced",
@@ -262,7 +262,7 @@
         "configuration": ["AccountClosure:RetentionPeriod"],
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Controllers/AccountClosureController.cs", "PXA.WebApi/Security/PxaAccountClosureOptions.cs"]
+      "sources": ["PVAD.WebApi/Controllers/AccountClosureController.cs", "PVAD.WebApi/Security/PvadAccountClosureOptions.cs"]
     },
     {
       "id": "backup-and-recovery",
@@ -282,7 +282,7 @@
         "rule": "Backup rotation, deletion, restore access, and geographic limits must be approved before production deployment.",
         "legalApprovalRequired": true
       },
-      "sources": ["tools/legal/backup-postgres.sh", "tools/legal/restore-postgres.sh", "operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md"]
+      "sources": ["tools/legal/backup-postgres.sh", "tools/legal/restore-postgres.sh", "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md"]
     }
   ],
   "providers": [
@@ -300,7 +300,7 @@
       "type": "object-storage",
       "deployment": "local-filesystem",
       "receivesCustomerContent": true,
-      "region": "PXA Server region",
+      "region": "PVAD Server region",
       "transferRisk": "none-by-default",
       "approval": "implemented"
     },
@@ -345,7 +345,7 @@
       "type": "OCR-worker",
       "deployment": "bundled-local-worker",
       "receivesCustomerContent": true,
-      "region": "PXA Server region",
+      "region": "PVAD Server region",
       "transferRisk": "none",
       "approval": "implemented"
     },
@@ -354,7 +354,7 @@
       "type": "in-process-document-processing",
       "deployment": "bundled-or-licensed-local-libraries",
       "receivesCustomerContent": true,
-      "region": "PXA Server region",
+      "region": "PVAD Server region",
       "transferRisk": "none-by-default",
       "approval": "network-egress-must-remain-disabled-or-be-inventoried"
     },

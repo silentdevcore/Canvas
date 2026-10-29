@@ -1,0 +1,29 @@
+#!/bin/sh
+# Sourced by the official Nginx entrypoint before template substitution.
+pvad_website_alias() {
+    if [ "$3" = x ] && [ "$5" = x ] && [ "$4" != "$6" ]; then
+        printf 'Conflicting configuration keys: %s and %s.\n' "$1" "$2" >&2
+        exit 1
+    fi
+    if [ "$3" = x ]; then
+        export "$1=$4"
+    elif [ "$5" = x ]; then
+        export "$1=$6"
+    fi
+    unset "$2"
+}
+
+pvad_website_alias PVAD_API_UPSTREAM PXA_API_UPSTREAM \
+    "${PVAD_API_UPSTREAM+x}" "${PVAD_API_UPSTREAM-}" "${PXA_API_UPSTREAM+x}" "${PXA_API_UPSTREAM-}"
+pvad_website_alias PVAD_SPA_ROUTE_PATTERN PXA_SPA_ROUTE_PATTERN \
+    "${PVAD_SPA_ROUTE_PATTERN+x}" "${PVAD_SPA_ROUTE_PATTERN-}" "${PXA_SPA_ROUTE_PATTERN+x}" "${PXA_SPA_ROUTE_PATTERN-}"
+
+if [ -z "${PVAD_API_UPSTREAM-}" ] || [ -z "${PVAD_SPA_ROUTE_PATTERN-}" ]; then
+    printf 'PVAD_API_UPSTREAM and PVAD_SPA_ROUTE_PATTERN must be nonempty.\n' >&2
+    exit 1
+fi
+case "$PVAD_SPA_ROUTE_PATTERN" in
+    '^/'*'$') ;;
+    *) printf 'PVAD_SPA_ROUTE_PATTERN must be anchored.\n' >&2; exit 1 ;;
+esac
+unset -f pvad_website_alias

@@ -1,0 +1,23 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-electronic-invoicing-foundation",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "Design, preview and issue Factur-X, ZUGFeRD and XRechnung invoices: PDF/A-3 hybrids paginated identically in the Designer and the generator, XML attached to existing PDFs, plus inspection, extraction, validation and retained evidence. Official conformance stays unevaluated.",
+  "featureIds": [],
+  "documentation": [
+    "/docs/guides/PVAD.EInvoicing.md",
+    "/docs/guides/PVAD.Unified-Migration-Provider-Coverage.md",
+    "/checklists/PVAD.E-Invoicing.md",
+    "/checklists/PVAD.PDF-Specialized-Features-Roadmap.md"
+  ],
+  "breaking": false
+}

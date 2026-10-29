@@ -1,4 +1,4 @@
-name: Synchronize PXA Release Impact Label
+name: Synchronize PVADE Release Impact Label
 
 on:
   pull_request_target:
@@ -35,7 +35,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          IMPACT="$(node control-source/tools/versioning/pxa-version.mjs change-impact \
+          IMPACT="$(node control-source/tools/versioning/pvad-version.mjs change-impact \
             --repo-root change-source \
             --base-ref "$BASE_SHA" \
             --head-ref "$HEAD_SHA")"

@@ -1,0 +1,8 @@
+{
+  "id": "pvad-migration-artifact-writers",
+  "impact": "major",
+  "components": ["api", "designer", "migration", "documentation"],
+  "category": "breaking",
+  "summary": "Current migration APIs now emit PVAD code and Viewer package identities. Update exact-match artifact consumers; legacy API routes retain previous identities. Designer code downloads accept both generations and select the correct document domain.",
+  "breaking": true
+}

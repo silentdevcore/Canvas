@@ -4,22 +4,22 @@
 
 | Group | Projects | Focus |
 |-------|----------|-------|
-| Core and application | `tests/PXA.Core.Tests`, `tests/PXA.Application.Tests` | Contracts, primitives, expression engine, formatters, use-case orchestration |
-| API | `tests/PXA.Api.Tests` | Controller integration and WebApi wiring |
-| PDF engine | `tests/PXA.Infrastructure.Pdf.Tests` | PXA PDF writer, encryption, diagnostics, PDF rendering services, golden snapshots |
-| Export integration | `tests/PXA.Export.Tests` | DOCX, ODT, XLSX, HTML, CSV, Markdown, PDF, image/TIFF, localization, security, fidelity |
-| PDF importer SDK | `tests/PXA.Importer.Tests` | Tokenizer, object parsing, stream/content parsing, graphics interpretation, editable model |
-| File importers | `tests/PXA.FileImporter.Tests`, `tests/PXA.FileImporter.ImageAnalysis.Tests`, `tests/PXA.FileImporter.ImageOcr.Tests` | File-to-`DesignExportDto` adapters, raster analysis, OCR pipeline |
-| PDF migration providers | `tests/PXA.Migration.*.Tests` provider projects | Vendor C# PDF code migration to PXA PDF code |
-| Report migration | `tests/PXA.Migration.Report.Designer.DevExpress.Tests`, `tests/PXA.Migration.Report.Designer.Rdl.Tests`, `tests/PXA.Migration.Report.Designer.Rpx.Tests`, plus the other report provider suites | Report source to editable PXA design |
-| Frontend | `pxa-designer` Jest tests | Editor, services, template utilities, export service, validation |
+| Core and application | `tests/PVAD.Core.Tests`, `tests/PVAD.Application.Tests` | Contracts, primitives, expression engine, formatters, use-case orchestration |
+| API | `tests/PVAD.Api.Tests` | Controller integration and WebApi wiring |
+| PDF engine | `tests/PVAD.Infrastructure.Pdf.Tests` | PVAD PDF writer, encryption, diagnostics, PDF rendering services, golden snapshots |
+| Export integration | `tests/PVAD.Export.Tests` | DOCX, ODT, XLSX, HTML, CSV, Markdown, PDF, image/TIFF, localization, security, fidelity |
+| PDF importer SDK | `tests/PVAD.Importer.Tests` | Tokenizer, object parsing, stream/content parsing, graphics interpretation, editable model |
+| File importers | `tests/PVAD.FileImporter.Tests`, `tests/PVAD.FileImporter.ImageAnalysis.Tests`, `tests/PVAD.FileImporter.ImageOcr.Tests` | File-to-`DesignExportDto` adapters, raster analysis, OCR pipeline |
+| PDF migration providers | `tests/PVAD.Migration.*.Tests` provider projects | Vendor C# PDF code migration to PVAD PDF code |
+| Report migration | `tests/PVAD.Migration.Report.Designer.DevExpress.Tests`, `tests/PVAD.Migration.Report.Designer.Rdl.Tests`, `tests/PVAD.Migration.Report.Designer.Rpx.Tests`, plus the other report provider suites | Report source to editable PVAD design |
+| Frontend | `pvad-designer` Jest tests | Editor, services, template utilities, export service, validation |
 
 ## Running Tests
 
 ### Coverage collector maintenance
 
-The 50 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
-Microsoft.NET.Test.Sdk 18.11.0 and xUnit VSTest adapter 4.0.1. All 51 adapter
+The 52 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
+Microsoft.NET.Test.Sdk 18.11.0 and xUnit VSTest adapter 4.0.1. All 53 adapter
 references are private, including the collector-free Webhook Relay. The test
 framework remains xUnit 2.9.3; adapter 4 supports this framework on net10 and
 does not require an MTP migration. Coverlet's VSTest integration requires test
@@ -43,16 +43,16 @@ code-mode switching. jsdom uses Node's real TextEncoder/TextDecoder when absent;
 the Router is not mocked. The routed browser smoke also clicks from the gallery
 to PDF import and exercises browser history in desktop/mobile dev/preview builds.
 These frontend fixtures use synthetic API responses, not real session acceptance.
-Also run `npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json`:
+Also run `npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json`:
 the ordinary Designer typecheck excludes this e2e fixture, while Vite only
 transpiles it. Router 7 already applies the former v6 future-option behaviors;
 the fixture must not pass the removed `future` prop.
 
 `QrDependencyCompatibilityTests` independently decodes synthetic QR module
 matrices, verifies real PDF image objects rather than text fallbacks, and checks
-Word PNG embedding. The PDF mapper reuses the existing 8-bit grayscale PNG
-helper because the low-level reader does not accept QRCoder's default packed
-PNG output. No native image library or temporary file is needed for this path.
+Word PNG embedding. The PDF mapper uses the shared symbol renderer and direct
+image bytes rather than QRCoder's packed PNG output. No temporary file is needed
+for this path.
 The compatible OpenAPI 2.13.0 update is checked through actual document generation.
 Managed/native Skia 3.119.2 remains coordinated; a Skia 4 migration is separate.
 
@@ -69,15 +69,15 @@ Ubuntu; supplied by macOS) and run:
 ```bash
 node --test tools/dependencies/coverage-smoke.test.mjs
 node tools/dependencies/coverage-smoke.mjs artifacts/coverage-smoke-local
-# Revalidate the retained old/new matrix attachments without rerunning tests:
-node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-review/before-filtered-exact
-node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-review/after
+# Revalidate a complete current-catalog run without rerunning tests:
+node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-smoke-local
+# Compare only runs with the same reviewed project/test catalog:
 node tools/dependencies/coverage-smoke.mjs --compare \
-  artifacts/coverage-review/before-filtered-exact/audited-summary.json \
-  artifacts/coverage-review/after/audited-summary.json
+  artifacts/coverage-before-52/audited-summary.json \
+  artifacts/coverage-after-52/audited-summary.json
 ```
 
-Use a fresh output directory for every run. The runner requires exactly 50
+Use a fresh output directory for every run. The runner requires exactly 52
 collector hosts, uses all migration tests and focused production-exercising
 tests for the other hosts, and fails on missing attachments, zero tests,
 non-passing or unexecuted tests, empty denominators, absent production hits,
@@ -105,6 +105,13 @@ record, branch and async instrumentation, so changed percentages need review;
 they do not by themselves prove a product regression or improvement. Collector
 integration does not enforce percentage thresholds automatically.
 
+The old pre-rename 50-host evidence stays unchanged and must be audited with
+its original reviewed tool revision, not relabeled as a current 52-host run.
+Stateless API fixtures use an explicit Testing host and never the developer
+database. Database tests migrate and initialize their own disposable PostgreSQL
+stores. OpenAPI tests use a separately isolated development host, keeping
+production debug exposure unchanged.
+
 References: [Coverlet VSTest integration](https://github.com/coverlet-coverage/coverlet/blob/v10.1.0/Documentation/VSTestIntegration.md),
 [Coverlet 10.1.0 changes](https://github.com/coverlet-coverage/coverlet/releases/tag/v10.1.0).
 
@@ -112,32 +119,32 @@ References: [Coverlet VSTest integration](https://github.com/coverlet-coverage/c
 
 ```bash
 # All .NET projects
-dotnet build PXA.sln
-dotnet test PXA.sln
+dotnet build PVAD.sln
+dotnet test PVAD.sln
 
 # Core/application/API
-dotnet test tests/PXA.Core.Tests
-dotnet test tests/PXA.Application.Tests
-dotnet test tests/PXA.Api.Tests
+dotnet test tests/PVAD.Core.Tests
+dotnet test tests/PVAD.Application.Tests
+dotnet test tests/PVAD.Api.Tests
 
 # PDF engine and export integration
-dotnet test tests/PXA.Infrastructure.Pdf.Tests
-dotnet test tests/PXA.Export.Tests
+dotnet test tests/PVAD.Infrastructure.Pdf.Tests
+dotnet test tests/PVAD.Export.Tests
 
 # Importers
-dotnet test tests/PXA.Importer.Tests
-dotnet test tests/PXA.FileImporter.Tests
-dotnet test tests/PXA.FileImporter.ImageAnalysis.Tests
-dotnet test tests/PXA.FileImporter.ImageOcr.Tests
+dotnet test tests/PVAD.Importer.Tests
+dotnet test tests/PVAD.FileImporter.Tests
+dotnet test tests/PVAD.FileImporter.ImageAnalysis.Tests
+dotnet test tests/PVAD.FileImporter.ImageOcr.Tests
 
 # Migration aggregators and examples
-dotnet test tests/PXA.Migration.Pdf.Tests
-dotnet test tests/PXA.Migration.Spreadsheet.Tests
-dotnet test tests/PXA.Migration.Report.Tests
-dotnet test tests/PXA.Migration.Pdf.Code.DevExpress.Tests
-dotnet test tests/PXA.Migration.Report.Designer.DevExpress.Tests
-dotnet test tests/PXA.Migration.Report.Designer.Rdl.Tests
-dotnet test tests/PXA.Migration.Report.Designer.Rpx.Tests
+dotnet test tests/PVAD.Migration.Pdf.Tests
+dotnet test tests/PVAD.Migration.Spreadsheet.Tests
+dotnet test tests/PVAD.Migration.Report.Tests
+dotnet test tests/PVAD.Migration.Pdf.Code.DevExpress.Tests
+dotnet test tests/PVAD.Migration.Report.Designer.DevExpress.Tests
+dotnet test tests/PVAD.Migration.Report.Designer.Rdl.Tests
+dotnet test tests/PVAD.Migration.Report.Designer.Rpx.Tests
 ```
 
 For ASP.NET, Identity, EF or OpenAPI dependency changes, run the focused contracts
@@ -146,15 +153,15 @@ and the PostgreSQL-enabled API/persistence matrix before and after the update:
 ```bash
 dotnet tool restore
 dotnet ef --version
-dotnet test tests/PXA.Api.Tests --filter "FullyQualifiedName~DotnetDependencyAlignmentTests|FullyQualifiedName~OpenApiCompatibilityTests"
-PXA_RUN_POSTGRES_TESTS=1 dotnet test tests/PXA.Infrastructure.Persistence.Tests -- xUnit.ParallelizeTestCollections=false
-PXA_RUN_POSTGRES_TESTS=1 dotnet test tests/PXA.Api.Tests --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
-dotnet test tests/PXA.Observability.WebhookRelay.Tests
+dotnet test tests/PVAD.Api.Tests --filter "FullyQualifiedName~DotnetDependencyAlignmentTests|FullyQualifiedName~OpenApiCompatibilityTests"
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test tests/PVAD.Infrastructure.Persistence.Tests -- xUnit.ParallelizeTestCollections=false
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test tests/PVAD.Api.Tests --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+dotnet test tests/PVAD.Observability.WebhookRelay.Tests
 ```
 
 Docker must be available to Testcontainers; use isolated containers, never a
 customer database. Also check `dotnet ef migrations has-pending-model-changes`
-against `PxaDbContext` without applying migrations. Keep the local EF tool,
+against `PvadDbContext` without applying migrations. Keep the local EF tool,
 Identity, Design, InMemory, MVC test hosts and EF health checks aligned. The
 OpenAPI model library has its own version and must match its resolved runtime
 reference. The OpenAPI test generates a document from the actual controller
@@ -186,7 +193,7 @@ authentication, session cookies, tenant isolation or backend authorization.
 The report and 24 screenshots contain only synthetic test data. Protected
 handbook screenshots are explicitly disabled and must not enter public CI
 artifacts. Output defaults to `artifacts/admin-tooling-smoke/current`; an optional
-first argument selects a separate output directory. `PXA_ADMIN_SMOKE_ROOT` can
+first argument selects a separate output directory. `PVAD_ADMIN_SMOKE_ROOT` can
 point to an isolated old-version Admin worktree for a genuine before comparison.
 Screenshots reset browser scroll restoration so scroll timing cannot
 be confused with a bundler regression. Do not silently regenerate an old-version
@@ -237,7 +244,7 @@ It exercises JSON edit/add/delete callbacks, selection and keyboard drag
 cancellation in the legacy surface, and editing/formula recalculation in the
 stable Spreadsheet grid. Three additional Jest regressions cover controlled
 selection feedback, sheet-switch reset and the application's required single
-overlay portal. `ComplexEditor` and its legacy `PxaSurface` and
+overlay portal. `ComplexEditor` and its legacy `PvadSurface` and
 `JsonEditorPanel` are not routed from the current application; their compatibility
 test does not claim new active-Designer functionality or a working legacy
 reorder operation. The ordinary application is tested separately by the existing
@@ -247,7 +254,7 @@ route in all four modes/viewports, using the real sidebar control on mobile.
 The Grid wrapper must pass its selected state back when using a selection
 callback, and `index.html` must retain the `portal` host required by Glide.
 For a genuine old-dependency visual baseline only, use
-`PXA_DESIGNER_SMOKE_ROOT=/absolute/old/pxa-designer node tools/dependencies/designer-tooling-smoke.mjs artifacts/before --baseline-only`.
+`PVAD_DESIGNER_SMOKE_ROOT=/absolute/old/pvad-designer node tools/dependencies/designer-tooling-smoke.mjs artifacts/before --baseline-only`.
 That explicit mode covers home/gallery/search only, not Spreadsheet editing.
 Both comparison captures wait for every staggered gallery animation to finish;
 do not replace an old-dependency baseline with a new-dependency render.
@@ -260,11 +267,9 @@ that major. This is a contributor build/test requirement, not a browser or
 deployed application runtime requirement.
 
 ```bash
-cd pxa-designer
-npm ci
-npm run type-check
-npm test -- --runInBand
-npm run test:coverage -- --runInBand
+cd pvad-designer
+npm test
+npm run test:coverage
 npm run build
 ```
 
@@ -289,7 +294,7 @@ an authenticated backend or PDF-generation test.
 Chart dependency changes also run the actual Live Preview and Canvas components:
 
 ```bash
-npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json
+npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json
 node tools/dependencies/designer-chart-smoke.mjs --label baseline
 # After the targeted dependency update and a clean install:
 node tools/dependencies/designer-chart-smoke.mjs --label updated \
@@ -306,30 +311,31 @@ CI runs the current-version contracts and retains screenshots on success/failure
 The fixture is not an application route and is excluded from the ordinary
 Designer production build. All inputs are synthetic, external font CSS is stubbed,
 and other external/API requests are rejected. This does not certify backend PDF fidelity, extra chart types or
-existing Canvas/Preview equivalence; the current Canvas uses a separate simplified
-renderer, and null values retain the existing zero-value fallback.
+existing Canvas/Preview equivalence. The renamed Designer has a newer chart
+renderer than the original dependency baseline; compare against that retained
+implementation, not against an obsolete placeholder.
 
 ## Recommended Scope By Change Type
 
 | Change type | Minimum validation |
 |-------------|--------------------|
 | Documentation only | Link/readability check; no build required unless commands or APIs changed |
-| Core contracts/DTOs | `PXA.Core.Tests`, affected export/import/migration tests, `dotnet build PXA.sln` |
-| PDF engine/writer | `PXA.Infrastructure.Pdf.Tests`, `PXA.Export.Tests`, affected API tests |
-| Exporter | `PXA.Export.Tests`, affected infrastructure tests, API smoke test if endpoint behavior changed |
-| File importer | matching PXA importer test project, API import smoke test |
-| PDF importer engine | `PXA.Importer.Tests`, file-importer PDF coverage, PDF import API tests |
+| Core contracts/DTOs | `PVAD.Core.Tests`, affected export/import/migration tests, `dotnet build PVAD.sln` |
+| PDF engine/writer | `PVAD.Infrastructure.Pdf.Tests`, `PVAD.Export.Tests`, affected API tests |
+| Exporter | `PVAD.Export.Tests`, affected infrastructure tests, API smoke test if endpoint behavior changed |
+| File importer | matching PVAD importer test project, API import smoke test |
+| PDF importer engine | `PVAD.Importer.Tests`, file-importer PDF coverage, PDF import API tests |
 | Image analysis/OCR | image-analysis/OCR test projects plus endpoint smoke test if WebApi changed |
-| Migration provider | matching `PXA.Migration.<Provider>.Tests`, migration API smoke test if registration changed |
+| Migration provider | matching `PVAD.Migration.<Provider>.Tests`, migration API smoke test if registration changed |
 | Report migration | matching report migration tests plus one end-to-end render test where practical |
-| Frontend UI/service | `cd pxa-designer && npm test`, `npm run build` |
+| Frontend UI/service | `cd pvad-designer && npm test`, `npm run build` |
 
 ## Golden Snapshot Workflow
 
 Primary PDF snapshot details live in:
 
 ```text
-tests/PXA.Infrastructure.Pdf.Tests/SNAPSHOT_TESTING.md
+tests/PVAD.Infrastructure.Pdf.Tests/SNAPSHOT_TESTING.md
 ```
 
 When intentionally updating a snapshot:
@@ -337,7 +343,7 @@ When intentionally updating a snapshot:
 1. Run the focused PDF test and capture the produced hash or diff from the failure output.
 2. Verify that the output change is expected and acceptable.
 3. Update the expected hash or fixture.
-4. Re-run `tests/PXA.Infrastructure.Pdf.Tests`.
+4. Re-run `tests/PVAD.Infrastructure.Pdf.Tests`.
 5. Re-run broader export tests if the change affects common rendering behavior.
 6. Document the reason in PR notes or the related checklist.
 
@@ -345,16 +351,16 @@ When intentionally updating a snapshot:
 
 CI should validate:
 
-1. `dotnet build PXA.sln`
+1. `dotnet build PVAD.sln`
 2. .NET test projects relevant to the changed areas
-3. full `dotnet test PXA.sln` for shared contracts, rendering, API, importer, or migration infrastructure changes
-4. `cd pxa-designer && npm run build`
+3. full `dotnet test PVAD.sln` for shared contracts, rendering, API, importer, or migration infrastructure changes
+4. `cd pvad-designer && npm run build`
 5. frontend tests when UI/service/template code changes
 
 ## Notes
 
-- `PXA.*` projects and namespaces were removed in the PXA breaking rename. Use `PXA.*` projects and namespaces for active code.
-- `CANMIG...` diagnostic identifiers remain stable even though provider namespaces are now `PXA.Migration.*`.
+- Active projects and namespaces use `PVAD.*`. Previous `PXA.*` names survive only in documented compatibility adapters, historical fixtures and signed evidence.
+- `CANMIG...` diagnostic identifiers remain stable even though provider namespaces are now `PVAD.Migration.*`.
 - Many migration providers are intentionally conservative. Tests should assert diagnostics for unsupported APIs instead of forcing unsafe rewrites.
 - Report converters should test both element mapping and final renderability where possible.
 - Importer tests should prefer small, stable fixtures and assert semantic `DesignExportDto` output instead of brittle byte-for-byte comparisons.

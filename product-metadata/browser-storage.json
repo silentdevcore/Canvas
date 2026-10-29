@@ -1,218 +1,394 @@
 {
   "$schema": "./browser-storage.schema.json",
   "schemaVersion": 1,
-  "reviewedAt": "2026-08-01",
+  "reviewedAt": "2026-10-18",
   "optionalStorageEnabled": false,
   "entries": [
     {
       "id": "public.storage-notice",
       "mechanism": "cookie",
-      "keys": ["PXA.StorageNotice"],
-      "applications": ["account", "company", "demo", "documentation"],
-      "owner": "PXA Web Platform",
+      "keys": [
+        "PVAD.StorageNotice",
+        "PXA.StorageNotice"
+      ],
+      "applications": [
+        "account",
+        "company",
+        "demo",
+        "documentation"
+      ],
+      "owner": "PVAD Web Platform",
       "category": "strictly-necessary",
       "purpose": "Remembers that the visitor acknowledged the necessary-storage notice.",
       "data": "Storage-notice version only; no user or device identifier.",
       "lifetime": "180 days",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["websites/shared/storageNotice.js"]
+      "sourceFiles": [
+        "websites/shared/storageNotice.js"
+      ]
     },
     {
       "id": "identity.account-session",
       "mechanism": "cookie",
-      "keys": ["__Host-PXA.Session", "PXA.Session.Development"],
-      "applications": ["account", "admin"],
-      "owner": "PXA Identity",
+      "keys": [
+        "__Host-PVAD.Session",
+        "PVAD.Session.Development",
+        "__Host-PXA.Session",
+        "PXA.Session.Development"
+      ],
+      "applications": [
+        "account",
+        "admin"
+      ],
+      "owner": "PVAD Identity",
       "category": "strictly-necessary",
-      "purpose": "Authenticates the current Account or Admin browser session.",
+      "purpose": "Authenticates the current Account or Admin browser session. Canonical PVAD cookies replace legacy PXA cookies through validated migration; legacy reads remain supported.",
       "data": "Protected authentication ticket; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "8 hours with sliding renewal",
       "optional": false,
       "serverManaged": true,
-      "sourceFiles": ["PXA.WebApi/Program.cs"]
+      "sourceFiles": [
+        "PVAD.WebApi/Security/PvadCookieNames.cs"
+      ]
     },
     {
       "id": "identity.designer-session",
       "mechanism": "cookie",
-      "keys": ["__Host-PXA.Designer.Session", "PXA.Designer.Session.Development"],
-      "applications": ["designer"],
-      "owner": "PXA Identity",
+      "keys": [
+        "__Host-PVAD.Designer.Session",
+        "PVAD.Designer.Session.Development",
+        "__Host-PXA.Designer.Session",
+        "PXA.Designer.Session.Development"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Identity",
       "category": "strictly-necessary",
-      "purpose": "Authenticates the isolated Designer browser session.",
+      "purpose": "Authenticates the isolated Designer browser session. Canonical PVAD cookies replace legacy PXA cookies through validated migration; legacy reads remain supported.",
       "data": "Protected authentication ticket; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "8 hours with sliding renewal",
       "optional": false,
       "serverManaged": true,
-      "sourceFiles": ["PXA.WebApi/Program.cs"]
+      "sourceFiles": [
+        "PVAD.WebApi/Security/PvadCookieNames.cs"
+      ]
     },
     {
       "id": "security.antiforgery",
       "mechanism": "cookie",
-      "keys": ["__Host-PXA.Antiforgery", "PXA.Antiforgery.Development"],
-      "applications": ["account", "admin", "designer"],
-      "owner": "PXA Security",
+      "keys": [
+        "__Host-PVAD.Antiforgery",
+        "PVAD.Antiforgery.Development",
+        "__Host-PXA.Antiforgery",
+        "PXA.Antiforgery.Development"
+      ],
+      "applications": [
+        "account",
+        "admin",
+        "designer"
+      ],
+      "owner": "PVAD Security",
       "category": "strictly-necessary",
-      "purpose": "Protects authenticated state-changing requests against cross-site request forgery.",
+      "purpose": "Protects authenticated state-changing requests against cross-site request forgery. Canonical PVAD cookies replace legacy PXA cookies through validated migration; legacy reads remain supported.",
       "data": "Opaque anti-forgery token; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "Browser session",
       "optional": false,
       "serverManaged": true,
-      "sourceFiles": ["PXA.WebApi/Program.cs"]
+      "sourceFiles": [
+        "PVAD.WebApi/Security/PvadCookieNames.cs"
+      ]
     },
     {
       "id": "preference.locale",
       "mechanism": "localStorage",
-      "keys": ["pxa_locale"],
-      "applications": ["account", "designer"],
-      "owner": "PXA Localization",
+      "keys": [
+        "pvad_locale",
+        "pxa_locale"
+      ],
+      "applications": [
+        "account",
+        "designer"
+      ],
+      "owner": "PVAD Localization",
       "category": "requested-preference",
       "purpose": "Keeps the language explicitly selected by the user.",
       "data": "Supported language code.",
       "lifetime": "Until the user changes it or clears site data",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["websites/PXA.Account/src/authI18n.ts", "pxa-designer/src/i18n/index.ts"]
+      "sourceFiles": [
+        "websites/PVAD.Account/src/authI18n.ts",
+        "pvad-designer/src/i18n/index.ts"
+      ]
     },
     {
       "id": "designer.auth-transaction",
       "mechanism": "sessionStorage",
-      "keys": ["pxa.designer.auth-transaction"],
-      "applications": ["designer"],
-      "owner": "PXA Identity",
+      "keys": [
+        "pvad.designer.auth-transaction",
+        "pxa.designer.auth-transaction"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Identity",
       "category": "strictly-necessary",
       "purpose": "Completes the one-time Account-to-Designer PKCE authorization handoff.",
       "data": "PKCE verifier, state, safe return path, and creation time.",
       "lifetime": "Consumed on callback or removed when the browser tab closes",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/auth/designerAuth.ts"]
+      "sourceFiles": [
+        "pvad-designer/src/auth/designerAuth.ts"
+      ]
     },
     {
       "id": "designer.migration-handoff",
       "mechanism": "sessionStorage",
-      "keys": ["pxa_migration_designer_handoff"],
-      "applications": ["designer"],
-      "owner": "PXA Migration",
+      "keys": [
+        "pvad_migration_designer_handoff",
+        "pxa_migration_designer_handoff"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Migration",
       "category": "strictly-necessary",
       "purpose": "Transfers one migrated design into the editor without placing document content in the URL.",
       "data": "Migrated template JSON and page settings.",
-      "lifetime": "Consumed when the editor opens or removed when the browser tab closes",
+      "lifetime": "Five-minute validity, consumed when the editor opens; legacy unassigned transfers are never loaded",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/pages/MigrationsPage.tsx", "pxa-designer/src/pages/CreatePage.tsx"]
+      "sourceFiles": [
+        "pvad-designer/src/auth/documentHandoff.ts",
+        "pvad-designer/src/auth/designerTenantState.ts",
+        "pvad-designer/src/pages/MigrationsPage.tsx",
+        "pvad-designer/src/pages/CreatePage.tsx"
+      ]
     },
     {
       "id": "designer.pdf-viewer-handoff",
       "mechanism": "sessionStorage",
-      "keys": ["pdf_viewer_handoff"],
-      "applications": ["designer"],
-      "owner": "PXA PDF Viewer",
+      "keys": [
+        "pvad_pdf_viewer_handoff",
+        "pdf_viewer_handoff"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD PDF Viewer",
       "category": "strictly-necessary",
       "purpose": "Transfers one PDF source into the viewer without placing document content in the URL.",
       "data": "PDF data URL or source URL and display name.",
-      "lifetime": "Consumed when the viewer opens or removed when the browser tab closes",
+      "lifetime": "Five-minute validity, consumed when the viewer opens; legacy unassigned transfers are never loaded",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/features/pdf-viewer/handoff.ts"]
+      "sourceFiles": [
+        "pvad-designer/src/features/pdf-viewer/handoff.ts",
+        "pvad-designer/src/auth/documentHandoff.ts",
+        "pvad-designer/src/auth/designerTenantState.ts"
+      ]
     },
     {
       "id": "designer.editor-mode",
       "mechanism": "localStorage",
-      "keys": ["editor-storage"],
-      "applications": ["designer"],
-      "owner": "PXA Designer",
+      "keys": [
+        "editor-storage"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Designer",
       "category": "requested-preference",
       "purpose": "Keeps the selected document editing mode between visits.",
       "data": "Document-mode preference only; customer templates are excluded.",
       "lifetime": "Until sign-out, organization switch, or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/store.ts", "pxa-designer/src/auth/designerTenantState.ts"]
+      "sourceFiles": [
+        "pvad-designer/src/store.ts",
+        "pvad-designer/src/auth/designerTenantState.ts"
+      ]
     },
     {
       "id": "designer.spreadsheet-draft",
       "mechanism": "localStorage",
-      "keys": ["pxa-spreadsheet"],
-      "applications": ["designer"],
-      "owner": "PXA Spreadsheet",
+      "keys": [
+        "pvad-spreadsheet:v1:"
+      ],
+      "recoveryOnlyKeys": [
+        "pxa-spreadsheet",
+        "canvas-spreadsheet",
+        "pvad-spreadsheet"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Spreadsheet",
       "category": "requested-application-state",
-      "purpose": "Restores the locally edited workbook after an accidental refresh.",
+      "purpose": "Restores the locally edited workbook for the authenticated user and organization; unscoped legacy drafts are not automatically adopted.",
       "data": "Workbook name, sheets, cells, and active-sheet index; may contain customer-entered content.",
-      "lifetime": "Until sign-out, organization switch, replacement, or site-data deletion",
+      "lifetime": "Scoped drafts remain until replacement or site-data deletion; inactive scopes are not loaded. Unscoped legacy drafts are removed at sign-out or organization switch.",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/spreadsheet/store.ts", "pxa-designer/src/auth/designerTenantState.ts"]
+      "sourceFiles": [
+        "pvad-designer/src/spreadsheet/store.ts",
+        "pvad-designer/src/auth/designerTenantState.ts",
+        "pvad-designer/src/spreadsheet/legacyRecovery.ts",
+        "pvad-designer/src/components/Project/LegacyWorkbookRecovery.tsx"
+      ]
     },
     {
       "id": "designer.code-draft",
       "mechanism": "localStorage",
-      "keys": ["pxa-code-editor-draft-v2"],
-      "applications": ["designer"],
-      "owner": "PXA Code Editor",
+      "keys": [
+        "pvad-code-editor-draft-v2",
+        "pxa-code-editor-draft-v2"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Code Editor",
       "category": "requested-application-state",
       "purpose": "Restores the code or JSON draft after an accidental refresh.",
       "data": "User-edited C# or design JSON; may contain customer-entered content.",
       "lifetime": "Until sign-out, organization switch, replacement, or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/components/CodeEditor/LiveCodeEditor.tsx", "pxa-designer/src/auth/designerTenantState.ts"]
+      "sourceFiles": [
+        "pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx",
+        "pvad-designer/src/auth/designerTenantState.ts"
+      ]
     },
     {
-      "id": "designer.code-language",
+      "id": "designer.element-groups",
       "mechanism": "localStorage",
-      "keys": ["pxa-code-editor-lang-v2"],
-      "applications": ["designer"],
-      "owner": "PXA Code Editor",
+      "keys": [
+        "pvad-designer-element-groups-v1",
+        "pxa-designer-element-groups-v1"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVADE Designer",
       "category": "requested-preference",
-      "purpose": "Keeps the selected code-editor language mode.",
-      "data": "Language-mode identifier.",
+      "purpose": "Keeps element-library groups expanded or collapsed as chosen by the user.",
+      "data": "Element group identifiers only.",
       "lifetime": "Until changed or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/components/CodeEditor/LiveCodeEditor.tsx"]
+      "sourceFiles": [
+        "pvad-designer/src/components/Editor/SimplePvadSurface.tsx"
+      ]
+    },
+    {
+      "id": "designer.recent-content",
+      "mechanism": "localStorage",
+      "keys": [
+        "pvad-designer-recent-content-v1",
+        "pxa-designer-recent-content-v1"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVADE Designer",
+      "category": "requested-preference",
+      "purpose": "Keeps the eight most recently inserted content-library entries available.",
+      "data": "Static content-library identifiers; no document content.",
+      "lifetime": "Until replaced or site-data deletion",
+      "optional": false,
+      "serverManaged": false,
+      "sourceFiles": [
+        "pvad-designer/src/components/Editor/SimplePvadSurface.tsx"
+      ]
+    },
+    {
+      "id": "designer.element-favorites-cache",
+      "mechanism": "localStorage",
+      "keys": [
+        "pvad-designer-element-favorites-v1:",
+        "pxa-designer-element-favorites-v1:"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVADE Designer",
+      "category": "requested-preference",
+      "purpose": "Caches personal element favorites for temporary display when the API is unavailable.",
+      "data": "User-scoped key and element-type identifiers; the server remains authoritative.",
+      "lifetime": "Until replaced or site-data deletion",
+      "optional": false,
+      "serverManaged": false,
+      "sourceFiles": [
+        "pvad-designer/src/hooks/useElementFavorites.ts"
+      ]
     },
     {
       "id": "designer.export-format",
       "mechanism": "localStorage",
-      "keys": ["pxa_export_format"],
-      "applications": ["designer"],
-      "owner": "PXA Export",
+      "keys": [
+        "pvad_export_format",
+        "pxa_export_format"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Export",
       "category": "requested-preference",
       "purpose": "Highlights the export format most recently chosen by the user.",
       "data": "Export-format identifier only.",
       "lifetime": "Until changed or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/components/Editor/ExportModal.tsx"]
+      "sourceFiles": [
+        "pvad-designer/src/components/Editor/ExportModal.tsx"
+      ]
     },
     {
       "id": "designer.pdf-sidebar",
       "mechanism": "localStorage",
-      "keys": ["pxa-designer:pdf-sidebar-collapsed"],
-      "applications": ["designer"],
-      "owner": "PXA Designer",
+      "keys": [
+        "pvad-designer:pdf-sidebar-collapsed",
+        "pxa-designer:pdf-sidebar-collapsed"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Designer",
       "category": "requested-preference",
       "purpose": "Keeps the PDF navigation sidebar in the state selected by the user.",
       "data": "Collapsed or expanded flag.",
       "lifetime": "Until changed or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/hooks/useSidebarCollapsed.ts", "pxa-designer/src/components/Layout/PdfLayout.tsx"]
+      "sourceFiles": [
+        "pvad-designer/src/hooks/useSidebarCollapsed.ts",
+        "pvad-designer/src/components/Layout/PdfLayout.tsx"
+      ]
     },
     {
       "id": "designer.spreadsheet-sidebar",
       "mechanism": "localStorage",
-      "keys": ["pxa-designer:spreadsheet-sidebar-collapsed"],
-      "applications": ["designer"],
-      "owner": "PXA Designer",
+      "keys": [
+        "pvad-designer:spreadsheet-sidebar-collapsed",
+        "pxa-designer:spreadsheet-sidebar-collapsed"
+      ],
+      "applications": [
+        "designer"
+      ],
+      "owner": "PVAD Designer",
       "category": "requested-preference",
       "purpose": "Keeps the Spreadsheet navigation sidebar in the state selected by the user.",
       "data": "Collapsed or expanded flag.",
       "lifetime": "Until changed or site-data deletion",
       "optional": false,
       "serverManaged": false,
-      "sourceFiles": ["pxa-designer/src/hooks/useSidebarCollapsed.ts", "pxa-designer/src/components/Layout/SpreadsheetLayout.tsx"]
+      "sourceFiles": [
+        "pvad-designer/src/hooks/useSidebarCollapsed.ts",
+        "pvad-designer/src/components/Layout/SpreadsheetLayout.tsx"
+      ]
     }
   ]
 }

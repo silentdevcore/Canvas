@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pades-independent-profile-validation",
+  "impact": "patch",
+  "components": [
+    "documentation",
+    "importer"
+  ],
+  "category": "fixed",
+  "summary": "PAdES signatures now follow the Baseline signed-attribute contract and B-T, B-LT, and B-LTA outputs include independently validated interoperability evidence.",
+  "documentation": [
+    "/downloads/pdf-trust/pades/"
+  ],
+  "breaking": false
+}

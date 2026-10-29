@@ -1,0 +1,141 @@
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Options;
+using PVAD.WebApi.Observability;
+
+namespace PVAD.WebApi.Services.Licensing;
+
+public sealed class PvadLicensingOptions
+{
+    public string KeyId { get; set; } = "pxa-development-1";
+    public string PrivateKeyPath { get; set; } = "App_Data/licensing/private-key.pem";
+    public string PublicKeyPath { get; set; } = "App_Data/licensing/public-key.pem";
+    public int MetricsIntervalSeconds { get; set; } = 60;
+}
+
+public interface IPvadLicenseSignatureVerifier
+{
+    bool Verify(string envelopeJson, string signature);
+    string PublicKeyPem { get; }
+    string KeyId { get; }
+}
+
+public interface IPvadLicenseSigningService : IPvadLicenseSignatureVerifier
+{
+    PvadSignedLicenseArtifact Sign(PvadOfflineLicenseEnvelope envelope);
+}
+
+public sealed class PvadLicenseSigningService : IPvadLicenseSigningService
+{
+    private static readonly object KeyCreationLock = new();
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private readonly string privateKeyPem;
+
+    public PvadLicenseSigningService(
+        IOptions<PvadLicensingOptions> options,
+        IWebHostEnvironment environment)
+    {
+        KeyId = options.Value.KeyId;
+        var privatePath = ResolvePath(environment.ContentRootPath, options.Value.PrivateKeyPath);
+        var publicPath = ResolvePath(environment.ContentRootPath, options.Value.PublicKeyPath);
+        EnsureKeys(privatePath, publicPath, environment.IsDevelopment() || environment.IsEnvironment("Testing"));
+        privateKeyPem = File.ReadAllText(privatePath);
+        PublicKeyPem = File.ReadAllText(publicPath);
+    }
+
+    public string PublicKeyPem { get; }
+    public string KeyId { get; }
+
+    public PvadSignedLicenseArtifact Sign(PvadOfflineLicenseEnvelope envelope)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var envelopeJson = JsonSerializer.Serialize(envelope, JsonOptions);
+            using var signer = ECDsa.Create();
+            signer.ImportFromPem(privateKeyPem);
+            var signature = signer.SignData(
+                Encoding.UTF8.GetBytes(envelopeJson),
+                HashAlgorithmName.SHA256);
+            PvadTelemetry.RecordLicensingOperation("sign", "completed", stopwatch.Elapsed);
+            return new PvadSignedLicenseArtifact(
+                envelopeJson,
+                Convert.ToBase64String(signature),
+                KeyId,
+                "ECDSA_P256_SHA256");
+        }
+        catch
+        {
+            PvadTelemetry.RecordLicensingOperation("sign", "failed", stopwatch.Elapsed);
+            throw;
+        }
+    }
+
+    public bool Verify(string envelopeJson, string signature)
+    {
+        try
+        {
+            using var verifier = ECDsa.Create();
+            verifier.ImportFromPem(PublicKeyPem);
+            return verifier.VerifyData(
+                Encoding.UTF8.GetBytes(envelopeJson),
+                Convert.FromBase64String(signature),
+                HashAlgorithmName.SHA256);
+        }
+        catch (Exception exception) when (exception is CryptographicException or FormatException)
+        {
+            return false;
+        }
+    }
+
+    private static string ResolvePath(string contentRoot, string configuredPath) =>
+        Path.IsPathRooted(configuredPath) ? configuredPath : Path.Combine(contentRoot, configuredPath);
+
+    private static void EnsureKeys(string privatePath, string publicPath, bool mayCreate)
+    {
+        lock (KeyCreationLock)
+        {
+            if (File.Exists(privatePath) && File.Exists(publicPath))
+                return;
+            if (File.Exists(privatePath) || File.Exists(publicPath))
+                throw new InvalidOperationException("The offline-license key pair is incomplete. Restore the missing key; existing keys will not be replaced.");
+            if (!mayCreate)
+                throw new InvalidOperationException("Mounted offline-license signing keys are required outside Development.");
+            Directory.CreateDirectory(Path.GetDirectoryName(privatePath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(publicPath)!);
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            File.WriteAllText(privatePath, key.ExportECPrivateKeyPem());
+            File.WriteAllText(publicPath, key.ExportSubjectPublicKeyInfoPem());
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(privatePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+    }
+}
+
+public sealed record PvadOfflineLicenseEnvelope(
+    int SchemaVersion,
+    Guid LicenseId,
+    string LicenseNumber,
+    Guid OrganizationId,
+    string OrganizationName,
+    string Edition,
+    string AccountType,
+    string DeploymentMode,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset ValidUntil,
+    int InstanceLimit,
+    string ProductVersion,
+    string DeploymentId,
+    IReadOnlyList<PvadOfflineLicenseEntitlement> Entitlements,
+    DateTimeOffset IssuedAt);
+
+public sealed record PvadOfflineLicenseEntitlement(
+    string Capability,
+    bool Enabled,
+    long? Limit,
+    string? Unit,
+    DateTimeOffset? ExpiresAt);
+
+public sealed record PvadSignedLicenseArtifact(string EnvelopeJson, string Signature, string KeyId, string Algorithm);

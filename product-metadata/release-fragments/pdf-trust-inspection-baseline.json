@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-inspection-baseline",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PVAD adds typed PAdES B-B through B-LTA signing with strong configurable digests, trusted timestamps, controlled certificate-status retrieval, hardened parsing, and verified redaction.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

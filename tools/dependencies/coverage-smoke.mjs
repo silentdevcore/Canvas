@@ -6,23 +6,24 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const settings = join(root, 'tools/dependencies/coverage.runsettings');
+export const expectedCollectorCount = 52;
 const filters = {
-  'PXA.Api.Tests': 'FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.',
-  'PXA.Application.Tests': 'FullyQualifiedName~GenerateDocumentUseCaseTests|FullyQualifiedName~ApplyWatermarkUseCaseTests|FullyQualifiedName~CollectDiagnosticsUseCaseTests',
-  'PXA.Core.Tests': null,
-  'PXA.Domain.Tests': null,
-  'PXA.Export.Tests': 'FullyQualifiedName~ExportDocumentUseCaseTests',
-  'PXA.FileImporter.Image.Tests': 'FullyQualifiedName~ImageFileImporterTests',
-  'PXA.FileImporter.ImageAnalysis.Tests': 'FullyQualifiedName~ColorAnalyzerTests',
-  'PXA.FileImporter.ImageOcr.Tests': 'FullyQualifiedName~ConvertAsync_BuildsEditableTextAndBackgroundImage',
-  'PXA.FileImporter.Tests': 'FullyQualifiedName~FileImporterFacadeTests.DocxImporter_ImportsTextDesign|FullyQualifiedName~FileImporterFacadeTests.OdtImporter_ImportsTextDesign',
-  'PXA.Generator.Tests': 'FullyQualifiedName~PdfFacadeTests',
-  'PXA.Importer.Tests': 'FullyQualifiedName~PdfImportFacadeTests',
-  'PXA.Infrastructure.Converters.Tests': 'FullyQualifiedName~ConverterFacadeTests.TextExporters|FullyQualifiedName~ConverterFacadeTests.OdtExporter',
-  'PXA.Infrastructure.Pdf.Tests': 'FullyQualifiedName~PdfInfrastructureFacadeTests',
-  'PXA.Infrastructure.Persistence.Tests': 'FullyQualifiedName~PxaDbContextModelTests',
-  'PXA.Infrastructure.Spreadsheet.Tests': 'FullyQualifiedName~ClosedXmlCompatibilityTests',
-  'PXA.Infrastructure.Word.Tests': 'FullyQualifiedName~WordInfrastructureFacadeTests',
+  'PVAD.Api.Tests': 'FullyQualifiedName~PVAD.Api.Tests.VersionControllerTests.',
+  'PVAD.Application.Tests': 'FullyQualifiedName~GenerateDocumentUseCaseTests|FullyQualifiedName~ApplyWatermarkUseCaseTests|FullyQualifiedName~CollectDiagnosticsUseCaseTests',
+  'PVAD.Core.Tests': null,
+  'PVAD.Domain.Tests': null,
+  'PVAD.Export.Tests': 'FullyQualifiedName~ExportDocumentUseCaseTests',
+  'PVAD.FileImporter.Image.Tests': 'FullyQualifiedName~ImageFileImporterTests',
+  'PVAD.FileImporter.ImageAnalysis.Tests': 'FullyQualifiedName~ColorAnalyzerTests',
+  'PVAD.FileImporter.ImageOcr.Tests': 'FullyQualifiedName~ConvertAsync_BuildsEditableTextAndBackgroundImage',
+  'PVAD.FileImporter.Tests': 'FullyQualifiedName~FileImporterFacadeTests.DocxImporter_ImportsTextDesign|FullyQualifiedName~FileImporterFacadeTests.OdtImporter_ImportsTextDesign',
+  'PVAD.Generator.Tests': 'FullyQualifiedName~PdfFacadeTests',
+  'PVAD.Importer.Tests': 'FullyQualifiedName~PdfImportFacadeTests',
+  'PVAD.Infrastructure.Converters.Tests': 'FullyQualifiedName~ConverterFacadeTests.TextExporters|FullyQualifiedName~ConverterFacadeTests.OdtExporter',
+  'PVAD.Infrastructure.Pdf.Tests': 'FullyQualifiedName~PdfInfrastructureFacadeTests',
+  'PVAD.Infrastructure.Persistence.Tests': 'FullyQualifiedName~PvadDbContextModelTests',
+  'PVAD.Infrastructure.Spreadsheet.Tests': 'FullyQualifiedName~ClosedXmlCompatibilityTests',
+  'PVAD.Infrastructure.Word.Tests': 'FullyQualifiedName~WordInfrastructureFacadeTests',
 };
 
 export function xpath(file, expression) {
@@ -45,13 +46,13 @@ export function validateSummary(summary) {
   assert.ok(Number.isSafeInteger(lines.valid) && lines.valid > 0, 'Empty coverage denominator');
   assert.ok(Number.isSafeInteger(lines.covered) && lines.covered > 0 && lines.covered <= lines.valid, 'Missing/invalid production hits');
   assert.ok(Number.isSafeInteger(branches.valid) && branches.valid >= 0 && Number.isSafeInteger(branches.covered) && branches.covered >= 0 && branches.covered <= branches.valid, 'Invalid branch counters');
-  assert.ok(packages.length > 0 && packages.every((name) => /^PXA\.[A-Za-z0-9.]+$/u.test(name) && !/\.Tests(?:\.|$)/u.test(name)), 'Test/tool assembly leaked into coverage');
+  assert.ok(packages.length > 0 && packages.every((name) => /^PVAD\.[A-Za-z0-9.]+$/u.test(name) && !/\.Tests(?:\.|$)/u.test(name)), 'Test/tool assembly leaked into coverage');
   assert.ok(hitLines.length > 0, 'JSON report has no production hits');
   if (summary.project) {
     const aliases = {
-      'PXA.Api.Tests': 'PXA.WebApi',
-      'PXA.Export.Tests': 'PXA.Application',
-      'PXA.FileImporter.Image.Tests': 'PXA.FileImporter',
+      'PVAD.Api.Tests': 'PVAD.WebApi',
+      'PVAD.Export.Tests': 'PVAD.Application',
+      'PVAD.FileImporter.Image.Tests': 'PVAD.FileImporter',
     };
     const module = aliases[summary.project] ?? summary.project.replace(/\.Tests$/u, '');
     assert.ok(hitLines.some((line) => line.startsWith(`${module}.dll:`)), `No hits in expected production module ${module}`);
@@ -73,7 +74,7 @@ export function readReports(directory) {
   assert.ok(testNames.every(Boolean), 'Test result has no name');
   const coverage = JSON.parse(readFileSync(join(folder, 'coverage.json'), 'utf8'));
   const packages = Object.keys(coverage).map((module) => basename(module, '.dll')).sort();
-  assert.ok(packages.length > 0 && packages.every((name) => /^PXA\.[A-Za-z0-9.]+$/u.test(name)), 'Unexpected JSON modules');
+  assert.ok(packages.length > 0 && packages.every((name) => /^PVAD\.[A-Za-z0-9.]+$/u.test(name)), 'Unexpected JSON modules');
   assert.equal(new Set(packages).size, packages.length, 'Duplicate JSON assembly names');
   // Parse large Cobertura documents once, checking the JSON/XML module sets agree.
   const names = packages.map((name) => `@name='${name}'`).join(' or ');
@@ -133,11 +134,11 @@ export function compareReports(before, after) {
 function run(output) {
   assert.ok(!existsSync(output), 'Use a new output directory; never overwrite a baseline');
   const projects = collectorProjects();
-  assert.equal(projects.length, 50, 'Collector project catalog changed; review smoke coverage');
+  assert.equal(projects.length, expectedCollectorCount, 'Collector project catalog changed; review smoke coverage');
   mkdirSync(output, { recursive: true });
   const results = [];
   for (const project of projects) {
-    assert.ok(Object.hasOwn(filters, project.name) || project.name.startsWith('PXA.Migration.'), `Missing selection for ${project.name}`);
+    assert.ok(Object.hasOwn(filters, project.name) || project.name.startsWith('PVAD.Migration.'), `Missing selection for ${project.name}`);
     const directory = join(output, project.name);
     const args = ['test', project.path, '--configuration', 'Release', '--no-build', '--no-restore',
       '--collect', 'XPlat Code Coverage', '--settings', settings,
@@ -154,7 +155,7 @@ function run(output) {
 
 function audit(directory) {
   const projects = collectorProjects();
-  assert.equal(projects.length, 50, 'Audit requires the complete collector catalog');
+  assert.equal(projects.length, expectedCollectorCount, 'Audit requires the complete collector catalog');
   const rows = projects.map(({ name }) => {
     const row = { project: name, ...readReports(join(directory, name)) };
     validateSummary(row);
@@ -171,7 +172,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (process.argv[2] === '--compare') {
     assert.equal(process.argv.length, 5, 'Usage: coverage-smoke.mjs --compare before/summary.json after/summary.json');
     const rows = compareReports(...process.argv.slice(3).map((file) => JSON.parse(readFileSync(file, 'utf8'))));
-    assert.equal(rows.length, 50, 'Comparison requires two complete 50-host matrices');
+    assert.equal(rows.length, expectedCollectorCount, 'Comparison requires two complete collector matrices');
     console.log(JSON.stringify(rows, null, 2));
   } else if (process.argv[2] === '--audit') {
     assert.equal(process.argv.length, 4, 'Usage: coverage-smoke.mjs --audit existing-output-directory');

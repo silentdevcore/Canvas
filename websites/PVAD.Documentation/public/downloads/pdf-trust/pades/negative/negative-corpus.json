@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic PXA PAdES failure fixtures independently classified with EU DSS 6.4.",
+  "validator": {
+    "name": "EU Digital Signature Services",
+    "version": "6.4",
+    "policy": "QES AES/QC AES TL based"
+  },
+  "execution": {
+    "network": "disabled",
+    "filesystem": "read-only"
+  },
+  "trustEvidence": [
+    {
+      "file": "root-trust-anchor.cer",
+      "sha256": "08c5bcfdcbebb386e998acc39a1864af135ced3e3123b967854ecee1f1597c13",
+      "fileSizeBytes": 890
+    },
+    {
+      "file": "root-current.crl",
+      "sha256": "0cbc2e04b8209164fab489acd449ff30afe71baf9d186a73eab40352bbd06e25",
+      "fileSizeBytes": 471
+    },
+    {
+      "file": "root-signer-revoked.crl",
+      "sha256": "626b9bee960662d7486cbeb30de01ec783edfaca704a75b7c3c2ccbabc517660",
+      "fileSizeBytes": 509
+    },
+    {
+      "file": "untrusted-root.cer",
+      "sha256": "9f7fb850c8363936c7212ef5ac1d92325d42b63c17f4604bd8d0be334b39cffb",
+      "fileSizeBytes": 895
+    },
+    {
+      "file": "expired-root.cer",
+      "sha256": "bdc34c6d6d30f8300666edb72bb6cb0d822e74126932ae4d7d80cda0e7a67492",
+      "fileSizeBytes": 890
+    },
+    {
+      "file": "expired-root-current.crl",
+      "sha256": "cf484c5fedaeccc897d2618a1c9b0308ae52f9ca9805dd78688dc3a367a8388f",
+      "fileSizeBytes": 471
+    }
+  ],
+  "entries": [
+    {
+      "id": "pxa-pades-revoked",
+      "expectedProfile": "PAdES-BASELINE-T",
+      "expectedSubIndication": "REVOKED_NO_POE",
+      "pdf": {
+        "file": "pxa-pades-revoked.pdf",
+        "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a",
+        "fileSizeBytes": 67591
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-revoked-dss-simple.xml",
+          "sha256": "7d8443c8a5696000fcb2982521607b4ed2bb9de9b3d6109fb06666b448adaa07",
+          "fileSizeBytes": 4621
+        },
+        "detailed": {
+          "file": "pxa-pades-revoked-dss-detailed.xml",
+          "sha256": "003c8a4b66774341fb9e4203598c9fb3486882e9180d37ad3f79c14d9e9d6e53",
+          "fileSizeBytes": 62370
+        },
+        "diagnostic": {
+          "file": "pxa-pades-revoked-dss-diagnostic.xml",
+          "sha256": "98df7a3fc64a8600dd6bcd42f06140e14a8e7b8592dd68a19bc386b21a8c87f7",
+          "fileSizeBytes": 20087
+        }
+      }
+    },
+    {
+      "id": "pxa-pades-untrusted",
+      "expectedProfile": "PAdES-BASELINE-T",
+      "expectedSubIndication": "NO_CERTIFICATE_CHAIN_FOUND",
+      "pdf": {
+        "file": "pxa-pades-untrusted.pdf",
+        "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a",
+        "fileSizeBytes": 67591
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-untrusted-dss-simple.xml",
+          "sha256": "faf2431e6b2093d4f8dcfd01cf69b08349e67946e0612ff898be1760270077e3",
+          "fileSizeBytes": 3859
+        },
+        "detailed": {
+          "file": "pxa-pades-untrusted-dss-detailed.xml",
+          "sha256": "d820b322e1dd2095dc1ef51b0b71b31971dcbe403bf3952fe82f985f649d599a",
+          "fileSizeBytes": 33702
+        },
+        "diagnostic": {
+          "file": "pxa-pades-untrusted-dss-diagnostic.xml",
+          "sha256": "6583d58a1dea2164a5bb5aff3ee85df5179686373b237e22c6d46f1dd31c445a",
+          "fileSizeBytes": 14136
+        }
+      }
+    },
+    {
+      "id": "pxa-pades-revocation-unavailable",
+      "expectedProfile": "PAdES-BASELINE-T",
+      "expectedSubIndication": "CERTIFICATE_CHAIN_GENERAL_FAILURE",
+      "pdf": {
+        "file": "pxa-pades-revocation-unavailable.pdf",
+        "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a",
+        "fileSizeBytes": 67591
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-revocation-unavailable-dss-simple.xml",
+          "sha256": "3f6a7c64f777f246d27b6fc42a2b9dc6e51ae6b3bd2c4a47d47f80d90eaf0a46",
+          "fileSizeBytes": 4741
+        },
+        "detailed": {
+          "file": "pxa-pades-revocation-unavailable-dss-detailed.xml",
+          "sha256": "804fadb2600ca4b09300c1e5c01eb3d4b601b18eb46c26700c9e36a7144d71bd",
+          "fileSizeBytes": 44191
+        },
+        "diagnostic": {
+          "file": "pxa-pades-revocation-unavailable-dss-diagnostic.xml",
+          "sha256": "ae407dde0241a6b2a2ced1bca35cadb687f0af11172987bc06809073f7ae224c",
+          "fileSizeBytes": 18098
+        }
+      }
+    },
+    {
+      "id": "pxa-pades-expired",
+      "expectedProfile": "PAdES-BASELINE-B",
+      "expectedSubIndication": "OUT_OF_BOUNDS_NOT_REVOKED",
+      "pdf": {
+        "file": "pxa-pades-expired.pdf",
+        "sha256": "247003f65c03d05059ecb2536fa5eed9c39aaeba6056733a39d36f3dd694ec63",
+        "fileSizeBytes": 67639
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-expired-dss-simple.xml",
+          "sha256": "15d4700b7a5ee7f27d906b02117349dbc06861b085085fe18be3960758fd187b",
+          "fileSizeBytes": 3316
+        },
+        "detailed": {
+          "file": "pxa-pades-expired-dss-detailed.xml",
+          "sha256": "4aa157a62c943e8f1b2be748d453d35987d11af41a5c7e77978903b87f94aee8",
+          "fileSizeBytes": 40562
+        },
+        "diagnostic": {
+          "file": "pxa-pades-expired-dss-diagnostic.xml",
+          "sha256": "50cddd3b921bf3ac7886411c3f677a7c3b586391de7b289d97829ab6cebd39c6",
+          "fileSizeBytes": 13248
+        }
+      }
+    },
+    {
+      "id": "pxa-pades-tampered-lt",
+      "expectedProfile": "PAdES-BASELINE-T",
+      "expectedSubIndication": "CERTIFICATE_CHAIN_GENERAL_FAILURE",
+      "pdf": {
+        "file": "pxa-pades-tampered-lt.pdf",
+        "sha256": "db896a11492a05f8f2d9f2bcabf585a63d7b42f9c58ca586a38684169bd19f4e",
+        "fileSizeBytes": 71511
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-tampered-lt-dss-simple.xml",
+          "sha256": "801f4879905f3b37d5d6391c97dc145a917b5eac196aa958ee6d497dacaeef47",
+          "fileSizeBytes": 4736
+        },
+        "detailed": {
+          "file": "pxa-pades-tampered-lt-dss-detailed.xml",
+          "sha256": "465f48cb9aaa0b0dfa5e2c64f02f1b41f8104a3f3b4a6fcd442ccde0a8e76db4",
+          "fileSizeBytes": 44191
+        },
+        "diagnostic": {
+          "file": "pxa-pades-tampered-lt-dss-diagnostic.xml",
+          "sha256": "03caf9e192abbcf065c3e1838b75a55e813d0acdb6b6cb14f32ba84685afc566",
+          "fileSizeBytes": 19737
+        }
+      }
+    },
+    {
+      "id": "pxa-pades-tampered-lta",
+      "expectedProfile": "PAdES-BASELINE-LTA",
+      "expectedSubIndication": "SIG_CRYPTO_FAILURE",
+      "pdf": {
+        "file": "pxa-pades-tampered-lta.pdf",
+        "sha256": "10ed8513e1474200e2ba32f0954ba07189e6d03938b1b5476ddaa6449a80be1d",
+        "fileSizeBytes": 137731
+      },
+      "reports": {
+        "simple": {
+          "file": "pxa-pades-tampered-lta-dss-simple.xml",
+          "sha256": "b6f545aa16fa79403d6d13b3e0229eec8a0b9ba45d3a6ca798efeead3d231370",
+          "fileSizeBytes": 6017
+        },
+        "detailed": {
+          "file": "pxa-pades-tampered-lta-dss-detailed.xml",
+          "sha256": "e2f3cd6ca9eec5b3bdbe4a58db0830403b181898807ef71e8121e5f77b47c0e2",
+          "fileSizeBytes": 91959
+        },
+        "diagnostic": {
+          "file": "pxa-pades-tampered-lta-dss-diagnostic.xml",
+          "sha256": "53236b17803594f7913e94b9a99263e10030fad935b06b76850af5edf6dc9e0a",
+          "fileSizeBytes": 26441
+        }
+      }
+    }
+  ]
+}

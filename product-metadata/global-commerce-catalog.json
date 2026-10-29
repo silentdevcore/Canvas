@@ -1,0 +1,152 @@
+{
+  "$schema": "./global-commerce-catalog.schema.json",
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-09",
+  "status": "proposed",
+  "productionApproved": false,
+  "publicPricingEnabled": false,
+  "consumerCheckoutEnabled": false,
+  "merchantOfRecord": {
+    "status": "pending-selection",
+    "recommendedCandidate": "Paddle",
+    "candidates": ["Paddle", "Lemon Squeezy", "Stripe Managed Payments"]
+  },
+  "launchRecommendation": {
+    "status": "proposed",
+    "salesMode": "b2b-first",
+    "firstOperatorCountry": "CH",
+    "firstSalesRegion": "Switzerland",
+    "automaticTrialConversion": false
+  },
+  "operationMetric": {
+    "status": "proposed",
+    "standardPageLimit": 50,
+    "failedPlatformOperationsBillable": false,
+    "retryIdempotencyRequired": true,
+    "advancedMultipliersApproved": false
+  },
+  "plans": [
+    {
+      "id": "free-individual",
+      "edition": "Free",
+      "accountType": "IndividualDeveloper",
+      "visibility": "proposed-public",
+      "includedSeats": 1,
+      "includedMonthlyOperations": 500
+    },
+    {
+      "id": "trial",
+      "edition": "Trial",
+      "accountType": "Company",
+      "visibility": "proposed-public",
+      "includedSeats": 5,
+      "includedMonthlyOperations": 5000,
+      "trialDays": 30
+    },
+    {
+      "id": "premium-individual",
+      "edition": "Premium",
+      "accountType": "IndividualDeveloper",
+      "visibility": "proposed-public",
+      "includedSeats": 1,
+      "includedMonthlyOperations": 5000
+    },
+    {
+      "id": "premium-company",
+      "edition": "Premium",
+      "accountType": "Company",
+      "visibility": "proposed-public",
+      "includedSeats": 5,
+      "includedMonthlyOperations": 25000
+    },
+    {
+      "id": "enterprise-cloud",
+      "edition": "Enterprise",
+      "accountType": "Company",
+      "visibility": "internal-qualification",
+      "includedSeats": null,
+      "includedMonthlyOperations": null
+    },
+    {
+      "id": "enterprise-on-premise",
+      "edition": "Enterprise",
+      "accountType": "Company",
+      "visibility": "internal-qualification",
+      "includedSeats": null,
+      "includedMonthlyOperations": null
+    }
+  ],
+  "priceBooks": [
+    {
+      "id": "usd-2026-proposal-1",
+      "currency": "USD",
+      "status": "proposed",
+      "effectiveAt": null,
+      "prices": [
+        { "planId": "free-individual", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "trial", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "premium-individual", "monthlyAmountMinor": 4900, "annualAmountMinor": 49000 },
+        { "planId": "premium-company", "monthlyAmountMinor": 19900, "annualAmountMinor": 199000 },
+        { "planId": "enterprise-cloud", "annualQualificationFloorMinor": 1800000 },
+        { "planId": "enterprise-on-premise", "annualQualificationFloorMinor": 3000000 }
+      ]
+    },
+    {
+      "id": "eur-2026-proposal-1",
+      "currency": "EUR",
+      "status": "proposed",
+      "effectiveAt": null,
+      "prices": [
+        { "planId": "free-individual", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "trial", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "premium-individual", "monthlyAmountMinor": 4900, "annualAmountMinor": 49000 },
+        { "planId": "premium-company", "monthlyAmountMinor": 19900, "annualAmountMinor": 199000 }
+      ]
+    },
+    {
+      "id": "gbp-2026-proposal-1",
+      "currency": "GBP",
+      "status": "proposed",
+      "effectiveAt": null,
+      "prices": [
+        { "planId": "free-individual", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "trial", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "premium-individual", "monthlyAmountMinor": 4200, "annualAmountMinor": 42000 },
+        { "planId": "premium-company", "monthlyAmountMinor": 16900, "annualAmountMinor": 169000 }
+      ]
+    },
+    {
+      "id": "chf-2026-proposal-1",
+      "currency": "CHF",
+      "status": "proposed",
+      "effectiveAt": null,
+      "prices": [
+        { "planId": "free-individual", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "trial", "monthlyAmountMinor": 0, "annualAmountMinor": 0 },
+        { "planId": "premium-individual", "monthlyAmountMinor": 4500, "annualAmountMinor": 45000 },
+        { "planId": "premium-company", "monthlyAmountMinor": 18900, "annualAmountMinor": 189000 }
+      ]
+    }
+  ],
+  "marketGroups": [
+    {
+      "id": "initial-self-service-candidates",
+      "countryCodes": [
+        "AT", "AU", "BE", "BG", "CA", "CH", "CY", "CZ", "DE", "DK", "EE", "ES",
+        "FI", "FR", "GB", "GR", "HR", "HU", "IE", "IS", "IT", "LI", "LT",
+        "LU", "LV", "MT", "NL", "NO", "NZ", "PL", "PT", "RO", "SE", "SI",
+        "SK", "US"
+      ],
+      "selfServiceStatus": "review-required",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required"
+    }
+  ],
+  "restrictionPolicy": {
+    "status": "provider-and-legal-review-required",
+    "countryAllowlistRequired": true,
+    "sanctionsScreeningRequired": true,
+    "exportControlReviewRequired": true
+  },
+  "approvalOwners": ["Product", "Finance", "Tax", "Legal"]
+}

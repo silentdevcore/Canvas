@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "suites": [
+    {
+      "fixtureId": "pdf-code-migration-provider-smoke",
+      "domain": "pdf",
+      "workflow": "code-migration",
+      "providers": [
+        "active-pdf",
+        "apryse",
+        "aspose-pdf",
+        "devexpress-pdf",
+        "dspdf",
+        "foxit-pdf",
+        "gembox-pdf",
+        "iron-pdf",
+        "itext7",
+        "leadtools-pdf",
+        "nutrient",
+        "pdfkitnet",
+        "pdftools",
+        "pdftools-toolbox",
+        "spire-pdf",
+        "syncfusion-pdf"
+      ],
+      "sourceCases": 16,
+      "executedCases": 16,
+      "automaticCases": 0,
+      "reviewRequiredCases": 16,
+      "unsupportedCases": 0,
+      "duplicateCases": 0,
+      "limitations": [
+        "The provider suites prove registry and synthetic conversion coverage, not operation-level fidelity.",
+        "PDF Trust operations remain subject to their structured review-required or unsupported diagnostics."
+      ]
+    },
+    {
+      "fixtureId": "spreadsheet-code-migration-provider-smoke",
+      "domain": "spreadsheet",
+      "workflow": "code-migration",
+      "providers": [
+        "aspose-cells",
+        "closedxml",
+        "epplus",
+        "gembox-spreadsheet",
+        "npoi",
+        "spire-xls",
+        "spreadsheetlight",
+        "syncfusion-xlsio"
+      ],
+      "sourceCases": 8,
+      "executedCases": 8,
+      "automaticCases": 0,
+      "reviewRequiredCases": 8,
+      "unsupportedCases": 0,
+      "duplicateCases": 0,
+      "limitations": [
+        "The provider suites prove registry and synthetic conversion coverage, not workbook-level fidelity.",
+        "Real-world formulas, charts, macros, external links, and provider-specific options are not measured by this smoke report."
+      ]
+    },
+    {
+      "fixtureId": "report-designer-migration-provider-smoke",
+      "domain": "report",
+      "workflow": "designer-migration",
+      "providers": [
+        "activereports-js",
+        "devexpress-report",
+        "fastreport",
+        "jasperreports",
+        "rdl",
+        "rpx",
+        "stimulsoft",
+        "telerik"
+      ],
+      "sourceCases": 8,
+      "executedCases": 8,
+      "automaticCases": 0,
+      "reviewRequiredCases": 8,
+      "unsupportedCases": 0,
+      "duplicateCases": 0,
+      "limitations": [
+        "The provider suites prove registry and synthetic converter coverage, not complete report-design fidelity.",
+        "Production reports with scripts, custom controls, subreports, data sources, and vendor extensions still require reviewed corpus evidence."
+      ]
+    }
+  ]
+}

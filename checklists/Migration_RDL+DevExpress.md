@@ -1,5 +1,7 @@
 # Migration: RDL + DevExpress Expression Execution
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Cross-converter work to make **migrated report expressions executable** in the PXA designer/preview,
 rather than preserved as inert source-dialect strings. Companion to
 [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) and

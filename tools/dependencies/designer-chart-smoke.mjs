@@ -4,10 +4,10 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-const require = createRequire(new URL('../../pxa-designer/package.json', import.meta.url));
+const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const { createServer, build, preview } = await import(pathToFileURL(require.resolve('vite')).href);
-const root = fileURLToPath(new URL('../../pxa-designer/', import.meta.url));
+const root = fileURLToPath(new URL('../../pvad-designer/', import.meta.url));
 const artifactRoot = new URL('../../artifacts/designer-chart-smoke/', import.meta.url);
 const args = process.argv.slice(2);
 const label = args.includes('--label') ? args[args.indexOf('--label') + 1] : 'current';
@@ -15,9 +15,12 @@ assert.match(label ?? '', /^[a-z0-9-]+$/);
 const output = new URL(`${label}/`, artifactRoot);
 const comparePath = args.includes('--compare') ? args[args.indexOf('--compare') + 1] : undefined;
 const baseline = comparePath ? JSON.parse(await readFile(comparePath, 'utf8')) : null;
-if (baseline) assert.equal(baseline.results.length, 60, 'Require a complete baseline');
-const pkg = JSON.parse(await readFile(new URL('../../pxa-designer/node_modules/recharts/package.json', import.meta.url), 'utf8'));
-const ordinaryBuild = new URL('../../pxa-designer/dist/', import.meta.url);
+if (baseline) {
+  assert.equal(baseline.renderer, 'pdf-contract-svg', 'Do not compare different renderer generations as a dependency-only baseline');
+  assert.equal(baseline.results.length, 60, 'Require a complete baseline');
+}
+const pkg = JSON.parse(await readFile(new URL('../../pvad-designer/node_modules/recharts/package.json', import.meta.url), 'utf8'));
+const ordinaryBuild = new URL('../../pvad-designer/dist/', import.meta.url);
 for (const file of await readdir(ordinaryBuild, { recursive: true })) {
   assert.ok(!file.includes('recharts-review'), 'Ordinary build must exclude the test entry');
   if (/\.(js|html|map)$/.test(file)) {
@@ -52,6 +55,8 @@ try {
           await context.route('**/*', async route => {
             const url = new URL(route.request().url());
             if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ status: 200, contentType: 'text/css', body: '' });
+            if (url.origin === origin && url.pathname === '/api/pvad/v1/designer/preferences/element-favorites'
+              && route.request().method() === 'GET') return route.fulfill({ json: { elementTypes: [] } });
             if (url.origin !== origin || url.pathname.startsWith('/api/')) {
               errors.push(`Unexpected request: ${url.origin}${url.pathname}`);
               return route.abort();
@@ -74,27 +79,30 @@ try {
               const key = `${mode}-${device}-${type}-${variant}`;
               const response = await page.goto(`${origin}/e2e/fixtures/recharts-review.html?${new URLSearchParams({ type, variant, device })}`, { waitUntil: 'networkidle' });
               assert.equal(response.status(), 200);
-              const chart = page.locator('#preview-pages .recharts-wrapper');
+              const chart = page.locator('#preview-pages svg[role="img"][aria-label="Synthetic chart"]');
               await expect(chart).toHaveCount(1);
-              await expect(chart.locator('svg.recharts-surface[role="application"]')).toBeVisible();
-              await page.waitForFunction(() => !document.querySelector('.recharts-animate-active'));
-              await page.waitForTimeout(1800);
+              await expect(chart).toBeVisible();
               const geometry = await chart.evaluate(element => {
                 const rect = element.getBoundingClientRect();
                 return {
                   width: rect.width, height: rect.height,
-                  paths: [...element.querySelectorAll('path')].map(path => ({ d: path.getAttribute('d'), fill: path.getAttribute('fill'), stroke: path.getAttribute('stroke') })),
+                  paths: [...element.querySelectorAll('path, rect, polygon, polyline, circle, line')].map(path => ({
+                    type: path.tagName,
+                    attributes: Object.fromEntries([...path.attributes].map(attribute => [attribute.name, attribute.value])),
+                  })),
                   text: [...element.querySelectorAll('text')].map(node => node.textContent),
-                  legend: [...element.querySelectorAll('.recharts-legend-item-text')].map(node => node.textContent),
+                  legend: [...element.querySelectorAll('text')].map(node => node.textContent).filter(text => text.startsWith('Series ')),
                 };
               });
               assert.equal(geometry.width, device === 'mobile' ? 260 : 480);
               assert.equal(geometry.height, 300);
-              assert.ok(geometry.paths.every(path => !/NaN|Infinity/.test(path.d ?? '')), `${key}: finite paths`);
+              assert.ok(geometry.paths.every(path => Object.values(path.attributes).every(value => !/NaN|Infinity/.test(value))), `${key}: finite paths`);
               if (variant !== 'empty') {
-                const marks = chart.locator(type === 'bar' ? '.recharts-bar-rectangle path' : type === 'line' ? '.recharts-line-curve' : '.recharts-pie-sector path');
+                const marks = chart.locator(type === 'bar' ? 'rect' : type === 'line' ? 'polyline' : 'polygon');
                 assert.ok(await marks.count() > 0, `${key}: chart must not be blank`);
-                if (type !== 'pie') assert.deepEqual(geometry.legend, ['pv', 'uv']);
+                assert.deepEqual(geometry.legend, ['Series 1', 'Series 2']);
+              } else {
+                assert.deepEqual(geometry.text, ['No chart data']);
               }
               const screenshot = await chart.screenshot({ path: fileURLToPath(new URL(`${key}.png`, output)), animations: 'disabled' });
               const oldImage = comparePath ? await readFile(resolve(dirname(comparePath), `${key}.png`)) : null;
@@ -129,13 +137,7 @@ try {
                 assert.deepEqual(geometry.text, old.geometry.text, `${key}: chart labels`);
               }
               results.push({ key, geometry, pixels, geometryMatchesBaseline: old ? JSON.stringify(geometry) === JSON.stringify(old.geometry) : null });
-              if (['standard', 'edge'].includes(variant) && type === 'bar') {
-                const bar = chart.locator('.recharts-bar-rectangle path').first();
-                await bar.hover();
-                await expect(chart.locator('.recharts-tooltip-wrapper')).toBeVisible();
-                await expect(chart.locator('.recharts-tooltip-item').first()).toContainText('pv');
-                if (variant === 'edge') await expect(chart.locator('.recharts-tooltip-item').first()).toContainText('-12');
-              }
+              if (variant === 'edge' && type !== 'pie') assert.ok(geometry.text.includes('-20'), `${key}: negative axis range`);
             }
           }
           if (device === 'desktop') {
@@ -144,10 +146,15 @@ try {
               const canvas = page.locator('.editor-canvas-element');
               await expect(canvas).toHaveCount(1);
               await expect(canvas).toContainText('Series 1');
+              const drawing = canvas.locator('svg[role="img"][aria-label="Synthetic chart"]');
+              await expect(drawing).toBeVisible();
+              const previewDrawing = results.find(result => result.key === `${mode}-${device}-${type}-standard`);
+              const drawnText = await drawing.locator('text').allTextContents();
+              assert.deepEqual(drawnText, previewDrawing.geometry.text, 'Canvas and Preview must retain identical chart labels');
               const key = `${mode}-canvas-${type}`;
               const screenshot = await canvas.screenshot({ path: fileURLToPath(new URL(`${key}.png`, output)), animations: 'disabled' });
               const unchanged = comparePath ? screenshot.equals(await readFile(resolve(dirname(comparePath), `${key}.png`))) : null;
-              if (comparePath) assert.equal(unchanged, true, `${key}: the independent Canvas renderer must remain unchanged`);
+              if (comparePath) assert.equal(unchanged, true, `${key}: the retained Canvas renderer must remain unchanged`);
               canvasResults.push({ key, unchanged });
             }
           }
@@ -161,6 +168,7 @@ try {
   await browser.close();
   await writeFile(new URL('report.json', output), `${JSON.stringify({
     scope: 'Actual frontend chart components with synthetic local data; no backend PDF or real authentication claim.',
-    recharts: pkg.version, completed: results.length === 60 && canvasResults.length === 6, results, canvasResults,
+    renderer: 'pdf-contract-svg',
+    installedRecharts: pkg.version, completed: results.length === 60 && canvasResults.length === 6, results, canvasResults,
   }, null, 2)}\n`);
 }

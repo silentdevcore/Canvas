@@ -1,6 +1,8 @@
 apiVersion: 1
 
 providers:
+  # Retained provisioning identity and folder: migrating installed dashboard
+  # placement and folder permissions requires a separate coordinated cutover.
   - name: PXA
     orgId: 1
     folder: PXA

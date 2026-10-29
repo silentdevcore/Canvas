@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-designer-font-and-notification-styles",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Designer PDF text uses the registered local font family instead of falling back because of a naming mismatch. Release notes, feature controls and toast components use consistent PVAD styling identifiers.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

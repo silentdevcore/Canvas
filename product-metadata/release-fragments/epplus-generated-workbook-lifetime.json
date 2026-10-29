@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "epplus-generated-workbook-lifetime",
+  "impact": "patch",
+  "components": ["migration", "spreadsheet", "documentation"],
+  "category": "fixed",
+  "summary": "EPPlus migration generates compilable PVAD workbook declarations and preserves block scope without requiring a disposable workbook. Provider examples now have compiled PDF and Spreadsheet export regression coverage.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-code-generation-compatibility.md"],
+  "breaking": false
+}

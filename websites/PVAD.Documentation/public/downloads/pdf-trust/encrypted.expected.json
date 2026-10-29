@@ -1,0 +1,48 @@
+{
+  "status": "Indeterminate",
+  "structureStatus": "Valid",
+  "pdfVersion": "2.0",
+  "revisionCount": 1,
+  "objectCount": 7,
+  "encryption": {
+    "isEncrypted": true,
+    "status": "Indeterminate",
+    "filter": "Standard",
+    "algorithm": "AES-256",
+    "version": 5,
+    "revision": 6,
+    "keyLengthBits": 256
+  },
+  "signatures": [],
+  "pdfA": {
+    "standard": "PDF/A",
+    "profile": null,
+    "isClaimed": false,
+    "status": "NotApplicable",
+    "evidence": "No PDF/A identification metadata was found.",
+    "validator": null
+  },
+  "pdfUa": {
+    "standard": "PDF/UA",
+    "profile": null,
+    "isClaimed": false,
+    "status": "NotApplicable",
+    "evidence": "No PDF/UA identification metadata was found.",
+    "validator": null
+  },
+  "risk": {
+    "javaScriptActionCount": 0,
+    "launchActionCount": 0,
+    "embeddedFileCount": 0,
+    "fileAttachmentCount": 0,
+    "richMediaCount": 0,
+    "xfaFormCount": 0,
+    "externalLinkCount": 0,
+    "status": "Valid",
+    "hasRiskyContent": false
+  },
+  "diagnosticCodes": [
+    "PXAPDFTRUST010",
+    "PXAPDFTRUST200"
+  ]
+}

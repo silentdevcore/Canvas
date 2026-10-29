@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-ci-portability",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "Made rename documentation checks independent of optional runner utilities.",
+  "reason": "Test-only portability correction; checklist coverage and shipped application behavior are unchanged.",
+  "breaking": false
+}

@@ -1,0 +1,113 @@
+# Explicit compatibility overlay for the root docker-compose.yml, not a standalone stack.
+# Requires Compose !override support. Supply verified physical IDs; never guess them.
+services:
+  pvad-database:
+    environment:
+      POSTGRES_DB: ${PVAD_DATABASE_NAME:-pxa}
+      POSTGRES_USER: ${PVAD_DATABASE_USER:-pxa}
+      POSTGRES_PASSWORD: ${PVAD_DATABASE_PASSWORD:-pxa-local}
+    networks:
+      default:
+        aliases: [pxa-database]
+      pvad-observability:
+        aliases: [pxa-database]
+  pvad-mailpit:
+    networks:
+      default:
+        aliases: [pxa-mailpit]
+      pvad-observability:
+        aliases: [pxa-mailpit]
+  pvad-postgres-exporter:
+    environment:
+      DATA_SOURCE_URI: pvad-database:5432/${PVAD_DATABASE_NAME:-pxa}?sslmode=disable
+      DATA_SOURCE_USER: ${PVAD_DATABASE_USER:-pxa}
+      DATA_SOURCE_PASS: ${PVAD_DATABASE_PASSWORD:-pxa-local}
+    networks:
+      pvad-observability:
+        aliases: [pxa-postgres-exporter]
+  pvad-otel-collector:
+    networks:
+      pvad-observability:
+        aliases: [pxa-otel-collector]
+      pvad-observability-ingress:
+        aliases: [pxa-otel-collector]
+      pvad-observability-host:
+        aliases: [pxa-otel-collector]
+  pvad-cadvisor:
+    networks:
+      pvad-observability:
+        aliases: [pxa-cadvisor]
+  pvad-blackbox-exporter:
+    networks:
+      pvad-observability:
+        aliases: [pxa-blackbox-exporter]
+  pvad-prometheus:
+    networks:
+      pvad-observability:
+        aliases: [pxa-prometheus]
+  pvad-alertmanager:
+    networks:
+      pvad-observability:
+        aliases: [pxa-alertmanager]
+      pvad-observability-ingress:
+        aliases: [pxa-alertmanager]
+  pvad-loki:
+    networks:
+      pvad-observability:
+        aliases: [pxa-loki]
+  pvad-tempo:
+    networks:
+      pvad-observability:
+        aliases: [pxa-tempo]
+  pvad-grafana:
+    environment:
+      GF_SECURITY_ADMIN_USER: ${PVAD_GRAFANA_ADMIN_USER:-pxa-operator}
+      GF_SECURITY_ADMIN_PASSWORD: ${PVAD_GRAFANA_ADMIN_PASSWORD:-pxa-local-observability}
+    networks:
+      pvad-observability:
+        aliases: [pxa-grafana]
+      pvad-observability-ingress:
+        aliases: [pxa-grafana]
+  pvad-operator-gateway:
+    networks:
+      pvad-observability-ingress:
+        aliases: [pxa-operator-gateway]
+      pvad-operator-egress:
+        aliases: [pxa-operator-gateway]
+
+volumes:
+  pvad-database-data:
+    external: true
+    name: ${PVAD_LEGACY_DATABASE_VOLUME:?Set the verified existing database volume ID}
+  pvad-mailpit-data:
+    external: true
+    name: ${PVAD_LEGACY_MAILPIT_VOLUME:?Set the verified existing mail volume ID}
+  pvad-prometheus-data:
+    external: true
+    name: ${PVAD_LEGACY_PROMETHEUS_VOLUME:?Set the verified existing metrics volume ID}
+  pvad-loki-data:
+    external: true
+    name: ${PVAD_LEGACY_LOKI_VOLUME:?Set the verified existing logs volume ID}
+  pvad-tempo-data:
+    external: true
+    name: ${PVAD_LEGACY_TEMPO_VOLUME:?Set the verified existing traces volume ID}
+  pvad-grafana-data:
+    external: true
+    name: ${PVAD_LEGACY_GRAFANA_VOLUME:?Set the verified existing dashboards volume ID}
+  pvad-alertmanager-data:
+    external: true
+    name: ${PVAD_LEGACY_ALERTMANAGER_VOLUME:?Set the verified existing alert state volume ID}
+
+networks:
+  pvad-observability: !override
+    external: true
+    name: ${PVAD_LEGACY_OBSERVABILITY_NETWORK:?Set the verified existing observability network ID}
+  pvad-observability-ingress: !override
+    external: true
+    name: ${PVAD_LEGACY_INGRESS_NETWORK:?Set the verified existing ingress network ID}
+  pvad-observability-host: !override
+    external: true
+    name: ${PVAD_LEGACY_HOST_NETWORK:?Set the verified existing host network ID}
+  pvad-operator-egress: !override
+    external: true
+    name: ${PVAD_LEGACY_EGRESS_NETWORK:?Set the verified existing egress network ID}

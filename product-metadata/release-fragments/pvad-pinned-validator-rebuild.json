@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-pinned-validator-rebuild",
+  "impact": "none",
+  "components": ["generator", "documentation"],
+  "category": "fixed",
+  "summary": "Restored reproducible independent PDF conformance checks.",
+  "reason": "CI rebuilds the previously reviewed validator version from a checksum-verified original installer and a digest-pinned Java runtime; historical evidence and conformance rules remain unchanged.",
+  "breaking": false
+}

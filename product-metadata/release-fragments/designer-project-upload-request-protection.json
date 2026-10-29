@@ -1,0 +1,8 @@
+{
+  "id": "designer-project-upload-request-protection",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Project imports with upload progress use authenticated request protections and stop before uploading when authorization fails. Opening a Spreadsheet project no longer loses the pending import during editor initialization.",
+  "breaking": false
+}

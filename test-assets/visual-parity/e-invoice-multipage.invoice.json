@@ -1,0 +1,306 @@
+{
+  "schema": "pxa.e-invoice.parity-invoice/1",
+  "standard": "FacturX",
+  "profile": "EN 16931",
+  "invoice": {
+    "invoiceNumber": "PARITY-EINV-2026-0043",
+    "issueDate": "2026-09-27",
+    "currency": "EUR",
+    "seller": {
+      "name": "Groß & Söhne Bürotechnik GmbH",
+      "taxIdentifier": "DE123456789",
+      "address": {
+        "street": "Hauptstraße 118a",
+        "city": "Berlin",
+        "postalCode": "10115",
+        "countryCode": "DE"
+      }
+    },
+    "buyer": {
+      "name": "Société Générale de Facturation",
+      "taxIdentifier": "FR40303265045",
+      "address": {
+        "street": "12 Rue de l'Église",
+        "city": "Genève",
+        "postalCode": "75008",
+        "countryCode": "FR"
+      }
+    },
+    "lines": [
+      {
+        "identifier": "1",
+        "description": "Position 1 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 10,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "2",
+        "description": "Position 2 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 11.37,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "3",
+        "description": "Position 3 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 12.74,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "4",
+        "description": "Position 4 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 14.11,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "5",
+        "description": "Position 5 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 15.48,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "6",
+        "description": "Position 6 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 16.85,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "7",
+        "description": "Position 7 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 18.22,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "8",
+        "description": "Position 8 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 19.59,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "9",
+        "description": "Position 9 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 20.96,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "10",
+        "description": "Position 10 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 22.33,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "11",
+        "description": "Position 11 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 23.7,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "12",
+        "description": "Position 12 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 25.07,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "13",
+        "description": "Position 13 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 26.44,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "14",
+        "description": "Position 14 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 27.81,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "15",
+        "description": "Position 15 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 29.18,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "16",
+        "description": "Position 16 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 30.55,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "17",
+        "description": "Position 17 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 31.92,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "18",
+        "description": "Position 18 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 33.29,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "19",
+        "description": "Position 19 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 34.66,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "20",
+        "description": "Position 20 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 36.03,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "21",
+        "description": "Position 21 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 37.4,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "22",
+        "description": "Position 22 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 38.77,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "23",
+        "description": "Position 23 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 40.14,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "24",
+        "description": "Position 24 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 41.51,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "25",
+        "description": "Position 25 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 42.88,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "26",
+        "description": "Position 26 - maintenance, support and licence renewal",
+        "quantity": 1,
+        "unitCode": "C62",
+        "unitPrice": 44.25,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "27",
+        "description": "Position 27 - maintenance, support and licence renewal",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 45.62,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "28",
+        "description": "Position 28 - maintenance, support and licence renewal",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 46.99,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "29",
+        "description": "Position 29 - maintenance, support and licence renewal",
+        "quantity": 0.5,
+        "unitCode": "C62",
+        "unitPrice": 48.36,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "30",
+        "description": "Position 30 - maintenance, support and licence renewal",
+        "quantity": 7.25,
+        "unitCode": "C62",
+        "unitPrice": 49.73,
+        "taxRate": 21,
+        "taxCategoryCode": "S"
+      }
+    ],
+    "currencyDecimalPlaces": 2,
+    "dueDate": "2026-10-27",
+    "buyerReference": "04011000-12345-34",
+    "paymentReference": "RF18 5390 0754 7034"
+  }
+}

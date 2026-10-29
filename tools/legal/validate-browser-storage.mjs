@@ -6,12 +6,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const inventoryPath = join(root, 'product-metadata/browser-storage.json');
 const inventory = JSON.parse(readFileSync(inventoryPath, 'utf8'));
 const errors = [];
-const productionRoots = ['pxa-designer/src', 'websites'];
+const productionRoots = ['pvad-designer/src', 'websites'];
 const sourceExtensions = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
 function sourceFiles(path) {
   if (!existsSync(path)) return [];
-  if (!statSync(path).isDirectory()) return [path];
+  if (!statSync(path).isDirectory()) return /\.(test|spec)\.[cm]?[jt]sx?$/.test(path) ? [] : [path];
   return readdirSync(path, { withFileTypes: true }).flatMap(entry => {
     if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'build' || entry.name === 'tests' || entry.name === '__tests__')
       return [];
@@ -33,6 +33,7 @@ for (const entry of inventory.entries ?? []) {
     if (/canvas/i.test(key)) errors.push(`Legacy Canvas storage key is forbidden: ${key}`);
     registeredKeys.add(key);
   }
+  for (const key of entry.recoveryOnlyKeys ?? []) registeredKeys.add(key);
   for (const source of entry.sourceFiles ?? []) {
     registeredSources.add(source);
     if (!existsSync(join(root, source))) errors.push(`Inventory source does not exist: ${source}`);
@@ -57,7 +58,7 @@ for (const absolute of productionRoots.flatMap(path => sourceFiles(join(root, pa
 for (const entry of inventory.entries ?? []) {
   if (entry.serverManaged) continue;
   const combined = entry.sourceFiles.map(path => readFileSync(join(root, path), 'utf8')).join('\n');
-  for (const key of entry.keys) {
+  for (const key of [...entry.keys, ...(entry.recoveryOnlyKeys ?? [])]) {
     if (!combined.includes(key)) errors.push(`Inventory key ${key} is not present in its registered sources.`);
   }
 }

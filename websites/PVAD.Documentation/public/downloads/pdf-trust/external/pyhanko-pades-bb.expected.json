@@ -1,0 +1,61 @@
+{
+  "status": "Indeterminate",
+  "structureStatus": "Valid",
+  "pdfVersion": "1.4",
+  "revisionCount": 2,
+  "objectCount": 36,
+  "encryption": {
+    "isEncrypted": false,
+    "status": "NotApplicable",
+    "filter": null,
+    "algorithm": null,
+    "version": null,
+    "revision": null,
+    "keyLengthBits": null
+  },
+  "signatures": [
+    {
+      "status": "Indeterminate",
+      "subFilter": "ETSI.CAdES.detached",
+      "integrityStatus": "Valid",
+      "coverageStatus": "Valid",
+      "certificateStatus": "Indeterminate",
+      "padesProfile": "B-B",
+      "digestAlgorithm": "SHA-256",
+      "coversWholeDocument": true,
+      "isDocumentTimestamp": false
+    }
+  ],
+  "pdfA": {
+    "standard": "PDF/A",
+    "profile": null,
+    "isClaimed": false,
+    "status": "NotApplicable",
+    "evidence": "No PDF/A identification metadata was found.",
+    "validator": null
+  },
+  "pdfUa": {
+    "standard": "PDF/UA",
+    "profile": null,
+    "isClaimed": false,
+    "status": "NotApplicable",
+    "evidence": "No PDF/UA identification metadata was found.",
+    "validator": null
+  },
+  "risk": {
+    "javaScriptActionCount": 0,
+    "launchActionCount": 0,
+    "embeddedFileCount": 0,
+    "fileAttachmentCount": 0,
+    "richMediaCount": 0,
+    "xfaFormCount": 0,
+    "externalLinkCount": 0,
+    "status": "Valid",
+    "hasRiskyContent": false
+  },
+  "diagnosticCodes": [
+    "PXAPDFTRUST010",
+    "PXAPDFTRUST110",
+    "PXAPDFTRUST112"
+  ]
+}

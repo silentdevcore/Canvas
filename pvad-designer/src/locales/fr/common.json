@@ -1,0 +1,81 @@
+{
+  "languageSwitcher": {
+    "chooseLanguage": "Choisir la langue"
+  },
+  "nav": {
+    "home": "Accueil",
+    "pdf": "PVADP",
+    "spreadsheet": "PVADS",
+    "report": "Rapports",
+    "docs": "Documentation",
+    "logoHome": "Accueil PVADE",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "mobileMenu": "Menu mobile"
+  },
+  "sidebar": {
+    "expand": "Développer la barre latérale",
+    "collapse": "Réduire la barre latérale",
+    "sectionNav": "Navigation de section",
+    "comingSoon": "Bientôt disponible"
+  },
+  "permissions": {
+    "requiredTitle": "Autorisation requise",
+    "requiredMessage": "Votre rôle dans l'organisation n'autorise pas cette fonction du Designer.",
+    "sidebarRequired": "Autorisation requise"
+  },
+  "pdfSidebar": {
+    "createPdf": "Créer un PDF",
+    "editPdf": "PDF avec du code",
+    "useTemplate": "Utiliser un modèle",
+    "importPdf": "Importer un PDF",
+    "convertToPdf": "Convertir en PDF",
+    "pdfViewer": "Visionneuse PDF",
+    "eInvoice": "Facture électronique",
+    "migrations": "Migrations"
+  },
+  "spreadsheetSidebar": {
+    "createSpreadsheet": "Créer une feuille de calcul",
+    "editSpreadsheet": "Modifier la feuille de calcul",
+    "importSpreadsheet": "Importer une feuille de calcul",
+    "convertToSpreadsheet": "Convertir en feuille de calcul",
+    "migrations": "Migrations"
+  },
+  "reportSidebar": { "designerMigration": "Migration du concepteur de rapports" },
+  "productExperience": {
+    "whatsNew": "Nouveautés",
+    "notifications": "Notifications",
+    "experimentalFeatures": "Fonctions expérimentales",
+    "openNotifications": "Ouvrir les notifications ({{count}} non lues)",
+    "close": "Fermer le panneau",
+    "openDocumentation": "Ouvrir la documentation",
+    "markAllRead": "Tout marquer comme lu",
+    "markRead": "Marquer comme lu",
+    "dismiss": "Ignorer",
+    "allCaughtUp": "Tout est à jour",
+    "featuresIntro": "Les fonctions Alpha nécessitent l'autorisation de l'organisation et votre accord explicite. Les fonctions Bêta sont disponibles mais peuvent évoluer.",
+    "featureEnabled": "Fonction expérimentale activée.",
+    "featureDisabled": "Fonction expérimentale désactivée.",
+    "refreshFailed": "Certaines mises à jour du produit n'ont pas pu être chargées. Les fonctions existantes du Designer restent disponibles.",
+    "designerReleases": "Versions du Designer", "unreadRelease": "Version non lue", "release": "Version", "build": "Build", "new": "Nouveau", "on": "Activé", "off": "Désactivé",
+    "featureStatus": "État de la fonction : {{status}}{{newStatus}}",
+    "maturity": { "alpha": "Alpha", "beta": "Bêta", "stable": "Stable" },
+    "changeCategories": { "added": "Ajouté", "improved": "Amélioré", "fixed": "Corrigé", "security": "Sécurité", "deprecated": "Obsolète", "breaking": "Incompatible" },
+    "notificationCategories": { "System": "Système", "Security": "Sécurité", "Subscription": "Abonnement", "ActionRequired": "Action requise", "Legal": "Juridique" },
+    "decisions": { "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "Votre organisation n'autorise pas cette fonction Alpha.", "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Activez cette fonction Alpha avant de l'utiliser.", "PXA_DESIGNER_FEATURE_DISABLED": "Cette fonction est actuellement désactivée.", "PXA_DESIGNER_FEATURE_ENABLED": "La fonction est disponible.", "PXA_DESIGNER_FEATURE_UNKNOWN": "Cette fonction n'est pas disponible dans cette version du Designer." }
+  },
+  "features": {
+    "releaseNotes": { "title": "Notes de version", "description": "Consultez les fonctions du Designer ajoutées, améliorées et corrigées." },
+    "notifications": { "title": "Centre de notifications", "description": "Conservez les versions et messages importants après la disparition des alertes temporaires." },
+    "experimental": { "title": "Fonctions expérimentales", "description": "Activez les fonctions Alpha autorisées par votre organisation." },
+    "pdfViewer": { "title": "Visionneuse PDF", "description": "Inspectez les PDF, annotations, formulaires, signets et données associées." },
+    "eInvoice": {
+      "title": "Facturation électronique",
+      "description": "Composer des factures Factur-X, ZUGFeRD et XRechnung, générer le XML et créer une facture hybride PDF/A-3."
+    },
+    "pdfChartRecognition": { "title": "Reconnaissance des graphiques PDF", "description": "Récupérez les graphiques PDF pris en charge comme éléments modifiables avec contrôle de confiance." },
+    "codeWorkspace": { "title": "Espace de code", "description": "Convertissez, validez et exécutez en sécurité du JSON, des modèles C# et du code PDF PVADE avec le Designer visuel." },
+    "spreadsheet": { "title": "Feuille de calcul", "description": "Créez, importez, calculez et exportez du contenu de classeur." },
+    "aiLayout": { "title": "Assistant de mise en page IA", "description": "Testez un flux expérimental de mise en page assistée autorisé par votre organisation." }
+  }
+}

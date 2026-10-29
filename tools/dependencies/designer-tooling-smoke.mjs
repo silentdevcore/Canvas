@@ -4,28 +4,31 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
-const root = process.env.PXA_DESIGNER_SMOKE_ROOT ?? fileURLToPath(new URL('../../pxa-designer/', import.meta.url));
+const root = process.env.PVAD_DESIGNER_SMOKE_ROOT ?? fileURLToPath(new URL('../../pvad-designer/', import.meta.url));
 const output = process.argv[2]
   ? pathToFileURL(`${resolve(process.argv[2])}/`)
   : new URL('../../artifacts/designer-tooling-smoke/', import.meta.url);
 const baselineOnly = process.argv.includes('--baseline-only');
-const require = createRequire(new URL('../../pxa-designer/package.json', import.meta.url));
+const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const { createServer, preview } = await import(pathToFileURL(require.resolve('vite')).href);
 const user = {
   id: 'tooling-user', username: 'designer@example.test', email: 'designer@example.test',
   displayName: 'Designer Tooling Test', roles: ['Editor'], apiVersion: '1',
+  permissions: ['designer.access', 'designer.pdf.access', 'designer.pdf.templates.read',
+    'designer.pdf.import', 'designer.spreadsheet.access', 'designer.spreadsheet.create',
+    'designer.spreadsheet.read', 'designer.spreadsheet.edit'],
   organizations: [{ id: 'tooling-org', name: 'Synthetic Workspace', slug: 'tooling' }],
   activeOrganizationId: 'tooling-org', lastLoginAt: null,
 };
 const responses = new Map([
-  ['/api/pxa/v1/auth/me', user],
-  ['/api/pxa/v1/auth/csrf', { token: 'synthetic-tooling-csrf' }],
-  ['/api/pxa/v1/designer/features', []],
-  ['/api/pxa/v1/designer/releases', { releases: [], readVersions: [] }],
-  ['/api/pxa/v1/designer/notifications', { items: [], page: 1, pageSize: 50, total: 0 }],
-  ['/api/pxa/v1/designer/notifications/unread-count', { unread: 0, persistent: 0, releases: 0 }],
-  ['/api/pxa/v1/designer/templates', { items: [], page: 1, pageSize: 100, total: 0 }],
+  ['/api/pvad/v1/auth/me', user],
+  ['/api/pvad/v1/auth/csrf', { token: 'synthetic-tooling-csrf' }],
+  ['/api/pvad/v1/designer/features', []],
+  ['/api/pvad/v1/designer/releases', { releases: [], readVersions: [] }],
+  ['/api/pvad/v1/designer/notifications', { items: [], page: 1, pageSize: 50, total: 0 }],
+  ['/api/pvad/v1/designer/notifications/unread-count', { unread: 0, persistent: 0, releases: 0 }],
+  ['/api/pvad/v1/designer/templates', { items: [], page: 1, pageSize: 100, total: 0 }],
 ]);
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
@@ -61,7 +64,7 @@ try {
               return;
             }
             if (url.pathname.startsWith('/api/')) {
-              if (url.pathname === '/api/pxa/v1/telemetry/browser' && request.method() === 'POST') {
+              if (url.pathname === '/api/pvad/v1/telemetry/browser' && request.method() === 'POST') {
                 for (const event of request.postDataJSON()?.events ?? []) {
                   telemetryOutcomes.push(`${event.type}/${event.outcome}`);
                   if (['error', 'unhandled_rejection'].includes(event.type)) {

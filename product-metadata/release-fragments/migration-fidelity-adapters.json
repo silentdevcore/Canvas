@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "migration-fidelity-adapters",
+  "impact": "none",
+  "components": [
+    "infrastructure",
+    "migration"
+  ],
+  "category": "improved",
+  "summary": "Migration quality reporting now separates PDF code, Spreadsheet code, and Report Designer provider evidence without overstating automatic fidelity.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.Proven-Document-Fidelity.md"
+  ],
+  "breaking": false,
+  "reason": "This change adds internal evidence adapters and CI reports without changing shipped migration behavior."
+}

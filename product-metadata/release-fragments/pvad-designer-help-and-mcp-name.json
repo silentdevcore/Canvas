@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-designer-help-and-mcp-name",
+  "impact": "patch",
+  "components": ["designer", "documentation", "sdk"],
+  "category": "fixed",
+  "summary": "Designer help and the PDF code starter use current PVAD naming. Migration guidance separates domains and migration types without outdated provider totals. MCP discovery displays the PVADE brand while retaining compatibility identifiers.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

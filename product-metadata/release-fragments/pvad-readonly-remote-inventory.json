@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-readonly-remote-inventory",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Record read-only infrastructure inventory findings and remaining release prerequisites.",
+  "breaking": false,
+  "reason": "Internal audit documentation only; no runtime, remote configuration or publication behavior changes."
+}

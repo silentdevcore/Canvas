@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "problem-details-extension-collision",
+  "impact": "patch",
+  "components": ["api", "account", "designer", "admin"],
+  "category": "fixed",
+  "summary": "Designer access denials return the intended diagnostic response instead of failing when caller-provided error extensions are combined.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-http-compatibility.md"],
+  "breaking": false
+}

@@ -1,0 +1,8 @@
+{
+  "id": "pvad-operator-guides-and-monitoring-labels",
+  "impact": "patch",
+  "components": ["documentation", "observability"],
+  "category": "improved",
+  "summary": "Refresh operator and MCP setup guidance and display current PVAD data source names without replacing established monitoring identities.",
+  "breaking": false
+}

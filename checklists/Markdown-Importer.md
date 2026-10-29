@@ -1,5 +1,7 @@
 # Markdown Importer Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the existing `IFileImporter` pattern (PDF/DOCX/ODT/SVG/PPTX/Image), wired end-to-end into the multi-format import wizard on `/pdf/convert`.
 
 ---

@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-a2b-conversion",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PVAD adds conservative PDF/A-2b preflight and conversion for existing PDFs, with explicit loss diagnostics, signature-removal approval, Viewer controls, and original-file preservation on blocked conversions.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

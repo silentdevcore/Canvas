@@ -3,11 +3,11 @@ import test from 'node:test';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { collectorProjects, compareReports, readReports, validateSummary, xpath } from './coverage-smoke.mjs';
+import { collectorProjects, compareReports, expectedCollectorCount, readReports, validateSummary, xpath } from './coverage-smoke.mjs';
 
 const good = () => ({
-  project: 'PXA.Core.Tests', tests: { total: 2, passed: 2, executed: 2 }, testNames: ['A', 'B'],
-  lines: { valid: 10, covered: 3 }, branches: { valid: 2, covered: 1 }, packages: ['PXA.Core'], hitLines: ['PXA.Core.dll:Core.cs:1'],
+  project: 'PVAD.Core.Tests', tests: { total: 2, passed: 2, executed: 2 }, testNames: ['A', 'B'],
+  lines: { valid: 10, covered: 3 }, branches: { valid: 2, covered: 1 }, packages: ['PVAD.Core'], hitLines: ['PVAD.Core.dll:Core.cs:1'],
 });
 
 test('coverage rejects zero tests, skips, empty reports and tool/test assemblies', () => {
@@ -21,10 +21,10 @@ test('coverage rejects zero tests, skips, empty reports and tool/test assemblies
     (x) => { x.lines.covered = 20; },
     (x) => { x.branches.covered = 3; },
     (x) => { x.packages = []; },
-    (x) => { x.packages.push('PXA.Core.Tests'); },
+    (x) => { x.packages.push('PVAD.Core.Tests'); },
     (x) => { x.packages.push('coverlet.collector'); },
     (x) => { x.hitLines = []; },
-    (x) => { x.hitLines = ['PXA.Unrelated.dll:Other.cs:1']; },
+    (x) => { x.hitLines = ['PVAD.Unrelated.dll:Other.cs:1']; },
   ]) {
     const invalid = good();
     mutate(invalid);
@@ -41,38 +41,38 @@ test('comparison blocks missing projects, changed tests and filter drift', () =>
   changed.testNames = ['A', 'C'];
   assert.throws(() => compareReports([good()], [changed]), /Different test names/u);
   changed.testNames = ['A', 'B'];
-  changed.packages.push('PXA.Domain');
+  changed.packages.push('PVAD.Domain');
   assert.throws(() => compareReports([good()], [changed]), /filter drift/u);
 });
 
 test('comparison reports instrumentation drift without hiding changed denominators', () => {
   const changed = good();
   changed.lines = { valid: 11, covered: 4 };
-  changed.hitLines = ['PXA.Core.dll:Core.cs:2'];
+  changed.hitLines = ['PVAD.Core.dll:Core.cs:2'];
   const [result] = compareReports([good()], [changed]);
   assert.deepEqual(result.before, { valid: 10, covered: 3 });
   assert.deepEqual(result.after, { valid: 11, covered: 4 });
-  assert.deepEqual(result.lost, ['PXA.Core.dll:Core.cs:1']);
-  assert.deepEqual(result.gained, ['PXA.Core.dll:Core.cs:2']);
+  assert.deepEqual(result.lost, ['PVAD.Core.dll:Core.cs:1']);
+  assert.deepEqual(result.gained, ['PVAD.Core.dll:Core.cs:2']);
 });
 
 test('real XML reports are required and stale, empty, skipped or malformed attachments fail', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'pxa-coverage-contract-'));
+  const directory = mkdtempSync(join(tmpdir(), 'pvad-coverage-contract-'));
   try {
     const attachment = join(directory, 'attachment');
     mkdirSync(attachment);
     const trx = '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"><Results><UnitTestResult testName="Synthetic" outcome="Passed" /></Results><ResultSummary><Counters total="1" executed="1" passed="1" /></ResultSummary></TestRun>';
-    const xml = '<coverage lines-valid="1" lines-covered="1" branches-valid="0" branches-covered="0"><packages><package name="PXA.Core"><classes><class><lines><line number="1" hits="1" /></lines></class></classes></package></packages></coverage>';
+    const xml = '<coverage lines-valid="1" lines-covered="1" branches-valid="0" branches-covered="0"><packages><package name="PVAD.Core"><classes><class><lines><line number="1" hits="1" /></lines></class></classes></package></packages></coverage>';
     writeFileSync(join(directory, 'tests.trx'), trx);
     writeFileSync(join(attachment, 'coverage.cobertura.xml'), xml);
-    writeFileSync(join(attachment, 'coverage.json'), JSON.stringify({ 'PXA.Core.dll': {
+    writeFileSync(join(attachment, 'coverage.json'), JSON.stringify({ 'PVAD.Core.dll': {
       '/synthetic/Core.cs': { Example: { Run: { Lines: { 1: 1 } } } },
     } }));
     assert.equal(readReports(directory).tests.passed, 1);
     writeFileSync(join(directory, 'tests.trx'), trx.replace('outcome="Passed"', 'outcome="NotExecuted"'));
     assert.throws(() => readReports(directory), /Non-passing/u);
     writeFileSync(join(directory, 'tests.trx'), trx);
-    writeFileSync(join(attachment, 'coverage.cobertura.xml'), xml.replace('name="PXA.Core"', 'name="PXA.Other"'));
+    writeFileSync(join(attachment, 'coverage.cobertura.xml'), xml.replace('name="PVAD.Core"', 'name="PVAD.Other"'));
     assert.throws(() => readReports(directory), /module sets differ/u);
     writeFileSync(join(attachment, 'coverage.cobertura.xml'), xml.replace('hits="1"', 'hits="0"'));
     assert.throws(() => readReports(directory), /no executed lines/u);
@@ -89,7 +89,7 @@ test('real XML reports are required and stale, empty, skipped or malformed attac
 
 test('every collector host resolves compatible private VSTest tools on net10', () => {
   const projects = collectorProjects();
-  assert.equal(projects.length, 50);
+  assert.equal(projects.length, expectedCollectorCount);
   for (const { name, path } of projects) {
     const reference = (id, attribute) => xpath(path, `string(/Project/ItemGroup/PackageReference[@Include='${id}']/@${attribute})`);
     assert.equal(reference('coverlet.collector', 'Version'), '10.1.0', name);
@@ -107,7 +107,7 @@ test('every collector host resolves compatible private VSTest tools on net10', (
     assert.equal(xpath(imports, "count(//*[local-name()='Import' and contains(@Project,'coverlet.collector/10.1.0/')])"), '1', `${name} must import the new collector target`);
     const deps = JSON.parse(readFileSync(join(dirname(path), 'bin/Release/net10.0', `${name}.deps.json`), 'utf8'));
     assert.ok(deps.libraries['Microsoft.TestPlatform.TestHost/18.11.0'], `${name} must build with the new test host`);
-    if (['PXA.FileImporter.Image.Tests', 'PXA.FileImporter.ImageAnalysis.Tests', 'PXA.Infrastructure.Converters.Tests'].includes(name)) {
+    if (['PVAD.FileImporter.Image.Tests', 'PVAD.FileImporter.ImageAnalysis.Tests', 'PVAD.Infrastructure.Converters.Tests'].includes(name)) {
       const native = 'SkiaSharp.NativeAssets.Linux.NoDependencies';
       assert.equal(reference(native, 'Version'), '3.119.2', name);
       assert.equal(reference(native, 'PrivateAssets'), 'all', name);
@@ -119,12 +119,12 @@ test('every collector host resolves compatible private VSTest tools on net10', (
 });
 
 test('the collector-free relay uses the same private VSTest SDK', () => {
-  const project = new URL('../../tests/PXA.Observability.WebhookRelay.Tests/', import.meta.url);
-  const path = new URL('PXA.Observability.WebhookRelay.Tests.csproj', project).pathname;
+  const project = new URL('../../tests/PVAD.Observability.WebhookRelay.Tests/', import.meta.url);
+  const path = new URL('PVAD.Observability.WebhookRelay.Tests.csproj', project).pathname;
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@Version)"), '18.11.0');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@PrivateAssets)"), 'all');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@Version)"), '4.0.1');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@PrivateAssets)"), 'all');
-  const dependencies = JSON.parse(readFileSync(new URL('bin/Release/net10.0/PXA.Observability.WebhookRelay.Tests.deps.json', project), 'utf8'));
+  const dependencies = JSON.parse(readFileSync(new URL('bin/Release/net10.0/PVAD.Observability.WebhookRelay.Tests.deps.json', project), 'utf8'));
   assert.ok(dependencies.libraries['Microsoft.TestPlatform.TestHost/18.11.0']);
 });

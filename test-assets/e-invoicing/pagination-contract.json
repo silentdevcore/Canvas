@@ -1,0 +1,782 @@
+{
+  "schema": "pxa.e-invoice.pagination/1",
+  "description": "The page geometry and pagination that both PXA invoice renderers implement. The Designer projects an invoice onto Canvas and Live Preview pages; EInvoice.CreatePdf renders the dedicated hybrid PDF. Neither depends on the other, so this file is what keeps them putting the same content on the same pages. Measurements are PDF points from the top of an A4 page.",
+  "page": {
+    "width": 595,
+    "height": 842,
+    "left": 42,
+    "right": 553
+  },
+  "table": {
+    "firstPageTop": 272,
+    "continuationTop": 82,
+    "columnHeaderOffset": 22,
+    "headerRuleOffset": 6
+  },
+  "columns": {
+    "position": {
+      "x": 42,
+      "width": 26
+    },
+    "description": {
+      "x": 72,
+      "width": 208
+    },
+    "quantity": {
+      "x": 284,
+      "width": 52
+    },
+    "unitPrice": {
+      "x": 340,
+      "width": 68
+    },
+    "taxRate": {
+      "x": 412,
+      "width": 42
+    },
+    "net": {
+      "x": 458,
+      "width": 62
+    },
+    "currency": {
+      "x": 524,
+      "width": 29
+    },
+    "totalsLabel": {
+      "x": 284,
+      "width": 166
+    }
+  },
+  "row": {
+    "height": 18,
+    "lineHeight": 11,
+    "padding": 7,
+    "limit": 740,
+    "bodyFontSize": 9
+  },
+  "totals": {
+    "height": 150,
+    "limit": 790,
+    "anchor": 640,
+    "taxRowHeight": 16,
+    "gap": 18,
+    "footerTop": 790
+  },
+  "limits": {
+    "maximumDescriptionFragments": 8
+  },
+  "cases": [
+    {
+      "id": "single-page-three-lines",
+      "description": "Three short lines and one tax group stay on one page.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          3
+        ],
+        "distinctLinesPerPage": [
+          3
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          1
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "first-page-exact-capacity",
+      "description": "The largest line count that still fits on page one with its totals (19).",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "Line 4",
+        "Line 5",
+        "Line 6",
+        "Line 7",
+        "Line 8",
+        "Line 9",
+        "Line 10",
+        "Line 11",
+        "Line 12",
+        "Line 13",
+        "Line 14",
+        "Line 15",
+        "Line 16",
+        "Line 17",
+        "Line 18",
+        "Line 19"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          19
+        ],
+        "distinctLinesPerPage": [
+          19
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          1
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "one-line-beyond-capacity",
+      "description": "One line past capacity moves the totals to a second page.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "Line 4",
+        "Line 5",
+        "Line 6",
+        "Line 7",
+        "Line 8",
+        "Line 9",
+        "Line 10",
+        "Line 11",
+        "Line 12",
+        "Line 13",
+        "Line 14",
+        "Line 15",
+        "Line 16",
+        "Line 17",
+        "Line 18",
+        "Line 19",
+        "Line 20"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 2,
+        "rowsPerPage": [
+          20,
+          0
+        ],
+        "distinctLinesPerPage": [
+          20,
+          0
+        ],
+        "totalsPages": [
+          2
+        ],
+        "taxGroupsPerPage": [
+          0,
+          1
+        ],
+        "netTotalPages": [
+          2
+        ],
+        "payablePages": [
+          2
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "several-continuation-pages",
+      "description": "Enough lines to need several continuation pages.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "Line 4",
+        "Line 5",
+        "Line 6",
+        "Line 7",
+        "Line 8",
+        "Line 9",
+        "Line 10",
+        "Line 11",
+        "Line 12",
+        "Line 13",
+        "Line 14",
+        "Line 15",
+        "Line 16",
+        "Line 17",
+        "Line 18",
+        "Line 19",
+        "Line 20",
+        "Line 21",
+        "Line 22",
+        "Line 23",
+        "Line 24",
+        "Line 25",
+        "Line 26",
+        "Line 27",
+        "Line 28",
+        "Line 29",
+        "Line 30",
+        "Line 31",
+        "Line 32",
+        "Line 33",
+        "Line 34",
+        "Line 35",
+        "Line 36",
+        "Line 37",
+        "Line 38",
+        "Line 39",
+        "Line 40",
+        "Line 41",
+        "Line 42",
+        "Line 43",
+        "Line 44",
+        "Line 45",
+        "Line 46",
+        "Line 47",
+        "Line 48",
+        "Line 49",
+        "Line 50",
+        "Line 51",
+        "Line 52",
+        "Line 53",
+        "Line 54",
+        "Line 55",
+        "Line 56",
+        "Line 57",
+        "Line 58",
+        "Line 59",
+        "Line 60",
+        "Line 61",
+        "Line 62",
+        "Line 63",
+        "Line 64",
+        "Line 65",
+        "Line 66",
+        "Line 67",
+        "Line 68",
+        "Line 69",
+        "Line 70",
+        "Line 71",
+        "Line 72",
+        "Line 73",
+        "Line 74",
+        "Line 75",
+        "Line 76",
+        "Line 77",
+        "Line 78",
+        "Line 79",
+        "Line 80",
+        "Line 81",
+        "Line 82",
+        "Line 83",
+        "Line 84",
+        "Line 85",
+        "Line 86",
+        "Line 87",
+        "Line 88",
+        "Line 89",
+        "Line 90"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 3,
+        "rowsPerPage": [
+          26,
+          36,
+          28
+        ],
+        "distinctLinesPerPage": [
+          26,
+          36,
+          28
+        ],
+        "totalsPages": [
+          3
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          1
+        ],
+        "netTotalPages": [
+          3
+        ],
+        "payablePages": [
+          3
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "zero-tax-groups",
+      "description": "A layout with no tax breakdown still places the totals.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 0,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          3
+        ],
+        "distinctLinesPerPage": [
+          3
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          0
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "one-tax-group",
+      "description": "A single group is its own tax total, so no aggregate row is added.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          3
+        ],
+        "distinctLinesPerPage": [
+          3
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          1
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "two-tax-groups",
+      "description": "Two groups plus the aggregate tax-total row.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 2,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          3
+        ],
+        "distinctLinesPerPage": [
+          3
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          2
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "eight-tax-groups",
+      "description": "Eight groups grow the totals block but still fit one page.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 8,
+      "expected": {
+        "pages": 1,
+        "rowsPerPage": [
+          3
+        ],
+        "distinctLinesPerPage": [
+          3
+        ],
+        "totalsPages": [
+          1
+        ],
+        "taxGroupsPerPage": [
+          8
+        ],
+        "netTotalPages": [
+          1
+        ],
+        "payablePages": [
+          1
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "eighty-tax-groups",
+      "description": "Eighty groups continue across several totals pages.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3"
+      ],
+      "taxGroups": 80,
+      "expected": {
+        "pages": 4,
+        "rowsPerPage": [
+          3,
+          0,
+          0,
+          0
+        ],
+        "distinctLinesPerPage": [
+          3,
+          0,
+          0,
+          0
+        ],
+        "totalsPages": [
+          2,
+          3,
+          4
+        ],
+        "taxGroupsPerPage": [
+          0,
+          36,
+          36,
+          8
+        ],
+        "netTotalPages": [
+          2
+        ],
+        "payablePages": [
+          4
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "eighty-tax-groups-after-a-full-table",
+      "description": "Eighty groups after a line table that already fills pages.",
+      "descriptions": [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "Line 4",
+        "Line 5",
+        "Line 6",
+        "Line 7",
+        "Line 8",
+        "Line 9",
+        "Line 10",
+        "Line 11",
+        "Line 12",
+        "Line 13",
+        "Line 14",
+        "Line 15",
+        "Line 16",
+        "Line 17",
+        "Line 18",
+        "Line 19",
+        "Line 20",
+        "Line 21",
+        "Line 22",
+        "Line 23",
+        "Line 24",
+        "Line 25",
+        "Line 26",
+        "Line 27",
+        "Line 28",
+        "Line 29",
+        "Line 30",
+        "Line 31",
+        "Line 32",
+        "Line 33",
+        "Line 34",
+        "Line 35",
+        "Line 36",
+        "Line 37",
+        "Line 38",
+        "Line 39",
+        "Line 40",
+        "Line 41",
+        "Line 42",
+        "Line 43",
+        "Line 44",
+        "Line 45",
+        "Line 46",
+        "Line 47",
+        "Line 48",
+        "Line 49",
+        "Line 50",
+        "Line 51",
+        "Line 52",
+        "Line 53",
+        "Line 54",
+        "Line 55",
+        "Line 56",
+        "Line 57",
+        "Line 58",
+        "Line 59",
+        "Line 60"
+      ],
+      "taxGroups": 80,
+      "expected": {
+        "pages": 5,
+        "rowsPerPage": [
+          26,
+          34,
+          0,
+          0,
+          0
+        ],
+        "distinctLinesPerPage": [
+          26,
+          34,
+          0,
+          0,
+          0
+        ],
+        "totalsPages": [
+          3,
+          4,
+          5
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          36,
+          36,
+          8
+        ],
+        "netTotalPages": [
+          3
+        ],
+        "payablePages": [
+          5
+        ],
+        "fragmentedLines": [],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "description-longer-than-a-page",
+      "description": "One description too long for any page, split into continuation fragments.",
+      "descriptions": [
+        "annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 4,
+        "rowsPerPage": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "distinctLinesPerPage": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "totalsPages": [
+          4
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "netTotalPages": [
+          4
+        ],
+        "payablePages": [
+          4
+        ],
+        "fragmentedLines": [
+          {
+            "lineIndex": 0,
+            "fragments": 4
+          }
+        ],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "description-at-the-validation-limit",
+      "description": "A description at the 4096-character PXAEINV109 limit.",
+      "descriptions": [
+        "annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance support and licence renewal for the reporting platform annual maintenance"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 3,
+        "rowsPerPage": [
+          1,
+          1,
+          1
+        ],
+        "distinctLinesPerPage": [
+          1,
+          1,
+          1
+        ],
+        "totalsPages": [
+          3
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          1
+        ],
+        "netTotalPages": [
+          3
+        ],
+        "payablePages": [
+          3
+        ],
+        "fragmentedLines": [
+          {
+            "lineIndex": 0,
+            "fragments": 3
+          }
+        ],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "maximum-length-description-without-whitespace",
+      "description": "A valid 4096-character description containing no whitespace, so the wrap has to break the single token itself.",
+      "descriptions": [
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 3,
+        "rowsPerPage": [
+          1,
+          1,
+          1
+        ],
+        "distinctLinesPerPage": [
+          1,
+          1,
+          1
+        ],
+        "totalsPages": [
+          3
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          1
+        ],
+        "netTotalPages": [
+          3
+        ],
+        "payablePages": [
+          3
+        ],
+        "fragmentedLines": [
+          {
+            "lineIndex": 0,
+            "fragments": 3
+          }
+        ],
+        "overflowingLines": []
+      }
+    },
+    {
+      "id": "astral-scalars-at-a-segmentation-boundary",
+      "description": "A description of astral-plane scalars at the length limit, so every break has to fall on a code-point boundary.",
+      "descriptions": [
+        "🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾🧾"
+      ],
+      "taxGroups": 1,
+      "expected": {
+        "pages": 3,
+        "rowsPerPage": [
+          1,
+          1,
+          0
+        ],
+        "distinctLinesPerPage": [
+          1,
+          1,
+          0
+        ],
+        "totalsPages": [
+          3
+        ],
+        "taxGroupsPerPage": [
+          0,
+          0,
+          1
+        ],
+        "netTotalPages": [
+          3
+        ],
+        "payablePages": [
+          3
+        ],
+        "fragmentedLines": [
+          {
+            "lineIndex": 0,
+            "fragments": 2
+          }
+        ],
+        "overflowingLines": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdfa-structural-rule-matrix",
+  "impact": "patch",
+  "components": [
+    "api",
+    "documentation",
+    "importer"
+  ],
+  "category": "fixed",
+  "summary": "PVAD PDF/A validation now detects invalid annotation appearances, dynamic forms, optional-content configurations, rendering intents, and blend modes while preserving valid transparency.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

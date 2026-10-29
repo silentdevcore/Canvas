@@ -1,0 +1,8 @@
+{
+  "id": "pvad-company-return-signal",
+  "impact": "patch",
+  "components": ["company", "account"],
+  "category": "fixed",
+  "summary": "Use the current identity for the presentation-only Company return signal while continuing to recognize existing return links without changing authentication or permissions.",
+  "breaking": false
+}

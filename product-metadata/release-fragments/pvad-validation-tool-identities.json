@@ -1,0 +1,9 @@
+{
+  "id": "pvad-validation-tool-identities",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Use PVAD package, artifact, local image, console labels and configuration names for internal PDF validation helpers while preserving archived validation evidence.",
+  "reason": "Repository-only helper identity changes; no public package, runtime API or published evidence is modified. Builds and tests are deferred.",
+  "breaking": false
+}

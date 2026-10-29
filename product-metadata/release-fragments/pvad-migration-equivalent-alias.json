@@ -1,0 +1,8 @@
+{
+  "id": "pvad-migration-equivalent-alias",
+  "impact": "patch",
+  "components": ["migration"],
+  "category": "fixed",
+  "summary": "Expose the canonical PVAD equivalent property in e-invoice migration mappings while retaining the previous property as an obsolete compatibility alias.",
+  "breaking": false
+}

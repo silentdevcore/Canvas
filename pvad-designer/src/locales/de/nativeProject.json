@@ -1,0 +1,9 @@
+{
+  "title": "Projekt öffnen", "noFile": "Kein Projekt ausgewählt", "requiresSignIn": "Melden Sie sich an, um dieses Projekt zu öffnen.",
+  "login": "Anmelden", "refresh": "Zugriff prüfen", "choose": "Projekt auswählen", "open": "Im Designer öffnen", "discard": "Verwerfen",
+  "accessDenied": "Der Designer-Zugriff ist für dieses Konto nicht verfügbar.", "permission": "Sie haben keine Berechtigung, dieses Projekt zu importieren.",
+  "unsupported": "Wählen Sie ein PVADP- oder PVADS-Projekt.", "multiple": "Öffnen Sie jeweils nur ein Projekt.",
+  "expired": "Diese Dateiübergabe ist abgelaufen. Öffnen Sie das Projekt erneut.", "tooLarge": "Das Projekt darf nicht leer und höchstens 25 MiB groß sein.",
+  "busy": "Ein Projekt wartet bereits. Öffnen oder verwerfen Sie es zuerst.", "accountChanged": "Ihr Konto oder Ihre Organisation hat sich geändert. Prüfen Sie den Zugriff und versuchen Sie es erneut.",
+  "failed": "Das Projekt konnte nicht geöffnet werden. Prüfen Sie den Zugriff und versuchen Sie es erneut."
+}

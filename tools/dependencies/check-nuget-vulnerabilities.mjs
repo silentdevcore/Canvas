@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../..');
 const result = spawnSync(
   'dotnet',
-  ['list', 'PXA.sln', 'package', '--vulnerable', '--include-transitive', '--format', 'json', '--no-restore'],
+  ['list', 'PVAD.sln', 'package', '--vulnerable', '--include-transitive', '--format', 'json', '--no-restore'],
   { cwd: root, encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 },
 );
 if (result.status !== 0) {

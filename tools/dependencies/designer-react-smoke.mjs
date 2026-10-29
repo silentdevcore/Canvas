@@ -3,13 +3,13 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const root = fileURLToPath(new URL('../../pxa-designer/', import.meta.url));
-const require = createRequire(new URL('../../pxa-designer/package.json', import.meta.url));
+const root = fileURLToPath(new URL('../../pvad-designer/', import.meta.url));
+const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const { build, createServer, preview } = await import(pathToFileURL(require.resolve('vite')).href);
 const output = new URL('../../artifacts/designer-react-smoke/', import.meta.url);
 const fixtureBuild = fileURLToPath(new URL('fixture-build/', output));
-const ordinary = new URL('../../pxa-designer/dist/', import.meta.url);
+const ordinary = new URL('../../pvad-designer/dist/', import.meta.url);
 for (const file of await readdir(ordinary, { recursive: true })) {
   assert.ok(!file.includes('react-compatibility'), 'Exclude fixture entry from ordinary build');
   if (/\.(js|html|map)$/.test(file)) {

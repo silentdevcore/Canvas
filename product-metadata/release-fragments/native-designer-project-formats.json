@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-designer-project-formats",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "added",
+  "summary": "Designer users can save and reopen portable PVAD PDF and Spreadsheet projects with validated integrity, optional inert Code Workspace drafts, and atomic host-file writers.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.Native-Designer-Formats.md"
+  ],
+  "breaking": false
+}

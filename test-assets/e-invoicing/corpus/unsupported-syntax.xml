@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vendor:Rechnung xmlns:vendor="urn:example:legacy:billing:1"><Nummer>LEGACY-1</Nummer><Betrag>119,00</Betrag></vendor:Rechnung>

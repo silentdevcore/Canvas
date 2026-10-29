@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-const root = new URL('../../pxa-designer/', import.meta.url);
+const root = new URL('../../pvad-designer/', import.meta.url);
 const require = createRequire(new URL('package.json', root));
 const { satisfies, major } = require('semver');
 const json = path => JSON.parse(readFileSync(new URL(path, root), 'utf8'));

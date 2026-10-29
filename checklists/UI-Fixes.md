@@ -1,5 +1,7 @@
 # UI Fixes Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged. SimplePxaSurface is now SimplePvadSurface.
+
 ## Scope
 Improve the element inspector and canvas toolbar with missing typography controls, rotation, background/transparency, border, spacing, element identity, and alignment tools.
 

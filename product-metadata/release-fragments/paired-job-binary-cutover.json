@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "paired-job-binary-cutover",
+  "impact": "none",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "A paired-binary integration fixture verifies interrupted job recovery and retained database links across the technical rename.",
+  "featureIds": [],
+  "documentation": ["/docs/pvad-license-and-job-compatibility.md"],
+  "breaking": false,
+  "reason": "This adds isolated compatibility tests and operational guidance without changing shipped runtime behavior."
+}

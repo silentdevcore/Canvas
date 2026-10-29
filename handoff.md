@@ -1,10 +1,12 @@
 # PXA PDF Migration Handoff
 
+> Naming history: This retained planning or migration note predates PVAD/PVADE. Legacy project names below are historical references, not current integration instructions. See README.md and the rename compatibility guides for the current contracts.
+
 Stand: 2026-05-31, Europe/Berlin
 
 ## Ziel
 
-Weiterarbeit am Feature `PXA.Migration.*`, das C#-PDF-Code aus Drittanbieter-Bibliotheken nach `PXA.Pdf` migriert.
+Weiterarbeit am Feature `PVAD.Migration.*`, das C#-PDF-Code aus Drittanbieter-Bibliotheken nach `PVAD.Pdf` migriert.
 
 Der bisherige Fokus war:
 
@@ -31,17 +33,17 @@ Der bisherige Fokus war:
 
 Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderungen, die nicht aus der Migration-Arbeit stammen bzw. nicht zurückgesetzt werden sollen:
 
-- `PXA.WebApi/Controllers/DocumentOpsController.cs`
-- `src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj`
+- `PVAD.WebApi/Controllers/DocumentOpsController.cs`
+- `src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj`
 - Gelöschte Dateien:
-  - `src/Infrastructure/PXA.Infrastructure.Converters/PdfImporter.cs`
-  - `src/Infrastructure/PXA.Infrastructure.Converters/SvgPdfImporter.cs`
+  - `src/Infrastructure/PVAD.Infrastructure.Converters/PdfImporter.cs`
+  - `src/Infrastructure/PVAD.Infrastructure.Converters/SvgPdfImporter.cs`
 - UI/Docs/Export-Dateien:
-  - `pxa-designer/src/hooks/useTemplateLoader.ts`
-  - `pxa-designer/src/pages/DocsPage.tsx`
-  - `pxa-designer/src/pages/IndexPage.tsx`
-  - `pxa-designer/src/pages/TemplatePage.tsx`
-  - `pxa-designer/src/services/ExportService.ts`
+  - `pvad-designer/src/hooks/useTemplateLoader.ts`
+  - `pvad-designer/src/pages/DocsPage.tsx`
+  - `pvad-designer/src/pages/IndexPage.tsx`
+  - `pvad-designer/src/pages/TemplatePage.tsx`
+  - `pvad-designer/src/services/ExportService.ts`
 - Untracked:
   - `Removing-PDFImporter.md`
 - Viele getrackte `obj/`-Artefakte in `samples/` und `tests/`.
@@ -54,50 +56,50 @@ Alle ursprünglich geplanten Anbieter sind inzwischen mindestens als vorsichtige
 
 Provider mit Roslyn-/Pattern-Pilot:
 
-- `PXA.Migration.Pdf.Code.Syncfusion`
-- `PXA.Migration.Pdf.Code.IText7`
-- `PXA.Migration.Pdf.Code.Aspose`
-- `PXA.Migration.Pdf.Code.IronPdf`
-- `PXA.Migration.Pdf.Code.DevExpress`
-- `PXA.Migration.Pdf.Code.Apryse`
-- `PXA.Migration.Pdf.Code.Foxit`
-- `PXA.Migration.Pdf.Code.DsPdf`
-- `PXA.Migration.Pdf.Code.GemBox`
-- `PXA.Migration.Pdf.Code.Spire`
-- `PXA.Migration.Pdf.Code.PdfKitNet`
-- `PXA.Migration.Pdf.Code.Leadtools`
-- `PXA.Migration.Pdf.Code.ActivePdf`
-- `PXA.Migration.Pdf.Code.PdfTools`
-- `PXA.Migration.Pdf.Code.PdfToolsToolbox`
+- `PVAD.Migration.Pdf.Code.Syncfusion`
+- `PVAD.Migration.Pdf.Code.IText7`
+- `PVAD.Migration.Pdf.Code.Aspose`
+- `PVAD.Migration.Pdf.Code.IronPdf`
+- `PVAD.Migration.Pdf.Code.DevExpress`
+- `PVAD.Migration.Pdf.Code.Apryse`
+- `PVAD.Migration.Pdf.Code.Foxit`
+- `PVAD.Migration.Pdf.Code.DsPdf`
+- `PVAD.Migration.Pdf.Code.GemBox`
+- `PVAD.Migration.Pdf.Code.Spire`
+- `PVAD.Migration.Pdf.Code.PdfKitNet`
+- `PVAD.Migration.Pdf.Code.Leadtools`
+- `PVAD.Migration.Pdf.Code.ActivePdf`
+- `PVAD.Migration.Pdf.Code.PdfTools`
+- `PVAD.Migration.Pdf.Code.PdfToolsToolbox`
 
 Aktuell relevante neue/letzte Provider-Dateien:
 
-- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs`
-- `tests/PXA.Migration.Pdf.Code.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
-- `src/Migrations/PDF/PXA.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs`
-- `tests/PXA.Migration.Pdf.Code.Leadtools.Tests/LeadtoolsPdfMigrationTests.cs`
-- `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs`
-- `tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/ActivePdfMigrationTests.cs`
-- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs`
-- `tests/PXA.Migration.Pdf.Code.PdfTools.Tests/PdfToolsMigrationTests.cs`
-- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
-- `tests/PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
+- `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs`
+- `tests/PVAD.Migration.Pdf.Code.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
+- `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs`
+- `tests/PVAD.Migration.Pdf.Code.Leadtools.Tests/LeadtoolsPdfMigrationTests.cs`
+- `src/Migrations/PDF/PVAD.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs`
+- `tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests/ActivePdfMigrationTests.cs`
+- `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs`
+- `tests/PVAD.Migration.Pdf.Code.PdfTools.Tests/PdfToolsMigrationTests.cs`
+- `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
+- `tests/PVAD.Migration.Pdf.Code.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
 
 WebApi-Konverter:
 
-- `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs`
-- `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
-- `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
-- `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
-- `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
+- `PVAD.WebApi/Services/Converters/PdfKitNetConverter.cs`
+- `PVAD.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
+- `PVAD.WebApi/Services/Converters/ActivePdfConverter.cs`
+- `PVAD.WebApi/Services/Converters/PdfToolsConverter.cs`
+- `PVAD.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 
 API-Smoke-Tests:
 
-- `tests/PXA.Api.Tests/MigrationServiceTests.cs`
+- `tests/PVAD.Api.Tests/MigrationServiceTests.cs`
 
 UI:
 
-- `pxa-designer/src/pages/MigrationsPage.tsx`
+- `pvad-designer/src/pages/MigrationsPage.tsx`
 
 Checklisten:
 
@@ -244,15 +246,15 @@ Empfohlene nächste Reihenfolge:
    - Build-Artefakte unter `obj/`/`bin/` vorsichtig zurücksetzen, falls sie nur generiert sind.
    - Nicht die PDF-Importer-Entfernungen oder UI/Docs-Dateien anfassen, bevor klar ist, ob sie vom User gewollt sind.
 2. Sobald Freigabe/Limit wieder verfügbar:
-   - `dotnet test tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
-   - `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
 3. PDFTools gegen echte Pdftools-SDK-Samples validieren:
    - Besonders Direct-Generation-Klassen, Koordinatenursprung, Text-/Font-API und Save/Export-Semantik prüfen.
    - Danach Status ggf. von cautious pilot auf detaillierter Pilot anheben.
 4. PDF Toolbox SDK / Toolbox add-on weiter härten:
    - API-Smoke-Test und UI-Beispiel final prüfen.
    - Output-Stream/FileStream-Setup nur dann automatisch entfernen/ersetzen, wenn `outPath` sicher erkannt wurde.
-   - PageSize-Mapping und Save-Semantik für PXA.Pdf sauber definieren.
+   - PageSize-Mapping und Save-Semantik für PVAD.Pdf sauber definieren.
 5. Wenn Tests grün:
    - Checklisten final prüfen.
    - `git diff --check` auf Quelländerungen und idealerweise gesamtem Diff nach Artefakt-Cleanup.
@@ -267,15 +269,15 @@ Empfohlene nächste Reihenfolge:
 Provider-/API-Builds:
 
 ```bash
-dotnet build tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
-dotnet build tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
 ```
 
 Tests, wenn Eskalation möglich:
 
 ```bash
-dotnet test tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
-dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
 ```
 
 Status/Checks:
@@ -291,8 +293,8 @@ Der Kontext ist groß geworden. Bitte nicht von vorne anfangen. Erst lokale Date
 
 - `checklists/Code-Migrations.md`
 - `checklists/Code-Migrations-UI.md`
-- `tests/PXA.Api.Tests/MigrationServiceTests.cs`
-- `PXA.WebApi/Services/Converters/*PdfConverter.cs`
-- die drei letzten Provider unter `src/PXA.Migration.*`
+- `tests/PVAD.Api.Tests/MigrationServiceTests.cs`
+- `PVAD.WebApi/Services/Converters/*PdfConverter.cs`
+- die drei letzten Provider unter `src/PVAD.Migration.*`
 
 Dann den aktuellen Working Tree sauber einordnen und erst danach weiterarbeiten.

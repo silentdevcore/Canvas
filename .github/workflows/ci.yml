@@ -1,4 +1,4 @@
-name: PXA CI
+name: PVADE CI
 
 on:
   push:
@@ -19,21 +19,65 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - name: Install configuration contract dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts
+      - name: Validate reviewed rename exceptions
+        run: node tools/configuration/rename-residual-review.mjs
+
       - name: Test version tooling
         run: |
+          node --test tools/configuration/*.test.mjs
+          node --test tools/visual-parity/image-tools.test.mjs tools/visual-parity/trust-baseline.test.mjs
           node -e 'require("node:assert/strict").match(process.version, /^v22\./)'
-          node --test tools/versioning/pxa-version.test.mjs
-          node --test tools/versioning/pxa-release-author.test.mjs
-          node --test tools/versioning/pxa-build-consistency.test.mjs
-          node --test tools/deployment/pxa-deployment.test.mjs
+          node --test tools/versioning/pvad-version.test.mjs
+          node --test tools/versioning/pvad-release-author.test.mjs
+          node --test tools/versioning/pvad-build-consistency.test.mjs
+          node --test tools/deployment/pvad-deployment.test.mjs
       - name: Check synchronized version metadata
-        run: node tools/versioning/pxa-version.mjs check
+        run: node tools/versioning/pvad-version.mjs check
+      - name: Validate canonical and legacy telemetry queries
+        run: |
+          node tools/configuration/pvad-telemetry-contract.mjs artifacts/rename-pvad/observability/dashboard-queries.json artifacts/rename-pvad/observability/identity-tests.json
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --volume "$GITHUB_WORKSPACE/deploy/observability/prometheus:/etc/prometheus:ro" \
+            --volume "$GITHUB_WORKSPACE/artifacts/rename-pvad/observability:/checks:ro" \
+            --entrypoint /bin/promtool prom/prometheus:v3.12.0 check rules \
+            /etc/prometheus/rules/pvad-alerts.yml \
+            /etc/prometheus/rules/pvad-webapi-container-alerts.yml \
+            /etc/prometheus/rules/pvad-mcp-alerts.yml /checks/dashboard-queries.json
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --volume "$GITHUB_WORKSPACE/deploy/observability/prometheus:/etc/prometheus:ro" \
+            --volume "$GITHUB_WORKSPACE/artifacts/rename-pvad/observability:/checks:ro" \
+            --entrypoint /bin/promtool prom/prometheus:v3.12.0 test rules \
+            /etc/prometheus/tests/pvad-alerts.test.yml /checks/identity-tests.json
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=128m --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --volume "$GITHUB_WORKSPACE/deploy/observability/alertmanager:/etc/alertmanager:ro" \
+            --entrypoint /bin/amtool prom/alertmanager:v0.32.1 check-config \
+            /etc/alertmanager/alertmanager.yml /etc/alertmanager/alertmanager.production.yml.example
+      - name: Validate PDF Trust governance and pinned evidence
+        run: |
+          node tools/pdf-trust/validate-standards-baseline.mjs
+          node tools/pdf-trust/validate-external-evidence.mjs
+          node --test tools/pdf-trust/*.test.mjs
+      - name: Validate document fidelity corpus and reviewed baseline
+        run: |
+          node tools/document-fidelity/fidelity.mjs validate
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json
+          node --test tools/document-fidelity/fidelity.test.mjs
+          node --test tools/document-fidelity/real-world-review.test.mjs
       - name: Require a release fragment for develop pull requests
         if: >
           github.event_name == 'pull_request' &&
           github.base_ref == 'develop' &&
           !startsWith(github.head_ref, 'release/prepare-v')
-        run: node tools/versioning/pxa-version.mjs validate-change --base-ref origin/develop
+        run: node tools/versioning/pvad-version.mjs validate-change --base-ref origin/develop
       - name: Validate stable release pull request
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         env:
@@ -45,10 +89,10 @@ jobs:
             BASE_VERSION="$(git tag --merged origin/main --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
           fi
           if [ -z "$BASE_VERSION" ]; then
-            echo "No stable PXA version exists on main."
+            echo "No stable PVADE version exists on main."
             exit 1
           fi
-          node tools/versioning/pxa-version.mjs validate-pr \
+          node tools/versioning/pvad-version.mjs validate-pr \
             --base "$BASE_VERSION" \
             --labels "$RELEASE_LABELS" \
             --head-ref "$HEAD_REF"
@@ -60,6 +104,8 @@ jobs:
   dotnet:
     runs-on: ubuntu-latest
     needs: version-policy
+    env:
+      PVAD_VERAPDF_IMAGE: pvad-verapdf:1.31.166
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -68,55 +114,205 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - name: Install independent PDF parser tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            poppler-utils qpdf imagemagick libreoffice-writer libreoffice-calc fonts-liberation
       - name: Restore
-        run: dotnet restore PXA.sln
+        run: dotnet restore PVAD.sln
       - name: Build
-        run: dotnet build PXA.sln --configuration Release --no-restore -p:SkipOcrWorkerPackaging=true
+        run: dotnet build PVAD.sln --configuration Release --no-restore -p:SkipOcrWorkerPackaging=true
       - name: Test core contracts
         run: |
-          dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --configuration Release --no-build
-          dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --configuration Release --no-build
-          dotnet test tests/PXA.Domain.Tests/PXA.Domain.Tests.csproj --configuration Release --no-build
-          dotnet test tests/PXA.Observability.WebhookRelay.Tests/PXA.Observability.WebhookRelay.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Core.Tests/PVAD.Core.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Application.Tests/PVAD.Application.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Domain.Tests/PVAD.Domain.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Observability.WebhookRelay.Tests/PVAD.Observability.WebhookRelay.Tests.csproj --configuration Release --no-build
+      - name: Validate migration provider fidelity adapters
+        run: |
+          dotnet test tests/PVAD.Migration.Pdf.Tests/PVAD.Migration.Pdf.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Migration.Spreadsheet.Tests/PVAD.Migration.Spreadsheet.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PVAD.Migration.Report.Tests/PVAD.Migration.Report.Tests.csproj --configuration Release --no-build
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json \
+            --output artifacts/migration-fidelity
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-migration-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/migration-fidelity
+          if-no-files-found: error
+          retention-days: 30
+      - name: Measure Spreadsheet XLSX roundtrip fidelity
+        env:
+          PVAD_SPREADSHEET_FIDELITY_ARTIFACTS: ${{ github.workspace }}/artifacts/spreadsheet-fidelity/raw
+        run: |
+          dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~SpreadsheetFidelityTests
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --spreadsheet-fidelity artifacts/spreadsheet-fidelity/raw/fidelity-report.json \
+            --output artifacts/spreadsheet-fidelity/report
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-spreadsheet-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/spreadsheet-fidelity
+          if-no-files-found: error
+          retention-days: 30
+      - name: Measure real-world PDF, DOCX, and XLSX import evidence
+        env:
+          PVAD_REAL_WORLD_FIDELITY_ARTIFACTS: ${{ github.workspace }}/artifacts/document-fidelity/real-world/raw
+        run: |
+          dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~RealWorldCorpusFidelityTests
+          node tools/document-fidelity/real-world-review.mjs
+          node tools/document-fidelity/fidelity.mjs evaluate \
+            --real-world-review artifacts/document-fidelity/real-world/review/real-world-review.json \
+            --output artifacts/document-fidelity/real-world/report
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-real-world-document-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/document-fidelity/real-world
+          if-no-files-found: error
+          retention-days: 30
+      - name: Build the pinned independent PDF validator
+        run: sh tools/pdf-trust/build-verapdf.sh
+      - name: Validate generated PDF/UA-1 fixtures independently
+        env:
+          PVAD_PDFUA_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/pdfua/fixtures
+          PVAD_PDFUA_REPORT_DIR: artifacts/pdfua/reports
+        run: |
+          tools/pdfua/test-validate-pdfua.sh
+          dotnet test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~PdfUaGenerationTests
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~PdfComplianceExportTests.DesignerModel_ExportsAccessibleTableLinkAndFormAnnotations \
+            -p:SkipOcrWorkerPackaging=true
+          tools/pdfua/validate-pdfua.sh artifacts/pdfua/fixtures/*.pdf
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-pdfua-validation-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdfua
+          if-no-files-found: error
+          retention-days: 30
+      - name: Validate generated PDF/A fixtures independently
+        env:
+          PVAD_PDFA_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/pdfa/generated
+          PVAD_PDFA_CONVERT_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/pdfa/conversions
+          PVAD_PDFA_REPORT_DIR: artifacts/pdfa/reports
+        run: |
+          mkdir -p artifacts/pdfa/generated artifacts/pdfa/conversions artifacts/pdfa/reports
+          tools/pdfa/test-validate-pdfa.sh
+          dotnet test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~PdfTrustInspectorTests|FullyQualifiedName~PdfA2bConverterTests|FullyQualifiedName~PdfA3bAndColorConversionTests"
+          cp tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/libreoffice-pdfa2b.pdf artifacts/pdfa/generated/
+          tools/pdfa/validate-pdfa.sh 2b \
+            artifacts/pdfa/generated/pvad-pdfa2b-fixture.pdf \
+            artifacts/pdfa/generated/pvad-pdfa2b-colored-pattern-fixture.pdf \
+            artifacts/pdfa/generated/pvad-pdfa2b-uncolored-pattern-fixture.pdf \
+            artifacts/pdfa/generated/pvad-pdfa2b-cmyk-image-fixture.pdf \
+            artifacts/pdfa/generated/libreoffice-pdfa2b.pdf \
+            artifacts/pdfa/conversions/pvad-converted-pdfa2b.pdf
+          tools/pdfa/validate-pdfa.sh 3b \
+            artifacts/pdfa/generated/pvad-generated-pdfa3b-fixture.pdf \
+            artifacts/pdfa/generated/pvad-pdfa3b-fixture.pdf
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-pdfa-validation-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdfa
+          if-no-files-found: error
+          retention-days: 30
+      - name: Run isolated PDF parser mutation corpus
+        run: tools/pdf-parser-fuzzer/run.sh
+      - name: Run AES-256 interoperability matrix
+        run: node tools/pdf-security/aes256-interop.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-pdf-parser-fuzz-${{ github.run_number }}-${{ github.sha }}
+          path: |
+            artifacts/pdf-fuzz
+            artifacts/pdf-security
+          if-no-files-found: error
+          retention-days: 30
       - name: Test Spreadsheet and Excel file compatibility
         timeout-minutes: 5
         run: |
-          dotnet test tests/PXA.Infrastructure.Spreadsheet.Tests/PXA.Infrastructure.Spreadsheet.Tests.csproj --configuration Release --no-build --no-restore
-          dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~SpreadsheetRoundTripTests|FullyQualifiedName~ExporterTests.Excel_|FullyQualifiedName~PxaExportCompositionTests.PxaWordAndExcelExporters_RenderDesignBytes"
+          dotnet test tests/PVAD.Infrastructure.Spreadsheet.Tests/PVAD.Infrastructure.Spreadsheet.Tests.csproj --configuration Release --no-build --no-restore
+          dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~SpreadsheetRoundTripTests|FullyQualifiedName~ExporterTests.Excel_|FullyQualifiedName~PvadExportCompositionTests.PvadWordAndExcelExporters_RenderDesignBytes"
       - name: Test version and release metadata contracts
         run: >
-          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.|FullyQualifiedName~PXA.Api.Tests.DesignerProductExperienceTests.|FullyQualifiedName~PXA.Api.Tests.OperatorDocumentationContractTests."
+          --filter "FullyQualifiedName~PVAD.Api.Tests.VersionControllerTests.|FullyQualifiedName~PVAD.Api.Tests.DesignerProductExperienceTests.|FullyQualifiedName~PVAD.Api.Tests.OperatorDocumentationContractTests."
+          -p:SkipOcrWorkerPackaging=true
+      - name: Test canonical and legacy security headers
+        run: >
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~PvadSecurityHeaderMiddlewareTests|FullyQualifiedName~PvadHeaderPipelineTests|FullyQualifiedName~PvadApiKeyHeaderIntegrationTests|FullyQualifiedName~PvadApiKeySchemeCompatibilityTests|FullyQualifiedName~PvadAuthorizationPathCompatibilityTests|FullyQualifiedName~PvadDataProtectionCompatibilityTests|FullyQualifiedName~PvadCookieCompatibilityTests|FullyQualifiedName~PvadCookieConfigurationTests|FullyQualifiedName~PvadAntiforgeryCookieCompatibilityTests|FullyQualifiedName~PvadClaimCompatibilityTests|FullyQualifiedName~PvadOAuthScopeCatalogTests|FullyQualifiedName~PvadOAuthScopeMigrationTests|FullyQualifiedName~PvadMcpDelegationCompatibilityTests|FullyQualifiedName~DesignerProductExperienceTests|FullyQualifiedName~PvadApiPrefixIntegrationTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Test PostgreSQL legal deployment contract
         env:
-          PXA_RUN_POSTGRES_TESTS: "1"
+          PVAD_RUN_POSTGRES_TESTS: "1"
         run: >
-          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
           --filter "FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances|FullyQualifiedName~AdminSystemControllerTests"
           -p:SkipOcrWorkerPackaging=true
+      - name: Test PostgreSQL MCP OAuth and tenant delegation contracts
+        env:
+          PVAD_RUN_POSTGRES_TESTS: "1"
+        run: >
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once|FullyQualifiedName~PvadOAuthScopeMigrationTests.PostgreSql_store_preserves_credentials_and_grants"
+          -p:SkipOcrWorkerPackaging=true
+      - name: Test retained licenses and background job compatibility
+        env:
+          PVAD_RUN_POSTGRES_TESTS: "1"
+        run: >
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~PvadJobCutoverCompatibilityTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
+          -p:SkipOcrWorkerPackaging=true
       - name: Verify local EF tooling and unchanged database model
         env:
-          PXA_DATABASE_CONNECTION: Host=127.0.0.1;Port=1;Database=dependency_contract;Username=contract;Password=unused
+          PVAD_DATABASE_CONNECTION: Host=127.0.0.1;Port=1;Database=dependency_contract;Username=contract;Password=unused
         run: |
           dotnet tool restore
           dotnet ef --version
-          dotnet ef migrations has-pending-model-changes --project src/Infrastructure/PXA.Infrastructure.Persistence --startup-project PXA.WebApi --context PxaDbContext --configuration Release --no-build
+          dotnet ef migrations has-pending-model-changes --project src/Infrastructure/PVAD.Infrastructure.Persistence --startup-project PVAD.WebApi --context PvadDbContext --configuration Release --no-build
       - name: Test API platform contracts with isolated PostgreSQL
         timeout-minutes: 15
         env:
-          PXA_RUN_POSTGRES_TESTS: "1"
+          PVAD_RUN_POSTGRES_TESTS: "1"
         run: |
-          dotnet test tests/PXA.Infrastructure.Persistence.Tests/PXA.Infrastructure.Persistence.Tests.csproj --configuration Release --no-build -- xUnit.ParallelizeTestCollections=false
-          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+          dotnet test tests/PVAD.Infrastructure.Persistence.Tests/PVAD.Infrastructure.Persistence.Tests.csproj --configuration Release --no-build -- xUnit.ParallelizeTestCollections=false
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
       - name: Test Roslyn-dependent migration providers
         timeout-minutes: 15
         run: |
-          for project in tests/PXA.Migration.*.Tests/*.csproj; do
+          for project in tests/PVAD.Migration.*.Tests/*.csproj; do
             dotnet test "$project" --configuration Release --no-build --no-restore
           done
       - name: Verify real coverage for every collector test host
@@ -136,8 +332,8 @@ jobs:
           retention-days: 7
       - name: Test isolated Legal backup and restore
         env:
-          PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"
-          PXA_POSTGRES_READY_ATTEMPTS: "90"
+          PVAD_POSTGRES_STARTUP_DELAY_SECONDS: "2"
+          PVAD_POSTGRES_READY_ATTEMPTS: "90"
         run: tools/legal/run-backup-restore-smoke-test.sh
 
   dependency-security:
@@ -153,22 +349,22 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-            pxa-designer/package-lock.json
-            websites/PXA.Admin/package-lock.json
-            tools/PXA.Mcp/package-lock.json
+            pvad-designer/package-lock.json
+            websites/PVAD.Admin/package-lock.json
+            tools/PVAD.Mcp/package-lock.json
       - name: Restore NuGet dependency graph
-        run: dotnet restore PXA.sln
+        run: dotnet restore PVAD.sln
       - name: Reject vulnerable direct and transitive NuGet dependencies
         run: node tools/dependencies/check-nuget-vulnerabilities.mjs
       - name: Reject high and critical production npm vulnerabilities
         run: |
-          npm --prefix pxa-designer audit --omit=dev --audit-level=high
-          npm --prefix websites/PXA.Admin audit --omit=dev --audit-level=high
-          npm --prefix tools/PXA.Mcp audit --omit=dev --audit-level=high
+          npm --prefix pvad-designer audit --omit=dev --audit-level=high
+          npm --prefix websites/PVAD.Admin audit --omit=dev --audit-level=high
+          npm --prefix tools/PVAD.Mcp audit --omit=dev --audit-level=high
       - name: Reject high and critical Designer development vulnerabilities
-        run: npm --prefix pxa-designer audit --audit-level=high
+        run: npm --prefix pvad-designer audit --audit-level=high
       - name: Reject high and critical Admin development vulnerabilities
-        run: npm --prefix websites/PXA.Admin audit --audit-level=high
+        run: npm --prefix websites/PVAD.Admin audit --audit-level=high
       - name: Validate dependency compliance policy
         run: |
           node tools/dependencies/validate-dependency-compliance.mjs
@@ -184,21 +380,21 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-            pxa-designer/package-lock.json
-            websites/PXA.Admin/package-lock.json
-            tools/PXA.Mcp/package-lock.json
+            pvad-designer/package-lock.json
+            websites/PVAD.Admin/package-lock.json
+            tools/PVAD.Mcp/package-lock.json
       - name: Install Designer dependencies
-        working-directory: pxa-designer
+        working-directory: pvad-designer
         run: npm ci
       - name: Test and build Designer
-        working-directory: pxa-designer
+        working-directory: pvad-designer
         run: |
           npm run type-check
           npm test -- --runInBand
           node --test ../tools/dependencies/designer-react-compatibility.test.mjs
           npm run build
       - name: Install and test Admin
-        working-directory: websites/PXA.Admin
+        working-directory: websites/PVAD.Admin
         run: |
           npm ci
           npm test
@@ -207,26 +403,30 @@ jobs:
         run: |
           node tools/legal/validate-browser-storage.mjs
           node tools/legal/validate-data-processing-inventory.mjs
-          npm --prefix websites/PXA.Account test
-          npm --prefix websites/PXA.Account run type-check
-          npm --prefix websites/PXA.Company test
-          npm --prefix websites/PXA.Documentation test
-      - name: Build PXA websites
+          node tools/legal/validate-legal-launch-readiness.mjs
+          node tools/commerce/validate-global-commerce-catalog.mjs
+          node tools/commerce/validate-country-readiness.mjs
+          node --test tools/commerce/*.test.mjs
+          npm --prefix websites/PVAD.Account test
+          npm --prefix websites/PVAD.Account run type-check
+          npm --prefix websites/PVAD.Company test
+          npm --prefix websites/PVAD.Documentation test
+      - name: Build PVADE websites
         run: |
-          for site in PXA.Account PXA.Company PXA.Demo PXA.Documentation; do
+          for site in PVAD.Account PVAD.Company PVAD.Demo PVAD.Documentation; do
             npm --prefix "websites/$site" run build
           done
       - name: Verify frontend build versions
         run: |
-          node tools/versioning/pxa-build-consistency.mjs verify \
-            pxa-designer/dist \
-            websites/PXA.Account/dist \
-            websites/PXA.Admin/dist \
-            websites/PXA.Company/dist \
-            websites/PXA.Demo/dist \
-            websites/PXA.Documentation/dist
+          node tools/versioning/pvad-build-consistency.mjs verify \
+            pvad-designer/dist \
+            websites/PVAD.Account/dist \
+            websites/PVAD.Admin/dist \
+            websites/PVAD.Company/dist \
+            websites/PVAD.Demo/dist \
+            websites/PVAD.Documentation/dist
       - name: Install Playwright Chromium
-        working-directory: pxa-designer
+        working-directory: pvad-designer
         run: npx playwright install --with-deps chromium
       - name: Test Designer development and production bundles
         timeout-minutes: 3
@@ -268,7 +468,7 @@ jobs:
       - name: Test actual Designer chart components
         timeout-minutes: 5
         run: |
-          npm --prefix pxa-designer exec -- tsc --project pxa-designer/tsconfig.chart-review.json
+          npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json
           node tools/dependencies/designer-chart-smoke.mjs
       - name: Collect Designer chart evidence
         if: always()
@@ -281,32 +481,35 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Test legal browser workflows
-        working-directory: pxa-designer
+        working-directory: pvad-designer
         run: npm run test:e2e:legal
       - name: Collect frontend snapshots
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         run: |
           mkdir -p artifacts/frontends
-          cp -R pxa-designer/dist artifacts/frontends/pxa-designer
-          for site in PXA.Account PXA.Admin PXA.Company PXA.Demo PXA.Documentation; do
+          cp -R pvad-designer/dist artifacts/frontends/pvad-designer
+          for site in PVAD.Account PVAD.Admin PVAD.Company PVAD.Demo PVAD.Documentation; do
             cp -R "websites/$site/dist" "artifacts/frontends/$site"
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         with:
-          name: pxa-frontends-${{ github.run_number }}-${{ github.sha }}
+          name: pvad-frontends-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/frontends
           if-no-files-found: error
           retention-days: 14
       - name: Install, type-check and smoke-test MCP tool
-        working-directory: tools/PXA.Mcp
+        working-directory: tools/PVAD.Mcp
         run: |
           npm ci
           npm run test:contracts
           npm run typecheck
-          npm run test:smoke
+          npm test
+          npm run build
+          npm run smoke:dist
+          npm pack --dry-run
 
-  artifact-contract:
+  mcp-beta:
     runs-on: ubuntu-latest
     needs: version-policy
     steps:
@@ -314,22 +517,117 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - name: Test and create synthetic artifact fixture
+          cache: npm
+          cache-dependency-path: tools/PVAD.Mcp/package-lock.json
+      - name: Install MCP client dependencies
+        working-directory: tools/PVAD.Mcp
+        run: npm ci
+      - name: Validate PVADE Server Compose contract
+        working-directory: deploy/api
+        env:
+          PVAD_LICENSE_PRIVATE_KEY_FILE: ./secrets/license-private.pem
+          PVAD_LICENSE_PUBLIC_KEY_FILE: ./secrets/license-public.pem
+        run: node ../../tools/configuration/pvad-compose.mjs -f docker-compose.api.yml --profile mcp config --quiet
+      - name: Test MCP TLS, dependency failure, and graceful shutdown
+        run: deploy/api/mcp-tls-smoke-test.sh
+      - name: Scan MCP container image
         run: |
-          node --test tools/deployment/artifact-handoff-contract.test.mjs
-          node tools/deployment/artifact-handoff-contract.mjs create artifacts/artifact-contract/input
+          mkdir -p artifacts/mcp-security
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v pvad-mcp-trivy-cache:/root/.cache/ \
+            aquasec/trivy:0.74.0 image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity HIGH,CRITICAL \
+            --scanners vuln,secret \
+            pvad-mcp-smoke:local
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v pvad-mcp-trivy-cache:/root/.cache/ \
+            -v "$PWD/artifacts/mcp-security:/output" \
+            aquasec/trivy:0.74.0 image \
+            --format cyclonedx \
+            --output /output/pvad-mcp.cdx.json \
+            pvad-mcp-smoke:local
+      - name: Check MCP repository diff
+        run: git diff --check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
-          name: pxa-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/artifact-contract/input
+          name: pvad-mcp-security-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/mcp-security
+          if-no-files-found: warn
+          retention-days: 30
+
+  visual-parity:
+    runs-on: ubuntu-latest
+    needs: version-policy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pvad-designer/package-lock.json
+      - name: Install visual comparison tools
+        run: sudo apt-get update && sudo apt-get install -y imagemagick poppler-utils fonts-liberation
+      - name: Install Designer and pinned Chromium
+        working-directory: pvad-designer
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Restore visual-parity test dependencies
+        run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
+      - name: Restore PDF Trust visual operation dependencies
+        run: dotnet restore tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj
+      - name: Enforce approved visual parity
+        working-directory: pvad-designer
+        run: npm run test:visual-parity:ci
+      - name: Aggregate live visual fidelity evidence
+        run: >
+          node tools/document-fidelity/fidelity.mjs evaluate
+          --visual-parity artifacts/visual-parity/visual-parity-report.json
+          --output artifacts/document-fidelity
+      - name: Enforce PDF Trust visual baselines
+        env:
+          PVAD_PDF_TRUST_VISUAL_ENFORCE: true
+        run: node tools/visual-parity/pdf-trust-golden.mjs
+      - name: Enforce PDF Trust operation visual baselines
+        env:
+          PVAD_PDF_TRUST_OPERATION_ENFORCE: true
+        run: node tools/visual-parity/pdf-trust-operations.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-visual-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/visual-parity
           if-no-files-found: error
-          retention-days: 1
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
-          name: pxa-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/artifact-contract/output
-      - name: Verify downloaded artifact names and hashes
-        run: node tools/deployment/artifact-handoff-contract.mjs verify artifacts/artifact-contract/output
+          name: pvad-document-fidelity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/document-fidelity
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-pdf-trust-visual-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdf-trust-visual
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-pdf-trust-operations-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/pdf-trust-operations
+          if-no-files-found: error
+          retention-days: 14
 
   snapshot:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -342,23 +640,23 @@ jobs:
           dotnet-version: 10.0.x
       - name: Build traceable snapshot
         env:
-          PXA_BUILD_COMMIT: ${{ github.sha }}
-          PXA_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
+          PVAD_BUILD_COMMIT: ${{ github.sha }}
+          PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
         run: |
           VERSION="$(cat VERSION)"
-          dotnet restore PXA.WebApi/PXA.WebApi.csproj
-          dotnet publish PXA.WebApi/PXA.WebApi.csproj \
+          dotnet restore PVAD.WebApi/PVAD.WebApi.csproj
+          dotnet publish PVAD.WebApi/PVAD.WebApi.csproj \
             --configuration Release \
             --no-restore \
             --output artifacts/webapi \
             -p:SkipOcrWorkerPackaging=true \
-            -p:PxaBuildMetadata="develop.${{ github.run_number }}.${GITHUB_SHA::12}"
-          node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
-          node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi
+            -p:PvadBuildMetadata="develop.${{ github.run_number }}.${GITHUB_SHA::12}"
+          node tools/versioning/pvad-build-consistency.mjs write artifacts/webapi
+          node tools/versioning/pvad-build-consistency.mjs verify artifacts/webapi
           printf '%s\n' "$VERSION-develop.${{ github.run_number }}-${GITHUB_SHA::12}" > artifacts/SNAPSHOT
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pxa-${{ github.run_number }}-${{ github.sha }}
+          name: pvad-${{ github.run_number }}-${{ github.sha }}
           path: artifacts
           if-no-files-found: error
           retention-days: 14
@@ -367,12 +665,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      DOCKER_CONFIG: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/docker
-      PXA_REGISTRY_SMOKE_DIR: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+      DOCKER_CONFIG: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/docker
+      PVAD_REGISTRY_SMOKE_DIR: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}
       # Force client-side registry auth with a process-local test trust root.
-      DOCKER_HOST: unix:///tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/no-daemon.sock
+      DOCKER_HOST: unix:///tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/no-daemon.sock
       DOCKER_CONTEXT: ''
-      SSL_CERT_FILE: /tmp/pxa-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/ca.pem
+      SSL_CERT_FILE: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/ca.pem
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -396,6 +694,31 @@ jobs:
         if: always()
         run: node tools/dependencies/registry-login-smoke.mjs cleanup
 
+  artifact-contract:
+    runs-on: ubuntu-latest
+    needs: version-policy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Test and create synthetic artifact fixture
+        run: |
+          node --test tools/deployment/artifact-handoff-contract.test.mjs
+          node tools/deployment/artifact-handoff-contract.mjs create artifacts/artifact-contract/input
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pvad-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/artifact-contract/input
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pvad-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/artifact-contract/output
+      - name: Verify downloaded artifact names and hashes
+        run: node tools/deployment/artifact-handoff-contract.mjs verify artifacts/artifact-contract/output
+
   supply-chain:
     runs-on: ubuntu-latest
     needs: [dotnet, frontend, dependency-security]
@@ -410,20 +733,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: pxa-designer/package-lock.json
+          cache-dependency-path: pvad-designer/package-lock.json
       - name: Install SPDX SBOM generator
         run: dotnet tool install --tool-path .tools Microsoft.Sbom.DotNetTool --version 4.1.5
       - name: Publish WebApi and build Designer
         env:
-          PXA_BUILD_COMMIT: ${{ github.sha }}
-          PXA_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+          PVAD_BUILD_COMMIT: ${{ github.sha }}
+          PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
         run: |
-          dotnet restore PXA.WebApi/PXA.WebApi.csproj
-          dotnet publish PXA.WebApi/PXA.WebApi.csproj --configuration Release --no-restore --output artifacts/webapi -p:SkipOcrWorkerPackaging=true
-          node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
-          npm --prefix pxa-designer ci
-          npm --prefix pxa-designer run build
-          node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi pxa-designer/dist
+          dotnet restore PVAD.WebApi/PVAD.WebApi.csproj
+          dotnet publish PVAD.WebApi/PVAD.WebApi.csproj --configuration Release --no-restore --output artifacts/webapi -p:SkipOcrWorkerPackaging=true
+          node tools/versioning/pvad-build-consistency.mjs write artifacts/webapi
+          npm --prefix pvad-designer ci
+          npm --prefix pvad-designer run build
+          node tools/versioning/pvad-build-consistency.mjs verify artifacts/webapi pvad-designer/dist
       - name: Set up the release container builder
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Verify the container builder
@@ -435,27 +758,32 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: PXA.WebApi/Dockerfile
-          tags: pxa-webapi:sbom
+          file: PVAD.WebApi/Dockerfile
+          tags: pvad-webapi:sbom
           load: true
           push: false
           provenance: false
           build-args: |
-            PXA_VERSION=${{ steps.container-version.outputs.version }}
-            PXA_COMMIT=${{ github.sha }}
-      - name: Verify built container version
-        run: node tools/versioning/pxa-build-consistency.mjs verify-container pxa-webapi:sbom
+            PVAD_VERSION=${{ steps.container-version.outputs.version }}
+            PVAD_COMMIT=${{ github.sha }}
+            PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+      - name: Verify built container metadata
+        env:
+          PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+        run: node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
+      - name: Verify fail-closed production startup exits independently
+        run: node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
       - name: Generate WebApi and Designer SPDX SBOMs
         run: |
           VERSION="$(cat VERSION)"
-          .tools/sbom-tool generate -b artifacts/webapi -bc . -pn PXA.WebApi -pv "$VERSION" -ps PowerDox -nsb "https://powerdoxautomation.com/sbom/PXA.WebApi/$VERSION"
-          .tools/sbom-tool generate -b pxa-designer/dist -bc pxa-designer -pn PXA.Designer -pv "$VERSION" -ps PowerDox -nsb "https://powerdoxautomation.com/sbom/PXA.Designer/$VERSION"
+          .tools/sbom-tool generate -b artifacts/webapi -bc . -pn PVAD.WebApi -pv "$VERSION" -ps PVADE -nsb "https://pvade.com/sbom/PVAD.WebApi/$VERSION"
+          .tools/sbom-tool generate -b pvad-designer/dist -bc pvad-designer -pn PVAD.Designer -pv "$VERSION" -ps PVADE -nsb "https://pvade.com/sbom/PVAD.Designer/$VERSION"
       - name: Prepare container SBOM output
         run: mkdir -p artifacts/sbom/webapi-container
       - name: Generate container SPDX SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
-          image: pxa-webapi:sbom
+          image: pvad-webapi:sbom
           format: spdx-json
           output-file: artifacts/sbom/webapi-container/manifest.spdx.json
           upload-artifact: false
@@ -464,10 +792,10 @@ jobs:
         run: |
           mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
-          cp -R pxa-designer/dist/_manifest/. artifacts/sbom/designer/
+          cp -R pvad-designer/dist/_manifest/. artifacts/sbom/designer/
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pxa-sbom-${{ github.run_number }}-${{ github.sha }}
+          name: pvad-sbom-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/sbom
           if-no-files-found: error
           retention-days: 90

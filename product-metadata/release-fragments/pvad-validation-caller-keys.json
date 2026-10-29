@@ -1,0 +1,9 @@
+{
+  "id": "pvad-validation-caller-keys",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Align internal validation launchers and test instructions with canonical PVAD configuration names while retaining compatibility readers.",
+  "breaking": false,
+  "reason": "Internal test and evidence-tool configuration cleanup only; no production behavior, published evidence or product version changes."
+}

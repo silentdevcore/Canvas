@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-option-list-preview-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Aligned option-list previews with PDF selection fields while preserving static list markers and printed choices.",
+  "breaking": false
+}

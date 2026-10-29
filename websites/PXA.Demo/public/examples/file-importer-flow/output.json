@@ -1,7 +1,0 @@
-{
-  "normalizedModel": "PXA.ImportModel.Document",
-  "detectedFormat": "docx",
-  "pages": 3,
-  "elements": ["paragraph", "table", "image"],
-  "status": "planned"
-}

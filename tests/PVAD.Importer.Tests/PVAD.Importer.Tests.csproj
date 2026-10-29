@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.1.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" PrivateAssets="all" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../../assets/fonts/liberation/*"
+             Link="fonts/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Fixtures/RedactionRecovery/**"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures/PdfTrustExternal/**"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../websites/PVAD.Documentation/public/downloads/pdf-trust/**"
+             Link="Fixtures/PdfTrust/%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Generation/PVAD.Generator/PVAD.Generator.csproj" />
+    <ProjectReference Include="../../src/Importing/PVAD.Importer/PVAD.Importer.csproj" />
+    <ProjectReference Include="../../src/Importing/PVAD.FileImporter/PVAD.FileImporter.csproj" />
+  </ItemGroup>
+
+</Project>

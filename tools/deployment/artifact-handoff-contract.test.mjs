@@ -6,7 +6,7 @@ import test from 'node:test';
 import { createFixture, verifyFixture } from './artifact-handoff-contract.mjs';
 
 async function fixture(t) {
-  const directory = await mkdtemp(join(tmpdir(), 'pxa-artifact-contract-'));
+  const directory = await mkdtemp(join(tmpdir(), 'pvad-artifact-contract-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await createFixture(directory);
   return directory;

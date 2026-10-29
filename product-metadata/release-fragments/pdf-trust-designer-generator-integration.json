@@ -1,0 +1,20 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-designer-generator-integration",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "importer"
+  ],
+  "category": "improved",
+  "summary": "PVAD validates PDF trust settings consistently across Designer and code exports and provides an ordered final-byte pipeline for verified redaction, signing, sanitization, and trust inspection.",
+  "featureIds": [],
+  "documentation": [
+    "/docs/guides/PVAD.Pdf-Trust-Generator-Examples.md",
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

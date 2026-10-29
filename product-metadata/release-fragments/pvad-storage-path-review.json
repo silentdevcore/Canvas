@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-storage-path-review",
+  "impact": "none",
+  "components": ["api", "infrastructure"],
+  "category": "improved",
+  "summary": "Rename regression coverage checks retained object and annotation files across storage restarts and verifies persistent mount and worker package paths.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds internal storage compatibility tests and deployment guidance without changing runtime storage behavior or customer files."
+}

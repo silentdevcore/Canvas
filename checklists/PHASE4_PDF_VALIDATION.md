@@ -1,5 +1,7 @@
 # Phase 4 — PDF Infrastructure Isolation Validation
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Scope completed
 - Moved PDF engine source compilation ownership (`PXA/Pdf/**`) into `src/Infrastructure/PXA.Infrastructure.Pdf`.
 - Removed unnecessary application-layer dependency from `PXA.Infrastructure.Pdf`.

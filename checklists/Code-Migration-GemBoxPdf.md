@@ -1,5 +1,7 @@
 # PXA Migration: GemBox.Pdf
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## V1 Pilot Analysis
 
 - [x] GemBox.Pdf is a close fit for simple PXA.Pdf generation: document, page, text content, and save/export.

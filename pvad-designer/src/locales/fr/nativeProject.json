@@ -1,0 +1,9 @@
+{
+  "title": "Ouvrir un projet", "noFile": "Aucun projet sélectionné", "requiresSignIn": "Connectez-vous pour ouvrir ce projet.",
+  "login": "Se connecter", "refresh": "Vérifier l'accès", "choose": "Choisir un projet", "open": "Ouvrir dans le Designer", "discard": "Ignorer",
+  "accessDenied": "L'accès au Designer n'est pas disponible pour ce compte.", "permission": "Vous n'avez pas l'autorisation d'importer ce projet.",
+  "unsupported": "Choisissez un projet PVADP ou PVADS.", "multiple": "Ouvrez un seul projet à la fois.",
+  "expired": "Ce transfert a expiré. Ouvrez de nouveau le projet.", "tooLarge": "Le projet ne doit pas être vide et ne doit pas dépasser 25 MiB.",
+  "busy": "Un projet est déjà en attente. Ouvrez-le ou ignorez-le d'abord.", "accountChanged": "Votre compte ou votre organisation a changé. Vérifiez l'accès et réessayez.",
+  "failed": "Le projet n'a pas pu être ouvert. Vérifiez l'accès et réessayez."
+}

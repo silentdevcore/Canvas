@@ -1,0 +1,56 @@
+{
+  "backToEditor": "← Zurück zum Editor",
+  "heading": "Vorschau: {{name}}",
+  "pageCount": "{{count}} Seite",
+  "pageCount_plural": "{{count}} Seiten",
+  "elementCount": "{{count}} Elemente",
+  "pageLabel": "Seite {{number}}",
+  "noElementsOnPage": "Keine Elemente auf dieser Seite",
+  "zoomOut": "Verkleinern",
+  "zoomIn": "Vergrößern",
+  "resetZoom": "Zoom zurücksetzen",
+  "exportImageFailed": "Bildexport fehlgeschlagen",
+  "exportFailed": "Export fehlgeschlagen",
+  "printBlocked": "Das PDF-Druckfenster wurde vom Browser blockiert.",
+  "printPreparing": "PDF wird zum Drucken vorbereitet…",
+  "printTitle": "{{name}} drucken",
+  "exporting": "Wird exportiert…",
+  "exported": "Exportiert!",
+  "export": "Exportieren",
+  "exportMenu": {
+    "pdf": {
+      "label": "PDF exportieren",
+      "sub": "Mit der PVAD-PDF-Engine rendern"
+    },
+    "image": {
+      "label": "Bild exportieren",
+      "sub": "PNG oder ZIP bei mehreren Seiten"
+    },
+    "json": {
+      "label": "JSON exportieren",
+      "sub": "Vorlagendatei herunterladen"
+    },
+    "print": {
+      "label": "Drucken",
+      "sub": "Die erzeugte PDF drucken"
+    },
+    "more": {
+      "label": "Weitere Formate…",
+      "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
+    }
+  },
+  "openInPdfViewer": "Im PDF-Viewer öffnen",
+  "watermarkAlt": "Wasserzeichen",
+  "footer": {
+    "template": "Vorlage",
+    "pages": "Seiten",
+    "pageSize": "Seitengröße",
+    "pageSizeValue": "{{width}} × {{height}} px",
+    "mixedPageSizes": "Gemischt ({{count}} Größen)",
+    "quality": "Qualität",
+    "qualityDefault": "Druck",
+    "previewModeTitle": "Vorschaumodus",
+    "previewModeBody": "QR-Codes, Barcodes und exakte Schriftdarstellung werden erst beim PDF-Export finalisiert.",
+    "trustPreviewModeBody": "Diese Vorschau ist kein kryptografischer Nachweis. Verschlüsselung, Signaturen sowie PDF/A- und PDF/UA-Gültigkeit bestehen nur in den erzeugten PDF-Bytes und müssen nach dem Export geprüft werden."
+  }
+}

@@ -1,5 +1,7 @@
 # PXA PDF Code Migrations
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Goal
 
 Build a `PXA.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `PXA.Pdf`.

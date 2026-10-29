@@ -1,0 +1,52 @@
+{
+  "name": "pvad-mcp",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server exposing PVADE's element catalog, design schema, docs, and validate/render tools to AI agents.",
+  "bin": {
+    "pvad-mcp": "dist/pvad-mcp.js",
+    "pvad-mcp-server": "dist/pvad-mcp-server.js",
+    "pxa-mcp": "dist/pvad-mcp.js",
+    "pxa-mcp-server": "dist/pvad-mcp-server.js",
+    "canvas-mcp": "dist/pvad-mcp.js"
+  },
+  "files": [
+    "dist/pvad-mcp.js",
+    "dist/pvad-mcp.js.map",
+    "dist/pvad-mcp-server.js",
+    "dist/pvad-mcp-server.js.map",
+    "dist/resources",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "start:remote": "tsx src/remote.ts",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
+    "smoke": "tsx smoke.ts",
+    "smoke:dist": "tsx smoke.ts --dist",
+    "test:contracts": "node --test toolchain.test.mjs",
+    "test:smoke": "tsx smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "ajv": "^8.20.0",
+    "express": "^5.2.1",
+    "jose": "^6.2.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "fast-uri": "4.2.3",
+    "hono": "4.13.14",
+    "qs": "6.16.1"
+  }
+}

@@ -41,12 +41,19 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# Mounted official electronic-invoice validator artifacts (FeRD/FNFE, KoSIT).
+# PVAD ships none of these: an operator mounts a reviewed set at one of these paths and the
+# validator reads it locally. They must never be committed - their redistribution terms are the
+# open licence question the whole conformance gate is waiting on.
+validator-artifacts/
+/deploy/**/validator-artifacts/
+
 # Rider
 .idea/
 *.sln.iml
 
 # VS Code
-.vscode/
+.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -56,17 +63,12 @@ artifacts/
 **/node_modules/
 **/.vite/
 **/*.tsbuildinfo
-ui-designer/dist/assets/
-ui-designer/tmp/
-ui-designer-v2/dist/
-ui-designer-v2/dist/assets/
-ui-designer-v2/tmp/
-pxa-designer/dist/
-pxa-designer/dist/assets/
-pxa-designer/tmp/
-pxa-designer/test-results/
-pxa-designer/playwright-report/
-pxa-designer/blob-report/
+# Designer output, including directories left by previous checkout names.
+/*designer*/dist/
+/*designer*/tmp/
+/*designer*/test-results/
+/*designer*/playwright-report/
+/*designer*/blob-report/
 websites/*/dist/
 websites/*/node_modules/
 websites/*/.vite/
@@ -74,10 +76,12 @@ websites/*/.vite/
 # Local workspace state
 .claude/
 .dotnet-home/
-Canvas.WebApi/App_Data/
-PXA.WebApi/App_Data/
+# Runtime data remains private across application-directory renames.
+/*.WebApi/App_Data/
 BookingReceipt.Designer.cs
 designer-simples/
+/api.log
+/api.pid
 
 # macOS
 .DS_Store
@@ -97,13 +101,12 @@ TestResults/
 **/publish/
 **/PublishProfiles/
 
-# Docker
-.dockerignore
-
 # Environment
 .env
-.env.local
+.env.*
 *.env
+!.env.example
+!.env.*.example
 
 # Secrets
 appsettings.Development.json
@@ -112,4 +115,4 @@ secrets.json
 deploy/observability/secrets/
 deploy/api/secrets/
 # Deployment-generated immutable legal snapshots.
-websites/PXA.Company/public/legal-snapshots/*.json
+websites/*.Company/public/legal-snapshots/*.json

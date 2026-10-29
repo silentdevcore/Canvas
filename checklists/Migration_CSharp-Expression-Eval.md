@@ -1,5 +1,7 @@
 # Migration: C# Server-Side Expression Evaluation
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Completes the expression feature end-to-end: migrated RDL/DevExpress expressions, already executable in
 the frontend designer/preview, now also evaluate in **server-side exports**. Companion to
 [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).

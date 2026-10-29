@@ -2,9 +2,19 @@
   href: index.md
 - name: C# Cookbook
   href: csharp-cookbook.md
+- name: Charts
+  href: charts.md
+- name: Code Designer Workspace
+  href: code-designer-workspace.md
+- name: Native Designer Project Formats
+  href: native-designer-project-formats.md
+- name: PDF Trust Generator Examples
+  href: guides/PVAD.Pdf-Trust-Generator-Examples.md
+- name: PDF Trust Migration Examples
+  href: guides/PVAD.Pdf-Trust-Migration-Examples.md
 - name: API Reference
   href: api/
-- name: Operations
+- name: Architecture
   items:
-  - name: Mail Service
-    href: operations/mail-service.md
+  - name: Designer Image Assets
+    href: architecture/designer-assets.md

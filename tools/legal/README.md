@@ -1,8 +1,27 @@
-# PXA Legal Operations
+# PVAD Legal Operations
+
+## English Swiss-law candidate documents
+
+`product-metadata/legal-documents/en/` contains the seven initial authoritative
+English Legal candidates for a Swiss PVAD operator serving international markets.
+They preserve mandatory local rights and use controlled placeholders for operator
+details that have not yet been verified.
+
+Validate the catalog and content contract with:
+
+```bash
+node tools/legal/validate-legal-content.mjs
+```
+
+System Administrators with `legal.author` can import the catalog from PVAD.Admin.
+Import creates missing documents and Draft versions only. It never overwrites a
+different version, submits, approves, schedules, or publishes Legal content. A
+second authorized user and qualified Swiss counsel must complete review before
+publication.
 
 ## Browser storage inventory
 
-`product-metadata/browser-storage.json` is the reviewed technical inventory for every PXA-owned cookie, Local Storage key, and Session Storage key. Each entry records its applications, owner, purpose, data, lifetime, category, and implementation sources. Optional analytics and marketing storage remain disabled.
+`product-metadata/browser-storage.json` is the reviewed technical inventory for every PVAD-owned cookie, Local Storage key, and Session Storage key. Each entry records its applications, owner, purpose, data, lifetime, category, and implementation sources. Optional analytics and marketing storage remain disabled.
 
 Run the inventory contract before changing browser storage:
 
@@ -22,7 +41,33 @@ Run the contract whenever a database entity, external provider, document-process
 node tools/legal/validate-data-processing-inventory.mjs
 ```
 
-The validator requires coverage of every Legal inventory area and every `PxaDbContext` entity. It also rejects unknown providers, missing source evidence, duplicate entity ownership, and conditional transfers without an explicit review gate.
+The validator requires coverage of every Legal inventory area and every `PvadDbContext` entity. It also rejects unknown providers, missing source evidence, duplicate entity ownership, and conditional transfers without an explicit review gate.
+
+## Legal launch readiness
+
+`checklists/PVAD.Legal-Benchmark-And-Decision-Register.md` records the researched
+market patterns and PVAD decision proposals for operator identity, document set,
+retention, consumer checkout, optional tracking, and final publication review.
+It is a decision aid, not approved Legal wording.
+
+Run the development report while preparing Legal content:
+
+```bash
+node tools/legal/validate-legal-launch-readiness.mjs
+```
+
+Development reports known blockers without preventing local work. Production
+validation fails closed until those blockers are resolved:
+
+```bash
+node tools/legal/validate-legal-launch-readiness.mjs --production
+```
+
+The report checks the verified operator identity, processing and retention
+approval, draft Company Legal copy, Imprint placeholders, obsolete EU ODR URLs,
+optional browser storage, global commerce approval, Country Readiness, and
+explicit Consumer-checkout activation. A passing report supports but never
+replaces Legal and company-owner sign-off.
 
 ## Retention governance
 
@@ -31,8 +76,8 @@ closed while `productionApproved` is false or any processing category has an `ap
 than `approved`. Development and Testing start with a warning so incomplete policies remain testable.
 
 System Administrators can inspect the effective catalog and run a non-destructive evaluation under
-`/api/pxa/v1/admin/system/retention`. The dry run reports candidates, held records, and allowed actions;
-it never changes data. PXA.Admin deliberately has no manual cleanup execution operation.
+`/api/pvad/v1/admin/system/retention`. The dry run reports candidates, held records, and allowed actions;
+it never changes data. PVAD.Admin deliberately has no manual cleanup execution operation.
 
 Legal Holds are persisted in `administration.retention_legal_holds`. They can cover one inventory
 category globally or for one organization, and their creation and release are audited. The active job
@@ -41,18 +86,21 @@ documented reason; deleting or editing hold history is unsupported.
 
 ## Published snapshot export
 
-PXA.Company can continue serving the last verified published legal text while
+PVAD.Company can continue serving the last verified published legal text while
 the Legal API is unavailable. Registration and checkout never use this static
 copy to authorize a transaction.
 
 Before a production Company deployment, export the effective public documents
 from the production API and build the site:
 
+The following host is an **unverified deployment target example**, not a confirmed
+live endpoint. Replace it with the actual approved Legal API origin before use.
+
 ```bash
-PXA_LEGAL_API_BASE=https://api.powerdoxautomation.com \
-PXA_LEGAL_LOCALE=en \
-PXA_LEGAL_AUDIENCE=All \
-npm --prefix websites/PXA.Company run build:deployment
+PVAD_LEGAL_API_BASE=https://api.pvade.com \
+PVAD_LEGAL_LOCALE=en \
+PVAD_LEGAL_AUDIENCE=All \
+npm --prefix websites/PVAD.Company run build:deployment
 ```
 
 The exporter validates the schema, content hashes, effective dates, unique
@@ -61,8 +109,9 @@ document keys, and non-empty published-document collection. It writes
 into the Company deployment. Generated JSON snapshots are deployment artifacts
 and are intentionally ignored by Git.
 
-Generate German and English snapshots separately when both sites or locale
-routes are deployed. A failed export must stop the deployment; do not reuse an
+Generate English snapshots for the authoritative site. Generate localized
+snapshots separately only when a target market requires an approved translation.
+A failed export must stop the deployment; do not reuse an
 unverified file from a build workspace.
 
 For a one-off export, the script also accepts `--api`, `--locale`, `--audience`,
@@ -92,17 +141,17 @@ subscriptions, and audit evidence. Use the full-database tools instead of
 exporting individual Legal tables:
 
 ```bash
-PXA_DATABASE_URL_FILE=/run/secrets/pxa_database_url \
-PGPASSFILE=/run/secrets/pxa_pgpass \
-  tools/legal/backup-postgres.sh /protected/pxa-backups
+PVAD_DATABASE_URL_FILE=/run/secrets/pvad_database_url \
+PGPASSFILE=/run/secrets/pvad_pgpass \
+  tools/legal/backup-postgres.sh /protected/pvad-backups
 
-PXA_DATABASE_URL_FILE=/run/secrets/pxa_recovery_database_url \
-PGPASSFILE=/run/secrets/pxa_recovery_pgpass \
-PXA_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
-  tools/legal/restore-postgres.sh /protected/pxa-backups/pxa-UTC.dump
+PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
+PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
+PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
+  tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump
 
-PXA_DATABASE_URL_FILE=/run/secrets/pxa_recovery_database_url \
-PGPASSFILE=/run/secrets/pxa_recovery_pgpass \
+PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
+PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
   tools/legal/verify-legal-recovery.sh
 ```
 
@@ -110,10 +159,18 @@ Production connection URLs should omit passwords. Mount the password separately
 through the standard libpq `PGPASSFILE`; inline credentials are suitable only
 for the isolated synthetic drill.
 
+These mount/directory names are examples for new operator-owned configuration,
+not instructions to move an existing secret or backup. Preserve installed paths
+unless a separate cutover is approved. Use the actual filename returned by the
+backup command: new backups use `pvad-<timestamp>-<pid>.dump`. Existing `pxa-*`
+backups and their checksum files must not be renamed; restore accepts either
+basename and still requires the exact confirmation `RESTORE PXA DATABASE`.
+These compatibility values do not change the backup format or restored content.
+
 Restore accepts only a checksum-verified custom-format backup and an empty
 target database. The detailed incident, encryption, validation, rollback, and
 return-to-service procedure is restricted to
-`operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md` and must not be
+`operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md` and must not be
 published with public Documentation.
 
 The isolated recovery drill uses synthetic records only:
@@ -122,8 +179,9 @@ The isolated recovery drill uses synthetic records only:
 tools/legal/run-backup-restore-smoke-test.sh
 ```
 
-The drill waits for a successful query against the configured `pxa` database,
+The isolated drill deliberately uses a synthetic legacy `pxa` database and waits
+for a successful query against that database,
 not only for the PostgreSQL server socket. Readiness is bounded by
-`PXA_POSTGRES_READY_ATTEMPTS` and `PXA_POSTGRES_READY_DELAY_SECONDS`; a timeout
+`PVAD_POSTGRES_READY_ATTEMPTS` and `PVAD_POSTGRES_READY_DELAY_SECONDS`; a timeout
 prints container state and recent PostgreSQL logs. CI sets
-`PXA_POSTGRES_STARTUP_DELAY_SECONDS` to exercise delayed database creation.
+`PVAD_POSTGRES_STARTUP_DELAY_SECONDS` to exercise delayed database creation.

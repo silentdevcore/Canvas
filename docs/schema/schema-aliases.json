@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "schemas": [
+    {
+      "canonicalId": "https://pvade.com/schemas/pvad-project-manifest-reader.schema.json",
+      "path": "docs/schema/pvad-project-manifest-reader.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/pvad-project-manifest-reader.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/design-export.schema.json",
+      "path": "docs/schema/design-export.schema.json",
+      "legacyIds": [
+        "https://pxa/schema/design-export.schema.json",
+        "https://powerdoxautomation.com/schemas/design-export.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/pvad-workbook.schema.json",
+      "path": "docs/schema/pvad-workbook.schema.json",
+      "legacyIds": [
+        "https://pxa/schema/pxa-workbook.schema.json",
+        "https://powerdoxautomation.com/schemas/pxa-workbook.schema.json",
+        "https://powerdoxautomation.com/schemas/pvad-workbook.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/pvad-project-manifest.schema.json",
+      "path": "docs/schema/pvad-project-manifest.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/pvad-project-manifest.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://powerdoxautomation.com/schemas/pxa-project-manifest.schema.json",
+      "path": "docs/schema/pxa-project-manifest.schema.json",
+      "legacyIds": []
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/pvad-code-workspace.schema.json",
+      "path": "docs/schema/pvad-code-workspace.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/pxa-code-workspace.schema.json",
+        "https://powerdoxautomation.com/schemas/pvad-code-workspace.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/browser-storage.schema.json",
+      "path": "product-metadata/browser-storage.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/browser-storage.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/country-readiness.schema.json",
+      "path": "product-metadata/country-readiness.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/country-readiness.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/data-processing-inventory.schema.json",
+      "path": "product-metadata/data-processing-inventory.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/data-processing-inventory.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/global-commerce-catalog.schema.json",
+      "path": "product-metadata/global-commerce-catalog.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/global-commerce-catalog.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/release-fragment.schema.json",
+      "path": "product-metadata/release-fragment.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/release-fragment.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/document-fidelity-manifest.schema.json",
+      "path": "product-metadata/document-fidelity/manifest.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/document-fidelity-manifest.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/document-fidelity-result.schema.json",
+      "path": "product-metadata/document-fidelity/result.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/document-fidelity-result.schema.json"
+      ]
+    },
+    {
+      "canonicalId": "https://pvade.com/schemas/pdfua/matterhorn-evidence.schema.json",
+      "path": "tools/pdfua/matterhorn-evidence.schema.json",
+      "legacyIds": [
+        "https://powerdoxautomation.com/schemas/pdfua/matterhorn-evidence.schema.json"
+      ]
+    }
+  ]
+}

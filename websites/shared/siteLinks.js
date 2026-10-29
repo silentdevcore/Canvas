@@ -1,3 +1,5 @@
+import { readPvadEnvironment } from '../../tools/configuration/environment.mjs';
+
 const defaultSiteLinks = {
   company: 'http://localhost:5173/',
   documentation: 'http://localhost:5174/',
@@ -8,12 +10,12 @@ const defaultSiteLinks = {
 };
 
 const productionSiteLinks = {
-  company: 'https://powerdoxautomation.com/',
-  documentation: 'https://docs.powerdoxautomation.com/',
-  demo: 'https://demos.powerdoxautomation.com/',
-  designer: 'https://designer.powerdoxautomation.com/',
-  account: 'https://account.powerdoxautomation.com/',
-  operator: 'https://operator.powerdoxautomation.com/',
+  company: 'https://pvade.com/',
+  documentation: 'https://docs.pvade.com/',
+  demo: 'https://demos.pvade.com/',
+  designer: 'https://designer.pvade.com/',
+  account: 'https://account.pvade.com/',
+  operator: 'https://operator.pvade.com/',
 };
 
 function normalizeUrl(value) {
@@ -21,21 +23,23 @@ function normalizeUrl(value) {
   return value.endsWith('/') ? value : `${value}/`;
 }
 
-function envLink(name) {
-  return normalizeUrl(import.meta.env?.[name]);
+export function resolveSiteLinks(mode, environment = {}) {
+  const defaults = mode === 'production' ? productionSiteLinks : defaultSiteLinks;
+  return Object.fromEntries(Object.entries(defaults).map(([name, fallback]) => {
+    const key = `VITE_PVAD_${name.toUpperCase()}_URL`;
+    const value = readPvadEnvironment(key, environment);
+    if (!value) return [name, fallback];
+    try {
+      const url = new URL(value);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash
+        || /[\\\u0000-\u0020\u007f]/.test(value))
+        throw new Error('invalid');
+    } catch { throw new Error(`Invalid website URL configuration key: ${key}.`); }
+    return [name, normalizeUrl(value)];
+  }));
 }
 
-export const siteLinks =
-  import.meta.env?.MODE === 'production'
-    ? {
-        company: envLink('VITE_PXA_COMPANY_URL') || productionSiteLinks.company,
-        documentation: envLink('VITE_PXA_DOCUMENTATION_URL') || productionSiteLinks.documentation,
-        demo: envLink('VITE_PXA_DEMO_URL') || productionSiteLinks.demo,
-        designer: envLink('VITE_PXA_DESIGNER_URL') || productionSiteLinks.designer,
-        account: envLink('VITE_PXA_ACCOUNT_URL') || productionSiteLinks.account,
-        operator: envLink('VITE_PXA_OPERATOR_URL') || productionSiteLinks.operator,
-      }
-    : defaultSiteLinks;
+export const siteLinks = resolveSiteLinks(import.meta.env?.MODE, import.meta.env ?? {});
 
 export const siteLinkDefaults = {
   local: defaultSiteLinks,

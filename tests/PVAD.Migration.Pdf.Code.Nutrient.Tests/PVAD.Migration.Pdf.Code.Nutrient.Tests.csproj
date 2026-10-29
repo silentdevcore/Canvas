@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.1.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" PrivateAssets="all" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Migrations/PDF/PVAD.Migration.Pdf.Code.Nutrient/PVAD.Migration.Pdf.Code.Nutrient.csproj" />
+    <ProjectReference Include="../../src/Migrations/Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Generation/PVAD.Pdf/PVAD.Pdf.csproj" />
+    <ProjectReference Include="../../src/Importing/PVAD.Importer/PVAD.Importer.csproj" />
+  </ItemGroup>
+
+</Project>

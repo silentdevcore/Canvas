@@ -1,0 +1,19 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-readiness-hardening",
+  "impact": "patch",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "importer",
+    "infrastructure"
+  ],
+  "category": "fixed",
+  "summary": "PDF Trust reports now load consistently in the Designer, with expanded guidance and stronger automated checks for redaction, malformed files, and authenticated workflows.",
+  "featureIds": [],
+  "documentation": [
+    "/docs/architecture/existing-pdf-boundaries.md"
+  ],
+  "breaking": false
+}

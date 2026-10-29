@@ -1,0 +1,150 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "policy": {
+    "maximumGeometryDriftPoints": 1,
+    "minimumTextPreservationRatio": 1,
+    "maximumVisualDifferenceRatio": 0.15,
+    "minimumAutomaticMigrationPercent": 95
+  },
+  "fixtures": [
+    {
+      "id": "designer-all-elements",
+      "domain": "pdf",
+      "workflow": "render-parity",
+      "sourceFormat": "pxa-json",
+      "source": "test-assets/visual-parity/all-elements.json",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["all-elements", "canvas", "preview", "backend-pdf", "csharp-pdf"]
+    },
+    {
+      "id": "designer-mixed-page-layout",
+      "domain": "pdf",
+      "workflow": "render-parity",
+      "sourceFormat": "pxa-json",
+      "source": "test-assets/page-layout/mixed-layout.json",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["portrait", "landscape", "custom-page-size"]
+    },
+    {
+      "id": "word-fidelity-sample-pack",
+      "domain": "word",
+      "workflow": "export-roundtrip",
+      "sourceFormat": "pxa-json",
+      "source": "checklists/word-fidelity-samples",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["docx", "libreoffice", "visual-comparison", "thirteen-samples"]
+    },
+    {
+      "id": "spreadsheet-xlsx-roundtrip",
+      "domain": "spreadsheet",
+      "workflow": "export-roundtrip",
+      "sourceFormat": "pxa-workbook-json",
+      "source": "test-assets/document-fidelity/spreadsheet-roundtrip.json",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["xlsx", "formulas", "styles", "merges", "page-setup", "validation"]
+    },
+    {
+      "id": "pdf-code-migration-provider-smoke",
+      "domain": "pdf",
+      "workflow": "code-migration",
+      "sourceFormat": "csharp-provider-samples",
+      "source": "test-assets/document-fidelity/migration-provider-smoke.json",
+      "provider": "multiple",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["code-migration", "provider-registry", "smoke"]
+    },
+    {
+      "id": "spreadsheet-code-migration-provider-smoke",
+      "domain": "spreadsheet",
+      "workflow": "code-migration",
+      "sourceFormat": "csharp-provider-samples",
+      "source": "test-assets/document-fidelity/migration-provider-smoke.json",
+      "provider": "multiple",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["code-migration", "provider-registry", "smoke"]
+    },
+    {
+      "id": "report-designer-migration-provider-smoke",
+      "domain": "report",
+      "workflow": "designer-migration",
+      "sourceFormat": "vendor-report-samples",
+      "source": "test-assets/document-fidelity/migration-provider-smoke.json",
+      "provider": "multiple",
+      "provenance": "pxa-synthetic",
+      "redistribution": "allowed",
+      "realWorld": false,
+      "officiallySupported": false,
+      "tags": ["designer-migration", "provider-registry", "smoke"]
+    },
+    {
+      "id": "pdf-trust-external-producer-corpus",
+      "domain": "pdf",
+      "workflow": "standards-validation",
+      "sourceFormat": "pdf",
+      "source": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal",
+      "provenance": "third-party-generated",
+      "redistribution": "allowed",
+      "realWorld": true,
+      "officiallySupported": false,
+      "tags": ["pdf-a", "pdf-ua", "pades", "aes-256", "validation-only"]
+    },
+    {
+      "id": "real-world-pdf-ukgi-annual-report",
+      "domain": "pdf",
+      "workflow": "import-roundtrip",
+      "sourceFormat": "pdf",
+      "source": "test-assets/document-fidelity/real-world/ukgi-annual-report-2019.pdf",
+      "provider": "pxa-pdf-importer",
+      "provenance": "public-real-world",
+      "redistribution": "allowed",
+      "realWorld": true,
+      "officiallySupported": false,
+      "tags": ["annual-report", "tagged", "forms", "a4", "ogl-v3"]
+    },
+    {
+      "id": "real-world-docx-suffolk-mapping-guidance",
+      "domain": "word",
+      "workflow": "import-roundtrip",
+      "sourceFormat": "docx",
+      "source": "test-assets/document-fidelity/real-world/suffolk-public-mapping-guidance.docx",
+      "provider": "pxa-docx-importer",
+      "provenance": "public-real-world",
+      "redistribution": "allowed",
+      "realWorld": true,
+      "officiallySupported": false,
+      "tags": ["guidance", "images", "styles", "ogl-v3"]
+    },
+    {
+      "id": "real-world-xlsx-suffolk-buildings",
+      "domain": "spreadsheet",
+      "workflow": "import-roundtrip",
+      "sourceFormat": "xlsx",
+      "source": "test-assets/document-fidelity/real-world/suffolk-buildings-2026.xlsx",
+      "provider": "pxa-xlsx-importer",
+      "provenance": "public-real-world",
+      "redistribution": "allowed",
+      "realWorld": true,
+      "officiallySupported": false,
+      "tags": ["public-data", "large-sheet", "formatting", "ogl-v3"]
+    }
+  ]
+}

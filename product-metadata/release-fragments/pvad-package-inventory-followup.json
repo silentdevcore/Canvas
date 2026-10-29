@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-package-inventory-followup",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Complete the visible container package inventory and clarify remaining release prerequisites.",
+  "breaking": false,
+  "reason": "Internal operational evidence only; no application, deployment, package publication or product version changes."
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "targets": ["pvad-mcp:3000"],
+    "labels": {
+      "environment": "production"
+    }
+  }
+]

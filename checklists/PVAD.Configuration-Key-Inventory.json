@@ -1,0 +1,529 @@
+{
+  "note": "Names only. Includes environment candidates and diagnostics; classification remains required. No values or secrets are stored.",
+  "entries": [
+    {
+      "legacy": "PXA_ADMIN_CAPTURE_URL",
+      "canonical": "PVAD_ADMIN_CAPTURE_URL"
+    },
+    {
+      "legacy": "PXA_ADMIN_SMOKE_SCREENSHOT",
+      "canonical": "PVAD_ADMIN_SMOKE_SCREENSHOT"
+    },
+    {
+      "legacy": "PXA_ADMIN_SMOKE_URL",
+      "canonical": "PVAD_ADMIN_SMOKE_URL"
+    },
+    {
+      "legacy": "PXA_AES256_FIXTURE",
+      "canonical": "PVAD_AES256_FIXTURE"
+    },
+    {
+      "legacy": "PXA_AES256_OWNER_PASSWORD",
+      "canonical": "PVAD_AES256_OWNER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_AES256_QPDF_IMAGE",
+      "canonical": "PVAD_AES256_QPDF_IMAGE"
+    },
+    {
+      "legacy": "PXA_AES256_REPORT",
+      "canonical": "PVAD_AES256_REPORT"
+    },
+    {
+      "legacy": "PXA_AES256_USER_PASSWORD",
+      "canonical": "PVAD_AES256_USER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_ALERT_RETENTION",
+      "canonical": "PVAD_ALERT_RETENTION"
+    },
+    {
+      "legacy": "PXA_API_KEY",
+      "canonical": "PVAD_API_KEY"
+    },
+    {
+      "legacy": "PXA_API_URL",
+      "canonical": "PVAD_API_URL"
+    },
+    {
+      "legacy": "PXA_API_VERSION_INCOMPATIBLE",
+      "canonical": "PVAD_API_VERSION_INCOMPATIBLE"
+    },
+    {
+      "legacy": "PXA_AUDIT_EXPORT_REQUIRES_ENTERPRISE",
+      "canonical": "PVAD_AUDIT_EXPORT_REQUIRES_ENTERPRISE"
+    },
+    {
+      "legacy": "PXA_AUTHENTICATION_REQUIRED",
+      "canonical": "PVAD_AUTHENTICATION_REQUIRED"
+    },
+    {
+      "legacy": "PXA_BACKUP_NAME",
+      "canonical": "PVAD_BACKUP_NAME"
+    },
+    {
+      "legacy": "PXA_BUILD_",
+      "canonical": "PVAD_BUILD_"
+    },
+    {
+      "legacy": "PXA_BUILD_COMMIT",
+      "canonical": "PVAD_BUILD_COMMIT"
+    },
+    {
+      "legacy": "PXA_BUILD_TIME",
+      "canonical": "PVAD_BUILD_TIME"
+    },
+    {
+      "legacy": "PXA_CAPTURE_PDF_TRUST_DOCS",
+      "canonical": "PVAD_CAPTURE_PDF_TRUST_DOCS"
+    },
+    {
+      "legacy": "PXA_COMMIT",
+      "canonical": "PVAD_COMMIT"
+    },
+    {
+      "legacy": "PXA_DATABASE_URL",
+      "canonical": "PVAD_DATABASE_URL"
+    },
+    {
+      "legacy": "PXA_DATABASE_URL_FILE",
+      "canonical": "PVAD_DATABASE_URL_FILE"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ACCOUNT_DISABLED",
+      "canonical": "PVAD_DESIGNER_ACCOUNT_DISABLED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ACCOUNT_LOCKED",
+      "canonical": "PVAD_DESIGNER_ACCOUNT_LOCKED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ALPHA_NOT_ALLOWED",
+      "canonical": "PVAD_DESIGNER_ALPHA_NOT_ALLOWED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED",
+      "canonical": "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ASSET_REQUIRED",
+      "canonical": "PVAD_DESIGNER_ASSET_REQUIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ASSET_TOO_LARGE",
+      "canonical": "PVAD_DESIGNER_ASSET_TOO_LARGE"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ASSET_TYPE_UNSUPPORTED",
+      "canonical": "PVAD_DESIGNER_ASSET_TYPE_UNSUPPORTED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_ENTITLEMENT_REQUIRED",
+      "canonical": "PVAD_DESIGNER_ENTITLEMENT_REQUIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_FEATURE_CONTEXT_REQUIRED",
+      "canonical": "PVAD_DESIGNER_FEATURE_CONTEXT_REQUIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_FEATURE_DISABLED",
+      "canonical": "PVAD_DESIGNER_FEATURE_DISABLED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_FEATURE_ENABLED",
+      "canonical": "PVAD_DESIGNER_FEATURE_ENABLED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_FEATURE_UNKNOWN",
+      "canonical": "PVAD_DESIGNER_FEATURE_UNKNOWN"
+    },
+    {
+      "legacy": "PXA_DESIGNER_HANDOFF_INVALID",
+      "canonical": "PVAD_DESIGNER_HANDOFF_INVALID"
+    },
+    {
+      "legacy": "PXA_DESIGNER_MEMBERSHIP_INACTIVE",
+      "canonical": "PVAD_DESIGNER_MEMBERSHIP_INACTIVE"
+    },
+    {
+      "legacy": "PXA_DESIGNER_PERMISSION_REQUIRED",
+      "canonical": "PVAD_DESIGNER_PERMISSION_REQUIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_SESSION_EXPIRED",
+      "canonical": "PVAD_DESIGNER_SESSION_EXPIRED"
+    },
+    {
+      "legacy": "PXA_DESIGNER_VERIFICATION_REQUIRED",
+      "canonical": "PVAD_DESIGNER_VERIFICATION_REQUIRED"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_ALLOWED",
+      "canonical": "PVAD_ENTITLEMENT_ALLOWED"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_DENIED",
+      "canonical": "PVAD_ENTITLEMENT_DENIED"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_EXPIRED",
+      "canonical": "PVAD_ENTITLEMENT_EXPIRED"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_LIMIT_EXCEEDED",
+      "canonical": "PVAD_ENTITLEMENT_LIMIT_EXCEEDED"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_MISSING",
+      "canonical": "PVAD_ENTITLEMENT_MISSING"
+    },
+    {
+      "legacy": "PXA_ENTITLEMENT_QUANTITY_INVALID",
+      "canonical": "PVAD_ENTITLEMENT_QUANTITY_INVALID"
+    },
+    {
+      "legacy": "PXA_GRACE_PERIOD_EXPIRED",
+      "canonical": "PVAD_GRACE_PERIOD_EXPIRED"
+    },
+    {
+      "legacy": "PXA_LEGAL_API_BASE",
+      "canonical": "PVAD_LEGAL_API_BASE"
+    },
+    {
+      "legacy": "PXA_LEGAL_AUDIENCE",
+      "canonical": "PVAD_LEGAL_AUDIENCE"
+    },
+    {
+      "legacy": "PXA_LEGAL_LOCALE",
+      "canonical": "PVAD_LEGAL_LOCALE"
+    },
+    {
+      "legacy": "PXA_LICENSE_DEPLOYMENT_MISMATCH",
+      "canonical": "PVAD_LICENSE_DEPLOYMENT_MISMATCH"
+    },
+    {
+      "legacy": "PXA_LICENSE_DEPLOYMENT_NOT_ALLOWED",
+      "canonical": "PVAD_LICENSE_DEPLOYMENT_NOT_ALLOWED"
+    },
+    {
+      "legacy": "PXA_LICENSE_ENVELOPE_MISMATCH",
+      "canonical": "PVAD_LICENSE_ENVELOPE_MISMATCH"
+    },
+    {
+      "legacy": "PXA_LICENSE_EXPIRED",
+      "canonical": "PVAD_LICENSE_EXPIRED"
+    },
+    {
+      "legacy": "PXA_LICENSE_INACTIVE",
+      "canonical": "PVAD_LICENSE_INACTIVE"
+    },
+    {
+      "legacy": "PXA_LICENSE_INSTANCE_LIMIT_EXCEEDED",
+      "canonical": "PVAD_LICENSE_INSTANCE_LIMIT_EXCEEDED"
+    },
+    {
+      "legacy": "PXA_LICENSE_MALFORMED",
+      "canonical": "PVAD_LICENSE_MALFORMED"
+    },
+    {
+      "legacy": "PXA_LICENSE_NOT_YET_VALID",
+      "canonical": "PVAD_LICENSE_NOT_YET_VALID"
+    },
+    {
+      "legacy": "PXA_LICENSE_REPLACED",
+      "canonical": "PVAD_LICENSE_REPLACED"
+    },
+    {
+      "legacy": "PXA_LICENSE_REVOKED",
+      "canonical": "PVAD_LICENSE_REVOKED"
+    },
+    {
+      "legacy": "PXA_LICENSE_SCHEMA_UPGRADE_REQUIRED",
+      "canonical": "PVAD_LICENSE_SCHEMA_UPGRADE_REQUIRED"
+    },
+    {
+      "legacy": "PXA_LICENSE_SIGNATURE_INVALID",
+      "canonical": "PVAD_LICENSE_SIGNATURE_INVALID"
+    },
+    {
+      "legacy": "PXA_LICENSE_SIGNING_METADATA_INVALID",
+      "canonical": "PVAD_LICENSE_SIGNING_METADATA_INVALID"
+    },
+    {
+      "legacy": "PXA_LICENSE_SUBSCRIPTION_MISMATCH",
+      "canonical": "PVAD_LICENSE_SUBSCRIPTION_MISMATCH"
+    },
+    {
+      "legacy": "PXA_LICENSE_VALID",
+      "canonical": "PVAD_LICENSE_VALID"
+    },
+    {
+      "legacy": "PXA_LICENSE_VERSION_INCOMPATIBLE",
+      "canonical": "PVAD_LICENSE_VERSION_INCOMPATIBLE"
+    },
+    {
+      "legacy": "PXA_LOG_RETENTION",
+      "canonical": "PVAD_LOG_RETENTION"
+    },
+    {
+      "legacy": "PXA_MCP_ALLOWED_HOSTS",
+      "canonical": "PVAD_MCP_ALLOWED_HOSTS"
+    },
+    {
+      "legacy": "PXA_MCP_ALLOWED_ORIGINS",
+      "canonical": "PVAD_MCP_ALLOWED_ORIGINS"
+    },
+    {
+      "legacy": "PXA_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES",
+      "canonical": "PVAD_MCP_ALLOW_INSECURE_INTERNAL_DEPENDENCIES"
+    },
+    {
+      "legacy": "PXA_MCP_CONTENT_ROOT",
+      "canonical": "PVAD_MCP_CONTENT_ROOT"
+    },
+    {
+      "legacy": "PXA_MCP_DELEGATION_SECRET",
+      "canonical": "PVAD_MCP_DELEGATION_SECRET"
+    },
+    {
+      "legacy": "PXA_MCP_HOST",
+      "canonical": "PVAD_MCP_HOST"
+    },
+    {
+      "legacy": "PXA_MCP_JWKS_URI",
+      "canonical": "PVAD_MCP_JWKS_URI"
+    },
+    {
+      "legacy": "PXA_MCP_OAUTH_ISSUER",
+      "canonical": "PVAD_MCP_OAUTH_ISSUER"
+    },
+    {
+      "legacy": "PXA_MCP_PORT",
+      "canonical": "PVAD_MCP_PORT"
+    },
+    {
+      "legacy": "PXA_MCP_READINESS_TIMEOUT_MS",
+      "canonical": "PVAD_MCP_READINESS_TIMEOUT_MS"
+    },
+    {
+      "legacy": "PXA_MCP_RESOURCE_URI",
+      "canonical": "PVAD_MCP_RESOURCE_URI"
+    },
+    {
+      "legacy": "PXA_MCP_SMOKE_ENDPOINT",
+      "canonical": "PVAD_MCP_SMOKE_ENDPOINT"
+    },
+    {
+      "legacy": "PXA_MCP_SMOKE_TOKEN_ENDPOINT",
+      "canonical": "PVAD_MCP_SMOKE_TOKEN_ENDPOINT"
+    },
+    {
+      "legacy": "PXA_METRIC_RETENTION",
+      "canonical": "PVAD_METRIC_RETENTION"
+    },
+    {
+      "legacy": "PXA_ORGANIZATION_INACTIVE",
+      "canonical": "PVAD_ORGANIZATION_INACTIVE"
+    },
+    {
+      "legacy": "PXA_ORGANIZATION_REQUIRED",
+      "canonical": "PVAD_ORGANIZATION_REQUIRED"
+    },
+    {
+      "legacy": "PXA_OWNER_PASSWORD",
+      "canonical": "PVAD_OWNER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_PDFA_REPORT_DIR",
+      "canonical": "PVAD_PDFA_REPORT_DIR"
+    },
+    {
+      "legacy": "PXA_PDFA_SECONDARY_REPORT_DIR",
+      "canonical": "PVAD_PDFA_SECONDARY_REPORT_DIR"
+    },
+    {
+      "legacy": "PXA_PDFA_SECONDARY_VALIDATOR",
+      "canonical": "PVAD_PDFA_SECONDARY_VALIDATOR"
+    },
+    {
+      "legacy": "PXA_PDFUA_ARTIFACT_DIR",
+      "canonical": "PVAD_PDFUA_ARTIFACT_DIR"
+    },
+    {
+      "legacy": "PXA_PDFUA_REPORT_DIR",
+      "canonical": "PVAD_PDFUA_REPORT_DIR"
+    },
+    {
+      "legacy": "PXA_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS",
+      "canonical": "PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS"
+    },
+    {
+      "legacy": "PXA_PDF_FUZZ_COVERAGE_OUTPUT",
+      "canonical": "PVAD_PDF_FUZZ_COVERAGE_OUTPUT"
+    },
+    {
+      "legacy": "PXA_PDF_FUZZ_COVERAGE_SECONDS",
+      "canonical": "PVAD_PDF_FUZZ_COVERAGE_SECONDS"
+    },
+    {
+      "legacy": "PXA_PDF_FUZZ_REPORT_PATH",
+      "canonical": "PVAD_PDF_FUZZ_REPORT_PATH"
+    },
+    {
+      "legacy": "PXA_PDF_OWNER_PASSWORD",
+      "canonical": "PVAD_PDF_OWNER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_PDF_TRUST_OPERATION_ARTIFACT_DIR",
+      "canonical": "PVAD_PDF_TRUST_OPERATION_ARTIFACT_DIR"
+    },
+    {
+      "legacy": "PXA_PDF_TRUST_OPERATION_ENFORCE",
+      "canonical": "PVAD_PDF_TRUST_OPERATION_ENFORCE"
+    },
+    {
+      "legacy": "PXA_PDF_TRUST_OPERATION_UPDATE_BASELINE",
+      "canonical": "PVAD_PDF_TRUST_OPERATION_UPDATE_BASELINE"
+    },
+    {
+      "legacy": "PXA_PDF_TRUST_VISUAL_ENFORCE",
+      "canonical": "PVAD_PDF_TRUST_VISUAL_ENFORCE"
+    },
+    {
+      "legacy": "PXA_PDF_TRUST_VISUAL_UPDATE_BASELINE",
+      "canonical": "PVAD_PDF_TRUST_VISUAL_UPDATE_BASELINE"
+    },
+    {
+      "legacy": "PXA_PDF_USER_PASSWORD",
+      "canonical": "PVAD_PDF_USER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_POSTGRES_IMAGE",
+      "canonical": "PVAD_POSTGRES_IMAGE"
+    },
+    {
+      "legacy": "PXA_POSTGRES_READY_ATTEMPTS",
+      "canonical": "PVAD_POSTGRES_READY_ATTEMPTS"
+    },
+    {
+      "legacy": "PXA_POSTGRES_READY_DELAY_SECONDS",
+      "canonical": "PVAD_POSTGRES_READY_DELAY_SECONDS"
+    },
+    {
+      "legacy": "PXA_POSTGRES_STARTUP_DELAY_SECONDS",
+      "canonical": "PVAD_POSTGRES_STARTUP_DELAY_SECONDS"
+    },
+    {
+      "legacy": "PXA_RESTORE_CONFIRM",
+      "canonical": "PVAD_RESTORE_CONFIRM"
+    },
+    {
+      "legacy": "PXA_RUN_LIVE_AUTH_EINVOICE",
+      "canonical": "PVAD_RUN_LIVE_AUTH_EINVOICE"
+    },
+    {
+      "legacy": "PXA_RUN_LIVE_AUTH_TRUST",
+      "canonical": "PVAD_RUN_LIVE_AUTH_TRUST"
+    },
+    {
+      "legacy": "PXA_RUN_PDF_RECOVERY_TESTS",
+      "canonical": "PVAD_RUN_PDF_RECOVERY_TESTS"
+    },
+    {
+      "legacy": "PXA_RUN_POSTGRES_TESTS",
+      "canonical": "PVAD_RUN_POSTGRES_TESTS"
+    },
+    {
+      "legacy": "PXA_SMOKE_EMAIL",
+      "canonical": "PVAD_SMOKE_EMAIL"
+    },
+    {
+      "legacy": "PXA_SMOKE_PASSWORD",
+      "canonical": "PVAD_SMOKE_PASSWORD"
+    },
+    {
+      "legacy": "PXA_SUBSCRIPTION_CANCELLED",
+      "canonical": "PVAD_SUBSCRIPTION_CANCELLED"
+    },
+    {
+      "legacy": "PXA_SUBSCRIPTION_INACTIVE",
+      "canonical": "PVAD_SUBSCRIPTION_INACTIVE"
+    },
+    {
+      "legacy": "PXA_SUBSCRIPTION_MISSING",
+      "canonical": "PVAD_SUBSCRIPTION_MISSING"
+    },
+    {
+      "legacy": "PXA_TRACE_RETENTION",
+      "canonical": "PVAD_TRACE_RETENTION"
+    },
+    {
+      "legacy": "PXA_TRIAL_EXPIRED",
+      "canonical": "PVAD_TRIAL_EXPIRED"
+    },
+    {
+      "legacy": "PXA_USAGE_ALREADY_RECORDED",
+      "canonical": "PVAD_USAGE_ALREADY_RECORDED"
+    },
+    {
+      "legacy": "PXA_USAGE_INVALID",
+      "canonical": "PVAD_USAGE_INVALID"
+    },
+    {
+      "legacy": "PXA_USAGE_RECORDED",
+      "canonical": "PVAD_USAGE_RECORDED"
+    },
+    {
+      "legacy": "PXA_USER_PASSWORD",
+      "canonical": "PVAD_USER_PASSWORD"
+    },
+    {
+      "legacy": "PXA_VERAPDF_IMAGE",
+      "canonical": "PVAD_VERAPDF_IMAGE"
+    },
+    {
+      "legacy": "PXA_VERSION",
+      "canonical": "PVAD_VERSION"
+    },
+    {
+      "legacy": "PXA_VISUAL_PARITY_ARTIFACTS",
+      "canonical": "PVAD_VISUAL_PARITY_ARTIFACTS"
+    },
+    {
+      "legacy": "PXA_VISUAL_PARITY_ENFORCE",
+      "canonical": "PVAD_VISUAL_PARITY_ENFORCE"
+    },
+    {
+      "legacy": "PXA_VISUAL_PARITY_FIXTURE",
+      "canonical": "PVAD_VISUAL_PARITY_FIXTURE"
+    },
+    {
+      "legacy": "PXA_VISUAL_PARITY_REUSE_ARTIFACTS",
+      "canonical": "PVAD_VISUAL_PARITY_REUSE_ARTIFACTS"
+    },
+    {
+      "legacy": "VITE_PXA_ACCOUNT_URL",
+      "canonical": "VITE_PVAD_ACCOUNT_URL"
+    },
+    {
+      "legacy": "VITE_PXA_COMPANY_URL",
+      "canonical": "VITE_PVAD_COMPANY_URL"
+    },
+    {
+      "legacy": "VITE_PXA_DEMO_URL",
+      "canonical": "VITE_PVAD_DEMO_URL"
+    },
+    {
+      "legacy": "VITE_PXA_DESIGNER_URL",
+      "canonical": "VITE_PVAD_DESIGNER_URL"
+    },
+    {
+      "legacy": "VITE_PXA_DOCUMENTATION_URL",
+      "canonical": "VITE_PVAD_DOCUMENTATION_URL"
+    },
+    {
+      "legacy": "VITE_PXA_OPERATOR_URL",
+      "canonical": "VITE_PVAD_OPERATOR_URL"
+    }
+  ]
+}

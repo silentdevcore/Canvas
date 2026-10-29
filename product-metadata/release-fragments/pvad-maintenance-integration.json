@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-maintenance-integration",
+  "impact": "patch",
+  "components": ["api", "designer", "admin", "sdk", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Improved compatibility of the renamed Designer, Admin and MCP server with the maintained application dependency baseline.",
+  "breaking": false
+}

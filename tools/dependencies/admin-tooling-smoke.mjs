@@ -7,10 +7,10 @@ import { resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const root = resolve(process.env.PXA_ADMIN_SMOKE_ROOT || fileURLToPath(new URL('../../websites/PXA.Admin/', import.meta.url)));
+const root = resolve(process.env.PVAD_ADMIN_SMOKE_ROOT || fileURLToPath(new URL('../../websites/PVAD.Admin/', import.meta.url)));
 const output = resolve(process.argv[2] || fileURLToPath(new URL('../../artifacts/admin-tooling-smoke/current/', import.meta.url)));
 const adminRequire = createRequire(pathToFileURL(resolve(root, 'package.json')));
-const designerRequire = createRequire(new URL('../../pxa-designer/package.json', import.meta.url));
+const designerRequire = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
 const { chromium, expect } = designerRequire('@playwright/test');
 const { createServer, preview } = await import(pathToFileURL(adminRequire.resolve('vite')).href);
 const user = {
@@ -25,7 +25,7 @@ const listedUser = {
   displayName: 'Synthetic Member', membershipId: 'synthetic-membership', roles: ['Editor'],
   isActive: true, membershipStatus: 'Active', lastLoginAt: null,
 };
-const manifest = JSON.parse(await readFile(new URL('../../product-metadata/pxa-releases.json', import.meta.url)));
+const manifest = JSON.parse(await readFile(new URL('../../product-metadata/pvad-releases.json', import.meta.url)));
 const hash = data => createHash('sha256').update(data).digest('hex');
 await mkdir(output, { recursive: true });
 const results = [];
@@ -61,24 +61,24 @@ try {
             }
             if (!url.pathname.startsWith('/api/')) return route.continue();
             const json = (body, status = 200) => route.fulfill({ status, json: body });
-            if (url.pathname === '/api/pxa/v1/telemetry/browser' && request.method() === 'POST') {
+            if (url.pathname === '/api/pvad/v1/telemetry/browser' && request.method() === 'POST') {
               for (const event of request.postDataJSON()?.events ?? []) {
                 if (['error', 'unhandled_rejection'].includes(event.type)) errors.push(`Telemetry: ${event.type}/${event.outcome}`);
               }
               return route.fulfill({ status: 204 });
             }
-            if (url.pathname === '/api/pxa/v1/auth/me' && request.method() === 'GET') {
+            if (url.pathname === '/api/pvad/v1/auth/me' && request.method() === 'GET') {
               return json(authenticated ? { ...user, roles: currentRoles } : { title: 'Authentication required' }, authenticated ? 200 : 401);
             }
-            if (url.pathname === '/api/pxa/v1/auth/csrf' && request.method() === 'GET') return json({ token: 'synthetic-csrf' });
-            if (url.pathname === '/api/pxa/v1/auth/login' && request.method() === 'POST') {
-              assert.equal(request.headers()['x-pxa-csrf'], 'synthetic-csrf');
+            if (url.pathname === '/api/pvad/v1/auth/csrf' && request.method() === 'GET') return json({ token: 'synthetic-csrf' });
+            if (url.pathname === '/api/pvad/v1/auth/login' && request.method() === 'POST') {
+              assert.equal(request.headers()['x-pvad-csrf'], 'synthetic-csrf');
               if (!allowLogin) return json({ title: 'Synthetic login rejected' }, 401);
               authenticated = true;
               return json({ user });
             }
-            if (authenticated && url.pathname === '/api/pxa/v1/admin/subscriptions' && request.method() === 'GET') return json({ items: [] });
-            if (authenticated && url.pathname === '/api/pxa/v1/admin/users' && request.method() === 'GET') {
+            if (authenticated && url.pathname === '/api/pvad/v1/admin/subscriptions' && request.method() === 'GET') return json({ items: [] });
+            if (authenticated && url.pathname === '/api/pvad/v1/admin/users' && request.method() === 'GET') {
               const search = url.searchParams.get('search') || '';
               searches.push(search);
               const items = search === 'no-such-member' ? [] : [listedUser];
@@ -118,7 +118,7 @@ try {
 
           assert.equal((await page.goto(`${origin}/users`, { waitUntil: 'networkidle' })).status(), 200);
           await expect(page).toHaveURL(`${origin}/login`);
-          await expect(page.getByRole('heading', { name: 'Sign in to PXA Admin', exact: true })).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Sign in to PVADE Admin', exact: true })).toBeVisible();
           await capture('login');
           await page.getByLabel('Email or username').fill('admin@example.test');
           await page.getByLabel('Password', { exact: true }).fill('synthetic-only-password');
@@ -147,7 +147,7 @@ try {
 
           currentRoles = ['Viewer'];
           await page.goto(`${origin}/users`, { waitUntil: 'networkidle' });
-          await expect(page.getByRole('heading', { name: 'Administrator access required', exact: true })).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Access not permitted', exact: true })).toBeVisible();
           await expect(page.locator('#users-filter-form')).toHaveCount(0);
           await capture('forbidden');
         } finally { await context.close(); }
@@ -155,9 +155,9 @@ try {
         results.push({ mode, device, searches, screenshots, errors });
         console.log(`PASS Admin tooling: ${mode}/${device}, login, users, search, release notes and role-denied UI`);
       }
-      await promisify(execFile)(process.execPath, [fileURLToPath(new URL('../../websites/PXA.Admin/scripts/smoke-documentation.mjs', import.meta.url))], {
+      await promisify(execFile)(process.execPath, [fileURLToPath(new URL('../../websites/PVAD.Admin/scripts/smoke-documentation.mjs', import.meta.url))], {
         // Protected handbook content must never enter public CI screenshot artifacts.
-        env: { ...process.env, PXA_ADMIN_SMOKE_URL: origin, PXA_ADMIN_SMOKE_SCREENSHOT: '' },
+        env: { ...process.env, PVAD_ADMIN_SMOKE_URL: origin, PVAD_ADMIN_SMOKE_SCREENSHOT: '' },
         timeout: 90_000,
       });
       console.log(`PASS Admin protected handbook smoke: ${mode}`);

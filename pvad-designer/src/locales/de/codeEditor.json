@@ -1,0 +1,47 @@
+{
+  "back": "← Zurück",
+  "title": "Code-Editor",
+  "lang": {
+    "json": "JSON",
+    "csharpCode": "C# PDF",
+    "csharpDto": "C#-Modell",
+    "csharpBase64": "FromBase64String"
+  },
+  "actions": { "validate": "Prüfen", "run": "Ausführen", "convert": "Konvertieren", "restore": "Wiederherstellen", "apply": "Im Designer übernehmen", "accept": "Erzeugten Entwurf übernehmen", "cancel": "Abbrechen", "importLegacy": "Entwurf importieren", "dismiss": "Schließen" },
+  "status": { "saved": "Gespeichert", "modified": "Geändert", "generated": "Erzeugt", "outdated": "Veraltet", "invalid": "Ungültig", "conflict": "Konflikt" },
+  "workspace": { "legacy": "Ein lokaler Entwurf aus dem bisherigen Editor ist verfügbar.", "waiting": "Der Server-Workspace ist verfügbar, sobald das Template gespeichert wurde.", "target": "Konvertierungsziel", "fidelity": "Qualität", "documentFidelity": "Dokumenttreue", "sourcePreservation": "Quellcode-Erhaltung", "added": "Hinzugefügt", "changed": "Geändert", "removed": "Entfernt" },
+  "applyReview": {
+    "title": "Mit Designer vergleichen", "confirm": "Geprüften Designer-Entwurf ersetzen",
+    "staleBase": "Der Code-Workspace basiert auf Revision {{base}}. Der Designer ist jetzt bei Revision {{current}}.",
+    "replaceWarning": "Bestätigen Sie, um den geprüften Designer-Entwurf durch dieses Code-Ergebnis zu ersetzen. Andere Sprachentwürfe bleiben unverändert. Spätere Serveränderungen verhindern die Übernahme.",
+    "pageChanges": "Seitenreihenfolge oder Layout geändert", "settingsChanges": "Geänderte Dokumentfelder",
+    "currentDesigner": "Aktuelles Designer-Dokument", "codeResult": "Vorgeschlagenes Code-Ergebnis",
+    "yes": "Ja", "no": "Nein", "none": "Keine",
+    "sourceChanged": "Der Quelltext wurde während des Vergleichs geändert. Vergleichen Sie erneut.",
+    "saveRequired": "Speichern oder klären Sie die Designer-Änderungen vor dem Code-Vergleich."
+  },
+  "converting": "Wird konvertiert…",
+  "generating": "Wird erstellt…",
+  "exportPdf": "PDF exportieren",
+  "editor": { "refresh": "aktualisieren", "run": "Ausführen", "running": "Wird ausgeführt...", "runTitle": "C# ausführen und Vorschau aktualisieren", "format": "Formatieren", "copy": "Kopieren", "copied": "Kopiert", "loadStarter": "Vorlage {{name}} laden", "lineCount_zero": "{{count}} Zeilen", "lineCount_one": "{{count}} Zeile", "lineCount_two": "{{count}} Zeilen", "lineCount_few": "{{count}} Zeilen", "lineCount_many": "{{count}} Zeilen", "lineCount_other": "{{count}} Zeilen", "characterCount_zero": "{{count}} Zeichen", "characterCount_one": "{{count}} Zeichen", "characterCount_two": "{{count}} Zeichen", "characterCount_few": "{{count}} Zeichen", "characterCount_many": "{{count}} Zeichen", "characterCount_other": "{{count}} Zeichen" },
+  "preview": { "runningPdf": "C#-PDF-Code wird ausgeführt...", "converting": "Konvertierung läuft...", "pdfError": "C#-PDF-Fehler - korrigieren und erneut ausführen", "modelError": "C#-Model-Fehler - korrigieren und erneut ausführen", "base64Error": "FromBase64String-Fehler - korrigieren und erneut ausführen", "runPdf": "Code ausführen, um das PDF zu rendern.", "pdfReturn": "Das Skript muss ein PvadPdfCodeDocument oder ein älteres PdfDocument zurückgeben.", "runModel": "Code ausführen, um die Vorschau anzuzeigen.", "modelReturn": "Der Ausdruck muss eine DesignExportDto-Instanz zurückgeben.", "emptyJson": "JSON eingeben, um eine Live-Vorschau anzuzeigen.", "emptyJsonHint": "Mit einer Startvorlage kann direkt begonnen werden.", "jsonError": "JSON-Fehler korrigieren, um die Vorschau anzuzeigen." },
+  "errors": {
+    "syntaxError": "Syntaxfehler: {{message}}",
+    "pagesMustBeArray": "\"pages\" muss ein Array sein.",
+    "pagesMustHaveOne": "\"pages\" muss mindestens eine Seite enthalten.",
+    "pageIdRequired": "pages[{{i}}]: \"id\" ist erforderlich.",
+    "pageElementsMustBeArray": "pages[{{i}}]: \"elements\" muss ein Array sein.",
+    "elementIdRequired": "pages[{{i}}].elements[{{j}}]: \"id\" ist erforderlich.",
+    "elementTypeRequired": "pages[{{i}}].elements[{{j}}]: \"type\" ist erforderlich.",
+    "elementXMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"x\" muss eine Zahl sein.",
+    "elementYMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"y\" muss eine Zahl sein.",
+    "elementWidthMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"width\" muss eine Zahl sein.",
+    "elementHeightMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"height\" muss eine Zahl sein.",
+    "pageSettingsWidthMustBeNumber": "\"pageSettings.width\" muss eine Zahl sein.",
+    "pageSettingsHeightMustBeNumber": "\"pageSettings.height\" muss eine Zahl sein.",
+    "generic": "Fehler",
+    "conversionFailed": "Konvertierung fehlgeschlagen.",
+    "runFailed": "Ausführung fehlgeschlagen.",
+    "exportFailed": "Export fehlgeschlagen."
+  }
+}

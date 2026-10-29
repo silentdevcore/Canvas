@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pvade.com/schemas/document-fidelity-result.schema.json",
+  "title": "PVAD document fidelity evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "results"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fixtureId", "metrics", "limitations"],
+        "properties": {
+          "fixtureId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "forcedClassification": { "enum": ["exact", "compatible", "reviewRequired", "unsupported"] },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sourceElements": { "type": "integer", "minimum": 0 },
+              "matchedElements": { "type": "integer", "minimum": 0 },
+              "missingElements": { "type": "integer", "minimum": 0 },
+              "duplicateElements": { "type": "integer", "minimum": 0 },
+              "maximumGeometryDriftPoints": { "type": "number", "minimum": 0 },
+              "textPreservationRatio": { "type": "number", "minimum": 0, "maximum": 1 },
+              "maximumVisualDifferenceRatio": { "type": "number", "minimum": 0, "maximum": 1 },
+              "pageCountMatches": { "type": "boolean" },
+              "sheetCountMatches": { "type": "boolean" }
+            }
+          },
+          "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

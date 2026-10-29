@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PXA PAdES Interoperability Corpus</title>
+    <style>
+      :root { color: #18212b; background: #f4f6f8; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+      h1 { margin: 0 0 12px; font-size: 2.5rem; letter-spacing: 0; }
+      p { max-width: 760px; color: #52606d; line-height: 1.6; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+      .actions a { padding: 10px 14px; border: 1px solid #b9c3cc; color: #18212b; background: #fff; text-decoration: none; }
+      .table-wrap { overflow-x: auto; border: 1px solid #d7dde3; background: #fff; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 13px 15px; border-bottom: 1px solid #e5e9ed; text-align: left; vertical-align: top; }
+      th { background: #eef1f4; font-size: 0.78rem; text-transform: uppercase; }
+      tr:last-child td { border-bottom: 0; }
+      td a { color: #0969a7; }
+      .pass { color: #146c5a; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PXA PAdES Interoperability Corpus</h1>
+      <p>Synthetic PXA signatures independently classified and validated by EU DSS 6.4. The included root certificate is test-only.</p>
+      <div class="actions">
+        <a href="pades-corpus.json">Download manifest</a>
+        <a href="negative/">Negative trust corpus</a>
+        <a href="../">Back to PDF Trust corpus</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Profile</th><th>PDF</th><th>DSS reports</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>PAdES B-T</td><td><a href="pxa-pades-b-t.pdf">PDF</a></td><td><a href="pxa-pades-b-t-dss-simple.xml">Simple</a> · <a href="pxa-pades-b-t-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-b-t-dss-diagnostic.xml">Diagnostic</a></td><td class="pass">TOTAL_PASSED</td></tr>
+            <tr><td>PAdES B-LT</td><td><a href="pxa-pades-b-lt.pdf">PDF</a></td><td><a href="pxa-pades-b-lt-dss-simple.xml">Simple</a> · <a href="pxa-pades-b-lt-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-b-lt-dss-diagnostic.xml">Diagnostic</a></td><td class="pass">TOTAL_PASSED</td></tr>
+            <tr><td>PAdES B-LTA</td><td><a href="pxa-pades-b-lta.pdf">PDF</a></td><td><a href="pxa-pades-b-lta-dss-simple.xml">Simple</a> · <a href="pxa-pades-b-lta-dss-detailed.xml">Detailed</a> · <a href="pxa-pades-b-lta-dss-diagnostic.xml">Diagnostic</a></td><td class="pass">TOTAL_PASSED</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>

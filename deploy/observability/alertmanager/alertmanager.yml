@@ -1,7 +1,7 @@
 global:
   resolve_timeout: 5m
-  smtp_from: pxa-alerts@powerdox.local
-  smtp_smarthost: pxa-mailpit:1025
+  smtp_from: pvad-alerts@example.test
+  smtp_smarthost: pvad-mailpit:1025
   smtp_require_tls: false
 
 templates:
@@ -17,17 +17,17 @@ route:
     - receiver: operator-email
       matchers:
         - severity="critical"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 30m
     - receiver: operator-email
       matchers:
         - severity="warning"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 2h
     - receiver: operator-email
       matchers:
         - severity="info"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 12h
 
 inhibit_rules:
@@ -38,7 +38,7 @@ inhibit_rules:
     equal: [service, environment]
 
 time_intervals:
-  - name: pxa-maintenance-window
+  - name: pvad-maintenance-window
     time_intervals:
       - weekdays: [saturday, sunday]
         times:
@@ -49,12 +49,12 @@ time_intervals:
 receivers:
   - name: operator-email
     email_configs:
-      - to: pxa-operators@powerdox.local
+      - to: pvad-operators@example.test
         send_resolved: true
         headers:
-          Subject: '{{ template "pxa.email.subject" . }}'
-        html: '{{ template "pxa.email.html" . }}'
-        text: '{{ template "pxa.email.text" . }}'
+          Subject: '{{ template "pvad.email.subject" . }}'
+        html: '{{ template "pvad.email.html" . }}'
+        text: '{{ template "pvad.email.text" . }}'
         threading:
           enabled: true
           thread_by_date: none

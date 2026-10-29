@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "standard-status-pages",
+  "impact": "minor",
+  "components": [
+    "account",
+    "admin",
+    "api",
+    "company",
+    "demo",
+    "designer",
+    "documentation",
+    "observability"
+  ],
+  "category": "added",
+  "summary": "PVAD applications now provide consistent, actionable status pages and local fallback pages for unavailable, unauthorized, missing, and failed experiences.",
+  "breaking": false
+}

@@ -1,6 +1,6 @@
-# Power Dox Automation / PXA — Enterprise Document Automation Platform
+# PVADE - Document Automation Platform
 
-A production-ready document automation platform with a visual template designer, a rich expression engine, and multi-format export/import. Comparable to commercial tools like CraftMyPDF, built on .NET 10 + React/TypeScript.
+A document automation platform with a visual template designer, expression engine, and multi-format export/import, built on .NET 10 and React/TypeScript. Current validation and rollout gates are tracked in [the rename checklist](checklists/Rename-PXA-To-PVAD.md).
 
 ---
 
@@ -8,10 +8,10 @@ A production-ready document automation platform with a visual template designer,
 
 | Name | Meaning |
 |------|---------|
-| Power Dox Automation | Product and website name |
-| PXA | Developer-facing identity for APIs, packages, CLI, schemas, and future `.pxa` files |
-| `PXA.*` | Active backend namespaces, project names, and public developer-facing API |
-| `PXA.*` | Historical project/namespace name removed by the breaking PXA rename |
+| PVADE | Platform, website and Designer display name |
+| PVAD | Technical identity for APIs, packages, namespaces, CLI and configuration |
+| PVADP / PVADS | PDF / Spreadsheet product names; native formats `.pvadp` / `.pvads` |
+| PXA / `PXA.*` | Previous identity, retained only for documented compatibility and historical evidence |
 
 ---
 
@@ -48,12 +48,12 @@ A production-ready document automation platform with a visual template designer,
 ### Import Formats
 | Format | Notes |
 |--------|-------|
-| PDF | PXA importer/editable PDF model - page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and resource-preserved shading cases |
+| PDF | PVAD importer/editable PDF model - page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and resource-preserved shading cases |
 | DOCX | OpenXML SDK — paragraphs, tables, inline images, typography |
 | DOC | Pure C# CFBF parser — reads WordDocument stream via FIB offsets |
 | ODT | System.IO.Compression + LINQ to XML — paragraphs, styles, draw:frame images |
-| SVG | Dedicated SVG importer for vector-oriented PXA designs |
-| PPTX | PowerPoint slide import into PXA pages/elements |
+| SVG | Dedicated SVG importer for vector-oriented PVAD designs |
+| PPTX | PowerPoint slide import into PVAD pages/elements |
 | Images | Raster image import plus image-analysis/OCR conversion paths |
 
 ### Document Operations (API)
@@ -74,12 +74,12 @@ A production-ready document automation platform with a visual template designer,
 ## Quick Start
 
 ### Prerequisites
-- Node.js 22 (22.12 or newer within Node 22) for Designer development and tests
+- Node.js 22+
 - .NET 10 SDK
 
 ### Frontend
 ```bash
-cd pxa-designer
+cd pvad-designer
 npm install
 npm run dev
 ```
@@ -87,10 +87,10 @@ Opens at **http://localhost:5173**
 
 ### Backend
 ```bash
-cd PXA.WebApi
+cd PVAD.WebApi
 dotnet run
 ```
-API at **http://localhost:5274** — Swagger UI at http://localhost:5274/swagger
+API at **http://localhost:5086** - Swagger UI at http://localhost:5086/swagger
 
 ---
 
@@ -109,7 +109,7 @@ POST /api/document/clone          # Deep-clone a design with a new ID
 POST /api/document/extract-pages  # Extract a page subset into a new design
 POST /api/document/sign-docx      # Apply X.509 digital signature to a DOCX
 
-POST /api/document/import-pdf-engine      # Import PDF -> DesignExportDto through the PXA importer facade
+POST /api/document/import-pdf-engine      # Import PDF -> DesignExportDto through the PVAD importer facade
 POST /api/document/debug-pdf-engine       # Debug PDF importer output
 POST /api/document/import-docx    # Import DOCX → DesignExportDto
 POST /api/document/import-doc     # Import DOC (Word 97-2003) → DesignExportDto
@@ -123,10 +123,17 @@ POST /api/document/convert-image-to-pdf   # Convert raster image to PDF
 
 ### Migrations
 ```
-GET  /api/migration/frameworks        # List supported code migration frameworks
-POST /api/migration/convert           # Convert vendor PDF code to PXA-compatible PDF C#
-POST /api/migration/report-to-design  # Convert report source (XtraReport/REPX/RDL/RPX) to DesignExportDto
-POST /api/migration/preview           # Render migrated PXA-compatible PDF code as PDF preview
+GET  /api/pvad/v1/migrations/catalog                                      # Discover PDF, Spreadsheet, and Report providers
+GET  /api/pvad/v1/migrations/{domain}/{kind}/{provider}                    # Read one provider contract
+GET  /api/pvad/v1/migrations/{domain}/{kind}/{provider}/examples           # Load backend-owned examples when available
+POST /api/pvad/v1/migrations/{domain}/{kind}/{provider}/convert            # Convert to typed migration artifacts
+POST /api/pvad/v1/migrations/{domain}/{kind}/{provider}/preview            # Preview providers that support it
+
+# Compatibility adapters retained for one major release:
+GET  /api/migration/frameworks
+POST /api/migration/convert
+POST /api/migration/report-to-design
+POST /api/migration/preview
 ```
 
 ### Templates
@@ -155,26 +162,26 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-PXA.WebApi                  ← ASP.NET Core presentation layer with stable API routes and PXA aliases
+PVAD.WebApi                  ← ASP.NET Core presentation layer with stable API routes and PXA aliases
   ↓
-PXA.Application             ← Use-case orchestration
+PVAD.Application             ← Use-case orchestration
   ↓
-PXA.Core                    ← Contracts, DTOs, abstractions
-  ↑ (all infrastructure projects implement PXA.Core contracts)
-PXA.Pdf                     ← Imperative PDF engine
-PXA.Infrastructure.Pdf      ← Custom PDF renderer/services
-PXA.Importer                ← Editable PDF parsing/model/rewrite/regeneration internals
-PXA.Infrastructure.Word     ← DOCX exporter/importer, signing, style/footnote/comment services
-PXA.Infrastructure.Spreadsheet ← XLSX/CSV spreadsheet services
-PXA.Infrastructure.Converters ← ODT, HTML, CSV, Markdown, Image, TIFF exporters
-PXA.Domain                  ← Template/domain models
+PVAD.Core                    ← Contracts, DTOs, abstractions
+  ↑ (all infrastructure projects implement PVAD.Core contracts)
+PVAD.Pdf                     ← Imperative PDF engine
+PVAD.Infrastructure.Pdf      ← Custom PDF renderer/services
+PVAD.Importer                ← Editable PDF parsing/model/rewrite/regeneration internals
+PVAD.Infrastructure.Word     ← DOCX exporter/importer, signing, style/footnote/comment services
+PVAD.Infrastructure.Spreadsheet ← XLSX/CSV spreadsheet services
+PVAD.Infrastructure.Converters ← ODT, HTML, CSV, Markdown, Image, TIFF exporters
+PVAD.Domain                  ← Template/domain models
 ```
 
-Frontend (`pxa-designer/`):
+Frontend (`pvad-designer/`):
 ```
 src/
   components/
-    Editor/       ← SimplePxaSurface, ExportModal, FindReplaceModal, inspector panels
+    Editor/       ← SimplePvadSurface, ExportModal, FindReplaceModal, inspector panels
     Gallery/      ← TemplatePage, CategoryFilter, TemplateCard
   services/       ← ExportService (export, import, sign, find-replace, clone, extract)
   hooks/          ← useTemplateLoader (loadTemplate, loadBlank, loadFromFile)
@@ -192,11 +199,11 @@ src/
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
 | PDF export | Custom .NET renderer (no iTextSharp/PDFsharp) |
-| PDF edit/regenerate | PXA importer and `PXA.Pdf` regeneration bridge |
+| PDF edit/regenerate | PVAD importer and `PVAD.Pdf` regeneration bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX signing | System.Security.Cryptography.Xml 10.0.8 (RSA-SHA256 XML-DSig) |
 | Excel | ClosedXML |
-| PDF import | PXA importer low-level parser/object graph/editor pipeline |
+| PDF import | PVAD importer low-level parser/object graph/editor pipeline |
 | DOC import | Pure C# CFBF parser |
 | ODT import/export | System.IO.Compression + LINQ to XML (ODF 1.3) |
 | Image export | System.Drawing / SkiaSharp |
@@ -207,13 +214,13 @@ src/
 
 ```bash
 # Backend
-dotnet test PXA.sln
+dotnet test PVAD.sln
 
 # Frontend
-cd pxa-designer && npm test
+cd pvad-designer && npm test
 ```
 
-Test projects include `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Infrastructure.Pdf.Tests`, `PXA.Export.Tests`, and `PXA.Api.Tests`.
+Test projects include `PVAD.Core.Tests`, `PVAD.Application.Tests`, `PVAD.Infrastructure.Pdf.Tests`, `PVAD.Export.Tests`, and `PVAD.Api.Tests`.
 
 ---
 
@@ -221,15 +228,15 @@ Test projects include `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Infrastruc
 
 ```bash
 # Frontend production build
-cd pxa-designer && npm run build
+cd pvad-designer && npm run build
 
 # Backend publish
-cd PXA.WebApi && dotnet publish -c Release
+cd PVAD.WebApi && dotnet publish -c Release
 
 # Docker
-docker build -t pxa-api ./PXA.WebApi
-docker build -t pxa-ui ./pxa-designer
-docker-compose up -d
+docker build -f PVAD.WebApi/Dockerfile -t pvad-api:local .
+# Retain the existing Compose project name and physical volumes.
+node tools/configuration/pvad-compose.mjs up -d
 ```
 
 ### Multi-Language PDF — Font Files
@@ -244,13 +251,13 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 |---|---|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Project layer diagram and responsibilities |
 | [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) | Compact project inventory, endpoints, project groups, and test groups |
-| [`docs/index.md`](docs/index.md) | PXA PDF engine quick start and API reference entry point |
-| [`pxa-designer/MULTILANGUAGE.md`](pxa-designer/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
+| [`docs/index.md`](docs/index.md) | PVAD PDF engine quick start and API reference entry point |
+| [`pvad-designer/MULTILANGUAGE.md`](pvad-designer/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
 | [`fonts/README.md`](fonts/README.md) | Noto font download and deployment instructions |
 | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add renderers, importers, migrations, and report converters |
 | [`TESTING.md`](TESTING.md) | Test structure and conventions |
 | [`checklists/Documentation-Audit.md`](checklists/Documentation-Audit.md) | Documentation ownership map and update tracker |
-| [`checklists/PxaPdf-Provider-Feature-Gaps.md`](checklists/PxaPdf-Provider-Feature-Gaps.md) | PXA-compatible PDF feature gaps compared with major PDF providers |
+| [`checklists/PvadPdf-Provider-Feature-Gaps.md`](checklists/PvadPdf-Provider-Feature-Gaps.md) | PVAD-compatible PDF feature gaps compared with major PDF providers |
 
 ### Documentation Map
 
@@ -265,4 +272,4 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 | Report migration status | [`checklists/Code-Migration-DevExpressReport.md`](checklists/Code-Migration-DevExpressReport.md), [`checklists/Code-Migration-SyncfusionRdl.md`](checklists/Code-Migration-SyncfusionRdl.md), [`checklists/Code-Migration-ActiveReportsRpx.md`](checklists/Code-Migration-ActiveReportsRpx.md) |
 | PDF encryption | [`checklists/Pdf-Encryption.md`](checklists/Pdf-Encryption.md) |
 | Importer roadmap | [`checklists/UI-Importer-Features.md`](checklists/UI-Importer-Features.md), [`checklists/Importer-New-Featuers.md`](checklists/Importer-New-Featuers.md), [`checklists/PDF-Importer.md`](checklists/PDF-Importer.md) |
-| UI and localization | [`pxa-designer/MULTILANGUAGE.md`](pxa-designer/MULTILANGUAGE.md), [`checklists/UI-Improvements-2026.md`](checklists/UI-Improvements-2026.md), [`checklists/multi-languages.md`](checklists/multi-languages.md) |
+| UI and localization | [`pvad-designer/MULTILANGUAGE.md`](pvad-designer/MULTILANGUAGE.md), [`checklists/UI-Improvements-2026.md`](checklists/UI-Improvements-2026.md), [`checklists/multi-languages.md`](checklists/multi-languages.md) |

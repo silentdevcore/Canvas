@@ -1,5 +1,7 @@
 # Implementation Plan: CraftMyPDF-Style UI Designer
 
+> Naming history: This retained planning or migration note predates PVAD/PVADE. Legacy project names below are historical references, not current integration instructions. See README.md and the rename compatibility guides for the current contracts.
+
 ## Overview
 Build a user-friendly UI designer inspired by CraftMyPDF.com, focusing on template gallery and guided onboarding. Replace the current complex, developer-focused interface with an intuitive, beginner-friendly design tool that guides users through template creation with visual templates and progressive feature disclosure.
 
@@ -70,23 +72,23 @@ interface Template {
 Complete restructuring of the UI designer with new components and simplified architecture.
 
 ### New Files to Create
-- `pxa-designer/`: New root directory for redesigned UI
-- `pxa-designer/components/Gallery/TemplateGallery.tsx`: Main gallery component
-- `pxa-designer/components/Gallery/TemplateCard.tsx`: Individual template cards
-- `pxa-designer/components/Gallery/CategoryFilter.tsx`: Category filtering
-- `pxa-designer/components/Onboarding/OnboardingWizard.tsx`: Step-by-step onboarding
-- `pxa-designer/components/Onboarding/WelcomeScreen.tsx`: Initial welcome
-- `pxa-designer/components/Editor/SimplePxaSurface.tsx`: Simplified canvas
-- `pxa-designer/components/Editor/InlineEditor.tsx`: Click-to-edit interface
-- `pxa-designer/components/Editor/ElementToolbar.tsx`: Context-sensitive toolbar
-- `pxa-designer/components/Preview/LivePreview.tsx`: Real-time preview
-- `pxa-designer/hooks/useOnboarding.ts`: Onboarding state management
-- `pxa-designer/hooks/useTemplateGallery.ts`: Gallery data management
-- `pxa-designer/data/templates.ts`: Template definitions and metadata
-- `pxa-designer/styles/gallery.css`: Gallery-specific styles
-- `pxa-designer/styles/onboarding.css`: Onboarding styles
-- `pxa-designer/styles/editor.css`: Simplified editor styles
-- `pxa-designer/utils/templateAdapter.ts`: Convert between simple and complex models
+- `pvad-designer/`: New root directory for redesigned UI
+- `pvad-designer/components/Gallery/TemplateGallery.tsx`: Main gallery component
+- `pvad-designer/components/Gallery/TemplateCard.tsx`: Individual template cards
+- `pvad-designer/components/Gallery/CategoryFilter.tsx`: Category filtering
+- `pvad-designer/components/Onboarding/OnboardingWizard.tsx`: Step-by-step onboarding
+- `pvad-designer/components/Onboarding/WelcomeScreen.tsx`: Initial welcome
+- `pvad-designer/components/Editor/SimplePvadSurface.tsx`: Simplified canvas
+- `pvad-designer/components/Editor/InlineEditor.tsx`: Click-to-edit interface
+- `pvad-designer/components/Editor/ElementToolbar.tsx`: Context-sensitive toolbar
+- `pvad-designer/components/Preview/LivePreview.tsx`: Real-time preview
+- `pvad-designer/hooks/useOnboarding.ts`: Onboarding state management
+- `pvad-designer/hooks/useTemplateGallery.ts`: Gallery data management
+- `pvad-designer/data/templates.ts`: Template definitions and metadata
+- `pvad-designer/styles/gallery.css`: Gallery-specific styles
+- `pvad-designer/styles/onboarding.css`: Onboarding styles
+- `pvad-designer/styles/editor.css`: Simplified editor styles
+- `pvad-designer/utils/templateAdapter.ts`: Convert between simple and complex models
 
 ### Existing Files to Modify
 - `src/App.tsx`: Replace with new entry point that routes between gallery and editor
@@ -96,8 +98,8 @@ Complete restructuring of the UI designer with new components and simplified arc
 ### Files to Remove
 - `src/Sidebar.tsx`: Replaced by inline element toolbar
 - `src/PropertiesPanel.tsx`: Replaced by inline editing
-- `src/PxaSurface.tsx`: Replaced by SimplePxaSurface
-- `src/VirtualPxaSurface.tsx`: Not needed in simplified version
+- `src/PvadSurface.tsx`: Replaced by SimplePvadSurface
+- `src/VirtualPvadSurface.tsx`: Not needed in simplified version
 - Complex panels: DataPanel, JSONPanel, CodePanel, etc.
 
 ### Configuration Updates
@@ -157,11 +159,11 @@ New dependencies for improved UX and simplified interactions.
 Comprehensive testing for the new UX-focused components.
 
 ### New Test Files
-- `pxa-designer/components/Gallery/TemplateGallery.test.tsx`
-- `pxa-designer/components/Onboarding/OnboardingWizard.test.tsx`
-- `pxa-designer/components/Editor/SimplePxaSurface.test.tsx`
-- `pxa-designer/hooks/useOnboarding.test.ts`
-- `pxa-designer/utils/templateAdapter.test.ts`
+- `pvad-designer/components/Gallery/TemplateGallery.test.tsx`
+- `pvad-designer/components/Onboarding/OnboardingWizard.test.tsx`
+- `pvad-designer/components/Editor/SimplePvadSurface.test.tsx`
+- `pvad-designer/hooks/useOnboarding.test.ts`
+- `pvad-designer/utils/templateAdapter.test.ts`
 
 ### Integration Tests
 - Gallery to Editor workflow

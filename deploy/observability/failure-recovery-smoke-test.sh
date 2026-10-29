@@ -2,8 +2,12 @@
 
 set -euo pipefail
 
-prometheus_container="${PXA_PROMETHEUS_CONTAINER:-canvas-pxa-prometheus-1}"
-mailpit_url="${PXA_MAILPIT_URL:-http://127.0.0.1:8025}"
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_MAILPIT_URL PVAD_PROMETHEUS_CONTAINER PVAD_WEBAPI_CONTAINER
+
+prometheus_container="${PVAD_PROMETHEUS_CONTAINER:-$(node "$PVAD_CONFIG_ROOT/tools/configuration/pvad-compose.mjs" -f "$PVAD_CONFIG_ROOT/docker-compose.yml" --profile observability ps -q pvad-prometheus)}"
+mailpit_url="${PVAD_MAILPIT_URL:-http://127.0.0.1:8025}"
 scenarios=("$@")
 if (( ${#scenarios[@]} == 0 )); then
   scenarios=(collector postgresql)
@@ -85,7 +89,7 @@ wait_for_mail() {
   local alert_name="$2"
   local since_epoch="$3"
   local deadline=$((SECONDS + 100))
-  local subject="[PXA][${status}][CRITICAL] ${alert_name}"
+  local subject="[PVAD][${status}][CRITICAL] ${alert_name}"
 
   while (( SECONDS < deadline )); do
     if curl --fail --silent --show-error --max-time 10 "${mailpit_url}/api/v1/messages" |
@@ -119,30 +123,32 @@ start_container() {
 }
 
 run_collector_scenario() {
-  local container="canvas-pxa-otel-collector-1"
-  local alert_name="PxaTelemetryPipelineUnavailable"
+  local container
+  container="$(node "$PVAD_CONFIG_ROOT/tools/configuration/pvad-compose.mjs" -f "$PVAD_CONFIG_ROOT/docker-compose.yml" --profile observability ps -q pvad-otel-collector)"
+  local alert_name="PvadTelemetryPipelineUnavailable"
   local started_at
   started_at="$(date +%s)"
 
-  wait_for_value "collector target baseline" "up" 30 target_health "pxa-otel-collector"
+  wait_for_value "collector target baseline" "up" 30 target_health "pvad-otel-collector"
   wait_for_value "${alert_name} baseline" "inactive" 30 alert_state "${alert_name}"
   stop_container "${container}"
   wait_for_value "${alert_name}" "firing" 210 alert_state "${alert_name}"
   wait_for_mail "FIRING" "${alert_name}" "${started_at}"
 
   start_container "${container}"
-  wait_for_value "collector target recovery" "up" 90 target_health "pxa-otel-collector"
+  wait_for_value "collector target recovery" "up" 90 target_health "pvad-otel-collector"
   wait_for_value "${alert_name} recovery" "inactive" 90 alert_state "${alert_name}"
   wait_for_mail "RESOLVED" "${alert_name}" "${started_at}"
 }
 
 run_postgresql_scenario() {
-  local container="canvas-pxa-database-1"
-  local alert_name="PxaPostgreSqlUnavailable"
+  local container
+  container="$(node "$PVAD_CONFIG_ROOT/tools/configuration/pvad-compose.mjs" -f "$PVAD_CONFIG_ROOT/docker-compose.yml" --profile observability ps -q pvad-database)"
+  local alert_name="PvadPostgreSqlUnavailable"
   local started_at
   started_at="$(date +%s)"
 
-  wait_for_value "PostgreSQL target baseline" "up" 30 target_health "pxa-postgresql"
+  wait_for_value "PostgreSQL target baseline" "up" 30 target_health "pvad-postgresql"
   wait_for_value "${alert_name} baseline" "inactive" 30 alert_state "${alert_name}"
   stop_container "${container}"
   wait_for_value "${alert_name}" "firing" 210 alert_state "${alert_name}"
@@ -155,13 +161,13 @@ run_postgresql_scenario() {
 }
 
 run_webapi_scenario() {
-  local container="${PXA_WEBAPI_CONTAINER:-}"
-  local alert_name="PxaWebApiContainerTelemetryMissing"
+  local container="${PVAD_WEBAPI_CONTAINER:-}"
+  local alert_name="PvadWebApiContainerTelemetryMissing"
   local started_at
   started_at="$(date +%s)"
 
   if [[ -z "${container}" ]]; then
-    echo "Set PXA_WEBAPI_CONTAINER to a Compose-managed PXA.WebApi container." >&2
+    echo "Set PVAD_WEBAPI_CONTAINER to a Compose-managed PVAD.WebApi container." >&2
     return 2
   fi
 
@@ -194,4 +200,4 @@ for scenario in "${scenarios[@]}"; do
   esac
 done
 
-echo "PXA failure and recovery smoke test passed: ${scenarios[*]}."
+echo "PVAD failure and recovery smoke test passed: ${scenarios[*]}."

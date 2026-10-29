@@ -1,0 +1,150 @@
+# Code Designer Workspace
+
+The Code workspace connects a saved Designer template to four independent source drafts:
+
+- **JSON** is the normalized `DesignExportDto` document.
+- **C# Model** is a readable object initializer made from `DesignExportDto`, `PageDto`, `ElementDto`,
+  and their typed child contracts. It contains no hidden document payload.
+- **C# PDF** uses the semantic `PvadPdfCodeBuilder` and returns a `PvadPdfCodeDocument`. The legacy
+  low-level `PdfDocument` API remains supported for one major version with reduced fidelity.
+- **FromBase64String** is the compact transport representation. It validates Base64, strict UTF-8,
+  JSON, stable IDs, and the same 10 MiB canonical document limit before it can be applied.
+
+Changing tabs never converts or replaces another draft. Use **Convert**, inspect the structural comparison and diagnostics, and then choose **Apply generated draft**. A generated draft remains separate until it is saved or applied.
+
+## Workflow
+
+1. Save the visual template so it has a tenant-owned template ID.
+2. Open **Code** and select JSON, C# Model, C# PDF, or FromBase64String.
+3. Choose **Validate** for syntax and contract diagnostics.
+4. Choose **Run** to create the canonical preview. C# PDF also returns the actual backend PDF.
+5. Choose a target language and **Convert**.
+6. Review added, changed, and removed elements plus the fidelity result.
+7. Review both document fidelity and source preservation, then accept the generated target draft.
+8. Choose **Apply to Designer** to compare against the latest saved visual template.
+9. Inspect page/layout changes, document fields, element additions, changes and removals. Expand
+   **Current Designer document** and **Proposed code result** to inspect the complete documents.
+10. Choose **Replace reviewed Designer draft** to update that exact revision atomically, or
+    **Cancel** to keep both the visual template and all four source drafts unchanged.
+
+Autosave stores only the active language after a two-second pause. A stale workspace or template revision returns HTTP 409 and does not overwrite either side.
+
+## Comparing an older code workspace
+
+A code workspace can be based on an earlier template revision after visual editing, native project
+import, or publishing. The revision notice is not a conversion failure. Applying an old draft without
+comparison could replace newer visual work, so the Designer never silently advances its base revision.
+
+Before comparison, pending visual autosave must finish successfully. The comparison reads the current
+tenant-owned server document and converts only the selected source; it does not save, regenerate, or
+rebase any draft. The dialog shows the workspace base and reviewed template revisions when they differ.
+Confirmation deliberately replaces the reviewed visual draft, not an automatically merged document.
+Other language drafts are preserved, including handwritten code and comments.
+
+If another session changes either revision after comparison, confirmation returns HTTP 409 and closes
+the stale review. Your local sources remain intact. Compare again to review the newer template. If a
+different session changed the code workspace itself, preserve your local source before reloading and
+reconcile the drafts; a comparison never adopts that session's revision automatically. If executing code
+produces a different canonical checksum than the reviewed result, a fresh comparison is also required.
+Time-dependent code may need fixed input data to produce a stable reviewable result.
+
+A successful apply advances the template and workspace together and acknowledges the applied visual
+snapshot as already saved. It does not immediately issue a second visual autosave. Concurrency failures
+during database persistence roll back the template, workspace and success audit entry together.
+
+## Preview freshness
+
+JSON is parsed into the Preview while it is edited. C# Model, C# PDF, and FromBase64String require
+**Run** because their Preview represents the canonical result produced by the isolated worker. The
+result is bound to the exact language and source text that produced it.
+
+Editing a C# or FromBase64String draft invalidates its previous Preview immediately. Run the changed
+draft again before comparing, applying, or exporting it. A valid C# PDF result remains available when
+switching tabs, but is cleared as soon as its C# PDF source changes or a new execution starts. This
+prevents an older successful result from being presented as the output of newer source code.
+
+The Preview uses the same complete document settings and per-page layouts as the visual Designer and
+backend PDF export. This includes mixed page dimensions and orientations, margins, backgrounds,
+bleed, localization, protection, metadata, bindings, RTL, charts, tables, forms, and extension data.
+
+## Fidelity and source preservation
+
+| Value | Meaning |
+| --- | --- |
+| `exact` | The canonical document is preserved without a known semantic change. |
+| `compatible` | The visual result is supported, but original C# structure such as variables or control flow is not reconstructed. |
+| `reviewRequired` | The conversion completed with simplifications or unsupported visual operations. |
+| `unsupported` | Errors prevent a safe canonical result. |
+
+Generated C# PDF includes `pvad-element-id` metadata comments. The compatibility
+reader still accepts historical `pxa-element-id` comments without rewriting stored
+source. Source maps use these IDs to associate diagnostics and generated lines
+with Designer elements. Executed loops and conditions produce their resulting
+elements; their original source structure is not represented in the visual model.
+
+`documentFidelity` describes the resulting document. `sourcePreservation` independently reports
+`preserved`, `regenerated`, or `structureLost`. Converting handwritten C# can therefore produce an
+exact document while correctly reporting that comments, variable names, loops, or conditions were
+regenerated. The older `fidelity` property remains an alias for `documentFidelity` during the
+compatibility period.
+
+PVAD-generated JSON, C# Model, C# PDF builder code, and FromBase64String code roundtrip through the
+same normalized `DesignExportDto`. Pages, settings, bindings, localization, RTL, charts, tables,
+forms, tenant asset IDs, encryption settings, and unknown extension properties remain part of that
+canonical contract.
+
+## Sandbox
+
+C# runs in `PVAD.CodeWorker`, never in the WebApi process. The restricted language supports PVAD APIs, collections, mathematics, dates, conditions, loops, and bounded string or LINQ operations. It rejects:
+
+- files, directories, environment variables, processes, and additional assemblies;
+- network clients, sockets, URLs, and package references;
+- reflection, native interop, `unsafe`, pointers, `dynamic`, and preprocessor directives;
+- manually created threads and unbounded worker execution.
+
+Execution is limited to 15 seconds, 32 MiB of source, 10 MiB of decoded canonical design,
+configured page and element counts, and bounded output. The larger source limit is required because
+a readable object initializer is larger than its JSON document. Production enables the feature only
+when the worker deployment is marked as hardened with a non-privileged identity, read-only
+filesystem, temporary working directory, resource limits, and blocked egress.
+
+## Legacy Base64 migration
+
+Older workspaces may contain `FromBase64String` code in the C# Model draft. On first load, PVAD moves
+that source unchanged into the FromBase64String draft and generates a readable C# Model initializer
+from the canonical JSON. The migration is tenant-scoped, revisioned, and audited; the original source
+is not discarded.
+
+## Assets
+
+Code cannot load images from a local path or URL. Upload assets through the Designer asset API and use tenant-bound asset IDs. Imported or generated images remain inaccessible to other organizations. If a PDF operation cannot preserve its asset reference as an editable element, the conversion reports `reviewRequired` rather than inventing content.
+
+## API
+
+The authenticated endpoints are rooted at:
+
+`/api/pvad/v1/designer/templates/{templateId}/code-workspace`
+
+They provide workspace load/save, validation, conversion, execution, comparison, atomic apply, restore, and source-map retrieval. Every operation requires a Designer session, active organization, Designer entitlement, the `designer.code-workspace` Beta feature, and applicable request limits.
+
+`POST /compare` requires the apply permission and accepts `workspaceRevision`, `language` and `source`.
+It returns the reviewed template/workspace revisions, the old base revision, current template design,
+and conversion result. `POST /apply` sends those reviewed revisions and `reviewedChecksum` alongside
+the exact reviewed language/source. Existing API callers may omit the checksum for compatibility;
+the Designer always sends it. Revision checks remain mandatory for every caller.
+
+The old `/api/templates/csharp-*` endpoints remain protected compatibility adapters for one major release. They delegate to the same isolated worker and return deprecation headers.
+
+## Export code panel
+
+The visual Designer's **Export code** panel uses the same canonical document as backend export:
+
+- **JSON** displays the complete `DesignExportDto`. It preserves every language-scoped element,
+  shared element, page override, document setting, binding, asset reference, and extension field.
+  Selecting a Preview language does not remove other language content from the exported source.
+- **C# Code** sends that exact JSON to the authenticated backend converter and displays semantic
+  `PvadPdfCodeBuilder` code. It does not use the removed browser-only drawing-code generator.
+
+Exact C# generation requires a persisted template so the server can enforce tenant access,
+entitlements, feature gates, limits, and audit. Save a new document before opening its C# tab. If
+the JSON changes, the previous C# result is discarded and regenerated from the new source.

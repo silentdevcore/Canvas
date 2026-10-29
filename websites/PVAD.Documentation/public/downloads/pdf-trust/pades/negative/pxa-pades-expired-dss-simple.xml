@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SimpleReport ValidationTime="2026-09-14T17:01:15Z" xmlns="http://dss.esig.europa.eu/validation/simple-report">
+    <ValidationPolicy>
+        <PolicyName>QES AES/QC AES TL based</PolicyName>
+        <PolicyDescription>Validates electronic signatures and indicates whether they are advanced electronic signatures (AES), AES supported by a qualified certificate (AES/QC) or a
+		qualified electronic signature (QES). All certificates and their related chains supporting the signatures are validated against the EU Member State Trusted Lists (this includes
+		signer's certificate and certificates used to validate certificate validity status services - CRLs, OCSP, and time-stamps).
+	</PolicyDescription>
+    </ValidationPolicy>
+    <DocumentName>pxa-pades-expired.pdf</DocumentName>
+    <ValidSignaturesCount>0</ValidSignaturesCount>
+    <SignaturesCount>1</SignaturesCount>
+    <Signature SignatureFormat="PAdES-BASELINE-B" Id="S-995A6962D35B719C2DDABC438782110B0811D53ABD53E1BC0577CB758B01F87D">
+        <CertificateChain>
+            <Certificate Id="C-C099CA5CF48D7E15BD93BD0EDFCD58994369CC5D7136D3AB174578F235C29CC8">
+                <QualifiedName>PXA Synthetic PAdES Signer</QualifiedName>
+            </Certificate>
+            <Certificate Id="C-BDC34C6D6D30F8300666EDB72BB6CB0D822E74126932AE4D7D80CDA0E7A67492" trusted="true">
+                <QualifiedName>PXA Synthetic PAdES Expired Root CA</QualifiedName>
+            </Certificate>
+        </CertificateChain>
+        <Indication>INDETERMINATE</Indication>
+        <SubIndication>OUT_OF_BOUNDS_NOT_REVOKED</SubIndication>
+        <AdESValidationDetails>
+            <Error Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</Error>
+            <Error Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</Error>
+            <Error Key="TSV_IBSTBCEC_ANS">The best-signature-time is not before the expiration date of the signing certificate!</Error>
+            <Error Key="ARCH_LTAIVMP_ANS">No long term availability and integrity of validation material is present!</Error>
+            <Warning Key="BBB_XCV_AIA_PRES_ANS">The authority info access is not present!</Warning>
+            <Warning Key="BBB_XCV_IAKIP_ANS">The certificate does not contain the authority key identifier certificate extension!</Warning>
+            <Warning Key="BBB_XCV_REVOC_PRES_ANS">The revocation info access is not present!</Warning>
+        </AdESValidationDetails>
+        <QualificationDetails>
+            <Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</Error>
+            <Warning Key="QUAL_IS_ADES_IND">The signature/seal is an INDETERMINATE AdES digital signature!</Warning>
+        </QualificationDetails>
+        <SigningTime>2026-06-15T10:30:00Z</SigningTime>
+        <BestSignatureTime>2026-09-14T17:01:15Z</BestSignatureTime>
+        <SignedBy>PXA Synthetic PAdES Signer</SignedBy>
+        <SignatureLevel description="Not applicable">N/A</SignatureLevel>
+        <SignatureScope Id="D-21D40DE5E6B2166766E3A5B715C881FB19F51B61B9474D7AA5871A4FC289AAEF" name="Full PDF" scope="FULL">The document ByteRange : [0, 1265, 66803, 836]</SignatureScope>
+    </Signature>
+</SimpleReport>

@@ -1,44 +1,69 @@
-# PXA Local Observability
+# PVADE Local Observability
 
-This optional Docker Compose profile provides the local and On-Premise evaluation stack for PXA
+This optional Docker Compose profile provides the local and On-Premise evaluation stack for PVAD
 telemetry:
 
 - OpenTelemetry Collector receives OTLP logs, metrics, and traces.
 - Prometheus stores metrics for 90 days by default.
 - Loki stores logs for 30 days by default.
 - Tempo stores traces for 14 days by default.
-- Grafana provisions the PXA datasources and platform overview dashboard.
-- The Nginx operator gateway protects Grafana with the PXA System Administrator session.
+- Grafana provisions the PVAD datasources and platform overview dashboard.
+- The Nginx operator gateway protects Grafana with the PVAD System Administrator session.
 - Alertmanager groups, deduplicates, inhibits, silences, and sends operator email independently
-  from PXA.WebApi.
+  from PVAD.WebApi.
 - PostgreSQL Exporter reports database availability, activity, connection capacity, and storage
   behavior.
-- cAdvisor reports CPU, memory, filesystem, and runtime metrics for the PXA containers.
+- cAdvisor reports CPU, memory, filesystem, and runtime metrics for the PVAD containers.
+
+Fresh defaults now use PVAD for services, storage/network keys and credential
+defaults. The explicit `deploy/rename/docker-compose.legacy.yml` overlay retains
+old database/user settings, DNS aliases and verified external resources for an
+existing complete stack. Do not use fresh defaults as an automatic upgrade.
+Grafana UIDs remain stable. New scrape jobs, platform and alert service labels
+use PVAD; rules and dashboard queries accept both generations. Label changes
+affect alert fingerprints, silences and notification groups, even though stored
+history is not rewritten. Follow the
+[monitoring identity migration](../../docs/pvad-monitoring-identity-migration.md)
+before reloading an existing stack; `instance` labels may also change.
+Datasource display names now use PVAD while retaining their existing UIDs and
+trace/log cross-links. Active datasources are updated in place, not deleted by
+the provisioning deletion list. That list retains only the obsolete historical
+Alertmanager datasource. Inspect provisioning logs and saved dashboard queries
+after deployment; name-based custom queries may need manual updates.
+The dashboard provider identity and existing legacy folder are intentionally retained
+until dashboard placement and folder permissions can be migrated explicitly.
+An [offline provider rename candidate and cutover guide](../../docs/pvad-grafana-provider-cutover.md)
+prepare the remaining folder/provider labels without changing installed state.
+See the [infrastructure mapping](../../docs/pvad-infrastructure-mapping.md) before
+an upgrade. Stop old writers first, preserve the installed project name and keys,
+and never run both generations on the same storage. Configuration checks are not
+runtime cutover tests. Scripts select that same project through
+`COMPOSE_PROJECT_NAME`; explicit container overrides remain available.
 
 ## Start
 
 Start the WebApi with OTLP export and an explicitly allowlisted development operator:
 
 ```bash
-PXA_BOOTSTRAP_ADMIN_EMAIL='operator@example.test' \
-PXA_BOOTSTRAP_ADMIN_PASSWORD='replace-this-development-password' \
+PVAD_BOOTSTRAP_ADMIN_EMAIL='operator@example.test' \
+PVAD_BOOTSTRAP_ADMIN_PASSWORD='replace-this-development-password' \
 AdminSecurity__RequireExplicitSystemOperators=true \
 AdminSecurity__SystemOperatorEmails__0='operator@example.test' \
 Observability__OtlpEndpoint=http://localhost:4317 \
-  dotnet run --project PXA.WebApi/PXA.WebApi.csproj
+  dotnet run --project PVAD.WebApi/PVAD.WebApi.csproj
 ```
 
-Start PXA.Admin on port `5177`, then start the observability profile:
+Start PVAD.Admin on port `5177`, then start the observability profile:
 
 ```bash
-npm run dev --prefix websites/PXA.Admin
-docker compose --profile observability up -d
+npm run dev --prefix websites/PVAD.Admin
+node tools/configuration/pvad-compose.mjs --profile observability up -d
 ```
 
-Open `http://localhost:3001/login`, sign in with the allowlisted PXA operator, and open
+Open `http://localhost:3001/login`, sign in with the allowlisted PVAD operator, and open
 `http://localhost:3001/operator/grafana/`. Grafana has no direct host port and trusts only the
 operator gateway at its fixed internal network address. The gateway validates every request
-through `/api/pxa/v1/admin/operator/access`, removes client-supplied authentication headers, and
+through `/api/pvad/v1/admin/operator/access`, removes client-supplied authentication headers, and
 passes a pseudonymous operator name to Grafana Auth Proxy. Organization Administrators receive
 `403`; anonymous requests receive `401`.
 
@@ -54,19 +79,26 @@ localhost. Grafana itself is reachable only inside Docker networks.
 Alertmanager, Prometheus, Loki, Tempo, PostgreSQL Exporter, and cAdvisor remain reachable only
 inside the Docker network.
 Local Alertmanager notifications are delivered directly to Mailpit at
-`http://localhost:8025`; stopping PXA.WebApi does not interrupt this path.
+`http://localhost:8025`; stopping PVAD.WebApi does not interrupt this path.
+The local sender `pvad-alerts@example.test` and recipient
+`pvad-operators@example.test` are synthetic Mailpit-only addresses, not production
+mailboxes. Configure approved delivery identities separately for deployment.
+
+Internal Nginx auth locations and helper variables use PVAD. The upstream
+`X-PXA-Operator` response header and legacy request-header stripping remain
+compatibility contracts; they are not public branding.
 
 Readiness endpoints are:
 
 - Collector: `http://localhost:13133/`
-- Alertmanager: `http://pxa-alertmanager:9093/-/ready` inside the Docker network
+- Alertmanager: `http://pvad-alertmanager:9093/-/ready` inside the Docker network
 - Operator gateway: `http://localhost:3001/operator-health`
-- Grafana: `http://pxa-grafana:3000/api/health` inside the Docker network
-- Prometheus: `http://pxa-prometheus:9090/-/ready` inside the Docker network
-- PostgreSQL Exporter: `http://pxa-postgres-exporter:9187/metrics` inside the Docker network
-- cAdvisor: `http://pxa-cadvisor:8080/healthz` inside the Docker network
-- Loki: `http://pxa-loki:3100/ready` inside the Docker network
-- Tempo: `http://pxa-tempo:3200/ready` inside the Docker network
+- Grafana: `http://pvad-grafana:3000/api/health` inside the Docker network
+- Prometheus: `http://pvad-prometheus:9090/-/ready` inside the Docker network
+- PostgreSQL Exporter: `http://pvad-postgres-exporter:9187/metrics` inside the Docker network
+- cAdvisor: `http://pvad-cadvisor:8080/healthz` inside the Docker network
+- Loki: `http://pvad-loki:3100/ready` inside the Docker network
+- Tempo: `http://pvad-tempo:3200/ready` inside the Docker network
 
 Prometheus, Alertmanager, and Grafana use native Compose health checks. Collector exposes its
 health-check extension. Loki, Tempo, and Collector use minimal images without a shell or HTTP
@@ -79,32 +111,32 @@ The following environment variables override evaluation defaults:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `PXA_OPERATOR_PUBLIC_URL` | `http://localhost:3001` | Public operator-gateway URL |
-| `PXA_OPERATOR_SERVER_NAME` | `localhost` | Hostname accepted by the operator gateway |
-| `PXA_OPERATOR_API_UPSTREAM` | `http://host.docker.internal:5086` | Same-origin WebApi upstream |
-| `PXA_OPERATOR_UI_UPSTREAM` | `http://host.docker.internal:5177` | PXA.Admin upstream |
-| `VITE_PXA_OPERATOR_URL` | `https://operator.powerdoxautomation.com/` in production | Operator host used by the PXA.Admin dashboard link |
-| `PXA_OPERATOR_IDENTIFIER` | none | System Operator login used only by the smoke test |
-| `PXA_OPERATOR_PASSWORD` | none | System Operator password used only by the smoke test |
-| `PXA_METRIC_RETENTION` | `90d` | Prometheus retention |
-| `PXA_LOG_RETENTION` | `720h` | Loki retention |
-| `PXA_TRACE_RETENTION` | `336h` | Tempo retention |
-| `PXA_TRACE_SAMPLE_PERCENTAGE` | `10` | Successful trace sample percentage |
-| `PXA_ALERT_RETENTION` | `120h` | Alertmanager silence and notification-log retention |
-| `PXA_ALERTMANAGER_ROOT_URL` | `http://pxa-alertmanager:9093` | Internal Alertmanager URL |
+| `PVAD_OPERATOR_PUBLIC_URL` | `http://localhost:3001` | Public operator-gateway URL |
+| `PVAD_OPERATOR_SERVER_NAME` | `localhost` | Hostname accepted by the operator gateway |
+| `PVAD_OPERATOR_API_UPSTREAM` | `http://host.docker.internal:5086` | Same-origin WebApi upstream |
+| `PVAD_OPERATOR_UI_UPSTREAM` | `http://host.docker.internal:5177` | PVAD.Admin upstream |
+| `VITE_PVAD_OPERATOR_URL` | `https://operator.pvade.com/` in production (unverified deployment target) | Operator host used by the PVAD.Admin dashboard link |
+| `PVAD_OPERATOR_IDENTIFIER` | none | System Operator login used only by the smoke test |
+| `PVAD_OPERATOR_PASSWORD` | none | System Operator password used only by the smoke test |
+| `PVAD_METRIC_RETENTION` | `90d` | Prometheus retention |
+| `PVAD_LOG_RETENTION` | `720h` | Loki retention |
+| `PVAD_TRACE_RETENTION` | `336h` | Tempo retention |
+| `PVAD_TRACE_SAMPLE_PERCENTAGE` | `10` | Successful trace sample percentage |
+| `PVAD_ALERT_RETENTION` | `120h` | Alertmanager silence and notification-log retention |
+| `PVAD_ALERTMANAGER_ROOT_URL` | `http://pvad-alertmanager:9093` | Internal Alertmanager URL |
 
 For an On-Premise deployment, copy `onprem.env.example` to deployment-owned configuration and
 set measured retention, sampling, persistent storage paths, container resource limits, and the TLS
 target directory:
 
 ```bash
-docker compose --env-file /absolute/deployment/pxa-observability.env \
+node tools/configuration/pvad-compose.mjs --env-file /absolute/deployment/pvad-observability.env \
   --profile observability config --quiet
-docker compose --env-file /absolute/deployment/pxa-observability.env \
+node tools/configuration/pvad-compose.mjs --env-file /absolute/deployment/pvad-observability.env \
   --profile observability up -d
 ```
 
-Prometheus discovers HTTPS endpoints from JSON files in `PXA_TLS_TARGETS_PATH`. Copy
+Prometheus discovers HTTPS endpoints from JSON files in `PVAD_TLS_TARGETS_PATH`. Copy
 `prometheus/targets/tls-targets.json.example`, replace its synthetic targets, and keep the directory
 deployment-owned. The Blackbox Exporter checks availability and certificate expiry. Alerts fire
 when a certificate has fewer than 14 days remaining or an HTTPS probe is unavailable.
@@ -116,7 +148,7 @@ control. The shared compatibility rules are defined in `DEPLOYMENT-CONTRACT.md`.
 
 ## Logging And Privacy
 
-PXA.WebApi writes compact JSON console logs and uses the same privacy filter before OTLP export.
+PVAD.WebApi writes compact JSON console logs and uses the same privacy filter before OTLP export.
 Logs contain the UTC timestamp, severity, category, stable event ID, repository-controlled message
 template, W3C trace/span/parent identifiers, and service resource fields. Arbitrary scopes,
 baggage, formatted messages, exception messages and stack traces are not exported. Structured
@@ -127,7 +159,7 @@ removed. A message template containing a forbidden placeholder is suppressed com
 Production defaults to `Information`. Enabling `Debug` or `Trace` outside Development requires
 both `Observability__AllowTemporaryDebugLogging=true` and an absolute
 `Observability__DebugLoggingExpiresAtUtc` no more than 24 hours in the future. When the window
-expires, PXA.WebApi stops so the deployment can restart it with its normal production
+expires, PVAD.WebApi stops so the deployment can restart it with its normal production
 configuration. Do not use temporary debug logging to inspect document content or customer data.
 
 Technical telemetry is not business audit evidence. Business audit events remain in PostgreSQL.
@@ -162,10 +194,10 @@ firing email, restarts the dependency, and verifies recovery plus the resolved e
 restores a stopped container after interruption or failure. Individual scenarios can be run with
 `collector` or `postgresql`. Never run this script against production.
 
-PXA.WebApi is currently started as a host process rather than an observability-profile container.
-The script accepts a `webapi` scenario when `PXA_WEBAPI_CONTAINER` identifies the Compose-managed
-PXA.Api container. The API Compose override adds the instance-specific
-`PxaWebApiContainerTelemetryMissing` rule so another development WebApi process cannot mask the
+PVAD.WebApi is currently started as a host process rather than an observability-profile container.
+The script accepts a `webapi` scenario when `PVAD_WEBAPI_CONTAINER` identifies the Compose-managed
+PVAD.Api container. The API Compose override adds the instance-specific
+`PvadWebApiContainerTelemetryMissing` rule so another development WebApi process cannot mask the
 container outage.
 
 OCR workers are isolated per-operation processes. A bounded injection is available only in
@@ -174,10 +206,10 @@ Development and Testing:
 ```bash
 Observability__EnableOcrFailureInjection=true \
 Observability__OcrFailureInjectionCount=4 \
-  dotnet run --project PXA.WebApi/PXA.WebApi.csproj
+  dotnet run --project PVAD.WebApi/PVAD.WebApi.csproj
 
-PXA_OCR_FAILURE_INJECTION_CONFIRMED=1 \
-PXA_OCR_TEST_IMAGE=/absolute/path/to/synthetic-image.png \
+PVAD_OCR_FAILURE_INJECTION_CONFIRMED=1 \
+PVAD_OCR_TEST_IMAGE=/absolute/path/to/synthetic-image.png \
   deploy/observability/ocr-failure-recovery-smoke-test.sh
 ```
 
@@ -192,9 +224,9 @@ inside the copied email template with the protected deployment URL. Store the SM
 root-readable file outside the repository, then start Compose with the production override:
 
 ```bash
-PXA_ALERTMANAGER_CONFIG_FILE=/absolute/deployment/alertmanager.yml \
-PXA_ALERTMANAGER_TEMPLATES_DIR=/absolute/deployment/templates \
-PXA_ALERTMANAGER_SMTP_PASSWORD_FILE=/absolute/secrets/alertmanager-smtp-password \
+PVAD_ALERTMANAGER_CONFIG_FILE=/absolute/deployment/alertmanager.yml \
+PVAD_ALERTMANAGER_TEMPLATES_DIR=/absolute/deployment/templates \
+PVAD_ALERTMANAGER_SMTP_PASSWORD_FILE=/absolute/secrets/alertmanager-smtp-password \
 docker compose \
   -f docker-compose.yml \
   -f deploy/observability/docker-compose.alerting-production.yml \
@@ -202,7 +234,7 @@ docker compose \
 ```
 
 The override mounts the password as
-`/run/secrets/pxa_alertmanager_smtp_password`; Alertmanager reads it through
+`/run/secrets/pvad_alertmanager_smtp_password`; Alertmanager reads it through
 `smtp_auth_password_file`. Never put the password in YAML, environment variables, images, email
 templates, or source control. Production SMTP must require TLS.
 
@@ -211,8 +243,8 @@ deployment file and set one fixed, non-loopback HTTPS destination. Start the pro
 and relay overrides together:
 
 ```bash
-PXA_ALERT_WEBHOOK_URL=https://operator-webhook.example.test/pxa-alerts \
-PXA_ALERT_WEBHOOK_SIGNING_KEY_FILE=/absolute/secrets/pxa-alert-webhook-key \
+PVAD_ALERT_WEBHOOK_URL=https://operator-webhook.example.test/pvad-alerts \
+PVAD_ALERT_WEBHOOK_SIGNING_KEY_FILE=/absolute/secrets/pvad-alert-webhook-key \
 docker compose \
   -f docker-compose.yml \
   -f deploy/observability/docker-compose.alerting-production.yml \
@@ -233,9 +265,9 @@ Retention is a deployment acceptance test, not a short unit test. Seed synthetic
 trace markers, wait for the configured retention and compaction boundary, then run:
 
 ```bash
-PXA_RETENTION_METRIC_QUERY='pxa_retention_marker{marker="expired"}' \
-PXA_RETENTION_LOG_QUERY='{service_name="pxa-retention-marker"}' \
-PXA_RETENTION_TRACE_ID=00000000000000000000000000000001 \
+PVAD_RETENTION_METRIC_QUERY='pvad_retention_marker{marker="expired"}' \
+PVAD_RETENTION_LOG_QUERY='{service_name="pvad-retention-marker"}' \
+PVAD_RETENTION_TRACE_ID=00000000000000000000000000000001 \
   deploy/observability/retention-verification.sh
 ```
 
@@ -248,21 +280,25 @@ For an accelerated, isolated storage acceptance test, run:
 deploy/observability/retention-runtime-test.sh
 ```
 
-The script uses dedicated temporary volumes. It proves each synthetic marker is queryable before
+The script uses a per-run `pvad-retention-test-<timestamp>-<pid>` project and
+dedicated temporary volumes. Its local ports are fixed, so run only one instance
+at a time. If failed resources are retained, record the project name before
+manual cleanup; never clean up another installed stack.
+It proves each synthetic marker is queryable before
 aging it beyond the supported test retention boundary, then requires Prometheus and Loki to return
 zero results and Tempo to return `404`. It removes only its own containers and volumes.
 
-Compare the same PXA.WebApi build with observability disabled and enabled:
+Compare the same PVAD.WebApi build with observability disabled and enabled:
 
 ```bash
-PXA_BASELINE_API_URL=http://127.0.0.1:5091 \
-PXA_INSTRUMENTED_API_URL=http://127.0.0.1:5092 \
-PXA_PERFORMANCE_REQUEST_FILE=deploy/observability/performance-request.json \
-PXA_BASELINE_API_PID=1234 \
-PXA_INSTRUMENTED_API_PID=1235 \
-PXA_PERFORMANCE_EXPORT_FORMAT=pdf \
-PXA_PERFORMANCE_PAGE_COPIES=20 \
-PXA_PERFORMANCE_ITERATIONS=300 \
+PVAD_BASELINE_API_URL=http://127.0.0.1:5091 \
+PVAD_INSTRUMENTED_API_URL=http://127.0.0.1:5092 \
+PVAD_PERFORMANCE_REQUEST_FILE=deploy/observability/performance-request.json \
+PVAD_BASELINE_API_PID=1234 \
+PVAD_INSTRUMENTED_API_PID=1235 \
+PVAD_PERFORMANCE_EXPORT_FORMAT=pdf \
+PVAD_PERFORMANCE_PAGE_COPIES=20 \
+PVAD_PERFORMANCE_ITERATIONS=300 \
   deploy/observability/performance-overhead-test.sh
 ```
 
@@ -290,9 +326,9 @@ orchestrators should use their native node-monitoring deployment model. The loca
 profile are intended for development and evaluation only.
 
 The operator gateway must terminate TLS in production or sit behind a trusted TLS terminator.
-Never expose port `3000` from `pxa-grafana`, weaken the Auth Proxy source whitelist, forward browser
-`Authorization` or `X-WEBAUTH-*` headers to Grafana, or configure a parent-domain PXA session
-cookie. PXA sessions remain host-only.
+Never expose port `3000` from `pvad-grafana`, weaken the Auth Proxy source whitelist, forward browser
+`Authorization` or `X-WEBAUTH-*` headers to Grafana, or configure a parent-domain PVAD session
+cookie. PVAD sessions remain host-only.
 
 ## Stop
 

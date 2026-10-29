@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pades-negative-trust-validation",
+  "impact": "patch",
+  "components": [
+    "documentation",
+    "importer"
+  ],
+  "category": "fixed",
+  "summary": "PVAD now rejects expired signer certificates without a trusted timestamp and publishes independently classified PAdES failure evidence for revoked, untrusted, offline, and tampered signatures.",
+  "documentation": [
+    "/downloads/pdf-trust/pades/negative/"
+  ],
+  "breaking": false
+}

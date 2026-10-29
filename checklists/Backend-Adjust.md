@@ -1,5 +1,7 @@
 # Backend-Adjust Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Analysis of gaps between the frontend UI designer and the backend PDF renderer (`DesignJsonMapper.cs`).
 All fixes go in `PXA.WebApi/Infrastructure/DesignJsonMapper.cs` unless stated otherwise.
 

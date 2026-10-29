@@ -1,0 +1,13 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "word-table-pdf-fidelity",
+  "impact": "patch",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "fixed",
+  "summary": "Word exports now preserve Designer table height and vertical alignment more closely when compared with PDF output.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-historical-release-validation",
+  "impact": "patch",
+  "components": ["infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Release validation accepts historical and current manifest filenames while rejecting ambiguous checkouts. CI artifacts use PVAD names and container checks validate version, commit and build time without changing registry destinations.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

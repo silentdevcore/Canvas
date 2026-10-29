@@ -1,5 +1,7 @@
 # Spreadsheet Polish — remaining follow-ups
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Closes the loose ends after the backend engine + migration suite + Workbook JSON: validation/versioning,
 deeper migration fidelity, and surfacing the now-lossless advanced features in the editor UI. Builds on
 `Spreadsheet-Backend-Engine.md`, `Spreadsheet-Migration.md`. Phase-by-phase, commit each.

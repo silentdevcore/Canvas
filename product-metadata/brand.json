@@ -1,0 +1,10 @@
+{
+  "technicalName": "PVAD",
+  "displayName": "PVADE",
+  "fullName": "Platform for Visualization & Automation of Documents - Engine",
+  "claim": "Create. Visualize. Automate.",
+  "products": {
+    "pdf": "PVADP",
+    "spreadsheet": "PVADS"
+  }
+}

@@ -1,5 +1,7 @@
 # Importer Project Refactoring Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Scope: split every file-format importer into its own self-contained project, following the `PXA.Migration.*` pattern. Each importer gets a dedicated `src/Importing/PXA.FileImporter.<Format>/` project and a corresponding `tests/PXA.FileImporter.<Format>.Tests/` project.
 
 ---

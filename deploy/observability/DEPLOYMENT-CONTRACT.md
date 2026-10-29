@@ -1,12 +1,12 @@
-# PXA Observability Deployment Contract
+# PVAD Observability Deployment Contract
 
-PXA uses one instrumentation and telemetry contract in local, On-Premise, and Cloud deployments.
+PVAD uses one instrumentation and telemetry contract in local, On-Premise, and Cloud deployments.
 Deployment variants may change storage and exposure, but they must not change telemetry names,
 privacy filtering, trace propagation, dashboards, alert semantics, or application availability.
 
 ## Shared Application Contract
 
-- PXA applications emit OTLP logs, metrics, and traces through the OpenTelemetry Collector.
+- PVAD applications emit OTLP logs, metrics, and traces through the OpenTelemetry Collector.
 - The OTLP endpoint and export signals are configured through `Observability__*`.
 - W3C trace context crosses browser, WebApi, database, queue, mail, storage, and OCR boundaries.
 - Operational telemetry excludes customer identifiers, document data, request bodies, secrets,
@@ -46,6 +46,10 @@ secret before sending it to one fixed, non-loopback HTTPS destination.
 - New application telemetry must work with the existing Collector pipeline before release.
 - Changes to metric names, labels, alert names, dashboard UIDs, or runbook IDs are compatibility
   changes and require migration notes.
+  The [monitoring identity migration](../../docs/pvad-monitoring-identity-migration.md)
+  covers canonical scrape jobs and service labels, dual-generation query support,
+  silence/fingerprint effects and coordinated configuration rollback. Dashboard,
+  datasource and runbook IDs remain stable.
 - Environment-specific storage configuration must not be embedded in application code.
 - Production configurations must not expose Prometheus, Loki, Tempo, Alertmanager, or Grafana
   directly to public networks.

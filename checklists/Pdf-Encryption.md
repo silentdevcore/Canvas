@@ -1,6 +1,32 @@
 # PXA.Pdf Encryption (Password Protection & Permissions)
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Status
+
+> Legacy milestone record. The current implementation supersedes the V1 decisions below:
+> new encrypted Generator, Designer, and WebApi output defaults to PDF 2.0 AES-256 revision 6;
+> `Rc4_128` is an explicit legacy option, AES-128 is an interoperability bridge, and X.509
+> recipient encryption is available through `PdfCertificateEncryptionOptions`. See
+> `PVAD.PDF-AES256-Security-Handler.md` for the current security contract.
+
+Current delivered coverage:
+
+- [x] AES-256 revision 6 is the default for new encrypted production PDFs.
+- [x] AES-128 and RC4-128 remain explicit interoperability and legacy options.
+- [x] Existing AES-256, AES-128, and RC4 documents can be opened through the importer
+      with user/owner authentication and permission inspection.
+- [x] Wrong passwords, tampered permission blocks, Unicode passwords, all supported
+      permission combinations, encrypted metadata, object streams, replacement
+      encryption, and signed-document safety are covered by automated tests.
+- [x] X.509 recipient encryption is available as a separate public-key profile.
+- [x] The repeatable open-source interoperability matrix passes Unicode user/owner,
+      wrong-password, metadata, and extraction checks with qpdf and Poppler (`7/7`).
+- [ ] Complete the wider external reader/writer interoperability matrix before a
+      production support claim is expanded beyond the documented qpdf baseline.
+
+Everything below this point is retained as the historical V1 implementation record.
+Its RC4-first scope and deferred AES decisions no longer describe the current product.
 
 **V1 shipped (RC4-128).** `PdfSaveOptions.Encryption` encrypts strings and streams with the Standard
 Security Handler (`/V 2 /R 3`). Verified end-to-end: PdfPig opens the output with the password and
@@ -8,7 +34,7 @@ recovers the text. **AES-128 (`/V 4 /R 4`) is deferred to V2** — RC4 was chose
 stream cipher, it preserves byte length and avoids rewriting every `/Length` in the already-serialized
 object bodies. The handler is structured so AES slots in as an additional mode.
 
-## Goal
+## Historical V1 Goal
 
 Add document encryption to `PXA.Pdf` so generated PDFs can be password-protected with owner/user
 passwords and permission flags — the clearest functional gap versus DevExpress PDF
@@ -88,7 +114,7 @@ opaque strings, this is the most invasive part.
 - [x] `Rc4` round-trip and known-answer vector.
 - [x] `StandardSecurityHandler` `/O`, `/U`, file-key against PDF-spec known answers.
 - [x] Save with user password → file has `/Encrypt`, `/ID`; strings/streams are not plaintext-readable.
-- [ ] Save with AES-128 vs RC4-128 → correct `/V`/`/R`/`/CF` values.
+- [x] Save with AES-128 vs RC4-128 → correct `/V`/`/R`/`/CF` values.
 - [x] Permission flags serialize to the correct signed `/P` bit pattern.
 - [x] **Interop:** open an encrypted output with an existing reader (e.g. PdfPig / qpdf) using the
       password to confirm real-world decryptability — the key correctness gate.
@@ -110,6 +136,6 @@ opaque strings, this is the most invasive part.
 
 ## V2 follow-ups
 
-- [ ] AES-128 (`/V 4 /R 4`, `/AESV2`): per-object AES-CBC with random IV, `/CF` crypt filter, and
+- [x] AES-128 (`/V 4 /R 4`, `/AESV2`): per-object AES-CBC with random IV, `/CF` crypt filter, and
       `/Length` rewrite for the IV+padding growth.
 - [ ] Full DevExpress encryption auto-rewrite (see migration wire-back above).

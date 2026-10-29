@@ -1,7 +1,7 @@
-# PXA PDF C# Cookbook
+# PVAD PDF C# Cookbook
 
-Task-oriented recipes for the imperative PXA PDF API. Every snippet is self-contained — add
-`using PXA.Pdf;` plus `using PXA.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
+Task-oriented recipes for the imperative PVAD PDF API. Every snippet is self-contained — add
+`using PVAD.Pdf;` plus `using PVAD.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
 call `ToBytes()` to get the PDF bytes.
 
 > **Coordinates** are in points (1/72"). The origin is the **bottom-left** of the page; `x` increases to
@@ -11,12 +11,12 @@ call `ToBytes()` to get the PDF bytes.
 ## Getting started
 
 ```csharp
-using PXA.Pdf;
-using PXA.Generator;
+using PVAD.Pdf;
+using PVAD.Generator;
 
 var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";
-document.Info.Author = "Power Dox Automation";
+document.Info.Author = "PVADE";
 
 var page = document.AddPage();                 // A4 portrait by default
 page.DrawText("Hello world", x: 40, y: 800, fontSize: 18);
@@ -153,16 +153,36 @@ var tocPages = document.AddTableOfContents(new PdfTableOfContentsOptions { /* ti
 
 ## Encryption
 
+AES-256 is the default and recommended password-security profile for new documents:
+
 ```csharp
 var bytes = document.ToBytes(new PdfSaveOptions {
     Encryption = new PdfEncryptionOptions {
         UserPassword = "open-me",
         OwnerPassword = "owner",
-        Algorithm = PdfEncryptionAlgorithm.Aes128,
+        Algorithm = PdfEncryptionAlgorithm.Aes256,
         Permissions = PdfPermissions.Print,
     },
 });
 ```
+
+Use `PdfEncryptionAlgorithm.Aes128` only as a compatibility bridge for older PDF readers.
+`PdfEncryptionAlgorithm.Rc4_128` is the explicit legacy option and should not be selected for
+new workflows.
+
+To encrypt for one or more X.509 recipients instead of using passwords:
+
+```csharp
+var bytes = document.ToBytes(new PdfSaveOptions {
+    CertificateEncryption = new PdfCertificateEncryptionOptions {
+        Recipients = [recipientCertificate],
+        Permissions = PdfPermissions.Print,
+    },
+});
+```
+
+The matching private key is required to open a certificate-encrypted PDF. Password and certificate
+encryption are mutually exclusive.
 
 ## Metadata
 
@@ -176,5 +196,5 @@ document.Info.CustomProperties["Department"] = "Finance";
 
 ---
 
-See the [API Reference](api/) for every type, overload, and option. A complete runnable program lives in
-`samples/PXA.Demo/Program.cs`.
+See the [API Reference](xref:PVAD.Pdf) for every type, overload, and option. A complete runnable program lives in
+`samples/PVAD.Demo/Program.cs`.

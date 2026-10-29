@@ -1,4 +1,4 @@
-name: Open PXA Stable Release Pull Request
+name: Open PVADE Stable Release Pull Request
 
 on:
   pull_request:
@@ -32,14 +32,14 @@ jobs:
             BASE_VERSION="$(git tag --merged origin/main --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
           fi
           if [ -z "$BASE_VERSION" ]; then
-            echo "No stable PXA version exists on main."
+            echo "No stable PVADE version exists on main."
             exit 1
           fi
-          node tools/versioning/pxa-version.mjs validate-next --base "$BASE_VERSION"
-          IMPACT="$(node tools/versioning/pxa-version.mjs release-impact --base "$BASE_VERSION")"
+          node tools/versioning/pvad-version.mjs validate-next --base "$BASE_VERSION"
+          IMPACT="$(node tools/versioning/pvad-version.mjs release-impact --base "$BASE_VERSION")"
           echo "impact=$IMPACT" >> "$GITHUB_OUTPUT"
           echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
-          node tools/versioning/pxa-version.mjs notes > /tmp/pxa-release-notes.md
+          node tools/versioning/pvad-version.mjs notes > /tmp/pvad-release-notes.md
       - name: Open stable release pull request
         env:
           GH_TOKEN: ${{ github.token }}
@@ -47,17 +47,17 @@ jobs:
           IMPACT: ${{ steps.release.outputs.impact }}
         run: |
           {
-            printf 'Publishes the reviewed PXA %s release.\n\n' "$VERSION"
-            cat /tmp/pxa-release-notes.md
-          } > /tmp/pxa-stable-pr.md
+            printf 'Publishes the reviewed PVADE %s release.\n\n' "$VERSION"
+            cat /tmp/pvad-release-notes.md
+          } > /tmp/pvad-stable-pr.md
           EXISTING="$(gh pr list --base main --head develop --state open --json number --jq '.[0].number // empty')"
           if [ -n "$EXISTING" ]; then
             for LABEL in $(gh pr view "$EXISTING" --json labels --jq '.labels[].name | select(startswith("release:"))'); do
               gh pr edit "$EXISTING" --remove-label "$LABEL"
             done
             gh pr edit "$EXISTING" \
-              --title "Release PXA $VERSION" \
-              --body-file /tmp/pxa-stable-pr.md \
+              --title "Release PVADE $VERSION" \
+              --body-file /tmp/pvad-stable-pr.md \
               --add-label "release:$IMPACT"
             echo "Updated stable release pull request #$EXISTING."
             exit 0
@@ -65,6 +65,6 @@ jobs:
           gh pr create \
             --base main \
             --head develop \
-            --title "Release PXA $VERSION" \
+            --title "Release PVADE $VERSION" \
             --label "release:$IMPACT" \
-            --body-file /tmp/pxa-stable-pr.md
+            --body-file /tmp/pvad-stable-pr.md

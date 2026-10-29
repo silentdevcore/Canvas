@@ -32,8 +32,8 @@ export function verifyCredentials(config, state) {
 }
 
 function directory() {
-  const path = process.env.PXA_REGISTRY_SMOKE_DIR;
-  assert.ok(path, 'PXA_REGISTRY_SMOKE_DIR is required');
+  const path = process.env.PVAD_REGISTRY_SMOKE_DIR;
+  assert.ok(path, 'PVAD_REGISTRY_SMOKE_DIR is required');
   const result = resolve(path);
   assert.equal(resolve(process.env.DOCKER_CONFIG ?? ''), join(result, 'docker'),
     'DOCKER_CONFIG must be isolated inside the synthetic directory');

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "product": "PXA Designer",
+  "product": "PVADE Designer",
   "features": [
     {
       "id": "designer.release-notes",
@@ -50,6 +50,58 @@
       "defaultEnabled": true,
       "requiredEntitlement": "designer",
       "documentationPath": "/#pdf-viewer-details"
+    },
+    {
+      "id": "designer.e-invoice",
+      "titleKey": "features.eInvoice.title",
+      "descriptionKey": "features.eInvoice.description",
+      "fallbackTitle": "Electronic invoicing",
+      "fallbackDescription": "Build Factur-X, ZUGFeRD, and XRechnung invoices, generate the XML, and create a PDF/A-3 hybrid invoice.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "generator",
+      "documentationPath": "/#electronic-invoicing-details"
+    },
+    {
+      "id": "designer.pdf-chart-recognition",
+      "titleKey": "features.pdfChartRecognition.title",
+      "descriptionKey": "features.pdfChartRecognition.description",
+      "fallbackTitle": "PDF chart recognition",
+      "fallbackDescription": "Recover supported PDF charts as editable Designer elements with confidence-based review.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#pdf-chart-recognition"
+    },
+    {
+      "id": "designer.nutrient-viewer-migration",
+      "titleKey": "features.nutrientViewerMigration.title",
+      "descriptionKey": "features.nutrientViewerMigration.description",
+      "fallbackTitle": "Nutrient Viewer migration",
+      "fallbackDescription": "Convert Nutrient and PSPDFKit Viewer integrations and Instant JSON into reviewable PVAD Viewer artifacts.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#nutrient-viewer-migration"
+    },
+    {
+      "id": "designer.code-workspace",
+      "titleKey": "features.codeWorkspace.title",
+      "descriptionKey": "features.codeWorkspace.description",
+      "fallbackTitle": "Code workspace",
+      "fallbackDescription": "Convert, validate, and safely execute JSON, C# model, and PVAD PDF code alongside the visual Designer.",
+      "maturity": "beta",
+      "introducedIn": "1.1.0",
+      "newUntilVersion": "1.2.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#code-workspace"
     },
     {
       "id": "designer.spreadsheet",

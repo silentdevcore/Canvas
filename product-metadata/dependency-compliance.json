@@ -14,7 +14,7 @@
     },
     "npmDevelopment": {
       "scope": "production-and-development",
-      "workspaces": ["pxa-designer", "websites/PXA.Admin"],
+      "workspaces": ["pvad-designer", "websites/PVAD.Admin"],
       "maximumAllowedSeverity": "moderate",
       "ciGate": true
     }

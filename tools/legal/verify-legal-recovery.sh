@@ -2,6 +2,10 @@
 
 set -eu
 
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_DATABASE_URL PXA_DATABASE_URL "${PVAD_DATABASE_URL+x}" "${PVAD_DATABASE_URL-}" "${PXA_DATABASE_URL+x}" "${PXA_DATABASE_URL-}"
+pvad_environment_alias PVAD_DATABASE_URL_FILE PXA_DATABASE_URL_FILE "${PVAD_DATABASE_URL_FILE+x}" "${PVAD_DATABASE_URL_FILE-}" "${PXA_DATABASE_URL_FILE+x}" "${PXA_DATABASE_URL_FILE-}"
+
 script_directory=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$script_directory/postgres-common.sh"
 
@@ -9,7 +13,7 @@ load_database_url
 require_command psql
 
 query() {
-  psql "$PXA_DATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -c "$1"
+  psql "$PVAD_DATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -c "$1"
 }
 
 for relation in \

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.Aspose/PVAD.Migration.Spreadsheet.Code.Aspose.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.ClosedXml/PVAD.Migration.Spreadsheet.Code.ClosedXml.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.Epplus/PVAD.Migration.Spreadsheet.Code.Epplus.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.GemBox/PVAD.Migration.Spreadsheet.Code.GemBox.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.Npoi/PVAD.Migration.Spreadsheet.Code.Npoi.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.Spire/PVAD.Migration.Spreadsheet.Code.Spire.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.SpreadsheetLight/PVAD.Migration.Spreadsheet.Code.SpreadsheetLight.csproj" />
+    <ProjectReference Include="../PVAD.Migration.Spreadsheet.Code.Syncfusion/PVAD.Migration.Spreadsheet.Code.Syncfusion.csproj" />
+    <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+. /etc/pvad/environment.sh
+pvad_environment_keys PVAD_OPERATOR_SERVER_NAME PVAD_OPERATOR_API_UPSTREAM PVAD_OPERATOR_UI_UPSTREAM
+printf '%s' "${PVAD_OPERATOR_SERVER_NAME-}" | LC_ALL=C grep -Eq '^[A-Za-z0-9._-]+$' || {
+    echo 'Invalid configuration key: PVAD_OPERATOR_SERVER_NAME.' >&2; exit 1;
+}
+for pvad_name in PVAD_OPERATOR_API_UPSTREAM PVAD_OPERATOR_UI_UPSTREAM; do
+    eval 'pvad_value="${'"$pvad_name"'-}"'
+    printf '%s' "$pvad_value" | LC_ALL=C grep -Eq '^https?://[A-Za-z0-9._:-]+/?$' || {
+        printf 'Invalid configuration key: %s.\n' "$pvad_name" >&2; exit 1;
+    }
+done

@@ -1,8 +1,18 @@
 # Documentation Audit
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Goal
 
-Keep the documentation set coherent as PXA grows across PDF generation, importers, migrations, report conversion, and the `pxa-designer` frontend.
+Keep the documentation set coherent as PVADE grows across PDF generation, importers, migrations, report conversion, and the `pvad-designer` frontend. Technical projects and namespaces use PVAD.
+
+## Current Rename Follow-up
+
+Public PDF Trust page/guide headings use PVADE. Current examples use proposed
+PVADE URLs with an explicit deployment disclaimer; retained runtime host defaults
+are documented separately. Signed PDFs, reports, manifest hashes, legacy schema
+identities and historical task status remain unchanged. Documentation build and
+browser validation for this naming-only follow-up are deferred by the owner.
 
 ## Source Of Truth Rules
 
@@ -13,16 +23,17 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 | Compact inventory of projects, endpoints, and tests | `PROJECT_SUMMARY.md` |
 | Extension patterns | `CONTRIBUTING_RENDERERS.md` |
 | Test matrix and commands | `TESTING.md` |
-| PDF engine API | `PXA/TECHNICAL_DOCUMENTATION.md`, `PXA/README.md` |
+| PDF engine API | XML comments under `src/Generation/PVAD.Pdf`; generated-reference entry `docs/api/index.md` |
 | Feature/milestone history | `checklists/*.md` |
-| Multi-language UI behavior | `pxa-designer/MULTILANGUAGE.md`, `checklists/multi-languages.md` |
-| **Element definitions (props, format support, examples)** | `pxa-designer/src/docs/elementCatalog.ts` (drives DocsPage, HelpModal, llms-full, schema enum, MCP) |
+| Multi-language UI behavior | `pvad-designer/MULTILANGUAGE.md`, `checklists/multi-languages.md` |
+| **Element definitions (props, format support, examples)** | `pvad-designer/src/docs/elementCatalog.ts` (drives DocsPage, HelpModal, llms-full, schema enum, MCP) |
 | **Design JSON contract for validation** | `docs/schema/design-export.schema.json` |
-| **AI/agent capability reference** | `llms.txt`, `llms-full.txt`, and the `tools/PXA.Mcp` MCP server |
-| **C# `PXA.Pdf` API reference + recipes** | XML doc comments + DocFX (`docs/docfx.json`), `docs/csharp-cookbook.md` |
+| **AI/agent capability reference** | `llms.txt`, `llms-full.txt`, and the `tools/PVAD.Mcp` MCP server |
+| **C# `PVAD.Pdf` API reference + recipes** | XML doc comments + DocFX (`docs/docfx.json`), `docs/csharp-cookbook.md` |
 | **Documentation strategy** | `docs/Documentation-Approach.md` |
-| **PXA.Admin customer and integration guidance** | Protected `/documentation` route in `websites/PXA.Admin`; content served by the authorized Admin documentation API |
-| **Restricted PXA.Admin operations** | Protected deployment sourced from `operator-docs/PXA.Admin-Operations.md` |
+| **PVAD.Admin customer and integration guidance** | Protected `/documentation` route in `websites/PVAD.Admin`; content served by the authorized Admin documentation API |
+| **Restricted PVADE Admin operations** | Protected deployment sourced from `operator-docs/PVAD.Admin-Operations.md` |
+| **Public PDF Trust guidance** | `PVAD.Documentation` PDF Trust, PDF/A, PDF/UA, and Viewer topics; implementation boundaries in `docs/architecture/existing-pdf-boundaries.md` |
 
 ## Completed In This Audit
 
@@ -34,9 +45,11 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 - [x] **[high]** Expand `CONTRIBUTING_RENDERERS.md` into renderers, importers, migrations, report converters, and document operations.
 - [x] **[high]** Expand `TESTING.md` with file importer, PDF importer, image analysis/OCR, migration, report migration, and frontend test groups.
 - [x] **[medium]** Link `PXA/README.md` and `PXA/TECHNICAL_DOCUMENTATION.md` to PDF encryption and provider feature-gap roadmaps.
-- [x] **[medium]** Add `checklists/PxaPdf-Provider-Feature-Gaps.md`.
+- [x] **[medium]** Add `checklists/PvadPdf-Provider-Feature-Gaps.md`.
 - [x] **[high]** Add complete protected PXA.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PXA.Admin`.
 - [x] **[high]** Exclude Admin handbook content and operator guidance from the public Documentation build and navigation.
+- [x] **[high]** Add public PDF Trust paths for Generator, Viewer, Migration, API, and troubleshooting, with synthetic screenshots and downloadable validation evidence.
+- [x] **[high]** Document the exact ownership boundary between existing-PDF parsing/mutation, application rendering, and new-PDF generation.
 
 ## Follow-Up Audit Items
 
@@ -47,7 +60,7 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 - [ ] **[medium]** Review `handoff.md` and decide whether it is still an active handoff document or should be archived.
 - [ ] **[low]** Add a short `checklists/README.md` index if checklist count keeps growing.
 - [ ] **[low]** Add a generated docs/link check script if broken links become recurring.
-- [ ] **[medium]** Deploy `operator-docs/PXA.Admin-Operations.md` through a separately authenticated operator documentation pipeline.
+- [ ] **[medium]** Deploy `operator-docs/PVAD.Admin-Operations.md` through a separately authenticated operator documentation pipeline.
 
 ## Documentation Change Checklist
 

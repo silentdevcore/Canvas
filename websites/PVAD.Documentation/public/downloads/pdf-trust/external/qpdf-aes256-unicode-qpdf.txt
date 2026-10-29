@@ -1,0 +1,37 @@
+checking /crypto/qpdf-aes256-unicode.pdf
+PDF Version: 1.7 extension level 8
+R = 6
+P = -1324
+User password = PXA-reader-ä漢字
+Supplied password is user password
+extract for accessibility: allowed
+extract for any purpose: allowed
+print low resolution: allowed
+print high resolution: allowed
+modify document assembly: not allowed
+modify forms: not allowed
+modify annotations: not allowed
+modify other: not allowed
+modify anything: not allowed
+stream encryption method: AESv3
+string encryption method: AESv3
+file encryption method: AESv3
+File is not linearized
+No syntax or stream encoding errors found; the file may still contain
+errors that qpdf cannot detect
+R = 6
+P = -1324
+User password =
+Supplied password is owner password
+extract for accessibility: allowed
+extract for any purpose: allowed
+print low resolution: allowed
+print high resolution: allowed
+modify document assembly: not allowed
+modify forms: not allowed
+modify annotations: not allowed
+modify other: not allowed
+modify anything: not allowed
+stream encryption method: AESv3
+string encryption method: AESv3
+file encryption method: AESv3

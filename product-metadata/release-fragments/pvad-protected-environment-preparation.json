@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-protected-environment-preparation",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Add offline comparisons for protected environment rename preparation.",
+  "breaking": false,
+  "reason": "Internal operator tooling only; active workflows, publishers and deployed environments are unchanged."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "pvad-approved-mail-sender",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Align the default transactional sender with the approved brand and keep support contact configuration separate without enabling mail delivery.",
+  "breaking": false
+}

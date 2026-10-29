@@ -1,4 +1,4 @@
-name: PXA Stable Release
+name: PVAD Stable Release
 
 on:
   push:
@@ -9,8 +9,13 @@ permissions:
   packages: write
 
 concurrency:
-  group: pxa-stable-release
+  # Canonical lock: drain legacy runs before activating on protected branches.
+  # See docs/pvad-rename-release-approvals.md#workflow-lock-cutover.
+  group: pvad-stable-release
   cancel-in-progress: false
+
+env:
+  PVAD_CONTAINER_PUBLISHER: silentdevcore
 
 jobs:
   release:
@@ -25,12 +30,21 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - name: Require approved container publisher
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          OWNER="$(printf '%s' "$REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          if [ "$OWNER" != "$PVAD_CONTAINER_PUBLISHER" ]; then
+            echo "Container publication requires the approved repository owner." >&2
+            exit 1
+          fi
       - name: Validate immutable release version
         id: version
         run: |
-          node --test tools/versioning/pxa-version.test.mjs
-          node --test tools/versioning/pxa-build-consistency.test.mjs
-          node tools/versioning/pxa-version.mjs check
+          node --test tools/versioning/pvad-version.test.mjs
+          node --test tools/versioning/pvad-build-consistency.test.mjs
+          node tools/versioning/pvad-version.mjs check
           VERSION="$(cat VERSION)"
           if git rev-parse --verify --quiet "refs/tags/v$VERSION"; then
             echo "Tag v$VERSION already exists. Published versions are immutable."
@@ -38,92 +52,95 @@ jobs:
           fi
           PREVIOUS="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
           if [ -z "$PREVIOUS" ]; then
-            echo "No previous stable PXA tag exists."
+            echo "No previous stable PVADE tag exists."
             exit 1
           fi
-          node tools/versioning/pxa-version.mjs validate-next --base "$PREVIOUS"
+          node tools/versioning/pvad-version.mjs validate-next --base "$PREVIOUS"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "minor=${VERSION%.*}" >> "$GITHUB_OUTPUT"
       - name: Build release artifacts
         env:
-          PXA_BUILD_COMMIT: ${{ github.sha }}
-          PXA_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
+          PVAD_BUILD_COMMIT: ${{ github.sha }}
+          PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
         run: |
-          dotnet restore PXA.WebApi/PXA.WebApi.csproj
-          dotnet publish PXA.WebApi/PXA.WebApi.csproj \
+          dotnet restore PVAD.WebApi/PVAD.WebApi.csproj
+          dotnet publish PVAD.WebApi/PVAD.WebApi.csproj \
             --configuration Release \
             --no-restore \
             --output artifacts/webapi \
             -p:SkipOcrWorkerPackaging=true \
-            -p:PxaBuildMetadata="${GITHUB_SHA::12}"
-          node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
-          npm ci --prefix pxa-designer
-          npm --prefix pxa-designer run build
-          npm ci --prefix websites/PXA.Admin
-          npm --prefix websites/PXA.Admin run build
-          for site in PXA.Account PXA.Company PXA.Demo PXA.Documentation; do
+            -p:PvadBuildMetadata="${GITHUB_SHA::12}"
+          node tools/versioning/pvad-build-consistency.mjs write artifacts/webapi
+          npm ci --prefix pvad-designer
+          npm --prefix pvad-designer run build
+          npm ci --prefix websites/PVAD.Admin
+          npm --prefix websites/PVAD.Admin run build
+          for site in PVAD.Account PVAD.Company PVAD.Demo PVAD.Documentation; do
             npm --prefix "websites/$site" run build
           done
-          tar -czf "artifacts/pxa-webapi-${{ steps.version.outputs.version }}.tar.gz" -C artifacts/webapi .
-          tar -czf "artifacts/pxa-designer-${{ steps.version.outputs.version }}.tar.gz" -C pxa-designer/dist .
-          for site in PXA.Account PXA.Admin PXA.Company PXA.Demo PXA.Documentation; do
+          tar -czf "artifacts/pvad-webapi-${{ steps.version.outputs.version }}.tar.gz" -C artifacts/webapi .
+          tar -czf "artifacts/pvad-designer-${{ steps.version.outputs.version }}.tar.gz" -C pvad-designer/dist .
+          for site in PVAD.Account PVAD.Admin PVAD.Company PVAD.Demo PVAD.Documentation; do
             name="$(printf '%s' "$site" | tr '[:upper:]' '[:lower:]' | tr '.' '-')"
             tar -czf "artifacts/$name-${{ steps.version.outputs.version }}.tar.gz" \
               -C "websites/$site/dist" .
           done
-          node tools/versioning/pxa-build-consistency.mjs verify \
+          node tools/versioning/pvad-build-consistency.mjs verify \
             artifacts/webapi \
-            pxa-designer/dist \
-            websites/PXA.Account/dist \
-            websites/PXA.Admin/dist \
-            websites/PXA.Company/dist \
-            websites/PXA.Demo/dist \
-            websites/PXA.Documentation/dist
-          node tools/versioning/pxa-version.mjs notes > artifacts/RELEASE_NOTES.md
+            pvad-designer/dist \
+            websites/PVAD.Account/dist \
+            websites/PVAD.Admin/dist \
+            websites/PVAD.Company/dist \
+            websites/PVAD.Demo/dist \
+            websites/PVAD.Documentation/dist
+          node tools/versioning/pvad-version.mjs notes > artifacts/RELEASE_NOTES.md
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Owner-selected namespace; registry access and release approval remain required.
       - name: Build and publish WebApi container
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: PXA.WebApi/Dockerfile
+          file: PVAD.WebApi/Dockerfile
           push: true
           build-args: |
-            PXA_VERSION=${{ steps.version.outputs.version }}
-            PXA_COMMIT=${{ github.sha }}
-            PXA_BUILD_TIME=${{ github.event.head_commit.timestamp }}
+            PVAD_VERSION=${{ steps.version.outputs.version }}
+            PVAD_COMMIT=${{ github.sha }}
+            PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.minor }}
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:latest
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.minor }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:latest
       - name: Verify published WebApi container version
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }}
-          node tools/versioning/pxa-build-consistency.mjs verify-container \
-            ghcr.io/${{ github.repository_owner }}/pxa-webapi:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }}
+          node tools/versioning/pvad-build-consistency.mjs verify-container-metadata \
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-webapi:${{ steps.version.outputs.version }} \
+            "${{ github.sha }}" "${{ github.event.head_commit.timestamp }}"
       - name: Build and publish observability relay container
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: src/Observability/PXA.Observability.WebhookRelay/Dockerfile
+          file: src/Observability/PVAD.Observability.WebhookRelay/Dockerfile
           push: true
           build-args: |
-            PXA_VERSION=${{ steps.version.outputs.version }}
-            PXA_COMMIT=${{ github.sha }}
-            PXA_BUILD_TIME=${{ github.event.head_commit.timestamp }}
+            PVAD_VERSION=${{ steps.version.outputs.version }}
+            PVAD_COMMIT=${{ github.sha }}
+            PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.minor }}
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:latest
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.minor }}
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:latest
       - name: Verify published observability relay container version
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }}
-          node tools/versioning/pxa-build-consistency.mjs verify-container \
-            ghcr.io/${{ github.repository_owner }}/pxa-observability-webhook-relay:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }}
+          node tools/versioning/pvad-build-consistency.mjs verify-container-metadata \
+            ghcr.io/${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-observability-webhook-relay:${{ steps.version.outputs.version }} \
+            "${{ github.sha }}" "${{ github.event.head_commit.timestamp }}"
       - name: Create immutable tag and GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -131,10 +148,10 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --annotate "v$VERSION" --message "PXA $VERSION"
+          git tag --annotate "v$VERSION" --message "PVADE $VERSION"
           git push origin "v$VERSION"
           gh release create "v$VERSION" \
-            artifacts/pxa-*-"$VERSION".tar.gz \
-            --title "PXA $VERSION" \
+            artifacts/pvad-*-"$VERSION".tar.gz \
+            --title "PVADE $VERSION" \
             --notes-file artifacts/RELEASE_NOTES.md \
             --verify-tag

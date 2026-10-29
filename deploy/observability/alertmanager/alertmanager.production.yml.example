@@ -5,7 +5,7 @@ global:
   smtp_from: alerts@example.invalid
   smtp_smarthost: smtp.example.invalid:587
   smtp_auth_username: replace-me
-  smtp_auth_password_file: /run/secrets/pxa_alertmanager_smtp_password
+  smtp_auth_password_file: /run/secrets/pvad_alertmanager_smtp_password
   smtp_require_tls: true
 
 templates:
@@ -21,17 +21,17 @@ route:
     - receiver: operator-email
       matchers:
         - severity="critical"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 30m
     - receiver: operator-email
       matchers:
         - severity="warning"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 2h
     - receiver: operator-email
       matchers:
         - severity="info"
-      mute_time_intervals: [pxa-maintenance-window]
+      mute_time_intervals: [pvad-maintenance-window]
       repeat_interval: 12h
 
 inhibit_rules:
@@ -42,7 +42,7 @@ inhibit_rules:
     equal: [service, environment]
 
 time_intervals:
-  - name: pxa-maintenance-window
+  - name: pvad-maintenance-window
     time_intervals:
       - weekdays: [saturday, sunday]
         times:
@@ -56,13 +56,13 @@ receivers:
       - to: operators@example.invalid
         send_resolved: true
         headers:
-          Subject: '{{ template "pxa.email.subject" . }}'
-        html: '{{ template "pxa.email.html" . }}'
-        text: '{{ template "pxa.email.text" . }}'
+          Subject: '{{ template "pvad.email.subject" . }}'
+        html: '{{ template "pvad.email.html" . }}'
+        text: '{{ template "pvad.email.text" . }}'
         threading:
           enabled: true
           thread_by_date: none
     webhook_configs:
-      - url: http://pxa-webhook-relay:8080/alerts
+      - url: http://pvad-webhook-relay:8080/alerts
         send_resolved: true
         max_alerts: 100

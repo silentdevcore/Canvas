@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "generated-code-viewer-parity",
+  "impact": "patch",
+  "components": [
+    "designer",
+    "documentation"
+  ],
+  "category": "fixed",
+  "summary": "Generated-code previews now preserve complete page layouts and document settings and never display stale C# results after source edits.",
+  "featureIds": [
+    "designer.code-workspace"
+  ],
+  "documentation": [
+    "/docs/code-designer-workspace.md"
+  ],
+  "breaking": false
+}

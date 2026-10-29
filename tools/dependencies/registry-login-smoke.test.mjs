@@ -37,7 +37,7 @@ test('loopback registry requires correct credentials and cannot publish images',
 });
 
 test('TLS registry is verified using only an explicitly supplied synthetic CA', async () => {
-  const path = await mkdtemp(join(tmpdir(), 'pxa-registry-tls-'));
+  const path = await mkdtemp(join(tmpdir(), 'pvad-registry-tls-'));
   let server;
   try {
     execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes',

@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-parser-malformed-input-hardening",
+  "impact": "patch",
+  "components": [
+    "importer",
+    "infrastructure"
+  ],
+  "category": "security",
+  "summary": "PDF parsing now rejects malformed delimiter sequences without stalling document inspection.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false,
+  "securityReviewed": true
+}

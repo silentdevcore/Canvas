@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-xml-export-envelope",
+  "impact": "major",
+  "components": ["infrastructure", "api", "documentation"],
+  "category": "breaking",
+  "summary": "XML exports now use the PvadDocument root. Update consumers that depend on the old root name; embedded .NET integrations can explicitly use ExportLegacy to retain the historical envelope. Document content remains unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": true
+}

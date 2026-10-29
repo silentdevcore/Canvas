@@ -2,22 +2,26 @@
 
 set -euo pipefail
 
-baseline_url="${PXA_BASELINE_API_URL:-}"
-instrumented_url="${PXA_INSTRUMENTED_API_URL:-}"
-request_file="${PXA_PERFORMANCE_REQUEST_FILE:-}"
-baseline_pid="${PXA_BASELINE_API_PID:-}"
-instrumented_pid="${PXA_INSTRUMENTED_API_PID:-}"
-iterations="${PXA_PERFORMANCE_ITERATIONS:-200}"
-maximum_overhead="${PXA_MAX_OBSERVABILITY_OVERHEAD_PERCENT:-5}"
-export_format="${PXA_PERFORMANCE_EXPORT_FORMAT:-pdf}"
-page_copies="${PXA_PERFORMANCE_PAGE_COPIES:-20}"
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_BASELINE_API_PID PVAD_BASELINE_API_URL PVAD_INSTRUMENTED_API_PID PVAD_INSTRUMENTED_API_URL PVAD_MAX_OBSERVABILITY_OVERHEAD_PERCENT PVAD_PERFORMANCE_EXPORT_FORMAT PVAD_PERFORMANCE_ITERATIONS PVAD_PERFORMANCE_PAGE_COPIES PVAD_PERFORMANCE_REQUEST_FILE
+
+baseline_url="${PVAD_BASELINE_API_URL:-}"
+instrumented_url="${PVAD_INSTRUMENTED_API_URL:-}"
+request_file="${PVAD_PERFORMANCE_REQUEST_FILE:-}"
+baseline_pid="${PVAD_BASELINE_API_PID:-}"
+instrumented_pid="${PVAD_INSTRUMENTED_API_PID:-}"
+iterations="${PVAD_PERFORMANCE_ITERATIONS:-200}"
+maximum_overhead="${PVAD_MAX_OBSERVABILITY_OVERHEAD_PERCENT:-5}"
+export_format="${PVAD_PERFORMANCE_EXPORT_FORMAT:-pdf}"
+page_copies="${PVAD_PERFORMANCE_PAGE_COPIES:-20}"
 export_query="format=${export_format}"
 
 if [[ -z "${baseline_url}" || -z "${instrumented_url}" || ! -f "${request_file}" ||
       -z "${baseline_pid}" || -z "${instrumented_pid}" ]]; then
   cat >&2 <<'EOF'
-Set PXA_BASELINE_API_URL, PXA_INSTRUMENTED_API_URL, PXA_PERFORMANCE_REQUEST_FILE,
-PXA_BASELINE_API_PID, and PXA_INSTRUMENTED_API_PID.
+Set PVAD_BASELINE_API_URL, PVAD_INSTRUMENTED_API_URL, PVAD_PERFORMANCE_REQUEST_FILE,
+PVAD_BASELINE_API_PID, and PVAD_INSTRUMENTED_API_PID.
 The two deployments must use the same build and dependencies; only observability may differ.
 EOF
   exit 2
@@ -27,15 +31,15 @@ if ! kill -0 "${baseline_pid}" 2>/dev/null || ! kill -0 "${instrumented_pid}" 2>
   exit 2
 fi
 if (( iterations < 50 || iterations > 10000 )); then
-  echo "PXA_PERFORMANCE_ITERATIONS must be between 50 and 10000." >&2
+  echo "PVAD_PERFORMANCE_ITERATIONS must be between 50 and 10000." >&2
   exit 2
 fi
 if (( page_copies < 1 || page_copies > 100 )); then
-  echo "PXA_PERFORMANCE_PAGE_COPIES must be between 1 and 100." >&2
+  echo "PVAD_PERFORMANCE_PAGE_COPIES must be between 1 and 100." >&2
   exit 2
 fi
 if [[ ! "${export_format}" =~ ^[a-z0-9]+$ ]]; then
-  echo "PXA_PERFORMANCE_EXPORT_FORMAT must contain only lowercase letters and digits." >&2
+  echo "PVAD_PERFORMANCE_EXPORT_FORMAT must contain only lowercase letters and digits." >&2
   exit 2
 fi
 if [[ "${export_format}" == "pdf" ]]; then
@@ -155,4 +159,4 @@ if ! awk -v overhead="${cpu_overhead}" -v maximum="${maximum_overhead}" \
   exit 1
 fi
 
-echo "PXA observability latency and CPU overhead are within the configured budget."
+echo "PVAD observability latency and CPU overhead are within the configured budget."

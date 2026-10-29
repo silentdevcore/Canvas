@@ -1,0 +1,4319 @@
+{
+  "id": "e-invoice-multipage",
+  "name": "Electronic invoice parity (multi-page)",
+  "category": "invoice",
+  "description": "Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PXA invoice model.",
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "unit": "pt",
+    "backgroundColor": "#ffffff",
+    "backgroundImage": "",
+    "backgroundImageFit": "contain",
+    "margins": {
+      "top": 24,
+      "right": 24,
+      "bottom": 24,
+      "left": 24
+    },
+    "systemLanguage": "en",
+    "activeLanguages": [
+      "en",
+      "de",
+      "fr",
+      "ar"
+    ],
+    "targetLanguage": "en"
+  },
+  "sharedElements": [],
+  "pages": [
+    {
+      "id": "page-einv-invoice-standard-1",
+      "elements": [
+        {
+          "id": "einv-title-p1",
+          "type": "text",
+          "content": "INVOICE",
+          "x": 42,
+          "y": 30,
+          "width": 240,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 20,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-invoiceNumber-p1",
+          "type": "text",
+          "binding": "invoice.invoiceNumber",
+          "x": 350,
+          "y": 32,
+          "width": 203,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 12,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "PARITY-EINV-2026-0043"
+        },
+        {
+          "id": "einv-headerRule-p1",
+          "type": "line",
+          "x": 42,
+          "y": 62,
+          "width": 511,
+          "height": 1,
+          "style": {
+            "backgroundColor": "#22313f"
+          }
+        },
+        {
+          "id": "einv-sellerHeading-p1",
+          "type": "text",
+          "content": "Seller",
+          "x": 42,
+          "y": 78,
+          "width": 220,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-sellerName-p1",
+          "type": "text",
+          "binding": "invoice.seller.name",
+          "x": 42,
+          "y": 94,
+          "width": 220,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "Groß & Söhne Bürotechnik GmbH"
+        },
+        {
+          "id": "einv-sellerStreet-p1",
+          "type": "text",
+          "binding": "invoice.seller.address.street",
+          "x": 42,
+          "y": 110,
+          "width": 220,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "Hauptstraße 118a"
+        },
+        {
+          "id": "einv-sellerPostalCode-p1",
+          "type": "text",
+          "binding": "invoice.seller.address.postalCode",
+          "x": 42,
+          "y": 126,
+          "width": 60,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "10115"
+        },
+        {
+          "id": "einv-sellerCity-p1",
+          "type": "text",
+          "binding": "invoice.seller.address.city",
+          "x": 106,
+          "y": 126,
+          "width": 156,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "Berlin"
+        },
+        {
+          "id": "einv-sellerCountryCode-p1",
+          "type": "text",
+          "binding": "invoice.seller.address.countryCode",
+          "x": 42,
+          "y": 142,
+          "width": 60,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "DE"
+        },
+        {
+          "id": "einv-sellerTaxIdentifier-p1",
+          "type": "text",
+          "binding": "invoice.seller.taxIdentifier",
+          "x": 42,
+          "y": 158,
+          "width": 220,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 8,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "DE123456789"
+        },
+        {
+          "id": "einv-buyerHeading-p1",
+          "type": "text",
+          "content": "Buyer",
+          "x": 310,
+          "y": 78,
+          "width": 243,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-buyerName-p1",
+          "type": "text",
+          "binding": "invoice.buyer.name",
+          "x": 310,
+          "y": 94,
+          "width": 243,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "Société Générale de Facturation"
+        },
+        {
+          "id": "einv-buyerStreet-p1",
+          "type": "text",
+          "binding": "invoice.buyer.address.street",
+          "x": 310,
+          "y": 110,
+          "width": 243,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "12 Rue de l'Église"
+        },
+        {
+          "id": "einv-buyerPostalCode-p1",
+          "type": "text",
+          "binding": "invoice.buyer.address.postalCode",
+          "x": 310,
+          "y": 126,
+          "width": 60,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "75008"
+        },
+        {
+          "id": "einv-buyerCity-p1",
+          "type": "text",
+          "binding": "invoice.buyer.address.city",
+          "x": 374,
+          "y": 126,
+          "width": 179,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "Genève"
+        },
+        {
+          "id": "einv-buyerCountryCode-p1",
+          "type": "text",
+          "binding": "invoice.buyer.address.countryCode",
+          "x": 310,
+          "y": 142,
+          "width": 60,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "FR"
+        },
+        {
+          "id": "einv-buyerTaxIdentifier-p1",
+          "type": "text",
+          "binding": "invoice.buyer.taxIdentifier",
+          "x": 310,
+          "y": 158,
+          "width": 243,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 8,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "FR40303265045"
+        },
+        {
+          "id": "einv-issueDateLabel-p1",
+          "type": "text",
+          "content": "Issue date",
+          "x": 42,
+          "y": 190,
+          "width": 90,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-issueDate-p1",
+          "type": "text",
+          "binding": "invoice.issueDate",
+          "x": 136,
+          "y": 190,
+          "width": 90,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2026-09-27"
+        },
+        {
+          "id": "einv-dueDateLabel-p1",
+          "type": "text",
+          "content": "Due date",
+          "x": 42,
+          "y": 206,
+          "width": 90,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-dueDate-p1",
+          "type": "text",
+          "binding": "invoice.dueDate",
+          "x": 136,
+          "y": 206,
+          "width": 90,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2026-10-27"
+        },
+        {
+          "id": "einv-buyerReferenceLabel-p1",
+          "type": "text",
+          "content": "Buyer reference",
+          "x": 310,
+          "y": 190,
+          "width": 110,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-buyerReference-p1",
+          "type": "text",
+          "binding": "invoice.buyerReference",
+          "x": 424,
+          "y": 190,
+          "width": 129,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "04011000-12345-34"
+        },
+        {
+          "id": "einv-paymentReferenceLabel-p1",
+          "type": "text",
+          "content": "Payment reference",
+          "x": 310,
+          "y": 206,
+          "width": 110,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-paymentReference-p1",
+          "type": "text",
+          "binding": "invoice.paymentReference",
+          "x": 424,
+          "y": 206,
+          "width": 129,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "RF18 5390 0754 7034"
+        },
+        {
+          "id": "einv-lineNumberHeading-p1",
+          "type": "text",
+          "content": "No.",
+          "x": 42,
+          "y": 250,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineDescriptionHeading-p1",
+          "type": "text",
+          "content": "Description",
+          "x": 72,
+          "y": 250,
+          "width": 208,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineQuantityHeading-p1",
+          "type": "text",
+          "content": "Quantity",
+          "x": 284,
+          "y": 250,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineUnitPriceHeading-p1",
+          "type": "text",
+          "content": "Unit price",
+          "x": 340,
+          "y": 250,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineTaxRateHeading-p1",
+          "type": "text",
+          "content": "Tax",
+          "x": 412,
+          "y": 250,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineNetHeading-p1",
+          "type": "text",
+          "content": "Net",
+          "x": 458,
+          "y": 250,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-tableHeaderRule-p1",
+          "type": "line",
+          "x": 42,
+          "y": 266,
+          "width": 511,
+          "height": 1,
+          "style": {
+            "backgroundColor": "#22313f"
+          }
+        },
+        {
+          "id": "einv-lineIdentifier-l1",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 272,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineDescription-l1",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 272,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 1 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l1",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 272,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l1",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 272,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "10.00"
+        },
+        {
+          "id": "einv-lineTaxRate-l1",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 272,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l1",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 272,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "10.00"
+        },
+        {
+          "id": "einv-lineIdentifier-l2",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 301,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineDescription-l2",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 301,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 2 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l2",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 301,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l2",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 301,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "11.37"
+        },
+        {
+          "id": "einv-lineTaxRate-l2",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 301,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l2",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 301,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "22.74"
+        },
+        {
+          "id": "einv-lineIdentifier-l3",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 330,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineDescription-l3",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 330,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 3 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l3",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 330,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l3",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 330,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "12.74"
+        },
+        {
+          "id": "einv-lineTaxRate-l3",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 330,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l3",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 330,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "38.22"
+        },
+        {
+          "id": "einv-lineIdentifier-l4",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 359,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "4"
+        },
+        {
+          "id": "einv-lineDescription-l4",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 359,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 4 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l4",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 359,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l4",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 359,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "14.11"
+        },
+        {
+          "id": "einv-lineTaxRate-l4",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 359,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l4",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 359,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.06"
+        },
+        {
+          "id": "einv-lineIdentifier-l5",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 388,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "5"
+        },
+        {
+          "id": "einv-lineDescription-l5",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 388,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 5 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l5",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 388,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l5",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 388,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "15.48"
+        },
+        {
+          "id": "einv-lineTaxRate-l5",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 388,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l5",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 388,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "112.23"
+        },
+        {
+          "id": "einv-lineIdentifier-l6",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 417,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "6"
+        },
+        {
+          "id": "einv-lineDescription-l6",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 417,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 6 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l6",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 417,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l6",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 417,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "16.85"
+        },
+        {
+          "id": "einv-lineTaxRate-l6",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 417,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l6",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 417,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "16.85"
+        },
+        {
+          "id": "einv-lineIdentifier-l7",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 446,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7"
+        },
+        {
+          "id": "einv-lineDescription-l7",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 446,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 7 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l7",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 446,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l7",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 446,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "18.22"
+        },
+        {
+          "id": "einv-lineTaxRate-l7",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 446,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l7",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 446,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "36.44"
+        },
+        {
+          "id": "einv-lineIdentifier-l8",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 475,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "8"
+        },
+        {
+          "id": "einv-lineDescription-l8",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 475,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 8 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l8",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 475,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l8",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 475,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19.59"
+        },
+        {
+          "id": "einv-lineTaxRate-l8",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 475,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l8",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 475,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "58.77"
+        },
+        {
+          "id": "einv-lineIdentifier-l9",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 504,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "9"
+        },
+        {
+          "id": "einv-lineDescription-l9",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 504,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 9 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l9",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 504,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l9",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 504,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "20.96"
+        },
+        {
+          "id": "einv-lineTaxRate-l9",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 504,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l9",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 504,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "10.48"
+        },
+        {
+          "id": "einv-lineIdentifier-l10",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 533,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "10"
+        },
+        {
+          "id": "einv-lineDescription-l10",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 533,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 10 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l10",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 533,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l10",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 533,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "22.33"
+        },
+        {
+          "id": "einv-lineTaxRate-l10",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 533,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l10",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 533,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "161.89"
+        },
+        {
+          "id": "einv-lineIdentifier-l11",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 562,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "11"
+        },
+        {
+          "id": "einv-lineDescription-l11",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 562,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 11 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l11",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 562,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l11",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 562,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "23.70"
+        },
+        {
+          "id": "einv-lineTaxRate-l11",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 562,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l11",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 562,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "23.70"
+        },
+        {
+          "id": "einv-lineIdentifier-l12",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 591,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "12"
+        },
+        {
+          "id": "einv-lineDescription-l12",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 591,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 12 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l12",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 591,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l12",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 591,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "25.07"
+        },
+        {
+          "id": "einv-lineTaxRate-l12",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 591,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l12",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 591,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "50.14"
+        },
+        {
+          "id": "einv-lineIdentifier-l13",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 620,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "13"
+        },
+        {
+          "id": "einv-lineDescription-l13",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 620,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 13 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l13",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 620,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l13",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 620,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "26.44"
+        },
+        {
+          "id": "einv-lineTaxRate-l13",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 620,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l13",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 620,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "79.32"
+        },
+        {
+          "id": "einv-lineIdentifier-l14",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 649,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "14"
+        },
+        {
+          "id": "einv-lineDescription-l14",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 649,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 14 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l14",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 649,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l14",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 649,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "27.81"
+        },
+        {
+          "id": "einv-lineTaxRate-l14",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 649,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l14",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 649,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "13.91"
+        },
+        {
+          "id": "einv-lineIdentifier-l15",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 678,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "15"
+        },
+        {
+          "id": "einv-lineDescription-l15",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 678,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 15 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l15",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 678,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l15",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 678,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "29.18"
+        },
+        {
+          "id": "einv-lineTaxRate-l15",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 678,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l15",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 678,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "211.56"
+        },
+        {
+          "id": "einv-lineIdentifier-l16",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 707,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "16"
+        },
+        {
+          "id": "einv-lineDescription-l16",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 707,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 16 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l16",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 707,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l16",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 707,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "30.55"
+        },
+        {
+          "id": "einv-lineTaxRate-l16",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 707,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l16",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 707,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "30.55"
+        },
+        {
+          "id": "einv-conformanceNote-p1",
+          "type": "text",
+          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PVADE is not a conformance claim.",
+          "x": 42,
+          "y": 790,
+          "width": 511,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 7,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "page-einv-invoice-standard-2",
+      "elements": [
+        {
+          "id": "einv-lineNumberHeading-p2",
+          "type": "text",
+          "content": "No.",
+          "x": 42,
+          "y": 60,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineDescriptionHeading-p2",
+          "type": "text",
+          "content": "Description",
+          "x": 72,
+          "y": 60,
+          "width": 208,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineQuantityHeading-p2",
+          "type": "text",
+          "content": "Quantity",
+          "x": 284,
+          "y": 60,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineUnitPriceHeading-p2",
+          "type": "text",
+          "content": "Unit price",
+          "x": 340,
+          "y": 60,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineTaxRateHeading-p2",
+          "type": "text",
+          "content": "Tax",
+          "x": 412,
+          "y": 60,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-lineNetHeading-p2",
+          "type": "text",
+          "content": "Net",
+          "x": 458,
+          "y": 60,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-tableHeaderRule-p2",
+          "type": "line",
+          "x": 42,
+          "y": 76,
+          "width": 511,
+          "height": 1,
+          "style": {
+            "backgroundColor": "#22313f"
+          }
+        },
+        {
+          "id": "einv-lineIdentifier-l17",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 82,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "17"
+        },
+        {
+          "id": "einv-lineDescription-l17",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 82,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 17 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l17",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 82,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l17",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 82,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "31.92"
+        },
+        {
+          "id": "einv-lineTaxRate-l17",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 82,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l17",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 82,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "63.84"
+        },
+        {
+          "id": "einv-lineIdentifier-l18",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 111,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "18"
+        },
+        {
+          "id": "einv-lineDescription-l18",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 111,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 18 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l18",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 111,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l18",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 111,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "33.29"
+        },
+        {
+          "id": "einv-lineTaxRate-l18",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 111,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l18",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 111,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "99.87"
+        },
+        {
+          "id": "einv-lineIdentifier-l19",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 140,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19"
+        },
+        {
+          "id": "einv-lineDescription-l19",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 140,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 19 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l19",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 140,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l19",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 140,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "34.66"
+        },
+        {
+          "id": "einv-lineTaxRate-l19",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 140,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l19",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 140,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "17.33"
+        },
+        {
+          "id": "einv-lineIdentifier-l20",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 169,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "20"
+        },
+        {
+          "id": "einv-lineDescription-l20",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 169,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 20 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l20",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 169,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l20",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 169,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "36.03"
+        },
+        {
+          "id": "einv-lineTaxRate-l20",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 169,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l20",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 169,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "261.22"
+        },
+        {
+          "id": "einv-lineIdentifier-l21",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 198,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21"
+        },
+        {
+          "id": "einv-lineDescription-l21",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 198,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 21 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l21",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 198,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l21",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 198,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "37.40"
+        },
+        {
+          "id": "einv-lineTaxRate-l21",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 198,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l21",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 198,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "37.40"
+        },
+        {
+          "id": "einv-lineIdentifier-l22",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 227,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "22"
+        },
+        {
+          "id": "einv-lineDescription-l22",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 227,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 22 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l22",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 227,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l22",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 227,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "38.77"
+        },
+        {
+          "id": "einv-lineTaxRate-l22",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 227,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l22",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 227,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "77.54"
+        },
+        {
+          "id": "einv-lineIdentifier-l23",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 256,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "23"
+        },
+        {
+          "id": "einv-lineDescription-l23",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 256,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 23 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l23",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 256,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l23",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 256,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "40.14"
+        },
+        {
+          "id": "einv-lineTaxRate-l23",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 256,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l23",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 256,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "120.42"
+        },
+        {
+          "id": "einv-lineIdentifier-l24",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 285,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "24"
+        },
+        {
+          "id": "einv-lineDescription-l24",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 285,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 24 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l24",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 285,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l24",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 285,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "41.51"
+        },
+        {
+          "id": "einv-lineTaxRate-l24",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 285,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l24",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 285,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "20.76"
+        },
+        {
+          "id": "einv-lineIdentifier-l25",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 314,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "25"
+        },
+        {
+          "id": "einv-lineDescription-l25",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 314,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 25 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l25",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 314,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l25",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 314,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "42.88"
+        },
+        {
+          "id": "einv-lineTaxRate-l25",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 314,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l25",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 314,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "310.88"
+        },
+        {
+          "id": "einv-lineIdentifier-l26",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 343,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "26"
+        },
+        {
+          "id": "einv-lineDescription-l26",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 343,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 26 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l26",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 343,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "1"
+        },
+        {
+          "id": "einv-lineUnitPrice-l26",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 343,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "44.25"
+        },
+        {
+          "id": "einv-lineTaxRate-l26",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 343,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l26",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 343,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "44.25"
+        },
+        {
+          "id": "einv-lineIdentifier-l27",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 372,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "27"
+        },
+        {
+          "id": "einv-lineDescription-l27",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 372,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 27 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l27",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 372,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2"
+        },
+        {
+          "id": "einv-lineUnitPrice-l27",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 372,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "45.62"
+        },
+        {
+          "id": "einv-lineTaxRate-l27",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 372,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l27",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 372,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "91.24"
+        },
+        {
+          "id": "einv-lineIdentifier-l28",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 401,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "28"
+        },
+        {
+          "id": "einv-lineDescription-l28",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 401,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 28 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l28",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 401,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "3"
+        },
+        {
+          "id": "einv-lineUnitPrice-l28",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 401,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "46.99"
+        },
+        {
+          "id": "einv-lineTaxRate-l28",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 401,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-lineNetAmount-l28",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 401,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "140.97"
+        },
+        {
+          "id": "einv-lineIdentifier-l29",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 430,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "29"
+        },
+        {
+          "id": "einv-lineDescription-l29",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 430,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 29 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l29",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 430,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "0.5"
+        },
+        {
+          "id": "einv-lineUnitPrice-l29",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 430,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "48.36"
+        },
+        {
+          "id": "einv-lineTaxRate-l29",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 430,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-lineNetAmount-l29",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 430,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "24.18"
+        },
+        {
+          "id": "einv-lineIdentifier-l30",
+          "type": "text",
+          "binding": "line.identifier",
+          "x": 42,
+          "y": 459,
+          "width": 26,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "30"
+        },
+        {
+          "id": "einv-lineDescription-l30",
+          "type": "text",
+          "binding": "line.description",
+          "x": 72,
+          "y": 459,
+          "width": 208,
+          "height": 22,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1.2222222222222223
+          },
+          "content": "Position 30 - maintenance, support and licence renewal"
+        },
+        {
+          "id": "einv-lineQuantity-l30",
+          "type": "text",
+          "binding": "line.quantity",
+          "x": 284,
+          "y": 459,
+          "width": 52,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7.25"
+        },
+        {
+          "id": "einv-lineUnitPrice-l30",
+          "type": "text",
+          "binding": "line.unitPrice",
+          "formatter": "money",
+          "x": 340,
+          "y": 459,
+          "width": 68,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "49.73"
+        },
+        {
+          "id": "einv-lineTaxRate-l30",
+          "type": "text",
+          "binding": "line.taxRate",
+          "formatter": "percent",
+          "x": 412,
+          "y": 459,
+          "width": 42,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-lineNetAmount-l30",
+          "type": "text",
+          "binding": "line.netAmount",
+          "formatter": "money",
+          "x": 458,
+          "y": 459,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "360.54"
+        },
+        {
+          "id": "einv-netTotalLabel-t",
+          "type": "text",
+          "content": "Net total",
+          "x": 284,
+          "y": 506,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-netTotal-t",
+          "type": "text",
+          "binding": "totals.lineNetTotal",
+          "formatter": "money",
+          "x": 458,
+          "y": 506,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2554.30"
+        },
+        {
+          "id": "einv-taxRate-g1",
+          "type": "text",
+          "binding": "tax.rate",
+          "formatter": "percent",
+          "x": 284,
+          "y": 524,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "7%"
+        },
+        {
+          "id": "einv-taxAmount-g1",
+          "type": "text",
+          "binding": "tax.amount",
+          "formatter": "money",
+          "x": 458,
+          "y": 524,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "61.04"
+        },
+        {
+          "id": "einv-taxRate-g2",
+          "type": "text",
+          "binding": "tax.rate",
+          "formatter": "percent",
+          "x": 284,
+          "y": 540,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "19%"
+        },
+        {
+          "id": "einv-taxAmount-g2",
+          "type": "text",
+          "binding": "tax.amount",
+          "formatter": "money",
+          "x": 458,
+          "y": 540,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "141.60"
+        },
+        {
+          "id": "einv-taxRate-g3",
+          "type": "text",
+          "binding": "tax.rate",
+          "formatter": "percent",
+          "x": 284,
+          "y": 556,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "21%"
+        },
+        {
+          "id": "einv-taxAmount-g3",
+          "type": "text",
+          "binding": "tax.amount",
+          "formatter": "money",
+          "x": 458,
+          "y": 556,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "196.78"
+        },
+        {
+          "id": "einv-taxTotalLabel-t",
+          "type": "text",
+          "content": "Tax total",
+          "x": 284,
+          "y": 572,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-taxTotal-t",
+          "type": "text",
+          "binding": "totals.taxTotal",
+          "formatter": "money",
+          "x": 458,
+          "y": 572,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 9,
+            "fontWeight": 400,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "399.42"
+        },
+        {
+          "id": "einv-totalsRule-t",
+          "type": "line",
+          "x": 284,
+          "y": 588,
+          "width": 236,
+          "height": 1,
+          "style": {
+            "backgroundColor": "#22313f"
+          }
+        },
+        {
+          "id": "einv-payableLabel-t",
+          "type": "text",
+          "content": "Amount payable",
+          "x": 284,
+          "y": 598,
+          "width": 166,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          }
+        },
+        {
+          "id": "einv-payableAmount-t",
+          "type": "text",
+          "binding": "totals.grandTotal",
+          "formatter": "money",
+          "x": 458,
+          "y": 598,
+          "width": 62,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "textAlign": "right",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "2953.72"
+        },
+        {
+          "id": "einv-payableCurrency-t",
+          "type": "text",
+          "binding": "invoice.currency",
+          "x": 524,
+          "y": 598,
+          "width": 29,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "textAlign": "left",
+            "color": "#0f172a",
+            "lineHeight": 1
+          },
+          "content": "EUR"
+        },
+        {
+          "id": "einv-conformanceNote-p2",
+          "type": "text",
+          "content": "The embedded invoice XML is the legally relevant data. Structural recognition by PVADE is not a conformance claim.",
+          "x": 42,
+          "y": 790,
+          "width": 511,
+          "height": 14,
+          "style": {
+            "fontFamily": "Helvetica",
+            "fontSize": 7,
+            "fontWeight": 400,
+            "textAlign": "left",
+            "color": "#64748b",
+            "lineHeight": 1
+          }
+        }
+      ]
+    }
+  ]
+}

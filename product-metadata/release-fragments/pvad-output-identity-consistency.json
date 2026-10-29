@@ -1,0 +1,8 @@
+{
+  "id": "pvad-output-identity-consistency",
+  "impact": "patch",
+  "components": ["api", "generator", "importer", "demo", "infrastructure"],
+  "category": "fixed",
+  "summary": "Use consistent PVAD names in generated invoice captions, imported font families, new job inputs, evidence downloads and demo examples while preserving existing document content and versioned contracts.",
+  "breaking": false
+}

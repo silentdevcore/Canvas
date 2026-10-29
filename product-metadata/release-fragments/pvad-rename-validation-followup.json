@@ -1,0 +1,9 @@
+{
+  "id": "pvad-rename-validation-followup",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Update internal recovery test expectations and record the current rename validation results and remaining checks.",
+  "breaking": false,
+  "reason": "Test assertions and internal validation reporting only; production behavior and published release history are unchanged."
+}

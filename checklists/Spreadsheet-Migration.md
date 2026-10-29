@@ -1,5 +1,7 @@
 # Spreadsheet Framework Migration + Canonical Workbook JSON
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Migrate C# code from other spreadsheet libraries (ClosedXML, EPPlus, GemBox.Spreadsheet, Aspose.Cells)
 into PXA spreadsheet code, and formalize a **versioned "PXA Workbook JSON"** as the canonical
 interchange + migration target. Built in-house, reusing the existing Roslyn PDF-migration architecture.

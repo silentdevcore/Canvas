@@ -3,19 +3,19 @@
 set -eu
 
 load_database_url() {
-  if [ -n "${PXA_DATABASE_URL_FILE:-}" ]; then
-    if [ ! -r "$PXA_DATABASE_URL_FILE" ]; then
-      printf '%s\n' 'PXA_DATABASE_URL_FILE is not readable.' >&2
+  if [ -n "${PVAD_DATABASE_URL_FILE:-}" ]; then
+    if [ ! -r "$PVAD_DATABASE_URL_FILE" ]; then
+      printf '%s\n' 'PVAD_DATABASE_URL_FILE is not readable.' >&2
       exit 1
     fi
-    PXA_DATABASE_URL=$(cat "$PXA_DATABASE_URL_FILE")
+    PVAD_DATABASE_URL=$(cat "$PVAD_DATABASE_URL_FILE")
   fi
 
-  if [ -z "${PXA_DATABASE_URL:-}" ]; then
-    printf '%s\n' 'Set PXA_DATABASE_URL_FILE or PXA_DATABASE_URL.' >&2
+  if [ -z "${PVAD_DATABASE_URL:-}" ]; then
+    printf '%s\n' 'Set PVAD_DATABASE_URL_FILE or PVAD_DATABASE_URL.' >&2
     exit 1
   fi
-  export PXA_DATABASE_URL
+  export PVAD_DATABASE_URL
 }
 
 require_command() {

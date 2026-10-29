@@ -1,5 +1,7 @@
 # Spreadsheet v2 — editing essentials
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Makes the Spreadsheet Editor ([Spreadsheet-SDK.md](Spreadsheet-SDK.md)) feel like a real spreadsheet:
 full cell formatting, row/column ops, clipboard, number-format display, merge/freeze, a selection status
 bar, and a backend bridge to embed a sheet into a document/PDF.

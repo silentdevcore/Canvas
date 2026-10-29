@@ -24,20 +24,18 @@ test('SBOM coverage includes every shipped execution surface', async () => {
   assert.equal(catalog.sbom.version, '2.2-or-later');
 });
 
-test('Designer and Admin audits include development tools without weakening production gates', async () => {
-  const catalog = JSON.parse(await read('product-metadata/dependency-compliance.json'));
-  assert.deepEqual(catalog.vulnerabilityPolicy.npmDevelopment, {
-    scope: 'production-and-development',
-    workspaces: ['pxa-designer', 'websites/PXA.Admin'],
-    maximumAllowedSeverity: 'moderate',
-    ciGate: true,
-  });
-  assert.equal(catalog.vulnerabilityPolicy.npm.maximumAllowedSeverity, 'moderate');
-  const workflow = await read('.github/workflows/ci.yml');
-  assert.match(workflow, /^\s*run: npm --prefix pxa-designer audit --audit-level=high\s*$/mu);
-  assert.match(workflow, /^\s*run: npm --prefix websites\/PXA\.Admin audit --audit-level=high\s*$/mu);
-  for (const workspace of ['pxa-designer', 'websites/PXA.Admin', 'tools/PXA.Mcp']) {
-    assert.ok(workflow.includes(`npm --prefix ${workspace} audit --omit=dev --audit-level=high`));
+test('cryptographic dependencies retain the reviewed security patches', async () => {
+  const packages = [
+    ['System.Security.Cryptography.Pkcs', 'src/Generation/PVAD.Pdf/PVAD.Pdf.csproj'],
+    ['System.Security.Cryptography.Pkcs', 'src/Importing/PVAD.Importer/PVAD.Importer.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PVAD.Infrastructure.Spreadsheet.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj'],
+    ['System.Security.Cryptography.Xml', 'src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj'],
+  ];
+  for (const [name, path] of packages) {
+    const source = await read(path);
+    const version = name.endsWith('.Xml') ? '10.0.14' : '10.0.13';
+    assert.ok(source.includes(`Include="${name}" Version="${version}"`), `${path}: missing ${name} security pin`);
   }
 });
 
@@ -73,4 +71,21 @@ test('actual workflows consistently use all reviewed action pins', async () => {
   const sources = [];
   for (const name of names) sources.push({ name, source: await read(`.github/workflows/${name}`) });
   validateWorkflowActionPins(sources);
+});
+
+test('Designer and Admin audits include development tools without weakening production gates', async () => {
+  const catalog = JSON.parse(await read('product-metadata/dependency-compliance.json'));
+  assert.deepEqual(catalog.vulnerabilityPolicy.npmDevelopment, {
+    scope: 'production-and-development',
+    workspaces: ['pvad-designer', 'websites/PVAD.Admin'],
+    maximumAllowedSeverity: 'moderate',
+    ciGate: true,
+  });
+  assert.equal(catalog.vulnerabilityPolicy.npm.maximumAllowedSeverity, 'moderate');
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /^\s*run: npm --prefix pvad-designer audit --audit-level=high\s*$/mu);
+  assert.match(workflow, /^\s*run: npm --prefix websites\/PVAD\.Admin audit --audit-level=high\s*$/mu);
+  for (const workspace of ['pvad-designer', 'websites/PVAD.Admin', 'tools/PVAD.Mcp']) {
+    assert.ok(workflow.includes(`npm --prefix ${workspace} audit --omit=dev --audit-level=high`));
+  }
 });

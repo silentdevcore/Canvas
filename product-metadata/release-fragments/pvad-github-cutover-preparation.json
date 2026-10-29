@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-github-cutover-preparation",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Prepare protected workflow transitions with static check review and explicit rollback requirements.",
+  "breaking": false,
+  "reason": "Internal planning and offline review tooling only; no application behavior, active workflow, remote protection or deployment changes."
+}

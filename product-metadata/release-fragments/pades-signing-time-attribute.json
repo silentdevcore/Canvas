@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pades-signing-time-attribute",
+  "impact": "patch",
+  "components": [
+    "importer"
+  ],
+  "category": "fixed",
+  "summary": "PVAD PAdES and redaction audit signatures now carry consistently encoded signed signing-time metadata while trusted timestamps remain independently validated.",
+  "breaking": false
+}

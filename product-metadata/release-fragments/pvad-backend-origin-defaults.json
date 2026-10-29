@@ -1,0 +1,8 @@
+{
+  "id": "pvad-backend-origin-defaults",
+  "impact": "patch",
+  "components": ["api", "account", "designer", "documentation"],
+  "category": "fixed",
+  "summary": "Align registration return and Designer authorization defaults with the PVADE product domains while retaining explicit deployment configuration and local development origins.",
+  "breaking": false
+}

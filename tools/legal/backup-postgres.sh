@@ -1,6 +1,10 @@
 #!/bin/sh
 
 set -eu
+
+. "$(dirname "$0")/../configuration/environment.sh"
+pvad_environment_alias PVAD_DATABASE_URL PXA_DATABASE_URL "${PVAD_DATABASE_URL+x}" "${PVAD_DATABASE_URL-}" "${PXA_DATABASE_URL+x}" "${PXA_DATABASE_URL-}"
+pvad_environment_alias PVAD_DATABASE_URL_FILE PXA_DATABASE_URL_FILE "${PVAD_DATABASE_URL_FILE+x}" "${PVAD_DATABASE_URL_FILE-}" "${PXA_DATABASE_URL_FILE+x}" "${PXA_DATABASE_URL_FILE-}"
 umask 077
 
 script_directory=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -19,7 +23,7 @@ fi
 mkdir -p "$output_directory"
 chmod 700 "$output_directory"
 timestamp=$(date -u '+%Y%m%dT%H%M%SZ')
-backup="$output_directory/pxa-$timestamp-$$.dump"
+backup="$output_directory/pvad-$timestamp-$$.dump"
 temporary="$backup.tmp"
 checksum="$backup.sha256"
 
@@ -34,7 +38,7 @@ pg_dump \
   --no-owner \
   --no-privileges \
   --file="$temporary" \
-  "$PXA_DATABASE_URL"
+  "$PVAD_DATABASE_URL"
 pg_restore --list "$temporary" >/dev/null
 mv "$temporary" "$backup"
 write_sha256 "$backup" "$checksum"

@@ -1,0 +1,9 @@
+{
+  "id": "container-runtime-security-patches",
+  "impact": "patch",
+  "components": ["api", "infrastructure", "observability"],
+  "category": "security",
+  "summary": "Updated the API container runtime and native dependencies to supported security-patched versions.",
+  "breaking": false,
+  "securityReviewed": true
+}

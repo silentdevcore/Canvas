@@ -1,0 +1,21 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "code-designer-workspace",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "generator",
+    "infrastructure"
+  ],
+  "category": "added",
+  "summary": "Designer templates now roundtrip exact documents across independent JSON, readable C# Model, semantic C# PDF, and FromBase64String drafts with explicit fidelity review and isolated execution.",
+  "featureIds": [
+    "designer.code-workspace"
+  ],
+  "documentation": [
+    "/docs/code-designer-workspace.md"
+  ],
+  "breaking": false
+}

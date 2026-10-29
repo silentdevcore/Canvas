@@ -1,5 +1,7 @@
 # UI Layout Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Page Layout & Structure
 - [x] Responsive layout with proper flex/grid containers
 - [x] Consistent spacing and margins throughout the application

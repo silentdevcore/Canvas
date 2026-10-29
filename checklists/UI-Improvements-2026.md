@@ -1,5 +1,7 @@
 # UI Improvements 2026
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 Six targeted improvement areas for the UI Designer v2. Each section contains a
 checklist of concrete tasks ready for implementation.
 

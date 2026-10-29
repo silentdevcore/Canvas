@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "dpi": 72,
+  "description": "Native Linux operation references; original macOS baseline is retained unchanged.",
+  "renderer": {
+    "platform": "linux",
+    "environment": "Ubuntu 24.04 GitHub-hosted runner",
+    "poppler": "24.02.0",
+    "package": "24.02.0-1ubuntu9.11",
+    "fontPolicy": "Native substitution for unembedded Helvetica; embedded-font PDF/A and PDF/UA pairs remain unchanged."
+  },
+  "review": {
+    "status": "approved",
+    "approvedBy": "repository owner",
+    "approvedAt": "2026-10-29",
+    "sourceCommit": "d8af2d71f7da8963fa513dfbe80fc879702dfe6c",
+    "sourceRun": "https://github.com/silentdevcore/Canvas/actions/runs/40944792373",
+    "scope": "Separate Linux signature and redaction operation references explicitly approved after image comparison; original Mac references are unchanged."
+  },
+  "entries": [
+    {
+      "id": "signature",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "f3318b511edd26783bc2f4b6ed9e22567eb75391ca95b3651edf152595192072",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "edc62602394aa3e3ae0c740b207534f8312269e6c5131b67df96ca7a475ed666",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "redaction",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "aa6cb91da7279e9f239e83f0a8dd851f7e2c61726880018b5ce0627433504b45",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "12c5f2e143762cd8840aff7747740c1308663ecd0156b825839bee8dc0cc02d4",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "pdf-a-2b",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "2829381cd2694173b5aad64c32a73aab54684235af31c06c41552a051d17e7ee",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "2829381cd2694173b5aad64c32a73aab54684235af31c06c41552a051d17e7ee",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    },
+    {
+      "id": "pdf-ua-1",
+      "sourcePages": [
+        {
+          "page": 1,
+          "pngSha256": "0ddefd544fee3829e75a80c6fe9adcb6da39f0a26e19d57dbbff07e3dd51ac49",
+          "width": 595,
+          "height": 842
+        }
+      ],
+      "outputPages": [
+        {
+          "page": 1,
+          "pngSha256": "0ddefd544fee3829e75a80c6fe9adcb6da39f0a26e19d57dbbff07e3dd51ac49",
+          "width": 595,
+          "height": 842
+        }
+      ]
+    }
+  ]
+}

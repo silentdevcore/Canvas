@@ -1,5 +1,7 @@
 # UI Dynamics Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Drag and Drop Functionality
 - [x] Install @dnd-kit/sortable and @dnd-kit/modifiers for enhanced drag and drop
 - [x] Add position properties (x, y) to DesignerElement interface

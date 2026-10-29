@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-ua-tagged-generation",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "generator"
+  ],
+  "category": "added",
+  "summary": "PVAD generates tagged PDF/UA version 1 output with tables, accessible links, native form controls, focus order, and provider-specific tags mapped to standard roles. Export is blocked when semantics are incomplete, and maintained fixtures are validated with veraPDF.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

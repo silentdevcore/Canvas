@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-viewer-trust-workflows",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "importer"
+  ],
+  "category": "added",
+  "summary": "PVAD PDF Viewer adds accessible trust inspection, privileged PAdES signing, protected mutation workflows, localized diagnostics, and navigation to affected pages, objects, and Designer elements.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PVAD.PDF-Trust-Foundation.md"
+  ],
+  "breaking": false
+}

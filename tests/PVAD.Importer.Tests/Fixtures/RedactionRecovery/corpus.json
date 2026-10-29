@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "id": "chromium-encoded-glyphs",
+      "file": "chromium-encoded-glyphs.pdf",
+      "sha256": "b5d3181eee5704dd28d71b659ec30ea57eed585e991909c33eb96b1d3802023b",
+      "producer": "Google Chrome 152.0.7977.77",
+      "source": "Sources/chromium-encoded-glyphs.html",
+      "expectation": "block",
+      "secret": null,
+      "controlText": null,
+      "region": { "pageNumber": 1, "x": 154, "y": 2498, "width": 219, "height": 17 }
+    },
+    {
+      "id": "libreoffice-reusable-resources",
+      "file": "libreoffice-reusable-resources.pdf",
+      "sha256": "f4a65a9816b71632d0276324c0917338832bde55d150c20820211496d1785d07",
+      "producer": "LibreOffice 26.2.3.2",
+      "source": "Sources/libreoffice-reusable-resources.html",
+      "expectation": "block",
+      "secret": null,
+      "controlText": null,
+      "region": { "pageNumber": 1, "x": 34, "y": 618, "width": 220, "height": 15 }
+    },
+    {
+      "id": "malformed-compressed-stream",
+      "file": "malformed-compressed-stream.pdf",
+      "sha256": "94a57bab9371e4d31d9129965332ca1da5c3a9e3b262fe576a8905f3511314da",
+      "producer": "Invalid Flate payload mutation of Google Chrome 152.0.7977.77 output",
+      "source": "Sources/chromium-encoded-glyphs.html",
+      "expectation": "block",
+      "secret": null,
+      "controlText": null,
+      "region": null
+    }
+  ]
+}

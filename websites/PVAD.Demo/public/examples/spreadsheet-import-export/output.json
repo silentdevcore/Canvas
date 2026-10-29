@@ -1,0 +1,11 @@
+{
+  "normalizedModel": "PVAD.Core.Contracts.SpreadsheetDto",
+  "sheets": [
+    {
+      "name": "Summary",
+      "rows": 4,
+      "columns": 3
+    }
+  ],
+  "exportTargets": ["xlsx", "csv", "pdf"]
+}

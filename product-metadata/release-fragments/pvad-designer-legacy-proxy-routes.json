@@ -1,0 +1,8 @@
+{
+  "id": "pvad-designer-legacy-proxy-routes",
+  "impact": "patch",
+  "components": ["designer", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Designer hosting now serves PDF module workers with the correct JavaScript content type and redirects supported legacy links, while unknown routes retain a real not-found response.",
+  "breaking": false
+}

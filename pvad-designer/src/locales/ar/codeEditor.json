@@ -1,0 +1,47 @@
+{
+  "back": "← رجوع",
+  "title": "محرر الكود",
+  "lang": {
+    "json": "JSON",
+    "csharpCode": "C# PDF",
+    "csharpDto": "نموذج C#",
+    "csharpBase64": "FromBase64String"
+  },
+  "actions": { "validate": "تحقق", "run": "تشغيل", "convert": "تحويل", "restore": "استعادة", "apply": "تطبيق في المصمم", "accept": "تطبيق المسودة المُنشأة", "cancel": "إلغاء", "importLegacy": "استيراد المسودة", "dismiss": "إغلاق" },
+  "status": { "saved": "محفوظ", "modified": "معدّل", "generated": "مُنشأ", "outdated": "قديم", "invalid": "غير صالح", "conflict": "تعارض" },
+  "workspace": { "legacy": "تتوفر مسودة محلية من المحرر السابق.", "waiting": "ستتوفر مساحة عمل الخادم بعد حفظ القالب.", "target": "هدف التحويل", "fidelity": "الدقة", "documentFidelity": "دقة المستند", "sourcePreservation": "الحفاظ على الشفرة المصدرية", "added": "مضاف", "changed": "معدّل", "removed": "محذوف" },
+  "applyReview": {
+    "title": "مقارنة مع المصمم", "confirm": "استبدال مسودة المصمم التي تمت مراجعتها",
+    "staleBase": "تستند مساحة الشفرة إلى المراجعة {{base}}. المصمم الآن في المراجعة {{current}}.",
+    "replaceWarning": "أكد استبدال مسودة المصمم التي تمت مراجعتها بهذه النتيجة. تبقى مسودات اللغات الأخرى دون تغيير. ستمنع أي تغييرات لاحقة على الخادم تنفيذ العملية.",
+    "pageChanges": "تغير ترتيب الصفحات أو تخطيطها", "settingsChanges": "حقول المستند التي تغيرت",
+    "currentDesigner": "مستند المصمم الحالي", "codeResult": "النتيجة المقترحة",
+    "yes": "نعم", "no": "لا", "none": "لا شيء",
+    "sourceChanged": "تغيرت الشفرة أثناء المقارنة. أعد المقارنة.",
+    "saveRequired": "احفظ تغييرات المصمم أو عالج تعارضها قبل مقارنة الشفرة."
+  },
+  "converting": "جارٍ التحويل…",
+  "generating": "جارٍ الإنشاء…",
+  "exportPdf": "تصدير PDF",
+  "editor": { "refresh": "تحديث", "run": "تشغيل", "running": "جارٍ التشغيل...", "runTitle": "تشغيل C# وتحديث المعاينة", "format": "تنسيق", "copy": "نسخ", "copied": "تم النسخ", "loadStarter": "تحميل قالب {{name}}", "lineCount_zero": "{{count}} سطر", "lineCount_one": "{{count}} سطر", "lineCount_two": "{{count}} سطران", "lineCount_few": "{{count}} أسطر", "lineCount_many": "{{count}} سطرًا", "lineCount_other": "{{count}} سطر", "characterCount_zero": "{{count}} حرف", "characterCount_one": "{{count}} حرف", "characterCount_two": "{{count}} حرفان", "characterCount_few": "{{count}} أحرف", "characterCount_many": "{{count}} حرفًا", "characterCount_other": "{{count}} حرف" },
+  "preview": { "runningPdf": "جارٍ تشغيل كود C# PDF...", "converting": "جارٍ التحويل...", "pdfError": "خطأ في C# PDF - صححه ثم شغّل مرة أخرى", "modelError": "خطأ في نموذج C# - صححه ثم شغّل مرة أخرى", "base64Error": "خطأ FromBase64String - صححه ثم شغّل مرة أخرى", "runPdf": "شغّل الكود لإنشاء ملف PDF.", "pdfReturn": "يجب أن يعيد البرنامج النصي PvadPdfCodeDocument أو PdfDocument قديمًا.", "runModel": "شغّل الكود لعرض المعاينة.", "modelReturn": "يجب أن يعيد التعبير نسخة من DesignExportDto.", "emptyJson": "أدخل JSON لعرض معاينة مباشرة.", "emptyJsonHint": "استخدم قالب بداية للبدء بسرعة.", "jsonError": "صحح أخطاء JSON لعرض المعاينة." },
+  "errors": {
+    "syntaxError": "خطأ في الصياغة: {{message}}",
+    "pagesMustBeArray": "يجب أن يكون \"pages\" مصفوفة.",
+    "pagesMustHaveOne": "يجب أن يحتوي \"pages\" على صفحة واحدة على الأقل.",
+    "pageIdRequired": "pages[{{i}}]: الحقل \"id\" مطلوب.",
+    "pageElementsMustBeArray": "pages[{{i}}]: يجب أن يكون \"elements\" مصفوفة.",
+    "elementIdRequired": "pages[{{i}}].elements[{{j}}]: الحقل \"id\" مطلوب.",
+    "elementTypeRequired": "pages[{{i}}].elements[{{j}}]: الحقل \"type\" مطلوب.",
+    "elementXMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"x\" رقمًا.",
+    "elementYMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"y\" رقمًا.",
+    "elementWidthMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"width\" رقمًا.",
+    "elementHeightMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"height\" رقمًا.",
+    "pageSettingsWidthMustBeNumber": "يجب أن يكون \"pageSettings.width\" رقمًا.",
+    "pageSettingsHeightMustBeNumber": "يجب أن يكون \"pageSettings.height\" رقمًا.",
+    "generic": "خطأ",
+    "conversionFailed": "فشل التحويل.",
+    "runFailed": "فشل التشغيل.",
+    "exportFailed": "فشل التصدير."
+  }
+}

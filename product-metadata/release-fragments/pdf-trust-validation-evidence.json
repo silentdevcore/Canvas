@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-trust-validation-evidence",
+  "impact": "patch",
+  "components": [
+    "documentation",
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "PDF/A and PDF/UA validation now publish reproducible CI evidence and an explicitly non-passing template for structured manual accessibility review.",
+  "featureIds": [],
+  "documentation": [
+    "/downloads/pdf-trust/matterhorn-evidence.template.json"
+  ],
+  "breaking": false
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "pxa.e-invoice.parity-invoice/1",
+  "standard": "FacturX",
+  "profile": "EN 16931",
+  "invoice": {
+    "invoiceNumber": "PARITY-EINV-2026-0042",
+    "issueDate": "2026-09-27",
+    "currency": "EUR",
+    "seller": {
+      "name": "Groß & Söhne Bürotechnik GmbH",
+      "taxIdentifier": "DE123456789",
+      "address": {
+        "street": "Hauptstraße 118a",
+        "city": "Berlin",
+        "postalCode": "10115",
+        "countryCode": "DE"
+      }
+    },
+    "buyer": {
+      "name": "Société Générale de Facturation",
+      "taxIdentifier": "FR40303265045",
+      "address": {
+        "street": "12 Rue de l'Église",
+        "city": "Genève",
+        "postalCode": "75008",
+        "countryCode": "FR"
+      }
+    },
+    "lines": [
+      {
+        "identifier": "1",
+        "description": "Consulting engagement covering the migration assessment, the implementation plan and two workshops",
+        "quantity": 7.25,
+        "unitCode": "HUR",
+        "unitPrice": 93.33,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "2",
+        "description": "Handbuch „Elektronische Rechnungsstellung“ (gebundene Ausgabe)",
+        "quantity": 3,
+        "unitCode": "C62",
+        "unitPrice": 24.9,
+        "taxRate": 7,
+        "taxCategoryCode": "S"
+      },
+      {
+        "identifier": "3",
+        "description": "Roční údržba a školení — Přeprava zboží (Łódź)",
+        "quantity": 2,
+        "unitCode": "C62",
+        "unitPrice": 150,
+        "taxRate": 19,
+        "taxCategoryCode": "S"
+      }
+    ],
+    "currencyDecimalPlaces": 2,
+    "dueDate": "2026-10-27",
+    "buyerReference": "04011000-12345-34",
+    "paymentReference": "RF18 5390 0754 7034"
+  }
+}

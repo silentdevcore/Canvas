@@ -1,5 +1,7 @@
 # PDF Importer — Fidelity Improvement Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Goals
 
 Convert a PDF file to PXA JSON that visually matches the original:

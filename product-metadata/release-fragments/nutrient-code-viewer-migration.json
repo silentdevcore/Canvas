@@ -1,0 +1,22 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "nutrient-code-viewer-migration",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "migration"
+  ],
+  "category": "added",
+  "summary": "PVAD expands Nutrient and legacy GdPicture migration with page and content mappings, basic forms and annotations, modern password encryption, actionable Trust workflow reviews, and non-executing Viewer conversion.",
+  "featureIds": [
+    "designer.nutrient-viewer-migration"
+  ],
+  "documentation": [
+    "/checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md",
+    "/checklists/Migration-Namespace-Taxonomy.md",
+    "/#nutrient-viewer-migration"
+  ],
+  "breaking": false
+}

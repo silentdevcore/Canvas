@@ -2,9 +2,13 @@
 
 set -euo pipefail
 
+PVAD_CONFIG_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+. "$PVAD_CONFIG_ROOT/tools/configuration/environment.sh"
+pvad_environment_keys PVAD_RETENTION_KEEP_FAILED PVAD_TEST_LOG_RETENTION PVAD_TEST_METRIC_RETENTION PVAD_TEST_TRACE_RETENTION
+
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 compose_file="${root}/deploy/observability/retention-test/docker-compose.yml"
-project="pxa-retention-test"
+project="pvad-retention-test-$(date +%s)-$$"
 trace_id="00000000000000000000000000000001"
 now_epoch="$(date +%s)"
 metric_epoch="$(( now_epoch - 14400 ))"
@@ -25,9 +29,9 @@ cleanup() {
 
 finish() {
   local status=$?
-  if (( status != 0 )) && [[ "${PXA_RETENTION_KEEP_FAILED:-0}" == "1" ]]; then
+  if (( status != 0 )) && [[ "${PVAD_RETENTION_KEEP_FAILED:-0}" == "1" ]]; then
     rm -f "${metric_file}"
-    echo "Retention test resources retained for diagnostics." >&2
+    echo "Retention test resources retained for diagnostics: ${project}." >&2
     return
   fi
   cleanup
@@ -49,7 +53,7 @@ wait_http() {
 
 query_metric_count() {
   curl --fail --silent --show-error --get \
-    --data-urlencode 'query=pxa_retention_marker{marker="expired"}' \
+    --data-urlencode 'query=pvad_retention_marker{marker="expired"}' \
     --data-urlencode "time=${metric_epoch}" \
     http://127.0.0.1:19090/api/v1/query |
     jq -r '.data.result | length'
@@ -57,7 +61,7 @@ query_metric_count() {
 
 query_log_count() {
   curl --fail --silent --show-error --get \
-    --data-urlencode 'query={service_name="pxa-retention-marker"}' \
+    --data-urlencode 'query={service_name="pvad-retention-marker"}' \
     --data-urlencode "start=$((log_epoch - 60))000000000" \
     --data-urlencode "end=$((log_epoch + 60))000000000" \
     --data-urlencode 'limit=10' \
@@ -103,10 +107,10 @@ wait_for_value() {
 
 cleanup
 cat >"${metric_file}" <<EOF
-# TYPE pxa_retention_marker gauge
-pxa_retention_marker{marker="expired"} 1 ${metric_epoch}.000
-# TYPE pxa_retention_anchor gauge
-pxa_retention_anchor 1 ${now_epoch}.000
+# TYPE pvad_retention_marker gauge
+pvad_retention_marker{marker="expired"} 1 ${metric_epoch}.000
+# TYPE pvad_retention_anchor gauge
+pvad_retention_anchor 1 ${now_epoch}.000
 # EOF
 EOF
 
@@ -122,9 +126,9 @@ docker run --rm \
   prom/prometheus:v3.12.0 \
   tsdb create-blocks-from openmetrics /tmp/marker.prom /prometheus >/dev/null
 
-PXA_TEST_METRIC_RETENTION=365d \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=365d \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach
 wait_http http://127.0.0.1:19090/-/ready
 wait_http http://127.0.0.1:13101/ready
@@ -134,14 +138,14 @@ curl --fail --silent --show-error \
   --header 'Content-Type: application/json' \
   --data-binary @- \
   http://127.0.0.1:13101/loki/api/v1/push >/dev/null <<EOF
-{"streams":[{"stream":{"service_name":"pxa-retention-marker"},"values":[["${log_nanos}","synthetic expired retention marker"]]}]}
+{"streams":[{"stream":{"service_name":"pvad-retention-marker"},"values":[["${log_nanos}","synthetic expired retention marker"]]}]}
 EOF
 
 curl --fail --silent --show-error \
   --header 'Content-Type: application/json' \
   --data-binary @- \
   http://127.0.0.1:14318/v1/traces >/dev/null <<EOF
-{"resourceSpans":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"pxa-retention-marker"}}]},"scopeSpans":[{"scope":{"name":"pxa.retention"},"spans":[{"traceId":"${trace_id}","spanId":"0000000000000001","name":"synthetic-expired-marker","kind":1,"startTimeUnixNano":"${trace_nanos}","endTimeUnixNano":"$((trace_epoch + 1))000000000","status":{"code":2}}]}]}]}
+{"resourceSpans":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"pvad-retention-marker"}}]},"scopeSpans":[{"scope":{"name":"pvad.retention"},"spans":[{"traceId":"${trace_id}","spanId":"0000000000000001","name":"synthetic-expired-marker","kind":1,"startTimeUnixNano":"${trace_nanos}","endTimeUnixNano":"$((trace_epoch + 1))000000000","status":{"code":2}}]}]}]}
 EOF
 
 wait_for_value "seeded Prometheus marker" "1" 30 query_metric_count
@@ -160,9 +164,9 @@ docker run --rm --user root \
         "${metadata}"
     done
   '
-PXA_TEST_METRIC_RETENTION=365d \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=365d \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach tempo
 wait_http http://127.0.0.1:13201/ready
 curl --fail --silent --show-error \
@@ -170,22 +174,22 @@ curl --fail --silent --show-error \
   http://127.0.0.1:13101/flush >/dev/null
 sleep 80
 
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate prometheus loki
 wait_http http://127.0.0.1:19090/-/ready
 wait_http http://127.0.0.1:13101/ready
 wait_http http://127.0.0.1:13201/ready
 sleep 80
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate loki
 wait_http http://127.0.0.1:13101/ready
-PXA_TEST_METRIC_RETENTION=2h \
-PXA_TEST_LOG_RETENTION=24h \
-PXA_TEST_TRACE_RETENTION=1h \
+PVAD_TEST_METRIC_RETENTION=2h \
+PVAD_TEST_LOG_RETENTION=24h \
+PVAD_TEST_TRACE_RETENTION=1h \
   compose up --detach --force-recreate tempo
 wait_http http://127.0.0.1:13201/ready
 

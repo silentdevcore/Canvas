@@ -1,5 +1,7 @@
 # UI Advanced Elements Checklist
 
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+
 ## Scope
 Add document editing elements for annotations, markings, page controls, and reusable PDF authoring helpers.
 
