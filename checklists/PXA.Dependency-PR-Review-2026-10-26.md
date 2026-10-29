@@ -1325,8 +1325,14 @@ release sentence. Do not hide this proposal with the normal-version pause.
 - [x] Confirm all eight controlled old/new Home/Gallery PNGs are byte-identical.
 - [x] Confirm production audit reports zero known findings; full audit retains five low development findings only.
 - [x] Complete the chart browser matrix and final release/compliance checks.
-- [ ] Pass all exact-head hosted checks, record technical review and merge normally.
-- [ ] Close #205 as replaced only after merge; verify the entire live PR queue again.
+- [x] Pass all exact-head hosted checks, record technical review and merge normally.
+- [x] Close #205 as replaced only after merge; verify the entire live PR queue again.
+
+PR #207 passed all eight checks at `1dcbac1ab0f4d971bf10587875b835e067733fae`
+and merged as `9510132c152ede8a0d8bd46a3d07cc628acf38ee`. The fetched
+develop tree equals the final tested head; #205 is closed as replaced. Final
+queue inspection found the separately generated MCP security proposal #208,
+not an ordinary version proposal. [Final acceptance](https://github.com/silentdevcore/Canvas/pull/207#issuecomment-6495342540).
 
 Jest initially fails before discovery in three jsdom suites because Router 7
 uses TextEncoder, which jsdom omits. The shared test setup supplies Node's real
@@ -1355,3 +1361,39 @@ or backend integration acceptance. VERSION and published releases remain unchang
 Primary sources: [version-specific Router migration guide](https://github.com/remix-run/react-router/blob/react-router%407.18.5/docs/upgrading/v6.md),
 [navigation advisory](https://github.com/advisories/GHSA-wrjc-x8rr-h8h6),
 [SSR-mode advisory scope](https://github.com/advisories/GHSA-337j-9hxr-rhxg).
+
+## New MCP Transport Security Proposal - 2026-10-29
+
+After the previous queue was resolved, security proposal #208 updates only the
+transitive `@hono/node-server` lock entry from 2.0.12 to 2.1.5. Security updates
+remain enabled deliberately during the normal-version pause. The owner approves
+a separate review and the exact public security fragment sentence.
+
+- [x] Review the precise proposal diff, upstream fix, affected range and retained Node/SDK peers.
+- [x] Confirm the maintained MCP entry point uses only StdioServerTransport, not the affected static HTTP middleware.
+- [x] Run the unchanged baseline: six toolchain contracts, typecheck and fourteen actual stdio protocol scenarios.
+- [x] Update exactly one transitive lock entry without changing manifests, SDK 1.32.2, Hono 4, Node 22 declarations or TypeScript 7.
+- [x] Verify the official archive, integrity and MIT license; keep every other lock entry identical.
+- [x] Add a real adapter import/version/peer contract while retaining all existing compiler checks.
+- [x] Pass all seven contracts, typecheck and fourteen actual stdio protocol scenarios on the new graph.
+- [x] Verify the complete MCP npm audit changes from one moderate finding to zero known findings.
+- [x] Record explicit human approval of the exact public security sentence.
+- [ ] Pass release/compliance checks and all exact-head hosted checks for the replacement.
+- [ ] Record technical review, merge normally and close #208 only after the replacement is merged.
+- [ ] Inspect the live PR queue again and report any newly generated security proposal separately.
+
+This is dependency hygiene, not evidence of an exposed vulnerable static-file
+route in PXA MCP. The upstream issue affects the adapter's static-file middleware;
+the current MCP server remains stdio-only. The new contract imports the actual
+HTTP adapter and checks its metadata, but does not claim to validate a deployed
+HTTP/2 listener or production static hosting. The existing smoke test starts a
+real stdio child and uses a synthetic local API, not a customer backend.
+No HTTP listener, new tool, authorization bypass, user data or deployment is added.
+
+The Router baseline still retains five low Designer development findings; the
+MCP zero-audit result does not erase those or the unresolved NPOI license gate.
+VERSION and published manifests remain unchanged. The original four pending
+rename files stay untouched in their separate worktree.
+
+Primary sources: [adapter 2.1.5](https://github.com/honojs/node-server/releases/tag/v2.1.5),
+[adapter advisory and affected scope](https://github.com/advisories/GHSA-rmxm-3fg6-px4f).
