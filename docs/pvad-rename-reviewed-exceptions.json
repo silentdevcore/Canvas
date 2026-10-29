@@ -5270,6 +5270,16 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "test-assets/pdf-trust/operation-visual-baseline.linux.json",
+      "sha256": "dda48e0dc699fe7c588537c535d65179381ccda8bce9545d918e7c268cbfed94",
+      "reasons": [
+        "retained-evidence"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Separately owner-approved Linux operation references retain the actual CI provenance URL under the historical repository name. Original Mac files and embedded-font PDF/A and PDF/UA hashes are unchanged.",
+      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+    },
+    {
       "path": "test-assets/pdf-trust/visual-baseline.linux.json",
       "sha256": "84c1071c92120ae51369464b0757d937bcb9f3cdf3f4fee66393357960a7c693",
       "reasons": [
@@ -9502,7 +9512,7 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "810eb038dd5b7ed4de2e6f47e9268a0e5304fc601105ef566ad6234b2513de4d",
+      "sha256": "56916a5340719210a7f9aad93b8c1fb20e76469b1c8e9bde739594b7ac20e7d6",
       "reasons": [
         "historical-document"
       ],

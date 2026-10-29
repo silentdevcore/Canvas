@@ -54,6 +54,13 @@ The source PDF hashes, page geometry, page count, and exact PNG hashes are
 still enforced. Unknown platforms fail closed. A change to native font
 substitution requires an explicit image review, not an automatic baseline update.
 
+The same platform selection applies to operations: macOS uses the unchanged
+`operation-visual-baseline.json`; Linux uses the separately owner-approved
+`operation-visual-baseline.linux.json`. Both source and operation-output PNG
+hashes are exact. The Linux signature and redaction images were reviewed
+separately; the embedded-font PDF/A and PDF/UA pairs remain identical across
+platforms. Every report records the reference file it used.
+
 The operation runner additionally verifies that the real service outputs keep
 the source page count and geometry, and protects their rasterized output
 against checked-in baselines. For every page it writes a side-by-side comparison,

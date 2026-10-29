@@ -13,6 +13,27 @@ test('platform selection cannot overwrite or silently substitute the existing Ma
   assert.throws(() => trustBaselinePath('/repo', '../other', 'linux'), /Unknown/);
 });
 
+test('approved Linux operation references retain all service pairs, geometry and embedded-font hashes', () => {
+  const read = name => JSON.parse(readFileSync(new URL(`../../test-assets/pdf-trust/${name}.json`, import.meta.url), 'utf8'));
+  const original = read('operation-visual-baseline');
+  const linux = read('operation-visual-baseline.linux');
+  assert.equal(linux.review.status, 'approved');
+  assert.equal(linux.renderer.platform, 'linux');
+  assert.equal(linux.renderer.poppler, '24.02.0');
+  assert.equal(linux.dpi, original.dpi);
+  assert.deepEqual(linux.entries.map(entry => entry.id), original.entries.map(entry => entry.id));
+  for (const [index, entry] of linux.entries.entries()) {
+    for (const side of ['sourcePages', 'outputPages']) {
+      assert.deepEqual(entry[side].map(({ page, width, height }) => ({ page, width, height })),
+        original.entries[index][side].map(({ page, width, height }) => ({ page, width, height })));
+      for (const page of entry[side]) assert.match(page.pngSha256, /^[a-f0-9]{64}$/);
+      if (['pdf-a-2b', 'pdf-ua-1'].includes(entry.id)) {
+        assert.deepEqual(entry[side], original.entries[index][side]);
+      }
+    }
+  }
+});
+
 test('the owner-approved Linux corpus baseline preserves exact source hashes, dimensions and all four fixtures', () => {
   const read = name => JSON.parse(readFileSync(new URL(`../../test-assets/pdf-trust/${name}.json`, import.meta.url), 'utf8'));
   const original = read('visual-baseline');

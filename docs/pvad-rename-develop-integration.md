@@ -179,3 +179,13 @@ unchanged. The migration test now reloads its baseline token after the initial
 save and uses a deterministic submicrosecond fixture, without excluding the
 expiry field or weakening the final equality assertion. All three migration
 tests, including the real PostgreSQL variant, pass locally.
+
+Run [40944792373](https://github.com/silentdevcore/Canvas/actions/runs/40944792373)
+then passed the strict Linux corpus references, Designer parity matrix, frontend,
+dependency-security and MCP jobs. Its later operation-image check exposed the
+same native Helvetica substitution in the signature and redaction pairs;
+embedded-font PDF/A and PDF/UA pairs already matched exactly. After a separate
+side-by-side review, the owner explicitly approved additional strict Linux
+operation references. They retain both input/output hashes and page geometry;
+neither original Mac reference file nor any tolerance is changed. A successful
+full final-head run, including supply-chain, is still required before merging.

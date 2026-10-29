@@ -6,10 +6,11 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
+import { trustBaselinePath } from './trust-baseline.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const outputRoot = path.join(root, 'artifacts', 'pdf-trust-operations');
-const baselinePath = path.join(root, 'test-assets', 'pdf-trust', 'operation-visual-baseline.json');
+const baselinePath = trustBaselinePath(root, 'operation-visual-baseline');
 const dpi = 72;
 const operations = ['signature', 'redaction', 'pdf-a-2b', 'pdf-ua-1'];
 
@@ -195,6 +196,7 @@ async function main() {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     mode: readPvadEnvironment('PVAD_PDF_TRUST_OPERATION_ENFORCE') === 'true' ? 'enforced' : 'report-only',
+    baseline: path.relative(root, baselinePath),
     rasterizer: { command: 'pdftoppm', dpi, format: 'png' },
     operations: results,
     summary: {
