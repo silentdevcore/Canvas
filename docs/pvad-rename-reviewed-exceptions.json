@@ -7284,12 +7284,12 @@
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "1cafa6b175d51ec661d30e815d5fc3cf4a1c7bd7f5d6d5743eda0aabe59c7f95",
+      "sha256": "ead430a1df7891979355336148476435d5ad6c4eda4c33d0be3d99f53067bc74",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 CI portability review: enumerate the same Markdown checklists with native Node filesystem APIs; deliberate legacy-name assertions and coverage are unchanged.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {

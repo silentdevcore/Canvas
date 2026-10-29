@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
-import { dirname, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
@@ -44,8 +44,9 @@ test('retained checklist names have an explicit naming-history notice', () => {
 });
 
 test('every checklist mentioning PXA explicitly identifies its technical rename and market name', () => {
-  const paths = execFileSync('rg', ['--files', 'checklists', '-g', '*.md'],
-    { cwd: root, encoding: 'utf8' }).trim().split('\n');
+  const paths = readdirSync(resolve(root, 'checklists'), { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.md'))
+    .map(entry => relative(root, resolve(entry.parentPath, entry.name)));
   let reviewed = 0;
   for (const path of paths) {
     const source = read(path);
