@@ -5,6 +5,6 @@
   "components": ["designer", "documentation", "api"],
   "category": "fixed",
   "summary": "Aligned build verification with supported Linux and macOS tooling.",
-  "reason": "Validation-only fixes for workspace artifact locations, native ImageMagick command names, and locale-dependent test expectations; no visual baseline or threshold changes.",
+  "reason": "Validation-only fixes for workspace artifact locations, native ImageMagick command names, locale-dependent test expectations, and scanning the exact tested MCP image; no visual baseline or threshold changes.",
   "breaking": false
 }

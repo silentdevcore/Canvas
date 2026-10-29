@@ -9492,12 +9492,12 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "921d5e591b13f7ba5c972ccd8df4c2b0ba3c5b3ed338ddc6d2e768eaaae7f8cf",
+      "sha256": "6f554e09f4ef767966f6e443a3c7f4d684b2e9d29848bdeab4adda8484bee697",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit.",
+      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

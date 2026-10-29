@@ -35,6 +35,10 @@ chmod 644 "$PVAD_MCP_SMOKE_KEY" "$PVAD_MCP_SMOKE_CERT"
 
 docker compose -f "$COMPOSE_FILE" up --detach --build --wait
 
+# Keep the exact tested image available for the subsequent local security scan.
+image_id=$(docker compose -f "$COMPOSE_FILE" images --quiet pvad-mcp)
+docker image tag "$image_id" pvad-mcp-smoke:local
+
 NODE_EXTRA_CA_CERTS="$PVAD_MCP_SMOKE_CERT" \
 PVAD_MCP_SMOKE_ENDPOINT="https://localhost:$PVAD_MCP_SMOKE_TLS_PORT/mcp" \
 PVAD_MCP_SMOKE_TOKEN_ENDPOINT="http://127.0.0.1:$PVAD_MCP_SMOKE_MOCK_PORT/token" \

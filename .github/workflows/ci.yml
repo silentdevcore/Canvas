@@ -537,7 +537,7 @@ jobs:
             --ignore-unfixed \
             --severity HIGH,CRITICAL \
             --scanners vuln,secret \
-            mcp-smoke-pvad-mcp:latest
+            pvad-mcp-smoke:local
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v pvad-mcp-trivy-cache:/root/.cache/ \
@@ -545,7 +545,7 @@ jobs:
             aquasec/trivy:0.74.0 image \
             --format cyclonedx \
             --output /output/pvad-mcp.cdx.json \
-            mcp-smoke-pvad-mcp:latest
+            pvad-mcp-smoke:local
       - name: Check MCP repository diff
         run: git diff --check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

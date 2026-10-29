@@ -1,5 +1,9 @@
 # Rename And Develop Integration
 
+The initial candidate sections below record validation before the authorized
+transfer. The PR delivery checkpoint records subsequent commits and actual
+GitHub checks; local test results are not substituted for those checks.
+
 ## Scope
 
 This is an isolated integration candidate, not a release or deployment approval.
@@ -95,3 +99,44 @@ Rename progress remains **90/98 (91.8%) complete, 8/98 (8.2%) open**. Publisher
 selection, independent production approval, retained-key recovery, external
 host/mail validation and authorized cutover/release remain subject to the
 existing approval register.
+
+## PR Delivery Checkpoint: 2026-10-29
+
+- [x] Commit the tested integration as `c5492a81` and transfer it by fast-forward
+  to the rename branch without committing the four pending policy documents.
+- [x] Push the rename branch and open [PR 210](https://github.com/silentdevcore/Canvas/pull/210)
+  against `develop`, with `impact:major`. No stable release, deployment, approval
+  or protection bypass is included.
+- [x] Check the entire committed diff and correct existing CRLF/trailing-line
+  formatting in the renamed examples and historical brand checklist (`46bb6023`).
+- [x] Replace an optional search-binary dependency in documentation tests with
+  native Node file enumeration (`804e90c1`), retaining all legacy-name assertions.
+- [x] Supply every registered offline schema to the MCP container build, use
+  absolute test-host artifact directories, support native ImageMagick 6/7 command
+  names, and test Swiss currency layout without hard-coding a host ICU separator
+  (`62104688`). No production number formatter or visual threshold was changed.
+- [ ] Pass every required check on the final PR head; do not merge while blocked.
+
+Actual GitHub run [40934298779](https://github.com/silentdevcore/Canvas/actions/runs/40934298779)
+tested `62104688`. Version policy, impact synchronization, registry login,
+artifact contracts, dependency security, and the complete frontend job passed.
+The following failures remain explicit evidence, not waived checks:
+
+| Check | Observed failure | Required follow-up |
+| --- | --- | --- |
+| MCP beta | Scan referenced a nonexistent fixed Compose-generated image name after the isolated TLS test passed | Retain the exact tested image under an explicit local scan tag, then rerun the scanner |
+| .NET | The configured external validator image `ghcr.io/verapdf/cli:v1.31.166` returned `manifest unknown` after the fidelity fixture stages passed | Restore a reproducible approved validator source or review a replacement version; do not silently substitute a validator or skip PDF/UA and PDF/A checks |
+| Visual parity | `optionlist` exceeded the existing P0 threshold: Canvas/Preview show a bulleted list, while the rasterized backend PDF shows a selected list-box appearance | Resolve the element's intended appearance and align both renderers, with regression coverage; do not change the baseline to conceal this difference |
+
+The observed option-list perceptual RMSE is approximately 0.315, geometry drift
+is zero, and backend versus generated C# PDF is exact for that element. The
+downloaded report and all crops are retained under the isolated worktree's
+`artifacts/rename-integration/github-run-40934298779/visual-parity` directory.
+This is a real appearance difference, not a missing-file or geometry error.
+
+Follow-up local checks passed: 219 configuration/image-tool tests, 27
+version/release-author tests, five targeted text-renderer cases, MCP container
+typecheck/build with 29 runtime tests, and all four PDF Trust visual fixtures.
+These results do not close the two rendering/validator blockers or replace a
+successful final Linux PR run. The NPOI decision and independent production
+approval remain outside this integration's authority.
