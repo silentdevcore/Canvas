@@ -3271,12 +3271,12 @@
     },
     {
       "path": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx",
-      "sha256": "b0fdfe91201dd4be21f179224577a7f84ab938de06dda18dcb21aa44e5b33289",
+      "sha256": "f8eae894d1bee4472adeb08389f07ebb565ce9e56cabac19b7b6694f2fb257e9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3341,12 +3341,12 @@
     },
     {
       "path": "pvad-designer/src/docs/elementCatalog.ts",
-      "sha256": "6b249bee1637973232ced586ff0f99d3a8e0dc95357ed4b583b2f077c4054233",
+      "sha256": "ccc62b8a4870f89cdccb45b6ff7c88a679e3462b475a632eb3afe6b57f921c7b",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/docs/elementCatalog.ts: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "pvad-designer/src/docs/elementCatalog.ts: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3961,12 +3961,12 @@
     },
     {
       "path": "PVAD.WebApi/Infrastructure/DesignJsonMapper.cs",
-      "sha256": "b9c309aafd0546b944e58b5ac4bdb1fbcb2485143b8c5ede13e3e03f866044d5",
+      "sha256": "a945495afb9ef781d102cca126c381a6413b2c7352ae26650665d23bc6db7ec5",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/DesignJsonMapper.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "PVAD.WebApi/Infrastructure/DesignJsonMapper.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5271,12 +5271,12 @@
     },
     {
       "path": "test-assets/visual-parity/all-elements.json",
-      "sha256": "73462c8c64780a02b576c0fce6c4fae1943f1fad711fb35c86aa6a792494c81b",
+      "sha256": "1b8861ba91cbebd3d74a8ab58497dde16f38f7f0c7662ef3077293731b4f5648",
       "reasons": [
         "retained-evidence"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/all-elements.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
+      "reviewNotes": "test-assets/visual-parity/all-elements.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9492,12 +9492,12 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "6f554e09f4ef767966f6e443a3c7f4d684b2e9d29848bdeab4adda8484bee697",
+      "sha256": "a94e4afdc1a4bde7fa5bba939ffc731f7ff64f18d763d87e25c44e37c7961098",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates.",
+      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates. 2026-10-29 follow-up review: record original-version validator recovery and option-list regressions, preserving the failed-run history and final CI gate.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

@@ -246,12 +246,15 @@ export const ELEMENT_CATALOG: ElementDoc[] = [
   },
   {
     type: 'optionlist', label: 'Option List', category: 'Form',
-    description: 'A bulleted/numbered list of selectable options (renders as a static list outside form contexts).',
+    description: 'A static bulleted/numbered list, or a PDF list-box field when form properties are supplied. Canvas and Preview use the matching PDF appearance.',
     formatSupport: PDF_WORD_HTML, bindable: true,
     properties: [
       { name: 'options', type: 'string[]', description: 'List items.' },
       { name: 'ordered', type: 'boolean', description: 'Numbered vs. bulleted.' },
-      { name: 'listStyle', type: 'string', allowedValues: ['decimal', 'alpha', 'roman', 'disc', 'square'], description: 'Marker style.' },
+      { name: 'listStyle', type: 'string', allowedValues: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman', 'disc', 'circle', 'square', 'dash', 'asterisk', 'none'], description: 'Marker style for static lists.' },
+      { name: 'fieldName', type: 'string', description: 'Supplying a field name or label makes this an interactive PDF list box.' },
+      { name: 'selectedValue', type: 'string', description: 'Initially selected list-box option. An explicit value enables form mode.' },
+      { name: 'multiSelect', type: 'boolean', description: 'Allow multiple list-box selections. Supplying either true or false enables form mode.' },
     ],
     example: { id: 'el1', type: 'optionlist', x: 40, y: 40, width: 240, height: 80, options: ['First', 'Second', 'Third'], ordered: true, listStyle: 'decimal' },
   },

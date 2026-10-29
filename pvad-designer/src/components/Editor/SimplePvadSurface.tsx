@@ -147,6 +147,7 @@ import {
   PdfDropdownRenderer,
   PdfSignatureRenderer,
 } from '@/components/Rendering/PdfControlRenderer';
+import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
 import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
 import {
   PdfCommentRenderer,
@@ -2715,37 +2716,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
       return <PdfDropdownRenderer element={element} />;
     }
 
-    if (element.type === 'optionlist') {
-      const style = element.listStyle || (element.ordered ? 'decimal' : 'disc');
-      const isCustom = style === 'dash' || style === 'asterisk';
-      const prefix = style === 'dash' ? '– ' : style === 'asterisk' ? '* ' : '';
-      const baseStyle = {
-        fontFamily: element.style?.fontFamily || 'sans-serif',
-        fontSize: element.style?.fontSize || 14,
-        color: element.style?.color || '#111827',
-      };
-      if (isCustom) {
-        return (
-          <div style={{ ...baseStyle, padding: '0 4px', margin: 0 }}>
-            {(element.options || []).map((item, index) => (
-              <div key={index} style={{ lineHeight: 1.6 }}>{prefix}{item}</div>
-            ))}
-          </div>
-        );
-      }
-      const isOrdered = ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(style);
-      const ListTag = isOrdered ? 'ol' : 'ul';
-      return (
-        <ListTag
-          start={isOrdered ? element.startNumber ?? 1 : undefined}
-          style={{ ...baseStyle, listStyleType: style, paddingLeft: '20px', margin: 0 }}
-        >
-          {(element.options || []).map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ListTag>
-      );
-    }
+    if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
 
     if (element.type === 'radio') {
       return (

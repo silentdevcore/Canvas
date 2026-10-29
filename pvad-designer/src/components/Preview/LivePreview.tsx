@@ -30,6 +30,7 @@ import {
   PdfDropdownRenderer,
   PdfSignatureRenderer,
 } from '@/components/Rendering/PdfControlRenderer';
+import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
 import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
@@ -475,29 +476,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       return <PdfDropdownRenderer element={element} />;
     }
 
-    if (element.type === 'optionlist') {
-      const ls = element.listStyle || (element.ordered ? 'decimal' : 'disc');
-      const isCustom = ls === 'dash' || ls === 'asterisk';
-      const prefix = ls === 'dash' ? '– ' : ls === 'asterisk' ? '* ' : '';
-      const baseStyle = { fontSize: (element.style?.fontSize || 14) * zoom, color: element.style?.color || '#000' };
-      if (isCustom) {
-        return (
-          <div style={{ ...baseStyle, padding: '0 4px', margin: 0 }}>
-            {(element.options || []).map((item, i) => <div key={i} style={{ lineHeight: 1.6 }}>{prefix}{item}</div>)}
-          </div>
-        );
-      }
-      const isOrdered = ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(ls);
-      const Tag = isOrdered ? 'ol' : 'ul';
-      return (
-        <Tag
-          start={isOrdered ? element.startNumber ?? 1 : undefined}
-          style={{ ...baseStyle, listStyleType: ls, paddingLeft: 20, margin: 0 }}
-        >
-          {(element.options || []).map((item, i) => <li key={i}>{item}</li>)}
-        </Tag>
-      );
-    }
+    if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
 
     if (element.type === 'radio') {
       return (

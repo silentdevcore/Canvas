@@ -140,3 +140,31 @@ typecheck/build with 29 runtime tests, and all four PDF Trust visual fixtures.
 These results do not close the two rendering/validator blockers or replace a
 successful final Linux PR run. The NPOI decision and independent production
 approval remain outside this integration's authority.
+
+## Validator And Option-List Follow-Up
+
+- [x] Recover the original manufacturer installer for veraPDF 1.31.166, verify
+  SHA-256 `25cc4d87daf1c6eb9efd40487141a03f23bb65a92ba59e49e0f33a01343038da`,
+  and build a non-root local validator using a digest-pinned Java 11 runtime.
+  The actual `--version` result is 1.31.166. CI explicitly selects this local
+  image; no registry publication or historical evidence rewrite is performed.
+- [x] Validate the independent LibreOffice PDF/UA reference, four generated
+  PDF/UA fixtures, and the current Designer table/link/form fixture successfully
+  with that same validator version.
+- [x] Share the option-list renderer between Canvas and Preview. Plain lists
+  remain static; a field name, label, selected value, explicit multi-select flag,
+  or Form accessibility role selects the PDF list-box representation. Retain
+  list markers and start numbers outside form mode.
+- [x] Avoid duplicate body text underneath interactive list boxes and make
+  list-box widgets printable. Keep the existing field identities and values.
+- [x] Pass 801 Designer tests in 91 suites, 14 focused Backend rendering and
+  accessibility export tests, 16 PDF/UA generation tests, Designer typecheck,
+  and 246 configuration/validator/version/release-author tests locally.
+- [ ] Verify the final Linux PR run, including the previously skipped
+  supply-chain job, before declaring this integration merge-ready.
+
+The first corrected visual run has zero P0/P1 findings. Option-list perceptual
+RMSE dropped from approximately 0.315 to 0.029, with zero geometry drift and
+exact backend/C# raster equivalence. A static Roman-numbered list is added as
+an additional regression fixture. Existing thresholds and approved baselines
+are unchanged. See [the validator build instructions](../tools/pdf-trust/verapdf/README.md).

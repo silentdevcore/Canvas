@@ -672,7 +672,7 @@ internal sealed class PdfWriter
                 var flags = listBox.MultiSelect ? 2097152 : 0;
                 var structure = BuildAnnotationStructureSegment(listBox, accessibleAnnotationMap);
                 var description = OptionalHexEntry("TU", AccessibleDescription(listBox.Accessibility, listBox.FieldName));
-                var widget = $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff {flags} " +
+                var widget = $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff {flags} /F 4 " +
                     $"/T ({EscapeLiteralString(listBox.FieldName)}) /Opt [{listOptions}]{valueSegment} " +
                     $"/Rect {rect} /P {pageObjectId} 0 R /DA (/Helv {FormatNumber(listBox.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +

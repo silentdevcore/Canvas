@@ -1034,7 +1034,20 @@ public static class DesignJsonMapper
                 var textColor = ParseColor(GetString(style, "color") ?? "#101828");
                 var lineH = fs * 1.7;
 
-                var markerStyle = GetString(style, "markerStyle") ?? (el.Ordered == true ? "decimal" : "disc");
+                var fieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName : el.Id;
+                var isListBox = el.Type == "optionlist" &&
+                    (!string.IsNullOrWhiteSpace(el.FieldName) || !string.IsNullOrWhiteSpace(el.FieldLabel)
+                        || el.SelectedValue is not null || el.MultiSelect is not null
+                        || string.Equals(el.Accessibility?.Role, "Form", StringComparison.OrdinalIgnoreCase));
+                if (isListBox && options.Length > 0)
+                {
+                    var selectedValues = el.SelectedValue is not null ? new[] { el.SelectedValue } : [];
+                    page.AddListBox(fieldName, elX, RectBottomY(pageH, elY, h), w, h, options,
+                        selectedValues, el.MultiSelect == true, Math.Max(6, fs));
+                    break;
+                }
+
+                var markerStyle = el.ListStyle ?? GetString(style, "markerStyle") ?? (el.Ordered == true ? "decimal" : "disc");
 
                 for (var i = 0; i < options.Length; i++)
                 {
@@ -1047,14 +1060,7 @@ public static class DesignJsonMapper
                     page.DrawText($"{bullet}{options[i]}", elX, TextY(pageH, optCssY, fs),
                         new PdfDrawTextOptions { FontSize = fs, Bold = isSelected, FillColor = textColor });
                 }
-                var fieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName : el.Id;
-                if (el.Type == "optionlist" && options.Length > 0)
-                {
-                    var selectedValues = !string.IsNullOrWhiteSpace(el.SelectedValue) ? new[] { el.SelectedValue } : [];
-                    page.AddListBox(fieldName, elX, RectBottomY(pageH, elY, h), w, h, options,
-                        selectedValues, el.MultiSelect == true, Math.Max(6, fs));
-                }
-                else if (el.Type == "radio")
+                if (el.Type == "radio")
                 {
                     for (var i = 0; i < options.Length; i++)
                     {
@@ -1955,6 +1961,9 @@ public static class DesignJsonMapper
         "upper-alpha"  => $"{ToAlpha(n).ToUpperInvariant()}. ",
         "lower-roman"  => $"{ToRoman(n)}. ",
         "upper-roman"  => $"{ToRoman(n).ToUpperInvariant()}. ",
+        "none"         => "",
+        "dash"         => "- ",
+        "asterisk"     => "* ",
         "square"       => "■ ",
         "circle"       => "o ",
         _              => "• "   // disc / default bullet

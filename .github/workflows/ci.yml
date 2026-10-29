@@ -104,6 +104,8 @@ jobs:
   dotnet:
     runs-on: ubuntu-latest
     needs: version-policy
+    env:
+      PVAD_VERAPDF_IMAGE: pvad-verapdf:1.31.166
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -179,6 +181,8 @@ jobs:
           path: artifacts/document-fidelity/real-world
           if-no-files-found: error
           retention-days: 30
+      - name: Build the pinned independent PDF validator
+        run: sh tools/pdf-trust/build-verapdf.sh
       - name: Validate generated PDF/UA-1 fixtures independently
         env:
           PVAD_PDFUA_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/pdfua/fixtures
