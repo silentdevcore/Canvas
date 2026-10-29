@@ -8,6 +8,9 @@ COPY VERSION ./VERSION
 COPY tools/configuration ./tools/configuration
 COPY llms-full.txt ./llms-full.txt
 COPY docs ./docs
+COPY product-metadata/*.schema.json ./product-metadata/
+COPY product-metadata/document-fidelity/*.schema.json ./product-metadata/document-fidelity/
+COPY tools/pdfua/matterhorn-evidence.schema.json ./tools/pdfua/matterhorn-evidence.schema.json
 COPY pvad-designer/src/docs ./pvad-designer/src/docs
 COPY pvad-designer/src/chart/types.ts ./pvad-designer/src/chart/types.ts
 COPY pvad-designer/src/data/elementRegistry.ts ./pvad-designer/src/data/elementRegistry.ts

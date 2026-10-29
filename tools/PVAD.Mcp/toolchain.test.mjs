@@ -13,6 +13,23 @@ const nodeMajor = 22;
 const compiler = readJson('./node_modules/typescript/package.json');
 const compilerPath = fileURLToPath(new URL(`./node_modules/typescript/${compiler.bin.tsc}`, import.meta.url));
 
+test('the container build includes every schema registered for offline validation', () => {
+  const dockerfile = readFileSync(new URL('./Dockerfile', import.meta.url), 'utf8');
+  const { schemas } = readJson('../../docs/schema/schema-aliases.json');
+  const copies = [
+    ['docs/', 'COPY docs ./docs'],
+    ['product-metadata/', 'COPY product-metadata/*.schema.json ./product-metadata/'],
+    ['product-metadata/document-fidelity/', 'COPY product-metadata/document-fidelity/*.schema.json ./product-metadata/document-fidelity/'],
+    ['tools/pdfua/', 'COPY tools/pdfua/matterhorn-evidence.schema.json ./tools/pdfua/matterhorn-evidence.schema.json'],
+  ];
+  for (const entry of schemas) {
+    const directory = entry.path.slice(0, entry.path.lastIndexOf('/') + 1);
+    const copy = copies.find(([prefix]) => prefix === 'docs/' ? directory.startsWith(prefix) : directory === prefix);
+    assert.ok(copy, `Missing container schema source: ${entry.path}`);
+    assert.ok(dockerfile.includes(copy[1]), entry.path);
+  }
+});
+
 function runCompiler(args) {
   const result = spawnSync(process.execPath, [compilerPath, ...args], {
     encoding: 'utf8', timeout: 30_000, maxBuffer: 1024 * 1024,

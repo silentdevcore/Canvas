@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const outputRoot = path.join(root, 'artifacts', 'pdf-trust-operations');
@@ -13,7 +14,8 @@ const dpi = 72;
 const operations = ['signature', 'redaction', 'pdf-a-2b', 'pdf-ua-1'];
 
 function run(command, args, extraEnv = {}) {
-  const result = spawnSync(command, args, {
+  const execute = command === 'magick' ? spawnImageMagick : (args, options) => spawnSync(command, args, options);
+  const result = execute(args, {
     cwd: root,
     env: { ...process.env, ...extraEnv },
     encoding: 'utf8',
@@ -25,7 +27,7 @@ function run(command, args, extraEnv = {}) {
 }
 
 function writeDiffMask(sourcePath, outputPath, diffMaskPath) {
-  const result = spawnSync('magick', [
+  const result = spawnImageMagick([
     'compare', '-metric', 'AE',
     '-highlight-color', '#ff0000',
     '-lowlight-color', '#ffffff',
@@ -45,6 +47,7 @@ function writeDiffMask(sourcePath, outputPath, diffMaskPath) {
 }
 
 function requireTool(name) {
+  if (name === 'magick') return requireImageMagick();
   const result = spawnSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`PDF Trust operation visuals require '${name}' on PATH.`);
 }

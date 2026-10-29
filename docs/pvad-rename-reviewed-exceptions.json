@@ -8055,12 +8055,12 @@
     },
     {
       "path": "tools/PVAD.Mcp/Dockerfile",
-      "sha256": "eeadfb9a1d0c5a4c923e0241043afc9d60a0b54d34c5d44f33ceee9a74823f64",
+      "sha256": "324d29d9cf4b978a92f81b7d868006eeea20b9853c8f45902235e6dd191c291c",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/Dockerfile: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover.",
+      "reviewNotes": "tools/PVAD.Mcp/Dockerfile: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover. 2026-10-29 Linux CI review: include manifest-registered offline schemas and map ImageMagick 6/7 commands without changing preserved identities or visual acceptance thresholds.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8289,12 +8289,12 @@
     },
     {
       "path": "tools/visual-parity/run.mjs",
-      "sha256": "746e24f03432aecc3df817aac609f1e16785825eed06f06efe95e0c257e81513",
+      "sha256": "3e10b5d48df6dbdbaaff09b14096e6073d93d0449a87ab0d17308e145cb751cf",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/visual-parity/run.mjs: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "tools/visual-parity/run.mjs: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product. 2026-10-29 Linux CI review: include manifest-registered offline schemas and map ImageMagick 6/7 commands without changing preserved identities or visual acceptance thresholds.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

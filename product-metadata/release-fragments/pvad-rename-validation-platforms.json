@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-validation-platforms",
+  "impact": "none",
+  "components": ["designer", "documentation", "api"],
+  "category": "fixed",
+  "summary": "Aligned build verification with supported Linux and macOS tooling.",
+  "reason": "Validation-only fixes for workspace artifact locations, native ImageMagick command names, and locale-dependent test expectations; no visual baseline or threshold changes.",
+  "breaking": false
+}

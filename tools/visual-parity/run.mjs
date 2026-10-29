@@ -5,6 +5,7 @@ import { existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 import playwright from '../../pvad-designer/node_modules/@playwright/test/index.js';
 import { createServer } from '../../pvad-designer/node_modules/vite/dist/node/index.js';
 
@@ -23,7 +24,8 @@ const fixtureKey = path.basename(configuredFixture, '.json');
 const baseUrl = 'http://127.0.0.1:4187';
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', stdio: 'pipe', ...options });
+  const execute = command === 'magick' ? spawnImageMagick : (args, options) => spawnSync(command, args, options);
+  const result = execute(args, { cwd: root, encoding: 'utf8', stdio: 'pipe', ...options });
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(' ')} failed\n${result.stdout ?? ''}\n${result.stderr ?? ''}`);
   }
@@ -31,6 +33,7 @@ function run(command, args, options = {}) {
 }
 
 function requireTool(name) {
+  if (name === 'magick') return requireImageMagick();
   const result = spawnSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`Visual parity requires '${name}' on PATH.`);
 }

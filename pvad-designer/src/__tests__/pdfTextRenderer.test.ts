@@ -21,14 +21,17 @@ describe('PDF text contract', () => {
     }), 1, 8)).toBe('Page 4 / 8');
   });
 
-  test('uses the backend Swiss currency representation', () => {
+  test.each([-12345.67, 12345.67, 0])('uses the backend Swiss currency layout for %s', value => {
+    const numeric = new Intl.NumberFormat('de-CH', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2,
+    }).format(Math.abs(value));
     expect(formatNumberForPdf(element({
-      numberValue: -12345.67,
+      numberValue: value,
       numberStyle: 'currency',
       numberDecimals: 2,
       numberCurrency: 'CHF',
       numberLocale: 'de-CH',
-    }))).toBe('CHF-12’345.67');
+    }))).toBe(`CHF${value < 0 ? '-' : ' '}${numeric}`);
   });
 
   test('positions rich-text runs with the PDF word-width contract', () => {

@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const corpusRoot = path.join(root, 'websites', 'PVAD.Documentation', 'public', 'downloads', 'pdf-trust');
@@ -13,13 +14,15 @@ const outputRoot = path.join(root, 'artifacts', 'pdf-trust-visual');
 const dpi = 72;
 
 function run(command, args) {
-  const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+  const execute = command === 'magick' ? spawnImageMagick : (args, options) => spawnSync(command, args, options);
+  const result = execute(args, { cwd: root, encoding: 'utf8', stdio: 'pipe' });
   if (result.status !== 0)
     throw new Error(`${command} ${args.join(' ')} failed\n${result.stdout ?? ''}\n${result.stderr ?? ''}`);
   return result;
 }
 
 function requireTool(name) {
+  if (name === 'magick') return requireImageMagick();
   const result = spawnSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`PDF Trust visual regression requires '${name}' on PATH.`);
 }

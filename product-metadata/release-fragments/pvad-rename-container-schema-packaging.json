@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-container-schema-packaging",
+  "impact": "patch",
+  "components": ["sdk"],
+  "category": "fixed",
+  "summary": "Included all offline validation schemas when building the MCP server container.",
+  "breaking": false
+}
