@@ -1,22 +1,57 @@
 version: 2
+# Owner-approved temporary version-PR pause during the PVAD rename (2026-10-28).
+# Security updates are not paused. Restore the limits after rename acceptance;
+# see checklists/PVAD.Dependency-PR-Review-2026-10-26.md.
 updates:
   - package-ecosystem: "nuget"
     directory: "/"
     target-branch: "develop"
+    groups:
+      opentelemetry:
+        patterns: ["OpenTelemetry.*"]
+      test-platform:
+        patterns: ["Microsoft.NET.Test.Sdk", "xunit.runner.visualstudio"]
+    # ASP.NET Core 10 requires OpenAPI.NET 2.x. Revisit with a platform upgrade.
+    ignore:
+      - dependency-name: "Microsoft.OpenApi"
+        update-types: ["version-update:semver-major"]
+      # Managed/native Skia must move together in a dedicated renderer migration.
+      - dependency-name: "SkiaSharp"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "SkiaSharp.NativeAssets.*"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
 
   - package-ecosystem: "npm"
     directory: "/pvad-designer"
     target-branch: "develop"
+    open-pull-requests-limit: 0
+    groups:
+      react-runtime:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+    # Owner-selected stable Grid requires React 18; Node types follow Node 22.
+    # Normal version proposals are temporarily paused; security updates remain enabled.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"
   - package-ecosystem: "npm"
     directory: "/websites/PVAD.Admin"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"
@@ -24,6 +59,12 @@ updates:
   - package-ecosystem: "npm"
     directory: "/tools/PVAD.Mcp"
     target-branch: "develop"
+    open-pull-requests-limit: 0
+    # Node declarations follow the validated runtime. Revisit with a Node upgrade;
+    # normal version proposals are temporarily paused; security updates remain enabled.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
       day: "monday"
@@ -31,6 +72,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/PVAD.WebApi"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"
@@ -38,6 +80,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "develop"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"
       day: "monday"

@@ -2,7 +2,7 @@
 const config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFiles: ['<rootDir>/jest.setup.js'],
+  setupFiles: ['<rootDir>/jest.setup.js', '<rootDir>/src/__tests__/setupWebStandards.cjs'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^.*websites/shared/browserTelemetry\\.js$': '<rootDir>/src/__tests__/mocks/browserTelemetry.ts',

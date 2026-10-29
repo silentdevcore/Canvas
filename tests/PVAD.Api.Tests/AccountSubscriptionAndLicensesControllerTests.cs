@@ -122,9 +122,12 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
                 Algorithm = string.Empty,
                 ValidFrom = DateTimeOffset.UtcNow.AddDays(-1),
                 ValidUntil = DateTimeOffset.UtcNow.AddYears(1),
+                IssuedAt = PvadLicenseTimestamps.Normalize(DateTimeOffset.UtcNow),
                 InstanceLimit = 5,
                 IssuedByUserId = owner.Id,
             };
+            license.ValidFrom = PvadLicenseTimestamps.Normalize(license.ValidFrom);
+            license.ValidUntil = PvadLicenseTimestamps.Normalize(license.ValidUntil);
             var envelope = new PvadOfflineLicenseEnvelope(
                 2, license.Id, license.LicenseNumber, organization.Id, organization.Name,
                 subscription.Edition.ToString(), subscription.AccountType.ToString(), subscription.DeploymentMode.ToString(),

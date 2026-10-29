@@ -240,8 +240,8 @@ public sealed class AdminSubscriptionsControllerTests
             await GetCsrfAsync(systemClient), new
             {
                 subscriptionId,
-                validFrom = DateTimeOffset.UtcNow.AddMinutes(-1),
-                validUntil = DateTimeOffset.UtcNow.AddDays(7),
+                validFrom = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).AddTicks(1),
+                validUntil = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7), TimeSpan.Zero).AddTicks(9),
                 instanceLimit = 3,
                 productVersion = "1.0.0",
                 deploymentId = "subscription-tenant-prod",
@@ -249,13 +249,15 @@ public sealed class AdminSubscriptionsControllerTests
         var issueResponse = await systemClient.SendAsync(issueLicense);
         Assert.Equal(HttpStatusCode.Created, issueResponse.StatusCode);
         var license = await issueResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(0, license.GetProperty("validFrom").GetDateTimeOffset().Ticks % TimeSpan.TicksPerMicrosecond);
+        Assert.Equal(0, license.GetProperty("validUntil").GetDateTimeOffset().Ticks % TimeSpan.TicksPerMicrosecond);
         var licenseId = license.GetProperty("id").GetGuid();
         var licenseDetail = await organizationClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}");
         Assert.Equal(licenseId, licenseDetail.GetProperty("id").GetGuid());
         var validation = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate");
-        Assert.True(validation.GetProperty("valid").GetBoolean());
+        Assert.True(validation.GetProperty("valid").GetBoolean(), validation.GetRawText());
         Assert.True(validation.GetProperty("signatureValid").GetBoolean());
         var versionMismatch = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate?productVersion=2.0.0");

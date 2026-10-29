@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "mcp-native-compiler-maintenance",
+  "impact": "none",
+  "components": ["sdk"],
+  "category": "improved",
+  "summary": "Maintained MCP development tooling with native compiler compatibility checks.",
+  "breaking": false,
+  "reason": "Only private MCP compiler dependencies, tooling contracts and maintenance policy change; server execution, public protocol, product versions and deployment behavior remain unchanged."
+}

@@ -11,11 +11,11 @@ using PVAD.WebApi.Security;
 
 namespace PVAD.Api.Tests;
 
-public sealed class AdminDocumentationControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class AdminDocumentationControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly WebApplicationFactory<Program> factory;
 
-    public AdminDocumentationControllerTests(WebApplicationFactory<Program> factory)
+    public AdminDocumentationControllerTests(PvadApiTestFactory factory)
     {
         this.factory = factory;
     }

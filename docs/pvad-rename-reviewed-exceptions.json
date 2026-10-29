@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewDate": "2026-10-22",
+  "reviewDate": "2026-10-29",
   "baseline": "fce423cf8c5f5e71eff6178f712fe4e5eb5af69a",
   "scope": "Point-in-time residual-name context review for the exact file bytes below. Not blanket semantic, security, publication, infrastructure-cutover or legal approval. Binary evidence is reviewed separately.",
   "ledgerSelfExclusion": "This inventory intentionally records retained old filenames; its own content is not recursively inventoried.",
@@ -27,22 +27,22 @@
     },
     {
       "path": ".github/workflows/deployment-validation.yml",
-      "sha256": "3048f386679822e55bfa3e3b644bd751ada0aed5c112257c14b7a73b0db20c37",
+      "sha256": "f91dd219fecbcebb1cb8475b96e483ee4ce5792e9bea30a2b5f0e42a11bd921a",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped publisher transition: new canonical image selection uses the owner-selected namespace. Retain the explicit historical family choice and protected environment names until separate approval; Action pins, permissions and concurrency are unchanged. This source review is not registry access or deployment evidence.",
+      "reviewNotes": "2026-10-26 scoped publisher transition: new canonical image selection uses the owner-selected namespace. Retain the explicit historical family choice and protected environment names until separate approval; Action pins, permissions and concurrency are unchanged. This source review is not registry access or deployment evidence. 2026-10-29 integration review: Only reviewed action pins changed. Existing protected environment bindings and pinned historical binary inputs remain intentionally unchanged.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
       "path": ".github/workflows/job-binary-cutover.yml",
-      "sha256": "18547d2bf6d6e71c9f986c4c71759ac8ba91890a91027e152710b7cc4925d82c",
+      "sha256": "4acdd9f6450a51a5cb048005ce2711b7c9533f2734fcacc36715b557ca6e14f0",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized.",
+      "reviewNotes": "Workflow-boundary review: old registry repositories, protected environments, concurrency locks and historical binary identities remain explicit retained bindings. Five edited workflow definitions compare equal after YAML parsing. Seventeen workflow/deployment contracts pass across nine workflow files; no GitHub job, publication or remote cutover was executed or authorized. 2026-10-29 integration review: Only reviewed action pins changed. Existing protected environment bindings and pinned historical binary inputs remain intentionally unchanged.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -1307,12 +1307,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "59fdf069e3c38ad05a8f890509e013222d042423c3aa641bd5f935137a65432c",
+      "sha256": "717b85859bdeaa16f0258df2fb9bbfcc65af74bed44a1e8202cb64c1d21fe3f4",
       "reasons": [
-        "compatibility-contract"
+        "compatibility-contract",
+        "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate.",
+      "reviewNotes": "2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2777,22 +2778,23 @@
     },
     {
       "path": "pvad-designer/package-lock.json",
-      "sha256": "8824a740f0da39fc597e59259199a49fe430e6aba9710090463a491b761e77a6",
+      "sha256": "eeee98d4a65660d8293460d77a9ab872219a1e98de413fdd55011583a1b988cb",
       "reasons": [
-        "infrastructure-binding"
+        "infrastructure-binding",
+        "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/package-lock.json: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover.",
+      "reviewNotes": "pvad-designer/package-lock.json: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover. 2026-10-29 integration review: The html2canvas and optional canvas dependency names belong to upstream packages, not first-party branding. Merged package identity and scripts remain canonical.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/package.json",
-      "sha256": "6a9998b8e6b00dd73a2a9a866604a007ffcf5c97662754d9f997559bee25cbb6",
+      "sha256": "f218926c961be43855c857cb87cfb5f9866e36ae3ed81ffbbd3cd939103aa7b4",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/package.json: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "pvad-designer/package.json: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product. 2026-10-29 integration review: The html2canvas and optional canvas dependency names belong to upstream packages, not first-party branding. Merged package identity and scripts remain canonical.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3057,12 +3059,13 @@
     },
     {
       "path": "pvad-designer/src/__tests__/productExperiencePanel.test.tsx",
-      "sha256": "a433c403476c2471843419ff157ff0928dac279e1b70a0a9177b1aaeb11490fc",
+      "sha256": "af7a6383934cac44089cfe3cfd22c5104f667c29ff6b678730513ef3db50b902",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "retained-evidence"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/productExperiencePanel.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "pvad-designer/src/__tests__/productExperiencePanel.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Current PVADE header assertion is updated while the historical published PXA release title remains unchanged. Jest-DOM checks real rendered contents.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3257,12 +3260,13 @@
     },
     {
       "path": "pvad-designer/src/components/Editor/PvadSurface.tsx",
-      "sha256": "d94a6f0212843bad22c34447159385b8a327b831efac1f8307fa39f57900f158",
+      "sha256": "01475012c4a15527ab98a2a60b033e2fc6b7c8cbb99319c774b3d4c1bbd6b78c",
       "reasons": [
-        "drawing-api"
+        "drawing-api",
+        "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/components/Editor/PvadSurface.tsx: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "pvad-designer/src/components/Editor/PvadSurface.tsx: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product. 2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3847,12 +3851,12 @@
     },
     {
       "path": "PVAD.WebApi/Controllers/DesignerTemplatesController.cs",
-      "sha256": "16ae63e57867e75db3d2ae2cbb4e34dfe5ae017e6112c5eec5b2200f37668a9f",
+      "sha256": "09b47a4426ce3413dbd70fc9ad48076e2d90c04766c82c70e14ae857d12ca2ea",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Use shared route-aware conflict type references while preserving the authoritative diagnostic, current revision, audit and tenant behavior.",
+      "reviewNotes": "Use shared route-aware conflict type references while preserving the authoritative diagnostic, current revision, audit and tenant behavior. 2026-10-29 integration review: The incoming explicit record constructor fixes concurrent MVC draft validation. Stable diagnostic response codes and compatibility metadata remain unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5357,12 +5361,13 @@
     },
     {
       "path": "TESTING.md",
-      "sha256": "0210d8991704fc9ccc92a6b76cd1475ba54f8a64f7ee6d826e5e405789a61003",
+      "sha256": "1f48f4a5b69cfa7ffcc32c8099d88ea079321901fbc0e0d41a48efbd3db685b0",
       "reasons": [
-        "compatibility-contract"
+        "compatibility-contract",
+        "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "TESTING.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "TESTING.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 integration review: Current commands use canonical paths; the original dependency review link and explanations of old evidence retain their historical identities.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5447,12 +5452,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs",
-      "sha256": "daf638fb9957762336b0c2c5aed7e79b6795b34683f888782d09103d28372f3d",
+      "sha256": "78cc6f003820fb4141764760975c666656d7d8f180ae427b0d1ff6753cd729af",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5477,12 +5483,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs",
-      "sha256": "60bd5989a3613df9072faf0612cd16a3105b114a826aede3309284f4793faaae",
+      "sha256": "b69cdc9c8e97093cd677a61a2d284365d6e6b17bac7c45aadb33d3075eeb1d8a",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5497,12 +5504,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs",
-      "sha256": "aece76c893afd4943e623c8e6f67182ac4b31f5020e634542b094de5fa09051f",
+      "sha256": "bb396e8c7f2f1235c887b2dfe7aa7d790cfb5b473def1354220bfb3457d45b66",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5577,12 +5585,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs",
-      "sha256": "ba31403682b71753c20bc1d462d690c2ec1e05c9a9a00a1c7be1053cc69c7d79",
+      "sha256": "560de97c78548d6bb4716a76e71896a9f9f4d1d0d71b9bd2a73e9f1b65f1f52a",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5597,12 +5606,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/ExportControllerTests.cs",
-      "sha256": "539878baf0dea8139cea1434b7c9e8e9f421d580d912d109753c7ef15f184755",
+      "sha256": "f71289162568030e66db268378457cbd66bddfe83af6ba78038152e0c1e96edf",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/ExportControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/ExportControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5627,12 +5637,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/ImageConversionControllerTests.cs",
-      "sha256": "4c0bc3b4c653f4b84a366dada67ccd0a049b4d0d873d18b387713f6bb8fcdcd5",
+      "sha256": "b9b9a1e0b9ecd6635c32cf3d7a14ddc812866a8ae9b99c94c3b8ef64f3a3eeab",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/ImageConversionControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/ImageConversionControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5657,12 +5668,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationControllerTests.cs",
-      "sha256": "33f0aac7c2c287d9cb1767db6ee09b0a6860715c100ef75f80747433a2a7d614",
+      "sha256": "721c048963001ec4a1610a27ab92600efe5a884b9e98c24370043c6cda337cc9",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
@@ -5847,12 +5859,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs",
-      "sha256": "34c5446ba6e12c876104fe5e62d65e5814c9a952238b9fde26523bce844cb64f",
+      "sha256": "6d48db9055c02b6128a3d875c67250ea63c1ef640a2981b06eb12024e2d81046",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5867,12 +5880,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs",
-      "sha256": "6c04e601c53f59c01044355c0803f3da7dddd6c1e53a346e97da4a5465acb1bc",
+      "sha256": "1390d3a1e40689b3b6dbe1178be784f567d85763952d8b76c09d249df28dc769",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5897,12 +5911,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs",
-      "sha256": "ee983e801f2ab9844554c70c29ac1c47bb043c4c57bafd9fcb65e7a7026f494d",
+      "sha256": "3efa431e8404962e3a37804bb7754af0f863f9611ea1b2c414c2f3e7b48116e6",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5957,21 +5972,23 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadCookieCompatibilityTests.cs",
-      "sha256": "ba2ff605f2236ebc14bf7bd74042ab5a7237e222a25d57402ac1bb2a93ba9ad1",
+      "sha256": "bac96f651fe5583bb161ce28011a30b74e239fff209e9f609d0dd72239d5f2b3",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadCookieCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadCookieCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
-      "reviewNotes": "Tests explicitly retain the legacy API route to verify the same configured CORS policy on both route generations; synthetic origins and invalid inputs are not product branding.",
+      "reviewNotes": "Tests explicitly retain the legacy API route to verify the same configured CORS policy on both route generations; synthetic origins and invalid inputs are not product branding. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "path": "tests/PVAD.Api.Tests/PvadCorsConfigurationTests.cs",
-      "sha256": "f51e3c3d404983e9995f1b8d4b714571ccf52d28f6e141a767e435c836f4a6e8",
+      "sha256": "e34d0b266a080d9e8835638860f10914584528148085a4c3dcc7d7e35eb7fe11",
       "reviewStatus": "reviewed",
       "boundaryGuide": "deploy/rename/README.md"
     },
@@ -5987,22 +6004,24 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadDiagnosticAliasContractTests.cs",
-      "sha256": "2763c0cc44f58912930eff1ac2798e5449f529d0c18ec5f91050fbd981cf4bd4",
+      "sha256": "5b376e110cda9a7b56e21d5de596ef79665bfb8da3a050d69b0740f7c6042dd1",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadDiagnosticAliasContractTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadDiagnosticAliasContractTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs",
-      "sha256": "88ea093ad716e1b7413db232dc5daf69d98ecfa2f2ed53ba6c0dff08e67823bf",
+      "sha256": "16e4c7ea372af7298b126bd76d40a003097c46603ac6ffb90174788a8ec6dac9",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6017,12 +6036,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadEvidenceDiagnosticSerializationTests.cs",
-      "sha256": "b98851969c21069eaddb394b3e6beb769f470fd78d9246b39e03b8861a002a0d",
+      "sha256": "a0c322b5f471e28185d224fb8f5d91eaadb243d37b0c685c79ee03b3a7764a83",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadEvidenceDiagnosticSerializationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadEvidenceDiagnosticSerializationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6067,12 +6087,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs",
-      "sha256": "56475de07e4baebf2f405b121ad7999c757e7ef92609bc2cbbe5200ac3b2ccad",
+      "sha256": "8183f43456470299effdd6888ddbe319d8311af9c5dc8df4f3c6a4e01ffaeeac",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
+      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6117,12 +6138,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs",
-      "sha256": "9962003ff710925476adc2d2eacd84f4e2d8d9e5ee2f450e632e0bfae29005a9",
+      "sha256": "b0ad53963dd32e9810d00129d59c8201734b22d9876cc3c83b115b61d80b31ee",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults.",
+      "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
@@ -6157,12 +6179,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadOfflineLicenseValidatorTests.cs",
-      "sha256": "9d89e57a12f1155fa5926ad035254409bb654e1d8f79ae189370a23c0dee1f56",
+      "sha256": "6904adde484ed31dce37829a07c3f89864e52a3c25c1854f5e25dbff714d91ce",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadOfflineLicenseValidatorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadOfflineLicenseValidatorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6217,12 +6240,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadSecurityHeaderMiddlewareTests.cs",
-      "sha256": "b498ae2bca736b2a1f11bff30178bbd8993eb2afb962eb0b30ecf0fac5ce156a",
+      "sha256": "1feb3ef328aeaec254d7a8784a1de90be55a05adff9d30c8678777f5467efe89",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadSecurityHeaderMiddlewareTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/PvadSecurityHeaderMiddlewareTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6247,32 +6271,35 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs",
-      "sha256": "95857592bd5e87ffdbbb20024f25668ee5535f1a9b7ab43d0915b2442acabd0d",
+      "sha256": "9f96f847e62e997ad61ac22c01f0b8d1cce4d84be865e439d21d7851d010638a",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/SystemControllerTests.cs",
-      "sha256": "3b4bee6749b5c4a635c8bdbb123218205d7b2b8ae747d6aad25d5b452948dce8",
+      "sha256": "0909062c88c106a2f17be22841d2cd8cbc6ee72ad83b3038b423552a60dfed57",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/SystemControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/SystemControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tests/PVAD.Api.Tests/TemplatesControllerTests.cs",
-      "sha256": "f89a2dec94d9354ca679bb1be5eb8eb2f997c53eefd5c6bd0386be70300b0ed3",
+      "sha256": "5be613261f2c488ea716285635804e6c06cbce043e2d8204902b3ceb5f495c6d",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/TemplatesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "tests/PVAD.Api.Tests/TemplatesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7597,12 +7624,13 @@
     },
     {
       "path": "tools/configuration/workflow-identity.test.mjs",
-      "sha256": "cced38aa6adcf1570dd71031436f658e2c982f05c0344530977010e244754b0e",
+      "sha256": "25326a4b6b39ee9ab4d0f17a416408744f6e9966fb49544c5b82bf5cfe23850e",
       "reasons": [
-        "test-contract"
+        "test-contract",
+        "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped workflow contract: canonical publisher/image producers and consumers are asserted together with foreign-owner rejection. Historical image selection and protected environment identities remain explicit, while exact Action pins, permissions and workflow locks retain their prior semantics.",
+      "reviewNotes": "2026-10-26 scoped workflow contract: canonical publisher/image producers and consumers are asserted together with foreign-owner rejection. Historical image selection and protected environment identities remain explicit, while exact Action pins, permissions and workflow locks retain their prior semantics. 2026-10-29 integration review: The contract now inspects the reviewed build-push action configuration rather than a removed Docker CLI spelling. Legacy environment bindings remain asserted, not bypassed.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -8037,22 +8065,25 @@
     },
     {
       "path": "tools/PVAD.Mcp/package-lock.json",
-      "sha256": "5ca9443f021b47b87079dc9b4eae776520749a26425f5a2386b98bc3de0cbc72",
+      "sha256": "0e573d89b13bdfde7c0bbce9f7438904b33339ee5006fcd3b95993ac1bc68735",
       "reasons": [
-        "infrastructure-binding"
+        "infrastructure-binding",
+        "compatibility-contract",
+        "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/package-lock.json: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover.",
+      "reviewNotes": "tools/PVAD.Mcp/package-lock.json: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover. 2026-10-29 integration review: Retain documented pxa-mcp/canvas-mcp command aliases and legacy resource URI coverage. Canonical package, entry points and transport dependencies are PVAD; third-party identities stay intact.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/PVAD.Mcp/package.json",
-      "sha256": "634eacdfce9df640fc2fa61760d4c906df49eb96468d01b0db8ba61d47963a05",
+      "sha256": "434b1a5c73f2ff1a3e6e5f208042ed946ee09347f0e3c349ce1fcb07c351479c",
       "reasons": [
-        "compatibility-contract"
+        "compatibility-contract",
+        "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/package.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "tools/PVAD.Mcp/package.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 integration review: Retain documented pxa-mcp/canvas-mcp command aliases and legacy resource URI coverage. Canonical package, entry points and transport dependencies are PVAD; third-party identities stay intact.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8087,12 +8118,13 @@
     },
     {
       "path": "tools/PVAD.Mcp/smoke.ts",
-      "sha256": "678f49664b8043306ba7ead849b5adedac9c4d3f641bccf7096ed2a9a08ccd79",
+      "sha256": "0d0cfdbcd3f3c42571d611d1ccb8c85e0b9b552444415649739227c5b724869c",
       "reasons": [
-        "compatibility-contract"
+        "compatibility-contract",
+        "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/smoke.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "tools/PVAD.Mcp/smoke.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 integration review: Retain documented pxa-mcp/canvas-mcp command aliases and legacy resource URI coverage. Canonical package, entry points and transport dependencies are PVAD; third-party identities stay intact.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9447,6 +9479,92 @@
       "sha256": "d22210d4ecc3c3c897babfa0aa17060687e30a151f7e683448e55889612f1ca4",
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied."
+    },
+    {
+      "path": "checklists/PXA.Dependency-PR-Review-2026-10-26.md",
+      "sha256": "1a0766dca4d264e785cd8ee00d30e9c84e972b0aafa359ec1f21f092c60f0b5f",
+      "reasons": [
+        "historical-checklist"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "docs/pvad-rename-develop-integration.md",
+      "sha256": "921d5e591b13f7ba5c972ccd8df4c2b0ba3c5b3ed338ddc6d2e768eaaae7f8cf",
+      "reasons": [
+        "historical-document"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "pvad-designer/e2e/fixtures/react-compatibility.tsx",
+      "sha256": "579c2869b64070dabdb45c3b3dc447f706bd335401862a593ba428ac0584fee6",
+      "reasons": [
+        "drawing-api",
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "pvad-designer/e2e/fixtures/recharts-review.tsx",
+      "sha256": "afcee27f2ef180c9765cf399e1620b07fa1abc81a5c1d95d0c0de6f3339c47c0",
+      "reasons": [
+        "drawing-api",
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/QrDependencyCompatibilityTests.cs",
+      "sha256": "d5bfcd1c127e61025d3c25c3c9a7654e68ea99fceff15b554edaa4e97c4e5781",
+      "reasons": [
+        "test-contract",
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/dependencies/designer-chart-smoke.mjs",
+      "sha256": "5d3d9cb393fcb4f95d77721354f124cc2b5c789b0dffbf8d1cb9fac3a1406129",
+      "reasons": [
+        "drawing-api",
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/dependencies/designer-react-smoke.mjs",
+      "sha256": "2a64ce10e54ef88407a8efbadda81af54382d93e7c86e1d072b2aa58e3fb6934",
+      "reasons": [
+        "drawing-api",
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/dependencies/designer-tooling-smoke.mjs",
+      "sha256": "ce45b9a8d0cf5a844279ffa13f00c28ee0eb3f82fe5085781fbe35d7bc7223e3",
+      "reasons": [
+        "drawing-api",
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     }
   ],
   "reviewStatus": "reviewed"

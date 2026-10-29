@@ -141,8 +141,8 @@ public sealed class PvadSecurityHeaderMiddlewareTests
     }
 }
 
-public sealed class PvadHeaderPipelineTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PvadHeaderPipelineTests(PvadApiTestFactory factory)
+    : IClassFixture<PvadApiTestFactory>
 {
     [Theory]
     [InlineData("X-PVAD-Application")]

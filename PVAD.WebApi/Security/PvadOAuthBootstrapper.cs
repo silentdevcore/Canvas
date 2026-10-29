@@ -10,14 +10,13 @@ public static class PvadOAuthBootstrapper
     {
         await using var scope = app.Services.CreateAsyncScope();
         var settings = scope.ServiceProvider.GetRequiredService<IOptions<PvadOAuthOptions>>().Value;
-        if (!settings.Enabled)
+        // Integration tests initialize their isolated stores explicitly after migration.
+        if (!settings.Enabled || app.Environment.IsEnvironment("Testing"))
             return;
 
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
         if ((await dbContext.Database.GetPendingMigrationsAsync()).Any())
         {
-            if (app.Environment.IsEnvironment("Testing"))
-                return;
             throw new InvalidOperationException(
                 "Apply PVAD database migrations before starting the OAuth server.");
         }

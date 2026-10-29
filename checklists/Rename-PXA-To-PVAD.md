@@ -1456,6 +1456,21 @@ are supporting tasks, not new primary criteria: **90/98 (91.8%) complete,
 
 ## Related Work
 
+### Develop Integration Candidate - 2026-10-29
+
+The isolated integration candidate preserves the rename features while merging
+the reviewed develop maintenance baseline. Full Solution and all frontend builds
+pass; Designer has 780 passing tests, API/PostgreSQL has 1,319 passing tests and
+one documented old-binary skip, and all 52 collector hosts pass (945 tests).
+Desktop/mobile Designer, Admin and chart fixture checks pass. Original pending
+documents remain unchanged; no commit, transfer, remote merge or deployment is
+included. See the integration report for corrections, evidence and exclusions.
+This validates existing work, not an external gate: **90/98 (91.8%) complete,
+8/98 (8.2%) open**. Next delivery action is a reviewed commit/transfer that
+preserves the separate pending policy documents, followed by real PR CI.
+
+- [Develop integration candidate and validation](../docs/pvad-rename-develop-integration.md)
+
 - [Previous rename](Rename-To-PXA.md)
 - [Migration taxonomy](Migration-Namespace-Taxonomy.md)
 - [Native formats](PVAD.Native-Designer-Formats.md)

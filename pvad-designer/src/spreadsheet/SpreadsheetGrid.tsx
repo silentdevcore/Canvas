@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  DataEditor, GridCellKind, type GridColumn, type GridCell, type Item, type EditableGridCell,
+  CompactSelection, DataEditor, GridCellKind, type GridColumn, type GridCell, type Item, type EditableGridCell,
   type GridSelection, type Theme,
 } from '@glideapps/glide-data-grid';
 import '@glideapps/glide-data-grid/dist/index.css';
@@ -33,6 +33,13 @@ export const SpreadsheetGrid: React.FC = () => {
   const setColWidth = useSpreadsheetStore((s) => s.setColWidth);
   const pasteValues = useSpreadsheetStore((s) => s.pasteValues);
   const clearRange = useSpreadsheetStore((s) => s.clearRange);
+  const [gridSelection, setGridSelection] = useState<GridSelection>(() => ({
+    columns: CompactSelection.empty(), rows: CompactSelection.empty(),
+  }));
+
+  useEffect(() => {
+    setGridSelection({ columns: CompactSelection.empty(), rows: CompactSelection.empty() });
+  }, [sheet.id]);
 
   const columns: GridColumn[] = React.useMemo(
     () => Array.from({ length: sheet.colCount }, (_, c) => ({
@@ -94,6 +101,7 @@ export const SpreadsheetGrid: React.FC = () => {
   }, [setCellInput]);
 
   const onGridSelectionChange = useCallback((sel: GridSelection) => {
+    setGridSelection(sel);
     const cell = sel.current?.cell;
     if (cell) select(cell[1], cell[0]); // [col, row] → (row, col)
     const r = sel.current?.range;
@@ -111,6 +119,7 @@ export const SpreadsheetGrid: React.FC = () => {
       getCellContent={getCellContent}
       onCellEdited={onCellEdited}
       onGridSelectionChange={onGridSelectionChange}
+      gridSelection={gridSelection}
       onColumnResize={(_col, newSize, colIndex) => setColWidth(colIndex, newSize)}
       getCellsForSelection={true}
       onPaste={(target, values) => { pasteValues(target[1], target[0], values); return false; }}

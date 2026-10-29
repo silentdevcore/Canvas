@@ -59,7 +59,7 @@ public sealed class PvadCorsConfigurationTests
     [InlineData("/api/pxa/v1/version")]
     public async Task Actual_api_accepts_only_the_configured_origin_for_both_route_generations(string path)
     {
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        using var factory = new PvadApiTestFactory().WithWebHostBuilder(builder =>
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?> { ["Cors:AllowedOrigins:0"] = "https://designer.pvade.example" })));
         using var client = factory.CreateClient();

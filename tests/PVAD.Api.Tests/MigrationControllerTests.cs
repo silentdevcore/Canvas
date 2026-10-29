@@ -13,11 +13,11 @@ using PVAD.WebApi.Services;
 
 namespace PVAD.Api.Tests;
 
-public sealed class MigrationControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient client;
 
-    public MigrationControllerTests(WebApplicationFactory<Program> factory)
+    public MigrationControllerTests(PvadApiTestFactory factory)
     {
         client = factory.CreateClient();
     }

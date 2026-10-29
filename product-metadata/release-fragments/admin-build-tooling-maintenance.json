@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "admin-build-tooling-maintenance",
+  "impact": "none",
+  "components": ["admin"],
+  "category": "improved",
+  "summary": "Maintained the administration application build tooling and browser compatibility checks.",
+  "breaking": false,
+  "reason": "Only development-time bundler dependencies and synthetic browser tests change; the generated application JavaScript and CSS are unchanged, with no public API, session or product-version changes."
+}

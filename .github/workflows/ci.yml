@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Install configuration contract dependencies
@@ -27,6 +27,7 @@ jobs:
       - name: Test version tooling
         run: |
           node --test tools/configuration/*.test.mjs
+          node -e 'require("node:assert/strict").match(process.version, /^v22\./)'
           node --test tools/versioning/pvad-version.test.mjs
           node --test tools/versioning/pvad-release-author.test.mjs
           node --test tools/versioning/pvad-build-consistency.test.mjs
@@ -107,7 +108,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Install independent PDF parser tools
@@ -133,7 +134,7 @@ jobs:
           node tools/document-fidelity/fidelity.mjs evaluate \
             --migration-fidelity test-assets/document-fidelity/migration-provider-smoke.json \
             --output artifacts/migration-fidelity
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-migration-fidelity-${{ github.run_number }}-${{ github.sha }}
@@ -151,7 +152,7 @@ jobs:
           node tools/document-fidelity/fidelity.mjs evaluate \
             --spreadsheet-fidelity artifacts/spreadsheet-fidelity/raw/fidelity-report.json \
             --output artifacts/spreadsheet-fidelity/report
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-spreadsheet-fidelity-${{ github.run_number }}-${{ github.sha }}
@@ -170,7 +171,7 @@ jobs:
           node tools/document-fidelity/fidelity.mjs evaluate \
             --real-world-review artifacts/document-fidelity/real-world/review/real-world-review.json \
             --output artifacts/document-fidelity/real-world/report
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-real-world-document-fidelity-${{ github.run_number }}-${{ github.sha }}
@@ -193,7 +194,7 @@ jobs:
             --filter FullyQualifiedName~PdfComplianceExportTests.DesignerModel_ExportsAccessibleTableLinkAndFormAnnotations \
             -p:SkipOcrWorkerPackaging=true
           tools/pdfua/validate-pdfua.sh artifacts/pdfua/fixtures/*.pdf
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-pdfua-validation-${{ github.run_number }}-${{ github.sha }}
@@ -223,7 +224,7 @@ jobs:
           tools/pdfa/validate-pdfa.sh 3b \
             artifacts/pdfa/generated/pvad-generated-pdfa3b-fixture.pdf \
             artifacts/pdfa/generated/pvad-pdfa3b-fixture.pdf
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-pdfa-validation-${{ github.run_number }}-${{ github.sha }}
@@ -234,7 +235,7 @@ jobs:
         run: tools/pdf-parser-fuzzer/run.sh
       - name: Run AES-256 interoperability matrix
         run: node tools/pdf-security/aes256-interop.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-pdf-parser-fuzz-${{ github.run_number }}-${{ github.sha }}
@@ -243,6 +244,11 @@ jobs:
             artifacts/pdf-security
           if-no-files-found: error
           retention-days: 30
+      - name: Test Spreadsheet and Excel file compatibility
+        timeout-minutes: 5
+        run: |
+          dotnet test tests/PVAD.Infrastructure.Spreadsheet.Tests/PVAD.Infrastructure.Spreadsheet.Tests.csproj --configuration Release --no-build --no-restore
+          dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~SpreadsheetRoundTripTests|FullyQualifiedName~ExporterTests.Excel_|FullyQualifiedName~PvadExportCompositionTests.PvadWordAndExcelExporters_RenderDesignBytes"
       - name: Test version and release metadata contracts
         run: >
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
@@ -284,6 +290,41 @@ jobs:
           --no-build
           --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~PvadJobCutoverCompatibilityTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
           -p:SkipOcrWorkerPackaging=true
+      - name: Verify local EF tooling and unchanged database model
+        env:
+          PVAD_DATABASE_CONNECTION: Host=127.0.0.1;Port=1;Database=dependency_contract;Username=contract;Password=unused
+        run: |
+          dotnet tool restore
+          dotnet ef --version
+          dotnet ef migrations has-pending-model-changes --project src/Infrastructure/PVAD.Infrastructure.Persistence --startup-project PVAD.WebApi --context PvadDbContext --configuration Release --no-build
+      - name: Test API platform contracts with isolated PostgreSQL
+        timeout-minutes: 15
+        env:
+          PVAD_RUN_POSTGRES_TESTS: "1"
+        run: |
+          dotnet test tests/PVAD.Infrastructure.Persistence.Tests/PVAD.Infrastructure.Persistence.Tests.csproj --configuration Release --no-build -- xUnit.ParallelizeTestCollections=false
+          dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+      - name: Test Roslyn-dependent migration providers
+        timeout-minutes: 15
+        run: |
+          for project in tests/PVAD.Migration.*.Tests/*.csproj; do
+            dotnet test "$project" --configuration Release --no-build --no-restore
+          done
+      - name: Verify real coverage for every collector test host
+        timeout-minutes: 15
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+          node --test tools/dependencies/coverage-smoke.test.mjs
+          node tools/dependencies/coverage-smoke.mjs artifacts/coverage-smoke
+      - name: Upload synthetic coverage evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/coverage-smoke
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Test isolated Legal backup and restore
         env:
           PVAD_POSTGRES_STARTUP_DELAY_SECONDS: "2"
@@ -298,7 +339,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -315,6 +356,10 @@ jobs:
           npm --prefix pvad-designer audit --omit=dev --audit-level=high
           npm --prefix websites/PVAD.Admin audit --omit=dev --audit-level=high
           npm --prefix tools/PVAD.Mcp audit --omit=dev --audit-level=high
+      - name: Reject high and critical Designer development vulnerabilities
+        run: npm --prefix pvad-designer audit --audit-level=high
+      - name: Reject high and critical Admin development vulnerabilities
+        run: npm --prefix websites/PVAD.Admin audit --audit-level=high
       - name: Validate dependency compliance policy
         run: |
           node tools/dependencies/validate-dependency-compliance.mjs
@@ -325,7 +370,7 @@ jobs:
     needs: version-policy
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -341,6 +386,7 @@ jobs:
         run: |
           npm run type-check
           npm test -- --runInBand
+          node --test ../tools/dependencies/designer-react-compatibility.test.mjs
           npm run build
       - name: Install and test Admin
         working-directory: websites/PVAD.Admin
@@ -377,6 +423,58 @@ jobs:
       - name: Install Playwright Chromium
         working-directory: pvad-designer
         run: npx playwright install --with-deps chromium
+      - name: Test Designer development and production bundles
+        timeout-minutes: 3
+        run: node tools/dependencies/designer-tooling-smoke.mjs
+      - name: Test stable React component compatibility
+        timeout-minutes: 3
+        run: node tools/dependencies/designer-react-smoke.mjs
+      - name: Collect synthetic React compatibility evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: designer-react-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/designer-react-smoke/report.json
+            artifacts/designer-react-smoke/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Test Admin development and production bundles
+        timeout-minutes: 3
+        run: node tools/dependencies/admin-tooling-smoke.mjs
+      - name: Collect synthetic Admin tooling smoke evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: admin-tooling-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/admin-tooling-smoke/current/*.png
+            artifacts/admin-tooling-smoke/current/report.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Collect Designer tooling smoke evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: designer-tooling-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/designer-tooling-smoke
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Test actual Designer chart components
+        timeout-minutes: 5
+        run: |
+          npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json
+          node tools/dependencies/designer-chart-smoke.mjs
+      - name: Collect Designer chart evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: designer-chart-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/designer-chart-smoke/current/*.png
+            artifacts/designer-chart-smoke/current/report.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Test legal browser workflows
         working-directory: pvad-designer
         run: npm run test:e2e:legal
@@ -388,17 +486,18 @@ jobs:
           for site in PVAD.Account PVAD.Admin PVAD.Company PVAD.Demo PVAD.Documentation; do
             cp -R "websites/$site/dist" "artifacts/frontends/$site"
           done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         with:
           name: pvad-frontends-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/frontends
           if-no-files-found: error
           retention-days: 14
-      - name: Install and type-check MCP tool
+      - name: Install, type-check and smoke-test MCP tool
         working-directory: tools/PVAD.Mcp
         run: |
           npm ci
+          npm run test:contracts
           npm run typecheck
           npm test
           npm run build
@@ -410,7 +509,7 @@ jobs:
     needs: version-policy
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -448,7 +547,7 @@ jobs:
             mcp-smoke-pvad-mcp:latest
       - name: Check MCP repository diff
         run: git diff --check
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-mcp-security-${{ github.run_number }}-${{ github.sha }}
@@ -464,7 +563,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -496,28 +595,28 @@ jobs:
         env:
           PVAD_PDF_TRUST_OPERATION_ENFORCE: true
         run: node tools/visual-parity/pdf-trust-operations.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-visual-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/visual-parity
           if-no-files-found: error
           retention-days: 14
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-document-fidelity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/document-fidelity
           if-no-files-found: error
           retention-days: 30
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-pdf-trust-visual-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/pdf-trust-visual
           if-no-files-found: error
           retention-days: 14
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: pvad-pdf-trust-operations-${{ github.run_number }}-${{ github.sha }}
@@ -550,12 +649,70 @@ jobs:
           node tools/versioning/pvad-build-consistency.mjs write artifacts/webapi
           node tools/versioning/pvad-build-consistency.mjs verify artifacts/webapi
           printf '%s\n' "$VERSION-develop.${{ github.run_number }}-${GITHUB_SHA::12}" > artifacts/SNAPSHOT
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pvad-${{ github.run_number }}-${{ github.sha }}
           path: artifacts
           if-no-files-found: error
           retention-days: 14
+
+  registry-login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DOCKER_CONFIG: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/docker
+      PVAD_REGISTRY_SMOKE_DIR: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+      # Force client-side registry auth with a process-local test trust root.
+      DOCKER_HOST: unix:///tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/no-daemon.sock
+      DOCKER_CONTEXT: ''
+      SSL_CERT_FILE: /tmp/pvad-login-smoke-${{ github.run_id }}-${{ github.run_attempt }}/ca.pem
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Test isolated registry contract
+        run: node --test tools/dependencies/registry-login-smoke.test.mjs
+      - name: Start loopback-only synthetic registry
+        id: registry
+        run: node tools/dependencies/registry-login-smoke.mjs start
+      - name: Exercise pinned login action without publishing
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ${{ steps.registry.outputs.registry }}
+          username: ${{ steps.registry.outputs.username }}
+          password: ${{ steps.registry.outputs.password }}
+          ecr: false
+      - name: Verify scoped credentials and rejected invalid password
+        run: node tools/dependencies/registry-login-smoke.mjs verify
+      - name: Verify logout and clean synthetic state
+        if: always()
+        run: node tools/dependencies/registry-login-smoke.mjs cleanup
+
+  artifact-contract:
+    runs-on: ubuntu-latest
+    needs: version-policy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Test and create synthetic artifact fixture
+        run: |
+          node --test tools/deployment/artifact-handoff-contract.test.mjs
+          node tools/deployment/artifact-handoff-contract.mjs create artifacts/artifact-contract/input
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pvad-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/artifact-contract/input
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pvad-artifact-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/artifact-contract/output
+      - name: Verify downloaded artifact names and hashes
+        run: node tools/deployment/artifact-handoff-contract.mjs verify artifacts/artifact-contract/output
 
   supply-chain:
     runs-on: ubuntu-latest
@@ -567,7 +724,7 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -585,14 +742,30 @@ jobs:
           npm --prefix pvad-designer ci
           npm --prefix pvad-designer run build
           node tools/versioning/pvad-build-consistency.mjs verify artifacts/webapi pvad-designer/dist
-      - name: Build WebApi container
+      - name: Set up the release container builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Verify the container builder
+        run: docker buildx inspect --bootstrap
+      - name: Read container build version
+        id: container-version
+        run: printf 'version=%s\n' "$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      - name: Build WebApi container without publishing
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: PVAD.WebApi/Dockerfile
+          tags: pvad-webapi:sbom
+          load: true
+          push: false
+          provenance: false
+          build-args: |
+            PVAD_VERSION=${{ steps.container-version.outputs.version }}
+            PVAD_COMMIT=${{ github.sha }}
+            PVAD_BUILD_TIME=${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+      - name: Verify built container metadata
         env:
           PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
-        run: |
-          VERSION="$(cat VERSION)"
-          test -n "$PVAD_BUILD_TIME"
-          docker build --file PVAD.WebApi/Dockerfile --tag pvad-webapi:sbom --build-arg PVAD_VERSION="$VERSION" --build-arg PVAD_COMMIT="$GITHUB_SHA" --build-arg PVAD_BUILD_TIME="$PVAD_BUILD_TIME" .
-          node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
+        run: node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
       - name: Verify fail-closed production startup exits independently
         run: node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
       - name: Generate WebApi and Designer SPDX SBOMs
@@ -603,7 +776,7 @@ jobs:
       - name: Prepare container SBOM output
         run: mkdir -p artifacts/sbom/webapi-container
       - name: Generate container SPDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: pvad-webapi:sbom
           format: spdx-json
@@ -615,7 +788,7 @@ jobs:
           mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
           cp -R pvad-designer/dist/_manifest/. artifacts/sbom/designer/
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pvad-sbom-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/sbom

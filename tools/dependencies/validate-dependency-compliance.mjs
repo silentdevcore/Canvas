@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { validateWorkflowActionPins } from './workflow-action-pins.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
 const read = (path) => readFile(resolve(root, path), 'utf8');
@@ -19,6 +20,13 @@ if (catalog.vulnerabilityPolicy?.nuget?.maximumAllowedSeverity !== 'none') {
 }
 if (catalog.vulnerabilityPolicy?.npm?.maximumAllowedSeverity !== 'moderate') {
   fail('npm must reject high and critical production findings');
+}
+const developmentPolicy = catalog.vulnerabilityPolicy?.npmDevelopment;
+if (developmentPolicy?.scope !== 'production-and-development'
+    || developmentPolicy.maximumAllowedSeverity !== 'moderate'
+    || developmentPolicy.ciGate !== true
+    || JSON.stringify(developmentPolicy.workspaces) !== JSON.stringify(['pvad-designer', 'websites/PVAD.Admin'])) {
+  fail('Designer and Admin npm auditing must include development dependencies and reject high/critical findings');
 }
 
 const artifacts = new Set(catalog.sbom?.artifacts ?? []);
@@ -69,11 +77,11 @@ const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock
 if (mcpIgnore.split(/\r?\n/u).includes('package-lock.json') || !mcpLock.includes('"lockfileVersion"')) {
   fail('MCP must commit a valid package lock for reproducible audits');
 }
-if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.7.5"')) {
+if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.13.0"')) {
   fail('Microsoft.OpenApi security pin is missing');
 }
 for (const source of [spreadsheet, converters, word]) {
-  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.13"')) {
+  if (!source.includes('Include="System.Security.Cryptography.Xml" Version="10.0.14"')) {
     fail('System.Security.Cryptography.Xml security pin is missing');
   }
 }
@@ -95,10 +103,15 @@ for (const marker of [
   'check-nuget-vulnerabilities.mjs',
   'audit --omit=dev --audit-level=high',
   'Microsoft.Sbom.DotNetTool',
-  'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610',
+  'anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c',
   'webapi-container',
 ]) {
   if (!ci.includes(marker)) fail(`CI marker is missing: ${marker}`);
+}
+for (const workspace of developmentPolicy.workspaces) {
+  if (!ci.split(/\r?\n/u).some(line => line.trim() === `run: npm --prefix ${workspace} audit --audit-level=high`)) {
+    fail(`${workspace} development dependency audit gate is missing`);
+  }
 }
 
 const workflowDirectory = resolve(root, '.github/workflows');
@@ -106,30 +119,6 @@ const workflowFiles = (await readdir(workflowDirectory)).filter((name) => name.e
 const workflowSources = await Promise.all(
   workflowFiles.map(async (name) => ({ name, source: await read(`.github/workflows/${name}`) })),
 );
-for (const { name, source } of workflowSources) {
-  for (const match of source.matchAll(/^\s*(?:-\s*)?uses:\s*([^@\s]+)@([^\s#]+)/gmu)) {
-    const [, action, reference] = match;
-    if (action.startsWith('./')) continue;
-    if (!/^[a-f0-9]{40}$/u.test(reference)) {
-      fail(`${name} must pin ${action} to a full commit SHA`);
-    }
-  }
-}
-
-const requiredActionPins = new Map([
-  ['actions/checkout', '3d3c42e5aac5ba805825da76410c181273ba90b1'],
-  ['actions/setup-node', '820762786026740c76f36085b0efc47a31fe5020'],
-  ['actions/setup-dotnet', 'a98b56852c35b8e3190ac28c8c2271da59106c68'],
-  ['actions/upload-artifact', '043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'],
-  ['docker/setup-buildx-action', 'bb05f3f5519dd87d3ba754cc423b652a5edd6d2c'],
-  ['docker/login-action', 'dbcb813823bdd20940b903addbd779551569679f'],
-  ['docker/build-push-action', '53b7df96c91f9c12dcc8a07bcb9ccacbed38856a'],
-]);
-const allWorkflowSource = workflowSources.map(({ source }) => source).join('\n');
-for (const [action, sha] of requiredActionPins) {
-  if (!allWorkflowSource.includes(`uses: ${action}@${sha}`)) {
-    fail(`required Node.js 24 action pin is missing: ${action}@${sha}`);
-  }
-}
+validateWorkflowActionPins(workflowSources);
 
 console.log(`Dependency compliance metadata is valid (${pending.length} production blocker).`);

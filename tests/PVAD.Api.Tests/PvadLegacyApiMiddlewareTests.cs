@@ -87,8 +87,8 @@ public sealed class PvadLegacyApiMiddlewareTests
     }
 }
 
-public sealed class PvadApiPrefixIntegrationTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PvadApiPrefixIntegrationTests(PvadApiTestFactory factory)
+    : IClassFixture<PvadApiTestFactory>
 {
     [Fact]
     public async Task Version_alias_returns_the_same_payload_with_successor_headers()
@@ -163,7 +163,7 @@ public sealed class PvadApiPrefixIntegrationTests(WebApplicationFactory<Program>
     [Fact]
     public async Task OpenApi_advertises_canonical_routes_without_duplicate_legacy_operations()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateOpenApiClient();
         using var response = await client.GetAsync("/openapi/v1.json");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var document = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
@@ -194,7 +194,7 @@ public sealed class PvadApiPrefixIntegrationTests(WebApplicationFactory<Program>
     [Fact]
     public async Task Generated_OpenApi_contract_snapshot_is_exported_for_tooling()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateOpenApiClient();
         var source = await client.GetStringAsync("/openapi/v1.json");
         var document = System.Text.Json.Nodes.JsonNode.Parse(source)!;
         document["servers"] = new System.Text.Json.Nodes.JsonArray(

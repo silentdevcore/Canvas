@@ -154,8 +154,8 @@ public sealed class PvadCookieCompatibilityTests
     }
 }
 
-public sealed class PvadCookieConfigurationTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PvadCookieConfigurationTests(PvadApiTestFactory factory)
+    : IClassFixture<PvadApiTestFactory>
 {
     [Fact]
     public void Actual_cookie_options_remain_host_only_and_account_tickets_do_not_authenticate_the_designer()

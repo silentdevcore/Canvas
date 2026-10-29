@@ -18,8 +18,8 @@ const data = (r: any): Record<string, any> => r.structuredContent?.data ?? JSON.
 
 const useDistribution = process.argv.includes('--dist');
 const transport = new StdioClientTransport(useDistribution
-  ? { command: 'node', args: ['dist/pvad-mcp.js'] }
-  : { command: 'npx', args: ['tsx', 'src/index.ts'] });
+  ? { command: process.execPath, args: ['dist/pvad-mcp.js'] }
+  : { command: process.execPath, args: ['--import', 'tsx', 'src/index.ts'] });
 const client = new Client({ name: 'smoke', version: '0.0.0' });
 await client.connect(transport);
 
@@ -38,6 +38,30 @@ assert(textDoc.type === 'text' && Array.isArray(textDoc.properties), `get_elemen
 
 const example = data(await client.callTool({ name: 'get_example', arguments: { type: 'table', surface: 'json' } })).example;
 assert(example.pages?.[0]?.elements?.[0]?.type === 'table', `get_example("table") returns a DesignExportDto`);
+
+const defaultExample = data(await client.callTool({ name: 'get_example', arguments: { type: 'table' } })).example;
+assert(defaultExample.pages?.[0]?.elements?.[0]?.type === 'table', 'Zod default selects the JSON example surface');
+
+const category = list[0].category;
+const filtered = data(await client.callTool({ name: 'list_elements', arguments: { category } })).items;
+assert(filtered.length > 0 && filtered.every((item: any) => item.category === category), 'Zod enum accepts a catalog category');
+
+async function assertInvalidArguments(name: string, args: Record<string, unknown>) {
+  let rejected = false;
+  try {
+    const result = await client.callTool({ name, arguments: args });
+    rejected = result.isError === true;
+  } catch (error) {
+    rejected = error instanceof Error && /invalid|validation/i.test(error.message);
+  }
+  assert(rejected, `${name} rejects invalid arguments`);
+}
+await assertInvalidArguments('list_elements', { category: 'not-a-category' });
+await assertInvalidArguments('get_example', { type: 'table', surface: 'unsupported' });
+await assertInvalidArguments('search_docs', { query: 'text', limit: 0 });
+
+const search = data(await client.callTool({ name: 'search_docs', arguments: { query: 'text' } }));
+assert(Array.isArray(search.hits) && search.hits.length > 0, 'Zod default search limit executes successfully');
 
 const validRes = await client.callTool({ name: 'validate_design', arguments: { design: JSON.stringify(example) } });
 assert(data(validRes).valid === true && validRes.isError !== true, `validate_design accepts a catalog example`);

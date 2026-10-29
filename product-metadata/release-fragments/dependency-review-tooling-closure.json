@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-review-tooling-closure",
+  "impact": "none",
+  "components": ["api", "designer", "observability"],
+  "category": "improved",
+  "summary": "Aligned internal test hosts and browser tooling with the reviewed dependency policy.",
+  "reason": "Test SDK and browser-runner changes are development-only; dependency proposal dispositions do not enable unsupported runtime upgrades.",
+  "breaking": false
+}

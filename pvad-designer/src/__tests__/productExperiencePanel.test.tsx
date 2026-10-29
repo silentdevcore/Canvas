@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { act } from 'react';
+import '@testing-library/jest-dom';
 import { createRoot } from 'react-dom/client';
 import ProductExperiencePanel from '@/product/ProductExperiencePanel';
 
@@ -82,6 +83,9 @@ describe('ProductExperiencePanel release history', () => {
     expect(release).toBeDefined();
     // Current shell branding must not rewrite historical release content.
     expect(container.querySelector('header small')?.textContent).toBe('PVADE 1.1.0');
+    expect(release).toBeInTheDocument();
+    expect(release).toBeEnabled();
+    expect(release).toHaveAccessibleName('PXA 1.1.0');
     expect(release?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => release?.click());

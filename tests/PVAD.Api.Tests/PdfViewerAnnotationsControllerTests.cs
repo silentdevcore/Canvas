@@ -10,12 +10,12 @@ using PVAD.Importer;
 
 namespace PVAD.Api.Tests;
 
-public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
+public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiTestFactory>, IDisposable
 {
     private readonly HttpClient _client;
     private readonly string _storageRoot;
 
-    public PdfViewerAnnotationsControllerTests(WebApplicationFactory<Program> factory)
+    public PdfViewerAnnotationsControllerTests(PvadApiTestFactory factory)
     {
         _storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
         _client = factory

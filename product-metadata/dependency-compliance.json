@@ -11,6 +11,12 @@
       "scope": "production",
       "maximumAllowedSeverity": "moderate",
       "ciGate": true
+    },
+    "npmDevelopment": {
+      "scope": "production-and-development",
+      "workspaces": ["pvad-designer", "websites/PVAD.Admin"],
+      "maximumAllowedSeverity": "moderate",
+      "ciGate": true
     }
   },
   "sbom": {

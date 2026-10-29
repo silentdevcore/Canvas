@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-stable-react-component-maintenance",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Restored in-cell spreadsheet editing and maintained Designer component compatibility on the stable React runtime.",
+  "breaking": false
+}

@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PVAD.Api.Tests;
 
-public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ExportControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient _client;
 
-    public ExportControllerTests(WebApplicationFactory<Program> factory)
+    public ExportControllerTests(PvadApiTestFactory factory)
     {
         _client = factory.CreateClient();
     }

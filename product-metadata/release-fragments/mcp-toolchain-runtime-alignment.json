@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "mcp-toolchain-runtime-alignment",
+  "impact": "patch",
+  "components": ["sdk"],
+  "category": "improved",
+  "summary": "Updated the MCP TypeScript runner and aligned Node type checking with the validated runtime.",
+  "breaking": false
+}

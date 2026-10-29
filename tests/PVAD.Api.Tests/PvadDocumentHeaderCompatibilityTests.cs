@@ -17,7 +17,7 @@ public sealed class PvadDocumentHeaderCompatibilityTests
     [InlineData("null", false)]
     public async Task ActualCorsPolicy_PreservesOriginBoundariesOnBothRouteGenerations(string origin, bool allowed)
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new PvadApiTestFactory();
         using var client = factory.CreateClient();
         foreach (var prefix in new[] { "pvad", "pxa" })
         {
@@ -37,7 +37,7 @@ public sealed class PvadDocumentHeaderCompatibilityTests
     [Fact]
     public async Task ActualCorsPolicy_ExposesCanonicalAndLegacyDocumentHeaders()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new PvadApiTestFactory();
         using var client = factory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/version");
         request.Headers.Add("Origin", "http://localhost:5176");

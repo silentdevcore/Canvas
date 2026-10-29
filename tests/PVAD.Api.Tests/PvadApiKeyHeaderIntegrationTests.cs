@@ -102,8 +102,8 @@ public sealed class PvadApiKeyHeaderIntegrationTests
     }
 }
 
-public sealed class PvadApiKeySchemeCompatibilityTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PvadApiKeySchemeCompatibilityTests(PvadApiTestFactory factory)
+    : IClassFixture<PvadApiTestFactory>
 {
     [Theory]
     [InlineData("PVAD-MCP synthetic.invalid")]

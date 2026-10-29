@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../../Core/PVAD.Core/PVAD.Core.csproj" />
   </ItemGroup>

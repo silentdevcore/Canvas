@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PVAD.Api.Tests;
 
-public sealed class PdfViewerFormsControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PdfViewerFormsControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient _client;
 
-    public PdfViewerFormsControllerTests(WebApplicationFactory<Program> factory)
+    public PdfViewerFormsControllerTests(PvadApiTestFactory factory)
     {
         _client = factory.CreateClient();
     }

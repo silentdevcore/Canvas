@@ -16,6 +16,107 @@
 
 ## Running Tests
 
+### Coverage collector maintenance
+
+The 52 collector-enabled projects use VSTest, Coverlet collector 10.1.0 and
+Microsoft.NET.Test.Sdk 18.11.0 and xUnit VSTest adapter 4.0.1. All 53 adapter
+references are private, including the collector-free Webhook Relay. The test
+framework remains xUnit 2.9.3; adapter 4 supports this framework on net10 and
+does not require an MTP migration. Coverlet's VSTest integration requires test
+SDK 18.4.0 or newer; it is not an MTP v2 collector.
+
+Playwright Test, Playwright and Playwright Core resolve together to 1.64.1.
+Use its matching Chromium installation, not an older cached browser. Run Vite
+smoke scripts sequentially: they share the Designer dependency optimization
+cache. A separate browser-tool version does not change the shipped React 18,
+Grid 6.0.3 or Node 22 contract. OpenAPI.NET remains on 2.x while ASP.NET Core 10
+is used. Telemetry components resolve together to 1.20.1; API tests exercise
+real SDK export with synthetic trace, metric and log capture, privacy processors,
+and the existing unavailable-collector integration cases. Local capture is not
+proof of a deployed OTLP collector or production routing.
+
+Router/Router-DOM 7.18.5 retains declarative BrowserRouter mode on React 18 and
+Node 22. Three actual Router tests cover nested index redirects, relative links,
+active state, query/fragment retention, domain navigation and Back/Forward. The
+existing application route suite still exercises legacy redirects and Designer
+code-mode switching. jsdom uses Node's real TextEncoder/TextDecoder when absent;
+the Router is not mocked. The routed browser smoke also clicks from the gallery
+to PDF import and exercises browser history in desktop/mobile dev/preview builds.
+These frontend fixtures use synthetic API responses, not real session acceptance.
+Also run `npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json`:
+the ordinary Designer typecheck excludes this e2e fixture, while Vite only
+transpiles it. Router 7 already applies the former v6 future-option behaviors;
+the fixture must not pass the removed `future` prop.
+
+`QrDependencyCompatibilityTests` independently decodes synthetic QR module
+matrices, verifies real PDF image objects rather than text fallbacks, and checks
+Word PNG embedding. The PDF mapper uses the shared symbol renderer and direct
+image bytes rather than QRCoder's packed PNG output. No temporary file is needed
+for this path.
+The compatible OpenAPI 2.13.0 update is checked through actual document generation.
+Managed/native Skia 3.119.2 remains coordinated; a Skia 4 migration is separate.
+
+Normal Dependabot version proposals are temporarily paused during rename using
+`open-pull-requests-limit: 0` in all six update entries. Security alerts and
+automatic security-update PRs are enabled separately on GitHub; security audits
+and required CI checks are unchanged. Restore version proposals after rename
+acceptance using the recorded limits in the
+[dependency closure checklist](checklists/PXA.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
+
+After restoring and building Release, install `xmllint` (`libxml2-utils` on
+Ubuntu; supplied by macOS) and run:
+
+```bash
+node --test tools/dependencies/coverage-smoke.test.mjs
+node tools/dependencies/coverage-smoke.mjs artifacts/coverage-smoke-local
+# Revalidate a complete current-catalog run without rerunning tests:
+node tools/dependencies/coverage-smoke.mjs --audit artifacts/coverage-smoke-local
+# Compare only runs with the same reviewed project/test catalog:
+node tools/dependencies/coverage-smoke.mjs --compare \
+  artifacts/coverage-before-52/audited-summary.json \
+  artifacts/coverage-after-52/audited-summary.json
+```
+
+Use a fresh output directory for every run. The runner requires exactly 52
+collector hosts, uses all migration tests and focused production-exercising
+tests for the other hosts, and fails on missing attachments, zero tests,
+non-passing or unexecuted tests, empty denominators, absent production hits,
+test/tool assemblies, generated `obj` sources and inconsistent XML/JSON modules.
+It parses TRX and Cobertura with a non-network XML parser and retains both raw
+reports and a machine-readable summary. CI uploads synthetic evidence for seven
+days even when a later host fails. No customer database or documents are used.
+
+This is a collector compatibility smoke, not a full-suite coverage target or a
+claim about native OCR accuracy. The existing full CI suites, PostgreSQL tests
+and documented native OCR limitation remain unchanged. The OCR smoke uses a
+fake OCR engine but real image-to-design mapping rather than silently returning
+when native libraries are unavailable. Image, image-analysis and converter hosts use a private,
+Linux-only Skia native-assets reference matching their managed 3.119.2 version;
+this is test support, not a shipped native-runtime or OCR deployment change.
+The API filter uses the fully qualified
+class name: `VersionControllerTests` alone also matches
+`ImageConversionControllerTests` with VSTest's case-insensitive substring filter.
+
+Comparison requires identical project sets, discovered/executed/passed counts,
+test names and instrumented assemblies, with hits in each expected product
+module. It reports line denominators and every lost/gained
+covered source location without silently rebaselining them. Coverage 10 fixes
+record, branch and async instrumentation, so changed percentages need review;
+they do not by themselves prove a product regression or improvement. Collector
+integration does not enforce percentage thresholds automatically.
+
+The old pre-rename 50-host evidence stays unchanged and must be audited with
+its original reviewed tool revision, not relabeled as a current 52-host run.
+Stateless API fixtures use an explicit Testing host and never the developer
+database. Database tests migrate and initialize their own disposable PostgreSQL
+stores. OpenAPI tests use a separately isolated development host, keeping
+production debug exposure unchanged.
+
+References: [Coverlet VSTest integration](https://github.com/coverlet-coverage/coverlet/blob/v10.1.0/Documentation/VSTestIntegration.md),
+[Coverlet 10.1.0 changes](https://github.com/coverlet-coverage/coverlet/releases/tag/v10.1.0).
+
+### Test groups
+
 ```bash
 # All .NET projects
 dotnet build PVAD.sln
@@ -46,7 +147,124 @@ dotnet test tests/PVAD.Migration.Report.Designer.Rdl.Tests
 dotnet test tests/PVAD.Migration.Report.Designer.Rpx.Tests
 ```
 
+For ASP.NET, Identity, EF or OpenAPI dependency changes, run the focused contracts
+and the PostgreSQL-enabled API/persistence matrix before and after the update:
+
+```bash
+dotnet tool restore
+dotnet ef --version
+dotnet test tests/PVAD.Api.Tests --filter "FullyQualifiedName~DotnetDependencyAlignmentTests|FullyQualifiedName~OpenApiCompatibilityTests"
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test tests/PVAD.Infrastructure.Persistence.Tests -- xUnit.ParallelizeTestCollections=false
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test tests/PVAD.Api.Tests --filter "FullyQualifiedName!~ImageConversionControllerTests" -- xUnit.ParallelizeTestCollections=false
+dotnet test tests/PVAD.Observability.WebhookRelay.Tests
+```
+
+Docker must be available to Testcontainers; use isolated containers, never a
+customer database. Also check `dotnet ef migrations has-pending-model-changes`
+against `PvadDbContext` without applying migrations. Keep the local EF tool,
+Identity, Design, InMemory, MVC test hosts and EF health checks aligned. The
+OpenAPI model library has its own version and must match its resolved runtime
+reference. The OpenAPI test generates a document from the actual controller
+assembly in a minimal TestServer, verifies canonical/legacy paths and resolves
+all local schema references without starting application workers or a database.
+Its generated interceptor namespace is enabled only in the test project.
+This is a schema-generation test, not a replacement for real authentication tests.
+`DesignerDraftValidationTests` also protects the draft request's property-based
+MVC validation path, optional JSON fields, existing positional API and concurrent
+first-use validation. Keep the authenticated PostgreSQL draft/concurrency test;
+do not replace it with the focused metadata test.
+`DotnetDependencyAlignmentTests` also verifies that the Git build task resolves
+to its reviewed version with `PrivateAssets=all` and stays out of the API runtime
+dependency manifest.
+The native ImageConversion/OCR cases remain outside this maintenance matrix;
+their previously recorded platform limitation is not claimed fixed.
+
 Frontend:
+
+For Admin bundler maintenance, run its 26 Node contracts, production build and
+full npm audit, then `node tools/dependencies/admin-tooling-smoke.mjs` from the
+repository root. Designer dependencies provide the pinned Playwright browser.
+The runner starts disposable loopback development and production-preview servers
+and checks desktop/mobile login, failed login, navigation, users, empty search,
+release-note deep links/reload and the role-denied UI. It reuses the protected
+handbook smoke in both modes. Synthetic API fixtures do not prove real
+authentication, session cookies, tenant isolation or backend authorization.
+
+The report and 24 screenshots contain only synthetic test data. Protected
+handbook screenshots are explicitly disabled and must not enter public CI
+artifacts. Output defaults to `artifacts/admin-tooling-smoke/current`; an optional
+first argument selects a separate output directory. `PVAD_ADMIN_SMOKE_ROOT` can
+point to an isolated old-version Admin worktree for a genuine before comparison.
+Screenshots reset browser scroll restoration so scroll timing cannot
+be confused with a bundler regression. Do not silently regenerate an old-version
+baseline using new dependencies. Keep platform-specific native binding metadata
+in the lockfile and verify the actual Linux graph through CI as well as macOS.
+The development audit policy covers both Designer and Admin; neither gate
+replaces the existing production dependency audits.
+
+CI action maintenance also runs the `registry-login` job. It uses the pinned
+Docker login action against a loopback-only TLS Registry V2 ping server with
+random synthetic credentials, an isolated Docker configuration and a temporary
+process-local trust root. It verifies credential scoping, invalid-password
+rejection and explicit logout; the action's post-job logout must also succeed.
+The test forces client-side authentication and never uses the host daemon,
+real registry credentials, image publication or deployment. This is not proof
+of production GHCR authorization, OIDC or ECR behavior. Do not install its test
+CA globally. The initial macOS HTTP fixture attempts failed before login because
+the Docker client required TLS; their failures are not classified as passes.
+
+```bash
+node --test tools/dependencies/dependency-compliance.test.mjs tools/dependencies/registry-login-smoke.test.mjs
+node tools/dependencies/validate-dependency-compliance.mjs
+```
+
+### Stable React Compatibility
+
+The approved baseline remains React/React DOM 18.3.1, matching 18.x declarations
+and stable Glide Data Grid 6.0.3. Do not install the official Grid alpha solely
+to merge a React-major update. Future React, DOM and declaration updates are
+grouped for coordinated review.
+
+```bash
+node --test tools/dependencies/designer-react-compatibility.test.mjs
+node tools/dependencies/designer-react-smoke.mjs
+```
+
+Run after `npm ci` and the ordinary Designer production build. Four dependency
+contracts verify the approved versions, replacement peers, removed legacy
+packages and the complete installed npm tree. Two existing debts remain visible:
+Grid expects `marked` 4.x while the root resolves 18.0.5, and Monaco React's
+`monaco-editor` peer is not installed. The existing `.npmrc` legacy-peer setting
+is not expanded or described as strict resolution. Any additional peer problem
+fails the contract. Do not add a new exception without explicit investigation.
+
+The browser runner checks actual components under StrictMode in development
+and an isolated production fixture build, on desktop and mobile viewports.
+It exercises JSON edit/add/delete callbacks, selection and keyboard drag
+cancellation in the legacy surface, and editing/formula recalculation in the
+stable Spreadsheet grid. Three additional Jest regressions cover controlled
+selection feedback, sheet-switch reset and the application's required single
+overlay portal. `ComplexEditor` and its legacy `PvadSurface` and
+`JsonEditorPanel` are not routed from the current application; their compatibility
+test does not claim new active-Designer functionality or a working legacy
+reorder operation. The ordinary application is tested separately by the existing
+bundle smoke runner. Test fixtures are excluded from ordinary production output.
+That runner also edits and reopens a cell on the actual `/spreadsheet/create`
+route in all four modes/viewports, using the real sidebar control on mobile.
+The Grid wrapper must pass its selected state back when using a selection
+callback, and `index.html` must retain the `portal` host required by Glide.
+For a genuine old-dependency visual baseline only, use
+`PVAD_DESIGNER_SMOKE_ROOT=/absolute/old/pvad-designer node tools/dependencies/designer-tooling-smoke.mjs artifacts/before --baseline-only`.
+That explicit mode covers home/gallery/search only, not Spreadsheet editing.
+Both comparison captures wait for every staggered gallery animation to finish;
+do not replace an old-dependency baseline with a new-dependency render.
+Screenshots and reports contain only synthetic data and make no real backend,
+authentication, cloud deployment or native mobile/touch claim.
+
+Use the CI-validated Node.js 22 toolchain (22.12 or newer within that major).
+Jest-DOM 7 requires Node 22; the Vite toolchain additionally requires 22.12 in
+that major. This is a contributor build/test requirement, not a browser or
+deployed application runtime requirement.
 
 ```bash
 cd pvad-designer
@@ -54,6 +272,48 @@ npm test
 npm run test:coverage
 npm run build
 ```
+
+The Designer declares `@testing-library/dom` explicitly as a development
+dependency because both Jest-DOM 7 and React Testing Library require it. Keep
+the DOM peer in the compatible 10.x range; do not rely on an undeclared peer
+or use forced dependency installation to hide a mismatch.
+
+DOM test files use `@jest-environment jsdom` and import
+`@testing-library/jest-dom` before using its matchers. The default Jest environment
+remains Node for non-DOM tests. The focused
+`src/__tests__/jestDomCompatibility.test.tsx` suite checks accessible queries,
+form interaction, invalid assertions, and v7 query-matcher integration with
+the actual DOM peer. The release-history component test also uses real DOM
+matchers; it is not sufficient merely to import the new package.
+
+After building, `node tools/dependencies/designer-tooling-smoke.mjs` from the
+repository root exercises development/production bundles on desktop and mobile.
+Install Playwright Chromium first. Its API responses are synthetic; this is not
+an authenticated backend or PDF-generation test.
+
+Chart dependency changes also run the actual Live Preview and Canvas components:
+
+```bash
+npm --prefix pvad-designer exec -- tsc --project pvad-designer/tsconfig.chart-review.json
+node tools/dependencies/designer-chart-smoke.mjs --label baseline
+# After the targeted dependency update and a clean install:
+node tools/dependencies/designer-chart-smoke.mjs --label updated \
+  --compare artifacts/designer-chart-smoke/baseline/report.json
+```
+
+The fixture covers the current bar, line and pie consumers with normal, negative,
+zero, null, empty and long-label inputs. Desktop/mobile development and explicit
+production fixture builds produce 60 Preview screenshots, six desktop Canvas
+screenshots and geometry/pixel reports. Comparison requires the same platform
+and Chromium build. Labels, legends and dimensions must remain stable; path and
+pixel differences are reported for inspection rather than silently rebaselined.
+CI runs the current-version contracts and retains screenshots on success/failure.
+The fixture is not an application route and is excluded from the ordinary
+Designer production build. All inputs are synthetic, external font CSS is stubbed,
+and other external/API requests are rejected. This does not certify backend PDF fidelity, extra chart types or
+existing Canvas/Preview equivalence. The renamed Designer has a newer chart
+renderer than the original dependency baseline; compare against that retained
+implementation, not against an obsolete placeholder.
 
 ## Recommended Scope By Change Type
 

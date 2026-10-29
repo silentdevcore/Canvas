@@ -10,7 +10,7 @@ public sealed class PvadDiagnosticAliasContractTests
     [Fact]
     public void ActualMvcFactory_AllowsCallerDiagnosticExtensionsBeforeCompletion()
     {
-        using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>();
+        using var factory = new PvadApiTestFactory();
         var controller = new ProblemProbe
         {
             ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext

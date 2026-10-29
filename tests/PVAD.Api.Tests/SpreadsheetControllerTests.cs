@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PVAD.Api.Tests;
 
-public sealed class SpreadsheetControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient client;
 
-    public SpreadsheetControllerTests(WebApplicationFactory<Program> factory)
+    public SpreadsheetControllerTests(PvadApiTestFactory factory)
     {
         client = factory.CreateClient();
     }

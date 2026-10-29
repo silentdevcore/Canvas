@@ -15,8 +15,8 @@ using PVAD.WebApi.Services.Entitlements;
 
 namespace PVAD.Api.Tests;
 
-public sealed class PvadEvidenceDiagnosticSerializationTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PvadEvidenceDiagnosticSerializationTests(PvadApiTestFactory factory)
+    : IClassFixture<PvadApiTestFactory>
 {
     private JsonSerializerOptions ApiOptions => factory.Services
         .GetRequiredService<IOptions<Microsoft.AspNetCore.Mvc.JsonOptions>>().Value.JsonSerializerOptions;
@@ -162,7 +162,7 @@ public sealed class PvadEvidenceDiagnosticSerializationTests(WebApplicationFacto
     [Fact]
     public async Task OpenApi_ExposesProjectionFieldsForBothDiagnosticTypes()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateOpenApiClient();
         using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
         var schemas = document.RootElement.GetProperty("components").GetProperty("schemas");
         foreach (var name in new[] { "PvadEInvoiceDiagnostic", "PdfTrustDiagnostic" })

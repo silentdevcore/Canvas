@@ -8,8 +8,8 @@ public sealed class PvadMigrationArtifactIdentityTests
     [Fact]
     public async Task ActualOpenApi_DescribesMigrationArtifactsAndCanonicalMetadata()
     {
-        using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>();
-        using var client = factory.CreateClient();
+        using var factory = new PvadApiTestFactory();
+        using var client = factory.CreateOpenApiClient();
         using var document = System.Text.Json.JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
         var schemas = document.RootElement.GetProperty("components").GetProperty("schemas");
         foreach (var name in new[] { "MigrationArtifactDescriptor", "MigrationArtifactResponse" })

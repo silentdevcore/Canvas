@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { requiredActionPins, validateWorkflowActionPins } from './workflow-action-pins.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
@@ -33,7 +34,8 @@ test('cryptographic dependencies retain the reviewed security patches', async ()
   ];
   for (const [name, path] of packages) {
     const source = await read(path);
-    assert.ok(source.includes(`Include="${name}" Version="10.0.13"`), `${path}: missing ${name} security pin`);
+    const version = name.endsWith('.Xml') ? '10.0.14' : '10.0.13';
+    assert.ok(source.includes(`Include="${name}" Version="${version}"`), `${path}: missing ${name} security pin`);
   }
 });
 
@@ -48,5 +50,42 @@ test('external GitHub Actions use immutable commit pins', async () => {
       if (action.startsWith('./')) continue;
       assert.match(reference, /^[a-f0-9]{40}$/u, `${name}: ${action} is not SHA-pinned`);
     }
+  }
+});
+
+test('every occurrence uses the reviewed action pin, including duplicate uses', () => {
+  const source = [...requiredActionPins].map(([action, sha]) => `- uses: ${action}@${sha}`).join('\n');
+  const valid = [{ name: 'reviewed.yml', source }];
+  validateWorkflowActionPins(valid);
+  assert.throws(() => validateWorkflowActionPins([...valid, {
+    name: 'stale.yml', source: `- uses: actions/setup-node@${'a'.repeat(40)}`,
+  }]), /stale.yml has an unexpected actions\/setup-node pin/u);
+  assert.throws(() => validateWorkflowActionPins([...valid, {
+    name: 'mutable.yml', source: '- uses: unknown/action@v1',
+  }]), /full commit SHA/u);
+  assert.throws(() => validateWorkflowActionPins([]), /Required action pin is missing/u);
+});
+
+test('actual workflows consistently use all reviewed action pins', async () => {
+  const names = (await readdir(new URL('.github/workflows/', root))).filter((name) => name.endsWith('.yml'));
+  const sources = [];
+  for (const name of names) sources.push({ name, source: await read(`.github/workflows/${name}`) });
+  validateWorkflowActionPins(sources);
+});
+
+test('Designer and Admin audits include development tools without weakening production gates', async () => {
+  const catalog = JSON.parse(await read('product-metadata/dependency-compliance.json'));
+  assert.deepEqual(catalog.vulnerabilityPolicy.npmDevelopment, {
+    scope: 'production-and-development',
+    workspaces: ['pvad-designer', 'websites/PVAD.Admin'],
+    maximumAllowedSeverity: 'moderate',
+    ciGate: true,
+  });
+  assert.equal(catalog.vulnerabilityPolicy.npm.maximumAllowedSeverity, 'moderate');
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /^\s*run: npm --prefix pvad-designer audit --audit-level=high\s*$/mu);
+  assert.match(workflow, /^\s*run: npm --prefix websites\/PVAD\.Admin audit --audit-level=high\s*$/mu);
+  for (const workspace of ['pvad-designer', 'websites/PVAD.Admin', 'tools/PVAD.Mcp']) {
+    assert.ok(workflow.includes(`npm --prefix ${workspace} audit --omit=dev --audit-level=high`));
   }
 });

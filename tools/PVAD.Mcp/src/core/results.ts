@@ -11,7 +11,7 @@ export interface PvadMcpDiagnostic {
 
 export const toolOutputSchema = {
   status: z.enum(['ok', 'error']),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
   diagnostics: z.array(z.object({
     code: z.string(),
     severity: z.enum(['info', 'warning', 'error']),

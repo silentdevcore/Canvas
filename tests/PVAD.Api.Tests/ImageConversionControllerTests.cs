@@ -8,12 +8,12 @@ using SkiaSharp;
 
 namespace PVAD.Api.Tests;
 
-public sealed class ImageConversionControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ImageConversionControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
-    public ImageConversionControllerTests(WebApplicationFactory<Program> factory)
+    public ImageConversionControllerTests(PvadApiTestFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();

@@ -8,11 +8,11 @@ using SkiaSharp;
 
 namespace PVAD.Api.Tests;
 
-public sealed class DocumentOpsControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient client;
 
-    public DocumentOpsControllerTests(WebApplicationFactory<Program> factory)
+    public DocumentOpsControllerTests(PvadApiTestFactory factory)
     {
         client = factory.CreateClient();
     }

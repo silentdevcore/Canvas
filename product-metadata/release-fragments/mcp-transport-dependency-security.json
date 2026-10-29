@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "mcp-transport-dependency-security",
+  "impact": "patch",
+  "components": ["sdk"],
+  "category": "security",
+  "summary": "Updated MCP transport dependencies to supported security-patched versions.",
+  "securityReviewed": true,
+  "breaking": false
+}

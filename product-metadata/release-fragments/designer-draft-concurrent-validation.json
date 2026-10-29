@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-draft-concurrent-validation",
+  "impact": "patch",
+  "components": ["api", "designer"],
+  "category": "fixed",
+  "summary": "Prevented intermittent validation failures when concurrent Designer draft saves arrive after startup.",
+  "breaking": false
+}

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useEditorStore, SimpleElement } from '../../store';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Resizable } from 'react-resizable';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
@@ -14,7 +14,7 @@ const PvadSurface: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [resizingId, setResizingId] = useState<string | null>(null);
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
   };
 

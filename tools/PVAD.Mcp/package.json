@@ -26,25 +26,27 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts",
     "smoke": "tsx smoke.ts",
-    "smoke:dist": "tsx smoke.ts --dist"
+    "smoke:dist": "tsx smoke.ts --dist",
+    "test:contracts": "node --test toolchain.test.mjs",
+    "test:smoke": "tsx smoke.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "ajv": "^8.20.0",
     "express": "^5.2.1",
     "jose": "^6.2.3",
-    "zod": "^3.23.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^26.1.0",
+    "@types/node": "^22.20.5",
     "esbuild": "^0.28.1",
-    "tsx": "^4.19.0",
-    "typescript": "^5.5.0"
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   },
   "overrides": {
-    "fast-uri": "4.2.1",
-    "hono": "4.13.8",
-    "qs": "6.16.0"
+    "fast-uri": "4.2.3",
+    "hono": "4.13.14",
+    "qs": "6.16.1"
   }
 }

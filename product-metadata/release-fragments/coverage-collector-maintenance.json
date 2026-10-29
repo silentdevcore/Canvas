@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "coverage-collector-maintenance",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Maintained test coverage tooling with checks for valid reports and consistent test discovery.",
+  "breaking": false,
+  "reason": "Only private test dependencies and internal coverage validation change; shipped runtime behavior, public contracts and product versions remain unchanged."
+}

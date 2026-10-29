@@ -78,9 +78,14 @@ test('configuration contracts install their locked dependencies before running i
 test('ephemeral CI artifacts and local SBOM image use canonical technical identity', () => {
   const ci = read('ci');
   assert.doesNotMatch(ci, /name: pxa-|pxa-webapi:sbom/);
-  assert.match(ci, /--tag pvad-webapi:sbom/);
+  const steps = load(ci).jobs['supply-chain'].steps;
+  const build = steps.find(step => step.uses?.startsWith('docker/build-push-action@'));
+  assert.ok(build, 'The release container builder must be exercised without publishing');
+  assert.equal(build.with.tags, 'pvad-webapi:sbom');
+  assert.equal(build.with.load, true);
+  assert.equal(build.with.push, false);
   assert.match(ci, /verify-container-metadata pvad-webapi:sbom "\$GITHUB_SHA" "\$PVAD_BUILD_TIME"/);
-  assert.match(ci, /--build-arg PVAD_BUILD_TIME="\$PVAD_BUILD_TIME"/);
+  assert.match(build.with['build-args'], /^PVAD_BUILD_TIME=\$\{\{ github.event.head_commit.timestamp \|\| github.event.pull_request.updated_at \}\}$/m);
   assert.match(ci, /image: pvad-webapi:sbom/);
   for (const name of ['release-dry-run', 'pdf-trust-fuzz'])
     assert.doesNotMatch(read(name), /name: pxa-/);

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-development-dependency-security",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "security",
+  "summary": "Updated Designer build and test dependencies to supported security-patched versions.",
+  "breaking": false,
+  "securityReviewed": true
+}

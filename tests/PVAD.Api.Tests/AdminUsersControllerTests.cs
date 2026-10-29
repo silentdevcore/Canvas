@@ -364,15 +364,63 @@ public sealed class AdminUsersControllerTests
         Assert.Equal(HttpStatusCode.OK, (await administratorClient.SendAsync(disableUser)).StatusCode);
 
         using var suspendedClient = CreateClient(factory);
-        Assert.Equal(HttpStatusCode.Forbidden, await LoginAsync(
-            suspendedClient,
-            "member@pxa.test",
-            "Pxa-Member-Integration-42!"));
+        using var suspendedLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pvad/v1/auth/login",
+            await GetCsrfAsync(suspendedClient),
+            new { identifier = "member@pxa.test", password = "Pxa-Member-Integration-42!" });
+        var suspendedLoginResponse = await suspendedClient.SendAsync(suspendedLogin);
+        Assert.Equal(HttpStatusCode.Forbidden, suspendedLoginResponse.StatusCode);
+        await AssertProblemCodeAsync(suspendedLoginResponse, PvadApiProblems.AccountDisabled);
         var suspendedResponse = await suspendedClient.GetAsync("/api/pvad/v1/admin/users");
         Assert.Equal(HttpStatusCode.Unauthorized, suspendedResponse.StatusCode);
         await AssertProblemCodeAsync(suspendedResponse, PvadApiProblems.AuthenticationRequired);
 
         using var unapprovedOperatorClient = CreateClient(factory);
+        // The shared seed has a foreign membership; explicitly prepare the no-organization case.
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            var memberships = await dbContext.OrganizationMemberships
+                .Where(membership => dbContext.Users.Any(user =>
+                    user.Id == membership.UserId && user.Email == "unapproved-operator@pxa.test"))
+                .ToListAsync();
+            Assert.Single(memberships);
+            dbContext.OrganizationMemberships.RemoveRange(memberships);
+            await dbContext.SaveChangesAsync();
+        }
+        using var operatorWithoutOrganizationLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pvad/v1/auth/login",
+            await GetCsrfAsync(unapprovedOperatorClient),
+            new { identifier = "unapproved-operator@pxa.test", password = "Pxa-Unapproved-Operator-42!" });
+        var operatorWithoutOrganizationResponse = await unapprovedOperatorClient.SendAsync(operatorWithoutOrganizationLogin);
+        Assert.Equal(HttpStatusCode.Forbidden, operatorWithoutOrganizationResponse.StatusCode);
+        await AssertProblemCodeAsync(operatorWithoutOrganizationResponse, PvadApiProblems.OrganizationSuspended);
+
+        // Give the legacy operator ordinary member access without granting operator authorization.
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            var operatorId = await dbContext.Users.Where(user => user.Email == "unapproved-operator@pxa.test")
+                .Select(user => user.Id).SingleAsync();
+            var viewerRoleId = await dbContext.Roles.Where(role => role.Name == PvadRoles.Viewer)
+                .Select(role => role.Id).SingleAsync();
+            var membership = new OrganizationMembership
+            {
+                OrganizationId = seeded.OrganizationId,
+                UserId = operatorId,
+            };
+            dbContext.OrganizationMemberships.Add(membership);
+            dbContext.OrganizationMembershipRoles.Add(new OrganizationMembershipRole
+            {
+                OrganizationMembershipId = membership.Id,
+                RoleId = viewerRoleId,
+                AssignedByUserId = seeded.AdministratorUserId,
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             unapprovedOperatorClient,
             "unapproved-operator@pxa.test",
