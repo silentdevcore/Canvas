@@ -56,6 +56,21 @@ test('declared, locked and installed MCP tooling agree', () => {
   }
 });
 
+test('the reviewed transitive HTTP adapter loads on the retained SDK and Node baseline', async () => {
+  const adapter = readJson('./node_modules/@hono/node-server/package.json');
+  assert.equal(adapter.version, '2.1.5');
+  assert.equal(adapter.version, lock.packages['node_modules/@hono/node-server'].version);
+  assert.equal(adapter.engines.node, '>=20');
+  assert.match(adapter.peerDependencies.hono, /\^4/);
+  const hono = readJson('./node_modules/hono/package.json');
+  assert.equal(Number(hono.version.split('.')[0]), 4);
+  assert.equal(hono.version, lock.packages['node_modules/hono'].version);
+  const sdk = readJson('./node_modules/@modelcontextprotocol/sdk/package.json');
+  assert.equal(sdk.version, '1.32.2');
+  assert.equal(sdk.version, lock.packages['node_modules/@modelcontextprotocol/sdk'].version);
+  assert.equal(typeof (await import('@hono/node-server')).serve, 'function');
+});
+
 test('locked packages retain registry origins and integrity metadata', () => {
   for (const [name, entry] of Object.entries(lock.packages)) {
     if (!name || entry.link) continue;
