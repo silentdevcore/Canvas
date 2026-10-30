@@ -201,7 +201,7 @@ migration workflow. Historical completed tasks above keep their original scope.
 ## Native Project Format Integration
 
 - [x] Use the canonical `DesignExportDto` shared by JSON and Code Workspace conversion as the
-  editable document inside `.pxap` packages.
+  editable document inside `.pvadp` packages.
 - [x] Keep Code Workspace drafts and source maps outside the initial package contract until their
   schema and security classification are explicitly approved in
   [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md).

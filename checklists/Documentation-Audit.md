@@ -53,7 +53,7 @@ or a release approval.
 - [x] **[medium]** Add a `README.md` documentation map.
 - [x] **[high]** Expand `CONTRIBUTING_RENDERERS.md` into renderers, importers, migrations, report converters, and document operations.
 - [x] **[high]** Expand `TESTING.md` with file importer, PDF importer, image analysis/OCR, migration, report migration, and frontend test groups.
-- [x] **[medium]** Link `PXA/README.md` and `PXA/TECHNICAL_DOCUMENTATION.md` to PDF encryption and provider feature-gap roadmaps.
+- [x] **[medium]** Index the [current PDF architecture](../docs/architecture/existing-pdf-boundaries.md), [C# cookbook](../docs/csharp-cookbook.md), [encryption](Pdf-Encryption.md), and [provider feature-gap roadmap](PvadPdf-Provider-Feature-Gaps.md) instead of removed engine-local documentation paths.
 - [x] **[medium]** Add `checklists/PvadPdf-Provider-Feature-Gaps.md`.
 - [x] **[high]** Add complete protected PVAD.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PVAD.Admin`.
 - [x] **[high]** Exclude Admin handbook content and operator guidance from the public Documentation build and navigation.

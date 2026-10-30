@@ -45,7 +45,7 @@ deployment controls are tracked in
 
 ## P1 - Application Integration
 
-- [x] Add anonymous `GET /api/pxa/v1/version`.
+- [x] Add anonymous `GET /api/pvad/v1/version`.
 - [x] Keep API contract version independent from the PVADE product version.
 - [x] Show the shared product version and commit in Designer and administrative applications.
 - [x] Show authenticated release notes in PVADE Admin from the shared release manifest.

@@ -19,7 +19,7 @@ limit can never be reported as structurally `valid`.
 ## Confirmed Defects
 
 These were verified in the code on `feature/pdf-trust-foundation` before this checklist
-was written. All are reachable through `POST /api/pxa/v1/pdf/trust/inspect`, which
+was written. All are reachable through `POST /api/pvad/v1/pdf/trust/inspect`, which
 accepts up to 100 MB of arbitrary PDF.
 
 - [x] **Unbounded parser recursion.** `ParseObject` -> `ParseArray` -> `ParseObject` and

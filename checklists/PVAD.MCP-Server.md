@@ -9,7 +9,7 @@ tenant-safe tool layer.
 
 ## Existing Baseline
 
-- A TypeScript MCP server exists under `tools/PXA.Mcp`.
+- A TypeScript MCP server exists under `tools/PVAD.Mcp`.
 - The server uses `@modelcontextprotocol/sdk` and currently runs over `stdio`.
 - Eleven tools expose the access context, element catalog, examples, documentation search, design
   validation, PDF preview rendering, export formats, migration providers, and tenant templates.
@@ -27,7 +27,7 @@ tenant-safe tool layer.
 - [x] Keep `PVAD.Mcp.Local` as the process-spawned `stdio` host for local IDE and desktop clients.
 - [x] Add `PVAD.Mcp.Server` as a separately deployable Streamable HTTP host.
 - [ ] Expose the remote endpoint at `/mcp`, with the intended Cloud address
-  `https://mcp.powerdoxautomation.com/mcp`.
+  `https://mcp.pvade.com/mcp` (proposed host; DNS, TLS, operator ownership and deployment are not validated).
 - [x] Support an On-Premise endpoint through the PVADE Server reverse proxy without requiring public
   internet access.
 - [x] Keep MCP transport and protocol code outside `PVAD.WebApi`; access PVADE business capabilities

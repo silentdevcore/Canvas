@@ -258,7 +258,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 
 ### Notable Additions (Section 6)
 
-- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `PXA/Pdf/`.
+- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `src/Generation/PVAD.Pdf/`.
 - **`supportedOutputs`** added to all 38 tool definitions in `SimplePvadSurface.tsx` (`['pdf', 'word']` for 35 tools; `['word']` for `footnote`, `endnote`, `contentcontrol`).
 - All PDF case handlers implemented for: `link`, `number`, `bookmark`, `footnote`, `endnote`, `comment`, `draw` (SVG path parsing), `chart` (SkiaSharp PNG render).
 - All Word case handlers implemented for: `qrcode`, `barcode`, `date`, `dropdown` (native SDT content control).

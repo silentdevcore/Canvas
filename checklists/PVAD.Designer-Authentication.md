@@ -71,7 +71,7 @@ Protect every PVADE Designer workflow so that only active, email-verified users 
 
 ## Designer Application
 
-- [x] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
+- [x] Add an authentication bootstrap that calls `GET /api/pvad/v1/auth/me`.
 - [x] Prevent protected route content from rendering before bootstrap completes.
 - [x] Add explicit route states for verification, disabled accounts, suspended organizations, expired subscriptions, missing entitlements, offline access, and incompatible API versions.
 - [x] Preserve Designer handoff denials as dedicated Account states with localized explanations, diagnostic codes, and subscription, legal-review, support, or retry actions.
@@ -100,7 +100,7 @@ Protect every PVADE Designer workflow so that only active, email-verified users 
 - [x] Allow Manager to manage and publish templates, execute migrations, and perform PDF redaction while reserving organization feature-policy changes for Organization Administrator.
 - [x] Allow Editor to create and edit documents, assets, code, imports, exports, migrations, spreadsheets, annotations, and forms without template publication, archive, feature-policy, or redaction rights.
 - [x] Keep Viewer read-only for templates, code, spreadsheets, PDF viewing, migration discovery, and exports.
-- [x] Register every permission as an ASP.NET Core authorization policy and expose effective Designer permissions through `/api/pxa/v1/auth/me`.
+- [x] Register every permission as an ASP.NET Core authorization policy and expose effective Designer permissions through `/api/pvad/v1/auth/me`.
 - [x] Treat pre-RBAC Designer cookies as expired so users receive a fresh permission-bearing session through the normal Account handoff.
 - [x] Protect dedicated Designer controllers with action-level policies.
 - [x] Resolve and enforce permissions for shared import, export, migration, Spreadsheet, PDF Viewer, document, and legacy template routes when invoked by the Designer.

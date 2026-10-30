@@ -64,7 +64,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       revision retains the removed content, and it is verified before being returned. The former
       regenerate-the-whole-document path has been removed. Remaining Milestone 3 gaps are tracked
       in `PVAD.PDF-Trust-Foundation.md`.
-- [x] Redaction preflight: `POST /api/pxa/v1/pdf/redactions/preflight` reports per region what
+- [x] Redaction preflight: `POST /api/pvad/v1/pdf/redactions/preflight` reports per region what
       would be removed and what PVADE cannot account for, without mutating the document
 - [x] Redaction audit record: apply returns the source and result hashes, regions, actor, reason,
       sanitizations, and verification outcome, hashed in canonical form. It is returned out of
@@ -167,7 +167,7 @@ our own implementation, UI language, and engine boundaries.
       Selection, text editing, move, resize, color, size, delete, lock, and unlock are implemented for sidecar annotations.
 - [x] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
       Implemented import/export for annotation sidecar JSON.
-      Sidecar schema/types and parser/serializer are centralized in `pxa-designer/src/features/pdf-viewer/annotations.ts`.
+      Sidecar schema/types and parser/serializer are centralized in `pvad-designer/src/features/pdf-viewer/annotations.ts`.
 
 ### Phase 3 - Professional PDF workflows
 

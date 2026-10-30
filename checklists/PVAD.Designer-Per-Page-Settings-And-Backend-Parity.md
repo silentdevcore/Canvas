@@ -56,6 +56,6 @@
 
 ## Native Project Format Integration
 
-- [x] Preserve document defaults and every per-page physical layout override in `.pxap` projects.
+- [x] Preserve document defaults and every per-page physical layout override in `.pvadp` projects.
 - [x] Cover mixed page layouts in the native package roundtrip tracked by
   [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md).

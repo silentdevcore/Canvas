@@ -100,7 +100,7 @@ making application availability depend on the telemetry backend.
 - [x] Add a dashboard for browser health.
 - [x] Expose Grafana only through a protected operator host and reverse proxy.
 - [x] Add a sanitized System Status workspace to PVAD.Admin for System Administrators.
-- [x] Add `/api/pxa/v1/admin/system/health` with coarse dependency, worker, and queue status.
+- [x] Add `/api/pvad/v1/admin/system/health` with coarse dependency, worker, and queue status.
 - [x] Do not expose raw logs, traces, Grafana links, secrets, or customer data to Organization
       Administrators.
 - [x] Keep operator dashboards and runbooks outside public PVAD.Documentation.

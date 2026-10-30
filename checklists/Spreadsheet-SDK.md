@@ -87,7 +87,7 @@ type). Confirm the scope before executing.
 - [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;
       only its own declaration exists. Rename later if desired.
 - [x] `PVAD.sln` project name + path entry.
-- [x] `ProjectReference` paths in `PVAD.WebApi/PVAD.WebApi.csproj` + `PXA.Export.Tests.csproj`.
+- [x] `ProjectReference` paths in `PVAD.WebApi/PVAD.WebApi.csproj` + `PVAD.Export.Tests.csproj`.
 - [x] `using`/qualified `PVAD.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
       the 3 test files. No stale `.Sheet` references remain.
 - [x] `dotnet build PXA.sln` clean; `PXA.Export.Tests` **193** green.

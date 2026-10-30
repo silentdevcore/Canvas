@@ -71,11 +71,11 @@ must continue to block Production publication.
 
 ## Public Legal API
 
-- [x] Add `GET /api/pxa/v1/legal/documents`.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/current`.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/versions` with public metadata for every effective published or retired version.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/versions/{version}`.
-- [x] Add `GET /api/pxa/v1/legal/storage-policy`.
+- [x] Add `GET /api/pvad/v1/legal/documents`.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/current`.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/versions` with public metadata for every effective published or retired version.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/versions/{version}`.
+- [x] Add `GET /api/pvad/v1/legal/storage-policy`.
 - [x] Return ETags derived from the immutable content hash.
 - [x] Resolve scheduled versions by effective time without mutating historical content.
 - [x] Return only public published or effective scheduled versions.

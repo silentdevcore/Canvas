@@ -149,3 +149,34 @@ corrections, not new provider implementations or renewed migration-test results.
 Original test commands, recorded alias-routing coverage, the original repository
 PR link and vendor-specific RPX metadata remain evidence or contracts.
 Regression checks reject other previous-name occurrences in migration checklists.
+
+## Repository-Wide Markdown Path Audit (2026-10-30)
+
+The scan against `d608df36` covered all 272 tracked Markdown files, not only
+migration checklists. It found 494 previous-name path-like occurrences in 68
+files, including archives and compatibility resources. Current project paths,
+API references, runbook commands, source links and project-format examples were
+corrected across 30 Markdown files. Original command results, test counts,
+historical architecture assessments and runtime reader values are not rewritten.
+
+Run the inventory again with:
+
+```bash
+node tools/configuration/markdown-path-audit.mjs
+```
+
+The ignored outputs are `artifacts/rename/markdown-path-audit-current.md` and
+`artifacts/rename/markdown-path-audit-current.json`. Each occurrence includes its
+Markdown source, line and path value. The lexical search includes prose, links,
+inline code and fenced examples; it is not a complete Markdown grammar or an
+automatic rename approval. It reads only tracked regular Markdown files, skips
+private IDE paths and symlinks, and does not inspect untracked local notes or
+ignored build output. After the corrections, 394 occurrences remain in 46 files:
+original verification/audit records, compatibility identities, retained fixtures
+and explicit infrastructure bindings still require their real historical values.
+The inventory is a navigation aid, not a claim that archived paths still exist.
+
+Regression checks resolve corrected source-file references, current API
+namespaces, PDF source links and the Word fidelity project/artifact contract.
+The new path scanner has isolated coverage for nested and uppercase Markdown,
+tracked versus untracked files, private IDE exclusions and symlink safety.

@@ -139,7 +139,7 @@ Reference material:
   `notApplicable`; never collapse unknown into valid.
 - [x] Include document and revision SHA-256 hashes so audit events can be correlated
   without storing document content.
-- [x] Expose `POST /api/pxa/v1/pdf/trust/inspect` as an authenticated, entitled,
+- [x] Expose `POST /api/pvad/v1/pdf/trust/inspect` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
 - [x] Enforce tenant-scoped jobs, file limits, cancellation, short retention, and
   audit events for trust inspections.
@@ -263,8 +263,8 @@ Reference material:
 - [x] Keep certificate downloads disabled by default and make online revocation an
   explicit server policy with bounded retrieval, exact-host CRL allowlists, and a
   validated Data-Protection-encrypted CRL and certificate-specific OCSP cache.
-- [x] Add `POST /api/pxa/v1/pdf/signatures/sign` and
-  `POST /api/pxa/v1/pdf/signatures/validate` with streaming binary responses and
+- [x] Add `POST /api/pvad/v1/pdf/signatures/sign` and
+  `POST /api/pvad/v1/pdf/signatures/validate` with streaming binary responses and
   structured validation reports.
 - [x] Add separate permissions for signature inspection, signing, trust-policy
   management, and use of organization key providers.
@@ -413,7 +413,7 @@ Reference material:
       do not silently downgrade that deployment to unsigned records.
     - [x] Persist and return the complete signed audit record through an authenticated,
       bounded API. Apply stores append-only tenant evidence, returns its retrieval location,
-      and `GET /api/pxa/v1/pdf/redactions/audits/{recordSha256}` verifies size, canonical
+      and `GET /api/pvad/v1/pdf/redactions/audits/{recordSha256}` verifies size, canonical
       hash, CMS signature when present, and tenant ownership before returning the record.
     - [x] Timestamp the audit signature so its validity survives certificate expiry.
       The configured RFC 3161 authority timestamps the CMS signature value; verification
@@ -426,12 +426,12 @@ Reference material:
   - [x] Correct `PdfTools-WebViewer-Feature-Gaps.md`, which ticked `Secure redaction
     workflow`, to agree with `PvadPdf-Provider-Feature-Gaps.md`, which records it as
     missing.
-- [x] Add `POST /api/pxa/v1/pdf/redactions/preflight` and
-  `POST /api/pxa/v1/pdf/redactions/apply` with privileged permission checks.
-  - [x] Add `POST /api/pxa/v1/pdf/redactions/preflight` behind a dedicated
+- [x] Add `POST /api/pvad/v1/pdf/redactions/preflight` and
+  `POST /api/pvad/v1/pdf/redactions/apply` with privileged permission checks.
+  - [x] Add `POST /api/pvad/v1/pdf/redactions/preflight` behind a dedicated
     `designer.pdf.redactions.inspect` permission, rate limited and size bounded, and
     withheld from the read-only Viewer role.
-  - [x] Add `POST /api/pxa/v1/pdf/redactions/apply` behind a separate
+  - [x] Add `POST /api/pvad/v1/pdf/redactions/apply` behind a separate
     `designer.pdf.redactions.apply` permission, withheld from the Editor role because the
     operation destroys content irreversibly.
 
@@ -622,10 +622,10 @@ Reference material:
   - [x] Let the Viewer select PDF/A-2b or PDF/A-3b, display stable findings with affected
     object numbers, and report successful conversion using the selected profile in all six
     Designer languages.
-- [x] Add `POST /api/pxa/v1/pdf/compliance/validate` and
-  `POST /api/pxa/v1/pdf/compliance/preflight` plus
-  `POST /api/pxa/v1/pdf/compliance/convert`.
-  - [x] Expose `POST /api/pxa/v1/pdf/compliance/validate` as an authenticated alias
+- [x] Add `POST /api/pvad/v1/pdf/compliance/validate` and
+  `POST /api/pvad/v1/pdf/compliance/preflight` plus
+  `POST /api/pvad/v1/pdf/compliance/convert`.
+  - [x] Expose `POST /api/pvad/v1/pdf/compliance/validate` as an authenticated alias
     of the structural trust inspection pipeline.
   - [x] Implement explicit conversion with loss and review diagnostics.
 

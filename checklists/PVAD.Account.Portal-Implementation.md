@@ -15,7 +15,7 @@ tests. Branch: `pxa-account-all-open-points`.
 `PVAD.Account.md` has registration, verification, and Trial creation done and
 integration-tested. Everything downstream of login — the Customer Portal
 (profile, organization/members, subscription, usage, licenses, developer
-access, security sessions, closure), the canonical `/api/pxa/v1/account/*`
+access, security sessions, closure), the canonical `/api/pvad/v1/account/*`
 API surface, `returnUrl` handling, and most tests — is unbuilt.
 `websites/PVAD.Admin` and its `Admin*Controller`s already implement almost
 every Customer Portal capability system-wide. Strategy: **extract shared
@@ -87,7 +87,7 @@ time.
       `AuditEvent.DetailsJson`), using the Phase 0 columns.
 - [x] `AccountRegistrationController` reduced from ~250 lines to a thin
       parse → service → map-result mapper (56 lines).
-- [x] `tests/PXA.Api.Tests/RegistrationValidationTests.cs` (12 tests, no database).
+- [x] `tests/PVAD.Api.Tests/RegistrationValidationTests.cs` (12 tests, no database).
 - [x] Existing `AccountRegistrationControllerTests.cs`,
       `AuthControllerTests`, `IdentityMailFlowTests` still green against real
       Postgres (`PXA_RUN_POSTGRES_TESTS=1`) — refactor is behavior-preserving.
@@ -112,7 +112,7 @@ time.
       `pxa:api-offline` CustomEvent pattern in `websites/PVAD.Account/src/api.js`
       (code/traceId now captured too); `main.js` listens for
       `pxa:session-expired` and shows the expired-session state.
-- [x] New `POST /api/pxa/v1/auth/resend-verification` on
+- [x] New `POST /api/pvad/v1/auth/resend-verification` on
       `AccountRegistrationController`/`CustomerRegistrationService.ResendVerificationAsync`
       (enumeration-safe: identical response for known/unknown email; superseds
       the prior token via the existing `IdentityActionTokenService` semantics).
@@ -179,7 +179,7 @@ time.
 
 ## Phase 4 — Profile self-service
 
-- [x] `AccountProfileController.cs` (`/api/pxa/v1/account/profile`): `GET`
+- [x] `AccountProfileController.cs` (`/api/pvad/v1/account/profile`): `GET`
       self, `PATCH /display-name`, `PATCH /locale`, `POST /email-change/request`
       (reuses the existing `AuthController.ConfirmEmailChange` for the confirm
       side and the existing `"identity.email-verification"` mail template —
@@ -206,7 +206,7 @@ time.
       mail links to). `main.ts`'s portal-page dispatch gained an optional
       `bind()` hook and a `pxa:rerender` event so async-loading pages don't
       need a circular import back into the router.
-- [x] `tests/PXA.Api.Tests/AccountProfileControllerTests.cs` (6 tests):
+- [x] `tests/PVAD.Api.Tests/AccountProfileControllerTests.cs` (6 tests):
       get-own-profile + roles, anonymous 401, display-name validation +
       audit, locale update, email-change enumeration-safety end-to-end
       through the real confirm endpoint, password-change wrong-password
@@ -229,7 +229,7 @@ time.
       simpler for the checkbox-style UI). `AdminOrganizationsController`
       refactored to call the service; its existing test still green
       (regression-verified, behavior-preserving).
-- [x] `AccountOrganizationController.cs` (`/api/pxa/v1/account/organization`):
+- [x] `AccountOrganizationController.cs` (`/api/pvad/v1/account/organization`):
       `GET`/`PATCH` org profile (name only — status changes stay
       System-Administrator-only, matching Admin), `GET`/`POST /members`
       (invite), `PUT /members/{userId}/roles`, `DELETE /members/{userId}`.
@@ -245,7 +245,7 @@ time.
 - [x] Role assignment restricted to the existing customer-facing role
       allowlist (`OrganizationMembershipService.OrganizationRoles` — never
       `System Administrator`).
-- [x] `tests/PXA.Api.Tests/AccountOrganizationControllerTests.cs` (5 tests):
+- [x] `tests/PVAD.Api.Tests/AccountOrganizationControllerTests.cs` (5 tests):
       org profile get/update + validation, unauthenticated 401, invite →
       accept-invitation → appears active with roles, duplicate-invite
       conflict, last-owner protection on self-demotion via the roles
@@ -281,7 +281,7 @@ time.
 - [x] Customer-safe response DTOs: drop entitlement `Source`, usage `Source`,
       and raw `ActorUserId` (fine for an operator, not load-bearing for a
       customer) — not reused verbatim from Admin's DTOs.
-- [x] `tests/PXA.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs`
+- [x] `tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs`
       (3 tests): subscription/seats/history/usage for the caller's own
       Trial; unauthenticated 401; license cross-tenant isolation (404 for a
       license id belonging to another org) using a real signed license
@@ -310,7 +310,7 @@ time.
       construction). Single-session revoke allows revoking your own current
       session (matches Admin's behavior; the next request 401s via the
       existing `PxaCookieAuthenticationEvents` revocation check).
-- [x] `tests/PXA.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs`
+- [x] `tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs`
       (4 tests): one-time-secret revealed exactly once and never returned by
       a subsequent list call; service-account cross-tenant isolation
       (zero visibility + 404 on revoke); session list marks the current
@@ -350,7 +350,7 @@ time.
       adding one belongs with Phase 9's other new mail types rather than
       duplicating that work here). No automated purge executor either, per
       the original plan — only the request/cancel workflow.
-- [x] `tests/PXA.Api.Tests/AccountClosureControllerTests.cs` (3 tests):
+- [x] `tests/PVAD.Api.Tests/AccountClosureControllerTests.cs` (3 tests):
       organization closure request → duplicate-conflict → cancel → re-cancel
       conflict, with `Organization.Status` verified Closed then Active
       again; account closure revokes the caller's other sessions;
@@ -402,7 +402,7 @@ time.
       mechanism, not all ~10 templates — translating the rest is now a
       content-authoring task, not an engineering one, and can happen
       incrementally without touching the plumbing again.
-- [x] `tests/PXA.Api.Tests/AccountMailNotificationsTests.cs` (5 tests):
+- [x] `tests/PVAD.Api.Tests/AccountMailNotificationsTests.cs` (5 tests):
       new-login enqueued on successful login; exactly one lockout mail across
       5 failed attempts (not one per attempt); German-locale registration
       renders German subjects for both localized templates; newsletter
@@ -432,7 +432,7 @@ time.
       same allowlist server-side — the client-side filter is never trusted
       alone) → stored only in `AuditEvent.DetailsJson`, never a first-class
       field on the user or organization.
-- [x] `tests/PXA.Api.Tests/AccountRegistrationControllerTests.cs`: new case
+- [x] `tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs`: new case
       asserting a smuggled `password`/`email` key is dropped while
       `utm_source`/`utm_campaign` survive into the audit record.
       `websites/PVAD.Account/tests/campaignAttribution.test.ts` (5 tests) for
@@ -446,7 +446,7 @@ time.
 - [x] `[PvadAuditedMutation]` on every mutation endpoint added in Phases 4–8 —
       enforced continuously, not just checked once, by the contract test
       below (its hardcoded count was bumped at every phase: 4 → 8 → 14 → 17).
-- [x] `tests/PXA.Api.Tests/AccountMutationContractTests.cs` (reflection
+- [x] `tests/PVAD.Api.Tests/AccountMutationContractTests.cs` (reflection
       contract, sibling to `AdminMutationContractTests.cs`) — **pulled
       forward into Phase 4** rather than left for this phase, so every
       Account mutation added from Phase 4 onward was already covered as it

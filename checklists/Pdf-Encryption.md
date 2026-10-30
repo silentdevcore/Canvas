@@ -36,7 +36,7 @@ object bodies. The handler is structured so AES slots in as an additional mode.
 
 Add document encryption to `PXA.Pdf` so generated PDFs can be password-protected with owner/user
 passwords and permission flags — the clearest functional gap versus DevExpress PDF
-(`PdfEncryptionOptions`). Today [PdfSaveOptions.cs](../PXA/Pdf/PdfSaveOptions.cs) only exposes
+(`PdfEncryptionOptions`). Today [PdfSaveOptions.cs](../src/Generation/PVAD.Pdf/PdfSaveOptions.cs) only exposes
 `CompressContentStreams` and `CollectDiagnostics`; there is no encryption anywhere in `PXA/Pdf/`.
 
 Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2 /R 3`)**; AES-128
@@ -57,7 +57,7 @@ Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2
   - [x] `PdfPermissions Permissions` (`[Flags]`: Print, Modify, Copy, AnnotateAndFillForms,
         FillFormsOnly, ExtractForAccessibility, Assemble, PrintHighResolution).
   - [x] `PdfEncryptionAlgorithm Algorithm` (`Rc4_128` default; `Aes128` present but throws `NotSupportedException` until V2).
-- [x] Extend [PdfSaveOptions.cs](../PXA/Pdf/PdfSaveOptions.cs) with `PdfEncryptionOptions? Encryption { get; init; }`.
+- [x] Extend [PdfSaveOptions.cs](../src/Generation/PVAD.Pdf/PdfSaveOptions.cs) with `PdfEncryptionOptions? Encryption { get; init; }`.
 - [x] `PdfDocument.Save(...)` / `ToBytes(...)` already accept `PdfSaveOptions`, so no new overloads needed —
       encryption flows through existing options.
 
@@ -74,7 +74,7 @@ Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2
   - [x] Algorithm 1 — per-object key = MD5(fileKey + objNum(3 bytes) + gen(2 bytes) [+ "sAlT" for AES]),
         truncated to `min(keyLen+5, 16)`; then RC4 or AES-CBC the data.
 
-## Writer integration ([PdfWriter.cs](../PXA/Pdf/Serialization/PdfWriter.cs))
+## Writer integration ([PdfWriter.cs](../src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs))
 
 The writer builds `PdfIndirectObject`s then `Serialize`s them. Encryption must touch **every string and
 stream** except the `/Encrypt` dict and the `/ID`. Because object bodies are currently assembled as

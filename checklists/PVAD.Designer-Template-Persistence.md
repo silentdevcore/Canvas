@@ -78,7 +78,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## API Contract
 
-- [x] Add tenant-scoped routes under `/api/pxa/v1/designer/templates`.
+- [x] Add tenant-scoped routes under `/api/pvad/v1/designer/templates`.
 - [x] Add paginated list with search, tags, status, updated-time ordering, and archived filtering.
 - [x] Add create, read, update metadata, update draft, archive, and restore operations.
 - [x] Add version list, version create, version read, and publish operations.
@@ -163,7 +163,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## Native Project Format Integration
 
-- [x] Keep portable `.pxap` files tenant-neutral while resolving embedded images into
+- [x] Keep portable `.pvadp` files tenant-neutral while resolving embedded images into
   organization-owned assets before applying the document.
 - [x] Preserve the active server template identity and optimistic-concurrency revision when a
   native project replaces its editable draft content.

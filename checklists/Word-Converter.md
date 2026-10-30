@@ -100,8 +100,8 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 - [x] Fixed duplicate `SpacingBetweenLines` when typography and positioning both add spacing — merged into single element with both Line and Before attributes.
 - [x] Confirmed JSON→Word (OpenXML SDK) is the correct architecture; PDF→Word approach rejected (structure loss, non-editable output, paid library dependency).
 - [x] Created and expanded fidelity sample pack (13 fixtures) under checklists/word-fidelity-samples.
-- [x] Added automated Word vs PDF fidelity harness in tests/PXA.Export.Tests/WordPdfFidelityTests.cs.
-- [x] Harness writes baseline artifacts to tests/PXA.Export.Tests/Fidelity/artifacts/latest.
+- [x] Added automated Word vs PDF fidelity harness in tests/PVAD.Export.Tests/WordPdfFidelityTests.cs.
+- [x] Harness writes baseline artifacts to tests/PVAD.Export.Tests/Fidelity/artifacts/latest.
 - [x] Added DOCX-to-PDF conversion step via LibreOffice when available.
 - [x] Added first-page geometry drift assertion for converted output.
 - [x] Added optional first-page PNG snapshot generation and pixel diff ratio report in fidelity harness.
@@ -182,7 +182,7 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 
 - [x] Add golden output folder structure:
   - checklists/word-fidelity-samples/
-  - tests/PXA.Export.Tests/Fidelity/
+  - tests/PVAD.Export.Tests/Fidelity/
 - [x] For each sample input, generate both outputs:
   - PDF via current PDF renderer
   - DOCX via WordDocumentExporter

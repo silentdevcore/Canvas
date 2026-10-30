@@ -252,7 +252,9 @@ test('ordinary completed-task wording and code examples use current names withou
   assert.doesNotMatch(gembox, /PXA|pxa-designer/);
   const persistence = read('checklists/PVAD.Designer-Template-Persistence.md');
   assert.match(persistence, /`PVAD\.Infrastructure\.Persistence`/);
-  assert.match(persistence, /`\/api\/pxa\/v1\/designer\/templates`/);
+  assert.match(persistence, /`\/api\/pvad\/v1\/designer\/templates`/);
+  assert.match(read('PVAD.WebApi/Controllers/DesignerTemplatesController.cs'),
+    /\[Route\("api\/pvad\/v1\/designer\/templates"\)\]/);
   const trust = read('checklists/PVAD.PDF-Trust-Foundation.md');
   assert.match(trust, /PXAPDFTRUST/);
   assert.match(read('checklists/Code-Migration-SyncfusionPdf.md'),
@@ -348,6 +350,62 @@ test('migration checklists retain previous names only in bounded historical reco
       if (path === 'checklists/Code-Migration-ActiveReportsRpx.md')
         line = line.replaceAll('rpxAutoSize', 'vendor metadata key');
       assert.doesNotMatch(line, /pxa/i, `${path}:${index + 1}`);
+    }
+  }
+});
+
+test('current source references use existing canonical paths across documentation areas', () => {
+  const cases = [
+    ['checklists/PVAD.Account.Portal-Implementation.md', /tests\/PVAD\.Api\.Tests\/[A-Za-z0-9]+\.cs/g],
+    ['checklists/PVAD.E-Invoicing.md', /tests\/PVAD\.Api\.Tests\/[A-Za-z0-9]+\.cs/g],
+    ['checklists/multi-languages.md', /src\/Generation\/PVAD\.Pdf\/[A-Za-z0-9./]+\.cs/g],
+    ['checklists/multi-languages.md', /tests\/PVAD\.Export\.Tests\/[A-Za-z0-9]+\.cs/g],
+    ['checklists/Word-Converter.md', /tests\/PVAD\.Export\.Tests\/[A-Za-z0-9]+\.cs/g],
+  ];
+  for (const [path, pattern] of cases) {
+    const source = read(path);
+    assert.doesNotMatch(source, /tests\/PXA\.(?:Api|Export)\.Tests\//, path);
+    const targets = [...source.matchAll(pattern)].map(match => match[0]);
+    assert.ok(targets.length > 0, path);
+    for (const target of targets) assert.ok(exists(target), `${path}: ${target}`);
+  }
+  const runbook = read('checklists/Word-Fidelity-Beta-Runbook.md');
+  assert.doesNotMatch(runbook, /pxa/i);
+  assert.ok(runbook.includes('dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj'));
+  assert.ok(runbook.includes('tests/PVAD.Export.Tests/Fidelity/artifacts/latest/'));
+  assert.ok(exists('tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj'));
+  assert.match(read('tests/PVAD.Export.Tests/WordPdfFidelityTests.cs'),
+    /Path\.Combine\(repoRoot, "tests", "PVAD.Export.Tests", "Fidelity", "artifacts", "latest"\)/);
+});
+
+test('current API checklist paths no longer prescribe the previous namespace', () => {
+  for (const name of ['Account.Portal-Implementation', 'Account', 'Admin-Documentation', 'Admin',
+    'Application-Versioning-And-Releases', 'Designer-Authentication', 'Designer-Element-Library-And-Favorites',
+    'Designer-Template-Persistence', 'E-Invoicing', 'Legal-Terms-Privacy-And-Consent',
+    'Logging-Monitoring-Alerting', 'Native-Designer-Formats', 'PDF-Parser-Hardening',
+    'PDF-Redaction-Preflight', 'PDF-Trust-Foundation']) {
+    const path = `checklists/PVAD.${name}.md`;
+    assert.doesNotMatch(read(path), /\/api\/pxa\/v1\//, path);
+    assert.match(read(path), /\/api\/pvad\/v1\//, path);
+  }
+});
+
+test('project-format integration and active tool paths use current identities', () => {
+  for (const name of ['Code-Designer-Roundtrip', 'Designer-Per-Page-Settings-And-Backend-Parity',
+    'Designer-Template-Persistence']) {
+    const path = `checklists/PVAD.${name}.md`;
+    assert.doesNotMatch(read(path), /\.pxap/);
+    assert.match(read(path), /\.pvadp/);
+  }
+  assert.match(read('checklists/PVAD.MCP-Server.md'), /`tools\/PVAD\.Mcp`/);
+  assert.doesNotMatch(read('checklists/PVAD.MCP-Server.md'), /tools\/PXA\.Mcp|mcp\.powerdoxautomation\.com/);
+  assert.match(read('checklists/PVAD.MCP-Server.md'), /proposed host; DNS, TLS/);
+  assert.ok(exists('pvad-designer/src/features/pdf-viewer/annotations.ts'));
+  assert.match(read('checklists/PdfTools-WebViewer-Feature-Gaps.md'), /`pvad-designer\/src\/features\/pdf-viewer\/annotations\.ts`/);
+  for (const path of ['checklists/Pdf-Encryption.md', 'checklists/Documentation-Audit.md']) {
+    for (const [, href] of read(path).matchAll(/\]\(([^\s)]+)\)/g)) {
+      if (/^[a-z]+:/i.test(href) || href.startsWith('#')) continue;
+      assert.ok(existsSync(resolve(root, dirname(path), href.split('#')[0])), `${path}: ${href}`);
     }
   }
 });

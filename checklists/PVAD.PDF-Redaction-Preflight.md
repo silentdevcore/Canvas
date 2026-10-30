@@ -71,7 +71,7 @@ silently passed over.
 
 ## API
 
-- [x] Expose `POST /api/pxa/v1/pdf/redactions/preflight` as an authenticated, entitled,
+- [x] Expose `POST /api/pvad/v1/pdf/redactions/preflight` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
 - [x] Require a dedicated redaction inspection permission.
 - [x] Bound request size, region count, and cancellation.

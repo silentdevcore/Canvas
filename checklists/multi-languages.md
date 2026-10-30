@@ -35,11 +35,11 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 2 — PDF Backend: Embedded Font Infrastructure
 
 - [x] **Create `PdfEmbeddedFont` class**
-  New file: `PXA/Pdf/PdfEmbeddedFont.cs`
+  New file: `src/Generation/PVAD.Pdf/PdfEmbeddedFont.cs`
   Full TTF binary parser for `cmap` format-4 and `hmtx` tables. Exposes `GetGlyphId`, `MeasureWidth`, `BaseFontName`, `IsRtlCapable`, `FontBytes`.
 
 - [x] **Create `PdfFontLoader` class**
-  New file: `PXA/Pdf/PdfFontLoader.cs`
+  New file: `src/Generation/PVAD.Pdf/PdfFontLoader.cs`
   Maps BCP-47 language tags to Noto font files with in-memory caching. `TryLoad` returns false gracefully when font file is absent.
 
   Language-to-font mapping:
@@ -55,17 +55,17 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   | `el`, `ru`, `uk`, `bg`, (default) | NotoSans-Regular.ttf | Greek / Cyrillic / Latin |
 
 - [x] **Extend `TextElement` record with embedded font fields**
-  File: `PXA/Pdf/Layout/TextElement.cs`
+  File: `src/Generation/PVAD.Pdf/Layout/TextElement.cs`
   Added `PdfEmbeddedFont? EmbeddedFont = null`, `string? Language = null`, `string? TextDirection = null`.
 
 - [x] **Extend `PdfDrawTextOptions` with `Language` and `TextDirection`**
-  File: `PXA/Pdf/PdfDrawTextOptions.cs`
+  File: `src/Generation/PVAD.Pdf/PdfDrawTextOptions.cs`
 
 - [x] **Extend `PdfParagraphOptions` with `Language` and `TextDirection`**
-  File: `PXA/Pdf/PdfParagraphOptions.cs`
+  File: `src/Generation/PVAD.Pdf/PdfParagraphOptions.cs`
 
 - [x] **Create `PdfTextEncoding` public utility class**
-  New file: `PXA/Pdf/PdfTextEncoding.cs`
+  New file: `src/Generation/PVAD.Pdf/PdfTextEncoding.cs`
   `EncodeAsHexUtf16Be(string)` → `<FEFF...>` UTF-16BE hex string with BOM.
   `ReverseForRtl(string)` → grapheme-cluster reversal via `StringInfo`.
   (Moved out of `PdfPageContentRenderer` which is `internal`, to enable test access.)
@@ -75,18 +75,18 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   Embedded font path uses `<FEFF...> Tj` hex encoding. RTL applies `ReverseForRtl()`. Width uses `EmbeddedFont.MeasureWidth()`. Type1 path unchanged.
 
 - [x] **Emit embedded font object chain in `PdfWriter`**
-  File: `PXA/Pdf/Serialization/PdfWriter.cs`
+  File: `src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs`
   5-object chain per font: FontStream (FlateDecode), FontDescriptor, ToUnicode CMap, CIDFont (with `/W` widths array), Type0 composite font.
 
 - [x] **Include embedded font resources in page `/Font` dictionary**
-  File: `PXA/Pdf/Serialization/PdfWriter.cs`
+  File: `src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs`
   Resource names `EF1`, `EF2` … appear alongside `F1`, `F2` …
 
 - [x] **Pass embedded font resource names to `PdfPageContentRenderer.RenderPage`**
   Added `IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames` parameter.
 
 - [x] **Update `PdfPage.DrawText` to resolve embedded font**
-  File: `PXA/Pdf/PdfPage.cs`
+  File: `src/Generation/PVAD.Pdf/PdfPage.cs`
   Calls `_fontLoader?.TryLoad(options.Language, out embeddedFont)` and threads result into `TextElement`.
 
 ---
@@ -128,7 +128,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 5 — Tests
 
 - [x] **Unit tests: `PdfFontLoader` graceful failure and RTL classification**
-  File: `tests/PXA.Export.Tests/MultiLanguagePdfTests.cs`
+  File: `tests/PVAD.Export.Tests/MultiLanguagePdfTests.cs`
 
 - [x] **Unit tests: UTF-16BE hex encoding**
   `EncodeAsHexUtf16Be("A")` → `<FEFF0041>`, BOM always present, Arabic chars encoded correctly.

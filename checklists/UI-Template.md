@@ -325,7 +325,7 @@ Implementation targets:
 Implementation targets:
 - [x] ui-designer/src/PropertiesPanel.tsx: overflow/pagination controls.
 - [x] ui-designer/src/ElementRenderer.tsx: preview overflow behavior.
-- [x] PXA/Pdf renderer pipeline: final pagination behavior parity with preview.
+- [x] PVAD.Pdf renderer pipeline: final pagination behavior parity with preview.
 
 ### 6) Image-Specific Dynamic Properties (High)
 - [x] Add imageFit mode (contain, cover, fill, none).

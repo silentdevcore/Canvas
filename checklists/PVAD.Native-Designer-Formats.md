@@ -146,7 +146,7 @@ package bytes, test results, or pending platform and artwork approvals.
 ## API, SDK, And Documentation
 
 - [x] Add authenticated inspect, validate, import, and export endpoints under
-  `/api/pxa/v1/designer/projects`.
+  `/api/pvad/v1/designer/projects`.
 - [x] Expose envelope metadata without extracting full assets when possible.
 - [x] Add OpenAPI contracts and SDK streaming helpers for PXAP and PXAS.
 - [x] Document format purpose, security model, version policy, package layout,

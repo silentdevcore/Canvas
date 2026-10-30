@@ -1,0 +1,9 @@
+{
+  "id": "pvad-markdown-current-paths",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "Correct internal documentation paths for accounts, administration, PDF workflows, native projects and verification tools.",
+  "breaking": false,
+  "reason": "Internal checklist and roadmap references only; runtime behavior, retained compatibility inputs, original test commands and immutable evidence are unchanged."
+}

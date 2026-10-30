@@ -18,7 +18,7 @@
 - [x] Intermediate output: `DesignExportDto` with editable `text`, `image`, and layout elements.
 - [x] Optional output: diagnostic/debug response for development and quality review.
 - [x] Preserve visual fidelity by optionally placing the original image as a locked background layer.
-- [x] Preserve editability by rendering recognized text as real PXA/PDF text objects.
+- [x] Preserve editability by rendering recognized text as real PDF text objects.
 
 ## Architecture
 
@@ -106,7 +106,7 @@
 
 ## Coordinate Mapping
 
-- [x] Convert OCR pixel coordinates into PXA/PDF points.
+- [x] Convert OCR pixel coordinates into PDF points.
 - [ ] Account for DPI, target page size, scaling, EXIF orientation, and deskew transforms.
   - [x] Account for DPI, target page size, and proportional scaling.
   - [x] Account for EXIF orientation in decoded image mapping.
@@ -265,7 +265,7 @@
   - [ ] Reuse stable preprocessing helpers where they are general-purpose.
   - [ ] Reuse stable shape/region detection only as optional layout enrichment.
   - [ ] Do not use the current custom glyph recognition as the OCR core.
-- [x] Review `PXA/Pdf/*` and `src/Infrastructure/PVAD.Infrastructure.Pdf/*`.
+- [x] Review `src/Generation/PVAD.Pdf/*` and `src/Infrastructure/PVAD.Infrastructure.Pdf/*`.
   - [x] Reuse existing text rendering.
   - [x] Reuse existing image rendering.
   - [x] Reuse existing PDF serialization.

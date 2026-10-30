@@ -34,9 +34,9 @@ independent validators remain authoritative.
 ## P0 - API and Product Integration
 
 - [x] Add authenticated create, attach, extract, inspect, and validate operations
-  under /api/pxa/v1/pdf/e-invoices.
+  under /api/pvad/v1/pdf/e-invoices.
 - [x] Add authenticated structural validation, attachment inspection, and
-  byte-preserving extraction operations under `/api/pxa/v1/pdf/e-invoices`.
+  byte-preserving extraction operations under `/api/pvad/v1/pdf/e-invoices`.
 - [x] Add authenticated typed XML generation and visible PDF/A-3 hybrid-invoice
   creation after XMP metadata and semantic PDF/XML consistency became available.
 - [x] Add attachment of invoice XML to an existing PDF without replacing its
@@ -148,8 +148,8 @@ by `pvad-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts`:
 
 ```
 for fixture in e-invoice e-invoice-multipage e-invoice-long-description e-invoice-multi-tax; do
-  PXA_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/$fixture.json \
-    PXA_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+  PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/$fixture.json \
+    PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
 done
 ```
 
@@ -356,7 +356,7 @@ this repository, so no set has ever been run through the gate in anger.
 ### EINV-03 - Existing-PDF Attachment Workflow - done
 
 - [x] Add an authenticated `attach` operation below
-  `/api/pxa/v1/pdf/e-invoices` that embeds validated XML into an existing PDF.
+  `/api/pvad/v1/pdf/e-invoices` that embeds validated XML into an existing PDF.
 - [x] Preserve all visible source pages and supported metadata; never silently
   replace, rasterize, or redesign the source invoice.
 - [x] Preflight PDF/A-3 conversion requirements, signatures, encryption,
@@ -392,7 +392,7 @@ Evidence.
   replacement, source and output size limits, unsafe filenames, invalid MIME
   types, empty payloads, encrypted sources, false PDF/A-3 claims, and signed
   incremental updates.
-- `tests/PXA.Api.Tests/PdfEInvoicesAttachControllerTests.cs` - 17 tests covering
+- `tests/PVAD.Api.Tests/PdfEInvoicesAttachControllerTests.cs` - 17 tests covering
   the `attach` and `attach/preflight` endpoints, approval gates, the semantic
   consistency gate, recognized-versus-unknown preservation, and the stable
   Problem Details codes.
@@ -421,12 +421,12 @@ caller cannot mistake structural recognition for conformance.
 
 Evidence.
 
-- `tests/PXA.Api.Tests/PdfEInvoicesApiContractTests.cs` - 28 tests: one policy
+- `tests/PVAD.Api.Tests/PdfEInvoicesApiContractTests.cs` - 28 tests: one policy
   per action, route-to-permission agreement, entitlement coverage, bounded
   request sizes, rate limiting, declared Problem Details responses, the
   role matrix across all five roles, and the generated OpenAPI content
   including one request example per maintained standard.
-- `tests/PXA.Api.Tests/PvadSecurityContractsTests.cs` and
+- `tests/PVAD.Api.Tests/PvadSecurityContractsTests.cs` and
   `PvadPdfTrustSecurityTests.cs` extended with the attach routes.
 
 ### EINV-05 - Designer Invoice Experience - done
@@ -580,7 +580,7 @@ Evidence.
   `EInvoicePageLayout` against the same contract file from C#, independently of the Designer, plus
   a case-by-case replay of all twelve pinned plans, the description-fragment bound and safe
   maximum-length token segmentation.
-- `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` - 31 tests for the refusals PVADE can prove
+- `tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs` - 31 tests for the refusals PVADE can prove
   without any official artifact: malformed XML, a DTD, an external entity, non-invoice XML, a
   syntax contradicting the declared standard, an unmaintained version, a profile the standard does
   not define, non-positive quantities, negative prices, out-of-range tax rates, duplicate line
@@ -589,13 +589,13 @@ Evidence.
   malformed currencies and minor units, a non-PDF upload, an empty upload, a missing upload, page
   text contradicting the embedded XML, a document with no extractable text never being called
   consistent, and no validation path reporting `valid` without an artifact set.
-- `tests/PXA.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` - 15 tests that the Designer, API,
+- `tests/PVAD.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` - 15 tests that the Designer, API,
   Viewer inspection, migration catalog, generator, importer recognition and published documentation
   agree on the maintained version per standard, the profiles offered, the syntax of each standard,
   the reserved filenames, the four-state conformance vocabulary, the canonical binding paths, the
   documentation anchors the migration catalog points at, and one set of figures for a two-rate
   invoice carried from generation through the finished PDF to a reopened inspection.
-- `tests/PXA.Api.Tests/PdfEInvoiceBoundaryTests.cs` - 24 tests on both sides of every internal
+- `tests/PVAD.Api.Tests/PdfEInvoiceBoundaryTests.cs` - 24 tests on both sides of every internal
   limit: a valid 4 096-character description with no whitespace at all (broken across lines, never
   shortened), astral-plane scalars that survive wrapping with no split surrogate and no replacement
   character, mixed-script text, one character above the limit refused, the maximum supported line
@@ -801,16 +801,16 @@ explicit approval.
 
 Evidence.
 
-- `tests/PXA.Api.Tests/PvadEInvoicePdfConsistencyInspectorTests.cs` - 7 tests
+- `tests/PVAD.Api.Tests/PvadEInvoicePdfConsistencyInspectorTests.cs` - 7 tests
   pinning both fixes, the scale actually reported for an amount, the single-rate
   layout staying as it was, a genuinely contradicting amount still being
   reported, and missing page text staying `notEvaluated`.
-- `tests/PXA.Api.Tests/PdfEInvoiceScannedDocumentTests.cs` - 3 tests through the
+- `tests/PVAD.Api.Tests/PdfEInvoiceScannedDocumentTests.cs` - 3 tests through the
   real `inspect` and `attach` paths with a graphics-only page: every finding
   `notCheckable`, none `confirmed`, the invoice still read and reported, the
   attachment proceeding while reporting `notEvaluated`, and a readable page that
   contradicts the invoice still being refused with `PXAEINVAPI021`.
-- `tests/PXA.Api.Tests/PdfEInvoiceCanonicalValueParityTests.cs` - all nine parity
+- `tests/PVAD.Api.Tests/PdfEInvoiceCanonicalValueParityTests.cs` - all nine parity
   cases now report `consistent` with no `notFound` finding.
 - The multilingual corpus fixture proves extraction is encoding-safe for
   umlauts, accents, right-to-left Arabic and CJK.
@@ -847,7 +847,7 @@ preserved XML as editable invoice data.
 
 Evidence.
 
-- `tests/PXA.Api.Tests/PdfEInvoicePreservedXmlTests.cs` - 17 tests: refusal
+- `tests/PVAD.Api.Tests/PdfEInvoicePreservedXmlTests.cs` - 17 tests: refusal
   without the flag, exact-byte roundtrip through `extract`, unrecognized and
   non-editable status from `inspect` and `attach/preflight`, absence of the
   invoice extension schema in the result, all four reserved filenames rejected,
@@ -884,14 +884,14 @@ stores a new verdict beside the old one rather than replacing it.
 
 Evidence.
 
-- `tests/PXA.Api.Tests/PdfEInvoiceValidationEvidenceTests.cs` - 25 tests:
+- `tests/PVAD.Api.Tests/PdfEInvoiceValidationEvidenceTests.cs` - 25 tests:
   complete stored evidence and its audit event, artifact-set identity retained,
   cross-tenant history and by-id reads blocked, cross-tenant revalidation
   chaining refused, tenant context required, checksum format enforced, expired
   records hidden then purged, a cited record kept, both verdicts retained across
   an artifact-set change, the four endpoints, fail-closed behaviour without an
   evidence store, and the route-to-permission mapping.
-- `tests/PXA.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs` - verified
+- `tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs` - verified
   against PostgreSQL 17 in a container: the migration applies, `UPDATE` and an
   unguarded `DELETE` are rejected with SQLSTATE 55000, the stored verdict is
   unchanged afterwards, and only the guarded retention delete removes the row.
@@ -922,7 +922,7 @@ submission, accounting, payment and legal retention are external integrations,
 and the guide says plainly that PVADE deliberately has no API for any of them.
 
 Downloadable machine-readable evidence is
-`GET /api/pxa/v1/pdf/e-invoices/validations/export`, which returns the tenant's
+`GET /api/pvad/v1/pdf/e-invoices/validations/export`, which returns the tenant's
 retained verdicts - each with its validator artifact-set identifier and hash - as
 one JSON document, plus the checked-in corpus manifest.
 
@@ -966,11 +966,11 @@ Evidence.
 - [ ] Supported XML passes the pinned official XSD and Schematron rules.
 - [x] Invalid XML, mismatched profiles, invalid totals, and unsafe payloads fail
   closed with stable diagnostics.
-  Evidence: `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` (31) and
-  `tests/PXA.Api.Tests/PdfEInvoiceBoundaryTests.cs`.
+  Evidence: `tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs` (31) and
+  `tests/PVAD.Api.Tests/PdfEInvoiceBoundaryTests.cs`.
 - [x] Viewer, API, Designer, Migration, tests, and Documentation agree on standard,
   version, profile, syntax, and conformance state.
-  Evidence: `tests/PXA.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` (15).
+  Evidence: `tests/PVAD.Api.Tests/PdfEInvoiceCrossSurfaceContractTests.cs` (15).
 
 ## Assumptions
 

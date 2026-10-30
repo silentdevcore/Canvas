@@ -74,7 +74,7 @@ Current identity implementation:
 
 ## Admin API
 
-- [x] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
+- [x] Add versioned Admin endpoints under `/api/pvad/v1/admin`.
 - [x] Add paginated user listing with server-side search, filter, and sorting.
 - [x] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [x] Add password-reset initiation and active-session revocation without returning secret tokens.
@@ -112,7 +112,7 @@ Current identity implementation:
 Current Admin shell implementation:
 
 - [x] Add a dedicated login route with session discovery and authenticated redirects.
-- [x] Connect login, logout, current-user, and CSRF flows to `/api/pxa/v1/auth`.
+- [x] Connect login, logout, current-user, and CSRF flows to `/api/pvad/v1/auth`.
 - [x] Keep the opt-in Development bootstrap idempotent by synchronizing an existing local administrator password with the configured bootstrap password.
 - [x] Reject authenticated users without System Administrator or Organization Administrator roles in the Admin shell.
 - [x] Add dashboard, users, organizations, roles, subscriptions, licenses, service accounts, mail, audit, and settings routes.

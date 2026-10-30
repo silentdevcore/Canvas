@@ -11,7 +11,7 @@ Run a controlled internal beta for `word_fidelity_v2`, collect mismatch artifact
 - `word_fidelity_v2` flag available via export options (`ExportOptions.WordFidelityV2`).
 - Baseline sample pack and regression/fidelity suites are green.
 - Artifact output path is available:
-  - `tests/PXA.Export.Tests/Fidelity/artifacts/latest/`
+  - `tests/PVAD.Export.Tests/Fidelity/artifacts/latest/`
 
 ## Beta Scope
 
@@ -32,9 +32,9 @@ Run a controlled internal beta for `word_fidelity_v2`, collect mismatch artifact
    - `WordFidelityV2=true`
    - `WordFidelityV2=false` (fallback baseline)
 4. Run fidelity harness:
-   - `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --filter "WordPdfFidelityTests"`
+   - `dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj --filter "WordPdfFidelityTests"`
 5. Collect artifacts from:
-   - `tests/PXA.Export.Tests/Fidelity/artifacts/latest/`
+   - `tests/PVAD.Export.Tests/Fidelity/artifacts/latest/`
 6. Collect user-reported mismatches:
    - template id
    - page number
