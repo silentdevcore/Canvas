@@ -1,3 +1,5 @@
+import { displayDiagnosticCode, displaySystemMessage } from './diagnosticPresentation.ts';
+
 export type PvadStatusKey =
   | 'badRequest' | 'unauthenticated' | 'sessionExpired' | 'forbidden'
   | 'entitlementDenied' | 'suspended' | 'trialExpired' | 'notFound'
@@ -273,11 +275,11 @@ export function renderStatusPage(statusKey: PvadStatusKey, options: PvadStatusPa
     subscription: options.subscriptionHref || '/subscription',
     support: options.supportHref || '/support',
   };
-  const diagnosticParts = [options.diagnosticCode, options.correlationId].filter(Boolean);
+  const diagnosticParts = [displayDiagnosticCode(options.diagnosticCode), options.correlationId].filter(Boolean);
   const allowedOrigins = (options.allowedOrigins || '').split(',').map(value => value.trim()).filter(Boolean);
   const statusLabel = definition.httpStatus ? String(definition.httpStatus) : 'PVADE';
-  const title = options.title || definition.title;
-  const message = options.message || definition.message;
+  const title = displaySystemMessage(options.title || definition.title);
+  const message = displaySystemMessage(options.message || definition.message);
 
   return `
     <main class="pvad-status-page" data-status-key="${escapeHtml(statusKey)}"${options.correlationId ? ` data-correlation-id="${escapeHtml(options.correlationId)}"` : ''} tabindex="-1">

@@ -96,9 +96,9 @@ test('active integration guides use current identities and current Designer conc
   const editor = JSON.parse(read('pvad-designer/src/locales/en/editor.json'));
   assert.ok(read('docs/charts.md').includes(`**${editor.toolGroups.tablesCharts}**`));
   assert.match(read('docs/code-designer-workspace.md'), /includes `pvad-element-id`/);
-  assert.match(read('docs/code-designer-workspace.md'), /accepts historical `pxa-element-id`/);
+  assert.match(read('docs/code-designer-workspace.md'), /accepts historical element-ID comments/);
   assert.match(read('docs/architecture/designer-assets.md'), /Saving a `\.pvadp` or `\.pvads`/);
-  assert.match(read('docs/architecture/designer-assets.md'), /old `\.pxap` and `\.pxas` formats remain readable/);
+  assert.match(read('docs/architecture/designer-assets.md'), /Earlier project formats remain readable/);
 });
 
 test('public DocFX includes linked native and architecture sources but no operator navigation', () => {
@@ -154,4 +154,44 @@ test('capacity examples show the current API-key prefix without changing old rea
   const examples = read('deploy/observability/CAPACITY-PROFILES.md');
   assert.ok(examples.includes("PVAD_CAPACITY_API_KEY='pvad_<synthetic-service-account-key>'"));
   assert.doesNotMatch(examples, /PVAD_CAPACITY_API_KEY='pxa_/);
+});
+
+test('rename upgrade guidance distinguishes fresh storage, retained bindings and completed source work', () => {
+  const guide = read('docs/pvad-rename-migration-notes.md');
+  const licenses = read('docs/pvad-license-and-job-compatibility.md');
+  assert.match(guide, /technical source rename is complete on `develop`/);
+  assert.match(guide, /fresh API Compose definition mounts `pvad-api-data`/);
+  assert.match(guide, /`PVAD_LEGACY_API_VOLUME`/);
+  assert.match(guide, /pvad_license_private_key/);
+  assert.doesNotMatch(guide, /deliberately retains `pxa-api-data`|retained-job encryption/);
+  assert.match(licenses, /diagnostics remain stable compatibility identifiers/);
+  assert.match(licenses, /Encryption at rest is a separate capability/);
+  assert.doesNotMatch(licenses, /pending the\s+separate diagnostic-family migration/);
+});
+
+test('pending release guide links use existing portable Markdown downloads', () => {
+  for (const file of readdirSync(resolve(root, 'product-metadata/release-fragments')).filter(file => file.endsWith('.json'))) {
+    const fragment = JSON.parse(read(`product-metadata/release-fragments/${file}`));
+    for (const href of fragment.documentation ?? []) {
+      if (!href.startsWith('/docs/guides/')) continue;
+      assert.ok(href.endsWith('.md'), `${file}: ${href}`);
+      assert.ok(exists(href.slice(1)), `${file}: ${href}`);
+    }
+  }
+});
+
+test('active product copy and guide downloads reserve the old brand for one About notice', () => {
+  const company = read('websites/PVAD.Company/src/main.js');
+  assert.equal((company.match(/PXA/g) ?? []).length, 1);
+  assert.match(company, /id="rename-history"/);
+  assert.doesNotMatch(read('websites/PVAD.Documentation/src/main.js'), /PXA|Power Dox Automation/);
+  for (const path of ['docs/charts.md', 'docs/code-designer-workspace.md',
+    'docs/native-designer-project-formats.md', 'docs/architecture/designer-assets.md',
+    'docs/guides/PVAD.EInvoicing.md']) {
+    assert.doesNotMatch(read(path), /pxa|powerdox/i, path);
+  }
+  for (const language of ['en', 'de', 'fr', 'es', 'it', 'ar']) {
+    const common = JSON.parse(read(`pvad-designer/src/locales/${language}/common.json`));
+    assert.ok(common.aboutPvaDe.includes('PVADE'), language);
+  }
 });

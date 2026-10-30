@@ -39,7 +39,7 @@ test('the technical guide documents all canonical project operations and boundar
     '/spreadsheet/export', '/spreadsheet/open', '/spreadsheet/validate', '/spreadsheet/inspect',
   ]) assert.match(guide, new RegExp(route.replaceAll('/', '\\/')));
   assert.match(guide, /25 MiB/);
-  assert.match(guide, /PXAPROJECT014/);
+  assert.match(guide, /PVADPROJECT014/);
   assert.match(guide, /passwords and password hashes are never saved/i);
 });
 

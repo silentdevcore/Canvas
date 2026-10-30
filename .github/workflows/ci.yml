@@ -431,6 +431,17 @@ jobs:
       - name: Test Designer development and production bundles
         timeout-minutes: 3
         run: node tools/dependencies/designer-tooling-smoke.mjs
+      - name: Verify visible product identity across applications
+        timeout-minutes: 3
+        run: node tools/configuration/visible-branding-browser.mjs
+      - name: Collect synthetic product identity screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pvad-visible-branding-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/rename/visible-branding
+          if-no-files-found: error
+          retention-days: 30
       - name: Test stable React component compatibility
         timeout-minutes: 3
         run: node tools/dependencies/designer-react-smoke.mjs

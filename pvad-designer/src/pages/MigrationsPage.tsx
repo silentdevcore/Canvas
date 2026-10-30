@@ -1,3 +1,4 @@
+import { displayDiagnosticCode } from '@/utils/presentation';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
@@ -1914,7 +1915,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                       <ul className="mgr-diag-list">
                         {diagnostics.map((diagnostic, index) => (
                           <li key={`${diagnostic.code}-${index}`} className={`mgr-diag-item mgr-diag-${diagnostic.severity.toLowerCase()}`}>
-                            <code className="mgr-diag-code">{diagnostic.code}</code>
+                            <code className="mgr-diag-code">{displayDiagnosticCode(diagnostic.code)}</code>
                             <span>{diagnostic.message}</span>
                           </li>
                         ))}

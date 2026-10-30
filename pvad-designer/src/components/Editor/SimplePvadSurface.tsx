@@ -1,3 +1,4 @@
+import { displayDiagnosticCode } from '@/utils/presentation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Template, SimpleElement, CellStyle, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
@@ -3912,7 +3913,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                           className={`editor-import-diagnostic is-${diagnostic.severity ?? 'warning'}`}
                           key={`${diagnostic.code ?? 'markdown'}-${index}`}
                         >
-                          <strong>{diagnostic.code ?? t('diagnostics.importIssue')}</strong>
+                          <strong>{diagnostic.code ? displayDiagnosticCode(diagnostic.code) : t('diagnostics.importIssue')}</strong>
                           <span>
                             {diagnostic.code
                               ? t(`diagnostics.markdownCodes.${diagnostic.code}`, {
@@ -4940,7 +4941,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                               }}
                               disabled={!issue.elementId && issue.pageIndex == null}
                             >
-                              <span>{issue.code}</span>
+                              <span>{displayDiagnosticCode(issue.code)}</span>
                               {t(`accessibility.diagnostics.${issue.code}`)}
                               {issue.elementName ? ` · ${issue.elementName}` : ''}
                             </button>

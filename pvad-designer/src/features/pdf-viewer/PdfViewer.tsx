@@ -1,3 +1,4 @@
+import { displayDiagnosticCode, displaySystemMessage } from '@/utils/presentation';
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
@@ -905,13 +906,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       ? `pdfViewer:${diagnostic.localizationKey}`
       : null;
     if (localizedKey && i18n.exists(localizedKey)) {
-      return i18n.t(localizedKey, diagnostic.localizationParameters ?? {});
+      return displaySystemMessage(i18n.t(localizedKey, diagnostic.localizationParameters ?? {}));
     }
     const severities = ['information', 'warning', 'error'] as const;
-    return t(`diagnosticSummary.${severities[diagnostic.severity] ?? 'warning'}`, {
+    return displaySystemMessage(t(`diagnosticSummary.${severities[diagnostic.severity] ?? 'warning'}`, {
       code: diagnostic.code,
       ...(diagnostic.localizationParameters ?? {}),
-    });
+    }));
   }, [i18n, t]);
 
   const navigateDiagnostic = useCallback((diagnostic: NavigablePdfDiagnostic) => {
@@ -942,7 +943,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const renderDiagnostic = useCallback((diagnostic: NavigablePdfDiagnostic) => (
     <>
-      <code title={diagnostic.code}>{diagnostic.canonicalCode ?? diagnostic.code}</code>
+      <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code>
       <span>{diagnosticText(diagnostic)}</span>
       <span className="pdfv-diagnostic-targets">
         {diagnostic.pageNumber != null && (
@@ -963,7 +964,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       </span>
       <details className="pdfv-diagnostic-technical">
         <summary>{labels.technicalDetails}</summary>
-        <span>{diagnostic.message}</span>
+        <span>{displaySystemMessage(diagnostic.message)}</span>
       </details>
     </>
   ), [diagnosticText, labels.affectedElement, labels.affectedObject, labels.pageNumber, labels.technicalDetails, navigateDiagnostic]);
@@ -2118,7 +2119,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             {trustError && (
               <div className="pdfv-trust-error" role="alert" data-failure={trustError.kind}>
                 <strong>{trustFailureLabel(trustError.kind)}</strong>
-                <span>{trustError.message}</span>
+                <span>{displaySystemMessage(trustError.message)}</span>
                 {trustError.kind !== 'cancelled' && (
                   <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()}>
                     {labels.trustRetry}
@@ -2312,7 +2313,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           <ul className="pdfv-trust-diagnostics">
                             {attachment.diagnostics.map((diagnostic, index) => (
                               <li key={`${attachment.fileName}-${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>
-                                <code title={diagnostic.code}>{diagnostic.canonicalCode ?? diagnostic.code}</code> {diagnostic.message}
+                                <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code> {displaySystemMessage(diagnostic.message)}
                               </li>
                             ))}
                           </ul>
@@ -2955,8 +2956,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                       <ul className="pdfv-redaction-findings">
                         {allFindings(effectiveRedactionPreflight).map((finding, index) => (
                           <li key={`${finding.code}-${index}`} data-code={finding.code}>
-                            <code title={finding.code}>{finding.canonicalCode ?? finding.code}</code>
-                            <span>{finding.message}</span>
+                            <code title={displayDiagnosticCode(finding.code)}>{displayDiagnosticCode(finding.canonicalCode ?? finding.code)}</code>
+                            <span>{displaySystemMessage(finding.message)}</span>
                             {finding.pageNumber != null && (
                               <button
                                 className="pdfv-button"

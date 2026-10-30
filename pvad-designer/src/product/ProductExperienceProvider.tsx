@@ -29,6 +29,7 @@ import {
 } from '@/services/designerProductApi';
 import { notify, PvadToaster } from '@/notifications/toast';
 import ProductExperiencePanel from './ProductExperiencePanel';
+import { presentRelease } from '../../../websites/shared/diagnosticPresentation';
 
 export type ProductPanel = 'releases' | 'notifications' | 'features';
 
@@ -91,7 +92,7 @@ const ProductExperienceProvider: React.FC<React.PropsWithChildren> = ({ children
     if (featureResult.status === 'fulfilled' && Array.isArray(featureResult.value))
       setFeatures(featureResult.value);
     if (releaseResult.status === 'fulfilled' && Array.isArray(releaseResult.value?.releases)) {
-      setReleases(releaseResult.value.releases);
+      setReleases(releaseResult.value.releases.map(presentRelease));
       setReadVersions(new Set(releaseResult.value.readVersions));
       setReleaseStateLoaded(true);
     }

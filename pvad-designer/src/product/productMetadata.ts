@@ -1,5 +1,6 @@
 import featureManifest from '../../../product-metadata/designer-features.json';
 import releaseManifest from '../../../product-metadata/pvad-releases.json';
+import { presentRelease } from '../../../websites/shared/diagnosticPresentation';
 
 export type FeatureMaturity = 'alpha' | 'beta' | 'stable';
 export type ReleaseChannel = 'alpha' | 'beta' | 'stable';
@@ -39,6 +40,8 @@ export interface DesignerReleaseDefinition {
 
 export const designerVersion =
   typeof __PVAD_VERSION__ === 'undefined' ? '1.0.0' : __PVAD_VERSION__;
+export const designerAboutUrl = typeof __PVAD_ABOUT_URL__ === 'undefined'
+  ? 'https://pvade.com/about.html#rename-history' : __PVAD_ABOUT_URL__;
 export const designerCommit =
   typeof __PVAD_BUILD_COMMIT__ === 'undefined' ? 'test' : __PVAD_BUILD_COMMIT__;
 export const designerBuildTime =
@@ -52,7 +55,7 @@ export const designerDocumentationUrl =
 export const designerFeatures =
   featureManifest.features as DesignerFeatureDefinition[];
 export const designerReleases =
-  releaseManifest.releases as DesignerReleaseDefinition[];
+  (releaseManifest.releases as DesignerReleaseDefinition[]).map(presentRelease);
 
 interface ParsedSemVer {
   core: [number, number, number];

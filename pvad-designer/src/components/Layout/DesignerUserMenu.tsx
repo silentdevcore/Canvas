@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FiCheck,
+  FiInfo,
   FiChevronDown,
   FiCreditCard,
   FiLogOut,
@@ -19,7 +21,7 @@ import {
 } from '@/auth/designerAuth';
 import { clearDesignerTenantState } from '@/auth/designerTenantState';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
-import { designerCommit, designerVersion } from '@/product/productMetadata';
+import { designerAboutUrl, designerCommit, designerVersion } from '@/product/productMetadata';
 
 interface DesignerUserMenuProps {
   mobile?: boolean;
@@ -34,6 +36,7 @@ const accountLinks = [
 ];
 
 const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onNavigate }) => {
+  const { t } = useTranslation('common');
   const { user } = useDesignerAuth();
   const { openPanel } = useProductExperience();
   const [open, setOpen] = useState(false);
@@ -136,6 +139,10 @@ const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onN
       )}
 
       <div className="designer-user-section">
+        <button type="button" onClick={() => location.assign(designerAboutUrl)}>
+          <FiInfo aria-hidden="true" />
+          {t('aboutPvaDe')}
+        </button>
         <button type="button" onClick={() => {
           setOpen(false);
           onNavigate?.();

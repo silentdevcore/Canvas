@@ -42,8 +42,8 @@ valid active license inside one serializable transaction, including the old
 `Replaced` status, new row, linked audit event and transactional mail outbox.
 No signed bytes on the old row are modified.
 There is no mass replacement during startup and no automatic license extension.
-Existing `PXA_LICENSE_*` diagnostics remain compatibility identifiers pending the
-separate diagnostic-family migration. This stage does not silently rename them.
+Existing `PXA_LICENSE_*` diagnostics remain stable compatibility identifiers.
+The technical rename does not require a diagnostic-family migration.
 
 ### Explicit Replacement
 
@@ -118,9 +118,10 @@ Job/storage metrics and activities use canonical `pvad.*` identities. Historical
 metric data is handled by the observability compatibility rules, not rewritten.
 
 Filesystem storage writes supplied bytes; this inventory is not an encryption-at-rest
-guarantee. Retained object encryption, representative backup/restore and a real
-cross-binary in-flight job cutover remain open acceptance gates. Never claim that
-normal processor tests alone prove a production rolling upgrade.
+guarantee. Encryption at rest is a separate capability, not an existing protected
+envelope to rename. Representative deployed backup/restore and actual operator
+cutover remain open acceptance gates; the synthetic paired-binary evidence below
+does not certify a production rolling upgrade.
 
 ### Restart, Leases And Cancellation
 

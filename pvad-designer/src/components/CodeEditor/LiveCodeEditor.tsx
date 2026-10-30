@@ -1,3 +1,4 @@
+import { displayDiagnosticCode, displaySystemMessage } from '@/utils/presentation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -416,7 +417,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     </section>}
     {diagnostics.length > 0 && <aside className="code-diagnostics" aria-label="Code diagnostics">
       {diagnostics.map((item, index) => <button key={`${item.code}-${index}`} className={`diagnostic-${item.severity}`} title={item.elementId ? `Element ${item.elementId}` : undefined}>
-        {item.code}{item.line ? `:${item.line}` : ''} {item.message}
+        {displayDiagnosticCode(item.code)}{item.line ? `:${item.line}` : ''} {displaySystemMessage(item.message)}
       </button>)}
     </aside>}
     <div className="live-code-editor-body" ref={containerRef}>

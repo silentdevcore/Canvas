@@ -7,6 +7,7 @@ import {
   type PvadStatusKey,
 } from '../../../websites/shared/statusPages';
 import { accountPageUrl } from '@/auth/designerAuth';
+import { displayDiagnosticCode, displaySystemMessage } from '../../../websites/shared/diagnosticPresentation';
 
 interface StatusPageProps {
   statusKey: PvadStatusKey;
@@ -39,7 +40,7 @@ const StatusPage: React.FC<StatusPageProps> = ({
   const { t, i18n } = useTranslation('status');
   const headingRef = useRef<HTMLHeadingElement>(null);
   const definition = getStatusDefinition(statusKey);
-  const diagnostic = [diagnosticCode, correlationId].filter(Boolean).join(' / ');
+  const diagnostic = [displayDiagnosticCode(diagnosticCode), correlationId].filter(Boolean).join(' / ');
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
@@ -95,7 +96,7 @@ const StatusPage: React.FC<StatusPageProps> = ({
       >
         <p className="pvad-status-page__code">{definition.httpStatus ?? 'PVADE'}</p>
         <h1 id="pvad-status-title" ref={headingRef} tabIndex={-1}>{renderedTitle}</h1>
-        <p className="pvad-status-page__message">{renderedMessage}</p>
+        <p className="pvad-status-page__message">{displaySystemMessage(renderedMessage)}</p>
         <div className="pvad-status-page__actions">
           <button className="pvad-status-primary" type="button" onClick={performPrimaryAction}>
             {t(`actions.${action}`, { defaultValue: actionLabels[action] })}

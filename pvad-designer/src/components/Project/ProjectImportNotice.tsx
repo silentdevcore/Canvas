@@ -1,3 +1,4 @@
+import { displayDiagnosticCode } from '@/utils/presentation';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiAlertTriangle, FiLoader, FiX } from 'react-icons/fi';
@@ -64,7 +65,7 @@ const ProjectImportNotice: React.FC<ProjectImportNoticeProps> = ({
             {state.compatibility.missingFeatures.map(feature => <li key={`feature-${feature}`}>{labels.missingFeature(feature)}</li>)}
             {state.compatibility.diagnostics.map(diagnostic => (
               <li key={`${diagnostic.code}-${diagnostic.source ?? ''}`}>
-                <code>{diagnostic.code}</code> {diagnostic.code === 'PVADPROJECT_LEGACY_FORMAT'
+                <code>{displayDiagnosticCode(diagnostic.code)}</code> {diagnostic.code === 'PVADPROJECT_LEGACY_FORMAT'
                   ? t('projectImport.legacyFormat', { defaultValue: diagnostic.message }) : diagnostic.message}{diagnostic.source ? ` (${diagnostic.source})` : ''}
               </li>
             ))}
@@ -79,7 +80,7 @@ const ProjectImportNotice: React.FC<ProjectImportNoticeProps> = ({
       {state.kind === 'error' && (
         <>
           <p>{state.message}</p>
-          {state.code && <code className="project-import-code">{state.code}</code>}
+          {state.code && <code className="project-import-code">{displayDiagnosticCode(state.code)}</code>}
           <p>{labels.preserved}</p>
         </>
       )}

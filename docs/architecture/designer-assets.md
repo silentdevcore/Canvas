@@ -48,7 +48,7 @@ places their validated bytes in deterministic `assets/` package entries, and rep
 the transient image data with package-local references. Tenant asset IDs, content URLs,
 and credentials are never portable project references.
 
-The old `.pxap` and `.pxas` formats remain readable as compatibility inputs; new
+Earlier project formats remain readable as compatibility inputs; new
 native exports use the canonical extensions above.
 
 Opening performs the reverse operation only after package checksums, MIME signatures,

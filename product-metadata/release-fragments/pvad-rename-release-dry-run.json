@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-release-dry-run",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Record the internal Major release rehearsal and clarify retained storage and compatibility guidance.",
+  "reason": "Internal release-readiness evidence and operator guidance only; no shipped application, product version, publication or deployment change.",
+  "breaking": false
+}

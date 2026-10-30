@@ -1,3 +1,4 @@
+import { displayDiagnosticCode } from '@/utils/presentation';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -156,7 +157,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
                 <ul>
                   {accessibilityIssues.slice(0, 8).map((issue, index) => (
                     <li key={`${issue.code}-${issue.elementId ?? 'document'}-${index}`}>
-                      <code>{issue.code}</code> {t(`accessibility.diagnostics.${issue.code}`)}
+                      <code>{displayDiagnosticCode(issue.code)}</code> {t(`accessibility.diagnostics.${issue.code}`)}
                       {issue.elementName ? ` · ${issue.elementName}` : ''}
                     </li>
                   ))}

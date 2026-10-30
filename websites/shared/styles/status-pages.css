@@ -19,8 +19,9 @@
 
 .pvad-status-page__mark {
   display: inline-grid;
-  width: 42px;
+  width: 64px;
   height: 42px;
+  flex-shrink: 0;
   place-items: center;
   color: #fff;
   background: var(--pvad-color-brand-700);

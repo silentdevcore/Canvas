@@ -45,6 +45,7 @@ import {
   type DesignerAccessAction,
 } from './designerAccessPresentation';
 import { bindStatusPage, renderStatusPage } from '../../shared/statusPages';
+import { displayDiagnosticCode } from '../../shared/diagnosticPresentation';
 
 initializeBrowserTelemetry({ application: 'account' });
 
@@ -648,7 +649,7 @@ async function runDesignerAuthorization(): Promise<void> {
       <p class="pvad-kicker">${escapeHtml(presentation.kicker)}</p>
       <h2>${escapeHtml(presentation.title)}</h2>
       <p>${escapeHtml(presentation.message)}</p>
-      ${apiError.code ? `<p class="account-diagnostic-code">Diagnostic code: <code>${escapeHtml(apiError.code)}</code></p>` : ''}
+      ${apiError.code ? `<p class="account-diagnostic-code">Diagnostic code: <code>${escapeHtml(displayDiagnosticCode(apiError.code))}</code></p>` : ''}
       <div class="account-access-actions">
         ${action(presentation.primaryAction, true)}
         ${presentation.secondaryAction ? action(presentation.secondaryAction, false) : ''}

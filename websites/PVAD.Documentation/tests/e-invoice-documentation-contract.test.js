@@ -51,7 +51,7 @@ test('documentation states the maintained versions and profiles', () => {
     assert.match(text, /3\.0\.2/);
     assert.match(text, /factur-x\.xml/);
     assert.match(text, /xrechnung\.xml/);
-    assert.match(text, /PXAEINV012/);
+    assert.match(text, /PVADEINV012/);
   }
   assert.match(guide, /EXTENDED-CTC-FR/);
   assert.match(guide, /UBL Invoice, UBL CreditNote, CII/);
@@ -82,9 +82,9 @@ test('documentation states the attachment approvals and the preservation rules',
     assert.match(text, /preserveUnrecognized/);
   }
   assert.match(guideProse, /original bytes become the prefix of the result/);
-  assert.match(guide, /PXAEINVAPI021/);
-  assert.match(guide, /PXAEINVAPI022/);
-  assert.match(guide, /PXAEINVAPI026/);
+  assert.match(guide, /PVADEINVAPI021/);
+  assert.match(guide, /PVADEINVAPI022/);
+  assert.match(guide, /PVADEINVAPI026/);
   assert.match(guideProse, /\/Unspecified` rather than `\/Alternative/);
   assert.match(guideProse, /re-extracted byte for byte/);
 });
@@ -116,8 +116,8 @@ test('the guide publishes a compatibility matrix and known limits', () => {
   assert.match(guideProse, /No official artifacts are shipped yet/);
   assert.match(guideProse, /Independent validation is not yet published/);
   assert.match(guideProse, /Encrypted sources cannot be attached to/);
-  assert.match(guide, /PXAEINVATTACH001/);
-  assert.match(guide, /PXAEINVATTACH016/);
+  assert.match(guide, /PVADEINVATTACH001/);
+  assert.match(guide, /PVADEINVATTACH016/);
 });
 
 test('the guide publishes C# and API examples', () => {
@@ -142,8 +142,8 @@ test('the guide documents permissions and the diagnostic ranges', () => {
     assert.ok(guide.includes(permission), `the guide must document ${permission}`);
   }
   assert.match(guideProse, /`generator` product entitlement/);
-  assert.match(guide, /PXAEINVATTACH0xx/);
-  assert.match(guide, /PXAEINVAPI0xx/);
+  assert.match(guide, /PVADEINVATTACH0xx/);
+  assert.match(guide, /PVADEINVAPI0xx/);
   assert.match(guide, /Identifiers are stable/);
 });
 

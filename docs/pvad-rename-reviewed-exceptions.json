@@ -1307,13 +1307,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "66a9f9b9b85f221da26de39fb8797e3ae89ea10ea2d49248757abee0d354c81e",
+      "sha256": "243612a81f848c799fc7dd2f11eb8c2df8affe0db261ecc697d70708eac241d2",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 scoped develop protection acceptance: retain dated infrastructure names, original checklist identity and GitHub evidence references. Record the owner-authorized seven-check activation and isolated rejection, without changing the 90/98 primary count or claiming independent production approval. Historical checkpoints remain explicit; main and production controls are unchanged.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical tracker names, the explicit naming-history notice and earlier acceptance evidence remain internal records. Visible presentation acceptance does not close external release/operational gates.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2127,26 +2127,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "docs/architecture/designer-assets.md",
-      "sha256": "835ac1061c27bf0ae6f60b9e7cb6c271de8e4975a88eea708f0559cb0f230c21",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/architecture/designer-assets.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/code-designer-workspace.md",
-      "sha256": "8218538283be2b1314c819bfd7ddd45b51aa2725bfa48e3b2870e285b2a77e72",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "docs/fixtures/native-projects/README.md",
       "sha256": "057584f61ff7788e14ed3f60ab4afaa7620cd6100e94b78e3cc9501a50195b81",
       "reasons": [
@@ -2168,12 +2148,12 @@
     },
     {
       "path": "docs/guides/PVAD.EInvoicing.md",
-      "sha256": "dc426b3b91bd6d3add15e66adbb79ab14da65e9b7fe1f16c125cb4a9a5530ad6",
+      "sha256": "746abf2c8056288e238637b532632558c0c20154362d907a4fdf1d2cd2d3e0cc",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/guides/PVAD.EInvoicing.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2185,16 +2165,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "docs/native-designer-project-formats.md",
-      "sha256": "bd8f398b7bf82e41d0d22adb5e3be9b639cb7d60d50366988e08707d86aad6ae",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 runtime-baseline follow-up: retain legacy envelope names, reader compatibility and stable diagnostics. Clarify that cross-runtime Deflate bytes are not part of the format contract; exact payloads, metadata, ordering and repeated-write determinism remain checked. No application behavior, rename gate, production or legal approval changes.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/pvad-brand-asset-inventory.md",
@@ -2300,12 +2270,12 @@
     },
     {
       "path": "docs/pvad-license-and-job-compatibility.md",
-      "sha256": "b936703a4794eeef34bd3e68a82f7962c9c29b9df30be3ee6ac26a97998239f5",
+      "sha256": "6fabfa2603bf508754d13835a17147c5beba2999d6beb832cecc02c053e36178",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-license-and-job-compatibility.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2350,12 +2320,12 @@
     },
     {
       "path": "docs/pvad-rename-migration-notes.md",
-      "sha256": "644f7ad408b4f28d809f1fca8c046c7f748a2fe972de2bcef05cedbbfc41ce3a",
+      "sha256": "fdcdc37bb26980b6110f6e6de24710e7ba031dc269cdf7d17e990b926eec5d9b",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
@@ -2961,12 +2931,12 @@
     },
     {
       "path": "pvad-designer/src/__tests__/eInvoiceWorkspace.test.tsx",
-      "sha256": "14ed5e88de3fc15f7d313377920562fac5ac8c401d8c3feb7eea8ff3182cc4f7",
+      "sha256": "4acab8314718ae73361380d950e71095295be6e270de442626682a5dd9ed6659",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/eInvoiceWorkspace.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3071,12 +3041,12 @@
     },
     {
       "path": "pvad-designer/src/__tests__/pdfViewerSmoke.test.tsx",
-      "sha256": "4f0ecc6db9fde27b864cdc90b7be49c54f0df63f4afb2d6075a50bd1066a5feb",
+      "sha256": "386acf2913f332209950f93ca0f951a5a9ece4fb166521eea09ba39b9ab324ab",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/pdfViewerSmoke.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3092,12 +3062,12 @@
     },
     {
       "path": "pvad-designer/src/__tests__/projectImportNotice.test.tsx",
-      "sha256": "f0409ebda9f7aefb73e4429a29bf63e65be0e6c8def24edbeb275eb6075addac",
+      "sha256": "d50d112496f0d9e951fbf96f29a8da6bc6bd1e42c7c8844997b40e8e3815129c",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/projectImportNotice.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3242,12 +3212,12 @@
     },
     {
       "path": "pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx",
-      "sha256": "f8e59c6a113c3a54d5322c90165c8b4030df1a486ffa005a75b9e747a7088cd7",
+      "sha256": "769ece80f02a8e3761bdd030e3a834d8aad33f6144a91c928987218aa74ea1f0",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3262,12 +3232,12 @@
     },
     {
       "path": "pvad-designer/src/components/Editor/ExportModal.tsx",
-      "sha256": "0a8ac088e5e8d310827edcfe0f2d2db569efcdc6c54ed63e0c9adddf9d3f0100",
+      "sha256": "fa925d49496c1ba36bbdfe2c04efef87c7f6d6ddade34c1a27a7e86ad185f1c2",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/components/Editor/ExportModal.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3293,12 +3263,12 @@
     },
     {
       "path": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx",
-      "sha256": "f8eae894d1bee4472adeb08389f07ebb565ce9e56cabac19b7b6694f2fb257e9",
+      "sha256": "730bb929080b84673424b447bab5f7e5d03ba1a62410d1fecc8f33898dce12fa",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3383,12 +3353,12 @@
     },
     {
       "path": "pvad-designer/src/features/e-invoice/EInvoicePage.tsx",
-      "sha256": "6d572128148f1968a925cc76056c0d4af003f1b36d47ce2a6c861082744c2a94",
+      "sha256": "fabe2088f4aaad991f35bddc223f648183835721731ca09446bba858fce536e4",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/features/e-invoice/EInvoicePage.tsx: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3463,12 +3433,12 @@
     },
     {
       "path": "pvad-designer/src/locales/ar/common.json",
-      "sha256": "97d5c1280349a6c8e6d0a067120af995d285583b99c1c49541aa191c18d73fe6",
+      "sha256": "efdda59979d68c24c2d3155214c4253755e7e36b2326af841557f6a2a6fc4dc8",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/ar/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3483,12 +3453,12 @@
     },
     {
       "path": "pvad-designer/src/locales/de/common.json",
-      "sha256": "0904a985b7846dc8d3f4ac3b94fdb2f2422d21b8f1d9f7ebb40f241f9f926b28",
+      "sha256": "204a4c60bad612488bf38c4b4b46d5332989605f66b50e810fac09241cd238a3",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/de/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3503,12 +3473,12 @@
     },
     {
       "path": "pvad-designer/src/locales/en/common.json",
-      "sha256": "94c0ad4a0d01e8a6d8c27f44a7a64dcd40fcbb22e48d50f36a73f91e1d0e031a",
+      "sha256": "67abff57f67bea87252e5bc9f5154042e2bd70f53f12b62a20dc089f2f1744e1",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/en/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3533,12 +3503,12 @@
     },
     {
       "path": "pvad-designer/src/locales/es/common.json",
-      "sha256": "db787609f236b54fc8706d00b1f91717969bef8ba52d86bfcc1c190a57d0cebd",
+      "sha256": "7af8440a03deec0b63f6f84f5f6ee7e721672fb2c64dee1f02c353d9492ef7e8",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/es/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3553,12 +3523,12 @@
     },
     {
       "path": "pvad-designer/src/locales/fr/common.json",
-      "sha256": "7e26654b24dee37f246cd8590035039372caf92ec0a3eed6db6cb7333eb294a4",
+      "sha256": "6f3e85cf8b7d8ee8da78fc6d720dae23680c16eabc2c3bae792af749241e5c30",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/fr/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3573,12 +3543,12 @@
     },
     {
       "path": "pvad-designer/src/locales/it/common.json",
-      "sha256": "d3c17babe1323f9436cef9718b38e7e5ef7f2ea527f04e2c034bd619eeac3bb1",
+      "sha256": "3fbd460b7be70a2dcb9b866eac796a30835c481b4a145530be1a9bf28fd3350f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/locales/it/common.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3613,12 +3583,12 @@
     },
     {
       "path": "pvad-designer/src/pages/MigrationsPage.tsx",
-      "sha256": "b934e431d26077ed440db2425762801b6cd9c8e5eaf8af7e9bb699f9ba74de84",
+      "sha256": "30875423665d16c07009fa132c6c0a0ac7b05822bc0f2d1eee35277b34539d91",
       "reasons": [
         "drawing-api"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Retain third-party PdfCanvas and page.Canvas drawing examples, not first-party branding. Current code artifacts are selected by complete known identity and domain, with legacy tuple inputs preserved.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
@@ -3653,12 +3623,12 @@
     },
     {
       "path": "pvad-designer/src/product/ProductExperienceProvider.tsx",
-      "sha256": "7d122d36b26db38723e021d6d9248b137d70a108b3193c1d88fad9a5e3550fe6",
+      "sha256": "e0af95d15735dabf2a22ce3644346672d6df839be98340545dbd5a85401d4abf",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/product/ProductExperienceProvider.tsx: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7326,12 +7296,12 @@
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "ead430a1df7891979355336148476435d5ad6c4eda4c33d0be3d99f53067bc74",
+      "sha256": "09ae005d7a0523ec299ffc4d0f903db80dc23da2f362d467e6b5d287429581d2",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 CI portability review: enumerate the same Markdown checklists with native Node filesystem APIs; deliberate legacy-name assertions and coverage are unchanged.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -8381,12 +8351,12 @@
     },
     {
       "path": "websites/PVAD.Account/src/main.ts",
-      "sha256": "9608b2b71007b6fa677c6f0397b25b716f8ad68d1f39ff4cfa29f1c35045e413",
+      "sha256": "faddb9e9c4951e2052c4a703990e00732a6e94ed39dfeddfa838c25f459e4585",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Account/src/main.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8521,12 +8491,12 @@
     },
     {
       "path": "websites/PVAD.Company/src/main.js",
-      "sha256": "cacfee1bd7772c43ec11480d0589b4b0964c2d8fa697ee67f470b917755794e2",
+      "sha256": "b662a2c0c32992154dbf704bc8560cedd877ad0c7699f89c3d77cc73dc2dd6a7",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Company/src/main.js: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: The only old-brand occurrence is the owner-requested About naming-history notice. Other current product copy uses canonical identities.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9151,12 +9121,12 @@
     },
     {
       "path": "websites/PVAD.Documentation/src/main.js",
-      "sha256": "cb8bd918a3512b9316419d639a4b4a7e357811eaeccbca1a36a410eeca476215",
+      "sha256": "d82c03f9ae7e7b2c25d00c7919006f9bf1bfec258ed728974ecff880fb91f03e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
@@ -9170,23 +9140,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "websites/PVAD.Documentation/tests/e-invoice-documentation-contract.test.js",
-      "sha256": "6932869f14190083909a96aa429da31eb0a659dcab9e922b24a0d19ae01c74da",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Documentation/tests/e-invoice-documentation-contract.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "websites/PVAD.Documentation/tests/native-project-formats-documentation-contract.test.js",
-      "sha256": "eab9b9227a14bb098909a95c64a997496002773d6418abdc06f09b163606d14d",
+      "sha256": "90c090f0299e05305fa706f85c8f714b5e03c0a1c3d5cebb3d0c538782fd41d7",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Documentation/tests/native-project-formats-documentation-contract.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9271,12 +9231,12 @@
     },
     {
       "path": "websites/shared/statusPages.ts",
-      "sha256": "a06cdad2710370e05dee870382369a8e3b93802dceb5a721099be8067fc3f387",
+      "sha256": "7c7b6dc382a0ff8c76a70327788dd1cfd6c0736954b8ab729032a58912925052",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "websites/shared/statusPages.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -9607,6 +9567,57 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-29 integration review: Residual canvas terms identify neutral drawing surfaces or real browser canvas APIs. Imports use canonical technical paths; browser fixtures retain current auth/permission contracts.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "docs/pvad-rename-release-dry-run.md",
+      "sha256": "0f75c6d18c0cf79554365cb259539278f3ce64012df57c664fc840be5416346e",
+      "reasons": [
+        "compatibility-contract",
+        "historical-document"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten.",
+      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+    },
+    {
+      "path": "websites/shared/diagnosticPresentation.ts",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "boundaryGuide": "checklists/PVAD.Visible-Branding.md",
+      "sha256": "1d88ce89ef9ccd010d3b9b375c604f200ebdd7d9fb6ce9c14dd5f793439d4165",
+      "reviewNotes": "2026-10-30 visible-identity review: Old prefixes are read-only presentation inputs. Raw API identifiers and unrelated customer strings are retained; no authorization or persistence uses display aliases."
+    },
+    {
+      "path": "pvad-designer/src/__tests__/visibleBranding.test.tsx",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "boundaryGuide": "checklists/PVAD.Visible-Branding.md",
+      "sha256": "8179892e88249b35311f4d08777bb06c97356e5249995872407a2ff5ab4873f7",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values."
+    },
+    {
+      "path": "tools/configuration/visible-branding-browser.mjs",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "boundaryGuide": "checklists/PVAD.Visible-Branding.md",
+      "sha256": "35717bcd232b2268c1307f0d1826c435e018c88755f8a621e680851628ff4ced",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values."
+    },
+    {
+      "path": "checklists/PVAD.Visible-Branding.md",
+      "reasons": [
+        "historical-checklist"
+      ],
+      "reviewStatus": "reviewed",
+      "boundaryGuide": "checklists/PVAD.Visible-Branding.md",
+      "sha256": "106bbd365afe723841833823017c36e886abc0cd91f1c53b3086778d554911b3",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical tracker names, the explicit naming-history notice and earlier acceptance evidence remain internal records. Visible presentation acceptance does not close external release/operational gates."
     }
   ],
   "reviewStatus": "reviewed"

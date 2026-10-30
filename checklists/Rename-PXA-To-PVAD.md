@@ -4,6 +4,20 @@
 
 ## Status And Naming Authority
 
+The stricter visible-identity follow-up is recorded in
+[Visible Product Identity](PVAD.Visible-Branding.md): current application displays
+and public guide copy use canonical names, with one central About history notice.
+Raw compatibility contracts and original evidence remain unchanged. This is a
+separate presentation acceptance, not closure of any release/operational gate.
+
+**Technical phase closed:** PR 213 merged to `develop` as `d43abbf4` after all
+seven required checks passed. The internal Major release rehearsal proposes
+1.1.0 to 2.0.0 and passes in an isolated metadata copy; it does not prepare or
+publish a real release. See [the dry-run report](../docs/pvad-rename-release-dry-run.md)
+for version coverage, corrected upgrade guidance, evidence and the eight
+remaining release/operational gates. No primary checkbox is closed by this
+supporting rehearsal. Further cosmetic rename batches are not required.
+
 **Current status, 2026-10-30: source rename merged; release/cutover not complete. The counted acceptance plan is
 90/98 complete (91.8%), with 8/98 open (8.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate

@@ -1,9 +1,9 @@
+import { displayDiagnosticCode, displaySystemMessage } from '@/utils/presentation';
 /**
  * Findings, each linked to the field it is about.
  *
- * Two things are deliberate. The diagnostic code stays visible even though it means nothing to
- * most users: it is what makes a support conversation possible, and it is the same identifier the
- * backend reports. And every local finding carries a focusable target, so "line 3 needs a
+ * Display aliases stay visible for support; raw backend identifiers remain unchanged in the data.
+ * Every local finding carries a focusable target, so "line 3 needs a
  * description" is one click away from the input that needs it rather than a hunt.
  */
 
@@ -66,7 +66,7 @@ const InvoiceDiagnosticsPanel: React.FC<InvoiceDiagnosticsPanelProps> = ({
                       : t('diagnostics.severityWarning')}
                   </span>
                   <code className="einv-diagnostic-code" title={t('diagnostics.code')}>
-                    {finding.code}
+                    {displayDiagnosticCode(finding.code)}
                   </code>
                   <button
                     type="button"
@@ -93,9 +93,9 @@ const InvoiceDiagnosticsPanel: React.FC<InvoiceDiagnosticsPanelProps> = ({
                 data-code={diagnostic.code}
               >
                 <span className="einv-diagnostic-body">
-                  <span className="einv-diagnostic-message">{diagnostic.message}</span>
+                  <span className="einv-diagnostic-message">{displaySystemMessage(diagnostic.message)}</span>
                   <span className="einv-diagnostic-meta">
-                    <code className="einv-diagnostic-code" title={diagnostic.code}>{diagnostic.canonicalCode ?? diagnostic.code}</code>
+                    <code className="einv-diagnostic-code" title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code>
                   </span>
                 </span>
               </li>

@@ -1,3 +1,4 @@
+import { displayDiagnosticCode } from '@/utils/presentation';
 /**
  * The Electronic Invoice workspace.
  *
@@ -514,7 +515,7 @@ const EInvoicePage: React.FC = () => {
                 {t(actions.error.key)}
                 {actions.error.code && (
                   <code className="einv-diagnostic-code">
-                    {`${t('errors.serverCode')}: ${actions.error.code}`}
+                    {`${t('errors.serverCode')}: ${displayDiagnosticCode(actions.error.code)}`}
                   </code>
                 )}
               </p>

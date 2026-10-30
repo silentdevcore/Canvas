@@ -1,6 +1,10 @@
 # PVAD Technical Rename Migration Notes
 
-Implementation in progress. This is not a released upgrade announcement.
+The technical source rename is complete on `develop`. This is an upgrade guide,
+not a released upgrade announcement or production cutover approval. The current
+product version remains 1.1.0; the next Major release must be prepared and reviewed
+through the normal release workflow. See the
+[internal release dry run](pvad-rename-release-dry-run.md) for its exact scope.
 
 PVAD is the technical identity. PVADE is the public platform and Designer brand.
 PVADP and PVADS identify the PDF and Spreadsheet products respectively.
@@ -42,11 +46,15 @@ old files automatically. Keep stored object keys, annotation document IDs and
 customer filenames/content unchanged. Do not run missing-object reconciliation
 against an accidentally empty replacement mount.
 
-The API Compose definition deliberately retains `pxa-api-data` at `/app/data`,
-and its configured objects, annotation store, keyring and PDF Trust cache all
-resolve inside that mount. Preserve the explicit installed Compose project name
-as well: a different project can select a different physical volume despite an
-unchanged volume key. Existing licensing secret names are also retained.
+The fresh API Compose definition mounts `pvad-api-data` at `/app/data`; its
+configured objects, annotation store, keyring and PDF Trust cache resolve inside
+that mount. Existing installations must apply the API legacy overlay and set
+`PVAD_LEGACY_API_VOLUME` to the verified existing physical volume ID. The logical
+name alone does not select the previous storage. Preserve the explicit installed
+Compose project name as well. Canonical licensing secret mounts use
+`pvad_license_private_key` and `pvad_license_public_key`; their configured source
+files and signing-key bytes must remain unchanged. See the
+[fresh/legacy binding table](pvad-infrastructure-mapping.md#explicit-legacy-overlays).
 
 Code execution uses the packaged `code-worker` directory with
 `PVAD.CodeWorker.dll`; OCR uses `PVAD.FileImporter.ImageOcr.Worker.dll` inside
@@ -57,7 +65,7 @@ the rename does not enable it.
 
 ## .NET Projects And Namespaces
 
-All 115 first-party project files now use the PVAD prefix. Update project paths,
+First-party project files now use the PVAD prefix. Update project paths,
 assembly references and C# namespace imports, for example:
 
 ```csharp
@@ -82,9 +90,11 @@ Projects, namespaces and owned symbols now use PVAD/Pvad. The Designer is in
 headers use PVADE. A central brand definition supplies the confirmed identities.
 
 Session names and five claim families now use PVAD with compatibility readers;
-mail/cache protection contexts retain legacy readers. Remaining diagnostics,
-retained-job encryption and production cutover still require dedicated work.
-Their old names are not evidence that the complete rename is delivered.
+mail/cache protection contexts retain legacy readers. Stable diagnostic IDs and
+cryptographic compatibility purposes are intentional exceptions, not unfinished
+cosmetic renames. Job payloads and filesystem objects have no rename-specific
+Data Protection envelope; this is not an encryption-at-rest guarantee. Actual
+keyring, storage recovery and production cutover require operator verification.
 Native writers now use PVADP/PVADS and `minimumPvadVersion`;
 legacy envelopes and `minimumPxaVersion` remain readable. Conflicting version
 aliases are rejected. See [native project compatibility](native-designer-project-formats.md).
