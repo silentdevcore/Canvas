@@ -6,6 +6,11 @@ are editorially normalized; original commands and wording remain in Git at
 
 ## Status And Naming Authority
 
+The [JSON naming cleanup](PVAD.JSON-Naming-Cleanup.md) tracks the follow-up to
+the completed Markdown cleanup. Editable JSON names are normalized; precise
+compatibility keys and immutable evidence remain separately audited. This does
+not close external deployment, Legal or release gates or alter historical totals.
+
 The stricter visible-identity follow-up is recorded in
 [Visible Product Identity](PVAD.Visible-Branding.md): current application displays
 and public guide copy use canonical names, with one central About history notice.

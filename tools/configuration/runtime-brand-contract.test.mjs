@@ -235,7 +235,6 @@ test('WebApi standalone old identity occurs only in explicit compatibility contr
     'Security/PvadMcpDelegationAuthenticationHandler.cs': ['PXA-MCP '],
     'Infrastructure/PvadResponseHeaders.cs': ['X-PXA-{suffix}', 'PXA-{suffix}'],
     'Infrastructure/PvadSecurityHeaderMiddleware.cs': ['X-PXA-{name}'],
-    'Infrastructure/OpenApi/PvadDesignerProjectsOpenApiTransformer.cs': ['legacy PXA extension'],
     'Controllers/SystemController.cs': ['LegacyProductName: "PXA"', 'LegacyNamespacePrefix: "PXA"'],
     'Services/Mail/SmtpMailTransport.cs': ['X-PXA-Outbox-Id'],
   };
@@ -260,7 +259,7 @@ test('unpublished release summaries use the current brand', () => {
     if (fragment.id === 'release-1.1.0-verification') {
       assert.equal(fragment.impact, 'none');
       assert.equal(fragment.summary,
-        'Release records now document the verified PXA 1.1.0 publication and its protected branch workflow.');
+        'Release records now document the verified 1.1.0 publication and its protected branch workflow.');
       continue;
     }
     assert.doesNotMatch(fragment.summary, /\bPXA\b/, name);

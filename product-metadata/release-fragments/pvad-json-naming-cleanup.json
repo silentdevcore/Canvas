@@ -1,0 +1,8 @@
+{
+  "id": "pvad-json-naming-cleanup",
+  "impact": "patch",
+  "components": ["designer", "admin", "api", "documentation", "infrastructure"],
+  "category": "fixed",
+  "summary": "Updated application guidance, editable examples and document-fidelity metadata to use consistent product naming while preserving compatibility with earlier documents and integrations.",
+  "breaking": false
+}

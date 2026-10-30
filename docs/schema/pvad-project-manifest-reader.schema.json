@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pvade.com/schemas/pvad-project-manifest-reader.schema.json",
   "title": "PVAD Native Project Manifest Reader",
-  "description": "Structural validation for current PVADP/PVADS and retained PXAP/PXAS manifests. Does not validate ZIP entries, checksums, feature support or runtime version compatibility.",
+  "description": "Structural validation for current PVADP/PVADS and retained previous-generation manifests. Does not validate ZIP entries, checksums, feature support or runtime version compatibility.",
   "oneOf": [
     { "$ref": "https://pvade.com/schemas/pvad-project-manifest.schema.json" },
     {

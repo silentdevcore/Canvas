@@ -23,6 +23,8 @@ jobs:
         run: npm ci --prefix pvad-designer --ignore-scripts
       - name: Reject legacy names in every tracked Markdown file
         run: node tools/configuration/markdown-path-audit.mjs --all --check
+      - name: Validate exact JSON naming and compatibility boundaries
+        run: node tools/configuration/json-naming-audit.mjs --check
       - name: Validate reviewed rename exceptions
         run: node tools/configuration/rename-residual-review.mjs
 

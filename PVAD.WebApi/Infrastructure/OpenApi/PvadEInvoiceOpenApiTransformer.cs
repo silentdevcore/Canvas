@@ -26,7 +26,7 @@ public sealed class PvadEInvoiceOpenApiTransformer : IOpenApiDocumentTransformer
         | State | Field | Meaning |
         | --- | --- | --- |
         | Structural recognition | `isStructurallyValid` | The XML parsed under a bounded, DTD-free reader and was recognised as CII or UBL with a declared guideline identifier. It is **not** a conformance claim. |
-        | PVAD business validation | `diagnostics` with `PXAEINV...` codes | PVAD's own checks, for example profile/standard agreement and arithmetic totals. |
+        | PVAD business validation | `diagnostics` with stable invoice-validation codes | PVAD's own checks, for example profile/standard agreement and arithmetic totals. Wire identifiers are unchanged. |
         | Official conformance | `isConformanceValidated`, `conformanceStatus` | `validated`, `invalid` or `notEvaluated`, produced only by a pinned official XSD/Schematron artifact set that is identified by `validatorArtifactSetId` and `validatorArtifactSetSha256`. `notEvaluated` means no artifact set was configured for that standard, version, profile and syntax. |
 
         An invoice is never reported as conformant on the strength of structural validation alone.

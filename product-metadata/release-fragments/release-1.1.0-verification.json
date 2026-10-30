@@ -7,7 +7,7 @@
     "infrastructure"
   ],
   "category": "improved",
-  "summary": "Release records now document the verified PXA 1.1.0 publication and its protected branch workflow.",
+  "summary": "Release records now document the verified 1.1.0 publication and its protected branch workflow.",
   "breaking": false,
   "reason": "This change records completed release-process validation and does not change shipped product behavior."
 }

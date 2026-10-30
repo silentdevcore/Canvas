@@ -467,13 +467,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "a684bd0380dfbe86994729f4f2d9128f7f43ea3323521ced0def2c95640587dd",
+      "sha256": "dd6c211a1c082f72e94bb06f06d603abaec1a7f0de1ce2656ef903aeb0e40e37",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -637,46 +637,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/word-fidelity-samples/invoice-two-page.json",
-      "sha256": "a28d47c9910d7b97241b3f738c80a55bfa870c8e78237ec7a6637e6391c7379a",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "checklists/word-fidelity-samples/invoice-two-page.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/word-fidelity-samples/multipage-shared-elements.json",
-      "sha256": "0e695d805d57a9e584012d9a6de503e9155e8def25afae8cde525f8af58d1ce1",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "checklists/word-fidelity-samples/multipage-shared-elements.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/word-fidelity-samples/richtext-link-list.json",
-      "sha256": "a6429134aa3b9d544552ebcac0fb62357d23df3c03fc2dc8052e96e301047dd4",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "checklists/word-fidelity-samples/richtext-link-list.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/word-fidelity-samples/text-table-basic.json",
-      "sha256": "27d6490a4504ca52b0532ffd11361a33c5ac76d753eec6fb7f6dfa02ac74b4c4",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "checklists/word-fidelity-samples/text-table-basic.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "deploy/observability/alertmanager-email-smoke-test.sh",
       "sha256": "05f6a1d9603689f113d63ff5f368cceada429d0dee63d9ce804b393d57f5ed52",
       "reasons": [
@@ -785,16 +745,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Rename-only Compose context review: canonical service keys, internal targets and operational selectors; retained DNS aliases, physical storage/network/secret bindings, monitoring identities and historical or test contracts remain intentional. Builds, tests, Docker execution and rollout are deferred; this is not runtime or cutover approval. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
       "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
-      "path": "deploy/observability/performance-request.json",
-      "sha256": "63ddd79ba03de1930d5c08bffef49b8e36b2af98656b55346b304b5cbd1f2d7d",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "deploy/observability/performance-request.json: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "deploy/observability/prometheus/rules/pvad-alerts.yml",
@@ -1180,22 +1130,22 @@
     },
     {
       "path": "docs/schema/openapi.json",
-      "sha256": "0427aaf59601e12c710955dc480344e209537c86a094d7dbf581960dd9547107",
+      "sha256": "788df2cfe8b3b5c28375b76efb2a07ef146f557d718c60b050e184d1d4d05a76",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/schema/openapi.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Existing schema IDs are offline-resolvable contract identities, not a claim that their host is provisioned.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/schema/pvad-project-manifest-reader.schema.json",
-      "sha256": "ce542d19219b256b08051f445a530b85e736827be16c9c7ead9e6cb329391b69",
+      "sha256": "58ce5109b5fef131790160e581e6de5f7bdf4785f769c74b277c04ba5c34c76a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical reader/current-writer reference uses selected domain; explicit legacy manifest reference and original magic/media tuples remain to validate the old generation.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1250,32 +1200,32 @@
     },
     {
       "path": "product-metadata/browser-storage.json",
-      "sha256": "3a29e0c3da1677d76fe2d11aa6928baabc4b5c433a56d6e05155e482d35f7430",
+      "sha256": "227f1551f538d83c6839f4e9111a05a54792c0b40da20991494701d44f80bd0e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/browser-storage.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "product-metadata/document-fidelity/manifest.json",
-      "sha256": "183f3c228b3aeb0e182f035e382910b3449f2c0073aa120675a891d2e9901790",
+      "sha256": "c2c74fef8f2dd31498a32d890384f0bfd645cb4612c92714dbda5a1026264b55",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/document-fidelity/manifest.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "product-metadata/document-fidelity/manifest.schema.json",
-      "sha256": "dca34ee48f524dcd6cb30c71f5b1e04bf1d4987304d1a78d975e78eca05bb092",
+      "sha256": "afe717410d45c1e089768edb5e94b291b7217d94d4bca315273d90db744550bc",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Canonical root identity migrated; constraints are unchanged and actual metadata/evidence records are not rewritten.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1316,16 +1266,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "product-metadata/release-fragments/designer-pdf-visual-parity.json: Matches describe neutral browser/Skia/vendor drawing APIs, editor canvas terminology or dependency identities, not the first-party product.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/release-fragments/release-1.1.0-verification.json",
-      "sha256": "9010822cee264d6c979aaf4f16b0694ce3528cd93dbd3d6a6737d64fdf2c253c",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/release-fragments/release-1.1.0-verification.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1591,12 +1531,12 @@
     },
     {
       "path": "pvad-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts",
-      "sha256": "7ede8690ba8ab77a21d533dc759a447a19a931e59f3514566dc24918c2eacd98",
+      "sha256": "40dbadaf6924fe4fcc0572b0be3e1f5ecbba80cd7c35648a5825be6be160dc9f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "pvad-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2393,12 +2333,12 @@
     },
     {
       "path": "PVAD.WebApi/AdminDocumentation/admin-documentation.json",
-      "sha256": "4c2807f9670c8160b91720380e557556f519834e888eb97e198da4a1f552f4cf",
+      "sha256": "639a338e75527df6edeef5afea7eb2d673fef81bce984d5d9e3e11c9b5eaa5e6",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Correct Admin diagnostic meanings to match unchanged server constants and document route-aware problem type aliases; stable diagnostics, dashboard references and protected access remain.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2629,26 +2569,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "PVAD.WebApi/Infrastructure/DesignJsonMapper.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Infrastructure/OpenApi/PvadDesignerProjectsOpenApiTransformer.cs",
-      "sha256": "d16c91a64c1270e8fb271232251782edabb75d748806a13151ffcd52f4c92a5c",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/OpenApi/PvadDesignerProjectsOpenApiTransformer.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PVAD.WebApi/Infrastructure/OpenApi/PvadEInvoiceOpenApiTransformer.cs",
-      "sha256": "89d4c02ad406afc1e2eaf677eb81d307878d85466ddc932217ba77e9c058e6b2",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/OpenApi/PvadEInvoiceOpenApiTransformer.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3862,16 +3782,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "test-assets/document-fidelity/spreadsheet-roundtrip.json",
-      "sha256": "8d27bb086c5e35ef5ff1501e3ff00b3a8dbf7a0495fcc7c9e93f9e51ae16039a",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/document-fidelity/spreadsheet-roundtrip.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "test-assets/e-invoicing/baselines/dotnet-10.0.5-pdfa-fixtures.json",
       "sha256": "18ac85666ed6aa4211db76c72a78c587863eb87d62c4629c0e80534c7f80db46",
       "reasons": [
@@ -3893,12 +3803,12 @@
     },
     {
       "path": "test-assets/e-invoicing/pagination-contract.json",
-      "sha256": "580eb55c20c9eae27747ebad139449f118008dc080b1f1a85e2aadb740bb9b5d",
+      "sha256": "f31d26c0815c7cafa96e38f6fe4609b208abf9d79a9fc648ec50a5513e6aaf1c",
       "reasons": [
         "retained-evidence"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/e-invoicing/pagination-contract.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3952,16 +3862,6 @@
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
-      "path": "test-assets/visual-parity/all-elements.json",
-      "sha256": "1b8861ba91cbebd3d74a8ab58497dde16f38f7f0c7662ef3077293731b4f5648",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/all-elements.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence. 2026-10-29 option-list parity review: retain existing legacy fixtures and diagnostics; distinguish static list markers from explicit choice-field intent and cover both in the unchanged visual threshold policy.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "test-assets/visual-parity/e-invoice-long-description.invoice.json",
       "sha256": "b4dbf86af08f312b76ad98365920c0e89021c14bc9a57124903f6730e83433c2",
       "reasons": [
@@ -3969,16 +3869,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "test-assets/visual-parity/e-invoice-long-description.invoice.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "test-assets/visual-parity/e-invoice-long-description.json",
-      "sha256": "337fd35f16380a0f64f7c829532784c682d1587143f2ea69c879426afc45b33b",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/e-invoice-long-description.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3992,16 +3882,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "test-assets/visual-parity/e-invoice-multi-tax.json",
-      "sha256": "175a9289f49e411ace7ec7934da243f2c6f4658872f7f72a3249923e8390152a",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/e-invoice-multi-tax.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "test-assets/visual-parity/e-invoice-multipage.invoice.json",
       "sha256": "56e2dca1d245d84bba18681e294af06f974398930b806bc65d46d57654f9dec5",
       "reasons": [
@@ -4012,16 +3892,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "test-assets/visual-parity/e-invoice-multipage.json",
-      "sha256": "7b409d72e15232a41ec524843d89b044ea936632c9893abee479ce05c24eb848",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/e-invoice-multipage.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "test-assets/visual-parity/e-invoice.invoice.json",
       "sha256": "bc6209b02ead8e3fc1019663aba005f96a990d25c39bbadb9f204cf4ed9651d3",
       "reasons": [
@@ -4029,16 +3899,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "test-assets/visual-parity/e-invoice.invoice.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "test-assets/visual-parity/e-invoice.json",
-      "sha256": "10f597e1fbc66f027c6781a59f85f335a1b4350520fb3a8c137f45eb6291e9e4",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "test-assets/visual-parity/e-invoice.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6236,22 +6096,22 @@
     },
     {
       "path": "tools/configuration/runtime-brand-contract.test.mjs",
-      "sha256": "adaca7c8d3198c121298ca2020a434e6d40b9f6687564b94ae496907c83946ad",
+      "sha256": "f49bc87f5eef26fe529b89114a28af04d4b55fec20fdedaa321fb0383989a703",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/configuration/schema-identities.test.mjs",
-      "sha256": "266560c16e759ebae3c0c661225b9cf9af05d5ba4c2bed98f31a8146f0a6a9ee",
+      "sha256": "259e45e5943d80d664a4299660695bb6d98f15b13dd119282d3e0931c2c522f0",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit old-domain normalization, frozen legacy file hashes and native fixture hashes enforce identifier-only changes and continued historical compatibility.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6337,22 +6197,22 @@
     },
     {
       "path": "tools/document-fidelity/fidelity.mjs",
-      "sha256": "448281e85bbcc2554b36206bf2117c971987cacd69cdda91564fa85459e253d2",
+      "sha256": "cd0a44283ea60963ae7a31a0037d3aa066ca32e308e6cc3dca3702cdf185e84d",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/document-fidelity/fidelity.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/document-fidelity/fidelity.test.mjs",
-      "sha256": "125ba2d46c72a2186a39f96b02599cbc68730f8b056ec4a6fa8aa3a5dc41b36e",
+      "sha256": "85a6b8d6302f5e23e610053bee732449fb82619d7ee62585b9f071d92d5bfb0a",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/document-fidelity/fidelity.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7061,12 +6921,12 @@
     },
     {
       "path": "websites/PVAD.Admin/tests/documentation-contract.test.js",
-      "sha256": "93c2432b7762a8338eb0948ad745071a76591607528b267b880073358e59a062",
+      "sha256": "355b7e24ee7f9c6bcdb49c6e1e7defd87e91ff82b94260fd791fb660a240e671",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Verify protected guidance matches server diagnostic meanings and current host targets; old codes, aliases and dashboard UIDs remain deliberate contract expectations.",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8187,6 +8047,76 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/OpenApiNamingSnapshotTests.cs",
+      "sha256": "22358e0a2117da17d17f3a06d6255e785b9154197b73d924034bbd65b1306a40",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/json-naming-audit.mjs",
+      "sha256": "90ad012071193f232f3b7a122c1e7039e82cd68bfff463b1ffa296ce7861bd81",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/json-naming-audit.test.mjs",
+      "sha256": "5796cd48ca61ac0564ac7e4f6c56f0fe55e6e5bfac7e9ad8b16a3f2e04e9a132",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/refresh-openapi-descriptions.mjs",
+      "sha256": "c82a59548de486a53d6542660b4e76f9e91819bde4f5eeb49d921b387062f723",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/refresh-openapi-descriptions.test.mjs",
+      "sha256": "5b58d9945d665584ca997e08a0996dd0b7be2e85e26ff5e3093990f7048484b9",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "checklists/PVAD.JSON-Naming-Audit.json",
+      "sha256": "a0c8ceaae8e295493318ea33d676a85b82299b2abfbea05c5651347a84a71fc2",
+      "reasons": [
+        "retained-evidence"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Tracked JSON naming inventory at commit 0137a324 with exact pointer and value hashes. Original evidence and wire identifiers are preserved; editable content is normalized. This is a naming review, not publication or operational approval.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/json-naming-cleanup-contract.test.mjs",
+      "sha256": "52476b4e4f755f8201a45561c602a60a71f8121f8fc8d99374b1ed86d89718d0",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     }
   ],

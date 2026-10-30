@@ -1,6 +1,6 @@
 {
   "id": "visual-parity-all-elements",
-  "name": "PXA Visual Parity",
+  "name": "PVADE Visual Parity",
   "category": "test",
   "description": "Deterministic cross-renderer visual parity fixture",
   "pageSettings": {
@@ -51,8 +51,8 @@
         { "id": "arrow", "type": "arrow", "name": "Arrow", "x": 375, "y": 180, "width": 185, "height": 55, "arrowMode": "straight", "arrowDirection": "right", "startMarker": "dot", "endMarker": "filled", "style": { "color": "#1d4ed8", "borderColor": "#1d4ed8", "borderWidth": 3 } },
         { "id": "highlight", "type": "highlight", "name": "Highlight", "x": 28, "y": 300, "width": 250, "height": 45, "content": "Highlighted text", "markMode": "text", "style": { "fontFamily": "Arial", "fontSize": 15, "color": "#111827", "backgroundColor": "#fde047", "backgroundOpacity": 0.55 } },
         { "id": "draw", "type": "draw", "name": "Drawing", "x": 310, "y": 285, "width": 250, "height": 75, "drawTool": "pen", "pathData": "M 5 55 C 45 5, 90 70, 140 20 S 210 55, 240 12", "style": { "color": "#7c3aed", "borderColor": "#7c3aed", "borderWidth": 3 } },
-        { "id": "qrcode", "type": "qrcode", "name": "QR Code", "x": 28, "y": 400, "width": 130, "height": 130, "qrValue": "https://powerdoxautomation.com/parity", "qrSize": 120 },
-        { "id": "barcode", "type": "barcode", "name": "Barcode", "x": 190, "y": 410, "width": 370, "height": 100, "barcodeValue": "PXA-2026-0001", "barcodeType": "CODE128" },
+        { "id": "qrcode", "type": "qrcode", "name": "QR Code", "x": 28, "y": 400, "width": 130, "height": 130, "qrValue": "https://pvade.com/", "qrSize": 120 },
+        { "id": "barcode", "type": "barcode", "name": "Barcode", "x": 190, "y": 410, "width": 370, "height": 100, "barcodeValue": "PVAD-2026-0001", "barcodeType": "CODE128" },
         { "id": "chart", "type": "chart", "name": "Chart", "x": 28, "y": 570, "width": 350, "height": 210, "chart": { "schemaVersion": 2, "type": "bar", "title": "Quarterly result", "categories": ["Q1", "Q2", "Q3", "Q4"], "series": [{ "id": "actual", "name": "Actual", "type": "bar", "values": [18, -7, 26, 31], "color": "#2563eb" }, { "id": "target", "name": "Target", "type": "line", "values": [15, 15, 22, 28], "color": "#dc2626" }], "legend": { "visible": true, "position": "bottom" }, "axes": { "x": { "visible": true }, "y": { "visible": true } } } },
         { "id": "watermark", "type": "watermark", "name": "Watermark", "x": 410, "y": 590, "width": 150, "height": 150, "content": "DRAFT", "watermarkMode": "text", "style": { "fontFamily": "Arial", "fontSize": 28, "fontWeight": "bold", "color": "#9ca3af", "rotation": -35, "opacity": 0.35 } }
       ]
@@ -63,9 +63,9 @@
         { "id": "table", "type": "table", "name": "Table", "x": 28, "y": 28, "width": 532, "height": 190, "headerRow": true, "footerRow": true, "headerBgColor": "#dbeafe", "zebraEnabled": true, "zebraColor": "#f8fafc", "columnWidths": [180, 176, 176], "columnAlignments": ["left", "right", "right"], "cellData": [["Item", "Quantity", "Amount"], ["Professional plan", "2", "CHF 198.00"], ["Storage", "10 GB", "CHF 20.00"], ["Total", "", "CHF 218.00"]], "style": { "rows": 4, "columns": 3, "borderColor": "#64748b", "borderWidth": 1, "cellPadding": 6, "cellFontFamily": "Arial", "cellFontSize": 10, "cellColor": "#1f2937" } },
         { "id": "subsection", "type": "subsection", "name": "Subsection", "x": 28, "y": 250, "width": 250, "height": 90, "content": "Subsection content", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#334155", "backgroundColor": "#f1f5f9", "borderColor": "#64748b", "borderWidth": 1, "padding": 8 } },
         { "id": "area", "type": "area", "name": "Area", "x": 310, "y": 250, "width": 250, "height": 90, "content": "Layout area", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#14532d", "backgroundColor": "#f0fdf4", "borderColor": "#16a34a", "borderWidth": 1, "padding": 8 } },
-        { "id": "note", "type": "note", "name": "Note", "x": 28, "y": 375, "width": 250, "height": 120, "noteTitle": "Review note", "noteBody": "Verify values before publishing this document.", "noteAuthor": "PXA QA", "noteCollapsed": false, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#713f12", "backgroundColor": "#fef9c3", "borderColor": "#eab308", "borderWidth": 1 } },
+        { "id": "note", "type": "note", "name": "Note", "x": 28, "y": 375, "width": 250, "height": 120, "noteTitle": "Review note", "noteBody": "Verify values before publishing this document.", "noteAuthor": "PVADE QA", "noteCollapsed": false, "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#713f12", "backgroundColor": "#fef9c3", "borderColor": "#eab308", "borderWidth": 1 } },
         { "id": "pageboundary", "type": "pageboundary", "name": "Page Boundary", "x": 310, "y": 390, "width": 250, "height": 32, "pageBoundaryMode": "end", "style": { "color": "#64748b", "borderColor": "#64748b", "borderWidth": 1 } },
-        { "id": "link", "type": "link", "name": "Link", "x": 310, "y": 455, "width": 250, "height": 32, "content": "Open PXA documentation", "href": "https://example.invalid/docs", "linkTarget": "_blank", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#1d4ed8", "textDecoration": "underline" } },
+        { "id": "link", "type": "link", "name": "Link", "x": 310, "y": 455, "width": 250, "height": 32, "content": "Open PVADE documentation", "href": "https://example.invalid/docs", "linkTarget": "_blank", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#1d4ed8", "textDecoration": "underline" } },
         { "id": "toc", "type": "toc", "name": "Table of Contents", "x": 28, "y": 535, "width": 532, "height": 220, "tocTitle": "Contents", "tocShowPageNumbers": true, "tocShowLeaderDots": true, "tocMinLevel": 1, "tocMaxLevel": 3, "tocEntries": [{ "text": "Introduction", "level": 1, "page": 1 }, { "text": "Visual elements", "level": 2, "page": 2 }, { "text": "Appendix", "level": 1, "page": 4 }], "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#334155", "borderColor": "#cbd5e1", "borderWidth": 1, "padding": 10 } }
       ]
     },
@@ -75,7 +75,7 @@
         { "id": "bookmark", "type": "bookmark", "name": "Bookmark", "x": 28, "y": 28, "width": 250, "height": 52, "content": "Executive summary", "bookmarkName": "executive-summary", "bookmarkTarget": "page-1", "style": { "fontFamily": "Arial", "fontSize": 12, "color": "#334155", "backgroundColor": "#eef2ff", "borderColor": "#6366f1", "borderWidth": 1 } },
         { "id": "footnote", "type": "footnote", "name": "Footnote", "x": 310, "y": 28, "width": 250, "height": 70, "content": "1", "footnoteRef": "1", "footnoteText": "Footnote text with a deterministic reference.", "style": { "fontFamily": "Arial", "fontSize": 9, "color": "#475569" } },
         { "id": "endnote", "type": "endnote", "name": "Endnote", "x": 28, "y": 125, "width": 250, "height": 70, "content": "A", "footnoteRef": "A", "footnoteText": "Endnote text at the end of the document.", "style": { "fontFamily": "Arial", "fontSize": 9, "color": "#475569" } },
-        { "id": "comment", "type": "comment", "name": "Comment", "x": 310, "y": 125, "width": 250, "height": 100, "content": "Commented content", "commentAuthor": "PXA Reviewer", "commentDate": "2026-08-21T10:00:00Z", "commentText": "This is synthetic test data.", "commentId": "comment-1", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#7c2d12", "backgroundColor": "#fff7ed", "borderColor": "#fb923c", "borderWidth": 1 } }
+        { "id": "comment", "type": "comment", "name": "Comment", "x": 310, "y": 125, "width": 250, "height": 100, "content": "Commented content", "commentAuthor": "PVADE Reviewer", "commentDate": "2026-08-21T10:00:00Z", "commentText": "This is synthetic test data.", "commentId": "comment-1", "style": { "fontFamily": "Arial", "fontSize": 11, "color": "#7c2d12", "backgroundColor": "#fff7ed", "borderColor": "#fb923c", "borderWidth": 1 } }
       ]
     }
   ]

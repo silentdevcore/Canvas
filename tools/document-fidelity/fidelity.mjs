@@ -14,7 +14,18 @@ const classifications = new Set(['exact', 'compatible', 'reviewRequired', 'unsup
 const migrationWorkflows = new Set(['import-roundtrip', 'code-migration', 'designer-migration']);
 const domains = new Set(['pdf', 'word', 'spreadsheet', 'report']);
 const workflows = new Set([...migrationWorkflows, 'export-roundtrip', 'render-parity', 'standards-validation']);
-const provenances = new Set(['pxa-synthetic', 'third-party-generated', 'public-real-world', 'customer-anonymized']);
+const provenances = new Set(['pvad-synthetic', 'third-party-generated', 'public-real-world', 'customer-anonymized']);
+
+export function normalizeFixtureIdentity(fixture) {
+  const formats = { 'pxa-json': 'pvad-json', 'pxa-workbook-json': 'pvad-workbook-json' };
+  const providers = { 'pxa-pdf-importer': 'pvad-pdf-importer', 'pxa-docx-importer': 'pvad-docx-importer', 'pxa-xlsx-importer': 'pvad-xlsx-importer' };
+  return {
+    ...fixture,
+    sourceFormat: Object.hasOwn(formats, fixture.sourceFormat) ? formats[fixture.sourceFormat] : fixture.sourceFormat,
+    ...(Object.hasOwn(providers, fixture.provider) ? { provider: providers[fixture.provider] } : {}),
+    provenance: fixture.provenance === 'pxa-synthetic' ? 'pvad-synthetic' : fixture.provenance,
+  };
+}
 
 function requireString(value, label) {
   if (typeof value !== 'string' || value.trim() === '') throw new Error(`${label} must be a non-empty string.`);
@@ -38,7 +49,8 @@ export function validateManifest(manifest, root = defaultRoot) {
   requireNumber(manifest.policy.minimumAutomaticMigrationPercent, 'minimumAutomaticMigrationPercent', 0, 100);
 
   const ids = new Set();
-  for (const fixture of manifest.fixtures) {
+  for (const sourceFixture of manifest.fixtures) {
+    const fixture = normalizeFixtureIdentity(sourceFixture);
     requireString(fixture.id, 'fixture.id');
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(fixture.id)) throw new Error(`Invalid fixture id: ${fixture.id}`);
     if (ids.has(fixture.id)) throw new Error(`Duplicate fixture id: ${fixture.id}`);
@@ -65,7 +77,7 @@ export function validateManifest(manifest, root = defaultRoot) {
       if (!migrationWorkflows.has(fixture.workflow)) throw new Error(`${fixture.id} is not a migration workflow and cannot enter the automatic-migration denominator.`);
     }
   }
-  return manifest;
+  return { ...manifest, fixtures: manifest.fixtures.map(normalizeFixtureIdentity) };
 }
 
 function validateMetrics(metrics, fixtureId) {
@@ -354,7 +366,7 @@ function percentage(numerator, denominator) {
 }
 
 export function evaluate(manifest, evidence, root = defaultRoot) {
-  validateManifest(manifest, root);
+  manifest = validateManifest(manifest, root);
   if (!evidence || evidence.schemaVersion !== 1 || !Array.isArray(evidence.results)) {
     throw new Error('Evidence schemaVersion must be 1 and results must be an array.');
   }

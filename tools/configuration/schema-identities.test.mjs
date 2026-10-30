@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
 
 const read = (path) => JSON.parse(readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8'));
 
@@ -57,6 +58,17 @@ test('schema domain migration preserves maintained constraints and legacy schema
   };
   for (const [path, expected] of Object.entries(constraints)) {
     const { $id, ...schema } = read(path);
+    if (path === 'docs/schema/pvad-project-manifest-reader.schema.json') {
+      assert.doesNotMatch(schema.description, /pxa/i);
+      const baseline = JSON.parse(execFileSync('git', ['show', `0137a324:${path}`],
+        { cwd: new URL('../../', import.meta.url), encoding: 'utf8' }));
+      schema.description = baseline.description;
+    }
+    if (path === 'product-metadata/document-fidelity/manifest.schema.json') {
+      const values = schema.properties.fixtures.items.properties.provenance.enum;
+      assert.deepEqual(values, ['pxa-synthetic', 'pvad-synthetic', 'third-party-generated', 'public-real-world', 'customer-anonymized']);
+      schema.properties.fixtures.items.properties.provenance.enum = values.filter(value => value !== 'pvad-synthetic');
+    }
     const normalized = JSON.stringify(schema, (key, value) => key === '$ref' && typeof value === 'string'
       ? value.replace('https://pvade.com/', 'https://powerdoxautomation.com/') : value);
     assert.equal(createHash('sha256').update(normalized).digest('hex'), expected, path);

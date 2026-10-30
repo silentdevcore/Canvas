@@ -56,8 +56,8 @@ test('protected handbook uses selected host targets and retains dashboard and di
     assert.equal(dashboard.uid, id);
     assert.ok(links.some(link => new URL(link).pathname.includes(`/d/${dashboard.uid}/`)), id);
   }
-  assert.match(handbookJson, /X-PXA-CSRF remains a compatibility alias/);
-  assert.match(handbookJson, /PXAAPI001/);
+  assert.match(handbookJson, /previous-generation anti-forgery header aliases remain supported/);
+  assert.match(handbookJson, /PVADAPI001/);
 });
 
 test('handbook content is fetched after authentication instead of bundled in the SPA', () => {
@@ -83,7 +83,7 @@ test('Admin diagnostic examples preserve actual server meanings and explain rout
     ['UnexpectedError', 'PXAAPI018', 'unexpected server error'],
   ]) {
     assert.ok(source.includes(`const string ${constant} = "${code}";`));
-    assert.ok(text.includes(`${code} ${meaning}`));
+    assert.ok(text.includes(`${code.replace('PXA', 'PVAD')} ${meaning}`));
   }
   assert.ok(text.includes('canonicalType and legacyType'));
   assert.ok(text.includes('Legacy API routes keep their original type URLs'));
