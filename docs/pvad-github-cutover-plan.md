@@ -1,7 +1,9 @@
 # PVAD GitHub Protection and Environment Cutover
 
-This is an operator preparation plan, not permission to change GitHub settings,
-publish artifacts or deploy. Technical identity is PVAD; public brand is PVADE.
+This document combines an operator preparation plan with dated execution records.
+Only the explicitly recorded develop check activation was authorized and applied;
+it is not permission for further GitHub changes, artifact publication or deployment.
+Technical identity is PVAD; public brand is PVADE.
 Historical `pxa-*` names below identify existing remote resources, not new defaults.
 The [rename checklist](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
 
@@ -39,7 +41,7 @@ selection is not proof of completed activation prerequisites or a live change.
 
 | Area | Owner decision | Activation status |
 | --- | --- | --- |
-| Required checks on `main` and `develop` | Retain the three existing checks; add `dependency-security`, `mcp-beta`, `visual-parity` and `supply-chain` after verified real PR runs | PR 210 now provides positive develop evidence. Branch-specific rollout and negative enforcement remain pending; no branch protection changed |
+| Required checks on `main` and `develop` | Retain the three existing checks; add `dependency-security`, `mcp-beta`, `visual-parity` and `supply-chain` after verified real PR runs | Seven checks activated on develop on 2026-10-30 after fresh verification of PR 211. Main activation remains open; see the dated execution record below |
 | Production environment | Prevent self-review and disable administrator bypass | Pending independent reviewer and the existing activation prerequisites |
 | Staging environment | Preserve existing controls for this transition | No change performed |
 | Nominated reviewer | `mabadev` | Repository API reports `write` access; the owner confirms this is their own second account, not an independent reviewer |
@@ -239,6 +241,55 @@ checks. This follow-up changes no protection or deployment authorization.
 6. Handle protected environment renaming and production hardening separately,
    with independent reviewer, secure configuration transfer, drain and rollback.
 
-The current branch prepares documentation and evidence only. It does not enable
+The closeout preparation branch prepared documentation and evidence only. It did not enable
 new required checks, create environments, publish packages, change VERSION,
 release to main or deploy. All eight primary operational/release gates remain open.
+
+## Develop Required-Check Activation (2026-10-30)
+
+The owner explicitly authorized activating the seven develop checks and running
+a controlled negative test. A fresh snapshot verified the current three-check
+protection, the deployed workflow blob, an empty visible ruleset list and all
+seven successful PR 211 CheckRuns from GitHub Actions App ID 15368. The source
+baseline was `4ee5729ed65cd6ed07a0f576098c0245a6ab3b9f`.
+The [acceptance record](pvad-develop-required-checks-acceptance.json) records
+the applied change and the completed, isolated controlled rejection test.
+
+Only `PATCH branches/develop/protection/required_status_checks` was executed.
+The verified resulting strict set is `version-policy`, `dotnet`, `frontend`,
+`dependency-security`, `mcp-beta`, `visual-parity` and `supply-chain`, all bound
+to App ID 15368. Complete before/after metadata comparison confirmed that every
+other develop protection, main protection, environments and visible rulesets
+remained unchanged. No production hardening, environment rename or bypass was
+performed. The earlier inert candidate stays historical rather than being
+silently relabeled as an authorization or live-state record.
+
+The controlled [test PR 212](https://github.com/silentdevcore/Canvas/pull/212)
+adds exactly one intentional final `exit 1` step to visual-parity, after all real
+visual checks and artifact uploads. It is isolated on a temporary branch and
+must never be merged. Its ordinary GitHub review is approved on the exact probe
+head, auto-merge is disabled, and GitHub already reports the failing visual
+CheckRun as required and the PR as BLOCKED. Final observation after workflow
+41019550671 completed confirmed all six other required checks SUCCESS, only the
+intentional visual-parity step FAILURE, no conflicts and no open review
+conversations. The verifier returned `verified: true` with no blockers.
+
+PR 212 was then closed without any merge attempt; its temporary remote branch
+was removed. The protected develop source stayed at `4ee5729e`. A final full
+metadata comparison reconfirmed seven strict App-bound checks and unchanged
+other develop controls, main, environments and rulesets. The overall probe CI
+is intentionally red; that result is the expected acceptance evidence, not an
+unresolved product regression. No failing probe step or temporary fragment is
+included in the normal acceptance-documentation branch.
+
+The read-only `reviewNegativeCheckEnforcement` verifier rejects missing review,
+draft/auto-merge state, wrong source revisions, unbound or duplicate checks,
+incomplete inventories, pending/failing additional required checks and an
+unexpected failure instead of the intentional final step. No actual merge
+attempt is used to test rejection, so a defective gate cannot introduce the
+probe into develop. Before/after and interim evidence is retained under ignored
+`artifacts/rename/develop-protection-20261030/`; it contains metadata, not secrets.
+The committed acceptance record includes exact hashes of the before/request/
+after metadata, final open-PR rejection observation, closure and final control
+read-back. Preserve the ignored raw evidence before cleaning local artifacts.
+These records are dated evidence, not a claim that future policies cannot drift.

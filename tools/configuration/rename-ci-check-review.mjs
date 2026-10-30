@@ -85,3 +85,60 @@ export function reviewCiChecks(workflow, requiredStatusChecks, { branch, propose
   result.proposedChecksResolve = result.blockers.length === 0 && result.proposed.every(row => row.blockers.length === 0);
   return result;
 }
+
+export function reviewNegativeCheckEnforcement(pr, failedJob, {
+  expectedHead, expectedBase, requiredChecks, failingContext, intentionalStep,
+}) {
+  names(requiredChecks.map(check => check.context));
+  assert.ok(requiredChecks.some(check => check.context === failingContext));
+  assert.match(expectedHead, /^[a-f0-9]{40}$/);
+  assert.match(expectedBase, /^[a-f0-9]{40}$/);
+  const blockers = [];
+  if (pr.state !== 'OPEN' || pr.isDraft !== false || pr.autoMergeRequest !== null)
+    blockers.push('probe-not-open-non-draft-without-auto-merge');
+  if (pr.headRefOid !== expectedHead || pr.baseRefOid !== expectedBase || pr.baseRefName !== 'develop')
+    blockers.push('probe-revision-or-base-mismatch');
+  if (pr.reviewDecision !== 'APPROVED') blockers.push('probe-review-not-approved');
+  if (pr.mergeStateStatus !== 'BLOCKED') blockers.push('probe-not-merge-blocked');
+  if (pr.mergeable !== 'MERGEABLE') blockers.push('probe-conflict-state-not-clear');
+  if (pr.reviewThreads?.pageInfo?.hasNextPage !== false ||
+      !Array.isArray(pr.reviewThreads?.nodes) || pr.reviewThreads.nodes.some(thread => thread.isResolved !== true))
+    blockers.push('probe-review-conversations-not-clear');
+  const commits = pr.commits?.nodes ?? [];
+  const commit = commits.length === 1 ? commits[0].commit : null;
+  const inventory = commit?.statusCheckRollup?.contexts;
+  if (commit?.oid !== expectedHead || inventory?.pageInfo?.hasNextPage !== false)
+    blockers.push('probe-check-inventory-incomplete');
+  const runs = (inventory?.nodes ?? []).filter(check => check.__typename === 'CheckRun');
+  if ((inventory?.nodes ?? []).some(check => check.__typename !== 'CheckRun'))
+    blockers.push('non-check-run-context-review-required');
+  for (const expected of requiredChecks) {
+    const matches = runs.filter(check => check.name === expected.context);
+    if (matches.length !== 1) { blockers.push(`missing-or-duplicate-check:${expected.context}`); continue; }
+    const check = matches[0];
+    if (!Number.isSafeInteger(expected.app_id) || expected.app_id < 1 ||
+        check.checkSuite?.app?.databaseId !== expected.app_id || check.isRequired !== true)
+      blockers.push(`required-source-mismatch:${expected.context}`);
+    const conclusion = expected.context === failingContext ? 'FAILURE' : 'SUCCESS';
+    if (check.status !== 'COMPLETED' || check.conclusion !== conclusion)
+      blockers.push(`unexpected-check-result:${expected.context}`);
+  }
+  if (runs.some(check => check.isRequired && !requiredChecks.some(expected => expected.context === check.name)))
+    blockers.push('unreviewed-additional-required-check');
+  const failure = runs.find(check => check.name === failingContext);
+  if (failedJob.name !== failingContext || failedJob.status !== 'completed' ||
+      failedJob.conclusion !== 'failure' || !failedJob.url || failedJob.url !== failure?.detailsUrl)
+    blockers.push('intentional-failure-job-mismatch');
+  const steps = failedJob.steps ?? [];
+  const failed = steps.filter(step => step.conclusion === 'failure');
+  const index = steps.findIndex(step => step.name === intentionalStep);
+  if (index < 1 || failed.length !== 1 || failed[0].name !== intentionalStep ||
+      steps.some(step => step.status !== 'completed') ||
+      steps.slice(0, index).some(step => step.conclusion !== 'success'))
+    blockers.push('failure-not-isolated-to-intentional-step');
+  return {
+    verified: blockers.length === 0,
+    blockers: [...new Set(blockers)].sort(),
+    scope: 'Read-only controlled PR rejection evidence; no merge attempt, bypass or production approval.',
+  };
+}

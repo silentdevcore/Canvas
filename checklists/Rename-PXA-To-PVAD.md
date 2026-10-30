@@ -28,6 +28,12 @@ are resolved; their dated failure records remain historical evidence.
 The separate post-merge workflow 40953916620 also passed, including snapshot and
 supply-chain, independently verified on 2026-10-30. Neither run is production
 deployment or release-publication evidence.
+On 2026-10-30 the owner-authorized develop protection update activated all seven
+verified required checks while preserving App ID 15368, strict mode and all
+unrelated controls. Its controlled negative test passed: the approved PR remained
+blocked with one failed required check and all six others successful. Test PR 212
+was closed without merge; main and production protection were not changed. See
+[the execution record](../docs/pvad-github-cutover-plan.md#develop-required-check-activation-2026-10-30).
 The user confirmed the requested Chrome print test completed successfully;
 the combined local final-candidate gate is closed, not the external release gates.
 This is not release readiness or proof that all features work on the final source
@@ -1476,6 +1482,19 @@ replace operational approval or the outstanding evidence.
 No branch/environment settings, permissions, workflow runs or deployments were
 changed. The independent-reviewer and real-PR prerequisites remain open; overall
 completion remains **90/98 (91.8%), with 8/98 (8.2%) open**.
+
+## Develop Protection Activation Follow-up (2026-10-30)
+
+- [x] Re-read and preserve actual branch/environment/ruleset metadata and exact successful PR 211 check-source evidence.
+- [x] Apply only the owner-authorized develop required-check update, retaining strict mode and all seven App ID bindings.
+- [x] Re-read the result and compare every unrelated develop control, main, environments and rulesets unchanged.
+- [x] Create an isolated never-merge PR with one intentional final required-check failure and verify exact-head review approval.
+- [x] Verify the isolated negative verdict after every other required check passes; close test PR 212 without merging and remove its temporary remote branch.
+
+These are supporting substeps of existing primary operational gates, not new
+score-bearing tasks. Main rollout, production hardening, independent production
+review, environment cutover and publication remain separate. Overall acceptance
+remains **90/98 (91.8%)**.
 
 ## Related Work
 

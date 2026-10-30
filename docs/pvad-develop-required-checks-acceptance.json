@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-30",
+  "scope": "Owner-authorized develop required-check activation and isolated rejection acceptance only.",
+  "deploymentAuthorized": false,
+  "independentProductionApproval": false,
+  "activation": {
+    "authorizedBy": "repository owner",
+    "branch": "develop",
+    "sourceCommit": "4ee5729ed65cd6ed07a0f576098c0245a6ab3b9f",
+    "beforeCapturedAt": "2026-10-30T07:17:37.358Z",
+    "afterCapturedAt": "2026-10-30T07:18:38.802Z",
+    "method": "PATCH",
+    "endpoint": "repos/silentdevcore/Canvas/branches/develop/protection/required_status_checks",
+    "appliedAndReadBack": true,
+    "strict": true,
+    "checks": [
+      {
+        "context": "version-policy",
+        "app_id": 15368
+      },
+      {
+        "context": "dotnet",
+        "app_id": 15368
+      },
+      {
+        "context": "frontend",
+        "app_id": 15368
+      },
+      {
+        "context": "dependency-security",
+        "app_id": 15368
+      },
+      {
+        "context": "mcp-beta",
+        "app_id": 15368
+      },
+      {
+        "context": "visual-parity",
+        "app_id": 15368
+      },
+      {
+        "context": "supply-chain",
+        "app_id": 15368
+      }
+    ],
+    "positivePr": 211,
+    "positiveHead": "8772791dc52408f36211575be53d762e6d48a597",
+    "positiveRunId": 41014999780,
+    "allSevenSucceededBeforeActivation": true
+  },
+  "unchanged": {
+    "otherDevelopProtection": true,
+    "mainProtection": true,
+    "environments": true,
+    "visibleRulesets": true,
+    "activeWorkflowSource": true,
+    "productVersion": true,
+    "publicationAndDeployment": true
+  },
+  "negativeTest": {
+    "pullRequest": 212,
+    "url": "https://github.com/silentdevcore/Canvas/pull/212",
+    "headSha": "550d342e1a5125a5cb644b437c315282b3d55b8f",
+    "baseSha": "4ee5729ed65cd6ed07a0f576098c0245a6ab3b9f",
+    "runId": 41019550671,
+    "failingContext": "visual-parity",
+    "failureJobId": 123943717952,
+    "intentionalStep": "Intentional required-check enforcement probe - never merge this branch",
+    "reviewDecision": "APPROVED",
+    "mergeStateStatus": "BLOCKED",
+    "autoMergeDisabled": true,
+    "mergeAttempted": false,
+    "verdict": {
+      "verified": true,
+      "blockers": [],
+      "scope": "Read-only controlled PR rejection evidence; no merge attempt, bypass or production approval."
+    },
+    "probeClosedWithoutMerge": true,
+    "observedAt": "2026-10-30T09:04:37.558Z",
+    "mergeable": "MERGEABLE",
+    "reviewConversationsClear": true,
+    "runConclusion": "failure",
+    "expectedRunFailure": true,
+    "checks": [
+      {
+        "context": "version-policy",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943505531"
+      },
+      {
+        "context": "dotnet",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943717898"
+      },
+      {
+        "context": "frontend",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943717875"
+      },
+      {
+        "context": "dependency-security",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943717928"
+      },
+      {
+        "context": "mcp-beta",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943717892"
+      },
+      {
+        "context": "visual-parity",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "FAILURE",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123943717952"
+      },
+      {
+        "context": "supply-chain",
+        "app_id": 15368,
+        "isRequired": true,
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/silentdevcore/Canvas/actions/runs/41019550671/job/123952050209"
+      }
+    ],
+    "probeClosedAt": "2026-10-30T09:05:28.413Z",
+    "probeRemoteBranchRemoved": true
+  },
+  "evidence": {
+    "directory": "artifacts/rename/develop-protection-20261030",
+    "beforeSha256": "67a8c7211fdecc07d8481f8a2d76bc7aed70f534f2da12f22a99b3691c678252",
+    "requestSha256": "093c3babc098d9b851280c05b3ee5aa6180bced79cb8df3dca63cb2667f2b5ca",
+    "afterSha256": "4e2e472a8fa24353ee31db685ddda2b05880c333cd015c178fa64909f240be11",
+    "negativeObservationSha256": "bf7fb4054302feb385098ed140ffbdc5c6f4a94107ecd2d6e5c80c5b173f2dd1",
+    "probeClosureSha256": "d5ee58e7451445d57bdb49c0e560b4bc527c98f2a546500ad945e633ecc9e735",
+    "finalProtectionSha256": "bbaf8339e6d45335f2c7bb9184f13ef954254f7302695fec2605b79a69976e8a"
+  },
+  "remainingScope": [
+    "main protection rollout",
+    "independent production reviewer",
+    "protected environment cutover",
+    "external hosts and mail",
+    "key recovery and staging acceptance",
+    "major release and publication"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-develop-required-checks",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Record the validated development-branch check policy and controlled rejection evidence.",
+  "reason": "Internal repository protection acceptance only; no shipped application, production protection, deployment or product version change.",
+  "breaking": false
+}
