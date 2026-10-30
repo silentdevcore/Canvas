@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-required-check-negative-probe",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Exercise a temporary required-check rejection scenario.",
+  "reason": "Disposable acceptance probe only; its intentional failing step must never enter a protected branch or a published release.",
+  "breaking": false
+}
