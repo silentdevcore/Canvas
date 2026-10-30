@@ -151,7 +151,7 @@ public sealed class PdfA2bConverterTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA PDF-A Conversion Test",
+            "CN=PVAD PDF-A Conversion Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

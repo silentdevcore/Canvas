@@ -40,7 +40,7 @@ public sealed class AdminUsersControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             anonymousCsrf,
-            new { identifier = "system-admin@pxa.test", password = "Pxa-Admin-Integration-42!" });
+            new { identifier = "system-admin@pvad.test", password = "Pvad-Admin-Integration-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(login)).StatusCode);
 
         var ownSessions = await client.GetFromJsonAsync<JsonElement>(
@@ -56,7 +56,7 @@ public sealed class AdminUsersControllerTests
                 UserId = seeded.ManagedUserId,
                 OrganizationId = seeded.OrganizationId,
                 IpAddressHash = new string('a', 64),
-                UserAgent = "PXA integration browser",
+                UserAgent = "PVADE integration browser",
                 ExpiresAt = DateTimeOffset.UtcNow.AddHours(8),
             };
             sessionDbContext.UserSessions.Add(managedSession);
@@ -132,7 +132,7 @@ public sealed class AdminUsersControllerTests
                 UserId = seeded.ManagedUserId,
                 OrganizationId = seeded.OrganizationId,
                 IpAddressHash = new string('b', 64),
-                UserAgent = "PXA second integration browser",
+            UserAgent = "PVADE second integration browser",
                 ExpiresAt = DateTimeOffset.UtcNow.AddHours(8),
             });
             await additionalSessionDbContext.SaveChangesAsync();
@@ -151,12 +151,12 @@ public sealed class AdminUsersControllerTests
             HttpMethod.Patch,
             $"/api/pvad/v1/admin/users/{seeded.ManagedUserId}/profile",
             authenticatedCsrf,
-            new { displayName = "Updated Managed User", email = "updated-member@pxa.test" });
+            new { displayName = "Updated Managed User", email = "updated-member@pvad.test" });
         var profileResponse = await client.SendAsync(updateProfile);
         Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
         var updatedProfile = await profileResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Updated Managed User", updatedProfile.GetProperty("displayName").GetString());
-        Assert.Equal("updated-member@pxa.test", updatedProfile.GetProperty("pendingEmail").GetString());
+        Assert.Equal("updated-member@pvad.test", updatedProfile.GetProperty("pendingEmail").GetString());
 
         using var resetPassword = CreateCsrfRequest(
             HttpMethod.Post,
@@ -291,7 +291,7 @@ public sealed class AdminUsersControllerTests
         Assert.Contains("users.restore", auditActions);
         Assert.Contains("users.bulk.enable", auditActions);
         Assert.NotNull((await dbContext.UserSessions.SingleAsync(value => value.Id == managedSessionId)).RevokedAt);
-        Assert.Equal("updated-member@pxa.test", (await dbContext.Users.SingleAsync(value => value.Id == seeded.ManagedUserId)).PendingEmail);
+        Assert.Equal("updated-member@pvad.test", (await dbContext.Users.SingleAsync(value => value.Id == seeded.ManagedUserId)).PendingEmail);
         Assert.Contains(await dbContext.MailOutboxMessages.ToListAsync(), value =>
             value.RecipientUserId == seeded.ManagedUserId && value.TemplateKey == "identity.email-verification");
         Assert.Contains(await dbContext.MailOutboxMessages.ToListAsync(), value =>
@@ -315,8 +315,8 @@ public sealed class AdminUsersControllerTests
         using var managerClient = CreateClient(factory);
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             managerClient,
-            "member@pxa.test",
-            "Pxa-Member-Integration-42!"));
+            "member@pvad.test",
+            "Pvad-Member-Integration-42!"));
         Assert.Equal(HttpStatusCode.OK,
             (await managerClient.GetAsync("/api/pvad/v1/admin/users")).StatusCode);
         var managerCsrf = await GetCsrfAsync(managerClient);
@@ -332,16 +332,16 @@ public sealed class AdminUsersControllerTests
         using var administratorClient = CreateClient(factory);
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             administratorClient,
-            "system-admin@pxa.test",
-            "Pxa-Admin-Integration-42!"));
+            "system-admin@pvad.test",
+            "Pvad-Admin-Integration-42!"));
         var administratorCsrf = await GetCsrfAsync(administratorClient);
 
         await AssignRoleAsync(administratorClient, administratorCsrf, seeded.ManagedUserId, PvadRoles.Editor);
         using var editorClient = CreateClient(factory);
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             editorClient,
-            "member@pxa.test",
-            "Pxa-Member-Integration-42!"));
+            "member@pvad.test",
+            "Pvad-Member-Integration-42!"));
         var editorResponse = await editorClient.GetAsync("/api/pvad/v1/admin/users");
         Assert.Equal(HttpStatusCode.Forbidden, editorResponse.StatusCode);
         await AssertProblemCodeAsync(editorResponse, PvadApiProblems.PermissionDenied);
@@ -350,8 +350,8 @@ public sealed class AdminUsersControllerTests
         using var viewerClient = CreateClient(factory);
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             viewerClient,
-            "member@pxa.test",
-            "Pxa-Member-Integration-42!"));
+            "member@pvad.test",
+            "Pvad-Member-Integration-42!"));
         var viewerResponse = await viewerClient.GetAsync("/api/pvad/v1/admin/users");
         Assert.Equal(HttpStatusCode.Forbidden, viewerResponse.StatusCode);
         await AssertProblemCodeAsync(viewerResponse, PvadApiProblems.PermissionDenied);
@@ -368,7 +368,7 @@ public sealed class AdminUsersControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             await GetCsrfAsync(suspendedClient),
-            new { identifier = "member@pxa.test", password = "Pxa-Member-Integration-42!" });
+            new { identifier = "member@pvad.test", password = "Pvad-Member-Integration-42!" });
         var suspendedLoginResponse = await suspendedClient.SendAsync(suspendedLogin);
         Assert.Equal(HttpStatusCode.Forbidden, suspendedLoginResponse.StatusCode);
         await AssertProblemCodeAsync(suspendedLoginResponse, PvadApiProblems.AccountDisabled);
@@ -383,7 +383,7 @@ public sealed class AdminUsersControllerTests
             var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
             var memberships = await dbContext.OrganizationMemberships
                 .Where(membership => dbContext.Users.Any(user =>
-                    user.Id == membership.UserId && user.Email == "unapproved-operator@pxa.test"))
+                    user.Id == membership.UserId && user.Email == "unapproved-operator@pvad.test"))
                 .ToListAsync();
             Assert.Single(memberships);
             dbContext.OrganizationMemberships.RemoveRange(memberships);
@@ -393,7 +393,7 @@ public sealed class AdminUsersControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             await GetCsrfAsync(unapprovedOperatorClient),
-            new { identifier = "unapproved-operator@pxa.test", password = "Pxa-Unapproved-Operator-42!" });
+            new { identifier = "unapproved-operator@pvad.test", password = "Pvad-Unapproved-Operator-42!" });
         var operatorWithoutOrganizationResponse = await unapprovedOperatorClient.SendAsync(operatorWithoutOrganizationLogin);
         Assert.Equal(HttpStatusCode.Forbidden, operatorWithoutOrganizationResponse.StatusCode);
         await AssertProblemCodeAsync(operatorWithoutOrganizationResponse, PvadApiProblems.OrganizationSuspended);
@@ -402,7 +402,7 @@ public sealed class AdminUsersControllerTests
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
-            var operatorId = await dbContext.Users.Where(user => user.Email == "unapproved-operator@pxa.test")
+            var operatorId = await dbContext.Users.Where(user => user.Email == "unapproved-operator@pvad.test")
                 .Select(user => user.Id).SingleAsync();
             var viewerRoleId = await dbContext.Roles.Where(role => role.Name == PvadRoles.Viewer)
                 .Select(role => role.Id).SingleAsync();
@@ -423,8 +423,8 @@ public sealed class AdminUsersControllerTests
 
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(
             unapprovedOperatorClient,
-            "unapproved-operator@pxa.test",
-            "Pxa-Unapproved-Operator-42!"));
+            "unapproved-operator@pvad.test",
+            "Pvad-Unapproved-Operator-42!"));
         var unapprovedUser = await unapprovedOperatorClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/auth/me");
         Assert.DoesNotContain(
             unapprovedUser.GetProperty("roles").EnumerateArray(),
@@ -443,7 +443,7 @@ public sealed class AdminUsersControllerTests
         var seeded = await SeedAsync(factory.Services);
         using var client = CreateClient(factory);
         Assert.Equal(HttpStatusCode.OK, await LoginAsync(client,
-            "system-admin@pxa.test", "Pxa-Admin-Integration-42!"));
+            "system-admin@pvad.test", "Pvad-Admin-Integration-42!"));
         var csrf = await GetCsrfAsync(client);
         var syncfusion = PvadDesignerMigrationPermissions.PdfProviders["syncfusion-pdf"];
         var asposeCells = PvadDesignerMigrationPermissions.SpreadsheetProviders["aspose-cells"];
@@ -506,7 +506,7 @@ public sealed class AdminUsersControllerTests
                     {
                         ["ConnectionStrings:PxaDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
-                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pxa.test",
+                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                     });
                 });
                 builder.ConfigureServices(services =>
@@ -585,18 +585,18 @@ public sealed class AdminUsersControllerTests
 
         var administrator = await CreateUserAsync(
             userManager,
-            "system-admin@pxa.test",
+            "system-admin@pvad.test",
             "System Administrator",
-            "Pxa-Admin-Integration-42!");
+            "Pvad-Admin-Integration-42!");
         Assert.True((await userManager.AddToRoleAsync(administrator, PvadRoles.SystemAdministrator)).Succeeded);
         var unapprovedOperator = await CreateUserAsync(
             userManager,
-            "unapproved-operator@pxa.test",
+            "unapproved-operator@pvad.test",
             "Unapproved Operator",
-            "Pxa-Unapproved-Operator-42!");
+            "Pvad-Unapproved-Operator-42!");
         Assert.True((await userManager.AddToRoleAsync(unapprovedOperator, PvadRoles.SystemAdministrator)).Succeeded);
-        var managedUser = await CreateUserAsync(userManager, "member@pxa.test", "Managed User");
-        var foreignUser = await CreateUserAsync(userManager, "foreign@pxa.test", "Foreign User");
+        var managedUser = await CreateUserAsync(userManager, "member@pvad.test", "Managed User");
+        var foreignUser = await CreateUserAsync(userManager, "foreign@pvad.test", "Foreign User");
 
         var adminMembership = new OrganizationMembership
         {
@@ -653,7 +653,7 @@ public sealed class AdminUsersControllerTests
         UserManager<PvadIdentityUser> userManager,
         string email,
         string displayName,
-        string password = "Pxa-Member-Integration-42!")
+        string password = "Pvad-Member-Integration-42!")
     {
         var user = new PvadIdentityUser
         {

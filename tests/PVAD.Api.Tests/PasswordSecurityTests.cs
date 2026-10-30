@@ -28,7 +28,7 @@ public sealed class PasswordSecurityTests
     {
         await using var provider = CreateProvider();
         var userManager = provider.GetRequiredService<UserManager<PvadIdentityUser>>();
-        var result = await userManager.CreateAsync(NewUser(), "Pxa-Unique-Password-42!");
+        var result = await userManager.CreateAsync(NewUser(), "Pvad-Unique-Password-42!");
 
         Assert.True(result.Succeeded);
     }
@@ -36,7 +36,7 @@ public sealed class PasswordSecurityTests
     [Fact]
     public async Task Configured_fingerprints_extend_the_offline_breach_policy()
     {
-        const string password = "Pxa-Custom-Breached-42!";
+        const string password = "Pvad-Custom-Breached-42!";
         var hash = Convert.ToHexString(
             System.Security.Cryptography.SHA256.HashData(
                 System.Text.Encoding.UTF8.GetBytes(password)));

@@ -29,7 +29,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@subscription.test", "Owner", "Subscription GmbH", "subscription-co");
-        await LoginAsync(client, "owner@subscription.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@subscription.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var subscription = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/subscription");
         Assert.Equal("Trial", subscription.GetProperty("edition").GetString());
@@ -90,11 +90,11 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
         await SeedRolesAsync(factory.Services);
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@license.test", "Owner", "License GmbH", "license-co");
-        await LoginAsync(ownerClient, "owner@license.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@license.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var otherClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, otherClient, "owner@otherlicense.test", "Other Owner", "Other GmbH", "other-license-co");
-        await LoginAsync(otherClient, "owner@otherlicense.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(otherClient, "owner@otherlicense.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         Guid licenseId;
         await using (var scope = factory.Services.CreateAsyncScope())
@@ -179,7 +179,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName,
                 organizationSlug = slug,

@@ -31,7 +31,7 @@ public sealed class AccountOrganizationControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@orgprofile.test", "Owner", "Orgprofile GmbH", "orgprofile");
-        await LoginAsync(client, "owner@orgprofile.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@orgprofile.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var profile = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/organization");
         Assert.Equal("Orgprofile GmbH", profile.GetProperty("name").GetString());
@@ -76,7 +76,7 @@ public sealed class AccountOrganizationControllerTests
         await SeedRolesAsync(factory.Services);
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@invite.test", "Owner", "Invite GmbH", "invite-co");
-        await LoginAsync(ownerClient, "owner@invite.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@invite.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var invite = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/organization/members",
@@ -106,7 +106,7 @@ public sealed class AccountOrganizationControllerTests
         using var accept = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/accept-invitation",
             await GetCsrfAsync(teammateClient),
-            new { token, password = "Pxa-Teammate-Password-42!" });
+            new { token, password = "Pvad-Teammate-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await teammateClient.SendAsync(accept)).StatusCode);
 
         var members = await ownerClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/organization/members");
@@ -128,7 +128,7 @@ public sealed class AccountOrganizationControllerTests
             factory, ownerClient, "owner@existing-invite.test", "Owner", "Inviting GmbH", "inviting-co");
         await RegisterVerifiedCompanyAsync(
             factory, existingClient, "existing@existing-invite.test", "Existing", "Existing GmbH", "existing-co");
-        await LoginAsync(ownerClient, "owner@existing-invite.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@existing-invite.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var invite = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/organization/members",
@@ -158,7 +158,7 @@ public sealed class AccountOrganizationControllerTests
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymousClient.SendAsync(anonymousAccept)).StatusCode);
 
         await LoginAsync(
-            existingClient, "existing@existing-invite.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+            existingClient, "existing@existing-invite.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         using var authenticatedAccept = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/accept-invitation",
             await GetCsrfAsync(existingClient), new { token });
@@ -190,7 +190,7 @@ public sealed class AccountOrganizationControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@roles.test", "Owner", "Roles GmbH", "roles-co");
-        await LoginAsync(client, "owner@roles.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@roles.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
@@ -228,7 +228,7 @@ public sealed class AccountOrganizationControllerTests
         await SeedRolesAsync(factory.Services);
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@remove.test", "Owner", "Remove GmbH", "remove-co");
-        await LoginAsync(ownerClient, "owner@remove.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@remove.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var invite = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/organization/members",
@@ -247,9 +247,9 @@ public sealed class AccountOrganizationControllerTests
         using var coOwnerClient = CreateClient(factory);
         using var accept = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/accept-invitation",
-            await GetCsrfAsync(coOwnerClient), new { token, password = "Pxa-CoOwner-Password-42!" });
+            await GetCsrfAsync(coOwnerClient), new { token, password = "Pvad-CoOwner-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await coOwnerClient.SendAsync(accept)).StatusCode);
-        await LoginAsync(coOwnerClient, "co-owner@remove.test", "Pxa-CoOwner-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(coOwnerClient, "co-owner@remove.test", "Pvad-CoOwner-Password-42!", HttpStatusCode.OK);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
@@ -292,7 +292,7 @@ public sealed class AccountOrganizationControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName,
                 organizationSlug = slug,

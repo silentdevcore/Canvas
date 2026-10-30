@@ -506,29 +506,46 @@ public sealed class DesignerProjectsControllerTests
         Assert.Empty(audit.Entries);
     }
 
-    [Fact]
-    public async Task Project_audit_writer_persists_only_bounded_operational_metadata()
+    [Theory]
+    [InlineData("pxap", "pvadp")]
+    [InlineData("pxas", "pvads")]
+    [InlineData("pvadp", "pvadp")]
+    [InlineData("pvads", "pvads")]
+    public async Task Project_audit_writer_persists_only_bounded_operational_metadata(string formatId, string canonicalFormatId)
     {
         var options = new DbContextOptionsBuilder<PvadDbContext>()
             .UseInMemoryDatabase($"project-audit-{Guid.NewGuid():N}")
             .Options;
         await using var dbContext = new PvadDbContext(options);
         var writer = new PvadDesignerProjectAuditWriter(dbContext);
+        var oldAudit = new PVAD.Domain.Entities.AuditEvent
+        {
+            OrganizationId = organizationId, ActorUserId = userId,
+            Action = "designer.projects.pxap.open", TargetType = "designer_project", TargetId = "historical-project",
+            Outcome = "succeeded", DetailsJson = "{\"formatId\":\"pxap\"}"
+        };
+        dbContext.AuditEvents.Add(oldAudit);
+        await dbContext.SaveChangesAsync();
 
         await writer.WriteAsync(organizationId, userId, new PvadDesignerProjectAuditRecord(
-            "designer.projects.pxap.open", "project-id", "pxap", "open", "succeeded",
+            $"designer.projects.{formatId}.open", "project-id", formatId, "open", "succeeded",
             PackageBytes: 1234, AssetCount: 2, RequiresReview: true));
 
-        var audit = await dbContext.AuditEvents.SingleAsync();
+        var audit = await dbContext.AuditEvents.SingleAsync(entry => entry.Id != oldAudit.Id);
+        Assert.Equal($"designer.projects.{formatId}.open", audit.Action);
         Assert.Equal(organizationId, audit.OrganizationId);
         Assert.Equal(userId, audit.ActorUserId);
         Assert.Equal("designer_project", audit.TargetType);
         Assert.Equal("project-id", audit.TargetId);
         Assert.Equal("succeeded", audit.Outcome);
-        Assert.Contains("\"formatId\":\"pxap\"", audit.DetailsJson!);
+        using var details = JsonDocument.Parse(audit.DetailsJson!);
+        Assert.Equal(formatId, details.RootElement.GetProperty("formatId").GetString());
+        Assert.Equal(canonicalFormatId, details.RootElement.GetProperty("canonicalFormatId").GetString());
         Assert.Contains("\"packageBytes\":1234", audit.DetailsJson!);
         Assert.DoesNotContain("fileName", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("content", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
+        await dbContext.Entry(oldAudit).ReloadAsync();
+        Assert.Equal("{\"formatId\":\"pxap\"}", oldAudit.DetailsJson);
     }
 
     private async Task<PvadProjectOpenResponse<DesignExportDto>> OpenPdf(byte[] bytes, string fileName) =>

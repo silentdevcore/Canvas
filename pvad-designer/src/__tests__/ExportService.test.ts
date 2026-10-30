@@ -25,6 +25,27 @@ const makePage = (elements: SimpleElement[] = []): Page => ({ id: 'page-1', elem
 
 // J: Test save/load round-trip — export payload structure
 describe('convertElementsToTemplate', () => {
+  test('export canonicalizes both chart recognition fields without overwriting drafts', () => {
+    const chart = makeEl({
+      type: 'chart',
+      chart: {
+        schemaVersion: 2, type: 'bar', categories: ['A'],
+        series: [{ id: 's', name: 'Revenue', values: [-3] }],
+        recognition: { status: 'automatic', confidence: 1, sourceKind: 'pxaMetadata' },
+      },
+      style: { pdfChartRecognitionSource: 'pxaMetadata', custom: 'kept' },
+    });
+    const payload = ExportService.buildDesignPayload(mockTemplate, [makePage([chart])], [chart], DEFAULT_PAGE_SETTINGS);
+    for (const element of [...payload.pages[0].elements, ...payload.sharedElements]) {
+      expect(element.chart?.recognition?.sourceKind).toBe('pvadMetadata');
+      expect(element.style?.pdfChartRecognitionSource).toBe('pvadMetadata');
+      expect(element.style?.custom).toBe('kept');
+      expect(element.chart?.series[0].values).toEqual([-3]);
+    }
+    expect(chart.chart?.recognition?.sourceKind).toBe('pxaMetadata');
+    expect(chart.style?.pdfChartRecognitionSource).toBe('pxaMetadata');
+  });
+
   test('canonical export payload preserves page layout overrides', () => {
     const pages: Page[] = [
       makePage(),

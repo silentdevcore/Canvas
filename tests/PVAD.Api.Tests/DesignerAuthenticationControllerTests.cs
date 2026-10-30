@@ -42,7 +42,7 @@ public sealed class DesignerAuthenticationControllerTests
             new
             {
                 identifier = "designer@customer.test",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
             });
         var loginResponse = await accountClient.SendAsync(login);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
@@ -1260,7 +1260,7 @@ public sealed class DesignerAuthenticationControllerTests
             DisplayName = "Designer Customer",
             IsActive = true,
         };
-        Assert.True((await userManager.CreateAsync(user, "Pxa-Customer-Password-42!")).Succeeded);
+        Assert.True((await userManager.CreateAsync(user, "Pvad-Customer-Password-42!")).Succeeded);
         var organization = new Organization { Name = "Designer Customer", Slug = "designer-customer" };
         var membership = new OrganizationMembership
         {
@@ -1303,7 +1303,7 @@ public sealed class DesignerAuthenticationControllerTests
             new
             {
                 identifier = "designer@customer.test",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
             });
         Assert.Equal(HttpStatusCode.OK, (await accountClient.SendAsync(login)).StatusCode);
     }

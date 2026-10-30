@@ -544,7 +544,7 @@ public sealed class PdfCertificationPolicyTests
         {
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA PDF Certification Test",
+                "CN=PVAD PDF Certification Test",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

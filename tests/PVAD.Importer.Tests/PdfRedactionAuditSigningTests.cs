@@ -32,7 +32,7 @@ public sealed class PdfRedactionAuditSigningTests
         var signature = Assert.IsType<PdfRedactionAuditSignature>(result.Audit.Signature);
         Assert.Equal("CMS/SHA-256", signature.Algorithm);
         Assert.Equal(key.Certificate.Thumbprint, signature.SignerThumbprint);
-        Assert.Contains("PXA Redaction Audit", signature.SignerSubject, StringComparison.Ordinal);
+        Assert.Contains("PVAD Redaction Audit", signature.SignerSubject, StringComparison.Ordinal);
         Assert.NotEmpty(Convert.FromBase64String(signature.Cms));
         Assert.True(PdfRedactionAuditVerifier.Verify(result.Audit, requireSignature: true));
     }
@@ -172,7 +172,7 @@ public sealed class PdfRedactionAuditSigningTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Redaction Audit",
+            "CN=PVAD Redaction Audit",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -223,7 +223,7 @@ public sealed class PdfRedactionAuditSigningTests
             var timestamp = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA Redaction Audit Test TSA",
+                "CN=PVAD Redaction Audit Test TSA",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

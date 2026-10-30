@@ -3,6 +3,26 @@ import type { ChartDefinition, ChartSeries, PvadChartType } from './types';
 export const CHART_PALETTE = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'];
 export const CHART_TYPES: PvadChartType[] = ['bar', 'line', 'area', 'pie', 'doughnut', 'stackedBar', 'combo'];
 
+type ChartRecognitionSource = NonNullable<ChartDefinition['recognition']>['sourceKind'];
+export const normalizeChartRecognitionSource = (source: ChartRecognitionSource): ChartRecognitionSource =>
+  source === 'pxaMetadata' ? 'pvadMetadata' : source;
+
+export function normalizeChartMetadataElement<T extends {
+  chart?: ChartDefinition;
+  style?: Record<string, any>;
+}>(element: T): T {
+  const recognition = element.chart?.recognition;
+  const sourceKind = normalizeChartRecognitionSource(recognition?.sourceKind);
+  const styleSource = element.style?.pdfChartRecognitionSource;
+  return {
+    ...element,
+    ...(recognition ? { chart: { ...element.chart, recognition: { ...recognition, sourceKind } } } : {}),
+    ...(styleSource !== undefined ? {
+      style: { ...element.style, pdfChartRecognitionSource: sourceKind ?? normalizeChartRecognitionSource(styleSource) },
+    } : {}),
+  };
+}
+
 const safeType = (value: unknown): PvadChartType =>
   typeof value === 'string' && CHART_TYPES.includes(value as PvadChartType)
     ? value as PvadChartType
@@ -52,6 +72,10 @@ export const normalizeChartDefinition = (
       type: safeType(source.type),
       categories,
       series,
+      recognition: source.recognition ? {
+        ...source.recognition,
+        sourceKind: normalizeChartRecognitionSource(source.recognition.sourceKind),
+      } : undefined,
       palette: Array.isArray(source.palette) && source.palette.length ? source.palette : [...CHART_PALETTE]
     };
   }

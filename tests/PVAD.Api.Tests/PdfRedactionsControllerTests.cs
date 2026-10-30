@@ -343,7 +343,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Redaction Audit API Test",
+            "CN=PVAD Redaction Audit API Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

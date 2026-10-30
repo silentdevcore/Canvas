@@ -5,6 +5,38 @@ namespace PVAD.Core.Tests;
 
 public sealed class ChartDefinitionNormalizerTests
 {
+    [Theory]
+    [InlineData("pxaMetadata", "pvadMetadata")]
+    [InlineData("pvadMetadata", "pvadMetadata")]
+    [InlineData("pdfVector", "pdfVector")]
+    [InlineData("pdfRaster", "pdfRaster")]
+    [InlineData(null, null)]
+    public void Recognition_sources_are_canonical_without_mutating_the_input(string? source, string? expected)
+    {
+        var original = new ChartDefinitionDto
+        {
+            Categories = ["A"],
+            Series = [new ChartSeriesDto { Values = [-2, null, 3] }],
+            Recognition = new ChartRecognitionDto { SourceKind = source, Confidence = 0.9 }
+        };
+        var element = new ElementDto
+        {
+            Chart = original,
+            Style = new Dictionary<string, object> { ["pdfChartRecognitionSource"] = source ?? "pdfVector", ["custom"] = 7 }
+        };
+
+        var normalized = ChartDefinitionNormalizer.Normalize(element);
+        Assert.Equal(expected, normalized.Recognition!.SourceKind);
+        Assert.Equal(source, original.Recognition.SourceKind);
+        Assert.Equal([-2d, null, 3d], normalized.Series[0].Values);
+        Assert.Equal(0.9, normalized.Recognition.Confidence);
+
+        ChartDefinitionNormalizer.SynchronizeLegacyFields(element);
+        Assert.Equal(expected ?? "pdfVector", element.Style["pdfChartRecognitionSource"]);
+        Assert.Equal(7, element.Style["custom"]);
+        Assert.Equal(expected, ChartDefinitionNormalizer.Normalize(element).Recognition!.SourceKind);
+    }
+
     [Fact]
     public void Legacy_chart_data_is_upgraded_without_losing_series()
     {

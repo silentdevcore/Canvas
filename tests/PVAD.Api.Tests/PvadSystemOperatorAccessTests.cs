@@ -21,7 +21,7 @@ public sealed class PvadSystemOperatorAccessTests
     {
         var access = CreateAccess(false);
 
-        Assert.True(access.IsAuthorized(CreateUser("local-admin@pxa.test")));
+        Assert.True(access.IsAuthorized(CreateUser("local-admin@pvad.test")));
     }
 
     private static PvadSystemOperatorAccess CreateAccess(bool required, params string[] emails) =>

@@ -58,6 +58,11 @@ test('schema domain migration preserves maintained constraints and legacy schema
   };
   for (const [path, expected] of Object.entries(constraints)) {
     const { $id, ...schema } = read(path);
+    if (path === 'docs/schema/design-export.schema.json') {
+      const source = schema.$defs.chartDefinition.properties.recognition.properties.sourceKind;
+      assert.equal(source.description, 'New embedded-chart output uses pvadMetadata; earlier metadata-source spellings remain readable. Vector and raster sources use pdfVector and pdfRaster.');
+      delete source.description;
+    }
     if (path === 'docs/schema/pvad-project-manifest-reader.schema.json') {
       assert.doesNotMatch(schema.description, /pxa/i);
       const baseline = JSON.parse(execFileSync('git', ['show', `0137a324:${path}`],

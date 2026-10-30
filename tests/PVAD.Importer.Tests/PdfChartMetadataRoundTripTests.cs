@@ -38,7 +38,8 @@ public sealed class PdfChartMetadataRoundTripTests
         Assert.Equal("sales-chart", restored.Id);
         Assert.Equal("automatic", restored.Chart!.Recognition!.Status);
         Assert.Equal(1, restored.Chart.Recognition.Confidence);
-        Assert.Equal("pxaMetadata", restored.Chart.Recognition.SourceKind);
+        Assert.Equal("pvadMetadata", restored.Chart.Recognition.SourceKind);
+        Assert.Equal("pvadMetadata", restored.Style!["pdfChartRecognitionSource"]);
         Assert.DoesNotContain(elements, element => element.Type == "shape");
         Assert.Contains(elements, element => element.Content == "Outside chart");
         Assert.Contains(imported.ImportDiagnostics!, item => item.Code == "PXA-PDF-CHART-002");

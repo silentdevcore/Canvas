@@ -6,6 +6,12 @@ are editorially normalized; original commands and wording remain in Git at
 
 ## Status And Naming Authority
 
+The [repository naming follow-up](PVAD.Repository-Naming-Followup.md) records the
+tracked-file deep search at `aa7c18cb` and the scoped correction of synthetic
+test names, current chart recognition outputs, additive audit details and source
+scan coverage. It preserves existing contracts, historical audits and all prior
+release gates; its inventory totals are not open-defect or completion counts.
+
 The [JSON naming cleanup](PVAD.JSON-Naming-Cleanup.md) tracks the follow-up to
 the completed Markdown cleanup. Editable JSON names are normalized; precise
 compatibility keys and immutable evidence remain separately audited. This does

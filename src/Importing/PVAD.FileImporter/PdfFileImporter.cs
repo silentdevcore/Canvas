@@ -239,7 +239,7 @@ public sealed class PdfFileImporter : IFileImporter
         {
             Status = "automatic",
             Confidence = 1,
-            SourceKind = "pxaMetadata",
+            SourceKind = ChartDefinitionNormalizer.MetadataSourceKind,
             DiagnosticCode = "PXA-PDF-CHART-002"
         };
         var element = new ElementDto
@@ -255,7 +255,7 @@ public sealed class PdfFileImporter : IFileImporter
             {
                 ["pdfChartRecognitionStatus"] = "automatic",
                 ["pdfChartRecognitionConfidence"] = 1d,
-                ["pdfChartRecognitionSource"] = "pxaMetadata"
+                ["pdfChartRecognitionSource"] = ChartDefinitionNormalizer.MetadataSourceKind
             }
         };
         ChartDefinitionNormalizer.SynchronizeLegacyFields(element);

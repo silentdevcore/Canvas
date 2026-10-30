@@ -41,7 +41,7 @@ public sealed class AuthControllerTests
 
         var missingCsrfResponse = await client.PostAsJsonAsync(
             "/api/pvad/v1/auth/login",
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         Assert.Equal(HttpStatusCode.BadRequest, missingCsrfResponse.StatusCode);
 
         var csrfResponse = await client.GetAsync("/api/pvad/v1/auth/csrf");
@@ -54,7 +54,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             token!,
-            new { identifier = "admin@pxa.test", password = "wrong-password" });
+            new { identifier = "admin@pvad.test", password = "wrong-password" });
         var invalidResponse = await client.SendAsync(invalidLogin);
         Assert.Equal(HttpStatusCode.Unauthorized, invalidResponse.StatusCode);
 
@@ -62,7 +62,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             token!,
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         var loginResponse = await client.SendAsync(login);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
         var sessionCookie = Assert.Single(
@@ -130,7 +130,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             signedOutCsrf.GetProperty("token").GetString()!,
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         var secondLoginResponse = await client.SendAsync(secondLogin);
         Assert.Equal(HttpStatusCode.OK, secondLoginResponse.StatusCode);
 
@@ -138,7 +138,7 @@ public sealed class AuthControllerTests
             factory.Services,
             userId,
             organizationId,
-            "new-admin@pxa.test");
+            "new-admin@pvad.test");
         var emailChangeCsrfResponse = await client.GetAsync("/api/pvad/v1/auth/csrf");
         var emailChangeCsrf = await emailChangeCsrfResponse.Content.ReadFromJsonAsync<JsonElement>();
         using var confirmEmail = CreateCsrfRequest(
@@ -155,7 +155,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             thirdCsrf.GetProperty("token").GetString()!,
-            new { identifier = "new-admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "new-admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(thirdLogin)).StatusCode);
 
         await ExpireSessionsAsync(factory.Services, userId);
@@ -167,7 +167,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             fourthCsrf.GetProperty("token").GetString()!,
-            new { identifier = "new-admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "new-admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(fourthLogin)).StatusCode);
 
         await RevokeSessionsAsync(factory.Services, userId);
@@ -199,12 +199,12 @@ public sealed class AuthControllerTests
         }
         using var wrongDisabled = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/login", await GetCsrfAsync(client),
-            new { identifier = "admin@pxa.test", password = "wrong-password" });
+            new { identifier = "admin@pvad.test", password = "wrong-password" });
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(wrongDisabled)).StatusCode);
 
         using var disabled = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/login", await GetCsrfAsync(client),
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         var disabledResponse = await client.SendAsync(disabled);
         Assert.Equal(HttpStatusCode.Forbidden, disabledResponse.StatusCode);
         Assert.Equal(PvadApiProblems.AccountDisabled,
@@ -219,7 +219,7 @@ public sealed class AuthControllerTests
         }
         using var suspended = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/login", await GetCsrfAsync(client),
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         var suspendedResponse = await client.SendAsync(suspended);
         Assert.Equal(HttpStatusCode.Forbidden, suspendedResponse.StatusCode);
         Assert.Equal(PvadApiProblems.OrganizationSuspended,
@@ -248,7 +248,7 @@ public sealed class AuthControllerTests
                 HttpMethod.Post,
                 "/api/pvad/v1/auth/login",
                 csrf.GetProperty("token").GetString()!,
-                new { identifier = "admin@pxa.test", password = $"Invalid-password-{attempt}!" });
+                new { identifier = "admin@pvad.test", password = $"Invalid-password-{attempt}!" });
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(invalidLogin)).StatusCode);
         }
 
@@ -257,7 +257,7 @@ public sealed class AuthControllerTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/login",
             lockedCsrf.GetProperty("token").GetString()!,
-            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+            new { identifier = "admin@pvad.test", password = "Pvad-Integration-Password-42!" });
         Assert.Equal(HttpStatusCode.Locked, (await client.SendAsync(lockedLogin)).StatusCode);
 
         await using var scope = factory.Services.CreateAsyncScope();
@@ -309,12 +309,12 @@ public sealed class AuthControllerTests
         var identityUser = new PvadIdentityUser
         {
             Id = userId,
-            UserName = "admin@pxa.test",
-            Email = "admin@pxa.test",
+            UserName = "admin@pvad.test",
+            Email = "admin@pvad.test",
             EmailConfirmed = true,
-            DisplayName = "PXA Test Administrator",
+            DisplayName = "PVADE Test Administrator",
         };
-        var userResult = await userManager.CreateAsync(identityUser, "Pxa-Integration-Password-42!");
+        var userResult = await userManager.CreateAsync(identityUser, "Pvad-Integration-Password-42!");
         Assert.True(userResult.Succeeded, Describe(userResult));
 
         var assignmentResult = await userManager.AddToRoleAsync(
@@ -325,7 +325,7 @@ public sealed class AuthControllerTests
         dbContext.Organizations.Add(new Organization
         {
             Id = organizationId,
-            Name = "PXA Integration Test",
+            Name = "PVADE Integration Test",
             Slug = "pxa-integration-test",
         });
         dbContext.OrganizationMemberships.Add(new OrganizationMembership

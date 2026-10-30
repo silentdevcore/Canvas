@@ -19,7 +19,7 @@ public sealed class PdfPadesSigningServiceTests
     public void CadesBuilder_ShouldCreateVerifiableRsaSignedAttributes()
     {
         using var fixture = SigningFixture.Create();
-        var documentDigest = SHA256.HashData("PXA detached content"u8);
+        var documentDigest = SHA256.HashData("PVAD detached content"u8);
 
         var result = PdfCadesCmsBuilder.CreateDetached(documentDigest, fixture.Key, fixture.SigningTime);
 
@@ -47,7 +47,7 @@ public sealed class PdfPadesSigningServiceTests
         var signingTime = new DateTimeOffset(2050, 1, 2, 3, 4, 5, TimeSpan.Zero);
 
         var result = PdfCadesCmsBuilder.CreateDetached(
-            SHA256.HashData("PXA future detached content"u8),
+            SHA256.HashData("PVAD future detached content"u8),
             fixture.Key,
             signingTime);
 
@@ -174,20 +174,20 @@ public sealed class PdfPadesSigningServiceTests
     {
         var now = DateTimeOffset.UtcNow;
         using var rootKey = RSA.Create(2048);
-        var rootRequest = new CertificateRequest("CN=PXA AIA Root", rootKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var rootRequest = new CertificateRequest("CN=PVAD AIA Root", rootKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 1, true));
         rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
         using var root = rootRequest.CreateSelfSigned(now.AddDays(-1), now.AddDays(2));
 
         using var intermediateKey = RSA.Create(2048);
-        var intermediateRequest = new CertificateRequest("CN=PXA AIA Intermediate", intermediateKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var intermediateRequest = new CertificateRequest("CN=PVAD AIA Intermediate", intermediateKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
         intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
         using var intermediatePublic = intermediateRequest.Create(root, now.AddHours(-1), now.AddDays(1), RandomNumberGenerator.GetBytes(16));
         using var intermediate = intermediatePublic.CopyWithPrivateKey(intermediateKey);
 
         using var leafKey = RSA.Create(2048);
-        var leafRequest = new CertificateRequest("CN=PXA AIA Signer", leafKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var leafRequest = new CertificateRequest("CN=PVAD AIA Signer", leafKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
         leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, true));
         using var leafPublic = leafRequest.Create(intermediate, now.AddHours(-1), now.AddHours(12), RandomNumberGenerator.GetBytes(16));
@@ -223,7 +223,7 @@ public sealed class PdfPadesSigningServiceTests
         var now = DateTimeOffset.UtcNow;
         using var rootKey = RSA.Create(2048);
         var rootRequest = new CertificateRequest(
-            "CN=PXA Offline Revocation Root",
+            "CN=PVAD Offline Revocation Root",
             rootKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -235,7 +235,7 @@ public sealed class PdfPadesSigningServiceTests
 
         using var leafKey = RSA.Create(2048);
         var leafRequest = new CertificateRequest(
-            "CN=PXA Offline Revocation Signer",
+            "CN=PVAD Offline Revocation Signer",
             leafKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -287,7 +287,7 @@ public sealed class PdfPadesSigningServiceTests
         var now = DateTimeOffset.UtcNow;
         using var rootKey = RSA.Create(2048);
         var rootRequest = new CertificateRequest(
-            "CN=PXA Evidence Root",
+            "CN=PVAD Evidence Root",
             rootKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -299,7 +299,7 @@ public sealed class PdfPadesSigningServiceTests
 
         using var leafKey = RSA.Create(2048);
         var leafRequest = new CertificateRequest(
-            "CN=PXA Evidence Signer",
+            "CN=PVAD Evidence Signer",
             leafKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -631,7 +631,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal([72d, 80d, 292d, 152d], widget.Rectangle);
         Assert.Equal("Page", widget.PageType);
         Assert.Contains("PXA approval", widget.AppearanceContent, StringComparison.Ordinal);
-        Assert.Contains("PXA PDF Signing Test", widget.AppearanceContent, StringComparison.Ordinal);
+        Assert.Contains("PVAD PDF Signing Test", widget.AppearanceContent, StringComparison.Ordinal);
         Assert.Contains("Approved for release", widget.AppearanceContent, StringComparison.Ordinal);
 
         await using var stream = new MemoryStream(result.Bytes);
@@ -667,7 +667,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Indeterminate, signature.TimestampStatus);
         AssertTimestampClose(timestampAuthority.Timestamp, signature.TimestampTime);
-        Assert.Contains("PXA Test TSA", signature.TimestampAuthoritySubject, StringComparison.Ordinal);
+        Assert.Contains("PVAD Test TSA", signature.TimestampAuthoritySubject, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1214,7 +1214,7 @@ public sealed class PdfPadesSigningServiceTests
         {
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA PDF Signing Test",
+                "CN=PVAD PDF Signing Test",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -1280,7 +1280,7 @@ public sealed class PdfPadesSigningServiceTests
         {
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA Test TSA",
+                "CN=PVAD Test TSA",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

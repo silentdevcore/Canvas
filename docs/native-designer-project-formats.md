@@ -197,6 +197,10 @@ payload checksums; use Validate or Open when full content integrity is required.
 
 Every export, open, validate, and inspect attempt writes a tenant-scoped audit event.
 Successful and rejected operations use `designer.projects.<format>.<operation>` actions.
+The action keys and existing `formatId` retain their stable operational values.
+New details additionally contain `canonicalFormatId`: `pvadp` for PDF projects
+and `pvads` for Spreadsheet projects. Existing audit rows remain unchanged and
+may omit this new field; consumers must continue accepting those older rows.
 Audit details are deliberately limited to format, operation, package byte count, asset
 count, review status, and a stable rejection diagnostic. They never contain the upload
 filename, document title, element or cell content, asset bytes, source path, or project

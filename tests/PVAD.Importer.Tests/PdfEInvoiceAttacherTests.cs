@@ -173,7 +173,7 @@ public sealed class PdfEInvoiceAttacherTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA E-Invoice Attachment Test",
+            "CN=PVAD E-Invoice Attachment Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

@@ -110,7 +110,6 @@ test('generation, importing and infrastructure retain only documented legacy ide
   const exceptions = {
     'src/Generation/PVAD.Generator/EInvoicePageLayout.cs': ['"pxa.e-invoice.pagination/1"'],
     'src/Importing/PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs': ['"PXA.ImageOcr"'],
-    'src/Importing/PVAD.FileImporter/PdfFileImporter.cs': ['"pxaMetadata"'],
     'src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs': ['_PXARedacted'],
     'src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs': ['"PXARedacted"'],
     'src/Infrastructure/PVAD.Infrastructure.Converters/XmlDocumentExporter.cs': ['"PxaDocument"'],
@@ -139,6 +138,7 @@ test('generation, importing and infrastructure retain only documented legacy ide
 test('all joined Core legacy names are bounded by diagnostic or explicit serialized-reader contracts', () => {
   const exceptions = {
     'src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs': ['"PXAChartsV2"'],
+    'src/Core/PVAD.Core/Primitives/ChartDefinitionNormalizer.cs': ['"pxaMetadata"'],
     'src/Core/PVAD.Core/Contracts/PvadCodeElementMarker.cs': ['"pxa-element-id:"'],
     'src/Core/PVAD.Core/ProjectFormats/PvadProjectModels.cs': [
       '"PXA-PXAP-1"', '"PXA-PXAS-1"', '"pxap"', '"pxas"',

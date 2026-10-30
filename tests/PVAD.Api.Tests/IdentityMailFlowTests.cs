@@ -28,7 +28,7 @@ public sealed class IdentityMailFlowTests
         using var factory = CreateFactory(postgres.GetConnectionString());
         await SeedAsync(factory.Services);
         using var adminClient = CreateClient(factory);
-        await LoginAsync(adminClient, "admin@pxa.test", "Pxa-Admin-Integration-42!", HttpStatusCode.OK);
+        await LoginAsync(adminClient, "admin@pvad.test", "Pvad-Admin-Integration-42!", HttpStatusCode.OK);
 
         var adminCsrf = await GetCsrfAsync(adminClient);
         using var invitation = CreateCsrfRequest(
@@ -37,7 +37,7 @@ public sealed class IdentityMailFlowTests
             adminCsrf,
             new
             {
-                email = "invited@pxa.test",
+                email = "invited@pvad.test",
                 displayName = "Invited User",
                 roles = new[] { PvadRoles.Editor },
             });
@@ -68,7 +68,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/accept-invitation",
             invitationCsrf,
-            new { token = invitationToken, password = "Pxa-Invited-Password-42!" });
+            new { token = invitationToken, password = "Pvad-Invited-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await invitedClient.SendAsync(acceptInvitation)).StatusCode);
 
         invitationCsrf = await GetCsrfAsync(invitedClient);
@@ -76,9 +76,9 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/accept-invitation",
             invitationCsrf,
-            new { token = invitationToken, password = "Pxa-Another-Password-42!" });
+            new { token = invitationToken, password = "Pvad-Another-Password-42!" });
         Assert.Equal(HttpStatusCode.BadRequest, (await invitedClient.SendAsync(reuseInvitation)).StatusCode);
-        await LoginAsync(invitedClient, "invited@pxa.test", "Pxa-Invited-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(invitedClient, "invited@pvad.test", "Pvad-Invited-Password-42!", HttpStatusCode.OK);
 
         using var resetClient = CreateClient(factory);
         var resetCsrf = await GetCsrfAsync(resetClient);
@@ -86,7 +86,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/request",
             resetCsrf,
-            new { email = "missing@pxa.test" });
+            new { email = "missing@pvad.test" });
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(unknownReset)).StatusCode);
 
         resetCsrf = await GetCsrfAsync(resetClient);
@@ -94,7 +94,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/request",
             resetCsrf,
-            new { email = "invited@pxa.test" });
+            new { email = "invited@pvad.test" });
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(requestReset)).StatusCode);
         await ProcessMailAsync(factory.Services);
         var resetMail = await WaitForMessageAsync(transport, "identity.password-reset");
@@ -106,17 +106,17 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/confirm",
             resetCsrf,
-            new { token = resetToken, newPassword = "Pxa-Reset-Password-42!" });
+            new { token = resetToken, newPassword = "Pvad-Reset-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await resetClient.SendAsync(confirmReset)).StatusCode);
         await ProcessMailAsync(factory.Services);
-        await LoginAsync(CreateClient(factory), "invited@pxa.test", "Pxa-Reset-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(CreateClient(factory), "invited@pvad.test", "Pvad-Reset-Password-42!", HttpStatusCode.OK);
 
         resetCsrf = await GetCsrfAsync(resetClient);
         using var reuseReset = CreateCsrfRequest(
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/confirm",
             resetCsrf,
-            new { token = resetToken, newPassword = "Pxa-Reused-Password-42!" });
+            new { token = resetToken, newPassword = "Pvad-Reused-Password-42!" });
         Assert.Equal(HttpStatusCode.BadRequest, (await resetClient.SendAsync(reuseReset)).StatusCode);
 
         resetCsrf = await GetCsrfAsync(resetClient);
@@ -124,7 +124,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/admin/password-reset/request",
             resetCsrf,
-            new { email = "invited@pxa.test" });
+            new { email = "invited@pvad.test" });
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(requestAdminReset)).StatusCode);
         await ProcessMailAsync(factory.Services);
         var adminResetMail = transport.Messages.Last(value =>
@@ -138,7 +138,7 @@ public sealed class IdentityMailFlowTests
             var issued = await tokens.IssueAsync(
                 invitedUserId,
                 null,
-                "invited@pxa.test",
+                "invited@pvad.test",
                 IdentityActionTokenService.PasswordResetPurpose,
                 new { },
                 TimeSpan.FromMinutes(-1),
@@ -151,7 +151,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/confirm",
             resetCsrf,
-            new { token = expiredResetToken, newPassword = "Pxa-Expired-Password-42!" });
+            new { token = expiredResetToken, newPassword = "Pvad-Expired-Password-42!" });
         Assert.Equal(HttpStatusCode.BadRequest, (await resetClient.SendAsync(expiredReset)).StatusCode);
 
         var mailPage = await adminClient.GetAsync("/api/pvad/v1/admin/mail?status=Delivered");
@@ -160,7 +160,7 @@ public sealed class IdentityMailFlowTests
         Assert.DoesNotContain("protectedPayload", mailJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(invitationToken, mailJson, StringComparison.Ordinal);
         Assert.DoesNotContain(resetToken, mailJson, StringComparison.Ordinal);
-        Assert.DoesNotContain("invited@pxa.test", mailJson, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("invited@pvad.test", mailJson, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("i***@p***.test", mailJson, StringComparison.Ordinal);
 
         Guid retryMessageId;
@@ -187,7 +187,7 @@ public sealed class IdentityMailFlowTests
             HttpMethod.Post,
             "/api/pvad/v1/auth/password-reset/request",
             resetCsrf,
-            new { email = "invited@pxa.test" });
+            new { email = "invited@pvad.test" });
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(cancellableReset)).StatusCode);
 
         Guid cancelMessageId;
@@ -274,12 +274,12 @@ public sealed class IdentityMailFlowTests
         await dbContext.SaveChangesAsync();
         var admin = new PvadIdentityUser
         {
-            UserName = "admin@pxa.test",
-            Email = "admin@pxa.test",
+            UserName = "admin@pvad.test",
+            Email = "admin@pvad.test",
             EmailConfirmed = true,
             DisplayName = "Mail Administrator",
         };
-        Assert.True((await userManager.CreateAsync(admin, "Pxa-Admin-Integration-42!")).Succeeded);
+        Assert.True((await userManager.CreateAsync(admin, "Pvad-Admin-Integration-42!")).Succeeded);
         var membership = new OrganizationMembership { OrganizationId = organization.Id, UserId = admin.Id };
         dbContext.OrganizationMemberships.Add(membership);
         await dbContext.SaveChangesAsync();

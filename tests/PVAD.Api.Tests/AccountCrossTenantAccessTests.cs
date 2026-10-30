@@ -38,11 +38,11 @@ public sealed class AccountCrossTenantAccessTests
 
         using var clientA = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, clientA, "owner-a@crosstenant.test", "Owner A");
-        await LoginAsync(clientA, "owner-a@crosstenant.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(clientA, "owner-a@crosstenant.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var clientB = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, clientB, "owner-b@crosstenant.test", "Owner B");
-        await LoginAsync(clientB, "owner-b@crosstenant.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(clientB, "owner-b@crosstenant.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
@@ -84,7 +84,7 @@ public sealed class AccountCrossTenantAccessTests
 
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@customerdenied.test", "Customer Owner");
-        await LoginAsync(ownerClient, "owner@customerdenied.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@customerdenied.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var invite = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/organization/members",
@@ -103,9 +103,9 @@ public sealed class AccountCrossTenantAccessTests
         using var viewerClient = CreateClient(factory);
         using var accept = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/accept-invitation",
-            await GetCsrfAsync(viewerClient), new { token, password = "Pxa-Viewer-Password-42!" });
+            await GetCsrfAsync(viewerClient), new { token, password = "Pvad-Viewer-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await viewerClient.SendAsync(accept)).StatusCode);
-        await LoginAsync(viewerClient, "viewer@customerdenied.test", "Pxa-Viewer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(viewerClient, "viewer@customerdenied.test", "Pvad-Viewer-Password-42!", HttpStatusCode.OK);
 
         Assert.Equal(HttpStatusCode.Forbidden, (await viewerClient.GetAsync("/api/pvad/v1/admin/users")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await viewerClient.GetAsync("/api/pvad/v1/admin/organizations")).StatusCode);
@@ -136,7 +136,7 @@ public sealed class AccountCrossTenantAccessTests
 
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@systemadminboundary.test", "Boundary Owner");
-        await LoginAsync(client, "owner@systemadminboundary.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@systemadminboundary.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var createOrganization = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/admin/organizations", await GetCsrfAsync(client),
@@ -159,7 +159,7 @@ public sealed class AccountCrossTenantAccessTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = $"{displayName} GmbH",
                 organizationSlug = slug,

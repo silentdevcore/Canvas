@@ -37,7 +37,7 @@ public sealed class MailDeliveryLifecycleTests
             var message = enqueueScope.ServiceProvider.GetRequiredService<IPvadMailQueue>().Enqueue(
                 organizationId: null,
                 recipientUserId: null,
-                recipientEmail: "scheduled@pxa.test",
+                recipientEmail: "scheduled@pvad.test",
                 templateKey: "identity.password-changed",
                 payload: new { displayName = "Scheduled User" },
                 idempotencyKey: "mail-lifecycle:scheduled");
@@ -91,7 +91,7 @@ public sealed class MailDeliveryLifecycleTests
             var message = permanentScope.ServiceProvider.GetRequiredService<IPvadMailQueue>().Enqueue(
                 organizationId: null,
                 recipientUserId: null,
-                recipientEmail: "unsupported@pxa.test",
+                recipientEmail: "unsupported@pvad.test",
                 templateKey: "identity.password-changed",
                 payload: new { displayName = "Unsupported User" },
                 idempotencyKey: "mail-lifecycle:unsupported");
@@ -111,9 +111,9 @@ public sealed class MailDeliveryLifecycleTests
         {
             var dbContext = duplicateScope.ServiceProvider.GetRequiredService<PvadDbContext>();
             var queue = duplicateScope.ServiceProvider.GetRequiredService<IPvadMailQueue>();
-            queue.Enqueue(null, null, "first@pxa.test", "identity.password-changed", new { },
+            queue.Enqueue(null, null, "first@pvad.test", "identity.password-changed", new { },
                 "mail-lifecycle:duplicate");
-            queue.Enqueue(null, null, "second@pxa.test", "identity.password-changed", new { },
+            queue.Enqueue(null, null, "second@pvad.test", "identity.password-changed", new { },
                 "mail-lifecycle:duplicate");
             await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
         }
@@ -128,8 +128,8 @@ public sealed class MailDeliveryLifecycleTests
             {
                 UserName = "retention-operator",
                 NormalizedUserName = "RETENTION-OPERATOR",
-                Email = "retention-operator@pxa.test",
-                NormalizedEmail = "RETENTION-OPERATOR@PXA.TEST",
+                Email = "retention-operator@pvad.test",
+                NormalizedEmail = "RETENTION-OPERATOR@PVAD.TEST",
                 DisplayName = "Retention Operator",
             };
             dbContext.Users.Add(retentionActor);
@@ -188,7 +188,7 @@ public sealed class MailDeliveryLifecycleTests
     {
         var message = new MailOutboxMessage
         {
-            RecipientEmail = "retention@pxa.test",
+            RecipientEmail = "retention@pvad.test",
             TemplateKey = "identity.password-changed",
             ProtectedPayload = "protected",
             IdempotencyKey = $"mail-lifecycle:{idempotencyKey}",

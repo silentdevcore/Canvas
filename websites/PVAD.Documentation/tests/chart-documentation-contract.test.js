@@ -36,3 +36,14 @@ test('PDF recognition modes and limitations are public and explicit', () => {
   assert.deepEqual(recognition.schema.enum, ['off', 'safe', 'review']);
   assert.equal(recognition.schema.default, 'safe');
 });
+
+test('canonical chart sources and additive audit format semantics are documented', () => {
+  assert.match(guide, /pvadMetadata/);
+  assert.match(guide, /earlier metadata-source spelling/);
+  const description = schema.$defs.chartDefinition.properties.recognition.properties.sourceKind.description;
+  assert.match(description, /pvadMetadata/);
+  assert.match(description, /earlier metadata-source spellings remain readable/);
+  const naming = fs.readFileSync(path.join(root, 'docs/pvad-current-output-naming.md'), 'utf8');
+  assert.match(naming, /canonicalFormatId/);
+  assert.match(naming, /Existing rows are never/);
+});

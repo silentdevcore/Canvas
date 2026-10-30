@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, readFileSync, readlinkSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -18,15 +18,15 @@ export const reasons = Object.freeze({
 });
 
 export function residualFiles(root) {
-  const files = [...new Set(execFileSync('git', ['ls-files', '-co', '--exclude-standard', '-z'],
+  const files = [...new Set(execFileSync('git', ['ls-files', '-z'],
     { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).split('\0').filter(Boolean))].sort();
   return files.flatMap(path => {
-    if (path === ledgerPath || !existsSync(resolve(root, path))) return [];
+    if (path === ledgerPath || /(?:^|\/)(?:\.vscode|\.git|\.aws|\.codex)(?:\/|$)/i.test(path)) return [];
     const absolute = resolve(root, path);
-    const stat = lstatSync(absolute);
-    if (!stat.isFile() && !stat.isSymbolicLink()) return [];
-    const bytes = stat.isSymbolicLink() ? Buffer.from(readlinkSync(absolute)) : readFileSync(absolute);
-    if (bytes.includes(0)) return [];
+    if (!lstatSync(absolute, { throwIfNoEntry: false })?.isFile()) return [];
+    const bytes = readFileSync(absolute);
+    // Source text can contain literal null bytes inside synthetic fixture strings.
+    if (bytes.includes(0) && !/\.(?:cs|csproj|sln|ts|tsx|js|jsx|mjs|cjs|mts|cts|json|jsonc|json5|md|xml|html|css|scss|ya?ml|sh|sql|conf|txt|tsv)$/i.test(path)) return [];
     if (!hasLegacyIdentity(path + '\n' + bytes.toString('utf8'))) return [];
     return [{ path, sha256: createHash('sha256').update(bytes).digest('hex') }];
   });
