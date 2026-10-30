@@ -1307,13 +1307,13 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "80fe9bbb47e9f233f6de360d74539567288bff1eb35070ae4462107d64d6e218",
+      "sha256": "66a9f9b9b85f221da26de39fb8797e3ae89ea10ea2d49248757abee0d354c81e",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 owner-policy follow-up: retain dated historical infrastructure names while recording the conditional seven-check target, stricter production policy and the second-account independence blocker. Repository write access is not an independent human review or cutover approval. Integration evidence retained separately: 2026-10-26 scoped GitHub cutover preparation: retain historical infrastructure identities and dated evidence while adding a static CI comparison and pending activation/rollback decisions. Supporting tests do not approve external changes or close a primary gate. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses. 2026-10-29 integration review: Retain historical review and rename checklist identities with the required naming-history notice. Added integration evidence does not change existing score-bearing task statuses.",
+      "reviewNotes": "2026-10-30 scoped develop protection acceptance: retain dated infrastructure names, original checklist identity and GitHub evidence references. Record the owner-authorized seven-check activation and isolated rejection, without changing the 90/98 primary count or claiming independent production approval. Historical checkpoints remain explicit; main and production controls are unchanged.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -2237,13 +2237,24 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
+      "path": "docs/pvad-develop-required-checks-acceptance.json",
+      "sha256": "2d6b8745ea262b97f3f3497c5028be831297e80cf14cb9f48210c745322d509b",
+      "reasons": [
+        "retained-evidence",
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-30 actual develop protection acceptance: repository spelling and CheckRun URLs are exact operational provenance. The single intentional required-check failure was isolated after all other required checks succeeded, then the probe was closed without merge. Metadata hashes contain no credentials and do not approve production.",
+      "boundaryGuide": "docs/pvad-github-cutover-plan.md"
+    },
+    {
       "path": "docs/pvad-github-cutover-plan.md",
-      "sha256": "e52beb2ab1e2dda908b100c5b1ddc82f9f08b9bddf1d3e7e4a8f4cfa01e7c617",
+      "sha256": "15d72948939aca9d1dade95f8702744a6f0c8c0429402d0f35a37c42b48c8746",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 owner-decision update: historical environment/repository identities remain observed resources and rollback inputs. Record existing write access for the nominee and the owner statement that this is a second account, not a different person. No independent reviewer, live protection change or production approval is claimed.",
+      "reviewNotes": "2026-10-30 develop-only execution review: historical repository and environment names identify real observed resources, not product branding. Separate the inert preparation snapshot from the owner-authorized required-check PATCH and completed negative acceptance. Main, environments and independent production approval remain unchanged or open.",
       "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
@@ -2359,12 +2370,12 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "ab707d1c92a33f7dc8bb391cfd705c14d627ca6a8971bb022a5e623ea7941a51",
+      "sha256": "4349632879b1df88cd19f9d077f7bda192f304c4c1e9a7f20b05a13936640d5e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 exact policy-register update: preserve historical package/environment evidence; distinguish selected policy from verified PR runs, independent reviewer availability and operational authorization. A nominated second account does not satisfy four-eyes review.",
+      "reviewNotes": "2026-10-30 scoped approval-register review: retain historical package/environment evidence and record the authorized develop activation and never-merged rejection probe. Ordinary GitHub review remains separate from independent production approval; main and environment cutover are not authorized by this acceptance.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {

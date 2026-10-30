@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import test from 'node:test';
-import { reviewCiChecks } from './rename-ci-check-review.mjs';
+import { reviewCiChecks, reviewNegativeCheckEnforcement } from './rename-ci-check-review.mjs';
 
 const { load } = createRequire(new URL('../../pvad-designer/package.json', import.meta.url))('js-yaml');
 const fixture = () => ({ on: { pull_request: { branches: ['main', 'develop'] } },
@@ -142,4 +142,102 @@ test('the dated closeout candidate preserves strict source bindings and does not
     assert.ok(candidate.branches[branch].blockers.includes('operator-activation-approval'));
     assert.ok(candidate.branches[branch].blockers.includes('negative-required-check-enforcement'));
   }
+});
+
+const rejectionFixture = () => {
+  const requiredChecks = [{ context: 'build', app_id: 123 }, { context: 'visual', app_id: 123 }];
+  const options = { expectedHead: 'a'.repeat(40), expectedBase: 'b'.repeat(40),
+    requiredChecks, failingContext: 'visual', intentionalStep: 'Intentional acceptance failure' };
+  const nodes = requiredChecks.map(check => ({ __typename: 'CheckRun', name: check.context,
+    status: 'COMPLETED', conclusion: check.context === 'visual' ? 'FAILURE' : 'SUCCESS',
+    isRequired: true, checkSuite: { app: { databaseId: 123 } }, detailsUrl: `https://example.test/job/${check.context}` }));
+  const pr = { state: 'OPEN', isDraft: false, autoMergeRequest: null, reviewDecision: 'APPROVED',
+    headRefOid: options.expectedHead, baseRefOid: options.expectedBase, baseRefName: 'develop',
+    mergeStateStatus: 'BLOCKED', mergeable: 'MERGEABLE',
+    reviewThreads: { pageInfo: { hasNextPage: false }, nodes: [] },
+    commits: { nodes: [{ commit: { oid: options.expectedHead,
+      statusCheckRollup: { contexts: { pageInfo: { hasNextPage: false }, nodes } } } }] } };
+  const job = { name: 'visual', status: 'completed', conclusion: 'failure', url: nodes[1].detailsUrl,
+    steps: [{ name: 'Real validation', status: 'completed', conclusion: 'success' },
+      { name: options.intentionalStep, status: 'completed', conclusion: 'failure' }] };
+  return { pr, job, options, nodes };
+};
+
+test('negative enforcement requires an approved exact-head PR, failed required check and successful remaining checks', () => {
+  const { pr, job, options } = rejectionFixture();
+  const before = structuredClone({ pr, job, options });
+  assert.equal(reviewNegativeCheckEnforcement(pr, job, options).verified, true);
+  assert.deepEqual({ pr, job, options }, before);
+});
+
+test('a generic blocked state cannot hide absent review, stale commits, draft or auto-merge', () => {
+  for (const change of [pr => { pr.reviewDecision = 'REVIEW_REQUIRED'; },
+    pr => { pr.headRefOid = 'c'.repeat(40); }, pr => { pr.baseRefOid = 'c'.repeat(40); },
+    pr => { pr.baseRefName = 'main'; }, pr => { pr.state = 'CLOSED'; },
+    pr => { pr.isDraft = true; }, pr => { pr.autoMergeRequest = {}; },
+    pr => { pr.mergeStateStatus = 'CLEAN'; }, pr => { pr.mergeable = 'CONFLICTING'; },
+    pr => { pr.reviewThreads.nodes.push({ isResolved: false }); },
+    pr => { pr.reviewThreads.pageInfo.hasNextPage = true; }]) {
+    const { pr, job, options } = rejectionFixture(); change(pr);
+    assert.equal(reviewNegativeCheckEnforcement(pr, job, options).verified, false);
+  }
+});
+
+test('negative enforcement fails closed for wrong check sources, incomplete inventories and additional failing gates', () => {
+  for (const change of [value => { value.nodes[1].isRequired = false; },
+    value => { value.nodes[1].checkSuite.app.databaseId = 456; },
+    value => { value.nodes[0].conclusion = 'FAILURE'; }, value => { value.nodes[0].status = 'IN_PROGRESS'; },
+    value => { value.nodes.push(structuredClone(value.nodes[1])); }, value => { value.nodes.pop(); },
+    value => { value.nodes.push({ ...value.nodes[0], name: 'new-required-check' }); },
+    value => { value.nodes.push({ __typename: 'StatusContext' }); },
+    value => { value.pr.commits.nodes[0].commit.statusCheckRollup.contexts.pageInfo.hasNextPage = true; },
+    value => { value.pr.commits.nodes[0].commit.oid = 'c'.repeat(40); }]) {
+    const value = rejectionFixture(); change(value);
+    assert.equal(reviewNegativeCheckEnforcement(value.pr, value.job, value.options).verified, false);
+  }
+});
+
+test('negative enforcement does not count an unrelated job failure or skipped real validation as an intentional probe', () => {
+  for (const change of [job => { job.url = 'https://example.test/other-job'; },
+    job => { job.steps[0].conclusion = 'failure'; }, job => { job.steps[0].conclusion = 'skipped'; },
+    job => { job.steps[1].name = 'Unexpected crash'; }, job => { job.steps = []; }]) {
+    const { pr, job, options } = rejectionFixture(); change(job);
+    assert.equal(reviewNegativeCheckEnforcement(pr, job, options).verified, false);
+  }
+});
+
+test('the real develop acceptance record proves one required failure and never ships the temporary probe', () => {
+  const record = JSON.parse(readFileSync(new URL('../../docs/pvad-develop-required-checks-acceptance.json', import.meta.url), 'utf8'));
+  const candidate = JSON.parse(readFileSync(new URL('../../docs/pvad-github-required-checks-candidate.json', import.meta.url), 'utf8'));
+  assert.equal(record.activation.branch, 'develop');
+  assert.equal(record.activation.appliedAndReadBack, true);
+  assert.equal(record.activation.strict, true);
+  assert.deepEqual(record.activation.checks, candidate.candidateBody.checks);
+  assert.ok(Object.values(record.unchanged).every(value => value === true));
+  assert.equal(record.deploymentAuthorized, false);
+  assert.equal(record.independentProductionApproval, false);
+  const negative = record.negativeTest;
+  assert.equal(negative.verdict.verified, true);
+  assert.deepEqual(negative.verdict.blockers, []);
+  assert.equal(negative.reviewDecision, 'APPROVED');
+  assert.equal(negative.mergeStateStatus, 'BLOCKED');
+  assert.equal(negative.mergeable, 'MERGEABLE');
+  assert.equal(negative.reviewConversationsClear, true);
+  assert.equal(negative.autoMergeDisabled, true);
+  assert.equal(negative.mergeAttempted, false);
+  assert.equal(negative.probeClosedWithoutMerge, true);
+  assert.equal(negative.probeRemoteBranchRemoved, true);
+  assert.equal(negative.runConclusion, 'failure');
+  assert.equal(negative.expectedRunFailure, true);
+  assert.deepEqual(negative.checks.map(({ context, app_id }) => ({ context, app_id })), record.activation.checks);
+  for (const check of negative.checks) {
+    assert.equal(check.isRequired, true);
+    assert.equal(check.status, 'COMPLETED');
+    assert.equal(check.conclusion, check.context === negative.failingContext ? 'FAILURE' : 'SUCCESS');
+  }
+  for (const [name, value] of Object.entries(record.evidence)) {
+    if (name.endsWith('Sha256')) assert.match(value, /^[a-f0-9]{64}$/);
+  }
+  const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  assert.equal(workflow.includes(negative.intentionalStep), false);
 });
