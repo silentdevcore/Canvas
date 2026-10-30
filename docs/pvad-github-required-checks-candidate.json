@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-29",
+  "repository": "silentdevcore/Canvas",
+  "scope": "Read-only evidence and inert protection candidate; not a current-state certificate or activation approval.",
+  "protectionChangeAuthorized": false,
+  "deploymentAuthorized": false,
+  "negativeEnforcementVerified": false,
+  "endpointTemplate": "repos/silentdevcore/Canvas/branches/{branch}/protection/required_status_checks",
+  "method": "PATCH",
+  "positivePrEvidence": {
+    "pullRequest": 210,
+    "baseRef": "develop",
+    "headSha": "52aab9a442b4cdd350e2676499e898f1d37bdbce",
+    "event": "pull_request",
+    "runId": 40947719236,
+    "conclusion": "success",
+    "mergeCommit": "fdc9ac41a971892f185be1db72824feb7311ebd6",
+    "checks": [
+      { "context": "version-policy", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707361117 },
+      { "context": "dotnet", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707823018 },
+      { "context": "frontend", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707823245 },
+      { "context": "dependency-security", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707822976 },
+      { "context": "mcp-beta", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707823139 },
+      { "context": "visual-parity", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123707823000 },
+      { "context": "supply-chain", "app_id": 15368, "status": "completed", "conclusion": "success", "jobId": 123721188108 }
+    ],
+    "detailsUrlTemplate": "https://github.com/silentdevcore/Canvas/actions/runs/40947719236/job/{jobId}",
+    "exclusions": ["snapshot was skipped", "repository approval is not independent production approval"]
+  },
+  "postMergeEvidence": {
+    "verifiedOn": "2026-10-30",
+    "runId": 40953916620,
+    "event": "push",
+    "headSha": "fdc9ac41a971892f185be1db72824feb7311ebd6",
+    "conclusion": "success",
+    "snapshotConclusion": "success",
+    "supplyChainConclusion": "success",
+    "scope": "Separate post-merge validation; not replacement PR-check or deployment evidence."
+  },
+  "observedProtection": {
+    "strict": true,
+    "checks": [
+      { "context": "version-policy", "app_id": 15368 },
+      { "context": "dotnet", "app_id": 15368 },
+      { "context": "frontend", "app_id": 15368 }
+    ]
+  },
+  "candidateBody": {
+    "strict": true,
+    "checks": [
+      { "context": "version-policy", "app_id": 15368 },
+      { "context": "dotnet", "app_id": 15368 },
+      { "context": "frontend", "app_id": 15368 },
+      { "context": "dependency-security", "app_id": 15368 },
+      { "context": "mcp-beta", "app_id": 15368 },
+      { "context": "visual-parity", "app_id": 15368 },
+      { "context": "supply-chain", "app_id": 15368 }
+    ]
+  },
+  "rollbackBody": {
+    "strict": true,
+    "checks": [
+      { "context": "version-policy", "app_id": 15368 },
+      { "context": "dotnet", "app_id": 15368 },
+      { "context": "frontend", "app_id": 15368 }
+    ]
+  },
+  "branches": {
+    "develop": {
+      "commit": "fdc9ac41a971892f185be1db72824feb7311ebd6",
+      "workflowBlob": "7d383f502bd7340e06374f6abcb2a975cdc28d75",
+      "targetJobsPresent": true,
+      "missingTargetJobs": [],
+      "readyToActivate": false,
+      "blockers": ["fresh-protection-and-ruleset-review", "operator-activation-approval", "negative-required-check-enforcement"]
+    },
+    "main": {
+      "commit": "30de5ea7d55d009dfc32a378e5bcc08d1f3ae8d1",
+      "workflowBlob": "9d97875305a3af8a172b649e84f00ca4f53ca234",
+      "targetJobsPresent": false,
+      "missingTargetJobs": ["mcp-beta", "visual-parity"],
+      "readyToActivate": false,
+      "blockers": ["protected-main-source-rollout", "main-target-release-pr-evidence", "fresh-protection-and-ruleset-review", "operator-activation-approval", "negative-required-check-enforcement"]
+    }
+  },
+  "unchangedControls": ["admin enforcement", "required PR reviews", "stale-review dismissal", "last-push approval", "linear history", "force-push and deletion protection", "environment protection", "secret and variable values"],
+  "rollbackPolicy": "Rollback requires a fresh review and explicit authorization; never silently restore a weaker obsolete policy."
+}

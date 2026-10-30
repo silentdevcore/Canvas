@@ -4,7 +4,7 @@
 
 ## Status And Naming Authority
 
-**Current status, 2026-10-26: not complete. The counted acceptance plan is
+**Current status, 2026-10-30: source rename merged; release/cutover not complete. The counted acceptance plan is
 90/98 complete (91.8%), with 8/98 open (8.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate
 validation now passes, including the user-confirmed Chrome print check; external
@@ -20,8 +20,14 @@ are verified. Canonical publication permissions, publication and protected
 environment cutover remain open. See [the source transition](#confirmed-container-publisher-source-transition-2026-10-26)
 and [the approved package inventory](#approved-package-inventory-follow-up-2026-10-26).
 Earlier 88/97 and other percentages below are historical checkpoints, not the
-current total. The full API suite now passes against deliberately isolated
-PostgreSQL on commit `16c4264e`; the earlier local-database blocker is historical.
+current total. [PR 210](https://github.com/silentdevcore/Canvas/pull/210)
+merged to `develop` as `fdc9ac41a971892f185be1db72824feb7311ebd6` on
+2026-10-29, after the complete final-head PR workflow passed on `52aab9a4`.
+The earlier local-database, validator-image, option-list and Linux-font blockers
+are resolved; their dated failure records remain historical evidence.
+The separate post-merge workflow 40953916620 also passed, including snapshot and
+supply-chain, independently verified on 2026-10-30. Neither run is production
+deployment or release-publication evidence.
 The user confirmed the requested Chrome print test completed successfully;
 the combined local final-candidate gate is closed, not the external release gates.
 This is not release readiness or proof that all features work on the final source
@@ -1454,20 +1460,55 @@ Active workflows, environment names and branch rules remain unchanged. These
 are supporting tasks, not new primary criteria: **90/98 (91.8%) complete,
 8/98 (8.2%) open**.
 
+## Owner-Selected GitHub Policy Follow-up (2026-10-26)
+
+See [the recorded policy decisions](../docs/pvad-github-cutover-plan.md#owner-policy-decisions-2026-10-26).
+The owner selected seven required checks after verified real PR runs, stricter
+production protection and unchanged staging controls. Policy selection does not
+replace operational approval or the outstanding evidence.
+
+- [x] Record the selected checks while preserving the existing three and requiring real PR evidence before additions.
+- [x] Record prevention of production self-review and disabling admin bypass as the selected target; retain staging controls.
+- [x] Verify that the nominated mabadev account already has repository write access without granting additional rights.
+- [x] Record the owner's confirmation that mabadev is their own second account, not an independent human reviewer; do not treat distinct account names as four-eyes approval.
+- [ ] Identify an independent production reviewer, verify access and approval behavior, and obtain operational approval after the remaining cutover prerequisites pass.
+
+No branch/environment settings, permissions, workflow runs or deployments were
+changed. The independent-reviewer and real-PR prerequisites remain open; overall
+completion remains **90/98 (91.8%), with 8/98 (8.2%) open**.
+
 ## Related Work
 
-### Develop Integration Candidate - 2026-10-29
+### Develop Integration And PR Acceptance - 2026-10-29
 
-The isolated integration candidate preserves the rename features while merging
-the reviewed develop maintenance baseline. Full Solution and all frontend builds
-pass; Designer has 780 passing tests, API/PostgreSQL has 1,319 passing tests and
-one documented old-binary skip, and all 52 collector hosts pass (945 tests).
-Desktop/mobile Designer, Admin and chart fixture checks pass. Original pending
-documents remain unchanged; no commit, transfer, remote merge or deployment is
-included. See the integration report for corrections, evidence and exclusions.
+PR 210 preserves the rename features and reviewed develop maintenance baseline.
+The final PR head is `52aab9a442b4cdd350e2676499e898f1d37bdbce`; its complete
+[workflow 40947719236](https://github.com/silentdevcore/Canvas/actions/runs/40947719236)
+passed version policy, registry login, dependency security, frontend, .NET,
+MCP beta, visual parity, artifact contracts and supply-chain. The push-only
+snapshot job was intentionally skipped, not counted as passing. Local Designer
+validation passed 801 tests in 91 suites; the full .NET CI includes isolated
+PostgreSQL, migrations, collector coverage and Legal backup/restore. Supply-chain
+built the API container without publication and verified metadata and SBOMs.
+
+GitHub accepted the PR approval and the owner authorized a squash merge to
+`develop`, producing `fdc9ac41a971892f185be1db72824feb7311ebd6` at
+2026-10-29T20:59:52Z. `main`, VERSION 1.1.0, published releases and production
+settings were not changed. Approval from the owner's second account is a
+repository PR approval, not independent production four-eyes approval.
+
+Follow-up verified 2026-10-30: the independent post-merge push workflow
+[40953916620](https://github.com/silentdevcore/Canvas/actions/runs/40953916620)
+passed all ten jobs, including snapshot and supply-chain. The skipped snapshot
+in the PR run and successful snapshot in this push run are distinct observations.
+
+The earlier separate policy documents are handled by this closeout branch.
+See the [dated protection evidence](../docs/pvad-github-required-checks-candidate.json)
+and [remaining activation steps](../docs/pvad-github-cutover-plan.md#post-merge-closeout-2026-10-29).
 This validates existing work, not an external gate: **90/98 (91.8%) complete,
-8/98 (8.2%) open**. Next delivery action is a reviewed commit/transfer that
-preserves the separate pending policy documents, followed by real PR CI.
+8/98 (8.2%) open**. The next technical step is review of the branch-specific
+protection candidate and its unverified negative-enforcement case; external
+publisher, key recovery, staging and release approvals remain separate.
 
 - [Develop integration candidate and validation](../docs/pvad-rename-develop-integration.md)
 

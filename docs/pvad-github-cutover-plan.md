@@ -32,6 +32,31 @@ Rulesets and recent emitted check-run identities were not queried in this audit.
 
 ## Required Check Decision
 
+### Owner Policy Decisions (2026-10-26)
+
+The owner selected the following target policy after the baseline audit. Policy
+selection is not proof of completed activation prerequisites or a live change.
+
+| Area | Owner decision | Activation status |
+| --- | --- | --- |
+| Required checks on `main` and `develop` | Retain the three existing checks; add `dependency-security`, `mcp-beta`, `visual-parity` and `supply-chain` after verified real PR runs | PR 210 now provides positive develop evidence. Branch-specific rollout and negative enforcement remain pending; no branch protection changed |
+| Production environment | Prevent self-review and disable administrator bypass | Pending independent reviewer and the existing activation prerequisites |
+| Staging environment | Preserve existing controls for this transition | No change performed |
+| Nominated reviewer | `mabadev` | Repository API reports `write` access; the owner confirms this is their own second account, not an independent reviewer |
+
+The read-only collaborator-permission check for `mabadev` returned repository
+role `write`, with read/write/triage enabled and admin/maintain disabled. No rights
+were granted and no review or approval was submitted. Access is distinct from
+human independence and successful review enforcement.
+
+**Production blocker:** two accounts controlled by the same person do not meet
+the intended independent four-eyes approval policy. Do not use the second account
+to claim that requirement passed. A separately responsible person/team must be
+identified, have suitable access and demonstrate the approval flow before the
+stricter production policy or production cutover is activated. Until then, leave
+existing production protections and bindings unchanged; do not remove reviews or
+enable a bypass to work around the missing reviewer.
+
 The repeatable offline reviewer is
 [`reviewCiChecks`](../tools/configuration/rename-ci-check-review.mjs). It accepts
 parsed CI YAML, the observed `requiredStatusChecks` metadata, and an explicit
@@ -44,14 +69,14 @@ and the remote/local comparison in `ci-review.json`.
 | Context | Current remote CI sources | Local candidate | Decision |
 | --- | --- | --- | --- |
 | `version-policy`, `dotnet`, `frontend` | Present and required | Present | Retain names, strict mode and App ID bindings |
-| `dependency-security` | Present, not required | Present | Recommend adding after verified PR runs and owner approval |
-| `supply-chain` | Present, not required | Present | Recommend adding after verified PR runs and owner approval |
+| `dependency-security` | Present, not required | Present | Owner-selected addition after verified PR runs |
+| `supply-chain` | Present, not required | Present | Owner-selected addition after verified PR runs |
 | `mcp-beta` | Absent | Present | Do not require before source rollout and real emitted-check verification |
 | `visual-parity` | Absent | Present | Do not require before source rollout and real emitted-check verification |
 | `snapshot` | Conditional push-only artifact job | Same role | Do not use as a PR validation gate |
 
-Recommendation, not approved policy: ultimately require all seven validation
-contexts above, retaining the existing three. Adding them is separate from
+The owner-selected target requires all seven validation contexts above after
+verified PR runs, retaining the existing three. Adding them is separate from
 renaming the displayed workflow or an environment. Do not add `snapshot` as a
 substitute for validation, or drop old required checks to unblock a merge.
 
@@ -81,17 +106,19 @@ a reviewer, broaden allowed branches or auto-create an unprotected environment.
 The existing [environment comparator](../tools/deployment/README.md#offline-protected-environment-comparison)
 rejects any source/target control difference, including a stricter target.
 
-Separately recommend preventing production self-review and disabling production
-admin bypass. This is a policy decision, not an incidental rename. If approved,
-record and apply the policy deliberately, establish a reviewed matching baseline
-for source and target, then rerun the comparator. Do not weaken its equality
-checks or claim a mismatched snapshot passed. Staging reviewer/bypass policy and
-an independent qualified production reviewer also require explicit decisions.
+The owner selected prevention of production self-review and disabling production
+admin bypass. This is a policy decision, not an incidental rename. Activation
+remains blocked by the independent-reviewer requirement above. Once prerequisites
+and the operational change are approved, apply the policy deliberately, establish
+a reviewed matching baseline for source and target, then rerun the comparator.
+Do not weaken its equality checks or claim a mismatched snapshot passed. Staging
+keeps its existing controls in this transition.
 
 ## Authorized Activation Sequence
 
-Every step below remains pending authorization or real-environment evidence.
-The local source changes and this review alone complete none of these steps.
+The target policy is selected above; execution still requires the remaining
+authorization and real-environment evidence below. The local source changes and
+this review alone complete none of these steps.
 
 1. **Approve scope.** Name the repository/release operator, reviewer and test
    window. Review effective rulesets, current PR requirements and environment
@@ -151,7 +178,10 @@ adapter. Retain both audit trails and record the abort reason and operator.
 
 - Fresh complete, owner-reviewed environment/configuration metadata, matching
   controls, secure value verification and effective-ruleset review.
-- Reviewed policy decisions for self-review, bypass, extra checks and reviewers.
+- A genuinely independent production reviewer, suitable access and verified
+  approval behavior; the selected second account does not meet this requirement.
+- Operational approval to activate the selected self-review/bypass/check policy
+  after all its prerequisites pass.
 - Successful and deliberately failing real PR checks with verified check sources.
 - Repeatable fresh drain, protected-branch rollout and tested single-writer rollback.
 - Actual staging/deployment/recovery evidence and separate publication approval.
@@ -160,3 +190,55 @@ adapter. Retain both audit trails and record the abort reason and operator.
 No environments, branch rules, workflows, tags or published packages were changed
 by this preparation. The eight primary rename gates stay open: **90/98 (91.8%)
 complete; 8/98 (8.2%) open**. Supporting static checks do not increase that score.
+
+## Post-Merge Closeout (2026-10-29)
+
+This dated update supersedes the current-status interpretation of the older
+baseline, without rewriting its observations. PR 210 was approved at its exact
+tested head and merged normally by squash into `develop` as `fdc9ac41`.
+No administrator bypass or branch-protection change was used. The owner's
+second account supplied the GitHub PR approval; it is not independent production
+approval and does not close the separate production reviewer requirement.
+
+Fresh GET-only inspection found:
+
+| Item | Observed result | Consequence |
+| --- | --- | --- |
+| `develop` source | `fdc9ac41a971892f185be1db72824feb7311ebd6`, workflow blob `7d383f502bd7340e06374f6abcb2a975cdc28d75`, PVADE CI with all seven target jobs | Source rollout to develop is complete |
+| `main` source | `30de5ea7d55d009dfc32a378e5bcc08d1f3ae8d1`, workflow blob `9d97875305a3af8a172b649e84f00ca4f53ca234`, historical CI without `mcp-beta` and `visual-parity` | Main rollout/release-PR validation remains open; do not copy develop acceptance blindly |
+| Both branch protections | Strict checks: `version-policy`, `dotnet`, `frontend`, each from App ID 15368; admin enforcement and one required PR approval remain enabled | All existing controls must be retained |
+| Visible repository/parent rulesets | The includes-parents GET returned an empty list | No additional rulesets observed; branch protections still apply |
+| Environments | Only `pxa-staging` and `pxa-production`; protected branches only; admin bypass permitted; production self-review not prevented | Environment migration and selected production hardening remain unexecuted |
+| Final-head PR checks | All seven target checks completed successfully on `52aab9a442b4cdd350e2676499e898f1d37bdbce`, App ID 15368 | Positive real-PR evidence is verified, not simulated |
+
+The [machine-readable candidate](pvad-github-required-checks-candidate.json)
+records the exact check-run links, source revisions, intended seven-check body
+and original three-check rollback body. It is an inert proposal, not a script,
+authorization token or applied setting. It contains no secret/variable values.
+The post-merge [develop run](https://github.com/silentdevcore/Canvas/actions/runs/40953916620)
+was initially in progress. Follow-up verification on 2026-10-30 confirms all ten
+jobs completed successfully, including snapshot and supply-chain. Its push
+evidence is separate from, not a substitute for, the successful final-head PR
+checks. This follow-up changes no protection or deployment authorization.
+
+### Next Protection Steps
+
+1. Re-read current branch protection, emitted check sources and applicable
+   rulesets immediately before an authorized change; this snapshot is not live.
+2. Review and authorize develop activation independently of production.
+   The candidate updates only required checks, preserving strict mode, App IDs,
+   reviews, admin enforcement and all unrelated protections.
+3. Demonstrate the negative case with an explicitly authorized, non-production
+   test: failure of an added required check must block merging without bypass.
+   Existing failed workflows do not prove this while those jobs are optional.
+4. Re-read the resulting rules and record positive and negative evidence before
+   marking develop protection acceptance complete.
+5. Roll source to main through the normal reviewed major-release process, verify
+   the actual main-target PR checks and only then authorize its protection change.
+   Do not open a stable release merely to close this documentation task.
+6. Handle protected environment renaming and production hardening separately,
+   with independent reviewer, secure configuration transfer, drain and rollback.
+
+The current branch prepares documentation and evidence only. It does not enable
+new required checks, create environments, publish packages, change VERSION,
+release to main or deploy. All eight primary operational/release gates remain open.
