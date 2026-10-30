@@ -224,8 +224,10 @@ GitHub recorded APPROVED at the exact final PR head. After the owner's explicit
 merge instruction, develop's linear-history rule was respected with a squash
 merge, producing `fdc9ac41a971892f185be1db72824feb7311ebd6` at
 2026-10-29T20:59:52Z. No protection bypass was used. The separate develop workflow
-40953916620 was still running at the closeout checkpoint; its result must not be
-inferred from the PR run. Main, VERSION, published manifests, tags, registries
+40953916620 was still running at the initial closeout checkpoint. Follow-up
+verification on 2026-10-30 confirms all ten push jobs passed, including snapshot
+and supply-chain; this is independently observed, not inferred from the PR run.
+Main, VERSION, published manifests, tags, registries
 and production environments were not changed. Repository approval is not
 independent production approval. Remaining gates and policy decisions are tracked
 in the [updated cutover plan](pvad-github-cutover-plan.md#post-merge-closeout-2026-10-29).

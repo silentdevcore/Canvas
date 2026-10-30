@@ -131,6 +131,11 @@ test('the dated closeout candidate preserves strict source bindings and does not
   assert.equal(result.proposedChecksResolve, true);
   assert.equal(candidate.branches.develop.targetJobsPresent, true);
   assert.equal(candidate.branches.develop.commit, evidence.mergeCommit);
+  assert.equal(candidate.postMergeEvidence.headSha, evidence.mergeCommit);
+  assert.notEqual(candidate.postMergeEvidence.headSha, evidence.headSha);
+  assert.equal(candidate.postMergeEvidence.event, 'push');
+  assert.equal(candidate.postMergeEvidence.conclusion, 'success');
+  assert.notEqual(candidate.postMergeEvidence.runId, evidence.runId);
   assert.deepEqual(candidate.branches.main.missingTargetJobs, ['mcp-beta', 'visual-parity']);
   for (const branch of ['develop', 'main']) {
     assert.equal(candidate.branches[branch].readyToActivate, false);

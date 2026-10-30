@@ -1307,7 +1307,7 @@
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "846b9b9a7e48f5242a6e4b23bc35394cdf0fd532ecc9b981a3bf03a691414d88",
+      "sha256": "80fe9bbb47e9f233f6de360d74539567288bff1eb35070ae4462107d64d6e218",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -2238,7 +2238,7 @@
     },
     {
       "path": "docs/pvad-github-cutover-plan.md",
-      "sha256": "bd79c21d8471d9e0e06217f0805d8e1dca9f762664a2c061f2100b4329198455",
+      "sha256": "e52beb2ab1e2dda908b100c5b1ddc82f9f08b9bddf1d3e7e4a8f4cfa01e7c617",
       "reasons": [
         "infrastructure-binding"
       ],
@@ -2248,7 +2248,7 @@
     },
     {
       "path": "docs/pvad-github-required-checks-candidate.json",
-      "sha256": "c0481c58e0aba701ec1177a0014cd5a65d03c6120f187406699c71082bdfd521",
+      "sha256": "2a1b14327dae1aa3005d2f5a9ed6271b8b4998fa4e46512340d7d23e4401c6f9",
       "reasons": [
         "retained-evidence",
         "infrastructure-binding"
@@ -2359,7 +2359,7 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "07037126ac6995951fc386db786ac0f013c518d4949f43b88a1568be931c5145",
+      "sha256": "ab707d1c92a33f7dc8bb391cfd705c14d627ca6a8971bb022a5e623ea7941a51",
       "reasons": [
         "compatibility-contract"
       ],
@@ -9523,7 +9523,7 @@
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "49c818186e861cc6d526458857bc232df141b5c72346358e79b49e10439c8d7e",
+      "sha256": "e86acb9386f7a5a3f7f1213651cf51a0358b96ff5240b599d6f8271f5ba28ef3",
       "reasons": [
         "historical-document"
       ],

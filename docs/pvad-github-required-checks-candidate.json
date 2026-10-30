@@ -28,6 +28,16 @@
     "detailsUrlTemplate": "https://github.com/silentdevcore/Canvas/actions/runs/40947719236/job/{jobId}",
     "exclusions": ["snapshot was skipped", "repository approval is not independent production approval"]
   },
+  "postMergeEvidence": {
+    "verifiedOn": "2026-10-30",
+    "runId": 40953916620,
+    "event": "push",
+    "headSha": "fdc9ac41a971892f185be1db72824feb7311ebd6",
+    "conclusion": "success",
+    "snapshotConclusion": "success",
+    "supplyChainConclusion": "success",
+    "scope": "Separate post-merge validation; not replacement PR-check or deployment evidence."
+  },
   "observedProtection": {
     "strict": true,
     "checks": [

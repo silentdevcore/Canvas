@@ -4,7 +4,7 @@
 
 ## Status And Naming Authority
 
-**Current status, 2026-10-29: source rename merged; release/cutover not complete. The counted acceptance plan is
+**Current status, 2026-10-30: source rename merged; release/cutover not complete. The counted acceptance plan is
 90/98 complete (91.8%), with 8/98 open (8.2%).** OAuth/MCP writer defaults and
 the local tested identity transition are now implemented. Final-candidate
 validation now passes, including the user-confirmed Chrome print check; external
@@ -25,7 +25,9 @@ merged to `develop` as `fdc9ac41a971892f185be1db72824feb7311ebd6` on
 2026-10-29, after the complete final-head PR workflow passed on `52aab9a4`.
 The earlier local-database, validator-image, option-list and Linux-font blockers
 are resolved; their dated failure records remain historical evidence.
-The separate post-merge workflow is not assumed to have passed from the PR result.
+The separate post-merge workflow 40953916620 also passed, including snapshot and
+supply-chain, independently verified on 2026-10-30. Neither run is production
+deployment or release-publication evidence.
 The user confirmed the requested Chrome print test completed successfully;
 the combined local final-candidate gate is closed, not the external release gates.
 This is not release readiness or proof that all features work on the final source
@@ -1494,6 +1496,11 @@ GitHub accepted the PR approval and the owner authorized a squash merge to
 2026-10-29T20:59:52Z. `main`, VERSION 1.1.0, published releases and production
 settings were not changed. Approval from the owner's second account is a
 repository PR approval, not independent production four-eyes approval.
+
+Follow-up verified 2026-10-30: the independent post-merge push workflow
+[40953916620](https://github.com/silentdevcore/Canvas/actions/runs/40953916620)
+passed all ten jobs, including snapshot and supply-chain. The skipped snapshot
+in the PR run and successful snapshot in this push run are distinct observations.
 
 The earlier separate policy documents are handled by this closeout branch.
 See the [dated protection evidence](../docs/pvad-github-required-checks-candidate.json)

@@ -216,8 +216,10 @@ records the exact check-run links, source revisions, intended seven-check body
 and original three-check rollback body. It is an inert proposal, not a script,
 authorization token or applied setting. It contains no secret/variable values.
 The post-merge [develop run](https://github.com/silentdevcore/Canvas/actions/runs/40953916620)
-was still in progress when this update was prepared; it is distinct from the
-successful final-head PR workflow.
+was initially in progress. Follow-up verification on 2026-10-30 confirms all ten
+jobs completed successfully, including snapshot and supply-chain. Its push
+evidence is separate from, not a substitute for, the successful final-head PR
+checks. This follow-up changes no protection or deployment authorization.
 
 ### Next Protection Steps
 
