@@ -77,12 +77,12 @@
     },
     {
       "path": "checklists/Code-Migration-DevExpressReport.md",
-      "sha256": "572af077cf7098cc7828b265037861cbbe2445715c455aa023bf0b11d3597581",
+      "sha256": "bfd2bba3c25203af8e0eec1e9cc5c353f7b8c561dcd612a1e3e3b157aeed7324",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -146,23 +146,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/Code-Migration-SyncfusionRdl.md",
-      "sha256": "7916b433c025c37f7c4853904679d4f974463b84bd1e419e32f6a5eae620d157",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "checklists/Code-Migrations-UI.md",
-      "sha256": "6e20455fca59406d4c8b9487a1ad60b7dbffa45a71428893f8b26fffb9f97296",
+      "sha256": "857f7867176b1d185f0a7cf6a69ae0b1a5ec785ebf1574085b28d9a5c7adf256",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -178,16 +168,6 @@
     {
       "path": "checklists/Designer-Migration-ActiveReports.md",
       "sha256": "a5d2c9592c22020447ecb53cf9aa889ba595b90b730445116c34da336666e2c6",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Designer-Migration-JasperReports.md",
-      "sha256": "0853acbd990c349adb9c1c3712fc01ef965e06c8477200db5a2caace2efc8530",
       "reasons": [
         "historical-checklist"
       ],
@@ -287,12 +267,12 @@
     },
     {
       "path": "checklists/Migration-Namespace-Taxonomy.md",
-      "sha256": "cbd7053a94b22f0ece357c165c101337f98cf572efb8b887792ac1c0361870ef",
+      "sha256": "b2589c151898bb17a167c379cd30f6fc5eba47836e40bb8dd804fd02b3c8a310",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -657,12 +637,12 @@
     },
     {
       "path": "checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md",
-      "sha256": "9f7bf249de976340ea18d0ae6909444123456395c819f792e237887f39d94199",
+      "sha256": "70f660c29bfc7e6c43c2493f59b9c6973de679538c194d6bc83f7626f18f5813",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -786,16 +766,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/PVAD.Unified-Migration-Frameworks.md",
-      "sha256": "d5e1e1e9f56a44c95fe16cac84d69215d5feea3a25df7f697b46788b16dc9b08",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "checklists/PVAD.Web-Design-System.md",
       "sha256": "09a292a1bfbebce0ba5e891d9489a2ddefc153970b6ae7dfa149fb71fb73833a",
       "reasons": [
@@ -837,43 +807,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/Spreadsheet-Migration-Aspose.md",
-      "sha256": "7af5e5dc7bcaf22ac2c54737784d123444df2be5fa661a97e5884a0363df9fa3",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Spreadsheet-Migration-EPPlus.md",
-      "sha256": "0c0a4457332dfe20ae8683999430571b674fbde002cf96375a68a6ad146f9851",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Spreadsheet-Migration-GemBox.md",
-      "sha256": "994822cb6cc90c5cee5906696d742a98f8a324984c09138cd1b47a3267128630",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "checklists/Spreadsheet-Migration.md",
-      "sha256": "51efc696eebace2ae388d4bc91be11d7454cc8c5b1cde76d0422653df790e3c7",
+      "sha256": "8791f5af87a9d2fb0aef5a0c56013c2e7b142b0d52810cae22c5160fca40a34d",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6696,12 +6636,12 @@
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "ceade16b0e5939206497137412fb521b5f39173045014dcb13df288ad978dda3",
+      "sha256": "c5b58be2d5ec88cc1f8b954b101e1ce58299c4322fe66b0bb7db62a4c642eb9f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Naming contracts preserve explicit legacy inputs and compatibility assertions while checking canonical checklist paths, internal milestone IDs, current links and the absence of repeated banners. Historical checklist bodies remain bounded exceptions. Tests do not change runtime readers, reapprove recorded results or authorize publication.",
+      "reviewNotes": "Naming contracts preserve explicit legacy inputs and compatibility assertions while checking canonical checklist paths, internal milestone IDs, current links and the absence of repeated banners. Historical checklist bodies remain bounded exceptions. Tests do not change runtime readers, reapprove recorded results or authorize publication. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {

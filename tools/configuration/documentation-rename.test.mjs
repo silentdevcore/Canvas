@@ -296,3 +296,58 @@ test('specialty milestone identifiers use PVAD without renaming compatibility di
   const ledger = JSON.parse(read('docs/pvad-rename-reviewed-exceptions.json'));
   assert.ok(ledger.files.every(entry => !entry.reviewNotes.startsWith('Explicit naming-history notice states')));
 });
+
+test('migration instructions and current result examples match renamed source contracts', () => {
+  const ui = read('checklists/Code-Migrations-UI.md');
+  assert.doesNotMatch(ui, /pxa/i);
+  assert.match(ui, /"pvadCode": "using PVAD\.Pdf;/);
+  assert.match(ui, /Record: `PvadCode`, `Diagnostics`, `Summary`/);
+  assert.match(read('PVAD.WebApi/Services/MigrationResult.cs'), /string PvadCode/);
+  assert.match(read('PVAD.WebApi/Controllers/MigrationController.cs'), /pvadCode = result\.PvadCode/);
+  const port = read('pvad-designer/vite.config.ts').match(/port:\s*(\d+)/)[1];
+  assert.ok(ui.includes(`http://localhost:${port}/pdf/migrations/code`));
+  assert.ok(ui.includes('npm --prefix pvad-designer run dev'));
+  assert.match(read('checklists/Migration-Namespace-Taxonomy.md'),
+    /Use `\/api\/pvad\/v1\/migrations\/\{domain\}\/\{kind\}\/\{provider\}` as the canonical/);
+  assert.match(read('checklists/PVAD.Unified-Migration-Frameworks.md'),
+    /`GET \/api\/pvad\/v1\/migrations\/catalog`/);
+  assert.match(read('checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md'),
+    /`\/api\/pvad\/v1\/migrations\/pdf\/viewer\/nutrient\/convert`/);
+});
+
+test('migration test-project references resolve without pretending to rerun historical results', () => {
+  for (const [provider, folder] of [['Aspose', 'Aspose'], ['EPPlus', 'Epplus'], ['GemBox', 'GemBox']]) {
+    const path = `tests/PVAD.Migration.Spreadsheet.Code.${folder}.Tests/`;
+    assert.ok(read(`checklists/Spreadsheet-Migration-${provider}.md`).includes(`\`${path}\``));
+    assert.ok(exists(path));
+  }
+  for (const provider of ['DevExpressReport', 'SyncfusionRdl'])
+    assert.match(read(`checklists/Code-Migration-${provider}.md`), /`PVAD\.Export\.Tests`/);
+  assert.match(read('checklists/Spreadsheet-Migration.md'), /`PvadWorkbook`/);
+});
+
+test('migration checklists retain previous names only in bounded historical records or vendor keys', () => {
+  const paths = execFileSync('git', ['ls-files', '-z', '--', 'checklists'],
+    { cwd: root, encoding: 'utf8' }).split('\0').filter(path => /migration.*\.md$/i.test(path));
+  for (const path of paths) {
+    for (const [index, original] of read(path).split('\n').entries()) {
+      let line = original;
+      if (/\/Code-Migration-(?:DsPdf|IronPdf|SyncfusionPdf|iText7)\.md$/.test(path) &&
+          /^- \[x\] Verified with /.test(line))
+        line = line.replace(/`dotnet (?:test|build) [^`]+`/g, 'recorded command');
+      if (path === 'checklists/Migration-Namespace-Taxonomy.md' &&
+          /^(?:  - |  -?\s*)/.test(line))
+        line = line.replace(/`(?:PXA\.[^`]+|dotnet test [^`]+|\/api\/pxa\/migration\/(?:convert|report-to-design))`/g,
+          'recorded taxonomy input');
+      if (path === 'checklists/Spreadsheet-Migration.md')
+        line = line.replaceAll('`dotnet build PXA.sln`', 'recorded build command');
+      if (path === 'checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md' && line.includes('now a compatibility alias'))
+        line = line.replace('`POST /api/pxa/v1/migrations/pdf/viewer/convert`', 'recorded initial route');
+      if (path === 'checklists/Migration_Dataset-Aggregates.md')
+        line = line.replace('https://github.com/silentdevcore/PXA/pull/17', 'original pull request');
+      if (path === 'checklists/Code-Migration-ActiveReportsRpx.md')
+        line = line.replaceAll('rpxAutoSize', 'vendor metadata key');
+      assert.doesNotMatch(line, /pxa/i, `${path}:${index + 1}`);
+    }
+  }
+});

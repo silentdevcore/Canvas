@@ -5,7 +5,7 @@ GemBox cell indexes are **already 0-based** (no shift), bold is `Font.Weight = B
 `SpreadsheetInfo.SetLicense(...)` call is dropped.
 
 - **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.GemBox/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
-- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.GemBox.Tests/` (2, green).
+- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.GemBox.Tests/` (2, green).
 
 ## API mapping
 | GemBox.Spreadsheet | PVADE |

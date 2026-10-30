@@ -24,8 +24,8 @@ represented as successfully migrated.
   origin, text, save, disposal, and explicit gap diagnostics.
 - [x] Registered canonical code provider `nutrient`, GdPicture aliases, WebApi
   converter metadata, and provider-specific Designer authorization.
-- [x] Added the first isolated Nutrient Viewer project and canonical
-  `POST /api/pxa/v1/migrations/pdf/viewer/convert` endpoint.
+- [x] Added the first isolated Nutrient Viewer project and initial
+  `POST /api/pxa/v1/migrations/pdf/viewer/convert` endpoint, now a compatibility alias.
 - [x] Added typed PSPDFKit Instant JSON v1 conversion for the currently
   supported PVADE annotation families, page geometry, rotation, CropBox offsets,
   ID remapping, and redaction-mark warnings.
@@ -153,7 +153,7 @@ Official reference baseline:
 
 - [x] Define one structured Nutrient Viewer migration result shared by API and UI.
 - [x] Consolidate the user-facing Viewer result into one versioned, importable
-  `pxa-viewer-package` instead of exposing disconnected generated files.
+  `pvad-viewer-package` instead of exposing disconnected generated files.
 - [x] Support package download and re-import in Designer.
 - [x] Preview migrated settings, annotations, and form values in the real PVADE
   PDF Viewer, using an attached PDF or generated geometry-only preview pages.
@@ -366,7 +366,7 @@ Official reference baseline:
 - [x] Keep `POST /api/migration/convert` compatible for Nutrient C# code
   migration through provider key `nutrient`.
 - [x] Add a canonical Viewer endpoint under
-  `/api/pxa/v1/migrations/pdf/viewer/convert`.
+  `/api/pvad/v1/migrations/pdf/viewer/nutrient/convert`.
 - [x] Extend `/api/migration/frameworks` and its canonical successor with
   `domain: pdf`, `migrationKind: viewer`, and `provider: Nutrient`.
 - [x] Add separate permissions for Nutrient code migration and Nutrient Viewer
@@ -485,7 +485,7 @@ Official reference baseline:
 
 - [x] Deliver JavaScript `NutrientViewer` and `PSPDFKit`
   bootstrap/configuration migration.
-- [x] Deliver Instant JSON conversion for PXA-supported annotations and forms.
+- [x] Deliver Instant JSON conversion for PVAD-supported annotations and forms.
 - [x] Deliver PVADE Viewer preview, comparison, Documentation, and tests.
 - [x] Deliver TypeScript Compiler API input, deterministic checksums, capability
   reporting, and the comprehensive synthetic Beta example.

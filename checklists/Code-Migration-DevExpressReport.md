@@ -68,7 +68,7 @@ the next, unstarted milestone.
 - [x] XRTable rows/cells; single-field binding + complex expression; page header/footer → shared.
 - [x] Unsupported control → `CANMIGDEVREP011`.
 - [x] **End-to-end**: a converted report (C# and `.repx`) renders to a valid PDF through the real export
-      pipeline (`DesignJsonMapper` → `ToBytes`) — in `PXA.Export.Tests`.
+      pipeline (`DesignJsonMapper` → `ToBytes`) — in `PVAD.Export.Tests`.
 
 ### Diagnostics (implemented)
 | ID | Severity | Meaning |

@@ -4,7 +4,7 @@ Migrates Aspose.Cells (`Workbook`) authoring code → PVAD spreadsheet API (`Pva
 divergent source: `PutValue()` method, `Worksheets[0]` default sheet, 0-based indexes, `GetStyle/SetStyle`.
 
 - **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Aspose/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
-- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Aspose.Tests/` (2, green).
+- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.Aspose.Tests/` (2, green).
 
 ## API mapping
 | Aspose.Cells | PVADE |

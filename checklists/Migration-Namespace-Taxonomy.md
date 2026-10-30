@@ -135,7 +135,7 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 
 ## Compatibility Rules
 
-- [x] Use `/api/pxa/v1/migrations/{domain}/{kind}/{provider}` as the canonical provider route.
+- [x] Use `/api/pvad/v1/migrations/{domain}/{kind}/{provider}` as the canonical provider route.
 - [x] Keep PDF Code, PDF Viewer, Spreadsheet Code, and Report Designer as distinct catalog paths.
 - [x] Return canonical provider IDs from the v1 API while accepting historical aliases at input boundaries.
 
@@ -166,7 +166,10 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 - [x] Add old-to-new provider mapping in migration documentation.
 - [x] Avoid describing report designer migration as PDF designer migration unless the source technology is actually PDF-specific.
 
-## Test Plan
+## Recorded Taxonomy Validation
+
+The results below record the original taxonomy rollout, not a new test run.
+For runnable commands against the current tree, use [TESTING.md](../TESTING.md).
 
 - [x] `dotnet build PVAD.sln --no-restore --disable-build-servers -m:1`
   - Current result: passed with warnings, 0 errors.
@@ -184,7 +187,7 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
   - `PXA.Migration.Spreadsheet.Tests`: 19 passed.
   - `PXA.Migration.Report.Tests`: 20 passed.
 - [x] Full .NET test pass after restore succeeds.
-  - Current result: `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` passed.
+  - Recorded result: `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` passed.
 - [x] Smoke test PDF code migration with `aspose-pdf`.
   - Added API smoke coverage for provider-key alias routing through `/api/pxa/migration/convert`.
 - [x] Smoke test spreadsheet code migration with `aspose-cells`.

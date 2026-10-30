@@ -9,7 +9,7 @@ The canonical taxonomy is `PVAD.Migration.<Domain>.<Kind>.<Provider>`.
 
 - [x] Add typed migration domain, kind, input, artifact, and provider descriptor contracts.
 - [x] Create one canonical catalog for all PDF Code, PDF Viewer, Spreadsheet Code, and Report Designer providers.
-- [x] Expose the catalog through `GET /api/pxa/v1/migrations/catalog`.
+- [x] Expose the catalog through `GET /api/pvad/v1/migrations/catalog`.
 - [x] Add provider-detail, examples, convert, and preview routes under the canonical domain/kind/provider path.
 - [x] Return one result envelope with typed artifacts, diagnostics, summary, fidelity, source preservation, and metadata.
 - [x] Keep the existing migration routes as compatibility adapters for one major release.

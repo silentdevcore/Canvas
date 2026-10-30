@@ -73,7 +73,7 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 
 ## Status — all done
 All four converters live at `GET /api/migration/frameworks` + `POST /api/migration/convert` (Status `full`).
-10 migration unit tests green; `dotnet build PXA.sln` clean. Live-verified each emits PXA code.
+10 migration unit tests green; `dotnet build PXA.sln` clean. Live-verified each emits PVAD code.
 
 ## Follow-up — migration list categorization — DONE
 - [x] `ICodeConverter.Kind` ("pdf" default | "spreadsheet"); exposed via `FrameworkInfo.Kind` + the
@@ -119,12 +119,12 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
   new `src/PVAD.Migration.<Lib>Spreadsheet/`; `PVAD.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
 
 ## Verification
-- **Format:** `PXA.Export.Tests` JSON round-trip preserves Phase-2 fields + `schemaVersion`; sample
+- **Format:** `PVAD.Export.Tests` JSON round-trip preserves Phase-2 fields + `schemaVersion`; sample
   validates against `canvas-workbook.schema.json`. Frontend `jest` round-trip lossless; `tsc` clean.
-- **Authoring API:** unit test builds via `PxaWorkbook` → `.xlsx`; `/calculate` computes a fluent formula.
-- **Migration:** per-lib unit test (source snippet → expected PXA code + diagnostics, e.g. chart →
+- **Authoring API:** unit test builds via `PvadWorkbook` → `.xlsx`; `/calculate` computes a fluent formula.
+- **Migration:** per-lib unit test (source snippet → expected PVAD code + diagnostics, e.g. chart →
   `CANMIG…` Warning). Live: `/api/migration/frameworks` lists 4 new sources; `/api/migration/convert`
-  returns PXA code for a ClosedXML sample. `dotnet build PXA.sln` clean; full suite green.
+  returns PVAD code for a ClosedXML sample. `dotnet build PXA.sln` clean; full suite green.
 
 ## Deferred
 File-format migration (`.ods`, Google Sheets, SpreadsheetML 2003, `.numbers`); charts + pivots in the

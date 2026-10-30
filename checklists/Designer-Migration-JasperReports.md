@@ -198,7 +198,7 @@ Key sample-driven conclusions:
       `Json_Master.jrxml` can inline `Json_Sub.jrxml` without hand-written Resource JSON.
 - [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
       into structured PVAD/page metadata; direct placeholders already preserve subreport metadata.
-- [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to PXA-friendly
+- [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to PVAD-friendly
       placeholders/expressions; complex expressions preserve originals and add normalized PVAD-style references
       for review.
 - [x] **P2** Hyperlink/anchor expressions: preserve `anchorNameExpression`, hyperlink reference/anchor/page

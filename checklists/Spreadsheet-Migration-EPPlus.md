@@ -5,7 +5,7 @@ ClosedXML reference; EPPlus differs in the cell **indexer** (`Cells[..]`), the `
 `pkg.Workbook.Worksheets` path, and `SaveAs(FileInfo)`.
 
 - **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
-- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
+- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
 
 ## API mapping
 | EPPlus | PVADE |

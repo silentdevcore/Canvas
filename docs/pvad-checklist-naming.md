@@ -138,3 +138,14 @@ diagnostic identifiers. Superseded repeated-banner review comments are condensed
 in the residual ledger. Historical inventories, original execution records,
 Legal versions and runtime compatibility contracts remain unchanged. This work
 closes no release or operational acceptance gate.
+
+## Migration Checklist Follow-Up (2026-10-30)
+
+Migration checklists now use the current code-result property, canonical catalog
+and provider routes, Viewer artifact ID, test-project references, workbook class,
+and product names in ordinary task descriptions. Designer startup instructions
+use the configured port from `pvad-designer/vite.config.ts`. These are editorial
+corrections, not new provider implementations or renewed migration-test results.
+Original test commands, recorded alias-routing coverage, the original repository
+PR link and vendor-specific RPX metadata remain evidence or contracts.
+Regression checks reject other previous-name occurrences in migration checklists.

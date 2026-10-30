@@ -108,7 +108,7 @@ gaps (per-cell table styling, native maps/charts) require **PVADE model** change
       hierarchy/pagination metadata, visibility rules, database image binding, barcode custom item,
       Chart/Gauge/Map/Sparkline metadata, and Subreport metadata placeholders.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
-      (`DesignJsonMapper` → `ToBytes`) — in `PXA.Export.Tests`.
+      (`DesignJsonMapper` → `ToBytes`) — in `PVAD.Export.Tests`.
 
 ### Diagnostics (implemented)
 | ID | Severity | Meaning |
