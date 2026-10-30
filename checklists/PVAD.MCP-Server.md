@@ -1,11 +1,11 @@
-# PXA MCP Server
+# PVAD MCP Server
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
-Evolve the existing local PXA MCP documentation helper into a production-ready Model Context
-Protocol server for PXA Cloud, PXA Server, and local developer workflows. The implementation must
+Evolve the existing local PVAD MCP documentation helper into a production-ready Model Context
+Protocol server for PVAD Cloud, PVAD Server, and local developer workflows. The implementation must
 preserve the current `stdio` experience while adding an authenticated remote server and a shared,
 tenant-safe tool layer.
 
@@ -63,7 +63,7 @@ tenant-safe tool layer.
 - [x] Add request-body, header, request-duration, capability-response, and preview-output limits.
 - [ ] Add session-count and connection-duration limits when stateful sessions are introduced.
 - [ ] Implement cancellation and MCP progress notifications for eligible operations.
-- [ ] Evaluate experimental MCP Tasks only behind a feature flag and retain the existing PXA job API
+- [ ] Evaluate experimental MCP Tasks only behind a feature flag and retain the existing PVAD job API
   as the authoritative execution state.
 - [ ] Do not implement the deprecated HTTP+SSE transport unless a documented customer compatibility
   requirement appears.
@@ -164,7 +164,7 @@ tenant-safe tool layer.
 
 - [ ] Add `import_document` for supported PDF, Word, image, presentation, and Spreadsheet inputs.
 - [ ] Add `start_migration` with provider, source type, options, and target contract.
-- [ ] Add `get_job`, `get_job_result`, and `cancel_job` mapped to the persistent PXA job system.
+- [ ] Add `get_job`, `get_job_result`, and `cancel_job` mapped to the persistent PVAD job system.
 - [ ] Expose progress without leaking another tenant's task or job state.
 - [ ] Return fidelity, diagnostics, unsupported elements, review requirements, and source maps.
 - [ ] Integrate OCR and PDF chart recognition only through explicit options and existing feature gates.
@@ -196,7 +196,7 @@ tenant-safe tool layer.
   resource-exhaustion attacks.
 - [ ] Separate public documentation tools from authenticated customer-data tools.
 - [ ] Require explicit client or user confirmation for mutating and destructive tool calls.
-- [ ] Validate tool arguments again in the PXA application layer; MCP schemas are not a security
+- [ ] Validate tool arguments again in the PVADE application layer; MCP schemas are not a security
   boundary.
 - [x] Prohibit arbitrary network egress from the MCP container except allowlisted internal PXA
   services.
@@ -214,7 +214,7 @@ tenant-safe tool layer.
 - [x] Add dependency-readiness checks for PXA WebApi and the configured identity provider.
 - [x] Add structured logs with request, tool, pseudonymous organization, user or service-account
   references, and correlation identifiers, excluding sensitive arguments and results.
-- [ ] Add OpenTelemetry traces across MCP, PXA WebApi, workers, storage, and database operations.
+- [ ] Add OpenTelemetry traces across MCP, PVAD WebApi, workers, storage, and database operations.
 - [x] Add Beta metrics for active requests, tool calls, latency, HTTP errors, rate limits, and
   dependency readiness. Session, cancellation, payload, and job metrics remain tied to later
   stateful and long-running operations.
@@ -327,7 +327,7 @@ tenant-safe tool layer.
 ### Phase 3 - Jobs, import and migration
 
 - [ ] Add persistent long-running operations, progress, cancellation, import, OCR, and migration.
-- [ ] Evaluate MCP Tasks only after stable PXA job integration and client compatibility testing.
+- [ ] Evaluate MCP Tasks only after stable PVAD job integration and client compatibility testing.
 
 ## Beta Acceptance Criteria
 
@@ -350,7 +350,7 @@ phase work.
 
 ## Acceptance Criteria
 
-- [ ] Local clients can install and run `pxa-mcp` without cloning the monorepo.
+- [ ] Local clients can install and run `pvad-mcp` without cloning the monorepo.
 - [x] Remote clients can discover and connect to PXA MCP through standards-compliant OAuth and
   Streamable HTTP.
 - [ ] Every customer-data operation is authenticated, tenant-isolated, entitled, scoped, metered,
@@ -368,7 +368,7 @@ phase work.
 - `stdio` remains the preferred local transport and Streamable HTTP is the remote transport.
 - PXA Account or a compatible external identity provider will become the OAuth authorization server;
   the MCP host remains a protected resource.
-- PXA WebApi and its persistent job system remain authoritative for business operations and data.
+- PVAD WebApi and its persistent job system remain authoritative for business operations and data.
 - API keys may support controlled On-Premise automation but do not replace standards-compliant OAuth
   for the public remote MCP server.
 - Sampling, elicitation, experimental MCP Tasks, real-time notifications, and third-party marketplace

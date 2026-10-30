@@ -1,17 +1,30 @@
-# PXA Native Designer Formats
+# PVAD Native Designer Formats
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Define safe, versioned, portable native project formats for PXA Designer:
+Define safe, versioned, portable native project formats for PVADE Designer:
 
-- `.pxap` for PDF Designer projects.
-- `.pxas` for Spreadsheet Designer projects.
+- `.pvadp` for PDF Designer projects.
+- `.pvads` for Spreadsheet Designer projects.
 
 These formats preserve editable project state, assets, bindings, localization,
 settings, and compatibility metadata. They are project packages, not final PDF
 or spreadsheet delivery formats.
+
+## Current Naming Contract
+
+New packages use `application/vnd.pvad.pvadp+zip` and
+`application/vnd.pvad.pvads+zip`, with magic identifiers `PVAD-PVADP-1` and
+`PVAD-PVADS-1`. Current API examples use `/api/pvad/v1/designer/projects`.
+See the [current format guide](../docs/native-designer-project-formats.md).
+
+Checked implementation entries below describe the original format generation.
+Their old names, media types, diagnostic codes, and test counts are historical
+evidence, not instructions for new writers. Earlier formats remain readable
+through explicit compatibility readers; this update does not change their bytes
+or mark pending platform and artwork approvals complete.
 
 ## Priorities
 

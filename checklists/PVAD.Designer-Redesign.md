@@ -1,12 +1,16 @@
-# PXA Designer Visual Redesign Checklist
+# PVADE Designer Visual Redesign Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Make PXA Designer (`pxa-designer/`, the React+TS+Vite document-automation editor app) feel more friendly and beautiful, using the installed `pxa-designer/DESIGN.md` (Expo-inspired design language: pure-white canvas, near-black ink, Inter type with tight negative letter-spacing, JetBrains Mono for code, hairline borders, restrained single-tier shadows, 8px/12px radii) as the reference, adapted with a distinct warm orange/amber accent instead of Expo's black-only CTA — deliberately different from the cool blue already used across PXA.Company/Account/Admin, so Designer reads as its own creative tool within the product family.
+Make PVADE Designer (`pvad-designer/`, the React+TS+Vite document-automation editor app) feel more friendly and beautiful, using the installed `pvad-designer/DESIGN.md` (Expo-inspired design language: pure-white canvas, near-black ink, Inter type with tight negative letter-spacing, JetBrains Mono for code, hairline borders, restrained single-tier shadows, 8px/12px radii) as the reference, adapted with a distinct warm orange/amber accent instead of Expo's black-only CTA — deliberately different from the cool blue already used across PVAD.Company/Account/Admin, so Designer reads as its own creative tool within the product family.
 
 ## Context
+
+> Historical baseline: the appearance described below predates the completed
+> redesign. Original paths, colors and validation records are retained; this is
+> not a description of the current PVADE interface.
 
 Current look: `pxa-designer/src/styles/variables.css` holds a single, consistently-referenced token set — generic Tailwind-blue primary (`#3b82f6`), system-font sans stack, a 4-tier heavy box-shadow scale, 0.25rem–1rem radius scale. Nearly every surface (`base.css`, `home.css`, `editor.css`, `gallery.css`, `docs.css`, `modals.css`, `migrations.css`, `importer.css`, `pdf-viewer.css`, ~8,000+ combined lines) consumes these same `var(--color-*)`/`var(--space-*)`/`var(--radius-*)`/`var(--shadow-*)` names rather than hardcoding values. Retokenizing `variables.css` alone cascades the new look across almost the entire app for free — the highest-leverage, lowest-risk first move. Scope is deliberately split into Phase 1 (tokens + shared shell + landing page) now, with the remaining per-surface files as an explicit, separately-approved follow-on.
 

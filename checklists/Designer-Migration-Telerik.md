@@ -1,15 +1,15 @@
-# Designer Migration: Telerik Reporting (`.trdx`) → PXA Designer
+# Designer Migration: Telerik Reporting (`.trdx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-Telerik Reporting `.trdx` → PXA `DesignExportDto` converter.
+Telerik Reporting `.trdx` → PVAD `DesignExportDto` converter.
 
 - **Designer:** Telerik Reporting · **Manufacturer:** Progress (Telerik)
 - **Format:** `.trdx` — **namespaced XML** (`http://schemas.telerik.com/reporting/<ver>`). `.trdp` is the
   same XML zipped (V2). **Sectioned** layout with Unit-string geometry.
-- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.Telerik`). Hybrid of `PXA.Migration.Report.Designer.Rdl` (length-string
-  units, `<Style>` elements) and `PXA.Migration.Report.Designer.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
+- **Status:** ✅ **Shipped** (`PVAD.Migration.Report.Designer.Telerik`). Hybrid of `PVAD.Migration.Report.Designer.Rdl` (length-string
+  units, `<Style>` elements) and `PVAD.Migration.Report.Designer.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
   resolution. Schema confirmed against real `.trdx` samples. 11 unit tests + render test.
 
 ---

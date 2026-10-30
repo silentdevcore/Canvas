@@ -1,15 +1,15 @@
-# Designer Migration: Stimulsoft Reports (`.mrt`) → PXA Designer
+# Designer Migration: Stimulsoft Reports (`.mrt`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-Stimulsoft `.mrt` → PXA `DesignExportDto` converter.
+Stimulsoft `.mrt` → PVAD `DesignExportDto` converter.
 
 - **Designer:** Stimulsoft Reports (Designer / Reports.JS) · **Manufacturer:** Stimulsoft
 - **Format:** `.mrt` — `StiSerializer` **XML** (the format real `.mrt` files use, incl. Stimulsoft's own
   sample repos). A newer **JSON** `.mrt` variant also exists (V2). **Banded.**
-- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.Stimulsoft`). Band-flatten with explicit band positions
-  (mirrors `PXA.Migration.Report.Designer.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
+- **Status:** ✅ **Shipped** (`PVAD.Migration.Report.Designer.Stimulsoft`). Band-flatten with explicit band positions
+  (mirrors `PVAD.Migration.Report.Designer.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
 
 ---
 

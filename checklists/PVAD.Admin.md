@@ -1,18 +1,18 @@
-# PXA Admin Checklist
+# PVAD Admin Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Deliver a standalone, tenant-aware PXA administration application for users, organizations, permissions, subscriptions, licenses, service access, mail delivery, and audit history.
+Deliver a standalone, tenant-aware PVADE administration application for users, organizations, permissions, subscriptions, licenses, service access, mail delivery, and audit history.
 
 ## Application Identity
 
 - [x] Create the standalone application under `websites/PXA.Admin`.
-- [ ] Use `https://admin.powerdoxautomation.com` as the public Cloud host.
+- [ ] Validate and provision the proposed `https://admin.pvade.com` Cloud host; the selected domain does not prove that this host is deployed.
 - [ ] Support `https://admin.{customer-host}` for customer-managed deployments.
 - [x] Use `http://localhost:5177` for local development.
-- [ ] Reserve `powerdox/pxa-admin` as the future container image.
+- [ ] Select and verify a container publisher before reserving the proposed `pvad-admin` image; no registry namespace is currently approved for this application.
 - [x] Access the backend through same-origin `/api` routing.
 - [x] Share PXA design tokens and navigation conventions without coupling the Admin build to PXA Designer.
 - [x] Keep Admin out of PXA.Company navigation; administrators enter the dedicated Admin host directly.
@@ -28,7 +28,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 - [x] Use the subscription and entitlement model from `PVAD.Subscription-Licensing.md`.
 - [x] Use invitation, reset, and notification delivery from `PVAD.Mail-Service.md`.
-- [ ] Integrate the Admin container with `PVAD.Api-Docker.md` and the shared PXA Server bundle.
+- [ ] Integrate the Admin container with `PVAD.Api-Docker.md` and the shared PVAD Server bundle.
 - [x] Define the production database and migration strategy before replacing in-memory identity data.
 
 ## Identity Foundation
@@ -259,10 +259,10 @@ Current privileged-mutation audit contract:
 - [ ] Produce an independent Admin build for deployment.
 - [ ] Produce the future static web-server image.
 - [ ] Validate relative same-origin API routing and the development-only Vite proxy in the target deployment.
-- [ ] Route the customer Admin host to the Admin application and `/api` to PXA API.
+- [ ] Route the customer Admin host to the Admin application and `/api` to PVAD API.
 - [ ] Add compatibility checks between Admin and API versions.
 - [ ] Add CSP, security headers, cache rules, health visibility, and structured client-error reporting.
-- [ ] Add the Admin service to Cloud hosting and optional PXA Server Docker Compose profiles.
+- [ ] Add the Admin service to Cloud hosting and optional PVAD Server Docker Compose profiles.
 
 All deployment and operations tasks are intentionally deferred until the application feature and quality work is complete.
 
@@ -287,7 +287,7 @@ All deployment and operations tasks are intentionally deferred until the applica
 
 ## Acceptance Criteria
 
-- [ ] PXA Admin is deployed independently from PXA Designer.
+- [ ] PVAD Admin is deployed independently from PVADE Designer.
 - [x] Non-admin users cannot load or invoke unauthorized Admin capabilities.
 - [x] Every query and mutation respects organization isolation.
 - [x] Every privileged change is attributable through immutable audit metadata.

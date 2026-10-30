@@ -1,10 +1,10 @@
-# PXA Designer Authentication Checklist
+# PVADE Designer Authentication Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Protect every PXA Designer workflow so that only active, email-verified users with an effective Designer entitlement can use the application. Authentication remains owned by PXA Account and is transferred to the Designer through a short-lived authorization-code handoff.
+Protect every PVADE Designer workflow so that only active, email-verified users with an effective Designer entitlement can use the application. Authentication remains owned by PVAD Account and is transferred to the Designer through a short-lived authorization-code handoff.
 
 ## Priorities
 
@@ -173,5 +173,5 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 - [ ] Implement Admin-managed custom roles and persisted permission selection before exposing arbitrary limited-role creation in production; the current Admin role workspace manages protected built-in roles only (`PVAD.Admin.md` P2).
 - [ ] Add enterprise OIDC and SAML providers.
-- [ ] Add coordinated global sign-out across PXA applications.
+- [ ] Add coordinated global sign-out across PVADE applications.
 - [ ] Add MFA step-up policies for selected Designer operations.

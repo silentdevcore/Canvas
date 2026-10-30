@@ -1,6 +1,6 @@
-# PXA NPOI License Decision
+# PVAD NPOI License Decision
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
@@ -29,7 +29,7 @@ Resolve the production blocker created by the NPOI 2.8.0 binary-package EULA whi
 - [x] Record that the packaged EULA applies a maintenance fee to revenue-generating users with annual gross revenue of at least USD 10,000, subject to its stated exemptions.
 - [x] Record that the packaged EULA distinguishes the distributed binary release from source code and self-compiled binaries under Apache-2.0.
 - [x] Keep `AcceptNPOIOSMFLicense` disabled until a written decision and payment determination exist.
-- [ ] Obtain a written interpretation from qualified Legal counsel for PXA Cloud, On-Premise images, SDK distribution, customer redistribution, and CI artifacts.
+- [ ] Obtain a written interpretation from qualified Legal counsel for PVAD Cloud, On-Premise images, SDK distribution, customer redistribution, and CI artifacts.
 - [ ] Preserve the reviewed EULA text, package version, counsel decision, decision owner, evidence reference, and review date in the approved compliance record.
 
 Authoritative evidence reviewed on 2026-08-02:
@@ -43,7 +43,7 @@ Authoritative evidence reviewed on 2026-08-02:
 
 ### Option A - Approve the NPOI Binary EULA
 
-- [ ] Confirm whether PXA meets the revenue threshold and whether a support or maintenance exemption applies.
+- [ ] Confirm whether PVAD meets the revenue threshold and whether a support or maintenance exemption applies.
 - [ ] Confirm the required maintenance fee, payment channel, renewal cadence, and redistribution obligations with the NPOI maintainer.
 - [ ] Obtain written Legal and commercial approval.
 - [ ] Record payment or exemption evidence without storing secrets in the repository.
@@ -67,7 +67,7 @@ Engineering assessment: preserves `.xls` behavior but transfers package maintena
 
 - [ ] Decide whether `.xls` import-only support is sufficient; ExcelDataReader can be evaluated for BIFF input but does not replace export.
 - [ ] Decide whether `.xls` export may be removed in favor of `.xlsx`, CSV, and TSV.
-- [ ] If full import and export remain required, evaluate a commercially licensed spreadsheet engine against the PXA deployment and redistribution model.
+- [ ] If full import and export remain required, evaluate a commercially licensed spreadsheet engine against the PVAD deployment and redistribution model.
 - [ ] Do not treat ClosedXML as a direct replacement because it targets Excel 2007+ OpenXML formats rather than legacy BIFF `.xls`.
 - [ ] Document any removed capability as a breaking product change and provide migration guidance.
 - [ ] Remove NPOI from all production dependency graphs, SBOMs, containers, and license records before clearing the blocker.

@@ -1,12 +1,12 @@
 # Importer New Featuers Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 > Specialized capture, GeoPDF, PDF/E/3D, rich-media, legal-document, and
 > e-invoicing requirements are coordinated through
 > [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md).
 
-Scope: this checklist tracks core PXA.Importer PDF parsing, interpretation, editing, and regeneration work. Annotations, forms, signatures, OCR, and AI remain separate layers over the parsed DOM and are intentionally out of scope here.
+Scope: this checklist tracks core PVAD.Importer PDF parsing, interpretation, editing, and regeneration work. Annotations, forms, signatures, OCR, and AI remain separate layers over the parsed DOM and are intentionally out of scope here.
 
 ## Parser Core
 
@@ -145,7 +145,7 @@ Goal: convert `.svg` files into editable PXA designs with full vector fidelity. 
 
 ### Element mapping
 - [ ] Map `<rect>` → `shape` element (fill + stroke from attributes/inline style).
-- [ ] Map `<circle>` and `<ellipse>` → inline SVG data-URI `image` element (PXA has no circle primitive).
+- [ ] Map `<circle>` and `<ellipse>` → inline SVG data-URI `image` element (PVAD has no circle primitive).
 - [ ] Map `<line>`, `<polyline>`, `<polygon>`, `<path>` → inline SVG data-URI `image` element (same technique as `PdfFileImporter.EmitSvgPath`).
 - [ ] Map `<text>` / `<tspan>` → `text` element (x/y, font-size, fill color, font-family, font-weight).
 - [ ] Map `<image>` → `image` element; resolve `href` / `xlink:href`; embed referenced file as base64 data-URI if relative path.

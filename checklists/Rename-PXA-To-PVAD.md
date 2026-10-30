@@ -1,6 +1,6 @@
 # Rename PXA To PVAD
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Status And Naming Authority
 
@@ -9,6 +9,13 @@ The stricter visible-identity follow-up is recorded in
 and public guide copy use canonical names, with one central About history notice.
 Raw compatibility contracts and original evidence remain unchanged. This is a
 separate presentation acceptance, not closure of any release/operational gate.
+
+Concrete checklist follow-up (2026-10-30): current titles, goals and open tasks
+now use PVAD/PVADE, including future SDK names and the logo brief. Completed task
+records and original code snapshots remain historical. See the
+[checklist naming review](../docs/pvad-checklist-naming.md) for scope, retained
+references and unregistered publisher proposals. No counted release gate or
+feature task is closed by this documentation correction.
 
 **Technical phase closed:** PR 213 merged to `develop` as `d43abbf4` after all
 seven required checks passed. The internal Major release rehearsal proposes

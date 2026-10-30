@@ -1,11 +1,11 @@
 # Last Features — Missing GemBox Document Capabilities
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-Features available in [GemBox.Document](https://www.gemboxsoftware.com/document) compared to PXA.
+Features available in [GemBox.Document](https://www.gemboxsoftware.com/document) compared to PVAD.
 Items marked ✅ have been implemented. Items still open remain unchecked.
 
-> Removed as irrelevant: RTF, Flat OPC, MHTML, TXT, XPS, GIF, BMP, WMP (dead/redundant formats), VBA Macros (security risk, not a template concern), and all Mail Merge primitives (PXA already covers these with data binding + loops + formatters).
+> Removed as irrelevant: RTF, Flat OPC, MHTML, TXT, XPS, GIF, BMP, WMP (dead/redundant formats), VBA Macros (security risk, not a template concern), and all Mail Merge primitives (PVAD already covers these with data binding + loops + formatters).
 
 ---
 
@@ -113,7 +113,7 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
 
 ## Still Open
 
-- [ ] Native PDF shading/resource emission in `PXA.Pdf` for importer round-trips
+- [ ] Native PDF shading/resource emission in `PVAD.Pdf` for importer round-trips
   - Expose page-level shading/resource registration and shading drawing so `PXA.Importer` does not need incremental compatibility patching for grouped or more complex shading preservation.
 
 - [x] **[high]** Read PDF (import existing PDFs as template base)

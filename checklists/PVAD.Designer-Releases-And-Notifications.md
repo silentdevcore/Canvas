@@ -1,6 +1,6 @@
-# PXA Designer Releases and Notifications
+# PVADE Designer Releases and Notifications
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
@@ -96,6 +96,6 @@
 - [ ] Add real-time notification delivery.
 - [ ] Add external release publishing automation.
 - [ ] Add versioned translations for authored release-note and notification payloads. Feature descriptions, maturity labels, categories, decisions, and fallback UI are localized in all six languages.
-- [ ] Finish global toast presentation polish. Release drawer, notification center, feature badges, and product-experience states now match the established PXA Designer visual system.
+- [ ] Finish global toast presentation polish. Release drawer, notification center, feature badges, and product-experience states now match the established PVADE Designer visual system.
 - [x] Keep notifications clickable after they are read so users can reopen and review their complete content multiple times.
-- [ ] Add release authoring and notification publishing tools to PXA Admin.
+- [ ] Add release authoring and notification publishing tools to PVAD Admin.

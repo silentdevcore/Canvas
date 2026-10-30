@@ -1,12 +1,12 @@
 # Spreadsheet Migration — EPPlus
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-Migrates EPPlus (`ExcelPackage`) authoring code → PXA spreadsheet API (`PxaWorkbook`). Clones the
+Migrates EPPlus (`ExcelPackage`) authoring code → PVAD spreadsheet API (`PvadWorkbook`). Clones the
 ClosedXML reference; EPPlus differs in the cell **indexer** (`Cells[..]`), the `Merge` property, the
 `pkg.Workbook.Worksheets` path, and `SaveAs(FileInfo)`.
 
-- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
+- **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
 - **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
 
 ## API mapping

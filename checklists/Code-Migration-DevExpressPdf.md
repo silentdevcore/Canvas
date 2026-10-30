@@ -1,6 +1,6 @@
-# PXA Migration: DevExpress PDF
+# PVAD Migration: DevExpress PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Implementation Status
 
@@ -176,7 +176,7 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 - [ ] Digital signatures
 - [x] Encryption — PXA.Pdf now supports it (`PdfSaveOptions.Encryption`); migration emits `CANMIGDEVEXP024` guidance
 - [ ] Printing/rendering workflows
-- [ ] Report export (XtraReport → PXA generation)
+- [ ] Report export (XtraReport → PVAD generation)
 
 ## Sample Input
 

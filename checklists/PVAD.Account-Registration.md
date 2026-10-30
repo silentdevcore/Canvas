@@ -1,10 +1,10 @@
-# PXA Account Registration Checklist
+# PVAD Account Registration Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Provide one secure customer-registration flow exclusively through PXA Account. Registration creates the correct organization ownership model, verifies the email address, activates one 30-day Premium Trial, and safely returns eligible users to the requested PXA product.
+Provide one secure customer-registration flow exclusively through PVAD Account. Registration creates the correct organization ownership model, verifies the email address, activates one 30-day Premium Trial, and safely returns eligible users to the requested PVADE product.
 
 ## Priorities
 

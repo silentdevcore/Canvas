@@ -1,11 +1,11 @@
 # PDF Tools Web Viewer Feature Gaps
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Scope
 
 This checklist tracks ideas from the **Pdftools Web Viewer** demo (`https://viewer.pdf-tools.com/v5/`)
-as a reference for PXA viewer/review workflows and PXA.PDF-adjacent capabilities.
+as a reference for PVADE viewer/review workflows and PVAD.PDF-adjacent capabilities.
 
 This is **not** a report-designer migration checklist. Pdftools Web Viewer is a browser PDF viewer and
 annotation SDK, not a format like `.rdl`, `.repx`, `.jrxml`, or `.frx`.
@@ -201,12 +201,12 @@ our own implementation, UI language, and engine boundaries.
 ### Technical Decision Points
 
 - [ ] Decide whether the viewer rendering basis is PDF.js, browser-native PDF embedding, or a custom
-      PXA rendering layer.
+      PVAD rendering layer.
 - [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
 - [x] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
       Decision implemented: sidecar JSON remains the review-state source for the viewer, with a backend export path that
       embeds supported annotations as native PDF annotation objects.
-- [ ] Decide the boundary between `PXA.Importer` existing-PDF parsing and `PXA.Pdf` rewritten output.
+- [ ] Decide the boundary between `PVAD.Importer` existing-PDF parsing and `PVAD.Pdf` rewritten output.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
@@ -271,7 +271,7 @@ our own implementation, UI language, and engine boundaries.
 
 ## P2 - Engine/Backend Support
 
-- [ ] **Existing PDF save/edit bridge** - Decide how `PXA.Importer` and `PXA.Pdf` cooperate for editing existing PDFs.
+- [ ] **Existing PDF save/edit bridge** - Decide how `PVAD.Importer` and `PVAD.Pdf` cooperate for editing existing PDFs.
 - [x] **Annotation writer support** - Emit PDF annotations from PXA model.
       Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
       redaction annotations, wired to the viewer sidecar embed endpoint. Basic normal appearance Form XObjects are
@@ -344,7 +344,7 @@ V2 should focus on hardening, configurability, collaboration boundaries, and fid
 
 ### V2 - Engine And Save Strategy
 
-- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `PXA.Importer` + `PXA.Pdf`, when we patch incrementally, and when we reject unsupported edits.
+- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `PVAD.Importer` + `PVAD.Pdf`, when we patch incrementally, and when we reject unsupported edits.
       Acceptance: architecture note documents boundaries, failure modes, and test expectations.
 - [ ] **Incremental update strategy** - Decide and implement incremental save for annotation/form changes where full rewrite is not required.
       Acceptance: simple annotation/form edits can be appended incrementally and preserve unrelated original PDF structures.

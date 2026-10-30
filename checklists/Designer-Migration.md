@@ -1,10 +1,10 @@
 # Report Designer Migration Roadmap
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-Tracks which report-designer / report-file formats can be opened as **editable PXA designs** via
+Tracks which report-designer / report-file formats can be opened as **editable PVADE designs** via
 `POST /api/migration/report-to-design`. Prioritized to start with vendors whose PDF-code migration we
-already ship (`PXA.Migration.*Pdf`); the report-designer vendors among them are the natural
+already ship (`PVAD.Migration.*Pdf`); the report-designer vendors among them are the natural
 report-to-design targets.
 
 Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started · ⛔ blocked (not feasible here) · — out of scope (no report designer)

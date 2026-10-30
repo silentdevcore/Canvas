@@ -1,15 +1,15 @@
 # Spreadsheet Migration — ClosedXML
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-Migrates ClosedXML (`XLWorkbook`) authoring code → the PXA spreadsheet API (`PxaWorkbook`,
-`PXA.Infrastructure.Spreadsheet.PxaWorkbookBuilder`). The **reference** spreadsheet migration —
+Migrates ClosedXML (`XLWorkbook`) authoring code → the PVAD spreadsheet API (`PvadWorkbook`,
+`PVAD.Infrastructure.Spreadsheet.PvadWorkbookBuilder`). The **reference** spreadsheet migration —
 the other libraries (EPPlus / GemBox / Aspose) clone this structure.
 
-- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.ClosedXml/` (`ClosedXmlSpreadsheetMigration : CSharpSourceMigration`, Roslyn).
-- **Converter:** `PXA.WebApi/Services/Converters/ClosedXmlSpreadsheetConverter.cs` (`FrameworkId = "ClosedXmlSpreadsheet"`, Status `full`), registered in `MigrationService`.
+- **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.ClosedXml/` (`ClosedXmlSpreadsheetMigration : CSharpSourceMigration`, Roslyn).
+- **Converter:** `PVAD.WebApi/Services/Converters/ClosedXmlSpreadsheetConverter.cs` (`FrameworkId = "ClosedXmlSpreadsheet"`, Status `full`), registered in `MigrationService`.
 - **Diagnostics prefix:** `CANMIGCLXL`.
-- **Tests:** `tests/PXA.Migration.Spreadsheet.Code.ClosedXml.Tests/` (3, green). Live: `/api/migration/convert`.
+- **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.ClosedXml.Tests/` (3, green). Live: `/api/migration/convert`.
 
 ## API mapping
 | ClosedXML | PXA |

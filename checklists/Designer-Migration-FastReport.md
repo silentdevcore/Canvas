@@ -1,14 +1,14 @@
-# Designer Migration: FastReport .NET (`.frx`) → PXA Designer
+# Designer Migration: FastReport .NET (`.frx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-FastReport `.frx` → PXA `DesignExportDto` converter (format research, schema, control mapping,
+FastReport `.frx` → PVAD `DesignExportDto` converter (format research, schema, control mapping,
 diagnostics, status).
 
 - **Designer:** FastReport .NET · **Manufacturer:** Fast Reports Inc.
 - **Format:** `.frx` — plain, namespace-free **XML**, **banded** report.
-- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.FastReport`) — band-flatten mirroring `PXA.Migration.Report.Designer.Rpx`;
+- **Status:** ✅ **Shipped** (`PVAD.Migration.Report.Designer.FastReport`) — band-flatten mirroring `PVAD.Migration.Report.Designer.Rpx`;
   schema confirmed against real `FastReports/FastReport` `Demos/Reports/*.frx`. 14 unit tests + render test.
 
 ---

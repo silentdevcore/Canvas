@@ -1,6 +1,6 @@
-# PXA.Pdf Provider Feature Gaps
+# PVAD.Pdf Provider Feature Gaps
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Compared Providers
 
@@ -47,30 +47,30 @@ The comparison is based on repository checklists and known provider capability c
 
 ## High Priority
 
-- [ ] **[high] Existing PDF editing and page operations** - Load existing PDFs, append/merge, split, insert/delete/import pages, preserve object graphs, and save edited documents. Seen in: DevExpress, Aspose.PDF, iText 7, Apryse, Foxit, DsPdf, PDFTools. PXA.Pdf status: `missing` as generation API; related parsing/editing foundation exists in `PXA.Importer`.
+- [ ] **[high] Existing PDF editing and page operations** - Load existing PDFs, append/merge, split, insert/delete/import pages, preserve object graphs, and save edited documents. Seen in: DevExpress, Aspose.PDF, iText 7, Apryse, Foxit, DsPdf, PDFTools. PVAD.Pdf status: `missing` as generation API; related parsing/editing foundation exists in `PVAD.Importer`.
 - [x] **[high] PDF digital signatures** - PXA supports PAdES B-B, B-T, B-LT, and B-LTA signing and validation, document timestamps, signature fields, trust/revocation policy, certification signatures, and signature-preserving incremental updates. Remote qualified-signature providers remain outside this milestone.
 - [x] **[high] PDF/A and compliance workflows** - PXA generates PDF/A-2b and PDF/A-3b, preflights and converts the documented existing-PDF subset, retains machine-readable veraPDF evidence, and blocks unsupported repair rather than claiming success. PDF/A-4 remains deferred.
-- [ ] **[high] HTML/CSS/URL/Razor to PDF rendering** - Render HTML strings, files, URLs, Razor/views, and CSS layout directly to PDF. Seen in: IronPDF, ActivePDF, Aspose.PDF, Syncfusion. PXA.Pdf status: `missing`; current migration emits manual diagnostics for this category.
+- [ ] **[high] HTML/CSS/URL/Razor to PDF rendering** - Render HTML strings, files, URLs, Razor/views, and CSS layout directly to PDF. Seen in: IronPDF, ActivePDF, Aspose.PDF, Syncfusion. PVAD.Pdf status: `missing`; current migration emits manual diagnostics for this category.
 - [x] **[high] Secure redaction** - PXA provides read-only preflight, bounded object-level removal, full-rewrite sanitization, post-save residue verification, signed/timestampable audit evidence, external recovery probes, and Viewer comparison for the documented supported corpus. Unsupported codecs and ambiguous structures fail closed. Tracked in `PVAD.PDF-Trust-Foundation.md`.
 
 ## Medium Priority
 
-- [ ] **[medium] Advanced AcroForms** - Radio buttons, push buttons, list boxes, signature fields, calculated/action fields, field import/export, appearance stream control, and form flattening. Seen in: DevExpress, Aspose.PDF, iText 7, Foxit, Apryse. PXA.Pdf status: `partial`.
-- [ ] **[medium] Advanced annotations and stamps** - Text notes, highlight/underline/squiggly, ink, popup, rubber stamp, file attachment annotations, and review workflows. Seen in: DevExpress, Aspose.PDF, iText 7, Foxit, Apryse. PXA.Pdf status: `partial`; link annotations exist.
-- [ ] **[medium] Attachments and portfolios** - Embed arbitrary files, manage associated files, and create PDF packages/portfolios. Seen in: Foxit, Spire.PDF, PDFTools, Aspose.PDF. PXA.Pdf status: `missing`.
+- [ ] **[medium] Advanced AcroForms** - Radio buttons, push buttons, list boxes, signature fields, calculated/action fields, field import/export, appearance stream control, and form flattening. Seen in: DevExpress, Aspose.PDF, iText 7, Foxit, Apryse. PVAD.Pdf status: `partial`.
+- [ ] **[medium] Advanced annotations and stamps** - Text notes, highlight/underline/squiggly, ink, popup, rubber stamp, file attachment annotations, and review workflows. Seen in: DevExpress, Aspose.PDF, iText 7, Foxit, Apryse. PVAD.Pdf status: `partial`; link annotations exist.
+- [ ] **[medium] Attachments and portfolios** - Embed arbitrary files, manage associated files, and create PDF packages/portfolios. Seen in: Foxit, Spire.PDF, PDFTools, Aspose.PDF. PVAD.Pdf status: `missing`.
 - [x] **[medium] Tagged PDF and accessibility** - PXA supports structure and parent trees, role mapping, artifacts, alternatives, reading order, tables, native widgets, PDF/UA-1 output, Designer remediation, and pinned automated validation. Manual assistive-technology review remains required for an accessibility claim.
-- [ ] **[medium] Layers / optional content groups** - Create and control visible/toggleable PDF layers. Seen in: iText 7, Apryse, Aspose.PDF. PXA.Pdf status: `missing`.
-- [ ] **[medium] Advanced graphics resources** - Gradients/shadings, tiling patterns, soft masks beyond image alpha, transparency groups, blend modes, clipping paths, and reusable XObjects/templates. Seen in: iText 7, Aspose.PDF, Apryse, Foxit. PXA.Pdf status: `partial`.
-- [ ] **[medium] Advanced layout and table engine** - Cell spans, nested tables, floating blocks, keep-together, advanced page breaking, reusable renderer model, and HTML fragments. Seen in: iText 7, Aspose.PDF, Syncfusion, DsPdf. PXA.Pdf status: `partial`.
+- [ ] **[medium] Layers / optional content groups** - Create and control visible/toggleable PDF layers. Seen in: iText 7, Apryse, Aspose.PDF. PVAD.Pdf status: `missing`.
+- [ ] **[medium] Advanced graphics resources** - Gradients/shadings, tiling patterns, soft masks beyond image alpha, transparency groups, blend modes, clipping paths, and reusable XObjects/templates. Seen in: iText 7, Aspose.PDF, Apryse, Foxit. PVAD.Pdf status: `partial`.
+- [ ] **[medium] Advanced layout and table engine** - Cell spans, nested tables, floating blocks, keep-together, advanced page breaking, reusable renderer model, and HTML fragments. Seen in: iText 7, Aspose.PDF, Syncfusion, DsPdf. PVAD.Pdf status: `partial`.
 - [x] **[medium] Rendering, viewer, print, and PDF-to-image** - PXA has page rasterization, thumbnails, browser Viewer controls, PDF-based print, visual-diff tooling, and multi-page image export. Advanced plug-in and collaboration features remain separate Viewer roadmap items.
-- [ ] **[medium] OCR and conversion workflows** - PDF/image/Office conversion, OCR extraction, and document conversion pipelines. Seen in: LEADTOOLS, Foxit, PDFTools, ActivePDF. PXA.Pdf status: `outside engine`; related file importer/image OCR projects exist separately.
+- [ ] **[medium] OCR and conversion workflows** - PDF/image/Office conversion, OCR extraction, and document conversion pipelines. Seen in: LEADTOOLS, Foxit, PDFTools, ActivePDF. PVAD.Pdf status: `outside engine`; related file importer/image OCR projects exist separately.
 
 ## Low Priority
 
 - [x] **[low] AES and public-key encryption** - PXA supports AES-128, AES-256 revision 6, RC4 compatibility, password permissions, existing-document security handlers, replacement encryption, and Adobe.PubSec X.509 recipient encryption. The full external reader matrix remains release evidence rather than an implementation gap.
-- [ ] **[low] Optimization and linearization** - Fast Web View, object streams, duplicate resource elimination, image downsampling, and optimizer profiles. Seen in: Apryse, Aspose.PDF, PDFTools. PXA.Pdf status: `partial`; content stream compression exists.
-- [ ] **[low] Low-level PDF object API** - Direct COS/SDF object manipulation, content stream editing, low-level resource dictionaries, and incremental object control. Seen in: Apryse, iText 7, Foxit. PXA.Pdf status: `missing` in generator; `PXA.Importer` has lower-level parser/model foundations.
-- [ ] **[low] Native barcode/QR PDF helpers** - Direct PDF-layer barcode/QR generation rather than designer/image-level representation. Seen in: Syncfusion, DevExpress Reporting, Aspose ecosystems. PXA.Pdf status: `missing/adjacent`; designer/report conversion can carry barcode-like elements.
+- [ ] **[low] Optimization and linearization** - Fast Web View, object streams, duplicate resource elimination, image downsampling, and optimizer profiles. Seen in: Apryse, Aspose.PDF, PDFTools. PVAD.Pdf status: `partial`; content stream compression exists.
+- [ ] **[low] Low-level PDF object API** - Direct COS/SDF object manipulation, content stream editing, low-level resource dictionaries, and incremental object control. Seen in: Apryse, iText 7, Foxit. PVAD.Pdf status: `missing` in generator; `PVAD.Importer` has lower-level parser/model foundations.
+- [ ] **[low] Native barcode/QR PDF helpers** - Direct PDF-layer barcode/QR generation rather than designer/image-level representation. Seen in: Syncfusion, DevExpress Reporting, Aspose ecosystems. PVAD.Pdf status: `missing/adjacent`; designer/report conversion can carry barcode-like elements.
 
 ## Implementation Order
 

@@ -1,12 +1,12 @@
-# PXA Web Design System Checklist
+# PVADE Web Design System Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Ziel
-Ein gemeinsames Layout- und Design-System fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo`. Alle drei Websites sollen wie ein Produkt wirken, aber unterschiedliche Nutzungsmodi unterstuetzen: Marketing, technische Dokumentation und interaktive Demos.
+Ein gemeinsames Layout- und Design-System fuer `PVAD.Company`, `PVAD.Documentation` und `PVAD.Demo`. Alle drei Websites sollen wie ein Produkt wirken, aber unterschiedliche Nutzungsmodi unterstuetzen: Marketing, technische Dokumentation und interaktive Demos.
 
 ## Grundsaetze
-- [ ] Gemeinsames Branding: Power Dox Automation / PXA.
+- [ ] Gemeinsames Branding: PVADE / PVAD.
 - [ ] Gemeinsame Navigation: Company, Documentation, Demo, Pricing, Support.
 - [ ] Ruhige, professionelle B2B-Optik.
 - [ ] Funktionale, scanbare Layouts fuer Docs und Demo.

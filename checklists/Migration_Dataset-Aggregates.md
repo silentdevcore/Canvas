@@ -1,6 +1,6 @@
 # Migration: Dataset Aggregates in Migrated Expressions
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 > **Status:** shipped — PR [#17](https://github.com/silentdevcore/PXA/pull/17)
 > (branch `migration-dataset-aggregates`, commit `28ddb270`).
@@ -95,4 +95,4 @@ reads the field per row, coerces numeric, and reduces.
       current scope (`$sum`/`$avg`/…). PXA renders the total at the group/report footer, so the running
       value through the last row equals the total; true per-row running state in detail rows is **not** modelled
       (documented approximation). Test: `TranslateRdl_RunningValue_MapsToAggregate`.
-- [ ] Custom RDL `<Code>` functions — arbitrary embedded VB, not runnable in PXA (kept preserved).
+- [ ] Custom RDL `<Code>` functions — arbitrary embedded VB, not runnable in PVAD (kept preserved).

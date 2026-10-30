@@ -1,13 +1,13 @@
-# PXA Migration: DevExpress XtraReport → PXA Designer
+# PVAD Migration: DevExpress XtraReport → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
-and is editable in `pxa-designer` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
+Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PVADE design** that opens
+and is editable in `pvad-designer` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
-([DevExpressPdfMigration.cs](../src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
+([DevExpressPdfMigration.cs](../src/Migrations/PDF/PVAD.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
 
 - **Input**: a C# `XtraReport` subclass + designer code (`InitializeComponent()` configuring `XRLabel`,
   `XRLine`, `XRPictureBox`, `XRShape`, `XRTable`, … via `LocationF`/`SizeF`/`Text`/`Font`/`ForeColor`).

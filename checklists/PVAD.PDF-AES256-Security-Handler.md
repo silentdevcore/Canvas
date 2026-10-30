@@ -1,16 +1,20 @@
-# PXA PDF AES-256 and PDF 2.0 Security Handler
+# PVAD PDF AES-256 and PDF 2.0 Security Handler
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
-PXA defaults new encrypted Generator, Designer, and WebApi output to AES-256 revision 6.
+PVAD defaults new encrypted Generator, Designer, and WebApi output to AES-256 revision 6.
 `Aes128` is an explicit interoperability bridge and `Rc4_128` remains an explicit legacy choice.
 The typed Importer opens revision-6 AES-256, revision-4 AES-128, and revision-3 RC4 documents
-without writing decrypted content to disk. PXA also supports X.509 recipient encryption through
+without writing decrypted content to disk. PVAD also supports X.509 recipient encryption through
 the interoperable Adobe.PubSec `adbe.pkcs7.s5` AESV2 profile.
 
 ## Why not extend the existing handler
+
+> Historical design rationale: this describes the original handler limitation,
+> not a request to reintroduce the old namespace. Checked security evidence and
+> original diagnostic identifiers remain unchanged.
 
 `PXA.Pdf`'s `StandardSecurityHandler` encrypts already-serialized object bodies by locating
 literal strings and stream payloads in the emitted bytes. That is why AES was deferred: RC4 is

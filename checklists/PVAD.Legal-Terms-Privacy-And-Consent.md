@@ -1,10 +1,10 @@
-# PXA Legal Terms, Privacy, and Consent
+# PVAD Legal Terms, Privacy, and Consent
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Deliver a central, PostgreSQL-backed legal-document system for PXA. Published
+Deliver a central, PostgreSQL-backed legal-document system for PVAD. Published
 documents are immutable, versioned, auditable, and linked to the exact terms
 accepted or privacy notice acknowledged by a user.
 
@@ -13,7 +13,7 @@ accepted or privacy notice acknowledged by a user.
 > and production publication require approval by qualified Swiss legal counsel
 > experienced in international software and privacy law.
 
-The researched market patterns, source links, PXA recommendations, and remaining
+The researched market patterns, source links, PVAD recommendations, and remaining
 owners for these blockers are tracked in
 `PVAD.Legal-Benchmark-And-Decision-Register.md`.
 Worldwide sales, regional checkout gates, tax ownership, currencies, and the
@@ -86,7 +86,7 @@ must continue to block Production publication.
 - [x] Generate a deployment-time last-known-good static snapshot.
 - [x] Add a shared checkout-readiness gate that fails closed unless Consumer Terms, Privacy, and Withdrawal versions are current and the commercial checkout switch is explicitly enabled.
 - [x] Provide a shared fail-closed paid-checkout readiness gate combining catalog, price-book, billing-provider, restriction, country, B2B/B2C, and Consumer Legal readiness.
-- [ ] Require every future paid checkout mutation to call `PxaPaidCheckoutReadinessGate.RequireAsync` before payment-provider or order work begins.
+- [ ] Require every future paid checkout mutation to call `PvadPaidCheckoutReadinessGate.RequireAsync` before payment-provider or order work begins.
 
 ## Admin Legal Workflow
 

@@ -1,10 +1,10 @@
-# PXA Subscription And Licensing Checklist
+# PVAD Subscription And Licensing Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Define a consistent subscription and entitlement model for PXA Cloud, PXA Server, public SDKs, and future commercial billing without coupling product access to application roles.
+Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Server, public SDKs, and future commercial billing without coupling product access to application roles.
 
 ## Priorities
 
@@ -97,7 +97,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Add offline-license generation and usage-metering views.
 - [x] Show customers their edition, renewal or expiry date, seats, entitlements, limits, usage, and a Pricing or Sales upgrade path.
 - [x] Send implemented subscription lifecycle, seat, and offline-license notifications through `PVAD.Mail-Service.md`.
-- [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
+- [ ] Update PVAD.Company pricing and license content after commercial decisions are approved.
 - [ ] Publish only country-supported currencies, taxes, quotas, and prices from an approved versioned price book.
 - [ ] Keep billing-provider integration behind an application abstraction.
 
@@ -116,7 +116,7 @@ Current subscription foundation verification:
 - [x] Test configured quota thresholds, exhausted quotas, cumulative usage, and idempotent usage.
 - [x] Test Account subscription lifecycle presentation, centralized Pricing and Sales links, and usage-to-limit presentation.
 - [x] Test valid, tampered, malformed, expired, future-dated, revoked, deployment-mismatched, instance-limited, and version-incompatible offline licenses.
-- [ ] Test Cloud and fully offline PXA Server enforcement.
+- [ ] Test Cloud and fully offline PVAD Server enforcement.
 - [ ] Test that role changes cannot grant unlicensed products.
 
 ## Acceptance Criteria

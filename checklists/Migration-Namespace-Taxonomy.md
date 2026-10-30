@@ -1,20 +1,20 @@
 # Migration Namespace Taxonomy
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Summary
 
 Tracker for restructuring migration projects and namespaces so that each provider clearly communicates:
 
-`PXA.Migration.<Domain>.<Kind>.<Provider>`
+`PVAD.Migration.<Domain>.<Kind>.<Provider>`
 
 Examples:
 
-- `PXA.Migration.Pdf.Code.Aspose`
-- `PXA.Migration.Pdf.Viewer.Nutrient`
-- `PXA.Migration.Report.Designer.DevExpress`
-- `PXA.Migration.Spreadsheet.Code.Aspose`
-- `PXA.Migration.Spreadsheet.Datasource.Aspose` when a real datasource/file-format provider exists
+- `PVAD.Migration.Pdf.Code.Aspose`
+- `PVAD.Migration.Pdf.Viewer.Nutrient`
+- `PVAD.Migration.Report.Designer.DevExpress`
+- `PVAD.Migration.Spreadsheet.Code.Aspose`
+- `PVAD.Migration.Spreadsheet.Datasource.Aspose` when a real datasource/file-format provider exists
 
 Implementation keeps legacy provider IDs and public routes compatible. For `/api/migration/frameworks`, legacy
 `kind` remains the current target-domain field (`pdf` or `spreadsheet`); the canonical taxonomy is exposed as

@@ -1,6 +1,6 @@
-# PXA Migration: Syncfusion PDF
+# PVAD Migration: Syncfusion PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Pilot Analysis
 
@@ -49,7 +49,7 @@
 - [x] Convert standard Helvetica/Times/Courier fonts where explicit
 - [x] Convert common predefined brushes and simple solid RGB brushes
 - [x] Convert simple `document.Save(pathOrStream)` calls
-- [ ] Defer grid/table migration until PXA table mapping is reviewed
+- [ ] Defer grid/table migration until PVAD table mapping is reviewed
 - [ ] Defer existing-PDF processing, forms, security, and PDF/A
 
 ## Roslyn Prototype Status
@@ -140,8 +140,8 @@
 - [x] `MigrationDiagnostic`: provider diagnostic id, severity, message, manual guidance
 - [ ] `CodeFixStrategy`: deterministic syntax rewrite
 - [x] `MigrationReport`: converted nodes, unsupported nodes, manual follow-up notes
-- [ ] `CoordinateTransform`: provider coordinate system to PXA coordinate system
-- [ ] `SymbolMap`: vendor type/member symbol to PXA target symbol
+- [ ] `CoordinateTransform`: provider coordinate system to PVAD coordinate system
+- [ ] `SymbolMap`: vendor type/member symbol to PVAD target symbol
 
 ## Unsupported / Manual Follow-Up
 
@@ -331,7 +331,7 @@ document.Save(path);
 - [x] Simple `DrawRectangle` maps to `DrawRectangleFromTop`
 - [x] Simple image drawing maps to `DrawImageFromTop` when image path or stream is known
 - [x] Simple image drawing maps to `DrawImageFromTop` when byte source is known
-- [ ] `PdfBrushes.Black/Red/Green/Blue` map to PXA colors
+- [ ] `PdfBrushes.Black/Red/Green/Blue` map to PVAD colors
 - [x] `PdfSolidBrush(Color.FromArgb(...))` maps to `PdfColor.FromRgb(...)` for integer RGB
 - [x] Simple `PdfPen(Color.FromArgb(...), width)` maps to `PdfColor.FromRgb(...)` plus line width
 - [x] Rectangle/string-format `DrawString` emits `CANMIGSYNC004`

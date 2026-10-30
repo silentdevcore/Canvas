@@ -1,6 +1,6 @@
-# PXA.Pdf Encryption (Password Protection & Permissions)
+# PVAD.Pdf Encryption (Password Protection & Permissions)
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Status
 
@@ -104,7 +104,7 @@ opaque strings, this is the most invasive part.
       (`CANMIGDEVEXP010`). Also removes consumed `DXFont` declarations (`CANMIGDEVEXP025`).
 - [x] Fallback: when encryption is present but not auto-mappable (no two-arg `SaveDocument`), emit the
       `CANMIGDEVEXP024` guidance warning instead.
-- [ ] Deferred: map DevExpress `Permissions` enum values to PXA `PdfPermissions` (passwords map now;
+- [ ] Deferred: map DevExpress `Permissions` enum values to PVAD `PdfPermissions` (passwords map now;
       permissions still need manual translation).
 - [x] Update [Code-Migration-DevExpressPdf.md](Code-Migration-DevExpressPdf.md): encryption moves from
       "manual" warning to a real conversion.

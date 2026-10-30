@@ -1,10 +1,10 @@
-# PXA PDF Code Migrations
+# PVAD PDF Code Migrations
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Build a `PXA.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `PXA.Pdf`.
+Build a `PVAD.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `PVAD.Pdf`.
 
 The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, ActivePDF, and PDFTools / Pdftools SDK now have Roslyn-backed pilot implementations. PDF Toolbox SDK / Toolbox add-on is queued as a separate direct-generation provider checklist.
 
@@ -33,12 +33,12 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 ## Architecture Checklist
 
 - [ ] Keep migration projects separate from rendering/importing infrastructure
-- [ ] Do not reference migration projects from `PXA.Core`
-- [ ] Do not reference migration projects from `PXA.Infrastructure.Pdf`
-- [ ] Use `PXA.Pdf` as the target output API
+- [ ] Do not reference migration projects from `PVAD.Core`
+- [ ] Do not reference migration projects from `PVAD.Infrastructure.Pdf`
+- [ ] Use `PVAD.Pdf` as the target output API
 - [x] Add shared abstractions under `src/Migrations/Common/PXA.Migration.Abstractions`
 - [x] Add Roslyn migration infrastructure under `src/Migrations/Common/PXA.Migration.Roslyn`
-- [ ] Add one provider project per vendor under future `src/PXA.Migration.<Provider>`
+- [ ] Add provider projects under `src/Migrations/<Domain>/` using `PVAD.Migration.<Domain>.<Kind>.<Provider>`; follow [the namespace taxonomy](Migration-Namespace-Taxonomy.md).
 - [x] Define provider-neutral migration diagnostics
 - [ ] Define provider-neutral mapping result model
 - [x] Define migration report output for unsupported or manual follow-up work
@@ -77,7 +77,7 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Produce diagnostics for ambiguous APIs
 - [ ] Offer code fixes only for deterministic mappings
 - [ ] Preserve user formatting where practical
-- [ ] Add `using PXA.Pdf` when code fixes introduce PXA APIs
+- [ ] Add `using PVAD.Pdf` when code fixes introduce PVAD APIs
 - [ ] Remove obsolete vendor `using` directives only when safe
 - [x] Emit a migration report with converted, skipped, and manual items
 
@@ -131,17 +131,17 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Code fix behavior is defined
 - [ ] Before/after migration snapshots are planned
 - [ ] Integration sample is planned
-- [ ] Expected `PXA.Pdf` output compiles in a test fixture
+- [ ] Expected `PVAD.Pdf` output compiles in a test fixture
 
 ## Test Plan For Future Implementation
 
 - [ ] Unit-test each vendor mapper with small C# snippets
 - [ ] Verify diagnostics for unsupported APIs
 - [ ] Verify diagnostics for ambiguous APIs
-- [ ] Verify code fixes produce compilable `PXA.Pdf` code
+- [ ] Verify code fixes produce compilable `PVAD.Pdf` code
 - [ ] Add snapshot tests for before/after migrations
 - [ ] Add one integration test per provider project using a realistic sample
-- [ ] Run `dotnet build PXA.sln` after adding projects
+- [ ] Run `dotnet build PVAD.sln` after adding projects
 
 ## Assumptions
 

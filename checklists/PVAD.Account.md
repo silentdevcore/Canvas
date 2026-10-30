@@ -1,18 +1,18 @@
-# PXA Account Checklist
+# PVAD Account Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 > Implementation plan and phase tracking for all remaining open items:
 > [PVAD.Account.Portal-Implementation.md](PVAD.Account.Portal-Implementation.md).
 
 ## Goal
 
-Deliver a standalone customer identity and self-service portal for registration, sign-in, Trial activation, organizations, subscriptions, usage, licenses, and developer access. PXA Account is separate from both the public Company website and privileged PXA Admin.
+Deliver a standalone customer identity and self-service portal for registration, sign-in, Trial activation, organizations, subscriptions, usage, licenses, and developer access. PVAD Account is separate from both the public Company website and privileged PVAD Admin.
 
 ## Application Identity
 
 - [x] Create the standalone application under `websites/PXA.Account`.
-- [ ] Use `https://account.powerdoxautomation.com` as the public Cloud host.
+- [ ] Validate and provision the proposed `https://account.pvade.com` Cloud host; the selected domain does not prove that this host is deployed.
 - [x] Use `http://localhost:5178` for local development.
 - [x] Access the backend through same-origin `/api` routes.
 - [x] Share PXA design tokens without coupling Account to Company, Designer, or Admin bundles.

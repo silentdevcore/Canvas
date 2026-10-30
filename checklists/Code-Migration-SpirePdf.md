@@ -1,6 +1,6 @@
-# PXA Migration: Spire.PDF
+# PVAD Migration: Spire.PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Pilot Analysis
 
@@ -122,7 +122,7 @@ document.Save(path);
 - [x] Add `using PXA.Pdf`
 - [x] Remove Spire usings
 - [ ] Convert image drawing after resource mapping is defined
-- [ ] Convert table/form/security APIs only after PXA equivalents exist
+- [ ] Convert table/form/security APIs only after PVAD equivalents exist
 
 ## Tests Checklist
 

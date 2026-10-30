@@ -1,11 +1,11 @@
-# PXA PDF Parser Hardening
+# PVAD PDF Parser Hardening
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
 The PDF trust stack — inspection, signature validation, DocMDP enforcement, and every
-future redaction and compliance capability — runs on `PXA.Importer`'s object parser and
+future redaction and compliance capability — runs on `PVAD.Importer`'s object parser and
 stream decoders. Those layers currently accept arbitrary attacker-controlled input from
 an authenticated but publicly reachable endpoint without bounding what that input
 expands into.

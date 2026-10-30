@@ -1,12 +1,16 @@
 # Spreadsheet Framework Migration + Canonical Workbook JSON
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Migrate C# code from other spreadsheet libraries (ClosedXML, EPPlus, GemBox.Spreadsheet, Aspose.Cells)
-into PXA spreadsheet code, and formalize a **versioned "PXA Workbook JSON"** as the canonical
+into PVAD spreadsheet code, and formalize a **versioned "PVAD Workbook JSON"** as the canonical
 interchange + migration target. Built in-house, reusing the existing Roslyn PDF-migration architecture.
 
 ## Context
+
+> Historical baseline: this section describes the initial migration gap, not
+> current provider coverage. Use [the unified migration checklist](PVAD.Unified-Migration-Frameworks.md)
+> for the current architecture. Original implementation records remain below.
 - **De-facto JSON exists but is informal:** `SpreadsheetDto` serialized camelCase *is* the workbook JSON,
   but has no version field, no `$schema`, no published JSON Schema (only designs do:
   `docs/schema/design-export.schema.json`), and the frontend wire type

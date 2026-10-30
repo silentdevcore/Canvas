@@ -1,49 +1,46 @@
-# PXA Brand And Logo System
+# PVADE Brand And Logo System
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-> Legacy roadmap naming: PXA / Power Dox Automation and PXAP/PXAS below are
-> historical terms. For current work use PVAD technically, PVADE for the platform
-> and Designer, and PVADP/PVADS for the PDF/Spreadsheet products and project
-> formats. This supersedes the old naming instructions, not the open artwork
-> approval tasks. See the [current asset inventory](../docs/pvad-brand-asset-inventory.md).
+The brief below uses the current naming decision. It does not approve artwork
+or trademark clearance. See the [current asset inventory](../docs/pvad-brand-asset-inventory.md).
 
 ## Goal
 
-Create a distinctive, professional logo system for **Power Dox Automation** and
-its short product name **PXA**. The system must work across websites, Designer,
+Create a distinctive, professional logo system for the market name **PVADE**,
+with **PVAD** reserved for technical identifiers. The system must work across websites, Designer,
 Admin, Account, Documentation, Demo, SDKs, CLI, containers, documents, and the
-future PXAP/PXAS project formats.
+PVADP/PVADS project formats.
 
 ## Priorities
 
 - [ ] P0: Confirm brand strategy, naming, trademark constraints, and visual brief.
-- [ ] P0: Design and approve a scalable symbol, PXA wordmark, and full product
+- [ ] P0: Design and approve a scalable symbol, PVADE wordmark, and full product
   lockup.
 - [ ] P0: Deliver production vector masters and accessible application assets.
-- [ ] P1: Integrate the approved system across every PXA product surface.
+- [ ] P1: Integrate the approved system across every PVADE product surface.
 - [ ] P1: Publish usage rules, asset tests, and migration guidance.
 - [ ] P2: Add motion, event, partner, and campaign variants only after the core
   identity is stable.
 
 ## Brand Brief
 
-- [ ] Position PXA as a precise, dependable document-automation platform rather
+- [ ] Position PVADE as a precise, dependable document-automation platform rather
   than a single-purpose PDF utility.
 - [ ] Express structured transformation, reliable output, and automation without
   depending on generic document-sheet, folded-page, lightning, or magic-wand
   clichés.
-- [ ] Keep **PXA** as the primary compact product mark and **Power Dox Automation**
-  as the full descriptive name.
+- [ ] Keep **PVADE** as the visible platform and Designer wordmark; use **PVAD**
+  for technical identifiers, not as an expanded or abbreviated company name.
 - [ ] Ensure the identity remains credible for developers, enterprise buyers,
   administrators, and end users.
 - [ ] Define desired attributes and exclusions before drawing concepts.
 - [ ] Confirm pronunciation, capitalization, and whether the full wordmark uses
-  `Power Dox Automation` consistently in every locale.
+  `PVADE` consistently in every locale.
 
 ## Research And Legal Clearance
 
-- [ ] Audit current PXA marks, text logos, favicons, colors, and inconsistent
+- [ ] Audit current PVADE marks, text logos, favicons, colors, and inconsistent
   branding across the repository.
 - [ ] Review competitor identities to avoid visual imitation and category
   confusion.
@@ -61,7 +58,7 @@ future PXAP/PXAS project formats.
   applying color.
 - [ ] Evaluate every concept at 16 px, 24 px, 32 px, app-header size, document
   footer size, presentation size, and monochrome print.
-- [ ] Test the symbol without text, the PXA wordmark, and the full lockup.
+- [ ] Test the symbol without text, the PVADE wordmark, and the full lockup.
 - [ ] Reject concepts that depend on gradients, fine strokes, tiny interior gaps,
   or color to remain recognizable.
 - [ ] Test distinctiveness beside major PDF, document, reporting, automation, and
@@ -71,8 +68,8 @@ future PXAP/PXAS project formats.
 
 ## Required Logo Family
 
-- [ ] Create a primary horizontal lockup: symbol, PXA, and Power Dox Automation.
-- [ ] Create a compact horizontal PXA lockup for application headers.
+- [ ] Create a primary horizontal lockup with the symbol and PVADE wordmark.
+- [ ] Create a compact horizontal PVADE lockup for application headers.
 - [ ] Create a symbol-only mark for favicons, app icons, avatars, and small UI.
 - [ ] Create a stacked lockup for square or narrow placements.
 - [ ] Create one-color black, one-color white, grayscale, light-background, and
@@ -81,11 +78,11 @@ future PXAP/PXAS project formats.
   prohibited uses.
 - [ ] Define whether product qualifiers such as Designer, Admin, Documentation,
   Demo, API, and CLI are typography extensions rather than separate logos.
-- [ ] Create coherent PXAP and PXAS file icons without changing the core mark.
+- [ ] Create coherent PVADP and PVADS file icons without changing the core mark.
 
 ## Color And Typography
 
-- [ ] Reconcile the logo palette with the existing PXA Web Design System instead
+- [ ] Reconcile the logo palette with the existing PVADE Web Design System instead
   of introducing an unrelated brand palette.
 - [ ] Define primary, secondary, neutral, and semantic colors with HEX, RGB, CMYK,
   and print-safe references.
@@ -114,7 +111,7 @@ future PXAP/PXAS project formats.
 
 ## Product Integration
 
-- [ ] Replace text-only and temporary PXA marks in Company, Account, Admin,
+- [ ] Replace text-only and temporary PVADE marks in Company, Account, Admin,
   Designer, Documentation, and Demo.
 - [ ] Apply the compact lockup consistently to navigation while preserving each
   application's product qualifier.
@@ -125,7 +122,7 @@ future PXAP/PXAS project formats.
 - [ ] Add accessible names and mark decorative symbol duplicates as hidden.
 - [ ] Avoid embedding large Base64 logo copies in source code or generated
   documents.
-- [ ] Verify no legacy Canvas marks or conflicting temporary PXA badges remain.
+- [ ] Verify no legacy product marks or conflicting temporary badges remain in current UI; original fixtures and neutral drawing API names are not branding.
 
 ## Governance
 
@@ -137,7 +134,7 @@ future PXAP/PXAS project formats.
 - [ ] Provide templates for presentations, documentation screenshots, social
   previews, and partner usage.
 - [ ] Define co-branding and powered-by rules separately from the primary logo.
-- [ ] Keep customer branding and white-label behavior separate from PXA's own
+- [ ] Keep customer branding and white-label behavior separate from PVADE's own
   identity.
 
 ## Validation
@@ -156,13 +153,13 @@ future PXAP/PXAS project formats.
 
 ## Acceptance Criteria
 
-- [ ] One approved source asset family covers symbol, PXA wordmark, and full
-  Power Dox Automation lockup.
+- [ ] One approved source asset family covers symbol, PVADE wordmark, and full
+  PVADE lockup.
 - [ ] The mark remains recognizable, legible, and distinctive from 16 px to print
   and presentation sizes.
-- [ ] Every public PXA surface uses an approved variant consistently.
+- [ ] Every public PVADE surface uses an approved variant consistently.
 - [ ] Assets have clear ownership, licensing, accessibility, and usage rules.
-- [ ] PXAP and PXAS receive related file icons without becoming separate brands.
+- [ ] PVADP and PVADS receive related file icons without becoming separate brands.
 
 ## Dependencies And References
 
@@ -173,12 +170,12 @@ future PXAP/PXAS project formats.
 - [ ] Supply file icons only after
   [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md) finalizes the
   format identities.
-- [ ] Align visible names with [Rename-To-PXA.md](Rename-To-PXA.md).
+- [ ] Align visible names with [the current rename plan](Rename-PXA-To-PVAD.md).
 
 ## Assumptions
 
-- The public company and product name remains Power Dox Automation, shortened to
-  PXA.
+- The market and Designer name is PVADE; the technical identity is PVAD.
+  Neither name supplies the still-unconfirmed legal company name.
 - The primary logo master is vector artwork; generated bitmap concepts may support
   exploration but are not production masters.
 - Logo creation does not replace formal trademark clearance.

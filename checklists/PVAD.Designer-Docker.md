@@ -1,23 +1,23 @@
-# PXA Designer Docker Checklist
+# PVADE Designer Docker Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Deliver `pxa-designer` as a production-ready static web application that connects to PXA Cloud or a local PXA Server through the same API contract.
+Deliver `pvad-designer` as a production-ready static web application that connects to PVAD Cloud or a local PVAD Server through the same API contract.
 
 ## Priorities
 
 - [ ] P0: Produce a secure Vite production image with working SPA routing.
 - [ ] P0: Remove environment-specific API addresses from browser code.
 - [ ] P1: Add API compatibility, connectivity, and background-job UX.
-- [ ] P2: Include the Designer in the PXA Server all-in-one evaluation image.
+- [ ] P2: Include the Designer in the PVAD Server all-in-one evaluation image.
 
 ## Dependencies
 
 - [ ] Use the API container and Compose contract from `PVAD.Api-Docker.md`.
 - [ ] Use the canonical contract and version policy from `PVAD.SDK-Roadmap.md`.
-- [ ] Define the minimum compatible API version exposed by PXA Server.
+- [ ] Define the minimum compatible API version exposed by PVAD Server.
 
 ## Container Image
 
@@ -45,10 +45,10 @@ Deliver `pxa-designer` as a production-ready static web application that connect
 - [ ] Allow safe retry and cancellation where the API contract supports them.
 - [ ] Preserve the current design when a background operation fails.
 
-## PXA Server Integration
+## PVAD Server Integration
 
 - [ ] Add the Designer service to the shared Docker Compose bundle.
-- [ ] Route `/api` to PXA API and all other routes to the Designer.
+- [ ] Route `/api` to PVAD API and all other routes to the Designer.
 - [ ] Verify operation behind TLS-terminating customer reverse proxies.
 - [ ] Document base-path support and forwarded-header expectations.
 - [ ] Add the built Designer assets to the later all-in-one evaluation image.
@@ -57,7 +57,7 @@ Deliver `pxa-designer` as a production-ready static web application that connect
 
 - [ ] Run type checking, unit tests, linting, and the production build.
 - [ ] Smoke-test direct navigation and refresh for all application routes.
-- [ ] Test Cloud and local PXA Server runtime configuration.
+- [ ] Test Cloud and local PVAD Server runtime configuration.
 - [ ] Test API offline, unauthorized, incompatible-version, and server-error states.
 - [ ] Smoke-test Designer, migration, import, export, PDF Viewer, and Spreadsheet workflows.
 - [ ] Verify responsive behavior on representative desktop and mobile viewports.

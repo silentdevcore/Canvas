@@ -1,6 +1,6 @@
 # Documentation Audit
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
@@ -13,6 +13,16 @@ PVADE URLs with an explicit deployment disclaimer; retained runtime host default
 are documented separately. Signed PDFs, reports, manifest hashes, legacy schema
 identities and historical task status remain unchanged. Documentation build and
 browser validation for this naming-only follow-up are deferred by the owner.
+
+### Checklist Naming Follow-up (2026-10-30)
+
+Current checklist titles, goals, and open implementation tasks use PVAD for
+technical identifiers and PVADE for the market and Designer name. Completed
+task records, original code fences, dated assessments, accepted Legal content,
+and compatibility contracts retain their original wording and status.
+See the [naming review](../docs/pvad-checklist-naming.md) for scope, the remaining
+legacy references, and publisher decisions. This is not a new feature completion
+or a release approval.
 
 ## Source Of Truth Rules
 
@@ -56,7 +66,7 @@ browser validation for this naming-only follow-up are deferred by the owner.
 - [x] **[medium]** Review old `ui-designer/` checklists and label which are legacy vs active `pxa-designer`.
   - The legacy `ui-designer/` implementation folder was removed during the PXA Designer folder cleanup.
   - Historical checklists may still mention `ui-designer/` paths when documenting completed legacy work; active UI docs and commands now target `pxa-designer/`.
-- [ ] **[medium]** Review `checklists/Last-Features.md` and replace remaining old `PdfImporter.cs`/PdfPig wording with current `PXA.Importer` wording or a historical note.
+- [ ] **[medium]** Review `checklists/Last-Features.md` and replace remaining old `PdfImporter.cs`/PdfPig wording with current `PVAD.Importer` wording or a historical note.
 - [ ] **[medium]** Review `handoff.md` and decide whether it is still an active handoff document or should be archived.
 - [ ] **[low]** Add a short `checklists/README.md` index if checklist count keeps growing.
 - [ ] **[low]** Add a generated docs/link check script if broken links become recurring.

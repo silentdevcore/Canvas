@@ -1,6 +1,6 @@
-# PXA Electronic Invoicing
+# PVAD Electronic Invoicing
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
@@ -696,7 +696,7 @@ Evidence.
 ### EINV-07 - Maintained Fixture Corpus - PXA-authored part done, official part blocked
 
 - [ ] Add licensed official valid and invalid fixtures for every maintained
-  syntax/profile combination, plus PXA-generated deterministic fixtures.
+  syntax/profile combination, plus PVAD-generated deterministic fixtures.
 - [x] Include multilingual, multi-tax-rate, rounding, credit-note where
   supported, large-line-count, malformed, and adversarial XML cases.
 - [x] Store provenance, license, expected result, and SHA-256 for every fixture.
@@ -964,7 +964,7 @@ Evidence.
   byte-for-byte.
 - [x] Typed invoice data can produce deterministic XML and a visible PDF/A-3
   hybrid invoice whose embedded semantic values match its rendered content.
-- [ ] The generated PDF/A-3 structure passes PXA and independent validation.
+- [ ] The generated PDF/A-3 structure passes PVAD and independent validation.
 - [ ] Supported XML passes the pinned official XSD and Schematron rules.
 - [x] Invalid XML, mismatched profiles, invalid totals, and unsafe payloads fail
   closed with stable diagnostics.
@@ -981,7 +981,7 @@ Evidence.
   identities and version labels. Current ZUGFeRD 2.5.2 output uses the harmonized
   `factur-x.xml` filename and Factur-X XMP namespace; legacy ZUGFeRD metadata is
   import compatibility only.
-- XRechnung supports UBL and CII XML; embedding it in PDF/A-3 is a PXA workflow,
+- XRechnung supports UBL and CII XML; embedding it in PDF/A-3 is a PVAD workflow,
   not a claim that every XRechnung exchange requires a PDF.
 - Official validation artifacts are pinned only after their redistribution terms
   have been reviewed.

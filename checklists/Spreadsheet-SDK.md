@@ -1,11 +1,15 @@
-# Spreadsheet Editor SDK — Excel-like spreadsheets in PXA
+# Spreadsheet Editor SDK — Excel-like spreadsheets in PVAD
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 An interactive in-app grid editor with live formulas, a backend `SpreadsheetDto` model, and `.xlsx`
 import + export. Adds spreadsheet capability alongside the document designer.
 
 ## Context
+
+> Historical baseline: this paragraph records the initial Spreadsheet SDK scope,
+> before the implementation entries below. It is not the current capability
+> matrix; original names and test evidence remain unchanged.
 
 PXA can only *export* a `table` element to `.xlsx` via `ExcelDocumentExporter` (ClosedXML), storing
 **literal values** — no formulas, no cell data types, no spreadsheet model, and **no xlsx import**. The

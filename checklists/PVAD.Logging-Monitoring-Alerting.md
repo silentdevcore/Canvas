@@ -1,10 +1,10 @@
-# PXA Logging, Monitoring, and Alerting
+# PVAD Logging, Monitoring, and Alerting
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Deliver privacy-safe, vendor-neutral observability for the complete PXA platform. Logging, metrics,
+Deliver privacy-safe, vendor-neutral observability for the complete PVADE platform. Logging, metrics,
 distributed tracing, dashboards, and alerts must work in Cloud and On-Premise deployments without
 making application availability depend on the telemetry backend.
 
@@ -179,9 +179,9 @@ making application availability depend on the telemetry backend.
 
 ## Dependencies
 
-- PXA.WebApi and background-job services.
+- PVAD.WebApi and background-job services.
 - PostgreSQL persistence and existing live/ready health checks.
-- PXA.Api Docker and PXA.Admin roadmaps.
+- PVAD.Api Docker and PVAD.Admin roadmaps.
 - Reverse-proxy, secret-management, mail, storage, and future object-storage deployment work.
 
 The P2 gates are complete. The containerized WebApi stop/recovery scenario delivered FIRING and

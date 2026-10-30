@@ -1,6 +1,6 @@
-# PXA Application Versioning and Releases
+# PVADE Application Versioning and Releases
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Related Roadmap
 
@@ -88,7 +88,7 @@ deployment controls are tracked in
 
 - [ ] Publish Alpha and Beta releases from `develop`.
 - [ ] Add automatic production deployment after stable release approval.
-- [ ] Add package-registry publishing for public PXA SDKs.
+- [ ] Add package-registry publishing for public PVAD SDKs.
 
 ## Native Project Compatibility
 

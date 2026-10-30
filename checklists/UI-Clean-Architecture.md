@@ -1,6 +1,6 @@
 # UI Designer Clean Architecture Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Overview
 
@@ -61,16 +61,16 @@ This checklist outlines the implementation of Clean Architecture principles for 
 ### 4. Presentation Layer (UI Components)
 - [ ] Create `src/presentation/` directory structure
 - [ ] Organize components by feature
-  - [ ] `components/canvas/` - PXA-related components
+  - [ ] `components/canvas/` - PVAD-related components
   - [ ] `components/sidebar/` - Element palette components
   - [ ] `components/properties/` - Property editor components
   - [ ] `components/export/` - Export panel components
 - [ ] Implement presentation models/view models
-  - [ ] `PxaSurfaceViewModel` - manages canvas state presentation
+  - [ ] `PvadSurfaceViewModel` - manages canvas state presentation
   - [ ] `ElementViewModel` - handles element display logic
   - [ ] `PropertiesViewModel` - manages property editing
 - [ ] Implement UI controllers/presenters
-  - [ ] `PxaSurfaceController` - handles user interactions
+  - [ ] `PvadSurfaceController` - handles user interactions
   - [ ] `ElementController` - manages element operations
   - [ ] `ExportController` - coordinates export operations
 

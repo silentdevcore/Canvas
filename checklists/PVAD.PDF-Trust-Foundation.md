@@ -1,6 +1,6 @@
-# PXA PDF Trust Foundation
+# PVAD PDF Trust Foundation
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
@@ -497,7 +497,7 @@ Reference material:
 - [ ] Add PDF/A-4 only after the PDF 2.0 writer and validator policy are production
   ready.
   - [ ] Precondition not met. The writer emits classic cross-reference tables only, and
-    the PXA validator has no PDF/A-4 rules and no PDF/A-4 output has been corroborated by
+    the PVAD validator has no PDF/A-4 rules and no PDF/A-4 output has been corroborated by
     veraPDF. Emitting `pdfaid:part 4` on that basis would be a metadata-only
     conformance claim, which the Delivery Principles forbid.
 - [x] Define a typed compliance profile rather than a free-form string.
@@ -1119,7 +1119,7 @@ centrally in
 
 ## Assumptions
 
-- PXA remains an offline-capable product; all network-dependent trust operations have
+- PVAD remains an offline-capable product; all network-dependent trust operations have
   explicit offline behavior.
 - Private-key operations are abstracted so Cloud can use managed KMS/HSM services and
   On-Premise can use customer-controlled providers.

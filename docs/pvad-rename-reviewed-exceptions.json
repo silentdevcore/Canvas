@@ -57,12 +57,12 @@
     },
     {
       "path": "checklists/Backend-Adjust.md",
-      "sha256": "8d6a3f3dfb92f8530775fd36df087b3f1b798258ad8a7ec688d9d41df8b9bc50",
+      "sha256": "a04db895abe81a02feb6e061954d52ff265a1ce7425059baee2ea19773093099",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -77,182 +77,182 @@
     },
     {
       "path": "checklists/Code-Migration-ActivePdf.md",
-      "sha256": "19c9130127398d4b4919d4a040d61ee7213a69615d9053bb8e063431205fa549",
+      "sha256": "685ab8c3a396e3aed1834997a5769596319edf3a18248e764420cc1621c92978",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-ActiveReportsRpx.md",
-      "sha256": "6fde3f922fefba103f4dfe16b9253e23517c85a8cdc5034c7b820cefcc4f6fc7",
+      "sha256": "b21f4773f8c7601ae0267e7215f1224ddb5e093fd7dd6a1c130937816e080af9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-Apryse.md",
-      "sha256": "2106742caf50b1e33595ce96e8e2fd71900b510b123230e576f349475a826124",
+      "sha256": "84804b36838b485c934c43e8ad57cc391383cf179ff8d75ede2bb4dde2eacee0",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-AsposePdf.md",
-      "sha256": "6c128c7b43acf1bb1c616fba9eaa628477d09ef832f9eba94dce68d5bafd7809",
+      "sha256": "7a813b49212b2e10749f0c63ea1b70fd10f9f34d9b9e7fe9370b183c23891ad2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-DevExpressPdf.md",
-      "sha256": "9dfbf358662bcb6e8bae232376a013e7cc3726e7ec529a335b0ac41d303bf0f5",
+      "sha256": "efe0f5ec187355d33e4a2426541610c3185c7d326853c2ba093a35457380c91a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-DevExpressReport.md",
-      "sha256": "2b1014b302a48bd27e91a409d4512e65b64f7cd64c73254fa0a76a20bda63ab6",
+      "sha256": "46864bbf2b5631c8a85148c27a79aa3d3911a8856e069863c077b27502349014",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-DsPdf.md",
-      "sha256": "a57fb1147fb7bddb6a0bdd91b650945b8d787d80f6a18d72960f1a1f0a9b69b7",
+      "sha256": "e95d96149acf210f1ecbdcf165da2b29d0eacfb4a6991efdc2f6b3fc62931ede",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-FoxitPdf.md",
-      "sha256": "d71f246d8180e93d54d98e4da363a984f67f647dcbdc26230185003082f62bf7",
+      "sha256": "183691d00712c102c935b09ae99c3a97068796473aa72a204f921e11d4159caf",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-GemBoxPdf.md",
-      "sha256": "ff131fa7055d3df67e3464fc525588427d3cebe03d99ba68fb0ec57d5f10be03",
+      "sha256": "38c44e817a1f38ece0bf1358d6f2c7bd3f366886dc73d67efd53e09a90976502",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-IronPdf.md",
-      "sha256": "5f7559fc04c7f3af4ed9469734fe9abe2644b3d2826119dcf19a264cd6e2da36",
+      "sha256": "3e94dde6a3904901372c23af43598e164c12223cd3dc9211973d1ee4cb99878d",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-iText7.md",
-      "sha256": "56262a34e4be47e70971b4b591dc821461dd0c770b888c3b33c64ea799a0af25",
+      "sha256": "82e9cf72ddc3e1dea9851a30c215a19f87e5be8558e62ae1305755bc5cc2840b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-LeadtoolsPdf.md",
-      "sha256": "6e58bd6a94130bd956dfe4f72eca5b42a1038315b8c52d82057a4f8062115ae8",
+      "sha256": "7acf08f54d3738c70942fcff3fb42cf73cd97294b2d0cccaf74ba1491ad88027",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-PdfKitNet.md",
-      "sha256": "d9fe4f541ec478ca4abdb81bf93243af413ebe5f85a3818511a420b90f5ad4da",
+      "sha256": "8d0c655ac83c76d9245a902f97fa768e8389b04f83f59f12c83ada4407e5dada",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-PdfTools.md",
-      "sha256": "deb9ded0e1bbaa20a5778f379412d748f0189b4a120adb40b8e0b84d8a3fcb5e",
+      "sha256": "5636e148fe28f8ad2ad95ca92c0e8edbf8612d23fdbf4351c577f38f6c465cbe",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-PdfToolsToolbox.md",
-      "sha256": "f40895d9a80f1d019b4b067c3e7c7684050337f2e860a8fc8c5fbaf3b517307b",
+      "sha256": "b8bf0e9d91725597e2a16ce91e152d740fd73b15295967e5d6d92385c97fdd32",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-SpirePdf.md",
-      "sha256": "62a09553e04f613444d581dd7e89b1a6edffc6aa86e42c67ee364056f5f3c78a",
+      "sha256": "0344160872be1199d8511a273a9d6882799b4b9b9155c637da7051c402d85b8a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-SyncfusionPdf.md",
-      "sha256": "e29f820328d71f8885f653ec7fdce0f4b201cacacdafd9a7f522b2db6975c87b",
+      "sha256": "3e123b690921fd6a424d8df037ac01fbf26b01b8222bb8c2ec31602e622c06fe",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Code-Migration-SyncfusionRdl.md",
-      "sha256": "bb1e869eb34eb06210284826e371a8007600bf3d578e30195ee32be7c1f0da73",
+      "sha256": "5cb111abecfa59eceb1d9b9586505aba46a95340156aecd223bb6dd63172c1b1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -267,152 +267,152 @@
     },
     {
       "path": "checklists/Code-Migrations.md",
-      "sha256": "b968353598a4af6016faeedb101dd735bc2ee60425a596b1682ef275276706f2",
+      "sha256": "d80d1cd1d0919b00e202d14d4ca7ca8402ab1d35682a6f3088e57ed6809a59e0",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Converter.md",
-      "sha256": "d8db0b74ec4caa3137ae301253b602a50338cfc82506a88a042b1666f52266c0",
+      "sha256": "0c4bad5534e95ab5923d710e204e2400610a2d0350d4acf1bbd6abdfa322841b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-ActiveReports.md",
-      "sha256": "9b5b5ff126aaa29b517da602105dd293b2868cc22fb375ff3646b28a3096651a",
+      "sha256": "a1fbb386c991e070c2d04e45d9668ae1923591039a1cdb0afa746b2ebf60e8cc",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-Crystal.md",
-      "sha256": "284304de722335b2a5fd1c621d2dcbe121262a9a5cb5ef419896d81d4475aeb9",
+      "sha256": "b02ca22262b43c3b031bda6618f7c8ee4ec2e84befc1055fbecdbf592d939ab2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-FastReport.md",
-      "sha256": "63e31edc9d378156cd21654d9e01c7bf9f5a69d09f5677a9b15117acd7fc37f3",
+      "sha256": "b5e907b5c9dab0cfee480f44567efab63256956fdc2c35653a6b2ce893a75fa0",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-JasperReports.md",
-      "sha256": "46f498915433049df5a3e730b0af024f128dbf59224f0bbf39b8a74bcfe40057",
+      "sha256": "6b6f56c37070d37996fce8dba870ccbbc09e300fd874fcdd8974a03941e9a5f6",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-Stimulsoft.md",
-      "sha256": "1ac4111fe7b776292f4fcbd6016e9bd092192b6e28c9d550555cb8ce6d3e85cb",
+      "sha256": "4ade632d231d8b5c6d720b2e03a8dac8e456ee965c2423518db346a8aaa0adeb",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration-Telerik.md",
-      "sha256": "5019710793460d760a632c9232d0bd9dd3a41bbbe72207bc4770b121cf7aab36",
+      "sha256": "298457435265117cd55957d2de89bdb78dd3843e71204cf7912b0696ade69af7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Designer-Migration.md",
-      "sha256": "96d2fb9f317f4c62a7af869b6ebeef52c95342673a74d1d71b3dee52981b839a",
+      "sha256": "daf01bf02268a2f445384df64e65bec39ab9aab18caa1225aac0f488892bb1ca",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Docs-Details.md",
-      "sha256": "5bcdf48e5c8184ac409e69694169bb2676eeab73dc20494040a4c8bbc2161fb3",
+      "sha256": "27db9ad105b8e16e19cd2b94181d6d50db5c05156036372c66c9b9700880ee19",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Documentation-Audit.md",
-      "sha256": "5a9454124e7cdae23985101b7cac4195f4fda377fe535c53743ac18e1da597b6",
+      "sha256": "2bbcfe24831079a0e35ebc181c6b1f27ea455c43e0c93333afbd5210d6989fe7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Image-Convert.md",
-      "sha256": "a3b625cf6c9e40349c94461b5d4f325f8875c870f28ccf298679124aa6600604",
+      "sha256": "2cf808615ecf4b95a7d3c450624f849a57f35ca1c473edb3354fc6c63cfb4b88",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Image-Converter2.md",
-      "sha256": "1998617634352baa0e3f938e2ac2eb73003f6579900f4a2846665e0334cc9821",
+      "sha256": "740bb223c469581290cb45c4c84e2a77194b58ca8ca7f7efa08a110ae43391ae",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Importer-New-Featuers.md",
-      "sha256": "c5bc55370bc6e1caa7220bac0af8c1ae08f1faed72d7d1c25b61d76e45b64a97",
+      "sha256": "2ae78bfd35977abef031e5d5f320d4ff5918abe1d8908a60cb646d09ae6610e2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Last-Features.md",
-      "sha256": "9e493f10ddfc941da824221eafd3bea2fe13b431ef200ab501e03c7f07dde8d2",
+      "sha256": "7a7943cf453130769bbfe3015a8db0fcdfc06141d6b4ef88f75f4ff3380f0808",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -447,32 +447,32 @@
     },
     {
       "path": "checklists/Migration_Dataset-Aggregates.md",
-      "sha256": "878e9698915ea35c034acb66471706d96909730e1d381c88c0df392a96138bf6",
+      "sha256": "ca248d6f470e8391b504fafbac8708a47ec62f6aaac5faaa6ae35728fa4642b9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Migration_RDL+DevExpress.md",
-      "sha256": "72daa9d6f49709c921e23431c0122f885c0963bb6155d3e5bdafde7850678ee3",
+      "sha256": "a7d2f56b13447619f7f96c7f7e76a0a343c066ab6cd49a6440c3f88672eb54e4",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Migration-Namespace-Taxonomy.md",
-      "sha256": "726ba37e680a68e08ceea70e573596645ad5c8ba253eb43f58f40847d6a8329b",
+      "sha256": "3e099a1ebf2dfb0950752d26ffdb75ceaa912066619acc6021b9aa8753b86872",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -497,12 +497,12 @@
     },
     {
       "path": "checklists/Pdf-Encryption.md",
-      "sha256": "a6b7e0f1e6cfca9f11121045b8144c498ea91039400adde9f502d1e99ae97564",
+      "sha256": "de874ef0789a29a22ec2cf93098e8a36c1d38508dbfc106d55f8bd0527a8c025",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -517,12 +517,12 @@
     },
     {
       "path": "checklists/PdfTools-WebViewer-Feature-Gaps.md",
-      "sha256": "af50fd622a5eed66c4e885043f9c653d6c92af6f70d417d31bc80814f63b7b56",
+      "sha256": "c48a431242518b13c86527dd15234038fa93d0f20214163ab430227653774b36",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -557,92 +557,92 @@
     },
     {
       "path": "checklists/PVAD.Account-Registration.md",
-      "sha256": "6a2a86d79f06dc573a3de15a9d159363b33e3e5e9a9e7e49eba43c87c2702fa4",
+      "sha256": "e0e7a432c272e8e3b5c78facb5fac73038ceb856384b14a0dcf4c3f6eb6d16b6",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Account.md",
-      "sha256": "05747a28b1c41cc4ffc83144b897fb608b910dbab9beed4ed9bb962bbbbf5b25",
+      "sha256": "c371336a49b8453dfe7b76c9513bf67636816c9b65f4c4558acc4fc7346fa0c9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Account.Portal-Implementation.md",
-      "sha256": "904299157cee7aa719b7d28aab670751d7f0ce85ed4424e2f17242bd601ed766",
+      "sha256": "0c02a1af6bc6a59a286877daac39650b900780a065dc8402861690055996f8b4",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Admin-Documentation.md",
-      "sha256": "c072897eb28cac71be021a6ac87c454998fb666703af7da3b04518943d0f43cf",
+      "sha256": "76174c258f17a34e4121227dafb4c19e418ee8ef473a224136974ad5dc072107",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Admin.md",
-      "sha256": "939164abd61adaf8a15a8de15eca98180eb8d1c210bbc009a07e62f2f0ada7e8",
+      "sha256": "a3f401f4ea43cccb69fdc553873b9f29ded10274694989698016e5d3ca50bc96",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Api-Docker.md",
-      "sha256": "827074b1f194baa1c3455df81f63da10a778d2dbdaf1f3079cd5f66ac601c3cc",
+      "sha256": "3967034e7349aa1e00962ac9de57aab601384a266ce7eb82487a1fbf83705753",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Application-Versioning-And-Releases.md",
-      "sha256": "2b63ec0f7124bffd5c8f69523ca88cf6b857bba8869d37a97743b65505bab7b2",
+      "sha256": "3a7867b1f0ef59a6aa81dcb90fed0dbeffe186b4e3044ff21ca1c1e9cd4754f9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Automated-Release-Notes.md",
-      "sha256": "99a8ca97cfa3e2c0bdc1eb4ad90a26f3981dc845007bbbbbebd0a0e5622de579",
+      "sha256": "6a04ee597d752c85891b5e79f192a05549074b710d470488ee1227251e711a74",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Brand-And-Logo-System.md",
-      "sha256": "f45eb5f3db9bbb2e2603ccb9e947e73d29d011123b9c084d8a1759c7ab67ffc7",
+      "sha256": "7e2094b4304492fc634a0ecfb6e816498f2b39f1e1b4f8ec7cc7da73eef6a17a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-29 PR formatting review: only existing line endings or a trailing empty line changed; retained identifiers and historical task statuses are unchanged.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-29 PR formatting review: only existing line endings or a trailing empty line changed; retained identifiers and historical task statuses are unchanged. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -657,42 +657,42 @@
     },
     {
       "path": "checklists/PVAD.Chart-Engine-And-PDF-Recognition.md",
-      "sha256": "6a66c1726e61204ace63e3c42ad66bb7ec39b81bb28ac0f6d985c4a823d20952",
+      "sha256": "8c23f701168af1ef972e9adee1c7d978e64ab0d3175d4729b13e5dfdc39fd49b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Code-Designer-Roundtrip.md",
-      "sha256": "68bcc60992f4f5773ddc3e714de144598e7f2e7abbe80048ea24a8760a9250b8",
+      "sha256": "64d476115c7b54b954a92153224adb0a47cd6643702d66a9d7be7ef2b84cb3a6",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
+      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Commercial-Launch-Decision-Packet.md",
-      "sha256": "304c2f1f91a325f82ed9a3a41b489d1c37d4fd98365fe9adfd6bc0aa294f62ee",
+      "sha256": "8a5427ba51b28663743952cdcc10f46abaea445ad20dc4b2b9122c0f8fa7726b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Company.md",
-      "sha256": "ea98df0e5c04b6cfaa8ce557c88233c89a8870dcf1dda7d28d35d366a7dd09b6",
+      "sha256": "cdfc9abb52aaa7dd62716d69e160ebf517139b2b2ec1b3f665b57e848c38cd3c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -737,52 +737,52 @@
     },
     {
       "path": "checklists/PVAD.CSharp-REST-SDK.md",
-      "sha256": "0a145230d23570f5b88dbd56e868dd032c8f28609f5cecb251969dcc8369b678",
+      "sha256": "eb9630560c2415aa3e5ef5f59024a2d093ff796160faf03f8338f8e80f36f83a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Database.md",
-      "sha256": "d126b379af3c04da12c9606bb6b54c1cddbeacbb89ee15028d117d455fb21851",
+      "sha256": "3aeab62822749072e1e7751cccb24620b3c8aa8d30627fad631307b6bb072ff2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Demo.md",
-      "sha256": "d45cc8046c32f62c5cb497473399c85d883c79af2afaccaae4dbe9c9d4aead3c",
+      "sha256": "cd664c37513209a5313662abfef88aaf72d2a41f7fcf1f2ad40682054c50b1f0",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Dependency-Security-And-Compliance.md",
-      "sha256": "5a002518d3d15ab28049ff160ee5f07b88bd8c38c7173ca3b256046f97ebdd36",
+      "sha256": "0f11465c4dddf53857648b3e5c43b72b102935f7269ac0c2676a69412bbfc940",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped startup-exit follow-up: retain the naming-history notice and original historical product wording. Newly completed maintenance tasks bind typed rejection, independent exit, normal shutdown, fresh scans and regression evidence; actual Production retention, NPOI approval, remaining scanner risk and rename gates remain open. Only this reviewed file hash is updated.",
+      "reviewNotes": "2026-10-26 scoped startup-exit follow-up: retain the naming-history notice and original historical product wording. Newly completed maintenance tasks bind typed rejection, independent exit, normal shutdown, fresh scans and regression evidence; actual Production retention, NPOI approval, remaining scanner risk and rename gates remain open. Only this reviewed file hash is updated. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Authentication.md",
-      "sha256": "645e9d31ee1b8e329dcf15d3bc2c8c4fb209da87a85fb1035d6c90f5642ee869",
+      "sha256": "c5e496e8fb2637ebafe5dd9cd4d5f8eee54b40a80e0c4feedb33eb4a306d41b4",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -797,132 +797,132 @@
     },
     {
       "path": "checklists/PVAD.Designer-Docker.md",
-      "sha256": "fcfcf46767f6dd996036fc607f4b666aacbd5a200e5cbe8d83aaeed829b4a62f",
+      "sha256": "e8e20198fd67fbe829621c7b9c98b44f72ddd7c55251f12501ec18eb402e24aa",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Document-Naming-And-Export-Audit.md",
-      "sha256": "e06f346d8ee5060b5817e4450c598b1d7e7358739f6c90671a3c05bd70ba64c4",
+      "sha256": "c3594f4e728f4d01efddc3a1c9c8abbb19a2926f5cabfb2a39ce0595cfae078e",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Element-Library-And-Favorites.md",
-      "sha256": "1902e11bf686bfe9c9709c71436d0ff107efccbb02ada60fd678f2ac27b8c10d",
+      "sha256": "0aa7f6c753623601504bf077e824dabf51ae484c5b3b7c31db357946b508bcf8",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Home-Restructure.md",
-      "sha256": "5aa5645f4169752a04c0dafe4f9cb0a146af756a1824492f234cb019f60f2b9d",
+      "sha256": "42ebeb066ef2ea84496a1adaafb6c35a84d04561e4c41e81de1c63f8a3186d3d",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Localization.md",
-      "sha256": "6a62b32c061151356e29d040b2667b77e20521ec5808eadf62fb1a126e18fe3b",
+      "sha256": "dc894a4b0d077e373dbae7bbed71b48c3db6e211837c4d523b1dd4807b4728d1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Open-Work-Audit.md",
-      "sha256": "8c652a2a71e7dbec5bb265f057e77a8b8845a291868239821e5437d347ec8c59",
+      "sha256": "76fb5536952100ec85427a7cc800383661dc08b7ab3a8db389571bce77ddaa08",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-PDF-Visual-Parity.md",
-      "sha256": "b91e5fa06f1996dfc6ae44a4d628dc4c6b0d084ff29f0a5f638496ff51228d27",
+      "sha256": "1ab2e6660287e26ee79623ba61ab03731704d9d552690f03fcf040deba7e111c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md",
-      "sha256": "2613b53298094c672869d8c0c84546421adf7357134e9ea9d0f96aa94fd6d32d",
+      "sha256": "4a8707b0011971d0e07950547b7e3416edfa54b9c15716ff2a1cad98beb80ff2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Redesign.md",
-      "sha256": "b90260a507e5a518fb916f9210f8f5a16a48e3c7cf2889b8325b4b2e65ef6ec5",
+      "sha256": "52dea61c17ee89d722c40ddbc0d2ef84e809cdf502ee8fe690656aa46d9db9a1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Releases-And-Notifications.md",
-      "sha256": "cce54007a49fac810c7dcbac77332d7bd4bb9e1d04b933bcc69f21d50e9c1142",
+      "sha256": "f32ff7f6aac56fd7b1960fbbfebf858e780697995b6cfe91f84c35569f8b6cc9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Restructure.md",
-      "sha256": "ef58cbe793df20854aded5eafc367625626c2ecb37392b756d07d5bc7d96aa4f",
+      "sha256": "2c4d19cbd1d989d3a6fed7b551c68facf0b55ed10035a75e333467ee54dd293c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Scrollable-Workspace.md",
-      "sha256": "6d9eb601312b426be4059a5affb8f9a0f0ebab8654922063f61dd30e6afa840a",
+      "sha256": "aa42d89c71bc33ef3fd6b9274a7d0fa75f3e7b6c8dddf4db92c0eec6cd32c641",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Template-Persistence.md",
-      "sha256": "ab82758c0ecec26a8e34b50faa4a21a86588511f42b009f07e74de9ca44be8ff",
+      "sha256": "d4534ceb4c12412709614dcb6f54b127cbab3d3dccfd633202cfa7f8268a36bf",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -937,232 +937,232 @@
     },
     {
       "path": "checklists/PVAD.E-Invoicing.md",
-      "sha256": "8a4913560f219f00ea22958258a91814e770d218332fada181e999a7dbdc9370",
+      "sha256": "dfa90778b719b90be3ea1a9e98ef77e60b07a0b4b903ebe5567e4e43111fbbcc",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Global-Commerce-And-Pricing.md",
-      "sha256": "bf1137383081cc7f0074303d0e8dcf9285cdc72eb54999506c2f83d29df29f93",
+      "sha256": "d1a007078c8cf9dea6c7abf3fb5ba86c197efd51f094a57eac7dd95ac229e038",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Go-SDK.md",
-      "sha256": "0481dae0288b9f336cb5f338497a2c32ce36b24f56371f8468c9258aef5356c0",
+      "sha256": "5726e8dbe680608aa414f9e1ad02afc7a5662c0232d91166c05355159b6ce4a7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Hosting.md",
-      "sha256": "e8d232859b64dd8e88bb6aa8ec916febf24f21f9d791787482e731502861b6cc",
+      "sha256": "17eb1855d76a69dca721fce8e035bedd9cc34422874d050fd3b455ecc533b336",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Java-SDK.md",
-      "sha256": "aa5163bbf06f5bafe734dd49124664c2450fed96ceb334d6a3729d2941b10835",
+      "sha256": "087ec0a09ed0da6baac0e392f81fb0721b26d10f98b91cec68caf19c99de6b9e",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Legal-Benchmark-And-Decision-Register.md",
-      "sha256": "355c903957f6e11b7bb617385f5c852aa22cc621967d6cf9d4f5f2c39738c9a8",
+      "sha256": "2bc8854623a8f2ec61d5da26f314ff48df156f6b55d04f5b4c56f0ad8cea9f1d",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Legal-Terms-Privacy-And-Consent.md",
-      "sha256": "e58a2dcee1809fa6bf158f23fd65dd478f85bd4d736668bb47dae32c957dc90d",
+      "sha256": "843fb656fe9cd0a2fe6fecf6907fcdc2563d4d34358adf0b4a1e846e7071b5ba",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Logging-Monitoring-Alerting.md",
-      "sha256": "4f9d1bba7241f43c66467f7642a96c0c1d4510c480f932077aabf5c4523b48a2",
+      "sha256": "70677c4dfd977bae1309141f7bd2742e2fa9d16e700f487ec046ca9f517070c3",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Mail-Service.md",
-      "sha256": "6696c5fa3c5e3f78defee0a4b3f61ee1ba87ad4e3bf535d4268af27bd404a2d5",
+      "sha256": "0032c6666e25e4d7d48692f1669b1307803c93e4357bd0223c82786a0ae52adb",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.MCP-Server.md",
-      "sha256": "520c40f0c6381811576ebeca2f8e446fe2b282781245fa98da199be8002a22a4",
+      "sha256": "eed87e24cda654c1835a36c3cc16357fdfe296a02090751982405047daa9a516",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md",
-      "sha256": "20bf8deb01defa334bba2c94f1d9efa9c0c644a4727c53959d8db0f8fd907b8f",
+      "sha256": "222eeb5a9dd891143b55da5a607f32b010c6655e4ac57481824204ddf25b79db",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Native-Designer-Formats.md",
-      "sha256": "d71c459ce4d5a4b76cb2e5b36c60e755acfb6ae398c1477d1b57a238179f8385",
+      "sha256": "21e9048e176479dcaf6a9d37257c250b422299ea1cf8a826c5874ac805bfc614",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.NPOI-License-Decision.md",
-      "sha256": "10f218de163328aebabedecf17a6ab64a3e7d85e8c4b2f7226b2861055edd130",
+      "sha256": "b49c127140a0d22707c8464104ccbde9b1cda620910cc12544c02f24c565c0d1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PDF-AES256-Security-Handler.md",
-      "sha256": "a07640ec99e123854fecd9935e189c08b7653b1f6fc52ee32525e0da8229045d",
+      "sha256": "868249f88e2f2cec4b5c27f40fff421406c7fe9e8c2a482057a6fbc8bbf1f0cd",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PDF-Parser-Hardening.md",
-      "sha256": "a1f5d02eeeecd7009ddbfa80b58ae2bede113faa409a84bc8d5ef72193076962",
+      "sha256": "c3bfe8cf741cc75030dcd5346c55cf09a5c88fcbf4672f756fdd5985c07a1d36",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PDF-Redaction-Preflight.md",
-      "sha256": "14f04ab91b84ceef31bfc5f34b349d964657fd1631f81e80b8ab846ebcc262c5",
+      "sha256": "98150ab0a222decc684d3eede9a581c71c1ef10448f11f560c27fc2ad24d8500",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PDF-Specialized-Features-Roadmap.md",
-      "sha256": "0e17757d8a3952e3aecb4dddfaf59494cf02212ca89cd4ca593aea1890f8cab5",
+      "sha256": "6d320aef11a9dd287db729f19603d21abf3a782e998e90ef8734e4ce7e7da60c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PDF-Trust-Foundation.md",
-      "sha256": "efea84990348883b307a5e39eee83e258f721d1e3ea84d010f4db5405d94be0c",
+      "sha256": "90c060e7482cb95d1076977a7d8bd41b59a2a31aa14f9fd6962e293e885d343d",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PHP-SDK.md",
-      "sha256": "3b05d2f1309dc4957586cd48ae9941a3772430be19df2779ab78fcb1ba503690",
+      "sha256": "eadcf1b3f5035d03aa3cf29f74d1f59a8761b9bf999f4db4ebd2dcee6965ea89",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.PowerShell-SDK.md",
-      "sha256": "9c4b97b7f12614c2adf97f5494b7202a353896c1820d239d958a06205ddb59c6",
+      "sha256": "ea62fb1dc95e93b1a030188d90d33c16b1ef8d78883c2ce3eb75e153677af068",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Product-Roadmap.md",
-      "sha256": "a67f6d4363d7c18fc0fc8d8bfef93d2e6994ea3b24de51eb4418030b4ff2af47",
+      "sha256": "90c21323ec4d709dd649176b44941033a29fa90aaeb412b2c055588b543ccc06",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Proven-Document-Fidelity.md",
-      "sha256": "7c5d221514d79bb89233559659ff59e70b6589e10a6236d7c2c610201c61dfc5",
+      "sha256": "0e317c3bf5dcf3eab06899d6805138d990c5b9ddb8cf49c5043452957e70104e",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Python-SDK.md",
-      "sha256": "a4ad322b61b837b410160dcf4b0503f1425f428cb139502f85d7991b33a3dfdc",
+      "sha256": "a0c3cd4c2ae5c042139c7f89c4a778de02310de474ec8350621264d587b6f25e",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1207,12 +1207,12 @@
     },
     {
       "path": "checklists/PVAD.SDK-Roadmap.md",
-      "sha256": "3e85542fb6dce17ba741ed46f1ea9d05f0d994638d83114335309836f2dc7c56",
+      "sha256": "9669e4598c5ed167d14e1462fc39a95b1865c81c7952ed536d3ee3604286ebb5",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1237,22 +1237,22 @@
     },
     {
       "path": "checklists/PVAD.Standard-Status-Pages.md",
-      "sha256": "83daf5b7a67754ad4ea70bc1947903d0588210409a71a50f55e5099bb09b8ed6",
+      "sha256": "e135bfc125ddb8e4e91bad5417c35209c01351b1407c79b22fac5a64cff00c9a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Subscription-Licensing.md",
-      "sha256": "22768efda858da598c6ac4b0606131de7b5f4584f2df2ca2f01fc0b22e6d825c",
+      "sha256": "773789796830d5aef59b21d68257e2a6ae0740791596d26022825bf5912722c1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1267,53 +1267,53 @@
     },
     {
       "path": "checklists/PVAD.TypeScript-JavaScript-SDK.md",
-      "sha256": "20e28ed785eeb5effbcec15e0c5356653da1864a1b5f57336e67e9558e610d60",
+      "sha256": "a079856b13e35c1ff8d412f980094cbd661aabaceebff9549f894827f1665f04",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Unified-Migration-Frameworks.md",
-      "sha256": "43d074cf3eb83f28b53ac3d6d655f4fb2f9d1fa3e88634abe790018d69e55913",
+      "sha256": "e1bec166a80693d1f9ebd30d0ddf6b068c18832caeb07719571e7d9e47f1b1de",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Web-Design-System.md",
-      "sha256": "476003f2e71e0035aed1a4ce866f7e6326dc25816f666783bc101b5d6c86b73a",
+      "sha256": "40483e92bd01aa4c15e5d22bfd4ce27a117c00a0016b4cb89bd7aaf62d5c9166",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PvadPdf-Provider-Feature-Gaps.md",
-      "sha256": "5759b010077be7d39a33cd5365af2535485b7eded39b1e9110b2cc94d87549be",
+      "sha256": "a14eaa0adbc3970cea65d32288a2a0e3923aa3cd64ae8a6ea658b777664a4dd1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Rename-PXA-To-PVAD.md",
-      "sha256": "243612a81f848c799fc7dd2f11eb8c2df8affe0db261ecc697d70708eac241d2",
+      "sha256": "679103bb33a295e450d95278e7451bcd47b45325e8b90526e643b6dcf6030a29",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 visible-identity review: Historical tracker names, the explicit naming-history notice and earlier acceptance evidence remain internal records. Visible presentation acceptance does not close external release/operational gates.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical tracker names, the explicit naming-history notice and earlier acceptance evidence remain internal records. Visible presentation acceptance does not close external release/operational gates. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
@@ -1328,12 +1328,12 @@
     },
     {
       "path": "checklists/Spreadsheet-Backend-Engine.md",
-      "sha256": "5a2a81cab6b9a90cd5703a7ba9e19a7d940caaef75610ac24ef15ececb199ba6",
+      "sha256": "fb74dad5682e2fc8df828706c4538c5bf97393b1d3014cce8d06ba1e13e8aa74",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1348,52 +1348,52 @@
     },
     {
       "path": "checklists/Spreadsheet-Migration-Aspose.md",
-      "sha256": "72ec42861a05d94f03eaa8fd9ddcbadc21d06553c43335bce51e0ccefd9f819b",
+      "sha256": "6963f0df0beca7eaff2407ca2fcf13d4b4670009be67f0825ed7cebef0bea717",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-Migration-ClosedXML.md",
-      "sha256": "46b587a7fc7072965a619ab4fe131697657158b5f0a8df0fabc4c1284dc42b3b",
+      "sha256": "d46d550601e7adae2c60abca33914cdfe075737299b9af9410e63418fe1d4ab7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-Migration-EPPlus.md",
-      "sha256": "145394e560d6a94e462184f137717e0402680a7432206732852bc1458ef5c680",
+      "sha256": "d6442f410a3586a01ca16f9436103e5ad077cc43ed194b52944ac4dc9456bfaf",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-Migration-GemBox.md",
-      "sha256": "dcdd8f55235969d0dcd05789cffa9dfa8bb8dfc1113e0861dd91caa248e28508",
+      "sha256": "78c13404f11a90b9e58a7a7cd3738776a91b75a2093a7780e6debccb1ac1f1d7",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-Migration.md",
-      "sha256": "74021714e7f432706d8fa1109fec24987014d49d8142195b2b3d240c33998ed7",
+      "sha256": "1a255981ddb35ae2eaa48ee8a383d53b5b1fa835b2b32f18e0bdb8020e33c8e2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1408,12 +1408,12 @@
     },
     {
       "path": "checklists/Spreadsheet-SDK.md",
-      "sha256": "035347075cbee31a369ee600b0bfdcaf141ddabf9a0f607cee2a84542cd2bd2a",
+      "sha256": "e9a44e51d80c18620ec79db27609292f3d959f844a95344b2f85e9214442dd06",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1438,12 +1438,12 @@
     },
     {
       "path": "checklists/UI-Clean-Architecture.md",
-      "sha256": "ea6ff441de46048ee8c9231db890be0746d4ba906b90d0b16a2fafd9a3930c21",
+      "sha256": "8379b78f6b3e10b2f7822f0b5a0e1b0c55847743bd78b081fbd17184b904461c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1508,12 +1508,12 @@
     },
     {
       "path": "checklists/UI-Importer-Features.md",
-      "sha256": "866970f2264368fd4faf1acf0ab92c2642607d4890374e8f905aea0bd83f14b4",
+      "sha256": "c8506e88582f14b45fa6a1302e63e11dd94e9b8e426e1ffaccd576f69cf80f04",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1538,12 +1538,12 @@
     },
     {
       "path": "checklists/UI-Layout2.md",
-      "sha256": "d041b77e3ec3cd7619600616a62c27872e9c4797cdf0098cfc5b7febc7ad4858",
+      "sha256": "c871263c56b0c595122dd4a23a40ff89d9569674869a52dd5de86c53461ae1c2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1588,12 +1588,12 @@
     },
     {
       "path": "checklists/UI-Template.md",
-      "sha256": "0e0af227fb9c7a37f26b4503f94d4f8bc673587fdf6511d429222b337a9de193",
+      "sha256": "80fcbd2c09fe4ca137fbcd756ed81b3949e3d98566dc846c316f33961b3f31c9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1638,12 +1638,12 @@
     },
     {
       "path": "checklists/word-fidelity-samples/README.md",
-      "sha256": "2395b55efe171813f92c29ffbfb7044365ea83d0ff4bc37b0ac418648801628e",
+      "sha256": "88f1e3a214cb567391dba8b9ceb7f3a670e0fec3e2a94e23b9d2bc9bd8ce6a9f",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval.",
+      "reviewNotes": "Explicit naming-history notice states that PXA was renamed technically to PVAD, with PVADE as the market name. Hash comparison excluding the notice matches the staged pre-change checklist body; historical text, task statuses and compatibility identifiers are unchanged. Eight documentation contracts pass; this is not renewed implementation or release approval. 2026-10-30 planning review: current titles, goals and open tasks use PVAD/PVADE; checkbox states, checked records and fenced snapshots compare unchanged with the prior commit. Retained old names are original implementation records, compatibility values or the explicit history notice; no feature or release gate is closed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7296,12 +7296,12 @@
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "09ae005d7a0523ec299ffc4d0f903db80dc23da2f362d467e6b5d287429581d2",
+      "sha256": "e5d64f62356fd2c64fd8dc6fc2e59e7d5a969bd9c044645a707e614c997eb04a",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
+      "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values. 2026-10-30 contract review: legacy tokens detect accidental old naming in current headings and open tasks; historical titles, exact compatibility resources and original records remain bounded exceptions. Tests do not change runtime readers or authorize publication.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -9618,6 +9618,16 @@
       "boundaryGuide": "checklists/PVAD.Visible-Branding.md",
       "sha256": "106bbd365afe723841833823017c36e886abc0cd91f1c53b3086778d554911b3",
       "reviewNotes": "2026-10-30 visible-identity review: Historical tracker names, the explicit naming-history notice and earlier acceptance evidence remain internal records. Visible presentation acceptance does not close external release/operational gates."
+    },
+    {
+      "path": "docs/pvad-checklist-naming.md",
+      "sha256": "b4a5b4e730472bf856d02cb0b312bcb8a04e77b124a7275044abe7242c9f0144",
+      "reasons": [
+        "historical-document"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-10-30 documentation review: retained old filenames identify the original rename/dependency review and exact compatibility ledger; current naming instructions use PVAD/PVADE. This internal scope report is not renewed approval of historical assessments or a publisher registration.",
+      "boundaryGuide": "docs/pvad-checklist-naming.md"
     }
   ],
   "reviewStatus": "reviewed"

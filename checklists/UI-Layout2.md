@@ -1,12 +1,12 @@
 # UI-Layout2 Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Scope
 Improve visual consistency and usability in ui-designer with focus on color, background, typography, and layer stacking.
 
 > Legacy note: this checklist documents work completed in the removed `ui-designer/` implementation.
-> Active frontend work now belongs in `pxa-designer/`.
+> Active frontend work now belongs in `pvad-designer/`.
 
 ## Progress (2026-05-03)
 - [x] Step 1 baseline implemented: token foundation (color, typography, spacing, layer map) added and wired into core shell and overlays.

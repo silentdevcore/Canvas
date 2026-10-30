@@ -1,13 +1,13 @@
-# PXA.Company Website Checklist
+# PVAD.Company Website Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Ziel
-`PXA.Company` ist die Marketing- und Verkaufswebsite fuer Power Dox Automation. Sie soll erklaeren, Vertrauen aufbauen und Besucher zu Demo, Documentation oder Kontakt fuehren.
+`PVAD.Company` ist die Marketing- und Verkaufswebsite fuer PVADE. Sie soll erklaeren, Vertrauen aufbauen und Besucher zu Demo, Documentation oder Kontakt fuehren.
 
 ## Referenz
 - Aufbau orientiert sich an GemBox: Produkt-Hub, klare Produktkarten, Support, Pricing, News und Trust-Signale.
-- Keine 1:1-Kopie; PXA bleibt technisch, ruhig und B2B-orientiert.
+- Keine 1:1-Kopie; PVADE bleibt technisch, ruhig und B2B-orientiert.
 
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Company` planen.

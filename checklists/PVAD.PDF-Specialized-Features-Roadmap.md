@@ -1,6 +1,6 @@
-# PXA PDF Specialized Features Roadmap
+# PVAD PDF Specialized Features Roadmap
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
@@ -90,7 +90,7 @@ Current state: `inProgress`. The focused implementation tracker is
   the Viewer.
 - [ ] Add API, migration, Documentation, sample invoices, schema validation, and
   independent conformance evidence. API, migration mappings, Documentation, and a
-  PXA-authored sample corpus are done; pinned official schema validation and
+  PVAD-authored sample corpus are done; pinned official schema validation and
   independent conformance evidence remain blocked on artifact redistribution terms.
 - [x] Keep Peppol transport and national tax submission outside the PDF engine and
   document them as integration boundaries.

@@ -1,13 +1,13 @@
-# PXA Migration: RDL (SSRS/RDLC) Report → PXA Designer
+# PVAD Migration: RDL (SSRS/RDLC) Report → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
 Convert an **RDL report** (`.rdl` / `.rdlc`) — the XML standard emitted by Microsoft SSRS/RDLC and by
-the **Syncfusion / Bold Reports** designer — into a **PXA design** that opens and is editable in
-`pxa-designer`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion, SSRS/RDLC,
-ActiveReports/DsReport plain-XML `.rdlx`), mirroring the DevExpress XtraReport → PXA converter
+the **Syncfusion / Bold Reports** designer — into a **PVADE design** that opens and is editable in
+`pvad-designer`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion, SSRS/RDLC,
+ActiveReports/DsReport plain-XML `.rdlx`), mirroring the DevExpress XtraReport → PVAD converter
 ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)). GrapeCity Section Reports
 `.rpx` are covered by the separate RPX converter.
 
@@ -192,7 +192,7 @@ The remaining items are optional native PXA capabilities or blocked expression-e
 - [x] Standard expressions are now **executable** in the designer/preview: the compound-expression branch
       emits a translated PXA-grammar `Expression` via `ExpressionTranslator.TranslateRdl` (raw kept on
       `style.rdlExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
-- [ ] `<Code>` / custom-function *evaluation* — arbitrary embedded VB, **not runnable** in PXA (kept
+- [ ] `<Code>` / custom-function *evaluation* — arbitrary embedded VB, **not runnable** in PVAD (kept
       preserved). Note the old "blocked on `ExpressionEvaluator` being a stub" reason is stale: the
       evaluator now exists. Standard single-row expressions are translated + executed; **dataset aggregates
       (`Sum`/`Avg`/`Count`/`Min`/`Max`/`First`/`Last`) translate + execute, and group-scoped aggregates
@@ -227,8 +227,8 @@ The remaining items are optional native PXA capabilities or blocked expression-e
 - [x] **P1** Richer Table cell-content modeling: parent tables now preserve structured
       `style.rdlExtractedCellItemLayouts` for extracted nested cell items, including row/column, spans,
       table-relative bounds, visibility, repeat scope, and repeat metadata.
-- [ ] **P2** PXA-native compound table-cell rendering for extracted nested items, instead of positioned
-      overlay elements, if/when the PXA table model supports mixed cell content.
+- [ ] **P2** PVAD-native compound table-cell rendering for extracted nested items, instead of positioned
+      overlay elements, if/when the PVAD table model supports mixed cell content.
 - [x] `ReportParameters` / `ReportParametersLayout` → `PageSettings.CustomProperties` JSON metadata
       (`rdlReportParameters`, `rdlReportParametersLayout`) plus `CANMIGRDL024`.
 - [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested
@@ -237,7 +237,7 @@ The remaining items are optional native PXA capabilities or blocked expression-e
       default values become substitution/evaluation properties, and `style.rdlFilters` filters repeated rows
       against payload fields and parameter values.
 - [ ] **P2** Native report-parameter UI/editor controls; runtime defaults and repeat-filter evaluation exist,
-      but users still need a PXA-native parameter input surface.
+      but users still need a PVAD-native parameter input surface.
 - [x] Element `ActionInfo` (`Hyperlink`, `BookmarkLink`, `Drillthrough` with parameters), `Bookmark`,
       `DocumentMapLabel`, and Tablix `ToggleItem`/group document-map metadata → `style.rdlNavigation` or
       `style.rdlTablixNavigation` plus `CANMIGRDL026`.

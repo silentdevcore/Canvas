@@ -1,11 +1,11 @@
-# PXA Migration: ActiveReports `.rpx` Section Report → PXA Designer
+# PVAD Migration: ActiveReports `.rpx` Section Report → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
 Convert a **GrapeCity / MESCIUS ActiveReports "Section Report"** (`.rpx`) — a **banded** XML layout —
-into a **PXA design** that opens and is editable in `pxa-designer`. Unlike RDL (which is
+into a **PVADE design** that opens and is editable in `pvad-designer`. Unlike RDL (which is
 absolutely-positioned `Body`/`PageHeader`/`PageFooter`), `.rpx` is band-relative, so this converter
 mirrors the **DevExpress XtraReport band-flatten** approach
 ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)) rather than the RDL one

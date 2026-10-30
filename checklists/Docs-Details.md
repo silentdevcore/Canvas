@@ -1,12 +1,17 @@
 # Docs Details — Detailed Documentation for C#, UI Designer & AI
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-Detailed, demo-rich documentation for PXA's two API surfaces plus AI consumption. Mirrors how PDF SDK
+Detailed, demo-rich documentation for PVAD's two API surfaces plus AI consumption. Mirrors how PDF SDK
 vendors document (DocFX API reference + how-to guides + example gallery + `llms.txt`/MCP), anchored on a
 single machine-readable **element catalog** so human docs, AI docs, and validation never drift.
 
 ## Context
+
+> Historical baseline: this architecture assessment predates the current
+> documentation and namespace layout. Use the [documentation audit](Documentation-Audit.md)
+> for current sources of truth; the original analysis and checked records below
+> are retained for traceability.
 
 PXA has two documentable surfaces — the imperative **C# `PXA.Pdf`** engine (`PXA/Pdf/`, ~150
 public methods, ~5–10% with XML doc comments) and the declarative **`DesignExportDto` element model** (37

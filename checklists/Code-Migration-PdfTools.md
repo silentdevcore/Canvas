@@ -1,6 +1,6 @@
-# PXA Migration: PDFTools / Pdftools SDK
+# PVAD Migration: PDFTools / Pdftools SDK
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Pilot Analysis
 
@@ -111,7 +111,7 @@ document.Save(outputPath);
 - [ ] Replace simple line/rectangle drawing only after Toolbox samples are collected
 - [ ] Replace simple save/export only after Toolbox samples are collected
 - [x] Remove `Sdk.Initialize(...)`
-- [ ] Add `using PXA.Pdf` only when a real PXA code fix is introduced
+- [ ] Add `using PVAD.Pdf` only when a real PVAD code fix is introduced
 - [ ] Remove PDFTools/Pdftools usings only when source is fully rewritten
 - [x] Leave conversion/editing/processing workflows as manual diagnostics
 - [x] Validate SDK-vs-Toolbox boundary against official docs/API references

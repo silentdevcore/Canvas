@@ -1,6 +1,6 @@
-# PXA Designer Scrollable Workspace
+# PVADE Designer Scrollable Workspace
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
@@ -8,7 +8,7 @@ Make page navigation, the document workspace, and both editor side panels adapt 
 
 ## Priority
 
-P0 usability fix for the PXA Designer.
+P0 usability fix for the PVADE Designer.
 
 ## Scope
 

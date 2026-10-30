@@ -1,12 +1,16 @@
-# PXA Designer Localization Checklist
+# PVADE Designer Localization Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Add full localization to `pxa-designer` for English, German, French, Spanish, Italian, and Arabic (with Arabic driving a full RTL layout), covering every page's text — including the template-content library, not just UI chrome.
+Add full localization to `pvad-designer` for English, German, French, Spanish, Italian, and Arabic (with Arabic driving a full RTL layout), covering every page's text — including the template-content library, not just UI chrome.
 
 ## Context
+
+> Historical baseline: the paragraph below records the pre-localization state,
+> not the current Designer. Current code uses `pvad-designer`; the completed
+> tasks below retain their original paths and evidence.
 
 No i18n library exists in `pxa-designer` today (confirmed via `package.json`); the only precedent is a small hand-rolled en/de map at `src/features/pdf-viewer/i18n.ts` for the PDF-viewer toolbar. The app's own UI has zero RTL support — all ~13 stylesheets under `src/styles/` use physical `left`/`right`/`margin-left` properties, and `index.html` has no `dir` attribute. This is separate from the existing, unrelated RTL machinery in `SimplePxaSurface.tsx`/`LocalizedPropertiesPanel.tsx`/`LanguageTabBar.tsx`, which handles RTL for user-authored *document content* inside the canvas — that system is explicitly out of scope and stays untouched.
 

@@ -1,12 +1,12 @@
-# PXA Automated Release Notes
+# PVAD Automated Release Notes
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
 - [x] Generate consistent, customer-facing release notes from structured change records.
 - [x] Recommend the correct Semantic Version impact without allowing an AI agent to publish releases autonomously.
-- [ ] Keep Designer, Admin, Documentation, GitHub Releases, and deployed artifacts on one PXA version.
+- [ ] Keep Designer, Admin, Documentation, GitHub Releases, and deployed artifacts on one PVAD version.
 
 ## Dependencies and Boundaries
 
@@ -172,5 +172,5 @@
 - [ ] Add scheduled release-candidate preparation after the manual workflow is proven.
 - [ ] Add Alpha and Beta fragment aggregation for prereleases from `develop`.
 - [ ] Add localized release-note content with English fallback.
-- [ ] Add PXA Admin authoring and approval tools for release summaries.
+- [ ] Add PVAD Admin authoring and approval tools for release summaries.
 - [ ] Add release-note generation for public SDK package registries.

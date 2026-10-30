@@ -1,10 +1,10 @@
-# PXA Designer Open Work Audit
+# PVADE Designer Open Work Audit
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
-This checklist is the current index for unfinished PXA Designer work. It reconciles older UI
+This checklist is the current index for unfinished PVADE Designer work. It reconciles older UI
 checklists with the implementation as of 2026-08-23. Detailed feature requirements remain in their
 original checklists; this file identifies which items are still actionable and which older proposals
 have been completed, superseded, or intentionally deferred.
@@ -53,7 +53,7 @@ product milestones, not unverified defects in the completed Designer optimizatio
   localized in all six Designer languages.
 - [ ] Finish the remaining toast polish. Release drawer, notification center, feature badges, and
   product-experience states now use the current Designer color and typography system.
-- [ ] Add release and notification authoring tools to PXA Admin.
+- [ ] Add release and notification authoring tools to PVAD Admin.
 - [ ] Consolidate the remaining Canvas and Live Preview element dispatchers behind the shared
   PDF-contract renderers. Track implementation and parity in
   `PVAD.Designer-PDF-Visual-Parity.md`.
@@ -75,7 +75,7 @@ product milestones, not unverified defects in the completed Designer optimizatio
 
 ## Deferred Platform Work
 
-- [ ] Build and validate the production Designer container and shared PXA Server Compose bundle.
+- [ ] Build and validate the production Designer container and shared PVAD Server Compose bundle.
 - [ ] Add Enterprise OIDC/SAML, MFA step-up, and coordinated global sign-out.
 - [ ] Add real-time notification push.
 - [ ] Add general-purpose C#, external packages, internet access, and offline code execution.

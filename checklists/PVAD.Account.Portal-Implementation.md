@@ -1,6 +1,6 @@
-# PXA Account — Customer Portal & Remaining Checklist Implementation
+# PVAD Account — Customer Portal & Remaining Checklist Implementation
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Tracking checklist for closing every remaining unchecked item in
 [PVAD.Account.md](PVAD.Account.md). That checklist defines the *what*; this one
@@ -8,6 +8,11 @@ tracks the *how*, phased so each step is independently shippable with green
 tests. Branch: `pxa-account-all-open-points`.
 
 ## Goal & approach
+
+> Historical plan context: the unbuilt-portal assessment and judgment calls below
+> describe the original implementation phase. They are not current status or
+> canonical route guidance. See [the Account checklist](PVAD.Account.md) and use
+> `/api/pvad/v1/account` for current API integrations.
 
 `PVAD.Account.md` has registration, verification, and Trial creation done and
 integration-tested. Everything downstream of login — the Customer Portal

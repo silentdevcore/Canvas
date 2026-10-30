@@ -1,0 +1,9 @@
+{
+  "id": "pvad-current-checklist-naming",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "Align current planning documents with PVAD and PVADE naming while retaining historical implementation records.",
+  "breaking": false,
+  "reason": "Internal roadmap and checklist naming correction only; no shipped application behavior, public guide, API contract or package version changes."
+}

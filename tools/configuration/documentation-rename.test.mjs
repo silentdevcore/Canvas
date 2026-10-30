@@ -195,3 +195,56 @@ test('active product copy and guide downloads reserve the old brand for one Abou
     assert.ok(common.aboutPvaDe.includes('PVADE'), language);
   }
 });
+
+const historicalChecklist = /\/(?:Rename-|PXA\.Dependency-|PVAD\.(?:Rename-|Account-Branch-Review|Designer-Canvas-Audit|Competitive-|Software-Valuation)|PHASE|CLEAN_ARCHITECTURE)/;
+const trackedChecklists = () => execFileSync('git', ['ls-files', 'checklists/*.md'],
+  { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(exists);
+const withoutLinkTargets = line => line.replace(/\]\([^)]*\)/g, ']');
+
+test('current checklist titles and open tasks do not prescribe obsolete product names', () => {
+  const oldName = /\bPXA\b|\bPxa[A-Z]|\bpxa-designer\b|powerdox(?:-pxa|\/pxa)/;
+  for (const path of trackedChecklists().filter(path => !historicalChecklist.test(path))) {
+    const lines = read(path).split('\n');
+    assert.doesNotMatch(lines[0], oldName, path);
+    for (const [index, line] of lines.entries()) {
+      if (!/^\s*[-*] \[ \]/.test(line)) continue;
+      assert.doesNotMatch(withoutLinkTargets(line), oldName, `${path}:${index + 1}`);
+    }
+  }
+});
+
+test('future SDK plans use canonical names without claiming registered publishers', () => {
+  const names = ['SDK-Roadmap', 'Java-SDK', 'Python-SDK', 'TypeScript-JavaScript-SDK',
+    'CSharp-REST-SDK', 'Go-SDK', 'PHP-SDK', 'PowerShell-SDK'];
+  for (const name of names) {
+    const source = read(`checklists/PVAD.${name}.md`).replace(/^> Naming history:.*$/gm, '');
+    assert.doesNotMatch(source, /pxa|powerdox/i, name);
+  }
+  const roadmap = read('checklists/PVAD.SDK-Roadmap.md');
+  assert.match(roadmap, /canonical routes under `\/api\/pvad\/v1`/);
+  assert.match(roadmap, /No SDK publisher or package name is currently registered/);
+  assert.match(roadmap, /display aliases do not rename existing wire identifiers/);
+  assert.match(read('checklists/PVAD.Java-SDK.md'), /proposed `com\.pvade:pvad-java`/);
+  assert.match(read('checklists/PVAD.TypeScript-JavaScript-SDK.md'), /proposed `@pvade\/pvad`/);
+  assert.match(read('checklists/PVAD.Python-SDK.md'), /`pvad` import namespace/);
+});
+
+test('current logo and format briefs distinguish market identity from technical contracts', () => {
+  const brand = read('checklists/PVAD.Brand-And-Logo-System.md').replace(/^> Naming history:.*$/gm, '');
+  assert.doesNotMatch(withoutLinkTargets(brand), /\bPXA\b|Power Dox Automation|\bPXAP\b|\bPXAS\b/);
+  assert.match(brand, /\*\*PVADE\*\* as the visible platform and Designer wordmark/);
+  assert.match(brand, /still-unconfirmed legal company name/);
+  const formats = read('checklists/PVAD.Native-Designer-Formats.md');
+  assert.match(formats, /`\.pvadp` for PDF Designer/);
+  assert.match(formats, /`\.pvads` for Spreadsheet Designer/);
+  assert.match(formats, /Checked implementation entries below describe the original format generation/);
+  assert.match(formats, /application\/vnd\.pvad\.pvadp\+zip/);
+  assert.match(read('checklists/Documentation-Audit.md'), /pvad-checklist-naming\.md/);
+});
+
+test('checklist naming review links resolve to current guides or explicitly retained history', () => {
+  const path = 'docs/pvad-checklist-naming.md';
+  for (const [, href] of read(path).matchAll(/\]\(([^\s)]+)\)/g)) {
+    assert.ok(existsSync(resolve(root, dirname(path), href.split('#')[0])), href);
+  }
+});

@@ -1,12 +1,12 @@
-# PXA Code Designer Roundtrip and Secure Execution
+# PVAD Code Designer Roundtrip and Secure Execution
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
 Connect JSON, C# Model, C# PDF, and the visual Designer through one canonical
 `DesignExportDto` contract while preserving independent source drafts and executing C# only in an
-isolated, tenant-aware PXA sandbox.
+isolated, tenant-aware PVAD sandbox.
 
 ## P0 - Canonical Conversion
 

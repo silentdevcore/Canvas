@@ -1,9 +1,9 @@
 # Powerful Backend Spreadsheet Engine
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Grows the backend spreadsheet from an `.xlsx` round-trip into an engine (server-side calculation, rich
-Excel features, rendering, format breadth), built **in-house** on ClosedXML + PXA.Pdf + NPOI.
+Excel features, rendering, format breadth), built **in-house** on ClosedXML + PVAD.Pdf + NPOI.
 Benchmarked against GemBox.Spreadsheet and Aspose.Cells.
 
 ## Context

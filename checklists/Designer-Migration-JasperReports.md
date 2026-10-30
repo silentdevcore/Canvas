@@ -1,14 +1,14 @@
-# Designer Migration: JasperReports (`.jrxml`) → PXA Designer
+# Designer Migration: JasperReports (`.jrxml`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-JasperReports `.jrxml` → PXA `DesignExportDto` converter.
+JasperReports `.jrxml` → PVAD `DesignExportDto` converter.
 
 - **Designer:** JasperReports / Jaspersoft Studio (iReport) · **Manufacturer:** Cloud Software Group (Jaspersoft)
 - **Format:** `.jrxml` — namespaced XML (`http://jasperreports.sourceforge.net/jasperreports`), **banded**.
-- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.JasperReports`). Band-flatten mirroring
-  `PXA.Migration.Report.Designer.Rpx`/`PXA.Migration.Report.Designer.Telerik`; schema confirmed against real Jaspersoft `.jrxml` samples.
+- **Status:** ✅ **Shipped** (`PVAD.Migration.Report.Designer.JasperReports`). Band-flatten mirroring
+  `PVAD.Migration.Report.Designer.Rpx`/`PVAD.Migration.Report.Designer.Telerik`; schema confirmed against real Jaspersoft `.jrxml` samples.
 
 ---
 
@@ -199,7 +199,7 @@ Key sample-driven conclusions:
       alongside the master report and sends them as `report-to-design` resources, so samples such as
       `Json_Master.jrxml` can inline `Json_Sub.jrxml` without hand-written Resource JSON.
 - [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
-      into structured PXA/page metadata; direct placeholders already preserve subreport metadata.
+      into structured PVAD/page metadata; direct placeholders already preserve subreport metadata.
 - [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to PXA-friendly
       placeholders/expressions; complex expressions preserve originals and add normalized PXA-style references
       for review.

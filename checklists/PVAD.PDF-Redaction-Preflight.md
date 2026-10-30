@@ -1,16 +1,16 @@
-# PXA PDF Redaction Preflight
+# PVAD PDF Redaction Preflight
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Purpose
 
-PXA ships a redaction workflow today. It is not a visual overlay — it drops scene-graph
+PVAD ships a redaction workflow today. It is not a visual overlay — it drops scene-graph
 elements and regenerates the document — but it produces no evidence, so nobody can tell
 what it removed, what it could not see, and what it silently changed elsewhere.
 
 This checklist covers the first stage of `PVAD.PDF-Trust-Foundation.md` Milestone 3: a
 preflight that mutates nothing and reports, per redaction region, exactly what would be
-removed and what PXA cannot confidently account for.
+removed and what PVAD cannot confidently account for.
 
 Preflight must be honest about its own blind spot. The current implementation tests
 intersection only against content the importer modelled, so anything it failed to model

@@ -1,9 +1,9 @@
-# PXA Website Hosting Checklist
+# PVAD Website Hosting Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Ziel
-Hosting fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` so vorbereiten, dass die drei Websites getrennt gebaut, geprueft und spaeter getrennt deployed werden koennen.
+Hosting fuer `PVAD.Company`, `PVAD.Documentation` und `PVAD.Demo` so vorbereiten, dass die drei Websites getrennt gebaut, geprueft und spaeter getrennt deployed werden koennen.
 
 ## Deployment-Ziele
 - [x] `PXA.Company` als Marketing-/Sales-Site planen.

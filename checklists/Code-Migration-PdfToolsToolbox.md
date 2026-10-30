@@ -1,6 +1,6 @@
-# PXA Migration: PDF Toolbox SDK / Toolbox Add-On
+# PVAD Migration: PDF Toolbox SDK / Toolbox Add-On
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Pilot Analysis
 
@@ -151,7 +151,7 @@ document.Save(outPath);
 - [x] Add `using PXA.Pdf` only when PXA code is introduced
 - [x] Remove Toolbox usings only when no Toolbox code remains
 - [x] Preserve Toolbox usings for partially migrated snippets
-- [ ] Warn on font/style/color details until PXA style mapping is defined
+- [ ] Warn on font/style/color details until PVAD style mapping is defined
 - [ ] Warn on existing-PDF copy/edit/tag workflows
 - [ ] Warn on forms/annotations/metadata/outlines/tagging
 

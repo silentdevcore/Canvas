@@ -1,9 +1,9 @@
-# PXA.Demo Website Checklist
+# PVAD.Demo Website Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Ziel
-`PXA.Demo` ist die interaktive Demo-Website fuer PXA. Sie soll Beispiele katalogisieren, live erlebbar machen und jeweils zu Source, Documentation und passenden Checklists fuehren.
+`PVAD.Demo` ist die interaktive Demo-Website fuer PVADE. Sie soll Beispiele katalogisieren, live erlebbar machen und jeweils zu Source, Documentation und passenden Checklists fuehren.
 
 ## Referenz
 - Aufbau orientiert sich an DevExpress Demos: Demo-Katalog, Kategorien, kurze Erklaerung und direkte "Open demo"-Einstiege.

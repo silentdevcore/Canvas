@@ -1,6 +1,6 @@
-# Designer Migration: ActiveReports (`.rpx` / `.rdlx`) → PXA Designer
+# Designer Migration: ActiveReports (`.rpx` / `.rdlx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 MESCIUS (GrapeCity) **ActiveReports** family of report designers.
@@ -9,9 +9,9 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 - **Two distinct file formats — different converters:**
   | Format | Designer kind | Layout | Converter | Companion doc |
   | --- | --- | --- | --- | --- |
-| `.rpx` | **Section** report | banded XML (inches) | `PXA.Migration.Report.Designer.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
-| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `PXA.Migration.Report.Designer.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
-| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `PXA.Migration.Report.Designer.ActiveReportsJs` | this file |
+| `.rpx` | **Section** report | banded XML (inches) | `PVAD.Migration.Report.Designer.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
+| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `PVAD.Migration.Report.Designer.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `PVAD.Migration.Report.Designer.ActiveReportsJs` | this file |
 - **Routing:** `.rdlx` uses the Microsoft RDL `reportdefinition` namespace, so it is detected and
   routed by `LooksLikeRdl` (the RPX detector explicitly **rejects** that namespace). `.rpx` is the
   banded section format detected by `LooksLikeRpx` (root `<Report>` + `<Sections>`).
@@ -106,10 +106,10 @@ Key sample-driven conclusions:
 
 ## Implementation notes
 
-- Converter: [`src/Migrations/Report/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs`](../src/Migrations/Report/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs)
+- Converter: [`src/Migrations/Report/PVAD.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs`](../src/Migrations/Report/PVAD.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs)
   — footer concat in the 2005/2008 `<Table>` branch; `case "List"` in `ParseReportItems` + recursion;
   `MapList`/`RdlListRepeatMetadata`; `ParseTablixGroups` matches `Group`|`Grouping`.
-- Tests: [`tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs)
+- Tests: [`tests/PVAD.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PVAD.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs)
   — footer-rows, List-with-nested-table, and an 8-sample integration check (locates `designer-simples`).
 
 ## Per-cell table styling (PXA-model track)
@@ -123,7 +123,7 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
 **Contract:** `ElementDto.CellStyles` — a sparse `CellStyleDto[]` (only styled cells listed), each with
 `Row`, `Col`, `BackgroundColor`, `TextAlign`, uniform `BorderColor`/`BorderWidth`, and per-side
 `BorderTop/Right/Bottom/Left` (`CellBorderSideDto { Color, Width }`) for per-side pens.
-[`src/Core/PXA.Core/Contracts/DesignExportDto.cs`](../src/Core/PXA.Core/Contracts/DesignExportDto.cs)
+[`src/Core/PVAD.Core/Contracts/DesignExportDto.cs`](../src/Core/PVAD.Core/Contracts/DesignExportDto.cs)
 
 **v1 scope (done):** borders + background + text-align; render/import only (no manual cell editor yet).
 

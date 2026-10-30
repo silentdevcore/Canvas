@@ -1,11 +1,11 @@
-# PXA Standard Status Pages
+# PVAD Standard Status Pages
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Provide consistent, accessible, localized status pages across PXA.Company,
-PXA.Account, PXA.Admin, PXA.Designer, PXA.Documentation, and PXA.Demo. Users
+Provide consistent, accessible, localized status pages across PVAD.Company,
+PVAD.Account, PVAD.Admin, PVAD.Designer, PVAD.Documentation, and PVAD.Demo. Users
 must understand what happened, whether their work is safe, and what action is
 available without exposing internal implementation details.
 

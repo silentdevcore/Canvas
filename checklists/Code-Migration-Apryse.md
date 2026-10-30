@@ -1,6 +1,6 @@
-# PXA Migration: Apryse SDK
+# PVAD Migration: Apryse SDK
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Implementation Status
 
@@ -18,7 +18,7 @@
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
 - [ ] V1 does not yet emit diagnostics for ElementBuilder / ElementWriter / unsupported APIs (report items removed when converting from reporting pilot).
 - [ ] V1 does not resolve Apryse overloads or page-size arguments semantically.
-- [ ] Future hardening: map `ElementBuilder` text/image/path elements to PXA draw calls.
+- [ ] Future hardening: map `ElementBuilder` text/image/path elements to PVAD draw calls.
 - [ ] Future hardening: map `PageCreate(Rect)` page-size argument to `PdfPagePreset`.
 - [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
 

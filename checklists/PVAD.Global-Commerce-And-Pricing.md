@@ -1,10 +1,10 @@
-# PXA Global Commerce and Pricing
+# PVAD Global Commerce and Pricing
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Prepare PXA for worldwide commercial distribution without treating one German
+Prepare PVAD for worldwide commercial distribution without treating one German
 checkout, one currency, or one privacy model as globally sufficient. This
 checklist contains a researched pricing proposal, not approved public pricing.
 Human approval of the proposed price book, Merchant of Record, B2B-first scope,
@@ -172,8 +172,8 @@ price. Annual pricing represents approximately two months free.
 - [ ] Display tax-inclusive consumer totals and the required business tax treatment.
 - [ ] Keep direct invoicing for negotiated Enterprise agreements with tax-adviser approval.
 - [ ] Reconcile provider orders, subscription state, refunds, disputes, taxes,
-  payouts, and PXA entitlements through idempotent webhooks.
-- [ ] Never store raw payment-card data in PXA.
+  payouts, and PVAD entitlements through idempotent webhooks.
+- [ ] Never store raw payment-card data in PVAD.
 
 Sources:
 
@@ -206,6 +206,6 @@ Sources:
 - [ ] Subscription edition, account type, seat, usage, deployment, and OEM rights
   remain separate commercial dimensions.
 - [ ] Consumer checkout cannot activate globally from one country approval.
-- [ ] PXA does not claim worldwide availability in blocked or unreviewed countries.
+- [ ] PVAD does not claim worldwide availability in blocked or unreviewed countries.
 - [ ] No proposed price becomes public or billable before Product, Finance, Tax,
   and Legal approval.

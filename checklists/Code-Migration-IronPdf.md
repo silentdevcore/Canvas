@@ -1,6 +1,6 @@
-# PXA Migration: IronPDF
+# PVAD Migration: IronPDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## V1 Implementation Status
 
@@ -20,7 +20,7 @@
 - [x] All `IronPdf` / `IronPdf.Rendering` usings removed; `using PXA.Pdf;` added.
 - [x] Scan for unsupported identifiers (`PdfMerger`, `SecuritySettings`, `PdfSignature`, etc.) → CANMIGIRONPDF020 warning.
 - [ ] V1 does not parse or render HTML/CSS/JavaScript.
-- [ ] V1 does not generate PXA draw calls from HTML element analysis.
+- [ ] V1 does not generate PVAD draw calls from HTML element analysis.
 - [ ] Future: add optional HTML literal extraction for simple headings/paragraphs.
 
 ## Package / API Identification
@@ -96,7 +96,7 @@
 - [ ] Security and signing APIs
 - [ ] URL-to-PDF rendering
 - [ ] Razor template rendering
-- [ ] HTML literal extraction to PXA draw calls
+- [ ] HTML literal extraction to PVAD draw calls
 
 ## Sample Input
 

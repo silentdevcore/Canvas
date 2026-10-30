@@ -1,6 +1,6 @@
 # Image-Converter2.md: New OCR-Based Image-to-PDF Converter
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 > The broader PDF document-capture milestone is centralized in
 > [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md)
@@ -259,11 +259,11 @@
   - [x] Reuse image decoding where appropriate.
   - [x] Reuse EXIF orientation handling where appropriate.
   - [x] Reuse data URI / image encoding logic where appropriate.
-- [ ] Review `src/Importing/PXA.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
+- [ ] Review `src/Importing/PVAD.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
   - [ ] Reuse diagnostics ideas.
   - [ ] Reuse debug overlay concepts.
   - [ ] Reuse coordinate mapping ideas only if they fit the new OCR pipeline.
-- [ ] Review `src/Importing/PXA.FileImporter.ImageAnalysis/Analysis/*`.
+- [ ] Review `src/Importing/PVAD.FileImporter.ImageAnalysis/Analysis/*`.
   - [ ] Reuse stable preprocessing helpers where they are general-purpose.
   - [ ] Reuse stable shape/region detection only as optional layout enrichment.
   - [ ] Do not use the current custom glyph recognition as the OCR core.
@@ -337,7 +337,7 @@
 - [ ] Map nearby OCR labels to form fields, checkboxes, and signature lines without consuming unrelated paragraph text.
   - [x] Map nearby OCR labels to field and checkbox candidates without consuming unrelated paragraph text.
 - [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone PXA text elements.
-- [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final PXA element output.
+- [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final PVAD element output.
 - [ ] Add debug overlays for each stage: OCR text bounds, visual candidates, fusion/mapping results, and final element bounds.
 - [x] Add tests proving that OCR text recognition can succeed independently of element detection.
 - [ ] Add tests proving that visual line/table/field detection can run from image pixels without OCR text.
@@ -358,7 +358,7 @@
     - [x] Add initial `VisualElementDetector` for pixel-only rules, table regions, rectangles, and checkbox candidates.
   - [ ] Add `OcrVisualFusionEngine` that receives `OcrTextDocument` and `VisualLayoutDocument`, assigns text to tables/fields/signatures/checkboxes, marks consumed OCR text, and produces standalone text groups for unconsumed text.
     - [x] Add initial `OcrVisualFusionEngine` for fields, checkboxes, consumed OCR lines, rejected mappings, and standalone text.
-  - [ ] Add `PxaElementBuilder` that converts fused semantic candidates into `ElementDto`, applies page placement/scaling, and adds source diagnostics to element styles.
+  - [ ] Add `PvadElementBuilder` that converts fused semantic candidates into `ElementDto`, applies page placement/scaling, and adds source diagnostics to element styles.
 - [ ] Implement deterministic fusion rules.
   - [ ] Prefer visual table bounds from detected rules/backgrounds, and allow OCR text-grid table candidates when no visual table exists.
     - [x] Prefer visual table-region bounds from detected rules.
@@ -375,7 +375,7 @@
   - [ ] Add visual diagnostics for rule segment count, table candidates, field candidates, checkbox candidates, signature candidates, and rejection reasons.
   - [ ] Add fusion diagnostics for OCR words assigned to tables, OCR lines consumed by fields/signatures/checkbox labels, OCR lines left as standalone text, and rejected mappings with reasons.
     - [x] Add initial fusion diagnostics for consumed OCR lines, standalone OCR lines, and rejected mappings with reasons.
-  - [ ] Add OCR-only, visual-candidates, fusion, and final PXA element debug overlays.
+  - [ ] Add OCR-only, visual-candidates, fusion, and final PVAD element debug overlays.
 - [ ] Add focused tests around stage separation.
   - [x] Add OCR-only tests where a fake OCR engine returns words/lines and `OcrTextDocument` preserves text, confidence, and bounds.
   - [ ] Add visual-only tests with synthetic images containing lines, tables, fields, and checkboxes, verifying visual candidates without OCR dependency.
@@ -394,7 +394,7 @@
 - [ ] Do not replace Tesseract in this plan.
 - [ ] Do not change the public endpoint: keep `POST /api/document/convert-image-to-pdf`.
 - [ ] Keep the original image background layer behavior.
-- [ ] Keep current PXA element types.
+- [ ] Keep current PVAD element types.
 - [ ] Prioritize architectural separation and debuggability first; table/field quality improvements should happen inside the new stages after the split.
 - [ ] Treat this as appended unchecked checklist work and do not mark existing items complete.
 

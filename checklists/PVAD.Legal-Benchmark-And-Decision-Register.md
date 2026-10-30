@@ -1,10 +1,10 @@
-# PXA Legal Benchmark and Decision Register
+# PVAD Legal Benchmark and Decision Register
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
 ## Goal
 
-Turn the six remaining Legal launch blockers into explicit PXA decisions. The
+Turn the six remaining Legal launch blockers into explicit PVAD decisions. The
 research below records useful market patterns, but it does not copy competitor
 terms and does not replace review by qualified Swiss legal counsel with
 international software, consumer, and privacy expertise.
@@ -64,7 +64,7 @@ PXA decision proposal:
   Subprocessors, and any promised SLA.
 - [x] Make English the sole authoritative language and treat future localized
   versions as market-specific notices or translations unless expressly agreed otherwise.
-- [ ] Define PXA as controller for account, billing, security, Legal evidence,
+- [ ] Define PVAD as controller for account, billing, security, Legal evidence,
   and service administration data, and as processor for customer document and
   template content where the customer determines purpose and means.
 - [ ] Complete the Article 28 DPA schedules for processing scope, documented
@@ -112,7 +112,7 @@ PXA decision proposal:
 - [ ] Retain invoice and booking evidence according to the applicable eight-year
   German rules, business correspondence where applicable for six years, and
   books or records subject to ten-year rules; counsel and tax advice must map
-  each PXA entity to the applicable category.
+  each PVAD entity to the applicable category.
 - [ ] Define pseudonymization and deletion behavior for Legal acceptance and
   audit evidence without adding full IP addresses.
 - [ ] Define bounded backup rotation, deletion propagation, documented Legal

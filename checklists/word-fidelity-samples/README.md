@@ -1,8 +1,8 @@
 # Word vs PDF Fidelity Sample Pack
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
 
-These samples are used by automated tests in tests/PXA.Export.Tests/WordPdfFidelityTests.cs.
+These samples are used by automated tests in tests/PVAD.Export.Tests/WordPdfFidelityTests.cs.
 
 How it works:
 - The test loads each JSON file in this folder as a DesignExportDto.
@@ -11,7 +11,7 @@ How it works:
 - If LibreOffice (soffice) is available, DOCX is converted to PDF and first-page geometry is compared.
 
 Artifacts are written to:
-- tests/PXA.Export.Tests/Fidelity/artifacts/latest/<sample>/
+- tests/PVAD.Export.Tests/Fidelity/artifacts/latest/<sample>/
 
 Current sample set:
 - text-table-basic.json
