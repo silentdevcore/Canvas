@@ -1,5 +1,9 @@
 # Docs Details — Detailed Documentation for C#, UI Designer & AI
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 Detailed, demo-rich documentation for PVAD's two API surfaces plus AI consumption. Mirrors how PDF SDK
 vendors document (DocFX API reference + how-to guides + example gallery + `llms.txt`/MCP), anchored on a
 single machine-readable **element catalog** so human docs, AI docs, and validation never drift.
@@ -11,7 +15,7 @@ single machine-readable **element catalog** so human docs, AI docs, and validati
 > for current sources of truth; the original analysis and checked records below
 > are retained for traceability.
 
-PVADE has two documentable surfaces — the imperative **C# `PVAD.Pdf`** engine (`PXA/Pdf/`, ~150
+PVADE has two documentable surfaces — the imperative **C# `PVAD.Pdf`** engine (`src/Generation/PVAD.Pdf/`, ~150
 public methods, ~5–10% with XML doc comments) and the declarative **`DesignExportDto` element model** (37
 types in `PVAD.Domain/ValueObjects/ElementType.cs`; properties in
 `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
@@ -58,8 +62,8 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
 
 ## Phase 2 — C# API docs (`PVAD.Pdf`): XML comments + DocFX + cookbook
 - [x] `<GenerateDocumentationFile>true</GenerateDocumentationFile>` (+ `NoWarn CS1591` for incremental
-      docs) on **`PVAD.Infrastructure.Pdf.csproj`** (where the linked `PXA/Pdf/**` sources compile —
-      *not* `PXA.csproj`, which excludes `Pdf/**`) and `PXA.Core.csproj`. Build clean; XML doc files
+      docs) on **`PVAD.Infrastructure.Pdf.csproj`** (where the linked `src/Generation/PVAD.Pdf/**` sources compile —
+      *not* legacy csproj component, which excludes `Pdf/**`) and legacy Core.csproj component. Build clean; XML doc files
       produced for both.
 - [x] XML comments on the high-traffic surface: `PdfDocument` (class + ctor + AddPage/AddPageRotated/Info/
       AddBookmark/AddTableOfContents/AddPageNumbers/AddTextWatermark/ToBytes), `PdfPage` (class +

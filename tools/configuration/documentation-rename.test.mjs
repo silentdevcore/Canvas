@@ -132,7 +132,9 @@ test('hosting guidance separates candidate origins from actual source fallbacks 
     if (role !== 'operator') assert.ok(hosting.includes(siteLinkDefaults.production[role]), role);
     assert.ok(hosting.includes(`VITE_PVAD_${role.toUpperCase()}_URL`), role);
   }
-  assert.match(hosting, /Old `VITE_PXA_\*` keys remain compatibility aliases/);
+  assert.match(hosting, /compatibility entry/);
+  const operator = JSON.parse(read('operator-docs/compatibility-identifiers.v1.json'));
+  assert.ok(operator.entries.some(entry => entry.value === 'VITE_PXA_*'));
 });
 
 test('operator examples retain executable backup contracts without recommending obsolete sample paths', () => {
@@ -144,9 +146,11 @@ test('operator examples retain executable backup contracts without recommending 
   assert.match(legal, /\/protected\/pvad-backups\/pvad-UTC\.dump/);
   assert.match(legal, /compatibility values/);
   assert.ok(restore.includes("'RESTORE PXA DATABASE'"));
-  assert.ok(legal.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'"));
+  const operator = JSON.parse(read('operator-docs/compatibility-identifiers.v1.json'));
+  assert.ok(operator.entries.some(entry => entry.value.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'")));
+  assert.match(legal, /not an executable replacement/);
   assert.ok(backup.includes('/pvad-$timestamp-$$.dump'));
-  assert.ok(legal.includes('Existing `pxa-*`'));
+  assert.ok(operator.entries.some(entry => entry.value === 'pxa-*'));
   assert.doesNotMatch(legal, /\/run\/secrets\/pxa_|\/protected\/pxa-backups/);
   assert.doesNotMatch(read('tools/pdfua/README.md'), /\/tmp\/pxa-/);
 });
@@ -256,9 +260,11 @@ test('ordinary completed-task wording and code examples use current names withou
   assert.match(read('PVAD.WebApi/Controllers/DesignerTemplatesController.cs'),
     /\[Route\("api\/pvad\/v1\/designer\/templates"\)\]/);
   const trust = read('checklists/PVAD.PDF-Trust-Foundation.md');
-  assert.match(trust, /PXAPDFTRUST/);
+  assert.match(trust, /compatibility entry/);
+  const register = JSON.parse(read('docs/reference/compatibility-identifiers.v1.json'));
+  assert.ok(register.entries.some(entry => entry.value.startsWith('PXAPDFTRUST')));
   assert.match(read('checklists/Code-Migration-SyncfusionPdf.md'),
-    /Verified with `dotnet test tests\/PXA\.Migration/);
+    /Recorded result: `20\/20` passed\. Current rerun reference: `dotnet test tests\/PVAD\.Migration/);
   assert.match(read('checklists/PVAD.Competitive-Readiness-And-Milestones.md'),
     /^# PVADE Competitive Readiness/m);
   assert.match(read('checklists/PVAD.Competitive-Readiness-And-Milestones-DE.md'),
@@ -328,30 +334,10 @@ test('migration test-project references resolve without pretending to rerun hist
   assert.match(read('checklists/Spreadsheet-Migration.md'), /`PvadWorkbook`/);
 });
 
-test('migration checklists retain previous names only in bounded historical records or vendor keys', () => {
+test('migration checklists have no previous-name literals, including historical records and vendor-key prose', () => {
   const paths = execFileSync('git', ['ls-files', '-z', '--', 'checklists'],
     { cwd: root, encoding: 'utf8' }).split('\0').filter(path => /migration.*\.md$/i.test(path));
-  for (const path of paths) {
-    for (const [index, original] of read(path).split('\n').entries()) {
-      let line = original;
-      if (/\/Code-Migration-(?:DsPdf|IronPdf|SyncfusionPdf|iText7)\.md$/.test(path) &&
-          /^- \[x\] Verified with /.test(line))
-        line = line.replace(/`dotnet (?:test|build) [^`]+`/g, 'recorded command');
-      if (path === 'checklists/Migration-Namespace-Taxonomy.md' &&
-          /^(?:  - |  -?\s*)/.test(line))
-        line = line.replace(/`(?:PXA\.[^`]+|dotnet test [^`]+|\/api\/pxa\/migration\/(?:convert|report-to-design))`/g,
-          'recorded taxonomy input');
-      if (path === 'checklists/Spreadsheet-Migration.md')
-        line = line.replaceAll('`dotnet build PXA.sln`', 'recorded build command');
-      if (path === 'checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md' && line.includes('now a compatibility alias'))
-        line = line.replace('`POST /api/pxa/v1/migrations/pdf/viewer/convert`', 'recorded initial route');
-      if (path === 'checklists/Migration_Dataset-Aggregates.md')
-        line = line.replace('https://github.com/silentdevcore/PXA/pull/17', 'original pull request');
-      if (path === 'checklists/Code-Migration-ActiveReportsRpx.md')
-        line = line.replaceAll('rpxAutoSize', 'vendor metadata key');
-      assert.doesNotMatch(line, /pxa/i, `${path}:${index + 1}`);
-    }
-  }
+  for (const path of paths) assert.doesNotMatch(read(path), /pxa/i, path);
 });
 
 test('current source references use existing canonical paths across documentation areas', () => {

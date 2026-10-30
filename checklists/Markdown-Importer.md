@@ -1,5 +1,8 @@
 # Markdown Importer Checklist
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the existing `IFileImporter` pattern (PDF/DOCX/ODT/SVG/PPTX/Image), wired end-to-end into the multi-format import wizard on `/pdf/convert`.
 
 ---
@@ -75,9 +78,9 @@ Root cause: every element's height in `MarkdownFileImporter.cs` was estimated as
 ### Tests / verification
 
 - [x] Extend `MarkdownFileImporterTests.cs`: a long paragraph (300+ chars) produces height > one line; a long table cell increases that row's height.
-- [x] Full `PXA.Importer.Tests` suite stays green.
+- [x] Full [compatibility entry `compat-8bd5fa03ea34`](../docs/reference/compatibility-identifiers.v1.json) suite stays green.
 - [x] `dotnet build` — 0 errors.
-- [x] `cd pxa-designer && npx tsc --noEmit && npm run test -- --silent && npm run build`.
+- [x] [compatibility entry `compat-b03184f519ad`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Manual (API-level): re-imported a file with a long paragraph, a long table cell, a `---` rule, and a task list with a checked/unchecked item via the running backend. Confirmed: long paragraph height (67.6) scales vs. a one-line paragraph (~21.4); table height (88.0) scales vs. the old flat 3×24=72 for a row with long content; the `line` element sits exactly between the two surrounding paragraphs with no overlap; checkbox items report `"checked"`/`"empty"` correctly. Full browser walkthrough (visually opening in the designer) not yet performed in this session.
 
 Not fixed here (flagged only): `DocxFileImporter.cs` and `OdtFileImporter.cs` have the same flat-single-line-height pattern for their own paragraphs/tables — long DOCX/ODT paragraphs could hit the same PDF overflow issue. Separate, pre-existing limitation, out of scope for this Markdown-specific fix.
@@ -108,9 +111,9 @@ Root cause (deeper than the height-estimation bug above): `MarkdownFileImporter`
 
 - [x] `MarkdownFileImporterTests.cs`: added `Import_LongDocument_SplitsAcrossMultiplePages`, `Import_LongDocument_EveryPageStaysWithinUsableHeight`, `Import_LongDocument_DistributesElementsAcrossPages_NotAllOnFirstPage`, `Import_LongTaskList_SplitsAcrossPagesMidList` — a 40-section synthetic document now produces `design.Pages.Count > 1`, every element ends at or before y-coordinate 794, and no page is left empty.
 - [x] `Import_ShortDocument_ProducesExactlyOnePage` — short documents still produce exactly 1 page (no regression); confirmed by the full pre-existing test suite (all still pass unchanged).
-- [x] Full `PXA.Importer.Tests` suite stays green — 123/123 passing.
-- [x] `dotnet build` — 0 errors (both `PXA.FileImporter` and full `PXA.WebApi`).
-- [x] `cd pxa-designer && npx tsc --noEmit && npm run test -- --silent && npm run build` — all pass (218/218 tests), no frontend files needed changes for this fix.
+- [x] Full [compatibility entry `compat-8bd5fa03ea34`](../docs/reference/compatibility-identifiers.v1.json) suite stays green — 123/123 passing.
+- [x] `dotnet build` — 0 errors (both [compatibility entry `compat-8db0f72b7722`](../docs/reference/compatibility-identifiers.v1.json) and full `PVAD.WebApi`).
+- [x] [compatibility entry `compat-b03184f519ad`](../docs/reference/compatibility-identifiers.v1.json) — all pass (218/218 tests), no frontend files needed changes for this fix.
 - [x] Manual: restarted the backend and re-imported a reconstruction of the user's 17-slide `ai_agents_presentation.markdown` structure. Result: **3 pages** (14/15/6 elements respectively) instead of the previous single page — content that was previously landing past the visible page boundary now appears correctly distributed across pages 1-3.
 
 ---
@@ -155,10 +158,10 @@ Root cause (deeper than the height-estimation bug above): `MarkdownFileImporter`
 - [x] Preserve strikethrough as generated `<del>` rich-text markup; the shared PDF rich-text renderer already maps it to strikethrough text.
 - [x] Map Markdown definition lists to editable `note` elements with the term as title and definition as body.
 - [x] Map Markdown footnotes to editable `footnote` elements and preserve the generated reference anchor in the source paragraph.
-- [x] Evaluate inline images: standalone images remain fully supported; images embedded within flowing paragraph text remain intentionally omitted with visible `PXA-MD-003` diagnostics because the absolute-positioned design model has no inline image-flow primitive.
+- [x] Evaluate inline images: standalone images remain fully supported; images embedded within flowing paragraph text remain intentionally omitted with visible [compatibility entry `compat-d13812a70d13`](../docs/reference/compatibility-identifiers.v1.json) diagnostics because the absolute-positioned design model has no inline image-flow primitive.
 - [x] Support optional YAML front matter for title, author, language, named page size (A3/A4/Letter/Legal), orientation, and uniform or per-side margins with `pt`/`mm`/`cm`/`in` units.
 - [x] Return optional structured `ImportDiagnosticDto` entries for unsafe links, invalid/inline/unresolved images, invalid YAML front matter, unsupported blocks, formatting simplification, and page splits; rejected resource limits continue to use structured HTTP Problem Details.
-- [x] Preserve Markdown diagnostics in Designer template metadata and display localized `PXA-MD-*` messages in the document Inspector.
+- [x] Preserve Markdown diagnostics in Designer template metadata and display localized [compatibility entry `compat-031376ace89d`](../docs/reference/compatibility-identifiers.v1.json) messages in the document Inspector.
 
 ### End-to-end verification
 

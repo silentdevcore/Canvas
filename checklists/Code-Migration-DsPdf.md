@@ -1,5 +1,8 @@
 # PVAD Migration: DsPdf / Document Solutions
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using DsPdf/GcPdf.
@@ -64,8 +67,8 @@
 - [x] Scan for unsupported identifiers (AcroForm, TableRenderer, etc.)
 - [x] Remove DS.Documents.*/GrapeCity.Documents.* usings, add `using PVAD.Pdf;`
 - [x] Connect WebApi DsPdf converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.DsPdf.Tests`: `10/10` passed
-- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
+- [x] Recorded result: `10/10` passed Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.DsPdf.Tests`.
+- [x] Recorded result: `22/22` passed Current rerun reference: `dotnet test tests/PVAD.Api.Tests`.
 
 ## Mapping Table
 

@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
-import { extractLegacyPaths, renderMarkdownReport, scanMarkdownPaths } from './markdown-path-audit.mjs';
+import { extractLegacyNames, extractLegacyPaths, renderMarkdownReport, scanMarkdownNames, scanMarkdownPaths } from './markdown-path-audit.mjs';
 
 test('path extraction covers links, quoted paths, fenced commands, mixed casing and project filenames', () => {
   const source = [
@@ -32,6 +32,13 @@ test('path extraction covers links, quoted paths, fenced commands, mixed casing 
   assert.deepEqual(extractLegacyPaths('PVAD.sln\nPXA is a previous name.\nPXACODE042\nstyle.rpxAutoSize'), []);
 });
 
+test('full-text detection includes names, incidental substrings and embedded diagnostics without exceptions', () => {
+  const records = extractLegacyNames('# PXA\nPXACODE042 and style.rpxAutoSize\npxa and Pxa');
+  assert.equal(records.length, 5);
+  assert.deepEqual(records.map(record => record.line), [1, 2, 2, 3, 3]);
+  assert.deepEqual(extractLegacyNames('PVAD / PVADE'), []);
+});
+
 test('inventory scans tracked nested Markdown only and never follows IDE files or symlinks', () => {
   const root = mkdtempSync(join(tmpdir(), 'pvad-markdown-path-audit-'));
   try {
@@ -54,6 +61,7 @@ test('inventory scans tracked nested Markdown only and never follows IDE files o
     assert.match(markdown, /not a complete Markdown grammar or a rename approval/);
     assert.doesNotMatch(markdown, /synthetic-private/);
     assert.match(markdown, /README\.md:1/);
+    assert.equal(scanMarkdownNames(root).occurrences, 3);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

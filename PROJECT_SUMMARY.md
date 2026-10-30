@@ -2,7 +2,7 @@
 
 ## Overview
 
-PVADE is the platform brand; PVAD is its technical identity. It provides a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `pvad-designer` React/TypeScript frontend. Projects and namespaces use `PVAD.*`; PXA names remain only in documented compatibility and historical contracts. PDF and Spreadsheet products are PVADP and PVADS.
+PVADE is the platform brand; PVAD is its technical identity. It provides a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `pvad-designer` React/TypeScript frontend. Projects and namespaces use `PVAD.*`; Legacy names remain only in documented compatibility and historical contracts. PDF and Spreadsheet products are PVADP and PVADS.
 
 ---
 

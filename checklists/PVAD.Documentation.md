@@ -102,7 +102,7 @@ documentation-only follow-up.
 ## Akzeptanzkriterien
 - [x] "Editor benutzen" und "Code integrieren" sind klar getrennt.
 - [x] TOC ist produktorientiert statt nur dateiorientiert.
-- [x] Aktuelle PXA-Namen werden verwendet.
+- [x] Aktuelle [compatibility entry `compat-f35aced94252`](../docs/reference/compatibility-identifiers.v1.json) werden verwendet.
 - [x] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
 - [x] Links zu `PVAD.Company` und `PVAD.Demo` sind vorhanden.
 - [x] About, Products und Contact Sales sind im Header vorhanden.

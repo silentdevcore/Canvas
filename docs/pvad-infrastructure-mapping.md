@@ -11,7 +11,7 @@ password before production. The exporter and API resolve the same database
 settings; readiness uses the container's effective database/user values.
 
 WebApi and EF design-time defaults match the fresh local stack. **An existing
-`pxa` database is not renamed, migrated, copied or discovered automatically.**
+[compatibility entry `compat-55041f2a013a`](../operator-docs/compatibility-identifiers.v1.json) database is not renamed, migrated, copied or discovered automatically.**
 Starting the new defaults without the compatibility configuration selects new
 storage. Do not interpret an empty workspace as proof that old data was deleted.
 
@@ -35,9 +35,9 @@ The API overlay separately retains database and API/keyring storage.
 
 | Boundary | Fresh default | Legacy handling |
 | --- | --- | --- |
-| PostgreSQL service | `pvad-database` | Old `pxa-database` DNS alias in the overlay |
-| Database/user | `pvad` / `pvad` | Overlay defaults `pxa` / `pxa`; explicit values override both client and server settings |
-| API service | `pvad-webapi` | Old `pxa-webapi` DNS aliases in the API overlay |
+| PostgreSQL service | `pvad-database` | Old [compatibility entry `compat-f57a6fdb56ec`](../operator-docs/compatibility-identifiers.v1.json) DNS alias in the overlay |
+| Database/user | `pvad` / `pvad` | Overlay defaults [compatibility entry `compat-55041f2a013a`](../operator-docs/compatibility-identifiers.v1.json) / [compatibility entry `compat-55041f2a013a`](../operator-docs/compatibility-identifiers.v1.json); explicit values override both client and server settings |
+| API service | `pvad-webapi` | Old [compatibility entry `compat-8c78c052cc09`](../operator-docs/compatibility-identifiers.v1.json) DNS aliases in the API overlay |
 | API/keyring volume | `pvad-api-data` | `PVAD_LEGACY_API_VOLUME` selects the actual existing volume |
 | Database volume | `pvad-database-data` | `PVAD_LEGACY_DATABASE_VOLUME` selects the actual existing volume |
 | Mail/monitoring volumes | `pvad-*-data` | Required `PVAD_LEGACY_*_VOLUME` bindings preserve actual storage |
@@ -67,7 +67,7 @@ node tools/configuration/pvad-compose.mjs --env-file /absolute/local/legacy.env 
   --profile mcp config --quiet
 ```
 
-The launcher supports conflict-checked `PXA_*` environment aliases, not automatic
+The launcher supports conflict-checked [compatibility entry `compat-9b6a1326dd22`](../operator-docs/compatibility-identifiers.v1.json) environment aliases, not automatic
 physical-resource discovery. Existing storage-path overrides must reference the
 canonical logical volume keys or approved absolute mounts, not undefined legacy
 logical keys. Preserve `COMPOSE_PROJECT_NAME`; unchanged default/MCP networks also
@@ -77,7 +77,7 @@ and are not aliases for CLI commands such as `compose exec`.
 For a host-run WebApi against the old local database, explicitly configure
 `ConnectionStrings__PvadDatabase`; EF tooling separately supports
 `PVAD_DATABASE_CONNECTION`. Do not rely on the new `pvad` development fallback to
-find an old `pxa` database. Never record real connection secrets in the repository.
+find an old [compatibility entry `compat-55041f2a013a`](../operator-docs/compatibility-identifiers.v1.json) database. Never record real connection secrets in the repository.
 
 ## Cutover And Rollback
 

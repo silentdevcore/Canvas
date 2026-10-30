@@ -29,7 +29,7 @@ Status legend:
 
 ### Phase 1.1 — First incremental extraction (primitives)
 - [x] Extract first shared primitives into `PVAD.Core` (`PdfPoint`, alignments)
-- [x] Keep compatibility by referencing `PVAD.Core` from legacy `PXA` project
+- [x] Keep compatibility by referencing `PVAD.Core` from legacy `PVAD` project
 - [~] Switch legacy code to consume extracted Core primitives
 - [ ] Remove duplicated primitive definitions from legacy project after cutover
 
@@ -136,7 +136,7 @@ Status legend:
 - [x] Phase 3 diagnostics use case/query service bootstrap added
 - [x] Phase 3 diagnostics/query refactored to Core abstractions + PDF infrastructure adapters
 - [x] Phase 4 boundary tightening: `PVAD.Infrastructure.Pdf` no longer references `PVAD.Application`
-- [x] Phase 4 extraction: `PXA/Pdf/**` compile ownership moved into `PVAD.Infrastructure.Pdf`
+- [x] Phase 4 extraction: `src/Generation/PVAD.Pdf/**` compile ownership moved into `PVAD.Infrastructure.Pdf`
 - [x] Phase 4 renderer alignment: `PdfDocumentRenderer` now executes against infrastructure-owned `PdfWriter` path
 - [x] Phase 4 runtime validation completed (links/TOC/outlines/transparency/page boxes)
 - [x] Phase 4 byte-compatibility deltas documented (`PHASE4_PDF_VALIDATION.md`)

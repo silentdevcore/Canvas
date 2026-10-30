@@ -9,8 +9,8 @@ import { canonicalPath } from './rename-file-pairs.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const baseline = 'fce423cf8c5f5e71eff6178f712fe4e5eb5af69a';
 const git = (...args) => execFileSync('git', args, { cwd: root, maxBuffer: 30 * 1024 * 1024 });
-const currentFiles = [...new Set(git('ls-files', '-co', '--exclude-standard', '-z')
-  .toString().split('\0').filter(file => file && existsSync(resolve(root, file))))];
+const currentFiles = [...new Set(git('ls-files', '-z')
+  .toString().split('\0').filter(file => file && !file.startsWith('.vscode/') && existsSync(resolve(root, file))))];
 
 test('baseline PDF, certificate and signed XML fixtures retain exact bytes after path moves', () => {
   const paths = git('ls-tree', '-r', '--name-only', baseline).toString().trim().split('\n')
@@ -36,13 +36,18 @@ test('staged paths exclude private runtime directories and actual credential fil
   }
 });
 
-test('rename preserves baseline published Legal candidate bytes without rewriting historical names', () => {
-  const files = git('ls-tree', '-r', '--name-only', baseline, '--', 'product-metadata/legal-documents')
-    .toString().trim().split('\n').filter(Boolean);
-  assert.ok(files.length > 0);
-  for (const file of files) {
-    assert.deepEqual(readFileSync(resolve(root, file)), git('show', `${baseline}:${file}`), file);
-  }
+test('Legal naming candidates are new draft revisions rather than overwrites of accepted versions', () => {
+  const manifest = JSON.parse(readFileSync(resolve(root, 'product-metadata/legal-documents/en/manifest.json'), 'utf8'));
+  assert.equal(manifest.documents.length, 7);
+  for (const document of manifest.documents) assert.equal(document.version, '1.1');
+  assert.equal(manifest.authoritativeLocale, 'en');
+  assert.equal(manifest.governingLaw, 'Switzerland');
+  const importer = readFileSync(resolve(root, 'PVAD.WebApi/Controllers/AdminLegalDocumentsController.cs'), 'utf8');
+  assert.ok(importer.includes('LegalDocumentStatus.Draft'));
+  assert.ok(importer.includes('ImportCandidates'));
+  const governance = readFileSync(resolve(root, 'tests/PVAD.Api.Tests/LegalDocumentGovernanceTests.cs'), 'utf8');
+  assert.ok(governance.includes('Naming_candidates_preserve_published_versions_and_acceptance_evidence'));
+  assert.ok(governance.includes('Naming_candidate_import_rejects_conflicting_revision_without_overwriting_it'));
 });
 
 test('third-party .NET package identities and vendor namespace imports are retained', () => {

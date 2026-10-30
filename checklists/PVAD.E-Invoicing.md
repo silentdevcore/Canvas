@@ -18,7 +18,7 @@ independent validators remain authoritative.
 - [x] Reject associated files in PDF/A-2b and permit them in PDF/A-3b.
 - [x] Add bounded, DTD-free XML parsing and CII/UBL syntax recognition.
 - [x] Distinguish structural recognition from XSD/Schematron conformance.
-- [x] Add typed Factur-X, ZUGFeRD, and XRechnung options and stable PXAEINV
+- [x] Add typed Factur-X, ZUGFeRD, and XRechnung options and stable [compatibility entry `compat-4e7b15eb8a48`](../docs/reference/compatibility-identifiers.v1.json)
   diagnostics.
 - [x] Add a typed business-invoice model with deterministic CII and UBL
   generation, calculated tax groups and totals, bounded input validation, and
@@ -194,7 +194,7 @@ header bar and a 24-point description box that silently clipped anything longer.
 could therefore reach a different page count on screen and in the issued document.
 
 Both now implement one versioned contract, `test-assets/e-invoicing/pagination-contract.json`
-(schema `pxa.e-invoice.pagination/1`), which pins the page box, table geometry, the eight named
+(schema [compatibility entry `compat-4a00ba8a5601`](../docs/reference/compatibility-identifiers.v1.json)), which pins the page box, table geometry, the eight named
 columns, row metrics, continuation headings, the totals block, the footer-safe bound and the
 description-fragment limit. It carries twelve cases, each fixing the expected page count, rows per
 page, tax groups per page, which page carries the net and payable totals, and which lines were
@@ -215,7 +215,7 @@ Aligning the two exposed three further divergences, all fixed:
 
 Long descriptions no longer clip. A description longer than a page continues as deterministic
 fragments carrying only text - never a repeated amount - and a description beyond eight fragments is
-refused with `PXAEINV122` rather than rendered. Large tax breakdowns continue across totals pages
+refused with [compatibility entry `compat-c0cd86f65e58`](../docs/reference/compatibility-identifiers.v1.json) rather than rendered. Large tax breakdowns continue across totals pages
 with each group once, the net total once on the first and the payable total once on the last;
 zero, one, two, eight and eighty groups are pinned cases.
 
@@ -278,12 +278,12 @@ made correct invoices look wrong:
 Both mattered beyond the report, because `attach` refuses an inconsistent invoice
 without an explicit approval.
 
-Validation at handoff: solution build 0 errors; PXA.Generator.Tests 104/104;
-PXA.Importer.Tests 645/645; PXA.Migration.Pdf.Tests 99/99; PXA.Api.Tests 692 pass
+Validation at handoff: solution build 0 errors; [compatibility entry `compat-50f7b4bd6fbe`](../docs/reference/compatibility-identifiers.v1.json) 104/104;
+[compatibility entry `compat-8bbecc7ecc9e`](../docs/reference/compatibility-identifiers.v1.json) 645/645; [compatibility entry `compat-660564c1fcc2`](../docs/reference/compatibility-identifiers.v1.json) 99/99; [compatibility entry `compat-7e5a3593bd40`](../docs/reference/compatibility-identifiers.v1.json) 692 pass
 / 66 skipped (all `[PostgreSqlFact]`) / 0 fail; Designer 604/604 jest, `tsc
 --noEmit` clean, production build succeeds; Documentation 45/45 contract tests and
 site build; all four enforced electronic-invoice visual-parity commands exit 0;
-versioning `check`, `fragments`, `pxa-version` 22/22 and `pxa-release-author` 9/9
+versioning `check`, `fragments`, [compatibility entry `compat-cd42fee3aa53`](../docs/reference/compatibility-identifiers.v1.json) 22/22 and [compatibility entry `compat-c0e555b66619`](../docs/reference/compatibility-identifiers.v1.json) 9/9
 clean; `git diff --check` clean. The migration from an earlier handoff was applied
 to the local development database, without which every host-booting test fails
 closed on a pending migration.
@@ -292,7 +292,7 @@ Authenticated smoke workflow: pending execution. `pvad-designer/e2e/e-invoice-au
 covers registration through the real Account handoff, the full editor workflow, save and reload, XML
 and hybrid-PDF generation, reopening in the Viewer, byte-identical XML extraction, and the
 unauthenticated, missing-entitlement and API-unavailable refusals, on desktop and at phone width. It
-is gated behind `PXA_RUN_LIVE_AUTH_EINVOICE=1`, the same opt-in convention
+is gated behind [compatibility entry `compat-787d4295fa43`](../docs/reference/compatibility-identifiers.v1.json), the same opt-in convention
 `pdf-viewer-trust-authenticated.spec.ts` uses, so it skips rather than fails without the stack.
 
 An opt-in run was attempted against a locally running API, PostgreSQL, Mailpit, Designer and Account.
@@ -302,7 +302,7 @@ configuration. That is upstream of anything the spec does - the pre-existing liv
 is gated off for the same class of reason - so the selectors past registration are unverified
 against a live stack.
 
-One PXA.Importer.Tests run failed a single test that the immediate re-run passed,
+One [compatibility entry `compat-8bbecc7ecc9e`](../docs/reference/compatibility-identifiers.v1.json) run failed a single test that the immediate re-run passed,
 and the failure summary did not name it. The long-standing intermittent below is
 the likely candidate.
 
@@ -327,7 +327,7 @@ version 2 requires a governance record - upstream family, upstream version, retr
 review state with reviewer and date, supported profiles, update policy and expiry - and every
 artifact is pinned by SHA-256 and re-verified per run. Missing files, altered hashes, unknown
 manifest versions, profile or family mismatches, incomplete provenance, an unapproved licence review
-and an expired set each produce `unavailable` with a stable diagnostic (`PXAEINV020`, `022`, `026`,
+and an expired set each produce `unavailable` with a stable diagnostic ([compatibility entry `compat-789ae58d2ddb`](../docs/reference/compatibility-identifiers.v1.json), `022`, `026`,
 `027`, `028`, `029`, `030`), never a verdict and never a silent downgrade to structural recognition.
 Legacy version 1 manifests are deliberately refused so they cannot bypass the governance gate.
 Mounted directories are Git-ignored in every layout and validation performs no network access.
@@ -344,7 +344,7 @@ this repository, so no set has ever been run through the gate in anger.
   business-rule set for each supported Factur-X, ZUGFeRD, and XRechnung profile.
 - Keep structural recognition, PVADE business validation, and official
   conformance as separate statuses in every report.
-- Map validator output to stable `PXAEINV...` diagnostics without discarding
+- Map validator output to stable [compatibility entry `compat-ac0f16650b03`](../docs/reference/compatibility-identifiers.v1.json) diagnostics without discarding
   the original rule identifier, location, severity, or artifact-set evidence.
   *Implemented.* Every finding now carries a `PvadEInvoiceOriginalFinding` with the validator's own source, rule
   identifier, severity, location, message and test, beside the PVADE code. Schematron advisory rules
@@ -381,7 +381,7 @@ per-page content digests are compared, and the result is re-validated against th
 PVADE PDF/A-3b structural validator. `PdfEInvoiceXmpWriter` merges pdfaid part 3
 and the Factur-X extension schema into the existing XMP packet instead of
 replacing it, so Dublin Core and other publisher metadata survive. Diagnostics
-use the stable `PXAEINVATTACH0xx` range; the API adds `PXAEINVAPI020-024`.
+use the stable [compatibility entry `compat-1ff8edfaad55`](../docs/reference/compatibility-identifiers.v1.json) range; the API adds [compatibility entry `compat-50039b98b99c`](../docs/reference/compatibility-identifiers.v1.json).
 
 Evidence.
 
@@ -459,7 +459,7 @@ removed and reordered. Tax groups and the three totals are read-only `output`
 elements computed by `calculateInvoice`, so no total is independently editable.
 Selecting a standard pins its maintained version - displayed, never editable - and
 filters the profile list; switching to XRechnung leaves `XRECHNUNG` as the only
-option. Diagnostics keep their `PXAEINV...` codes visible and each carries a
+option. Diagnostics keep their [compatibility entry `compat-ac0f16650b03`](../docs/reference/compatibility-identifiers.v1.json) codes visible and each carries a
 control that focuses the field it is about.
 
 One canonical copy. `template.eInvoice.invoice` is the only editable copy of any
@@ -704,7 +704,7 @@ Implementation. `test-assets/e-invoicing/corpus/` holds 14 deterministic
 PVAD-authored fixtures and `manifest.json`, which records for each one its path,
 SHA-256, byte size, provenance, licence, standard, version, profile, syntax,
 expected result, expected diagnostic codes, tags and a description. The manifest
-declares three provenance kinds and permits only `pxa-authored` today:
+declares three provenance kinds and permits only [compatibility entry `compat-9b07d136598c`](../docs/reference/compatibility-identifiers.v1.json) today:
 `official-licensed` stays empty until EINV-01 has reviewed and recorded
 redistribution terms, and `customer` is never permitted.
 
@@ -728,7 +728,7 @@ Evidence.
   bounded input limit, and the multilingual fixture surviving extraction
   byte-exact. The hash check is a gate: a changed fixture fails rather than
   silently redefining what the corpus proves.
-- 85/85 `PXA.Generator.Tests` pass.
+- 85/85 [compatibility entry `compat-dbdb98663b7e`](../docs/reference/compatibility-identifiers.v1.json) pass.
 
 Blocked. Official FeRD/FNFE and KoSIT fixtures cannot be added until EINV-01
 records their redistribution terms, so the first sub-item stays open. No fixture
@@ -809,7 +809,7 @@ Evidence.
   real `inspect` and `attach` paths with a graphics-only page: every finding
   `notCheckable`, none `confirmed`, the invoice still read and reported, the
   attachment proceeding while reporting `notEvaluated`, and a readable page that
-  contradicts the invoice still being refused with `PXAEINVAPI021`.
+  contradicts the invoice still being refused with [compatibility entry `compat-3f905e79de3d`](../docs/reference/compatibility-identifiers.v1.json).
 - `tests/PVAD.Api.Tests/PdfEInvoiceCanonicalValueParityTests.cs` - all nine parity
   cases now report `consistent` with no `notFound` finding.
 - The multilingual corpus fixture proves extraction is encoding-safe for
@@ -831,15 +831,15 @@ is why a scanned page is never compared rather than compared weakly.
 
 Implementation. `attach` and `attach/preflight` accept `preserveUnrecognized`
 plus an optional `attachmentFileName`. Preservation is opt-in: without the flag,
-unrecognized XML is still refused with `PXAEINVAPI020`. In preservation mode PVADE
+unrecognized XML is still refused with [compatibility entry `compat-aa06d8678280`](../docs/reference/compatibility-identifiers.v1.json). In preservation mode PVADE
 deliberately withholds every standards signal - no reserved filename
-(`PXAEINVAPI026`), no Factur-X XMP extension schema, `/AFRelationship` stays
+([compatibility entry `compat-7c9c89bf81a2`](../docs/reference/compatibility-identifiers.v1.json)), no Factur-X XMP extension schema, `/AFRelationship` stays
 `/Unspecified` rather than `/Alternative`, no semantic values are extracted, and
 the validation report says not structurally valid, not conformance validated,
 `notEvaluated`. The same bounds as a recognized invoice still apply: the 10 MiB
-upload limit, a plain ASCII `.xml` filename (`PXAEINVAPI025`), the
+upload limit, a plain ASCII `.xml` filename ([compatibility entry `compat-52033138b2ec`](../docs/reference/compatibility-identifiers.v1.json)), the
 `application/xml` media type, the bounded DTD-free and entity-free parse
-(`PXAEINVAPI027`), the PDF `/Params` size and MD5 checksum written and
+([compatibility entry `compat-6cd469e2e64f`](../docs/reference/compatibility-identifiers.v1.json)), the PDF `/Params` size and MD5 checksum written and
 re-verified by the attacher, the `designer.pdf.e-invoices.attach` permission, and
 the tenant-scoped `generator` entitlement enforced by `PvadProductAccessMiddleware`.
 `inspect` reports `recognitionStatus` and `isEditable` so no surface can present
@@ -871,15 +871,15 @@ profile, syntax, guideline identifier, the three validation states, the validato
 artifact-set ID and SHA-256, the verbatim diagnostics, the revalidation link and
 both timestamps. A PostgreSQL trigger rejects every `UPDATE` and rejects a
 `DELETE` unless the transaction has deliberately set
-`pxa.e_invoice_retention_purge`, so retention is the only way a row can leave the
-table. `PxaEInvoiceValidationEvidenceService` scopes every read to the caller's
+[compatibility entry `compat-306460adb6d0`](../docs/reference/compatibility-identifiers.v1.json), so retention is the only way a row can leave the
+table. `PvadEInvoiceValidationEvidenceService` scopes every read to the caller's
 organization inside the service - no route parameter can widen it - writes a
 paired `AuditEvent` carrying only checksums, states and diagnostic codes (never
 invoice content), and keeps a superseded record when a later revalidation cites
 it. `validate` and `attach` retain their verdicts; `GET validations`,
 `GET validations/{id}`, `GET validations/export` and
 `POST validations/{id}/revalidate` read, export and extend them. Revalidation
-requires the same document bytes, proven by checksum (`PXAEINVAPI032`), and
+requires the same document bytes, proven by checksum ([compatibility entry `compat-f9f6ca606fe7`](../docs/reference/compatibility-identifiers.v1.json)), and
 stores a new verdict beside the old one rather than replacing it.
 
 Evidence.

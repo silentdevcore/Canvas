@@ -82,7 +82,7 @@
 
 ## Verification Record
 
-- [x] `PXA.Api.Tests`: 261 passed; 59 existing PostgreSQL-gated tests skipped by configuration.
+- [x] [compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json): 261 passed; 59 existing PostgreSQL-gated tests skipped by configuration.
 - [x] Designer: type check passed; 287 tests passed; production build passed.
 - [x] Documentation: 3 release-contract tests passed; production build passed.
 - [x] Documentation desktop and mobile smoke checks passed without horizontal overflow.

@@ -1,5 +1,8 @@
 # Powerful Backend Spreadsheet Engine
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 Grows the backend spreadsheet from an `.xlsx` round-trip into an engine (server-side calculation, rich
 Excel features, rendering, format breadth), built **in-house** on ClosedXML + PVAD.Pdf + NPOI.
 Benchmarked against GemBox.Spreadsheet and Aspose.Cells.
@@ -69,7 +72,7 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 Charts, pivot tables, images/shapes, digital signatures, full 1M-row streaming engine.
 
 ## Verification — all phases DONE
-- `dotnet build PXA.sln` clean; `PXA.Export.Tests` **203** green (recalc, each rich-feature round-trip,
+- `dotnet build PVAD.sln` clean; [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json) **203** green (recalc, each rich-feature round-trip,
   `.xls` + CSV, render, from-data + fill).
 - Live (`:5086`): `/calculate` computes chained deps; `/render?format=pdf` → `%PDF`; `/export?format=xls` →
   BIFF; `/from-data` builds a sheet; `/fill` resolves nested `{{user.name}}`.

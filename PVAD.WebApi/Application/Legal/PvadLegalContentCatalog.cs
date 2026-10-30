@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace PVAD.WebApi.Application.Legal;
@@ -24,6 +26,12 @@ public sealed class PvadLegalContentCatalog
             ?? throw new InvalidOperationException("The Legal candidate manifest is invalid.");
         if (!string.Equals(manifest.AuthoritativeLocale, "en", StringComparison.Ordinal))
             throw new InvalidOperationException("English must be the authoritative Legal locale.");
+        var reference = manifest.CompatibilityReference;
+        var referenceHash = Convert.ToHexString(SHA256.HashData(
+            Encoding.UTF8.GetBytes(Read("compatibility-identifiers.v1.json"))));
+        if (reference is null || reference.Version != "1" || reference.File != "docs/reference/compatibility-identifiers.v1.json" ||
+            !string.Equals(reference.Sha256, referenceHash, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("The embedded Legal compatibility reference does not match its pinned version and hash.");
 
         var documents = manifest.Documents.Select(value => new PvadLegalCandidateDocument(
             value.Key,
@@ -70,7 +78,10 @@ internal sealed record PvadLegalCandidateManifest(
     int SchemaVersion,
     string AuthoritativeLocale,
     string GoverningLaw,
+    PvadLegalCompatibilityReference? CompatibilityReference,
     IReadOnlyList<PvadLegalCandidateManifestDocument> Documents);
+
+internal sealed record PvadLegalCompatibilityReference(string Version, string File, string Sha256);
 
 internal sealed record PvadLegalCandidateManifestDocument(
     string Key,

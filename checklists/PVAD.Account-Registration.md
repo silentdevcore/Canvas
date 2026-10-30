@@ -85,7 +85,7 @@ Provide one secure customer-registration flow exclusively through PVAD Account. 
 - [x] Create the Trial subscription and effective product entitlements atomically.
 - [x] Prevent Trial duplication through token replay, resend, invitation, or concurrent requests.
 - [x] Do not hard-code Designer access by edition; expose it through the resulting entitlement set.
-- [x] Direct the verified user to PXA Account login with only a safe preserved destination.
+- [x] Direct the verified user to PVAD Account login with only a safe preserved destination.
 
 ## Login And Product Return
 

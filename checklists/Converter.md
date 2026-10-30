@@ -279,7 +279,7 @@ Frontend (ExportService.ts)
   - Assert MIME type matches
   - For XML/HTML/SVG/CSV/MD: parse output and assert key content is present
 - [x] `ExportDocumentUseCaseTests`: resolves by key, case-insensitive, unknown throws, null throws, all 9 formats, capabilities, filename from design name
-- [x] Integration tests (`PXA.Api.Tests`) — 15 tests: POST html/xml/csv/md/word/excel/png → 200, unknown → 415, formats list → 9 entries with capability fields
+- [x] Integration tests ([compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json)) — 15 tests: POST html/xml/csv/md/word/excel/png → 200, unknown → 415, formats list → 9 entries with capability fields
 - [ ] Frontend: manual smoke test for each format card — download file, open in target app
 
 ---
@@ -348,8 +348,8 @@ Frontend (ExportService.ts)
 
 - [x] `ExportCapabilities` record on `IExporterCapabilities` (Phase 1 item)
 - [x] Persist last-used export format in `localStorage`
-- [x] Unit tests (Phase 7) — 41 tests passing in `PXA.Export.Tests`
-- [x] Integration tests — 15 tests in `PXA.Api.Tests` (HTTP 200, formats JSON, 415, case-insensitive key, capabilities fields)
+- [x] Unit tests (Phase 7) — 41 tests passing in [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json)
+- [x] Integration tests — 15 tests in [compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json) (HTTP 200, formats JSON, 415, case-insensitive key, capabilities fields)
 - [x] Image exporter: fetch remote URLs via `HttpClient` (`HttpImageCache` with in-process cache)
 - [x] JPEG quality / PNG DPI as optional query params (`?dpi=300&quality=85`) — threaded through `ExportOptions`
 - [x] Word: embed images via `ImagePart` + DrawingML (data URLs + remote URLs via HttpClient)

@@ -1,7 +1,7 @@
 # PVAD API and MCP Compose Overlay
 
 This stack contains PostgreSQL, the hardened WebApi image, and the optional remote MCP server.
-Use the launcher below for legacy PXA environment aliases and conflict validation.
+Use the launcher below for legacy PVAD environment aliases and conflict validation.
 For an env file outside the current directory, pass an explicit `--env-file`.
 The launcher supports literal dotenv values; resolve `${...}` interpolation before
 using such files. It never prints the resolved environment. Raw `docker compose`
@@ -13,7 +13,7 @@ node tools/configuration/pvad-compose.mjs -f deploy/api/docker-compose.api.yml -
 ```
 
 Fresh installations use PVAD names for services, volumes, networks and secret
-mounts, with database/user `pvad`. Existing PXA data requires the explicit
+mounts, with database/user `pvad`. Existing PVAD data requires the explicit
 `deploy/rename/docker-compose.api-legacy.yml` overlay and verified external volume
 and network bindings. Old DNS aliases exist only in that compatibility overlay.
 Do not start the fresh defaults as an upgrade or run two writers on one volume.

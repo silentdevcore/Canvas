@@ -119,7 +119,7 @@ transactionally and leave the source bytes untouched.
   languages without network or telemetry use.
 - [x] Validate one generated PDF independently with Poppler `pdfinfo`; it reports PDF 2.0,
   AES-256, and the expected print/copy/change permissions.
-- [x] Open Generator AES-256 output with PdfPig and round-trip it through the typed PXA Importer.
+- [x] Open Generator AES-256 output with PdfPig and round-trip it through the typed PVAD Importer.
 - [x] Validate AES-256, AES-128, and RC4 output with qpdf 12.4.1 and Poppler, including
   password authentication, permissions, algorithms, syntax, decryption, and extracted text.
 - [x] Open AES-256 output through Adobe Acrobat's `app.openDoc` interface and verify the
@@ -128,5 +128,5 @@ transactionally and leave the source bytes untouched.
   unrelated certificate.
 - [x] Validate the current foundation with the full solution, Importer, API, Generator,
   Documentation, Designer, and release-fragment test suites.
-- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check` after
+- [x] Run `dotnet build PVAD.sln`, the Importer and API suites, and `git diff --check` after
   Generator/API integration and independent interoperability fixtures are complete.

@@ -173,7 +173,7 @@ Current session and identity-security implementation:
 Current authorization-boundary implementation:
 
 - [x] Normalize controller, authentication, authorization, CSRF, and rate-limit failures as `application/problem+json`.
-- [x] Publish stable `PXAAPI001` through `PXAAPI008` diagnostics with a request trace identifier.
+- [x] Publish stable [compatibility entry `compat-b1802e69ddb6`](../docs/reference/compatibility-identifiers.v1.json) through [compatibility entry `compat-8eadedc322a9`](../docs/reference/compatibility-identifiers.v1.json) diagnostics with a request trace identifier.
 - [x] Redirect expired or revoked browser sessions to login with an explicit explanation.
 - [x] Display API permission failures on a dedicated forbidden route without relying on hidden navigation alone.
 - [x] Preserve loaded Admin data as explicitly stale while the API or browser connection is offline.
@@ -231,7 +231,7 @@ Current subscription administration implementation:
 - [x] Persist idempotent period-scoped usage events and expose operation-level usage summaries.
 - [x] Issue, verify, download, list, and revoke ECDSA-signed Enterprise offline licenses.
 - [x] Add tenant-scoped service accounts and hashed API keys with immediate revocation and last-used tracking.
-- [x] Accept API keys through `X-PXA-API-Key` or Bearer authentication without granting Admin permissions.
+- [x] Accept API keys through [compatibility entry `compat-0ad1b8ff55d1`](../docs/reference/compatibility-identifiers.v1.json) or Bearer authentication without granting Admin permissions.
 - [x] Enforce API and product entitlements for protected product routes when Production enforcement is enabled.
 
 Current audit administration implementation:

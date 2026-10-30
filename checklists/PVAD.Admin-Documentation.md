@@ -28,7 +28,7 @@ Deliver complete English-language administration documentation for customer admi
 
 - [x] Document the dedicated Admin host and same-origin API architecture.
 - [x] Document session cookies, CSRF, API-key boundaries, authorization, and tenant isolation.
-- [x] Document `/api/pvad/v1/admin`, pagination expectations, Problem Details, and `PXAAPI001` through `PXAAPI008`.
+- [x] Document `/api/pvad/v1/admin`, pagination expectations, Problem Details, and [compatibility entry `compat-b1802e69ddb6`](../docs/reference/compatibility-identifiers.v1.json) through [compatibility entry `compat-8eadedc322a9`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Provide route-to-documentation coverage for every implemented Admin workspace.
 - [x] Use synthetic examples and prohibit credentials, tokens, signing material, and customer data.
 

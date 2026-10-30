@@ -1,9 +1,13 @@
 # Phase 4 — PDF Infrastructure Isolation Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Scope completed
-- Moved PDF engine source compilation ownership (`PXA/Pdf/**`) into `src/Infrastructure/PVAD.Infrastructure.Pdf`.
+- Moved PDF engine source compilation ownership (`src/Generation/PVAD.Pdf/**`) into `src/Infrastructure/PVAD.Infrastructure.Pdf`.
 - Removed unnecessary application-layer dependency from `PVAD.Infrastructure.Pdf`.
-- Kept legacy `PXA` as compatibility/demo shell by referencing `PVAD.Infrastructure.Pdf`.
+- Kept legacy the predecessor identity as compatibility/demo shell by referencing `PVAD.Infrastructure.Pdf`.
 
 ## Dependency isolation status
 - `PVAD.Application` depends only on `PVAD.Core`.
@@ -13,7 +17,7 @@
 ## Runtime validation performed
 Commands executed successfully:
 - `dotnet build`
-- `dotnet run --project PXA/PXA.csproj`
+- predecessor implementation
 - `dotnet run --project samples/PVAD.Demo/PVAD.Demo.csproj`
 
 Observed in `PVADE` run diagnostics output:

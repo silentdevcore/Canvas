@@ -48,7 +48,7 @@ accepts up to 100 MB of arbitrary PDF.
   for each; a limit that fires on real documents is a bug, not protection.
 - [x] Allow a decompression floor so that small streams which legitimately expand by a
   large ratio are not rejected by the ratio rule alone.
-- [x] Never make a limit breach silent: every breach records a `PXAPDFPARSE` diagnostic
+- [x] Never make a limit breach silent: every breach records a [compatibility entry `compat-7778695a4060`](../docs/reference/compatibility-identifiers.v1.json) diagnostic
   carrying the limit name, the observed value, and the object it applies to.
 
 ## Enforcement
@@ -83,7 +83,7 @@ accepts up to 100 MB of arbitrary PDF.
 - [x] Prove each fixture is bounded and produces the expected diagnostic instead of
   exhausting memory or the stack.
 - [x] Prove the limits do not change parsing results for the existing corpus.
-- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check`.
+- [x] Run `dotnet build PVAD.sln`, the Importer and API suites, and `git diff --check`.
 
 ## Reader Divergence
 

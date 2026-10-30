@@ -1,5 +1,8 @@
 # Spreadsheet Editor SDK — Excel-like spreadsheets in PVAD
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 An interactive in-app grid editor with live formulas, a backend `SpreadsheetDto` model, and `.xlsx`
 import + export. Adds spreadsheet capability alongside the document designer.
 
@@ -90,7 +93,7 @@ type). Confirm the scope before executing.
 - [x] `ProjectReference` paths in `PVAD.WebApi/PVAD.WebApi.csproj` + `PVAD.Export.Tests.csproj`.
 - [x] `using`/qualified `PVAD.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
       the 3 test files. No stale `.Sheet` references remain.
-- [x] `dotnet build PXA.sln` clean; `PXA.Export.Tests` **193** green.
+- [x] `dotnet build PVAD.sln` clean; [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json) **193** green.
 
 ### B) Per-sheet model identifiers — **kept, not renamed** (decided: "rename project only")
 - [x] `SheetDto`/`SheetColumnDto`/`SheetRowDto` (`SpreadsheetDto.cs`) — **kept** (a Spreadsheet contains
@@ -99,7 +102,7 @@ type). Confirm the scope before executing.
 
 ## Verification
 - Backend: `dotnet test` round-trip preserves values/formulas/types/number-formats/styles/merges; `dotnet
-  build PXA.sln` clean.
+  build [compatibility entry `compat-e93ca0c0d545`](../docs/reference/compatibility-identifiers.v1.json)` clean.
 - Frontend: `tsc --noEmit` + `jest` (store + recalc) green.
 - E2E (app :5173, backend :5086): `/spreadsheet`, type `=SUM(A1:A2)` → live result; format currency;
   export → `.xlsx` opens in Excel with the formula; import a real `.xlsx` with formulas → preserved.

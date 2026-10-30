@@ -1,4 +1,4 @@
-# PXA PDF Migration Handoff
+# PVAD PDF Migration Handoff
 
 Stand: 2026-05-31, Europe/Berlin
 
@@ -189,7 +189,7 @@ Wichtig:
 - Converter gibt immer `CANMIGPDFTOOLS000` als diagnostics-first-pilot-Warnung aus.
 - `Sdk.Initialize(...)` wird entfernt und mit `CANMIGPDFTOOLS001` dokumentiert.
 - Offizielle API-Referenzen zeigen: `PdfTools.Pdf.Document` wird geöffnet oder durch Operationen erzeugt; direkte PDF-Erzeugung liegt im separaten PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`).
-- Keine automatischen `Document/AddPage/DrawText`-PXA-Rewrites mehr für diesen SDK-Provider.
+- Keine automatischen `Document/AddPage/DrawText`[compatibility entry `compat-21f1daa2e749`](docs/reference/compatibility-identifiers.v1.json) mehr für diesen SDK-Provider.
 - Warnt bei Document.Open/Save, Conversion, Rendering/Image, Optimization, Validation/Repair, existing PDF processing, Security, Signaturen, Forms, Annotationen, Outlines/OCR.
 - Warnt mit `CANMIGPDFTOOLS022`, wenn `PdfTools.Toolbox.*` erkannt wird, damit Toolbox als eigener Sample-/Provider-Schnitt behandelt wird.
 

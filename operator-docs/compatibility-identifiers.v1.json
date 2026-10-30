@@ -1,0 +1,697 @@
+{
+  "schemaVersion": 1,
+  "version": "1",
+  "visibility": "operator",
+  "baseline": "3049672256cc7784cf7e1fc0454a61e86358db4c",
+  "scope": "Exact retained documentation values and excerpts; not canonical aliases, publication approval, replacement commands or new runtime contracts.",
+  "entries": [
+    {
+      "id": "compat-045dd7604897",
+      "kind": "identifier",
+      "value": "pxa-staging",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "checklists/PVAD.Automated-Release-Notes.md"
+      ]
+    },
+    {
+      "id": "compat-0462730e953a",
+      "kind": "identifier",
+      "value": "pxa-release-dry-run",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-08ab2cf7701b",
+      "kind": "identifier",
+      "value": "PXA.Combined",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-0a831881f47d",
+      "kind": "identifier",
+      "value": "pxa-webapi",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-migration-notes.md"
+      ]
+    },
+    {
+      "id": "compat-0d6278d6b59d",
+      "kind": "identifier",
+      "value": "PXAAPI008",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-12cb4afd68ce",
+      "kind": "identifier",
+      "value": "pxa-production",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "checklists/PVAD.Automated-Release-Notes.md"
+      ]
+    },
+    {
+      "id": "compat-14a9f154c0c0",
+      "kind": "identifier",
+      "value": "pxa-*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-github-cutover-plan.md",
+        "docs/pvad-observability-identity.md",
+        "docs/pvad-rename-release-approvals.md",
+        "tools/deployment/README.md",
+        "tools/legal/README.md"
+      ]
+    },
+    {
+      "id": "compat-1585a4891f41",
+      "kind": "identifier",
+      "value": "VITE_PXA_*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "websites/HOSTING.md"
+      ]
+    },
+    {
+      "id": "compat-1c0125a78757",
+      "kind": "identifier",
+      "value": "pxa-release-preparation",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-1c73bb1433d5",
+      "kind": "identifier",
+      "value": "{__name__=~\"(pvad|pxa)_jobs_processed_total\"}",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-migration-notes.md"
+      ]
+    },
+    {
+      "id": "compat-20b34f83754f",
+      "kind": "identifier",
+      "value": ".pxap",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-22ec26ff0fc6",
+      "kind": "identifier",
+      "value": "ghcr.io/silentdevcore/pxa-webapi:1.1.0",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-2d79ca4f327e",
+      "kind": "identifier",
+      "value": "RESTORE PXA DATABASE",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md",
+        "tools/legal/README.md"
+      ]
+    },
+    {
+      "id": "compat-2ed6087b4add",
+      "kind": "identifier",
+      "value": "pxa-deployment.mjs",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "tools/deployment/README.md"
+      ]
+    },
+    {
+      "id": "compat-3597927317fd",
+      "kind": "identifier",
+      "value": "pxa_*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-40924172de8e",
+      "kind": "identifier",
+      "value": "PXA_",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-observability-identity.md"
+      ]
+    },
+    {
+      "id": "compat-4919280226de",
+      "kind": "identifier",
+      "value": "X-PXA-Webhook-Idempotency-Key",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/observability/README.md"
+      ]
+    },
+    {
+      "id": "compat-49ffd55c615e",
+      "kind": "identifier",
+      "value": "X-PXA-Operator",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/observability/README.md"
+      ]
+    },
+    {
+      "id": "compat-4e13e3e39497",
+      "kind": "identifier",
+      "value": ".pxas",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-51ff5131863b",
+      "kind": "identifier",
+      "value": "PXA.JobCutover.dll",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "tools/job-cutover/README.md"
+      ]
+    },
+    {
+      "id": "compat-55041f2a013a",
+      "kind": "identifier",
+      "value": "pxa",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-infrastructure-mapping.md",
+        "tools/legal/README.md"
+      ]
+    },
+    {
+      "id": "compat-557c83d98b35",
+      "kind": "identifier",
+      "value": "pxa-deployment-*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-5622f2143f23",
+      "kind": "identifier",
+      "value": "PXA_AES256_QPDF_IMAGE",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "tools/pdf-security/README.md"
+      ]
+    },
+    {
+      "id": "compat-5b314dd4e759",
+      "kind": "identifier",
+      "value": "PXA.Designer.Cookie",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-5efd4896aaff",
+      "kind": "identifier",
+      "value": "pxa_",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/observability/CAPACITY-PROFILES.md",
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-5f3fe9d0846e",
+      "kind": "identifier",
+      "value": "PXA_BUILD_*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "tools/versioning/README.md"
+      ]
+    },
+    {
+      "id": "compat-61cd87ac9809",
+      "kind": "identifier",
+      "value": "PXA.ApiKey",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-628cd48d0729",
+      "kind": "documented-identifier",
+      "value": "PXA-named",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-759b95ae9020",
+      "kind": "identifier",
+      "value": "PxaDatabase",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-migration-notes.md"
+      ]
+    },
+    {
+      "id": "compat-6a79e469a876",
+      "kind": "identifier",
+      "value": "/api/pxa/v1/version",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/websites/README.md"
+      ]
+    },
+    {
+      "id": "compat-71654599bb5a",
+      "kind": "identifier",
+      "value": "pxa-sa-<key-id-N>",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-oauth-client-transition.md"
+      ]
+    },
+    {
+      "id": "compat-7333d931f5d2",
+      "kind": "identifier",
+      "value": "pxa-stable-release",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-80d11621d974",
+      "kind": "identifier",
+      "value": "pxa-mail",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-observability-identity.md"
+      ]
+    },
+    {
+      "id": "compat-aa442e855094",
+      "kind": "identifier",
+      "value": "pxa-spreadsheet",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-migration-notes.md"
+      ]
+    },
+    {
+      "id": "compat-8c78c052cc09",
+      "kind": "identifier",
+      "value": "pxa-webapi",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-infrastructure-mapping.md",
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-948e7c5f5d66",
+      "kind": "identifier",
+      "value": "__PXA_CONFIG__",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "websites/HOSTING.md"
+      ]
+    },
+    {
+      "id": "compat-9b6a1326dd22",
+      "kind": "identifier",
+      "value": "PXA_*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-infrastructure-mapping.md",
+        "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md"
+      ]
+    },
+    {
+      "id": "compat-9c78d84d39d4",
+      "kind": "identifier",
+      "value": "PXA_SPA_ROUTE_PATTERN",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/websites/README.md"
+      ]
+    },
+    {
+      "id": "compat-a05a70633a57",
+      "kind": "explanatory-source-excerpt",
+      "value": "PVAD_DATABASE_URL_FILE=/run/secrets/pvad_database_url \\\nPGPASSFILE=/run/secrets/pvad_pgpass \\\n  tools/legal/backup-postgres.sh /protected/pvad-backups\n\nPVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \\\nPGPASSFILE=/run/secrets/pvad_recovery_pgpass \\\nPVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \\\n  tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump\n\nPVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \\\nPGPASSFILE=/run/secrets/pvad_recovery_pgpass \\\n  tools/legal/verify-legal-recovery.sh",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "tools/legal/README.md"
+      ]
+    },
+    {
+      "id": "compat-a32d9cefdbb0",
+      "kind": "identifier",
+      "value": "PXA_STATUS_SMOKE_PORT",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/websites/README.md"
+      ]
+    },
+    {
+      "id": "compat-a3b338ef72e2",
+      "kind": "identifier",
+      "value": "PXA.Mail.Outbox.Payload.v1",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-a3cc375a060e",
+      "kind": "identifier",
+      "value": "pxa-json",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-observability-identity.md"
+      ]
+    },
+    {
+      "id": "compat-a9b11311dc28",
+      "kind": "identifier",
+      "value": "PXA.ImageOcr",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-observability-identity.md"
+      ]
+    },
+    {
+      "id": "compat-ac7f4306e2ae",
+      "kind": "identifier",
+      "value": "X-PXA-Webhook-Signature: sha256=<digest>",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/observability/README.md"
+      ]
+    },
+    {
+      "id": "compat-af09d32ae016",
+      "kind": "identifier",
+      "value": "pxa-development-1",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-license-and-job-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-b154cba9014f",
+      "kind": "identifier",
+      "value": "pxa-mcp-public",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-oauth-client-transition.md"
+      ]
+    },
+    {
+      "id": "compat-b17798b33ab9",
+      "kind": "identifier",
+      "value": "PXA",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md",
+        "tools/legal/README.md"
+      ]
+    },
+    {
+      "id": "compat-b1cad1347fb6",
+      "kind": "identifier",
+      "value": "PXA-MCP",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-b5128f908010",
+      "kind": "identifier",
+      "value": "PXA_API_UPSTREAM",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "deploy/websites/README.md"
+      ]
+    },
+    {
+      "id": "compat-b93898a80e92",
+      "kind": "identifier",
+      "value": "pxa-mcp-server",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md",
+        "docs/pvad-oauth-client-transition.md"
+      ]
+    },
+    {
+      "id": "compat-c17ef4e927b4",
+      "kind": "identifier",
+      "value": "PXA_LICENSE_*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-license-and-job-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-ca1eb4ce6067",
+      "kind": "identifier",
+      "value": "pxa-api",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md",
+        "docs/pvad-oauth-client-transition.md"
+      ]
+    },
+    {
+      "id": "compat-cd515052a2c1",
+      "kind": "explanatory-source-excerpt",
+      "value": "   PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \\\n   PGPASSFILE=/run/secrets/pvad_recovery_pgpass \\\n   PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \\\n     tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md"
+      ]
+    },
+    {
+      "id": "compat-d0a570efa7f5",
+      "kind": "identifier",
+      "value": ".pxa-license.json",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-license-and-job-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-dc1f0686d317",
+      "kind": "identifier",
+      "value": "PXA.*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-dcc821f12f01",
+      "kind": "identifier",
+      "value": "X-PXA-*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "operator-docs/PVAD.Admin-Operations.md"
+      ]
+    },
+    {
+      "id": "compat-df6474192568",
+      "kind": "identifier",
+      "value": "__Host-PXA.Designer.Session",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-dfc86e9a456d",
+      "kind": "identifier",
+      "value": "pxa-production",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-github-cutover-plan.md",
+        "docs/pvad-rename-release-approvals.md",
+        "tools/deployment/README.md"
+      ]
+    },
+    {
+      "id": "compat-e8a6a6ca9982",
+      "kind": "identifier",
+      "value": "PXA.McpDelegation",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-e977912deebf",
+      "kind": "identifier",
+      "value": "pxa-observability-webhook-relay",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-ea28b5b1802a",
+      "kind": "identifier",
+      "value": "ghcr.io/silentdevcore/pxa-observability-webhook-relay:1.1.0",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-rename-release-approvals.md"
+      ]
+    },
+    {
+      "id": "compat-ebff574f1d7e",
+      "kind": "identifier",
+      "value": "__Host-PXA.Session",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-ed73e5fcd4ca",
+      "kind": "identifier",
+      "value": "pxa-staging",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-github-cutover-plan.md",
+        "docs/pvad-rename-release-approvals.md",
+        "tools/deployment/README.md"
+      ]
+    },
+    {
+      "id": "compat-f57a6fdb56ec",
+      "kind": "identifier",
+      "value": "pxa-database",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-infrastructure-mapping.md",
+        "docs/pvad-observability-identity.md"
+      ]
+    },
+    {
+      "id": "compat-f5dc771391bd",
+      "kind": "identifier",
+      "value": "__Host-PXA.Antiforgery",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-fade525144b5",
+      "kind": "identifier",
+      "value": "PXA.PdfTrust.RevocationEvidence.v1",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md"
+      ]
+    },
+    {
+      "id": "compat-fb5db5457234",
+      "kind": "identifier",
+      "value": "pxa.*",
+      "canonicalAlias": null,
+      "interpretation": "Exact retained value or documented excerpt. This entry does not invent a canonical alias or certify a runnable example; inspect implementation sources for behavior.",
+      "sources": [
+        "docs/pvad-identity-compatibility.md",
+        "docs/pvad-oauth-client-transition.md"
+      ]
+    }
+  ]
+}

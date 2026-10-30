@@ -4,12 +4,18 @@ Final context review: 2026-10-22. The exact current snapshot supplements and
 supersedes the incremental scoped-review status notes below. Production hosts,
 publishers, external keys and real cutover/rollback remain separate open gates.
 
+The later [complete Markdown cleanup](../checklists/PVAD.Markdown-Naming-Cleanup.md)
+supersedes historical wording exceptions for Markdown. Exact values now live in
+versioned JSON registers. Every tracked Markdown file passes the strict full-text
+guard; Git retains original execution text. Legal source candidates are new
+version 1.1 drafts, not changes to existing published or accepted records.
+
 ## Current Inventory
 
 ### 2026-10-22 Review Queue Safeguards
 
 The text inventory detects case-insensitive old-name matches, including lowercase
-`powerdox` hostnames, uppercase legacy test flags and incidental `rpxAutoSize`
+`powerdox` hostnames, uppercase legacy test flags and incidental [compatibility entry `compat-a959a4da24b7`](reference/compatibility-identifiers.v1.json)
 substrings. `pvad-rename-reviewed-exceptions.json` records exact paths, hashes,
 retention decisions and boundary guides. The review command fails for pending,
 unexplained, new, changed or removed entries. A classification or matching hash
@@ -35,8 +41,8 @@ NUL-bearing files remain in the separate evidence review.
 | Cookies, schemes, claims, OAuth registrations, Data Protection, signing key IDs and policy names | Retained persisted/cryptographic bindings cannot be globally replaced without invalidating sessions, grants or signed material. |
 | PostgreSQL objects/migration SQL, volume names, mounted secrets, Grafana UIDs and registry repositories | Preserve physical identities; canonical environment aliases remain conflict-checked. New monitoring job/service labels use PVAD with dual-generation query selectors and separate live cutover gates. |
 | Live documentation and active metadata descriptions | Correct remaining old product prose. Preserve schema IDs, compatibility explanations, external hosts and original evidence references explicitly. |
-| Checklist prose, original execution records and audit inventories | Normalize editorial names without repeated banners; preserve exact execution evidence and compatibility identifiers. See the checklist naming review; do not reclassify incomplete features as delivered. |
-| Authored legal content and published release entries | Preserve original wording, versions and hashes. New names do not authorize legal publication or rewriting historical releases. |
+| Checklist prose, original execution records and audit inventories | Normalize Markdown without exceptions; retain task states and results, original wording in Git, and exact identifiers in JSON registers. Do not reclassify incomplete features as delivered. |
+| Authored legal candidates and published release entries | Prepare new version 1.1 source drafts; preserve existing database versions, accepted hashes and published release history. New names do not authorize publication. |
 | PDF Trust corpora, validator generators, manual review decisions and visual baseline IDs | Preserve evidence provenance, signed subjects, stable parser/result IDs, filenames and reader/writer agreement. Current report display headings are renamed separately. |
 | Test source and fixture strings | Retain deliberate old inputs and expected diagnostics; do not rewrite customer/vendor text during a successful rename test. |
 | HTML/Skia/vendor Canvas APIs and encoded integrity data | Neutral rendering or coincidental substrings are not first-party branding. Preserve vendor APIs and dependency integrity hashes. |
@@ -57,7 +63,7 @@ explicitly unapproved: this is a review queue, not an automatic exception list.
 Binary entries include baseline Git-blob equality and SHA-256; generated own
 assemblies/dependency metadata are inventoried separately from repository inputs.
 
-The approved 2026-10-21 cleanup removed 4,211 stale, untracked PXA build outputs
+The approved 2026-10-21 cleanup removed 4,211 stale, untracked PVAD build outputs
 under bin/obj after validating the entire plan, paths, non-symlink status and
 hashes. Its manifest is `artifacts/rename/legacy-build-cleanup.json`. All paired
 job-cutover bin/obj legacy outputs remain intact. The Solution rebuild passed
@@ -76,20 +82,20 @@ The recursive C# contract in `runtime-brand-contract.test.mjs` checks joined,
 lowercase and standalone old names across these three source trees, including
 files that an interactive search configuration might omit. It rejects unexpected
 identities and stale path/literal exceptions. Stable diagnostic codes, their
-localization keys and `PXA0001` pragma/obsolete references are not branding.
+localization keys and [compatibility entry `compat-ccb786033be3`](reference/compatibility-identifiers.v1.json) pragma/obsolete references are not branding.
 
 | Exact source boundary | Retained literal | Reason |
 | --- | --- | --- |
-| `PVAD.Generator/EInvoicePageLayout.cs` | `pxa.e-invoice.pagination/1` | Existing versioned pagination contract; changing display prose does not change its schema identity. |
-| `PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs` | `PXA.ImageOcr` | Legacy ActivitySource subscription only; new parent and worker process activity names use PVAD. |
-| `PVAD.FileImporter/PdfFileImporter.cs` | `pxaMetadata` | Existing chart-recognition provenance value stored in design JSON. New embedded font family names use `PvadPdf_`. |
-| `PVAD.Importer/Redaction/PdfImageRedactionEngine.cs` | `PXARedacted` | Private PDF marker used by both generated redacted images and bounded stream decoding/mask checks. Retaining it avoids a writer/reader mismatch. |
-| `PVAD.Importer/Redaction/PdfRedactionApplier.cs` | `_PXARedacted` | Collision-checked resource alias in the retained redaction output convention, not a public product label. |
-| `PVAD.Infrastructure.Converters/XmlDocumentExporter.cs` | `PxaDocument` | Explicit `ExportLegacy` output only; normal XML output uses `PvadDocument`. |
+| `PVAD.Generator/EInvoicePageLayout.cs` | [compatibility entry `compat-4a00ba8a5601`](reference/compatibility-identifiers.v1.json) | Existing versioned pagination contract; changing display prose does not change its schema identity. |
+| `PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs` | [compatibility entry `compat-6306f3309206`](reference/compatibility-identifiers.v1.json) | Legacy ActivitySource subscription only; new parent and worker process activity names use PVAD. |
+| `PVAD.FileImporter/PdfFileImporter.cs` | [compatibility entry `compat-53477bb0d970`](reference/compatibility-identifiers.v1.json) | Existing chart-recognition provenance value stored in design JSON. New embedded font family names use `PvadPdf_`. |
+| `PVAD.Importer/Redaction/PdfImageRedactionEngine.cs` | [compatibility entry `compat-22cc5163402c`](reference/compatibility-identifiers.v1.json) | Private PDF marker used by both generated redacted images and bounded stream decoding/mask checks. Retaining it avoids a writer/reader mismatch. |
+| `PVAD.Importer/Redaction/PdfRedactionApplier.cs` | [compatibility entry `compat-1ef9fd08fea6`](reference/compatibility-identifiers.v1.json) | Collision-checked resource alias in the retained redaction output convention, not a public product label. |
+| `PVAD.Infrastructure.Converters/XmlDocumentExporter.cs` | [compatibility entry `compat-ee27215b8284`](reference/compatibility-identifiers.v1.json) | Explicit `ExportLegacy` output only; normal XML output uses `PvadDocument`. |
 | `PVAD.Infrastructure.Persistence/PvadDbContextFactory.cs` | Local legacy database/login defaults | Prevent design-time commands silently selecting a different existing database. These are local defaults, not production credentials. |
-| `PVAD.Infrastructure.Persistence/Configuration/PvadEnvironment.cs` | `PXA_` | Conflict-checked legacy environment input; canonical inputs use `PVAD_`. |
-| `PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs` | `pxa-database` | Retained health/data-source label consumed by the operational status contract. |
-| `PVAD.Infrastructure.Persistence/Migrations/20260927050514_AddEInvoiceValidationRecords.cs` | `pxa.e_invoice_retention_purge` | Applied SQL session-key contract; the current purge writer uses the same key. Historical migration SQL is not rewritten. |
+| `PVAD.Infrastructure.Persistence/Configuration/PvadEnvironment.cs` | [compatibility entry `compat-281230894e71`](reference/compatibility-identifiers.v1.json) | Conflict-checked legacy environment input; canonical inputs use `PVAD_`. |
+| `PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs` | [compatibility entry `compat-200b6f2c8869`](reference/compatibility-identifiers.v1.json) | Retained health/data-source label consumed by the operational status contract. |
+| `PVAD.Infrastructure.Persistence/Migrations/20260927050514_AddEInvoiceValidationRecords.cs` | [compatibility entry `compat-306460adb6d0`](reference/compatibility-identifiers.v1.json) | Applied SQL session-key contract; the current purge writer uses the same key. Historical migration SQL is not rewritten. |
 
 This closes this bounded source review, not the repository-wide checklist gates.
 The WebApi, frontend, tools, binary assets and historical content still require
@@ -102,7 +108,7 @@ generations use the same revocation, expiry, service-account and organization
 checks; the expanded integration matrix covers all those rejection states.
 This does not authorize a production OAuth or Data Protection cutover.
 
-- PXA/Canvas in Git history, released tags, historical release titles and authored
+- [compatibility entry `compat-1d4bfbb58b89`](reference/compatibility-identifiers.v1.json) in Git history, released tags, historical release titles and authored
   third-party evidence remain original. Do not rewrite history to clean a scan.
 - Published legal versions, accepted hashes, signed licenses/audits, historical
   invoices, customer names and uploaded source remain byte-preserved unless an
@@ -124,14 +130,14 @@ This does not authorize a production OAuth or Data Protection cutover.
 
 ### Joined Core Identifier Review
 
-The Core C# scan now covers joined and lowercase PXA spellings as well as
+The Core C# scan now covers joined and lowercase PVAD spellings as well as
 standalone names. `runtime-brand-contract.test.mjs` bounds exceptions by exact
 path and literal: legacy native-format IDs/MIME/extensions/magic and minimum
 version readers in PvadProjectModels, the legacy element marker, and
-`PXAChartsV2` in ChartMetadataCodec. Stable quoted diagnostic IDs remain a
+[compatibility entry `compat-2352f6e27484`](reference/compatibility-identifiers.v1.json) in ChartMetadataCodec. Stable quoted diagnostic IDs remain a
 separate category. Unexpected old identifiers fail the contract.
 
-`PXAChartsV2` is a serialized PDF Info dictionary key, not display branding.
+[compatibility entry `compat-2352f6e27484`](reference/compatibility-identifiers.v1.json) is a serialized PDF Info dictionary key, not display branding.
 Changing it without a dual-reader migration would stop existing PDF metadata
 recognition. Its retention is explicit here; this review does not claim that
 automatic chart metadata production or recognition is complete in every exporter.
@@ -152,7 +158,7 @@ recorded separately from external artwork approval. See the [tracker](../checkli
 ## PDF Metadata and Historical Validator Reports
 
 New PDF ICC profiles use exactly four-byte `PVAD` creator/manufacturer signatures;
-new output-intent and validator display names use PVAD. Stable `PXA...` diagnostic
+new output-intent and validator display names use PVAD. Stable [compatibility entry `compat-7761cb789e48`](reference/compatibility-identifiers.v1.json) diagnostic
 IDs and `CANMIG...` identifiers remain unchanged. Published PDF fixtures and their
 historical JSON evidence are not rewritten to replace display text. Corpus tests
 clone expected JSON and alias only the exact historical structural-validator
@@ -163,12 +169,12 @@ strict. This is a test comparison adapter, not a production evidence migration.
 
 Current Core/Infrastructure descriptions now use PVAD. New Word comments and
 tracked insertions default their author to PVADE only when the source author is
-null. Explicit names, including an existing `PXA` author, are preserved verbatim.
+null. Explicit names, including an existing `PVAD` author, are preserved verbatim.
 Word export tests verify both defaults and explicitly supplied identities.
 
-The standalone `PXA` scan of Core/Infrastructure C# source now has exactly one
+The standalone `PVAD` scan of Core/Infrastructure C# source now has exactly one
 reviewed source-line exception: `PvadProjectFormat.LegacyMagic` retains
-`PXA-PXAP-1` and `PXA-PXAS-1`. Existing reference archives must remain readable;
+[compatibility entry `compat-bea571ba4815`](reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-d1b9fec09994`](reference/compatibility-identifiers.v1.json). Existing reference archives must remain readable;
 writers emit the canonical identities. `runtime-brand-contract.test.mjs` checks
 this exact path and line rather than allowing old names throughout a directory.
 This scoped check is not approval of every joined identifier or lowercase match.
@@ -177,13 +183,13 @@ Other reviewed categories in this scope remain distinct:
 
 | Location | Retained contract | Rationale |
 | --- | --- | --- |
-| `PvadProjectModels` | Legacy MIME types, extensions and `minimumPxaVersion` reader | Open existing packages without rewriting their bytes; reject conflicting versions. |
-| Core diagnostic catalog and validators | `PXA...` diagnostic IDs | Keep stored reports, client handling and diagnostic aliases stable. |
+| `PvadProjectModels` | Legacy MIME types, extensions and [compatibility entry `compat-c29574ca3da7`](reference/compatibility-identifiers.v1.json) reader | Open existing packages without rewriting their bytes; reject conflicting versions. |
+| Core diagnostic catalog and validators | [compatibility entry `compat-7761cb789e48`](reference/compatibility-identifiers.v1.json) diagnostic IDs | Keep stored reports, client handling and diagnostic aliases stable. |
 | Persistence configuration and migrations | Existing database identity and migration SQL/session keys | A source rename must not silently choose a different database or rewrite applied migration history. |
-| `PvadCodeElementMarker.Legacy` | `pxa-element-id:` | Preserve old generated-source element mappings. |
+| `PvadCodeElementMarker.Legacy` | [compatibility entry `compat-d4533c00f1a8`](reference/compatibility-identifiers.v1.json) | Preserve old generated-source element mappings. |
 
 The XML follow-up now writes `PvadDocument` by default and exposes explicit
-`ExportLegacy(design)` for `PxaDocument` integrations. Export tests compare the
+`ExportLegacy(design)` for [compatibility entry `compat-ee27215b8284`](reference/compatibility-identifiers.v1.json) integrations. Export tests compare the
 parsed trees after normalizing only their root names; document text is never
 rebranded. This default-envelope change is a declared major-release change, not
 an assertion that old XPath consumers remain compatible without migration. The
@@ -192,20 +198,20 @@ exhaustive repository residual-match gate remains open.
 The public branding endpoint now returns PVADE, PVAD and `pvad`, with primary PDF
 extension `.pvadp` and additive `nativeFileExtensions` containing `.pvadp` and
 `.pvads`. Both generic and canonical API paths and the old prefix alias expose
-the current identity. Explicit legacy metadata fields retain PXA. The singular
+the current identity. Explicit legacy metadata fields retain PVAD. The singular
 extension is a primary-format compatibility field, not a claim that all projects
 share one format.
 
 ## Importer and API Text Review
 
 New importer diagnostics, conversion metadata and public API descriptions use
-PVAD; account-facing messages use PVADE. Diagnostic IDs such as `PXA-MD-...`,
-`PXA-PDF-CHART-...` and the joined trust/invoice codes are unchanged. Old files,
+PVAD; account-facing messages use PVADE. Diagnostic IDs such as [compatibility entry `compat-8353ee18cf9e`](reference/compatibility-identifiers.v1.json),
+[compatibility entry `compat-45790eef02cc`](reference/compatibility-identifiers.v1.json) and the joined trust/invoice codes are unchanged. Old files,
 signed reports, user-provided text and encrypted payloads are not rewritten.
 
 `runtime-brand-contract.test.mjs` checks all importer C# sources, allowing only
 the bounded Markdown/chart diagnostic families and the exact OCR activity alias
-as standalone PXA strings. Its API check records concrete literals by file for
+as standalone PVAD strings. Its API check records concrete literals by file for
 authentication schemes, cookie readers, Data Protection purposes, request and
 response header aliases, MCP authorization, explicit legacy metadata, SMTP
 correlation and the OpenAPI explanation of legacy extensions. The test rejects
@@ -218,9 +224,9 @@ confirmation phrases remain original. Regenerating a report title is not
 permission to modify its underlying signed or pinned evidence.
 
 Pending release-fragment summaries are editable preparation material, not published
-history: twenty-nine current summaries still using PXA were updated to PVAD/PVADE.
+history: twenty-nine current summaries still using PVAD were updated to PVAD/PVADE.
 The `release-1.1.0-verification` fragment explicitly records the actual historical
-PXA 1.1.0 publication and keeps that name under an exact-text regression exception.
+PVAD 1.1.0 publication and keeps that name under an exact-text regression exception.
 Fragment IDs, feature
 IDs, impact and security-review fields remain unchanged. The published release
 manifest was not rewritten. The release dry run still requires an explicit major
@@ -246,7 +252,7 @@ not replace review of every remaining matching line or a final staged diff.
 ## Workflow and Historical Release Manifest Names
 
 `tools/deployment/pvad-deployment.mjs` reads either `pvad-releases.json` or the
-historical `pxa-releases.json` inside the explicitly selected release checkout.
+historical [compatibility entry `compat-7d5159733b8b`](reference/compatibility-identifiers.v1.json) inside the explicitly selected release checkout.
 Exactly one is required; ambiguity is rejected. This preserves old immutable tags
 without adding a legacy manifest copy to the current source tree or rewriting
 release entries. Artifact-family checks still reject incomplete or mixed archives.
@@ -266,7 +272,7 @@ does not approve remote changes or safely serialize old and new lock generations
 Current integration prose uses PVAD/PVADE, but the code-workspace and asset guides
 intentionally name old markers and extensions when explaining legacy readers.
 The Nutrient Java inventory retains vendor identifiers, dates and limitations;
-changing its PXA target wording to PVAD does not certify new provider coverage.
+changing its PVAD target wording to PVAD does not certify new provider coverage.
 The screenshot inventory now labels its first findings as an initial historical
 audit, distinct from the subsequent completed recaptures.
 

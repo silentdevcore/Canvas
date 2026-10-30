@@ -710,6 +710,7 @@ public sealed class LegalDocumentGovernanceTests
         Assert.All(versions, version =>
         {
             Assert.Equal("en", version.Locale);
+            Assert.Equal("1.1", version.Version);
             Assert.True(version.IsAuthoritative);
             Assert.Equal(LegalDocumentStatus.Draft, version.Status);
             Assert.Null(version.PublishedAt);
@@ -721,6 +722,77 @@ public sealed class LegalDocumentGovernanceTests
         Assert.Equal(0, second.ImportedDocuments);
         Assert.Equal(0, second.ImportedVersions);
         Assert.Equal(7, second.SkippedVersions);
+    }
+
+    [Fact]
+    public async Task Naming_candidates_preserve_published_versions_and_acceptance_evidence()
+    {
+        await using var context = CreateContext();
+        var owner = Guid.NewGuid();
+        var document = NewDocument(owner);
+        context.LegalDocuments.Add(document);
+        var published = NewVersion(document.Id, "1.0", LegalDocumentStatus.Published, DateTimeOffset.UtcNow.AddDays(-1));
+        published.Locale = "en";
+        published.IsAuthoritative = true;
+        context.LegalDocumentVersions.Add(published);
+        var acceptance = new LegalAcceptanceEvent
+        {
+            UserId = owner,
+            LegalDocumentVersionId = published.Id,
+            DocumentType = "TermsAndConditions",
+            Decision = "accepted",
+            ContentHash = published.ContentHash,
+            Locale = "en",
+            Source = "account-registration",
+        };
+        context.LegalAcceptanceEvents.Add(acceptance);
+        await context.SaveChangesAsync();
+        var originalSource = published.SourceMarkdown;
+        var originalHash = published.ContentHash;
+        var originalPublishedAt = published.PublishedAt;
+        var originalAcceptanceTime = acceptance.CreatedAt;
+
+        var controller = CreateAdminController(context, owner);
+        var result = await controller.ImportCandidates(CancellationToken.None);
+        var response = Assert.IsType<AdminLegalCandidateImportResponse>(Assert.IsType<OkObjectResult>(result.Result).Value);
+        Assert.Equal(7, response.ImportedVersions);
+        Assert.Equal(originalSource, published.SourceMarkdown);
+        Assert.Equal(originalHash, published.ContentHash);
+        Assert.Equal(originalPublishedAt, published.PublishedAt);
+        Assert.Equal(LegalDocumentStatus.Published, published.Status);
+        var revision = await context.LegalDocumentVersions.SingleAsync(value => value.LegalDocumentId == document.Id && value.Version == "1.1");
+        Assert.Equal(published.Id, revision.PreviousVersionId);
+        Assert.Equal(LegalDocumentStatus.Draft, revision.Status);
+        Assert.Null(revision.PublishedAt);
+        var replay = await controller.ImportCandidates(CancellationToken.None);
+        Assert.Equal(7, Assert.IsType<AdminLegalCandidateImportResponse>(Assert.IsType<OkObjectResult>(replay.Result).Value).SkippedVersions);
+        Assert.Equal(8, await context.LegalDocumentVersions.CountAsync());
+        var retained = await context.LegalAcceptanceEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(acceptance.Id, retained.Id);
+        Assert.Equal(published.Id, retained.LegalDocumentVersionId);
+        Assert.Equal(originalHash, retained.ContentHash);
+        Assert.Equal(originalAcceptanceTime, retained.CreatedAt);
+        Assert.Equal("accepted", retained.Decision);
+    }
+
+    [Fact]
+    public async Task Naming_candidate_import_rejects_conflicting_revision_without_overwriting_it()
+    {
+        await using var context = CreateContext();
+        var owner = Guid.NewGuid();
+        var document = NewDocument(owner);
+        context.LegalDocuments.Add(document);
+        var existing = NewVersion(document.Id, "1.1", LegalDocumentStatus.Published, DateTimeOffset.UtcNow.AddDays(-1));
+        existing.Locale = "en";
+        context.LegalDocumentVersions.Add(existing);
+        await context.SaveChangesAsync();
+        var hash = existing.ContentHash;
+        var source = existing.SourceMarkdown;
+        var result = await CreateAdminController(context, owner).ImportCandidates(CancellationToken.None);
+        Assert.Equal(StatusCodes.Status409Conflict, Assert.IsType<ObjectResult>(result.Result).StatusCode);
+        Assert.Equal(hash, existing.ContentHash);
+        Assert.Equal(source, existing.SourceMarkdown);
+        Assert.Equal(1, await context.LegalDocumentVersions.CountAsync());
     }
 
     private static AdminLegalDocumentsController CreateAdminController(PvadDbContext context, Guid userId) =>

@@ -118,7 +118,7 @@ must continue to block Production publication.
 - [x] Require renewed Terms acceptance only for versions explicitly marked as requiring reacceptance.
 - [x] Treat Privacy updates as acknowledgement unless a separate consent-based purpose applies.
 - [x] Gate authenticated Account and Designer return flows until current legal obligations are completed.
-- [x] Reject stale Account acknowledgements with stable `PXAAPI017` diagnostics.
+- [x] Reject stale Account acknowledgements with stable [compatibility entry `compat-ca65dbaf43d7`](../docs/reference/compatibility-identifiers.v1.json) diagnostics.
 - [x] Make exact-version evidence idempotent under concurrent Account submissions with row serialization and database uniqueness.
 - [ ] Define pseudonymized evidence retention and account-deletion behavior with legal counsel.
 - [x] Avoid storing full IP addresses in Legal acceptance evidence; enforce the minimized evidence shape with model and export tests unless a documented necessity and retention rule is approved later.
@@ -170,7 +170,7 @@ must continue to block Production publication.
 - [x] Keep published legal pages readable from a validated static snapshot during Legal API outages.
 - [x] Mark snapshot content and age visibly without allowing it to authorize registration or checkout.
 - [x] Add a legal-document backup, restore, and disaster-recovery runbook with checksum validation, empty-target restore, domain verification, snapshot regeneration, and an isolated recovery drill.
-- [x] Make the isolated recovery drill wait for the `pxa` database, fail with bounded diagnostics, and test delayed PostgreSQL initialization in CI.
+- [x] Make the isolated recovery drill wait for the [compatibility entry `compat-e87018c0733d`](../docs/reference/compatibility-identifiers.v1.json) database, fail with bounded diagnostics, and test delayed PostgreSQL initialization in CI.
 - [x] Protect separately deployed restricted operator legal guidance behind the operator gateway, System Administrator role, explicit production allowlist, no-store delivery, fixed runbook registration, and audited reads.
 - [x] Require an explicit, auditable Legal Hold release reason before an approved cleanup can resume for the affected scope.
 

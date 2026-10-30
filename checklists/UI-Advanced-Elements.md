@@ -1,5 +1,8 @@
 # UI Advanced Elements Checklist
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## Scope
 Add document editing elements for annotations, markings, page controls, and reusable PDF authoring helpers.
 
@@ -116,5 +119,5 @@ Add document editing elements for annotations, markings, page controls, and reus
 - [x] Application document converter recognizes advanced element types.
 - [x] Frontend C# generator aligned with domain enum names for `Draw` and `PageBoundary`.
 - [~] PDF renderer fallback output added for advanced elements while full-fidelity rendering remains open.
-- [x] `PXA.Domain` build passed.
+- [x] [compatibility entry `compat-154f238a135a`](../docs/reference/compatibility-identifiers.v1.json) build passed.
 - [~] `PVAD.Application` build could not be conclusively verified because the local `dotnet build` process stalled and returned no compiler diagnostics.

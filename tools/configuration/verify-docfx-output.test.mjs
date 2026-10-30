@@ -21,6 +21,7 @@ test('DocFX links include local assets, directory indexes, encoded paths and anc
 test('DocFX explicitly packages public schemas and synthetic downloads without operator assets', () => {
   const config = JSON.parse(readFileSync(new URL('../../docs/docfx.json', import.meta.url)));
   assert.deepEqual(config.build.resource, [
+    { files: ['reference/compatibility-identifiers.v1.json'] },
     { files: ['schema/design-export.schema.json', 'schema/pvad-project-manifest.schema.json', 'schema/pvad-workbook.schema.json'] },
     { files: ['downloads/pdf-trust/**'], src: '../websites/PVAD.Documentation/public' },
   ]);

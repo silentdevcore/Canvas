@@ -12,7 +12,26 @@ The application has one general naming-history notice on Company
 `/about.html#rename-history`. Repeated naming-history banners have been removed
 from repository checklists and retained planning notes.
 
-## Review Scope (2026-10-30)
+## Current Markdown Policy
+
+Every tracked Markdown file must use current names, including archives, completed
+tasks, snippets and embedded identifiers. There are no historical exceptions to
+the full-text naming guard. Exact previous-generation wire values belong in the
+[public contract register](reference/compatibility-identifiers.v1.json) or the
+restricted operator register, never in Markdown. The
+[cleanup checklist](../checklists/PVAD.Markdown-Naming-Cleanup.md) and its adjacent
+JSON inventory record the complete baseline at commit `30496722`.
+
+```bash
+node tools/configuration/markdown-path-audit.mjs --all --check
+```
+
+This tracked-only check excludes private IDE files, untracked notes, symlinks and
+ignored outputs. Original wording and commands remain accessible through Git.
+Recorded outcomes are not new runs: a normalized command is a current rerun
+reference, not proof of the command that produced an earlier result.
+
+## Editorial Scope (2026-10-30)
 
 At the owner's request, editorial product names are normalized in ordinary
 checklist prose, completed-task descriptions, assessments, and code examples.
@@ -27,11 +46,11 @@ or changed by this editorial update.
 | Future SDK packages, client classes and publication instructions | Use proposed PVAD names; verify publisher ownership and availability before publication. |
 | Current native-format introduction | Use `.pvadp` / `.pvads` and link to the current contract. |
 | Ordinary checked-task descriptions and sample output | Normalize names without changing completion status or claiming a new test run. |
-| Recorded test commands/counts and execution results | Retain original bytes as evidence of the actual earlier run. |
+| Recorded test commands/counts and execution results | Keep original outcomes and counts; distinguish current rerun references from original commands in Git. |
 | Assessments | Normalize editorial names; retain the assessment date, scores, conclusions and limitations. |
-| Original branch reviews, rename audit and cutover evidence | Retain original wording; it does not describe a newly reviewed product state. |
-| Existing API aliases, diagnostics, cryptographic purposes, schema IDs and stored keys | Keep exact machine values and document their compatibility purpose. |
-| Published Legal versions, accepted hashes, signed corpora and release history | Do not rewrite evidence or imply renewed approval. |
+| Original branch reviews, rename audit and cutover evidence | Normalize current Markdown; use Git for original wording and do not reapprove recorded results. |
+| Existing API aliases, diagnostics, cryptographic purposes, schema IDs and stored keys | Keep exact machine values in versioned JSON registers; use neutral Markdown references. |
+| Published Legal versions, accepted hashes, signed corpora and release history | Do not rewrite evidence or imply renewed approval; new Legal source candidates use version 1.1. |
 
 Current usage belongs in the main documentation, not in an old completed task.
 In particular, [native project guidance](native-designer-project-formats.md),
@@ -61,10 +80,10 @@ The future Admin image is proposed as `pvad-admin`, not a claimed registry path.
 Account and Admin Cloud host proposals use `account.pvade.com` and
 `admin.pvade.com`; these statements do not assert DNS, TLS, or deployment readiness.
 
-## Why A Repository Search Still Finds The Previous Name
+## Remaining Non-Markdown Compatibility Evidence
 
 - [The earlier rename record](../checklists/PVAD.Legacy-Rename-Archive.md) documents a previous
-  generation. Its current filename is neutral; its original body remains a historical record, not the current rename plan.
+  generation. Its normalized body is historical context, not the current rename plan; original bytes remain in Git.
 - [The dependency PR review](../checklists/PVAD.Dependency-PR-Review-2026-10-26.md)
   contains dated branch names, source paths, diagnostics, and completed CI evidence.
 - Competitive-readiness, pricing, and valuation assessments retain the product
@@ -77,9 +96,8 @@ Account and Admin Cloud host proposals use `account.pvade.com` and
   [review ledger](pvad-rename-reviewed-exceptions.json) explain retained protocol,
   storage, fixture, audit, infrastructure, and historical references.
 
-These are bounded exceptions, not permission to use the previous brand for new
-features or open plans. New documentation must use the current names unless it
-explicitly documents an existing compatibility contract or original evidence.
+These are non-Markdown compatibility boundaries, not exceptions to the strict
+Markdown guard. Use register references when documenting exact retained values.
 
 ## Validation Boundary
 
@@ -114,7 +132,7 @@ no longer exist. They are evidence of the original implementation, not current
 navigation targets. Current source links are updated when an actual canonical
 target exists; this does not claim that every archived link is usable.
 
-### Current Editorial Validation
+### Earlier Editorial Validation
 
 Against commit `73abda72`, 155 repeated banners were removed. The 157 changed
 Markdown files preserve all 9,910 checkbox states, 337 explicit recorded-result

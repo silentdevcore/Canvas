@@ -101,7 +101,9 @@ test('AES-256 local fallback image matches its current producer and documentatio
   assert.ok(runner.includes(`readPvadEnvironment('PVAD_AES256_QPDF_IMAGE') ?? '${image}'`));
   assert.ok(documentation.includes(`\`${image}\``));
   assert.doesNotMatch(runner, /pxa-pdf-trust-external-tools:1/);
-  assert.ok(documentation.includes('PXA_AES256_QPDF_IMAGE'));
+  assert.ok(documentation.includes('operator-only compatibility entry `compat-5622f2143f23`'));
+  const registry = JSON.parse(await read('operator-docs/compatibility-identifiers.v1.json'));
+  assert.ok(registry.entries.some(entry => entry.value === 'PXA_AES256_QPDF_IMAGE'));
 });
 
 test('JavaScript tools do not bypass the configuration alias resolver', async () => {

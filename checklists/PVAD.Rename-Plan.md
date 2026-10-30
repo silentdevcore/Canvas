@@ -1,5 +1,9 @@
 # PVAD Rename Plan
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Status And Naming Authority
 
 The stricter visible-identity follow-up is recorded in
@@ -244,9 +248,9 @@ outstanding cosmetic rename.
 
 | Remaining name | Why it remains | Future action |
 | --- | --- | --- |
-| `tools/deployment/pxa-deployment.mjs` | Compatibility command delegating to the canonical implementation | Remove only after the agreed compatibility window |
-| `docs/schema/pxa-*.schema.json`, old native fixtures | Readers and schema contracts for older documents | Keep alongside canonical schemas and fixtures |
-| Archived PAdES `pxa-*` PDF/XML and corpus IDs | Hash-bound validation evidence and provenance | Do not rewrite or rename as cosmetic cleanup |
+| predecessor implementation | Compatibility command delegating to the canonical implementation | Remove only after the agreed compatibility window |
+| predecessor implementation, old native fixtures | Readers and schema contracts for older documents | Keep alongside canonical schemas and fixtures |
+| Archived PAdES predecessor implementation PDF/XML and corpus IDs | Hash-bound validation evidence and provenance | Do not rewrite or rename as cosmetic cleanup |
 | Stable diagnostic IDs and old input aliases | Existing documents, clients and operational handlers depend on them | Keep stable; canonical aliases are separate |
 | Legacy service DNS aliases, database/volume/network names and dashboard UIDs | Persisted installations, history and data bindings; service keys are canonical | Coordinated mapping/migration and later validation, never a blind replacement |
 | Rename-history checklist names and neutral Canvas terms | Historical intent or ordinary drawing terminology | Keep; they are not active product branding |
@@ -322,37 +326,37 @@ Optional Word/Viewer/Converter/Automation brands remain unconfirmed.
 
 | Old | Target | Treatment |
 |---|---|---|
-| PXA / Power Dox Automation in visible platform copy | PVADE | Websites, Designer, titles, logos and marketing; legal entity names require verification |
-| PXA as technical identity | PVAD | Namespaces, assemblies, packages, paths, CLI, configuration and protocols |
-| PXA PDF product | PVADP | Product display name; PDF remains the technical format name |
-| PXA Spreadsheet product | PVADS | Product display name; Spreadsheet remains the domain |
-| PXA.* | PVAD.* | All projects, namespaces, assemblies and test projects |
-| Pxa* / pxa* / PXA_* | Pvad* / pvad* / PVAD_* | Symbols and owned config keys; classify stored/wire values first |
-| PXA.sln / PXA.slnx | PVAD.sln / PVAD.slnx | Preserve project IDs and intended membership |
-| pxa-designer | pvad-designer | Directory, package, scripts and all references |
-| websites/PXA.<Site> | websites/PVAD.<Site> | Company, Documentation, Demo, Admin, Account |
-| tools/PXA.Mcp | tools/PVAD.Mcp | npm package pvad-mcp; executables pvad-mcp and pvad-mcp-server |
-| PXA.Generator / PXA.Pdf | PVAD.Generator / PVAD.Pdf | Keep architecture; do not collapse into PVADP namespaces |
-| PXA.Importer / PXA.FileImporter* | PVAD.Importer / PVAD.FileImporter* | Update parser/generator bridges and workers |
-| PXA.Migration.<Domain>.<Kind>.<Provider> | PVAD.Migration.<Domain>.<Kind>.<Provider> | Preserve provider names and domain separation |
-| tools/versioning/pxa-* | tools/versioning/pvad-* | Scripts, tests, workflows and skill references |
-| product-metadata/pxa-releases.json | product-metadata/pvad-releases.json | Preserve version history and IDs; update schema/readers coherently |
-| pxa-build-info.json | pvad-build-info.json | All writers, packaging checks and UI readers |
-| .pxap / .pxas | .pvadp / .pvads | Confirmed canonical extensions; legacy import retained |
-| pxap / pxas format IDs | pvadp / pvads | Versioned reader/writer migration |
-| PXA-PXAP-1 / PXA-PXAS-1 | PVAD-PVADP-1 / PVAD-PVADS-1 | Explicit new envelope identities |
-| application/vnd.powerdox.pxap+zip | application/vnd.pvad.pvadp+zip | Internal media type; do not claim IANA registration |
-| application/vnd.powerdox.pxas+zip | application/vnd.pvad.pvads+zip | Same policy |
-| minimumPxaVersion | minimumPvadVersion | New output plus old-input adapter; reject contradictory fields |
-| /api/pxa/v1 | /api/pvad/v1 | New canonical routes with bounded old-route adapters |
-| PXAAPI / PXACODE / PXAPROJECT / PXA_* codes | PVADAPI / PVADCODE / PVADPROJECT / PVAD_* | Stable translation map and compatibility tests |
-| __Host-PXA.* / PXA.*.Development | __Host-PVAD.* / PVAD.*.Development | Dedicated auth transition; preserve host isolation |
+| predecessor / PVADE in visible platform copy | PVADE | Websites, Designer, titles, logos and marketing; legal entity names require verification |
+| predecessor as technical identity | PVAD | Namespaces, assemblies, packages, paths, CLI, configuration and protocols |
+| predecessor PDF product | PVADP | Product display name; PDF remains the technical format name |
+| predecessor Spreadsheet product | PVADS | Product display name; Spreadsheet remains the domain |
+| predecessor.* | PVAD.* | All projects, namespaces, assemblies and test projects |
+| predecessor* / predecessor* / predecessor implementation* | Pvad* / pvad* / PVAD_* | Symbols and owned config keys; classify stored/wire values first |
+| PVAD.sln / PVAD.slnx | PVAD.sln / PVAD.slnx | Preserve project IDs and intended membership |
+| pvad-designer | pvad-designer | Directory, package, scripts and all references |
+| legacy websites component.<Site> | websites/PVAD.<Site> | Company, Documentation, Demo, Admin, Account |
+| tools/PVAD.Mcp | tools/PVAD.Mcp | npm package pvad-mcp; executables pvad-mcp and pvad-mcp-server |
+| legacy Generator component / legacy Pdf component | PVAD.Generator / PVAD.Pdf | Keep architecture; do not collapse into PVADP namespaces |
+| legacy Importer component / legacy FileImporter component* | PVAD.Importer / PVAD.FileImporter* | Update parser/generator bridges and workers |
+| legacy Migration component.<Domain>.<Kind>.<Provider> | PVAD.Migration.<Domain>.<Kind>.<Provider> | Preserve provider names and domain separation |
+| predecessor implementation* | tools/versioning/pvad-* | Scripts, tests, workflows and skill references |
+| predecessor implementation | product-metadata/pvad-releases.json | Preserve version history and IDs; update schema/readers coherently |
+| predecessor implementation | pvad-build-info.json | All writers, packaging checks and UI readers |
+| legacy p component / legacy s component | .pvadp / .pvads | Confirmed canonical extensions; legacy import retained |
+| legacy p component / legacy s component format IDs | pvadp / pvads | Versioned reader/writer migration |
+| predecessor implementation / predecessor implementation | PVAD-PVADP-1 / PVAD-PVADS-1 | Explicit new envelope identities |
+| predecessor implementation | application/vnd.pvad.pvadp+zip | Internal media type; do not claim IANA registration |
+| predecessor implementation | application/vnd.pvad.pvads+zip | Same policy |
+| legacy minimumVersion component | minimumPvadVersion | New output plus old-input adapter; reject contradictory fields |
+| predecessor implementation | /api/pvad/v1 | New canonical routes with bounded old-route adapters |
+| legacy API component / legacy CODE component / legacy PROJECT component / predecessor implementation* codes | PVADAPI / PVADCODE / PVADPROJECT / PVAD_* | Stable translation map and compatibility tests |
+| legacy Host component.* / predecessor.*.Development | __Host-PVAD.* / PVAD.*.Development | Dedicated auth transition; preserve host isolation |
 | PowerDoxAutomation protection context | PVAD | Migrate protected payloads before retiring legacy reader |
-| pxa-* browser keys/events/cache | pvad-* | Idempotent migration; honor user/tenant boundaries |
-| pxa-* Docker services/images/networks | pvad-* | Internal config rename; preserve physical persisted storage |
-| PXA-named checklist/docs files | PVAD-named counterparts | Update forward/reverse links and historical attribution |
+| predecessor implementation* browser keys/events/cache | pvad-* | Idempotent migration; honor user/tenant boundaries |
+| predecessor implementation* Docker services/images/networks | pvad-* | Internal config rename; preserve physical persisted storage |
+| legacy named component checklist/docs files | PVAD-named counterparts | Update forward/reverse links and historical attribution |
 | powerdoxautomation.com URLs | Confirmed market-brand domain | PVADE branding does not imply domain ownership; deployment configuration after verification |
-| pxa-release-author skill | pvad-release-author | Rename repo instructions, tests and references during implementation |
+| predecessor implementation skill | pvad-release-author | Rename repo instructions, tests and references during implementation |
 
 These are the rename targets; the owner has confirmed the native extensions.
 A complete rename does not mean corrupting immutable historical evidence or
@@ -398,8 +402,8 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
 
 ## P1 - Projects And Internal Code
 
-- [x] Rename all 115 project directories/files and all PXA assembly/namespace references to PVAD.
-- [x] Rename first-party Pxa-equivalent symbols using semantic rename where possible.
+- [x] Rename all 115 project directories/files and all predecessor assembly/namespace references to PVAD.
+- [x] Rename first-party legacy equivalent component symbols using semantic rename where possible.
 - [x] Preserve third-party namespaces, vendor names and neutral Pdf/Spreadsheet identifiers.
   Baseline package IDs/vendor imports and neutral PdfDocument/SpreadsheetDto names
   pass preservation checks in rename-boundaries.test.mjs. Customer/vendor fixtures
@@ -407,13 +411,13 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
 - [x] Update both solutions, ProjectReference, build/copy targets and publish output paths.
 - [x] Preserve existing GUIDs and EF migration IDs; verify SLN versus SLNX membership explicitly.
 - [x] Rename WebApi, Core, Application, Domain, Infrastructure, Generation, Importing, Execution, Observability, migrations, tools and tests.
-- [x] Update MSBuild PxaVersion/PxaBuildMetadata, assembly metadata, analyzer rules and InternalsVisibleTo.
+- [x] Update MSBuild predecessor implementation, assembly metadata, analyzer rules and InternalsVisibleTo.
 - [x] Update source generators, Roslyn analyzers, sandbox allowlists, worker protocols and worker startup paths.
   Current conversion/worker scaffolding uses PVAD assemblies and imports; code-worker
   and OCR startup paths point to renamed binaries. Neutral protocol fields, language
   IDs, limits and diagnostic contracts are retained. Real-worker execution, all twelve
   directed representation conversions and sandbox regressions pass. Compiler warning
-  PXA0001 remains the reviewed compatibility exception; no independent analyzer/source
+  predecessor implementation remains the reviewed compatibility exception; no independent analyzer/source
   generator project was found. See [code generation compatibility](../docs/pvad-code-generation-compatibility.md).
 - [x] Update code conversion, snippets, builder examples and provider-generated C#; test actual execution.
   Workspace headers, builder/model/Base64 execution and Code Workspace PDF filenames
@@ -471,7 +475,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   handoff configuration, allowlisted return paths, cross-site links and desktop/mobile
   rendering. This complements the earlier authenticated identity E2E; it does not
   authorize production DNS or external identity-provider changes.
-  Runtime reader now validates `__PVAD_CONFIG__` and its `__PXA_CONFIG__` alias,
+  Runtime reader now validates `__PVAD_CONFIG__` and its legacy CONFIG component alias,
   rejects conflicts without value disclosure and shows a safe configuration state.
   URL validation now rejects embedded credentials in return destinations and
   browser-ambiguous raw backslashes/control characters. All six development API
@@ -487,7 +491,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
 ## P1 - API And Contract Migration
 
 - [x] Publish /api/pvad/v1 equivalents with stable operationIds and matching auth/rate/audit policies.
-- [x] Retain /api/pxa/v1 for one product major as deprecated delegates; document removal version before release.
+- [x] Retain predecessor implementation for one product major as deprecated delegates; document removal version before release.
 - [x] Keep neutral routes such as /api/export where still supported; avoid duplicate controllers and split behavior.
 - [x] Update OpenAPI, schema IDs, SDK paths and schema-document resolution.
   Canonical snapshots include binary native export contracts. Current writer and
@@ -522,7 +526,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   Symbolic authentication and usage results have API aliases; symbolic Problem
   Details titles additionally expose canonicalTitle without replacing their code.
   The complete production inventory guard classifies numeric and symbolic IDs,
-  six configuration/retention names and the retained compiler contract PXA0001.
+  six configuration/retention names and the retained compiler contract predecessor implementation.
   Compiler pragmas/NoWarn and external validator rules remain unchanged.
   PostgreSQL checks confirm unchanged license decisions and real 403 Designer
   denials with both code fields. An MVC extension-key collision found during this
@@ -608,11 +612,11 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   real antiforgery validation, PKCE/state/tenant handoffs and conflicting claim
   rejection. Live hosts, PostgreSQL sessions and rollout remain separate gates.
 - [x] Keep neutral schemas/tables; rename branded identifiers only through required, verified migrations.
-  Real PXA/PVAD processes use the same migrated PostgreSQL schema. Physical column/
+  Real legacy PVAD component processes use the same migrated PostgreSQL schema. Physical column/
   table metadata and migration IDs are unchanged; neither generation reports pending
   migrations. No brand-only SQL rename is introduced.
 - [x] Preserve migration history, user/organization/template IDs, roles, entitlements and subscription links.
-  A pinned PXA binary creates synthetic records; fresh PVAD and PXA processes both
+  A pinned predecessor binary creates synthetic records; fresh PVAD and predecessor processes both
   verify their IDs, role/membership/subscription/entitlement links and retained
   template revision/checksum after job recovery. This is representative test-data
   evidence, not production customer backup/restore certification.
@@ -640,7 +644,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
   leases, retry exhaustion, worker shutdown/recovery, lost-claim result cleanup,
   tenant-scoped Pending cancellation and an enforced claim/cancel race. Legacy
   payload names and filesystem object locations remain usable after reopening.
-  The representative paired-binary fixture now kills a real PXA process after its
+  The representative paired-binary fixture now kills a real predecessor process after its
   claim and resumes with PVAD, cancels an old Pending job, and reopens old/new
   results with both readers. It uses a controlled importer, not every provider or
   OCR/code worker. Stop old workers before starting PVAD; live deployment and
@@ -655,7 +659,7 @@ discarding compatibility. Such remaining old strings must be explicitly listed.
 ## P1 - Native Project Formats
 
 - [x] Add PVADP/PVADS writer identities, media types, extensions and schemas together.
-- [x] Read full legacy PXAP/PXAS envelopes, including magic, format ID, MIME and minimumPxaVersion.
+- [x] Read full legacy predecessor implementation envelopes, including magic, format ID, MIME and legacy minimumVersion component.
 - [x] Add explicit conversion preview and original-preserving save-as to the new format. The existing compatibility review requires confirmation for legacy envelopes and explains canonical Save project output.
 - [x] Preserve document IDs, assets, workspace drafts, extension data, source maps and version semantics.
 - [x] Recompute integrity hashes only for newly serialized output; never mutate old signed evidence.
@@ -809,7 +813,7 @@ currently blocked full API/PostgreSQL validation explicitly.
   Final opt-in API selection plus three protected-document contracts: 79/79
   passed, zero skips. This includes real pg_dump/restore, OAuth/identity,
   retained Legal/license evidence, tenant isolation and the explicitly enabled
-  PXA/PVAD paired-binary job/schema/storage cutover. Persistence separately
+  legacy PVAD component paired-binary job/schema/storage cutover. Persistence separately
   passes 10/10 with real PostgreSQL. Production rollback, real-key/customer
   datasets and mixed-version rolling operation remain external rollout gates.
   An initial template-update HTTP 500 was not reproduced in the focused rerun,
@@ -826,7 +830,7 @@ currently blocked full API/PostgreSQL validation explicitly.
   were built and inspected with VERSION 1.1.0, full commit identity and build time.
   Their local dirty-worktree suffix is explicit; stable-release validation rejects
   dirty/unknown/stale metadata. No image was published and VERSION is unchanged.
-- [x] Audit all remaining PXA/PowerDox/Canvas names by context with a reviewed exception list.
+- [x] Audit all remaining predecessor implementation names by context with a reviewed exception list.
   Final 2026-10-22 decision: exact file hashes, explicit rationale and existing
   boundary guides are recorded in docs/pvad-rename-reviewed-exceptions.json;
   CI rejects new, changed or unexplained residuals. Active descriptions were
@@ -868,7 +872,7 @@ currently blocked full API/PostgreSQL validation explicitly.
 - [x] Review binaries, generated output and public screenshots separately from textual source search.
   Separate byte, generated-output and OCR audits completed: 96 repository binary
   artifacts (94 unchanged baseline blobs; two new native fixtures), 4,211 stale
-  untracked generated PXA files removed after an approved hash/path-checked plan,
+  untracked generated predecessor files removed after an approved hash/path-checked plan,
   and 22 documentation screenshots inspected by OCR. The initial audit found old
   branding in ten Admin captures; subsequent Admin and public recaptures are
   recorded in the completed screenshot-regeneration task. Audit completion is not
@@ -911,7 +915,7 @@ currently blocked full API/PostgreSQL validation explicitly.
 
 ### Implementation Progress - 2026-10-17
 
-- Active branch: feature/rename-pxa-to-pvad.
+- Active branch: predecessor implementation.
 - First implementation stage renames all 115 project files, 110 branded project
   directories and both solution files. The five other project files are tools
   inside neutral directory names.
@@ -928,7 +932,7 @@ currently blocked full API/PostgreSQL validation explicitly.
 - Shared brand metadata distinguishes PVAD, PVADE, PVADP and PVADS. Dependency
   versions remain unchanged, and VERSION remains 1.1.0.
 - Canonical API controllers and path-based policies use /api/pvad/v1. A legacy
-  adapter runs before routing, retaining /api/pxa/v1 throughout 2.x with planned
+  adapter runs before routing, retaining predecessor implementation throughout 2.x with planned
   removal in 3.0.0. Neutral routes remain unchanged. The actual generated OpenAPI
   document and both-prefix authentication/response behavior are covered by tests.
 - The repository release-author skill and its test catalog now use
@@ -954,7 +958,7 @@ currently blocked full API/PostgreSQL validation explicitly.
   runbook IDs are explicit transition exceptions, not silently rewritten data.
   OCR now writes PVAD.ImageOcr / pvad.ocr.worker.execute and pvad-image-ocr
   temporary directories; API subscriptions accept both source generations.
-  Structured logging defaults to pvad-json with a registered pxa-json alias.
+  Structured logging defaults to pvad-json with a registered legacy json component alias.
   Worker W3C propagation/cleanup and both formatter privacy paths passed tests.
   See [observability identity decisions](../docs/pvad-observability-identity.md).
 - CI/fuzz workflows now publish PVAD environment keys. JavaScript tools, .NET
@@ -1004,7 +1008,7 @@ separate operations; this planning step performs none of them.
   and current screenshots have their separately completed review above. This
   does not authorize domain, registry, keyring or production infrastructure cutover.
 - [x] Existing data, authentication boundaries, legal evidence and editable projects survive cutover.
-  Repository acceptance uses the retained synthetic PXA/PVAD process dataset,
+  Repository acceptance uses the retained synthetic legacy PVAD component process dataset,
   tested dump/restore, native-format compatibility, unchanged signed/legal input
   bytes, keyring restart and host-isolated session tests. The follow-up real Admin
   login/capture and 46 local API contracts pass. This is representative cutover
@@ -1062,8 +1066,8 @@ by marking incomplete work done.
 - Project/solution/package names and fresh Compose defaults are canonical in the
   reviewed scan. Job-cutover references, MCP legacy executables and explicit
   legacy Compose overlays are intentional compatibility inputs, not new defaults.
-- Active workflows retain GHCR `pxa-*` image names and `pxa-staging`/
-  `pxa-production`; Grafana provisioning retains provider/folder `PXA`. Offline
+- Active workflows retain GHCR predecessor implementation image names and legacy staging component/
+  legacy production component; Grafana provisioning retains provider/folder the predecessor identity. Offline
   candidate generators exist, but activation has not occurred.
 - The current migration writer package is implemented and selectively tested in
   the working tree, not yet committed. Its recorded 90 .NET, 41 Designer,
@@ -1263,7 +1267,7 @@ changes and the required explicit retained-client transition; VERSION stays 1.1.
 
 - [x] Run the complete Solution build and unfiltered tests with an isolated,
   migrated PostgreSQL base: 3,506 passed, zero failed, one explicit binary skip.
-- [x] Execute that paired PXA/PVAD binary case separately: 1/1 passed, with the
+- [x] Execute that paired legacy PVAD component binary case separately: 1/1 passed, with the
   immutable baseline and disposable data, not installed application stores.
 - [x] Pass Designer and all five Website tests/builds, MCP validation and the
   seven-case local frontend host matrix. Preserve separate mocked/real evidence.
@@ -1381,7 +1385,7 @@ recover and four templates plus one immutable version remain unchanged.
 WebApi builds with zero errors and 57 existing warnings; 53 Account tests and
 51 selected configuration/deployment contracts pass. Test resources are removed.
 
-Read-only GitHub inspection found a historical `v1.1.0` with seven PXA archives;
+Read-only GitHub inspection found a historical `v1.1.0` with seven predecessor archives;
 it was not changed or treated as the current PVAD build. The existing workflow
 has no target deployment adapter. No remote settings, DNS, registry or release
 were changed. The explicitly external staging gate stays open, so completion

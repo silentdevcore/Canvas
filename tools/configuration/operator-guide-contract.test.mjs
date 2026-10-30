@@ -40,7 +40,10 @@ test('restricted recovery examples agree with the new filename producer and pres
   assert.ok(recovery.includes('/protected/pvad-backups/pvad-UTC.dump'));
   assert.ok(recovery.includes('pvad-<timestamp>-<pid>.dump'));
   assert.ok(recovery.includes('original basename of either generation'));
-  assert.ok(recovery.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'"));
+  assert.ok(recovery.includes('compatibility-identifiers.v1.json'));
+  const contracts = JSON.parse(read('operator-docs/compatibility-identifiers.v1.json'));
+  assert.ok(contracts.entries.some(entry => entry.value.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'")));
+  assert.ok(read('tools/legal/restore-postgres.sh').includes('RESTORE PXA DATABASE'));
   assert.ok(recovery.includes('not permission to move installed secrets'));
   assert.ok(read('tools/legal/backup-postgres.sh').includes('/pvad-$timestamp-$$.dump'));
 });

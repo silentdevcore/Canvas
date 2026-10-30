@@ -19,7 +19,7 @@ New isolated OCR runs emit `PVAD.ImageOcr` activities named
 Trace parent/state propagation, status handling and cleanup behavior are unchanged.
 Existing work directories are not renamed or adopted by a new request.
 
-The WebApi trace subscriber includes both `PVAD.ImageOcr` and `PXA.ImageOcr`.
+The WebApi trace subscriber includes both `PVAD.ImageOcr` and [compatibility entry `compat-a9b11311dc28`](../operator-docs/compatibility-identifiers.v1.json).
 This is subscriber compatibility, not duplicate emission: the current engine
 emits one canonical span. Custom ActivityListeners or trace queries filtering only
 the old name must accept both names before upgrading. Stored spans are not
@@ -28,7 +28,7 @@ rewritten, and the old ActivitySource constant is available explicitly as
 
 ## Console Formatting
 
-The default formatter is `pvad-json`. A registered `pxa-json` formatter alias
+The default formatter is `pvad-json`. A registered [compatibility entry `compat-a3cc375a060e`](../operator-docs/compatibility-identifiers.v1.json) formatter alias
 uses the same serializer and privacy filtering. Resource fields, trace identifiers
 and user-supplied service names are not rewritten simply because the formatter
 name changes. The formatter alias does not create a second log emission.
@@ -37,16 +37,16 @@ name changes. The formatter alias does not create a second log emission.
 
 | Value family | Decision | Reason |
 | --- | --- | --- |
-| `pxa-database`, `pxa-mail` health registrations | Retained | Health consumers, readiness and dependency labels share these names |
-| Persistence datasource `pxa-database` | Retained | Physical dependency identity is distinct from service branding |
-| Grafana `pxa-*` UIDs and datasource references | Retained | Preserve links and persisted dashboard identity |
+| [compatibility entry `compat-f57a6fdb56ec`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-80d11621d974`](../operator-docs/compatibility-identifiers.v1.json) health registrations | Retained | Health consumers, readiness and dependency labels share these names |
+| Persistence datasource [compatibility entry `compat-f57a6fdb56ec`](../operator-docs/compatibility-identifiers.v1.json) | Retained | Physical dependency identity is distinct from service branding |
+| Grafana [compatibility entry `compat-14a9f154c0c0`](../operator-docs/compatibility-identifiers.v1.json) UIDs and datasource references | Retained | Preserve links and persisted dashboard identity |
 | Old metric/log names in queries | Read both generations | Preserve historical measurements alongside new PVAD data |
-| Collector environment inputs | PVAD through the Compose launcher | Legacy PXA launcher inputs resolve identically; unmanaged containers need paired mapping |
+| Collector environment inputs | PVAD through the Compose launcher | Legacy PVAD launcher inputs resolve identically; unmanaged containers need paired mapping |
 | Legacy service DNS, database and physical telemetry storage | Explicit legacy overlay only | Fresh defaults use PVAD; verified external bindings select old data |
 
 The root Compose/Collector sampling and memory inputs now use PVAD together.
 Managed Loki, Tempo and Operator proxy inputs also use PVAD. The Operator
-entrypoint accepts legacy PXA inputs and rejects conflicting values before Nginx
+entrypoint accepts legacy PVAD inputs and rejects conflicting values before Nginx
 starts. Its earlier Nginx configuration passed canonical-input and legacy-input
 container checks; the conflict case failed as intended. Retained service aliases,
 dashboard UIDs and upstream operator identity headers remain compatibility
@@ -64,7 +64,7 @@ See the [rename tracker](../checklists/PVAD.Rename-Plan.md) and
 
 Performance, retention verification/runtime, Alertmanager mail, failure/recovery
 and OCR failure/recovery scripts now resolve PVAD inputs through the shared shell
-adapter. Existing PXA inputs remain accepted, with conflicts rejected before any
+adapter. Existing PVAD inputs remain accepted, with conflicts rejected before any
 operational command. Retention fixture Compose/Loki/Tempo inputs and the production
 Alertmanager overlay were changed together. Actual Compose resolution is equal for
 canonical and legacy input sets; six script syntax/conflict contracts pass.
@@ -74,7 +74,7 @@ canonical Compose selection. Mounted secret names and historical alert/runbook
 IDs remain the previously documented compatibility boundaries.
 
 The webhook Compose overlay also uses canonical `PVAD_ALERT_WEBHOOK_*` inputs.
-The shared launcher accepts their old `PXA_` counterparts and rejects conflicting
+The shared launcher accepts their old [compatibility entry `compat-40924172de8e`](../operator-docs/compatibility-identifiers.v1.json) counterparts and rejects conflicting
 values before Compose runs. Actual configuration comparison verifies destination,
 limits and secret-file mapping for both generations. The mounted secret name,
 network bindings remain unchanged; the service key now uses PVAD with a legacy

@@ -394,7 +394,7 @@ public sealed class AdminLegalDocumentsController(
                 SourceMarkdown = source,
                 RenderedHtml = PvadLegalDocumentService.RenderSafeHtml(source),
                 ContentHash = PvadLegalDocumentService.ComputeHash(source),
-                ChangeSummary = "Initial English Swiss-law candidate for independent Legal review.",
+                ChangeSummary = "English Swiss-law naming revision 1.1 for independent Legal review; previous versions remain unchanged.",
                 RequiresAcceptance = candidate.RequiresAcceptance,
                 IsAuthoritative = true,
                 CreatedByUserId = actor.Value,

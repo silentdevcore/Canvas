@@ -4,7 +4,7 @@ This document combines an operator preparation plan with dated execution records
 Only the explicitly recorded develop check activation was authorized and applied;
 it is not permission for further GitHub changes, artifact publication or deployment.
 Technical identity is PVAD; public brand is PVADE.
-Historical `pxa-*` names below identify existing remote resources, not new defaults.
+Historical [compatibility entry `compat-14a9f154c0c0`](../operator-docs/compatibility-identifiers.v1.json) names below identify existing remote resources, not new defaults.
 The [rename checklist](../checklists/PVAD.Rename-Plan.md) remains authoritative.
 
 ## Verified Baseline
@@ -95,8 +95,8 @@ actual positive and negative PR cases before accepting a gate. See
 
 | Current remote resource | Proposed resource | Observed protection |
 | --- | --- | --- |
-| `pxa-staging` | `pvad-staging` | Protected branches only; no required environment reviewer; admin bypass allowed |
-| `pxa-production` | `pvad-production` | Protected branches only; one reviewer; self-review allowed; admin bypass allowed |
+| [compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json) | `pvad-staging` | Protected branches only; no required environment reviewer; admin bypass allowed |
+| [compatibility entry `compat-dfc86e9a456d`](../operator-docs/compatibility-identifiers.v1.json) | `pvad-production` | Protected branches only; one reviewer; self-review allowed; admin bypass allowed |
 
 The complete current listing contains only the two historical names. Target
 resources have not been created. These observations are not approval of bypass
@@ -210,7 +210,7 @@ Fresh GET-only inspection found:
 | `main` source | `30de5ea7d55d009dfc32a378e5bcc08d1f3ae8d1`, workflow blob `9d97875305a3af8a172b649e84f00ca4f53ca234`, historical CI without `mcp-beta` and `visual-parity` | Main rollout/release-PR validation remains open; do not copy develop acceptance blindly |
 | Both branch protections | Strict checks: `version-policy`, `dotnet`, `frontend`, each from App ID 15368; admin enforcement and one required PR approval remain enabled | All existing controls must be retained |
 | Visible repository/parent rulesets | The includes-parents GET returned an empty list | No additional rulesets observed; branch protections still apply |
-| Environments | Only `pxa-staging` and `pxa-production`; protected branches only; admin bypass permitted; production self-review not prevented | Environment migration and selected production hardening remain unexecuted |
+| Environments | Only [compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json) and [compatibility entry `compat-dfc86e9a456d`](../operator-docs/compatibility-identifiers.v1.json); protected branches only; admin bypass permitted; production self-review not prevented | Environment migration and selected production hardening remain unexecuted |
 | Final-head PR checks | All seven target checks completed successfully on `52aab9a442b4cdd350e2676499e898f1d37bdbce`, App ID 15368 | Positive real-PR evidence is verified, not simulated |
 
 The [machine-readable candidate](pvad-github-required-checks-candidate.json)

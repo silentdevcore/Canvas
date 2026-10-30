@@ -1,5 +1,9 @@
 # Code Workspace Apply Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 Current acceptance update, 2026-10-25: the corrections below were committed as
 `16c4264e`. Full committed-candidate validation passed and the user confirmed the
 requested Chrome print check completed and working. The combined local gate is
@@ -12,7 +16,7 @@ here. This is scoped local evidence, not a clean release-candidate approval.
 
 ## Resolved Behavior
 
-The earlier complete customer flow failed with `PXACODE123` after saving a native
+The earlier complete customer flow failed with legacy CODE123 component after saving a native
 project, reopening it and advancing its visual template revision. The workspace
 still referred to its older base. The revision rejection itself was correct.
 

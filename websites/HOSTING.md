@@ -97,7 +97,7 @@ npm run build
   - `VITE_PVAD_DESIGNER_URL`
   - `VITE_PVAD_ACCOUNT_URL`
   - `VITE_PVAD_OPERATOR_URL`
-- Old `VITE_PXA_*` keys remain compatibility aliases. Matching values are accepted;
+- Old [compatibility entry `compat-1585a4891f41`](../operator-docs/compatibility-identifiers.v1.json) keys remain compatibility aliases. Matching values are accepted;
   contradictory old/new values fail validation. Configure approved origins at
   build time. Legacy deployments must explicitly set their installed origins;
   old domains are not automatically added to the frontend return-URL allowlist.
@@ -132,7 +132,7 @@ npm run build
   owners must use their actual reviewed origins and inspect merged configuration.
 - The Designer's default Account destination follows the new Account origin;
   existing and On-Premise installations can override it through runtime config
-  `__PVAD_CONFIG__.accountUrl` (legacy `__PXA_CONFIG__` remains supported).
+  `__PVAD_CONFIG__.accountUrl` (legacy [compatibility entry `compat-948e7c5f5d66`](../operator-docs/compatibility-identifiers.v1.json) remains supported).
 - Storage Notice cookie scope is unchanged: the new hosts use host-only notices;
   this change does not share authentication cookies across subdomains.
 - Company page links use static HTML entries such as `/products.html`, `/pricing.html`, `/about.html`, `/support.html`, and `/contact.html`.

@@ -1,5 +1,8 @@
 # Spreadsheet Framework Migration + Canonical Workbook JSON
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 Migrate C# code from other spreadsheet libraries (ClosedXML, EPPlus, GemBox.Spreadsheet, Aspose.Cells)
 into PVAD spreadsheet code, and formalize a **versioned "PVAD Workbook JSON"** as the canonical
 interchange + migration target. Built in-house, reusing the existing Roslyn PDF-migration architecture.
@@ -73,7 +76,7 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 
 ## Status — all done
 All four converters live at `GET /api/migration/frameworks` + `POST /api/migration/convert` (Status `full`).
-10 migration unit tests green; `dotnet build PXA.sln` clean. Live-verified each emits PVAD code.
+10 migration unit tests green; `dotnet build PVAD.sln` clean. Live-verified each emits PVAD code.
 
 ## Follow-up — migration list categorization — DONE
 - [x] `ICodeConverter.Kind` ("pdf" default | "spreadsheet"); exposed via `FrameworkInfo.Kind` + the
@@ -102,7 +105,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
       (`AddSheet`/`Cell("A1"|r,c).Value`/`Formula`) → styled HTML `<table>`; `MigrationController` + `MigrationService.GetKind`
       set content-type (`text/html` spreadsheet, `application/pdf` pdf).
 - [x] `SpreadsheetImportPage` → `sheetTabs('datasource')`; `ImporterPage` standalone (format tabs dropped, nav restored).
-- [x] Verified: tsc + vite build + `dotnet build PXA.sln` clean; live — spreadsheet `/preview` → `text/html`
+- [x] Verified: tsc + vite build + `dotnet build PVAD.sln` clean; live — spreadsheet `/preview` → `text/html`
       with `<table>` (Item/Coffee/SUM); PDF `/preview` → `application/pdf`.
 
 ## Sequencing (phase-by-phase, commit each)
@@ -124,7 +127,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
 - **Authoring API:** unit test builds via `PvadWorkbook` → `.xlsx`; `/calculate` computes a fluent formula.
 - **Migration:** per-lib unit test (source snippet → expected PVAD code + diagnostics, e.g. chart →
   `CANMIG…` Warning). Live: `/api/migration/frameworks` lists 4 new sources; `/api/migration/convert`
-  returns PVAD code for a ClosedXML sample. `dotnet build PXA.sln` clean; full suite green.
+  returns PVAD code for a ClosedXML sample. `dotnet build PVAD.sln` clean; full suite green.
 
 ## Deferred
 File-format migration (`.ods`, Google Sheets, SpreadsheetML 2003, `.numbers`); charts + pivots in the

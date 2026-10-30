@@ -1,5 +1,8 @@
 # Spreadsheet Polish — remaining follow-ups
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 Closes the loose ends after the backend engine + migration suite + Workbook JSON: validation/versioning,
 deeper migration fidelity, and surfacing the now-lossless advanced features in the editor UI. Builds on
 `Spreadsheet-Backend-Engine.md`, `Spreadsheet-Migration.md`. Phase-by-phase, commit each.
@@ -41,7 +44,7 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       colours / dataBar remain out of scope.
 
 ## Verification
-- `dotnet build PXA.sln` clean; `PXA.Export.Tests` + migration test projects green; frontend `tsc` +
+- `dotnet build PVAD.sln` clean; [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json) + migration test projects green; frontend `tsc` +
   `jest` green. Live (`:5086`): `/validate` flags a bad workbook; a migrated sample carries fill/alignment +
   named ranges; the editor sets page setup/CF/validation that survives an `.xlsx` round-trip.
 

@@ -13,10 +13,10 @@ tenant-safe tool layer.
 - The server uses `@modelcontextprotocol/sdk` and currently runs over `stdio`.
 - Eleven tools expose the access context, element catalog, examples, documentation search, design
   validation, PDF preview rendering, export formats, migration providers, and tenant templates.
-- Five `pxa://` resources expose the design schema, workbook schema, OpenAPI document, AI reference,
+- Five [compatibility entry `compat-82d933aea411`](../docs/reference/compatibility-identifiers.v1.json) resources expose the design schema, workbook schema, OpenAPI document, AI reference,
   and C# cookbook.
 - The element catalog is imported from the Designer source of truth.
-- PXA WebApi already provides organizations, service accounts, API keys, entitlements, usage
+- PVAD WebApi already provides organizations, service accounts, API keys, entitlements, usage
   metering, templates, assets, background jobs, audit events, and observability infrastructure.
 - The current MCP type-check and smoke test pass with 38 registered Designer elements.
 
@@ -42,7 +42,7 @@ tenant-safe tool layer.
 
 ### Local stdio
 
-- [x] Preserve the existing `pxa-mcp` command and `stdio` transport.
+- [x] Preserve the existing [compatibility entry `compat-6729a58eebb7`](../docs/reference/compatibility-identifiers.v1.json) command and `stdio` transport.
 - [ ] Remove the obsolete `canvas-mcp` binary after the documented compatibility period.
 - [x] Read local credentials from environment variables or the operating-system credential store.
 - [x] Guarantee that stdout contains MCP messages only and send operational logs to stderr.
@@ -86,18 +86,18 @@ tenant-safe tool layer.
 - [x] Add a separately signed, 30-second internal delegation before exposing tenant-owned WebApi
   resources; the original MCP bearer token is never forwarded.
 - [x] Define least-privilege scopes:
-  - `pxa.docs.read`
-  - `pxa.templates.read`
-  - `pxa.templates.write`
-  - `pxa.assets.read`
-  - `pxa.assets.write`
-  - `pxa.documents.validate`
-  - `pxa.documents.render`
-  - `pxa.documents.export`
-  - `pxa.documents.import`
-  - `pxa.migrations.execute`
-  - `pxa.jobs.read`
-  - `pxa.jobs.cancel`
+  - [compatibility entry `compat-9a5cb15c3d8d`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-77c910231cc3`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-f10305e3d0b9`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-7e8157838c8f`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b8fc3ddf2a9c`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-f150996698a3`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b3d0a1003b54`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-dc0309610106`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-1356c2ebd474`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b038a4972981`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-3fd5a752d603`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-5b4ef240d6b7`](../docs/reference/compatibility-identifiers.v1.json)
 - [ ] Map scopes to existing roles, permissions, product entitlements, and active-organization context
   without treating those concepts as interchangeable.
 - [ ] Require step-up confirmation for destructive, publishing, or externally visible operations.
@@ -113,7 +113,7 @@ tenant-safe tool layer.
 - [x] Return `structuredContent` for machine-readable results and concise text content for clients
   that do not render structured output.
 - [x] Add accurate read-only, destructive, idempotent, and open-world annotations to every tool.
-- [x] Use stable `PXAMCP...` diagnostics and MCP error results instead of unstructured exception text.
+- [x] Use stable [compatibility entry `compat-30dd63955344`](../docs/reference/compatibility-identifiers.v1.json) diagnostics and MCP error results instead of unstructured exception text.
 - [ ] Include correlation ID, job ID, affected resource URI, warnings, and retry guidance where
   applicable.
 - [ ] Add idempotency keys to mutating and job-starting operations.
@@ -171,7 +171,7 @@ tenant-safe tool layer.
 
 ## Resources And Prompts
 
-- [ ] Preserve the existing static `pxa://` resources with explicit version and locale metadata.
+- [ ] Preserve the existing static [compatibility entry `compat-82d933aea411`](../docs/reference/compatibility-identifiers.v1.json) resources with explicit version and locale metadata.
 - [ ] Add tenant-scoped resource templates for templates, versions, jobs, diagnostics, and generated
   artifacts.
 - [ ] Prevent resource enumeration across organizations and users.
@@ -297,7 +297,7 @@ tenant-safe tool layer.
 - [x] The non-root multi-stage container builds successfully and its readiness health check passes
   in Rancher Desktop.
 - [x] Type-check, compiled builds, source/distribution smoke tests, and dependency audit pass.
-- [x] PXA Account provides OpenIddict discovery, authorization-code/PKCE, and service-account
+- [x] PVAD Account provides OpenIddict discovery, authorization-code/PKCE, and service-account
   client-credentials issuance backed by PostgreSQL.
 - [x] Tenant `list_templates` and `get_template` tools use independently validated internal
   delegation and server-enforced organization filtering.

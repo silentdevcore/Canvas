@@ -16,6 +16,8 @@ public sealed class LegalContentCatalogTests
         Assert.All(catalog.Documents, document =>
         {
             Assert.Equal("en", document.Locale);
+            Assert.Equal("1.1", document.Version);
+            Assert.DoesNotContain("pxa", document.SourceMarkdown, StringComparison.OrdinalIgnoreCase);
             Assert.StartsWith("# ", document.SourceMarkdown, StringComparison.Ordinal);
             Assert.True(document.SourceMarkdown.Length > 900);
         });

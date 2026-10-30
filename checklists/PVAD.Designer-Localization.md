@@ -22,7 +22,7 @@ Full reasoning and design detail live in the approved plan; this checklist track
 ## Phase 0 — Scaffolding (sequential prerequisite)
 
 - [x] Install `react-i18next`, `i18next`, `i18next-browser-languagedetector`, `i18next-resources-to-backend` (used `--legacy-peer-deps` to work around a pre-existing, unrelated `marked`/`@glideapps/glide-data-grid` peer conflict already in the repo).
-- [x] `src/i18n/index.ts`: init module — `fallbackLng: 'en'`, `supportedLngs: ['en','de','fr','es','it','ar']`, lazy per-namespace JSON loading via `i18next-resources-to-backend` (dynamic `import()`, confirmed Vite code-splits it per language/namespace), language-detector with `lookupLocalStorage: 'pxa_locale'`, `order: ['localStorage', 'navigator']`. Imported via `LocaleProvider.tsx`.
+- [x] `src/i18n/index.ts`: init module — `fallbackLng: 'en'`, `supportedLngs: ['en','de','fr','es','it','ar']`, lazy per-namespace JSON loading via `i18next-resources-to-backend` (dynamic `import()`, confirmed Vite code-splits it per language/namespace), language-detector with [compatibility entry `compat-ba6dee137c44`](../docs/reference/compatibility-identifiers.v1.json), `order: ['localStorage', 'navigator']`. Imported via `LocaleProvider.tsx`.
 - [x] `src/locales/{en,de,fr,es,it,ar}/` directory tree with one JSON file per namespace (`common`, `home`, `templates`, `gallery`, `editor`, `create`, `importer`, `convert`, `spreadsheet`, `migrations`, `docs`, `onboarding`, `pdfViewer`) — English populated during Phase 1/2/4, others start empty/sparse (German seeded with real translations for `common` as a head start).
 - [x] `src/components/Layout/LocaleProvider.tsx`: sets `document.documentElement.lang`/`.dir` on `i18n` language change (`dir: 'rtl'` only for `ar`), wraps children in `<Suspense>`. Mounted in `src/App.tsx` around the existing `<Routes>` tree.
 - [x] `src/components/Layout/LanguageSwitcher.tsx`: dropdown listing native language names, calls `i18n.changeLanguage(code)`. Mounted in `AppHeader.tsx`'s `.pdf-nav-actions` block, desktop + mobile-nav variants.
@@ -88,7 +88,7 @@ Full reasoning and design detail live in the approved plan; this checklist track
 
 ## Verification
 
-- [x] `cd pxa-designer && npx tsc --noEmit` clean.
+- [x] [compatibility entry `compat-c192f0feecb3`](../docs/reference/compatibility-identifiers.v1.json) clean.
 - [x] `npm run build` clean.
 - [x] `npm run test` — full suite passes: 21 suites, 215 tests, including the two new test files.
 - [x] Authenticated browser verification switches through all six languages, confirms Arabic `lang`/`dir` and Arabic font behavior, then proves the selected locale persists across reload.

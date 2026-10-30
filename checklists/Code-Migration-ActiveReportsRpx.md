@@ -99,7 +99,7 @@ problems as DevExpress and gives us a second implementation target for common gr
       `ElementDto.Repeat` plus `style.rpxGroupRepeat`; `Detail` bands attach `style.rpxDetailRepeat`.
       Runtime grouping/reflow still needs review against real data.
 - [x] **P0** `CanGrow`/`CanShrink` auto-sizing metadata; `CanGrow` maps to visible overflow hints,
-      `CanShrink` is preserved as `style.rpxCanShrink`, and both are grouped in `style.rpxAutoSize`.
+      `CanShrink` is preserved as `style.rpxCanShrink`, and both are grouped in [compatibility entry `compat-daaaee592990`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] **P0** `OutputFormat` → PVADE `Formatter` + `style.rpxOutputFormat` metadata for bound controls.
 - [x] **P1** `PageBreak`/`NewPage` and `CrossSectionLine`/`CrossSectionBox` visual mapping:
       page-break behaviour is preserved on `style.rpxPageBreak` and mapped to PVADE `pageboundary`

@@ -1,0 +1,8 @@
+{
+  "id": "pvad-complete-markdown-naming",
+  "impact": "patch",
+  "components": ["documentation", "company", "account", "admin", "api"],
+  "category": "fixed",
+  "summary": "Updated documentation and legal review candidates to use consistent product naming while retaining versioned compatibility references.",
+  "breaking": false
+}

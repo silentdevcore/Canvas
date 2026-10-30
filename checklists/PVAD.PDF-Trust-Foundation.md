@@ -1,5 +1,8 @@
 # PVAD PDF Trust Foundation
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## Purpose
 
 This checklist defines the first competitive-readiness milestone for trusted PDF
@@ -51,7 +54,7 @@ Reference material:
   required primitive is unsupported.
 - [x] Preserve existing valid signatures unless the requested operation explicitly
   invalidates them and the user confirms the consequence.
-- [x] Return stable `PXAPDFTRUST...` diagnostics with severity, page/object context,
+- [x] Return stable [compatibility entry `compat-af327f969713`](../docs/reference/compatibility-identifiers.v1.json) diagnostics with severity, page/object context,
   remediation, standard/profile, and evidence.
 - [x] Keep cryptographic keys, passwords, certificate secrets, TSA credentials,
   document content, and redacted values out of logs, telemetry, and audit details.
@@ -78,9 +81,9 @@ Reference material:
   inputs with diagnostics.
   - [x] Read the trailer `/XRefStm` of a hybrid-reference file and prefer its entries,
     as a conforming PDF 1.5+ reader does, instead of reading only the classic table.
-  - [x] Report `PXAPDFXREF010` when the classic table and the `/XRefStm` claim
+  - [x] Report [compatibility entry `compat-6de3301053ac`](../docs/reference/compatibility-identifiers.v1.json) when the classic table and the `/XRefStm` claim
     different locations for the same in-use object.
-  - [x] Report `PXAPDFXREF008` when a document has no usable cross-reference data and
+  - [x] Report [compatibility entry `compat-1b4c2d201b80`](../docs/reference/compatibility-identifiers.v1.json) when a document has no usable cross-reference data and
     objects were recovered by scanning.
 - [x] Add bounded parsing for recursion, object count, stream size, decompression
   ratio, page count, nesting, and cancellation.
@@ -92,14 +95,14 @@ Reference material:
     floor so that small streams which legitimately expand are not rejected.
   - [x] Break cyclic indirect-reference chains during resolution.
   - [x] Thread `CancellationToken` through document graph parsing.
-  - [x] Surface `PXAPDFPARSE` diagnostics in the trust report and refuse a `valid`
+  - [x] Surface [compatibility entry `compat-7778695a4060`](../docs/reference/compatibility-identifiers.v1.json) diagnostics in the trust report and refuse a `valid`
     structure status for any document that tripped a limit.
   - [x] See `PVAD.PDF-Parser-Hardening.md` for the confirmed defects and corpus.
 - [x] Reject ambiguous or dangerous duplicate-object and shadow-object structures
   rather than validating a different revision than a PDF viewer displays.
   - [x] Restrict the raw object scan to documents with no usable cross-reference data,
     so a well-formed document is never judged by objects a reader cannot resolve.
-  - [x] Report `PXAPDFTRUST150` for any object definition that no cross-reference
+  - [x] Report [compatibility entry `compat-447fb969a2a1`](../docs/reference/compatibility-identifiers.v1.json) for any object definition that no cross-reference
     revision references, excluding candidates that fall inside parsed stream bytes.
   - [x] Refuse a `valid` structure status for a document containing such definitions.
 
@@ -574,18 +577,18 @@ Reference material:
     optional content, transparency, soft masks, blend modes, blend colour, and rendering
     intents within the supported PDF/A-2b/3b policy.
     - [x] Require valid annotation subtypes, flags, normal appearances, button appearance
-      states, and static AcroForm/XFA behavior with stable `PXAPDFTRUST333`-`335`
+      states, and static AcroForm/XFA behavior with stable [compatibility entry `compat-6b8deb52cbaf`](../docs/reference/compatibility-identifiers.v1.json)-`335`
       diagnostics.
     - [x] Require named, uniquely identified optional-content configurations, reject `/AS`,
       and verify that `/Order` includes every OCG reference with stable
-      `PXAPDFTRUST336`-`339` diagnostics.
+      [compatibility entry `compat-5d2c1494c52c`](../docs/reference/compatibility-identifiers.v1.json)-`339` diagnostics.
     - [x] Validate dictionary and content-stream rendering intents and extended graphics
       state blend modes against the ISO 32000-1 value sets with stable
-      `PXAPDFTRUST340`-`341` diagnostics.
+      [compatibility entry `compat-7e16a3c766d2`](../docs/reference/compatibility-identifiers.v1.json)-`341` diagnostics.
     - [x] Preserve PDF/A-2/3 transparency and soft masks instead of applying a false
       blanket prohibition. Traverse their Form content, require the document RGB output
       intent as the default blending colour space, and fail closed when a relevant content
-      stream cannot be decoded for structural inspection (`PXAPDFTRUST343`).
+      stream cannot be decoded for structural inspection ([compatibility entry `compat-7bdd22a5ec30`](../docs/reference/compatibility-identifiers.v1.json)).
     - [x] Keep the PVADE result labelled as a bounded structural validator. The pinned
       veraPDF profile remains the standards-level release evidence rather than treating
       this first-party matrix as a replacement for all 144 external rules.
@@ -688,7 +691,7 @@ Reference material:
 - [x] Add an accessibility preflight report with errors, warnings, element IDs,
   page references, and actionable remediation.
 - [x] Add typed `PdfAccessibilityProfile.PdfUa1`, a fail-closed structural generator
-  preflight, stable `PXAPDFUA...` diagnostics with page/element references, and
+  preflight, stable [compatibility entry `compat-a3905588f577`](../docs/reference/compatibility-identifiers.v1.json) diagnostics with page/element references, and
   `pdfuaid:part=1` identification metadata. Independent validation remains required
   before claiming full conformance.
 - [ ] Validate with an independent PDF/UA validator and manual assistive-technology
@@ -893,7 +896,7 @@ Implementation evidence:
 - [x] Build a deterministic corpus containing generated and externally produced PDFs
   for every supported profile and failure state.
   - [x] Establish an immutable external-producer baseline with synthetic Chromium/Skia
-    LibreOffice, qpdf, and pyHanko PDFs, pinned hashes, producer markers, expected PXA
+    LibreOffice, qpdf, and pyHanko PDFs, pinned hashes, producer markers, expected PVAD
     trust reports, and independent validation evidence. Positive AES-256/R6, PAdES B-B,
     PDF/A-2b, and PDF/UA-1 paths are covered. PAdES negative fixtures and generated
     PDF/A, PDF/UA, encryption, parser, and redaction rejection fixtures cover the
@@ -914,8 +917,8 @@ Implementation evidence:
   untrusted, revoked, offline, and unavailable-revocation cases.
   - [x] Generate one synthetic PAdES B-B fixture with pyHanko 0.37.0 and verify its
     cryptographic integrity independently with pyHanko before pinning the PDF and
-    machine-readable PXA trust report.
-  - [x] Generate PXA B-T, B-LT, and B-LTA fixtures from a synthetic root, signer, and
+    machine-readable PVAD trust report.
+  - [x] Generate PVAD B-T, B-LT, and B-LTA fixtures from a synthetic root, signer, and
     timestamp-authority hierarchy; validate exact profile classification, structure,
     certificate chains, and revocation evidence with EU DSS 6.4; pin all PDFs and XML
     reports by SHA-256. B-T uses the public offline CRL during validation while LT/LTA
@@ -923,11 +926,11 @@ Implementation evidence:
   - [x] Independently classify expired, untrusted, revoked, offline/unavailable-
     revocation, tampered-LT, and tampered-LTA fixtures with EU DSS 6.4 in a
     network-disabled, read-only container. Pin every PDF, XML report, certificate,
-    and CRL by SHA-256 and assert the corresponding PXA trust result.
+    and CRL by SHA-256 and assert the corresponding PVAD trust result.
 - [ ] Test AES-256 against independent readers and writers with Unicode passwords,
   all permission combinations, metadata options, wrong passwords, and tampering.
   - [x] Generate and reopen one qpdf 12.2.0 AES-256/R6 fixture with Unicode user and
-    owner passwords, restricted modification, pinned qpdf evidence, and a stable PXA
+    owner passwords, restricted modification, pinned qpdf evidence, and a stable PVAD
     trust report. The broad independent-reader matrix remains open.
   - [x] Cover all 256 supported permission-bit combinations and both encrypted-metadata
     settings in the native AES-256 handler tests.
@@ -949,7 +952,7 @@ Implementation evidence:
     machine-readable XML reports as CI artifacts.
   - [x] Generate independent LibreOffice PDF/A-2b and PDF/UA-1 fixtures and retain
     passing XML reports from the pinned official veraPDF 1.31.166 container alongside
-    their stable PXA trust reports.
+    their stable PVAD trust reports.
   - [x] Publish PDF/A-2b and PDF/A-3b veraPDF validation as a dedicated CI artifact with
     explicit profile-to-fixture mapping; manual second-validator evidence remains open.
 - [x] Test redaction against text extraction, object inspection, image extraction,
@@ -965,7 +968,7 @@ Implementation evidence:
     input-size bounds, per-case timeout, crash detection, and hash-only JSON evidence.
   - [x] Add coverage-guided and differential parser fuzzing with managed-heap,
     output, input-size, and cross-implementation time limits plus process isolation. The deterministic
-    gate compares PXA with installed qpdf, Poppler, and MuPDF parsers; a bounded AFL++/
+    gate compares PVAD with installed qpdf, Poppler, and MuPDF parsers; a bounded AFL++/
     SharpFuzz campaign runs in the scheduled Trust workflow and retains crash/hang evidence.
 - [x] Add golden visual tests proving signatures, redaction results, tagged content,
   and compliance conversion do not corrupt layout.
@@ -997,18 +1000,18 @@ Implementation evidence:
       authenticated synthetic UI flow and the real API suites.
 - [x] Run migration parity tests for every provider mapping before changing a manual
   diagnostic to automatic conversion.
-- [x] Run `dotnet build PXA.sln`, relevant .NET suites, Designer tests, typecheck,
+- [x] Run `dotnet build PVAD.sln`, relevant .NET suites, Designer tests, typecheck,
   production builds, Documentation tests/build, security scanning, and
   `git diff --check`.
 
 Internal close-out evidence recorded on 2026-09-20:
 
-- `PXA.Importer.Tests`: 595 passed.
+- [compatibility entry `compat-8bd5fa03ea34`](../docs/reference/compatibility-identifiers.v1.json): 595 passed.
 - PDF Trust API selection: 59 passed; PDF migration parity: 43 passed.
 - Designer: 58 suites and 441 tests passed, type-check and production build passed.
 - Documentation: 29 tests and production build passed.
 - Authenticated Viewer smoke: desktop and mobile passed (`2/2`).
-- Parser differential corpus: 30 isolated cases across PXA and two installed Poppler
+- Parser differential corpus: 30 isolated cases across PVAD and two installed Poppler
   parsers, zero crashes, zero timeouts, and eight retained parser-decision differences.
 - Coverage-guided Linux smoke: AFL++/SharpFuzz completed ten seconds, discovered 273
   new corpus items and 4.84% map coverage, with zero saved crashes and zero hangs. A

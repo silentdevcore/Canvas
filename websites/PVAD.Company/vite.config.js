@@ -1,4 +1,5 @@
 import { resolvePvadDevApiTarget } from "../../tools/configuration/environment.mjs";
+import { publicCompatibilityRegisterPlugin } from '../shared/compatibilityRegister.js';
 const apiTarget = resolvePvadDevApiTarget();
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +15,7 @@ const buildInfo = readPvadBuildInfo();
 
 export default {
   define: pvadVersionDefines(buildInfo),
-  plugins: [pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Company')],
+  plugins: [pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Company'), publicCompatibilityRegisterPlugin()],
   server: {
     proxy: {
       '/api': {

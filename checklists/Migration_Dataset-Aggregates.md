@@ -1,6 +1,6 @@
 # Migration: Dataset Aggregates in Migrated Expressions
 
-> **Status:** shipped — PR [#17](https://github.com/silentdevcore/PXA/pull/17)
+> **Status:** shipped — PR #17 (original pull-request URL retained in Git)
 > (branch `migration-dataset-aggregates`, commit `28ddb270`).
 
 Completes the expression feature for the most common real-report construct: **footer/group totals**.

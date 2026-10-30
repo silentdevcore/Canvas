@@ -150,7 +150,7 @@ making application availability depend on the telemetry backend.
       health.
 - [x] Stop PostgreSQL and the OpenTelemetry Collector independently and verify alerts, recovery,
       firing notifications, and resolved notifications.
-- [x] Stop the containerized WebApi and verify alerts and recovery after PXA.Api Docker owns its
+- [x] Stop the containerized WebApi and verify alerts and recovery after [compatibility entry `compat-4bdb724454ff`](../docs/reference/compatibility-identifiers.v1.json) Docker owns its
       lifecycle.
 - [x] Add bounded non-production OCR failure injection that is rejected outside Development and
       Testing.
@@ -189,7 +189,7 @@ markers, and both v1 capacity profiles passed their protected 100-page export wo
 ## Defaults
 
 - OpenTelemetry is the instrumentation and transport standard.
-- The PXA-hosted stack uses Collector, Prometheus, Loki, Tempo, Grafana, and Alertmanager.
+- The [compatibility entry `compat-a3e5067dbad9`](../docs/reference/compatibility-identifiers.v1.json) stack uses Collector, Prometheus, Loki, Tempo, Grafana, and Alertmanager.
 - Raw telemetry is operator-only.
 - Successful traces use 10% tail sampling; errors and slow traces are retained.
 - Browser telemetry is operational only and excludes session replay and product analytics.

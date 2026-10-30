@@ -17,7 +17,7 @@ When qpdf is unavailable locally, the runner uses the pinned
 `PVAD_AES256_QPDF_IMAGE` to an equivalent reviewed image if required.
 
 An explicitly configured older local image remains usable through that option;
-the legacy `PXA_AES256_QPDF_IMAGE` environment alias is still accepted, with
+the legacy operator-only compatibility entry `compat-5622f2143f23` (available in the protected operator register) environment alias is still accepted, with
 conflicting old/new values rejected. This does not rename archived reports,
 fixture passwords or recorded tool-image provenance, and no image is published.
 

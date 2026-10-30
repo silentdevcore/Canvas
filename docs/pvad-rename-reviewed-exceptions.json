@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewDate": "2026-10-29",
+  "reviewDate": "2026-10-30",
   "baseline": "fce423cf8c5f5e71eff6178f712fe4e5eb5af69a",
   "scope": "Point-in-time residual-name context review for the exact file bytes below. Not blanket semantic, security, publication, infrastructure-cutover or legal approval. Binary evidence is reviewed separately.",
   "ledgerSelfExclusion": "This inventory intentionally records retained old filenames; its own content is not recursively inventoried.",
@@ -47,32 +47,12 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "sha256": "1c56bcbf1042a8b737f92cd6b57d67ff67b5427a7ec87ae8e7f247f0a97aa988",
+      "sha256": "a09c5ad6fcf1fa8cddd89e642d3f8ab7e5dd317352abf3198cf5440ba87e0dbe",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "ARCHITECTURE.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/CLEAN_ARCHITECTURE_CHECKLIST.md",
-      "sha256": "700bfe6483949133b500f7d74a32a9740b7362c5111bcb0ff196d810dbb09236",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Code-Migration-ActiveReportsRpx.md",
-      "sha256": "41ca3f6ab2de33c5599b6db7135f5e5a4b4890c68aea643125410091d30fe127",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -86,33 +66,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/Code-Migration-DsPdf.md",
-      "sha256": "d8e00ada05838dc6ffb02bcbd0dd20d6f1a1c0c1aacf1a204578ce66ece3627c",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Code-Migration-IronPdf.md",
-      "sha256": "eb419546b278ae0285c3deed4b93e91f6cabed3e610a346ae2ac53f8b9b97df7",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "checklists/Code-Migration-iText7.md",
-      "sha256": "194e5f51ec3c5d48bbbe66ff85fba2a1d5cdd1317e38b0735bfa3ff08f1e09fc",
+      "sha256": "fe0b8f18ca0b8036cea0162e3b8852f1c3e4f31d926577f070ce5d9fb95f2dae",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -137,12 +97,12 @@
     },
     {
       "path": "checklists/Code-Migration-SyncfusionPdf.md",
-      "sha256": "828566163fae882681b4bc22679a5477b2503da17091aece5076af5855092acd",
+      "sha256": "2f2470b86c045d17624a7c1401e7e082d359a465a98d1af7ebdf692717b15d93",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -157,12 +117,22 @@
     },
     {
       "path": "checklists/Converter.md",
-      "sha256": "e3894f8652be9d58d0d3ef6c6637157d13b31d7a19dfbd0b715f3d7872608809",
+      "sha256": "de556c70a687d89f43c80b62897aca80d9f282c19c07cceb637fdb6e6de470a1",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "checklists/multi-languages.md",
+      "sha256": "2b84a0ee711867c961ab077864544a0cd64e8db3d07f8a3047848887b0deb1d4",
+      "reasons": [
+        "historical-checklist"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -187,22 +157,12 @@
     },
     {
       "path": "checklists/Docs-Details.md",
-      "sha256": "618ae78320243535bcac2033e226a205d2aa19a4096148d2b2cef63ae9415843",
+      "sha256": "4e6dc038014f212fe19f53dec66e25a4a7dec04e5dd6e0bfb7c267652921570b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Image-Convert.md",
-      "sha256": "2ebfe9b256278e8f73f5421d2f95266c67d44bf43d427f02a7f354205c60cf23",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -227,162 +187,32 @@
     },
     {
       "path": "checklists/Markdown-Importer.md",
-      "sha256": "917ea15af6b63156aff370c9f25c91dd91586d43ec46b62f936c880635e2e727",
+      "sha256": "d2496c7fd732f3044fd27123e191049ea924a2e258b9a37104f51f92655f18b8",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Migration_Dataset-Aggregates.md",
-      "sha256": "9539096daed347389e14a91432c6cac6e539110b6b92ac82969003cf6bb9ac19",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Migration-Namespace-Taxonomy.md",
-      "sha256": "b2589c151898bb17a167c379cd30f6fc5eba47836e40bb8dd804fd02b3c8a310",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/multi-languages.md",
-      "sha256": "2b84a0ee711867c961ab077864544a0cd64e8db3d07f8a3047848887b0deb1d4",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Pdf-Encryption.md",
-      "sha256": "dfeba27191fe87b4a67f6fe914394e0bfe4968e8422d6fc63af668c7f445bacb",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PdfTools-WebViewer-Feature-Gaps.md",
-      "sha256": "266bc034c85d0275c884fd6f17d65773b590105dfcf52c47b1b12e19e6b17912",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PHASE4_PDF_VALIDATION.md",
-      "sha256": "8bf0014e9208fd571d472bff20483c593b6437c54509717054652c0c3d4eb8d3",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Account-Branch-Review.md",
-      "sha256": "8ddd682678b59211e062dd362626e5b505a9b286471562fe52fa1c2bebe153c7",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Account-Registration.md",
-      "sha256": "1e1f52aaeab750200f86c2fcd402d4fb02ce5dd48a1041bb605654c4c06351f0",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Account.md",
-      "sha256": "ae26ac83eddacf64afa0753433cae870fb88937b40be4bafa3eb8d3f6a85395c",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Account.Portal-Implementation.md",
-      "sha256": "d90ce56ffa27551fb49f29df6f96fdb711979d9cac1d6180d10e2a4c43edbb73",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Admin-Documentation.md",
-      "sha256": "2a9c5220dbb3cac3358c817d12a445c3cbde3fe42cfe03ec96571d0802ee8127",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Admin.md",
-      "sha256": "b9c7e97852610f41542f18223e6bb352f2f71cdc53bbc19cc1bd584076fb79a3",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Application-Versioning-And-Releases.md",
-      "sha256": "d5fb0d9d4e00077f9950ea8a47ef732912809d8e8c1633939168fbf16ced0362",
+      "sha256": "fd3c15b18cbe672c73ba4a051316390e0c62d3d1b2296c5655bf8a1ee53b3be8",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Automated-Release-Notes.md",
-      "sha256": "fef19c997ce6fd47fa3c9c2ad9650c8047f84c53da31d7b9665468213959f377",
+      "sha256": "4dacf021bc343a7c0339e1411d7c50abb7669486b5fedf6d94c45e81a4e00bad",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Browser-Identifier-Audit.md",
-      "sha256": "d429d7771a8ba9d73525b0b1e72583d55a2f4df29f133277362d2956e0e20705",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -427,32 +257,32 @@
     },
     {
       "path": "checklists/PVAD.Designer-Canvas-Audit.md",
-      "sha256": "5293d6ff753a4cd04f58feb51294ca2f6a6ff75a7c17f9f7a5734831df1100ec",
+      "sha256": "04fcfee1c46bd13b41e954e75165e66e25b2bde4f031e575c91e6d9c121305ab",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Home-Restructure.md",
-      "sha256": "54e7561380df5e3313c831529e547e48400eeac91716479cf4504459b8594538",
+      "sha256": "fa06d0d65f528442c263fc6cf9a4067beb73e5c2070b0c747c189ab0d261952c",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Localization.md",
-      "sha256": "1bce9c6d7b169ae73dee6d53569c86e919b26b13414c3d1a2947e1d28fc4c495",
+      "sha256": "22eb7e0709d1e76394bbca2de7be3a0dfa4637c884449d5ee7629296d856ccb2",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -487,62 +317,42 @@
     },
     {
       "path": "checklists/PVAD.Designer-Redesign.md",
-      "sha256": "2344dae371e7a56ee8d619ab68039b04bacded120f109712b70366164650eb33",
+      "sha256": "221f642491e3d62ac4a9b2ea3ce639e0cc38177626ac87e3b5714b5b67aaed72",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Designer-Releases-And-Notifications.md",
-      "sha256": "d5824f99c9120b96e861283270e795a5352d20bb00cec4efbaf91d79f036f2a8",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Designer-Restructure.md",
-      "sha256": "7867f4ac0fc1b19720bfa1d8a48b7d1706c73b78b934cb874d0722dd0f75abd1",
+      "sha256": "faab27a09d323103411e8f2449824684f7d894af22089caf30b5730e50908555",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Designer-Scrollable-Workspace.md",
-      "sha256": "e2ee588e1d37ccd60fd102e7b7811cdc733ce4b9adee31157a0aaaa0b334a3d5",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Documentation.md",
-      "sha256": "5edc8b1ae69f043a22894bc12eaf3830926c09e6662b60c156de8e583d425ff2",
+      "sha256": "d70b3b8d1487d1ca36c57e90e2407424c6d0f01e4fa67beca67776ccbb35a03a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.E-Invoicing.md",
-      "sha256": "ab543ae40b532c2083f2b6070beeb57f0abac88a606e814af77bea4487869e98",
+      "sha256": "0bd48d5ac4bd0139638cb1af80c30954cc58f41a0d418e4a09be7139dec4ffd8",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -557,102 +367,32 @@
     },
     {
       "path": "checklists/PVAD.Legal-Terms-Privacy-And-Consent.md",
-      "sha256": "11c98aa3eb283892d253d48f34ece46caf4a16dfe3e1e00dcbab3c8b9fcfeca1",
+      "sha256": "26ac473c523c93043e746538e5d4c5d561d0cea3da89681131fcb877a11ca1c3",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Logging-Monitoring-Alerting.md",
-      "sha256": "2f2f1f6d4b5d738052d8266aa01fb901165f230a527d1aa4905ccd35962f94a1",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.MCP-Server.md",
-      "sha256": "2045a8a6d03ac4ba6b1942cd77594d10d9e06d32e100bd50ab2ace290a4affad",
+      "sha256": "8889b8b9373300330e65cfe82aebacaf58eb28cb291055d22827d2c2a968a545",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Migration-Nutrient-Code-And-Viewer.md",
-      "sha256": "70f660c29bfc7e6c43c2493f59b9c6973de679538c194d6bc83f7626f18f5813",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.Native-Designer-Formats.md",
-      "sha256": "26a2b4aac1045724cfe8dd41709c7cf97b352596635d3b52311d3a3267e3d47b",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.PDF-AES256-Security-Handler.md",
-      "sha256": "19c0ab0512a04f711f30985bfd64ed67ca296bc06427c081cfc1d49829dc6dd3",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.PDF-Parser-Hardening.md",
-      "sha256": "5d544853836d6cc10c703ca31ae34480eebba476fefaffb41733fbbe0c0abe92",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.PDF-Redaction-Preflight.md",
-      "sha256": "4804710147484fa62a008bc79cf04941e5298c479d12c3df76816f441833c40b",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/PVAD.PDF-Trust-Foundation.md",
-      "sha256": "1951b3a17b34de9e5b6bc704d0d3597ed6631f54e8cf53c5e3c78455a9f26367",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Rename-Audit.md",
-      "sha256": "e0a649e533a0ac65360a5698a5f5412467c5dcca45f6bfc0dba95f6ee0a827d5",
+      "sha256": "d6538f50c6b95691c978084c830ba8e4d0e4221ce0ab5a1d83f646d6b4410f94",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -677,13 +417,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "be8c4c275767f05a7d2a21fae3c69ee38cb0b6d79c5bfbe49e9685ceed504444",
+      "sha256": "b7865fd9a523eb4bb52bef054e93f7ec8638db14351cc4d19986fb8fa832883e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-30 owner-approved editorial normalization supersedes the earlier repeated-notice policy: banners removed; ordinary product prose and examples use PVAD/PVADE. Task states and recorded results are unchanged. Remaining literals are original audit/run evidence, retained compatibility values, historical source references or neutral drawing terminology; original wording remains in Git. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/PVAD.Serialized-Contract-Inventory.tsv",
@@ -727,73 +467,53 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "f12eb2580b64cca0ec967f436f12a3f963fe78513bf3f862f7067816ab871a3d",
+      "sha256": "a684bd0380dfbe86994729f4f2d9128f7f43ea3323521ced0def2c95640587dd",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current rename planning uses PVAD/PVADE and a canonical filename. Retained source identities, previous execution results and earlier acceptance checkpoints are historical evidence. Editorial filenames and links do not close release or operational gates, rewrite compatibility identifiers or reapprove earlier results. Original wording remains in Git.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "checklists/PVAD.Legacy-Rename-Archive.md",
-      "sha256": "92ec53127ac9a97a7ea9aa7d44ed9bec14a82b68f92e72bd192c3dff24a8cf0a",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. Editorial filename and current links normalized; original execution evidence and machine values remain unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/Spreadsheet-Backend-Engine.md",
-      "sha256": "ca5d73d1712f0de9ee40a9fc43932ea22e9b395e9ff3a5b495ee2a5fb99a83c5",
+      "path": "checklists/PVAD.Legacy-Rename-Archive.md",
+      "sha256": "68d7294a1fa56be78c02896331cf1bb7fafe5fff2fabed87f8367d4261b8439a",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-Migration.md",
-      "sha256": "8791f5af87a9d2fb0aef5a0c56013c2e7b142b0d52810cae22c5160fca40a34d",
+      "sha256": "1bc3140c3445436d73eaca2b60afef7c38789ef0e346201d993ae496aec8362b",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "checklists/Spreadsheet-Polish.md",
-      "sha256": "e7786372ab57734a0f3fa11607b7fb935615e43736940f6e5cc78f09ab5f3379",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/Spreadsheet-SDK.md",
-      "sha256": "85056564be1f736da26f526e4b66f108284e33f411727156e61875e267c243dc",
+      "sha256": "1fca7b6a46599e1c5c17c9225a14bc25e12cb8ac45a23176a63cad87478c0fc5",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "checklists/UI-Advanced-Elements.md",
-      "sha256": "32f23d7a98f20878dacf32d2a77bdb73fb12d9a40b5db1e568a5b9a1fd174100",
+      "sha256": "c9910059d09658117730a30345ee3636b5449d54f6b06bdf8ae19473abeb6db6",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -868,12 +588,12 @@
     },
     {
       "path": "checklists/UI-Layout2.md",
-      "sha256": "5fc9a7f5196a43f4ccef3ec117edb3b8cd7fd2b058948a6d15dc9d92e966ba94",
+      "sha256": "3890693075ecd22eed39a3536a3c79b4bf2ce25f031ca5c74937df1964bce2b9",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -917,16 +637,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "checklists/Word-Converter.md",
-      "sha256": "92a70a9b2b197d5fa8a5078a8f5903c6425afa7f9fde974d6aea2c3390710c55",
-      "reasons": [
-        "historical-checklist"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current checklist prose and ordinary examples use PVAD/PVADE without repeated naming-history banners. Retained literals document original execution or audit records, compatibility contracts, historical source references or neutral drawing terminology. Task states and recorded results are unchanged; original wording is available in Git. This is not renewed implementation, legal or release approval. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "checklists/word-fidelity-samples/invoice-two-page.json",
       "sha256": "a28d47c9910d7b97241b3f738c80a55bfa870c8e78237ec7a6637e6391c7379a",
       "reasons": [
@@ -967,26 +677,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "CONTRIBUTING_RENDERERS.md",
-      "sha256": "651d7544f1e226aafda2910b0acdb4b8758efd938ffd85fbc64ae092d14c1cc2",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "CONTRIBUTING_RENDERERS.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "deploy/api/README.md",
-      "sha256": "fed55a8ee6b44fe1380c085bf29734ebe413226d2604cc4c47ffb33320b5fa89",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
       "path": "deploy/observability/alertmanager-email-smoke-test.sh",
       "sha256": "05f6a1d9603689f113d63ff5f368cceada429d0dee63d9ce804b393d57f5ed52",
       "reasons": [
@@ -1005,16 +695,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Rename-only context review: canonical Observability source filenames and references; stable diagnostics, infrastructure identities and legacy template aliases retained. Builds and tests explicitly deferred; not validation of runtime behavior.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "deploy/observability/CAPACITY-PROFILES.md",
-      "sha256": "a0ee2e0871a9ff44a1ac180ca8ce25742d8bad47aa61c19f6094bc11c4e9ecc8",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
       "path": "deploy/observability/grafana/dashboards/pvad-browser-health.json",
@@ -1157,16 +837,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "deploy/observability/README.md",
-      "sha256": "5e27dff6466f1e41f0620328972d17dd1ab73bb45efb5646ca5fa14ceac2693b",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Explain canonical monitoring labels, dual-generation readers and unchanged UIDs; require silence/fingerprint and live-cutover review.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
       "path": "deploy/observability/smoke-test.sh",
       "sha256": "994a74a777913aaebe167a95c20834d99da3692ba5809ba2360fff871eb40861",
       "reasons": [
@@ -1199,16 +869,6 @@
     {
       "path": "deploy/websites/nginx.conf.template",
       "sha256": "4e3e55487bf047ef4e6c5c41d45c9c10cc6e619c36f8421780b1974db098367b",
-      "reasons": [
-        "infrastructure-binding"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "deploy/websites/README.md",
-      "sha256": "858e4f3c21d8812b3ac960eeff761017e3eede2f640485fdda5aed6ac1b086f7",
       "reasons": [
         "infrastructure-binding"
       ],
@@ -1407,16 +1067,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "docs/fixtures/native-projects/README.md",
-      "sha256": "057584f61ff7788e14ed3f60ab4afaa7620cd6100e94b78e3cc9501a50195b81",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 runtime-baseline follow-up: retain original legacy example filenames and bytes. Clarify exact entry-content/metadata/order compatibility and same-runtime byte determinism without claiming compression is identical across servicing releases. No installed association or external release approval is changed.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "docs/fixtures/native-projects/SHA256SUMS",
       "sha256": "fb0804934063cadbc77fd8b64a8d98e302208e4796c6726a60bf3a47ebc78f52",
       "reasons": [
@@ -1437,33 +1087,13 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "docs/mcp-client-setup.md",
-      "sha256": "30daccdcb6a54af37fb5c3e9aa900fc0e59fb1996d6ee05c86733b53131b6aba",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "docs/pvad-brand-asset-inventory.md",
-      "sha256": "1c4cc0d581dc805f7448fe057c0d0aa7733a23426d65638d8764461e82d67ee1",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-brand-asset-inventory.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "docs/pvad-code-generation-compatibility.md",
-      "sha256": "aacabce26fca71c5675cfe1ded17b1be891781802ed22b47e1a7e8d6097a383d",
+      "sha256": "50cd0d1cea7b78ae1287715d4399b27f375df62f1d73e422abff5deb74def8fc",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-code-generation-compatibility.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1474,16 +1104,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "docs/pvad-documentation-path-migration.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-30 policy review: repeated checklist notices are no longer required or generated. Exact legacy path/reader/diagnostic references and original checkpoints remain documented; editorial normalization does not change runtime contracts, approve publication or complete tasks. Naming and path-migration tests cover the updated policy. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/pvad-frontend-host-validation.md",
-      "sha256": "0cd82682ae9a1c2836e2c404c12a951308b7ad39a61a65437c51a4388210dc60",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-frontend-host-validation.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1499,13 +1119,13 @@
     },
     {
       "path": "docs/pvad-github-cutover-plan.md",
-      "sha256": "35d3e1b6eefb6056b274712db7b6f40dcbe6d1a95d485e33d5900cb1dcbdbaa7",
+      "sha256": "f68f8e7804855f946f774a7361e83f6ee1d8ca4861eff0a36d407e022774f0d8",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 develop-only execution review: historical repository and environment names identify real observed resources, not product branding. Separate the inert preparation snapshot from the owner-authorized required-check PATCH and completed negative acceptance. Main, environments and independent production approval remain unchanged or open. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/pvad-github-required-checks-candidate.json",
@@ -1519,144 +1139,44 @@
       "boundaryGuide": "docs/pvad-github-cutover-plan.md"
     },
     {
-      "path": "docs/pvad-http-compatibility.md",
-      "sha256": "aad349ef3dda48c0b62a83be7fbba97ed584659488f7a1a2076354286da21b77",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten.",
-      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
-    },
-    {
       "path": "docs/pvad-identity-compatibility.md",
-      "sha256": "91465c7fd7e8943232348451a5510793665e83f4a8d385a4fec87767d9b7c810",
+      "sha256": "bb3c9e22bcee321506917993c03527ab8bd526ce2bddaea71ea22f6816b08ee0",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "docs/pvad-infrastructure-mapping.md",
-      "sha256": "74575566501fa213be53f4baa84eb9519548f1c9391394c309e7c4d5002e9bc3",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
-      "path": "docs/pvad-license-and-job-compatibility.md",
-      "sha256": "9b4a6f4e6d9a1e0823941ab5663cce431d6ab523b10eaaa9756c0058686b7b89",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/pvad-local-staging-validation.md",
-      "sha256": "d2f02860d36220e38cb588129734f0b40cf1f74d1a2a8beb4a9787f79730f684",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 localhost staging follow-up: reviewed retained legacy API diagnostics, historical archive/repository/environment names and checklist links. Local Nginx/authentication/recovery evidence is explicitly not external staging, publication, production key recovery or version rollback approval. Existing compatibility readers and historical evidence remain unchanged. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/pvad-observability-identity.md",
-      "sha256": "28e711ceb99d2dba68be2c372e460c500ccba4a4d738ffb60dbd03a6f4f6d207",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Fresh Compose defaults use PVAD; remaining old names describe explicit legacy overlays, verified existing bindings, stable monitoring/crypto/diagnostic identities or synthetic compatibility tests. Focused source/configuration checks passed; no live resource migration or release approval is claimed. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
-      "sha256": "91f08fee6b7fd1ba65128323f99b6447e590ec651d89126c49b35f9f995a74aa",
+      "sha256": "273e8b975b410dd5de9cd3be1783dddefab8f1215e3eb27036cd609cf72a9bc6",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Clarify new monitoring writer labels and dual-generation readers without rewriting history or approving installed infrastructure changes. 2026-10-30 policy review: repeated checklist notices are no longer required or generated. Exact legacy path/reader/diagnostic references and original checkpoints remain documented; editorial normalization does not change runtime contracts, approve publication or complete tasks. Naming and path-migration tests cover the updated policy. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/pvad-rename-migration-notes.md",
-      "sha256": "9c0684db49c4cc0241bf7e87420c55c5511988c3e6a3afcb05dcee6f9f13de11",
+      "sha256": "1728aa0dd5a40494e023f91a861c895ca0d93c4d3b8f2f10f22de07545ed17c5",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 visible-identity review: Remaining old names explain signed/protected compatibility, retained source evidence, neutral drawing terminology or existing audit links, not current product branding. No historical bytes, keys or transport contracts are rewritten. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-infrastructure-mapping.md"
-    },
-    {
-      "path": "docs/pvad-rename-phase-review.md",
-      "sha256": "52b6b2f2aac7b6ffe60934c36cb1617857ad3a10045911ead94b012cb1ab58c9",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "7efa0e1cf55f478e690f99648fb9167f14cdb900f5d16c1fe86c2ac46ee08b9f",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-30 scoped approval-register review: retain historical package/environment evidence and record the authorized develop activation and never-merged rejection probe. Ordinary GitHub review remains separate from independent production approval; main and environment cutover are not authorized by this acceptance. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
-      "path": "docs/pvad-rename-rollback.md",
-      "sha256": "4dbe063917ef42ce988e869612228a6d056986cc3cf518acd70632cceab2787f",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "docs/pvad-rename-rollback.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/pvad-rename-validation-blockers.md",
-      "sha256": "c8e89a663b89d7250b4440f6f9c7596b5509aa91b21582db1625941f29b11920",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped dependency follow-up: preserve original compatibility and build evidence. Link the subsequent package remediation without relabeling earlier images as patched; runtime deployment, license approval and rename gates remain separate.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/pvad-schema-and-client-contracts.md",
-      "sha256": "3181382a6db18998282d0b370dffb2655321ac119ad4121d74e1b793cb1080a7",
+      "sha256": "bbbaa99cb23cd83dc7e11f0a9177f1e596f62e9924aee9cf06e0976618d4c001",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Current canonical schema guidance documents retained historical aliases and legacy native constraints; no signed evidence, archive bytes or hosted endpoints are claimed changed.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "docs/pvad-serialized-contract-inventory.md",
-      "sha256": "2df48178a35001a32c4d85b609cebc00686bdeccdebb6e64a5230e4ef9029bc3",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
       "path": "docs/schema/openapi.json",
@@ -1719,16 +1239,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "handoff.md",
-      "sha256": "03362ca9bece4cffa530e18e528142558905c4b653fc0800d79b26e76b1bfde4",
-      "reasons": [
-        "historical-document"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "handoff.md: Retain original historical notes and before/after audit identities so earlier implementation decisions and rename evidence remain understandable. 2026-10-30 owner-approved editorial normalization supersedes the earlier repeated-notice policy: banners removed; ordinary product prose and examples use PVAD/PVADE. Task states and recorded results are unchanged. Remaining literals are original audit/run evidence, retained compatibility values, historical source references or neutral drawing terminology; original wording remains in Git.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "implementation_plan.md",
       "sha256": "0bc327f6bb39d37d3af4492722119950b28f2b001b8c7142d93d473e19bcca1f",
       "reasons": [
@@ -1736,26 +1246,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "implementation_plan.md: Retain original historical notes and before/after audit identities so earlier implementation decisions and rename evidence remain understandable. 2026-10-30 owner-approved editorial normalization supersedes the earlier repeated-notice policy: banners removed; ordinary product prose and examples use PVAD/PVADE. Task states and recorded results are unchanged. Remaining literals are original audit/run evidence, retained compatibility values, historical source references or neutral drawing terminology; original wording remains in Git.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "operator-docs/PVAD.Admin-Operations.md",
-      "sha256": "78992a12c24861fd9509f321ed64e7473fa09fe60b2a081a229ab7aa998779e1",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current guidance documents canonical auth defaults and explicit legacy overrides; old authentication header names are compatibility security contracts, not current product naming.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md",
-      "sha256": "fc2fe4c4fecca684ae8cdbf5662188826ab5c8720a4561aa59dd521bfaa3e133",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "New examples match canonical backup output; preserve installed paths, original backup/checksum files, legacy environment aliases and exact destructive-restore confirmation.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -1799,86 +1289,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "product-metadata/legal-documents/en/cookie-storage.md",
-      "sha256": "4d7ad465401ba0349e613e50e1c80b3613bdb10c07234ade18eb211d071b47ac",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/cookie-storage.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/dpa.md",
-      "sha256": "0f0c7cb37d76f664bfda96dec20cc50a7c3f47fe379786ab5fd12a0fb1a81b76",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/dpa.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/imprint.md",
-      "sha256": "3c6ba079d416756a78d193f0c8abe50924de15afc141883c9be971848e078090",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/imprint.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/license.md",
-      "sha256": "a98f0a4353f8c6a2a6ef99e76158a2d2e19ca7a69b27a4f68cc7ef63a579a4d6",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/license.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/manifest.json",
-      "sha256": "b6a0afe31609c289d6d84740b67d661b7363cedd12de19b536ed53440772938c",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/manifest.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/privacy.md",
-      "sha256": "e514a4a1824971b296df0d81b50121901f034ee7884cdb3e4faf0cb0699d09f8",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/privacy.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/terms.md",
-      "sha256": "56d4d706405d79169a52af87afce523361ad2586ede40c09595c68dfa24c1791",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/terms.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "product-metadata/legal-documents/en/withdrawal.md",
-      "sha256": "1c37d0a4b68c94fc87d8defbbaeaa99cda1672e0b25dd973ce273befd79cee3a",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "product-metadata/legal-documents/en/withdrawal.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "product-metadata/pdf-trust/standards-baseline.json",
       "sha256": "56d6e7a3e0fdfeb3eb0ac189a4e9288ba86e8d6bddf39059a83a214c387d9c41",
       "reasons": [
@@ -1916,16 +1326,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "product-metadata/release-fragments/release-1.1.0-verification.json: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "PROJECT_SUMMARY.md",
-      "sha256": "b0427e646cb353227a672d8340c88938b5f4d2e45018dfb8dc9bae733edad04f",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PROJECT_SUMMARY.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3613,12 +3013,12 @@
     },
     {
       "path": "README.md",
-      "sha256": "5be06e57ab3b7b140f73e8a42d2969dc9f66c0a82301d4137245f81df74ca9a1",
+      "sha256": "fb62cd8d8ab7fcf65aacd3f40b118613e683cf1e21b54235b1f4f92f55fbb496",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "README.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4643,13 +4043,13 @@
     },
     {
       "path": "TESTING.md",
-      "sha256": "b0cd740d5f970b0868a8a4ef0e628bcb50f46ea27150d16004ebdc459fd5202f",
+      "sha256": "4754a1c7cb12934eaba3ce1528d463401a2fd28e73aacf8f9ce8881f59e83d57",
       "reasons": [
         "compatibility-contract",
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "TESTING.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 integration review: Current commands use canonical paths; the original dependency review link and explanations of old evidence retain their historical identities. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4930,12 +4330,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/LegalDocumentGovernanceTests.cs",
-      "sha256": "38a4ded54ae8f23c32973b8c03951aab36bf302ab3ef09f7a66dfa59ea37d252",
+      "sha256": "21918b8626bfe3f01aaadbdd2cb20563442f3e476237bfe968a564e2082263ad",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/LegalDocumentGovernanceTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5935,16 +5335,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/README.md",
-      "sha256": "0b8f4271d7b62624d3f3bc8ea23661e469b8fb97f9bbb490b567e9cd2500b5c0",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Only the runnable opt-in test command uses the canonical environment key; corpus history and immutable fixture bytes, hashes and expected outcomes remain unchanged.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/Sources/chromium-encoded-glyphs.html",
       "sha256": "913b481168c5521da3b614b8f7a0d0141f23d8567c40a39d830b3b1c04f5cdf3",
       "reasons": [
@@ -6566,13 +5956,13 @@
     },
     {
       "path": "tools/configuration/documentation-rename.test.mjs",
-      "sha256": "8dbe9c1e916e938c047f7202a86d0c052241341544900b71ea647d693f5907ae",
+      "sha256": "5d929a6d953a554fb003d94549120b1579daa7278575c11239166bf915b8c3a4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Naming contracts preserve explicit legacy inputs and compatibility assertions while checking canonical checklist paths, internal milestone IDs, current links and the absence of repeated banners. Historical checklist bodies remain bounded exceptions. Tests do not change runtime readers, reapprove recorded results or authorize publication. 2026-10-30 migration checklist review: current prose, examples, routes and project references use the renamed contracts. Original verification commands, test counts, explicit legacy adapters and vendor identifiers remain unchanged. No provider result or release gate is reapproved. 2026-10-30 repository-wide Markdown path review: current source navigation, API references and runnable instructions use the renamed contracts. Recorded results, diagnostic identifiers, explicit legacy adapters and original audits are unchanged; canonical paths do not imply a new test run or release approval.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/configuration/environment.mjs",
@@ -6706,12 +6096,12 @@
     },
     {
       "path": "tools/configuration/rename-boundaries.test.mjs",
-      "sha256": "6d0301eb96cfa883672911da06eca5f5d709f5166bcd58486bab411e5638a43e",
+      "sha256": "3868a4f3dd16eb2e6c027ec04502e44f5623c0ef2f3a8e06a64ed4ab36a53a74",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/configuration/rename-boundaries.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. Old names occur in the rename audit/parser itself and do not rename arbitrary file contents.",
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6896,13 +6286,13 @@
     },
     {
       "path": "tools/configuration/tool-key-contract.test.mjs",
-      "sha256": "acdfed8d73b8357f7b73cc7d079255f15a1e43ad714adcf8cab82303b74047c7",
+      "sha256": "610c592ffe49d518091f67779e4dc4eb425772aab04552530363de0bafe19b70",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Caller/receiver contracts intentionally assert legacy aliases, conflict handling and evidence schema preservation; fake-dotnet launchers test canonical flags without running real suites. Final root-error wording uses PVAD; corpus signer/author identities and compatibility assertions are retained. No signed fixture regeneration.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/configuration/workflow-identity.test.mjs",
@@ -6944,16 +6334,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/deployment/pxa-deployment.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "tools/deployment/README.md",
-      "sha256": "613fc6af5ac777b45841ccf230848fe550c690b9422823af34138cd254da3337",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped offline-review guidance: retain historical image-family and environment inputs while linking the new static CI reviewer and ordered cutover/rollback plan. Local evidence does not authorize remote policy edits, verify secret values or certify deployment.",
-      "boundaryGuide": "docs/pvad-rename-release-approvals.md"
     },
     {
       "path": "tools/document-fidelity/fidelity.mjs",
@@ -7006,16 +6386,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tools/job-cutover/README.md",
-      "sha256": "1b7d1fb0292bf164963d13a9cf8936f59cf52fdfbc3bb40161a52d388aa82d49",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/job-cutover/README.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tools/job-cutover/run.mjs",
       "sha256": "adb6f002a7226666f8592b5398fca6efc611d3d7492dd1934930053c5d6ef289",
       "reasons": [
@@ -7057,13 +6427,13 @@
     },
     {
       "path": "tools/legal/README.md",
-      "sha256": "f320b3b18f0bbb649a55ab71c161f0db156ed7402e0c8269ad7db61d335dc75c",
+      "sha256": "01ac270b3ca4244814843c5f8d7562ff41196c20b0cd411260c4509c8c398030",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/legal/recovery-contract.test.mjs",
@@ -7117,12 +6487,12 @@
     },
     {
       "path": "tools/legal/validate-legal-content.mjs",
-      "sha256": "7fab417791e9e8f8759c0ac3d305356ba605d6b70c8fa942a9626346c7ce33f1",
+      "sha256": "17178d697a5152cee3286180968296191fd059c7bfc55a76e338f78c8ebea557",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/legal/validate-legal-content.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -7183,16 +6553,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Local encryption-check fallback now matches the canonical image produced by the corpus helper. Remaining old strings are preserved fixture passwords/test inputs; fixture bytes and archived tool provenance are not changed. Source/configuration contracts pass; Docker interoperability was not rerun.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
-    },
-    {
-      "path": "tools/pdf-security/README.md",
-      "sha256": "87eed6b0084cf52c6dff69dd099a0cb3dc75fdf54c42f9c84e0204a2cf622da7",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Operator examples use current names and distinguish unverified target hosts from retained runtime defaults. Remaining old names document configuration aliases, actual backup/restore contracts, synthetic legacy drills or historical evidence. Twenty-four focused contracts pass; no secret moves, database changes, live host validation or deployment was performed.",
       "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
@@ -7286,16 +6646,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tools/pdfa/README.md",
-      "sha256": "74b18e9a3ea684ffa2fe1086f0722b51b7add644c92f491013e8f396b2b22822",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "CI naming follow-up: fresh PDF/A artifact names and new SBOM namespace identifiers use PVAD consistently. Remaining old names are stable diagnostics, intentional test-document metadata, unrelated deployment compatibility boundaries or historical evidence references. Six static workflow contracts passed; full GitHub CI and PDF generation were not run.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tools/pdfa/validate-pdfa-secondary.sh",
       "sha256": "1883c5eddf3b51166a4ad64bbcfcbb50f1a7a005a3a2368099fa5f6cd828c35f",
       "reasons": [
@@ -7370,13 +6720,13 @@
     },
     {
       "path": "tools/PVAD.Mcp/README.md",
-      "sha256": "3b1a85ca34c54baa4477a4dd4a7a0234bae88fc6d0e5125f2cad8864f64bcfb8",
+      "sha256": "761c54241d9a1cbfe58fcd9e7a35f01c7918ba6e33b519667093d1127c58f50f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/PVAD.Mcp/scripts/build.mjs",
@@ -7560,16 +6910,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "tools/versioning/README.md",
-      "sha256": "110825cae6e6dde4f149dac07b51fafe7f1d0ace0685d61a44a46ff6d890fc78",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/versioning/README.md: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "tools/visual-parity/run.mjs",
       "sha256": "3e10b5d48df6dbdbaaff09b14096e6073d93d0449a87ab0d17308e145cb751cf",
       "reasons": [
@@ -7581,13 +6921,13 @@
     },
     {
       "path": "websites/HOSTING.md",
-      "sha256": "6aaaf261bede1db5da1bdbdfd7a0cc847189de8b2d1145ed3378099385728083",
+      "sha256": "aa058fda8ccf7dcf5271007960b97f976eb7798a1b1697384114ee4e4ef22e68",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Document approved sender naming separately from SMTP/provider readiness; preserve legacy configuration aliases and host-only security boundaries.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "websites/PVAD.Account/src/api.ts",
@@ -7738,26 +7078,6 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "websites/PVAD.Admin/tests/export-branding.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "websites/PVAD.Admin/tests/release-notes-contract.test.js",
-      "sha256": "54a90be34af32f162dd77cd2d7cfafeba4e8269772d8d0162e6961bb23f5e73a",
-      "reasons": [
-        "test-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Admin/tests/release-notes-contract.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "websites/PVAD.Company/COMPANY_STRATEGY.md",
-      "sha256": "6545c2debe5547d2a4b32f179a8e8c480745dac3c1383551db09fe5dabb67ea3",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Current product origins match backend defaults; legacy configuration keys remain explicit aliases. DNS, OAuth callbacks and sender readiness remain deployment gates.",
-      "boundaryGuide": "docs/pvad-rename-migration-notes.md"
     },
     {
       "path": "websites/PVAD.Company/src/main.js",
@@ -7927,16 +7247,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/qpdf-aes256-unicode.expected.json: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/README.md",
-      "sha256": "6711d0d5d21716a7d82056ca10cea94cd634a49ba8392c8872b128ca2fa5ff63",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Documentation naming-only review: current captions/source paths and explicitly proposed host examples updated; legacy aliases, diagnostics, historical checklist status and signed corpus evidence retained. No build, link/browser test or deployment approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8220,16 +7530,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/README.md",
-      "sha256": "f4a449ed75f2c69c83262cc61cd6c8448f3a5c15b13a4eac9091b0fdbbcc9408",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/README.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pades-corpus.json",
       "sha256": "a5aa05b332ab3f08dbb8eef7624a7372497f39c79da66986f4440bcba509cd69",
       "reasons": [
@@ -8340,16 +7640,6 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
-      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/README.md",
-      "sha256": "b944f280f5ffd05f35311e8ac8cb2b81c5ad3ec2e57de2411e0b47335b1edc96",
-      "reasons": [
-        "retained-evidence"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/README.md: Retain authored source fixtures, legal/publication wording, evidence filenames, stable corpus IDs, signed subjects and historical result schemas; do not rebrand customer text or invalidate recorded evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
       "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/redaction-risk.expected.json",
       "sha256": "036ffc5dc85d1f193d41a69071c768d20e3a62f7ad4d44fe3430a934aecec6e0",
       "reasons": [
@@ -8427,16 +7717,6 @@
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "websites/PVAD.Documentation/tests/pdf-trust-documentation-contract.test.js: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
-    },
-    {
-      "path": "websites/README.md",
-      "sha256": "2481010fb58c681c59f35d924272c28bfdf3ae3b2f2b9560eddb7ed42c947e87",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Documentation naming-only review: current captions/source paths and explicitly proposed host examples updated; legacy aliases, diagnostics, historical checklist status and signed corpus evidence retained. No build, link/browser test or deployment approval is implied.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8574,13 +7854,13 @@
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
-      "sha256": "b23726740746725e42c66e7a6b66444528d7f99568451f7ebf3fbfce2e822ae7",
+      "sha256": "17d76f5fa20aa842e2b1f4bde8577ba0f60bbe23bd02b8580e6464e80edf89d3",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-26 scoped contract update: the container target is selected independently of unchanged mail-disabled settings and unselected NuGet/npm publishers. Existing legacy dashboard IDs and compatibility guide assertions remain intentional test inputs, not product branding.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/configuration/rename-container-workflows.mjs",
@@ -8643,26 +7923,6 @@
       "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
     },
     {
-      "path": "docs/pvad-api-problem-and-health-identities.md",
-      "sha256": "d5ef69b01b9f592b5ad766804c164a0e45391b780079ae4dbfebc4e6055f986e",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Explain canonical writers and bounded legacy readers without relabeling stored history, redefining diagnostics, changing physical databases or claiming URI hosting/live deployment.",
-      "boundaryGuide": "docs/pvad-api-problem-and-health-identities.md"
-    },
-    {
-      "path": "docs/pvad-migration-artifact-identities.md",
-      "sha256": "c43ca6f83118081da570ba156bb7831ca75a98298aca7c9f373584f94ff3db64",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "Migration artifact writer follow-up reviewed: current outputs use PVAD identities; residual old names document or implement bounded legacy readers, compatibility outputs, stable diagnostics, neutral drawing APIs and retained rename evidence. No saved package or external binding is rewritten. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
-    },
-    {
       "path": "pvad-designer/src/__tests__/migrationArtifacts.test.ts",
       "sha256": "41290d89c11632a8cd00e4d873b48aa5e8d2d708833015bed3518862125da1e6",
       "reasons": [
@@ -8703,16 +7963,6 @@
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
     },
     {
-      "path": "docs/pvad-oauth-client-transition.md",
-      "sha256": "aeb1d996418ea3514c94a27e76b254ee8511694baf08ee25dfec9ede277cc574",
-      "reasons": [
-        "compatibility-contract"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "OAuth/MCP writer transition reviewed: new identities and scope discovery are canonical; remaining old names document or implement exact retained client/scope readers, protected purposes and historical evidence. No installed store, issued token, permission boundary or external binding is rewritten by naming replacement. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
-    },
-    {
       "path": "tests/PVAD.Api.Tests/PvadOAuthClientTransitionTests.cs",
       "sha256": "e36f794ae7eb876fcd69739a89e7c5e1ee73c5a8572b4f23d556796bb9b7b1f5",
       "reasons": [
@@ -8723,24 +7973,14 @@
       "boundaryGuide": "docs/pvad-oauth-client-transition.md"
     },
     {
-      "path": "docs/pvad-final-candidate-validation.md",
-      "sha256": "2a628c20c3fec4bf57175481d4b86f253977a3460632184eed6ec47655439992",
-      "reasons": [
-        "historical-document"
-      ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Follow-up 2026-10-25: reviewed committed-candidate evidence for 16c4264e; preserve historical results, unresolved manual print acceptance and external release boundaries. No additional rename exception is approved. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. 2026-10-25 scoped native-platform review: retain historical compatibility names and checklist links. The owner selected macOS/Chrome and generic test icons; actual association/import/revocation/uninstall evidence closes only that local scope. Preserve earlier source-specific results and unapproved manual, other-platform and external-release boundaries. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged.",
-      "boundaryGuide": "docs/pvad-final-candidate-validation.md"
-    },
-    {
       "path": "docs/pvad-code-workspace-apply-validation.md",
+      "sha256": "33db26a75c433a4f3d11fd22063e61de13f264db21b43edad1275ec8dfff4166",
       "reasons": [
         "historical-document"
       ],
-      "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "sha256": "1eb739ead7d487e7e90edbebe128ece9efb0b0839f9492a4357f95559dd37955",
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-25 scoped Code Apply and Nginx follow-up review: retained legacy diagnostics, readers, synthetic compatibility inputs, history and neutral drawing terms are intentional. Current UI/API names remain PVAD/PVADE. Evidence and remaining manual/final-candidate limits are recorded in docs/pvad-code-workspace-apply-validation.md; no blanket release, cutover, legal or registry approval is implied. Acceptance update 2026-10-25: reviewed user-confirmed Chrome print acceptance and the 89/98 local-gate total. Preserve historical execution evidence and the separate external release boundaries; no production or hardware approval. Scoped editorial follow-up updates current links or internal planning IDs only; recorded outcomes and compatibility values are unchanged."
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "pvad-designer/e2e/support/rename-rendering-checks.ts",
@@ -8754,22 +7994,22 @@
     },
     {
       "path": "checklists/PVAD.Dependency-PR-Review-2026-10-26.md",
-      "sha256": "407f5b8e16ad57fa9c9d9cf3f3f2133d588feee7d68558033ce78f669767be72",
+      "sha256": "08837f545f9431bb91880917a7a395ee58a828ddde66f4b31b19b99e71551a69",
       "reasons": [
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Dated dependency review retains original branch names, source paths, diagnostics and CI outcomes. Only the editorial filename and current links are normalized. Existing task states and recorded results remain unchanged; the review does not require a repeated naming-history banner or imply new implementation, publication or independent production approval.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "docs/pvad-rename-develop-integration.md",
-      "sha256": "e86acb9386f7a5a3f7f1213651cf51a0358b96ff5240b599d6f8271f5ba28ef3",
+      "sha256": "09a2e93832049d0d7b015276ea02db5243e680c3859f5f491c6f0a7a35e25326",
       "reasons": [
         "historical-document"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 integration review: The report names the actual source branch and preserves historical identity context; current technical and market naming are explicit. 2026-10-29 PR delivery review: distinguish initial local candidate evidence from actual PR checks and record unresolved validator and option-list rendering failures without waiving gates. 2026-10-29 follow-up review: record original-version validator recovery and option-list regressions, preserving the failed-run history and final CI gate. 2026-10-29 native-platform validation review: preserve compatibility inputs and prior failed-run evidence; compare persisted timestamps and record explicit owner approval of separate Linux visual references.",
+      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8881,23 +8121,73 @@
     },
     {
       "path": "tools/configuration/markdown-path-audit.mjs",
-      "sha256": "2a8583dd1ba2831b24ae9eb35953b41d6c9aa1ccd8c80252dc8832ee84da7546",
+      "sha256": "7cf1496177e4199a4bc4b77b3007979084a741db8f7f964adf4fd52eb7fc3374",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Read-only tracked Markdown audit and synthetic path-extraction tests deliberately contain previous-name detection patterns and original input examples. They do not restore old product writers, follow local symlinks, inspect private IDE files or approve blanket replacement of historical records.",
-      "boundaryGuide": "docs/pvad-checklist-naming.md"
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "tools/configuration/markdown-path-audit.test.mjs",
-      "sha256": "db43c57b1bc419b39912f13d04bb94d847be20c2a2764b2b0bce9cdcc493a35f",
+      "sha256": "2633c8003f861b528130e9ed357a98b07ac96635738aeac28019b9ed152871e0",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Read-only tracked Markdown audit and synthetic path-extraction tests deliberately contain previous-name detection patterns and original input examples. They do not restore old product writers, follow local symlinks, inspect private IDE files or approve blanket replacement of historical records.",
-      "boundaryGuide": "docs/pvad-checklist-naming.md"
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "checklists/PVAD.Markdown-Naming-Audit.json",
+      "sha256": "066f02bcca9f51100e988feb670b4ba75be8f20b86200ac161245d27be9c66cb",
+      "reasons": [
+        "retained-evidence"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Complete tracked-Markdown occurrence inventory at commit 30496722, verified against Git hashes and exact positions. This JSON preserves source token provenance only, not an executable contract or publication approval.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "docs/reference/compatibility-identifiers.v1.json",
+      "sha256": "19667963b4e062821e81be371c9e81d0ae1df5b33c54fa9b9c237d76f4960906",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Exact documented legacy values and explanatory excerpts, with explicit source and visibility. Public and operator registers are disjoint; infrastructure and recovery values remain restricted. Null canonical aliases do not invent runtime support. No runtime value is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "operator-docs/compatibility-identifiers.v1.json",
+      "sha256": "dcf3766a2c70390f69a9d5bd6c0c6e1bab0a3cb128692b737815ed02f6e46902",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Exact documented legacy values and explanatory excerpts, with explicit source and visibility. Public and operator registers are disjoint; infrastructure and recovery values remain restricted. Null canonical aliases do not invent runtime support. No runtime value is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/LegalContentCatalogTests.cs",
+      "sha256": "0f7a38ba02633f5a50ca00af153af898583d8a054c15c080feefb5f2da9c6442",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "tools/configuration/markdown-naming-cleanup.test.mjs",
+      "sha256": "c17ebb3ed358d8291f18adc856d316ff21e512d8543f88bf5535090eb02a3136",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Markdown full-text cleanup review: retain synthetic compatibility assertions and the exact existing runtime identifiers. Updated checks reference versioned registers rather than requiring legacy Markdown literals. No runtime, infrastructure, accepted Legal or published release identity is renamed.",
+      "boundaryGuide": "docs/pvad-rename-exceptions.md"
     }
   ],
   "reviewStatus": "reviewed"

@@ -1,5 +1,8 @@
 # PVAD Migration: iText7
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using iText7.
@@ -72,7 +75,7 @@
 - [x] Convert simple kernel `PdfCanvas.BeginText().MoveText(...).ShowText(...).EndText()` text drawing
 - [x] Convert separated kernel `PdfCanvas` text state sequence: `BeginText(); MoveText(...); ShowText(...); EndText();`
 - [x] Remove `PdfCanvas` local variables only when all usages are migrated
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IText7.Tests/PXA.Migration.Pdf.Code.IText7.Tests.csproj --no-restore --no-build`: `15/15` passed
+- [x] Recorded result: `15/15` passed Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.IText7.Tests/PVAD.Migration.Pdf.Code.IText7.Tests.csproj --no-restore --no-build`.
 - [x] Connect WebApi iText7 converter to the Roslyn migration engine
 - [x] Add support for explicit coordinate text via `ShowTextAligned(...)`
 - [x] Add support for simple kernel `PdfCanvas` drawing APIs
@@ -85,8 +88,8 @@
 - [x] `Paragraph.SetFontSize(N)` font size extraction → `CANMIGITEXT018` diagnostic
 - [x] Paragraph fluent chain unwrapping (`.SetBold()`, `.SetFont()`, etc. ignored, text and size extracted)
 - [x] `ShowTextAligned` with `SetFontSize` chaining
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IText7.Tests`: `20/20` passed
-- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
+- [x] Recorded result: `20/20` passed Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.IText7.Tests`.
+- [x] Recorded result: `22/22` passed Current rerun reference: `dotnet test tests/PVAD.Api.Tests`.
 - [ ] Replace syntax-only matching with semantic matching before broad rollout
 
 ## Mapping Table Placeholders

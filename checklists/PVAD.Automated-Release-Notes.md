@@ -136,7 +136,7 @@
 - [x] Run `Prepare PVADE Release` only after explicit approval and complete the reviewed `v1.1.0` stable release.
 - [ ] Implement production deployment approvals, audit records, retry behavior, and rollback validation in a later phase.
 
-## PXA 1.1.0 Verification Record
+## PVAD 1.1.0 Verification Record
 
 - [x] Aggregate nine pending fragments into one deterministic Minor release.
 - [x] Review and merge release preparation pull request [#52](https://github.com/silentdevcore/Canvas/pull/52).
@@ -149,7 +149,7 @@
 
 ## Deployment Control Foundation
 
-- [x] Add protected `pxa-staging` and approval-gated `pxa-production` GitHub Environments.
+- [x] Add protected operator-only compatibility entry `compat-045dd7604897` (available in the protected operator register) and approval-gated operator-only compatibility entry `compat-12cb4afd68ce` (available in the protected operator register) GitHub Environments.
 - [x] Serialize deployment validation independently for each environment.
 - [x] Require explicit operator confirmation and validate deploy, retry, and rollback inputs before downloading artifacts.
 - [x] Resolve only an existing immutable stable `vX.Y.Z` tag without changing `VERSION` or release notes.

@@ -22,7 +22,7 @@
   - `https://demos.pvade.com/` for Demo
   - `https://account.pvade.com/` for Account
 - Keep local development ports unchanged for now: Company `5173`, Documentation `5174`, Demo `5175`, Account `5178`.
-- New deployment configuration uses `VITE_PVAD_*_URL`; `VITE_PXA_*` remains a
+- New deployment configuration uses `VITE_PVAD_*_URL`; [compatibility entry `compat-cf81925cfc3b`](../../docs/reference/compatibility-identifiers.v1.json) remains a
   conflict-checked compatibility input. Configure installed origins explicitly
   when retaining legacy hosts. Backend product-return and Designer handoff defaults
   match the chosen product origins without automatically trusting old domains.

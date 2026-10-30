@@ -18,8 +18,8 @@ by changing artifact identities. Neutral `design` JSON remains unchanged.
 
 ## Compatibility Boundary
 
-For one major release, `/api/pxa/v1/migrations` adapters retain the original
-primary artifact tuples and Viewer `kind: pxa.pdf-viewer-package`. They include
+For one major release, [compatibility entry `compat-dc3e6a2f7970`](reference/compatibility-identifiers.v1.json) adapters retain the original
+primary artifact tuples and Viewer [compatibility entry `compat-ed65f665f3d0`](reference/compatibility-identifiers.v1.json). They include
 the canonical projections. The middleware's internal request marker preserves
 this behavior after routing to the canonical path; no client header can request
 that internal marker. The static provider registry remains canonical and is not

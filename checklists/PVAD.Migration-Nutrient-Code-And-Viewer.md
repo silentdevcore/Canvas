@@ -25,7 +25,7 @@ represented as successfully migrated.
 - [x] Registered canonical code provider `nutrient`, GdPicture aliases, WebApi
   converter metadata, and provider-specific Designer authorization.
 - [x] Added the first isolated Nutrient Viewer project and initial
-  `POST /api/pxa/v1/migrations/pdf/viewer/convert` endpoint, now a compatibility alias.
+  [compatibility entry `compat-7e84f6821c46`](../docs/reference/compatibility-identifiers.v1.json) endpoint, now a compatibility alias.
 - [x] Added typed PSPDFKit Instant JSON v1 conversion for the currently
   supported PVADE annotation families, page geometry, rotation, CropBox offsets,
   ID remapping, and redaction-mark warnings.

@@ -1,4 +1,5 @@
 import { resolvePvadDevApiTarget } from "../../tools/configuration/environment.mjs";
+import { publicCompatibilityRegisterPlugin } from '../shared/compatibilityRegister.js';
 const apiTarget = resolvePvadDevApiTarget();
 import {
   pvadBuildInfoPlugin,
@@ -11,7 +12,7 @@ const buildInfo = readPvadBuildInfo();
 
 export default {
   define: pvadVersionDefines(buildInfo),
-  plugins: [pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Account')],
+  plugins: [pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Account'), publicCompatibilityRegisterPlugin()],
   server: {
     port: 5178,
     strictPort: true,

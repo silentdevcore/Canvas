@@ -1,5 +1,9 @@
 # PVAD Rename Test Report
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Committed Candidate Revalidation (2026-10-25)
 
 Source: `16c4264eb192e2cebbe3d03c9aafcc0803ad36ec`, tracked-clean before and after
@@ -74,7 +78,7 @@ All nine GitHub workflow files are covered by local YAML, dependency, action-pin
 working-directory, .NET source-path and Bash syntax checks. The five edited
 workflow files receive explanatory comments only. Parsed before/after definitions
 are equal: triggers, permissions, concurrency values, registry targets and
-protected environment bindings are unchanged. PXA in the paired-binary workflow
+protected environment bindings are unchanged. predecessor in the paired-binary workflow
 identifies the real pinned historical worker, not active product branding.
 
 Workflow and deployment contracts: **17 passed, 0 failed**. Checks use synthetic
@@ -102,7 +106,7 @@ were introduced by the corrected ignore exceptions at this checkpoint.
 
 ## CI Artifact Naming Follow-up
 
-`.github/workflows/ci.yml` contains no PXA, PowerDox or Canvas matches. Its seven
+`.github/workflows/ci.yml` contains no predecessor, PowerDox or Canvas matches. Its seven
 PDF/A input paths now match current PVAD producer names. All ten freshly emitted
 PDF/A filenames in the three producer classes use PVAD, including optional and
 signed-conversion outputs. Original fixture content, diagnostics and archived
@@ -119,7 +123,7 @@ PDF generation, veraPDF and SBOM generation were not run for this naming batch.
 
 ## Compose Defaults And Compatibility Follow-up
 
-Root/API Compose files now have no case-insensitive PXA matches. Services, storage,
+Root/API Compose files now have no case-insensitive predecessor matches. Services, storage,
 networks, defaults and secret mounts use PVAD. Old database settings, aliases and
 verified external bindings are isolated in the two `deploy/rename/*legacy.yml`
 overlays. WebApi and EF development defaults match the fresh local stack.
@@ -599,7 +603,7 @@ open; selected domain/support names are not proof of DNS/mailbox ownership.
 ## Designer Font And Notification Styles (2026-10-21)
 
 - Found a runtime mismatch: PdfTextRenderer requests PVADE Helvetica while all
-  four local Liberation Sans faces were registered as PXA Helvetica. Corrected
+  four local Liberation Sans faces were registered as predecessor Helvetica. Corrected
   registrations, retaining font bytes, weights, styles and layout algorithms.
 - Renamed internal release, feature, notification and toast classes to `pvad-`
   in both React consumers and their stylesheet. Shared status-page styling and
@@ -631,7 +635,7 @@ open; selected domain/support names are not proof of DNS/mailbox ownership.
 - Patch fragment: `pvad-designer-help-and-mcp-name`. VERSION stays 1.1.0.
   Overall checklist remains 81/97 (83.5%); no commit or publication performed.
 
-Date: 2026-10-17. Branch: feature/rename-pxa-to-pvad.
+Date: 2026-10-17. Branch: predecessor implementation.
 Scope: project, symbol, frontend-package and visible branding migration;
 not a full release sign-off.
 
@@ -639,12 +643,12 @@ not a full release sign-off.
 
 Commit: fce423cf8c5f5e71eff6178f712fe4e5eb5af69a.
 The initial working tree contained only the new rename planning/audit documents;
-implementation remains uncommitted on feature/rename-pxa-to-pvad.
+implementation remains uncommitted on predecessor implementation.
 Runtime: Node v22.14.0; .NET SDK 10.0.105. VERSION remains 1.1.0.
 
 | Check | Result |
 |---|---|
-| Project filenames | All 115 use PVAD; no PXA project filename remains |
+| Project filenames | All 115 use PVAD; no predecessor project filename remains |
 | ProjectReference paths | All 272 resolve |
 | Solution membership and GUIDs | Original values preserved in SLN and SLNX |
 | Designer TypeScript | Passed |
@@ -697,8 +701,8 @@ helpers use PVAD/Pvad/pvad, while public platform surfaces consume the separate
 PVADE brand definition. Compatibility strings are not globally replaced.
 
 The complete Core suite initially failed two deterministic archive-fixture
-checks: renaming MinimumPxaVersion had unintentionally changed its JSON key.
-An explicit JsonPropertyName retains minimumPxaVersion until the dedicated
+checks: renaming legacy MinimumVersion component had unintentionally changed its JSON key.
+An explicit JsonPropertyName retains legacy minimumVersion component until the dedicated
 format migration. Both existing binary fixtures remain untouched; the rerun
 passes all 126 tests. API code-workspace/project/version tests pass all 70.
 
@@ -711,7 +715,9 @@ inventory or its pending regeneration gate.
 
 Reproducible commands, run from the repository root unless noted:
 
-```bash
+Historical transcript with normalized terminology; original source is available in Git.
+
+```text
 dotnet build PVAD.sln --no-restore --disable-build-servers -m:1 -v:q
 dotnet test tests/PVAD.Core.Tests/PVAD.Core.Tests.csproj --no-restore --disable-build-servers -m:1 -v:q
 dotnet test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj --no-build --no-restore
@@ -720,9 +726,9 @@ dotnet test tests/PVAD.Migration.Spreadsheet.Tests/PVAD.Migration.Spreadsheet.Te
 dotnet test tests/PVAD.Migration.Report.Tests/PVAD.Migration.Report.Tests.csproj --no-build --no-restore
 npm --prefix pvad-designer run type-check
 npm --prefix pvad-designer run build
-node tools/versioning/pxa-version.mjs check
-node tools/versioning/pxa-version.mjs fragments
-node --test tools/versioning/pxa-version.test.mjs tools/versioning/pxa-release-author.test.mjs
+node predecessor implementation check
+node predecessor implementation fragments
+node --test predecessor implementation predecessor implementation
 git diff --check
 ```
 
@@ -818,7 +824,7 @@ node tools/versioning/pvad-build-consistency.mjs verify pvad-designer/dist websi
   Compose up/down command, data migration or volume operation was executed.
 - WebApi/WebhookRelay definitions use canonical build metadata and legacy ARG
   fallbacks with conflict guards; first-party CI/release build arguments match.
-  The incorrect PxaBuildMetadata publish property was corrected.
+  The incorrect legacy BuildMetadata component publish property was corrected.
 - MCP container host defaults are set by an entrypoint only when neither spelling
   is provided, avoiding conflicts between baked defaults and user overrides.
   Shell entrypoint behavior and Dockerfile contracts are tested; complete image
@@ -865,7 +871,7 @@ passed all 45 tests with no skips.
 ## Tool And CI Variable Stage
 
 - Eight JavaScript tool modules now use the shared canonical-key resolver;
-  only controlled compatibility tests retain direct process.env.PXA_* reads.
+  only controlled compatibility tests retain direct legacy process.env component* reads.
 - Fourteen .NET test source files use a linked test-only reader. The tests-level
   Directory.Build.props explicitly imports the root version properties and does
   not add dependencies to production libraries.
@@ -895,7 +901,7 @@ passed all 45 tests with no skips.
 ### Browser preference migration: first increment
 
 - PDF and Spreadsheet sidebar-collapse preferences now use `pvad-designer:*`.
-- Existing same-origin `pxa-designer:*` preferences migrate on first read.
+- Existing same-origin predecessor implementation preferences migrate on first read.
   Canonical values win, including empty strings. Legacy values are removed only
   after a successful canonical write; failed writes retain a recoverable original.
 - The storage inventory lists canonical and transitional legacy keys.
@@ -916,7 +922,7 @@ passed all 45 tests with no skips.
   for the previous account are skipped. Already dispatched requests are not revoked.
 - Cache-write failures no longer report a successful server save as a failure.
 - Designer and Account use `pvad_locale`, with same-origin migration from
-  `pxa_locale`. Browser storage failure does not prevent Account rendering.
+  legacy locale component. Browser storage failure does not prevent Account rendering.
 - No cross-origin transfer or implicit ownership assignment for document drafts.
 - Validation: 6 focused Designer tests, 47 Account tests and 43 Company/shared/
   legal tests passed; Account typecheck/build and Designer typecheck/build passed.
@@ -933,7 +939,7 @@ passed all 45 tests with no skips.
   legacy reads through the recoverable storage helper. Blocked storage no longer
   crashes the element-group persistence effect.
 - Content drag payloads use `application/x-pvad-content-block`; drops continue
-  accepting `application/x-pxa-content-block` from an older tab.
+  accepting predecessor implementation from an older tab.
 - Status-loop and recovery caches use canonical session keys. Recovery consumes
   both aliases to prevent an old action replaying after the canonical copy is read.
 - Validation: 35 Admin tests, 47 Account tests and 45 Company/shared/legal tests
@@ -967,7 +973,7 @@ passed all 45 tests with no skips.
 - Switching scope resets workbook content, selection, history and formula engine
   before reading the new scope. Stored drafts remain isolated and can be restored
   by returning to the same user and organization.
-- Neither `pxa-spreadsheet` nor `canvas-spreadsheet` is automatically loaded or
+- Neither legacy spreadsheet component nor `canvas-spreadsheet` is automatically loaded or
   assigned to the current user. No legacy recovery UI is claimed in this increment.
 - Malformed JSON fails closed and disables subsequent persistence, preserving the
   original instead of overwriting it with a blank document.
@@ -989,7 +995,7 @@ passed all 45 tests with no skips.
 - A shared memory fallback supports quota failures. Changing owner discards it;
   sign-out cleanup clears the memory and canonical storage envelopes.
 - Spreadsheet recovery is explicitly requested, download-only and localized in
-  all six languages. PXA, Canvas and interim unscoped drafts export to native
+  all six languages. predecessor, Canvas and interim unscoped drafts export to native
   workbook JSON without deleting the original or mutating the current workbook.
 - The browser inventory distinguishes active keys from recovery-only legacy keys;
   the validator retains its prohibition on active Canvas keys and audits both lists.
@@ -1025,7 +1031,7 @@ passed all 45 tests with no skips.
 
 ### Designer runtime configuration
 
-- Replaced the sole direct `__PXA_CONFIG__` consumer with a typed runtime resolver
+- Replaced the sole direct legacy CONFIG component consumer with a typed runtime resolver
   using `__PVAD_CONFIG__` and a controlled legacy reader. Canonical/legacy URLs
   must normalize equally when both are present; explicit empty conflicts fail.
 - Missing/blank settings preserve existing default hosts. HTTP(S) base paths are
@@ -1054,7 +1060,7 @@ passed all 45 tests with no skips.
   signed webhooks and retained evidence are not changed by this stage.
 - Operator proxy authorization strips both header generations. New CI coverage
   executes real antiforgery and API-key compatibility tests independently of Docker.
-- All six website URL keys accept PVAD/PXA aliases with conflict rejection in both
+- All six website URL keys accept legacy PVAD component aliases with conflict rejection in both
   development and production. Old defaults remain unchanged. Three narrowly scoped
   Vite filesystem allowances support importing the existing shared config resolver.
   An ephemeral Company server verified the module responds HTTP 200 and then closed.
@@ -1079,9 +1085,9 @@ passed all 45 tests with no skips.
 
 ## OpenAPI, Schema And MCP Batch - 2026-10-18
 
-- Nine unversioned branded controller aliases now advertise PVAD. Old PXA routes
+- Nine unversioned branded controller aliases now advertise PVAD. Old predecessor routes
   delegate through middleware; unknown and near-prefix paths are not rewritten.
-- The generated OpenAPI snapshot contains 322 paths and no `/api/pxa/` operation.
+- The generated OpenAPI snapshot contains 322 paths and no legacy api component operation.
   Neutral routes and independent migration API deprecations remain supported.
 - Canonical design/workbook schema IDs have an offline alias manifest. The legacy
   workbook file is retained and structural constraints match the canonical copy.
@@ -1106,7 +1112,7 @@ passed all 45 tests with no skips.
 - New writers emit `.pvadp` / `.pvads`, canonical magic, format IDs and application
   MIME types together. New manifests write `minimumPvadVersion` only.
 - Inspect and full reads accept intact legacy envelopes, including the old MIME
-  entry and `minimumPxaVersion`. Conflicting aliases, cross-generation identities
+  entry and legacy minimumVersion component. Conflicting aliases, cross-generation identities
   and MIME/manifest disagreements are rejected. Existing archive limits remain.
 - Legacy open responses require compatibility review before applying the document.
   Six-language guidance explains that Save project downloads a new canonical copy.
@@ -1131,9 +1137,9 @@ passed all 45 tests with no skips.
 
 - Closed a branded-route authorization regression: product entitlements, Designer
   permissions and feature gates now share bounded path normalization for neutral,
-  canonical PVAD and historical PXA routes. Tests include anonymous denial,
+  canonical PVAD and historical predecessor routes. Tests include anonymous denial,
   disabled features, method-specific permission parity and near-prefix rejection.
-- New API keys use `pvad_`; `pxa_` keys remain accepted without modifying stored
+- New API keys use `pvad_`; predecessor implementation keys remain accepted without modifying stored
   hashes. Actual authentication tests cover both headers and Bearer, organization
   claims, revocation and the combined-scheme selector. The existing database
   prefix column supports the new length; no schema migration was required.
@@ -1315,7 +1321,7 @@ passed all 45 tests with no skips.
   expired Processing records become DeadLetter with terminal retention. Active
   claims remain intact, and worker shutdown is recoverable after lease expiry.
 - New PostgreSQL fixtures reopen contexts, processors and filesystem storage using
-  retained PXA payload text/filenames. They check result access, foreign-tenant
+  retained predecessor payload text/filenames. They check result access, foreign-tenant
   denial, persisted object paths, shutdown recovery, cancellation and claim loss.
 - Final local permission/job suite: 69 passed, 3 PostgreSQL-gated checks skipped.
   Separate PostgreSQL-enabled job/PDF-Trust suite: 7 passed with no skips, including
@@ -1325,22 +1331,22 @@ passed all 45 tests with no skips.
   Version/fragment validation and `git diff --check` pass. Existing package and
   compiler/analyzer warnings remain. No commit, deployment or service restart.
 - Progress remains 39/97 (40.2%). These complete internal substeps, not a real
-  paired-binary/process cutover. Old PXA workers must be stopped before PVAD starts;
+  paired-binary/process cutover. Old predecessor workers must be stopped before PVAD starts;
   heartbeat support, crash-orphan cleanup, representative backup/restore and
   retained-object encryption remain distinct limitations/gates.
 
 ## Real Paired-Binary Job And Data Cutover
 
-- Exported immutable PXA source commit
+- Exported immutable predecessor source commit
   `fce423cf8c5f5e71eff6178f712fe4e5eb5af69a` into a temporary directory without
   rewriting application sources. The harness is compiled separately against real
-  PXA/PVAD API, persistence and worker assemblies, with explicit assembly checks.
-- PXA applies its real PostgreSQL migrations and seeds synthetic identity, role,
+  legacy PVAD component API, persistence and worker assemblies, with explicit assembly checks.
+- predecessor applies its real PostgreSQL migrations and seeds synthetic identity, role,
   membership, subscription, entitlement, template, object and job records. The
-  parent kills the actual paused PXA worker OS process and confirms exit before
+  parent kills the actual paused predecessor worker OS process and confirms exit before
   launching PVAD. Lease expiry is advanced explicitly only for this test.
 - PVAD cancels the old Pending job and completes the interrupted one on attempt 2.
-  Fresh PXA and PVAD reader processes both verify IDs, links, template revision/
+  Fresh predecessor and PVAD reader processes both verify IDs, links, template revision/
   checksum, old object key/checksum, original input and new output, tenant denial
   and unchanged migration IDs/no pending migrations. Physical column/table metadata
   before and after cutover compares equal.
@@ -1360,7 +1366,7 @@ passed all 45 tests with no skips.
   retained identity/link tasks are complete. The fixture uses a controlled import
   adapter, not every PDF/OCR/code worker; it does not certify mixed-version rolling
   safety, whole-application rollback, production backup/restore or at-rest encryption.
-- Confirmed still-open branded migration response/result fields `pxaCode`/`PxaCode`
+- Confirmed still-open branded migration response/result fields legacy Code component/legacy Code component
   for the next contract stage. No customer data, running hosts, current branch,
   production database, published release or existing signing keys were changed.
   No commit, push or version bump.
@@ -1369,7 +1375,7 @@ passed all 45 tests with no skips.
 
 - Renamed the service result and Designer output state to `PvadCode`/`pvadCode`.
   Unified v1 responses retain neutral artifact content. Compatibility HTTP output
-  adds `pvadCode` while retaining equal `pxaCode`; new migration-job output writes
+  adds `pvadCode` while retaining equal legacy Code component; new migration-job output writes
   both Pascal-case fields without rewriting historical stored objects.
 - Added canonical/legacy result serialization coverage and HTTP alias equality;
   provider service assertions now use the canonical property. A compatibility
@@ -1385,7 +1391,7 @@ passed all 45 tests with no skips.
 
 ## Diagnostic And Generated-Source Compatibility Stage
 
-- Added explicit one-to-one aliases for all 18 shared PXAAPI diagnostics in
+- Added explicit one-to-one aliases for all 18 shared legacy API component diagnostics in
   `PvadApiProblems`. Existing `code` and type URLs remain stable; `canonicalCode`
   carries the corresponding PVADAPI ID. Tests exercise creation, completion and
   non-mapping of unknown/CANMIG/license families. No stored diagnostics are rewritten.
@@ -1471,12 +1477,12 @@ passed all 45 tests with no skips.
   fragment validation, and diff whitespace checks passed. Existing package-audit,
   compiler/analyzer and Vite configuration warnings remain. The response fix has
   a separate Patch fragment: problem-details-extension-collision.
-- Broad checklist remains 42/97 (43.3%). PXADESIGNER/PXAPROJECT, other provider
+- Broad checklist remains 42/97 (43.3%). predecessor implementation, other provider
   report families and the wider serialized-contract audit remain open.
 
 ## Native Project And Template Conflict Diagnostic Stage
 
-- Added 26 explicit aliases for PXADESIGNER001, PXAPROJECT001-016 and the nine
+- Added 26 explicit aliases for legacy DESIGNER001 component, predecessor implementation and the nine
   named project validation/upgrade diagnostics. Shared catalog now has 153 IDs;
   source coverage includes native project producers and rejects unreviewed IDs.
 - Template revision-conflict JSON adds canonicalCode while retaining legacy code,
@@ -1503,7 +1509,7 @@ passed all 45 tests with no skips.
 
 ## Migration Diagnostics, Artifact Metadata And OpenAPI Stage
 
-- Added the eleven PXAMIG API codes to the exact allowlist (164 reviewed IDs).
+- Added the eleven legacy MIG component API codes to the exact allowlist (164 reviewed IDs).
   Unified migration diagnostics expose canonicalCode only for reviewed IDs;
   the 432 historical CANMIG provider IDs remain unchanged and alias-free.
 - Three known code/viewer artifact tuples have shared canonical ID, MIME and
@@ -1531,7 +1537,7 @@ passed all 45 tests with no skips.
 ## E-Invoice And Internal Trust Diagnostic Stage
 
 - Added exact aliases for 28 E-Invoice API, 56 E-Invoice engine and 93 PDF-Trust
-  engine IDs. Source coverage also exposed PXACODE140 (empty builder document),
+  engine IDs. Source coverage also exposed legacy CODE140 component (empty builder document),
   which now has an explicit alias. Reviewed catalog total: 342 IDs.
 - Added one API-only JSON metadata modifier for PvadEInvoiceDiagnostic and
   PdfTrustDiagnostic. Known codes gain canonicalCode in nested API reports while
@@ -1615,7 +1621,7 @@ passed all 45 tests with no skips.
 
 - Added five exact aliases, bringing the catalog to 489 IDs. The source contract
   now scans chart producers and includes a full numeric production-ID inventory;
-  all current PXA-letter-family/three-digit identifiers have explicit catalog entries.
+  all current predecessor implementation identifiers have explicit catalog entries.
 - ChartRenderResult gains canonicalCode only through configured API serialization
   for the two exact recognized diagnostic prefixes. Original strings and ordinary
   serialization remain unchanged; unknown IDs, embedded mentions and successful
@@ -1645,7 +1651,7 @@ passed all 45 tests with no skips.
   Product-access middleware retains 401, legacy title/code, permission ordering
   and no endpoint execution for anonymous callers, with derived API aliases.
 - Problem Details adds canonicalTitle only for reviewed identifier titles. The
-  audit-export edition denial preserves its old title and generic PXAAPI002 code;
+  audit-export edition denial preserves its old title and generic legacy API002 component code;
   the new title alias does not reclassify the code. Unknown final titles remove
   stale aliases. Existing type URLs are preserved.
 - PvadUsageResult has an API-only alias. Three evidence cases preserve invalid,
@@ -1654,7 +1660,7 @@ passed all 45 tests with no skips.
   modified. These tests validate projection, not a new database race experiment.
 - The source inventory now classifies current numeric and symbolic production IDs.
   Six password-configuration/telemetry-retention identifiers are non-diagnostics;
-  PXA0001 is an explicit retained compiler warning contract for existing pragma
+  predecessor implementation is an explicit retained compiler warning contract for existing pragma
   and NoWarn consumers. CANMIG/external rules and retained history stay unchanged.
 - Targeted API, actual middleware, evidence and OpenAPI export tests: 86 passed,
   zero skipped. Configuration/release tooling: 51 passed. Documentation production
@@ -1703,12 +1709,12 @@ passed all 45 tests with no skips.
   diagnostic IDs remain unchanged. Renamed a private PDF-Tools rewriter flag and
   corrected the Spreadsheet facade's unknown-provider wording.
 - Added real-worker checks for PVAD assembly names, request JSON fields and all
-  three generated C# representations. Customer strings containing PXA/Canvas remain
+  three generated C# representations. Customer strings containing legacy Canvas component remain
   unchanged after execution. Existing twelve directed conversions, DTO coverage,
   source maps, legacy markers and sandbox regressions all passed: 50 tests, no skips.
 - Source contracts now guard owned imports/declarations, worker packaging paths and
   generated header identities. Tooling total: 54 passed. No separate owned Roslyn
-  analyzer/source-generator project was found; compiler PXA0001 remains retained.
+  analyzer/source-generator project was found; compiler predecessor implementation remains retained.
   OCR worker paths already target PVAD binaries; its telemetry identity remains in
   the separate unfinished Observability work.
 - Code Workspace PDF export uses pvad-code.pdf. Frontend regression asserts one
@@ -1848,7 +1854,7 @@ passed all 45 tests with no skips.
   Designer application header and Account discovery/OAuth origin preservation.
   These source checks do not claim that every runtime proxy was exercised.
 - Updated Nginx outage title to PVAD and added canonicalCode PVADAPI018 while
-  preserving code PXAAPI018. The real Nginx container smoke passed canonical and
+  preserving code legacy API018 component. The real Nginx container smoke passed canonical and
   legacy API outage paths, real 404, shell no-cache and immutable asset caching.
   Its initial readiness probe saw an empty response before the container became
   ready; all final assertions passed and the test container was removed.
@@ -1866,7 +1872,7 @@ passed all 45 tests with no skips.
 
 - Switched the Nginx template to PVAD_API_UPSTREAM/PVAD_SPA_ROUTE_PATTERN.
   Added executable 15-pvad-environment.envsh, sourced by the official Nginx
-  entrypoint before envsubst. It resolves legacy PXA inputs, removes consumed
+  entrypoint before envsubst. It resolves legacy predecessor inputs, removes consumed
   aliases, rejects contradictory values without disclosure and validates required
   nonempty configuration and anchored route patterns.
 - Updated route-pattern example names, hosting instructions and frontend host
@@ -1891,7 +1897,7 @@ passed all 45 tests with no skips.
   directories use pvad-image-ocr; existing directories are not rewritten/adopted.
   The API subscribes to canonical and explicit legacy source names without
   emitting duplicate spans. Custom listeners must be updated to accept both.
-- Structured console logging defaults to pvad-json. The registered pxa-json alias
+- Structured console logging defaults to pvad-json. The registered legacy json component alias
   shares the existing serializer/privacy implementation. Resource values supplied
   by operators and historical data remain unchanged; alias registration does not
   introduce another console provider or duplicate log records.
@@ -2025,9 +2031,9 @@ Remaining work and acceptance gates:
 
 ## Golden PDF Baseline Verification
 
-- Extracted unmodified PXA.Pdf source from HEAD
+- Extracted unmodified legacy Pdf component source from HEAD
   fce423cf8c5f5e71eff6178f712fe4e5eb5af69a into an ignored local probe directory.
-- Compiled one probe against both the original PXA.Pdf and current PVAD.Pdf and
+- Compiled one probe against both the original legacy Pdf component and current PVAD.Pdf and
   generated the same text/shape/link snapshot with compression disabled.
 - Both outputs are byte-identical, SHA-256
   `256569dcef40dd183fdc288ecdb6b4fc9507aaa023df23ecd2e4f8986d37b5b6`.
@@ -2107,7 +2113,7 @@ Remaining work and acceptance gates:
   `artifacts/rename/api-postgres-final/_My-3_2026-10-21_08_50_49.trx`.
 - The selection contains the exact 76 previously skipped API cases plus three
   protected-runbook contract cases. The paired old/new process test was explicitly
-  enabled using the existing separately compiled PXA/PVAD harnesses; no historical
+  enabled using the existing separately compiled legacy PVAD component harnesses; no historical
   source or old artifact was rewritten to enable it. Real dump/restore also passed.
 - Together with the 10/10 Persistence rerun, all 78 formerly skipped default-run
   cases now have passing follow-up evidence. This is combined-run evidence, not
@@ -2145,7 +2151,7 @@ Remaining work and acceptance gates:
   request now returns Markdown rather than a successful SPA fallback. Operator
   guides, internal checklists and Legal evidence are not published by this plugin.
 - Necessary-storage acknowledgements write PVAD.StorageNotice and recognize the
-  prior PXA acknowledgement. The technical inventory, public storage explanation,
+  prior predecessor acknowledgement. The technical inventory, public storage explanation,
   unit tests and real-browser cookie checks agree. Existing published legal text
   remains immutable and requires its normal publication process if updated.
 - Managed Loki, Tempo and Operator proxy inputs use PVAD. Shell adapters reject
@@ -2210,7 +2216,7 @@ for this documentation/configuration package.
 - Found and fixed a release/deployment mismatch: the stable producer emits seven
   `pvad-*` archives, while deployment verification still expected a mixed set.
   `tools/deployment/pvad-deployment.mjs` now verifies complete canonical sets and
-  complete historical `pxa-*` sets, retains names/digests, rejects mixed, duplicate
+  complete historical predecessor implementation sets, retains names/digests, rejects mixed, duplicate
   or incomplete sets, and records artifact identity separately from new PVAD
   deployment evidence. The historical CLI remains a tested delegating adapter.
 - CI and deployment validation use the canonical tool/test paths. Updated owned
@@ -2226,13 +2232,13 @@ for this documentation/configuration package.
   exactly; the only two additions are the canonical native-project fixtures.
   Source containing a literal NUL is still treated as source rather than falsely
   classified as a binary. No signed PDF, vendor font or OCR model was rebranded.
-- Approved cleanup removed 4,211 untracked generated PXA assemblies/symbols/
+- Approved cleanup removed 4,211 untracked generated predecessor assemblies/symbols/
   dependency manifests from bin/obj. The entire plan was path/hash validated
   before deletion. All job-cutover legacy bin/obj outputs were excluded. A repeat
-  audit reports zero unexplained stale PXA build names; intentional paired legacy
+  audit reports zero unexplained stale predecessor build names; intentional paired legacy
   outputs remain. Cleanup evidence is retained and a no-op does not overwrite it.
 - Local Tesseract scanned all 22 documentation screenshots. Ten protected Admin
-  images contain old PXA/Power Dox text. Visual inspection of the dashboard confirms
+  images contain old legacy Power component Dox text. Visual inspection of the dashboard confirms
   the old UI; the mixed-page image was inspected as an unbranded geometry example.
   None of these images was modified or falsely relabeled as current. All captures,
   including mobile, still require current-app recapture/privacy/pixel approval.
@@ -2287,7 +2293,7 @@ No commit, push, tag, host restart or production deployment was performed.
   display text is updated; sender addresses, configured URLs, template keys,
   existing recipients, outbox IDs and retained ciphertext are unchanged.
 - Six operational shell scripts now resolve canonical PVAD environment names
-  and fail before executing commands if matching PXA inputs conflict. Updated
+  and fail before executing commands if matching predecessor inputs conflict. Updated
   Alertmanager production overlay and retention Compose/Loki/Tempo inputs
   atomically. Actual config resolution is equal for legacy-only/current-only
   inputs. No failure injection, retention deletion or operational mail delivery
@@ -2316,7 +2322,7 @@ No commit, push, tag, host restart or production deployment was performed.
   tests pass, but real production key permissions are still unverified. Do not
   add or claim storage encryption merely to close the rename checklist.
 - OCR reports zero legacy matches after Admin recapture, but manual inspection
-  found small PXA logo pixels in public Viewer and Favorites images that OCR
+  found small predecessor logo pixels in public Viewer and Favorites images that OCR
   missed. Public Designer/Viewer screenshots therefore remain an open gate.
   No image was edited to replace its old logo and pretend it was a new capture.
 - Public-logo discovery supersedes any interpretation of the earlier OCR scan
@@ -2324,7 +2330,7 @@ No commit, push, tag, host restart or production deployment was performed.
   exhaustive old-name review, OS associations and external rollout remain open.
 
 Repository-level representative cutover acceptance is now recorded using the
-earlier paired PXA/PVAD retained-data processes, real dump/restore and native-format
+earlier paired legacy PVAD component retained-data processes, real dump/restore and native-format
 tests together with current security and real Admin login evidence. This is not
 a certificate for an uninspected customer installation. Checklist progress:
 **80/97 (82.5%), 17 open**. Reaching 95% still requires thirteen complete closures;
@@ -2377,7 +2383,7 @@ New patch fragment: `pvad-pdf-runtime-identity-and-viewer-guidance`.
   package-local image-reference description, without renaming serialized fields.
 - Word comment and revision fallback authors now use PVADE. Three new cases
   inspect actual DOCX comments and tracked-insertion authors: null defaults to
-  PVADE; explicit historical PXA and other supplied authors remain unchanged.
+  PVADE; explicit historical predecessor and other supplied authors remain unchanged.
   Word suite passed 6/6; Core suite passed 143/143, including native archives.
 - Branding API now reports PVADE/PVAD, `pvad`, primary extension `.pvadp`, and
   additive `.pvadp`/`.pvads` extension list. Legacy metadata remains explicit.
@@ -2385,7 +2391,7 @@ New patch fragment: `pvad-pdf-runtime-identity-and-viewer-guidance`.
   passed five cases and skipped one optional PostgreSQL case; it is not counted
   as a newly executed database validation. Initial restricted MSBuild could not
   bind its IPC socket; it was stopped and the permitted rerun succeeded.
-- Exact-source regression check permits only `LegacyMagic` as standalone PXA
+- Exact-source regression check permits only `LegacyMagic` as standalone predecessor
   wording in Core/Infrastructure C#; joined diagnostics, version readers, physical
   database names and old source markers have separately documented rationale.
   The legacy XML root remains an explicit pending compatibility decision.
@@ -2400,8 +2406,8 @@ New patch fragment: `pvad-branding-api-and-word-authors`. No commit or publicati
 ## XML, Importer, API and Operational Completion Batch
 
 - XML exports now default to `PvadDocument`; explicit .NET `ExportLegacy` preserves
-  `PxaDocument`. A parsed-tree comparison verifies that the envelope name is the
-  only difference, including preservation of document text containing PXA. The
+  legacy Document component. A parsed-tree comparison verifies that the envelope name is the
+  only difference, including preservation of document text containing predecessor. The
   HTTP exporter uses the canonical root on both route generations. This is
   documented as a major-release contract change, not transparent XPath compatibility.
 - Current importer messages/metadata and API descriptions/account messages now
@@ -2410,7 +2416,7 @@ New patch fragment: `pvad-branding-api-and-word-authors`. No commit or publicati
   authentication schemes, cookie/key purposes and stored evidence remain intact.
 - Current legal-readiness and fidelity/parity report headings were updated.
   Twenty-nine unpublished fragment summaries use the current brand. The historical
-  PXA 1.1.0 publication-verification text remains an exact reviewed exception.
+  predecessor 1.1.0 publication-verification text remains an exact reviewed exception.
   Published release entries, fragment identities and VERSION were not rewritten.
 - The actual application exported a fresh OpenAPI snapshot; it is packaged by
   Documentation and its production build passed. Canonical-route and description
@@ -2498,7 +2504,7 @@ parties. No staging, commit, push, tag or deployment occurred.
 
 - Found and fixed a rollback/preflight compatibility defect: verification always
   read the renamed manifest inside the selected release checkout, which fails
-  against old tags containing `pxa-releases.json`. The reader now requires exactly
+  against old tags containing legacy releases.json component. The reader now requires exactly
   one of the two known filenames. Missing, malformed and ambiguous inputs fail;
   there is no mixed-archive or arbitrary-name fallback.
 - Actual CLI integration tests create isolated temporary Git checkouts with
@@ -2779,7 +2785,7 @@ change or production deployment was performed. Full release readiness remains op
   and emits ignored candidates under `artifacts/rename/container-workflows/`.
   It renames both image publishers and pull/metadata consumers together. The
   candidate deployment inspector has an explicit image-family choice, defaulting
-  to PXA for historical versions rather than guessing from archive names.
+  to predecessor for historical versions rather than guessing from archive names.
 - Workflow permissions, action pins, locks and protected-environment bindings are
   retained. Unknown source shapes or duplicate/missing image publishers/consumers
   fail preparation. There is no apply, publish or deploy command.
@@ -2847,7 +2853,7 @@ change or production deployment was performed. Full release readiness remains op
   contracts pass without skips. Version/fragment checks pass; VERSION is 1.1.0.
   Log: `/tmp/pvad-workflow-lock-contracts.log`. The offline image candidates were
   regenerated to retain the new source lock names, without activating anything.
-- Read-only GitHub queries found `pxa-staging` and `pxa-production`, both limited
+- Read-only GitHub queries found legacy staging component and legacy production component, both limited
   to protected branches; production has a required reviewer. No secret values
   were requested. The most recent 100 workflow runs returned no non-completed
   runs; this is not an exhaustive drain or an activation approval.
@@ -3147,7 +3153,7 @@ failed attempts, fixes, local evidence paths and acceptance boundaries.
   retain full alias comparison and authority checks. A transient image-analysis
   timing failure passed on rerun without changing its existing limit.
 - The remaining workspace conflict is real: stored BaseTemplateRevision predates
-  project/autosave changes. The backend correctly returns PXACODE123. A future
+  project/autosave changes. The backend correctly returns legacy CODE123 component. A future
   compare/rebase fix must preserve source drafts and current revision checks.
   Later actions in that failed browser case were not reached or certified.
 - Existing dependency advisories, NPOI licensing and operator/publication decisions

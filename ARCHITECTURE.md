@@ -7,7 +7,7 @@
 | PVADE | Platform, website and Designer display name |
 | PVAD / `PVAD.*` | Active technical identity, projects, namespaces, APIs and CLI |
 | PVADP / PVADS | PDF / Spreadsheet products and `.pvadp` / `.pvads` projects |
-| PXA / `PXA.*` | Previous identity; bounded adapters and immutable history only |
+| Previous identity | Exact compatibility identifiers are maintained in the versioned contract register; original naming remains in Git. |
 
 ## Dependency Direction
 
@@ -58,7 +58,7 @@ WebApi, or vendor migration providers.
 
 - Presentation layer and composition root.
 - Wires concrete infrastructure, importer, migration, template, auth, and PDF viewer services.
-- Exposes canonical `/api/pvad/v1` routes and documented neutral routes; legacy `/api/pxa` adapters remain during the compatibility window.
+- Exposes canonical `/api/pvad/v1` routes and documented neutral routes; legacy [compatibility entry `compat-459d9a5f43b0`](docs/reference/compatibility-identifiers.v1.json) adapters remain during the compatibility window.
 
 ## Rendering Infrastructure
 

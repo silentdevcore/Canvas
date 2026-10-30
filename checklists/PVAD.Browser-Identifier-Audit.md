@@ -12,7 +12,7 @@ See [rename checklist](PVAD.Rename-Plan.md) and
 | Sidebar preferences | `pvad-designer:*` | Same-origin recoverable migration |
 | Element groups and recent content | `pvad-designer-*-v1` | Same-origin recoverable migration |
 | Element favorites | `pvad-designer-element-favorites-v1:<user>` | Only the exact user's cache is read |
-| Export preference | `pvad_export_format` | Recoverable read of `pxa_export_format` |
+| Export preference | `pvad_export_format` | Recoverable read of [compatibility entry `compat-8b064f2336a7`](../docs/reference/compatibility-identifiers.v1.json) |
 | Workbook drafts | `pvad-spreadsheet:v1:<user>:<organization>` | No automatic adoption of unassigned drafts |
 | Code recovery | `pvad-code-editor-draft-v2` | Explicit import remains required |
 | Auth transaction | `pvad.designer.auth-transaction` | One-time legacy read, original state/PKCE, ten-minute limit |
@@ -21,7 +21,7 @@ See [rename checklist](PVAD.Rename-Plan.md) and
 | Account/Admin events | `pvad:api-*`, `pvad:session-expired`, `pvad:access-denied`, `pvad:rerender` | Producers and listeners changed together |
 | Viewer navigation event | `pvad-designer:navigate-element` | Canonical internal dispatch |
 | Content drag payload | `application/x-pvad-content-block` | Drops also read old MIME payloads |
-| Telemetry bridge | `__pvadBrowserTelemetry` | `__pxaBrowserTelemetry` is one shared compatibility alias, not another collector |
+| Telemetry bridge | `__pvadBrowserTelemetry` | [compatibility entry `compat-99ffa4a80fcf`](../docs/reference/compatibility-identifiers.v1.json) is one shared compatibility alias, not another collector |
 | Transient browser owners | `pvad-json`, `pvad-imported-font-faces-*` | New marker/style owners, no document rewrite |
 
 Neutral identifiers such as `editor-storage` remain unchanged. No production
@@ -39,7 +39,7 @@ other users' scoped entries, and exports without deletion or automatic assignmen
   compatible old headers before authentication; diagnostics retain their separate
   contract mapping. See [HTTP compatibility](../docs/pvad-http-compatibility.md).
 - Runtime configuration now reads `__PVAD_CONFIG__` with a validated
-  `__PXA_CONFIG__` compatibility input. Deployment scripts/hosts still need the
+  [compatibility entry `compat-1fabf8f94004`](../docs/reference/compatibility-identifiers.v1.json) compatibility input. Deployment scripts/hosts still need the
   broader runtime rollout verification; this is not stored user preference data.
 - CSS classes, DOM data selectors, schema IDs, native-format markers and published
   historical content remain part of their separate rename tasks.

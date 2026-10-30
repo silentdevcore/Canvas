@@ -37,7 +37,7 @@ Scope: build a custom raster-image analysis engine (`PVAD.FileImporter.ImageAnal
 ## Phase 0 - Stabilize The No-External-OCR Baseline
 
 - [x] Replace `OcrEngine.Analyze(prepared)` with `TextEngine.Analyze(prepared)`.
-- [x] Remove the local Tesseract subprocess bridge from `PXA.FileImporter.ImageAnalysis`.
+- [x] Remove the local Tesseract subprocess bridge from [compatibility entry `compat-4d1cfe2f4b10`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Add/adjust tests so image-analysis import does not depend on local OCR output.
 - [x] Add a small engine result diagnostic model:
   - [x] input dimensions

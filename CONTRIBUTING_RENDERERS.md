@@ -26,7 +26,7 @@ Use an existing infrastructure project when the format belongs to an established
 Create `src/Infrastructure/PVAD.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
 
 When the feature is public developer-facing API, add or update the corresponding `PVAD.Infrastructure.*` or
-`PVAD.Generator` facade so new examples do not need to start from old PXA names.
+`PVAD.Generator` facade so new examples do not need to start from previous technical names.
 
 Dependencies:
 

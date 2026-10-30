@@ -37,7 +37,7 @@ Source compatibility readers do not imply old-binary forward compatibility.
   writes occurred, use the approved restore procedure with an explicit data-loss
   window. Do not blindly run migration Down operations against customer data.
 - **Encrypted data:** retain both required keyrings and purpose readers. Newly
-  protected PVAD payloads may be unreadable to old PXA binaries. Drain or export
+  protected PVAD payloads may be unreadable to old PVAD binaries. Drain or export
   safely before rollback; restore paired database/object snapshots if necessary.
 - **Jobs:** retain leases, operation IDs and outputs. Check whether external side
   effects already happened before replaying anything. No exactly-once promise is

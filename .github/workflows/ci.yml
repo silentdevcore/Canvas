@@ -21,6 +21,8 @@ jobs:
           node-version: 22
       - name: Install configuration contract dependencies
         run: npm ci --prefix pvad-designer --ignore-scripts
+      - name: Reject legacy names in every tracked Markdown file
+        run: node tools/configuration/markdown-path-audit.mjs --all --check
       - name: Validate reviewed rename exceptions
         run: node tools/configuration/rename-residual-review.mjs
 

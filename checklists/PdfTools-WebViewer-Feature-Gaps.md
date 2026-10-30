@@ -68,7 +68,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       would be removed and what PVADE cannot account for, without mutating the document
 - [x] Redaction audit record: apply returns the source and result hashes, regions, actor, reason,
       sanitizations, and verification outcome, hashed in canonical form. It is returned out of
-      band, in the `PXA-Redaction-Audit` and `PXA-Redaction-Result-Sha256` response headers, and
+      band, in the [compatibility entry `compat-217c15ea577d`](../docs/reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-77f726242739`](../docs/reference/compatibility-identifiers.v1.json) response headers, and
       is deliberately no longer written into the redacted document's info metadata: the reason
       and the actor would otherwise be disclosed to every recipient of a file that was redacted
       to limit disclosure.
@@ -135,7 +135,7 @@ our own implementation, UI language, and engine boundaries.
 
 ### Phase 1 - PDF Tools-like viewer baseline
 
-- [x] Add a dedicated PDF viewer route/page in `pxa-designer`.
+- [x] Add a dedicated PDF viewer route/page in `pvad-designer`.
 - [x] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
       Implemented as `PdfViewer` plus a thin route page. Upload, direct URL, backend URL, and session handoff are supported through `handoff.ts`.
 - [x] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
@@ -216,7 +216,7 @@ our own implementation, UI language, and engine boundaries.
 
 ## P1 - Review And Annotation Workflow
 
-- [x] **Annotation model** - Define PXA-side model for PDF annotations independent from UI widgets.
+- [x] **Annotation model** - Define [compatibility entry `compat-0e1b0f21bdf1`](../docs/reference/compatibility-identifiers.v1.json) model for PDF annotations independent from UI widgets.
       Baseline sidecar model includes id, type, page, relative position/size, text, author, timestamp, and color.
 - [x] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
       Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups and can now be created

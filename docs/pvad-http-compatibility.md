@@ -4,17 +4,17 @@ This is an in-progress rename contract, not a deployment completion statement.
 
 ## Common API Diagnostic Aliases
 
-The 18 common API diagnostics keep their existing `code` values `PXAAPI001`
-through `PXAAPI018`. Legacy routes retain their existing generated problem type
+The 18 common API diagnostics keep their existing `code` values [compatibility entry `compat-b1802e69ddb6`](reference/compatibility-identifiers.v1.json)
+through [compatibility entry `compat-f5c80eb930c0`](reference/compatibility-identifiers.v1.json). Legacy routes retain their existing generated problem type
 URLs; canonical routes now use the selected PVAD documentation domain. Responses
 created or completed through `PvadApiProblems` add `canonicalCode`, explicitly mapping each identifier
 to `PVADAPI001` through `PVADAPI018` without changing its numeric meaning.
 Existing clients can continue inspecting `code`; new clients may display or index
 `canonicalCode` and fall back to `code` when absent.
 
-The same explicit mapping covers `PXAPDFTRUSTAPI001` through `003`, `101` through
+The same explicit mapping covers [compatibility entry `compat-558146b2c07e`](reference/compatibility-identifiers.v1.json) through `003`, `101` through
 `106`, `111` through `114`, `121` through `126`, and `901`, plus
-`PXAPDFACONVERTAPI001` through `006`, adding corresponding `PVADPDF...` aliases.
+[compatibility entry `compat-43dab680e694`](reference/compatibility-identifiers.v1.json) through `006`, adding corresponding `PVADPDF...` aliases.
 It applies when Problem Details passes through shared creation/completion,
 including ASP.NET Core's configured Problem Details writer. Provider reports and
 other embedded diagnostics are not rewritten by that writer.
@@ -37,8 +37,8 @@ Viewer displays prefer a supplied canonical code and retain the original as a
 tooltip. Unknown findings keep their original identifier. This is an identity
 migration, not a change to compliance, parsing or redaction guarantees.
 
-The catalog also includes 13 attachment IDs (PXAEINVATTACH), six layout IDs
-(PXALAYOUT) and 13 pipeline IDs (PXAPDFPIPELINE). Attachment findings reuse the
+The catalog also includes 13 attachment IDs ([compatibility entry `compat-f870acf626d1`](reference/compatibility-identifiers.v1.json)), six layout IDs
+([compatibility entry `compat-f11e42aebe41`](reference/compatibility-identifiers.v1.json)) and 13 pipeline IDs ([compatibility entry `compat-bdce4f9d97f1`](reference/compatibility-identifiers.v1.json)). Attachment findings reuse the
 existing compliance-conversion projection. Layout ImportDiagnosticDto values gain
 an alias only during API serialization, including nested design/workbook results;
 their ordinary persisted representation and normalization rules remain unchanged.
@@ -52,7 +52,7 @@ or newly exposed. This catalog addition does not create a public pipeline endpoi
 or alter global exception handling. Original exception text and retained job data
 remain unchanged.
 
-The three Viewer redaction errors (PXAPDFREDACTVIEWER001 through 003) now add
+The three Viewer redaction errors ([compatibility entry `compat-50d7df1d8c4e`](reference/compatibility-identifiers.v1.json) through 003) now add
 canonicalCode to their existing anonymous JSON responses. Their 409/503 status,
 error wording and preflight/verification payloads are unchanged; failures still
 return no PDF. The browser's RedactionBlockedError preserves its legacy code and
@@ -60,7 +60,7 @@ optionally exposes canonicalCode without changing refusal handling.
 
 ChartRenderResult retains its original Diagnostic string and ordinary engine JSON.
 Configured API serialization adds canonicalCode only for strings beginning with
-the exact reviewed prefixes `PXACHART001: ` or `PXACHART002: `. Unknown codes,
+the exact reviewed prefixes [compatibility entry `compat-c84f82fe67b1`](reference/compatibility-identifiers.v1.json) or [compatibility entry `compat-41590710cb27`](reference/compatibility-identifiers.v1.json). Unknown codes,
 embedded mentions and successful results gain no alias. This does not introduce
 a chart diagnostic endpoint or claim that existing exports surface renderer
 diagnostics where they previously did not.
@@ -68,14 +68,14 @@ diagnostics where they previously did not.
 ## Authentication, Audit And Usage Diagnostics
 
 The remaining symbolic result identifiers now have exact aliases:
-PXA_AUTHENTICATION_REQUIRED, PXA_AUDIT_EXPORT_REQUIRES_ENTERPRISE,
-PXA_USAGE_INVALID, PXA_USAGE_ALREADY_RECORDED and PXA_USAGE_RECORDED.
+[compatibility entry `compat-7499f29ccaab`](reference/compatibility-identifiers.v1.json), [compatibility entry `compat-328c2b86bab7`](reference/compatibility-identifiers.v1.json),
+[compatibility entry `compat-a62a8e69cc30`](reference/compatibility-identifiers.v1.json), [compatibility entry `compat-63a797209f21`](reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-b74a830106e0`](reference/compatibility-identifiers.v1.json).
 Product-access middleware retains its 401 status and authoritative legacy code;
 the response adds canonicalCode without changing gate ordering or permissions.
 
 Problem Details also derives canonicalTitle when its unchanged title is itself a
 reviewed diagnostic identifier. Audit-export edition denial keeps its historical
-PXA_AUDIT_EXPORT_REQUIRES_ENTERPRISE title and PXAAPI002 code, adding separate
+[compatibility entry `compat-328c2b86bab7`](reference/compatibility-identifiers.v1.json) title and [compatibility entry `compat-c88dd859369b`](reference/compatibility-identifiers.v1.json) code, adding separate
 PVAD_AUDIT_EXPORT_REQUIRES_ENTERPRISE and PVADAPI002 aliases. Completion removes a
 stale canonicalTitle if the final title is unknown or ordinary prose. Existing
 explicit problem type URLs remain unchanged. Generated types follow the
@@ -89,13 +89,13 @@ handling are unchanged. This projection does not create a new usage endpoint or
 rewrite retained results; normal service serialization remains unchanged.
 
 The production inventory guard classifies every current numeric branded diagnostic
-and symbolic PXA identifier in src and WebApi. Six explicit password-configuration
+and symbolic legacy identifier in src and WebApi. Six explicit password-configuration
 and telemetry-retention names are configuration/constants, not diagnostics. Future
 unclassified identifiers fail the guard and require review; they are never renamed
 by a catch-all prefix rule. Historical CANMIG IDs and external validator IDs remain
 unchanged, as do stored evidence and audit/job history.
 
-The compiler warning PXA0001 remains an explicit legacy contract for the existing
+The compiler warning [compatibility entry `compat-cfbce1459608`](reference/compatibility-identifiers.v1.json) remains an explicit legacy contract for the existing
 Obsolete attribute, pragma directives and customer NoWarn configuration. No fictitious
 PVAD0001 HTTP alias is emitted: a C# compiler warning supports only one DiagnosticId,
 so changing it requires a separately announced compiler-contract migration.
@@ -121,7 +121,7 @@ canonical alias when the final authoritative code is not in the reviewed catalog
 
 ## Native Project And Template Diagnostics
 
-`PXADESIGNER001` (template revision conflict), `PXAPROJECT001` through `016`,
+[compatibility entry `compat-b537db91e728`](reference/compatibility-identifiers.v1.json) (template revision conflict), [compatibility entry `compat-639b0404e338`](reference/compatibility-identifiers.v1.json) through `016`,
 and the nine current named project validation/upgrade diagnostics have explicit
 PVAD aliases. Template conflict JSON and project rejection Problem Details add
 `canonicalCode` without changing the original code, revision, HTTP status or audit ID.
@@ -140,7 +140,7 @@ remain intact and receive no invented alias.
 
 ## Migration Diagnostics And Artifact Identities
 
-`PXAMIG001` through `PXAMIG011` retain their existing code values and gain
+[compatibility entry `compat-ba9f0e2f37bc`](reference/compatibility-identifiers.v1.json) through [compatibility entry `compat-ac4bbf936d5f`](reference/compatibility-identifiers.v1.json) retain their existing code values and gain
 corresponding `PVADMIG...` aliases through Problem Details and migration diagnostic
 response projections. CANMIG provider diagnostics remain unchanged and have no
 invented aliases. Input limits, provider keys, capabilities and permission checks
@@ -151,14 +151,14 @@ Catalog artifact descriptors and converted artifacts add `canonicalId`,
 
 | Legacy artifact | Canonical artifact | Canonical media type | Canonical extension |
 | --- | --- | --- | --- |
-| pxa-csharp | pvad-csharp | text/x-csharp | .cs |
-| pxa-spreadsheet-csharp | pvad-spreadsheet-csharp | text/x-csharp | .cs |
-| pxa-viewer-package | pvad-viewer-package | application/vnd.pvad.viewer+json | .pvadviewer.json |
+| [compatibility entry `compat-209a4a472e04`](reference/compatibility-identifiers.v1.json) | pvad-csharp | text/x-csharp | .cs |
+| [compatibility entry `compat-adb485defd63`](reference/compatibility-identifiers.v1.json) | pvad-spreadsheet-csharp | text/x-csharp | .cs |
+| [compatibility entry `compat-050b16d092ab`](reference/compatibility-identifiers.v1.json) | pvad-viewer-package | application/vnd.pvad.viewer+json | .pvadviewer.json |
 
 Current `/api/pvad/v1/migrations` responses write the canonical tuple in the
 primary `id`, `mediaType` and `fileExtension` fields. The canonical metadata
 fields remain available and equal the primary tuple for these known artifacts.
-Legacy `/api/pxa/v1/migrations` adapters retain the old primary tuple, including
+Legacy [compatibility entry `compat-dc3e6a2f7970`](reference/compatibility-identifiers.v1.json) adapters retain the old primary tuple, including
 when the middleware rewrites the request path. Their canonical metadata still
 identifies the current format. Null canonical fields do not make a neutral
 artifact unsupported.
@@ -167,7 +167,7 @@ tuples, unknown provider artifacts and neutral design JSON are not reclassified.
 Each conversion still returns the same number of artifacts, not duplicate files.
 
 Current Viewer package output writes `kind: pvad.pdf-viewer-package`; legacy
-routes retain `kind: pxa.pdf-viewer-package`. Both include
+routes retain [compatibility entry `compat-ed65f665f3d0`](reference/compatibility-identifiers.v1.json). Both include
 `canonicalKind: pvad.pdf-viewer-package`. Existing stored packages are not rewritten.
 Source/normalized/generated checksums retain their existing meanings; these are
 not signatures over the entire newly extended package. This identity projection
@@ -200,15 +200,15 @@ This does not change conformance decisions, certificate trust or signature valid
 
 | Canonical | Legacy alias | Purpose |
 | --- | --- | --- |
-| `X-PVAD-Application` | `X-PXA-Application` | Select the Designer or Account/Admin browser authentication context |
-| `X-PVAD-CSRF` | `X-PXA-CSRF` | ASP.NET Core antiforgery request token |
-| `X-PVAD-API-Key` | `X-PXA-API-Key` | Service-account API key |
+| `X-PVAD-Application` | [compatibility entry `compat-d9438056ecaa`](reference/compatibility-identifiers.v1.json) | Select the Designer or Account/Admin browser authentication context |
+| `X-PVAD-CSRF` | [compatibility entry `compat-d943dcb579c3`](reference/compatibility-identifiers.v1.json) | ASP.NET Core antiforgery request token |
+| `X-PVAD-API-Key` | [compatibility entry `compat-0ad1b8ff55d1`](reference/compatibility-identifiers.v1.json) | Service-account API key |
 
 Legacy names are accepted for the API compatibility major and normalized before
 authentication, Designer gates and CSRF validation. All downstream consumers use
 the canonical name. Matching aliases collapse to one value; conflicting aliases,
 multiple values, comma-combined values and explicitly blank values return HTTP 400
-Problem Details with the stable `PXAAPI005` diagnostic. Error bodies never echo
+Problem Details with the stable [compatibility entry `compat-4114de48c37d`](reference/compatibility-identifiers.v1.json) diagnostic. Error bodies never echo
 credentials or token values. Application names are `designer`, `account` or `admin`
 and compare case-insensitively; token and key values compare exactly.
 
@@ -222,14 +222,14 @@ also normalizes explicit headers supplied by mixed-version callers.
 ## Response Headers
 
 `X-PVAD-Template-Revision`, `X-PVAD-PAdES-Profile`, `X-PVAD-PDF-Timestamp` and
-`X-PVAD-Operator` are emitted alongside their `X-PXA-*` equivalents with identical
+`X-PVAD-Operator` are emitted alongside their [compatibility entry `compat-3c6b37a07077`](reference/compatibility-identifiers.v1.json) equivalents with identical
 values for one compatibility major. ETag and Content-Disposition stay neutral.
 The revision, PAdES and timestamp pairs are exposed by the existing CORS policy;
 the internal Operator identity is not newly exposed to browser JavaScript.
 
 The Operator pseudonymous value remains stable; changing the header name does not
 rename retained accounts in an external operator application. Issued API-key
-`pxa_` secrets remain valid; newly issued keys use `pvad_`. Mail and revocation-cache
+[compatibility entry `compat-304c10a72885`](reference/compatibility-identifiers.v1.json) secrets remain valid; newly issued keys use `pvad_`. Mail and revocation-cache
 readers accept old Data Protection purposes while writing the new PVAD purposes.
 Session and CSRF cookies now write PVAD names with bounded legacy readers;
 authentication-scheme names remain stable to preserve old ticket protection.
@@ -237,14 +237,14 @@ See [identity and protected-data compatibility](pvad-identity-compatibility.md)
 for the mixed-version deployment and rollback boundaries.
 
 PDF/A conversion, irreversible redaction, Viewer redaction and E-Invoice attachment
-now write both `PVAD-*` and `PXA-*` response headers with identical values. The
+now write both `PVAD-*` and [compatibility entry `compat-1c95a721f7cc`](reference/compatibility-identifiers.v1.json) response headers with identical values. The
 shared response-header catalog exposes both generations through CORS, including
 hashes, compliance profile, redaction provenance/location, invoice attachment and
 validation metadata. It does not expose API-key, CSRF, cookie or Operator headers.
 The browser's Viewer and E-Invoice readers prefer PVAD, accept legacy-only servers
 and reject conflicting evidence aliases without logging their values.
 
-SMTP messages add `X-PVAD-Outbox-Id` while retaining `X-PXA-Outbox-Id` with the
+SMTP messages add `X-PVAD-Outbox-Id` while retaining [compatibility entry `compat-493162ad3bbb`](reference/compatibility-identifiers.v1.json) with the
 same outbox UUID. Message IDs, recipient routing and persisted outbox records do
 not change. The paired headers do not imply a new delivery or retry guarantee.
 
@@ -265,7 +265,7 @@ ones; any future replacement needs a separately approved mapping and client test
 
 Website links accept `VITE_PVAD_COMPANY_URL`, `VITE_PVAD_DOCUMENTATION_URL`,
 `VITE_PVAD_DEMO_URL`, `VITE_PVAD_DESIGNER_URL`, `VITE_PVAD_ACCOUNT_URL` and
-`VITE_PVAD_OPERATOR_URL`. Their `VITE_PXA_*` spellings remain aliases. Both may be
+`VITE_PVAD_OPERATOR_URL`. Their [compatibility entry `compat-cf81925cfc3b`](reference/compatibility-identifiers.v1.json) spellings remain aliases. Both may be
 set only to identical values; conflicts fail with key names, not values. Nonempty
 values must be absolute HTTP(S) base URLs without credentials, query or fragment.
 An empty value uses the existing default. Overrides work in development and
@@ -279,7 +279,7 @@ unchanged; production exposure of the internal parity route remains opt-in.
 
 The unversioned branded controller aliases now use `/api/pvad/` for document,
 export, migration, PDF viewer, spreadsheet, system and template operations.
-Their historical `/api/pxa/` counterparts delegate through the same middleware
+Their historical [compatibility entry `compat-d1010e0f84b4`](reference/compatibility-identifiers.v1.json) counterparts delegate through the same middleware
 with a successor link. Neutral routes remain available. A route can still be
 deprecated independently of branding, notably the original migration API.
 OpenAPI advertises canonical branded routes only; the committed snapshot is
@@ -287,7 +287,7 @@ generated from the running API contract, not edited by string replacement.
 
 New clients use `pvad://` MCP resources and the canonical workbook schema at
 `https://pvade.com/schemas/pvad-workbook.schema.json`. Historical
-`pxa://` resources remain readable. `docs/schema/schema-aliases.json` maps old
+[compatibility entry `compat-82d933aea411`](reference/compatibility-identifiers.v1.json) resources remain readable. `docs/schema/schema-aliases.json` maps old
 schema IDs to the bundled canonical schemas without a network lookup. All
 maintained schema IDs use the selected domain; old-domain IDs remain
 explicit offline aliases, not remote HTTP redirects. No fixture or published

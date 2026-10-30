@@ -1,5 +1,8 @@
 # PVAD Migration: IronPDF
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## V1 Implementation Status
 
 - [x] V1 scope: Roslyn-backed pilot that generates a compilable PVAD.Pdf scaffold and provides diagnostics for manual HTML draw call migration.
@@ -54,8 +57,8 @@
 - [x] Warn and keep editing/security/signing calls
 - [x] Remove IronPdf usings, add `using PVAD.Pdf;`
 - [x] Connect WebApi IronPDF converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IronPdf.Tests`: `11/11` passed
-- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
+- [x] Recorded result: `11/11` passed Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.IronPdf.Tests`.
+- [x] Recorded result: `22/22` passed Current rerun reference: `dotnet test tests/PVAD.Api.Tests`.
 
 ## Mapping Table
 

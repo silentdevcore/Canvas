@@ -67,7 +67,7 @@ deployment controls are tracked in
 - [x] Complete the stable-release workflow with the first prepared version increase.
 - [x] Verify branch settings and required GitHub checks.
 
-## PXA 1.1.0 Verification Record
+## PVAD 1.1.0 Verification Record
 
 - [x] Prepare `1.1.0` from nine reviewed release fragments through pull request [#52](https://github.com/silentdevcore/Canvas/pull/52).
 - [x] Resolve the historical `v1.0.0` bootstrap through the latest stable tag when `main` does not yet contain `VERSION`.

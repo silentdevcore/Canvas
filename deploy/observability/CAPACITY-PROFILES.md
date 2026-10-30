@@ -31,7 +31,7 @@ PVAD_CAPACITY_API_KEY='pvad_<synthetic-service-account-key>' \
 The gate requires zero failed requests, p95 at or below two seconds, and peak memory below 90% of
 the configured WebApi limit. Record p95, throughput, CPU, and memory for each release environment.
 The sample key is not usable; supply an actual synthetic test credential securely.
-New keys use `pvad_`; existing `pxa_` keys remain readable until revoked or expired.
+New keys use `pvad_`; existing [compatibility entry `compat-5efd4896aaff`](../../operator-docs/compatibility-identifiers.v1.json) keys remain readable until revoked or expired.
 The local Rancher Desktop result validates the profile contract and workload; Cloud production
 must repeat the same command against its deployed container class.
 

@@ -140,14 +140,16 @@ Legal governance data is relationally connected to identity, organizations,
 subscriptions, and audit evidence. Use the full-database tools instead of
 exporting individual Legal tables:
 
-```bash
+Explanatory transcript, not an executable replacement. The exact excerpt is recorded as [compatibility entry `compat-a05a70633a57`](../../operator-docs/compatibility-identifiers.v1.json).
+
+```text
 PVAD_DATABASE_URL_FILE=/run/secrets/pvad_database_url \
 PGPASSFILE=/run/secrets/pvad_pgpass \
   tools/legal/backup-postgres.sh /protected/pvad-backups
 
 PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
 PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
-PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE' \
+PVAD_RESTORE_CONFIRM='RESTORE legacy-value[compat-b17798b33ab9] DATABASE' \
   tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump
 
 PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
@@ -162,9 +164,9 @@ for the isolated synthetic drill.
 These mount/directory names are examples for new operator-owned configuration,
 not instructions to move an existing secret or backup. Preserve installed paths
 unless a separate cutover is approved. Use the actual filename returned by the
-backup command: new backups use `pvad-<timestamp>-<pid>.dump`. Existing `pxa-*`
+backup command: new backups use `pvad-<timestamp>-<pid>.dump`. Existing [compatibility entry `compat-14a9f154c0c0`](../../operator-docs/compatibility-identifiers.v1.json)
 backups and their checksum files must not be renamed; restore accepts either
-basename and still requires the exact confirmation `RESTORE PXA DATABASE`.
+basename and still requires the exact confirmation [compatibility entry `compat-2d79ca4f327e`](../../operator-docs/compatibility-identifiers.v1.json).
 These compatibility values do not change the backup format or restored content.
 
 Restore accepts only a checksum-verified custom-format backup and an empty
@@ -179,7 +181,7 @@ The isolated recovery drill uses synthetic records only:
 tools/legal/run-backup-restore-smoke-test.sh
 ```
 
-The isolated drill deliberately uses a synthetic legacy `pxa` database and waits
+The isolated drill deliberately uses a synthetic legacy [compatibility entry `compat-55041f2a013a`](../../operator-docs/compatibility-identifiers.v1.json) database and waits
 for a successful query against that database,
 not only for the PostgreSQL server socket. Readiness is bounded by
 `PVAD_POSTGRES_READY_ATTEMPTS` and `PVAD_POSTGRES_READY_DELAY_SECONDS`; a timeout

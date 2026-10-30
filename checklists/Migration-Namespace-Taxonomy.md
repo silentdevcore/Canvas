@@ -1,5 +1,8 @@
 # Migration Namespace Taxonomy
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## Summary
 
 Tracker for restructuring migration projects and namespaces so that each provider clearly communicates:
@@ -36,22 +39,22 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 
 ## PDF Code Migration Targets
 
-- [x] `PVAD.Migration.ActivePdf` -> `PVAD.Migration.Pdf.Code.ActivePdf`
-- [x] `PVAD.Migration.Apryse` -> `PVAD.Migration.Pdf.Code.Apryse`
-- [x] `PVAD.Migration.AsposePdf` -> `PVAD.Migration.Pdf.Code.Aspose`
-- [x] `PVAD.Migration.DevExpressPdf` -> `PVAD.Migration.Pdf.Code.DevExpress`
-- [x] `PVAD.Migration.DsPdf` -> `PVAD.Migration.Pdf.Code.DsPdf`
-- [x] `PVAD.Migration.FoxitPdf` -> `PVAD.Migration.Pdf.Code.Foxit`
-- [x] `PVAD.Migration.GemBoxPdf` -> `PVAD.Migration.Pdf.Code.GemBox`
-- [x] `PVAD.Migration.IronPdf` -> `PVAD.Migration.Pdf.Code.IronPdf`
-- [x] `PVAD.Migration.iText7` -> `PVAD.Migration.Pdf.Code.IText7`
-- [x] `PVAD.Migration.LeadtoolsPdf` -> `PVAD.Migration.Pdf.Code.Leadtools`
+- [x] Historical `ActivePdf` provider responsibility -> `PVAD.Migration.Pdf.Code.ActivePdf` (current taxonomy; original source name in Git).
+- [x] Historical `Apryse` provider responsibility -> `PVAD.Migration.Pdf.Code.Apryse` (current taxonomy; original source name in Git).
+- [x] Historical `AsposePdf` provider responsibility -> `PVAD.Migration.Pdf.Code.Aspose` (current taxonomy; original source name in Git).
+- [x] Historical `DevExpressPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.DevExpress` (current taxonomy; original source name in Git).
+- [x] Historical `DsPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.DsPdf` (current taxonomy; original source name in Git).
+- [x] Historical `FoxitPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.Foxit` (current taxonomy; original source name in Git).
+- [x] Historical `GemBoxPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.GemBox` (current taxonomy; original source name in Git).
+- [x] Historical `IronPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.IronPdf` (current taxonomy; original source name in Git).
+- [x] Historical `iText7` provider responsibility -> `PVAD.Migration.Pdf.Code.IText7` (current taxonomy; original source name in Git).
+- [x] Historical `LeadtoolsPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.Leadtools` (current taxonomy; original source name in Git).
 - [x] Add `PVAD.Migration.Pdf.Code.Nutrient` for Nutrient .NET and legacy GdPicture.NET code migration.
-- [x] `PVAD.Migration.PdfKitNet` -> `PVAD.Migration.Pdf.Code.PdfKitNet`
-- [x] `PVAD.Migration.PdfTools` -> `PVAD.Migration.Pdf.Code.PdfTools`
-- [x] `PVAD.Migration.PdfToolsToolbox` -> `PVAD.Migration.Pdf.Code.PdfToolsToolbox`
-- [x] `PVAD.Migration.SpirePdf` -> `PVAD.Migration.Pdf.Code.Spire`
-- [x] `PVAD.Migration.SyncfusionPdf` -> `PVAD.Migration.Pdf.Code.Syncfusion`
+- [x] Historical `PdfKitNet` provider responsibility -> `PVAD.Migration.Pdf.Code.PdfKitNet` (current taxonomy; original source name in Git).
+- [x] Historical `PdfTools` provider responsibility -> `PVAD.Migration.Pdf.Code.PdfTools` (current taxonomy; original source name in Git).
+- [x] Historical `PdfToolsToolbox` provider responsibility -> `PVAD.Migration.Pdf.Code.PdfToolsToolbox` (current taxonomy; original source name in Git).
+- [x] Historical `SpirePdf` provider responsibility -> `PVAD.Migration.Pdf.Code.Spire` (current taxonomy; original source name in Git).
+- [x] Historical `SyncfusionPdf` provider responsibility -> `PVAD.Migration.Pdf.Code.Syncfusion` (current taxonomy; original source name in Git).
 
 ## PDF Viewer Migration Targets
 
@@ -62,25 +65,25 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 
 ## Spreadsheet Code Migration Targets
 
-- [x] `PVAD.Migration.AsposeCells` -> `PVAD.Migration.Spreadsheet.Code.Aspose`
-- [x] `PVAD.Migration.ClosedXmlSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.ClosedXml`
-- [x] `PVAD.Migration.EpplusSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.Epplus`
-- [x] `PVAD.Migration.GemBoxSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.GemBox`
-- [x] `PVAD.Migration.Npoi` -> `PVAD.Migration.Spreadsheet.Code.Npoi`
-- [x] `PVAD.Migration.SpireXls` -> `PVAD.Migration.Spreadsheet.Code.Spire`
-- [x] `PVAD.Migration.SpreadsheetLight` -> `PVAD.Migration.Spreadsheet.Code.SpreadsheetLight`
-- [x] `PVAD.Migration.SyncfusionXlsIo` -> `PVAD.Migration.Spreadsheet.Code.Syncfusion`
+- [x] Historical `AsposeCells` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.Aspose` (current taxonomy; original source name in Git).
+- [x] Historical `ClosedXmlSpreadsheet` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.ClosedXml` (current taxonomy; original source name in Git).
+- [x] Historical `EpplusSpreadsheet` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.Epplus` (current taxonomy; original source name in Git).
+- [x] Historical `GemBoxSpreadsheet` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.GemBox` (current taxonomy; original source name in Git).
+- [x] Historical `Npoi` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.Npoi` (current taxonomy; original source name in Git).
+- [x] Historical `SpireXls` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.Spire` (current taxonomy; original source name in Git).
+- [x] Historical `SpreadsheetLight` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.SpreadsheetLight` (current taxonomy; original source name in Git).
+- [x] Historical `SyncfusionXlsIo` provider responsibility -> `PVAD.Migration.Spreadsheet.Code.Syncfusion` (current taxonomy; original source name in Git).
 
 ## Report Designer Migration Targets
 
-- [x] `PVAD.Migration.ActiveReportsJs` -> `PVAD.Migration.Report.Designer.ActiveReportsJs`
-- [x] `PVAD.Migration.DevExpressReport` -> `PVAD.Migration.Report.Designer.DevExpress`
-- [x] `PVAD.Migration.FastReport` -> `PVAD.Migration.Report.Designer.FastReport`
-- [x] `PVAD.Migration.JasperReports` -> `PVAD.Migration.Report.Designer.JasperReports`
-- [x] `PVAD.Migration.Rdl` -> `PVAD.Migration.Report.Designer.Rdl`
-- [x] `PVAD.Migration.Rpx` -> `PVAD.Migration.Report.Designer.Rpx`
-- [x] `PVAD.Migration.Stimulsoft` -> `PVAD.Migration.Report.Designer.Stimulsoft`
-- [x] `PVAD.Migration.Telerik` -> `PVAD.Migration.Report.Designer.Telerik`
+- [x] Historical `ActiveReportsJs` provider responsibility -> `PVAD.Migration.Report.Designer.ActiveReportsJs` (current taxonomy; original source name in Git).
+- [x] Historical `DevExpressReport` provider responsibility -> `PVAD.Migration.Report.Designer.DevExpress` (current taxonomy; original source name in Git).
+- [x] Historical `FastReport` provider responsibility -> `PVAD.Migration.Report.Designer.FastReport` (current taxonomy; original source name in Git).
+- [x] Historical `JasperReports` provider responsibility -> `PVAD.Migration.Report.Designer.JasperReports` (current taxonomy; original source name in Git).
+- [x] Historical `Rdl` provider responsibility -> `PVAD.Migration.Report.Designer.Rdl` (current taxonomy; original source name in Git).
+- [x] Historical `Rpx` provider responsibility -> `PVAD.Migration.Report.Designer.Rpx` (current taxonomy; original source name in Git).
+- [x] Historical `Stimulsoft` provider responsibility -> `PVAD.Migration.Report.Designer.Stimulsoft` (current taxonomy; original source name in Git).
+- [x] Historical `Telerik` provider responsibility -> `PVAD.Migration.Report.Designer.Telerik` (current taxonomy; original source name in Git).
 
 ## Reserved Datasource Structure
 
@@ -182,19 +185,19 @@ For runnable commands against the current tree, use [TESTING.md](../TESTING.md).
   - `/api/migration/frameworks` returns legacy `kind`, plus `domain`, `migrationKind`, `provider`.
 - [x] `npm run build` in `pvad-designer`.
 - [x] Targeted .NET migration/API tests:
-  - `PXA.Api.Tests` filtered to `MigrationControllerTests|MigrationServiceTests`: 16 passed.
-  - `PXA.Migration.Pdf.Tests`: 18 passed.
-  - `PXA.Migration.Spreadsheet.Tests`: 19 passed.
-  - `PXA.Migration.Report.Tests`: 20 passed.
+  - [compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json) filtered to `MigrationControllerTests|MigrationServiceTests`: 16 passed.
+  - [compatibility entry `compat-ed4418e50a42`](../docs/reference/compatibility-identifiers.v1.json): 18 passed.
+  - [compatibility entry `compat-90ba86cbb4fd`](../docs/reference/compatibility-identifiers.v1.json): 19 passed.
+  - [compatibility entry `compat-d49108d6335d`](../docs/reference/compatibility-identifiers.v1.json): 20 passed.
 - [x] Full .NET test pass after restore succeeds.
-  - Recorded result: `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` passed.
+  - Recorded result: `dotnet test PVAD.sln --no-restore --disable-build-servers -m:1` passed.
 - [x] Smoke test PDF code migration with `aspose-pdf`.
-  - Added API smoke coverage for provider-key alias routing through `/api/pxa/migration/convert`.
+  - Added API smoke coverage for provider-key alias routing through [compatibility entry `compat-dc4844699c70`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Smoke test spreadsheet code migration with `aspose-cells`.
-  - Added API smoke coverage for provider-key alias routing through `/api/pxa/migration/convert`.
+  - Added API smoke coverage for provider-key alias routing through [compatibility entry `compat-dc4844699c70`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Smoke test designer migration with DevExpress and RDL samples.
-  - Added API smoke coverage for `/api/pxa/migration/report-to-design` with DevExpress `.repx` and RDL XML samples.
-  - Verified with `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter MigrationControllerTests` (6 passed).
+  - Added API smoke coverage for [compatibility entry `compat-309eed4f0fc7`](../docs/reference/compatibility-identifiers.v1.json) with DevExpress `.repx` and RDL XML samples.
+  - Verified with `dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter MigrationControllerTests` (6 passed).
 
 ## Assumptions
 

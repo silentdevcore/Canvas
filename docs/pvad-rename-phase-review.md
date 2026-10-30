@@ -1,5 +1,9 @@
 # PVAD Rename Phase Review
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 This records the repository rename review, not publication, legal approval or
 authorization to cut over external infrastructure. See the
 [tracker](../checklists/PVAD.Rename-Plan.md).
@@ -217,14 +221,14 @@ replacement of a live volume. Deployment notes cover the required explicit paths
 
 Historical migrations are checked against the pinned pre-rename commit: all 62
 migration source/designer files match after C# namespace/type substitutions.
-Migration IDs, SQL and the retained `pxa.e_invoice_retention_purge` session key
+Migration IDs, SQL and the retained predecessor implementation session key
 are unchanged. The mutable model snapshot is deliberately excluded from the
 historical immutability contract so future schema migrations remain possible.
 
 Persistence registration tests preserve explicitly configured legacy, canonical
 and customer-owned database/login names, resolve migration metadata and leave
 connections closed. These are local model/configuration tests, not PostgreSQL
-upgrade evidence. The retained `pxa-database` data-source label is not a physical
+upgrade evidence. The retained legacy database component data-source label is not a physical
 database name. No database, login or volume was renamed during this review.
 
 Mail and revocation-evidence protection now have separate real-file-keyring
@@ -272,7 +276,7 @@ changed in this follow-up; only tests and review evidence were added.
 Reviewed release/deployment workflow diffs and `Directory.Build.props`: internal
 script/project paths, build metadata and new archive names use PVAD. Published
 historical artifact generations remain supported by tooling. Existing GHCR image
-repositories still use `pxa-webapi` and `pxa-observability-webhook-relay`; these are
+repositories still use legacy webapi component and predecessor implementation; these are
 external publisher decisions, not silently renamed destinations. Existing
 workflow concurrency/environment identities remain operational compatibility
 boundaries until their cutover is approved. No workflow was dispatched.
@@ -280,7 +284,7 @@ boundaries until their cutover is approved. No workflow was dispatched.
 ### Workflow and Historical Checkout Follow-up
 
 Release validation previously read only the renamed manifest filename from a
-checked-out tag. Historical tags still contain `product-metadata/pxa-releases.json`.
+checked-out tag. Historical tags still contain predecessor implementation.
 The CLI now accepts exactly one of the historical or canonical manifest names;
 missing, malformed or ambiguous checkouts fail rather than silently selecting
 another manifest. Integration tests create isolated temporary Git repositories,
@@ -318,7 +322,7 @@ diagnostic identifiers are not revalidated or changed by this naming review.
 
 Chart instructions now name the actual Tables and Charts group. Code-workspace
 instructions distinguish newly generated `pvad-element-id` markers from accepted
-historical `pxa-element-id` input. Asset guidance distinguishes native output
+historical predecessor implementation input. Asset guidance distinguishes native output
 extensions from legacy readers. Operator-defined artifact mount examples are
 explicitly conventions, not invented automatic API configuration settings.
 

@@ -1,5 +1,8 @@
 # PVAD Migration: Syncfusion PDF
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## V1 Pilot Analysis
 
 - [x] V1 pilot status: ready for simple generation migrations.
@@ -8,8 +11,8 @@
 - [x] WebApi conversion uses the same Roslyn migration engine as the tests.
 - [x] WebApi conversion returns summary counts for converted, warning, error, and total diagnostics.
 - [x] Realistic invoice-style fixture validates the end-to-end migration shape.
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.Syncfusion.Tests/PXA.Migration.Pdf.Code.Syncfusion.Tests.csproj --no-restore --no-build`: `20/20` passed.
-- [x] Verified with `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore`.
+- [x] Recorded result: `20/20` passed. Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.Syncfusion.Tests/PVAD.Migration.Pdf.Code.Syncfusion.Tests.csproj --no-restore --no-build`.
+- [x] Recorded build check: successful. Current rerun reference: `dotnet build PVAD.WebApi/PVAD.WebApi.csproj --no-restore`.
 - [ ] Semantic symbol matching remains a post-v1 hardening task.
 - [ ] Real analyzer/codefix packaging remains a post-v1 IDE integration task.
 - [ ] Visual PDF fixture comparison remains a post-v1 quality gate.

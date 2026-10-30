@@ -73,8 +73,8 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 | Merged duplicate `SpacingBetweenLines` (typography + positioning) | One element per `pPr` |
 
 ### Test Coverage
-- 84 unit tests (`PXA.Export.Tests`) — all passing
-- 15 integration tests (`PXA.Api.Tests`) — all passing
+- 84 unit tests ([compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json)) — all passing
+- 15 integration tests ([compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json)) — all passing
 - 13-fixture fidelity harness — **90.244% average score** (target: ≥ 90%)
 
 ### Known Remaining Gaps

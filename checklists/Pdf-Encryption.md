@@ -34,10 +34,10 @@ object bodies. The handler is structured so AES slots in as an additional mode.
 
 ## Historical V1 Goal
 
-Add document encryption to `PXA.Pdf` so generated PDFs can be password-protected with owner/user
+Add document encryption to [compatibility entry `compat-9de0fdd93416`](../docs/reference/compatibility-identifiers.v1.json) so generated PDFs can be password-protected with owner/user
 passwords and permission flags — the clearest functional gap versus DevExpress PDF
 (`PdfEncryptionOptions`). Today [PdfSaveOptions.cs](../src/Generation/PVAD.Pdf/PdfSaveOptions.cs) only exposes
-`CompressContentStreams` and `CollectDiagnostics`; there is no encryption anywhere in `PXA/Pdf/`.
+`CompressContentStreams` and `CollectDiagnostics`; there is no encryption anywhere in `src/Generation/PVAD.Pdf/`.
 
 Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2 /R 3`)**; AES-128
 (revision 4, `/AESV2`) is deferred to V2. AES-256 (PDF 2.0, rev 6) is explicitly out of scope.
@@ -61,7 +61,7 @@ Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2
 - [x] `PdfDocument.Save(...)` / `ToBytes(...)` already accept `PdfSaveOptions`, so no new overloads needed —
       encryption flows through existing options.
 
-## Crypto building blocks (`PXA/Pdf/Serialization/Security/`)
+## Crypto building blocks (`src/Generation/PVAD.Pdf/Serialization/Security/`)
 
 - [x] `Rc4.cs` — hand-rolled RC4 (≈15 lines; not in .NET BCL). Used both for RC4 mode and inside the
       rev-3 `/O`/`/U` key algorithms even when the data mode is AES.
@@ -121,8 +121,8 @@ opaque strings, this is the most invasive part.
 
 ## Verification
 
-1. `dotnet test` for `PXA.Infrastructure.Pdf.Tests` (or the PXA.Pdf test project) — crypto + writer.
-2. `dotnet build PXA.sln`.
+1. `dotnet test` for [compatibility entry `compat-39094317ed31`](../docs/reference/compatibility-identifiers.v1.json) (or the [compatibility entry `compat-1dba3d0d64ae`](../docs/reference/compatibility-identifiers.v1.json) test project) — crypto + writer.
+2. `dotnet build PVAD.sln`.
 3. Manual: generate a password-protected PDF, open it in a real viewer, confirm it prompts for the
       password and that permission flags are honoured.
 

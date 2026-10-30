@@ -55,7 +55,7 @@ P0 usability fix for the PVADE Designer.
 - [x] Add tests that side-panel height follows the complete editor-stage height and retains internal overflow.
 - [x] Verify page selection automatically reveals the active page thumbnail.
 - [x] Verify element drag, resize, marquee selection, and context-menu placement after horizontal and vertical scrolling. *(Authenticated Playwright flow passed.)*
-- [x] Run `npm test` in `pxa-designer`. *(26 suites, 262 tests passed.)*
+- [x] Run `npm test` in `pvad-designer`. *(26 suites, 262 tests passed.)*
 - [x] Run `npm run build` in `pvad-designer`.
 - [x] Perform desktop smoke tests at 1280x720, 1440x900, and 1920x1080.
 - [x] Perform mobile and tablet smoke tests without regressing drawer navigation. *(720x1024 and 390x844 passed; the audit also corrected Home hero/header overflow.)*

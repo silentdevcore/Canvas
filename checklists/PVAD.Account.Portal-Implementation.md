@@ -3,7 +3,7 @@
 Tracking checklist for closing every remaining unchecked item in
 [PVAD.Account.md](PVAD.Account.md). That checklist defines the *what*; this one
 tracks the *how*, phased so each step is independently shippable with green
-tests. Branch: `pxa-account-all-open-points`.
+tests. Branch: [compatibility entry `compat-847889de7714`](../docs/reference/compatibility-identifiers.v1.json).
 
 ## Goal & approach
 
@@ -29,7 +29,7 @@ time.
 1. Application-service layer lives in `PVAD.WebApi/Application/`, not
    `src/Core/PVAD.Application` (the latter has zero Identity/EF/Mail coupling
    today).
-2. One extended `PvadApiProblems` registry (new `PXAAPI009`–`014` constants),
+2. One extended `PvadApiProblems` registry (new [compatibility entry `compat-5464ef7b8453`](../docs/reference/compatibility-identifiers.v1.json)–`014` constants),
    not a second class.
 3. New `PvadAccountPermissions` policy set, mapped from the same org-scoped
    role claims Admin already uses.
@@ -63,7 +63,7 @@ time.
 - [x] Extend `PvadApiProblems.cs`: fixed `ResolveCode` missing `423 Locked` case;
       added `AccountLocked`, `VerificationRequired`, `TrialAlreadyClaimed`,
       `OrganizationSlugUnavailable`, `LastOwnerProtected`, `ClosureConflict`
-      (`PXAAPI009`–`014`).
+      ([compatibility entry `compat-5464ef7b8453`](../docs/reference/compatibility-identifiers.v1.json)–`014`).
 - [x] New `PvadAccountPermissions.cs` + role mapping in `PvadRoles.cs`
       (OrganizationAdministrator/Manager/Editor/Viewer each get an appropriate
       subset; Editor/Viewer now carry the self-scoped Account permissions every
@@ -71,7 +71,7 @@ time.
 - [x] Unit tests: `PvadApiProblemsTests.cs` (new) + `PvadSecurityContractsTests.cs`
       (extended — Admin/Account permission vocabularies verified disjoint,
       every `PvadAccountPermissions` entry verified mapped to a role). 15 tests
-      green with `dotnet test --filter PxaSecurityContractsTests|PxaApiProblemsTests`;
+      green with [compatibility entry `compat-1b33da7c75ca`](../docs/reference/compatibility-identifiers.v1.json);
       `AdminMutationContractTests` regression-checked, still passes.
 
 ## Phase 1 — Application-service extraction for registration/Trial
@@ -90,7 +90,7 @@ time.
 - [x] `tests/PVAD.Api.Tests/RegistrationValidationTests.cs` (12 tests, no database).
 - [x] Existing `AccountRegistrationControllerTests.cs`,
       `AuthControllerTests`, `IdentityMailFlowTests` still green against real
-      Postgres (`PXA_RUN_POSTGRES_TESTS=1`) — refactor is behavior-preserving.
+      Postgres ([compatibility entry `compat-91806c96cb91`](../docs/reference/compatibility-identifiers.v1.json)) — refactor is behavior-preserving.
 - [x] Closes: API-And-Data → "Use application services for registration and
       Trial orchestration rather than controller-owned transactions."
 
@@ -108,10 +108,10 @@ time.
       which stay generic). New title-sniff case in
       `PvadApiProblems.ResolveCode` ("Email verification") mirrors the
       existing CSRF/"Organization context" convention.
-- [x] Adopted Admin's `pxa:session-expired`/`pxa:access-denied`/
-      `pxa:api-offline` CustomEvent pattern in `websites/PVAD.Account/src/api.js`
+- [x] Adopted Admin's [compatibility entry `compat-6cf49c9981ad`](../docs/reference/compatibility-identifiers.v1.json)/[compatibility entry `compat-6d20337a8b28`](../docs/reference/compatibility-identifiers.v1.json)/
+      [compatibility entry `compat-1ff95c3d631a`](../docs/reference/compatibility-identifiers.v1.json) CustomEvent pattern in `websites/PVAD.Account/src/api.js`
       (code/traceId now captured too); `main.js` listens for
-      `pxa:session-expired` and shows the expired-session state.
+      [compatibility entry `compat-6cf49c9981ad`](../docs/reference/compatibility-identifiers.v1.json) and shows the expired-session state.
 - [x] New `POST /api/pvad/v1/auth/resend-verification` on
       `AccountRegistrationController`/`CustomerRegistrationService.ResendVerificationAsync`
       (enumeration-safe: identical response for known/unknown email; superseds
@@ -120,7 +120,7 @@ time.
       verification-required response.
 - [x] "Account locked" (423) already had a distinct backend message; fixed a
       latent gap where `ResolveCode` had no `423` case (now maps to
-      `AccountLocked`, `PXAAPI009`, Phase 0).
+      `AccountLocked`, [compatibility entry `compat-5464ef7b8453`](../docs/reference/compatibility-identifiers.v1.json), Phase 0).
 - [x] "Suspended-account" state deferred to Phase 3/6 — it needs real
       organization/subscription status data the dashboard doesn't fetch yet;
       will render as a dashboard banner per the plan's judgment call, not a
@@ -204,7 +204,7 @@ time.
       forms with per-field error handling); new `/confirm-email` route +
       confirmation flow in `main.ts` (the frontend page the email-verification
       mail links to). `main.ts`'s portal-page dispatch gained an optional
-      `bind()` hook and a `pxa:rerender` event so async-loading pages don't
+      `bind()` hook and a [compatibility entry `compat-5ef542e6687e`](../docs/reference/compatibility-identifiers.v1.json) event so async-loading pages don't
       need a circular import back into the router.
 - [x] `tests/PVAD.Api.Tests/AccountProfileControllerTests.cs` (6 tests):
       get-own-profile + roles, anonymous 401, display-name validation +
@@ -309,7 +309,7 @@ time.
       `userId` route parameter — eliminates cross-user session access by
       construction). Single-session revoke allows revoking your own current
       session (matches Admin's behavior; the next request 401s via the
-      existing `PxaCookieAuthenticationEvents` revocation check).
+      existing `PvadCookieAuthenticationEvents` revocation check).
 - [x] `tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs`
       (4 tests): one-time-secret revealed exactly once and never returned by
       a subsequent list call; service-account cross-tenant isolation
@@ -496,7 +496,7 @@ time.
       not a regression or a gap to close, it is how tenant-scoped admin
       access already worked. The test instead proves the two boundaries that
       actually hold: (1) a lower-privileged member (`Viewer`, holding zero
-      `PxaPermissions.*` claims) gets `403 Forbidden` from every `/admin/*`
+      [compatibility entry `compat-1e10e63b317d`](../docs/reference/compatibility-identifiers.v1.json) claims) gets `403 Forbidden` from every `/admin/*`
       route, and (2) even an `OrganizationAdministrator` owner never reaches
       a true `[Authorize(Roles = PvadRoles.SystemAdministrator)]` action
       (`POST /admin/organizations`). The corresponding `PVAD.Account.md`

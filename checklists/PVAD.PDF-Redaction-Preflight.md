@@ -1,5 +1,8 @@
 # PVAD PDF Redaction Preflight
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## Purpose
 
 PVAD ships a redaction workflow today. It is not a visual overlay — it drops scene-graph
@@ -64,7 +67,7 @@ silently passed over.
 - [x] Return `removable`, `reviewRequired`, or `unsupported` per region and for the
   document, never collapsing unknown into removable.
 - [x] Derive the document capability from the worst region or finding.
-- [x] Carry stable `PXAPDFREDACT` diagnostic codes with page and region context.
+- [x] Carry stable [compatibility entry `compat-e96bde4282cd`](../docs/reference/compatibility-identifiers.v1.json) diagnostic codes with page and region context.
 - [x] Include the document SHA-256 so a preflight result can be correlated with a later
   apply without storing content.
 - [x] Keep covered text, metadata values, and attachment contents out of the report.
@@ -83,7 +86,7 @@ silently passed over.
 - [x] Prove each blind spot produces its diagnostic on a fixture that contains it.
 - [x] Prove preflight never mutates the input bytes.
 - [x] Prove the report contains no covered text.
-- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check`.
+- [x] Run `dotnet build PVAD.sln`, the Importer and API suites, and `git diff --check`.
 
 ## Explicitly Deferred
 

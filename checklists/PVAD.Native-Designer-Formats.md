@@ -39,7 +39,7 @@ package bytes, test results, or pending platform and artwork approvals.
 - [x] Use lowercase canonical file extensions `.pvadp` and `.pvads`; UI labels may
   display them as `PVADP` and `PVADS`.
 - [x] Define PVADP as **PVAD PDF Project** and PVADS as **PVAD Spreadsheet Project**.
-- [x] Retire the generic `.pxa` reservation. Native Designer projects use the
+- [x] Retire the generic [compatibility entry `compat-e5647e1a3a98`](../docs/reference/compatibility-identifiers.v1.json) reservation. Native Designer projects use the
   explicit `.pvadp` and `.pvads` formats only.
 - [x] Register internal media types:
   `application/vnd.pvad.pvadp+zip` and
@@ -126,7 +126,7 @@ package bytes, test results, or pending platform and artwork approvals.
 - [x] Do not execute Code Workspace content while opening a package.
 - [x] Apply tenant, entitlement, permission, rate-limit, audit, and cancellation
   policies to server-side package operations.
-- [x] Return stable `PXAPROJECT...` diagnostics without exposing filesystem or
+- [x] Return stable [compatibility entry `compat-e6f0d2c20b79`](../docs/reference/compatibility-identifiers.v1.json) diagnostics without exposing filesystem or
   archive-parser internals.
 
 ## Versioning And Compatibility
@@ -148,7 +148,7 @@ package bytes, test results, or pending platform and artwork approvals.
 - [x] Add authenticated inspect, validate, import, and export endpoints under
   `/api/pvad/v1/designer/projects`.
 - [x] Expose envelope metadata without extracting full assets when possible.
-- [x] Add OpenAPI contracts and SDK streaming helpers for PXAP and PXAS.
+- [x] Add OpenAPI contracts and SDK streaming helpers for [compatibility entry `compat-ba034b6fd24f`](../docs/reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-00180d15e36c`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Document format purpose, security model, version policy, package layout,
   recovery, and differences from PDF, XLSX, JSON, and template persistence.
 - [x] Publish small synthetic reference fixtures and JSON Schemas.
@@ -199,7 +199,7 @@ package bytes, test results, or pending platform and artwork approvals.
   [PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md](PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md).
 - [x] Align version policy with
   [PVAD.Application-Versioning-And-Releases.md](PVAD.Application-Versioning-And-Releases.md).
-- [x] Replace the generic `.pxa` reservation in
+- [x] Replace the generic [compatibility entry `compat-e5647e1a3a98`](../docs/reference/compatibility-identifiers.v1.json) reservation in
   [the earlier rename record](PVAD.Legacy-Rename-Archive.md) with the implemented `.pvadp` and `.pvads`
   project formats.
 
@@ -215,7 +215,7 @@ package bytes, test results, or pending platform and artwork approvals.
 
 ## Legacy Reader Values
 
-The earlier `.pxap` / `.pxas` packages retain the exact media types
-`application/vnd.powerdox.pxap+zip` / `application/vnd.powerdox.pxas+zip` and
-the `PXA-PXAP-1` / `PXA-PXAS-1` magic identifiers. Readers preserve those values
+The earlier [compatibility entry `compat-461f2edebf37`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-248f94c0d0d1`](../docs/reference/compatibility-identifiers.v1.json) packages retain the exact media types
+[compatibility entry `compat-3c0c5167326a`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-3d9ed408945e`](../docs/reference/compatibility-identifiers.v1.json) and
+the [compatibility entry `compat-bea571ba4815`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-d1b9fec09994`](../docs/reference/compatibility-identifiers.v1.json) magic identifiers. Readers preserve those values
 for compatibility; new writers use the current naming contract above.

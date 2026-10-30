@@ -23,6 +23,8 @@
     <EmbeddedResource Include="../product-metadata/global-commerce-catalog.json" LogicalName="PVAD.ProductMetadata.global-commerce-catalog.json" />
     <EmbeddedResource Include="../product-metadata/country-readiness.json" LogicalName="PVAD.ProductMetadata.country-readiness.json" />
     <EmbeddedResource Include="../product-metadata/legal-documents/en/*" LogicalName="PVAD.LegalContent.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../docs/reference/compatibility-identifiers.v1.json" LogicalName="PVAD.LegalContent.compatibility-identifiers.v1.json" />
+    <Content Include="../operator-docs/compatibility-identifiers.v1.json" Link="OperatorDocumentation/compatibility-identifiers.v1.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

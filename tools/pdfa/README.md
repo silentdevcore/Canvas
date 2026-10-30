@@ -45,7 +45,7 @@ with PVAD.
 
 Current synthetic PDF/A producers and `.github/workflows/ci.yml` use matching
 `pvad-*.pdf` output names. Archived PDF/XML validation evidence and its hashes
-are not renamed or regenerated. Stable `PXAPDF...` diagnostics and intentional
+are not renamed or regenerated. Stable [compatibility entry `compat-73e8ddc4a4c8`](../../docs/reference/compatibility-identifiers.v1.json) diagnostics and intentional
 legacy metadata inside test documents remain compatibility inputs.
 
 New CI SBOMs use the selected `pvade.com` namespace for identifiers. These

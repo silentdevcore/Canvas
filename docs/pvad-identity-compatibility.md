@@ -6,10 +6,10 @@ physical database/storage resources.
 
 ## Implemented In This Stage
 
-- Neutral, canonical unversioned PVAD and historical PXA routes resolve to the same
-  product entitlement, Designer permission and feature gate. Versioned PXA routes
+- Neutral, canonical unversioned PVAD and historical PVAD routes resolve to the same
+  product entitlement, Designer permission and feature gate. Versioned PVAD routes
   resolve to their PVAD counterparts. Near-prefix paths are not treated as aliases.
-- New service-account API keys use `pvad_`. Existing `pxa_` keys remain valid until
+- New service-account API keys use `pvad_`. Existing [compatibility entry `compat-5efd4896aaff`](../operator-docs/compatibility-identifiers.v1.json) keys remain valid until
   normal expiry or revocation. Both work through Bearer authentication and the
   canonical API-key header; the historical header is normalized before auth.
 - Key lookup continues hashing the complete original secret. Stored hashes and
@@ -23,19 +23,19 @@ physical database/storage resources.
 
 | Protected content | New writes | Legacy reader |
 | --- | --- | --- |
-| Mail outbox | `PVAD.Mail.Outbox.Payload.v1` | `PXA.Mail.Outbox.Payload.v1` |
-| PDF revocation evidence cache | `PVAD.PdfTrust.RevocationEvidence.v1` | `PXA.PdfTrust.RevocationEvidence.v1` |
+| Mail outbox | `PVAD.Mail.Outbox.Payload.v1` | [compatibility entry `compat-a3b338ef72e2`](../operator-docs/compatibility-identifiers.v1.json) |
+| PDF revocation evidence cache | `PVAD.PdfTrust.RevocationEvidence.v1` | [compatibility entry `compat-fade525144b5`](../operator-docs/compatibility-identifiers.v1.json) |
 
 ## Browser Cookie Transition
 
 | Purpose | New production cookie | Legacy reader |
 | --- | --- | --- |
-| Account/Admin session | `__Host-PVAD.Session` | `__Host-PXA.Session` |
-| Designer session | `__Host-PVAD.Designer.Session` | `__Host-PXA.Designer.Session` |
-| CSRF | `__Host-PVAD.Antiforgery` | `__Host-PXA.Antiforgery` |
+| Account/Admin session | `__Host-PVAD.Session` | [compatibility entry `compat-ebff574f1d7e`](../operator-docs/compatibility-identifiers.v1.json) |
+| Designer session | `__Host-PVAD.Designer.Session` | [compatibility entry `compat-df6474192568`](../operator-docs/compatibility-identifiers.v1.json) |
+| CSRF | `__Host-PVAD.Antiforgery` | [compatibility entry `compat-f5dc771391bd`](../operator-docs/compatibility-identifiers.v1.json) |
 
 Development uses `PVAD.Session.Development`, `PVAD.Designer.Session.Development`
-and `PVAD.Antiforgery.Development`, with their `PXA.*` counterparts as legacy readers.
+and `PVAD.Antiforgery.Development`, with their [compatibility entry `compat-dc1f0686d317`](../operator-docs/compatibility-identifiers.v1.json) counterparts as legacy readers.
 Production and development names are not interchangeable. Cookie Domain remains
 unset, Path is explicitly `/`, HttpOnly and SameSite Strict remain mandatory, and
 production cookies require Secure. Account/Admin and Designer retain separate
@@ -53,7 +53,7 @@ the canonical value is empty or invalid. Duplicate managed cookies/chunks are
 rejected. CSRF aliases do not bypass token validation: old cookie values are
 mapped to the canonical name, and both header generations still pass the real
 antiforgery validator. Matching aliases are accepted. Conflicts clear both CSRF
-cookies and return `PXAAPI008`; fetch a new CSRF token and retry. Malformed headers
+cookies and return [compatibility entry `compat-0d6278d6b59d`](../operator-docs/compatibility-identifiers.v1.json); fetch a new CSRF token and retry. Malformed headers
 fail closed. Token and ticket values are never included in errors.
 
 ## Security Identities Deliberately Retained
@@ -62,7 +62,7 @@ fail closed. Token and ticket values are never included in errors.
 
 New principals and token claims use `pvad_permission`, `pvad_organization`,
 `pvad_active_organization`, `pvad_service_account` and `pvad_session`. The five
-historical `pxa_*` claim families are normalized before persistent-cookie
+historical [compatibility entry `compat-3597927317fd`](../operator-docs/compatibility-identifiers.v1.json) claim families are normalized before persistent-cookie
 validation, permission expansion and authorization-code exchange. Values,
 issuers, identity ownership and claim metadata are preserved. Singleton ambiguity
 and unequal old/new claim sets fail closed before any partial normalization.
@@ -71,7 +71,7 @@ Legacy cookie claims request renewal only after normal session validation succee
 MCP's JWT reader defaults to `pvad_organization` and accepts the old organization
 claim. A configured custom claim retains its own meaning. Conflicting aliases,
 empty canonical values and inconsistent `scope`/`scp` fields are rejected. The
-three known read-only MCP scopes have explicit `pxa.*`/`pvad.*` equivalence; unknown
+three known read-only MCP scopes have explicit [compatibility entry `compat-fb5db5457234`](../operator-docs/compatibility-identifiers.v1.json)/`pvad.*` equivalence; unknown
 scope prefixes are not automatically rewritten. Internal bearer middleware accepts
 both generations, while the access-context tool reports canonical scope names.
 
@@ -82,8 +82,8 @@ combinations, not arbitrary mixtures:
 | Authorization prefix | Signed issuer | Signed audience | Purpose |
 | --- | --- | --- | --- |
 | `PVAD-MCP` | `pvad-mcp-server` | `pvad-api` | Canonical output |
-| `PXA-MCP` | `pxa-mcp-server` | `pxa-api` | Original legacy output |
-| `PXA-MCP` | `pvad-mcp-server` | `pxa-api` | Explicit historical transition adapter |
+| [compatibility entry `compat-b1cad1347fb6`](../operator-docs/compatibility-identifiers.v1.json) | [compatibility entry `compat-b93898a80e92`](../operator-docs/compatibility-identifiers.v1.json) | [compatibility entry `compat-ca1eb4ce6067`](../operator-docs/compatibility-identifiers.v1.json) | Original legacy output |
+| [compatibility entry `compat-b1cad1347fb6`](../operator-docs/compatibility-identifiers.v1.json) | `pvad-mcp-server` | [compatibility entry `compat-ca1eb4ce6067`](../operator-docs/compatibility-identifiers.v1.json) | Explicit historical transition adapter |
 
 The last combination was already produced by an earlier rename stage; its reader
 was missing and is now covered. HMAC verification, tenant/user identifiers, bounded
@@ -139,10 +139,10 @@ abort startup rather than overwriting another writer.
 
 | Contract | Retained identity | Remaining migration work |
 | --- | --- | --- |
-| Authentication schemes | `PXA.Combined`, `PXA.ApiKey`, `PXA.McpDelegation`, `PXA.Designer.Cookie` | Scheme changes can change ticket protection purposes |
+| Authentication schemes | [compatibility entry `compat-08ab2cf7701b`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-61cd87ac9809`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-e8a6a6ca9982`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-5b314dd4e759`](../operator-docs/compatibility-identifiers.v1.json) | Scheme changes can change ticket protection purposes |
 | Legacy claim values | Existing user, organization, service-account and session IDs | Canonical claim names do not replace the identifiers themselves |
-| OAuth registrations/scopes | Canonical twelve `pvad.*` scopes with known `pxa.*` aliases | Apply the opt-in alias migration to each retained store and verify client login before switching requests |
-| OAuth API resource setting | New default `pvad-api`; retained overrides may use `pxa-api` | This reserved option is not used to expand token audiences. Actual issuance/remote validation still uses the exact configured MCP resource URI. |
+| OAuth registrations/scopes | Canonical twelve `pvad.*` scopes with known [compatibility entry `compat-fb5db5457234`](../operator-docs/compatibility-identifiers.v1.json) aliases | Apply the opt-in alias migration to each retained store and verify client login before switching requests |
+| OAuth API resource setting | New default `pvad-api`; retained overrides may use [compatibility entry `compat-ca1eb4ce6067`](../operator-docs/compatibility-identifiers.v1.json) | This reserved option is not used to expand token audiences. Actual issuance/remote validation still uses the exact configured MCP resource URI. |
 | OAuth client identities | New `pvad-mcp-public`, `pvad-mcp-server`, `pvad-sa-<id>`; old counterparts remain registered | Explicit parallel built-in transition; retained service-account IDs remain exact until key rotation. No issued-token/grant rewriting. |
 | Legacy signed MCP delegation | The two explicit historical combinations above | Compatibility readers retain original signed bytes |
 | License signatures | Existing envelope JSON, key ID and `ECDSA_P256_SHA256` | No signed-byte replacement by rename |

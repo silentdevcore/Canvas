@@ -1,5 +1,9 @@
 # PVAD Final Candidate Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Committed Candidate: Local Acceptance Passed
 
 Date: 2026-10-25. All automated checks below ran against the same commit,
@@ -187,7 +191,7 @@ Reproduced with synthetic data:
 2. Save its native project; the save path reads/initializes its code workspace.
 3. Reopen that project and save or publish the changed template.
 4. Open Code mode, convert through the four representations and run JSON.
-5. Apply to Designer returns `PXACODE123` and the JSON tab becomes Conflict.
+5. Apply to Designer returns legacy CODE123 component and the JSON tab becomes Conflict.
 
 `LiveCodeEditor` restores `activeTemplateRevision` from the workspace's earlier
 `baseTemplateRevision`. Project import/autosave has advanced the actual template.
