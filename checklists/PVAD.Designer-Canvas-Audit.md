@@ -1,7 +1,5 @@
 # PXA Designer "Canvas" Legacy Key Audit Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Goal
 
 Audit `pxa-designer/` for remaining "canvas" occurrences against `checklists/Rename-To-PXA.md`'s compatibility rules, and close the real gaps found (not just cosmetic ones).

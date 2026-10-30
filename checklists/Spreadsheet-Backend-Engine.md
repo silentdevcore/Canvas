@@ -1,7 +1,5 @@
 # Powerful Backend Spreadsheet Engine
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Grows the backend spreadsheet from an `.xlsx` round-trip into an engine (server-side calculation, rich
 Excel features, rendering, format breadth), built **in-house** on ClosedXML + PVAD.Pdf + NPOI.
 Benchmarked against GemBox.Spreadsheet and Aspose.Cells.
@@ -14,7 +12,7 @@ vs. GemBox/Aspose: server-side calc, conditional formatting, data validation, so
 protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/backend CSV/HTML.
 
 ### Decisions (confirmed)
-- **In-house:** ClosedXML + PXA.Pdf (render) + NPOI (`.xls`). No commercial dependency.
+- **In-house:** ClosedXML + PVAD.Pdf (render) + NPOI (`.xls`). No commercial dependency.
 - **Phase 1 = server-side calculation engine.**
 - **Defer charts + pivot tables.**
 
@@ -42,10 +40,10 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] Tests: `RichFeatures_RoundTrip`, `SortRange_OrdersRowsByKeyColumn`, `FindReplace_ReplacesTextAndFormulas`.
       Full Export suite **198** green.
 
-## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on PXA.Pdf — DONE
+## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on PVAD.Pdf — DONE
 - [x] `POST /api/spreadsheet/render?format=pdf|html|png|jpeg&sheet=0` — maps the sheet to a **gridlined**
       table (`SpreadsheetToDesignConverter(..., gridlines: true)` → header row + light borders) and reuses
-      the existing renderers: PDF via `DesignJsonMapper.MapToPdfDocument` (PXA.Pdf), html/png/jpeg via
+      the existing renderers: PDF via `DesignJsonMapper.MapToPdfDocument` (PVAD.Pdf), html/png/jpeg via
       `ExportDocumentUseCase`. No new rendering code.
 - [x] Unit test for the gridlines option; **live-verified**: render → `%PDF` (1355 B), `<!DOCTYPE html>`,
       PNG (`89504e47`).

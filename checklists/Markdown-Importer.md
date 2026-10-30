@@ -1,14 +1,12 @@
 # Markdown Importer Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the existing `IFileImporter` pattern (PDF/DOCX/ODT/SVG/PPTX/Image), wired end-to-end into the multi-format import wizard on `/pdf/convert`.
 
 ---
 
 ## Backend — parsing
 
-- [x] Add `<PackageReference Include="Markdig" ... />` to `src/Importing/PXA.FileImporter/PXA.FileImporter.csproj`.
+- [x] Add `<PackageReference Include="Markdig" ... />` to `src/Importing/PVAD.FileImporter/PVAD.FileImporter.csproj`.
 - [x] Add `public const string Markdown = "md";` to `FileImporterKeys.cs`.
 - [x] Create `MarkdownFileImporter.cs` implementing `IFileImporter`, `SupportedExtensions = ["md", "markdown"]`.
 - [x] Build `MarkdownPipeline` with `.UseAdvancedExtensions()` **and `.DisableHtml()`** (XSS guard — see Security section).
@@ -28,7 +26,7 @@ Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the ex
 ## Backend — wiring
 
 - [x] Register `[FileImporterKeys.Markdown] = static () => new MarkdownFileImporter(),` in `FileImporterRegistry.cs`.
-- [x] Register `builder.Services.AddTransient<IFileImporter, MarkdownFileImporter>();` in `PXA.WebApi/Program.cs`.
+- [x] Register `builder.Services.AddTransient<IFileImporter, MarkdownFileImporter>();` in `PVAD.WebApi/Program.cs`.
 - [x] Add `[HttpPost("import-markdown")]` action to `DocumentOpsController.cs`, mirroring `ImportOdt` (validate `.md`/`.markdown` extension, call `Importer("md").ImportAsync(...)`).
 
 ## Security
@@ -36,7 +34,7 @@ Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the ex
 - [x] Confirm `.DisableHtml()` is active on the Markdig pipeline (prevents raw `<script>`/HTML from passing through unchanged, but does not validate generated link URLs).
 - [x] Unit test: a `.md` file containing a raw `<script>` tag must not produce unescaped `<script` in any resulting `HtmlContent`.
 
-## Frontend (`pxa-designer`)
+## Frontend (`pvad-designer`)
 
 - [x] `src/services/ExportService.ts`: add `importMarkdown(file)` → `_importFile(file, 'import-markdown')`.
 - [x] `src/hooks/useTemplateLoader.ts`: dispatch `ext === 'md' || ext === 'markdown'` → `ExportService.importMarkdown(file)`.
@@ -45,9 +43,9 @@ Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the ex
 
 ## Tests
 
-- [x] `PXA.Importer.Tests`: unit test covering heading levels, bold/italic → richtext, pipe table + alignment, ordered/unordered list, GFM task list, blockquote, fenced code block, standalone image, and the raw-`<script>`-is-escaped case.
+- [x] `PVAD.Importer.Tests`: unit test covering heading levels, bold/italic → richtext, pipe table + alignment, ordered/unordered list, GFM task list, blockquote, fenced code block, standalone image, and the raw-`<script>`-is-escaped case.
 - [x] `dotnet build` passes.
-- [x] `cd pxa-designer && npx tsc --noEmit` passes.
+- [x] `cd pvad-designer && npx tsc --noEmit` passes.
 - [x] `npm run test -- --silent` — 21 suites / 218 tests still pass.
 - [x] `npm run build` succeeds.
 - [x] Manual smoke test: upload a `.md` exercising every construct via the new "Markdown" card on `/pdf/convert`; confirm it opens correctly in the editor; export to PDF and check output. (Not yet performed — no browser available in this session; covered instead by the unit test's direct assertions on the importer's output shape.)
@@ -58,7 +56,7 @@ Scope: add a backend `.md`/`.markdown` importer (Markdig-based) following the ex
 
 Root cause: every element's height in `MarkdownFileImporter.cs` was estimated as a flat single line (`fontSize * 1.4 + 6`, or a fixed `rowHeight = 24` per table row) regardless of actual text length. The canvas hides this via CSS `overflow: hidden`, but the real PDF renderer (`PdfPage.DrawParagraph`) has no clipping at all — long paragraphs/cells/list items draw through and collide with whatever the importer placed right below them, producing the "looks like pasted Markdown" jumbled/unstyled appearance the user reported, even though every element's type/fontSize/table structure is genuinely correct.
 
-### Backend — `src/Importing/PXA.FileImporter/MarkdownFileImporter.cs`
+### Backend — `src/Importing/PVAD.FileImporter/MarkdownFileImporter.cs`
 
 - [x] Add `EstimateLineCount(text, fontSize, width, avgCharWidthFactor)` + `EstimateTextHeight(...)` helpers (average-character-width-based line-wrap estimate).
 - [x] `RenderHeading`: use `EstimateTextHeight` instead of a flat one-line height.
@@ -69,7 +67,7 @@ Root cause: every element's height in `MarkdownFileImporter.cs` was estimated as
 - [x] `RenderList` (`optionlist` + GFM-checkbox branch): per-item height via `EstimateTextHeight`, replacing the flat `itemH`/`optionItemH`.
 - [x] `RenderQuote`: title/body parts sized via `EstimateTextHeight`, replacing the fixed `(count+1)*20`.
 
-### Frontend canvas polish — `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+### Frontend canvas polish — `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
 
 - [x] Add a `line` case to `renderElement` (currently falls through to the generic placeholder box) — render a filled bar from `style.backgroundColor ?? style.borderColor ?? style.color ?? '#9ca3af'`, matching `LivePreview.tsx:362`'s pattern.
 - [x] Fix the `checkbox` case to pick `FiCheckSquare` vs. `FiSquare` based on `(element.checkState ?? 'checked') === 'checked'` (import `FiSquare`), preserving existing toolbar-checkbox appearance while respecting the Markdown importer's explicit checked/empty state. (Used `"empty"` rather than `"unchecked"` for the unmarked state — matches the frontend's existing `checkState` union and the PDF renderer's own default naming.)
@@ -90,7 +88,7 @@ Not fixed here (flagged only): `DocxFileImporter.cs` and `OdtFileImporter.cs` ha
 
 Root cause (deeper than the height-estimation bug above): `MarkdownFileImporter` always emitted exactly **one `PageDto`**, no matter how long the source document is. A page has 746pt of usable vertical space (842 page height minus 48pt top and bottom margins), ending at the y-coordinate 794; any real document longer than that — like the user's 17-slide presentation script — had the bulk of its content positioned past the visible page and effectively missing from the rendered PDF. The earlier height-accuracy fix was necessary but insufficient: it stops elements overlapping *within* one page's content, but does nothing once total content exceeds one page. Confirmed via investigation: `DesignJsonMapper`/`DesignLayoutPlanner` already map `design.Pages` 1:1 to real PDF pages with no changes needed (proven by the existing hand-authored 10-page book template) — the fix is entirely on the importer side, no new dependency required.
 
-### `src/Importing/PXA.FileImporter/MarkdownFileImporter.cs`
+### `src/Importing/PVAD.FileImporter/MarkdownFileImporter.cs`
 
 - [x] Add a private `RenderContext` class: `Pages`, current `Elements`, `Y`, an internal id sequence (`NextId(prefix)`), and a `Place(element, height, gapAfter)` method that starts a new page (closing the current one into `Pages`, resetting `Elements`/`Y`) whenever the element wouldn't fit in the remaining space on a non-empty page, then sets `element.Y` and advances `Y`.
 - [x] Convert `RenderHeading` to build its element (no `Y` set), compute height via the existing `EstimateTextHeight`, then call `ctx.Place(...)`.

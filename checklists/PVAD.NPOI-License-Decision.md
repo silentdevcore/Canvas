@@ -1,26 +1,24 @@
 # PVAD NPOI License Decision
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Purpose
 
 Resolve the production blocker created by the NPOI 2.8.0 binary-package EULA while preserving a deliberate product decision for legacy Excel `.xls` support. This checklist records engineering evidence; qualified Legal counsel must approve the final licensing decision.
 
 ## Scope Boundary
 
-- [x] Treat this as a supplier and dependency-license decision between PXA and NPOI, not as Terms, Privacy, Cookie, or customer-consent content.
+- [x] Treat this as a supplier and dependency-license decision between PVADE and NPOI, not as Terms, Privacy, Cookie, or customer-consent content.
 - [x] Keep approval evidence in the dependency-compliance record and its protected audit trail, never in customer `legal_acceptance_events`.
 - [x] Use the same qualified Legal function required by `PVAD.Legal-Terms-Privacy-And-Consent.md`, while keeping permissions, records, and publication workflows separate.
-- [x] Ensure that accepting PXA Terms or acknowledging the Privacy Notice cannot clear this production blocker.
+- [x] Ensure that accepting PVADE Terms or acknowledging the Privacy Notice cannot clear this production blocker.
 
 ## Current Usage Inventory
 
-- [x] Confirm that `PXA.Infrastructure.Spreadsheet` is the only project that directly requires NPOI at runtime.
+- [x] Confirm that `PVAD.Infrastructure.Spreadsheet` is the only project that directly requires NPOI at runtime.
 - [x] Confirm that `XlsWorkbookIo` uses NPOI HSSF for BIFF8 `.xls` import and export.
 - [x] Confirm that the WebApi exposes this dependency through spreadsheet `.xls` import and export operations.
-- [x] Confirm that `PxaWorkbookBuilder.Save` uses it when the requested output extension is `.xls`.
+- [x] Confirm that `PvadWorkbookBuilder.Save` uses it when the requested output extension is `.xls`.
 - [x] Confirm that NPOI migration providers analyze source text through Roslyn and do not require the NPOI runtime package.
-- [x] Remove the unused NPOI package reference from `PXA.Infrastructure.Converters`.
+- [x] Remove the unused NPOI package reference from `PVAD.Infrastructure.Converters`.
 - [x] Keep `.xlsx`, CSV, and TSV processing independent of NPOI.
 
 ## License Evidence
@@ -61,7 +59,7 @@ Engineering assessment: lowest implementation risk and the recommended route whe
 - [ ] Define ownership for upstream security patches and compatibility testing.
 - [ ] Verify functional parity for formulas, typed values, merges, column widths, malformed files, and Linux containers.
 
-Engineering assessment: preserves `.xls` behavior but transfers package maintenance and supply-chain responsibility to PXA.
+Engineering assessment: preserves `.xls` behavior but transfers package maintenance and supply-chain responsibility to PVADE.
 
 ### Option C - Replace Or Reduce Legacy XLS Support
 
@@ -76,7 +74,7 @@ Engineering assessment: import-only replacement is feasible; a free, maintained,
 
 ## Recommendation And Decision Gate
 
-- [x] Recommend Option A when PXA commits to full `.xls` import and export because it has the smallest engineering and compatibility risk.
+- [x] Recommend Option A when PVADE commits to full `.xls` import and export because it has the smallest engineering and compatibility risk.
 - [x] Recommend Option C with `.xls` export retirement when legacy export has low commercial value and minimizing special licensing obligations is more important.
 - [ ] Product confirms whether full `.xls` export is a launch requirement.
 - [ ] Legal selects and signs off Option A, B, or C.

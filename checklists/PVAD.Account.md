@@ -1,7 +1,5 @@
 # PVAD Account Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 > Implementation plan and phase tracking for all remaining open items:
 > [PVAD.Account.Portal-Implementation.md](PVAD.Account.Portal-Implementation.md).
 
@@ -11,12 +9,12 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Application Identity
 
-- [x] Create the standalone application under `websites/PXA.Account`.
+- [x] Create the standalone application under `websites/PVAD.Account`.
 - [ ] Validate and provision the proposed `https://account.pvade.com` Cloud host; the selected domain does not prove that this host is deployed.
 - [x] Use `http://localhost:5178` for local development.
 - [x] Access the backend through same-origin `/api` routes.
-- [x] Share PXA design tokens without coupling Account to Company, Designer, or Admin bundles.
-- [x] Add `Sign in` and `Start free trial` links to PXA.Company while keeping PXA Admin undiscoverable.
+- [x] Share PVADE design tokens without coupling Account to Company, Designer, or Admin bundles.
+- [x] Add `Sign in` and `Start free trial` links to PVAD.Company while keeping PVADE Admin undiscoverable.
 
 ## Priorities
 
@@ -40,7 +38,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Customer Authentication
 
-- [x] Reuse the secure PXA cookie, session, lockout, password policy, and security-stamp infrastructure.
+- [x] Reuse the secure PVADE cookie, session, lockout, password policy, and security-stamp infrastructure.
 - [x] Add Account login, logout, current-user, password-reset, and email-verification routes.
 - [x] Keep customer authorization separate from System Administrator access through dedicated Account permissions; Organization Administrator and Manager intentionally retain tenant-scoped Admin self-service APIs, while system operations require an explicitly allowlisted System Administrator.
 - [x] Support safe `returnUrl` redirects to Designer, Demo, Documentation, or Account routes.
@@ -61,9 +59,9 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Company Integration
 
-- [x] Add `Sign in` to every PXA.Company header.
+- [x] Add `Sign in` to every PVAD.Company header.
 - [x] Add `Start free trial` to the shared Company header and Trial pricing path.
-- [x] Route Company buttons to PXA.Account rather than rendering authentication inside the static marketing site.
+- [x] Route Company buttons to PVAD.Account rather than rendering authentication inside the static marketing site.
 - [x] Preserve campaign attribution with an allowlisted, privacy-safe registration context.
 - [ ] Update pricing and Trial copy only after commercial limits are approved.
 
@@ -95,22 +93,22 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Tests
 
-- [x] Unit-test registration validation, Trial eligibility, return URLs, and customer authorization policies. (registration validation by `RegistrationValidationTests`, Trial eligibility by the new `TrialActivationServiceTests` — EF Core InMemory-backed, no Postgres needed since the service never calls `SaveChangesAsync` — return URLs by `returnUrl.test.ts`, and customer authorization policies by `PxaSecurityContractsTests`)
+- [x] Unit-test registration validation, Trial eligibility, return URLs, and customer authorization policies. (registration validation by `RegistrationValidationTests`, Trial eligibility by the new `TrialActivationServiceTests` — EF Core InMemory-backed, no Postgres needed since the service never calls `SaveChangesAsync` — return URLs by `returnUrl.test.ts`, and customer authorization policies by `PvadSecurityContractsTests`)
 - [x] Integration-test Company registration, verification, pre-verification rejection, login, Trial creation, entitlements, and token reuse against PostgreSQL.
 - [x] Test Individual Developer registration and both organization models atomically.
 - [x] Test duplicate organization and concurrent registration conflicts; duplicate-email behavior has baseline coverage. (repeated-Trial creation is prevented by construction — Trial activation only ever runs once, inside the registration transaction, with no endpoint that could re-trigger it — so there is nothing distinct for an integration test to exercise there)
 - [x] Test cross-tenant profile, organization, subscription, license, key, and session access attempts. (`AccountCrossTenantAccessTests`, plus existing per-resource coverage in the licenses/service-accounts test files)
 - [x] Test Company-to-Account links and authenticated return flows through unit coverage in `signedInSignal.test.ts` and the real cross-origin browser journey in `company-account-flow.spec.ts`.
 - [x] Test keyboard navigation, focus management, responsive layouts, and accessible validation through Playwright desktop and mobile browser scenarios.
-- [x] Build and type-check PXA Account and run automated desktop/mobile browser smoke scenarios through `account-designer-flow.spec.ts` and `account-accessibility.spec.ts`.
+- [x] Build and type-check PVADE Account and run automated desktop/mobile browser smoke scenarios through `account-designer-flow.spec.ts` and `account-accessibility.spec.ts`.
 
 ## Acceptance Criteria
 
 - [x] A new customer can register, verify email, receive one Trial, sign in, and reach the customer dashboard.
 - [x] Individual Developer and Company registrations create the correct organization ownership model. (both paths now proven end-to-end against PostgreSQL, including Individual Developer's SeatLimit=1/workspace-naming path, in `RegistrationConflictTests`)
-- [x] PXA.Company exposes customer sign-in and Trial entry points without exposing PXA Admin.
-- [x] Customer users cannot access Admin routes or privileged Admin APIs beyond the tenant-scoped self-service access their organization role already carries. (nuance found while writing `AccountCrossTenantAccessTests`: `Organization Administrator`/`Manager` are roles shared by design between PXA Admin's pre-existing tenant self-service and PXA.Account's Company-owner role, so an owner legitimately gets `200` from some `/admin/*` GETs today — that predates this checklist and is not a gap. What the test proves instead: a lower-privileged member with no `PxaPermissions.*` claims gets 403 from every `/admin/*` route, and even an organization owner never reaches a true System-Administrator-only action.)
-- [x] Account roles cannot grant products not enabled by subscription entitlements. (`AccountEntitlementsControllerTests`: a fully-privileged owner is denied once the Trial expires — a maximal role does not override it — and a `Viewer`-role member, holding none of the `PxaAccountPermissions.*` policies used elsewhere, still gets a true `allowed` result while the Trial is healthy, since `AccountEntitlementsController` has no role policy at all)
+- [x] PVAD.Company exposes customer sign-in and Trial entry points without exposing PVADE Admin.
+- [x] Customer users cannot access Admin routes or privileged Admin APIs beyond the tenant-scoped self-service access their organization role already carries. (nuance found while writing `AccountCrossTenantAccessTests`: `Organization Administrator`/`Manager` are roles shared by design between PVADE Admin's pre-existing tenant self-service and PVAD.Account's Company-owner role, so an owner legitimately gets `200` from some `/admin/*` GETs today — that predates this checklist and is not a gap. What the test proves instead: a lower-privileged member with no `PxaPermissions.*` claims gets 403 from every `/admin/*` route, and even an organization owner never reaches a true System-Administrator-only action.)
+- [x] Account roles cannot grant products not enabled by subscription entitlements. (`AccountEntitlementsControllerTests`: a fully-privileged owner is denied once the Trial expires — a maximal role does not override it — and a `Viewer`-role member, holding none of the `PvadAccountPermissions.*` policies used elsewhere, still gets a true `allowed` result while the Trial is healthy, since `AccountEntitlementsController` has no role policy at all)
 - [x] Registration and recovery do not leak whether unrelated customer identities exist.
 - [x] All privileged customer changes are tenant-scoped and auditable.
 

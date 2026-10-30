@@ -1,7 +1,5 @@
 # PVADE Designer Localization Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Add full localization to `pvad-designer` for English, German, French, Spanish, Italian, and Arabic (with Arabic driving a full RTL layout), covering every page's text — including the template-content library, not just UI chrome.
@@ -12,7 +10,7 @@ Add full localization to `pvad-designer` for English, German, French, Spanish, I
 > not the current Designer. Current code uses `pvad-designer`; the completed
 > tasks below retain their original paths and evidence.
 
-No i18n library exists in `pxa-designer` today (confirmed via `package.json`); the only precedent is a small hand-rolled en/de map at `src/features/pdf-viewer/i18n.ts` for the PDF-viewer toolbar. The app's own UI has zero RTL support — all ~13 stylesheets under `src/styles/` use physical `left`/`right`/`margin-left` properties, and `index.html` has no `dir` attribute. This is separate from the existing, unrelated RTL machinery in `SimplePxaSurface.tsx`/`LocalizedPropertiesPanel.tsx`/`LanguageTabBar.tsx`, which handles RTL for user-authored *document content* inside the canvas — that system is explicitly out of scope and stays untouched.
+No i18n library exists in `pvad-designer` today (confirmed via `package.json`); the only precedent is a small hand-rolled en/de map at `src/features/pdf-viewer/i18n.ts` for the PDF-viewer toolbar. The app's own UI has zero RTL support — all ~13 stylesheets under `src/styles/` use physical `left`/`right`/`margin-left` properties, and `index.html` has no `dir` attribute. This is separate from the existing, unrelated RTL machinery in `SimplePvadSurface.tsx`/`LocalizedPropertiesPanel.tsx`/`LanguageTabBar.tsx`, which handles RTL for user-authored *document content* inside the canvas — that system is explicitly out of scope and stays untouched.
 
 User's explicit scoping decisions:
 1. Scope = everything, including `src/data/templateContent.ts` (~8,760 lines of per-template document body content) and `src/data/templates.ts` (template metadata).
@@ -71,22 +69,22 @@ Full reasoning and design detail live in the approved plan; this checklist track
 
 ## Phase 6 — Translator handoff check
 
-- [x] Confirmed all locale JSON files (6 languages × 15 namespaces, incl. `codeEditor`/`preview` added during the `SimplePxaSurface.tsx`/`LiveCodeEditor.tsx`/`LivePreview.tsx` follow-up) exist and parse as valid JSON.
+- [x] Confirmed all locale JSON files (6 languages × 15 namespaces, incl. `codeEditor`/`preview` added during the `SimplePvadSurface.tsx`/`LiveCodeEditor.tsx`/`LivePreview.tsx` follow-up) exist and parse as valid JSON.
 - [x] Confirmed all 6 `src/data/templateOverrides/*.ts` files exist (`index.ts` + one per non-English locale), each a valid empty `{ elements: {}, pages: {} }` scaffold ready for a translator to add per-template entries. (Unaffected by Phase 7 below — that phase only fills in UI-chrome namespace JSON, not per-template document content.)
 
 ## Phase 7 — Full UI-chrome translation pass (German/French/Spanish/Italian/Arabic)
 
-- [x] Translated every real (non-empty-by-design) namespace in full, for all 5 non-English locales — 1,499 strings × 5 languages, all hand-translated (not machine-translated) preserving exact key structure, interpolation placeholders (`{{count}}`, `{{name}}`, etc.), `_plural` pluralization suffixes, and embedded `<strong>`/`<code>` HTML fragments: `common` (24), `gallery` (22), `codeEditor` (25), `docs` (38), `importer` (35), `preview` (35), `convert` (41), `migrations` (70), `home` (79), `pdfViewer` (95 — fr/es/it/ar only, `de` already had real content from the Phase 4 migration), `spreadsheet` (101), `editor` (934 — by far the largest, includes the entire `SimplePxaSurface.tsx` inspector/toolbar/page-settings string set built during the earlier extraction phase).
+- [x] Translated every real (non-empty-by-design) namespace in full, for all 5 non-English locales — 1,499 strings × 5 languages, all hand-translated (not machine-translated) preserving exact key structure, interpolation placeholders (`{{count}}`, `{{name}}`, etc.), `_plural` pluralization suffixes, and embedded `<strong>`/`<code>` HTML fragments: `common` (24), `gallery` (22), `codeEditor` (25), `docs` (38), `importer` (35), `preview` (35), `convert` (41), `migrations` (70), `home` (79), `pdfViewer` (95 — fr/es/it/ar only, `de` already had real content from the Phase 4 migration), `spreadsheet` (101), `editor` (934 — by far the largest, includes the entire `SimplePvadSurface.tsx` inspector/toolbar/page-settings string set built during the earlier extraction phase).
 - [x] `de` (German) also completed for these namespaces — it previously only had `common.json` and `pdfViewer.json` populated.
 - [x] Verified exact key-for-key structural parity between `en/editor.json` (934 leaves, 1,104 total keys including branch nodes) and each of `de`/`fr`/`es`/`it`/`ar` — zero missing keys, zero extra keys, confirmed via a recursive leaf-counting script across all 90 locale JSON files.
-- [x] Left untranslated, by design: JSON/API schema field names inside error messages (e.g. `"pages"`, `"elements"`, `"id"` in `codeEditor.errors.*` — these are literal property names, not prose); brand name "Power Dox Automation"; file-format acronyms (PDF, DOCX, XLSX, SVG, etc.); example locale codes/placeholders like `"de-DE"`/`"EUR"`.
+- [x] Left untranslated, by design: JSON/API schema field names inside error messages (e.g. `"pages"`, `"elements"`, `"id"` in `codeEditor.errors.*` — these are literal property names, not prose); brand name "PVADE"; file-format acronyms (PDF, DOCX, XLSX, SVG, etc.); example locale codes/placeholders like `"de-DE"`/`"EUR"`.
 - [x] Fixed a test that had been asserting fallback behavior against `home:hero.title` in French — now that the string is genuinely translated, that assertion no longer exercised the fallback path. Repointed `src/__tests__/localization.test.tsx` at `templates:sample.name` with a `defaultValue`, since `templates.json` is genuinely and permanently empty in every locale (template metadata is translated via the `defaultValue` mechanism, not a namespace file) — this is a stable, by-design fallback case rather than a temporary scaffold gap.
 - [x] `templates`/`onboarding`/`create` namespaces remain intentionally empty in every locale (see Phase 1/2 notes above for why) — not part of this pass.
 - [x] Re-verified `tsc --noEmit`, full Jest suite (21 suites / 215 tests), and `npm run build` all clean after the full translation pass.
 
 ## Explicitly out of scope
 
-- [x] Existing content-RTL system (`SimplePxaSurface.tsx`, `LocalizedPropertiesPanel.tsx`, `LanguageTabBar.tsx`) — handles user-authored document content, not app UI; not touched.
+- [x] Existing content-RTL system (`SimplePvadSurface.tsx`, `LocalizedPropertiesPanel.tsx`, `LanguageTabBar.tsx`) — handles user-authored document content, not app UI; not touched.
 
 ## Verification
 

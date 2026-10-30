@@ -1,7 +1,5 @@
 # Last Features — Missing GemBox Document Capabilities
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Features available in [GemBox.Document](https://www.gemboxsoftware.com/document) compared to PVAD.
 Items marked ✅ have been implemented. Items still open remain unchecked.
 
@@ -11,13 +9,13 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
 
 ## File Format Support
 
-### Read (import into PXA)
+### Read (import into PVADE)
 - [x] **[high]** Read PDF — import/parse existing PDF documents as a template base
 - [x] **[medium]** Read DOCX — OOXML Word import
 - [x] **[low]** Read DOC — legacy Word 97-2003 binary format
 - [x] **[low]** Read ODT — OpenDocument Text (LibreOffice / Google Docs users)
 
-### Write (export from PXA)
+### Write (export from PVADE)
 - [x] **[low]** Write ODT — OpenDocument Text (LibreOffice / Google Docs users)
   - `OdtDocumentExporter.cs` — ODF 1.3 ZIP package with draw frames for pixel-accurate layout
   - Supports text, richtext, rect, circle, line, image, table, footnote, endnote, bookmark, content control
@@ -47,11 +45,11 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
   - `DigitalSignatureDto` types scaffolded *(full PKI signing requires a signing certificate at runtime)*
 - [x] **[high]** **Footnotes & Endnotes** — footnote/endnote insertion with automatic numbering
   - `FootnoteService.cs` — manages `footnotes.xml` and `endnotes.xml` DOCX parts
-  - `footnote` / `endnote` element types in `ElementType.cs`, `types.ts`, `SimplePxaSurface.tsx`
+  - `footnote` / `endnote` element types in `ElementType.cs`, `types.ts`, `SimplePvadSurface.tsx`
   - Rendered in `WordDocumentExporter` with proper reference marks; canvas preview shows note text
   - UI: "Word / DOCX Elements" toolbox group; inspector panel for footnote text
 - [x] **[high]** **Bookmarks** — named in-document anchors for cross-references, TOC, and deep links
-  - `bookmark` element type in `ElementType.cs`, `types.ts`, `SimplePxaSurface.tsx`
+  - `bookmark` element type in `ElementType.cs`, `types.ts`, `SimplePvadSurface.tsx`
   - Rendered in `WordDocumentExporter` as `<w:bookmarkStart>` / `<w:bookmarkEnd>`
   - `BookmarkName`, `BookmarkTarget` on `ElementDto` / `SimpleElement`
   - UI: toolbox tool; inspector fields for name and link target
@@ -60,13 +58,13 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
   - `POST /api/document/find-replace` endpoint in `DocumentOpsController.cs`
   - `ExportService.findAndReplace()` — frontend service method
 - [x] **[medium]** **Content Controls** — Word structured content controls (rich text, plain text, date picker, combo box, picture)
-  - `contentcontrol` element type in `ElementType.cs`, `types.ts`, `SimplePxaSurface.tsx`
+  - `contentcontrol` element type in `ElementType.cs`, `types.ts`, `SimplePvadSurface.tsx`
   - Rendered in `WordDocumentExporter` as `<w:sdt>` blocks (all five types)
   - `ContentControlType`, `ContentControlTag`, `ContentControlTitle`, `ContentControlPlaceholder`
   - UI: toolbox tool; inspector fields for type, title, tag, placeholder, default content
 - [x] **[medium]** **Word-native Comments** — margin annotations with author/date metadata
   - `CommentService.cs` — manages `comments.xml` DOCX part
-  - `comment` element type in `ElementType.cs`, `types.ts`, `SimplePxaSurface.tsx`
+  - `comment` element type in `ElementType.cs`, `types.ts`, `SimplePvadSurface.tsx`
   - `CommentAuthor`, `CommentDate`, `CommentText`, `CommentId` on `ElementDto`
   - UI: toolbox tool; inspector fields for text, author, date
 - [x] **[medium]** **Auto-Hyphenation** — automatic word hyphenation based on locale dictionaries
@@ -114,7 +112,7 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
 ## Still Open
 
 - [ ] Native PDF shading/resource emission in `PVAD.Pdf` for importer round-trips
-  - Expose page-level shading/resource registration and shading drawing so `PXA.Importer` does not need incremental compatibility patching for grouped or more complex shading preservation.
+  - Expose page-level shading/resource registration and shading drawing so `PVAD.Importer` does not need incremental compatibility patching for grouped or more complex shading preservation.
 
 - [x] **[high]** Read PDF (import existing PDFs as template base)
   - `PdfImporter.cs` — UglyToad.PdfPig; groups words by baseline Y into Text elements, extracts images as base64 data URIs
@@ -127,7 +125,7 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
   - `POST /api/document/import-doc` endpoint
   - `ExportService.importDoc()` frontend method; TemplatePage "Import file" button accepts `.doc`
 - [x] **[medium]** Read DOCX — OOXML Word import
-  - `DocxImporter.cs` (PXA.Infrastructure.Word) — OpenXML SDK; page size/margins from `SectionProperties`; paragraphs → Text; tables → Table; inline images → base64 Image elements; typography from RunProperties
+  - `DocxImporter.cs` (PVAD.Infrastructure.Word) — OpenXML SDK; page size/margins from `SectionProperties`; paragraphs → Text; tables → Table; inline images → base64 Image elements; typography from RunProperties
   - `POST /api/document/import-docx` endpoint in `DocumentOpsController.cs`
   - `ExportService.importDocx()` frontend method; `useTemplateLoader.loadFromFile()` dispatches `.docx`; TemplatePage accepts `.docx`
 - [x] **[low]** Read ODT — OpenDocument Text import
@@ -138,13 +136,13 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
   - `DigitalSigningService.cs` — loads PFX via `X509CertificateLoader.LoadPkcs12`, computes SHA-256 part digests, builds `<Signature>` XML, injects `_xmlsignatures/sig1.xml` into ZIP
   - `POST /api/document/sign-docx` — multipart: `docx` file + `certificate` PFX + optional `password`; returns signed DOCX as octet-stream
   - `ExportService.signDocx(blob, certFile, password?)` — frontend service method
-  - `System.Security.Cryptography.Xml` 10.0.8 added to PXA.Infrastructure.Word
+  - `System.Security.Cryptography.Xml` 10.0.8 added to PVAD.Infrastructure.Word
 
 ---
 
 ## UI Additions (this session)
 
-- [x] **Find & Replace modal** (`FindReplaceModal.tsx`) — plain-text, regex, case-sensitive, whole-word; toolbar button in SimplePxaSurface header; applies result via `store.bulkReplaceContent()`
+- [x] **Find & Replace modal** (`FindReplaceModal.tsx`) — plain-text, regex, case-sensitive, whole-word; toolbar button in SimplePvadSurface header; applies result via `store.bulkReplaceContent()`
 - [x] **ExportModal** — ODT and TIFF added as selectable export formats
 - [x] **Word/DOCX inspector section** — per-element paragraph style, character style, auto-hyphenation, revision type/author/date; style dropdowns populated from namedStyles in Page Settings
 - [x] **"Import file" button** in TemplatePage — accepts PDF, .doc, and .odt via unified `loadFromFile()` hook

@@ -1,7 +1,5 @@
 # UI-Template Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Scope
 Create a dynamic template system similar to CraftMyPDF where users design reusable templates and generate final PDFs by merging template layout with runtime JSON data.
 
@@ -260,9 +258,9 @@ Implementation targets:
 - [x] SOLID principles throughout codebase
 
 Implementation targets:
-- [x] src/Core/PXA.Core/: domain entities and abstractions
-- [x] src/Core/PXA.Application/: use cases and business logic
-- [x] PXA.WebApi/: clean API layer
+- [x] src/Core/PVAD.Core/: domain entities and abstractions
+- [x] src/Core/PVAD.Application/: use cases and business logic
+- [x] PVAD.WebApi/: clean API layer
 - [x] Proper architectural boundaries and patterns
 
 ### 1) Binding Properties (Critical)

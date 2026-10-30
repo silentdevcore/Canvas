@@ -1,14 +1,12 @@
 # Image-Converter2.md: New OCR-Based Image-to-PDF Converter
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 > The broader PDF document-capture milestone is centralized in
 > [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md)
 > and builds on the OCR and image-conversion foundation tracked here.
 
 ## Summary
 
-- [x] Create a new image-to-PDF conversion path that turns raster images into editable PXA documents and exports them as PDFs with real text, image, and layout objects.
+- [x] Create a new image-to-PDF conversion path that turns raster images into editable PVADE documents and exports them as PDFs with real text, image, and layout objects.
 - [x] Use an embedded local OCR engine, preferably the `Tesseract` NuGet package with bundled `tessdata-fast` language files.
 - [x] Do not shell out to a locally installed OCR executable.
 - [x] Do not require a cloud OCR provider for the core conversion workflow.
@@ -16,7 +14,7 @@
 
 ## Product Goal
 
-- [x] Primary output: editable PDF generated through PXA.
+- [x] Primary output: editable PDF generated through PVADE.
 - [x] Intermediate output: `DesignExportDto` with editable `text`, `image`, and layout elements.
 - [x] Optional output: diagnostic/debug response for development and quality review.
 - [x] Preserve visual fidelity by optionally placing the original image as a locked background layer.
@@ -24,8 +22,8 @@
 
 ## Architecture
 
-- [x] Add a new module, for example `PXA.FileImporter.ImageOcr`, for the OCR-based conversion path.
-- [x] Keep the current `PXA.FileImporter.ImageAnalysis` pipeline separate; treat it as legacy/reference code, not the new OCR core.
+- [x] Add a new module, for example `PVAD.FileImporter.ImageOcr`, for the OCR-based conversion path.
+- [x] Keep the current `PVAD.FileImporter.ImageAnalysis` pipeline separate; treat it as legacy/reference code, not the new OCR core.
 - [x] Define an `IOcrEngine` abstraction so Tesseract can be replaced or supplemented later.
 - [x] Add a Tesseract-backed implementation behind the abstraction.
 - [x] Store bundled OCR language files under a predictable deployment path such as `tessdata/`.
@@ -134,7 +132,7 @@
   - [x] Support empty table cells when rows align to known column anchors.
   - [x] Tolerate incomplete table rule lines conservatively.
   - [x] Ignore row/column spans unless OCR evidence is unambiguous.
-- [x] Emit recognized text as PXA `text` elements.
+- [x] Emit recognized text as PVADE `text` elements.
 - [x] Estimate font size from OCR word/line box height.
 - [x] Split colored or differently sized OCR word runs within a line into separate text elements.
 - [x] Classify conservative OCR text roles such as heading, body, and caption.
@@ -144,13 +142,13 @@
 - [x] Reuse shape detection only where it is stable enough to improve editability.
 - [x] Do not reuse the current custom glyph recognizer as the main OCR strategy.
 
-## PXA Element Mapping From Images
+## PVADE Element Mapping From Images
 
 - [x] Add a conservative form/document element mapper after OCR layout detection.
 - [x] Keep the original image as a locked background while placing editable detected elements above it.
 - [x] Use shared exclusion zones so OCR text, table regions, and table rules are not duplicated as shapes.
 - [x] Resolve overlapping detections by priority: table, checkbox, signature, field, image region, shape, text.
-- [x] Map detected objects to supported PXA element types.
+- [x] Map detected objects to supported PVADE element types.
   - [x] Map OCR text, text runs, paragraphs, headings, and captions to `text`.
   - [x] Map simple tables with empty cells to `table`.
   - [x] Map simple horizontal and vertical separators to `line`.
@@ -182,7 +180,7 @@
     - [x] Add `imageOcrDetector` for image region elements.
   - [x] Add `sourceBoundsPx`.
 - [x] Keep uncertain candidates out of the design instead of guessing.
-- [x] Add tests for PXA element mapping.
+- [x] Add tests for PVADE element mapping.
   - [x] Checkbox empty, checked, crossed, and dotted.
   - [x] Label plus empty input field.
   - [x] Signature line with label.
@@ -196,7 +194,7 @@
 ## PDF Generation
 
 - [x] Create a `DesignExportDto` as the canonical intermediate model.
-- [x] Export the design through the existing PXA PDF renderer.
+- [x] Export the design through the existing PVADE PDF renderer.
 - [x] Render OCR text as real PDF text objects.
 - [x] Render the original image as a background layer when enabled.
 - [x] Keep low-confidence OCR visible in diagnostics.
@@ -231,7 +229,7 @@
 - [x] Show OCR progress states.
 - [x] Show conversion warnings after completion.
 - [x] Let users download the generated PDF.
-- [x] Let users open the editable PXA design after conversion.
+- [x] Let users open the editable PVADE design after conversion.
 
 ## Diagnostics And Debugging
 
@@ -255,7 +253,7 @@
 
 ## Existing Code To Analyze After Saving This Plan
 
-- [x] Review `src/Importing/PXA.FileImporter.Image/ImageFileImporter.cs`.
+- [x] Review `src/Importing/PVAD.FileImporter.Image/ImageFileImporter.cs`.
   - [x] Reuse image decoding where appropriate.
   - [x] Reuse EXIF orientation handling where appropriate.
   - [x] Reuse data URI / image encoding logic where appropriate.
@@ -267,7 +265,7 @@
   - [ ] Reuse stable preprocessing helpers where they are general-purpose.
   - [ ] Reuse stable shape/region detection only as optional layout enrichment.
   - [ ] Do not use the current custom glyph recognition as the OCR core.
-- [x] Review `PXA/Pdf/*` and `src/Infrastructure/PXA.Infrastructure.Pdf/*`.
+- [x] Review `PXA/Pdf/*` and `src/Infrastructure/PVAD.Infrastructure.Pdf/*`.
   - [x] Reuse existing text rendering.
   - [x] Reuse existing image rendering.
   - [x] Reuse existing PDF serialization.
@@ -336,7 +334,7 @@
   - [x] Map OCR words into table cells when a visual table-region candidate exists.
 - [ ] Map nearby OCR labels to form fields, checkboxes, and signature lines without consuming unrelated paragraph text.
   - [x] Map nearby OCR labels to field and checkbox candidates without consuming unrelated paragraph text.
-- [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone PXA text elements.
+- [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone PVADE text elements.
 - [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final PVAD element output.
 - [ ] Add debug overlays for each stage: OCR text bounds, visual candidates, fusion/mapping results, and final element bounds.
 - [x] Add tests proving that OCR text recognition can succeed independently of element detection.
@@ -351,7 +349,7 @@
   - [x] Add `OcrTextDocument` with source image size, pages, blocks, lines, words, bounds in original pixels, confidence, language, and preprocessing metadata.
   - [x] Add `VisualLayoutDocument` with detected rule segments, table regions, fields, checkboxes, signature lines, shapes, image regions, and confidence/rejection diagnostics.
   - [x] Add `FusedLayoutDocument` with final semantic candidates: tables with cell text, fields with labels, checkboxes with labels/state, signatures with labels, standalone text groups, shapes, and image regions.
-  - [x] Keep these models internal to `PXA.FileImporter.ImageOcr` unless API consumers need them later.
+  - [x] Keep these models internal to `PVAD.FileImporter.ImageOcr` unless API consumers need them later.
 - [ ] Refactor `ImageToPdfConverter.ConvertAsync` into an orchestrator that decodes the image, applies orientation/preprocessing/scale mapping, runs OCR extraction, runs visual detection, runs OCR/visual fusion, builds `DesignExportDto`, builds diagnostics/debug overlays, and returns the result.
   - [x] Add `OcrTextExtractor` that calls `IOcrEngine`, handles OCR bitmap scaling, maps OCR coordinates back to source pixels, and produces `OcrTextDocument`.
   - [ ] Add `VisualElementDetector` that receives original `SKBitmap`, source dimensions, and options; detects visual candidates from pixels/rules/edges/fills; avoids final text-placement decisions; and produces `VisualLayoutDocument`.
@@ -430,7 +428,7 @@
 
 - [x] A PNG scan can be converted into a valid PDF.
 - [ ] A JPEG scan can be converted into a valid PDF.
-- [x] Recognized text is represented as editable PXA text elements.
+- [x] Recognized text is represented as editable PVADE text elements.
 - [x] The generated PDF preserves visual fidelity through an optional original-image background layer.
 - [x] OCR runs from app-bundled dependencies and language files.
 - [x] OCR runs with app-bundled primary native Tesseract/Leptonica libraries on this runtime.

@@ -1,7 +1,5 @@
 # PVAD Professional Chart Engine and PDF Chart Recognition
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver one versioned chart model and one visual contract across Designer, Live Preview,
@@ -27,17 +25,17 @@ source visual, and never silently invent customer data.
 
 ## P0 - Backend and PDF Output
 
-- [x] Move chart rendering out of `DesignJsonMapper` into `PXA.Infrastructure.Pdf`.
+- [x] Move chart rendering out of `DesignJsonMapper` into `PVAD.Infrastructure.Pdf`.
 - [x] Render the seven core chart types as PDF vectors.
 - [x] Keep a 3x SkiaSharp raster fallback for unsupported or failed vector cases.
 - [x] Support multiple series, negative domains, nice ticks, legends, labels, and localized values.
 - [x] Return an explicit empty state or diagnostic for invalid data; never render demo data.
-- [x] Embed versioned PXA chart metadata and a content hash for lossless round trips.
+- [x] Embed versioned PVADE chart metadata and a content hash for lossless round trips.
 
 ## P0 - PDF Recognition
 
 - [x] Add `off`, `safe`, and `review` PDF chart-recognition modes; default to `safe`.
-- [x] Recover embedded PXA chart metadata before heuristic recognition.
+- [x] Recover embedded PVADE chart metadata before heuristic recognition.
 - [ ] Detect vector bar, line, area, pie, doughnut, stacked bar, and combo candidates. Conservative bar recognition and line review candidates are implemented; the remaining foreign-PDF types require more fixtures and geometry inference.
 - [ ] Use local raster analysis and OCR for embedded or rasterized chart candidates.
 - [x] Apply confidence policy: automatic at 0.85+, review at 0.60-0.849, visual fallback below 0.60.
@@ -62,8 +60,8 @@ source visual, and never silently invent customer data.
 
 ## Acceptance Criteria
 
-- [x] The same chart has equivalent data, series order, colors, scales, and labels in every PXA surface.
+- [x] The same chart has equivalent data, series order, colors, scales, and labels in every PVADE surface.
 - [x] Generated PDFs remain sharp at high zoom and print resolution.
-- [x] PXA-generated charts re-import losslessly with confidence 1.0.
+- [x] PVAD-generated charts re-import losslessly with confidence 1.0.
 - [x] Foreign PDF charts never replace the original visual below the safe confidence threshold.
 - [x] Recognition works without internet access or external customer-data transfer.

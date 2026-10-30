@@ -9,7 +9,7 @@ export const hasLegacyIdentity = value => /pxa|power\s?dox|canvas/i.test(value);
 export const reasons = Object.freeze({
   'drawing-api': 'Neutral drawing surfaces, HTML canvas, vendor APIs or third-party dependency identities, not product branding.',
   'compatibility-contract': 'Retained diagnostics, persisted or cryptographic identifiers, legacy readers, alias adapters and their explanatory documentation. See the linked boundary guides.',
-  'historical-checklist': 'Original implementation history retained with an explicit Naming history notice; task status is not renamed or reapproved.',
+  'historical-checklist': 'Retained checklist execution evidence, original audit context or compatibility references; editorial names may be normalized without changing task status or reapproving results.',
   'historical-document': 'Historical migration/removal/design notes or rename audit evidence, not current product naming instructions.',
   'test-contract': 'Synthetic legacy inputs, expected diagnostics, compatibility assertions or neutral drawing APIs in regression tests and test tooling.',
   'retained-evidence': 'Original source fixtures, signed/hashed evidence, accepted legal content or published release history; changing their text would alter the evidence.',

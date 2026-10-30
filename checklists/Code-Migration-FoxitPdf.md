@@ -1,11 +1,9 @@
 # PVAD Migration: Foxit PDF SDK
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Pilot Analysis
 
 - [x] Foxit PDF SDK is a broad SDK with document generation, editing, annotations, forms, security, rendering, OCR/conversion, viewer, and redaction surfaces.
-- [x] PXA.Pdf currently covers the simple generation subset best: new document, new page, text, images, shapes, and save/export.
+- [x] PVAD.Pdf currently covers the simple generation subset best: new document, new page, text, images, shapes, and save/export.
 - [x] Existing-PDF editing and processing features should remain report-only/manual in v1.
 - [x] First implementation is a Roslyn-backed reporting pilot, not an automatic code rewrite.
 
@@ -30,8 +28,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Foxit`
-- [x] Add `tests/PXA.Migration.Pdf.Code.Foxit.Tests`
+- [x] Add `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Foxit`
+- [x] Add `tests/PVAD.Migration.Pdf.Code.Foxit.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Report deterministic candidates while preserving original source
@@ -39,12 +37,12 @@
 
 ## Mapping Table
 
-| Foxit PDF SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| Foxit PDF SDK API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `Library.Initialize(...)` | No PXA equivalent | Report-only | PXA.Pdf does not require global SDK initialization. |
-| `new PDFDoc()` | `new PXA.Pdf.PdfDocument()` | Report-only in v1 | Input-file constructors imply existing-PDF editing and need manual review. |
+| `Library.Initialize(...)` | No PVADE equivalent | Report-only | PVAD.Pdf does not require global SDK initialization. |
+| `new PDFDoc()` | `new PVAD.Pdf.PdfDocument()` | Report-only in v1 | Input-file constructors imply existing-PDF editing and need manual review. |
 | `doc.InsertPage(...)`, `CreatePage(...)`, `AddPage(...)` | `document.AddPage(...)` | Report-only in v1 | Review page size, orientation, and coordinate origin. |
-| `GetGraphics(...)`, `StartGenerateContents(...)`, `GenerateContent(...)` | Draw directly on `PdfPage` | Report-only in v1 | PXA draw calls target the page returned by `AddPage`. |
+| `GetGraphics(...)`, `StartGenerateContents(...)`, `GenerateContent(...)` | Draw directly on `PdfPage` | Report-only in v1 | PVADE draw calls target the page returned by `AddPage`. |
 | `DrawText(...)`, `ShowText(...)`, `DrawString(...)`, `TextOut(...)` | `page.DrawText(...)` / `page.DrawTextFromTop(...)` | Report-only in v1 | Font and coordinate mapping must be reviewed. |
 | `DrawImage(...)`, `AddImage(...)` | `page.DrawImage(...)` | Report-only in v1 | Image resource and scaling semantics need manual review. |
 | `DrawLine(...)`, `DrawRect(...)`, `DrawRectangle(...)`, `FillRect(...)`, `DrawPath(...)` | `page.DrawLine(...)`, `page.DrawRectangle(...)`, path drawing | Report-only in v1 | Geometry and stroke/fill styles need review. |
@@ -92,17 +90,17 @@ graphics.DrawRect(pen, 40, 620, 200, 80);
 doc.SaveAs(path);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-// PXA.Pdf migration report: Foxit PDF SDK
-// - Library.Initialize(...) detected. PXA.Pdf does not require a global Foxit SDK initialization call.
-// - new PDFDoc(...) detected. Candidate PXA rewrite starts with `var document = new PdfDocument();`; input-file constructors need manual review.
-// - InsertPage(...) detected. Candidate PXA rewrite is `var page = document.AddPage(...)` after page size/orientation review.
-// - DrawText(...) detected. Candidate PXA rewrite is `page.DrawText(...)` or `page.DrawTextFromTop(...)` after coordinate review.
-// - DrawImage(...) detected. Candidate PXA rewrite is `page.DrawImage(...)` after image sizing/resource review.
-// - DrawRect(...) detected. Candidate PXA rewrite is `page.DrawLine(...)`, `page.DrawRectangle(...)`, or path drawing after geometry review.
-// - SaveAs(...) detected. Candidate PXA rewrite ends with `document.Save(...)`; review Foxit save flags.
+// PVAD.Pdf migration report: Foxit PDF SDK
+// - Library.Initialize(...) detected. PVAD.Pdf does not require a global Foxit SDK initialization call.
+// - new PDFDoc(...) detected. Candidate PVADE rewrite starts with `var document = new PdfDocument();`; input-file constructors need manual review.
+// - InsertPage(...) detected. Candidate PVADE rewrite is `var page = document.AddPage(...)` after page size/orientation review.
+// - DrawText(...) detected. Candidate PVADE rewrite is `page.DrawText(...)` or `page.DrawTextFromTop(...)` after coordinate review.
+// - DrawImage(...) detected. Candidate PVADE rewrite is `page.DrawImage(...)` after image sizing/resource review.
+// - DrawRect(...) detected. Candidate PVADE rewrite is `page.DrawLine(...)`, `page.DrawRectangle(...)`, or path drawing after geometry review.
+// - SaveAs(...) detected. Candidate PVADE rewrite ends with `document.Save(...)`; review Foxit save flags.
 ```
 
 ## Analyzer Diagnostics Checklist

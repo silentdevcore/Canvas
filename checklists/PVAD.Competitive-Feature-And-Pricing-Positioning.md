@@ -1,10 +1,8 @@
-# PXA Competitive Feature and Pricing Positioning
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Competitive Feature and Pricing Positioning
 
 ## Purpose
 
-Preserve the current strategic assessment of Power Dox Automation (PXA), its
+Preserve the current strategic assessment of PVADE (technical identity PVAD), its
 competitive position, and the proposed subscription price book for later product
 and commercial decisions.
 
@@ -16,14 +14,14 @@ Assessment date: 2026-09-26.
 
 ## Executive Assessment
 
-PXA is not yet a universal replacement for mature document SDKs. Its current
+PVADE is not yet a universal replacement for mature document SDKs. Its current
 strength is the combination of vendor migration, a visual Designer, a canonical
 document model, code roundtrips, multiple document families, administration,
 Cloud and On-Premise architecture, an emerging MCP integration, and a now
 substantial PDF Trust stack.
 
 Since the previous assessment, the former critical PDF Trust gap has been
-materially reduced. PXA now implements profile-specific signing and validation,
+materially reduced. PVADE now implements profile-specific signing and validation,
 irreversible redaction, modern encryption, archival output, accessibility output,
 Viewer workflows, migration diagnostics, and reproducible validation evidence.
 The remaining gap is primarily breadth, independent release acceptance, and
@@ -31,7 +29,7 @@ production proof rather than the absence of a Trust foundation.
 
 Indicative assessment of the current repository state:
 
-| Dimension | PXA assessment |
+| Dimension | PVADE assessment |
 | --- | ---: |
 | Innovation | 8.5 / 10 |
 | Feature breadth | 7.5 / 10 |
@@ -51,7 +49,7 @@ Scores use the following scale: 9-10 market-leading, 7-8 competitive, 5-6
 usable with material gaps, and below 5 early or clearly behind established
 providers.
 
-| Capability | PXA | Strong reference providers | Current position |
+| Capability | PVADE | Strong reference providers | Current position |
 | --- | ---: | --- | --- |
 | Visual document Designer | 8 | DevExpress, Syncfusion | Strong |
 | Templates and data binding | 7 | DevExpress, Aspose, Syncfusion | Competitive, less proven |
@@ -85,16 +83,16 @@ providers.
 ### Aspose.Total
 
 Aspose has substantially greater file-format breadth, Office fidelity, mature
-object models, and conversion depth. PXA is differentiated by its visual
+object models, and conversion depth. PVADE is differentiated by its visual
 Designer, vendor migrations, and connected JSON/C#/Model workflow.
 
 Reference: https://products.aspose.com/total/net/
 
 ### Syncfusion Document SDK
 
-Syncfusion leads PXA in mature PDF, Word, Excel, PowerPoint, Markdown, OCR,
+Syncfusion leads PVADE in mature PDF, Word, Excel, PowerPoint, Markdown, OCR,
 digital signatures, accessibility, formula calculation, Pivot Tables, and
-native Office charts. PXA offers a more focused migration and canonical-design
+native Office charts. PVADE offers a more focused migration and canonical-design
 story.
 
 Reference: https://www.syncfusion.com/document-sdk
@@ -102,7 +100,7 @@ Reference: https://www.syncfusion.com/document-sdk
 ### DevExpress
 
 DevExpress leads in reporting runtime, data sources, end-user reporting,
-Spreadsheet calculation, Office fidelity, and long-term product maturity. PXA
+Spreadsheet calculation, Office fidelity, and long-term product maturity. PVADE
 has a stronger vendor-neutral report and code migration proposition.
 
 Reference: https://www.devexpress.com/products/net/office-file-api/
@@ -111,7 +109,7 @@ Reference: https://www.devexpress.com/products/net/office-file-api/
 
 Apryse leads in high-fidelity viewing, direct PDF and Office editing,
 annotations, forms, comparison, signing, redaction, CAD support, collaboration,
-and native platform coverage. PXA leads in template/code convergence and
+and native platform coverage. PVADE leads in template/code convergence and
 cross-provider migration.
 
 Reference: https://apryse.com/products/webviewer
@@ -120,7 +118,7 @@ Reference: https://apryse.com/products/webviewer
 
 Nutrient leads in Web, server, and mobile SDK maturity; PDF viewing; forms;
 signatures; OCR; redaction; collaboration; PDF/A; accessibility; and supported
-programming environments. PXA's differentiated value is migration into one
+programming environments. PVADE's differentiated value is migration into one
 editable automation model.
 
 Reference: https://www.nutrient.io/sdk/
@@ -128,7 +126,7 @@ Reference: https://www.nutrient.io/sdk/
 ### iText and Pdftools
 
 iText and Pdftools retain greater breadth, longer production history, broader
-standards coverage, optimization depth, and low-level PDF control. PXA now has a
+standards coverage, optimization depth, and low-level PDF control. PVADE now has a
 credible Trust subset with PAdES through B-LTA, AES-256, PDF/A-2b/3b, PDF/UA-1,
 and bounded secure redaction. PDF/A-4, evaluated PDF/UA-2, qualified signing
 providers, a second compliance validator, and broader production interoperability
@@ -141,12 +139,12 @@ References:
 
 ### GemBox and IronPDF
 
-PXA provides a broader platform than these focused libraries, including the
+PVADE provides a broader platform than these focused libraries, including the
 Designer, migration, Viewer, administration, templates, and multiple document
 families. Focused libraries remain easier to adopt for narrow use cases and have
 more commercial validation of their core workflows.
 
-## Defensible PXA Advantages
+## Defensible PVADE Advantages
 
 - Migration projects for 15 PDF code-provider families.
 - Migration projects for 8 Spreadsheet code-provider families.
@@ -189,12 +187,12 @@ The detailed PDF-engine tracker remains:
 
 ## Recommended Market Position
 
-Do not position PXA as a feature-for-feature replacement for every established
+Do not position PVADE as a feature-for-feature replacement for every established
 PDF and Office SDK.
 
 Recommended positioning:
 
-> PXA modernizes and unifies existing document solutions and makes them
+> PVADE modernizes and unifies existing document solutions and makes them
 > editable, automatable, and distributable through Designer, code, API, and
 > agents.
 
@@ -236,7 +234,7 @@ the legally required tax-inclusive amount.
   production use.
 - Trial should demonstrate the full Premium workflow without requiring payment
   details.
-- Premium Individual should compete on access to the complete PXA workflow, not
+- Premium Individual should compete on access to the complete PVADE workflow, not
   only on PDF generation.
 - Premium Company should monetize collaboration, administration, shared assets,
   API access, and higher usage.
@@ -249,7 +247,7 @@ the legally required tax-inclusive amount.
 ## Decisions Required Before Publication
 
 - [ ] Revalidate competitor capabilities and prices immediately before launch.
-- [ ] Validate PXA performance, fidelity, security, and scale claims through
+- [ ] Validate PVADE performance, fidelity, security, and scale claims through
   repeatable tests.
 - [ ] Approve edition boundaries, usage metrics, limits, and overage behavior.
 - [ ] Validate willingness to pay with prospective Individual and Company users.

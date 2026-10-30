@@ -1,13 +1,11 @@
 # UI Fixes Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged. SimplePxaSurface is now SimplePvadSurface.
-
 ## Scope
 Improve the element inspector and canvas toolbar with missing typography controls, rotation, background/transparency, border, spacing, element identity, and alignment tools.
 
 ## Current State — Code Analysis (2026-05-15)
 
-Analysis of `src/components/Editor/SimplePxaSurface.tsx` and `src/types.ts`.
+Analysis of `src/components/Editor/SimplePvadSurface.tsx` and `src/types.ts`.
 
 | Area | Status | Notes |
 |---|---|---|
@@ -148,7 +146,7 @@ Analysis of `src/components/Editor/SimplePxaSurface.tsx` and `src/types.ts`.
 - [x] Add `redo()` action: pops redo stack → restores template; pushes restored template onto undo stack.
 - [x] Snapshot is taken automatically on: `addElement`, `deleteElement`, `reorderElement`, `addPage`, `deletePage`, `duplicatePage`, `movePageTo`, `addSharedElement`, `deleteSharedElement`.
 - [x] Snapshot is taken at drag **start** and resize **start** (one undo step per interaction, not per pixel).
-- [x] `⌘Z` / `Ctrl+Z` → undo; `⌘⇧Z` / `Ctrl+Y` → redo. *(global keyboard handler in SimplePxaSurface)*
+- [x] `⌘Z` / `Ctrl+Z` → undo; `⌘⇧Z` / `Ctrl+Y` → redo. *(global keyboard handler in SimplePvadSurface)*
 - [x] Undo and Redo icon buttons added to the topbar.
 - [x] Switching templates resets both stacks.
 

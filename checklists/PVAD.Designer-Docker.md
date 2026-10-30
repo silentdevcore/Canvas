@@ -1,7 +1,5 @@
 # PVADE Designer Docker Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver `pvad-designer` as a production-ready static web application that connects to PVAD Cloud or a local PVAD Server through the same API contract.

@@ -1,7 +1,5 @@
 # PVADE Designer Home Page Restructure Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Restructure PVADE Designer's Home page (`IndexPage.tsx`) to full parity with the hub navigation restructure: more description, direct links to every reachable item in both the PDF and Spreadsheet hubs (not just a subset), fixed routing to the new direct paths instead of the old redirect-through routes.

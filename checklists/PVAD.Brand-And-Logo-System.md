@@ -1,7 +1,5 @@
 # PVADE Brand And Logo System
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 The brief below uses the current naming decision. It does not approve artwork
 or trademark clearance. See the [current asset inventory](../docs/pvad-brand-asset-inventory.md).
 

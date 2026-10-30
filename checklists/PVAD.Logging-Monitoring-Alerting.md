@@ -1,7 +1,5 @@
 # PVAD Logging, Monitoring, and Alerting
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver privacy-safe, vendor-neutral observability for the complete PVADE platform. Logging, metrics,
@@ -27,8 +25,8 @@ making application availability depend on the telemetry backend.
 - [x] Configure the service name, namespace, version, environment, and instance as resource
       attributes.
 - [x] Export logs, metrics, and traces over OTLP only when an endpoint is configured.
-- [x] Keep OTLP export bounded and non-blocking so Collector outages do not stop PXA.
-- [x] Instrument ASP.NET Core requests, outgoing HTTP calls, .NET runtime, Npgsql, and custom PXA
+- [x] Keep OTLP export bounded and non-blocking so Collector outages do not stop PVADE.
+- [x] Instrument ASP.NET Core requests, outgoing HTTP calls, .NET runtime, Npgsql, and custom PVADE
       activities and meters.
 - [x] Exclude liveness and readiness probes from distributed traces.
 - [x] Sanitize URL query strings and sensitive HTTP attributes before trace export.
@@ -101,11 +99,11 @@ making application availability depend on the telemetry backend.
       operations, object storage, licensing, and infrastructure.
 - [x] Add a dashboard for browser health.
 - [x] Expose Grafana only through a protected operator host and reverse proxy.
-- [x] Add a sanitized System Status workspace to PXA.Admin for System Administrators.
+- [x] Add a sanitized System Status workspace to PVAD.Admin for System Administrators.
 - [x] Add `/api/pxa/v1/admin/system/health` with coarse dependency, worker, and queue status.
 - [x] Do not expose raw logs, traces, Grafana links, secrets, or customer data to Organization
       Administrators.
-- [x] Keep operator dashboards and runbooks outside public PXA.Documentation.
+- [x] Keep operator dashboards and runbooks outside public PVAD.Documentation.
 
 ## Alerting
 
@@ -169,7 +167,7 @@ making application availability depend on the telemetry backend.
 
 ## Acceptance Criteria
 
-- [x] PXA emits correlated logs, metrics, and traces without document content or customer secrets.
+- [x] PVADE emits correlated logs, metrics, and traces without document content or customer secrets.
 - [x] Collector or telemetry-storage outages never make document operations unavailable.
 - [x] Metrics use bounded labels and dashboards identify API, worker, database, and queue failures.
 - [x] Raw observability data is available only to authorized operators.

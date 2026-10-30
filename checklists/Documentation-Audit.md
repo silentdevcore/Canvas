@@ -1,7 +1,5 @@
 # Documentation Audit
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Keep the documentation set coherent as PVADE grows across PDF generation, importers, migrations, report conversion, and the `pvad-designer` frontend. Technical projects and namespaces use PVAD.
@@ -16,10 +14,11 @@ browser validation for this naming-only follow-up are deferred by the owner.
 
 ### Checklist Naming Follow-up (2026-10-30)
 
-Current checklist titles, goals, and open implementation tasks use PVAD for
-technical identifiers and PVADE for the market and Designer name. Completed
-task records, original code fences, dated assessments, accepted Legal content,
-and compatibility contracts retain their original wording and status.
+Checklist titles, prose, task descriptions and ordinary code examples use PVAD
+for technical identifiers and PVADE for the market and Designer name. Repeated
+naming-history banners have been removed. Checkbox states and assessment dates
+are unchanged. Actual execution records, accepted Legal content, original rename
+audit evidence and compatibility values retain their exact wording.
 See the [naming review](../docs/pvad-checklist-naming.md) for scope, the remaining
 legacy references, and publisher decisions. This is not a new feature completion
 or a release approval.
@@ -47,8 +46,8 @@ or a release approval.
 
 ## Completed In This Audit
 
-- [x] **[high]** Update `ARCHITECTURE.md` for `PXA.Importer`, `PXA.FileImporter.*`, `PXA.Migration.*`, RDL, and RPX.
-- [x] **[high]** Replace historical `PdfImporter`/PdfPig architecture language with current `PXA.Importer` source of truth.
+- [x] **[high]** Update `ARCHITECTURE.md` for `PVAD.Importer`, `PVAD.FileImporter.*`, `PVAD.Migration.*`, RDL, and RPX.
+- [x] **[high]** Replace historical `PdfImporter`/PdfPig architecture language with current `PVAD.Importer` source of truth.
 - [x] **[high]** Update `PROJECT_SUMMARY.md` with current project groups, endpoints, migration providers, report converters, importers, and test groups.
 - [x] **[high]** Add migration endpoints and current import endpoints to `README.md`.
 - [x] **[medium]** Add a `README.md` documentation map.
@@ -56,16 +55,16 @@ or a release approval.
 - [x] **[high]** Expand `TESTING.md` with file importer, PDF importer, image analysis/OCR, migration, report migration, and frontend test groups.
 - [x] **[medium]** Link `PXA/README.md` and `PXA/TECHNICAL_DOCUMENTATION.md` to PDF encryption and provider feature-gap roadmaps.
 - [x] **[medium]** Add `checklists/PvadPdf-Provider-Feature-Gaps.md`.
-- [x] **[high]** Add complete protected PXA.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PXA.Admin`.
+- [x] **[high]** Add complete protected PVAD.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PVAD.Admin`.
 - [x] **[high]** Exclude Admin handbook content and operator guidance from the public Documentation build and navigation.
 - [x] **[high]** Add public PDF Trust paths for Generator, Viewer, Migration, API, and troubleshooting, with synthetic screenshots and downloadable validation evidence.
 - [x] **[high]** Document the exact ownership boundary between existing-PDF parsing/mutation, application rendering, and new-PDF generation.
 
 ## Follow-Up Audit Items
 
-- [x] **[medium]** Review old `ui-designer/` checklists and label which are legacy vs active `pxa-designer`.
-  - The legacy `ui-designer/` implementation folder was removed during the PXA Designer folder cleanup.
-  - Historical checklists may still mention `ui-designer/` paths when documenting completed legacy work; active UI docs and commands now target `pxa-designer/`.
+- [x] **[medium]** Review old `ui-designer/` checklists and label which are legacy vs active `pvad-designer`.
+  - The legacy `ui-designer/` implementation folder was removed during the PVADE Designer folder cleanup.
+  - Historical checklists may still mention `ui-designer/` paths when documenting completed legacy work; active UI docs and commands now target `pvad-designer/`.
 - [ ] **[medium]** Review `checklists/Last-Features.md` and replace remaining old `PdfImporter.cs`/PdfPig wording with current `PVAD.Importer` wording or a historical note.
 - [ ] **[medium]** Review `handoff.md` and decide whether it is still an active handoff document or should be archived.
 - [ ] **[low]** Add a short `checklists/README.md` index if checklist count keeps growing.

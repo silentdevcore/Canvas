@@ -1,6 +1,5 @@
 # Dependency PR Review - 2026-10-26
 
-> Naming history: PXA has been renamed to PVAD (technical name); PVADE is the market name. Historical evidence and task statuses are unchanged.
 > This historical review retains original paths, commands and evidence from the
 > reviewed commits. Use TESTING.md for commands against the renamed tree.
 

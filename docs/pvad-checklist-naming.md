@@ -9,25 +9,27 @@
   PDF and Spreadsheet project formats.
 
 The application has one general naming-history notice on Company
-`/about.html#rename-history`. Repository checklists also retain a naming-history
-notice because they contain implementation records from before the rename;
-these notices are not additional application banners.
+`/about.html#rename-history`. Repeated naming-history banners have been removed
+from repository checklists and retained planning notes.
 
 ## Review Scope (2026-10-30)
 
-This follow-up corrects current checklist titles, goals, and open task wording.
-It does not certify the implementation of those tasks. Checkbox states and
-completed implementation records are unchanged. Original fenced code examples,
-historical assessment bodies, test results, and compatibility inputs remain
-original rather than being silently presented as new validation.
+At the owner's request, editorial product names are normalized in ordinary
+checklist prose, completed-task descriptions, assessments, and code examples.
+Technical names use PVAD; the market and Designer name is PVADE. The original
+wording remains available through Git history. Checkbox states, assessment dates,
+scores, limitations, test results, and compatibility values are not reapproved
+or changed by this editorial update.
 
 | Content | Treatment |
 | --- | --- |
 | Current headings, descriptions, technical names and open tasks | Use PVAD/PVADE. |
 | Future SDK packages, client classes and publication instructions | Use proposed PVAD names; verify publisher ownership and availability before publication. |
 | Current native-format introduction | Use `.pvadp` / `.pvads` and link to the current contract. |
-| Checked task records and old test commands/counts | Retain original names and completion status as implementation history, not current usage instructions. |
-| Original assessment, branch review and rename evidence | Retain its original wording; it does not describe a newly reviewed product state. |
+| Ordinary checked-task descriptions and sample output | Normalize names without changing completion status or claiming a new test run. |
+| Recorded test commands/counts and execution results | Retain original bytes as evidence of the actual earlier run. |
+| Assessments | Normalize editorial names; retain the assessment date, scores, conclusions and limitations. |
+| Original branch reviews, rename audit and cutover evidence | Retain original wording; it does not describe a newly reviewed product state. |
 | Existing API aliases, diagnostics, cryptographic purposes, schema IDs and stored keys | Keep exact machine values and document their compatibility purpose. |
 | Published Legal versions, accepted hashes, signed corpora and release history | Do not rewrite evidence or imply renewed approval. |
 
@@ -66,9 +68,11 @@ Account and Admin Cloud host proposals use `account.pvade.com` and
 - [The dependency PR review](../checklists/PXA.Dependency-PR-Review-2026-10-26.md)
   contains dated branch names, source paths, diagnostics, and completed CI evidence.
 - Competitive-readiness, pricing, and valuation assessments retain the product
-  name used at their assessment date; a rename does not revalidate their claims.
-- Checked entries in otherwise current checklists describe work actually done
-  under the earlier identity. Their names are not instructions to recreate it.
+  capabilities and conclusions recorded at their assessment date; normalizing
+  product names does not revalidate their claims.
+- Recorded execution evidence and explicitly retained baseline sections describe
+  work actually done under the earlier identity. Their names are not instructions
+  to recreate it. Ordinary task descriptions outside those records use current names.
 - [Compatibility exceptions](pvad-rename-exceptions.md) and the exact-path/hash
   [review ledger](pvad-rename-reviewed-exceptions.json) explain retained protocol,
   storage, fixture, audit, infrastructure, and historical references.
@@ -80,13 +84,20 @@ explicitly documents an existing compatibility contract or original evidence.
 ## Validation Boundary
 
 The documentation contracts check current headings, open tasks, future SDK
-naming, publisher caveats, internal links, and explicit historical notices.
+naming, publisher caveats, internal links, canonical sample output, preserved
+diagnostics, and the absence of repeated naming-history banners. The historical
+path-migration map records the scope of its original preservation checkpoint;
+it does not require later editorial wording to remain frozen.
 This change does not alter application code, database records, package versions,
 published release entries, signed material, or runtime compatibility readers.
 No build, deployment, artwork, legal, publisher, or release approval is inferred
 from editing a checklist. The broader rename release gates remain separate.
 
-Local validation against commit `69e352e3` covers 113 changed checklists:
+### Previous Validation Checkpoint
+
+The preceding, narrower change against commit `69e352e3` covered 113 checklists.
+Its results below belong to that checkpoint, before the current authorization to
+normalize completed-task prose and ordinary examples:
 
 - All 8,153 checkbox states, 6,227 checked task records, and 57 fenced examples
   compare unchanged with that baseline.
@@ -98,7 +109,22 @@ Local validation against commit `69e352e3` covers 113 changed checklists:
 - Release-fragment and synchronized-version checks pass; `VERSION` remains
   `1.1.0`. These metadata checks are not production release readiness.
 
-Historical checklist links inside completed records are preserved even when
-their old source paths no longer exist. They are evidence of the original
-implementation, not current navigation targets. This change validates current
-new/updated links; it does not claim that every historical link is usable.
+Original links inside retained execution records may point to source paths that
+no longer exist. They are evidence of the original implementation, not current
+navigation targets. Current source links are updated when an actual canonical
+target exists; this does not claim that every archived link is usable.
+
+### Current Editorial Validation
+
+Against commit `73abda72`, 155 repeated banners were removed. The 157 changed
+Markdown files preserve all 9,910 checkbox states, 337 explicit recorded-result
+lines, and six original audit/review bodies apart from banner removal. Retained
+diagnostic and contract tokens remain present. Seven new or corrected relative
+links resolve; no existing Markdown links required a changed heading anchor.
+
+All 50 naming, residual-review, versioning and release-author tests and all 59
+Documentation tests pass. The Documentation production build passes with its
+existing Vite loader warnings. The path-migration helper has an isolated fixture
+test proving that it does not add banners or rename untracked local notes.
+Version synchronization and fragment validation remain separate from release
+approval; `VERSION` is unchanged at `1.1.0`.

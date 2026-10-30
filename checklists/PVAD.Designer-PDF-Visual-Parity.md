@@ -1,7 +1,5 @@
 # PVADE Designer and PDF Visual Parity
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Use the backend PDF as the printable visual contract and continuously compare the same canonical

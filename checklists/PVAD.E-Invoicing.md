@@ -1,7 +1,5 @@
 # PVAD Electronic Invoicing
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver versioned electronic-invoice generation, embedding, extraction,
@@ -14,7 +12,7 @@ independent validators remain authoritative.
 
 ## P0 - Foundation
 
-- [x] Add generic document-level associated files to PXA.Pdf.
+- [x] Add generic document-level associated files to PVAD.Pdf.
 - [x] Emit embedded-file streams, file specifications, AFRelationship, catalog
   AF, and the embedded-files name tree.
 - [x] Reject associated files in PDF/A-2b and permit them in PDF/A-3b.
@@ -128,7 +126,7 @@ summaries and safe segmentation of valid maximum-length tokens without losing Un
 | EINV-04 Complete API contract | done |
 | EINV-05 Designer invoice experience | done |
 | EINV-06 Migration provider coverage | done |
-| EINV-07 Maintained fixture corpus | PXA-authored part done; official fixtures blocked on EINV-01 |
+| EINV-07 Maintained fixture corpus | PVAD-authored part done; official fixtures blocked on EINV-01 |
 | EINV-08 Independent hybrid-PDF validation | open, externally blocked |
 | EINV-09 Real-world semantic consistency | synthetic part done; licensed corpus blocked |
 | EINV-10 Unknown XML preservation | done |
@@ -138,7 +136,7 @@ summaries and safe segmentation of valid maximum-length tokens without losing Un
 
 Most of what is still open is blocked on one external dependency: the
 redistribution and runtime-use terms of the official FeRD/FNFE and KoSIT
-artifacts. Until those are reviewed and recorded, PXA reports
+artifacts. Until those are reviewed and recorded, PVADE reports
 `conformanceStatus: "notEvaluated"` for every profile, ships no official artifact
 or fixture, and publishes no independent validation result. The customer-facing
 release fragment therefore stays un-finalized and `VERSION` is unchanged at 1.1.0.
@@ -146,7 +144,7 @@ release fragment therefore stays un-finalized and `VERSION` is unchanged at 1.1.
 Visual parity status.
 
 Four maintained fixtures are compared, each generated from one canonical invoice and drift-guarded
-by `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts`:
+by `pvad-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts`:
 
 ```
 for fixture in e-invoice e-invoice-multipage e-invoice-long-description e-invoice-multi-tax; do
@@ -202,7 +200,7 @@ description-fragment limit. It carries twelve cases, each fixing the expected pa
 page, tax groups per page, which page carries the net and payable totals, and which lines were
 fragmented. `EInvoicePaginationContractTests` (C#) and `eInvoicePaginationContract.test.ts`
 (TypeScript) each assert their own implementation against the file. Neither implementation depends
-on the other; PXA.Generator takes no dependency on the Designer.
+on the other; PVAD.Generator takes no dependency on the Designer.
 
 Aligning the two exposed three further divergences, all fixed:
 
@@ -230,7 +228,7 @@ inferred from the difference images:
   while the PDF used Helvetica. `wrapPdfText` carried the same test and so also picked the serif
   width factor. Both now share one `pdfFontSlot` classifier that strips `sans-serif` before the
   serif test. The maintained invoice layouts name the `Helvetica` slot directly, which the browser
-  resolves to the `PXA Helvetica` web font that `editor.css` already loaded from the same
+  resolves to the `PVADE Helvetica` web font that `editor.css` already loaded from the same
   Liberation Sans files the PDF engine embeds.
 - **The browser kerned; the PDF does not.** The generator writes each string as one unkerned show
   operator, so a run is the plain sum of the font's advance widths. Browsers apply the font's kern
@@ -290,7 +288,7 @@ clean; `git diff --check` clean. The migration from an earlier handoff was appli
 to the local development database, without which every host-booting test fails
 closed on a pending migration.
 
-Authenticated smoke workflow: pending execution. `pxa-designer/e2e/e-invoice-authenticated.spec.ts`
+Authenticated smoke workflow: pending execution. `pvad-designer/e2e/e-invoice-authenticated.spec.ts`
 covers registration through the real Account handoff, the full editor workflow, save and reload, XML
 and hybrid-PDF generation, reopening in the Viewer, byte-identical XML extraction, and the
 unauthenticated, missing-entitlement and API-unavailable refusals, on desktop and at phone width. It
@@ -333,7 +331,7 @@ and an expired set each produce `unavailable` with a stable diagnostic (`PXAEINV
 `027`, `028`, `029`, `030`), never a verdict and never a silent downgrade to structural recognition.
 Legacy version 1 manifests are deliberately refused so they cannot bypass the governance gate.
 Mounted directories are Git-ignored in every layout and validation performs no network access.
-Evidence: `tests/PXA.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` (27) and
+Evidence: `tests/PVAD.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` (27) and
 `EInvoiceConformanceValidatorTests`. Mount conventions for local development, CI, Docker Compose and
 isolated On-Premise installations are documented in the guide.
 
@@ -344,12 +342,12 @@ this repository, so no set has ever been run through the gate in anger.
 
 - Execute the correct XSD, Schematron, code-list, arithmetic-total, tax, and
   business-rule set for each supported Factur-X, ZUGFeRD, and XRechnung profile.
-- Keep structural recognition, PXA business validation, and official
+- Keep structural recognition, PVADE business validation, and official
   conformance as separate statuses in every report.
 - Map validator output to stable `PXAEINV...` diagnostics without discarding
   the original rule identifier, location, severity, or artifact-set evidence.
-  *Implemented.* Every finding now carries a `PxaEInvoiceOriginalFinding` with the validator's own source, rule
-  identifier, severity, location, message and test, beside the PXA code. Schematron advisory rules
+  *Implemented.* Every finding now carries a `PvadEInvoiceOriginalFinding` with the validator's own source, rule
+  identifier, severity, location, message and test, beside the PVADE code. Schematron advisory rules
   (`flag="warning"`) are reported as warnings and do not invalidate a document.
 - Completion evidence: profile matrix tests covering valid documents, each rule
   family, incorrect profiles, malformed totals, and unsupported versions. The rule families and
@@ -369,8 +367,8 @@ this repository, so no set has ever been run through the gate in anger.
 - Completion evidence: byte-level attachment extraction, unchanged-page visual
   comparison, PDF/A-3 validation, authorization, limits, and negative tests.
 
-Implementation. `PdfEInvoiceAttacher` in `src/Importing/PXA.Importer/EInvoicing`
-appends the invoice as an incremental revision when the source passes PXA's
+Implementation. `PdfEInvoiceAttacher` in `src/Importing/PVAD.Importer/EInvoicing`
+appends the invoice as an incremental revision when the source passes PVADE's
 structural PDF/A-3b validation, so the original bytes are the byte prefix of the
 result and no page object can change. A source that merely claims PDF/A-3 or whose
 archival identification forbids embedded files is converted through
@@ -380,14 +378,14 @@ a rewrite removes their signatures, while an incremental attachment preserves
 the signed bytes but creates a later revision. Every attachment
 is verified after it is written: the invoice is re-extracted byte for byte, the
 per-page content digests are compared, and the result is re-validated against the
-PXA PDF/A-3b structural validator. `PdfEInvoiceXmpWriter` merges pdfaid part 3
+PVADE PDF/A-3b structural validator. `PdfEInvoiceXmpWriter` merges pdfaid part 3
 and the Factur-X extension schema into the existing XMP packet instead of
 replacing it, so Dublin Core and other publisher metadata survive. Diagnostics
 use the stable `PXAEINVATTACH0xx` range; the API adds `PXAEINVAPI020-024`.
 
 Evidence.
 
-- `tests/PXA.Importer.Tests/PdfEInvoiceAttacherTests.cs` - 24 tests: byte-prefix
+- `tests/PVAD.Importer.Tests/PdfEInvoiceAttacherTests.cs` - 24 tests: byte-prefix
   page preservation, byte-for-byte extraction, retained unrelated attachments,
   XMP schema and metadata preservation, blocked unapproved conversion, approved
   conversion, conflict detection including reserved invoice filenames, approved
@@ -415,9 +413,9 @@ Implementation. All seven operations - `generate`, `create`, `attach`,
 `attach/preflight`, `validate`, `inspect`, `extract` - carry exactly one
 registered Designer permission policy, share the `designer-code` rate-limit
 policy, declare a `RequestSizeLimit`, and sit behind the `generator` product
-entitlement enforced by `PxaProductAccessMiddleware`. `attach` received its own
+entitlement enforced by `PvadProductAccessMiddleware`. `attach` received its own
 `designer.pdf.e-invoices.attach` permission, which no read-only role holds.
-`PxaEInvoiceOpenApiTransformer` documents each operation, its approvals and its
+`PvadEInvoiceOpenApiTransformer` documents each operation, its approvals and its
 limits, and repeats the three-state validation table on every operation so a
 caller cannot mistake structural recognition for conformance.
 
@@ -428,13 +426,13 @@ Evidence.
   request sizes, rate limiting, declared Problem Details responses, the
   role matrix across all five roles, and the generated OpenAPI content
   including one request example per maintained standard.
-- `tests/PXA.Api.Tests/PxaSecurityContractsTests.cs` and
-  `PxaPdfTrustSecurityTests.cs` extended with the attach routes.
+- `tests/PXA.Api.Tests/PvadSecurityContractsTests.cs` and
+  `PvadPdfTrustSecurityTests.cs` extended with the attach routes.
 
 ### EINV-05 - Designer Invoice Experience - done
 
 - [x] Add typed invoice bindings and maintained invoice templates without moving
-  tax, accounting, or billing-domain logic into `PXA.Pdf`.
+  tax, accounting, or billing-domain logic into `PVAD.Pdf`.
 - [x] Support seller, buyer, dates, references, currency, lines, tax groups, and
   totals with localized validation and a visible conformance state.
 - [x] Ensure Designer preview, generated XML, visible PDF, and reopened Viewer
@@ -525,7 +523,7 @@ Two defects were found and fixed while proving this:
 
 Evidence.
 
-- `pxa-designer/src/__tests__/eInvoiceWorkspace.test.tsx` - 43 tests: route and
+- `pvad-designer/src/__tests__/eInvoiceWorkspace.test.tsx` - 43 tests: route and
   gating states, permission-driven action enablement, standard/version/profile
   filtering, add/remove/reorder lines, exact totals and tax groups with a
   0-minor-unit currency, field-linked diagnostics and `aria-invalid`, the three
@@ -536,7 +534,7 @@ Evidence.
   Details code on refusal, six-language rendering, Arabic RTL with table semantics,
   labelled and keyboard-reachable inputs, live-region announcements, and one
   canonical copy of every invoice value.
-- `pxa-designer/src/__tests__/eInvoicePagination.test.ts` - 20 tests: a short invoice on one page
+- `pvad-designer/src/__tests__/eInvoicePagination.test.ts` - 20 tests: a short invoice on one page
   with the totals under the last line; the first page filled exactly to capacity; one line beyond
   capacity breaking without loss; column headings repeated on every page that carries rows and the
   address block on page one only; several continuation pages; eight tax groups each projected once
@@ -549,7 +547,7 @@ Evidence.
   transaction per edit however many pages it regenerates, the A4 page box the layout was measured
   against, and a canonical round-trip proving the stored invoice carries no page or element
   identity - so XML and PDF generation keep reading the canonical invoice, not the projection.
-- `pxa-designer/src/__tests__/eInvoicePaginationContract.test.ts` - 19 tests asserting the Designer
+- `pvad-designer/src/__tests__/eInvoicePaginationContract.test.ts` - 19 tests asserting the Designer
   projection against the shared pagination contract: the schema version, page and table geometry,
   the eight non-overlapping columns, all twelve pinned cases (page count, rows per page, distinct
   lines per page, totals pages, tax groups per page, which page carries the net and payable totals,
@@ -557,7 +555,7 @@ Evidence.
   in sequence, fragments rejoining to exactly the wrapped description, and a description beyond the
   bound being reported rather than rendered, and a 4,096-character unbroken Unicode token being
   segmented without clipping or character loss.
-- `pxa-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts` - 9 tests generating and
+- `pvad-designer/src/__tests__/eInvoiceVisualParityFixture.test.ts` - 9 tests generating and
   drift-guarding four fixtures - single-page, multi-page, long-description and many-tax-group - and
   a canonical-invoice sidecar for each, which is what lets the parity run render the dedicated
   hybrid PDF. The single-page fixture is asserted to cover seller and buyer, three lines, two tax
@@ -566,9 +564,9 @@ Evidence.
   reach parity on. The multi-page fixture is asserted to break into real continuation pages
   carrying every line exactly once in canonical order, with the address block on one page, headings
   on each page that has rows, the totals on the last page, and every tax group present.
-- `pxa-designer/src/__tests__/eInvoiceDesigner.test.ts` - 22 tests (model,
+- `pvad-designer/src/__tests__/eInvoiceDesigner.test.ts` - 22 tests (model,
   templates, localized validation, conformance vocabulary).
-- `pxa-designer/src/__tests__/eInvoiceTotalsParity.test.ts` - 17 tests over the shared corpus
+- `pvad-designer/src/__tests__/eInvoiceTotalsParity.test.ts` - 17 tests over the shared corpus
   `test-assets/e-invoicing/totals-parity.json`, which now pins a `multi-page-projection` case of 60
   lines across three tax rates. The same case is asserted independently by
   `EInvoiceTotalsParityTests` in C# and put through the real endpoints by
@@ -578,11 +576,11 @@ Evidence.
   the hybrid PDF and a reopened Viewer inspection with one set of values.
 - `appRouteSmoke.test.tsx` extended: the route is reachable and the sidebar lists
   the entry.
-- `tests/PXA.Generator.Tests/EInvoicePaginationContractTests.cs` - 18 tests asserting
+- `tests/PVAD.Generator.Tests/EInvoicePaginationContractTests.cs` - 18 tests asserting
   `EInvoicePageLayout` against the same contract file from C#, independently of the Designer, plus
   a case-by-case replay of all twelve pinned plans, the description-fragment bound and safe
   maximum-length token segmentation.
-- `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` - 31 tests for the refusals PXA can prove
+- `tests/PXA.Api.Tests/PdfEInvoiceFailClosedTests.cs` - 31 tests for the refusals PVADE can prove
   without any official artifact: malformed XML, a DTD, an external entity, non-invoice XML, a
   syntax contradicting the declared standard, an unmaintained version, a profile the standard does
   not define, non-positive quantities, negative prices, out-of-range tax rates, duplicate line
@@ -605,18 +603,18 @@ Evidence.
   with their own digits, half-a-minor-unit rounding away from zero, negative line values refused
   because credit notes are not supported, the reserved attachment filenames enforced, unsafe
   filenames refused, and exactly one attachment under the reserved name.
-- `tests/PXA.Generator.Tests/EInvoicePdfaFixtureTests.cs` - 4 tests generating the deterministic
+- `tests/PVAD.Generator.Tests/EInvoicePdfaFixtureTests.cs` - 4 tests generating the deterministic
   PDF/A corpus, proving each fixture is byte-identical across two generations, pinning every
   SHA-256, and asserting the multi-page, long-description and many-tax-group fixtures really
   exercise what they claim.
-- `tests/PXA.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` - 27 tests on the fail-closed gate
+- `tests/PVAD.Generator.Tests/EInvoiceArtifactGovernanceTests.cs` - 27 tests on the fail-closed gate
   in front of a mounted official artifact set, including that a refusal never reports structural
   recognition as a conformance result, and that a failing rule keeps the validator's own identifier,
   severity, location, wording and test.
-- `pxa-designer/e2e/e-invoice-authenticated.spec.ts` - the authenticated desktop and mobile smoke
+- `pvad-designer/e2e/e-invoice-authenticated.spec.ts` - the authenticated desktop and mobile smoke
   workflow. **Written and type-checked, execution pending**; see the note below.
-- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - 27 tests converting
-  representative PXA-authored source snippets for every registered provider family, covering all
+- `tests/PVAD.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - 27 tests converting
+  representative PVAD-authored source snippets for every registered provider family, covering all
   six capabilities, the three dispositions, the stable `CANMIGEINV00x` identifiers, word-boundary
   matching, source-ordered diagnostics and markers, and the rule that migration output never claims
   conformance.
@@ -647,14 +645,14 @@ attachment, extraction and validation. It reuses the existing
 of answer.
 
 The mappings are keyed on API identifiers a customer's source may contain, not on
-a claim about which invoice features each vendor ships - PXA can honestly say
-"if your code calls this, here is the PXA equivalent and what a person still has
+a claim about which invoice features each vendor ships - PVADE can honestly say
+"if your code calls this, here is the PVADE equivalent and what a person still has
 to confirm", and cannot honestly assert a third party's current feature list.
 Every capability of every provider carries a disposition, a rationale and a
 documentation link, which is what makes a silent TODO impossible.
 
 Conversions. `PdfEInvoiceMigrationCatalog.Analyze` turns the table into an answer: given a source
-file, it reports each invoice capability the code touches, the PXA API that replaces it, the
+file, it reports each invoice capability the code touches, the PVADE API that replaces it, the
 disposition, and a stable `CANMIGEINV00x` identifier - `001` Factur-X, `002` ZUGFeRD, `003`
 XRechnung, `004` PDF/A-3 attachment, `005` extraction, `006` validation. Markers match on word
 boundaries, so `Attachments` is not found inside `CustomAttachmentsHelper`. When the source names a
@@ -668,7 +666,7 @@ Dispositions follow from what the mapping actually knows:
 
 - Attachment and extraction are `automatic` where the provider has the API,
   because embedding and reading back an embedded file is byte-preserving on both
-  sides and PXA additionally verifies the declared size and checksum.
+  sides and PVADE additionally verifies the declared size and checksum.
 - Factur-X, ZUGFeRD and XRechnung generation is never `automatic`: the standard
   version and profile are a business obligation the source usually leaves implicit.
 - Validation is never `automatic`: the detected call may validate PDF/A structure
@@ -677,23 +675,23 @@ Dispositions follow from what the mapping actually knows:
 
 Evidence.
 
-- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationCatalogTests.cs` - 27 tests:
+- `tests/PVAD.Migration.Pdf.Tests/PdfEInvoiceMigrationCatalogTests.cs` - 27 tests:
   full provider coverage against `PdfTrustMigrationCatalog`, a disposition and a
-  rationale for every capability, markers and a PXA equivalent present exactly
+  rationale for every capability, markers and a PVADE equivalent present exactly
   when a capability is supported and absent when it is not, no rationale that is a
   TODO, generation and validation never automatic, and unknown keys failing loudly.
-- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationCoverageReportTests.cs` -
+- `tests/PVAD.Migration.Pdf.Tests/PdfEInvoiceMigrationCoverageReportTests.cs` -
   renders the published table in
   `docs/guides/PVAD.Unified-Migration-Provider-Coverage.md` from the catalog and
   rewrites it when it drifts, so the report cannot fall behind the code.
-- `tests/PXA.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - feeds
-  representative PXA-authored source snippets through `PdfEInvoiceMigrationCatalog.Analyze`
+- `tests/PVAD.Migration.Pdf.Tests/PdfEInvoiceMigrationConversionTests.cs` - feeds
+  representative PVAD-authored source snippets through `PdfEInvoiceMigrationCatalog.Analyze`
   for every registered provider family, covering all six capabilities, the three
   dispositions, the stable `CANMIGEINV00x` identifiers, word-boundary matching and
   the rule that no finding claims conformance.
-- `PXA.Migration.Pdf.Tests` pass in full.
+- `PVAD.Migration.Pdf.Tests` pass in full.
 
-### EINV-07 - Maintained Fixture Corpus - PXA-authored part done, official part blocked
+### EINV-07 - Maintained Fixture Corpus - PVAD-authored part done, official part blocked
 
 - [ ] Add licensed official valid and invalid fixtures for every maintained
   syntax/profile combination, plus PVAD-generated deterministic fixtures.
@@ -703,7 +701,7 @@ Evidence.
 - [x] Completion evidence: a machine-readable corpus manifest checked in CI.
 
 Implementation. `test-assets/e-invoicing/corpus/` holds 14 deterministic
-PXA-authored fixtures and `manifest.json`, which records for each one its path,
+PVAD-authored fixtures and `manifest.json`, which records for each one its path,
 SHA-256, byte size, provenance, licence, standard, version, profile, syntax,
 expected result, expected diagnostic codes, tags and a description. The manifest
 declares three provenance kinds and permits only `pxa-authored` today:
@@ -720,7 +718,7 @@ billion-laughs entity chain and an external-entity file disclosure.
 
 Evidence.
 
-- `tests/PXA.Generator.Tests/EInvoiceFixtureCorpusTests.cs` - 40 tests: the
+- `tests/PVAD.Generator.Tests/EInvoiceFixtureCorpusTests.cs` - 40 tests: the
   SHA-256 and byte size of every fixture, the declared outcome of every fixture,
   provenance and licence recorded, no customer data and no unreviewed official
   artifact, no fixture claiming conformance, manifest and directory in step,
@@ -742,7 +740,7 @@ claim.
 - Validate generated Factur-X/ZUGFeRD hybrid invoices with official
   FeRD/FNFE tooling and an independent PDF/A validator such as veraPDF.
 - Validate XRechnung XML with the pinned KoSIT configuration independently
-  of PXA's own validator.
+  of PVADE's own validator.
 - Publish tool versions, commands, hashes, raw reports, and normalized
   machine-readable summaries without overstating unavailable checks.
 - Completion evidence: reproducible passing evidence for every supported output
@@ -759,7 +757,7 @@ validating. Fixtures are regenerated rather than committed, each pinned by SHA-2
 checksum does not match. Reproduce with:
 
 ```
-dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj \
+dotnet test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj \
   --filter FullyQualifiedName~EInvoicePdfaFixture
 node tools/pdfa/einvoice-pdfa-evidence.mjs
 ```
@@ -803,7 +801,7 @@ explicit approval.
 
 Evidence.
 
-- `tests/PXA.Api.Tests/PxaEInvoicePdfConsistencyInspectorTests.cs` - 7 tests
+- `tests/PXA.Api.Tests/PvadEInvoicePdfConsistencyInspectorTests.cs` - 7 tests
   pinning both fixes, the scale actually reported for an amount, the single-rate
   layout staying as it was, a genuinely contradicting amount still being
   reported, and missing page text staying `notEvaluated`.
@@ -833,7 +831,7 @@ is why a scanned page is never compared rather than compared weakly.
 
 Implementation. `attach` and `attach/preflight` accept `preserveUnrecognized`
 plus an optional `attachmentFileName`. Preservation is opt-in: without the flag,
-unrecognized XML is still refused with `PXAEINVAPI020`. In preservation mode PXA
+unrecognized XML is still refused with `PXAEINVAPI020`. In preservation mode PVADE
 deliberately withholds every standards signal - no reserved filename
 (`PXAEINVAPI026`), no Factur-X XMP extension schema, `/AFRelationship` stays
 `/Unspecified` rather than `/Alternative`, no semantic values are extracted, and
@@ -843,7 +841,7 @@ upload limit, a plain ASCII `.xml` filename (`PXAEINVAPI025`), the
 `application/xml` media type, the bounded DTD-free and entity-free parse
 (`PXAEINVAPI027`), the PDF `/Params` size and MD5 checksum written and
 re-verified by the attacher, the `designer.pdf.e-invoices.attach` permission, and
-the tenant-scoped `generator` entitlement enforced by `PxaProductAccessMiddleware`.
+the tenant-scoped `generator` entitlement enforced by `PvadProductAccessMiddleware`.
 `inspect` reports `recognitionStatus` and `isEditable` so no surface can present
 preserved XML as editable invoice data.
 
@@ -910,7 +908,7 @@ Evidence.
 - Completion evidence: Documentation build, link checks, runnable examples, and
   terminology parity across API, Viewer, Designer, and Migration.
 
-Implementation. `docs/guides/PVAD.EInvoicing.md` is the public guide: what PXA is
+Implementation. `docs/guides/PVAD.EInvoicing.md` is the public guide: what PVADE is
 not, the supported versions and profiles, the three validation states, generation
 with C# and HTTP examples per standard, the attachment workflow with its approval
 table, unknown-XML preservation, inspection and consistency, extraction,
@@ -921,7 +919,7 @@ same statements.
 
 The boundary is stated first, not buried: Peppol transport, national tax
 submission, accounting, payment and legal retention are external integrations,
-and the guide says plainly that PXA deliberately has no API for any of them.
+and the guide says plainly that PVADE deliberately has no API for any of them.
 
 Downloadable machine-readable evidence is
 `GET /api/pxa/v1/pdf/e-invoices/validations/export`, which returns the tenant's
@@ -930,7 +928,7 @@ one JSON document, plus the checked-in corpus manifest.
 
 Evidence.
 
-- `websites/PXA.Documentation/tests/e-invoice-documentation-contract.test.js` -
+- `websites/PVAD.Documentation/tests/e-invoice-documentation-contract.test.js` -
   13 tests: the topic exists, the three states are kept apart in both the site and
   the guide, the maintained versions and profiles are stated, every operation is
   documented, the attachment approvals and preservation rules are stated, missing
@@ -943,11 +941,11 @@ Evidence.
 - 45/45 documentation contract tests pass; the documentation site builds.
 - The known-limits section states outright that no official artifacts are shipped
   and no independent validation result is published, so the documentation does not
-  imply a conformance PXA has not established.
+  imply a conformance PVADE has not established.
 
 ### EINV-13 - Final Release Gates
 
-- Prove generated PDF/A-3 output with PXA and independent validation.
+- Prove generated PDF/A-3 output with PVADE and independent validation.
 - Prove supported XML against the pinned official XSD and Schematron sets.
 - Prove invalid XML, profile mismatches, incorrect totals, unsafe payloads,
   and attachment conflicts fail closed with stable diagnostics.

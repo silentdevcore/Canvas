@@ -1,7 +1,5 @@
 # PVADE Designer Navigation Restructure Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Restructure PVADE Designer's navigation: collapse the top nav from 7 items down to **Home, PDF, Spreadsheet, Documentation**, and turn PDF and Spreadsheet into hubs with their own collapsible (enable/disable) sidebars.
@@ -13,7 +11,7 @@ Exploration of `src/App.tsx`, `src/pages/*.tsx`, and `AppHeader.tsx` found almos
 ## Item Mapping
 
 - [x] Create PDF → `CreatePage` blank (`/pdf/create`). Edit PDF → `CreatePage`'s `LiveCodeEditor` sub-view — already supported via the existing `?mode=code` search param it reads on mount, so `/pdf/edit` is just a `Navigate` redirect to `/pdf/create?mode=code`, zero changes to `CreatePage.tsx`. Use Template → `TemplatePage` (`/pdf/template`). Import PDF → `ImporterPage` (`/pdf/import`). Convert to PDF → new `ConvertToPdfPage` (`/pdf/convert`). PDF Viewer → `PdfViewerPage` (`/pdf/viewer`, still lazy). Migrations → `/pdf/migrations` → redirects to `/pdf/migrations/code` (`MigrationsPage mode="code" codeKind="pdf"`); `/pdf/migrations/designer` also available (not in the sidebar list itself, reachable from within the migrations view's own tabs).
-- [x] Spreadsheet: Create → `SpreadsheetEditorPage` blank (`/spreadsheet/create`, still lazy). Edit → `SpreadsheetImportPage` with a new `variant="edit"` prop narrowing the file picker to `.json` (PXA Workbook) only, at `/spreadsheet/edit`. Import → the same component with `variant="import"` (default), accepting `.xlsx/.xls/.csv/.tsv/.json`, at `/spreadsheet/import`. Convert to Spreadsheet → disabled "Coming soon" sidebar entry, no route. Migrations → `/spreadsheet/migrations` → redirects to `/spreadsheet/migrations/code` (`MigrationsPage mode="code" codeKind="spreadsheet"`).
+- [x] Spreadsheet: Create → `SpreadsheetEditorPage` blank (`/spreadsheet/create`, still lazy). Edit → `SpreadsheetImportPage` with a new `variant="edit"` prop narrowing the file picker to `.json` (PVADE Workbook) only, at `/spreadsheet/edit`. Import → the same component with `variant="import"` (default), accepting `.xlsx/.xls/.csv/.tsv/.json`, at `/spreadsheet/import`. Convert to Spreadsheet → disabled "Coming soon" sidebar entry, no route. Migrations → `/spreadsheet/migrations` → redirects to `/spreadsheet/migrations/code` (`MigrationsPage mode="code" codeKind="spreadsheet"`).
 - [x] **Found during implementation**: `MigrationsHubPage.tsx` (the old `/migrations` domain-picker showing "PDF Migration"/"Spreadsheet Migration" cards) became genuinely unreachable once each hub's own sidebar makes that domain choice by which hub you're in — deleted it (confirmed via repo-wide grep it had no other references) rather than leave dead code behind.
 
 ## Phase 1 — Convert to PDF extraction

@@ -1,7 +1,5 @@
 # PVAD PDF Specialized Features Roadmap
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Purpose
 
 This checklist is the central source of truth for specialized PDF domains that
@@ -228,7 +226,7 @@ risks or unsupported content.
 ### PXA-PDF-RICH - Rich Media and Interactive PDF
 
 Current state: `partial inspection`; Trust reports detect risky multimedia and
-JavaScript, but PXA does not provide a rich-media runtime.
+JavaScript, but PVADE does not provide a rich-media runtime.
 
 - [ ] Preserve and inspect Sound, Movie, Screen, 3D, and RichMedia annotations
   without automatically executing them.

@@ -1,11 +1,9 @@
 # PVAD Migration: Aspose.PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using the Aspose.PDF document/page/text API.
-- [x] Roslyn-backed migration connected through `PXA.WebApi` via framework id `Aspose`.
+- [x] Roslyn-backed migration connected through `PVAD.WebApi` via framework id `Aspose`.
 - [x] Status upgraded from pilot to **full** converter.
 - [x] `new Document()` → `new PdfDocument()`.
 - [x] `document.Pages.Add()` → `document.AddPage()`.
@@ -15,8 +13,8 @@
 - [x] `TextFragment.TextState.*` styling assignments are removed with a warning (font/color needs manual review).
 - [x] `TextBuilder(page).AppendText(fragment)` → `page.DrawTextFromTop(...)` or `page.DrawText(...)`.
 - [x] `TextBuilder` variables are removed when all `AppendText` usages are supported.
-- [x] `document.Save(...)` preserved — target type is now PXA `PdfDocument`.
-- [x] All `Aspose.Pdf.*` usings removed; `using PXA.Pdf;` inserted.
+- [x] `document.Save(...)` preserved — target type is now PVADE `PdfDocument`.
+- [x] All `Aspose.Pdf.*` usings removed; `using PVAD.Pdf;` inserted.
 - [x] `Table` usage emits `CANMIGASPOSE020` warning.
 - [x] Forms, stamps, annotations, redaction, optimization, security APIs emit `CANMIGASPOSE021` warning.
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
@@ -53,7 +51,7 @@
 - [x] Pre-scan phase: `FindTextFragments`, `FindTextFragmentPositions`, `FindTextBuilderPages`, `FindRemovableTextFragments`, `FindRemovableTextBuilders`, `FindDocumentVariables`, `FindSavedDocumentVariables`.
 - [x] `VisitObjectCreationExpression`: rewrites `new Document()` → `new PdfDocument()`.
 - [x] `VisitMemberAccessExpression`: rewrites `.Pages.Add` → `.AddPage`.
-- [x] `VisitInvocationExpression`: migrates `Paragraphs.Add(fragment)` and `builder.AppendText(fragment)` to PXA draw calls.
+- [x] `VisitInvocationExpression`: migrates `Paragraphs.Add(fragment)` and `builder.AppendText(fragment)` to PVADE draw calls.
 - [x] `VisitLocalDeclarationStatement` / `VisitGlobalStatement`: removes folded `TextFragment` and `TextBuilder` variable declarations.
 - [x] `VisitExpressionStatement`: removes folded `TextFragment.Position` and `TextFragment.TextState.*` assignments.
 - [x] `TryRemoveSupportedTextFragmentPositionAssignment`: folds `Position` into `DrawText` coordinates.
@@ -62,11 +60,11 @@
 
 ## Mapping Table
 
-| Aspose.PDF API / pattern | PXA.Pdf replacement | Notes |
+| Aspose.PDF API / pattern | PVAD.Pdf replacement | Notes |
 | --- | --- | --- |
-| `using Aspose.Pdf[.*];` | *(removed)* + `using PXA.Pdf;` | All Aspose.Pdf.* namespaces stripped |
+| `using Aspose.Pdf[.*];` | *(removed)* + `using PVAD.Pdf;` | All Aspose.Pdf.* namespaces stripped |
 | `new Document()` | `new PdfDocument()` | Zero-arg constructor only |
-| `document.Pages.Add()` | `document.AddPage()` | PXA default A4 page |
+| `document.Pages.Add()` | `document.AddPage()` | PVADE default A4 page |
 | `page.Paragraphs.Add(new TextFragment("text"))` | `page.DrawTextFromTop("text", 40, 40, 12)` | Starter fixed position |
 | `var tf = new TextFragment("text"); page.Paragraphs.Add(tf)` | `page.DrawTextFromTop("text", 40, 40, 12)` — `tf` removed | Variable folded when all usages supported |
 | `tf.Position = new Position(x, y); page.Paragraphs.Add(tf)` | `page.DrawText("text", x, y, 12)` — position folded | `Position` assignment removed |
@@ -85,11 +83,11 @@
 | `CANMIGASPOSE004` | Info | Simple `TextBuilder.AppendText` → `DrawTextFromTop` |
 | `CANMIGASPOSE005` | Info | Positioned `TextFragment` paragraph → `DrawText` |
 | `CANMIGASPOSE006` | Info | Positioned `TextBuilder.AppendText` → `DrawText` |
-| `CANMIGASPOSE007` | Info | `document.Save(...)` now targets PXA `PdfDocument.Save(...)` |
+| `CANMIGASPOSE007` | Info | `document.Save(...)` now targets PVADE `PdfDocument.Save(...)` |
 | `CANMIGASPOSE008` | Info | `TextFragment` variable folded into draw calls and removed |
 | `CANMIGASPOSE009` | Info | `TextBuilder` variable removed after `AppendText` migration |
 | `CANMIGASPOSE010` | Info | `TextFragment.Position` assignment folded into `DrawText` coordinates |
-| `CANMIGASPOSE011` | Warning | `TextFragment.TextState` styling requires manual PXA font/color review |
+| `CANMIGASPOSE011` | Warning | `TextFragment.TextState` styling requires manual PVADE font/color review |
 | `CANMIGASPOSE020` | Warning | `Table` usage requires manual table migration |
 | `CANMIGASPOSE021` | Warning | Forms, stamps, annotations, redaction, optimization, or security APIs are outside v1 scope |
 
@@ -134,10 +132,10 @@ builder.AppendText(note);
 document.Save(outputPath);
 ```
 
-## Expected PXA.Pdf Output
+## Expected PVAD.Pdf Output
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -151,7 +149,7 @@ document.Save(outputPath);
 
 ## Code Fix Checklist
 
-- [x] Remove `Aspose.Pdf.*` usings, add `using PXA.Pdf;`
+- [x] Remove `Aspose.Pdf.*` usings, add `using PVAD.Pdf;`
 - [x] Replace `new Document()` with `new PdfDocument()`
 - [x] Replace `document.Pages.Add()` with `document.AddPage()`
 - [x] Replace inline `page.Paragraphs.Add(new TextFragment("text"))` with `DrawTextFromTop`

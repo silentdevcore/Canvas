@@ -1,7 +1,5 @@
 # UI-Layout2 Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Scope
 Improve visual consistency and usability in ui-designer with focus on color, background, typography, and layer stacking.
 
@@ -20,9 +18,9 @@ Improve visual consistency and usability in ui-designer with focus on color, bac
 - [~] PropertiesPanel image-edit block migrated to shared compact control classes and tokenized helper text.
 - [~] ElementRenderer shape/spacer defaults further tokenized (surface, stroke, border, secondary text fallbacks).
 - [x] PageSettingsPanel remaining color hard-codes removed from color controls, slider track, and help section headings.
-- [~] FocusIndicator, VirtualPxaSurface frame, PerformanceIndicator divider, and Button hover/active states now use token-based color definitions.
+- [~] FocusIndicator, VirtualPvadSurface frame, PerformanceIndicator divider, and Button hover/active states now use token-based color definitions.
 - [~] Presentation canvas background updated to semantic app-surface token.
-- [x] PXA grid-highlight and document-end gradient converted to semantic token-based colors (no remaining non-input hard-coded hex in ui-designer TSX).
+- [x] PVADE grid-highlight and document-end gradient converted to semantic token-based colors (no remaining non-input hard-coded hex in ui-designer TSX).
 - [~] Remaining hex literals are limited to PropertiesPanel color input default values (intentional for input type=color compatibility).
 - [x] PropertiesPanel static inline layout styles largely consolidated into reusable utility classes; only one dynamic table-cell inline style remains by design.
 - [~] ElementRenderer static inline visuals significantly reduced (30 -> 12 style blocks) via reusable classes for column/table/image/list/choice controls/link/page-break/grid/spacer/button/lock-badge/resize-handles.
@@ -52,7 +50,7 @@ Improve visual consistency and usability in ui-designer with focus on color, bac
 - [x] Input, ZoomControls, and ExportPanel static style blocks migrated to reusable CSS classes to further reduce inline-style duplication.
 - [x] ContextMenu, CodePanel, JSONPanel, and PageSettingsPanel static style blocks further migrated to shared CSS classes for non-geometry UI surfaces.
 - [x] PerformanceIndicator and ToastContainer static skins migrated to shared classes; only dynamic telemetry coloring remains inline by design.
-- [x] PXA and VirtualPxaSurface static overlay/marker/empty-state styles migrated to shared classes; inline styles are now predominantly dynamic geometry/positioning.
+- [x] PVADE and VirtualPvadSurface static overlay/marker/empty-state styles migrated to shared classes; inline styles are now predominantly dynamic geometry/positioning.
 - [x] Toolbar Suspense fallbacks migrated from inline placeholders to reusable classes, further reducing static TSX style literals.
 - [x] Presentation-layer canvas shell styles and PropertiesPanel table preview cell padding migrated to classes, leaving only dynamic placement/appearance inline in those areas.
 - [x] PerformanceIndicator inline color styles replaced with semantic state classes, leaving no inline styles in that component.
@@ -153,7 +151,7 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 ### Tablet (768px-1279px)
 - [x] Panel stacking and overflow
 	Acceptance criteria: sidebar/properties panel remain usable, no overlapping text, no hidden critical controls.
-- [x] PXA minimum usable area
+- [x] PVADE minimum usable area
 	Acceptance criteria: canvas remains interactive and selection/drag operations are possible without layout breakage.
 - [x] Toolbar wrap behavior
 	Acceptance criteria: wrapped controls remain discoverable and actionable.

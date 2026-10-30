@@ -1,16 +1,14 @@
 # PVAD Migration: LEADTOOLS PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.Leadtools`
-- [x] Added provider tests: `tests/PXA.Migration.Pdf.Code.Leadtools.Tests`
-- [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
+- [x] Added cautious Roslyn-backed provider project: `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Leadtools`
+- [x] Added provider tests: `tests/PVAD.Migration.Pdf.Code.Leadtools.Tests`
+- [x] Connected WebApi converter: `PVAD.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact LEADTOOLS PDF-generation package/API with a real source sample
 
-LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and existing-document workflows. V1 only attempts likely direct PDF-generation patterns. Raster/OCR/conversion APIs are intentionally flagged for manual migration because PXA.Pdf output must be recreated as vector/layout calls.
+LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and existing-document workflows. V1 only attempts likely direct PDF-generation patterns. Raster/OCR/conversion APIs are intentionally flagged for manual migration because PVAD.Pdf output must be recreated as vector/layout calls.
 
 ## Package / API Identification
 
@@ -35,7 +33,7 @@ LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and exi
 
 ## Mapping Table
 
-| LEADTOOLS API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| LEADTOOLS API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new PDFDocument()` / `new PdfDocument()` / `new PDFFile()` / `new PdfFile()` | `var document = new PdfDocument();` | Pilot code fix | API identity must be validated |
 | `document.AddPage()` / `document.NewPage()` | `var page = document.AddPage();` | Pilot code fix | Preserves assigned page variable |
@@ -70,10 +68,10 @@ page.DrawRectangle(40, 100, 200, 80);
 doc.Save(outputPath);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -104,7 +102,7 @@ document.Save(outputPath);
 - [x] Replace simple text drawing
 - [x] Replace simple line/rectangle drawing
 - [x] Replace simple save/export
-- [x] Add `using PXA.Pdf`
+- [x] Add `using PVAD.Pdf`
 - [x] Remove LEADTOOLS usings
 - [x] Leave conversion/OCR flows as manual diagnostics
 - [ ] Validate mappings against real LEADTOOLS generation API before promoting beyond pilot

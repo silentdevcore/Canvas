@@ -1,16 +1,14 @@
 # PVADE Designer Releases and Notifications
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
-- [x] Provide one versioning, release-note, feature-maturity, toast, and notification system for PXA Designer.
+- [x] Provide one versioning, release-note, feature-maturity, toast, and notification system for PVADE Designer.
 - [x] Keep the Designer and public Documentation consistent through shared product metadata.
 - [x] Keep API compatibility versions separate from the Designer product version.
 
 ## P0 - Versioning and Release Notes
 
-- [x] Keep `pxa-designer/package.json` as the Designer SemVer source.
+- [x] Keep `pvad-designer/package.json` as the Designer SemVer source.
 - [x] Inject Designer version, build time, and Git commit into production builds.
 - [x] Add a validated, curated release manifest shared by Designer, WebApi, and Documentation.
 - [x] Require one manifest entry for every shipped Designer version.
@@ -18,7 +16,7 @@
 - [x] Show the current version and a "What's New" action in the Designer user menu.
 - [x] Add an accessible release-notes drawer and show it once for each unseen release.
 - [x] Persist release-read state per user in PostgreSQL.
-- [x] Add public release-note navigation and version pages to PXA.Documentation.
+- [x] Add public release-note navigation and version pages to PVAD.Documentation.
 
 ## P0 - Toasts
 
@@ -71,7 +69,7 @@
 - [x] Test Documentation sidebar, focus mode, search, filters, and internal links.
 - [x] Run WebApi tests and build.
 - [x] Run Designer tests, type check, and production build.
-- [x] Run PXA.Documentation production build and desktop/mobile smoke tests.
+- [x] Run PVAD.Documentation production build and desktop/mobile smoke tests.
 
 ## Acceptance Criteria
 

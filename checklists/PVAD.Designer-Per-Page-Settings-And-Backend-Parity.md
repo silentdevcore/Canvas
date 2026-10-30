@@ -1,7 +1,5 @@
 # PVADE Designer Per-Page Settings and Backend Parity
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## P0 - Canonical Contract
 
 - [x] Add optional physical layout overrides to every design page.
@@ -44,7 +42,7 @@
 - [x] Test PDF MediaBox, image dimensions, DOCX sections, ODT layouts, and HTML print CSS.
 - [x] Test JSON, C# Model, C# PDF, Base64, import, localization, RTL, assets, and shared elements.
 - [x] Add contract coverage for every page layout field and renderer.
-- [x] Update PXA.Documentation with mixed-layout screenshots and workflows.
+- [x] Update PVAD.Documentation with mixed-layout screenshots and workflows.
 - [x] Add a customer-facing minor release fragment.
 - [x] Run Designer, Documentation, .NET, visual parity, and browser smoke validation.
 

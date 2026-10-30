@@ -1,7 +1,5 @@
 # Multi-Language PDF Support — Implementation Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 **Status: COMPLETE** — Core implemented 2026-05-24 (99 tests). Phase 11 (Inspector UX + Element-Level Scope) completed 2026-05-25.
 
 ## What Was Built
@@ -15,21 +13,21 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ### Backend (C#)
 
 - [x] **Add `Language` and `TextDirection` to `TextConfig`**
-  File: `PXA.Domain/ValueObjects/DesignerElement.cs`
+  File: `PVAD.Domain/ValueObjects/DesignerElement.cs`
   Added to `TextConfig`, `RichTextConfig`, and `TextFieldConfig`.
 
 - [x] **Update `MigratePropsToConfig()` in `DesignerElement`**
-  File: `PXA.Domain/ValueObjects/DesignerElement.cs`
+  File: `PVAD.Domain/ValueObjects/DesignerElement.cs`
   Reads `language` and `textDirection` from the legacy `Props` dictionary.
 
 - [x] **Add `Language` and `TextDirection` to `ElementDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
   Added alongside the existing `Locale` field.
 
 ### Frontend (TypeScript)
 
 - [x] **Add `language` and `textDirection` to `SimpleElement`**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   Added `language?: string` and `textDirection?: 'ltr' | 'rtl'`.
 
 ---
@@ -73,7 +71,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   (Moved out of `PdfPageContentRenderer` which is `internal`, to enable test access.)
 
 - [x] **Branch text rendering in `PdfPageContentRenderer.RenderText` on font type**
-  File: `src/Generation/PXA.Pdf/Rendering/PdfPageContentRenderer.cs`
+  File: `src/Generation/PVAD.Pdf/Rendering/PdfPageContentRenderer.cs`
   Embedded font path uses `<FEFF...> Tj` hex encoding. RTL applies `ReverseForRtl()`. Width uses `EmbeddedFont.MeasureWidth()`. Type1 path unchanged.
 
 - [x] **Emit embedded font object chain in `PdfWriter`**
@@ -96,7 +94,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 3 — Frontend UI Changes
 
 - [x] **Add language selector to the Typography section**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
   Dropdown with 14 languages. Auto-sets `textDirection: 'rtl'` for Arabic, Hebrew, Farsi, Urdu, Yiddish, Divehi.
 
 - [x] **Add LTR / RTL direction toggle**
@@ -113,14 +111,14 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 4 — API Integration Layer
 
 - [x] **Thread `Language` and `TextDirection` through `DesignJsonMapper`**
-  File: `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
+  File: `PVAD.WebApi/Infrastructure/DesignJsonMapper.cs`
   `BuildParaOptions` and `PdfDrawTextOptions` construction now pass `el.Language` and `el.TextDirection`.
 
 - [x] **Register `PdfFontLoader` as a singleton in DI**
-  File: `PXA.WebApi/Program.cs`
+  File: `PVAD.WebApi/Program.cs`
 
 - [x] **Add `Pdf:FontsDirectory` to `appsettings.json`**
-  File: `PXA.WebApi/appsettings.json`
+  File: `PVAD.WebApi/appsettings.json`
 
 - [x] **Document Noto font deployment step**
   See `fonts/README.md` for download and placement instructions.
@@ -203,14 +201,14 @@ On export, one PDF is generated per active language. For each, the engine substi
 ### Frontend (TypeScript)
 
 - [x] **Add `activeLanguages` to `PageSettings`**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   The system language is read from `navigator.language` at runtime, never stored.
   ```typescript
   activeLanguages?: string[];    // user-selected active languages, e.g. ["de", "en", "ar"]
   ```
 
 - [x] **Add `LocalizedProperty` interface**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   ```typescript
   export interface LocalizedProperty {
     key: string;           // template variable name without {{ }}, e.g. "SUBJECT"
@@ -221,23 +219,23 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Add `localizedProperties` to `PageSettings`**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   ```typescript
   localizedProperties?: LocalizedProperty[];
   ```
 
 - [x] **Add `currentPreviewLanguage` to editor store (ephemeral, not serialized)**
-  File: `pxa-designer/src/store.ts`
+  File: `pvad-designer/src/store.ts`
   Drives which language tab is active in the editor. Initialised to `navigator.language` (or its base tag). Reset when active languages change.
 
 - [x] **Update `DEFAULT_PAGE_SETTINGS`**
-  File: `pxa-designer/src/store.ts`
+  File: `pvad-designer/src/store.ts`
   Add `activeLanguages: []`, `localizedProperties: []`.
 
 ### Backend (C#)
 
 - [x] **Add `SystemLanguage` and `ActiveLanguages` to `DesignExportDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
   `SystemLanguage` is sent by the client from `navigator.language`; the backend uses it as the fallback in property resolution.
   ```csharp
   public string? SystemLanguage { get; set; }
@@ -245,7 +243,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Create `LocalizedPropertyDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public class LocalizedPropertyDto {
       public string Key { get; set; } = "";
@@ -256,7 +254,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Add `LocalizedProperties` to `DesignExportDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public LocalizedPropertyDto[]? LocalizedProperties { get; set; }
   ```
@@ -266,7 +264,7 @@ On export, one PDF is generated per active language. For each, the engine substi
 ## Phase 7 — Backend: Property Resolution & Multi-Language Export
 
 - [x] **Create `LocalizedPropertyResolver`**
-  New file: `PXA.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
+  New file: `PVAD.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
   Resolves the effective value for each property given a target language and system language:
   - If `property.Global = true` → return `property.GlobalValue`
   - Else if `property.LocalizedValues[targetLanguage]` exists → return it
@@ -274,17 +272,17 @@ On export, one PDF is generated per active language. For each, the engine substi
   - Else → return `property.GlobalValue` (final fallback, never throws)
 
 - [x] **Apply property values as data-binding payload in `DesignJsonMapper`**
-  File: `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
+  File: `PVAD.WebApi/Infrastructure/DesignJsonMapper.cs`
   Before rendering, build a `Dictionary<string, string>` from resolved property values and inject into the expression evaluator context. This makes `{{SUBJECT}}` resolve to the language-specific value at render time.
   Signature: `MapToPdfDocument(design, fontLoader, targetLanguage)`.
 
 - [x] **Add `language` query parameter to single-language export**
-  File: `PXA.WebApi/Controllers/ExportController.cs`
+  File: `PVAD.WebApi/Controllers/ExportController.cs`
   `POST /api/export?format=pdf&language=de` — renders the design with that language's property values.
   If omitted, uses `design.SystemLanguage` or renders without substitution.
 
 - [x] **Add multi-language export endpoint**
-  File: `PXA.WebApi/Controllers/ExportController.cs`
+  File: `PVAD.WebApi/Controllers/ExportController.cs`
   `POST /api/export/multilanguage?format=pdf` — iterates over `design.ActiveLanguages`, renders one PDF per language, packs into a ZIP stream, returns `application/zip`.
   File naming: `{documentName}-{lang}.pdf` (e.g. `invoice-de.pdf`, `invoice-ar.pdf`).
 
@@ -296,25 +294,25 @@ On export, one PDF is generated per active language. For each, the engine substi
 ## Phase 8 — UI: Language Tabs & Localized Properties Panel
 
 - [x] **Active Languages in Document Settings dialog**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx` (Document Settings section)
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx` (Document Settings section)
   Add a "Languages" tab containing:
   - **System language** — read-only display of `navigator.language` (e.g. "System: Deutsch (de)"); shown as informational, not editable
   - **Active Languages** — checkboxes for each available language; checking adds to `pageSettings.activeLanguages`; unchecking removes it (with confirmation if localized values exist for that language)
 
 - [x] **Language tab bar component**
-  New file: `pxa-designer/src/components/Editor/LanguageTabBar.tsx`
+  New file: `pvad-designer/src/components/Editor/LanguageTabBar.tsx`
   Rendered above the canvas when `pageSettings.activeLanguages.length > 1`.
   - One tab per active language (flag emoji + tag, e.g. "🇩🇪 DE"); system language tab shown first
   - Active tab highlighted; clicking calls `setCurrentPreviewLanguage(lang)` on the store
   - RTL languages show an "RTL" badge on the tab
 
-- [x] **PXA preview in language context**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+- [x] **PVADE preview in language context**
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
   When rendering element content for preview, resolve `{{KEY}}` placeholders using `currentPreviewLanguage`'s values from `localizedProperties`.
   Apply `dir="rtl"` wrapper to the entire canvas frame when `currentPreviewLanguage` is RTL.
 
 - [x] **Localized Properties Panel**
-  New file: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  New file: `pvad-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   Displayed in the right inspector panel when no element is selected (or as a dedicated drawer tab).
 
   Layout per property row:
@@ -330,7 +328,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   Scan all element `content` fields for `{{KEY}}` patterns and suggest them as autocomplete options when entering a property key.
 
 - [x] **Update Export Modal for multi-language**
-  File: `pxa-designer/src/components/Editor/ExportModal.tsx`
+  File: `pvad-designer/src/components/Editor/ExportModal.tsx`
   When `pageSettings.activeLanguages.length > 1`:
   - "Export current language (`de`)" → `POST /api/export?format=pdf&language=de`
   - "Export all languages (ZIP)" → `POST /api/export/multilanguage?format=pdf`
@@ -464,16 +462,16 @@ public class LocalizedPropertyDto {
 ### 10.1 — Frontend: Data Model
 
 - [x] **Rename `global: boolean` → `scope: 'global' | 'own'` in `LocalizedProperty`**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   Remove `globalValue`. Add `ownerLanguage?: string`.
   Migration: any existing property with `global: true` → `scope: 'global'`; `global: false` → `scope: 'global'` (was per-language, same concept).
 
 - [x] **Update `upsertLocalizedProperty` in store**
-  File: `pxa-designer/src/store.ts`
+  File: `pvad-designer/src/store.ts`
   Adapt to new shape. When adding an Own property, automatically set `ownerLanguage` to the current preview language.
 
 - [x] **Update `DEFAULT_PAGE_SETTINGS`**
-  File: `pxa-designer/src/store.ts`
+  File: `pvad-designer/src/store.ts`
   `localizedProperties: []` — no change needed, shape change is backward compatible via migration.
 
 ---
@@ -481,7 +479,7 @@ public class LocalizedPropertyDto {
 ### 10.2 — Frontend: UI / LocalizedPropertiesPanel
 
 - [x] **Replace "Global / Per lang" toggle with "Global / Own" toggle**
-  File: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  File: `pvad-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   - **Global** = placeholder in all languages, each fills its own value
   - **Own** = placeholder only for the current language tab (shows owner badge: `"DE only"`)
 
@@ -502,10 +500,10 @@ public class LocalizedPropertyDto {
 
 ---
 
-### 10.3 — Frontend: PXA Preview
+### 10.3 — Frontend: PVADE Preview
 
 - [x] **Fix `resolveContent` to correctly apply own vs global scoping**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
   When building the property map for the current preview language:
   - Include Global properties: value = `localizedValues[currentPreviewLanguage] ?? localizedValues[systemLanguage] ?? ""`
   - Include Own properties: only include when `ownerLanguage === currentPreviewLanguage`; value = `localizedValues[ownerLanguage]`
@@ -519,7 +517,7 @@ public class LocalizedPropertyDto {
 ### 10.4 — Backend: Data Model
 
 - [x] **Update `LocalizedPropertyDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
   Replace `bool Global` + `string GlobalValue` with:
   ```csharp
   public string Scope { get; set; } = "global";   // "global" | "own"
@@ -531,7 +529,7 @@ public class LocalizedPropertyDto {
 ### 10.5 — Backend: Resolution Logic
 
 - [x] **Update `LocalizedPropertyResolver.Resolve()`**
-  File: `PXA.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
+  File: `PVAD.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
   New resolution rules:
 
   ```
@@ -555,11 +553,11 @@ public class LocalizedPropertyDto {
 ### 10.6 — Backend: Multi-Language Export
 
 - [x] **Verify that `ExportController` multi-language ZIP correctly isolates per-language properties**
-  File: `PXA.WebApi/Controllers/ExportController.cs`
+  File: `PVAD.WebApi/Controllers/ExportController.cs`
   For each language in `ActiveLanguages`, the resolver must exclude Own properties belonging to other languages. The PDF for DE must not contain Arabic-only `{{KEY}}` placeholders as unresolved strings.
 
 - [x] **Update `DesignJsonMapper.ApplyPropertySubstitutions()`**
-  File: `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
+  File: `PVAD.WebApi/Infrastructure/DesignJsonMapper.cs`
   No structural change needed — it already calls `Resolve()` and substitutes. The fix is in the resolver itself.
 
 ---
@@ -593,24 +591,24 @@ public class LocalizedPropertyDto {
 ### 11.1 — Properties Tab
 
 - [x] **Move `LocalizedPropertiesPanel` to a dedicated inspector tab**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
   Added `'properties'` to `inspectorTab` type. Tab button appears only when `activeLanguages.length >= 1`. Shows property count badge. Removed panel from the `!selectedElement` inspector section.
 
 - [x] **Fix second-property-add bug in `LocalizedPropertiesPanel`**
-  File: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  File: `pvad-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   Root cause: stale closure over `newKey`/`newValue` in `onKeyDown` handler. Fix: use `useRef` for add-form input values alongside display state. `addProperty` now reads `newKeyRef.current` / `newValueRef.current` — never stale.
 
 ### 11.2 — Element-Level Language Scope
 
 - [x] **Add `elementLanguage?: string` to `SimpleElement`**
-  File: `pxa-designer/src/types.ts`
+  File: `pvad-designer/src/types.ts`
   `undefined` = visible in all language tabs. BCP-47 tag = Own element for that language only.
 
 - [x] **Add `ElementLanguage?: string` to `ElementDto`**
-  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PVAD.Core/Contracts/DesignExportDto.cs`
 
 - [x] **Auto-assign `elementLanguage` when adding elements in multi-lang mode**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
   New helper `addElementWithLangScope()`: if `activeLanguages.length >= 1` and `currentPreviewLanguage` is one of the active languages, new elements get `elementLanguage = currentPreviewLanguage`. Otherwise elements are "all languages" (no `elementLanguage`).
 
 - [x] **Auto-create RTL mirror element for LTR Own elements**
@@ -620,22 +618,22 @@ public class LocalizedPropertyDto {
   - `x = pageWidth - base.x - base.width` (horizontally mirrored)
 
 - [x] **Filter canvas rendering by `currentPreviewLanguage`**
-  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
-  PXA renders only elements where `!el.elementLanguage || el.elementLanguage === currentPreviewLanguage`. Layers panel shows all elements with a language badge.
+  File: `pvad-designer/src/components/Editor/SimplePvadSurface.tsx`
+  PVADE renders only elements where `!el.elementLanguage || el.elementLanguage === currentPreviewLanguage`. Layers panel shows all elements with a language badge.
 
 - [x] **Language Scope control in element inspector**
   "All languages" + one button per active language. "Create RTL mirror" button when element is LTR Own and RTL languages are active.
 
 - [x] **Backend: filter elements by `ElementLanguage` in `DesignJsonMapper`**
-  File: `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
+  File: `PVAD.WebApi/Infrastructure/DesignJsonMapper.cs`
   Both current-page elements and scoped elements are filtered: if `ElementLanguage` is set, only render when it matches the resolved target language (via `LocalizedPropertyResolver.NormalizeTag`).
 
 - [x] **Make `NormalizeTag` public in `LocalizedPropertyResolver`**
-  File: `PXA.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
+  File: `PVAD.WebApi/Infrastructure/LocalizedPropertyResolver.cs`
   Required for use in `DesignJsonMapper`.
 
 - [x] **JSON export filters elements by target language**
-  File: `pxa-designer/src/services/CodeGenerator.ts`
+  File: `pvad-designer/src/services/CodeGenerator.ts`
   When `hasLanguages && targetLanguage`, elements with a non-matching `elementLanguage` are excluded from the exported JSON.
 
 - [x] **Language badge in Layers panel**

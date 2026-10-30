@@ -1,7 +1,5 @@
 # PVADE Designer Authentication Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Protect every PVADE Designer workflow so that only active, email-verified users with an effective Designer entitlement can use the application. Authentication remains owned by PVAD Account and is transferred to the Designer through a short-lived authorization-code handoff.
@@ -35,11 +33,11 @@ Protect every PVADE Designer workflow so that only active, email-verified users 
 
 ## Account Redirect
 
-- [x] Redirect unauthenticated Designer visitors to the PXA Account login page.
+- [x] Redirect unauthenticated Designer visitors to the PVADE Account login page.
 - [x] Include the absolute Account authorization continuation as an allowlisted `returnUrl`.
 - [x] Preserve the original Designer path, query parameters, and hash only after validation.
 - [x] Never redirect to protocol-relative, non-HTTP(S), external, Admin, or unconfigured origins.
-- [x] Provide registration through the PXA Account login page only.
+- [x] Provide registration through the PVADE Account login page only.
 - [x] Do not add login or registration credential forms to the Designer.
 
 ## Authorization-Code Handoff
@@ -162,7 +160,7 @@ Protect every PVADE Designer workflow so that only active, email-verified users 
 ## Acceptance Criteria
 
 - [x] An anonymous visitor cannot view or invoke protected Designer functionality.
-- [x] Login credentials are entered only on PXA Account.
+- [x] Login credentials are entered only on PVADE Account.
 - [x] A verified entitled user returns to the original safe Designer destination after login.
 - [x] A handoff code cannot be reused, extended, redirected, or exchanged by another origin.
 - [x] Account and Designer retain separate host-only session cookies.

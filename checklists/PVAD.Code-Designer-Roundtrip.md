@@ -1,7 +1,5 @@
 # PVAD Code Designer Roundtrip and Secure Execution
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Connect JSON, C# Model, C# PDF, and the visual Designer through one canonical
@@ -14,13 +12,13 @@ isolated, tenant-aware PVAD sandbox.
 - [x] Return canonical design, generated source, checksums, fidelity, diagnostics, and source maps.
 - [x] Generate C# Model and C# PDF deterministically from normalized design JSON.
 - [x] Convert C# Model and C# PDF back to canonical design through the sandbox worker.
-- [x] Replace WebApi reflection over PDF internals with a typed PXA PDF design snapshot.
+- [x] Replace WebApi reflection over PDF internals with a typed PVADE PDF design snapshot.
 - [x] Preserve stable element IDs and diagnose evaluated control flow or unsupported constructs.
 - [x] Keep assets tenant-bound and reject network or filesystem asset loading in code.
 
 ## P0 - Secure Execution
 
-- [x] Add the `PXA.CodeWorker` executable and bounded request/response contracts.
+- [x] Add the `PVAD.CodeWorker` executable and bounded request/response contracts.
 - [x] Reject filesystem, network, process, environment, reflection, assembly loading, native interop,
   threading, `unsafe`, `dynamic`, directives, and additional references.
 - [x] Enforce source, output, page, element, execution-time, and process-output limits.
@@ -119,7 +117,7 @@ migration workflow. Historical completed tasks above keep their original scope.
   the compatibility alias.
 - [x] Generate a real readable C# object initializer without Base64 or a hidden complete JSON
   payload in the C# Model tab.
-- [x] Generate semantic `PxaPdfCodeBuilder` source that preserves every current `ElementDto` field
+- [x] Generate semantic `PvadPdfCodeBuilder` source that preserves every current `ElementDto` field
   and renders the resulting canonical document through the tenant-aware backend renderer.
 - [x] Retain low-level `PdfDocument` execution with honest `compatible` or `reviewRequired`
   fidelity for one major version.

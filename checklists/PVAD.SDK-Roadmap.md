@@ -1,7 +1,5 @@
 # PVAD SDK Roadmap Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Create a shared, versioned SDK platform that exposes one professional developer experience across PVAD Cloud and customer-managed PVAD Server installations.

@@ -1,7 +1,5 @@
 # Docs Details — Detailed Documentation for C#, UI Designer & AI
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Detailed, demo-rich documentation for PVAD's two API surfaces plus AI consumption. Mirrors how PDF SDK
 vendors document (DocFX API reference + how-to guides + example gallery + `llms.txt`/MCP), anchored on a
 single machine-readable **element catalog** so human docs, AI docs, and validation never drift.
@@ -13,14 +11,14 @@ single machine-readable **element catalog** so human docs, AI docs, and validati
 > for current sources of truth; the original analysis and checked records below
 > are retained for traceability.
 
-PXA has two documentable surfaces — the imperative **C# `PXA.Pdf`** engine (`PXA/Pdf/`, ~150
+PVADE has two documentable surfaces — the imperative **C# `PVAD.Pdf`** engine (`PXA/Pdf/`, ~150
 public methods, ~5–10% with XML doc comments) and the declarative **`DesignExportDto` element model** (37
-types in `PXA.Domain/ValueObjects/ElementType.cs`; properties in
-`src/Core/PXA.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
+types in `PVAD.Domain/ValueObjects/ElementType.cs`; properties in
+`src/Core/PVAD.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
 the enum, `ElementDto`, `HelpModal.tsx`, and `DocsPage.tsx`. No DocFX, `llms.txt`, JSON-Schema, or MCP yet.
 
 ### Decisions (confirmed)
-- AI output target: **both** declarative `DesignExportDto` JSON **and** imperative `PXA.Pdf` C#.
+- AI output target: **both** declarative `DesignExportDto` JSON **and** imperative `PVAD.Pdf` C#.
 - AI mechanism: **`llms.txt` + JSON Schema first, MCP as a follow-up phase**.
 - Human docs home: **expand the in-app `DocsPage`, catalog-driven**.
 - C# reference: **XML comments + DocFX, plus a hand-written cookbook**.
@@ -33,7 +31,7 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
 ---
 
 ## Phase 0 — Single source of truth: the element catalog
-- [x] Create `pxa-designer/src/docs/elementCatalog.ts` — one typed entry per element (all 38 frontend
+- [x] Create `pvad-designer/src/docs/elementCatalog.ts` — one typed entry per element (all 38 frontend
       `ElementType`s): `type`, `label`, `category`, `description`, `formatSupport` (pdf/word/html/excel),
       `bindable`, type-specific `properties[]`, an `example` ElementDto (+ `toDesign()` wrapper), and
       optional `csharpExample`. Shared props/style keys documented once in `COMMON_PROPERTIES`/`STYLE_KEYS`.
@@ -58,9 +56,9 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       (`$iif/$concat/$coalesce/$switch`, aggregates incl. computed-arg + `$group`, short-circuiting
       operators), and repeats + group aggregates. tsc clean; 176 frontend tests pass.
 
-## Phase 2 — C# API docs (`PXA.Pdf`): XML comments + DocFX + cookbook
+## Phase 2 — C# API docs (`PVAD.Pdf`): XML comments + DocFX + cookbook
 - [x] `<GenerateDocumentationFile>true</GenerateDocumentationFile>` (+ `NoWarn CS1591` for incremental
-      docs) on **`PXA.Infrastructure.Pdf.csproj`** (where the linked `PXA/Pdf/**` sources compile —
+      docs) on **`PVAD.Infrastructure.Pdf.csproj`** (where the linked `PXA/Pdf/**` sources compile —
       *not* `PXA.csproj`, which excludes `Pdf/**`) and `PXA.Core.csproj`. Build clean; XML doc files
       produced for both.
 - [x] XML comments on the high-traffic surface: `PdfDocument` (class + ctor + AddPage/AddPageRotated/Info/
@@ -72,7 +70,7 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       *(DocFX tool not installable in this sandbox — config + command shipped; XML docs already generated.)*
 - [x] C# cookbook `docs/csharp-cookbook.md`: categorized recipes (getting-started, text, paragraphs,
       shapes, images, tables, links/nav, forms, page numbers, watermark, TOC, encryption, metadata) with
-      runnable snippets; points back to `samples/PXA.Demo/Program.cs` and the API reference.
+      runnable snippets; points back to `samples/PVAD.Demo/Program.cs` and the API reference.
 
 ## Phase 3 — AI docs: `llms.txt` + JSON Schema (both surfaces)
 - [x] `docs/schema/design-export.schema.json` (draft 2020-12) for `DesignExportDto`. Schema-driven test
@@ -88,7 +86,7 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       schema + catalog tests (6) green.
 
 ## Phase 4 — MCP server (follow-up)
-- [x] `tools/PXA.Mcp` (TypeScript, `@modelcontextprotocol/sdk` v1.29, stdio) exposing tools
+- [x] `tools/PVAD.Mcp` (TypeScript, `@modelcontextprotocol/sdk` v1.29, stdio) exposing tools
       `list_elements`, `get_element_schema(type)`, `get_example(type, surface)`, `search_docs(query)`,
       `validate_design(json)`, `render_preview(design)`, and resources `canvas://schema/design-export`,
       `canvas://openapi`, `canvas://docs/llms-full`, `canvas://docs/cookbook`.

@@ -1,7 +1,5 @@
 # Designer Migration: FastReport .NET (`.frx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 FastReport `.frx` → PVAD `DesignExportDto` converter (format research, schema, control mapping,
 diagnostics, status).
@@ -15,8 +13,8 @@ diagnostics, status).
 
 ## Why FastReport next
 
-- Plain XML, banded → reuses the `PXA.Migration.Report.Designer.Rpx` band-flatten model and the
-  `PXA.Migration.Report.Designer.DevExpress` `.repx` font-string parser (`"Tahoma, 9pt, style=Bold"`).
+- Plain XML, banded → reuses the `PVAD.Migration.Report.Designer.Rpx` band-flatten model and the
+  `PVAD.Migration.Report.Designer.DevExpress` `.repx` font-string parser (`"Tahoma, 9pt, style=Bold"`).
 - **Open-source corpus of real `.frx` files** (`FastReports/FastReport` → `Demos/Reports/*.frx`) to
   validate against genuine designer output — closes the "no real sample" gap noted for `.rpx`.
 
@@ -54,7 +52,7 @@ diagnostics, status).
 
 - Objects: pixels → points `× 72/96` (`× 0.75`). Paper/margins: mm → points `× 72/25.4`.
 - **Absolute Y** = `band.Top + object.Top` (both px → pt). PageHeader/PageFooter bands → SharedElements;
-  footer anchored to page bottom. (Same flatten as `PXA.Migration.Report.Designer.Rpx`.)
+  footer anchored to page bottom. (Same flatten as `PVAD.Migration.Report.Designer.Rpx`.)
 
 ## Detection / routing
 
@@ -64,7 +62,7 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## Control mapping (planned)
 
-| `.frx` object | PXA `ElementDto.Type` | Notes |
+| `.frx` object | PVADE `ElementDto.Type` | Notes |
 | --- | --- | --- |
 | `TextObject` | `text` | `Text`, `Font`, `HorzAlign`, fill/text colour; `[Source.Col]` → binding `{{Col}}` |
 | `LineObject` | `line` | `Diagonal` false = horizontal/vertical; `Border`/line width + style |
@@ -76,7 +74,7 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 | `RichObject` | `richtext` | RTF/`Text` |
 | `SubreportObject` / unknown | labeled placeholder | `CANMIGFRX011` |
 
-**Bindings:** `TextObject.Text` of form `[DataSource.Column]` (or `[Column]`) → PXA binding; other
+**Bindings:** `TextObject.Text` of form `[DataSource.Column]` (or `[Column]`) → PVADE binding; other
 `[...]`/script expressions → `Expression` + warning. Literal text → plain content.
 
 **To confirm against real samples:** exact fill/border attribute names (`Fill.Color`/`<Fill>`,
@@ -88,21 +86,21 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGFRX001` | Info | FastReport `.frx` detected — N band(s), M object(s) mapped |
-| `CANMIGFRX002` | Info | Per-object mapping (`name (type) → PXA type`) |
+| `CANMIGFRX002` | Info | Per-object mapping (`name (type) → PVADE type`) |
 | `CANMIGFRX010` | Info / Warning | `[Source.Col]` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGFRX011` | Warning | Unsupported object / Subreport / script — labeled placeholder |
 | `CANMIGFRX012` | Warning | Picture data not embeddable — placeholder inserted |
-| `CANMIGFRX013` | Info | `TableObject` mapped to a PXA table (N rows × M columns; ColSpan padded) |
-| `CANMIGFRX014` | Warning | `GroupHeader`/`GroupFooter` object mapped to PXA repeat metadata; group runtime semantics need review |
-| `CANMIGFRX015` | Info | Multiple `ReportPage`s mapped to multiple PXA pages |
-| `CANMIGFRX016` | Warning | Multi-column band flattened — PXA has no column reflow; review manually |
+| `CANMIGFRX013` | Info | `TableObject` mapped to a PVADE table (N rows × M columns; ColSpan padded) |
+| `CANMIGFRX014` | Warning | `GroupHeader`/`GroupFooter` object mapped to PVADE repeat metadata; group runtime semantics need review |
+| `CANMIGFRX015` | Info | Multiple `ReportPage`s mapped to multiple PVADE pages |
+| `CANMIGFRX016` | Warning | Multi-column band flattened — PVADE has no column reflow; review manually |
 
 ## Architecture & delivery (planned)
 
-- New self-contained project `src/Migrations/Report/PXA.Migration.Report.Designer.FastReport` (refs `PXA.Core` +
-  `PXA.Migration.Abstractions`), `FrxToDesignConverter` with `Convert`/`ConvertAuto`/static
-  `LooksLikeFrx`; band-based `RawReport`/`RawBand`/`RawElement` model (adapted from `PXA.Migration.Report.Designer.Rpx`).
-- Wire `report-to-design` routing (RDL → RPX → FRX → DevExpress) + WebApi ref + `PXA.sln` entries.
+- New self-contained project `src/Migrations/Report/PVAD.Migration.Report.Designer.FastReport` (refs `PVAD.Core` +
+  `PVAD.Migration.Abstractions`), `FrxToDesignConverter` with `Convert`/`ConvertAuto`/static
+  `LooksLikeFrx`; band-based `RawReport`/`RawBand`/`RawElement` model (adapted from `PVAD.Migration.Report.Designer.Rpx`).
+- Wire `report-to-design` routing (RDL → RPX → FRX → DevExpress) + WebApi ref + `PVAD.sln` entries.
 - Frontend "FastReport (.frx)" entry in `MigrationsPage.tsx`.
 - Tests: detection, unit conversion, each control, binding, placeholder, invalid XML, and an
   end-to-end render test; **plus** parse a real `Demos/Reports/*.frx` sample.
@@ -123,19 +121,19 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 band/runtime layer: multi-page reports, group/detail repeats, child-band join semantics, and validation
 against a wider set of real `Demos/Reports/*.frx` samples.
 
-- [x] **P1** `TableObject` → PXA table: grid extraction from `TableColumn` (widths px→pt) /
+- [x] **P1** `TableObject` → PVADE table: grid extraction from `TableColumn` (widths px→pt) /
       `TableRow` / `TableCell` (text + `[Source.Col]`→binding); `ColSpan` padded to keep column alignment;
       first row treated as header when >1 row. Diagnostic `CANMIGFRX013`.
 - [x] **P1** `TableCell` per-cell styles → `CellStyles`: `Fill.Color`, `TextFill.Color`, `HorzAlign`,
-      `Font`, `Padding`, and `Border.Lines`/`Border.Color`/`Border.Width` map to sparse PXA cell style
+      `Font`, `Padding`, and `Border.Lines`/`Border.Color`/`Border.Width` map to sparse PVADE cell style
       metadata and are covered by converter/exporter tests.
-- [x] **P1** `GroupHeader`/`GroupFooter` repeat: group-band objects carry PXA `RepeatDto` (data path from
+- [x] **P1** `GroupHeader`/`GroupFooter` repeat: group-band objects carry PVADE `RepeatDto` (data path from
       the `GroupHeaderBand` `Condition`, e.g. `[Items.Country]`→`Country`) + `style.frxGroup`
       (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGFRX014`.
-- [x] **P1** Multi-`ReportPage` → one PXA page per `ReportPage` (`CANMIGFRX015`); single-page reports
+- [x] **P1** Multi-`ReportPage` → one PVADE page per `ReportPage` (`CANMIGFRX015`); single-page reports
       keep PageHeader/PageFooter as SharedElements, multi-page reports keep per-page header/footer.
       `ChildBand` content is positioned by its absolute band `Top`, so it flattens in place.
-- [x] **P1** `Columns.*` multi-column bands → flattened with a `CANMIGFRX016` review warning (PXA has no
+- [x] **P1** `Columns.*` multi-column bands → flattened with a `CANMIGFRX016` review warning (PVADE has no
       column reflow); non-table per-side borders: `Border.Lines` on objects → uniform or per-side
       `border{Side}Color/Width` style keys.
 - [x] **P1** `PictureObject` MIME sniffing (JPEG/GIF/BMP/WEBP/TIFF magic bytes → correct data-URL type);

@@ -1,7 +1,5 @@
 # PVAD Unified Migration Frameworks
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Provide one migration architecture while keeping PDF, Spreadsheet, and Report as separate product domains.
@@ -81,5 +79,5 @@ The canonical taxonomy is `PVAD.Migration.<Domain>.<Kind>.<Provider>`.
 - [x] PDF and Spreadsheet are distinct product areas; Report Designer remains a distinct API domain exposed within the PDF migration experience.
 - [x] Every provider is discoverable from one backend catalog and appears only in its valid domain and kind.
 - [x] Every canonical conversion route uses the same result envelope without flattening kind-specific artifacts.
-- [x] Nutrient Viewer produces one editable PXA design with backend preview and no disconnected user-facing artifact bundle.
+- [x] Nutrient Viewer produces one editable PVADE design with backend preview and no disconnected user-facing artifact bundle.
 - [x] Existing integrations continue to work during the compatibility period.

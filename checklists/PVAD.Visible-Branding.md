@@ -1,7 +1,5 @@
 # PVAD Visible Product Identity
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** Historical identifiers remain compatibility inputs; task statuses are unchanged.
-
 ## Scope
 
 Current first-party application copy uses PVADE for the product and PVAD for

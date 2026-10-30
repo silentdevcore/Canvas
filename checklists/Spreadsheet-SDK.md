@@ -1,7 +1,5 @@
 # Spreadsheet Editor SDK — Excel-like spreadsheets in PVAD
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 An interactive in-app grid editor with live formulas, a backend `SpreadsheetDto` model, and `.xlsx`
 import + export. Adds spreadsheet capability alongside the document designer.
 
@@ -11,7 +9,7 @@ import + export. Adds spreadsheet capability alongside the document designer.
 > before the implementation entries below. It is not the current capability
 > matrix; original names and test evidence remain unchanged.
 
-PXA can only *export* a `table` element to `.xlsx` via `ExcelDocumentExporter` (ClosedXML), storing
+PVADE can only *export* a `table` element to `.xlsx` via `ExcelDocumentExporter` (ClosedXML), storing
 **literal values** — no formulas, no cell data types, no spreadsheet model, and **no xlsx import**. The
 expression engine has **no A1 cell references**. This adds a real Excel-like experience.
 
@@ -26,11 +24,11 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
 
 ---
 
-## Phase 0 — Backend model (`PXA.Core.Contracts`)
+## Phase 0 — Backend model (`PVAD.Core.Contracts`)
 - [x] `SpreadsheetDto`/`SheetDto`/`SheetColumnDto`/`SheetRowDto`/`CellDto`/`DefinedNameDto` in
-      `src/Core/PXA.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
+      `src/Core/PVAD.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
       merges, frozen panes, defined names). Reuses `CellStyleDto`/`CellBorderSideDto`.
-- [x] `A1Reference` helper in `src/Core/PXA.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
+- [x] `A1Reference` helper in `src/Core/PVAD.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
 
 ## Phase 1 — Backend xlsx I/O + API
 - [x] `ExcelWorkbookExporter` (SpreadsheetDto → ClosedXML): typed values, formulas via `cell.FormulaA1`,
@@ -45,7 +43,7 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
       **`=SUM(B1:B2)` formula + cached 30**, number format, bold+bg style, merge, column width, frozen rows.
       Full Export suite **193** green; solution builds clean.
 
-## Phase 2 — Frontend foundation (`pxa-designer`)
+## Phase 2 — Frontend foundation (`pvad-designer`)
 - [x] `src/spreadsheet/types.ts` — wire types (`Workbook`/`SheetWire`/`Cell`, camelCase mirroring the DTOs)
       + working `SheetState` (cells keyed `"row:col"`) + `from/toWire` converters.
 - [x] `useSpreadsheetStore` (`src/spreadsheet/store.ts`): sheets, active sheet, selection, snapshot
@@ -82,15 +80,15 @@ Two distinct kinds of "Sheet". **A** is the recommended rename; **B** should sta
 sheets — that's correct Excel terminology, and `SheetDto`→`SpreadsheetDto` would collide with the workbook
 type). Confirm the scope before executing.
 
-### A) Rename the infrastructure project `PXA.Infrastructure.Sheet` → `PXA.Infrastructure.Spreadsheet` — DONE
-- [x] Folder `src/PXA.Infrastructure.Sheet/` → `src/Infrastructure/PXA.Infrastructure.Spreadsheet/` (`git mv`).
-- [x] `PXA.Infrastructure.Sheet.csproj` → `PXA.Infrastructure.Spreadsheet.csproj`.
+### A) Rename the infrastructure project `PVAD.Infrastructure.Sheet` → `PVAD.Infrastructure.Spreadsheet` — DONE
+- [x] Folder `src/PVAD.Infrastructure.Sheet/` → `src/Infrastructure/PVAD.Infrastructure.Spreadsheet/` (`git mv`).
+- [x] `PVAD.Infrastructure.Sheet.csproj` → `PVAD.Infrastructure.Spreadsheet.csproj`.
 - [x] `namespace …Sheet` → `…Spreadsheet` in all 5 files.
 - [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;
       only its own declaration exists. Rename later if desired.
-- [x] `PXA.sln` project name + path entry.
-- [x] `ProjectReference` paths in `PXA.WebApi/PXA.WebApi.csproj` + `PXA.Export.Tests.csproj`.
-- [x] `using`/qualified `PXA.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
+- [x] `PVAD.sln` project name + path entry.
+- [x] `ProjectReference` paths in `PVAD.WebApi/PVAD.WebApi.csproj` + `PXA.Export.Tests.csproj`.
+- [x] `using`/qualified `PVAD.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
       the 3 test files. No stale `.Sheet` references remain.
 - [x] `dotnet build PXA.sln` clean; `PXA.Export.Tests` **193** green.
 

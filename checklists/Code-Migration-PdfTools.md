@@ -1,18 +1,16 @@
 # PVAD Migration: PDFTools / Pdftools SDK
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools`
-- [x] Add provider tests: `tests/PXA.Migration.Pdf.Code.PdfTools.Tests`
-- [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
+- [x] Add cautious Roslyn-backed provider project: `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfTools`
+- [x] Add provider tests: `tests/PVAD.Migration.Pdf.Code.PdfTools.Tests`
+- [x] Connect WebApi converter: `PVAD.WebApi/Services/Converters/PdfToolsConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Confirm current .NET package name from official docs: `PdfTools`
 - [x] Confirm current SDK initialization pattern from official docs: `Sdk.Initialize(...)`
 - [x] Validate from official docs/API references that direct PDF generation belongs to PDF Toolbox SDK/add-on, not this Pdftools SDK provider
 
-The official Pdftools SDK .NET getting-started guide identifies the NuGet package as `PdfTools`, requires .NET/Core 2.0+ or .NET Framework 4.6.1+, and documents optional `Sdk.Initialize("YOUR_LICENSE_KEY")` startup initialization for non-watermarked production output. The public samples emphasize PDF operations such as PDF-to-image conversion and broader SDK workflows. Official API references identify `PdfTools.Pdf.Document` as a document opened from a stream or produced by operations, while PDF creation from scratch belongs to the separate PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`). V1 therefore removes SDK initialization where safe and reports SDK workflows as manual migration work instead of inventing direct PXA.Pdf rewrites.
+The official Pdftools SDK .NET getting-started guide identifies the NuGet package as `PdfTools`, requires .NET/Core 2.0+ or .NET Framework 4.6.1+, and documents optional `Sdk.Initialize("YOUR_LICENSE_KEY")` startup initialization for non-watermarked production output. The public samples emphasize PDF operations such as PDF-to-image conversion and broader SDK workflows. Official API references identify `PdfTools.Pdf.Document` as a document opened from a stream or produced by operations, while PDF creation from scratch belongs to the separate PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`). V1 therefore removes SDK initialization where safe and reports SDK workflows as manual migration work instead of inventing direct PVAD.Pdf rewrites.
 
 Reference: https://www.pdf-tools.com/docs/pdf-tools-sdk/getting-started/pdftools-sdk/pdftools-sdk-dotnet/
 Reference: https://www.pdf-tools.com/docs/pdf-toolbox-sdk/use/generate/
@@ -40,14 +38,14 @@ Reference: https://www.pdf-tools.com/docs/pdf-toolbox-sdk/use/generate/
 
 ## Mapping Table
 
-| PDFTools / Pdftools SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| PDFTools / Pdftools SDK API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `Sdk.Initialize(...)` | No PXA equivalent | Code removal in v1 | Emit info diagnostic; PXA.Pdf has no SDK license initialization call. |
-| `PdfTools.Pdf.Document.Open(...)` | Manual PXA.Pdf document recreation | Warning in v1 | Existing-PDF processing, not from-scratch PXA generation. |
-| SDK conversion/optimization/validation/signing APIs | Manual PXA.Pdf document recreation or workflow redesign | Warning in v1 | Not equivalent to PXA.Pdf draw calls. |
+| `Sdk.Initialize(...)` | No PVADE equivalent | Code removal in v1 | Emit info diagnostic; PVAD.Pdf has no SDK license initialization call. |
+| `PdfTools.Pdf.Document.Open(...)` | Manual PVAD.Pdf document recreation | Warning in v1 | Existing-PDF processing, not from-scratch PVADE generation. |
+| SDK conversion/optimization/validation/signing APIs | Manual PVAD.Pdf document recreation or workflow redesign | Warning in v1 | Not equivalent to PVAD.Pdf draw calls. |
 | `PdfTools.Toolbox.Pdf.Document.Create(...)` / `Page.Create(...)` | Future Toolbox-specific migration | Warning in v1 | Separate product/add-on; collect Toolbox samples before automatic rewrites. |
-| PDF-to-image / conversion samples such as `Pdf2ImgSimple` | Manual rewrite to PXA document generation | Warning in v1 | Not equivalent to PXA.Pdf generation; requires product-specific redesign. |
-| Existing PDF load/process/optimize/validate/repair workflows | Manual follow-up | Warning in v1 | PXA.Pdf migration target is generated document composition. |
+| PDF-to-image / conversion samples such as `Pdf2ImgSimple` | Manual rewrite to PVADE document generation | Warning in v1 | Not equivalent to PVAD.Pdf generation; requires product-specific redesign. |
+| Existing PDF load/process/optimize/validate/repair workflows | Manual follow-up | Warning in v1 | PVAD.Pdf migration target is generated document composition. |
 
 ## Unsupported / Manual Follow-Up
 

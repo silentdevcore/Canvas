@@ -1,7 +1,5 @@
 # Designer Migration: ActiveReports (`.rpx` / `.rdlx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 
@@ -25,7 +23,7 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 Local sample source: `designer-simples/ActiveReports/ReportSamples-master` (local-only test resources).
 
 Analyzed 8 `.rdlx` files — all in the RDL-2005 `reportdefinition` namespace (ActiveReports **Page**
-reports, → `PXA.Migration.Report.Designer.Rdl`):
+reports, → `PVAD.Migration.Report.Designer.Rdl`):
 
 - `Enterprise Reports - Marketing Plan Data.rdlx`
 - `Financial Reports - BalanceSheetReport.rdlx`, `…- CashFlowReport.rdlx`,
@@ -43,7 +41,7 @@ Observed feature coverage:
 | --- | ---: | --- | --- |
 | `Textbox` (value/expression, font, colour, align, padding) | 470 | supported | Done |
 | RDL-2005 `<Table>` Header/Details rows | 22 tables, 20 Header / 20 Details | supported | Done |
-| RDL-2005 `<Table>` **`<Footer>`** rows (totals/summary) | 14 footers | **now included** in the PXA grid | Done (this pass) |
+| RDL-2005 `<Table>` **`<Footer>`** rows (totals/summary) | 14 footers | **now included** in the PVADE grid | Done (this pass) |
 | **`<List>`** region (grouped repeat) + nested `<Table>` + `<Grouping>` | 1 (BloodTestReport) | **now parsed**: container + repeat metadata; children extracted | Done (this pass) |
 | `Image` (embedded/base64/reference) | 9 | supported | Done |
 | `Line` | 17 | supported | Done |
@@ -60,15 +58,15 @@ Key sample-driven conclusions:
 
 | ID | Severity | Meaning |
 | --- | --- | --- |
-| `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the PXA table grid |
-| `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a PXA container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
-| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on PXA table style |
+| `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the PVADE table grid |
+| `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a PVADE container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
+| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on PVADE table style |
 
 ## V2 checklist
 
-- [x] **P0** RDL-2005 `<Table>` `<Footer>` rows included in the PXA grid (financial totals no longer lost).
+- [x] **P0** RDL-2005 `<Table>` `<Footer>` rows included in the PVADE grid (financial totals no longer lost).
 - [x] **P0** `<List>` region support: recurse `<ReportItems>` (nested Table parsed), `<Grouping>`/
-      `<GroupExpressions>` preserved as PXA `RepeatDto` + `style.rdlList` metadata; transparent container.
+      `<GroupExpressions>` preserved as PVADE `RepeatDto` + `style.rdlList` metadata; transparent container.
 - [x] **P0** `<Grouping>` recognized alongside `<Group>` in `ParseTablixGroups` (RDL-2005 groupings no longer ignored).
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
 - [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
@@ -78,14 +76,14 @@ Key sample-driven conclusions:
       future group-repeat renderer; none of the current local samples exercise this.
 - [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
       `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
-      visual preservation are implemented in `PXA.Migration.Report.Designer.Rpx`.
+      visual preservation are implemented in `PVAD.Migration.Report.Designer.Rpx`.
 - [x] **P1** RPX subreport resource inlining: matching `.rpx` resources supplied to `report-to-design`
       are recursively converted and positioned at the parent `SubReport` placeholder.
 - [x] **P1** RPX UI resource upload: the migration page accepts multiple `.rpx` resource files for
       ActiveReports subreport inlining.
 - [x] **P1** RPX embedded-script no-op preservation: script language/hash/preview metadata is retained in
       `PageSettings.CustomProperties` for manual review.
-- [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed PXA `pageboundary`
+- [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed PVADE `pageboundary`
       markers alongside `style.rpxPageBreak` metadata.
 - [x] **P1** RPX real-sample validation harness: tests auto-discover
       `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
@@ -97,7 +95,7 @@ Key sample-driven conclusions:
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).)
 - [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
       (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
-      `PXA.Migration.Report.Designer.ActiveReportsJs`; text/line/image/barcode/simple table items map to PXA
+      `PVAD.Migration.Report.Designer.ActiveReportsJs`; text/line/image/barcode/simple table items map to PVADE
       elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
       are still needed for schema tuning.
 - [x] **P2** ActiveReports JS sample validation harness: tests auto-discover
@@ -112,9 +110,9 @@ Key sample-driven conclusions:
 - Tests: [`tests/PVAD.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PVAD.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs)
   — footer-rows, List-with-nested-table, and an 8-sample integration check (locates `designer-simples`).
 
-## Per-cell table styling (PXA-model track)
+## Per-cell table styling (PVAD-model track)
 
-PXA tables historically carried only `CellData` / `ColumnWidths` / `ColumnAlignments` / `HeaderRow`
+PVADE tables historically carried only `CellData` / `ColumnWidths` / `ColumnAlignments` / `HeaderRow`
 plus table-level `HeaderBgColor` / `ZebraColor` — so per-cell borders, backgrounds, and alignment from
 real reports (ActiveReports/RDL per-side cell pens, FastReport/Telerik cell borders) were dropped. This
 adds an **additive, backward-compatible** per-cell style model and wires a **v1 vertical slice**
@@ -132,9 +130,9 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       shapes (2008 `<Border>`/`<TopBorder>…`, RDL-2005 `<BorderColor>`/`<BorderWidth>`/`<BorderStyle>`
       with `<Default>`/per-side children). `ExtractCellStyle` in `RdlToDesignConverter.cs`.
 - [x] Server image preview (`ImageDocumentExporter.DrawTable`) applies per-cell bg/borders/alignment.
-- [x] Frontend renders per-cell styles: `SimplePxaSurface` `tdStyle` + `LivePreview` `tdSt`, keyed by the
+- [x] Frontend renders per-cell styles: `SimplePvadSurface` `tdStyle` + `LivePreview` `tdSt`, keyed by the
       absolute data-row index; explicit per-cell borders replace the default grid border (exporter parity).
-- [x] Frontend type mirror (`pxa-designer/src/types.ts`: `CellStyle` / `CellBorderSide`).
+- [x] Frontend type mirror (`pvad-designer/src/types.ts`: `CellStyle` / `CellBorderSide`).
 - [x] Tests: RDL `CellStyles` extraction + null-when-unstyled (backward-compat); image-export render diff.
 
 **Follow-up phases:**
@@ -142,8 +140,8 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       text-align, and uniform + per-side borders; explicit cell borders replace the table grid (parity
       with canvas/image). ODT emits `<style:style family="table-cell">` defs in `office:automatic-styles`.
 - [x] Codegen emits `CellStyles`: `jsonToCSharp.ts` writes the full `CellStyleDto[]` initializer (consumed
-      by the PXA.Pdf runtime DTO renderer); `CodeGenerator.ts` (PDFsharp sample) applies per-cell
-      background/text-colour/bold/alignment. *(PXA.Pdf runtime rendering lives outside this repo; the
+      by the PVAD.Pdf runtime DTO renderer); `CodeGenerator.ts` (PDFsharp sample) applies per-cell
+      background/text-colour/bold/alignment. *(PVAD.Pdf runtime rendering lives outside this repo; the
       DTO it receives now carries the styles.)*
 - [x] Other converters populate `CellStyles`: **FastReport** (`TableCell` Fill/TextFill/Border.Lines/Font/
       HorzAlign/Padding), **Telerik** (content-item named+inline `<Style>`), **DevExpress** (XRTableCell XML

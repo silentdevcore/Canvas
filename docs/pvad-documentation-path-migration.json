@@ -1,5 +1,6 @@
 {
   "legacyContentPreserved": true,
+  "preservationScope": "Original path-migration checkpoint only; later editorial normalization is authorized without changing task status or immutable evidence.",
   "moves": [
     {
       "from": "checklists/PXA.Account-Branch-Review.md",

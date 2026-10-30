@@ -1,7 +1,5 @@
 # PVADE Designer Template Persistence Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Replace volatile Designer template storage with PostgreSQL-backed, organization-owned drafts and immutable versions. The Designer must autosave safely, enforce tenant isolation, detect concurrent edits, and preserve an auditable version history.
@@ -19,7 +17,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 ## Dependencies
 
 - [x] Use `PVAD.Designer-Authentication.md` for user, session, active organization, and entitlement enforcement.
-- [x] Use PostgreSQL and EF Core through `PXA.Infrastructure.Persistence`.
+- [x] Use PostgreSQL and EF Core through `PVAD.Infrastructure.Persistence`.
 - [x] Align schema and migration operations with `PVAD.Database.md`.
 - [x] Keep gallery examples as static product assets rather than customer database records.
 - [x] Define object-storage integration for Designer image assets.

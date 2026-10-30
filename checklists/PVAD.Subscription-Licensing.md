@@ -1,7 +1,5 @@
 # PVAD Subscription And Licensing Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Server, public SDKs, and future commercial billing without coupling product access to application roles.
@@ -73,7 +71,7 @@ Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Serv
 ## Offline And On-Premise Licensing
 
 - [x] Define a signed offline license envelope with license ID, customer, organization, edition, account type, products, limits, validity, instance limits, and signature metadata.
-- [x] Sign licenses with an asymmetric key so PXA Server contains only the verification key.
+- [x] Sign licenses with an asymmetric key so PVADE Server contains only the verification key.
 - [x] Validate signature, validity, product version, deployment identity, and instance limits through one local validator.
 - [x] Reject modified, malformed, revoked, not-yet-valid, expired, replaced, and mismatched licenses with stable diagnostics.
 - [ ] Support controlled grace periods without requiring internet access.
@@ -92,7 +90,7 @@ Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Serv
 
 ## Administration And Customer Experience
 
-- [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PXA Admin.
+- [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PVADE Admin.
 - [x] Add a detail view for Trial extension, renewal, grace period, cancellation, entitlement overrides, seat assignment, and lifecycle history.
 - [x] Add offline-license generation and usage-metering views.
 - [x] Show customers their edition, renewal or expiry date, seats, entitlements, limits, usage, and a Pricing or Sales upgrade path.

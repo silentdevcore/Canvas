@@ -1,7 +1,5 @@
 # PVAD Legal Terms, Privacy, and Consent
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver a central, PostgreSQL-backed legal-document system for PVAD. Published
@@ -23,7 +21,7 @@ approval fields are consolidated in `PVAD.Commercial-Launch-Decision-Packet.md`.
 
 ## Scope Boundary And Related Compliance
 
-- [x] Keep this workflow limited to legal documents, notices, acknowledgements, and consents governing the relationship between PXA and its customers or users.
+- [x] Keep this workflow limited to legal documents, notices, acknowledgements, and consents governing the relationship between PVADE and its customers or users.
 - [x] Keep third-party software license decisions in the dependency-compliance workflow rather than publishing them as customer Legal documents.
 - [x] Never store an NPOI EULA approval or another supplier-license decision in `legal_acceptance_events`; those events represent customer or user actions only.
 - [x] Share qualified Legal ownership and review standards across customer Legal content and third-party license compliance without combining their records, permissions, or approval states.
@@ -37,7 +35,7 @@ approval fields are consolidated in `PVAD.Commercial-Launch-Decision-Packet.md`.
 - [x] P0: Provide public current/version APIs and protected Admin authoring APIs.
 - [x] P0: Enforce a four-eyes publication rule.
 - [x] P0: Add Company legal routes and a necessary-storage notice.
-- [x] P0: Add a protected Legal workspace to PXA.Admin.
+- [x] P0: Add a protected Legal workspace to PVAD.Admin.
 - [x] P0: Prepare complete English Swiss-law candidate text for all seven initial Legal documents.
 - [ ] P0: Replace candidate text with counsel-approved English text before production publication.
 - [ ] P0: Add the real operator name, legal form, address, representatives, register, VAT ID, and contact details.
@@ -64,7 +62,7 @@ must continue to block Production publication.
 - [x] Provide a protected System Administrator retention status and non-destructive dry run covering every processing category.
 - [x] Persist auditable global and organization-scoped legal holds and enforce them in active job and mail cleanup services.
 - [x] Default queued document operations to transient retention, purge content after successful download or within 24 hours, require explicit seven-day retention, scrub payloads with content, and expire minimized terminal metadata after 30 days while honoring Legal Holds.
-- [x] Expose Legal Hold creation and release without exposing a manual destructive cleanup operation in PXA.Admin.
+- [x] Expose Legal Hold creation and release without exposing a manual destructive cleanup operation in PVAD.Admin.
 - [x] Draft B2B and B2C distinctions without blanket liability or warranty exclusions.
 - [x] Prepare withdrawal instructions and a model withdrawal form that explain the Swiss baseline and preserve mandatory foreign consumer rights.
 - [ ] Add any electronic withdrawal function required in an enabled consumer market, including a permanently accessible first action, confirmation action, and immediate durable receipt.
@@ -91,7 +89,7 @@ must continue to block Production publication.
 ## Admin Legal Workflow
 
 - [x] Add `legal.read`, `legal.author`, and `legal.approve` permissions.
-- [x] Add a protected Legal navigation item and workspace to PXA.Admin.
+- [x] Add a protected Legal navigation item and workspace to PVAD.Admin.
 - [x] List documents and all versions with status, locale, audience, and effective date.
 - [x] Create documents and new draft versions.
 - [x] Import the seven repository-managed English Swiss-law candidates as non-published Draft versions without overwriting existing content.
@@ -131,15 +129,15 @@ must continue to block Production publication.
 - [x] Keep scheduled notifications hidden until the document becomes effective.
 - [x] Remove a pending notification when its scheduled Legal version is retired before taking effect.
 - [x] Keep read notifications available for repeated review until the user explicitly dismisses them.
-- [x] Link Designer Legal notifications to the trusted PXA.Account origin rather than treating server-provided URLs as arbitrary external links.
-- [x] Add a persistent PXA.Account Legal updates page with current status, public change summary, and current and previous publication links.
+- [x] Link Designer Legal notifications to the trusted PVAD.Account origin rather than treating server-provided URLs as arbitrary external links.
+- [x] Add a persistent PVAD.Account Legal updates page with current status, public change summary, and current and previous publication links.
 - [x] Show the same change summary and predecessor link in the blocking Account Legal review.
 - [x] Keep Terms acceptance, Privacy acknowledgement, and marketing consent visibly and technically separate.
 - [x] Avoid copying document bodies or internal review comments into notification records.
 
 ## Necessary Storage Notice
 
-- [x] Add a shared, accessible storage notice to PXA.Company, PXA.Documentation, PXA.Demo, and public PXA.Account pages.
+- [x] Add a shared, accessible storage notice to PVAD.Company, PVAD.Documentation, PVAD.Demo, and public PVAD.Account pages.
 - [x] Explain that only necessary cookies and browser storage are used at launch.
 - [x] Provide `Understood` and `Learn more` actions without a misleading consent choice.
 - [x] Store anonymous acknowledgement only in a first-party browser cookie.
@@ -182,7 +180,7 @@ must continue to block Production publication.
 - [x] Add API coverage for anonymous reads, draft exclusion, lifecycle transitions, four-eyes enforcement, and immutable publication.
 - [x] Add Legal Admin comparison coverage for line alignment, cross-document rejection, permissions, and review/publication gates.
 - [x] Add model tests for relationships, indexes, lengths, and delete behavior.
-- [x] Build PXA.WebApi, PXA.Admin, PXA.Company, PXA.Documentation, PXA.Demo, and PXA.Account.
+- [x] Build PVAD.WebApi, PVAD.Admin, PVAD.Company, PVAD.Documentation, PVAD.Demo, and PVAD.Account.
 - [x] Add PostgreSQL integration coverage for stale registration versions and exact acceptance evidence.
 - [x] Add Account reacceptance, Admin progress, minimized export, and exact-version mismatch coverage.
 - [x] Add Account and Admin accessibility contract tests for legal review, progress, and export states.
@@ -207,7 +205,7 @@ must continue to block Production publication.
 - [x] Public consumers can retrieve only the current effective legal versions.
 - [x] Company Legal pages show the active document, authoritative status, effective date, content hash, change summary, related Legal documents, and immutable public version history.
 - [x] One administrator cannot author and approve the same version.
-- [x] PXA.Admin exposes a protected Legal workflow without linking Admin from PXA.Company.
+- [x] PVAD.Admin exposes a protected Legal workflow without linking Admin from PVAD.Company.
 - [x] Necessary storage is explained without pretending that consent is required.
 - [ ] Counsel-approved English documents and complete Swiss operator data replace all launch-blocking placeholders.
 - [x] Paid B2C checkout remains unavailable by default and cannot report readiness without every required Consumer document.

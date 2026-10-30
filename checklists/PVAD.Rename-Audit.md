@@ -1,7 +1,5 @@
 # PVAD Rename Audit
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Date: 2026-10-17
 Scope: repository analysis and planning only.
 Baseline branch: `feature/native-designer-formats`; working tree clean at audit start.

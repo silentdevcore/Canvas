@@ -1,7 +1,5 @@
 # PVAD Mail Service Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver one application-level mail service for identity, security, subscription, and newsletter communication with replaceable Cloud and On-Premise transports.
@@ -59,7 +57,7 @@ Deliver one application-level mail service for identity, security, subscription,
 - [x] Support localized subjects, bodies, dates, links, and directionality for English, German, French, Spanish, Italian, and Arabic transactional mail.
 - [x] Select language from the user locale with regional-tag normalization and an English system fallback.
 - [ ] Add an organization-level mail-language fallback when organization preferences are implemented.
-- [x] Add consistent PXA branding, accessible table structure, meaningful link labels, and HTML/text variants.
+- [x] Add consistent PVADE branding, accessible table structure, meaningful link labels, and HTML/text variants.
 - [ ] Preview templates with synthetic data before activation.
 - [x] Never include passwords, full API keys, license signing material, or document contents in implemented transactional templates.
 

@@ -1,7 +1,5 @@
 # PVAD C# REST SDK Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver a lightweight C# REST client for remote PVAD Cloud and PVAD Server usage while keeping it clearly separate from the native embedded PVAD .NET libraries.

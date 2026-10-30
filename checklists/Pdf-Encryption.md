@@ -1,7 +1,5 @@
 # PVAD.Pdf Encryption (Password Protection & Permissions)
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Status
 
 > Legacy milestone record. The current implementation supersedes the V1 decisions below:
@@ -46,7 +44,7 @@ Target: the **Standard Security Handler**. **V1 ships RC4-128 (revision 3, `/V 2
 
 ## Scope
 
-- [x] V1: encrypt strings and streams in newly generated documents only (PXA.Pdf is generation-only).
+- [x] V1: encrypt strings and streams in newly generated documents only (PVAD.Pdf is generation-only).
 - [x] V1: owner password, user password, permission flags, RC4-128. (AES-128 deferred to V2.)
 - [x] Out of scope: AES-256 / PDF 2.0 rev 6, public-key (certificate) security, decrypting/re-saving
       existing PDFs, digital signatures.

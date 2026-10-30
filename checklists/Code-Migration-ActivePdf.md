@@ -1,12 +1,10 @@
 # PVAD Migration: ActivePDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf`
-- [x] Added provider tests: `tests/PXA.Migration.Pdf.Code.ActivePdf.Tests`
-- [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
+- [x] Added cautious Roslyn-backed provider project: `src/Migrations/PDF/PVAD.Migration.Pdf.Code.ActivePdf`
+- [x] Added provider tests: `tests/PVAD.Migration.Pdf.Code.ActivePdf.Tests`
+- [x] Connected WebApi converter: `PVAD.WebApi/Services/Converters/ActivePdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact ActivePDF product, NuGet package, or COM interop reference with a real source sample
 
@@ -36,7 +34,7 @@ ActivePDF has several product lines and legacy COM/server workflows. V1 only att
 
 ## Mapping Table
 
-| ActivePDF API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| ActivePDF API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new Toolkit()` / `new APDoc()` / `new Document()` | `var document = new PdfDocument();` | Pilot code fix | Treat as likely direct generation |
 | `document.AddPage()` / `BeginPage()` / `NewPage()` | `var page = document.AddPage();` | Pilot code fix | Preserves assigned page variable |
@@ -70,10 +68,10 @@ toolkit.DrawRectangle(40, 100, 200, 80);
 toolkit.Save(outputPath);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -104,7 +102,7 @@ document.Save(outputPath);
 - [x] Replace simple text drawing
 - [x] Replace simple line/rectangle drawing
 - [x] Replace simple save/close
-- [x] Add `using PXA.Pdf`
+- [x] Add `using PVAD.Pdf`
 - [x] Remove ActivePDF usings
 - [x] Leave COM/conversion/merge/print flows as manual diagnostics
 - [ ] Validate mappings against real ActivePDF product API before promoting beyond pilot

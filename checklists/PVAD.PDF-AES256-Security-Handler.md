@@ -1,7 +1,5 @@
 # PVAD PDF AES-256 and PDF 2.0 Security Handler
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Purpose
 
 PVAD defaults new encrypted Generator, Designer, and WebApi output to AES-256 revision 6.
@@ -16,7 +14,7 @@ the interoperable Adobe.PubSec `adbe.pkcs7.s5` AESV2 profile.
 > not a request to reintroduce the old namespace. Checked security evidence and
 > original diagnostic identifiers remain unchanged.
 
-`PXA.Pdf`'s `StandardSecurityHandler` encrypts already-serialized object bodies by locating
+`PVAD.Pdf`'s `StandardSecurityHandler` encrypts already-serialized object bodies by locating
 literal strings and stream payloads in the emitted bytes. That is why AES was deferred: RC4 is
 a stream cipher and preserves length, while AES does not, so every `/Length` would have to be
 rewritten in text that has already been produced.

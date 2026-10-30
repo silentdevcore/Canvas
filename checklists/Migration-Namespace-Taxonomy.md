@@ -1,7 +1,5 @@
 # Migration Namespace Taxonomy
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Summary
 
 Tracker for restructuring migration projects and namespaces so that each provider clearly communicates:
@@ -30,82 +28,82 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 - [x] Use `Pdf`, not `PDF`.
 - [x] Use `Spreadsheet`.
 - [x] Use `Datasource`.
-- [x] Use `Code` for source-code migration from third-party APIs to PXA APIs.
-- [x] Use `Designer` for report/designer layout migration into editable PXA design JSON.
-- [x] Use `Viewer` for migration of third-party viewer integrations and interchange data into PXA Viewer contracts.
+- [x] Use `Code` for source-code migration from third-party APIs to PVADE APIs.
+- [x] Use `Designer` for report/designer layout migration into editable PVADE design JSON.
+- [x] Use `Viewer` for migration of third-party viewer integrations and interchange data into PVADE Viewer contracts.
 - [x] Use `Datasource` for file/data import migration flows only when a concrete backend provider exists.
 - [x] Keep shared abstractions outside provider-specific taxonomy.
 
 ## PDF Code Migration Targets
 
-- [x] `PXA.Migration.ActivePdf` -> `PXA.Migration.Pdf.Code.ActivePdf`
-- [x] `PXA.Migration.Apryse` -> `PXA.Migration.Pdf.Code.Apryse`
-- [x] `PXA.Migration.AsposePdf` -> `PXA.Migration.Pdf.Code.Aspose`
-- [x] `PXA.Migration.DevExpressPdf` -> `PXA.Migration.Pdf.Code.DevExpress`
-- [x] `PXA.Migration.DsPdf` -> `PXA.Migration.Pdf.Code.DsPdf`
-- [x] `PXA.Migration.FoxitPdf` -> `PXA.Migration.Pdf.Code.Foxit`
-- [x] `PXA.Migration.GemBoxPdf` -> `PXA.Migration.Pdf.Code.GemBox`
-- [x] `PXA.Migration.IronPdf` -> `PXA.Migration.Pdf.Code.IronPdf`
-- [x] `PXA.Migration.iText7` -> `PXA.Migration.Pdf.Code.IText7`
-- [x] `PXA.Migration.LeadtoolsPdf` -> `PXA.Migration.Pdf.Code.Leadtools`
-- [x] Add `PXA.Migration.Pdf.Code.Nutrient` for Nutrient .NET and legacy GdPicture.NET code migration.
-- [x] `PXA.Migration.PdfKitNet` -> `PXA.Migration.Pdf.Code.PdfKitNet`
-- [x] `PXA.Migration.PdfTools` -> `PXA.Migration.Pdf.Code.PdfTools`
-- [x] `PXA.Migration.PdfToolsToolbox` -> `PXA.Migration.Pdf.Code.PdfToolsToolbox`
-- [x] `PXA.Migration.SpirePdf` -> `PXA.Migration.Pdf.Code.Spire`
-- [x] `PXA.Migration.SyncfusionPdf` -> `PXA.Migration.Pdf.Code.Syncfusion`
+- [x] `PVAD.Migration.ActivePdf` -> `PVAD.Migration.Pdf.Code.ActivePdf`
+- [x] `PVAD.Migration.Apryse` -> `PVAD.Migration.Pdf.Code.Apryse`
+- [x] `PVAD.Migration.AsposePdf` -> `PVAD.Migration.Pdf.Code.Aspose`
+- [x] `PVAD.Migration.DevExpressPdf` -> `PVAD.Migration.Pdf.Code.DevExpress`
+- [x] `PVAD.Migration.DsPdf` -> `PVAD.Migration.Pdf.Code.DsPdf`
+- [x] `PVAD.Migration.FoxitPdf` -> `PVAD.Migration.Pdf.Code.Foxit`
+- [x] `PVAD.Migration.GemBoxPdf` -> `PVAD.Migration.Pdf.Code.GemBox`
+- [x] `PVAD.Migration.IronPdf` -> `PVAD.Migration.Pdf.Code.IronPdf`
+- [x] `PVAD.Migration.iText7` -> `PVAD.Migration.Pdf.Code.IText7`
+- [x] `PVAD.Migration.LeadtoolsPdf` -> `PVAD.Migration.Pdf.Code.Leadtools`
+- [x] Add `PVAD.Migration.Pdf.Code.Nutrient` for Nutrient .NET and legacy GdPicture.NET code migration.
+- [x] `PVAD.Migration.PdfKitNet` -> `PVAD.Migration.Pdf.Code.PdfKitNet`
+- [x] `PVAD.Migration.PdfTools` -> `PVAD.Migration.Pdf.Code.PdfTools`
+- [x] `PVAD.Migration.PdfToolsToolbox` -> `PVAD.Migration.Pdf.Code.PdfToolsToolbox`
+- [x] `PVAD.Migration.SpirePdf` -> `PVAD.Migration.Pdf.Code.Spire`
+- [x] `PVAD.Migration.SyncfusionPdf` -> `PVAD.Migration.Pdf.Code.Syncfusion`
 
 ## PDF Viewer Migration Targets
 
-- [x] Add `PXA.Migration.Pdf.Viewer.Nutrient` for Nutrient Web SDK and legacy PSPDFKit Viewer migration.
+- [x] Add `PVAD.Migration.Pdf.Viewer.Nutrient` for Nutrient Web SDK and legacy PSPDFKit Viewer migration.
 - [x] Use canonical code provider key `nutrient` and Viewer provider key `nutrient-viewer`.
 - [x] Keep Nutrient/PSPDFKit separate from Apryse/PDFTron; they are unrelated provider families.
 - [x] Accept historical product names only as input aliases and return canonical Nutrient metadata.
 
 ## Spreadsheet Code Migration Targets
 
-- [x] `PXA.Migration.AsposeCells` -> `PXA.Migration.Spreadsheet.Code.Aspose`
-- [x] `PXA.Migration.ClosedXmlSpreadsheet` -> `PXA.Migration.Spreadsheet.Code.ClosedXml`
-- [x] `PXA.Migration.EpplusSpreadsheet` -> `PXA.Migration.Spreadsheet.Code.Epplus`
-- [x] `PXA.Migration.GemBoxSpreadsheet` -> `PXA.Migration.Spreadsheet.Code.GemBox`
-- [x] `PXA.Migration.Npoi` -> `PXA.Migration.Spreadsheet.Code.Npoi`
-- [x] `PXA.Migration.SpireXls` -> `PXA.Migration.Spreadsheet.Code.Spire`
-- [x] `PXA.Migration.SpreadsheetLight` -> `PXA.Migration.Spreadsheet.Code.SpreadsheetLight`
-- [x] `PXA.Migration.SyncfusionXlsIo` -> `PXA.Migration.Spreadsheet.Code.Syncfusion`
+- [x] `PVAD.Migration.AsposeCells` -> `PVAD.Migration.Spreadsheet.Code.Aspose`
+- [x] `PVAD.Migration.ClosedXmlSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.ClosedXml`
+- [x] `PVAD.Migration.EpplusSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.Epplus`
+- [x] `PVAD.Migration.GemBoxSpreadsheet` -> `PVAD.Migration.Spreadsheet.Code.GemBox`
+- [x] `PVAD.Migration.Npoi` -> `PVAD.Migration.Spreadsheet.Code.Npoi`
+- [x] `PVAD.Migration.SpireXls` -> `PVAD.Migration.Spreadsheet.Code.Spire`
+- [x] `PVAD.Migration.SpreadsheetLight` -> `PVAD.Migration.Spreadsheet.Code.SpreadsheetLight`
+- [x] `PVAD.Migration.SyncfusionXlsIo` -> `PVAD.Migration.Spreadsheet.Code.Syncfusion`
 
 ## Report Designer Migration Targets
 
-- [x] `PXA.Migration.ActiveReportsJs` -> `PXA.Migration.Report.Designer.ActiveReportsJs`
-- [x] `PXA.Migration.DevExpressReport` -> `PXA.Migration.Report.Designer.DevExpress`
-- [x] `PXA.Migration.FastReport` -> `PXA.Migration.Report.Designer.FastReport`
-- [x] `PXA.Migration.JasperReports` -> `PXA.Migration.Report.Designer.JasperReports`
-- [x] `PXA.Migration.Rdl` -> `PXA.Migration.Report.Designer.Rdl`
-- [x] `PXA.Migration.Rpx` -> `PXA.Migration.Report.Designer.Rpx`
-- [x] `PXA.Migration.Stimulsoft` -> `PXA.Migration.Report.Designer.Stimulsoft`
-- [x] `PXA.Migration.Telerik` -> `PXA.Migration.Report.Designer.Telerik`
+- [x] `PVAD.Migration.ActiveReportsJs` -> `PVAD.Migration.Report.Designer.ActiveReportsJs`
+- [x] `PVAD.Migration.DevExpressReport` -> `PVAD.Migration.Report.Designer.DevExpress`
+- [x] `PVAD.Migration.FastReport` -> `PVAD.Migration.Report.Designer.FastReport`
+- [x] `PVAD.Migration.JasperReports` -> `PVAD.Migration.Report.Designer.JasperReports`
+- [x] `PVAD.Migration.Rdl` -> `PVAD.Migration.Report.Designer.Rdl`
+- [x] `PVAD.Migration.Rpx` -> `PVAD.Migration.Report.Designer.Rpx`
+- [x] `PVAD.Migration.Stimulsoft` -> `PVAD.Migration.Report.Designer.Stimulsoft`
+- [x] `PVAD.Migration.Telerik` -> `PVAD.Migration.Report.Designer.Telerik`
 
 ## Reserved Datasource Structure
 
-- [x] Reserve `PXA.Migration.Spreadsheet.Datasource.*` for backend spreadsheet datasource/file import providers.
+- [x] Reserve `PVAD.Migration.Spreadsheet.Datasource.*` for backend spreadsheet datasource/file import providers.
 - [x] Do not create fake datasource provider projects until a concrete backend migrator exists.
 - [x] Keep current UI route `/migrations/spreadsheet/datasource` compatible.
 - [x] Keep document/file importers separate from source-code migration projects unless a dedicated migration provider is introduced.
 
 ## Shared And Aggregator Projects
 
-- [x] Keep `PXA.Migration.Abstractions`.
-- [x] Keep `PXA.Migration.Roslyn`.
-- [x] Keep aggregator `PXA.Migration.Pdf`.
-- [x] Keep aggregator `PXA.Migration.Spreadsheet`.
-- [x] Keep aggregator `PXA.Migration.Report`.
+- [x] Keep `PVAD.Migration.Abstractions`.
+- [x] Keep `PVAD.Migration.Roslyn`.
+- [x] Keep aggregator `PVAD.Migration.Pdf`.
+- [x] Keep aggregator `PVAD.Migration.Spreadsheet`.
+- [x] Keep aggregator `PVAD.Migration.Report`.
 - [x] Update aggregators to reference the new provider namespaces after implementation.
 
 ## Physical Project Layout
 
 - [x] Use `src/Migrations` as the physical root for migration projects.
 - [x] Move shared migration infrastructure to `src/Migrations/Common`:
-  - `PXA.Migration.Abstractions`
-  - `PXA.Migration.Roslyn`
+  - `PVAD.Migration.Abstractions`
+  - `PVAD.Migration.Roslyn`
 - [x] Move PDF code migration projects to `src/Migrations/PDF`.
 - [x] Keep PDF Viewer migration projects under `src/Migrations/PDF` using the `.Viewer.<Provider>` namespace segment.
 - [x] Move report designer migration projects to `src/Migrations/Report`.
@@ -116,24 +114,24 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 
 - [x] Use physical folders for non-migration projects while keeping namespaces stable.
 - [x] Group core/application projects under `src/Core`:
-  - `PXA.Core`
-  - `PXA.Domain`
-  - `PXA.Application`
+  - `PVAD.Core`
+  - `PVAD.Domain`
+  - `PVAD.Application`
 - [x] Group generation projects under `src/Generation`:
-  - `PXA.Generator`
-  - `PXA.Pdf`
+  - `PVAD.Generator`
+  - `PVAD.Pdf`
 - [x] Group importer projects under `src/Importing`:
-  - `PXA.Importer`
-  - `PXA.FileImporter`
-  - `PXA.FileImporter.ImageAnalysis`
-  - `PXA.FileImporter.ImageOcr`
-  - `PXA.FileImporter.ImageOcr.Worker`
+  - `PVAD.Importer`
+  - `PVAD.FileImporter`
+  - `PVAD.FileImporter.ImageAnalysis`
+  - `PVAD.FileImporter.ImageOcr`
+  - `PVAD.FileImporter.ImageOcr.Worker`
 - [x] Group infrastructure projects under `src/Infrastructure`:
-  - `PXA.Infrastructure.Converters`
-  - `PXA.Infrastructure.Pdf`
-  - `PXA.Infrastructure.Spreadsheet`
-  - `PXA.Infrastructure.Word`
-- [x] Keep `PXA.Infrastructure.Pdf` under `src/Infrastructure`, because the namespace represents the technical implementation layer.
+  - `PVAD.Infrastructure.Converters`
+  - `PVAD.Infrastructure.Pdf`
+  - `PVAD.Infrastructure.Spreadsheet`
+  - `PVAD.Infrastructure.Word`
+- [x] Keep `PVAD.Infrastructure.Pdf` under `src/Infrastructure`, because the namespace represents the technical implementation layer.
 
 ## Compatibility Rules
 
@@ -170,16 +168,16 @@ presented inside the PDF product experience at `/pdf/migrations/designer`.
 
 ## Test Plan
 
-- [x] `dotnet build PXA.sln --no-restore --disable-build-servers -m:1`
+- [x] `dotnet build PVAD.sln --no-restore --disable-build-servers -m:1`
   - Current result: passed with warnings, 0 errors.
   - Restore needed to run outside the sandbox because sandboxed restore hung.
 - [x] Static checks:
-  - `dotnet sln PXA.sln list` shows the new taxonomy project paths.
-  - No old flat migration namespace references remain in `src`, `tests`, or `PXA.WebApi`.
+  - `dotnet sln PVAD.sln list` shows the new taxonomy project paths.
+  - No old flat migration namespace references remain in `src`, `tests`, or `PVAD.WebApi`.
   - No old provider project directories remain under `src` or `tests`.
 - [x] API contract test updated for taxonomy metadata:
   - `/api/migration/frameworks` returns legacy `kind`, plus `domain`, `migrationKind`, `provider`.
-- [x] `npm run build` in `pxa-designer`.
+- [x] `npm run build` in `pvad-designer`.
 - [x] Targeted .NET migration/API tests:
   - `PXA.Api.Tests` filtered to `MigrationControllerTests|MigrationServiceTests`: 16 passed.
   - `PXA.Migration.Pdf.Tests`: 18 passed.

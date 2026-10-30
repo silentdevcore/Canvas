@@ -1,7 +1,5 @@
 # Rename PXA To PVAD
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Status And Naming Authority
 
 The stricter visible-identity follow-up is recorded in
@@ -10,9 +8,10 @@ and public guide copy use canonical names, with one central About history notice
 Raw compatibility contracts and original evidence remain unchanged. This is a
 separate presentation acceptance, not closure of any release/operational gate.
 
-Concrete checklist follow-up (2026-10-30): current titles, goals and open tasks
-now use PVAD/PVADE, including future SDK names and the logo brief. Completed task
-records and original code snapshots remain historical. See the
+Concrete checklist follow-up (2026-10-30): editorial titles, descriptions, task
+wording and ordinary examples use PVAD/PVADE, including SDK names and the logo
+brief. At the owner's request, repeated history banners have been removed.
+Actual execution evidence, original rename audits and compatibility values remain unchanged. See the
 [checklist naming review](../docs/pvad-checklist-naming.md) for scope, retained
 references and unregistered publisher proposals. No counted release gate or
 feature task is closed by this documentation correction.

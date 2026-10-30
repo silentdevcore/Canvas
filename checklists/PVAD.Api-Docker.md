@@ -1,7 +1,5 @@
 # PVAD API Docker Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver `PVAD.WebApi` as a secure, observable, and offline-capable Linux container for PVAD Cloud and customer-managed PVAD Server installations.

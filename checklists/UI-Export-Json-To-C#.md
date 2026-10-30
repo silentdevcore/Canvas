@@ -1,7 +1,5 @@
 # UI Export: JSON ↔ C# Code Round-Trip Analysis
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Problem
 
 When you export a design from the UI as JSON, convert it to C# Code (`jsonToCode`), then convert that C# Code back to JSON (`csharp-code-to-json`), the resulting JSON does not match the original.
@@ -77,7 +75,7 @@ Same fix needed for the `Gray` branch.
 
 **Where:** `TemplatesController.cs` → `CsharpCodeToJson` → `TextElement` mapping
 
-**Problem:** `PXA.Pdf.TextElement` does not store element width/height (it draws unbounded text). The backend guesses:
+**Problem:** `PVAD.Pdf.TextElement` does not store element width/height (it draws unbounded text). The backend guesses:
 ```csharp
 width  = 200.0,          // hardcoded — always wrong
 height = D("FontSize") * 1.5,  // rough estimate
@@ -109,7 +107,7 @@ height = D("FontSize") * 1.5,  // rough estimate
 
 **Affected types:** `field`, `checkbox`, `button`, `dropdown`, `optionlist`, `radio`, `signature`
 
-**What happens:** `jsonToCode` decomposes semantic elements into primitive PXA.Pdf calls:
+**What happens:** `jsonToCode` decomposes semantic elements into primitive PVAD.Pdf calls:
 - `field` → `DrawRoundedRectangle + DrawText (label) + DrawText (placeholder)`
 - `checkbox` → `DrawRectangle + DrawText (checkmark)`
 - `button` → `DrawRoundedRectangle + DrawText`

@@ -1,7 +1,5 @@
 # PVAD PDF Code Migrations
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Build a `PVAD.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `PVAD.Pdf`.
@@ -36,8 +34,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Do not reference migration projects from `PVAD.Core`
 - [ ] Do not reference migration projects from `PVAD.Infrastructure.Pdf`
 - [ ] Use `PVAD.Pdf` as the target output API
-- [x] Add shared abstractions under `src/Migrations/Common/PXA.Migration.Abstractions`
-- [x] Add Roslyn migration infrastructure under `src/Migrations/Common/PXA.Migration.Roslyn`
+- [x] Add shared abstractions under `src/Migrations/Common/PVAD.Migration.Abstractions`
+- [x] Add Roslyn migration infrastructure under `src/Migrations/Common/PVAD.Migration.Roslyn`
 - [ ] Add provider projects under `src/Migrations/<Domain>/` using `PVAD.Migration.<Domain>.<Kind>.<Provider>`; follow [the namespace taxonomy](Migration-Namespace-Taxonomy.md).
 - [x] Define provider-neutral migration diagnostics
 - [ ] Define provider-neutral mapping result model
@@ -46,23 +44,23 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 ## Future Project Layout
 
-- [x] `src/Migrations/Common/PXA.Migration.Abstractions`
-- [x] `src/Migrations/Common/PXA.Migration.Roslyn`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.IText7`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Aspose`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.IronPdf`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Apryse`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Syncfusion`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.DsPdf`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.GemBox`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Spire`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfKitNet`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Leadtools`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Foxit`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools`
-- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfToolsToolbox`
+- [x] `src/Migrations/Common/PVAD.Migration.Abstractions`
+- [x] `src/Migrations/Common/PVAD.Migration.Roslyn`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.IText7`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Aspose`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.IronPdf`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Apryse`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Syncfusion`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.DsPdf`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.GemBox`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Spire`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfKitNet`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Leadtools`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Foxit`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.DevExpress`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.ActivePdf`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfTools`
+- [x] `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfToolsToolbox`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
 
@@ -145,7 +143,7 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 ## Assumptions
 
-- [x] Use `PXA.Migration.*`, not `Convas.Migration.*`
+- [x] Use `PVAD.Migration.*`, not `Convas.Migration.*`
 - [x] Use Markdown extension `.md`; `Code-Migrations.dm` is treated as a typo
 - [x] Use canonical provider names in checklist titles and future project names
 - [x] Keep this milestone to architecture and checklist scaffolding

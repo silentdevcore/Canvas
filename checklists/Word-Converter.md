@@ -1,7 +1,5 @@
 # Word Converter — PDF Fidelity Checklist (Execution)
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 > Goal: Make Word export visually and structurally as close as possible to PDF output for the same DesignExportDto input.
 
 ---
@@ -125,7 +123,7 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 - [x] Added regression tests for anchored image offsets and z-order monotonicity.
 - [x] Added safe image fallback placeholder rendering for invalid/unavailable image sources.
 - [x] Added deterministic sequential drawing IDs for images and regression coverage.
-- [x] Added tested PXA width/height -> image extent EMU conversion checks.
+- [x] Added tested PVADE width/height -> image extent EMU conversion checks.
 - [x] Added fit mode mapping: fill stretches, contain/cover preserve aspect (cover uses preserve-aspect fallback).
 - [x] Added deterministic element ordering (Y/X/zIndex/Id) with regression coverage for equal-coordinate elements.
 - [x] Added remote image fetch retry+timeout policy with graceful placeholder fallback.
@@ -211,7 +209,7 @@ Acceptance:
 
 ## 4. Page Geometry and Units
 
-- [x] Map PXA page size to Word section page size precisely (twips)
+- [x] Map PVADE page size to Word section page size precisely (twips)
 - [x] Map margins from PageSettings to section properties
 - [x] Respect page orientation per page
 - [x] Replace loose px conversion with centralized converter:
@@ -252,7 +250,7 @@ Acceptance:
 
 ## 7. Table Parity
 
-- [x] Use fixed table layout with explicit grid widths from PXA widths
+- [x] Use fixed table layout with explicit grid widths from PVADE widths
 - [x] Map header row shading, bold, and repeat-on-page-break behavior
 - [x] Map border width/color/style consistently
 - [x] Support zebra rows and per-column alignment
@@ -268,7 +266,7 @@ Acceptance:
 - [x] Support data URLs, http/https images, and safe fallback placeholders
 - [x] Preserve fit mode semantics as close as possible:
   - contain, cover, fill fallback behavior documented
-- [x] Set image extents from PXA width/height with tested conversion
+- [x] Set image extents from PVADE width/height with tested conversion
 - [x] Add deterministic image ID generation per document
 
 Acceptance:

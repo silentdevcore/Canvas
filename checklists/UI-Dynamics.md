@@ -1,7 +1,5 @@
 # UI Dynamics Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Drag and Drop Functionality
 - [x] Install @dnd-kit/sortable and @dnd-kit/modifiers for enhanced drag and drop
 - [x] Add position properties (x, y) to DesignerElement interface
@@ -26,7 +24,7 @@
 - [x] Handle element removal from parent containers
 - [x] Update selection state after deletion
 
-## PXA Interaction Enhancements
+## PVADE Interaction Enhancements
 - [x] Implement multi-selection with Ctrl/Cmd+click
 - [x] Add selection rectangle (marquee selection)
 - [x] Implement element grouping and ungrouping

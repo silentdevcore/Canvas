@@ -1,7 +1,5 @@
 # PVAD Automated Release Notes
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 - [x] Generate consistent, customer-facing release notes from structured change records.
@@ -10,11 +8,11 @@
 
 ## Dependencies and Boundaries
 
-- [x] Keep root `VERSION` as the authoritative PXA product version.
-- [x] Keep `product-metadata/pxa-releases.json` as the shared published-release source.
+- [x] Keep root `VERSION` as the authoritative PVADE product version.
+- [x] Keep `product-metadata/pvad-releases.json` as the shared published-release source.
 - [x] Preserve the existing `develop` integration and `main` stable-release branch policy.
 - [x] Treat deployment as consumption of an immutable release; retries and rollbacks must not increase the version.
-- [x] Keep API contract versions independent from the PXA product version.
+- [x] Keep API contract versions independent from the PVADE product version.
 - [x] Require human approval before any stable release is merged to `main`.
 
 ## P0 - Structured Release Fragments
@@ -30,11 +28,11 @@
 - [x] Reject duplicate IDs, placeholders, empty summaries, unknown components, and invalid links.
 - [x] Require every relevant pull request to `develop` to add or update a release fragment.
 
-## P0 - `pxa-release-author` Skill
+## P0 - `pvad-release-author` Skill
 
-- [x] Create a reusable Codex skill named `pxa-release-author`.
+- [x] Create a reusable Codex skill named `pvad-release-author`.
 - [x] Make the skill compare the working branch with its `develop` merge base.
-- [x] Detect affected PXA components from the changed projects and files.
+- [x] Detect affected PVADE components from the changed projects and files.
 - [x] Inspect public API, database, configuration, UI, and compatibility changes.
 - [x] Recommend `none`, `patch`, `minor`, or `major` with a concise explanation.
 - [x] Generate or update the structured release fragment in customer-facing English.
@@ -49,7 +47,7 @@
 - [x] Determine the release impact from the highest impact among all pending fragments.
 - [x] Require explicit confirmation for a Major release.
 - [x] Group aggregated changes by category and affected component.
-- [x] Generate a complete draft entry for `product-metadata/pxa-releases.json`.
+- [x] Generate a complete draft entry for `product-metadata/pvad-releases.json`.
 - [x] Generate GitHub Release Markdown from the same aggregated data.
 - [x] Consume or archive fragments only through the reviewed release-preparation change.
 - [x] Fail validation when pending fragments are not represented by the prepared release.
@@ -68,7 +66,7 @@
 
 ## P1 - Release Preparation
 
-- [x] Add a manually triggered GitHub workflow named `Prepare PXA Release`.
+- [x] Add a manually triggered GitHub workflow named `Prepare PVADE Release`.
 - [x] Run the workflow from the current protected `develop` branch.
 - [x] Validate all pending fragments before preparing the release.
 - [x] Calculate the next version from the current stable tag and aggregated impact.
@@ -132,10 +130,10 @@
 
 - [x] Record pull request `#24` as closed without merge and superseded by the release-automation changes subsequently merged into `develop`.
 - [x] Synchronize release validation with `develop` commit `30929c01c963b792db34fc9134c4fc5c35f7aed5`.
-- [x] Run the GitHub `PXA Release Dry Run` workflow from `develop` ([run `30802436710`](https://github.com/silentdevcore/Canvas/actions/runs/30802436710)).
+- [x] Run the GitHub `PVADE Release Dry Run` workflow from `develop` ([run `30802436710`](https://github.com/silentdevcore/Canvas/actions/runs/30802436710)).
 - [x] Verify proposed version `1.1.0`, Minor impact, five fragments, ten components, customer summaries, JSON output, and Markdown output.
 - [x] Confirm that the GitHub dry run leaves `VERSION` at `1.0.0`, `develop` unchanged, `v1.0.0` as the latest tag, and creates no GitHub Release or deployment.
-- [x] Run `Prepare PXA Release` only after explicit approval and complete the reviewed `v1.1.0` stable release.
+- [x] Run `Prepare PVADE Release` only after explicit approval and complete the reviewed `v1.1.0` stable release.
 - [ ] Implement production deployment approvals, audit records, retry behavior, and rollback validation in a later phase.
 
 ## PXA 1.1.0 Verification Record

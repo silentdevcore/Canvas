@@ -1,7 +1,5 @@
 # PVAD Commercial Launch Decision Packet
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Provide one approval packet for the first commercial PVAD launch. Recommendations
@@ -73,7 +71,7 @@ Decision owners: Product, Finance, Tax, Legal, and Sales.
 
 ## Decision 3: Merchant of Record
 
-Recommendation: evaluate Paddle first because PXA needs global SaaS subscriptions,
+Recommendation: evaluate Paddle first because PVADE needs global SaaS subscriptions,
 B2B tax evidence, localized payments, invoicing, refunds, chargebacks, and tax
 remittance under one accountable seller model. Keep Stripe Managed Payments as
 the fallback. Do not sign a provider solely from list pricing.

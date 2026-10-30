@@ -1,12 +1,10 @@
 # PVAD Migration: PDF Toolbox SDK / Toolbox Add-On
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfToolsToolbox`
-- [x] Add provider tests: `tests/PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests`
-- [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
+- [x] Add cautious Roslyn-backed provider project: `src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfToolsToolbox`
+- [x] Add provider tests: `tests/PVAD.Migration.Pdf.Code.PdfToolsToolbox.Tests`
+- [x] Connect WebApi converter: `PVAD.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Split from `PDFTools / Pdftools SDK`; Toolbox is the direct-generation/content-editing API family
 - [x] Confirm official direct-generation entry points:
@@ -60,17 +58,17 @@ References:
 
 ## Mapping Table
 
-| PDF Toolbox SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| PDF Toolbox SDK API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `Document.Create(outStream, ..., ...)` | `var document = new PdfDocument();` | Candidate pilot code fix | Stream ownership/save semantics still need conservative handling. |
 | `Page.Create(document, PageSize.A4/Letter)` | `var page = document.AddPage(PdfPagePreset.A4/Letter, landscape)` | Pilot code fix | A4/Letter and rotated/landscape cases mapped. |
 | `Page.Create(document, customSize)` | `var page = document.AddPage()` | Warning in v1 | Unknown page sizes require manual review. |
 | `outDoc.Pages.Add(page)` | Already represented by `document.AddPage()` | Future removal/code fix | Only remove if page creation was converted. |
-| `Font.CreateFromSystem(...)` | PXA text font settings or default font | Warning or future mapping | PXA font API and fallback behavior need review. |
+| `Font.CreateFromSystem(...)` | PVADE text font settings or default font | Warning or future mapping | PVADE font API and fallback behavior need review. |
 | `Text.Create(document)` + `TextGenerator` + `ShowLine(...)` | `page.DrawTextFromTop(...)` | Future pilot code fix | Need coordinate extraction from `MoveTo(Point)` and text extraction from `ShowLine`. |
 | `ContentGenerator(...).PaintText(text)` | Already represented by `page.DrawText...` | Future removal/code fix | Only after associated text flow is converted. |
-| `Page.Copy(...)`, `PageList.Copy(...)`, `Document.Open(...)` | Manual migration | Warning in v1 | Existing-PDF copy/edit workflows are not PXA generation. |
-| `Add annotations/forms/metadata/outlines` | Manual migration | Warning in v1 | Needs PXA feature parity review. |
+| `Page.Copy(...)`, `PageList.Copy(...)`, `Document.Open(...)` | Manual migration | Warning in v1 | Existing-PDF copy/edit workflows are not PVADE generation. |
+| `Add annotations/forms/metadata/outlines` | Manual migration | Warning in v1 | Needs PVADE feature parity review. |
 
 ## Unsupported / Manual Follow-Up
 
@@ -110,10 +108,10 @@ gen.PaintText(text);
 outDoc.Pages.Add(outPage);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -148,7 +146,7 @@ document.Save(outPath);
 - [x] Remove associated `FileStream` output setup when `outPath` can be recovered safely
 - [x] Insert `document.Save(outPath)` when a safe output path is recovered
 - [x] Warn when output stream target cannot be safely mapped to a path
-- [x] Add `using PXA.Pdf` only when PXA code is introduced
+- [x] Add `using PVAD.Pdf` only when PVADE code is introduced
 - [x] Remove Toolbox usings only when no Toolbox code remains
 - [x] Preserve Toolbox usings for partially migrated snippets
 - [ ] Warn on font/style/color details until PVAD style mapping is defined

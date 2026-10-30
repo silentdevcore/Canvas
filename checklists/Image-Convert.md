@@ -1,14 +1,12 @@
 # Image -> PVAD JSON / PDF Conversion Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Scope: build a custom raster-image analysis engine (`PVAD.FileImporter.ImageAnalysis`) that converts images into editable PVADE designs by recognizing layout, colors, shapes, and eventually text content without external OCR/CV binaries such as Tesseract. The engine should mirror the staged architecture of `PVAD.Importer`, but stay deterministic, testable, and self-contained.
 
 ---
 
 ## Current State
 
-- [x] `PXA.FileImporter.ImageAnalysis` project exists and is wired into the Web API.
+- [x] `PVAD.FileImporter.ImageAnalysis` project exists and is wired into the Web API.
 - [x] Smart image endpoint exists: `POST /api/document/import-image-analysis`.
 - [x] Frontend route exists through the `image-analysis` importer option.
 - [x] Preprocessing exists: scaling, grayscale conversion, global Otsu binarization.
@@ -207,9 +205,9 @@ Scope: build a custom raster-image analysis engine (`PVAD.FileImporter.ImageAnal
 - [x] Expand controlled OCR tests from "element exists" to exact text content.
 - [x] Add controlled text-line ink-bounds tests.
 - [x] Add controlled word-bound splitting tests.
-- [x] Add full-pipeline PXA coordinate mapping test for positioned text.
+- [x] Add full-pipeline PVADE coordinate mapping test for positioned text.
 - [x] Add color-region bounds test.
-- [x] Add full-pipeline shape/region PXA bounds test.
+- [x] Add full-pipeline shape/region PVADE bounds test.
 - [x] Suppress duplicate filled-rect edge shape when a matching color region exists.
 - [x] Prevent filled rectangles from being classified as ellipses.
 - [x] Draft punctuation detection for dots, dashes, slashes, and colon-like dot pairs.

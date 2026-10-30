@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import test from 'node:test';
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
@@ -17,7 +18,7 @@ test('all renamed active documentation targets exist without duplicate legacy fi
   for (const { from, to } of mapping.moves) {
     assert.equal(exists(from), false, from);
     assert.equal(exists(to), true, to);
-    if (to.startsWith('checklists/')) assert.match(read(to), /Naming history:/);
+    assert.doesNotMatch(read(to), /^> Naming history:/m, to);
   }
 });
 
@@ -32,35 +33,38 @@ test('main guides explain active technical and platform names without contradict
   assert.match(read('README.md'), /PVADP \/ PVADS/);
 });
 
-test('retained checklist names have an explicit naming-history notice', () => {
-  const paths = execFileSync('git', ['ls-files', 'checklists/*.md'],
-    { cwd: fileURLToPath(new URL('../../', import.meta.url)), encoding: 'utf8' })
-    .trim().split('\n').filter(path => exists(path)
-      && !/^checklists\/PVAD\./.test(path) && path !== 'checklists/Rename-PXA-To-PVAD.md');
-  for (const path of paths) {
-    const source = read(path);
-    if (/PXA|Power Dox|Canvas/.test(source)) assert.match(source, /Naming history:/, path);
+test('repository checklists no longer repeat the naming-history banner', () => {
+  for (const path of trackedChecklists()) {
+    assert.doesNotMatch(read(path), /^> Naming history:/m, path);
   }
+  for (const path of ['Removing-PDFImporter.md', 'handoff.md', 'implementation_plan.md'])
+    assert.doesNotMatch(read(path), /^> Naming history:/m, path);
+  const migration = read('tools/configuration/rename-documentation.mjs');
+  assert.doesNotMatch(migration, /Naming history:/);
+  assert.match(JSON.parse(read('docs/pvad-documentation-path-migration.json')).preservationScope,
+    /Original path-migration checkpoint/);
 });
 
-test('every checklist mentioning PXA explicitly identifies its technical rename and market name', () => {
-  const paths = readdirSync(resolve(root, 'checklists'), { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile() && entry.name.endsWith('.md'))
-    .map(entry => relative(root, resolve(entry.parentPath, entry.name)));
-  let reviewed = 0;
-  for (const path of paths) {
-    const source = read(path);
-    if (!/pxa/i.test(path + '\n' + source)) continue;
-    const notices = [...source.matchAll(/^> Naming history:.*$/gm)];
-    assert.equal(notices.length, 1, `${path}: expected one notice`);
-    const notice = notices[0][0];
-    assert.match(notice, /PXA has been renamed to PVAD \(technical name\)/, path);
-    assert.match(notice, /PVADE is the market name/, path);
-    assert.match(notice, /task statuses are unchanged/, path);
-    assert.match(source, /^# [^\n]+\n\n> Naming history:/, path);
-    reviewed++;
+test('documentation path migration preserves task text and ignores untracked local notes', () => {
+  const fixture = mkdtempSync(join(tmpdir(), 'pvad-doc-path-fixture-'));
+  try {
+    mkdirSync(join(fixture, 'checklists'));
+    mkdirSync(join(fixture, 'docs'));
+    const source = '# Example\n\n- [ ] Keep work open.\n';
+    writeFileSync(join(fixture, 'checklists/PXA.Example.md'), source);
+    writeFileSync(join(fixture, 'checklists/PXA.Local.md'), 'Private synthetic local note.\n');
+    execFileSync('git', ['init', '--quiet'], { cwd: fixture });
+    execFileSync('git', ['add', '--', 'checklists/PXA.Example.md'], { cwd: fixture });
+    execFileSync(process.execPath, [resolve(root, 'tools/configuration/rename-documentation.mjs')],
+      { cwd: fixture });
+    assert.equal(readFileSync(join(fixture, 'checklists/PVAD.Example.md'), 'utf8'), source);
+    assert.ok(existsSync(join(fixture, 'checklists/PXA.Local.md')));
+    assert.equal(existsSync(join(fixture, 'checklists/PVAD.Local.md')), false);
+    const mapping = JSON.parse(readFileSync(join(fixture, 'docs/pvad-documentation-path-migration.json'), 'utf8'));
+    assert.deepEqual(mapping.moves, [{ from: 'checklists/PXA.Example.md', to: 'checklists/PVAD.Example.md' }]);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
   }
-  assert.ok(reviewed > 0, 'Expected checklists containing historical names');
 });
 
 test('shared style guide and current code samples use current technical symbols', () => {
@@ -196,7 +200,7 @@ test('active product copy and guide downloads reserve the old brand for one Abou
   }
 });
 
-const historicalChecklist = /\/(?:Rename-|PXA\.Dependency-|PVAD\.(?:Rename-|Account-Branch-Review|Designer-Canvas-Audit|Competitive-|Software-Valuation)|PHASE|CLEAN_ARCHITECTURE)/;
+const historicalChecklist = /\/(?:Rename-|PXA\.Dependency-|PVAD\.(?:Rename-|Account-Branch-Review|Designer-Canvas-Audit))/;
 const trackedChecklists = () => execFileSync('git', ['ls-files', 'checklists/*.md'],
   { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(exists);
 const withoutLinkTargets = line => line.replace(/\]\([^)]*\)/g, ']');
@@ -217,7 +221,7 @@ test('future SDK plans use canonical names without claiming registered publisher
   const names = ['SDK-Roadmap', 'Java-SDK', 'Python-SDK', 'TypeScript-JavaScript-SDK',
     'CSharp-REST-SDK', 'Go-SDK', 'PHP-SDK', 'PowerShell-SDK'];
   for (const name of names) {
-    const source = read(`checklists/PVAD.${name}.md`).replace(/^> Naming history:.*$/gm, '');
+    const source = read(`checklists/PVAD.${name}.md`);
     assert.doesNotMatch(source, /pxa|powerdox/i, name);
   }
   const roadmap = read('checklists/PVAD.SDK-Roadmap.md');
@@ -230,16 +234,33 @@ test('future SDK plans use canonical names without claiming registered publisher
 });
 
 test('current logo and format briefs distinguish market identity from technical contracts', () => {
-  const brand = read('checklists/PVAD.Brand-And-Logo-System.md').replace(/^> Naming history:.*$/gm, '');
+  const brand = read('checklists/PVAD.Brand-And-Logo-System.md');
   assert.doesNotMatch(withoutLinkTargets(brand), /\bPXA\b|Power Dox Automation|\bPXAP\b|\bPXAS\b/);
   assert.match(brand, /\*\*PVADE\*\* as the visible platform and Designer wordmark/);
   assert.match(brand, /still-unconfirmed legal company name/);
   const formats = read('checklists/PVAD.Native-Designer-Formats.md');
   assert.match(formats, /`\.pvadp` for PDF Designer/);
   assert.match(formats, /`\.pvads` for Spreadsheet Designer/);
-  assert.match(formats, /Checked implementation entries below describe the original format generation/);
+  assert.match(formats, /Task wording uses current names/);
   assert.match(formats, /application\/vnd\.pvad\.pvadp\+zip/);
   assert.match(read('checklists/Documentation-Audit.md'), /pvad-checklist-naming\.md/);
+});
+
+test('ordinary completed-task wording and code examples use current names without changing compatibility identifiers', () => {
+  const gembox = read('checklists/Code-Migration-GemBoxPdf.md');
+  assert.match(gembox, /using PVAD\.Pdf;/);
+  assert.doesNotMatch(gembox, /PXA|pxa-designer/);
+  const persistence = read('checklists/PVAD.Designer-Template-Persistence.md');
+  assert.match(persistence, /`PVAD\.Infrastructure\.Persistence`/);
+  assert.match(persistence, /`\/api\/pxa\/v1\/designer\/templates`/);
+  const trust = read('checklists/PVAD.PDF-Trust-Foundation.md');
+  assert.match(trust, /PXAPDFTRUST/);
+  assert.match(read('checklists/Code-Migration-SyncfusionPdf.md'),
+    /Verified with `dotnet test tests\/PXA\.Migration/);
+  assert.match(read('checklists/PVAD.Competitive-Readiness-And-Milestones.md'),
+    /^# PVADE Competitive Readiness/m);
+  assert.match(read('checklists/PVAD.Competitive-Readiness-And-Milestones-DE.md'),
+    /^# PVADE Wettbewerbsreife/m);
 });
 
 test('checklist naming review links resolve to current guides or explicitly retained history', () => {

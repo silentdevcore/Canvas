@@ -1,7 +1,5 @@
 # PVAD Database Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Provide one secure, tenant-aware, and operationally reliable persistence platform for PVAD identity, administration, subscriptions, licensing, usage, audit, mail, templates, and document metadata across Cloud and On-Premise deployments.

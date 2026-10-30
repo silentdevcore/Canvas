@@ -1,7 +1,5 @@
 # PVAD Dependency Security and Compliance
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Purpose
 
 Track the controls that keep third-party dependencies secure, traceable, and legally approved across the PVAD monorepo. Generated SBOMs are the complete dependency inventory; the curated compliance catalog records exceptional approval decisions and production blockers.

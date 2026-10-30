@@ -1,7 +1,5 @@
 # PVAD Native Designer Formats
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Define safe, versioned, portable native project formats for PVADE Designer:
@@ -20,11 +18,9 @@ New packages use `application/vnd.pvad.pvadp+zip` and
 `PVAD-PVADS-1`. Current API examples use `/api/pvad/v1/designer/projects`.
 See the [current format guide](../docs/native-designer-project-formats.md).
 
-Checked implementation entries below describe the original format generation.
-Their old names, media types, diagnostic codes, and test counts are historical
-evidence, not instructions for new writers. Earlier formats remain readable
-through explicit compatibility readers; this update does not change their bytes
-or mark pending platform and artwork approvals complete.
+Task wording uses current names. Earlier formats remain readable through
+explicit compatibility readers. Editorial normalization does not change original
+package bytes, test results, or pending platform and artwork approvals.
 
 ## Priorities
 
@@ -40,14 +36,14 @@ or mark pending platform and artwork approvals complete.
 
 ## Naming And Media Types
 
-- [x] Use lowercase canonical file extensions `.pxap` and `.pxas`; UI labels may
-  display them as `PXAP` and `PXAS`.
-- [x] Define PXAP as **PXA PDF Project** and PXAS as **PXA Spreadsheet Project**.
+- [x] Use lowercase canonical file extensions `.pvadp` and `.pvads`; UI labels may
+  display them as `PVADP` and `PVADS`.
+- [x] Define PVADP as **PVAD PDF Project** and PVADS as **PVAD Spreadsheet Project**.
 - [x] Retire the generic `.pxa` reservation. Native Designer projects use the
-  explicit `.pxap` and `.pxas` formats only.
+  explicit `.pvadp` and `.pvads` formats only.
 - [x] Register internal media types:
-  `application/vnd.powerdox.pxap+zip` and
-  `application/vnd.powerdox.pxas+zip`.
+  `application/vnd.pvad.pvadp+zip` and
+  `application/vnd.pvad.pvads+zip`.
 - [x] Use distinct magic/package identifiers so renamed ZIP or JSON files cannot
   be accepted as native projects.
 - [ ] Define stable icons and OS file associations only after the logo system is
@@ -57,7 +53,7 @@ or mark pending platform and artwork approvals complete.
 
 - [x] Use a ZIP-compatible package with a mandatory `manifest.json` at its root.
 - [x] Require manifest fields for format ID, schema version, minimum compatible
-  PXA version, document ID, title, created/modified timestamps, locale, entry
+  PVADE version, document ID, title, created/modified timestamps, locale, entry
   document, asset index, and content checksums.
 - [x] Keep generated previews, source files, fonts, images, and other assets in
   typed package folders referenced through stable asset IDs.
@@ -71,7 +67,7 @@ or mark pending platform and artwork approvals complete.
 - [x] Never include authentication tokens, local filesystem paths, temporary
   object-storage URLs, secrets, or tenant identifiers intended only for servers.
 
-## PXAP Document Contract
+## PVADP Document Contract
 
 - [x] Store the normalized `DesignExportDto` document as the canonical editable
   PDF design.
@@ -85,7 +81,7 @@ or mark pending platform and artwork approvals complete.
 - [x] Record required Designer features and warn before opening a project that
   uses unavailable or disabled functionality.
 
-## PXAS Document Contract
+## PVADS Document Contract
 
 - [x] Store the normalized workbook model as the canonical editable Spreadsheet
   design.
@@ -125,7 +121,7 @@ or mark pending platform and artwork approvals complete.
   element count, cells, formulas, image pixels, and parsing duration.
 - [x] Validate declared sizes and checksums before materializing assets.
 - [x] Sniff asset bytes instead of trusting filenames or declared MIME types.
-- [x] Sanitize SVG, HTML, Rich Text, metadata, and filenames using existing PXA
+- [x] Sanitize SVG, HTML, Rich Text, metadata, and filenames using existing PVADE
   security policies.
 - [x] Do not execute Code Workspace content while opening a package.
 - [x] Apply tenant, entitlement, permission, rate-limit, audit, and cancellation
@@ -187,7 +183,7 @@ or mark pending platform and artwork approvals complete.
 
 ## Acceptance Criteria
 
-- [x] PXAP and PXAS projects reopen with the same editable content and assets.
+- [x] PVADP and PVADS projects reopen with the same editable content and assets.
 - [x] The two formats cannot be confused with each other or with exported files.
 - [x] A hostile package cannot escape extraction limits or access another tenant.
 - [x] Package upgrades are explicit, tested, reversible until save, and
@@ -204,15 +200,22 @@ or mark pending platform and artwork approvals complete.
 - [x] Align version policy with
   [PVAD.Application-Versioning-And-Releases.md](PVAD.Application-Versioning-And-Releases.md).
 - [x] Replace the generic `.pxa` reservation in
-  [Rename-To-PXA.md](Rename-To-PXA.md) with the implemented `.pxap` and `.pxas`
+  [the earlier rename record](Rename-To-PXA.md) with the implemented `.pvadp` and `.pvads`
   project formats.
 
 ## Assumptions
 
-- PXAP and PXAS are editable project packages, not archival or final delivery
+- PVADP and PVADS are editable project packages, not archival or final delivery
   formats.
 - JSON remains available for interoperability but is not a complete substitute
   for packaged assets and workspace state.
 - Local project files are portable and do not grant access to server-side assets
   or organizations.
 - Digital package signing and encrypted project packages are later milestones.
+
+## Legacy Reader Values
+
+The earlier `.pxap` / `.pxas` packages retain the exact media types
+`application/vnd.powerdox.pxap+zip` / `application/vnd.powerdox.pxas+zip` and
+the `PXA-PXAP-1` / `PXA-PXAS-1` magic identifiers. Readers preserve those values
+for compatibility; new writers use the current naming contract above.

@@ -1,7 +1,5 @@
 # PVAD.Documentation Website Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Ziel
 `PVAD.Documentation` ist die ausfuehrliche technische Dokumentationswebsite fuer PVADE. Sie trennt Editor-/Produkt-Dokumentation von Code-/SDK-Dokumentation und wird zur Source of Truth fuer aktuelle Nutzung.
 
@@ -17,12 +15,12 @@ documentation-only follow-up.
 - Code-/SDK-Doku orientiert sich an Syncfusion SDK-Seiten: Feature-Seiten, Codebeispiele, API-Links, Ressourcen.
 
 ## Zielstruktur
-- [x] Website/App unter `websites/PXA.Documentation` planen oder bestehende `docs`-DocFX-Site dorthin ueberfuehren.
+- [x] Website/App unter `websites/PVAD.Documentation` planen oder bestehende `docs`-DocFX-Site dorthin ueberfuehren.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
-- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
+- [x] Live Demo als globale Header-CTA zu `PVADE Designer` ergaenzen.
 - [x] Documentation Home erstellen:
-  - [x] PXA Overview
+  - [x] PVADE Overview
   - [x] Quickstarts
   - [x] Installation
   - [x] Concepts
@@ -54,7 +52,7 @@ documentation-only follow-up.
   - [x] Report Designer Migration
   - [x] Spreadsheet Code Migration
   - [x] Provider Taxonomy
-- [x] Admin-Dokumentation bewusst aus der oeffentlichen PXA.Documentation ausschliessen; sie liegt geschuetzt unter `PXA.Admin/documentation`.
+- [x] Admin-Dokumentation bewusst aus der oeffentlichen PVAD.Documentation ausschliessen; sie liegt geschuetzt unter `PVAD.Admin/documentation`.
 - [x] Cookbook-Seiten planen:
   - [x] PDF generation
   - [x] Edit PDF
@@ -64,7 +62,7 @@ documentation-only follow-up.
   - [x] Import/export
 - [x] API Reference via DocFX/OpenAPI integrieren.
 - [x] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
-- [x] PXA.Demo-Beispiele als Demo-Examples-Bereich verlinken.
+- [x] PVAD.Demo-Beispiele als Demo-Examples-Bereich verlinken.
 - [x] Documentation-Strategie fuer Docs-Einbindung, Suche und Versionierung festlegen.
 - [x] Public Designer Release Notes aus dem gemeinsamen kuratierten Release-Manifest anzeigen.
 - [x] Release-Kanaele Stable, Beta und Alpha filtern und Feature-Reifegrade erklaeren.
@@ -85,7 +83,7 @@ documentation-only follow-up.
   - [x] Gemeinsame Element-Attribute dokumentieren.
   - [x] Gemeinsame Style-Attribute dokumentieren.
   - [x] Text, Rich Text, Image, Table, Chart, Line/Shapes und Form Fields mit How-to-use, Use cases, Attributen und JSON-Beispielen dokumentieren.
-  - [x] Alle 38 Designer-Elementtypen aus `pxa-designer/src/types.ts` als eigene Referenzkarten abdecken.
+  - [x] Alle 38 Designer-Elementtypen aus `pvad-designer/src/types.ts` als eigene Referenzkarten abdecken.
   - [x] Visuelle Designer-Erklaerungen/Screenshot-Panels fuer Toolbar, Arbeitsflaeche und Properties Panel ergaenzen.
 - [x] Element Library mit Kategorien, Suche, Favoriten, Blocks, Page Kits, Safe Insertion, Troubleshooting und synthetischen UI-Screenshots dokumentieren.
 - [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
@@ -106,7 +104,7 @@ documentation-only follow-up.
 - [x] TOC ist produktorientiert statt nur dateiorientiert.
 - [x] Aktuelle PXA-Namen werden verwendet.
 - [x] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
-- [x] Links zu `PXA.Company` und `PXA.Demo` sind vorhanden.
+- [x] Links zu `PVAD.Company` und `PVAD.Demo` sind vorhanden.
 - [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
@@ -117,7 +115,7 @@ documentation-only follow-up.
 - [x] Sidebar-Fokusmodus auf alle linken Navigationseintraege erweitern: Designer, Editor-Details, Code SDK, Migration und Elemente zeigen nur den gewaehlten Content.
 
 ## Tests
-- [x] `docfx build docs/docfx.json` oder entsprechender Build fuer `PXA.Documentation`.
+- [x] `docfx build docs/docfx.json` oder entsprechender Build fuer `PVAD.Documentation`.
 - [x] Interne Links pruefen.
 - [x] API Reference und OpenAPI-Seiten pruefen.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
@@ -126,6 +124,6 @@ documentation-only follow-up.
 - [x] Pruefen, dass keine Admin-Dokumentation oder Admin-Screenshots im Public Build enthalten sind.
 
 ## Offene Entscheidungen
-- [x] Entscheiden, ob `docs` direkt umbenannt/verschoben oder in `websites/PXA.Documentation` eingebunden wird: bestehende `docs` bleiben im MVP an Ort und werden aus `PXA.Documentation` verlinkt.
+- [x] Entscheiden, ob `docs` direkt umbenannt/verschoben oder in `websites/PVAD.Documentation` eingebunden wird: bestehende `docs` bleiben im MVP an Ort und werden aus `PVAD.Documentation` verlinkt.
 - [x] Suchloesung festlegen: clientseitige Suche ueber den Documentation-Homepage-Index im MVP, spaeter Fulltext fuer `docs`.
 - [x] Versionierungsmodell fuer Docs festlegen: MVP-Version ist `current`, spaeter `latest`/Release-Archiv.

@@ -1,7 +1,5 @@
 # PVAD TypeScript And JavaScript SDK Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Deliver one TypeScript implementation that provides typed TypeScript APIs and production JavaScript builds for Node.js and modern browsers.

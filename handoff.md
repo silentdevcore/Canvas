@@ -1,7 +1,5 @@
 # PXA PDF Migration Handoff
 
-> Naming history: This retained planning or migration note predates PVAD/PVADE. Legacy project names below are historical references, not current integration instructions. See README.md and the rename compatibility guides for the current contracts.
-
 Stand: 2026-05-31, Europe/Berlin
 
 ## Ziel

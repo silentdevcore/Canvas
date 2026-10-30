@@ -1,7 +1,5 @@
 # PVAD Migration: ActiveReports `.rpx` Section Report → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 ## Goal
 
 Convert a **GrapeCity / MESCIUS ActiveReports "Section Report"** (`.rpx`) — a **banded** XML layout —
@@ -22,7 +20,7 @@ mirrors the **DevExpress XtraReport band-flatten** approach
 **V1 shipped.** `.rpx` section reports convert end-to-end and open in the designer: sections flattened
 to absolute page coordinates (inches → points), page header/footer → repeating shared elements,
 label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignment, and
-`DataField` → PXA binding.
+`DataField` → PVADE binding.
 
 > **Note on validation:** the converter is built against the documented ActiveReports section-report
 > structure + the standard control schema (verified via MESCIUS docs) and is covered by unit + render
@@ -42,14 +40,14 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 - [x] **Page header/footer** → `DesignExportDto.SharedElements`; footer anchored to the page bottom.
 
 ### Architecture
-- [x] Self-contained project `src/Migrations/Report/PXA.Migration.Report.Designer.Rpx` (refs `PXA.Core` + `PXA.Migration.Abstractions`).
+- [x] Self-contained project `src/Migrations/Report/PVAD.Migration.Report.Designer.Rpx` (refs `PVAD.Core` + `PVAD.Migration.Abstractions`).
       Own band-based `RawReport`/`RawBand`/`RawElement` model + flatten, adapted from the DevExpress
       report converter. Returns a `DesignExportDto`.
 - [x] `RpxToDesignConverter.Convert(string)` → `{ Design, Diagnostics }`; `static LooksLikeRpx(string)`
       for endpoint routing (root `<Report>` + `<Sections>`, not an RDL namespace).
 
 ### Control mapping
-| `.rpx` control | PXA `ElementDto.Type` | Status |
+| `.rpx` control | PVADE `ElementDto.Type` | Status |
 | --- | --- | --- |
 | `Label` / `TextBox` | `text` (+ font/colour/align) | [x] |
 | `TextBox` `DataField` | `binding` (`{{field}}`) | [x] |
@@ -64,9 +62,9 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects `.rpx` (after RDL, before DevExpress)
-      → `RpxToDesignConverter` ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
+      → `RpxToDesignConverter` ([MigrationController.cs](../PVAD.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"ActiveReports (.rpx)"** entry + **Open in Designer**
-      ([MigrationsPage.tsx](../pxa-designer/src/pages/MigrationsPage.tsx)).
+      ([MigrationsPage.tsx](../pvad-designer/src/pages/MigrationsPage.tsx)).
 
 ### Tests (19 + 1 render)
 - [x] Sections/Letter default; inches→points band-flatten; label style; `DataField` binding; line
@@ -79,14 +77,14 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGRPX001` | Info | Section report detected — N section(s), M control(s) mapped |
-| `CANMIGRPX002` | Info | Per-control mapping (`name (type) → PXA type`) |
-| `CANMIGRPX010` | Info | `DataField` → PXA binding |
+| `CANMIGRPX002` | Info | Per-control mapping (`name (type) → PVADE type`) |
+| `CANMIGRPX010` | Info | `DataField` → PVADE binding |
 | `CANMIGRPX011` | Warning | Unsupported control / SubReport — skipped or manual |
 | `CANMIGRPX012` | Warning | Picture data not embeddable — placeholder inserted |
-| `CANMIGRPX013` | Warning | GroupHeader/GroupFooter mapped to PXA repeat metadata; runtime group semantics need review |
+| `CANMIGRPX013` | Warning | GroupHeader/GroupFooter mapped to PVADE repeat metadata; runtime group semantics need review |
 | `CANMIGRPX014` | Warning | `CanGrow`/`CanShrink` preserved as wrapping/auto-size metadata; dynamic band reflow needs review |
-| `CANMIGRPX015` | Warning | `OutputFormat` preserved as PXA formatter metadata; exact formatting needs review |
-| `CANMIGRPX016` | Warning | PageBreak/NewPage mapped to PXA `pageboundary` markers; CrossSectionLine/CrossSectionBox mapped visually |
+| `CANMIGRPX015` | Warning | `OutputFormat` preserved as PVADE formatter metadata; exact formatting needs review |
+| `CANMIGRPX016` | Warning | PageBreak/NewPage mapped to PVADE `pageboundary` markers; CrossSectionLine/CrossSectionBox mapped visually |
 | `CANMIGRPX017` | Info / Warning | Matching `.rpx` subreport resource was inlined, or could not be converted |
 | `CANMIGRPX018` | Warning | Embedded script imported as no-op metadata in `PageSettings.CustomProperties["rpxScript"]` |
 
@@ -102,10 +100,10 @@ problems as DevExpress and gives us a second implementation target for common gr
       Runtime grouping/reflow still needs review against real data.
 - [x] **P0** `CanGrow`/`CanShrink` auto-sizing metadata; `CanGrow` maps to visible overflow hints,
       `CanShrink` is preserved as `style.rpxCanShrink`, and both are grouped in `style.rpxAutoSize`.
-- [x] **P0** `OutputFormat` → PXA `Formatter` + `style.rpxOutputFormat` metadata for bound controls.
+- [x] **P0** `OutputFormat` → PVADE `Formatter` + `style.rpxOutputFormat` metadata for bound controls.
 - [x] **P1** `PageBreak`/`NewPage` and `CrossSectionLine`/`CrossSectionBox` visual mapping:
-      page-break behaviour is preserved on `style.rpxPageBreak` and mapped to PXA `pageboundary`
-      markers (`start`/`end`) where possible; cross-section controls map to visible PXA line/rect
+      page-break behaviour is preserved on `style.rpxPageBreak` and mapped to PVADE `pageboundary`
+      markers (`start`/`end`) where possible; cross-section controls map to visible PVADE line/rect
       elements with `style.rpxCrossSection*` metadata.
 - [x] **P0** Real `.rpx` sample validation harness: `ActiveReportsRpxSamplesTests` discovers
       `designer-simples/ActiveReports/**/*.rpx`, converts every sample, and skips gracefully when the
@@ -124,10 +122,10 @@ problems as DevExpress and gives us a second implementation target for common gr
 - [x] **P1** Embedded-script → explicit no-op metadata: script language, length, SHA-256 hash, and preview
       are preserved in `PageSettings.CustomProperties` as `rpxScript` with diagnostic `CANMIGRPX018`.
 - [x] **P1** Runtime-friendly page-break mapping beyond metadata: RPX page-break hints now create typed
-      PXA `pageboundary` elements in addition to source metadata, so designer/preview/export paths
+      PVADE `pageboundary` elements in addition to source metadata, so designer/preview/export paths
       can see explicit page start/end markers.
 
 ## Assumptions
 - [x] `.rpx` is a banded section report (distinct from RDL); self-contained band model + flatten.
-- [x] Output is PXA design JSON (designer), not PXA.Pdf C# code.
+- [x] Output is PVADE design JSON (designer), not PVAD.Pdf C# code.
 - [x] Default page size Letter when the report declares none.

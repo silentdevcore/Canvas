@@ -1,7 +1,5 @@
 # Migration: RDL + DevExpress Expression Execution
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Cross-converter work to make **migrated report expressions executable** in the PVADE designer/preview,
 rather than preserved as inert source-dialect strings. Companion to
 [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) and
@@ -12,11 +10,11 @@ rather than preserved as inert source-dialect strings. Companion to
 Migrated reports keep their source expressions raw on `ElementDto.Expression`
 (RDL `=IIf(Fields!Paid.Value,"Yes","No")`, DevExpress `[Qty] * [Price]`). The designer/preview evaluates
 `element.expression` with the **existing** frontend engine
-(`pxa-designer/src/template/expressionEngine.ts`), which can't parse those dialects — so they never run.
+(`pvad-designer/src/template/expressionEngine.ts`), which can't parse those dialects — so they never run.
 
 **We do not build a new engine.** A shared `ExpressionTranslator` rewrites the source dialect into the
 grammar the existing engine evaluates (function-call helper form + simple operators), so standard
-single-row expressions become first-class, executable PXA expressions. The original is preserved on
+single-row expressions become first-class, executable PVADE expressions. The original is preserved on
 `style.rdlExpression` / `style.devExpressExpression` for review.
 
 ## Scope (v1)
@@ -28,8 +26,8 @@ single-row expressions become first-class, executable PXA expressions. The origi
 
 ## Tasks
 
-- [x] `ExpressionTranslator` (PXA.Migration.Abstractions): precedence-aware, quote/paren-safe transform
-      with RDL and DevExpress front-ends → PXA grammar; returns null when not safely translatable.
+- [x] `ExpressionTranslator` (PVAD.Migration.Abstractions): precedence-aware, quote/paren-safe transform
+      with RDL and DevExpress front-ends → PVADE grammar; returns null when not safely translatable.
 - [x] RDL converter emits translated `Expression` for compound expressions (raw kept on `style.rdlExpression`).
 - [x] DevExpress converter emits translated `Expression` (raw kept on `style.devExpressExpression`).
 - [x] `expressionEngine.ts`: add helper fns ($iif/$switch/$concat/$and/$or/$not/$coalesce) + paren/quote-aware
@@ -57,6 +55,6 @@ single-row expressions become first-class, executable PXA expressions. The origi
       helper form. See [Migration_Dataset-Aggregates.md](Migration_Dataset-Aggregates.md).
 - [ ] Custom RDL `<Code>` functions — arbitrary VB, not executable here (stay preserved).
 - [x] **C# server-side exporter** expression evaluation (Image/HTML/Word/PDF) — done via
-      `PxaExpressionEvaluator` in `DesignLayoutPlanner`. See [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).
+      `PvadExpressionEvaluator` in `DesignLayoutPlanner`. See [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).
 - [x] Full operator-precedence parser in the frontend engine — done; recursive-descent parser mirroring
-      `PxaExpressionEvaluator`. See [Frontend-Precedence-Parser.md](Frontend-Precedence-Parser.md).
+      `PvadExpressionEvaluator`. See [Frontend-Precedence-Parser.md](Frontend-Precedence-Parser.md).

@@ -1,7 +1,5 @@
 # Spreadsheet Migration — ClosedXML
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Migrates ClosedXML (`XLWorkbook`) authoring code → the PVAD spreadsheet API (`PvadWorkbook`,
 `PVAD.Infrastructure.Spreadsheet.PvadWorkbookBuilder`). The **reference** spreadsheet migration —
 the other libraries (EPPlus / GemBox / Aspose) clone this structure.
@@ -12,9 +10,9 @@ the other libraries (EPPlus / GemBox / Aspose) clone this structure.
 - **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.ClosedXml.Tests/` (3, green). Live: `/api/migration/convert`.
 
 ## API mapping
-| ClosedXML | PXA |
+| ClosedXML | PVADE |
 |---|---|
-| `new XLWorkbook()` | `new PxaWorkbook()` |
+| `new XLWorkbook()` | `new PvadWorkbook()` |
 | `wb.Worksheets.Add("S")` / `wb.AddWorksheet("S")` | `wb.AddSheet("S")` |
 | `ws.Cell("A1").Value = v` | `ws.Cell("A1").Value(v)` |
 | `ws.Cell(1,2)` (1-based) | `ws.Cell(0,1)` (0-based; literals computed, expressions wrapped `(e-1)`) |
@@ -23,13 +21,13 @@ the other libraries (EPPlus / GemBox / Aspose) clone this structure.
 | `ws.Column(i).Width = w` | `ws.Column(i-1).Width(w)` |
 | `ws.Range("A1:B1").Merge()` | (unchanged — same API) |
 | `wb.SaveAs(path)` | `wb.Save(path)` |
-| `using ClosedXML.Excel;` | `using PXA.Infrastructure.Spreadsheet;` |
+| `using ClosedXML.Excel;` | `using PVAD.Infrastructure.Spreadsheet;` |
 
 ## Diagnostics
 - `CANMIGCLXL010` (Info) — applied 1-based→0-based index shift; verify computed indexes.
 - `CANMIGCLXL020` (Warn) — other `.Style.*` (Fill/Border/Alignment) needs manual `.Style(s => …)`.
 - `CANMIGCLXL021` (Warn) — `ws.Row(i)` has no direct builder method.
-- `CANMIGCLXL022` (Warn) — R1C1 formula converted as-is (PXA expects A1).
+- `CANMIGCLXL022` (Warn) — R1C1 formula converted as-is (PVADE expects A1).
 - `CANMIGCLXL030` (Warn) — pivot tables unsupported.
 - `CANMIGCLXL031` (Warn) — conditional formatting / auto-filter / data validation are model-level, not fluent.
 

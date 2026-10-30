@@ -1,7 +1,5 @@
 # UI Advanced Elements Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Scope
 Add document editing elements for annotations, markings, page controls, and reusable PDF authoring helpers.
 
@@ -102,9 +100,9 @@ Add document editing elements for annotations, markings, page controls, and reus
 - [ ] Test mobile/tablet usability for element controls.
 
 ## Progress (2026-05-14)
-- [x] First implementation slice added all advanced element types to `pxa-designer`.
+- [x] First implementation slice added all advanced element types to `pvad-designer`.
 - [x] Sidebar tool group added for Watermark, Notiz, Arrow, Draw, Date, Markieren, Ankreuzen, Page Start/End, and Nummerierung.
-- [x] PXA and Live Preview renderers added for the new elements.
+- [x] PVADE and Live Preview renderers added for the new elements.
 - [x] Inspector controls added for the main editable properties.
 - [x] ExportService and C# CodeGenerator mappings added for the new elements.
 - [x] Production build verification passed with `npm run build`.
@@ -119,4 +117,4 @@ Add document editing elements for annotations, markings, page controls, and reus
 - [x] Frontend C# generator aligned with domain enum names for `Draw` and `PageBoundary`.
 - [~] PDF renderer fallback output added for advanced elements while full-fidelity rendering remains open.
 - [x] `PXA.Domain` build passed.
-- [~] `PXA.Application` build could not be conclusively verified because the local `dotnet build` process stalled and returned no compiler diagnostics.
+- [~] `PVAD.Application` build could not be conclusively verified because the local `dotnet build` process stalled and returned no compiler diagnostics.

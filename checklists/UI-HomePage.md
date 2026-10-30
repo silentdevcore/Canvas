@@ -1,7 +1,5 @@
 # UI HomePage Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Scope
 Audit and fix all navigation, links, and interactive elements on the home/gallery page (`TemplateGallery.tsx`) and its sub-pages. The app uses a local `viewMode` state machine — no React Router. Every issue below was found by reading the source directly.
 
@@ -72,7 +70,7 @@ Audit and fix all navigation, links, and interactive elements on the home/galler
 
 - [x] Removed `thumbnail` property from `TEMPLATES` array and made it `optional` in `types.ts`. `TemplateCard.tsx` no longer references it. Template cards now render with category-specific colour accents in the existing `pdf-document-miniature` CSS placeholder — no broken `<img>` tags. `CATEGORY_CONFIG` map in `TemplateCard.tsx` defines accent/bg/text/icon per category (invoice=blue/FiDollarSign, receipt=green/FiShoppingBag, certificate=purple/FiAward, card=orange/FiCreditCard, letter=slate/FiMail, report=indigo/FiBarChart2, label=teal/FiTag). Category icon shown large (opacity 0.22) in miniature preview and small in the card title row.
 
-## K. No "Blank PXA" Option
+## K. No "Blank PVADE" Option
 
 - [x] Added `onBlankStart` prop to `TemplateGalleryProps` and `handleBlankStart` in `App.tsx`. Hero section now shows two side-by-side cards (`pdf-hero-cards` grid): "Start from a template" and "Blank canvas". Blank card creates a template with an empty elements array and goes straight to the editor.
 

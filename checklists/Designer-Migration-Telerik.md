@@ -1,7 +1,5 @@
 # Designer Migration: Telerik Reporting (`.trdx`) → PVADE Designer
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Current headings, goals and open tasks use PVAD/PVADE. Checked records, original examples and compatibility identifiers retain their historical names; task statuses are unchanged.
-
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 Telerik Reporting `.trdx` → PVAD `DesignExportDto` converter.
 
@@ -61,10 +59,10 @@ Telerik Reporting `.trdx` → PVAD `DesignExportDto` converter.
 
 ## Units & coordinates
 
-- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `PXA.Migration.Report.Designer.Rdl`'s
+- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `PVAD.Migration.Report.Designer.Rdl`'s
   `LengthToPt`. Sections **stack** in canonical order accumulating `Height` (no explicit Top), so
   absolute Y = `marginTop + Σ(prior section heights) + section-relative item Top` — the
-  `PXA.Migration.Report.Designer.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
+  `PVAD.Migration.Report.Designer.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
   to page bottom.
 
 ## Detection / routing
@@ -75,7 +73,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 
 ## Control mapping (planned)
 
-| `.trdx` item | PXA `ElementDto.Type` | Notes |
+| `.trdx` item | PVADE `ElementDto.Type` | Notes |
 | --- | --- | --- |
 | `TextBox` / `HtmlTextBox` | `text` / `richtext` | `Value`; `=Fields.X` → binding; style from inline + `StyleName` |
 | `PictureBox` | `image` | embedded `Value`/base64 → data URL, else placeholder |
@@ -85,7 +83,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `Panel` | `rect` + flatten children | container |
 | `SubReport` / `Chart` / `Graph` / unknown | labeled placeholder | `CANMIGTRDX011` |
 
-**Bindings:** `Value="=Fields.Col"` (or `=Fields.Col.Value`) → PXA binding; other `=…` → expression.
+**Bindings:** `Value="=Fields.Col"` (or `=Fields.Col.Value`) → PVADE binding; other `=…` → expression.
 
 ## Diagnostics (planned, mirroring the others)
 
@@ -96,8 +94,8 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `CANMIGTRDX010` | Info / Warning | `=Fields.X` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGTRDX011` | Warning | Unsupported item / SubReport / Chart — labeled placeholder |
 | `CANMIGTRDX012` | Warning | Picture not embeddable — placeholder inserted |
-| `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a PXA table (best-effort cell anchoring) — review |
-| `CANMIGTRDX014` | Warning | `GroupHeaderSection`/`GroupFooterSection` item mapped to PXA repeat metadata; group runtime semantics need review |
+| `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a PVADE table (best-effort cell anchoring) — review |
+| `CANMIGTRDX014` | Warning | `GroupHeaderSection`/`GroupFooterSection` item mapped to PVADE repeat metadata; group runtime semantics need review |
 
 ## V1 checklist
 
@@ -119,19 +117,19 @@ and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table ce
       (`sourceBase64`), `ReportPackageExtractor` unzips it, picks the inner `.trdx` (first entry the
       detectors recognize), and feeds the existing parser; other text entries become sub-report resources.
       *(Backend path done + tested; a binary file picker in the migration UI is the remaining frontend piece.)*
-- [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry PXA `RepeatDto`
+- [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry PVADE `RepeatDto`
       (data path from the `<Grouping>` expression, e.g. `=Fields.Country`→`Country`) + `style.trdxGroup`
       (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGTRDX014`.
 - [x] **P1** `TypeSelector` stylesheet rules: `<StyleSelector Type=…>` rules apply to every control of that
       type (precedence: type → named `StyleName` → inline `<Style>`). `Panel` nesting is handled by the
       recursive `ParseItems` (offsets folded so children stay absolute; depth-guarded).
-- [x] **P1** `Table`/`CrossTab` cell extraction → PXA table: column widths from `TableBodyColumn`,
+- [x] **P1** `Table`/`CrossTab` cell extraction → PVADE table: column widths from `TableBodyColumn`,
       content items placed by attached cell-anchor properties (`*.CellRowIndex`/`*.CellColumnIndex`,
       prefix-agnostic, attribute or element), `=Fields.X`→binding tokens, sequential-fill fallback when
       no anchors are present (`CANMIGTRDX013`). ⚠️ Unverified against real `.trdx` (no local samples) —
       cell anchoring is best-effort. `Chart`/`Graph`/`Map` remain captioned placeholders.
 - [x] **P1** Telerik table `CellStyles`: named + inline content-item `<Style>` values inside table cells
-      preserve background, text alignment, font and border metadata for PXA table rendering/export.
+      preserve background, text alignment, font and border metadata for PVADE table rendering/export.
 - [x] **P1** Telerik expression dialect: single `=Fields.X` → binding; compound expressions/functions are
       preserved on `element.Expression` + `style.trdxExpression` with every `Fields.X` reference normalized
-      to a PXA `{{X}}` token in the rendered content.
+      to a PVADE `{{X}}` token in the rendered content.
