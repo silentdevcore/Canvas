@@ -2,7 +2,7 @@
 
 This directory prepares the remaining internal rename work. It does not deploy,
 register packages, install OS associations, send mail, inspect real keys or alter
-the current application defaults. The [rename tracker](../../checklists/Rename-PXA-To-PVAD.md)
+the current application defaults. The [rename tracker](../../checklists/PVAD.Rename-Plan.md)
 records current completion; older 88/97 figures belong to earlier checkpoints.
 Offline preparation does not close real release/cutover gates.
 

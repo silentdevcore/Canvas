@@ -193,5 +193,5 @@ adding the workflow does not imply it has already run on GitHub.
 ## Related Guides
 
 - [Identity compatibility](pvad-identity-compatibility.md)
-- [Rename roadmap](../checklists/Rename-PXA-To-PVAD.md)
+- [Rename roadmap](../checklists/PVAD.Rename-Plan.md)
 - [Rename test report](../checklists/PVAD.Rename-Test-Report.md)

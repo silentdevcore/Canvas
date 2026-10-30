@@ -132,4 +132,4 @@ Preserve old names only as explicitly inventoried compatibility inputs or
 immutable evidence, each with an owner, reason and removal condition. Final
 acceptance requires no unexplained old brand in active product surfaces.
 
-Implementation plan: [Rename-PXA-To-PVAD.md](Rename-PXA-To-PVAD.md).
+Implementation plan: [PVAD.Rename-Plan.md](PVAD.Rename-Plan.md).

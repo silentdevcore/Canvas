@@ -145,7 +145,7 @@ neutral PdfDocument/SpreadsheetDto names have automated preservation checks in
 `tools/configuration/rename-boundaries.test.mjs`. This is rename boundary coverage,
 not certification of every provider feature or arbitrary customer source. The
 final per-file snapshot supplements these earlier scoped rules. Repository screenshot regeneration is
-recorded separately from external artwork approval. See the [tracker](../checklists/Rename-PXA-To-PVAD.md),
+recorded separately from external artwork approval. See the [tracker](../checklists/PVAD.Rename-Plan.md),
 [asset inventory](pvad-brand-asset-inventory.md) and
 [observability exceptions](pvad-observability-identity.md).
 

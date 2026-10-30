@@ -66,6 +66,6 @@ serves both Account and Designer through their production proxy templates.
 - Full multi-host staging with the real API and authentication flows.
 
 The local bundle does not authorize real infrastructure changes, release
-publication or an external deployment. Refer to the [rename tracker](../../checklists/Rename-PXA-To-PVAD.md)
+publication or an external deployment. Refer to the [rename tracker](../../checklists/PVAD.Rename-Plan.md)
 for the current denominator and source-scoped completion, not the earlier 88/97
 checkpoint.

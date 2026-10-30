@@ -2,7 +2,7 @@
 
 This records the repository rename review, not publication, legal approval or
 authorization to cut over external infrastructure. See the
-[tracker](../checklists/Rename-PXA-To-PVAD.md).
+[tracker](../checklists/PVAD.Rename-Plan.md).
 
 ## Current Follow-up: 2026-10-25
 

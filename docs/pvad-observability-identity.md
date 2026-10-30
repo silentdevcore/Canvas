@@ -57,7 +57,7 @@ every unmanaged external container receives aliases. Broader image validation
 and deployed trace/query checks remain open. No claim of production telemetry
 continuity is inferred from local configuration checks alone.
 
-See the [rename tracker](../checklists/Rename-PXA-To-PVAD.md) and
+See the [rename tracker](../checklists/PVAD.Rename-Plan.md) and
 [test evidence](../checklists/PVAD.Rename-Test-Report.md).
 
 ## Remaining Operational Scripts

@@ -5,7 +5,7 @@ Only the explicitly recorded develop check activation was authorized and applied
 it is not permission for further GitHub changes, artifact publication or deployment.
 Technical identity is PVAD; public brand is PVADE.
 Historical `pxa-*` names below identify existing remote resources, not new defaults.
-The [rename checklist](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
+The [rename checklist](../checklists/PVAD.Rename-Plan.md) remains authoritative.
 
 ## Verified Baseline
 

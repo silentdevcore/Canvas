@@ -1,6 +1,6 @@
 # PVADE - Document Automation Platform
 
-A document automation platform with a visual template designer, expression engine, and multi-format export/import, built on .NET 10 and React/TypeScript. Current validation and rollout gates are tracked in [the rename checklist](checklists/Rename-PXA-To-PVAD.md).
+A document automation platform with a visual template designer, expression engine, and multi-format export/import, built on .NET 10 and React/TypeScript. Current validation and rollout gates are tracked in [the rename checklist](checklists/PVAD.Rename-Plan.md).
 
 ---
 

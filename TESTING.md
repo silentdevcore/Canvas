@@ -61,7 +61,7 @@ Normal Dependabot version proposals are temporarily paused during rename using
 automatic security-update PRs are enabled separately on GitHub; security audits
 and required CI checks are unchanged. Restore version proposals after rename
 acceptance using the recorded limits in the
-[dependency closure checklist](checklists/PXA.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
+[dependency closure checklist](checklists/PVAD.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
 
 After restoring and building Release, install `xmllint` (`libxml2-utils` on
 Ubuntu; supplied by macOS) and run:

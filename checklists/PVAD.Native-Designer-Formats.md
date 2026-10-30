@@ -200,7 +200,7 @@ package bytes, test results, or pending platform and artwork approvals.
 - [x] Align version policy with
   [PVAD.Application-Versioning-And-Releases.md](PVAD.Application-Versioning-And-Releases.md).
 - [x] Replace the generic `.pxa` reservation in
-  [the earlier rename record](Rename-To-PXA.md) with the implemented `.pvadp` and `.pvads`
+  [the earlier rename record](PVAD.Legacy-Rename-Archive.md) with the implemented `.pvadp` and `.pvads`
   project formats.
 
 ## Assumptions

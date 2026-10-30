@@ -45,5 +45,5 @@ checks. Existing Vite configuration/chunk warnings remain visible.
 
 No production deployment, publication, database migration, commit or push is
 included. Earlier uncommitted release-rehearsal changes are retained. The broader
-[rename checklist](Rename-PXA-To-PVAD.md) remains 90/98 complete; this supporting
+[rename checklist](PVAD.Rename-Plan.md) remains 90/98 complete; this supporting
 UI acceptance does not close the eight release/operational gates.

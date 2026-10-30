@@ -3,7 +3,7 @@
 The decision register below distinguishes confirmed scope from pending release
 approval. Local tests are not authorization to publish,
 change production infrastructure or certify an existing customer installation.
-The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
+The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains authoritative.
 
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
@@ -358,7 +358,7 @@ counterparts require reviewed metadata/permissions and matching credentials.
 
 The repository [phase review](pvad-rename-phase-review.md) separates historical
 reviewed checkpoints from the current uncommitted migration follow-up and final
-candidate acceptance. The [current audit](../checklists/Rename-PXA-To-PVAD.md#current-audit-and-progress-2026-10-24)
+candidate acceptance. The [current audit](../checklists/PVAD.Rename-Plan.md#current-audit-and-progress-2026-10-24)
 records the earlier writer findings, closed by the dated OAuth follow-up, and
 remaining local validation work, not only external approvals. Neither document turns owner decisions or production evidence
 gates into completed code tasks.

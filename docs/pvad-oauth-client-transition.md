@@ -95,5 +95,5 @@ the final whole-repository, multi-host release acceptance.
 
 See [identity compatibility](pvad-identity-compatibility.md),
 [client setup](mcp-client-setup.md),
-[rename tracker](../checklists/Rename-PXA-To-PVAD.md) and
+[rename tracker](../checklists/PVAD.Rename-Plan.md) and
 [release approvals](pvad-rename-release-approvals.md).

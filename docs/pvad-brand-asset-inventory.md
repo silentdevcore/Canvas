@@ -105,7 +105,7 @@ illustration remains unchanged and is not evidence of application chrome.
 4. Recapture and review documentation screenshots against the renamed UI.
 5. Verify published asset URLs, content types and caching through the real proxy.
 
-See the [rename tracker](../checklists/Rename-PXA-To-PVAD.md) and the historical
+See the [rename tracker](../checklists/PVAD.Rename-Plan.md) and the historical
 [logo-system roadmap](../checklists/PVAD.Brand-And-Logo-System.md). That roadmap's
 old PXA names are superseded by the PVAD/PVADE identity above; its approval tasks
 remain separate from the completed inventory.

@@ -207,5 +207,5 @@ access is still an operator-owned gate, not established by development captures.
 
 See [HTTP compatibility](pvad-http-compatibility.md),
 [license and job compatibility](pvad-license-and-job-compatibility.md),
-[rename roadmap](../checklists/Rename-PXA-To-PVAD.md) and
+[rename roadmap](../checklists/PVAD.Rename-Plan.md) and
 [test report](../checklists/PVAD.Rename-Test-Report.md).

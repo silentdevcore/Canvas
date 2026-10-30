@@ -63,9 +63,9 @@ Account and Admin Cloud host proposals use `account.pvade.com` and
 
 ## Why A Repository Search Still Finds The Previous Name
 
-- [The earlier rename record](../checklists/Rename-To-PXA.md) documents a previous
-  generation. Its filename and body are retained; it is not the current rename plan.
-- [The dependency PR review](../checklists/PXA.Dependency-PR-Review-2026-10-26.md)
+- [The earlier rename record](../checklists/PVAD.Legacy-Rename-Archive.md) documents a previous
+  generation. Its current filename is neutral; its original body remains a historical record, not the current rename plan.
+- [The dependency PR review](../checklists/PVAD.Dependency-PR-Review-2026-10-26.md)
   contains dated branch names, source paths, diagnostics, and completed CI evidence.
 - Competitive-readiness, pricing, and valuation assessments retain the product
   capabilities and conclusions recorded at their assessment date; normalizing
@@ -128,3 +128,13 @@ existing Vite loader warnings. The path-migration helper has an isolated fixture
 test proving that it does not add banners or rename untracked local notes.
 Version synchronization and fragment validation remain separate from release
 approval; `VERSION` is unchanged at `1.1.0`.
+
+## Editorial Follow-Up (2026-10-30)
+
+The three remaining legacy checklist filenames now use PVAD names, with current
+Markdown links and the path-migration map updated together. The eleven internal
+PDF specialty milestone IDs use `PVAD-PDF-*`; these are planning IDs, not runtime
+diagnostic identifiers. Superseded repeated-banner review comments are condensed
+in the residual ledger. Historical inventories, original execution records,
+Legal versions and runtime compatibility contracts remain unchanged. This work
+closes no release or operational acceptance gate.

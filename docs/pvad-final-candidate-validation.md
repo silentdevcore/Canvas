@@ -116,7 +116,7 @@ The results and failed attempts below retain their original source scope.
 Review date: 2026-10-25. Base source commit: `f49df8c24fad4be41e6033fc3e3ab1c61775c804`,
 plus the reviewed uncommitted validation, documentation and packaging corrections.
 This is not a clean committed release, deployment approval or a security certification.
-The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains at **88/98 (89.8%)**.
+The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains at **88/98 (89.8%)**.
 Its combined final-candidate gate is still open; partial results are not counted twice.
 
 ## Results

@@ -200,7 +200,7 @@ test('active product copy and guide downloads reserve the old brand for one Abou
   }
 });
 
-const historicalChecklist = /\/(?:Rename-|PXA\.Dependency-|PVAD\.(?:Rename-|Account-Branch-Review|Designer-Canvas-Audit))/;
+const historicalChecklist = /\/(?:Rename-|PXA\.Dependency-|PVAD\.(?:Rename-|Legacy-Rename-|Dependency-PR-Review|Account-Branch-Review|Designer-Canvas-Audit))/;
 const trackedChecklists = () => execFileSync('git', ['ls-files', 'checklists/*.md'],
   { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(exists);
 const withoutLinkTargets = line => line.replace(/\]\([^)]*\)/g, ']');
@@ -268,4 +268,31 @@ test('checklist naming review links resolve to current guides or explicitly reta
   for (const [, href] of read(path).matchAll(/\]\(([^\s)]+)\)/g)) {
     assert.ok(existsSync(resolve(root, dirname(path), href.split('#')[0])), href);
   }
+});
+
+test('remaining checklist filenames and current links use the canonical paths', () => {
+  const { moves } = JSON.parse(read('docs/pvad-documentation-path-migration.json'));
+  const renamed = [
+    ['PXA.Dependency-PR-Review-2026-10-26.md', 'PVAD.Dependency-PR-Review-2026-10-26.md'],
+    ['Rename-PXA-To-PVAD.md', 'PVAD.Rename-Plan.md'],
+    ['Rename-To-PXA.md', 'PVAD.Legacy-Rename-Archive.md'],
+  ];
+  for (const [from, to] of renamed) {
+    assert.ok(moves.some(move => move.from === `checklists/${from}` && move.to === `checklists/${to}`));
+    assert.equal(exists(`checklists/${from}`), false);
+    assert.ok(exists(`checklists/${to}`));
+  }
+  assert.match(read('README.md'), /checklists\/PVAD\.Rename-Plan\.md/);
+  assert.match(read('TESTING.md'), /checklists\/PVAD\.Dependency-PR-Review-2026-10-26\.md/);
+  assert.match(read('checklists/PVAD.Rename-Plan.md'), /\]\(PVAD\.Legacy-Rename-Archive\.md\)/);
+});
+
+test('specialty milestone identifiers use PVAD without renaming compatibility diagnostics', () => {
+  const roadmap = read('checklists/PVAD.PDF-Specialized-Features-Roadmap.md');
+  const ids = ['EINV', 'LEGAL', 'FORMS', 'CAPTURE', 'PRINT', 'OPT', 'VT', 'GEO', 'ENG', 'RICH', 'PROV'];
+  const headings = [...roadmap.matchAll(/^### (PVAD-PDF-[A-Z]+) -/gm)].map(match => match[1]);
+  assert.deepEqual(headings, ids.map(id => `PVAD-PDF-${id}`));
+  assert.doesNotMatch(roadmap, /PXA-PDF-/);
+  const ledger = JSON.parse(read('docs/pvad-rename-reviewed-exceptions.json'));
+  assert.ok(ledger.files.every(entry => !entry.reviewNotes.startsWith('Explicit naming-history notice states')));
 });

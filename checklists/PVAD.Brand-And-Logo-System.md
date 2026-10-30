@@ -168,7 +168,7 @@ PVADP/PVADS project formats.
 - [ ] Supply file icons only after
   [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md) finalizes the
   format identities.
-- [ ] Align visible names with [the current rename plan](Rename-PXA-To-PVAD.md).
+- [ ] Align visible names with [the current rename plan](PVAD.Rename-Plan.md).
 
 ## Assumptions
 

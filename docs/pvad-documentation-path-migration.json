@@ -293,6 +293,18 @@
     {
       "from": "operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md",
       "to": "operator-docs/PVAD.Legal-Backup-Restore-And-Recovery.md"
+    },
+    {
+      "from": "checklists/PXA.Dependency-PR-Review-2026-10-26.md",
+      "to": "checklists/PVAD.Dependency-PR-Review-2026-10-26.md"
+    },
+    {
+      "from": "checklists/Rename-PXA-To-PVAD.md",
+      "to": "checklists/PVAD.Rename-Plan.md"
+    },
+    {
+      "from": "checklists/Rename-To-PXA.md",
+      "to": "checklists/PVAD.Legacy-Rename-Archive.md"
     }
   ]
 }

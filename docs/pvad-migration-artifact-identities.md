@@ -71,4 +71,4 @@ compatible. `VERSION` and the published release manifest are unchanged.
   checks remain separate gates; isolated tests are not production approval.
 
 See [HTTP compatibility](pvad-http-compatibility.md) and
-[rename tracker](../checklists/Rename-PXA-To-PVAD.md).
+[rename tracker](../checklists/PVAD.Rename-Plan.md).

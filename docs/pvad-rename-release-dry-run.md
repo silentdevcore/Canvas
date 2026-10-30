@@ -8,7 +8,7 @@ regression-test and pending-fragment corrections described below.
 
 **The technical rename phase is closed. The internal Major release rehearsal
 passed. This is not authorization or evidence of publication or deployment.**
-The [primary checklist](../checklists/Rename-PXA-To-PVAD.md) remains
+The [primary checklist](../checklists/PVAD.Rename-Plan.md) remains
 **90/98 complete (91.8%), with eight release/operational gates open (8.2%)**.
 Do not create another cosmetic rename batch merely to increase this score.
 

@@ -258,7 +258,7 @@ require the explicit test opt-in and an isolated test database.
 
 ## References
 
-- [Rename plan](../checklists/Rename-PXA-To-PVAD.md)
+- [Rename plan](../checklists/PVAD.Rename-Plan.md)
 - [Repository audit](../checklists/PVAD.Rename-Audit.md)
 ## Workbook Browser Storage
 

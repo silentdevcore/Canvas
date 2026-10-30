@@ -123,4 +123,4 @@ customer stores, package publishing and Git remotes remain unchanged.
 
 See [user workflow and API](code-designer-workspace.md),
 [earlier candidate audit](pvad-final-candidate-validation.md) and
-[rename checklist](../checklists/Rename-PXA-To-PVAD.md).
+[rename checklist](../checklists/PVAD.Rename-Plan.md).

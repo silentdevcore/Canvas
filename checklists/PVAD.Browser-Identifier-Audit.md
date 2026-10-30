@@ -1,7 +1,7 @@
 # PVAD Browser Identifier Audit
 
 Reviewed: 2026-10-18. Scope: browser storage, internal events and in-memory caches.
-See [rename checklist](Rename-PXA-To-PVAD.md) and
+See [rename checklist](PVAD.Rename-Plan.md) and
 [migration notes](../docs/pvad-rename-migration-notes.md).
 
 ## Canonical Writes

@@ -169,7 +169,7 @@ Source-name review is provisionally complete for the reviewed scope. The current
 decision is to defer final-source validation, not to mark unrun checks as passed.
 The 88/97 acceptance checkpoint remains historical; no fresh percentage is
 calculated from file renames alone. Resume instructions are in the
-[rename tracker](Rename-PXA-To-PVAD.md#resume-with-validation-not-more-cosmetic-replacement).
+[rename tracker](PVAD.Rename-Plan.md#resume-with-validation-not-more-cosmetic-replacement).
 
 Follow-up source review also renamed the internal DSS validator from
 `com.powerdoxautomation.tools` to `com.pvad.tools`, its Maven artifact/shaded main
@@ -1996,7 +1996,7 @@ First-stage migration notes:
 [pvad-rename-migration-notes.md](../docs/pvad-rename-migration-notes.md).
 
 Remaining work and acceptance gates:
-[Rename-PXA-To-PVAD.md](Rename-PXA-To-PVAD.md).
+[PVAD.Rename-Plan.md](PVAD.Rename-Plan.md).
 
 ## Validation Follow-up: Deterministic Signature Corpus
 

@@ -1,4 +1,4 @@
-# Rename PXA To PVAD
+# PVAD Rename Plan
 
 ## Status And Naming Authority
 
@@ -1551,7 +1551,7 @@ publisher, key recovery, staging and release approvals remain separate.
 
 - [Develop integration candidate and validation](../docs/pvad-rename-develop-integration.md)
 
-- [Previous rename](Rename-To-PXA.md)
+- [Previous rename](PVAD.Legacy-Rename-Archive.md)
 - [Migration taxonomy](Migration-Namespace-Taxonomy.md)
 - [Native formats](PVAD.Native-Designer-Formats.md)
 - [Brand and logo](PVAD.Brand-And-Logo-System.md)
