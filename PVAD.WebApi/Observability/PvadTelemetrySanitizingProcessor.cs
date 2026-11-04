@@ -49,6 +49,7 @@ internal sealed class PvadTelemetrySanitizingProcessor : BaseProcessor<Activity>
         "customerid",
         "jobid",
         "documentid",
+        "querystring",
     ];
 
     public override void OnEnd(Activity activity)

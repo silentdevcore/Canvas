@@ -295,6 +295,47 @@ query/alert delivery, customer backup recovery and independent deployment review
 remain separate. Historical primary acceptance totals are not changed by these
 supporting checks.
 
+### Integrated Monitoring And Operator Closure
+
+- [x] Run real Collector, Prometheus, Loki and Tempo against the isolated API with synthetic traffic only.
+- [x] Query actual metrics, correlated logs and traces through the authenticated Grafana datasource proxy.
+- [x] Exercise real Prometheus firing/recovery through Alertmanager and the unchanged signed HTTPS webhook relay.
+- [x] Verify receiver-side signature, timestamp and idempotency checks, including a failed delivery and retry.
+- [x] Rename the disposable Grafana folder/provider without changing dashboard/datasource UIDs or folder permissions.
+- [x] Back up stopped Grafana, reject a corrupt archive and restore the original state behind the real operator gateway.
+- [x] Verify browser access and unauthorized denial before cutover, after cutover and after restore.
+- [x] Generate one checksum-bound report and screenshots, verify owned-resource cleanup and document remaining deployment limits.
+
+This local integration extends the combined browser rehearsal. It never reloads
+an installed monitoring stack, delivers an external notification or authorizes
+production activation. Historical acceptance totals remain unchanged.
+
+#### Integrated Monitoring Result - 2026-11-04
+
+All eight local integration tasks are complete. The final real run passes all
+12 browser/monitoring scenarios with no API/authorization response mocks.
+
+- The actual API exports through Collector to Prometheus, Loki and Tempo. Authenticated Grafana proxy queries prove a version-route counter increase plus two log records and the same request's trace. The synthetic sensitive-query canary is absent from returned telemetry and API console logs.
+- Stopping the owned Collector fires the real telemetry outage expression. The unchanged relay delivers to a private HTTPS receiver with certificate validation. Three delivery attempts prove one deliberate HTTP 503, a successful same-payload retry and a signed resolved notification. HMAC, timestamp and idempotency checks pass; no invalid delivery is accepted.
+- The lab now assigns a fixed, validated loopback ingestion binding and verifies it survives Collector restart. Fresh API traffic must reach the live datasource again after rename and restore; old samples alone are not the recovery assertion.
+- The candidate changes only disposable Grafana provider/folder display labels and pins the existing folder UID. All five dashboards, all three datasource UIDs, folder permissions and operator identity remain intact. Anonymous visitors and the real Organization Administrator are denied before rename, after rename and after restore.
+- Grafana stops cleanly before the checksum-bound backup. A modified archive is rejected. Restored baseline/content/permission hashes are equal, and an annotation created after backup is absent after restore. Real metric queries and desktop/mobile browser access work again.
+- Twelve screenshots cover the existing login/runbook flow and all three Grafana phases. The renamed mobile and restored desktop/mobile captures were visually inspected. These are synthetic UI snapshots, not approved production visual baselines.
+- The report pins 42 integration sources, eight harness/helper sources, ten immutable cached image IDs and both actual API/relay binaries. All 11 owned service containers, temporary helper containers, both volumes, the dedicated network and temporary data/keys/build output were removed; independent Docker listings confirm no labeled resources remain.
+- Five new privacy tests first reproduced query-string values leaking into diagnostic console logs. The shared sensitive-attribute policy now removes normalized query-string variants while preserving correlation. All 62 focused API tests and five relay tests pass. The owner approved the exact public Security/Patch summary; the rehearsal itself has impact none.
+- Full API regression passes 1,281 tests with 82 opt-in cases skipped and zero failures. The real PostgreSQL browser flow does not certify those skipped groups. All 556 Node/website contracts pass, including public-output exclusion of the operator guides. Documentation production build, naming checks and release validation also pass.
+- Early setup attempts exposed a gateway-address collision and a missing stable ingestion binding in the expanded test topology. They are corrected in the harness; no installed network/proxy policy was changed. Final source and binary pins match the successful run.
+
+Reproduce with node tools/configuration/monitoring-operator-rehearsal.mjs.
+The ignored report is artifacts/rename/monitoring-operator-rehearsal/report.json;
+the [integrated guide](../docs/pvad-integrated-monitoring-rehearsal.md) explains
+configuration overrides, evidence and limits. VERSION and published releases,
+original audits, compatibility registers and the Legal manifest are unchanged.
+Production TLS/CDN/SSO, real notification destinations, complete production
+exporter/panel coverage, retained-history/silence migration, customer recovery and
+independent rollout approval remain separate deployment gates. Primary historical
+acceptance remains 90/98; supporting test tasks do not inflate that percentage.
+
 ### Separate Deployment Gates
 
 - [ ] Coordinate authentication/session identifier cutover separately.

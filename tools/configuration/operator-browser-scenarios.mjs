@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { gatewayProtocol } from './operator-gateway-rehearsal.mjs';
 
-export async function exerciseOperatorBrowser({ origin, password, operatorEmail, memberEmail, sql, expectedDashboards, output, stopApi, startApi, onCheck = () => {} }) {
+export async function exerciseOperatorBrowser({ origin, password, operatorEmail, memberEmail, sql, expectedDashboards, output, stopApi, startApi, onOperatorReady, onCheck = () => {} }) {
   const { chromium } = await import('../../pvad-designer/node_modules/playwright/index.mjs');
   const browser = await chromium.launch({ headless: true });
   const checks = [], screenshots = [], contexts = [];
@@ -120,6 +120,9 @@ export async function exerciseOperatorBrowser({ origin, password, operatorEmail,
     assert.ok(!member.user.roles.includes('System Administrator'));
     for (const path of ['/documentation', '/dashboard', '/operator/grafana/api/user']) await expectStatus(ordinary.request, path, 403);
     checked('real-organization-administrator-denied-operator-routes');
+
+    if (onOperatorReady) await onOperatorReady({ request: operator.request, page,
+      anonymousRequest: anonymous.request, memberRequest: ordinary.request, screenshot: name => screenshot(page, name), checked });
 
     await stopApi();
     await expectStatus(operator.request, '/documentation', 500);

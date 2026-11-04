@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-diagnostic-query-privacy",
+  "impact": "patch",
+  "components": ["api", "observability"],
+  "category": "security",
+  "summary": "Diagnostic logging now excludes HTTP query-string values.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "securityReviewed": true
+}

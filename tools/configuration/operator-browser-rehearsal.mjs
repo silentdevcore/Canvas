@@ -14,7 +14,7 @@ import { exerciseOperatorBrowser } from './operator-browser-scenarios.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { load } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
 const label = 'pvade.operator-browser-rehearsal';
-const output = resolve(root, 'artifacts/rename/operator-browser-rehearsal');
+const defaultOutput = resolve(root, 'artifacts/rename/operator-browser-rehearsal');
 const operatorEmail = 'operator@browser.test';
 export const memberEmail = 'member@browser.test';
 const persistence = 'src/Infrastructure/PVAD.Infrastructure.Persistence/PVAD.Infrastructure.Persistence.csproj';
@@ -41,7 +41,8 @@ export function gatewayAddress(subnet) {
   assert.ok(octets.every(value => value >= 0 && value <= 255));
   assert.ok(octets[3] === 0 && (prefix !== '16' || octets[2] === 0));
   assert.ok(octets[0] === 10 || octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31 || octets[0] === 192 && octets[1] === 168);
-  return [...octets.slice(0, 3), 10].join('.');
+  // Leave the low addresses available for the lab's automatically allocated services.
+  return [...octets.slice(0, 3), 254].join('.');
 }
 
 export function apiListeningAddress(line) {
@@ -62,14 +63,15 @@ export async function removeOwnedResources(resources, runId, docker) {
       let actual;
       try { actual = docker([kind, 'inspect', '--format', `{{index .${kind === 'container' ? 'Config.Labels' : 'Labels'} "${label}"}}`, name]); }
       catch (error) {
-        if (/no such (?:object|container|network)|not found/i.test(String(error.stderr))) continue;
+        if (/no such (?:object|container|network|volume)|not found/i.test(String(error.stderr))) continue;
         throw new Error('Browser rehearsal ownership inspection failed.');
       }
       assert.equal(actual, runId, 'Browser rehearsal ownership mismatch.');
-      docker(kind === 'container' ? ['rm', '-f', '-v', name] : ['network', 'rm', name]);
+      assert.ok(['container', 'network', 'volume'].includes(kind), 'Unknown resource kind.');
+      docker(kind === 'container' ? ['rm', '-f', '-v', name] : [kind, 'rm', name]);
       let absent = false;
       try { docker([kind, 'inspect', name]); }
-      catch (error) { absent = /no such (?:object|container|network)|not found/i.test(String(error.stderr)); }
+      catch (error) { absent = /no such (?:object|container|network|volume)|not found/i.test(String(error.stderr)); }
       assert.ok(absent, 'Synthetic resource removal could not be verified.');
     } catch (error) { failures.push(error); }
   }
@@ -84,9 +86,12 @@ async function freePort() {
   });
 }
 
-export async function runOperatorBrowserRehearsal({ docker = dockerCommand, progress = () => {}, recordFailure = false } = {}) {
+export async function runOperatorBrowserRehearsal({ docker = dockerCommand, progress = () => {}, recordFailure = false, withMonitoring = false } = {}) {
+  const output = withMonitoring ? resolve(root, 'artifacts/rename/monitoring-operator-rehearsal') : defaultOutput;
   const config = load(await readFile(resolve(root, 'docker-compose.yml'), 'utf8'));
-  const images = [config.services['pvad-grafana'].image, config.services['pvad-operator-gateway'].image, 'postgres:17-alpine']
+  const monitoringModule = withMonitoring ? await import('./monitoring-operator-lab.mjs') : null;
+  const images = [config.services['pvad-grafana'].image, config.services['pvad-operator-gateway'].image, 'postgres:17-alpine',
+    ...(monitoringModule ? monitoringModule.monitoringImages(config) : [])]
     .map(tag => {
       const id = docker(['image', 'inspect', '--format', '{{.Id}}', tag]);
       assert.match(id, /^sha256:[a-f0-9]{64}$/, 'Cached images are required; this runner never pulls.');
@@ -98,7 +103,8 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     'deploy/observability/operator-gateway/site/styles.css', 'deploy/websites/nginx.conf.template',
     'deploy/websites/15-pvad-environment.envsh', 'deploy/websites/route-patterns.env.example',
     'websites/PVAD.Admin/src/main.js', 'websites/PVAD.Admin/src/api.js', 'PVAD.WebApi/Program.cs',
-    'PVAD.WebApi/Security/PvadCookieAuthenticationEvents.cs', 'PVAD.WebApi/Security/PvadPermissionClaimsTransformation.cs'])].sort();
+    'PVAD.WebApi/Security/PvadCookieAuthenticationEvents.cs', 'PVAD.WebApi/Security/PvadPermissionClaimsTransformation.cs',
+    ...(monitoringModule?.monitoringSources ?? [])])].sort();
   const checksums = async () => {
     const values = [];
     for (const path of sourcePaths) {
@@ -108,7 +114,10 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     return values;
   };
   const baseline = await checksums();
-  const harnessPaths = ['tools/configuration/operator-browser-rehearsal.mjs', 'tools/configuration/operator-browser-scenarios.mjs'];
+  const harnessPaths = ['tools/configuration/operator-browser-rehearsal.mjs', 'tools/configuration/operator-browser-scenarios.mjs',
+    ...(withMonitoring ? ['tools/configuration/monitoring-operator-lab.mjs', 'tools/configuration/monitoring-operator-checks.mjs',
+      'tools/configuration/monitoring-operator-rehearsal.mjs', 'tools/configuration/monitoring-webhook-receiver.mjs',
+      'tools/configuration/rename-grafana-provider.mjs', 'tools/configuration/grafana-cutover-smoke.mjs'] : [])];
   const harnessChecksums = async () => {
     const values = [];
     for (const path of harnessPaths) values.push({ path, sha256: hash(await readFile(resolve(root, path))) });
@@ -122,10 +131,10 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
   let phase = 'prepare', work, result, failure;
   const owner = (kind, name) => docker([kind, 'inspect', '--format', `{{index .${kind === 'container' ? 'Config.Labels' : 'Labels'} "${label}"}}`, name]);
   const owned = (kind, name) => assert.equal(owner(kind, name), runId, 'Browser rehearsal ownership mismatch.');
-  const runContainer = (name, image, args, env = {}) => {
+  const runContainer = (name, image, args, env = {}, containerCommand = []) => {
     resources.push(['container', name]);
     docker(['run', '-d', '--pull', 'never', '--name', name, '--label', `${label}=${runId}`, '--network', network,
-      '--security-opt', 'no-new-privileges', ...args, image], { env });
+      '--security-opt', 'no-new-privileges', ...args, image, ...containerCommand], { env });
     owned('container', name);
   };
   const command = (name, args, cwd = root, extra = {}) => {
@@ -198,6 +207,8 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     };
     sql(await readFile(resolve(work, 'schema.sql')));
     const databasePort = JSON.parse(docker(['inspect', names.database]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort;
+    const monitoring = monitoringModule ? await monitoringModule.createMonitoringLab({ root, work, output, runId, network, label,
+      names, docker, runContainer, resources, images, command, finish, wait, step, owned, freePort }) : null;
     const apiEnv = {
       ASPNETCORE_ENVIRONMENT: 'Development', ASPNETCORE_URLS: 'http://127.0.0.1:0',
       ConnectionStrings__PvadDatabase: `Host=127.0.0.1;Port=${databasePort};Database=postgres;Username=postgres;Password=${databasePassword}`,
@@ -207,6 +218,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
       DataProtection__KeysDirectory: resolve(work, 'keys'), Storage__RootPath: resolve(work, 'objects'),
       PdfViewer__AnnotationStoragePath: resolve(work, 'viewer'), PdfTrust__RevocationEvidence__CacheDirectory: resolve(work, 'cache'),
       Licensing__PrivateKeyPath: resolve(work, 'license/private.pem'), Licensing__PublicKeyPath: resolve(work, 'license/public.pem'),
+      ...monitoring?.apiEnvironment,
     };
     let api;
     const startApi = async name => {
@@ -238,8 +250,8 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     step('gateway');
     const mount = (source, target) => ['--mount', `type=bind,src=${resolve(root, source)},dst=${target},readonly`];
     runContainer(names.grafana, images[0].id, ['--network-alias', 'pvad-grafana', '--memory', '512m',
-      '--tmpfs', '/var/lib/grafana:uid=472,gid=0,size=256m',
-      ...mount('deploy/observability/grafana/provisioning', '/etc/grafana/provisioning'),
+      ...(monitoring?.grafanaStorage ?? ['--tmpfs', '/var/lib/grafana:uid=472,gid=0,size=256m']),
+      ...mount(monitoring?.grafanaProvisioning ?? 'deploy/observability/grafana/provisioning', '/etc/grafana/provisioning'),
       ...mount('deploy/observability/grafana/dashboards', '/var/lib/grafana/dashboards'),
       '--env', 'GF_SECURITY_ADMIN_PASSWORD',
       ...Object.entries({ GF_AUTH_ANONYMOUS_ENABLED: 'false',
@@ -270,6 +282,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     step('browser');
     const browserResult = await exerciseOperatorBrowser({ origin, password, operatorEmail, memberEmail, sql,
       expectedDashboards: inventory.dashboards.map(value => value.uid), output,
+      onOperatorReady: monitoring ? access => monitoring.exercise({ ...access, inventory, origin }) : undefined,
       stopApi: () => stop(api), startApi: () => startApi('api-restarted'), onCheck: name => step(`browser/${name}`) });
     assert.deepEqual(await checksums(), baseline, 'Production sources changed during the browser rehearsal.');
     assert.deepEqual(await harnessChecksums(), harnessBaseline, 'Rehearsal sources changed during execution.');
@@ -277,10 +290,22 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
       uncommittedTrackedChanges: execFileSync('git', ['diff', '--name-only', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim().length > 0,
       syntheticOnly: true, deploymentAuthorized: false, images, sourceChecksums: baseline, harnessChecksums: harnessBaseline,
       apiBinarySha256: hash(await readFile(resolve(root, 'PVAD.WebApi/bin/Debug/net10.0/PVAD.WebApi.dll'))), ...browserResult,
+      ...(monitoring ? { monitoring: monitoring.report } : {}),
       limits: ['local-http-development-cookies-not-production-tls', 'not-account-designer-pkce-browser-coverage',
-        'dashboard-provisioning-and-ui-not-live-datasource-queries', 'not-sso-or-production-approval', 'retained-provisioning-and-operator-identities-unchanged'] };
+        ...(monitoring ? ['synthetic-alert-timing-not-production-sla', 'local-grafana-sqlite-only-not-customer-recovery']
+          : ['dashboard-provisioning-and-ui-not-live-datasource-queries']),
+        'not-sso-or-production-approval', 'installed-provisioning-and-operator-identities-unchanged'] };
   } catch (cause) {
     if (recordFailure) {
+      for (const [kind, name] of resources) {
+        if (kind !== 'container' || !withMonitoring) continue;
+        try {
+          owned(kind, name);
+          let log = docker(['logs', '--tail', '40', name], { mergeOutput: true });
+          for (const secret of secrets) log = log.replaceAll(secret, '[redacted]');
+          await writeFile(resolve(output, `${name.split(runId + '-').at(-1)}-diagnostic.log`), log.slice(-12_000));
+        } catch { /* Only owned resources may supply bounded diagnostics. */ }
+      }
       try {
         owned('container', names.gateway);
         let gatewayLog = docker(['logs', '--tail', '60', names.gateway], { mergeOutput: true });
@@ -290,7 +315,9 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     }
     let stderr = String(cause.stderr ?? '');
     for (const secret of secrets) stderr = stderr.replaceAll(secret, '[redacted]');
-    if (recordFailure) await writeFile(resolve(output, 'failure.json'), JSON.stringify({ phase, type: cause.name,
+    let message = String(cause.message);
+    for (const secret of secrets) message = message.replaceAll(secret, '[redacted]');
+    if (recordFailure) await writeFile(resolve(output, 'failure.json'), JSON.stringify({ phase, type: cause.name, message: message.slice(0, 2048),
       actual: typeof cause.actual === 'number' ? cause.actual : undefined,
       expected: typeof cause.expected === 'number' ? cause.expected : undefined,
       frames: String(cause.stack ?? '').split('\n').filter(line => /^\s+at /.test(line)), stderr: stderr.slice(0, 4096) }, null, 2));
@@ -306,6 +333,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const output = defaultOutput;
   try {
     if (process.argv.length !== 2) throw new Error('No arguments or external resource names are accepted.');
     await mkdir(output, { recursive: true });

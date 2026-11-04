@@ -60,6 +60,15 @@ inventory for dashboards, datasources, alert links and operator integration.
 It cannot authorize deployment or establish live permissions, backup recovery,
 alert delivery or retained Operator identity equivalence.
 
+## Integrated Local Rehearsal
+
+The [integrated monitoring and operator rehearsal](pvad-integrated-monitoring-rehearsal.md)
+connects a disposable real API, Collector, Prometheus, Loki, Tempo, Alertmanager
+and signed HTTPS relay to the existing protected Grafana browser flow. It also
+tests folder cutover and point-in-time restore behind that gateway. Installed
+monitoring, retained identities, silences and external receivers remain untouched;
+this does not authorize production activation.
+
 ## Offline Validation
 
 ```bash

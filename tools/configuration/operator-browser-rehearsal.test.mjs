@@ -11,8 +11,8 @@ test('child processes do not inherit application credentials, proxy settings or 
 });
 
 test('the Grafana proxy allowlist uses one private address in the newly allocated Docker subnet', () => {
-  assert.equal(gatewayAddress('172.19.0.0/16'), '172.19.0.10');
-  assert.equal(gatewayAddress('192.168.23.0/24'), '192.168.23.10');
+  assert.equal(gatewayAddress('172.19.0.0/16'), '172.19.0.254');
+  assert.equal(gatewayAddress('192.168.23.0/24'), '192.168.23.254');
   for (const subnet of ['8.8.8.0/24', '127.0.0.0/24', '172.999.0.0/16', '172.19.1.0/16', '10.0.0.1/24', '::1/128', '10.0.0.0/8'])
     assert.throws(() => gatewayAddress(subnet));
 });
