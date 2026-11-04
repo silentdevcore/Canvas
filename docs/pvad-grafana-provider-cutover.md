@@ -192,3 +192,85 @@ now exercises real Account login, Designer PKCE handoff, persistent session
 validation/revocation and operator authorization through the actual API.
 It uses TestServer HTTP rather than this gateway; the two independent results
 must not be presented as a combined Nginx/Identity/Grafana acceptance test.
+
+## Combined Operator Browser Rehearsal
+
+The combined local harness is separate from the synthetic HTTP drill:
+
+```bash
+node tools/configuration/operator-browser-rehearsal.mjs
+node --test tools/configuration/operator-browser-rehearsal.test.mjs
+```
+
+It requires the Docker engine, cached Compose-selected Grafana and Nginx images,
+cached PostgreSQL 17, the installed .NET/EF toolchain, restored backend packages,
+installed Admin/Designer Node dependencies and Playwright Chromium. It accepts
+no deployment arguments, existing resource names or database connection strings.
+Missing cached images fail before resources are created; the runner never pulls.
+
+The runner creates one owned Docker bridge and disposable PostgreSQL, real
+Grafana, static Admin UI and operator-gateway containers. Only the gateway and
+PostgreSQL publish loopback ports; Grafana and its UI upstream have no published
+ports. The API is a new Kestrel process with a private file-backed keyring and
+storage root. EF generates the current schema without contacting an existing
+database; only the new database receives it. The Admin production build goes
+to a temporary directory, not the installed site's distribution directory.
+
+Development bootstrap creates a synthetic operator with an explicit operator
+allowlist. A test-only SQL seed copies that synthetic account's password hash
+into a separate organization administrator and assigns its membership role;
+no system role is copied. This is not a registration/invitation test. Browser
+login uses the real form, CSRF validator, Identity password checker and persistent
+sessions. No API or authorization responses are mocked. Inherited application
+credentials and configuration are excluded from child-process environments.
+
+Grafana uses the repository's actual provisioning and dashboard definitions.
+Its proxy allowlist contains only the gateway address in the newly allocated
+private subnet. Auth proxy, disabled Basic/anonymous login and disabled Grafana
+login tokens follow the Compose policy. Gateway, datasource, dashboard, folder
+and operator identity contracts are not rewritten by this rehearsal.
+
+The browser checks anonymous/spoofed denial, real operator login, protected
+runbooks, authoritative Grafana identity, all five provisioned dashboards,
+organization-administrator denial, API outage/restart, CSRF, logout, replay and
+database-backed expiry. Desktop/mobile screenshots contain synthetic data only.
+Grafana screenshots wait for all five dashboard titles in the actual folder
+listing; they do not capture a still-loading or externally connected home page.
+Browser contexts and their cookies remain in memory: no storage-state, tracing,
+video, passwords, cookie values or full user payloads are exported to the report.
+External page requests are blocked. The local report and phase logs are under
+`artifacts/rename/operator-browser-rehearsal/` and are ignored by Git.
+
+Owned processes stop before resource cleanup. Container/network deletion checks
+the run's exact ownership label; unconfirmed or foreign resources are not removed.
+Temporary keyrings, database data and generated UI/schema files are discarded.
+If a process or Docker daemon is forcibly terminated, inspect the rehearsal's
+ownership label before manual cleanup; never broadly prune installed resources.
+
+This is a local HTTP/development-cookie test, not production TLS, SSO, CDN,
+customer backup recovery or independent deployment approval. It exercises Admin
+operator login, not the separate Account-to-Designer browser handoff. Provisioning
+and UI access do not certify Prometheus/Loki/Tempo connectivity, alert delivery
+or dashboard query results: those upstream data services are not started here.
+The [dated checklist](../checklists/PVAD.Repository-Naming-Followup.md#combined-operator-browser-rehearsal)
+records actual results; merely adding this harness does not close a production
+gate or change historical primary acceptance totals.
+
+### Initial Sign-In Regression Found By The Rehearsal
+
+The real development bootstrap attaches the complete operator permission catalog
+to its built-in role. The initial cookie writer previously serialized those
+derived claims before the first request could remove them. Nginx rejected the
+oversized login response headers with HTTP 502, even though reduced-seed
+TestServer login tests passed. The rehearsal reproduced the actual proxy error.
+
+Cookie sign-in and validated renewal now remove derived permission lists,
+organization lists and the per-request resolution marker. Subject identity,
+security stamp, roles, active organization and persistent session remain intact;
+the existing transformation still resolves permissions from server state on
+each request. No proxy buffer, cookie policy, entitlement or authorization rule
+was relaxed. Existing expanded tickets renew only after normal validation.
+Regression tests cover both Account and Designer cookies with thousands of
+synthetic claims; the real browser also requires one compact session cookie and
+no Domain attribute. A separate Patch fragment records this runtime correction;
+the internal rehearsal itself has impact none.

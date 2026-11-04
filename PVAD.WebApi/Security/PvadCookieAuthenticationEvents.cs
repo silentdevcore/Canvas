@@ -81,17 +81,27 @@ public sealed class PvadCookieAuthenticationEvents : CookieAuthenticationEvents
             PvadMigratingCookieManager.WasLegacyRead(context.HttpContext, cookieName))
             context.ShouldRenew = true;
 
-        if (context.Principal?.Identity is ClaimsIdentity identity)
-        {
-            var storedPermissions = identity.FindAll(PvadClaimTypes.Permission).ToArray();
-            var storedOrganizations = identity.FindAll(PvadClaimTypes.Organization).ToArray();
-            if (storedPermissions.Length > 0 || storedOrganizations.Length > 0)
+        if (RemoveTransientClaims(context.Principal!)) context.ShouldRenew = true;
+    }
+
+    public override Task SigningIn(CookieSigningInContext context)
+    {
+        // Derived permissions are resolved on each request, not persisted in browser tickets.
+        if (context.Principal is not null) RemoveTransientClaims(context.Principal);
+        return Task.CompletedTask;
+    }
+
+    private static bool RemoveTransientClaims(ClaimsPrincipal principal)
+    {
+        var removed = false;
+        foreach (var identity in principal.Identities)
+            foreach (var claim in identity.Claims.Where(claim => claim.Type is
+                         PvadClaimTypes.Permission or PvadClaimTypes.Organization or PvadPermissionClaimsTransformation.ResolvedMarker).ToArray())
             {
-                foreach (var claim in storedPermissions.Concat(storedOrganizations))
-                    identity.RemoveClaim(claim);
-                context.ShouldRenew = true;
+                identity.RemoveClaim(claim);
+                removed = true;
             }
-        }
+        return removed;
     }
 
     private async Task<bool> HasValidOrganizationAccessAsync(

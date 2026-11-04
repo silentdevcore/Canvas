@@ -254,6 +254,47 @@ independent review and production cutover remain separate gates. Historical
 primary acceptance totals are unchanged; the existing dependency-license warning
 is not treated as legal approval by this test run.
 
+### Combined Operator Browser Rehearsal
+
+- [x] Start only owned, disposable PostgreSQL, Nginx and Grafana resources and an isolated real API process.
+- [x] Build and serve the real Admin frontend without replacing an installed application's build output.
+- [x] Exercise browser login, CSRF and protected documentation with actual persistent Identity sessions.
+- [x] Verify the real Grafana auth proxy receives the authoritative operator identity and lists the provisioned dashboards.
+- [x] Reject anonymous requests, forged headers and a real organization administrator without operator access.
+- [x] Verify persistent expiry/revocation, logout replay denial and session continuity across API restart.
+- [x] Capture synthetic desktop/mobile screenshots and bounded reports without credentials or browser storage snapshots.
+- [x] Test failure cleanup and contracts, document exact limits and preserve production acceptance gates.
+
+#### Combined Browser Result - 2026-11-04
+
+All eight combined local rehearsal tasks are complete. The final real Chromium
+run passes all eight browser scenarios through Kestrel, PostgreSQL, the real
+Admin UI, Nginx and Grafana, with no authorization/API response mocks.
+
+- Anonymous requests, forged headers and a real Organization Administrator cannot enter operator routes. The explicitly allowlisted System Administrator signs in through the actual Admin form.
+- The gateway serves both protected runbooks. Grafana's actual proxy user matches the API-authorized identity, and all five provisioned dashboard titles appear in its real folder listing.
+- API outage denies protected access; restarting only the owned API restores the existing persistent session using the same private keyring and database.
+- Invalid CSRF cannot sign out the session. Valid logout persists revocation; replaying the saved pre-logout cookies cannot reopen runbooks or Grafana. Expiring a new session in the disposable database also denies access.
+- Six screenshots cover login, dashboard, runbooks and Grafana, with desktop 1440x980 and mobile 390x844 captures. The Grafana and mobile runbook screenshots were visually inspected; query/data-source rendering is not asserted.
+- The report pins 29 unchanged-during-execution integration sources, both runtime harness files, the actual API binary and three cached immutable image IDs. It records the source commit plus uncommitted-change state without exporting credentials, session cookies or browser storage.
+- Only the new gateway and PostgreSQL expose loopback ports. Grafana accepts proxy identity only from the new gateway's private IP; protected upstreams have no published ports. Owned processes, four containers, the new network, temporary keyrings, schema/build output and database data are removed.
+- Initial setup attempts exposed a PostgreSQL temporary-init readiness race and structured API startup events; final TCP readiness and a parsed owned-listener event now have explicit regression coverage.
+- The real browser also found a genuine HTTP 502 login defect: the complete bootstrapped operator permission catalog expanded the first cookie beyond proxy response-header limits. Sign-in and validated renewal now omit derived claims and their resolution marker while retaining identity, security stamp, roles, active organization and session. Authorization is still resolved on the server; no proxy/cookie limit or permission check was weakened.
+- Two new Account/Designer regression cases use thousands of synthetic claims and require compact tickets. All 28 focused cookie/session tests pass. The operator PostgreSQL fixture now includes the real complete built-in permission claims.
+- Full API regression: 1,276 passed, 82 opt-in cases skipped, zero failed. The separately enabled PostgreSQL auth group passes 17 tests with none skipped, including 15 database-backed cases and two non-container checks. Other opt-in groups are not certified by this run.
+- All 543 Node contracts pass. API and staged Admin production builds, Documentation build, naming guards, release validation and git diff --check pass. Existing dependency-license and future Vite-loader warnings remain separate and are not treated as production approval.
+- A separate Patch fragment records the cookie correction; the internal browser harness has impact none. VERSION and published release history remain unchanged. Both original audits, both compatibility registers and the Legal manifest are preserved byte-for-byte.
+
+The ignored report is artifacts/rename/operator-browser-rehearsal/report.json;
+the [guide](../docs/pvad-grafana-provider-cutover.md#combined-operator-browser-rehearsal)
+documents reproduction and the discovered initial-sign-in regression.
+This proves local HTTP/development-cookie behavior only. The retained Grafana
+folder/tags and identity contracts remain unchanged; the lab is not a live
+identity cutover. Production TLS/CDN, SSO, public-host isolation, actual monitoring
+query/alert delivery, customer backup recovery and independent deployment review
+remain separate. Historical primary acceptance totals are not changed by these
+supporting checks.
+
 ### Separate Deployment Gates
 
 - [ ] Coordinate authentication/session identifier cutover separately.

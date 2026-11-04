@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-compact-initial-session-tickets",
+  "impact": "patch",
+  "components": ["api", "account", "admin", "designer"],
+  "category": "fixed",
+  "summary": "Administrator sign-in now works reliably through reverse proxies without oversized authentication cookies.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

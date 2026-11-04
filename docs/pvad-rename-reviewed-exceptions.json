@@ -1091,14 +1091,14 @@
     },
     {
       "path": "docs/pvad-identity-compatibility.md",
-      "sha256": "b1719b0b69beaf91012e2a686c043530e583968ad9d6ac96535b86b6bb2d75db",
+      "sha256": "a9ca6ded821dee8d92ef847f8166d00c259fef8caa21f3f9466be1e981a63145",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Documented canonical schemes, exact historical ticket readers and the isolated PostgreSQL login/restart rehearsal with bounded acceptance claims. Retained discriminator, compatibility references and production rollback boundaries remain deliberate."
+      "followupReview": "2026-11-04: Documented canonical schemes, historical readers and bounded PostgreSQL rehearsal evidence; added initial-cookie transient-claim minimization found by the real gateway test. Retained discriminator, compatibility references and production rollback boundaries remain deliberate."
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
@@ -4054,14 +4054,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs",
-      "sha256": "4f5f5fdfd476d7b1c2f7be9ab0206bf3f3dccf81fb146170b686a36b41502293",
+      "sha256": "76bb3b4e61d047b1ef5de6087978cf4613a861d5fb4b5722b472ba317e1bc0d1",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Added equal current/retained operator-header assertion, aligned protected runbook content with its exact registry reference and isolated the test key provider; retained operator identity and legacy API/configuration contracts are unchanged."
+      "followupReview": "2026-11-04: Operator headers and protected runbook registry references remain covered with isolated keys. Seeded the complete built-in operator permission claims to reproduce real bootstrap cookie size; retained operator identity and legacy API/configuration contracts are unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs",

@@ -277,12 +277,16 @@ public sealed class AdminSystemControllerTests
 
         foreach (var roleName in PvadRoles.Permissions.Keys)
         {
-            var result = await roleManager.CreateAsync(new PvadIdentityRole
+            var role = new PvadIdentityRole
             {
                 Name = roleName,
                 IsSystemRole = true,
-            });
+            };
+            var result = await roleManager.CreateAsync(role);
             Assert.True(result.Succeeded, Describe(result));
+            if (roleName == PvadRoles.SystemAdministrator)
+                foreach (var permission in PvadRoles.Permissions[roleName])
+                    Assert.True((await roleManager.AddClaimAsync(role, new System.Security.Claims.Claim(PvadClaimTypes.Permission, permission))).Succeeded);
         }
 
         var organization = new Organization

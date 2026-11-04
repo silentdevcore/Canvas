@@ -10,7 +10,7 @@ namespace PVAD.WebApi.Security;
 
 public sealed class PvadPermissionClaimsTransformation : IClaimsTransformation
 {
-    private const string ResolvedMarker = "pvad_permissions_resolved";
+    internal const string ResolvedMarker = "pvad_permissions_resolved";
 
     private readonly UserManager<PvadIdentityUser> userManager;
     private readonly PvadDbContext dbContext;

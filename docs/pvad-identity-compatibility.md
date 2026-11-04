@@ -47,6 +47,15 @@ legacy ticket is renewed under the canonical cookie name. The cookie manager
 supports the existing chunked format and removes legacy chunks during renewal;
 logout removes both name generations.
 
+Initial sign-in also removes derived permission/organization-list claims and the
+per-request permission-resolution marker before cookie serialization. Otherwise
+the full built-in operator permission catalog produces chunked response headers
+that a reverse proxy may reject before the first authenticated request can renew
+them. User identity, security stamp, roles, active organization and session ID are
+retained. The existing server-side transformation resolves effective permissions
+from persistent state on every request. Reading earlier expanded tickets requests
+renewal after normal validation; the transient marker must not survive renewal.
+
 New authentication uses `PVAD.Combined`, `PVAD.ApiKey`, `PVAD.McpDelegation` and
 `PVAD.Designer.Cookie`. The four historical scheme names forward to these handlers
 for the compatibility window; they do not create a second legacy cookie writer.
@@ -269,6 +278,10 @@ synthetic HTTPS base URL, not a TLS handshake or an Account frontend browser.
 This rehearsal does not yet connect the real API to the Nginx/Grafana lab,
 establish real-host cookie isolation, prove SSO, authorize deployment or certify
 customer backup recovery. The separate gateway drill still uses synthetic auth.
+The newer [combined browser rehearsal](pvad-grafana-provider-cutover.md#combined-operator-browser-rehearsal)
+connects a real Kestrel API, PostgreSQL, Admin UI, Nginx and Grafana in disposable
+resources. It establishes separate local HTTP evidence, not production TLS/SSO
+or the Account-to-Designer frontend handoff.
 
 ### Retained Storage Boundaries
 
