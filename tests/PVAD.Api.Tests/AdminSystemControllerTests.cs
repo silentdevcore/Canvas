@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -200,6 +201,7 @@ public sealed class AdminSystemControllerTests
             "/api/pvad/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
         var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PXA-Operator"));
+        Assert.Equal(operatorName, Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator")));
         Assert.Matches("^pxa-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
 
@@ -215,7 +217,7 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(HttpStatusCode.OK, runbookResponse.StatusCode);
         var runbook = await runbookResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Contains(
-            "RESTORE PXA DATABASE",
+            "[compatibility entry `compat-2d79ca4f327e`](compatibility-identifiers.v1.json)",
             runbook.GetProperty("markdown").GetString(),
             StringComparison.Ordinal);
         Assert.Equal(
@@ -253,6 +255,7 @@ public sealed class AdminSystemControllerTests
                     services.RemoveAll<DbContextOptions<PvadDbContext>>();
                     services.AddDbContext<PvadDbContext>(
                         options => options.UseNpgsql(connectionString));
+                    services.AddDataProtection().UseEphemeralDataProtectionProvider();
                 });
             });
 

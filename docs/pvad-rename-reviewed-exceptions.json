@@ -467,7 +467,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "243837471cf0af67ddc7017fb5a6f82e53d713ebc55ded622f285ccaaff1f7f1",
+      "sha256": "6b9e86599d973140b572ffb3099fb173d6139666dcfa347c49f67e72fe8199cd",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -475,7 +475,7 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "2026-11-04: Added authentication source-transition, isolated Grafana restore, mock gateway HTTP and real PostgreSQL authentication rehearsal cross-references without changing historical results or external acceptance gates."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",
@@ -1091,13 +1091,14 @@
     },
     {
       "path": "docs/pvad-identity-compatibility.md",
-      "sha256": "bb3c9e22bcee321506917993c03527ab8bd526ce2bddaea71ea22f6816b08ee0",
+      "sha256": "b1719b0b69beaf91012e2a686c043530e583968ad9d6ac96535b86b6bb2d75db",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "followupReview": "2026-11-04: Documented canonical schemes, exact historical ticket readers and the isolated PostgreSQL login/restart rehearsal with bounded acceptance claims. Retained discriminator, compatibility references and production rollback boundaries remain deliberate."
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
@@ -2686,13 +2687,14 @@
     },
     {
       "path": "PVAD.WebApi/Security/PvadAuthenticationSchemes.cs",
-      "sha256": "d45e5b3688b8d7c8e207af08d9a4c1504fb60eb46ed0e49ccd03beec56450a4b",
+      "sha256": "d6ebb5034760fa86fb70e4604a1bee4935cbf3591d719d1c39dbb544fa38e4bb",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "PVAD.WebApi/Security/PvadAuthenticationSchemes.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "followupReview": "2026-11-04: Current schemes use PVAD; the four exact historical names remain only as explicit forwarding and ticket-reader constants. No stored security identifier is rewritten."
     },
     {
       "path": "PVAD.WebApi/Security/PvadAuthorizationPaths.cs",
@@ -4052,14 +4054,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs",
-      "sha256": "cef4454fdddaff14319a5245c026183991f90c6d2264187008d8c23dcc919d56",
+      "sha256": "4f5f5fdfd476d7b1c2f7be9ab0206bf3f3dccf81fb146170b686a36b41502293",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "2026-11-04: Added equal current/retained operator-header assertion, aligned protected runbook content with its exact registry reference and isolated the test key provider; retained operator identity and legacy API/configuration contracts are unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs",
@@ -4075,14 +4077,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AuthControllerTests.cs",
-      "sha256": "fb58dcde2813cbd14eddc5a888abacb6cd871a59c2cb4d39b5a35392ed3bf2cd",
+      "sha256": "18161337969465bf2153ccb2770511b3413f6f98bfc911b4557fc57ad646e5d1",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AuthControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "2026-11-04: Isolated the real PostgreSQL test host's Data Protection provider; legacy configuration inputs and existing assertions remain unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs",
@@ -4096,14 +4098,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs",
-      "sha256": "b03d126d90dd50dd8c00471a0c5475c1c50a041b7d41fcfb7e6607ce25ce92f4",
+      "sha256": "4720a1694af857cef62b2902c02b5ac8f4644075cbd7d778deba89985cb4ed59",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "2026-11-04: Reused existing real login/handoff helpers through a partial test class with isolated temporary or ephemeral key providers; deliberate legacy headers/configuration and all original test expectations remain unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs",
@@ -4539,14 +4541,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadCookieCompatibilityTests.cs",
-      "sha256": "bac96f651fe5583bb161ce28011a30b74e239fff209e9f609d0dd72239d5f2b3",
+      "sha256": "579098f4821d063522c48e551885cfde8ec94c4865d5c1d310f887601af7bbcf",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PvadCookieCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "followupReview": "2026-11-04: Added actual scheme-registration and Designer ticket-format checks. Existing synthetic legacy cookie values remain essential compatibility regression inputs."
     },
     {
       "reasons": [
@@ -7786,13 +7789,14 @@
     },
     {
       "path": "tools/configuration/rename-grafana-provider.mjs",
-      "sha256": "86d1ea6efdb85416f62df4dbe796206a3886594b57e89a26d2af8203d0c2e67a",
+      "sha256": "532a5f7a520ec4d3794da0dc4a81b5d5e4aa2caa360aa78bf1acad8b4ff1eca8",
       "reasons": [
         "infrastructure-binding"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Read the exact legacy Grafana provisioning and emit an offline canonical candidate only; reject changed placement policy and never apply it.",
-      "boundaryGuide": "docs/pvad-grafana-provider-cutover.md"
+      "boundaryGuide": "docs/pvad-grafana-provider-cutover.md",
+      "followupReview": "2026-11-04: Added a read-only reference inventory and source checksums. The exact historical provider/folder expectation remains the only retained identity literal; no live placement, permissions or operator identity is changed."
     },
     {
       "path": "tools/configuration/pvad-telemetry-contract.mjs",

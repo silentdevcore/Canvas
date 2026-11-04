@@ -1533,6 +1533,34 @@ remains **90/98 (91.8%)**.
 
 ## Related Work
 
+### Isolated Grafana Rehearsal - 2026-11-04
+
+The [rehearsal checklist](PVAD.Repository-Naming-Followup.md#isolated-grafana-rehearsal)
+records the passing same-image SQLite lab cutover, folder ACL checks and backup
+restoration. The [guide](../docs/pvad-grafana-provider-cutover.md#isolated-sqlite-rehearsal)
+describes reproduction and limits. Only synthetic resources are exercised;
+production identity, gateway, customer backup and deployment gates remain open.
+This supporting evidence does not change historical primary acceptance totals.
+
+The companion [isolated gateway HTTP rehearsal](../docs/pvad-grafana-provider-cutover.md#isolated-gateway-http-rehearsal)
+now covers actual Nginx routing with synthetic upstream decisions. It does not
+close real Identity/database, browser, TLS, SSO or production gateway acceptance.
+
+### Authentication Source Follow-up - 2026-11-04
+
+The [repository follow-up](PVAD.Repository-Naming-Followup.md#authentication-source-transition)
+tracks canonical authentication schemes, historical handler aliases and the
+Designer ticket-purpose reader. The [identity guide](../docs/pvad-identity-compatibility.md#browser-cookie-transition)
+defines validation, host isolation and rollback requirements. This source work
+does not close production cookie/session cutover, independent review, publisher,
+monitoring or deployment gates. Historical acceptance totals remain unchanged.
+
+The [real PostgreSQL authentication rehearsal](PVAD.Repository-Naming-Followup.md#real-postgresql-authentication-rehearsal)
+adds actual Account login, PKCE handoff, persistent session renewal/revocation
+across test-host restarts and operator authorization. This is separate TestServer
+evidence, not browser, TLS or combined gateway acceptance; deployment gates and
+historical primary totals remain unchanged.
+
 ### Develop Integration And PR Acceptance - 2026-10-29
 
 PR 210 preserves the rename features and reviewed develop maintenance baseline.

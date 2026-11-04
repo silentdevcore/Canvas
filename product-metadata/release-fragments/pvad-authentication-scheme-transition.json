@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-authentication-scheme-transition",
+  "impact": "patch",
+  "components": ["api", "account", "admin", "designer", "documentation"],
+  "category": "fixed",
+  "summary": "Authentication now uses PVAD identifiers while preserving compatible existing Designer sessions and their normal access checks.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

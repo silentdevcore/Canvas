@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -284,6 +285,7 @@ public sealed class AuthControllerTests
                 {
                     services.RemoveAll<DbContextOptions<PvadDbContext>>();
                     services.AddDbContext<PvadDbContext>(options => options.UseNpgsql(connectionString));
+                    services.AddDataProtection().UseEphemeralDataProtectionProvider();
                 });
             });
 

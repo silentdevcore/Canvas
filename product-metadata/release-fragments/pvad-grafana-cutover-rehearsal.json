@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-grafana-cutover-rehearsal",
+  "impact": "none",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Release-readiness checks can now rehearse Grafana folder renaming and snapshot recovery using isolated synthetic data.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds an isolated internal validation harness and its instructions without changing deployed application behavior or active monitoring configuration."
+}

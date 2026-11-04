@@ -55,6 +55,10 @@ compatibility; all forty Prometheus expressions are validated together.
 The Grafana provider/folder rename remains a separate
 [placement and permissions cutover](pvad-grafana-provider-cutover.md). Its labels
 and installed permissions are deliberately unchanged by this monitoring package.
+The existing preparation command now also generates a checksum-bound source
+inventory for dashboards, datasources, alert links and operator integration.
+It cannot authorize deployment or establish live permissions, backup recovery,
+alert delivery or retained Operator identity equivalence.
 
 ## Offline Validation
 

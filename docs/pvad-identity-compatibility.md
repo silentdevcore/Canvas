@@ -45,8 +45,25 @@ Legacy session tickets undergo the existing expiry, security-stamp, persistent
 session, organization and operator validation before renewal. Only a validated
 legacy ticket is renewed under the canonical cookie name. The cookie manager
 supports the existing chunked format and removes legacy chunks during renewal;
-logout removes both name generations. Authentication schemes and their ticket
-protection purposes are deliberately retained so the old ciphertext remains usable.
+logout removes both name generations.
+
+New authentication uses `PVAD.Combined`, `PVAD.ApiKey`, `PVAD.McpDelegation` and
+`PVAD.Designer.Cookie`. The four historical scheme names forward to these handlers
+for the compatibility window; they do not create a second legacy cookie writer.
+Account/Admin keeps the framework's `Identity.Application` scheme unchanged.
+The Designer ticket reader first tries the current protection purpose, then only
+the exact historical Designer purpose. A decoded ticket must also carry the
+matching serialized scheme. Account tickets, wrong-purpose ciphertext and
+tampered payloads cannot enter through this fallback.
+
+Earlier Designer tickets are normalized in memory and marked for renewal. That
+marker is consumed by the existing validation events; only an active, verified,
+unlocked user with a matching security stamp, live persistent session and valid
+organization context can receive a renewed ticket. New writes always use the
+current Designer scheme and protection purpose, even if callers use an old alias.
+Neither migration marker nor legacy scheme is written into the renewed ticket.
+The persisted session ID, revocation state, expiry and keyring discriminator are
+not migrated. Existing entitlement and permission checks still apply separately.
 
 A canonical cookie never falls back to a different legacy value, including when
 the canonical value is empty or invalid. Duplicate managed cookies/chunks are
@@ -139,7 +156,7 @@ abort startup rather than overwriting another writer.
 
 | Contract | Retained identity | Remaining migration work |
 | --- | --- | --- |
-| Authentication schemes | [compatibility entry `compat-08ab2cf7701b`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-61cd87ac9809`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-e8a6a6ca9982`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-5b314dd4e759`](../operator-docs/compatibility-identifiers.v1.json) | Scheme changes can change ticket protection purposes |
+| Authentication schemes | [compatibility entry `compat-08ab2cf7701b`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-61cd87ac9809`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-e8a6a6ca9982`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-5b314dd4e759`](../operator-docs/compatibility-identifiers.v1.json) | Historical aliases forward to current handlers; Designer has a read-only historical ticket-purpose fallback |
 | Legacy claim values | Existing user, organization, service-account and session IDs | Canonical claim names do not replace the identifiers themselves |
 | OAuth registrations/scopes | Canonical twelve `pvad.*` scopes with known [compatibility entry `compat-fb5db5457234`](../operator-docs/compatibility-identifiers.v1.json) aliases | Apply the opt-in alias migration to each retained store and verify client login before switching requests |
 | OAuth API resource setting | New default `pvad-api`; retained overrides may use [compatibility entry `compat-ca1eb4ce6067`](../operator-docs/compatibility-identifiers.v1.json) | This reserved option is not used to expand token audiences. Actual issuance/remote validation still uses the exact configured MCP resource URI. |
@@ -166,8 +183,13 @@ consistent data/key backup restore; it is not a source-only rollback. New `pvad_
 keys similarly require a reader that supports the new prefix. Never transform an
 issued key string or signed license in place.
 
-Old binaries also do not read PVAD cookie names. A rollback must retain the cookie
-adapter or require a new login and fresh CSRF tokens. Test reverse-proxy forwarding,
+Old binaries also do not read PVAD cookie names or the current Designer ticket
+purpose. A rollback must retain both the cookie-name adapter and compatible ticket
+reader, or require a new login and fresh CSRF tokens. Keep the existing keyring;
+renaming its discriminator would invalidate both generations. Stop legacy-only
+writers during replacement or deploy compatible readers before switching writers.
+This source change does not establish a safe mixed-binary rolling deployment.
+Test reverse-proxy forwarding,
 root cookie paths and host isolation before production rollout. Do not restore
 parent-domain cookies or weaken SameSite as a shortcut. Native browser behavior
 and live session revocation remain deployment/database acceptance gates.
@@ -189,6 +211,66 @@ isolated PostgreSQL container, including dry run, repeat execution, unchanged
 client secrets/metadata, revoked authorizations and token payloads. HTTP tests
 use the application's PostgreSQL migrations for discovery, registration and PKCE.
 These synthetic checks do not prove that an existing customer backup is restorable.
+
+Authentication transition tests additionally exercise actual cookie options and
+alias registration, both Designer ticket purposes, ciphertext tampering, Account
+isolation and file-backed keyring reuse across restarts. An isolated TestServer
+uses the real cookie-validation events and session service with EF InMemory to
+verify renewal, actual CSRF validation, sign-out/replay denial and invalid user,
+stamp, membership, organization and expiry states. Its synthetic issuance helper
+is not a production login endpoint. A separate PostgreSQL-backed rehearsal below
+exercises actual application login and handoff; neither suite replaces production
+browser acceptance.
+
+### Isolated PostgreSQL Login And Restart Rehearsal
+
+The opt-in API integration group uses real ASP.NET Core Identity, Npgsql, the
+application's migrations and a new disposable PostgreSQL container for each test.
+It does not connect to an existing development or customer database. The standard
+hosts in this test group use ephemeral Data Protection providers; the two restart cases use
+only their own temporary file-backed keyrings, removed after host disposal.
+
+The restart cases first authenticate through Account and exchange a real PKCE
+handoff. A test-only helper re-protects that validated Designer ticket with the
+historical purpose to model earlier server issuance. It does not skip login,
+entitlements, persistent sessions or the real cookie-validation events.
+The first host is disposed before the second reads the old ticket. Renewal must
+write the current purpose without creating another session, and the next request
+must not repeat migration renewal. Account-cookie substitution remains denied.
+Invalid CSRF cannot sign out the session; valid sign-out persists revocation.
+A third host must reject both the original and renewed cookie using that same
+PostgreSQL state. Both supported incoming cookie-name generations are covered.
+
+The existing Account, Designer and Admin tests additionally cover disabled,
+locked and suspended identities, expiry, security stamps, PKCE failures and
+replay, membership/entitlement changes, tenant boundaries and operator access.
+The operator response must contain equal current and retained identity headers.
+The protected runbook test follows the exact compatibility-register reference;
+the restore tool's safety phrase itself is not changed.
+
+To reproduce on Rancher Desktop, with its Docker engine running and the test
+images available locally:
+
+```bash
+export DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+PVAD_RUN_POSTGRES_TESTS=1 dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj \
+  --filter 'FullyQualifiedName~AuthControllerTests|FullyQualifiedName~DesignerAuthenticationControllerTests|FullyQualifiedName~AdminSystemControllerTests' \
+  -p:SkipOcrWorkerPackaging=true -p:SkipCodeWorkerPackaging=true \
+  --disable-build-servers -m:1 \
+  --logger 'trx;LogFileName=real-postgres-auth.trx' \
+  --results-directory artifacts/rename/postgres-auth
+```
+
+The socket override is the Docker VM's socket used by the resource reaper, not
+the host-side Rancher socket. Without the opt-in, PostgreSQL tests are skipped;
+a skipped result is not acceptance evidence. Tests use TestServer HTTP with a
+synthetic HTTPS base URL, not a TLS handshake or an Account frontend browser.
+This rehearsal does not yet connect the real API to the Nginx/Grafana lab,
+establish real-host cookie isolation, prove SSO, authorize deployment or certify
+customer backup recovery. The separate gateway drill still uses synthetic auth.
+
+### Retained Storage Boundaries
 
 Retained job/object encryption is not inferred from mail Data Protection. The
 filesystem object-storage adapter writes the stream supplied to it; it does not

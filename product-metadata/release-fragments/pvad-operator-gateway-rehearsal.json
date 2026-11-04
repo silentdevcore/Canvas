@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-operator-gateway-rehearsal",
+  "impact": "none",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Release-readiness checks now exercise operator gateway routing and auth-response handling with isolated synthetic upstreams.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds an internal HTTP test harness and its instructions without changing active gateway configuration, authorization policies or deployed application behavior."
+}
