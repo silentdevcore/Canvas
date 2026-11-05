@@ -9,12 +9,12 @@ import { tmpdir } from 'node:os';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-test('corpus root failure uses the current name without changing signed fixture identity', async () => {
+test('corpus generator uses current naming without rewriting historical fixture identity', async () => {
   const source = await readFile(resolve(root, 'tools/pdf-trust-corpus/Program.cs'), 'utf8');
   assert.ok(source.includes('Could not locate the PVAD repository root.'));
   assert.ok(!source.includes('Could not locate the PXA repository root.'));
-  assert.ok(source.includes('CN=PXA Synthetic Corpus Signer'));
-  assert.ok(source.includes('document.Info.Author = "PXA synthetic test corpus"'));
+  assert.ok(source.includes('CN=PVAD Synthetic Corpus Signer'));
+  assert.ok(source.includes('document.Info.Author = "PVAD synthetic test corpus"'));
 });
 
 test('remaining test and PDF validation callers use canonical keys accepted by their receivers', async () => {

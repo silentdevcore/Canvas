@@ -25,3 +25,26 @@ The checked-in corpus under
 `websites/PVAD.Documentation/public/downloads/pdf-trust/pades` is intentionally
 immutable. Generation uses cryptographically secure random keys, so a reviewed
 replacement has different document and report hashes.
+
+## Current Corpus Output
+
+New generation uses `pvad-pades-*` filenames, canonical synthetic certificate
+subjects and document metadata, `pvad-pades-corpus.json`, and the
+`pvadClassifiedProfile` field. These names do not change profile classification,
+signature algorithms, trust requirements or validation thresholds.
+
+The read-only `corpus-contract.mjs` reader accepts both generated manifest
+generations. It normalizes IDs and the classified-profile field in memory while
+preserving file references, hashes and the source manifest. Conflicting profile
+aliases and unknown or duplicate cases fail validation.
+
+The negative-manifest builder accepts either complete evidence generation per
+case. It writes canonical case IDs but retains the selected files and their
+actual hashes. Ambiguous or partial generations are rejected; current PDFs are
+never combined with old validation reports. Use a fresh output directory when
+regenerating, rather than mixing archived and current runs.
+
+The checked-in signed corpus and independent XML evidence are not regenerated
+by a naming change. Tests against copied evidence establish reader compatibility,
+not a new independent DSS validation. A fresh container validation is required
+before any newly generated corpus can replace approved evidence.

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { auditPath, extractJsonNames, hash, scanJsonNames, trackedJsonPaths, validateAuditPin, validateJsonNaming, validateProtectedFiles } from './json-naming-audit.mjs';
+import { applyReviewedJsonTransitions, auditPath, extractJsonNames, hash, scanJsonNames, trackedJsonPaths, validateAuditPin, validateJsonNaming, validateProtectedFiles } from './json-naming-audit.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(resolve(root, path), 'utf8');
@@ -43,7 +43,9 @@ test('all current JSON findings are exact retained contracts or immutable eviden
   const paths = [...new Set([...trackedJsonPaths(root), auditPath, 'product-metadata/release-fragments/pvad-json-naming-cleanup.json'])];
   const report = scanJsonNames(root, paths);
   assert.deepEqual(report.errors, []);
-  assert.deepEqual(validateJsonNaming(report, audit), []);
+  const review = JSON.parse(read('docs/pvad-rename-reviewed-exceptions.json'));
+  const currentAudit = applyReviewedJsonTransitions(audit, review.jsonTransitions ?? [], read);
+  assert.deepEqual(validateJsonNaming(report, currentAudit), []);
   assert.deepEqual(validateProtectedFiles(root, audit), []);
   assert.ok(read('.github/workflows/ci.yml').includes('json-naming-audit.mjs --check'));
 });

@@ -164,8 +164,8 @@ test('new release image tags and metadata checks stay paired while deployment re
     assert.equal(verify.run.split(prefix + '${{ steps.version.outputs.version }}').length, 3);
   }
   const deployment = load(read('deployment-validation'));
-  assert.deepEqual(deployment.on.workflow_dispatch.inputs.container_identity.options, ['PXA', 'PVAD']);
-  assert.equal(deployment.on.workflow_dispatch.inputs.container_identity.default, 'PXA');
+  assert.deepEqual(deployment.on.workflow_dispatch.inputs.container_identity.options, ['PVAD', 'PXA']);
+  assert.equal(deployment.on.workflow_dispatch.inputs.container_identity.default, 'PVAD');
   const inspect = deployment.jobs.preflight.steps.find(step => step.name === 'Verify immutable container tags');
   assert.equal(inspect.env.OWNER, '${{ env.PVAD_CONTAINER_PUBLISHER }}');
   assert.equal(inspect.env.CONTAINER_IDENTITY, '${{ inputs.container_identity }}');

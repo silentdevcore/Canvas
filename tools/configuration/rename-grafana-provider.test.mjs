@@ -112,6 +112,10 @@ test('inventory rejects duplicate identities, broken nested references, active d
 });
 
 test('repository inventory is deterministic and pins every included source without altering active configuration', () => {
+  const paths = execFileSync('git', ['ls-files', '-z', '--', 'deploy/observability',
+    'PVAD.WebApi/Controllers/AdminOperatorAccessController.cs', 'PVAD.WebApi/Infrastructure/PvadResponseHeaders.cs'],
+  { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
+  const before = new Map(paths.map(path => [path, readFileSync(new URL('../../' + path, import.meta.url))]));
   const result = prepareGrafanaInventory();
   assert.deepEqual(prepareGrafanaInventory(), result);
   assert.equal(result.dashboards.length, 5);
@@ -122,8 +126,10 @@ test('repository inventory is deterministic and pins every included source witho
   for (const file of result.sources) {
     const bytes = readFileSync(new URL('../../' + file.path, import.meta.url));
     assert.equal(createHash('sha256').update(bytes).digest('hex'), file.sha256);
-    assert.deepEqual(execFileSync('git', ['show', `HEAD:${file.path}`], { cwd: root }), bytes);
+    assert.deepEqual(before.get(file.path), bytes);
   }
+  for (const [path, bytes] of before)
+    assert.deepEqual(readFileSync(new URL('../../' + path, import.meta.url)), bytes);
 });
 
 test('CLI binds its candidate and reference inventory to exact checksums without implying deployment readiness', () => {

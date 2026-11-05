@@ -29,7 +29,7 @@ Previous checklist results are point-in-time evidence, not acceptance of this wo
 - [x] Write canonical redacted-image markers and resource names; retain old-marker validation for existing PDFs.
 - [x] Test pixel clearing, masks, residue checks, repeated redaction and old/new marker interoperability without weakening security checks.
 - [x] Canonicalize freely chosen parser-tool variables and temporary paths.
-- [ ] Migrate newly generated parser reports and corpus descriptions only with explicit readers and unchanged historical evidence.
+- [x] Migrate newly generated parser reports and corpus descriptions only with explicit readers and unchanged historical evidence.
 
 ## P1 - Protocol Writer Transitions
 
@@ -40,9 +40,9 @@ Previous checklist results are point-in-time evidence, not acceptance of this wo
 
 ## P2 - Monitoring And Deployment
 
-- [ ] Review current monitoring display names separately from dashboard, datasource, alert and folder identities.
+- [x] Review current monitoring display names separately from dashboard, datasource, alert and folder identities.
 - [ ] Apply only an authorized identity cutover with backup, permissions, link, delivery and rollback checks.
-- [ ] Review current deployment defaults separately from immutable historical image families and protected environments.
+- [x] Review current deployment defaults separately from immutable historical image families and protected environments.
 - [ ] Keep production and external acceptance gates open until actual operator evidence is available.
 
 ## Validation And Delivery
@@ -106,12 +106,51 @@ Existing evidence is not backfilled and the old contracts are not newly renamed.
 - The fragment has Patch impact; VERSION remains unchanged. Existing compiler and bundler warnings remain outside this naming change.
 - No live database, actual SMTP delivery, customer receiver, Docker deployment, push or operational cutover was changed or accepted by these tests.
 
-### Next Source Batch
+### Batch 4 - Parser, Corpus And Operational Source Review
 
-Migrate new parser report output and corpus descriptions with explicit readers
-and unchanged original evidence. Then complete monitoring/display and deployment
-source review separately from operator-authorized live cutover. Earlier release
-gates remain open; successful unit tests do not certify an actual deployment.
+Batch 3 was committed as `3803580c`, without a push. New parser reports now write
+the canonical parser ID. Their version-2 reader accepts the former ID in memory
+without changing source bytes, hashes, decisions, durations, limits or stable
+diagnostics. Alias collisions, missing outcomes and inconsistent counts fail.
+
+Current synthetic Trust and PAdES generators use canonical document metadata,
+certificate subjects, filenames and classified-profile fields. Generated-manifest
+readers accept both generations and reject conflicting aliases. The negative
+manifest builder requires one complete evidence generation per case and preserves
+the actual file hashes. Signed originals and approved independent reports are not
+replaced or relabeled. Existing encrypted-fixture passwords remain unchanged.
+
+Monitoring display titles and tags were reviewed separately from persistent
+UIDs, metrics, provisioning and folder ACLs. Two remaining display tags now use
+PVAD. Exact pointer-level transitions live in the current review ledger; the
+original JSON audit and its hash remain unchanged. Transitions cannot exempt
+protected evidence, unrelated findings or a different current value.
+
+Deployment validation defaults to the canonical image family, retains explicit
+historical-family selection and rejects unknown choices. Candidate generation
+accepts the older choice contract and writes the current contract idempotently.
+Protected environments, publishers, locks, reviewers, permissions, secrets and
+historical images are unchanged. No remote workflow is triggered.
+
+### Batch 4 Verification - 2026-11-05
+
+- All three changed .NET tool projects built successfully. Restricted build-server launches were stopped and replaced with completed builds using disabled build servers; existing dependency/compiler warnings were not waived.
+- Real deterministic fuzz run: 30 cases, three installed parsers, no crashes and no timeouts. Eight parser disagreements remain explicit review evidence; qpdf and MuPDF were not installed for this run. Schema, seed and limits are unchanged.
+- Real isolated generation produced seven Trust fixtures plus three positive and six negative PAdES fixtures under ignored artifacts. Manifest hashes/file lengths and the canonical synthetic root subject were checked. This is not fresh independent DSS certification.
+- Importer suite: 655 passed, none skipped. The seven historical corpus tests also passed separately, including signed, encrypted and independent evidence readers.
+- Node configuration, versioning, release-author and Admin contracts: 409 passed, none skipped. New cases cover both report generations, alias collisions, unchanged input bytes, complete evidence selection, canonical defaults, stubbed image selection and exact display-tag transitions.
+- Documentation production build passed. Shell syntax passed for the changed launchers; external LibreOffice, qpdf, pyHanko and DSS generation scripts were not executed against the approved corpus.
+- 102 original corpus, audit, register, Legal, release and VERSION files compare byte-for-byte with the preceding commit. No original manifest or accepted evidence was amended.
+- Markdown naming: 280 tracked files with zero matches. Structural JSON: 496 scanned files, 70 matching files, zero unclassified findings. Residual guard, version/fragment validation and diff whitespace checks passed.
+- The refreshed ignored inventory is `artifacts/rename/remaining-identities/scan-current.json`: 20,687 textual occurrences in 633 files, 42 matching paths and 28 matching binary files. New explicit compatibility tests affect these counts; they do not measure unfinished work.
+- Two Patch fragments document corpus output and operational source defaults. VERSION, published release notes, databases and deployments are unchanged. This batch is not yet committed or pushed.
+
+### Next Acceptance Batch
+
+Review the completed source changes against the tracked-only inventory and all
+four acceptance criteria, resolving only concrete current-output defects.
+Operator-authorized monitoring cutover and production/external gates remain
+separate. Successful local source tests are not deployment acceptance.
 
 ## Acceptance
 

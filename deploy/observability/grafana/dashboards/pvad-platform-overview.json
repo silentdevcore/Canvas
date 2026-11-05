@@ -421,7 +421,7 @@
   "refresh": "30s",
   "schemaVersion": 41,
   "tags": [
-    "pxa",
+    "PVAD",
     "platform"
   ],
   "templating": {

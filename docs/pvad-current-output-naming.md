@@ -52,6 +52,42 @@ current format presentation while retaining historical action filters. Older
 rows can omit the new field and must remain readable. Existing rows are never
 backfilled by this source change.
 
+## Parser Reports And Corpus Generators
+
+New version-2 parser-fuzz reports write the `pvad` parser ID. Their read-only
+reader accepts the former ID and normalizes it in memory, rejecting conflicting
+aliases and incomplete outcome sets. It preserves mutation hashes, statuses,
+durations, limits, diagnostic IDs and disagreement rules. Historical reports
+are not rewritten.
+
+New synthetic Trust and PAdES generation uses canonical authors, certificate
+subjects, file IDs and classified-profile field names. PAdES readers accept
+both generated manifest generations and preserve actual file names and hashes.
+The negative-evidence builder rejects mixed or incomplete evidence for one case.
+The existing signed PDFs, certificates, validation XML and approved manifests
+remain original evidence. Original encrypted-fixture passwords are unchanged.
+
+See [parser reports](../tools/pdf-parser-fuzzer/README.md) and
+[PAdES corpus generation](../tools/pdf-trust-pades-interop/README.md) for commands
+and the distinction between reader compatibility and independent validation.
+
+## Monitoring Display And Deployment Defaults
+
+Dashboard titles use PVADE and display tags use PVAD. Existing dashboard and
+datasource UIDs, metric selectors, provisioned provider/folder names and folder
+permissions remain operational bindings. Two display-tag transitions are
+recorded at exact JSON pointers in the current review ledger; the original
+JSON audit remains unchanged. The guard verifies both former audited hashes
+and exact current values, and never permits transitions of protected evidence.
+
+The local deployment workflow now defaults to the canonical image family.
+Historical image families remain an explicit selection for their immutable
+release; archive naming never determines the image family. Candidate generation
+accepts the prior choice contract and emits the current one idempotently.
+Protected environments, reviewers, secrets, publisher selection, lock groups and
+token permissions are unchanged. Source tests and stubbed image inspection do
+not publish images, authorize a cutover or certify a deployed environment.
+
 ## Search Boundaries
 
 The residual guard reads tracked regular files only. It excludes private IDE

@@ -80,6 +80,36 @@ export function scanJsonNames(repositoryRoot, paths = trackedJsonPaths(repositor
 }
 
 const key = finding => `${finding.kind}:${finding.expectedPointer ?? finding.pointer}`;
+export function applyReviewedJsonTransitions(audit, transitions, readSource) {
+  if (!Array.isArray(transitions)) throw new Error('Invalid JSON naming transitions.');
+  const current = structuredClone(audit), seen = new Set();
+  for (const transition of transitions) {
+    const identity = `${transition.path}:${transition.pointer}`;
+    if (!safePath(transition.path) || !transition.path.endsWith('.json') || seen.has(identity)
+      || typeof transition.pointer !== 'string' || !transition.pointer.startsWith('/')
+      || typeof transition.currentValue !== 'string' || legacy().test(transition.currentValue)
+      || typeof transition.reason !== 'string' || transition.reason.length < 20)
+      throw new Error('Invalid or duplicate JSON naming transition.');
+    seen.add(identity);
+    const file = current.files.find(file => file.path === transition.path);
+    if (!file || file.preserveBytes || current.protectedFiles?.some(file => file.path === transition.path))
+      throw new Error('Cannot transition protected or unknown JSON evidence.');
+    const index = file.records.findIndex(record => record.pointer === transition.pointer && record.kind === 'value');
+    const record = file.records[index];
+    if (index < 0 || record.classification !== 'compatibility-contract' || record.action !== 'preserve'
+      || record.valueSha256 !== transition.previousValueSha256)
+      throw new Error('JSON naming transition does not match the original audited value.');
+    let value = JSON.parse(readSource(transition.path));
+    for (const part of transition.pointer.slice(1).split('/').map(part => part.replaceAll('~1', '/').replaceAll('~0', '~'))) {
+      if (!value || !Object.hasOwn(value, part)) throw new Error('Missing transitioned JSON value.');
+      value = value[part];
+    }
+    if (value !== transition.currentValue) throw new Error('Changed transitioned JSON value.');
+    file.records.splice(index, 1);
+  }
+  return current;
+}
+
 export function validateJsonNaming(report, audit) {
   if (audit.schemaVersion !== 1 || !/^[a-f0-9]{40}$/.test(audit.baseline) || !Array.isArray(audit.files))
     throw new Error('Invalid JSON naming audit.');
@@ -148,7 +178,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const bytes = readFileSync(resolve(root, auditPath));
   validateAuditPin(root, bytes);
   const report = scanJsonNames(root);
-  const audit = JSON.parse(bytes);
+  const originalAudit = JSON.parse(bytes);
+  const review = JSON.parse(readFileSync(resolve(root, 'docs/pvad-rename-reviewed-exceptions.json')));
+  const audit = applyReviewedJsonTransitions(originalAudit, review.jsonTransitions ?? [], path => {
+    const absolute = resolve(root, path);
+    if (!lstatSync(absolute, { throwIfNoEntry: false })?.isFile()) throw new Error('Missing regular transition source.');
+    return readFileSync(absolute, 'utf8');
+  });
   const failures = [...validateJsonNaming(report, audit), ...validateProtectedFiles(root, audit)];
   const directory = resolve(root, 'artifacts/rename');
   mkdirSync(directory, { recursive: true });

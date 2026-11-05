@@ -9,6 +9,7 @@ IMAGE="pvad-dss-validator:6.4"
 mkdir -p "$OUTPUT_DIRECTORY"
 OUTPUT_DIRECTORY="$(cd "$OUTPUT_DIRECTORY" && pwd)"
 dotnet run --project "$TOOL_DIRECTORY/PVAD.PdfTrustPadesCorpus.csproj" -- "$OUTPUT_DIRECTORY"
+node "$TOOL_DIRECTORY/corpus-contract.mjs" "$OUTPUT_DIRECTORY/pvad-pades-corpus.json"
 docker build --tag "$IMAGE" "$TOOL_DIRECTORY/dss-validator"
 
 for profile in b-t b-lt b-lta; do
@@ -23,13 +24,13 @@ for profile in b-t b-lt b-lta; do
     --tmpfs /tmp:rw,noexec,nosuid,size=64m \
     --volume "$OUTPUT_DIRECTORY:/corpus" \
     "$IMAGE" \
-    "/corpus/pxa-pades-$profile.pdf" \
+    "/corpus/pvad-pades-$profile.pdf" \
     "/corpus/root-trust-anchor.cer" \
     "$crl" \
     "/corpus"
 
-  simple_report="$OUTPUT_DIRECTORY/pxa-pades-$profile-dss-simple.xml"
-  diagnostic_report="$OUTPUT_DIRECTORY/pxa-pades-$profile-dss-diagnostic.xml"
+  simple_report="$OUTPUT_DIRECTORY/pvad-pades-$profile-dss-simple.xml"
+  diagnostic_report="$OUTPUT_DIRECTORY/pvad-pades-$profile-dss-diagnostic.xml"
   grep -q "SignatureFormat=\"$expected_profile\"" "$simple_report"
   grep -q '<Indication>TOTAL_PASSED</Indication>' "$simple_report"
   grep -q "<SignatureFormat>$expected_profile</SignatureFormat>" "$diagnostic_report"
@@ -57,16 +58,16 @@ for definition in "${negative_cases[@]}"; do
     --tmpfs /tmp:rw,noexec,nosuid,size=64m \
     --volume "$OUTPUT_DIRECTORY:/corpus" \
     "$IMAGE" \
-    "/corpus/pxa-pades-$scenario.pdf" \
+    "/corpus/pvad-pades-$scenario.pdf" \
     "/corpus/$anchor" \
     "$crl_argument" \
     "/corpus"
 
-  simple_report="$OUTPUT_DIRECTORY/pxa-pades-$scenario-dss-simple.xml"
+  simple_report="$OUTPUT_DIRECTORY/pvad-pades-$scenario-dss-simple.xml"
   grep -q "<SubIndication>$expected_failure</SubIndication>" "$simple_report"
   if [[ "$scenario" == "tampered-lta" ]]; then
     grep -q '<SignatureValid>false</SignatureValid>' \
-      "$OUTPUT_DIRECTORY/pxa-pades-$scenario-dss-diagnostic.xml"
+      "$OUTPUT_DIRECTORY/pvad-pades-$scenario-dss-diagnostic.xml"
   else
     ! grep -q '<Indication>TOTAL_PASSED</Indication>' "$simple_report"
   fi

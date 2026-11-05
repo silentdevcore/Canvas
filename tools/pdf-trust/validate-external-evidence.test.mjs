@@ -15,7 +15,7 @@ test('accepts pinned evidence and rejects a replaced file hash', () => {
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   manifest.entries[0].inputSha256 = '0'.repeat(64);
-  const temporary = path.join(os.tmpdir(), `pxa-evidence-${process.pid}.json`);
+  const temporary = path.join(os.tmpdir(), `pvad-evidence-${process.pid}.json`);
   try {
     fs.writeFileSync(temporary, JSON.stringify(manifest));
     const invalid = spawnSync(process.execPath, [script, temporary], { encoding: 'utf8' });

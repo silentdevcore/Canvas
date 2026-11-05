@@ -55,7 +55,7 @@ NUL-bearing files remain in the separate evidence review.
 | Live documentation and active metadata descriptions | Correct remaining old product prose. Preserve schema IDs, compatibility explanations, external hosts and original evidence references explicitly. |
 | Checklist prose, original execution records and audit inventories | Normalize Markdown without exceptions; retain task states and results, original wording in Git, and exact identifiers in JSON registers. Do not reclassify incomplete features as delivered. |
 | Authored legal candidates and published release entries | Prepare new version 1.1 source drafts; preserve existing database versions, accepted hashes and published release history. New names do not authorize publication. |
-| PDF Trust corpora, validator generators, manual review decisions and visual baseline IDs | Preserve evidence provenance, signed subjects, stable parser/result IDs, filenames and reader/writer agreement. Current report display headings are renamed separately. |
+| Original PDF Trust corpora, manual review decisions and visual baseline IDs | Preserve evidence provenance, signed subjects, original result IDs and filenames. Current generators now write canonical metadata with explicit legacy readers; see the current-output guide. |
 | Test source and fixture strings | Retain deliberate old inputs and expected diagnostics; do not rewrite customer/vendor text during a successful rename test. |
 | HTML/Skia/vendor Canvas APIs and encoded integrity data | Neutral rendering or coincidental substrings are not first-party branding. Preserve vendor APIs and dependency integrity hashes. |
 

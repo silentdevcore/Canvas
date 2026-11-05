@@ -294,7 +294,7 @@
   "refresh": "30s",
   "schemaVersion": 39,
   "tags": [
-    "pxa",
+    "PVAD",
     "browser",
     "observability"
   ],

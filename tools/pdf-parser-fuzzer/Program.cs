@@ -62,7 +62,7 @@ var report = new FuzzReport(
     MaximumInputBytes: maximumInputBytes,
     ChildTimeoutMilliseconds: childTimeoutMilliseconds,
     MaximumCapturedOutputCharacters: maximumCapturedOutputCharacters,
-    Parsers: new[] { "pxa" }.Concat(externalParsers.Select(parser => parser.Id)).ToArray(),
+    Parsers: new[] { "pvad" }.Concat(externalParsers.Select(parser => parser.Id)).ToArray(),
     MutationCount: results.Count,
     Cases: results);
 var fullReportPath = Path.GetFullPath(reportPath);
@@ -81,7 +81,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
     var stopwatch = Stopwatch.StartNew();
     using var process = new Process { StartInfo = CreateChildStartInfo(inputPath) };
     if (!process.Start())
-        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "crashed", null, stopwatch.ElapsedMilliseconds, null);
 
     using var timeout = new CancellationTokenSource(timeoutMilliseconds);
     var outputTask = ReadBoundedAsync(process.StandardOutput, maximumCapturedOutputCharacters);
@@ -94,7 +94,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
         stopwatch.Stop();
         var status = process.ExitCode == 0 ? ReadChildStatus(output) : "crashed";
         return new ParserOutcome(
-            "pxa",
+            "pvad",
             status,
             process.ExitCode,
             stopwatch.ElapsedMilliseconds,
@@ -114,7 +114,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
             // The child may have exited between the checks.
         }
 
-        return new ParserOutcome("pxa", "timeout", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "timeout", null, stopwatch.ElapsedMilliseconds, null);
     }
     catch
     {
@@ -129,7 +129,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
             // The child may have exited between the checks.
         }
 
-        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "crashed", null, stopwatch.ElapsedMilliseconds, null);
     }
 }
 
