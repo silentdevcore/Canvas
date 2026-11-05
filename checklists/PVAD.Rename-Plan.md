@@ -4,6 +4,27 @@ Historical record: results and task states are retained. Names and rerun referen
 are editorially normalized; original commands and wording remain in Git at
 `30496722`. This is not a new execution or release approval.
 
+## Final Acceptance Review (2026-11-05)
+
+The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the
+current consolidated exit report. It separates completed source work and local
+evidence from the **eight original release/operational gates**. The primary
+checkbox count is verified from this file: **90/98 (91.8%) complete; 8/98 (8.2%)
+open**. Supporting rehearsals do not change the denominator or approve deployment.
+
+The HTTPS authentication/recovery block is 8/8 complete with 12 real browser
+scenarios. Production remains correctly blocked by 12 pending retention approvals;
+positive flows use Staging. Read-only GitHub verification confirms no open PRs,
+seven develop checks, three main checks and unchanged retained environments.
+Local HEAD is 12 commits beyond the observed develop revision, with additional
+uncommitted work; no new clean-commit whole-candidate CI acceptance is claimed.
+
+No further cosmetic rename campaign is needed. The next integration step is a
+separately requested commit and protected develop PR; production keys, domains,
+publishers, staging, an independent reviewer and Major release approval remain
+the explicit closure conditions in the matrix. VERSION stays 1.1.0. The older
+dated observations below remain historical and are not promoted to new results.
+
 ## Status And Naming Authority
 
 The [repository naming follow-up](PVAD.Repository-Naming-Followup.md) records the

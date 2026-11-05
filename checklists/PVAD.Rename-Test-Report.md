@@ -4,6 +4,44 @@ Historical record: results and task states are retained. Names and rerun referen
 are editorially normalized; original commands and wording remain in Git at
 `30496722`. This is not a new execution or release approval.
 
+## Final Acceptance Review (2026-11-05)
+
+See the [current exit matrix](../docs/pvad-rename-final-acceptance.md) for the
+eight original gates, owners, evidence requirements and safe completion order.
+The offline reviewer recomputes **90/98 complete (91.8%)** from primary checkbox
+lines and rejects scope drift or unclassified reopened work. It does not count
+the dated supporting tasks again.
+
+The current HTTPS report passes 12 real browser scenarios, pins 30 sources and
+six screenshots, and confirms owned-resource cleanup. Account, Designer and Admin
+use actual builds, PostgreSQL and HTTPS; legacy ticket renewal, restart, restore,
+CSRF/PKCE/replay, expiry and access denial are covered. Positive flows use Staging;
+Production exits with controlled code 78 before listening because retention
+approval is incomplete. The phone-size Designer capture shows the existing
+Desktop required guard, not a mobile editing workflow.
+
+The preceding follow-up records 58 focused API passes, 344 configuration/release
+contracts and 60 Documentation passes. These scoped, overlapping suites and the
+older full API/Solution results remain separate. The full Solution, all opt-in
+groups, native macOS acceptance and public-host deployment were not re-executed
+by this closeout review. The report does not certify a newly committed final
+candidate: local integration work and uncommitted files remain.
+
+The integrated monitoring rehearsal was rerun after the reviewer detected a
+changed helper pin. All 12 scenarios passed with 50 source/harness pins, current
+API/relay binaries, real telemetry/alert delivery, Grafana cutover/restore and
+verified cleanup. The final offline review reports current pinned sources for
+both HTTPS and monitoring. Initial missing-image preflights created no resources;
+they are not counted as passing runs. Exact report hashes and limits are in the
+current exit matrix. Historical suite totals below are not rewritten.
+
+GET-only GitHub checks on this date confirm no open PRs, the earlier develop
+revision with seven required checks, the earlier main revision with three, and
+unchanged retained environment protections. No reviews, merges, tags, rule
+updates, publications or production changes were performed. The user's second
+account is not independent production approval. Release/cutover remains blocked,
+with VERSION 1.1.0 unchanged.
+
 ## Committed Candidate Revalidation (2026-10-25)
 
 Source: `16c4264eb192e2cebbe3d03c9aafcc0803ad36ec`, tracked-clean before and after

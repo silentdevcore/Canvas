@@ -45,12 +45,12 @@ export function gatewayAddress(subnet) {
   return [...octets.slice(0, 3), 254].join('.');
 }
 
-export function apiListeningAddress(line) {
+export function apiListeningAddress(line, protocol = 'http:') {
   try {
     const event = JSON.parse(line);
     if (event.category !== 'Microsoft.Hosting.Lifetime' || event.eventName !== 'ListeningOnAddress') return null;
     const address = new URL(event.attributes?.address);
-    if (address.protocol !== 'http:' || address.hostname !== '127.0.0.1' || address.pathname !== '/' || address.search || address.hash ||
+    if (!['http:', 'https:'].includes(protocol) || address.protocol !== protocol || address.hostname !== '127.0.0.1' || address.pathname !== '/' || address.search || address.hash ||
       address.username || address.password || !address.port || Number(address.port) < 1 || Number(address.port) > 65535) return null;
     return address.origin;
   } catch { return null; }
@@ -78,7 +78,7 @@ export async function removeOwnedResources(resources, runId, docker) {
   if (failures.length) throw new AggregateError(failures, 'Browser rehearsal cleanup incomplete: ownership inspection failed or ownership mismatch.');
 }
 
-async function freePort() {
+export async function freePort() {
   return new Promise((yes, no) => {
     const server = createServer();
     server.once('error', no);

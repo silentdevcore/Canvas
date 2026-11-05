@@ -336,6 +336,67 @@ exporter/panel coverage, retained-history/silence migration, customer recovery a
 independent rollout approval remain separate deployment gates. Primary historical
 acceptance remains 90/98; supporting test tasks do not inflate that percentage.
 
+### Isolated HTTPS Authentication And Recovery
+
+- [x] Serve actual Account, Designer and Admin production builds on separate HTTPS test hosts with a temporary private CA.
+- [x] Keep certificate/hostname validation enabled and reject untrusted and wrong-host certificates without modifying the host trust store.
+- [x] Confirm actual Production startup remains blocked by unapproved retention governance; exercise real login, browser PKCE, Designer persistence and Admin login in Staging with production cookie/OAuth rules and PostgreSQL.
+- [x] Verify Secure host-only cookies, cross-host isolation, Account/Designer ticket isolation, CSRF, handoff replay and safe redirects.
+- [x] Renew actual validated legacy session/Designer tickets without creating replacement sessions or changing the retained keyring discriminator.
+- [x] Verify session continuity across restart, reject the wrong keyring and restore a stopped synthetic database/keyring snapshot.
+- [x] Verify persisted logout/replay denial, expiry, disabled users, suspended organizations and entitlement denial.
+- [x] Produce source/binary/image-pinned reports and synthetic desktop/mobile screenshots, remove owned resources and document deployment limits.
+
+Verified on 2026-11-05: **8/8 supporting tasks complete**. The real HTTPS runner
+passed **12/12 scenarios**, with six checksummed screenshots and 30 source pins.
+The actual Production process exited with controlled code 78 before listening;
+positive flows ran in Staging with Secure cookies and real signing certificates.
+The stopped PostgreSQL/keyring restore preserved existing and renewed tickets
+and read the exact protected mail/cache ciphertext saved before backup.
+
+Additional validation: **58/58 focused API tests**, **344/344 configuration,
+naming and release contract tests**, **60/60 Documentation tests**, Account,
+Designer, Admin and Documentation builds, version/fragment checks and naming
+guards passed. The fragment has `none` impact: only internal validation tooling
+and guidance changed. Product version and published release history are unchanged.
+
+Evidence: ignored `artifacts/rename/https-authentication/report.json` and its
+`browser/` screenshots. The Designer phone-size image records the existing
+Desktop required screen, not a claim of phone editing support. The browser is
+isolated Linux Chromium, not native macOS Chrome acceptance. All owned test
+resources and temporary credentials, dumps and private keys were removed.
+Reproduction and security limits are in the
+[HTTPS authentication rehearsal guide](../docs/pvad-https-authentication-rehearsal.md).
+
+These are local supporting checks, not public-host, SSO, customer recovery or
+production rollout approval. No installed store, certificate trust, DNS record,
+published release, primary acceptance total or production credential is changed.
+
+### Final Acceptance Closeout
+
+- [x] Map the eight original open gates to their primary checklist identities, concrete evidence and accountable roles.
+- [x] Recount only primary acceptance tasks and reject denominator drift or duplicate/unclassified tasks.
+- [x] Record fresh GET-only GitHub branch/protection/environment/open-PR observations without changing remote controls.
+- [x] Verify current local source/screenshot evidence, explicitly classify stale reports and repeat the affected monitoring rehearsal.
+- [x] Validate internal-guide exclusion, links, naming guards, release metadata and the final diff without closing production gates.
+
+Verified on 2026-11-05: **5/5 supporting closeout tasks complete**. The integrated
+monitoring rehearsal was repeated after a helper pin changed and passed all 12
+scenarios with verified cleanup. The earlier HTTPS result remains hash-valid for
+30 sources and six screenshots; its browser flow was not rerun in this closeout.
+All 356 configuration/naming/release contracts, 60 Documentation tests and the
+Documentation build pass. The 12 new acceptance contracts are a subset of 356,
+not an additional suite total. Naming/version/fragment and whitespace checks pass.
+Only the two reviewed, additively updated historical guide hashes were refreshed;
+their original checkbox states and results remain unchanged. No full Solution/API,
+native OS or production acceptance was re-executed. The eight primary gates remain
+open: 90/98 (91.8%) complete, not 95% or 100% release approval.
+
+The [final acceptance guide](../docs/pvad-rename-final-acceptance.md) is the
+consolidated exit matrix. The offline report is generated under
+artifacts/rename/final-acceptance/report.json. Completing this supporting review
+does not alter the historical 90/98 primary total or authorize publication.
+
 ### Separate Deployment Gates
 
 - [ ] Coordinate authentication/session identifier cutover separately.

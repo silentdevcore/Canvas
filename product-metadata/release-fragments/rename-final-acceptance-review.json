@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "rename-final-acceptance-review",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Consolidated internal rename acceptance evidence and remaining release prerequisites.",
+  "breaking": false,
+  "reason": "Internal-only acceptance tooling, regression tests and operator guidance; no shipped behavior, approval policy, version or deployment changes."
+}

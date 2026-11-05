@@ -417,12 +417,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Test-Report.md",
-      "sha256": "b7865fd9a523eb4bb52bef054e93f7ec8638db14351cc4d19986fb8fa832883e",
+      "sha256": "6b99fd01a96ff34c3da0314af5f916cf6e3db3854208d4a1e2266747dd2969a2",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "followupReview": "2026-11-05: Prepended the scoped final acceptance review and current local monitoring rerun, preserving every original result, checkbox and external release boundary.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -467,7 +468,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "6b9e86599d973140b572ffb3099fb173d6139666dcfa347c49f67e72fe8199cd",
+      "sha256": "ec4d237d733c3e6bb7f755beb77a8cef19f5cb6036c8dca6e39ea03e03941fa0",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -475,7 +476,7 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Added authentication source-transition, isolated Grafana restore, mock gateway HTTP and real PostgreSQL authentication rehearsal cross-references without changing historical results or external acceptance gates."
+      "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",

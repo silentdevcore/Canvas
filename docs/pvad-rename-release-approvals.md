@@ -5,6 +5,25 @@ approval. Local tests are not authorization to publish,
 change production infrastructure or certify an existing customer installation.
 The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains authoritative.
 
+## Current Closeout Review (2026-11-05)
+
+The [final acceptance matrix](pvad-rename-final-acceptance.md) maps all eight
+remaining primary gates to concrete evidence and accountable roles. The completed
+HTTPS and monitoring rehearsals are local supporting evidence, not approval of
+actual production key access, customers, DNS, mail delivery or live cutover.
+
+Fresh GET-only GitHub observations confirm the selected seven-check develop
+policy, the still-three-check main policy, retained environment bindings with
+unchanged production self-review/admin-bypass controls, and no open PRs. They do
+not authorize changes or prove workflow drain. Pending local commits/work must
+still follow normal protected integration. The independent production reviewer,
+NuGet/npm selections, real target and release authorization remain open.
+Production additionally remains fail-closed on 12 pending retention approvals.
+No existing approval row is closed by this review; earlier dates below retain
+their original scope.
+
+## Decision Register
+
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
 | Installed product inventory | Earlier owner report covered local development/testing and no customer installations; historical release archives and legacy GHCR images are now observed. | Product owner | Owner statement dated 2026-10-21; artifact evidence updated 2026-10-26; no customer installation independently inspected |
