@@ -113,10 +113,17 @@ test('the internal exit matrix is discoverable, maps every gate once and uses th
 test('operator acceptance guidance is excluded from public Documentation and DocFX', () => {
   const emitted = [];
   publicGuidesPlugin().generateBundle.call({ emitFile: value => emitted.push(value.fileName) });
-  assert.ok(!emitted.includes('docs/pvad-rename-final-acceptance.md'));
+  const navigation = readFileSync(new URL('../../websites/PVAD.Documentation/src/main.js', import.meta.url), 'utf8');
   const docfx = JSON.parse(readFileSync(new URL('../../docs/docfx.json', import.meta.url)));
   const files = docfx.build.content.flatMap(value => value.files);
-  for (const forbidden of ['pvad-rename-final-acceptance.md', '**.md', '*.md', '**/*.md']) assert.ok(!files.includes(forbidden));
+  const internal = ['pvad-rename-final-acceptance', 'pvad-rename-source-acceptance',
+    'pvad-integrated-monitoring-rehearsal', 'pvad-monitoring-identity-migration', 'pvad-grafana-provider-cutover'];
+  for (const name of internal) {
+    assert.ok(!emitted.some(path => path.includes(name)), name);
+    assert.ok(!navigation.includes(name), name);
+    assert.ok(!files.some(path => path.includes(name)), name);
+  }
+  for (const forbidden of ['**.md', '*.md', '**/*.md']) assert.ok(!files.includes(forbidden));
 });
 
 test('all local links in the final acceptance guide resolve to real files', () => {

@@ -175,6 +175,41 @@ alone therefore cannot satisfy source acceptance.
 - The refreshed ignored scan records 20,706 occurrences in 634 text files, 42 matching paths and 28 matching binary files. Deliberate compatibility and reverted-writer fixtures increase raw search counts without introducing new canonical-output defects.
 - A customer-facing Patch fragment covers MCP display metadata. VERSION remains 1.1.0, the published manifest is unchanged, and no new commit, push, merge, tag, publication or operational cutover is performed for this batch.
 
+### Post-Acceptance Runtime Revalidation - 2026-11-05
+
+Batch 5 was committed as `09d68f22`, without a push. The offline acceptance
+review detected five changed monitoring source/helper pins and classified the
+old integration report as historical. The old report and 12 screenshots were
+archived byte-for-byte, with all 13 original hashes verified. No historical
+source pin or acceptance result was rewritten.
+
+The actual isolated monitoring/browser test then passed all 12 scenarios on
+the tracked-clean source commit. The new report pins 42 integration sources,
+eight harness sources and ten image IDs, and records 12 desktop/mobile screenshots.
+Actual metric/log/trace correlation, query privacy, signed HTTPS retry/recovery,
+Grafana permissions/identity, corrupt-backup rejection and point-in-time restore
+all passed. Three notification attempts had no invalid deliveries, and the
+baseline/restored snapshot hashes match. Owned-resource queries confirm complete
+container/network/volume cleanup, with no temporary workspace remaining.
+
+Both local evidence reports now match their pinned sources. The unchanged HTTPS
+report was integrity-checked, not rerun. The
+[runtime guide](../docs/pvad-integrated-monitoring-rehearsal.md#post-closeout-revalidation-2026-11-05)
+and [final acceptance](../docs/pvad-rename-final-acceptance.md#post-closeout-runtime-revalidation-2026-11-05)
+record the new report hashes and scope. This scoped checklist remains **29/31
+complete (93.5%)**, with two operator/external tasks open. Primary acceptance
+remains **90/98 (91.8%)**, with eight gates open; the local run grants no deployment
+or publication approval. VERSION and original audit, corpus and Legal records
+remain unchanged.
+
+Post-run validation passes 425 configuration/versioning/Admin contracts, 60
+Documentation tests and the Documentation production build. The 28 focused
+rehearsal/acceptance cases are part of the contract total, not additional tests.
+All 132 public build files were checked for five internal guide names, with no
+leaks. Markdown, structural JSON, residual-ledger and release-fragment checks
+pass. No full .NET or Designer regression is newly claimed for this internal
+documentation-only update, and no installed system was changed.
+
 ### Remaining Operational Work
 
 Only the two unchecked operational tasks below the P2 heading remain in this

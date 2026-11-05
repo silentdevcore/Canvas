@@ -19,8 +19,9 @@ working tree is not a newly committed or published release candidate.
 Source completion, test evidence, repository integration and production approval
 are different decisions.
 
-The source closeout is ready for commit and protected integration, not for a
-production release. Treat the remaining 8.2% as approval/target execution gates,
+The scoped source closeout was committed as `09d68f22`; protected integration
+and production approval remain separate. Treat the remaining 8.2% as
+approval/target execution gates,
 not as a percentage of code still requiring renaming.
 
 ## Evidence Review
@@ -55,9 +56,11 @@ Reproduction details: [HTTPS](pvad-https-authentication-rehearsal.md),
 [dated follow-up](../checklists/PVAD.Repository-Naming-Followup.md) and
 [historical candidate validation](pvad-final-candidate-validation.md).
 
-### Current Local Pins (2026-11-05)
+### Earlier Local Checkpoint (2026-11-05)
 
-Both local reports now match their pinned sources. HTTPS: 12 scenarios and 30
+At this earlier checkpoint both local reports matched their pinned sources.
+The monitoring result is superseded by the post-closeout rerun below.
+HTTPS: 12 scenarios and 30
 source pins, report SHA-256
 `11ea97e35bed8e3069f126b2281f4f1235ef11a940e9b0249b653b9b7af23a94`.
 Monitoring: 12 scenarios and 50 source/harness pins, report SHA-256
@@ -70,7 +73,7 @@ preflight before any resources were created; explicitly preparing those images
 with the test's Docker client allowed the complete rerun. All owned resources were
 removed. These new local results do not approve actual production activation.
 
-### Closeout Validation
+### Earlier Closeout Validation
 
 - 356 configuration/naming/release contract tests passed, including the 12 new
   acceptance-review tests. The subset is not counted again.
@@ -86,7 +89,52 @@ removed. These new local results do not approve actual production activation.
   this documentation/tooling closeout. Their dated prior results retain their
   scope. No production approval or clean committed-candidate CI is inferred.
 
-## Current GitHub Observation
+### Post-Closeout Runtime Revalidation (2026-11-05)
+
+The offline reviewer found five changed monitoring source/helper pins after the
+scoped source closeout. It correctly classified the previous result as historical;
+no source checksum in the old report was edited to claim a new execution.
+
+The old report and all 12 screenshots were copied byte-for-byte into ignored
+`artifacts/rename/monitoring-history/`, under the directory named by the old
+report's SHA-256. Its archive receipt verifies all 13 original files. This local
+archive is evidence preservation, not an independent approval.
+
+The real isolated monitoring test was then rerun on clean tracked source commit
+`09d68f22e1d6d02b006b3329305d7637fca0cf1b`. All 12 scenarios passed, with 42
+integration source pins, eight harness pins, ten image IDs and 12 new synthetic
+screenshots. The new report SHA-256 is
+`7c09a889969a73b98ea6ae531768c063f5d772f63822c36a992180a9115ce251`.
+The unchanged HTTPS report still matches its 30 source pins and screenshot hashes;
+it was checked, not rerun in this checkpoint.
+
+The live run verified the actual metrics/logs/trace correlation, query-value
+exclusion, three signed HTTPS delivery attempts including retry/recovery, and
+Grafana identity, permission and point-in-time restore checks. Baseline and restored
+snapshot hashes match. Exact ownership-filtered Docker queries and the output
+directory check confirmed no owned containers, networks, volumes or temporary
+workspace remained. Missing cached images were prepared locally before the run;
+no installed service or external destination was changed.
+
+The offline reviewer now reports both evidence sets as `current-pinned-sources`,
+but still returns `release-blocked`: **90/98 complete, eight gates open**, with
+12 retention policies awaiting approval. The source checklist remains **29/31**;
+its two real operator/external tasks are not completed by this rehearsal. The
+local commit and test do not establish protected PR CI, publication rights,
+production readiness or an independent reviewer.
+
+Post-run validation passed all 425 configuration/versioning/Admin contracts and
+all 60 Documentation tests, plus the Documentation production build. The 28
+focused rehearsal/acceptance tests are included in the larger contract run,
+not additional coverage. The public build's 132 files contain none of the five
+tested internal guide names. Strict Markdown naming, structural JSON naming,
+the residual ledger, version/fragment validation and whitespace checks passed.
+The existing Vite native-config-loader advisory remains visible. No full .NET,
+Designer, installed-service or external-target acceptance is claimed by these
+post-run documentation checks. This update has internal-only release impact;
+VERSION and published notes are unchanged.
+
+## Earlier GitHub Observation
 
 GET-only checks on 2026-11-05 observed the following non-atomic snapshot of the
 configured GitHub origin. No credentials, secret values or variable values were
@@ -145,8 +193,9 @@ provide actual review evidence through their established workflow.
 
 ## Completion Sequence
 
-1. Review and commit the pending HTTPS tooling and this acceptance update as
-   coherent changes, only when requested. Preserve unrelated work.
+1. The scoped source closeout is committed as `09d68f22`. Review and commit the
+   subsequent evidence/documentation update only when requested. Preserve
+   unrelated work.
 2. Integrate through a normal protected PR to `develop`, with the required checks
    at the exact committed head. No direct push, bypass or release bump.
 3. Product owner selects remaining publisher identities and names production

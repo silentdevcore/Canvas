@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-monitoring-acceptance-revalidation",
+  "impact": "none",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Internal monitoring acceptance evidence has been refreshed after the naming transition.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This records a repeated isolated synthetic rehearsal and strengthens internal-guide exclusion tests. It changes no shipped runtime behavior, installed infrastructure, production approval or publication state."
+}

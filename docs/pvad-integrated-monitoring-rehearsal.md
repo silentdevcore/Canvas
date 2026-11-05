@@ -145,7 +145,7 @@ production monitoring network policy.
 See the [dated checklist](../checklists/PVAD.Repository-Naming-Followup.md#integrated-monitoring-and-operator-closure)
 for actual results. Adding this test does not change historical acceptance totals.
 
-## Verified Local Result
+## Earlier Verified Local Result
 
 The 2026-11-04 final run passed all 12 scenarios and produced 12 synthetic
 desktop/mobile screenshots. It pinned 42 integration sources, eight harness/helper
@@ -163,3 +163,53 @@ database integration matrix.
 All 556 Node/website contracts and the Documentation production build pass. The
 operator recovery guides remain excluded from public Documentation assets and
 navigation, with an explicit regression contract.
+
+## Post-Closeout Revalidation (2026-11-05)
+
+After the scoped source closeout, the offline acceptance reviewer found five
+changed monitoring sources/helpers. The previous report was therefore retained
+as historical evidence, not relabeled as current. Its original report and 12
+screenshots were archived without byte changes in ignored
+`artifacts/rename/monitoring-history/`, in the directory named by report SHA-256
+`ec0c66691d206cdc00a0dbd89dd346843b29e48c005f032ef2177f77ba08b559`.
+An archive receipt lists and verifies all 13 original file hashes.
+
+The full real integration test passed again on tracked-clean commit
+`09d68f22e1d6d02b006b3329305d7637fca0cf1b`. Its report SHA-256 is
+`7c09a889969a73b98ea6ae531768c063f5d772f63822c36a992180a9115ce251`.
+It records 12 unique passing scenarios, 42 integration sources, eight harness
+sources, ten cached image IDs and 12 new desktop/mobile screenshots.
+
+- The real request counter increased, two correlated logs were found, and the
+  same request trace was returned through the Grafana datasource proxy. The query
+  canary was absent from exported telemetry and the API console log.
+- Three actual HTTPS delivery attempts covered firing, a deliberate transient
+  failure, retry and recovery; signatures, certificate trust and retry idempotency
+  passed. Invalid delivery count was zero.
+- Folder/datasource UIDs, dashboard content, ACLs and operator identity survived
+  the isolated rename and restore. Anonymous and organization-administrator
+  access stayed denied. Corrupt backup rejection and removal of the post-backup
+  annotation proved point-in-time recovery rather than a display-only rollback.
+- Baseline and restored snapshot SHA-256 both equal
+  `f2a81d54a3f6ff9d0552e34fd744958d6444adb6c229720585ac67acecff6aa8`.
+- Cleanup succeeded. Exact run-label-filtered Docker queries found no owned
+  containers, networks or volumes, and no temporary workspace remained.
+
+The desktop screenshot shows the canonical folder and all five dashboards.
+The mobile capture uses Grafana's compact, truncated list presentation; it is
+not a full mobile accessibility or every-panel layout certification.
+
+The acceptance reviewer now verifies current monitoring source pins. The unchanged
+HTTPS report also retains current pins; its real browser run was not repeated.
+The broad API, .NET and Node counts above remain dated results, not new totals
+from this run. Production configuration, installed accounts/databases, real mail,
+external receivers and live Grafana state were untouched. No operational gate,
+version, deployment authorization or publication approval changed.
+
+Post-run contracts passed: 425 configuration/versioning/Admin tests and 60
+Documentation tests, with no failures or skips. The 28 focused rehearsal and
+acceptance cases also passed separately and are already included in the larger
+contract count. The Documentation production build passed with the existing Vite
+native-config-loader advisory; its 132 files were checked for the five internal
+guide names, with no leaked asset or reference. Naming and release checks passed.
+This is not a new full Solution, Designer or deployed-host test run.
