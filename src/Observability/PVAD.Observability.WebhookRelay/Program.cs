@@ -112,13 +112,16 @@ static async Task<IResult> RelayAsync(
             Content = new ByteArrayContent(payload),
         };
         outbound.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        outbound.Headers.Add("X-PXA-Webhook-Timestamp", timestamp.ToString());
-        outbound.Headers.Add(
-            "X-PXA-Webhook-Signature",
-            WebhookSignature.Create(timestamp, payload, secret));
-        outbound.Headers.Add(
-            "X-PXA-Webhook-Idempotency-Key",
-            Convert.ToHexString(SHA256.HashData(payload)).ToLowerInvariant());
+        var timestampValue = timestamp.ToString();
+        var signature = WebhookSignature.Create(timestamp, payload, secret);
+        var idempotencyKey = Convert.ToHexString(SHA256.HashData(payload)).ToLowerInvariant();
+        outbound.Headers.Add("X-PVAD-Webhook-Timestamp", timestampValue);
+        outbound.Headers.Add("X-PVAD-Webhook-Signature", signature);
+        outbound.Headers.Add("X-PVAD-Webhook-Idempotency-Key", idempotencyKey);
+        // Keep identical aliases for receivers from the rename compatibility major.
+        outbound.Headers.Add("X-PXA-Webhook-Timestamp", timestampValue);
+        outbound.Headers.Add("X-PXA-Webhook-Signature", signature);
+        outbound.Headers.Add("X-PXA-Webhook-Idempotency-Key", idempotencyKey);
 
         using var response = await httpClientFactory
             .CreateClient("webhook")

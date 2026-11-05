@@ -246,11 +246,62 @@ and reject conflicting evidence aliases without logging their values.
 
 SMTP messages add `X-PVAD-Outbox-Id` while retaining [compatibility entry `compat-493162ad3bbb`](reference/compatibility-identifiers.v1.json) with the
 same outbox UUID. Message IDs, recipient routing and persisted outbox records do
-not change. The paired headers do not imply a new delivery or retry guarantee.
+not change. Each spelling occurs once; recreating a message for the same outbox
+record retains the correlation value. The paired headers do not imply a new
+delivery or retry guarantee.
 
 The operator reverse proxy strips both generations of application/API-key headers
-at its internal authorization boundary. Signed webhook contracts remain separate
-work; no signed audit/evidence bytes or retained records are rewritten here.
+at its internal authorization boundary. No signed audit/evidence bytes or retained
+records are rewritten by these header transitions.
+
+## Webhook Delivery Headers
+
+The relay now sends `X-PVAD-Webhook-Timestamp`, `X-PVAD-Webhook-Signature` and
+`X-PVAD-Webhook-Idempotency-Key`. The previous header names remain identical
+aliases for the rename compatibility major. New receivers should use the canonical
+family; existing receivers may continue reading their original family.
+
+The relay computes each value once and puts that same value in both spellings.
+It does not forward caller-supplied signature headers. HMAC-SHA256 still signs
+`<unix-timestamp>\n<exact-sanitized-json-body>`; the signature remains lowercase
+hexadecimal with the `sha256=` prefix, and the idempotency value remains the
+SHA-256 of those exact body bytes. Mounted secrets, sanitization, destinations,
+payload limits and retry behavior are unchanged.
+
+The isolated rehearsal receiver accepts a complete canonical family, a complete
+previous family or identical complete pairs. It rejects conflicting aliases,
+partial families, blank or combined values and duplicates before verification.
+It still checks timestamp freshness, HMAC and payload digest. The source-bound
+rehearsal discovers both header families from the actual relay instead of
+mistaking the first matching spelling for the only supported contract.
+
+Customer receivers must perform their own validation and durable deduplication.
+These source and regression tests do not certify an external receiver, SMTP
+delivery, live alert delivery or deployment.
+
+## Remaining Writer Alias Review
+
+The following source review does not authorize removing a compatibility contract.
+Temporary output aliases last for one rename compatibility major, not indefinitely.
+Removal requires a separately reviewed breaking release and coordinated consumers;
+there is no date-driven or configuration-driven silent removal in this change.
+Stable diagnostics and cryptographic identifiers have their own preservation rules.
+
+| Source boundary | Current writer and retained behavior | Decision |
+| --- | --- | --- |
+| Security request headers | Designer, Account and Admin write canonical names; the API normalizes old input aliases and rejects conflicts. | Keep readers; do not reintroduce old client writers. |
+| Document and operational response headers | Both names carry identical values; CORS exposes only the established safe response metadata. | Keep paired output for the compatibility major. |
+| SMTP correlation | Canonical correlation header and one identical historical alias share the existing outbox ID. | Already implemented; keep the bounded pair. |
+| Webhook delivery | Both complete families share one timestamp, HMAC and payload digest. | Implemented by this source batch; validate actual receivers separately. |
+| Migration service and job JSON | Canonical code fields coexist with old fields for existing API/job consumers; explicit C# aliases are obsolete and scheduled for removal in 3.0.0. | Keep aliases and immutable historical job results. |
+| Native project manifest | The old minimum-version field is accepted on input only; new serialization omits it. Conflicting values fail validation. | No remaining writer rename is needed. |
+| Browser preferences, authentication transactions and handoffs | Existing migration helpers read old keys but save current state under canonical keys. | Keep bounded migration/reset readers, not parallel old-key storage. |
+| Browser telemetry bridge | One current bridge object is exposed under both global names for mixed-version modules; it is not a second collector or fetch wrapper. | Keep the single-object compatibility alias; no duplicate instrumentation. |
+| Runtime configuration and schema resources | Current globals and packaged schemas are canonical; explicit legacy configuration and resource aliases remain readable. | Keep readers and registered resources for the compatibility window. |
+
+The [remaining naming checklist](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md)
+tracks protocol, report-contract and operational acceptance separately. Historical
+registers and published evidence are not rewritten by this review.
 
 ## Historical Migration Diagnostics
 

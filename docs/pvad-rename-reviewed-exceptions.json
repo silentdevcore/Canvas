@@ -1103,12 +1103,12 @@
     },
     {
       "path": "docs/pvad-rename-exceptions.md",
-      "sha256": "273e8b975b410dd5de9cd3be1783dddefab8f1215e3eb27036cd609cf72a9bc6",
+      "sha256": "c9dfaaa66ee62ee9d880a8417c083ffa1e56e5d40eb164698aa787f952a516a9",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Strict full-text Markdown cleanup: no previous-brand substring remains. Other matches are neutral drawing terminology or separately scoped historical identities. Checkbox states and recorded outcomes are retained; original source is in Git. Exact wire values are referenced through JSON, not renamed.",
+      "reviewNotes": "2026-11-05 protocol review: Current corrections supersede broad writer and policy exceptions. Historical results, registers and neutral drawing terminology remain intact; current acceptance reads tracked regular files only.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3781,12 +3781,12 @@
     },
     {
       "path": "src/Observability/PVAD.Observability.WebhookRelay/Program.cs",
-      "sha256": "31b62ba3a5a90213d47304c62b6bbdd72f486b3eb734acf16e368660895a5682",
+      "sha256": "858262a8b6ff92565e648d6e1b9be3e311cd42c6015dec549b3a60b85aaaeab0",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Observability/PVAD.Observability.WebhookRelay/Program.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 protocol review: Three historical webhook headers remain identical aliases for one rename compatibility major. Canonical headers share the same computed timestamp, HMAC and digest; sanitization, secrets and body bytes are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4586,13 +4586,13 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs",
-      "sha256": "16e4c7ea372af7298b126bd76d40a003097c46603ac6ffb90174788a8ec6dac9",
+      "sha256": "930bd3f7ab9a57334ac44a409f3fc4ca2dc9a4b4a0932c4c56d6167f3303ae8d",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
+      "reviewNotes": "2026-11-05 protocol review: Old routes and headers are deliberate compatibility assertions. SMTP tests require single values, unchanged content and stable outbox correlation across message recreation.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5798,12 +5798,12 @@
     },
     {
       "path": "tests/PVAD.Observability.WebhookRelay.Tests/WebhookRelayTests.cs",
-      "sha256": "e7f31624f79d490aaa2df545db24825ca84187baf4f1817661d4f2922a23eb48",
+      "sha256": "7ea6222f9ca872deaaa6615b558b0659f2ed38dff693b0c7fcd11c8af8512fe3",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Observability.WebhookRelay.Tests/WebhookRelayTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-11-05 protocol review: Historical monitoring labels and header families are explicit compatibility inputs. Both receiver generations verify equal values; a fixed independent HMAC vector pins the algorithm. Freely chosen endpoint and key labels are canonical.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -8175,6 +8175,26 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Scoped repository naming follow-up: canonical current chart output, additive audit fields, bounded legacy inputs or synthetic regression coverage. Existing wire identifiers and original evidence are unchanged.",
       "boundaryGuide": "docs/pvad-current-output-naming.md"
+    },
+    {
+      "path": "tools/configuration/monitoring-operator-lab.mjs",
+      "sha256": "2634f223781bb88f4502b5e1c699cef1ad71cd5d6dde3e7702dd46556780d51d",
+      "reasons": [
+        "compatibility-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-11-05 protocol review: The historical identity is used only to discover the explicit previous header family from the real relay source. The local rehearsal validates both complete declared families.",
+      "boundaryGuide": "docs/pvad-http-compatibility.md"
+    },
+    {
+      "path": "tools/configuration/monitoring-operator-rehearsal.test.mjs",
+      "sha256": "6ab1af82cc3b0c5bda6a7357484bfef458048938736ba40428bfc7b9f2d3b4a4",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-11-05 protocol review: Historical webhook names are explicit compatibility fixtures. Tests reject conflicts, blank or duplicate values and partial families and pin the real relay header declarations.",
+      "boundaryGuide": "docs/pvad-http-compatibility.md"
     }
   ],
   "reviewStatus": "reviewed"

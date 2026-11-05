@@ -1,7 +1,19 @@
 # PVAD Rename Classification And Historical Exceptions
 
-Final context review: 2026-10-22. The exact current snapshot supplements and
-supersedes the incremental scoped-review status notes below. Production hosts,
+## Current Source Corrections - 2026-11-05
+
+The [remaining code checklist](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md)
+supersedes broad earlier claims that all internal names and writers were complete.
+New editable-chart metadata and redacted-image resources now use canonical names;
+old keys remain input aliases. Internal step-up policy names and the MCP runtime
+user are canonical, not permanent compatibility exceptions. Persisted grants,
+key IDs, protection purposes and historical evidence remain separate boundaries.
+The [HTTP writer review](pvad-http-compatibility.md#remaining-writer-alias-review)
+records protocol and browser aliases individually and bounds temporary output
+aliases to the rename compatibility major.
+
+Historical context review: 2026-10-22. The point-in-time decisions below are
+superseded where the current corrections above explicitly say so. Production hosts,
 publishers, external keys and real cutover/rollback remain separate open gates.
 
 The later [complete Markdown cleanup](../checklists/PVAD.Markdown-Naming-Cleanup.md)
@@ -38,7 +50,7 @@ NUL-bearing files remain in the separate evidence review.
 | C# and UI diagnostics, localization lookup keys and obsolete pragmas | Preserve stable rule IDs and their existing meanings; bounded canonical aliases are additive. |
 | Native format readers, generated-code markers, migration artifact tuples and chart provenance | Preserve explicitly supported legacy inputs/fields; canonical writers, new package names and generated namespaces use PVAD. |
 | Browser preferences, document handoffs, auth transactions and telemetry bridge | Preserve bounded legacy readers and reset paths. A cosmetic signal never creates a session or grants access. |
-| Cookies, schemes, claims, OAuth registrations, Data Protection, signing key IDs and policy names | Retained persisted/cryptographic bindings cannot be globally replaced without invalidating sessions, grants or signed material. |
+| Cookies, schemes, claims, OAuth registrations, Data Protection and signing key IDs | Retained persisted/cryptographic bindings cannot be globally replaced without invalidating sessions, grants or signed material. Internal step-up policy names are now canonical. |
 | PostgreSQL objects/migration SQL, volume names, mounted secrets, Grafana UIDs and registry repositories | Preserve physical identities; canonical environment aliases remain conflict-checked. New monitoring job/service labels use PVAD with dual-generation query selectors and separate live cutover gates. |
 | Live documentation and active metadata descriptions | Correct remaining old product prose. Preserve schema IDs, compatibility explanations, external hosts and original evidence references explicitly. |
 | Checklist prose, original execution records and audit inventories | Normalize Markdown without exceptions; retain task states and results, original wording in Git, and exact identifiers in JSON registers. Do not reclassify incomplete features as delivered. |
@@ -50,11 +62,14 @@ NUL-bearing files remain in the separate evidence review.
 The exact per-file snapshot, not this broad table, bounds these decisions. Its
 validator runs in CI; changed file bytes require a new contextual decision.
 
-Run `node tools/configuration/rename-inventory.mjs` to refresh
-`checklists/PVAD.Rename-Inventory-Current.tsv`. The original inventory is retained
-as a baseline. The current snapshot scans existing Git-visible source/untracked
-files and records filenames, broad file classes and matching-line counts only.
-No line contents, credentials or environment values are included.
+The earlier `checklists/PVAD.Rename-Inventory-Current.tsv` is retained as a
+point-in-time inventory, not refreshed by the current source batches. That older
+inventory included Git-visible untracked files. Current acceptance uses
+`node tools/configuration/rename-residual-review.mjs`, which reads tracked regular
+files only and excludes private paths, untracked notes, symlinks and ignored output.
+Do not refresh historical inventories or inspect private notes merely to reduce
+search counts. Resolved records require exact clean-source hashes, not a blanket
+exception for future edits.
 
 Run `node tools/configuration/rename-artifact-audit.mjs` for the separate
 `artifacts/rename/name-and-artifact-audit.json` report. It records source locations
@@ -88,9 +103,9 @@ localization keys and [compatibility entry `compat-ccb786033be3`](reference/comp
 | --- | --- | --- |
 | `PVAD.Generator/EInvoicePageLayout.cs` | [compatibility entry `compat-4a00ba8a5601`](reference/compatibility-identifiers.v1.json) | Existing versioned pagination contract; changing display prose does not change its schema identity. |
 | `PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs` | [compatibility entry `compat-6306f3309206`](reference/compatibility-identifiers.v1.json) | Legacy ActivitySource subscription only; new parent and worker process activity names use PVAD. |
-| `PVAD.FileImporter/PdfFileImporter.cs` | [compatibility entry `compat-53477bb0d970`](reference/compatibility-identifiers.v1.json) | Existing chart-recognition provenance value stored in design JSON. New embedded font family names use `PvadPdf_`. |
-| `PVAD.Importer/Redaction/PdfImageRedactionEngine.cs` | [compatibility entry `compat-22cc5163402c`](reference/compatibility-identifiers.v1.json) | Private PDF marker used by both generated redacted images and bounded stream decoding/mask checks. Retaining it avoids a writer/reader mismatch. |
-| `PVAD.Importer/Redaction/PdfRedactionApplier.cs` | [compatibility entry `compat-1ef9fd08fea6`](reference/compatibility-identifiers.v1.json) | Collision-checked resource alias in the retained redaction output convention, not a public product label. |
+| `PVAD.FileImporter/PdfFileImporter.cs` | [compatibility entry `compat-53477bb0d970`](reference/compatibility-identifiers.v1.json) | Previous chart provenance remains readable and is normalized to `pvadMetadata`. Both PDF metadata keys are read; conflicting payloads preserve original graphics. |
+| `PVAD.Importer/Redaction/PdfImageRedactionEngine.cs` | [compatibility entry `compat-22cc5163402c`](reference/compatibility-identifiers.v1.json) | Previous marker is read for existing PDFs and removed when rewriting an image; new image/mask output uses `PVADRedacted`. Sample and residue checks still apply. |
+| `PVAD.Importer/Redaction/PdfRedactionApplier.cs` | [compatibility entry `compat-1ef9fd08fea6`](reference/compatibility-identifiers.v1.json) | Historical resource suffix only; newly generated collision-checked resource names use `_PVADRedacted`. Original PDFs remain unchanged unless explicitly edited. |
 | `PVAD.Infrastructure.Converters/XmlDocumentExporter.cs` | [compatibility entry `compat-ee27215b8284`](reference/compatibility-identifiers.v1.json) | Explicit `ExportLegacy` output only; normal XML output uses `PvadDocument`. |
 | `PVAD.Infrastructure.Persistence/PvadDbContextFactory.cs` | Local legacy database/login defaults | Prevent design-time commands silently selecting a different existing database. These are local defaults, not production credentials. |
 | `PVAD.Infrastructure.Persistence/Configuration/PvadEnvironment.cs` | [compatibility entry `compat-281230894e71`](reference/compatibility-identifiers.v1.json) | Conflict-checked legacy environment input; canonical inputs use `PVAD_`. |

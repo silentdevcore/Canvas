@@ -3,7 +3,7 @@ import { createHash, createHmac } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { collectorBinding, monitoringConfiguration, monitoringImages } from './monitoring-operator-lab.mjs';
+import { collectorBinding, monitoringConfiguration, monitoringImages, relayHeaderContract } from './monitoring-operator-lab.mjs';
 import { eventually, normalizedSnapshot, traceIds } from './monitoring-operator-checks.mjs';
 import { verifyDelivery } from './monitoring-webhook-receiver.mjs';
 import { removeOwnedResources } from './operator-browser-rehearsal.mjs';
@@ -75,6 +75,53 @@ test('receiver verifies actual relay signature format, timestamp and payload ide
     assert.deepEqual(verifyDelivery(body, headers, contract, secret, now), { status,
       payloadSha256: headers['x-test-key'], signatureVerified: true, idempotencyVerified: true });
   }
+});
+
+const aliasContract = {
+  timestampHeader: 'X-PVAD-Webhook-Timestamp', signatureHeader: 'X-PVAD-Webhook-Signature',
+  idempotencyHeader: 'X-PVAD-Webhook-Idempotency-Key', alertName: 'SyntheticAlert',
+  legacyHeaders: { timestampHeader: 'X-PXA-Webhook-Timestamp', signatureHeader: 'X-PXA-Webhook-Signature',
+    idempotencyHeader: 'X-PXA-Webhook-Idempotency-Key' },
+};
+function aliasedHeaders() {
+  const { body, headers } = signed();
+  return { body, current: {
+    'x-pvad-webhook-timestamp': headers['x-test-time'],
+    'x-pvad-webhook-signature': headers['x-test-signature'],
+    'x-pvad-webhook-idempotency-key': headers['x-test-key'],
+  }, previous: {
+    'x-pxa-webhook-timestamp': headers['x-test-time'],
+    'x-pxa-webhook-signature': headers['x-test-signature'],
+    'x-pxa-webhook-idempotency-key': headers['x-test-key'],
+  } };
+}
+
+test('the rehearsal discovers both explicit header families from the actual relay source', () => {
+  const source = readFileSync(new URL('../../src/Observability/PVAD.Observability.WebhookRelay/Program.cs', import.meta.url), 'utf8');
+  const { alertName, ...expected } = aliasContract;
+  assert.deepEqual(relayHeaderContract(source), expected);
+  assert.throws(() => relayHeaderContract(source.replace('X-PVAD-Webhook-Timestamp', 'X-Other-Webhook-Timestamp')));
+  assert.throws(() => relayHeaderContract(source + '\n"X-PVAD-Webhook-Signature"'));
+});
+
+test('receiver accepts each complete header generation and identical dual headers', () => {
+  const { body, current, previous } = aliasedHeaders();
+  for (const headers of [current, previous, { ...current, ...previous }]) {
+    assert.equal(verifyDelivery(body, headers, aliasContract, secret, now).signatureVerified, true);
+  }
+});
+
+test('receiver rejects conflicts, blank or duplicate values and incomplete header generations', () => {
+  const { body, current, previous } = aliasedHeaders();
+  for (const family of [current, previous]) {
+    for (const key of Object.keys(family)) {
+      for (const invalid of ['conflicting-value', '', [family[key], family[key]], `${family[key]},${family[key]}`])
+        assert.throws(() => verifyDelivery(body, { ...current, ...previous, [key]: invalid }, aliasContract, secret, now));
+      const partial = { ...current, ...previous }; delete partial[key];
+      assert.throws(() => verifyDelivery(body, partial, aliasContract, secret, now));
+    }
+  }
+  assert.throws(() => verifyDelivery(body, {}, aliasContract, secret, now));
 });
 
 test('receiver rejects modified payloads, wrong keys, stale/future timestamps and invalid idempotency', () => {

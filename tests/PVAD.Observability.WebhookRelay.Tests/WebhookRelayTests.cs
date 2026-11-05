@@ -79,6 +79,16 @@ public sealed class WebhookRelayTests
     }
 
     [Fact]
+    public void Signature_matches_the_independently_calculated_protocol_vector()
+    {
+        Assert.Equal(
+            "sha256=059d03265cfce94dc5afc4a76af6e5f27fbed76cb477e0321a3ddced0388e7fb",
+            WebhookSignature.Create(1_800_000_000,
+                Encoding.UTF8.GetBytes("""{"status":"firing"}"""),
+                Encoding.UTF8.GetBytes("synthetic-test-key-with-at-least-32-bytes")));
+    }
+
+    [Fact]
     public void Sanitizer_rejects_invalid_or_unbounded_alert_batches()
     {
         using var missingAlerts = JsonDocument.Parse("""{"status":"firing"}""");
@@ -91,13 +101,15 @@ public sealed class WebhookRelayTests
             AlertmanagerPayloadSanitizer.Sanitize(oversizedBatch.RootElement));
     }
 
-    [Fact]
-    public async Task Relay_sends_a_sanitized_signed_request_to_the_fixed_destination()
+    [Theory]
+    [InlineData("PVAD")]
+    [InlineData("PXA")]
+    public async Task Relay_sends_equal_signed_headers_for_canonical_and_legacy_receivers(string identity)
     {
-        var secret = Encoding.UTF8.GetBytes("pxa-test-webhook-signing-secret-value-2026");
+        var secret = Encoding.UTF8.GetBytes("pvad-test-webhook-signing-secret-value-2026");
         var secretFile = Path.GetTempFileName();
         await File.WriteAllBytesAsync(secretFile, secret);
-        var capture = new CaptureHandler();
+        var capture = new CaptureHandler(identity);
         try
         {
             await using var factory = new WebApplicationFactory<Program>()
@@ -107,7 +119,7 @@ public sealed class WebhookRelayTests
                     builder.ConfigureAppConfiguration((_, configuration) =>
                         configuration.AddInMemoryCollection(new Dictionary<string, string?>
                         {
-                            ["WebhookRelay:Destination"] = "https://hooks.example.test/pxa",
+                            ["WebhookRelay:Destination"] = "https://hooks.example.test/pvad",
                             ["WebhookRelay:SecretFile"] = secretFile,
                         }));
                     builder.ConfigureServices(services =>
@@ -116,16 +128,16 @@ public sealed class WebhookRelayTests
                 });
             using var client = factory.CreateClient();
 
-            using var response = await client.PostAsync(
-                "/alerts",
-                new StringContent(
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/alerts")
+            {
+                Content = new StringContent(
                     """
                     {
                       "status": "firing",
                       "alerts": [{
                         "status": "firing",
                         "labels": {
-                          "alertname": "PxaTestAlert",
+                          "alertname": "PvadTestAlert",
                           "severity": "warning",
                           "tenant_id": "must-not-appear"
                         },
@@ -137,13 +149,17 @@ public sealed class WebhookRelayTests
                     }
                     """,
                     Encoding.UTF8,
-                    "application/json"));
+                    "application/json"),
+            };
+            request.Headers.Add("X-PVAD-Webhook-Signature", "caller-supplied-value");
+            request.Headers.Add("X-PXA-Webhook-Signature", "caller-supplied-value");
+            using var response = await client.SendAsync(request);
 
             Assert.Equal(System.Net.HttpStatusCode.Accepted, response.StatusCode);
-            Assert.Equal(new Uri("https://hooks.example.test/pxa"), capture.RequestUri);
+            Assert.Equal(new Uri("https://hooks.example.test/pvad"), capture.RequestUri);
             Assert.NotNull(capture.Body);
             var body = Encoding.UTF8.GetString(capture.Body);
-            Assert.Contains("PxaTestAlert", body, StringComparison.Ordinal);
+            Assert.Contains("PvadTestAlert", body, StringComparison.Ordinal);
             Assert.DoesNotContain("must-not-appear", body, StringComparison.Ordinal);
             Assert.True(long.TryParse(capture.Timestamp, out var timestamp));
             Assert.Equal(
@@ -173,7 +189,7 @@ public sealed class WebhookRelayTests
                     builder.ConfigureAppConfiguration((_, configuration) =>
                         configuration.AddInMemoryCollection(new Dictionary<string, string?>
                         {
-                            ["WebhookRelay:Destination"] = "https://hooks.example.test/pxa",
+                            ["WebhookRelay:Destination"] = "https://hooks.example.test/pvad",
                             ["WebhookRelay:SecretFile"] = secretFile,
                         }));
                 });
@@ -186,7 +202,7 @@ public sealed class WebhookRelayTests
         }
     }
 
-    private sealed class CaptureHandler : HttpMessageHandler
+    private sealed class CaptureHandler(string identity) : HttpMessageHandler
     {
         public Uri? RequestUri { get; private set; }
         public byte[]? Body { get; private set; }
@@ -200,10 +216,16 @@ public sealed class WebhookRelayTests
         {
             RequestUri = request.RequestUri;
             Body = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
-            Timestamp = Assert.Single(request.Headers.GetValues("X-PXA-Webhook-Timestamp"));
-            Signature = Assert.Single(request.Headers.GetValues("X-PXA-Webhook-Signature"));
+            foreach (var suffix in new[] { "Timestamp", "Signature", "Idempotency-Key" })
+            {
+                Assert.Equal(
+                    Assert.Single(request.Headers.GetValues($"X-PVAD-Webhook-{suffix}")),
+                    Assert.Single(request.Headers.GetValues($"X-PXA-Webhook-{suffix}")));
+            }
+            Timestamp = Assert.Single(request.Headers.GetValues($"X-{identity}-Webhook-Timestamp"));
+            Signature = Assert.Single(request.Headers.GetValues($"X-{identity}-Webhook-Signature"));
             IdempotencyKey = Assert.Single(
-                request.Headers.GetValues("X-PXA-Webhook-Idempotency-Key"));
+                request.Headers.GetValues($"X-{identity}-Webhook-Idempotency-Key"));
             return new HttpResponseMessage(System.Net.HttpStatusCode.NoContent);
         }
     }

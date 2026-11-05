@@ -6,16 +6,35 @@ import { createServer as createHttpsServer } from 'node:https';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
+function deliveryHeaders(headers, contract) {
+  const fields = ['timestampHeader', 'signatureHeader', 'idempotencyHeader'];
+  const family = names => {
+    const values = fields.map(field => headers[names[field].toLowerCase()]);
+    if (values.every(value => value === undefined)) return null;
+    assert.ok(values.every(value => typeof value === 'string' && value.length > 0 &&
+      value === value.trim() && !/[,\r\n]/.test(value)), 'Incomplete or invalid webhook header generation.');
+    return Object.fromEntries(fields.map((field, index) => [field, values[index]]));
+  };
+  const current = family(contract);
+  const previous = contract.legacyHeaders ? family(contract.legacyHeaders) : null;
+  if (current && previous)
+    assert.ok(fields.every(field => current[field] === previous[field]), 'Conflicting webhook header aliases.');
+  const selected = current ?? previous;
+  assert.ok(selected, 'Missing webhook signature headers.');
+  return selected;
+}
+
 export function verifyDelivery(body, headers, contract, secret, now = Date.now()) {
-  const timestamp = headers[contract.timestampHeader.toLowerCase()];
+  const selected = deliveryHeaders(headers, contract);
+  const timestamp = selected.timestampHeader;
   assert.match(timestamp ?? '', /^\d{10}$/);
   assert.ok(Math.abs(now / 1000 - Number(timestamp)) <= 60, 'Expired webhook timestamp.');
-  const supplied = headers[contract.signatureHeader.toLowerCase()];
+  const supplied = selected.signatureHeader;
   const expected = `sha256=${createHmac('sha256', secret).update(timestamp + '\n').update(body).digest('hex')}`;
   assert.equal(Buffer.byteLength(supplied ?? ''), Buffer.byteLength(expected));
   assert.ok(timingSafeEqual(Buffer.from(supplied), Buffer.from(expected)), 'Invalid webhook signature.');
   const digest = createHash('sha256').update(body).digest('hex');
-  assert.equal(headers[contract.idempotencyHeader.toLowerCase()], digest, 'Invalid idempotency digest.');
+  assert.equal(selected.idempotencyHeader, digest, 'Invalid idempotency digest.');
   const payload = JSON.parse(body);
   assert.ok(['firing', 'resolved'].includes(payload.status));
   assert.ok(Array.isArray(payload.alerts) && payload.alerts.length === 1);

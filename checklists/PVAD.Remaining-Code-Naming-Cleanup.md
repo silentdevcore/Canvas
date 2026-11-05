@@ -33,10 +33,10 @@ Previous checklist results are point-in-time evidence, not acceptance of this wo
 
 ## P1 - Protocol Writer Transitions
 
-- [ ] Introduce canonical mail correlation headers with a bounded compatibility policy.
-- [ ] Introduce canonical webhook signature, timestamp and idempotency headers with tested receiver compatibility.
-- [ ] Review remaining response aliases and browser compatibility writers individually; retain only documented transition requirements.
-- [ ] Preserve existing signature algorithms, payload bytes, key IDs, persistent audit contracts and authorization semantics.
+- [x] Introduce canonical mail correlation headers with a bounded compatibility policy.
+- [x] Introduce canonical webhook signature, timestamp and idempotency headers with tested receiver compatibility.
+- [x] Review remaining response aliases and browser compatibility writers individually; retain only documented transition requirements.
+- [x] Preserve existing signature algorithms, payload bytes, key IDs, persistent audit contracts and authorization semantics.
 
 ## P2 - Monitoring And Deployment
 
@@ -74,13 +74,44 @@ changes, not the still-open protocol, report-contract or operational tasks.
 - Local MCP dependencies were restored from the unchanged lockfile before testing. Existing compiler, license, JSON-format and bundler warnings remain outside this naming change.
 - No Docker image was built or published, no deployment was performed, and no commit, push, version bump or database change occurred.
 
+### Batch 3 - Protocol And Alias Review
+
+The prior two batches were committed as `3c9d996c`, without a push. SMTP already
+emitted canonical and matching old correlation headers; this batch validates
+single values, stable correlation on message recreation and distinct outbox IDs
+without adding a second implementation. It documents the compatibility-major
+boundary rather than removing existing integrations.
+
+Webhook output now includes canonical and identical old headers. Both simulated
+receiver generations verify the same sanitized bytes, timestamp, HMAC and digest.
+A fixed independently calculated vector pins the signature algorithm. The local
+rehearsal receiver reads either complete family or identical pairs and rejects
+conflicts, duplicates, blank values and partial families. This is not acceptance
+of a customer receiver or real mail/alert delivery.
+
+The [HTTP alias review](../docs/pvad-http-compatibility.md#remaining-writer-alias-review)
+records response headers, migration DTO/job fields, manifest readers, browser
+storage, the single telemetry bridge and runtime/schema aliases individually.
+Existing evidence is not backfilled and the old contracts are not newly renamed.
+
+### Batch 3 Verification - 2026-11-05
+
+- Webhook relay: seven tests passed, none skipped. Both receiver-generation cases failed before the canonical-header change and passed afterward.
+- Focused API header, middleware and migration contracts: 87 tests passed, none skipped. Native project archive compatibility: 78 tests passed.
+- Configuration, versioning, release-author and Admin contracts: 391 tests passed. Shared website, telemetry/storage and focused runtime/rehearsal contracts: 72 tests passed. These runs overlap and are not additive coverage totals.
+- Designer: six focused suites with 47 passing tests cover document headers, runtime configuration, tenant state, migration artifacts, document handoff and charts.
+- Documentation production build passed. Shared TypeScript-backed website tests used the repository-standard experimental type-stripping flag.
+- Markdown naming: 280 tracked files, no old-name matches. Structural JSON naming: 493 scanned files, 70 matching files, no unclassified matches. The residual-file guard and release-fragment/version validation passed.
+- Nine protected signing, sanitization, audit, register, Legal, published-release and version files compare byte-for-byte with the preceding commit.
+- The fragment has Patch impact; VERSION remains unchanged. Existing compiler and bundler warnings remain outside this naming change.
+- No live database, actual SMTP delivery, customer receiver, Docker deployment, push or operational cutover was changed or accepted by these tests.
+
 ### Next Source Batch
 
-Introduce canonical mail and webhook correlation/signature header names with
-explicit receiver compatibility and stable payload signatures. Keep the parser
-report/corpus transition separate from old report evidence. Review response and
-browser writer aliases individually. Monitoring and deployment still require
-their own operator-authorized cutover; earlier release gates remain open.
+Migrate new parser report output and corpus descriptions with explicit readers
+and unchanged original evidence. Then complete monitoring/display and deployment
+source review separately from operator-authorized live cutover. Earlier release
+gates remain open; successful unit tests do not certify an actual deployment.
 
 ## Acceptance
 

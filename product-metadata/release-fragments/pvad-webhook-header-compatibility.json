@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-webhook-header-compatibility",
+  "impact": "patch",
+  "components": ["observability", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Webhook deliveries now include PVAD headers while retaining identical legacy headers for existing receivers. Payloads, signatures and idempotency values remain unchanged.",
+  "breaking": false
+}

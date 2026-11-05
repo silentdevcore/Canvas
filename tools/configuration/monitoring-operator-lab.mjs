@@ -43,6 +43,17 @@ export function monitoringConfiguration({ prometheus, rules }) {
   return { prometheus: config, rules: { groups: [{ name: 'pvad-rehearsal', rules: [alert] }] }, alertName: alert.alert };
 }
 
+export function relayHeaderContract(source) {
+  const header = (identity, suffix) => {
+    const matches = [...source.matchAll(new RegExp(`"(X-${identity}-Webhook-${suffix})"`, 'g'))];
+    assert.equal(matches.length, 1, 'The actual relay header contract must be explicit and unique.');
+    return matches[0][1];
+  };
+  const family = identity => ({ timestampHeader: header(identity, 'Timestamp'),
+    signatureHeader: header(identity, 'Signature'), idempotencyHeader: header(identity, 'Idempotency-Key') });
+  return { ...family('PVAD'), legacyHeaders: family('PXA') };
+}
+
 export async function createMonitoringLab(context) {
   const { root, work, output, runId, network, label, names, docker, runContainer, resources, images, command, finish, wait, step } = context;
   const { load, dump } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
@@ -75,13 +86,8 @@ export async function createMonitoringLab(context) {
   for (const [source, target] of [['loki/config.yml', 'loki.yml'], ['tempo/config.yml', 'tempo.yml'], ['otel-collector/config.yml', 'collector.yml']])
     await writeFile(resolve(directory, target), await readFile(resolve(root, 'deploy/observability', source)));
   const relaySource = await readFile(resolve(root, 'src/Observability/PVAD.Observability.WebhookRelay/Program.cs'), 'utf8');
-  const header = suffix => {
-    const found = relaySource.match(new RegExp(`"(X-[A-Z]+-Webhook-${suffix})"`));
-    assert.ok(found, 'The actual relay header contract could not be read.');
-    return found[1];
-  };
   await writeFile(resolve(directory, 'receiver.json'), JSON.stringify({ alertName: configuration.alertName,
-    timestampHeader: header('Timestamp'), signatureHeader: header('Signature'), idempotencyHeader: header('Idempotency-Key') }));
+    ...relayHeaderContract(relaySource) }));
   await writeFile(resolve(directory, 'signing.key'), randomBytes(32).toString('hex'), { mode: 0o644 });
   await writeFile(resolve(directory, 'receiver.mjs'), await readFile(resolve(root, 'tools/configuration/monitoring-webhook-receiver.mjs')));
   execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-sha256', '-days', '1',
