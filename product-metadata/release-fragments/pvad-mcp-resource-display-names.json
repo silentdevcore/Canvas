@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-mcp-resource-display-names",
+  "impact": "patch",
+  "components": ["sdk", "documentation"],
+  "category": "fixed",
+  "summary": "MCP resources consistently display current PVAD and PVADE names. Existing resource identifiers and schema contents remain compatible.",
+  "breaking": false
+}

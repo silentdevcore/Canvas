@@ -468,7 +468,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "38bf8ed24e4dada7fc5d1dcc31c136f5b5529a764135338965266946b62cffac",
+      "sha256": "3fcbe035469223e09efedcebd47b999cfbd8e5e1f9188a0b8b58965133b7cdc4",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -6655,14 +6655,14 @@
     },
     {
       "path": "tools/PVAD.Mcp/smoke.ts",
-      "sha256": "0d0cfdbcd3f3c42571d611d1ccb8c85e0b9b552444415649739227c5b724869c",
+      "sha256": "2a207a6ff1ddb559cecd6a58564b7da79698b066f9abe6cad13fe7c929ad8bb1",
       "reasons": [
-        "compatibility-contract",
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/smoke.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. 2026-10-29 integration review: Retain documented pxa-mcp/canvas-mcp command aliases and legacy resource URI coverage. Canonical package, entry points and transport dependencies are PVAD; third-party identities stay intact.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "currentReviewNotes": "The packaged smoke lists canonical display metadata and reads both resource URI generations. Remaining old values assert actual deprecated resources and offline schema reader compatibility, not current output titles.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
     },
     {
       "path": "tools/PVAD.Mcp/src/core/apiClient.test.ts",
@@ -6706,23 +6706,24 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/core/server.test.ts",
-      "sha256": "a0990199046020f165f06de830e8caeadce4b88a96255f56629f151bc889a885",
+      "sha256": "471471887bfab3a1879d3d5d47e147543084aaafadf37f3b9206db353948ad8a",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/src/core/server.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "reviewNotes": "Explicit legacy resource URIs and stable diagnostic assertions remain. Real client tests require canonical display metadata and byte-identical original schema payloads for both generations.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
     },
     {
       "path": "tools/PVAD.Mcp/src/core/server.ts",
-      "sha256": "378cb1021ff1deb71384e1745bfd4aad630a36d05e1139b0547281081c09a39a",
+      "sha256": "461ded8913001cebb8764e712bf9077f5296646f325b55115617de13347d32e2",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/src/core/server.ts: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "currentReviewNotes": "Current resource display titles and descriptions are canonical. Remaining old identifiers are explicit deprecated resource names/URIs, original schema payload paths and stable MCP diagnostics; no previous product title is emitted.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
     },
     {
       "path": "tools/PVAD.Mcp/src/core/validation.test.ts",
@@ -8234,6 +8235,26 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Previous generator labels, case IDs and profile keys are explicit read aliases. Normalized output is canonical; original file/hash evidence is never rewritten or mixed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
+    },
+    {
+      "path": "docs/pvad-rename-release-approvals.md",
+      "sha256": "3bec52d86c4f8b59c7138aa2a1973770065c6330cde1c692cae8a1e6e99c9d72",
+      "reasons": [
+        "infrastructure-binding"
+      ],
+      "reviewStatus": "resolved",
+      "reviewNotes": "Dated decisions and observations retain their original scope. A later scoped source-acceptance link does not approve or close production, publisher, protected environment or live-cutover gates.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
+    },
+    {
+      "path": "tools/configuration/current-writer-acceptance.test.mjs",
+      "sha256": "1abc92eb239bdd706760e05d00fbb8544faf5fab5ad034202b301e9ce33f9928",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "Previous names occur only as deliberate reverted-writer fixtures or required reader/header aliases. The eight direct writer contracts and mutation rejection do not consult the residual exception ledger.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
     }
   ],
   "reviewStatus": "reviewed",

@@ -349,9 +349,9 @@ function registerResources(server: McpServer, content: PvadMcpContentRepository)
     ['pvad-llms-full', 'pvad://docs/llms-full', 'PVADE AI reference', 'llms-full.txt', 'text/markdown'],
     ['pvad-cookbook', 'pvad://docs/cookbook', 'PVAD PDF C# Cookbook', 'docs/csharp-cookbook.md', 'text/markdown'],
     ['pxa-design-schema', 'pxa://schema/design-export', 'DesignExportDto JSON Schema', 'docs/schema/design-export.schema.json', 'application/json'],
-    ['pxa-workbook-schema', 'pxa://schema/pxa-workbook', 'PXA Workbook JSON Schema', 'docs/schema/pxa-workbook.schema.json', 'application/json'],
-    ['pxa-openapi', 'pxa://openapi', 'PXA OpenAPI', 'docs/schema/openapi.json', 'application/json'],
-    ['pxa-llms-full', 'pxa://docs/llms-full', 'PVAD AI reference', 'llms-full.txt', 'text/markdown'],
+    ['pxa-workbook-schema', 'pxa://schema/pxa-workbook', 'PVAD Workbook JSON Schema (compatibility format)', 'docs/schema/pxa-workbook.schema.json', 'application/json'],
+    ['pxa-openapi', 'pxa://openapi', 'PVAD OpenAPI', 'docs/schema/openapi.json', 'application/json'],
+    ['pxa-llms-full', 'pxa://docs/llms-full', 'PVADE AI reference', 'llms-full.txt', 'text/markdown'],
     ['pxa-cookbook', 'pxa://docs/cookbook', 'PVAD PDF C# Cookbook', 'docs/csharp-cookbook.md', 'text/markdown'],
   ] as const;
 
@@ -359,7 +359,7 @@ function registerResources(server: McpServer, content: PvadMcpContentRepository)
     server.registerResource(name, uri, {
       title,
       description: uri.startsWith('pxa:')
-        ? `Deprecated compatibility resource from ${relativePath}; use the pvad:// resource.`
+        ? 'Deprecated compatibility resource; use the corresponding pvad:// resource. Schema contents retain their original format contract.'
         : `Versioned PVAD content from ${relativePath}.`,
       mimeType,
     }, async (resourceUri) => ({

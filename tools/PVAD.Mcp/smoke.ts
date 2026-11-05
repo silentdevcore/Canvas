@@ -72,7 +72,10 @@ const badRes = await client.callTool({
 });
 assert(badRes.isError === true && data(badRes).valid === false, `validate_design rejects an unknown element type`);
 
-const resources = (await client.listResources()).resources.map((r) => r.uri);
+const listedResources = (await client.listResources()).resources;
+assert(listedResources.every(resource => !/pxa|power\s?dox/i.test(resource.title ?? '')
+  && !/pxa|power\s?dox/i.test(resource.description ?? '')), 'resource display metadata uses current product names');
+const resources = listedResources.map((r) => r.uri);
 assert(resources.includes('pvad://schema/design-export'), `PVAD design-schema resource is exposed`);
 assert(resources.includes('pvad://schema/pvad-workbook'), `PVAD workbook-schema resource is exposed`);
 assert(resources.includes('pxa://schema/design-export'), `Legacy design-schema resource remains readable`);

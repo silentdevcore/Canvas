@@ -42,6 +42,12 @@ and distribution-file ownership. Command aliases and protocol readers remain
 separate compatibility contracts. Synthetic Admin screenshot examples use
 canonical license and key labels; existing issued licenses and keys are unchanged.
 
+MCP resource titles and descriptions use current names for both canonical and
+compatibility resource listings. Previous resource URIs and schema payloads
+remain exact contracts; a display-name correction does not migrate their formats.
+The [source acceptance review](pvad-rename-source-acceptance.md) records runtime
+evidence separately from retained identifiers and operational gates.
+
 ## Project Audit Details
 
 Project audit actions and the existing `formatId` are stable operational

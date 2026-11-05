@@ -145,23 +145,55 @@ historical images are unchanged. No remote workflow is triggered.
 - The refreshed ignored inventory is `artifacts/rename/remaining-identities/scan-current.json`: 20,687 textual occurrences in 633 files, 42 matching paths and 28 matching binary files. New explicit compatibility tests affect these counts; they do not measure unfinished work.
 - Two Patch fragments document corpus output and operational source defaults. VERSION, published release notes, databases and deployments are unchanged. This batch is not yet committed or pushed.
 
-### Next Acceptance Batch
+### Batch 5 - Scoped Source Acceptance
 
-Review the completed source changes against the tracked-only inventory and all
-four acceptance criteria, resolving only concrete current-output defects.
-Operator-authorized monitoring cutover and production/external gates remain
-separate. Successful local source tests are not deployment acceptance.
+Batch 4 was committed as `6d37dd51`, without a push. The independent source
+review found two remaining old MCP resource titles and a compatibility-resource
+description exposing the previous schema path as display text. Titles and
+descriptions now use current names; old resource URIs and original schema
+payloads remain exact. Real MCP-client tests compare the returned payloads and
+packaged stdio smoke verifies both generations.
+
+The [source acceptance matrix](../docs/pvad-rename-source-acceptance.md) records
+nine writer/reader boundaries and seven specific retained-finding categories.
+It distinguishes canonical output, input compatibility, bounded output aliases,
+persisted/cryptographic contracts, operational bindings and original evidence.
+The new direct writer guards check eight boundaries without consulting the
+exception ledger; deliberately reverted source fails every guard. Hash updates
+alone therefore cannot satisfy source acceptance.
+
+### Batch 5 Verification - 2026-11-05
+
+- API: 1,296 passed, 82 skipped. Core: 153 passed; Importer: 655 passed; webhook relay: seven passed. Skipped API scenarios remain unverified and do not count as deployment or external acceptance.
+- Node configuration, versioning, release-author and Admin contracts: 418 passed, none skipped. This includes eight direct writer checks and their deliberate-reversion test.
+- Shared website storage, telemetry, status and navigation tests: 37 passed. Designer: six suites with 47 passing tests; typecheck and production build passed.
+- MCP: 30 runtime tests and nine toolchain tests passed, none skipped. Typecheck, production build and packaged stdio smoke passed. The initial restricted IPC launch was rerun successfully outside the socket restriction; no network-facing deployment was started.
+- Documentation production build passed. Existing schema-format, module-format and bundler-size warnings are not waived or treated as new certification.
+- 104 original corpus, schema, audit, register, Legal, published-release and VERSION files remain byte-identical to the preceding commit. Five links in the new acceptance matrix resolve.
+- Historical audit-pinned review notes remain exact; current review explanations are separate additive fields where required. No original audit pointer, value or approval is rewritten.
+- Final guards pass: 281 tracked Markdown files have zero matches; structural JSON scans 497 files with 70 matching files and zero unclassified findings. The residual guard and diff whitespace check pass.
+- The refreshed ignored scan records 20,706 occurrences in 634 text files, 42 matching paths and 28 matching binary files. Deliberate compatibility and reverted-writer fixtures increase raw search counts without introducing new canonical-output defects.
+- A customer-facing Patch fragment covers MCP display metadata. VERSION remains 1.1.0, the published manifest is unchanged, and no new commit, push, merge, tag, publication or operational cutover is performed for this batch.
+
+### Remaining Operational Work
+
+Only the two unchecked operational tasks below the P2 heading remain in this
+scoped checklist: authorize and verify a real monitoring cutover, then obtain
+the actual production/external acceptance evidence. The primary rename plan's
+eight release gates and 90/98 historical total remain unchanged by this local
+source acceptance. Local tests do not authorize either operational step.
 
 ## Acceptance
 
-- [ ] All reviewed current-output defects are fixed and covered by regression tests.
-- [ ] Legacy readers remain functional; compatibility is not removed to reduce search counts.
-- [ ] Every retained category has a specific reason, not blanket approval of a whole file.
-- [ ] No source completion claim depends only on a passing exception ledger.
+- [x] All reviewed current-output defects are fixed and covered by regression tests.
+- [x] Legacy readers remain functional; compatibility is not removed to reduce search counts.
+- [x] Every retained category has a specific reason, not blanket approval of a whole file.
+- [x] No source completion claim depends only on a passing exception ledger.
 
 ## Related Plans
 
 - [Repository naming follow-up](PVAD.Repository-Naming-Followup.md)
 - [Rename plan](PVAD.Rename-Plan.md)
 - [Current output naming](../docs/pvad-current-output-naming.md)
+- [Scoped source acceptance](../docs/pvad-rename-source-acceptance.md)
 - [Compatibility boundaries](../docs/pvad-rename-exceptions.md)

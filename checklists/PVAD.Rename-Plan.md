@@ -23,6 +23,11 @@ The subsequent [remaining code review](PVAD.Remaining-Code-Naming-Cleanup.md)
 identified concrete current-writer and authorization findings at `e51a00aa`.
 Those findings must be resolved independently of the historical acceptance
 count above; an exception-ledger pass alone is not source completion.
+
+Their later [scoped source acceptance](../docs/pvad-rename-source-acceptance.md)
+records completed writer/reader corrections and independent runtime/mutation
+tests. Its two open operational tasks do not close any primary release gate or
+change the historical 90/98 total above.
 Integration still requires a separately requested commit and protected develop PR; production keys, domains,
 publishers, staging, an independent reviewer and Major release approval remain
 the explicit closure conditions in the matrix. VERSION stays 1.1.0. The older

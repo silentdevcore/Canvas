@@ -22,6 +22,12 @@ Production additionally remains fail-closed on 12 pending retention approvals.
 No existing approval row is closed by this review; earlier dates below retain
 their original scope.
 
+The later [remaining-code source acceptance](pvad-rename-source-acceptance.md)
+covers the scoped internal writer/reader corrections and MCP display metadata.
+It does not close any decision-register row below. Current deployment source
+defaults to the canonical image family, with explicit historical-family input
+still available; the dated source descriptions below retain their earlier scope.
+
 ## Decision Register
 
 | Area | Required decision or evidence | Responsible party | Status |
