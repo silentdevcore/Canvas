@@ -8,6 +8,13 @@ namespace PVAD.Core.Tests;
 
 public sealed class ChartMetadataCodecTests
 {
+    [Fact]
+    public void Pdf_metadata_writes_use_the_canonical_key_and_keep_an_explicit_reader_alias()
+    {
+        Assert.Equal("PVADChartsV2", ChartMetadataCodec.PdfInfoKey);
+        Assert.Equal("PXAChartsV2", ChartMetadataCodec.LegacyPdfInfoKey);
+    }
+
     [Theory]
     [InlineData("pxaMetadata")]
     [InlineData("pvadMetadata")]

@@ -468,13 +468,13 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "ec4d237d733c3e6bb7f755beb77a8cef19f5cb6036c8dca6e39ea03e03941fa0",
+      "sha256": "38bf8ed24e4dada7fc5d1dcc31c136f5b5529a764135338965266946b62cffac",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "reviewNotes": "2026-11-05 scoped review: Historical counts, results and neutral drawing references remain unchanged; the remaining-code checklist corrects the earlier broad completion claim.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged."
     },
@@ -2598,12 +2598,12 @@
     },
     {
       "path": "PVAD.WebApi/Infrastructure/PvadDesignerAccessMiddleware.cs",
-      "sha256": "b9e79f1455ec021d686022f2857c58374e93bdf94162ff7cc0e0e1a533e7bbc4",
+      "sha256": "407f21e7c0f678b8961ffe116b0acc32f4cd224073dcd33998a1058d3b41939e",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Infrastructure/PvadDesignerAccessMiddleware.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 scoped review: Only stable Designer diagnostics remain; canonical migration routes now honor scoped permissions after normalization.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -2799,12 +2799,12 @@
     },
     {
       "path": "PVAD.WebApi/Security/PvadStepUpAuthorization.cs",
-      "sha256": "ad4fbf6643f5f4bd8e5e46cede8cbd8b8ad818ff162a352272aae6565118d50f",
+      "sha256": "4cc5ed1078ac95fbced9158a0f22914cca0b1dbf7da9bed6f13046b9e1205649",
       "reasons": [
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "PVAD.WebApi/Security/PvadStepUpAuthorization.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewStatus": "resolved",
+      "reviewNotes": "2026-11-05 scoped review: Resolved: five internal policy names are canonical. Permission and session requirements are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -3009,12 +3009,12 @@
     },
     {
       "path": "src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs",
-      "sha256": "6e48cf947384cda9df05e15598ae586f7efd294f12cfec5abb31b01fd315cfb3",
+      "sha256": "450d307036b6a4fa00ba723428ab9d9d3162651e907a93219c2e56a09d4e588a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 scoped review: The former key is only LegacyPdfInfoKey; new output uses PdfInfoKey. Envelope hashes and limits are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
@@ -3300,12 +3300,12 @@
     },
     {
       "path": "src/Importing/PVAD.FileImporter/PdfFileImporter.cs",
-      "sha256": "c224da08d532fdf3388e0889f6badf90a70f3ce2e470302834bf829074e1c95b",
+      "sha256": "ed0e77abc63638f953fc9b41582c354a65c279b9485993cb0c4bac8a55719b95",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Importing/PVAD.FileImporter/PdfFileImporter.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 scoped review: Retain stable import diagnostics. Old and new keys are read; conflicting or malformed payloads preserve source graphics.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
@@ -3361,22 +3361,22 @@
     },
     {
       "path": "src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs",
-      "sha256": "bfa39f66b6303841ede4824269f6b635e9dbe1b804d39a0db1473a91513b0aa5",
+      "sha256": "cdf073e13eba747fc0d34e49d372fb29884d8563cb0a49ff72fa9641a864d92a",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 scoped review: Only the legacy reader marker remains; new streams remove it and write the canonical marker. Pixel, mask and residue checks remain mandatory.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
       "path": "src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs",
-      "sha256": "d501de13e67bff9266a645f067a9c186bee76869550f1a3d9325de93a3cf8263",
+      "sha256": "aa9a644ee4182b7a9749883f7b305c2c89b3e44cc60b93dd8c0cdcf96ee0e79c",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewNotes": "2026-11-05 scoped review: Only stable redaction diagnostics remain; all new resource suffixes are canonical.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4618,12 +4618,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadExportBrandingTests.cs",
-      "sha256": "44c858f054db82ca588a9e67e0d15a6554c90a0be31c03614ea2b49e5d5b917c",
+      "sha256": "17293b2cfca2364ea90eb086733c55bbcdc4f527d3b3038cd170f8f6b2dc3efd",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadExportBrandingTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-11-05 scoped review: Historical product words deliberately test preservation of customer metadata; chart output now requires the canonical key only.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -4794,12 +4794,12 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadPdfTrustSecurityTests.cs",
-      "sha256": "b58778f09aab11f132a9b9c2fb3842a794eec5a353654415879d4c3cd46f816c",
+      "sha256": "d3994442c593527f519179135930e5bee0054ba050ee82c853f10e688bbef30d",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Api.Tests/PvadPdfTrustSecurityTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-11-05 scoped review: Retain stable diagnostics; new assertions pin five canonical policy names while preserving step-up requirements.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5302,12 +5302,12 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfChartMetadataRoundTripTests.cs",
-      "sha256": "6f7ea0d9e4b1465bcd35fce3858847599b2201799c439f0996a87250a41506e3",
+      "sha256": "81d59a0ce897ab89d1fa2edd5bb28e90b2832efd61c9957a50ca82ffb14c4343",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Importer.Tests/PdfChartMetadataRoundTripTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-11-05 scoped review: Explicit historical key and stable diagnostic expectations cover canonical, legacy, identical, conflicting and malformed metadata.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
@@ -5365,12 +5365,12 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfImageRedactionTests.cs",
-      "sha256": "be105ed4b0aad2e31ebf9f6b06c348fc2aaa3a71b8da74860f68cacaf0e86afa",
+      "sha256": "9e02785713a2c971c732a086872dcd56e74a07aa82811a84b649a6951d43cc2b",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tests/PVAD.Importer.Tests/PdfImageRedactionTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
+      "reviewNotes": "2026-11-05 scoped review: Historical markers occur in legacy-input, removal and forgery assertions only; new resources and masks require canonical names.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -5588,12 +5588,12 @@
     },
     {
       "path": "tests/PVAD.Core.Tests/ChartMetadataCodecTests.cs",
-      "sha256": "6f284daa48a73643cb913ffe9c4fedb1a83226caadc37b2fbcd3403209799e7e",
+      "sha256": "646402d1212b31ee05f55826c1ddfb11fccc7eb3bda81a2de9dd92219531c06e",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Scoped repository naming follow-up: canonical current chart output, additive audit fields, bounded legacy inputs or synthetic regression coverage. Existing wire identifiers and original evidence are unchanged.",
+      "reviewNotes": "2026-11-05 scoped review: Historical sources and keys are explicit compatibility inputs; original hashes remain tested and new output requires the canonical key.",
       "boundaryGuide": "docs/pvad-current-output-naming.md"
     },
     {
@@ -6108,23 +6108,23 @@
     },
     {
       "path": "tools/configuration/rename-residual-review.mjs",
-      "sha256": "724e3fe4341b5933637f999a38ce8f517e627751b804339f8d001e5f0f5b0547",
+      "sha256": "96eaa616b0834536756d4d571c46dc888742274ce65c4774309aeb4dcd74abcf",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/configuration/rename-residual-review.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Old names occur in the rename audit/parser itself and do not rename arbitrary file contents. 2026-10-30 policy review: repeated checklist notices are no longer required or generated. Exact legacy path/reader/diagnostic references and original checkpoints remain documented; editorial normalization does not change runtime contracts, approve publication or complete tasks. Naming and path-migration tests cover the updated policy.",
+      "reviewNotes": "2026-11-05 scoped review: Historical patterns are search inputs only; resolved records require clean tracked regular source files and exact reviewed hashes.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
     {
       "path": "tools/configuration/rename-residual-review.test.mjs",
-      "sha256": "5a38322ade4da615543ae2c165c1504252a01eccfd378a8b68252fc514c30528",
+      "sha256": "4cf2e355550c6e0296fe8cbd69caaac0c08d8aabe1c1f4386e19e190d9a36c23",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/configuration/rename-residual-review.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. Old names occur in the rename audit/parser itself and do not rename arbitrary file contents.",
+      "reviewNotes": "2026-11-05 scoped review: Historical strings are deliberate scanner and reintroduction inputs. Resolved-state tests reject changed, missing, untracked, private and symlinked files.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
@@ -6140,12 +6140,12 @@
     },
     {
       "path": "tools/configuration/runtime-brand-contract.test.mjs",
-      "sha256": "1867485e416e365e7febdd4422cc2a6a7d91c40fbae81d9f2ce64d25dd6979bd",
+      "sha256": "e75cf2c6e8e79bf13d77bc1abeb3697749b777638e2eea6393aa3a24f4aebf33",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
+      "reviewNotes": "2026-11-05 scoped review: Historical literals are bounded reader expectations or negative assertions; current PDF writers and synthetic Admin labels have canonical guards.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
     },
@@ -6423,12 +6423,12 @@
     },
     {
       "path": "tools/pdf-parser-fuzzer/Program.cs",
-      "sha256": "becf917fbd8da87bc50f378d2c30fe53bdce1fcce021e6611609f6fb4318f628",
+      "sha256": "3174d893fb02c49e7cf3419fa2936da3f45724ec7fdc647d222266b74ea1df06",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
-      "reviewNotes": "tools/pdf-parser-fuzzer/Program.cs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately. Generator/result identifiers, synthetic subjects and parser labels stay aligned with the retained corpus and evidence readers.",
+      "reviewNotes": "2026-11-05 scoped review: Local variables and temporary paths are canonical. Report parser IDs and stable diagnostics remain unchanged pending a separate report-contract transition.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6593,12 +6593,12 @@
     },
     {
       "path": "tools/PVAD.Mcp/Dockerfile",
-      "sha256": "324d29d9cf4b978a92f81b7d868006eeea20b9853c8f45902235e6dd191c291c",
+      "sha256": "73d952d351d93dc1ad1765c8d42c8717f847b770f91a8199f57e8468f391bc3a",
       "reasons": [
         "infrastructure-binding"
       ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "tools/PVAD.Mcp/Dockerfile: Retain physical mounts, services, volume/registry identities, monitoring selectors, established hosts or explicit legacy configuration aliases; changing these requires coordinated infrastructure cutover. 2026-10-29 Linux CI review: include manifest-registered offline schemas and map ImageMagick 6/7 commands without changing preserved identities or visual acceptance thresholds.",
+      "reviewStatus": "resolved",
+      "reviewNotes": "2026-11-05 scoped review: Resolved: runtime user, group and distribution ownership are canonical and non-root. No image publication occurred.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {
@@ -6947,12 +6947,12 @@
     },
     {
       "path": "websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs",
-      "sha256": "11a7283eefd5207e4f6184d5990ea47d7fa5f92d05fdbe0cea8b1913ab997561",
+      "sha256": "f2e627ae550ce88dace4f2473abd6138ef642a8ed065d382e0db184c305df923",
       "reasons": [
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
-      "reviewNotes": "websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
+      "reviewStatus": "resolved",
+      "reviewNotes": "2026-11-05 scoped review: Resolved: synthetic license numbers and key prefixes are canonical; issued credentials and existing screenshot bytes are unchanged.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md"
     },
     {

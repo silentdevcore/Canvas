@@ -185,7 +185,7 @@ function responseFor(path) {
   if (path === '/api/pvad/v1/admin/licenses') {
     return [{
       id: licenseId,
-      licenseNumber: 'PXA-ENT-2026-0042',
+      licenseNumber: 'PVAD-ENT-2026-0042',
       organizationId,
       organizationName: 'Northwind Labs',
       edition: 'Enterprise',
@@ -212,7 +212,7 @@ function responseFor(path) {
         id: '60000000-0000-4000-8000-000000000002',
         serviceAccountId,
         name: 'Production worker',
-        prefix: 'pxa_live_****',
+        prefix: 'pvad_live_****',
         expiresAt: '2026-12-31T00:00:00Z',
         lastUsedAt: now,
         createdAt: '2026-04-10T09:05:00Z',

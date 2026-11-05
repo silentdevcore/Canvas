@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hasLegacyIdentity, residualFiles, validateReview } from './rename-residual-review.mjs';
+import { hasLegacyIdentity, residualFiles, resolvedReviewFiles, validateReview } from './rename-residual-review.mjs';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -79,4 +80,39 @@ test('residual entries require known reasons, hashes and unique paths', () => {
   assert.throws(() => validateReview([file], duplicate), /duplicate/);
   const invalid = ledger(); invalid.files[0].sha256 = 'not-a-hash';
   assert.throws(() => validateReview([file], invalid), /Invalid/);
+});
+
+test('resolved records require a verified clean tracked source and its exact reviewed hash', () => {
+  const root = mkdtempSync(join(tmpdir(), 'pvad-resolved-naming-'));
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: root });
+    const path = 'runtime.ts';
+    const source = 'const product = "PVAD";';
+    writeFileSync(join(root, path), source);
+    execFileSync('git', ['add', '--', path], { cwd: root });
+    const value = ledger();
+    value.files[0] = { ...value.files[0], path, reviewStatus: 'resolved',
+      sha256: createHash('sha256').update(source).digest('hex') };
+    assert.deepEqual(validateReview([], value), [path], 'A status flag alone cannot certify resolution.');
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), []);
+
+    writeFileSync(join(root, path), source + '\n');
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), [path]);
+    writeFileSync(join(root, path), 'const product = "PXA";');
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    assert.deepEqual(validateReview(residualFiles(root), value, resolvedReviewFiles(root, value)), [path]);
+
+    rmSync(join(root, path));
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), [path]);
+    writeFileSync(join(root, 'untracked.ts'), source);
+    symlinkSync('untracked.ts', join(root, path));
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    value.files[0].path = 'untracked.ts';
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    mkdirSync(join(root, '.vscode'));
+    writeFileSync(join(root, '.vscode/private.ts'), source);
+    execFileSync('git', ['add', '--', '.vscode/private.ts'], { cwd: root });
+    value.files[0].path = '.vscode/private.ts';
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

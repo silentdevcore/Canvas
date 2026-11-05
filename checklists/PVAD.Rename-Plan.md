@@ -19,8 +19,11 @@ seven develop checks, three main checks and unchanged retained environments.
 Local HEAD is 12 commits beyond the observed develop revision, with additional
 uncommitted work; no new clean-commit whole-candidate CI acceptance is claimed.
 
-No further cosmetic rename campaign is needed. The next integration step is a
-separately requested commit and protected develop PR; production keys, domains,
+The subsequent [remaining code review](PVAD.Remaining-Code-Naming-Cleanup.md)
+identified concrete current-writer and authorization findings at `e51a00aa`.
+Those findings must be resolved independently of the historical acceptance
+count above; an exception-ledger pass alone is not source completion.
+Integration still requires a separately requested commit and protected develop PR; production keys, domains,
 publishers, staging, an independent reviewer and Major release approval remain
 the explicit closure conditions in the matrix. VERSION stays 1.1.0. The older
 dated observations below remain historical and are not promoted to new results.

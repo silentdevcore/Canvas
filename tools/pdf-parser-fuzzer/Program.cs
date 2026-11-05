@@ -32,7 +32,7 @@ var mutations = CreateMutations(source)
     .ToArray();
 var results = new List<MutationResult>(mutations.Length);
 var externalParsers = DiscoverExternalParsers();
-var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pxa-pdf-fuzz-{Guid.NewGuid():N}");
+var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pvad-pdf-fuzz-{Guid.NewGuid():N}");
 Directory.CreateDirectory(temporaryDirectory);
 
 try
@@ -42,11 +42,11 @@ try
         var mutation = mutations[index];
         var inputPath = Path.Combine(temporaryDirectory, $"case-{index:D3}.pdf");
         await File.WriteAllBytesAsync(inputPath, mutation.Bytes);
-        var pxa = await RunIsolatedCaseAsync(inputPath, childTimeoutMilliseconds);
+        var pvad = await RunIsolatedCaseAsync(inputPath, childTimeoutMilliseconds);
         var external = new List<ParserOutcome>(externalParsers.Count);
         foreach (var parser in externalParsers)
             external.Add(await RunExternalParserAsync(parser, inputPath, childTimeoutMilliseconds));
-        results.Add(mutation.ToResult(pxa, external));
+        results.Add(mutation.ToResult(pvad, external));
     }
 }
 finally
@@ -469,9 +469,9 @@ static Mutation Insert(byte[] source, string id, int offset, byte[] inserted)
 
 sealed record Mutation(string Id, byte[] Bytes)
 {
-    public MutationResult ToResult(ParserOutcome pxa, IReadOnlyList<ParserOutcome> external)
+    public MutationResult ToResult(ParserOutcome pvad, IReadOnlyList<ParserOutcome> external)
     {
-        var outcomes = new[] { pxa }.Concat(external).ToArray();
+        var outcomes = new[] { pvad }.Concat(external).ToArray();
         var decisions = outcomes
             .Where(outcome => outcome.Status is "accepted" or "rejected")
             .Select(outcome => outcome.Status)

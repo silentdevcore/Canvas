@@ -43,6 +43,14 @@ test('Admin screenshot and smoke producers accept canonical environment inputs t
   }
 });
 
+test('Admin screenshot examples use canonical synthetic license and key identities', () => {
+  const source = readFileSync(resolve(root,
+    'websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs'), 'utf8');
+  assert.match(source, /licenseNumber: 'PVAD-ENT-/);
+  assert.match(source, /prefix: 'pvad_live_/);
+  assert.doesNotMatch(source, /PXA-ENT-|pxa_live_/);
+});
+
 test('Designer text renderer requests the bundled font registered for every style', () => {
   const renderer = readFileSync(resolve(root,
     'pvad-designer/src/components/Rendering/PdfTextRenderer.tsx'), 'utf8');
@@ -110,7 +118,6 @@ test('generation, importing and infrastructure retain only documented legacy ide
   const exceptions = {
     'src/Generation/PVAD.Generator/EInvoicePageLayout.cs': ['"pxa.e-invoice.pagination/1"'],
     'src/Importing/PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs': ['"PXA.ImageOcr"'],
-    'src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs': ['_PXARedacted'],
     'src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs': ['"PXARedacted"'],
     'src/Infrastructure/PVAD.Infrastructure.Converters/XmlDocumentExporter.cs': ['"PxaDocument"'],
     'src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs': ['"pxa-database"'],
@@ -133,6 +140,19 @@ test('generation, importing and infrastructure retain only documented legacy ide
     assert.equal(/PXA|Pxa|pxa|Power\s?Dox/.test(source), false, path);
   }
   assert.deepEqual([...seen].sort(), Object.keys(exceptions).sort());
+});
+
+test('chart and redaction writers use canonical identities with explicit legacy readers', () => {
+  const chart = readFileSync(resolve(root, 'src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs'), 'utf8');
+  assert.match(chart, /PdfInfoKey = "PVADChartsV2"/);
+  assert.match(chart, /LegacyPdfInfoKey = "PXAChartsV2"/);
+  const images = readFileSync(resolve(root, 'src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs'), 'utf8');
+  assert.match(images, /dictionary\[LegacyRedactedMarker\] = null/);
+  assert.match(images, /dictionary\[RedactedMarker\] = new PdfBoolean\(true\)/);
+  assert.doesNotMatch(images, /dictionary\[LegacyRedactedMarker\] = new PdfBoolean/);
+  const applier = readFileSync(resolve(root, 'src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs'), 'utf8');
+  assert.match(applier, /_PVADRedacted/);
+  assert.doesNotMatch(applier, /_PXARedacted/);
 });
 
 test('all joined Core legacy names are bounded by diagnostic or explicit serialized-reader contracts', () => {

@@ -27,7 +27,8 @@ public sealed class ChartMetadataEntry
 
 public static class ChartMetadataCodec
 {
-    public const string PdfInfoKey = "PXAChartsV2";
+    public const string PdfInfoKey = "PVADChartsV2";
+    public const string LegacyPdfInfoKey = "PXAChartsV2";
     public const int MaximumCharts = 256;
     public const int MaximumCompressedBytes = 512 * 1024;
 

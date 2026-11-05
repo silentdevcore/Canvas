@@ -1,5 +1,12 @@
 # PVAD Repository Naming Follow-up
 
+## Additional Current-Code Review
+
+The [remaining code cleanup](PVAD.Remaining-Code-Naming-Cleanup.md) tracks the
+new findings at `e51a00aa`. It separates internal names, canonical document and
+protocol writers, retained readers and operational cutover. The earlier completed
+tasks and recorded results below keep their original scope and status.
+
 ## Baseline And Scope
 
 Baseline commit: `aa7c18cb`. The tracked-only case-insensitive deep search found

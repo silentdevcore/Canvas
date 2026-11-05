@@ -40,6 +40,13 @@ function runCompiler(args) {
   return { status: result.status, output: result.stdout + result.stderr };
 }
 
+test('the MCP runtime uses canonical non-root user, group and ownership', () => {
+  const dockerfile = readFileSync(new URL('./Dockerfile', import.meta.url), 'utf8');
+  assert.match(dockerfile, /RUN addgroup -S pvad && adduser -S -G pvad -h \/app pvad/);
+  assert.match(dockerfile, /COPY --from=build --chown=pvad:pvad /);
+  assert.match(dockerfile, /^USER pvad$/m);
+});
+
 function checkSource(source) {
   const directory = mkdtempSync(join(tmpdir(), 'pvad-mcp-compiler-'));
   try {

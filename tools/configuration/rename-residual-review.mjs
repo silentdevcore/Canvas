@@ -32,7 +32,22 @@ export function residualFiles(root) {
   });
 }
 
-export function validateReview(files, ledger) {
+export function resolvedReviewFiles(root, ledger) {
+  const entries = ledger.files.filter(entry => entry.reviewStatus === 'resolved');
+  if (!entries.length) return [];
+  const tracked = new Set(execFileSync('git', ['ls-files', '-z'],
+    { cwd: root, encoding: 'utf8' }).split('\0'));
+  return entries.flatMap(entry => {
+    if (!tracked.has(entry.path) || /(?:^|\/)(?:\.vscode|\.git|\.aws|\.codex)(?:\/|$)/i.test(entry.path)) return [];
+    const absolute = resolve(root, entry.path);
+    if (!lstatSync(absolute, { throwIfNoEntry: false })?.isFile()) return [];
+    const bytes = readFileSync(absolute);
+    if (hasLegacyIdentity(entry.path + '\n' + bytes.toString('utf8'))) return [];
+    return [{ path: entry.path, sha256: createHash('sha256').update(bytes).digest('hex') }];
+  });
+}
+
+export function validateReview(files, ledger, resolvedFiles = []) {
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.files)) throw new Error('Invalid residual review schema.');
   const recorded = new Map();
   for (const entry of ledger.files) {
@@ -49,14 +64,19 @@ export function validateReview(files, ledger) {
       || typeof entry.reviewNotes !== 'string' || entry.reviewNotes.trim().length < 20) failures.push(file.path);
     recorded.delete(file.path);
   }
-  failures.push(...recorded.keys());
+  const resolved = new Map(resolvedFiles.map(file => [file.path, file.sha256]));
+  for (const entry of recorded.values()) {
+    if (entry.reviewStatus !== 'resolved' || resolved.get(entry.path) !== entry.sha256 ||
+        typeof entry.reviewNotes !== 'string' || entry.reviewNotes.trim().length < 20)
+      failures.push(entry.path);
+  }
   return failures.sort();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const ledger = JSON.parse(readFileSync(resolve(root, ledgerPath), 'utf8'));
-  const failures = validateReview(residualFiles(root), ledger);
+  const failures = validateReview(residualFiles(root), ledger, resolvedReviewFiles(root, ledger));
   for (const entry of ledger.files) {
     if (typeof entry.boundaryGuide !== 'string' || !existsSync(resolve(root, entry.boundaryGuide)))
       failures.push(`${entry.path}: missing boundary guide`);

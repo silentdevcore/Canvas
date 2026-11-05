@@ -416,7 +416,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
     {
         for (var index = 1; ; index++)
         {
-            var candidate = $"{original}_PXARedacted{index}";
+            var candidate = $"{original}_PVADRedacted{index}";
             if (resources[candidate] is null)
             {
                 return candidate;
