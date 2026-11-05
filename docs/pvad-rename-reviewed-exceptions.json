@@ -7987,7 +7987,8 @@
     },
     {
       "path": "docs/pvad-rename-release-dry-run.md",
-      "sha256": "7c029af9427b6cac106617591a71a40bdf66556530ea64fd22de10a191d23744",
+      "sha256": "9c67be1a33cc9aad0c17822df3e087048589d85b68c17316ff3944f943e0ce8b",
+      "currentReviewNotes": "2026-11-05: Added the committed-source integration and isolated metadata-copy release checkpoint. Original results and repository evidence URLs remain intact; no compatibility value or historical review note is rewritten.",
       "reasons": [
         "compatibility-contract",
         "historical-document"

@@ -210,6 +210,31 @@ leaks. Markdown, structural JSON, residual-ledger and release-fragment checks
 pass. No full .NET or Designer regression is newly claimed for this internal
 documentation-only update, and no installed system was changed.
 
+### Committed Integration Checkpoint - 2026-11-05
+
+The preceding monitoring-evidence update was committed as `2705019f`, without
+a push. On that tracked-clean commit, all 22 local build/test/preview steps
+passed. The Solution builds with zero errors and 115 warnings. Designer passes
+typecheck, all 812 tests in 92 suites and production build. All five websites
+pass their test/build commands, and Account typecheck passes. MCP passes typecheck,
+30 runtime tests, nine toolchain tests, build and packaged distribution smoke.
+The separate local CI-contract selection passes 416 tests across 58 files.
+
+All six frontend build identities match version 1.1.0 and the committed source.
+An actual temporary-copy release preparation validates the Major 2.0.0 proposal
+from 209 fragments; 57 internal entries stay out of the 152 public changes.
+Confirmation, invalid-PR, version-reuse and empty-repeat checks pass. The 239
+original metadata hashes, checkout versions, published manifest, HEAD and tags
+remain unchanged; the temporary copy is removed. The freshly built Documentation
+also passes 45 static reference and three live focus-route checks.
+
+The [integration checkpoint](../docs/pvad-rename-release-dry-run.md#committed-integration-preflight-2026-11-05)
+records ignored report locations and exact limits. This is not a fresh full
+.NET/database runtime, full Designer E2E, DocFX, native OS or remote PR CI run.
+No operational checkbox changes: scoped acceptance stays **29/31 (93.5%)** and
+primary acceptance **90/98 (91.8%)**. Subsequent documentation edits are not part
+of that clean-commit execution.
+
 ### Remaining Operational Work
 
 Only the two unchecked operational tasks below the P2 heading remain in this

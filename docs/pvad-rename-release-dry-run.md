@@ -100,6 +100,59 @@ portable pending release-guide links. Whole-Solution compilation, runtime
 acceptance, DocFX generation, browser checks and image builds were not repeated
 for this documentation-only follow-up; prior CI evidence retains its own scope.
 
+## Committed Integration Preflight (2026-11-05)
+
+This later checkpoint ran against tracked-clean commit
+`2705019ff2e792a00f66ae908b247c434f821268`. It supersedes neither the historical
+execution above nor the separate HTTPS/monitoring reports. No tracked source
+changed during the build, test or metadata-copy preparation. The following
+documentation edits were made afterward and were not part of that execution.
+
+| Check | Committed-source result |
+| --- | --- |
+| Solution build | Passed, zero errors and 115 compiler/analyzer warnings; warnings are not waived |
+| Designer | Typecheck, 812 tests in 92 suites, production build passed |
+| Websites | Account 53, Admin 39, Company 62, Demo 4 and Documentation 60 tests passed; all five production builds and Account typecheck passed |
+| MCP | Typecheck, 30 runtime tests, nine toolchain tests, production build and packaged distribution smoke passed |
+| Local CI contract selection | 416 passed across 58 configuration/versioning/deployment/visual-tool test files; zero failed or skipped |
+| Frontend build identity | All six manifests identify PVAD 1.1.0 and commit `2705019ff2e7` |
+| Preview | 209 fragments: 152 public, 57 internal-only; Major proposal 2.0.0 across all 14 components |
+| Public categories | 25 added, 27 improved, 77 fixed, 14 previously reviewed security and nine breaking; no deprecated entries |
+| Determinism | Repeated library previews and Markdown rendering match; CLI JSON matches the library preview |
+| Actual preparation rehearsal | Temporary metadata copy only; seven packages, three locks and container defaults synchronize to 2.0.0, and fragments are consumed there |
+| Major confirmation | Missing confirmation is rejected without changing copied files; all copied source hashes remain exact until explicitly preparing the temporary copy |
+| Main PR boundary | Unprepared source is rejected; prepared develop plus release:major passes; four missing/multiple/wrong-label or wrong-source cases fail |
+| Reuse and cleanup | Non-forward version validation and empty repeat preparation fail; temporary metadata copy is removed |
+| Reference checks | 45 static file/directory targets resolve; all three linked focus routes are visible in the freshly built Documentation with no browser errors |
+| Preservation | 239 tracked metadata files retain their hashes; checkout VERSION, published manifest, HEAD and tags are unchanged |
+
+These test selections overlap; their counts are not added as unique coverage.
+The Solution was compiled, not runtime-tested in this checkpoint. Full .NET/API
+and database suites, full authenticated Designer E2E, DocFX generation, native OS
+acceptance and external hosts were not repeated. Earlier evidence retains its
+original source revision and limits.
+
+The 32 repository-only references in the internal preview are not public website
+URLs. The reference check does not publish operator guides or make checklist paths
+public. The first link probe used the previously built local assets; the final
+`release-links-current-build.json` probe additionally verifies the actual served
+build metadata against the new committed source. Neither is public-host acceptance.
+
+Ignored evidence is stored under
+`artifacts/rename/integration-preflight/2705019f/`:
+
+- `report.json`: 22 build/test/preview steps, exact commit and preservation checks.
+- `ci-contracts.json`: the separate local CI-contract selection and log hash.
+- `release-rehearsal.json`: actual temporary preparation, negative cases and 239 source pins.
+- `release-preview.json` and `RELEASE_NOTES.md`: deterministic internal-only previews.
+- `release-links-current-build.json`: 45 static references, three browser routes and served build metadata.
+- `summary.json`: scope, test totals, six build identities, 28 artifact hashes and explicit unverified areas.
+
+This is local supporting evidence, not protected GitHub CI or independent
+attestation. VERSION remains 1.1.0; no actual checkout release preparation, tag,
+push, merge, package publication, database change or deployment occurred. Primary
+acceptance remains **90/98 (91.8%)**, with the same eight gates open.
+
 ## Remaining Release And Operational Gates
 
 | Primary gate | Evidence still required |

@@ -134,6 +134,33 @@ Designer, installed-service or external-target acceptance is claimed by these
 post-run documentation checks. This update has internal-only release impact;
 VERSION and published notes are unchanged.
 
+### Committed Integration Checkpoint (2026-11-05)
+
+The preceding evidence update was committed as `2705019f`, without a push. A
+tracked-clean local preflight on that commit passed all 22 build/test/preview
+steps: complete Solution build, Designer typecheck/812 tests/build, all five
+website test/build commands, Account typecheck, MCP typecheck/tests/build/packaged
+smoke and release metadata validation. The Solution build has zero errors and
+115 warnings; this is not a warning-free certification or a new .NET runtime
+test run. A separate 58-file local CI contract selection passes 416 tests.
+
+The six frontend manifests match version 1.1.0 and commit `2705019ff2e7`.
+Actual release preparation was repeated only in a disposable metadata copy:
+209 fragments produce a Major 2.0.0 proposal, with 152 public and 57 internal
+entries. Confirmation, invalid PR, non-forward version and repeated empty
+preparation checks pass. All 239 original metadata hashes, checkout versions,
+HEAD and tags are unchanged. The final built-Documentation browser probe verifies
+45 static reference targets, three visible focus routes and the served commit.
+
+See the [detailed integration checkpoint](pvad-rename-release-dry-run.md#committed-integration-preflight-2026-11-05)
+and ignored `artifacts/rename/integration-preflight/2705019f/summary.json`.
+Its counts overlap other selections and are not a unique-coverage total. Full
+.NET/database runtime suites, full authenticated Designer E2E, DocFX and native
+OS checks were not repeated. Remote PR checks and actual staging/production
+acceptance remain unverified by this local run. **All eight primary gates stay
+open; acceptance remains 90/98 (91.8%).** Subsequent internal documentation edits
+are outside the tested clean source commit.
+
 ## Earlier GitHub Observation
 
 GET-only checks on 2026-11-05 observed the following non-atomic snapshot of the
@@ -193,9 +220,9 @@ provide actual review evidence through their established workflow.
 
 ## Completion Sequence
 
-1. The scoped source closeout is committed as `09d68f22`. Review and commit the
-   subsequent evidence/documentation update only when requested. Preserve
-   unrelated work.
+1. The scoped source closeout is committed as `09d68f22` and its monitoring
+   revalidation as `2705019f`. Review and commit the subsequent integration
+   documentation update only when requested. Preserve unrelated work.
 2. Integrate through a normal protected PR to `develop`, with the required checks
    at the exact committed head. No direct push, bypass or release bump.
 3. Product owner selects remaining publisher identities and names production
