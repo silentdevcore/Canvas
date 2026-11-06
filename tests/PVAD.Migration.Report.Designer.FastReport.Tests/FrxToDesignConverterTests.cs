@@ -415,7 +415,7 @@ public sealed class FrxToDesignConverterTests
     }
 
     // A group-footer aggregate (Sum) scopes to the current group ($group) and translates to the
-    // executable PXA helper; a plain arithmetic expression translates to bare field identifiers.
+    // executable PVAD helper; a plain arithmetic expression translates to bare field identifiers.
     [Fact]
     public void GroupFooterAggregate_TranslatesToGroupScopedSum()
     {

@@ -19,9 +19,9 @@ test('dashboard display titles and tags are canonical while physical links remai
     for (const panel of dashboard.panels)
       if (panel.datasource?.uid) assert.match(panel.datasource.uid, /^pxa-(?:prometheus|loki)$/);
   }
-  const provider = load(read('deploy/observability/grafana/provisioning/dashboards/dashboards.yml')).providers[0];
-  assert.equal(provider.name, 'PXA');
-  assert.equal(provider.folder, 'PXA');
+  const provider = load(read('deploy/observability/grafana/profiles/current/dashboards.yml')).providers[0];
+  assert.equal(provider.name, 'PVAD');
+  assert.equal(provider.folder, 'PVAD');
   assert.equal(provider.disableDeletion, true);
   const sources = load(read('deploy/observability/grafana/provisioning/datasources/datasources.yml')).datasources;
   for (const source of sources) {

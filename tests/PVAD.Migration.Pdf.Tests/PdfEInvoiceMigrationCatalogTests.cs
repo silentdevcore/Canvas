@@ -53,7 +53,7 @@ public sealed class PdfEInvoiceMigrationCatalogTests
             Assert.False(
                 string.IsNullOrWhiteSpace(capability.DocumentationPath),
                 $"{providerKey}/{capability.Capability} must link to documentation.");
-            // "Unsupported" is the only disposition allowed to have no PXA equivalent, and a
+            // "Unsupported" is the only disposition allowed to have no PVAD equivalent, and a
             // supported one is never left without markers to detect it.
             if (capability.Disposition == PdfTrustMigrationDisposition.Unsupported)
             {

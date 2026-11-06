@@ -4,6 +4,37 @@ Review date: **2026-11-05**. Technical identity: **PVAD**. Market identity:
 **PVADE**. This is internal acceptance guidance, not authorization to publish,
 deploy, change protection rules or alter installed data.
 
+## Current Repository-Only Scope (2026-11-06)
+
+The owner has limited the active task to repository renaming. The source rename
+uses PVAD technically and PVADE for product/Designer presentation. Its current
+scope and compatibility boundaries are recorded in the
+[rename plan](../checklists/PVAD.Rename-Plan.md#current-repository-only-scope-2026-11-06)
+and [source acceptance](pvad-rename-source-acceptance.md).
+
+The original release/cutover matrix below remains historical tracking for a
+later rollout, not the completion criterion for this repository-only task.
+Keep all eight original gates open without treating publisher registration,
+deployment, external approvals or an actual release as required rename work.
+The original denominator, checkbox states and earlier execution evidence stay
+unchanged. This clarification authorizes no publication or operational change.
+
+### Grafana Repository Defaults (2026-11-06)
+
+Fresh local monitoring configurations now select the PVAD provider/folder;
+existing installations have an explicit legacy-provider overlay. The
+[focused verification](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#grafana-repository-defaults---2026-11-06)
+covers actual Compose selection, fresh synthetic provisioning, legacy folder
+ACL continuity and point-in-time restore. Original provisioning, dashboards and
+running installed services remain unchanged.
+
+The earlier integrated HTTP/authentication and monitoring reports below retain
+their original bytes and source pins. Changed provisioning helpers make affected
+pins historical, not a current whole-candidate pass. The new focused Grafana
+report does not recertify the earlier combined browser, telemetry, alert-delivery
+or recovery scenarios. Those broader operational reruns are outside the active
+repository-only task; no prior report or approval is relabeled.
+
 ## Decision
 
 The repository source naming work is complete for the reviewed scope. No further

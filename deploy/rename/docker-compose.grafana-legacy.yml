@@ -1,0 +1,6 @@
+# Explicit provider compatibility for an existing Grafana installation.
+# This overrides only the provider file, not storage, credentials, UIDs or ACLs.
+services:
+  pvad-grafana:
+    volumes:
+      - './deploy/observability/grafana/provisioning/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro'

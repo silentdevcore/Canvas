@@ -27,7 +27,7 @@ namespace PVAD.Generator.Tests;
 /// </para>
 /// <para>
 /// veraPDF proves PDF/A properties only. It says nothing about Factur-X, ZUGFeRD or XRechnung
-/// business conformance, which needs the official artifact sets PXA does not ship.
+/// business conformance, which needs the official artifact sets PVAD does not ship.
 /// </para>
 /// </remarks>
 public sealed class EInvoicePdfaFixtureTests

@@ -10,8 +10,8 @@ import type { UserInfo } from '../src/api.ts';
 function user(id: string, organizationId: string): UserInfo {
   return {
     id,
-    username: `${id}@pxa.test`,
-    email: `${id}@pxa.test`,
+    username: `${id}@pvad.test`,
+    email: `${id}@pvad.test`,
     displayName: id,
     roles: [],
     permissions: [],

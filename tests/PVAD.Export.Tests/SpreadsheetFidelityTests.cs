@@ -219,6 +219,6 @@ public sealed class SpreadsheetFidelityTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
-        return directory?.FullName ?? throw new DirectoryNotFoundException("Could not find PXA repository root.");
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Could not find PVAD repository root.");
     }
 }

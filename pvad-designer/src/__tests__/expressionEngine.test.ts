@@ -1,6 +1,6 @@
 import { evaluateExpression, ExpressionContext } from '../template/expressionEngine';
 
-// Proves that the PXA-grammar expressions emitted by the migration ExpressionTranslator
+// Proves that the PVAD-grammar expressions emitted by the migration ExpressionTranslator
 // (RDL/DevExpress → $iif/$concat/$and/operators) actually evaluate in the preview engine.
 describe('expressionEngine — migrated expression helpers', () => {
   const ctx = (data: Record<string, any>): ExpressionContext => ({ data });

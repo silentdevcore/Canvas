@@ -7,7 +7,7 @@ namespace PVAD.Importer.Tests;
 
 /// <summary>
 /// A hybrid-reference file keeps a classic table for old readers and an /XRefStm for
-/// PDF 1.5+ readers. If PXA read only the classic table it could resolve different bytes
+/// PDF 1.5+ readers. If PVAD read only the classic table it could resolve different bytes
 /// than the viewer showing the document.
 /// </summary>
 public sealed class PdfHybridCrossReferenceTests

@@ -293,7 +293,7 @@ test.describe('electronic invoice workspace', () => {
       status: 503,
       contentType: 'application/problem+json',
       body: JSON.stringify({
-        type: 'https://pxa.invalid/problems/unavailable',
+        type: 'https://pvad.invalid/problems/unavailable',
         title: 'The invoice worker is unavailable.',
         status: 503,
       }),

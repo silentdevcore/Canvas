@@ -2,7 +2,7 @@
 
 This directory prepares the remaining internal rename work. It does not deploy,
 register packages, install OS associations, send mail, inspect real keys or alter
-the current application defaults. The [rename tracker](../../checklists/PVAD.Rename-Plan.md)
+installed services. The [rename tracker](../../checklists/PVAD.Rename-Plan.md)
 records current completion; older 88/97 figures belong to earlier checkpoints.
 Offline preparation does not close real release/cutover gates.
 
@@ -98,6 +98,30 @@ this follow-up. Before a real cutover, verify actual volume IDs,
 backups, mounts and key access and stop the old writers. **Never run two PostgreSQL
 servers on one data volume or old/new workers concurrently without the separately
 validated lease/cutover procedure.** Keep the verified old model for rollback.
+
+## Grafana Provider Compatibility
+
+New local stacks use the PVAD provider and folder from
+`../observability/grafana/profiles/current/dashboards.yml`. The original provider
+and datasource configuration remain unchanged for installed services.
+`docker-compose.grafana-legacy.yml` selects only the retained provider file;
+the complete `docker-compose.legacy.yml` also selects that file while preserving
+its other explicit legacy resource bindings.
+
+Review the minimal selection without starting resources:
+
+```bash
+node tools/configuration/pvad-compose.mjs -f docker-compose.yml \
+  -f deploy/rename/docker-compose.grafana-legacy.yml \
+  --profile observability config
+```
+
+For an installed stack, keep the same verified Compose project and storage.
+The minimal overlay does not supply missing physical resource bindings. Neither
+overlay migrates a Grafana database, keys, credentials, dashboard/datasource UIDs
+or permissions. Do not use the fresh defaults as an automatic upgrade; follow
+the [provider cutover guide](../../docs/pvad-grafana-provider-cutover.md) if an
+installed folder is deliberately renamed later.
 
 ## File Types Are Not Yet OS Open Support
 

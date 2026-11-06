@@ -60,6 +60,8 @@ services:
       pvad-observability:
         aliases: [pxa-tempo]
   pvad-grafana:
+    volumes:
+      - './deploy/observability/grafana/provisioning/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro'
     environment:
       GF_SECURITY_ADMIN_USER: ${PVAD_GRAFANA_ADMIN_USER:-pxa-operator}
       GF_SECURITY_ADMIN_PASSWORD: ${PVAD_GRAFANA_ADMIN_PASSWORD:-pxa-local-observability}

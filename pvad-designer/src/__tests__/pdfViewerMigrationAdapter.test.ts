@@ -44,7 +44,7 @@ describe('PDF Viewer migration handoff', () => {
     });
   });
 
-  it('transfers migrated annotations and form values into the PXA Viewer once', () => {
+  it('transfers migrated annotations and form values into the PVADE Viewer once', () => {
     const annotation = {
       id: 'note-1',
       type: 'note' as const,

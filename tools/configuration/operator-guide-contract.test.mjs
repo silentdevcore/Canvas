@@ -120,8 +120,11 @@ test('Grafana changes datasource labels without deleting active identities or ch
     }
   }
   verifyReferences(sources);
-  const dashboard = load(read('deploy/observability/grafana/provisioning/dashboards/dashboards.yml'));
-  assert.equal(dashboard.providers[0].name, 'PXA');
-  assert.equal(dashboard.providers[0].folder, 'PXA');
+  const dashboard = load(read('deploy/observability/grafana/profiles/current/dashboards.yml'));
+  assert.equal(dashboard.providers[0].name, 'PVAD');
+  assert.equal(dashboard.providers[0].folder, 'PVAD');
   assert.equal(dashboard.providers[0].disableDeletion, true);
+  const legacy = load(read('deploy/observability/grafana/provisioning/dashboards/dashboards.yml'));
+  assert.equal(legacy.providers[0].name, 'PXA');
+  assert.equal(legacy.providers[0].folder, 'PXA');
 });

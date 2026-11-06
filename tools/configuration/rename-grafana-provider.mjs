@@ -7,8 +7,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { load, dump } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
-const sourcePath = 'deploy/observability/grafana/provisioning/dashboards/dashboards.yml';
-const datasourcePath = 'deploy/observability/grafana/provisioning/datasources/datasources.yml';
+const providerPaths = Object.freeze({
+  current: 'deploy/observability/grafana/profiles/current/dashboards.yml',
+  legacy: 'deploy/observability/grafana/provisioning/dashboards/dashboards.yml',
+});
+export const grafanaDatasourcePath = 'deploy/observability/grafana/provisioning/datasources/datasources.yml';
+export function grafanaProviderPath(profile = 'current') {
+  if (!Object.hasOwn(providerPaths, profile)) throw new Error('Unknown Grafana provisioning profile.');
+  return providerPaths[profile];
+}
 const digest = value => createHash('sha256').update(value).digest('hex');
 
 export function grafanaReferenceInventory(dashboards, datasourceSource, ruleFiles) {
@@ -95,13 +102,14 @@ export function grafanaReferenceInventory(dashboards, datasourceSource, ruleFile
   };
 }
 
-export function prepareGrafanaInventory(repositoryRoot = root) {
+export function prepareGrafanaInventory(repositoryRoot = root, profile = 'current') {
+  const sourcePath = grafanaProviderPath(profile);
   const tracked = execFileSync('git', ['ls-files', '-z', '--',
     'deploy/observability/grafana/dashboards', 'deploy/observability/prometheus/rules'],
   { cwd: repositoryRoot, encoding: 'utf8' }).split('\0').filter(Boolean).sort();
   const dashboardPaths = tracked.filter(path => path.startsWith('deploy/observability/grafana/dashboards/') && /\.json$/i.test(path));
   const rulePaths = tracked.filter(path => path.startsWith('deploy/observability/prometheus/rules/') && /\.ya?ml$/i.test(path));
-  const boundaries = [sourcePath, datasourcePath,
+  const boundaries = [sourcePath, ...Object.values(providerPaths), grafanaDatasourcePath,
     'deploy/observability/prometheus/prometheus.yml',
     'deploy/observability/alertmanager/alertmanager.yml',
     'deploy/observability/alertmanager/alertmanager.production.yml.example',
@@ -115,18 +123,25 @@ export function prepareGrafanaInventory(repositoryRoot = root) {
     if (!lstatSync(file).isFile()) throw new Error('Monitoring inventory requires regular source files.');
     return [path, readFileSync(file)];
   }));
+  for (const [expectedProfile, path] of Object.entries(providerPaths)) {
+    if (prepareGrafanaProvider(files.get(path).toString('utf8')).report.provisioningProfile !== expectedProfile)
+      throw new Error('Grafana provisioning profile does not match its declared identity.');
+  }
   const input = paths => paths.map(path => ({ path, source: files.get(path).toString('utf8') }));
   return {
-    ...grafanaReferenceInventory(input(dashboardPaths), files.get(datasourcePath).toString('utf8'), input(rulePaths)),
+    ...grafanaReferenceInventory(input(dashboardPaths), files.get(grafanaDatasourcePath).toString('utf8'), input(rulePaths)),
+    provisioningProfile: profile,
     sources: paths.map(path => ({ path, sha256: digest(files.get(path)) })),
   };
 }
 
 export function prepareGrafanaProvider(source) {
   const config = load(source);
+  const identity = config?.providers?.[0]?.name;
+  const legacy = identity === 'PXA';
   const expected = {
     apiVersion: 1,
-    providers: [{ name: 'PXA', orgId: 1, folder: 'PXA', type: 'file',
+    providers: [{ name: identity, orgId: 1, folder: identity, type: 'file',
       disableDeletion: true, editable: false, updateIntervalSeconds: 30,
       options: { path: '/var/lib/grafana/dashboards' } }],
   };
@@ -137,7 +152,7 @@ export function prepareGrafanaProvider(source) {
       Object.keys(value).sort().map(key => [key, canonical(value[key])]));
     return value;
   }
-  if (JSON.stringify(canonical(config)) !== JSON.stringify(canonical(expected)))
+  if ((!legacy && identity !== 'PVAD') || JSON.stringify(canonical(config)) !== JSON.stringify(canonical(expected)))
     throw new Error('Grafana provisioning changed; review placement and permissions before preparation.');
   const candidate = structuredClone(config);
   candidate.providers[0].name = 'PVAD';
@@ -148,12 +163,14 @@ export function prepareGrafanaProvider(source) {
     report: {
       schemaVersion: 1,
       deploymentAuthorized: false,
-      sourcePath,
+      provisioningProfile: legacy ? 'legacy' : 'current',
+      migrationRequired: legacy,
+      sourcePath: grafanaProviderPath(legacy ? 'legacy' : 'current'),
       sourceSha256: createHash('sha256').update(source).digest('hex'),
-      changes: ['provider-name', 'dashboard-folder-name'],
+      changes: legacy ? ['provider-name', 'dashboard-folder-name'] : [],
       retained: ['organization-id', 'dashboard-uids', 'datasource-uids', 'provisioning-policy'],
-      blockers: ['grafana-state-backup-and-restore-drill', 'folder-permission-inventory-and-approval',
-        'dashboard-placement-and-link-validation', 'staging-cutover-and-rollback-test'],
+      blockers: legacy ? ['grafana-state-backup-and-restore-drill', 'folder-permission-inventory-and-approval',
+        'dashboard-placement-and-link-validation', 'staging-cutover-and-rollback-test'] : [],
       warning: 'Original provisioning is not a database backup. Restoring it does not restore folder permissions or persisted dashboard placement.',
     },
   };
@@ -161,9 +178,13 @@ export function prepareGrafanaProvider(source) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    if (process.argv.length !== 2) throw new Error('No apply or deployment arguments are supported.');
+    const args = process.argv.slice(2);
+    if (args.length && (args.length !== 1 || args[0] !== '--legacy'))
+      throw new Error('No apply or deployment arguments are supported; only --legacy selects compatibility input.');
+    const profile = args.length ? 'legacy' : 'current';
+    const sourcePath = grafanaProviderPath(profile);
     const result = prepareGrafanaProvider(readFileSync(resolve(root, sourcePath), 'utf8'));
-    const preparedInventory = prepareGrafanaInventory();
+    const preparedInventory = prepareGrafanaInventory(root, profile);
     if (preparedInventory.sources.find(file => file.path === sourcePath)?.sha256 !== result.report.sourceSha256)
       throw new Error('Provisioning changed during preparation; rerun after reviewing the source.');
     const inventory = JSON.stringify(preparedInventory, null, 2) + '\n';
@@ -171,7 +192,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     result.report.inventoryPath = 'inventory.json';
     result.report.inventorySha256 = digest(inventory);
     result.report.candidateSha256 = digest(candidate);
-    const output = resolve(root, 'artifacts/rename/grafana-provider');
+    const output = resolve(root, 'artifacts/rename/grafana-provider', profile);
     mkdirSync(output, { recursive: true });
     writeFileSync(resolve(output, 'dashboards.candidate.yml'), candidate);
     writeFileSync(resolve(output, 'dashboards.original.yml'), result.originalSource);

@@ -7,7 +7,7 @@ namespace PVAD.Generator.Tests;
 /// Holds the hybrid-invoice renderer to the shared pagination contract.
 /// </summary>
 /// <remarks>
-/// PXA renders an invoice twice - the Designer projects it onto pages, and
+/// PVAD renders an invoice twice - the Designer projects it onto pages, and
 /// <see cref="EInvoice.CreatePdf"/> renders the hybrid PDF - and the two must agree, or the document
 /// approved on screen is not the document issued. They agree by each implementing
 /// <c>test-assets/e-invoicing/pagination-contract.json</c> rather than by sharing code, because

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 /**
- * EINV-05: the Electronic Invoice workspace in PXA Designer.
+ * EINV-05: the Electronic Invoice workspace in PVADE Designer.
  *
  * The page is mounted for real - store, autosave hook, projection and all - so what these tests
  * assert is the behaviour a user gets, not a mock of it. Only the network and the auth/feature

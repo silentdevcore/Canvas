@@ -128,11 +128,11 @@ public sealed class PdfA2bConverterTests
             FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
         };
         document.Info.Title = "Conversion fixture";
-        document.Info.Author = "PXA QA";
+        document.Info.Author = "PVAD QA";
         document.Info.Subject = "Conservative PDF/A conversion";
-        document.Info.Keywords = "PXA, PDF/A";
-        document.Info.Creator = "PXA tests";
-        document.Info.Producer = "PXA";
+        document.Info.Keywords = "PVAD, PDF/A";
+        document.Info.Creator = "PVAD tests";
+        document.Info.Producer = "PVAD";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = new DateTimeOffset(2026, 8, 31, 10, 30, 0, TimeSpan.Zero);
         document.AddPage().DrawText("Convertible archival text", 40, 40, new PdfDrawTextOptions { Language = "en" });

@@ -337,7 +337,7 @@ public sealed class PvadProjectArchiveTests
     [Fact]
     public async Task Atomic_file_helpers_replace_complete_packages_and_leave_no_temporary_file()
     {
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-project-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {
@@ -359,7 +359,7 @@ public sealed class PvadProjectArchiveTests
     [Fact]
     public async Task Cancelled_atomic_file_write_preserves_existing_destination()
     {
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-project-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {
@@ -1390,7 +1390,7 @@ public sealed class PvadProjectArchiveTests
             },
             Metadata = new PdfMetadataDto
             {
-                Title = "Metadata title", Author = "PXA", Subject = "Roundtrip", Keywords = "pxa,test",
+                Title = "Metadata title", Author = "PVAD", Subject = "Roundtrip", Keywords = "pvad,test",
             },
             NamedStyles =
             [
@@ -1449,7 +1449,7 @@ public sealed class PvadProjectArchiveTests
         VisibleExpression = "{{showChart}}",
         Accessibility = new AccessibilityPropertiesDto
         {
-            Role = "Figure", CustomRole = "Chart", NamespaceUri = "urn:pxa:test", IsArtifact = false,
+            Role = "Figure", CustomRole = "Chart", NamespaceUri = "urn:pvad:test", IsArtifact = false,
             ParentElementId = "section-1", ReadingOrder = 3, Language = "en", AlternateText = "Sales chart",
             ActualText = "Sales increased", TableHeaderScope = "Column", TableHeaderIds = ["header-1"],
         },
@@ -1464,7 +1464,7 @@ public sealed class PvadProjectArchiveTests
         Placeholder = "Enter a name",
         Required = true,
         SignatureLabel = "Approved by",
-        QrValue = "PXA-ROUNDTRIP",
+        QrValue = "PVAD-ROUNDTRIP",
         QrSize = 128,
         BarcodeValue = "1234567890",
         BarcodeType = "code128",

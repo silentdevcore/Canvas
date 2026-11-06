@@ -50,7 +50,7 @@ test('rejects protocol-relative URLs', () => {
   assert.equal(sanitizeReturnUrl('//evil.com/phish'), null);
 });
 
-test('rejects external hosts even when they look like a PXA path', () => {
+test('rejects external hosts even when they look like a PVAD path', () => {
   assert.equal(sanitizeReturnUrl('https://evil.com/designer'), null);
   assert.equal(sanitizeReturnUrl('https://pvade.com.evil.com/'), null);
 });

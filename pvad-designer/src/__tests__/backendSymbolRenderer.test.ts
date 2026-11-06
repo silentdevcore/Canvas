@@ -9,16 +9,16 @@ const element = {
   y: 0,
   width: 370.9,
   height: 100.8,
-  barcodeValue: 'PXA-2026-0001',
+  barcodeValue: 'PVAD-2026-0001',
   barcodeType: 'CODE128',
-  qrValue: 'https://powerdoxautomation.com/parity',
+  qrValue: 'https://pvade.com/parity',
 } as SimpleElement;
 
 describe('backend symbol rendering contract', () => {
   test('uses the exact PDF barcode dimensions', () => {
     expect(buildSymbolRequest(element, 'barcode')).toEqual({
       type: 'barcode',
-      value: 'PXA-2026-0001',
+      value: 'PVAD-2026-0001',
       format: 'CODE128',
       width: 370,
       height: 70,
@@ -28,7 +28,7 @@ describe('backend symbol rendering contract', () => {
   test('does not place QR content in the endpoint URL', () => {
     expect(buildSymbolRequest(element, 'qrcode')).toEqual({
       type: 'qrcode',
-      value: 'https://powerdoxautomation.com/parity',
+      value: 'https://pvade.com/parity',
       format: undefined,
       width: undefined,
       height: undefined,

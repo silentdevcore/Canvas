@@ -5,6 +5,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { exerciseMonitoring } from './monitoring-operator-checks.mjs';
+import { grafanaDatasourcePath, grafanaProviderPath } from './rename-grafana-provider.mjs';
 
 const services = ['pvad-otel-collector', 'pvad-prometheus', 'pvad-loki', 'pvad-tempo', 'pvad-alertmanager'];
 export const monitoringSources = [
@@ -75,7 +76,8 @@ export async function createMonitoringLab(context) {
   for (const type of ['dashboards', 'datasources']) {
     await mkdir(resolve(provisioning, type), { recursive: true });
     const file = `${type}.yml`;
-    await writeFile(resolve(provisioning, type, file), await readFile(resolve(root, 'deploy/observability/grafana/provisioning', type, file)));
+    const source = type === 'dashboards' ? grafanaProviderPath('legacy') : grafanaDatasourcePath;
+    await writeFile(resolve(provisioning, type, file), await readFile(resolve(root, source)));
   }
   const configuration = monitoringConfiguration({
     prometheus: load(await readFile(resolve(root, 'deploy/observability/prometheus/prometheus.yml'), 'utf8')),

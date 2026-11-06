@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createRequire } from 'node:module';
-import { prepareGrafanaInventory } from './rename-grafana-provider.mjs';
+import { grafanaDatasourcePath, grafanaProviderPath, prepareGrafanaInventory } from './rename-grafana-provider.mjs';
 import { exerciseOperatorBrowser } from './operator-browser-scenarios.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -251,7 +251,10 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     const mount = (source, target) => ['--mount', `type=bind,src=${resolve(root, source)},dst=${target},readonly`];
     runContainer(names.grafana, images[0].id, ['--network-alias', 'pvad-grafana', '--memory', '512m',
       ...(monitoring?.grafanaStorage ?? ['--tmpfs', '/var/lib/grafana:uid=472,gid=0,size=256m']),
-      ...mount(monitoring?.grafanaProvisioning ?? 'deploy/observability/grafana/provisioning', '/etc/grafana/provisioning'),
+      ...(monitoring?.grafanaProvisioning
+        ? mount(monitoring.grafanaProvisioning, '/etc/grafana/provisioning')
+        : [...mount(grafanaProviderPath(), '/etc/grafana/provisioning/dashboards/dashboards.yml'),
+          ...mount(grafanaDatasourcePath, '/etc/grafana/provisioning/datasources/datasources.yml')]),
       ...mount('deploy/observability/grafana/dashboards', '/var/lib/grafana/dashboards'),
       '--env', 'GF_SECURITY_ADMIN_PASSWORD',
       ...Object.entries({ GF_AUTH_ANONYMOUS_ENABLED: 'false',

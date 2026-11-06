@@ -380,7 +380,7 @@ public sealed class PdfPadesSigningServiceTests
             fixture.Key,
             new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
         var modified = result.Bytes.ToArray();
-        var textOffset = modified.AsSpan().IndexOf("PXA PAdES fixture"u8);
+        var textOffset = modified.AsSpan().IndexOf("PVAD PAdES fixture"u8);
         Assert.True(textOffset >= 0);
         modified[textOffset] ^= 1;
 
@@ -570,7 +570,7 @@ public sealed class PdfPadesSigningServiceTests
             fixture.Key,
             new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
         var modified = mutation == "signed-content"
-            ? MutateFirstOccurrence(result.Bytes, "PXA PAdES fixture"u8)
+            ? MutateFirstOccurrence(result.Bytes, "PVAD PAdES fixture"u8)
             : MutateCmsSignatureValue(result.Bytes);
 
         await using var stream = new MemoryStream(modified);
@@ -623,14 +623,14 @@ public sealed class PdfPadesSigningServiceTests
                     Y = 80,
                     Width = 220,
                     Height = 72,
-                    Title = "PXA approval"
+                    Title = "PVAD approval"
                 }
             });
 
         var widget = ParseWidget(result.Bytes, "VisibleApproval");
         Assert.Equal([72d, 80d, 292d, 152d], widget.Rectangle);
         Assert.Equal("Page", widget.PageType);
-        Assert.Contains("PXA approval", widget.AppearanceContent, StringComparison.Ordinal);
+        Assert.Contains("PVAD approval", widget.AppearanceContent, StringComparison.Ordinal);
         Assert.Contains("PVAD PDF Signing Test", widget.AppearanceContent, StringComparison.Ordinal);
         Assert.Contains("Approved for release", widget.AppearanceContent, StringComparison.Ordinal);
 
@@ -827,7 +827,7 @@ public sealed class PdfPadesSigningServiceTests
         using var fixture = SigningFixture.Create();
         using var timestampAuthority = TestTimestampAuthority.Create(fixture.SigningTime.AddSeconds(5));
         var result = await new PdfDocumentTimestampService().AddAsync(CreatePdf(), timestampAuthority);
-        var textOffset = result.Bytes.AsSpan().IndexOf("PXA PAdES fixture"u8);
+        var textOffset = result.Bytes.AsSpan().IndexOf("PVAD PAdES fixture"u8);
         Assert.True(textOffset >= 0);
         result.Bytes[textOffset] ^= 0x01;
 
@@ -917,7 +917,7 @@ public sealed class PdfPadesSigningServiceTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA PAdES fixture", 40, 40);
+        document.AddPage().DrawText("PVAD PAdES fixture", 40, 40);
         return document.ToBytes();
     }
 

@@ -1,0 +1,10 @@
+{
+  "id": "pvad-grafana-default-profile",
+  "impact": "patch",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "New local monitoring setups use PVAD dashboard folders and provisioning names while retaining compatibility configuration for existing installations.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

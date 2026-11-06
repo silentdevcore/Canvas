@@ -1,26 +1,45 @@
 # Grafana Provider Rename Preparation
 
-The installed dashboard provider and folder retain their historical identities.
-This is a persisted placement and authorization boundary, not just a display label.
-Datasource display labels already use PVAD; dashboard and datasource UIDs remain
-stable. This preparation does not migrate a running Grafana installation.
+Fresh local installations use the PVAD provider and folder from
+`deploy/observability/grafana/profiles/current/dashboards.yml`. The default Compose
+model mounts this file separately from the shared datasource directory. The
+original provider in `deploy/observability/grafana/provisioning/dashboards/`
+remains byte-for-byte unchanged for existing installations, including existing
+bind mounts of the whole original provisioning directory.
+
+The minimal `deploy/rename/docker-compose.grafana-legacy.yml` overlay explicitly
+selects that original provider without changing other resolved Compose settings.
+The complete legacy overlay also retains the original provider. Review either
+with the installed project/storage bindings; do not activate fresh defaults as an
+upgrade. Existing folder placement and permissions are persisted authorization
+boundaries, not just display labels. Dashboard and datasource UIDs stay stable.
+These repository changes do not migrate or restart a running installation.
 
 ## Offline Candidate
 
 ```bash
 node tools/configuration/rename-grafana-provider.mjs
+node tools/configuration/rename-grafana-provider.mjs --legacy
 node --test tools/configuration/rename-grafana-provider.test.mjs
 ```
 
 The generator writes only ignored files under
-`artifacts/rename/grafana-provider/`:
+`artifacts/rename/grafana-provider/current/` or, with `--legacy`,
+`artifacts/rename/grafana-provider/legacy/`. The profiles cannot overwrite each
+other's evidence; older reports at the parent path remain historical.
 
-- `dashboards.candidate.yml`: provider and folder labels changed to PVAD.
-- `dashboards.original.yml`: exact original provisioning bytes.
+- `dashboards.candidate.yml`: canonical PVAD provider and folder labels.
+- `dashboards.original.yml`: exact selected provisioning bytes.
 - `report.json`: source checksum, preserved boundaries and outstanding gates.
 - `inventory.json`: dashboard/datasource identities, cross-references, alert
-  dashboard and runbook references, and exact checksums for the 17 current
-  provisioning, dashboard, rule and operator-integration sources.
+  dashboard and runbook references, and exact checksums for both provider profiles
+  and the shared provisioning, dashboard, rule and operator-integration sources.
+
+The default profile is already canonical: regeneration reports no changes or
+blockers and `migrationRequired: false`. The explicit legacy profile reports
+the two label changes and the existing four installed-state cutover blockers.
+Both profiles are validated against their declared identity before generation;
+mixed names, swapped profiles and unreviewed policies fail closed.
 
 The report pins the inventory and candidate bytes with separate SHA-256 values.
 Preparation fails if the provisioning source changes during generation. The
@@ -42,14 +61,18 @@ This reference check does not evaluate PromQL/LogQL or validate runbook contents
 Use the separate [monitoring validation](pvad-monitoring-identity-migration.md#offline-validation)
 for metric/rule semantics.
 
-The active provisioning, Compose mounts, datasource configuration, dashboards,
-database and volumes are untouched. Source drift, extra providers, explicit folder
+The generator does not alter provisioning, Compose mounts, datasource configuration,
+dashboards, databases or volumes. Source drift, extra providers, explicit folder
 UIDs or changed provisioning policies require manual review. There is no apply
 command. The report always records `deploymentAuthorized: false`.
 The inventory separately records `liveStateInspected: false`: source identities
 and checksums are not an inventory of installed folders, users or permissions.
 
 ## Before Activation
+
+This section applies only to a separately authorized transition of an existing
+installation. These operational steps are not prerequisites for completing the
+repository rename or validating a fresh synthetic installation.
 
 1. Identify the Grafana instance, organization and storage backend. Inventory
    dashboards by UID, current folder UID, folder permissions, direct dashboard
@@ -117,9 +140,18 @@ restored folder, ACLs, dashboards and datasources must equal the pre-cutover
 snapshot. A post-backup annotation must be absent after restore: this explicitly
 tests point-in-time recovery, not automatic preservation of later writes.
 
-The result is written to `artifacts/rename/grafana-rehearsal/report.json` with
+After restoration, a separate fresh synthetic volume starts with the actual
+canonical provider file. It must contain exactly one PVAD folder, the same five
+dashboard identities and three datasource identities, and reject invalid
+authentication. The old provider, shared datasources and managed dashboards
+remain unchanged in the repository.
+
+The result is written to `artifacts/rename/grafana-profiles-rehearsal/report.json` with
 the image ID, source-inventory hash, backup hash, matching baseline/restore
-hashes, scope limits and ownership-checked cleanup result. A new run first marks
+hashes, both provider hashes, fresh-install checks, scope limits and
+ownership-checked cleanup result. Earlier reports at
+`artifacts/rename/grafana-rehearsal/report.json` remain unchanged historical evidence.
+A new run first marks
 the result as running and records failure if it fails; an older passing report
 is not presented as the latest result. Synthetic backup volumes and temporary
 configuration are removed after the run, so the report is evidence of a drill,
@@ -224,7 +256,10 @@ login uses the real form, CSRF validator, Identity password checker and persiste
 sessions. No API or authorization responses are mocked. Inherited application
 credentials and configuration are excluded from child-process environments.
 
-Grafana uses the repository's actual provisioning and dashboard definitions.
+Standalone execution uses the current provider and shared datasource definitions;
+the integrated monitoring transition harness explicitly starts with the retained
+legacy provider in its temporary configuration so the transition is not a no-op.
+Grafana uses the repository's actual dashboard definitions.
 Its proxy allowlist contains only the gateway address in the newly allocated
 private subnet. Auth proxy, disabled Basic/anonymous login and disabled Grafana
 login tokens follow the Compose policy. Gateway, datasource, dashboard, folder

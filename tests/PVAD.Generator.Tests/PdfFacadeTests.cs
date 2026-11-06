@@ -61,7 +61,7 @@ public sealed class PdfFacadeTests
 
         Assert.IsType<PdfDocument>(document);
         var page = document.AddPage(300, 180);
-        page.DrawTextFromTop("PXA generator facade", 24, 24, 12);
+        page.DrawTextFromTop("PVAD generator facade", 24, 24, 12);
 
         var bytes = document.ToBytes();
 
@@ -166,7 +166,7 @@ public sealed class PdfFacadeTests
         Assert.Equal("UBL-Invoice", recognition.Syntax);
         Assert.Equal("XRECHNUNG", recognition.Profile);
         Assert.Equal("CHF", recognition.SemanticData?.Currency);
-        Assert.Equal("PXA Customer AG", recognition.SemanticData?.Buyer.Name);
+        Assert.Equal("PVAD Customer AG", recognition.SemanticData?.Buyer.Name);
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == "error");
     }
 
@@ -424,7 +424,7 @@ public sealed class PdfFacadeTests
     {
         var design = new DesignExportDto
         {
-            Name = "PXA Word",
+            Name = "PVAD Word",
             Pages =
             [
                 new PageDto
@@ -438,7 +438,7 @@ public sealed class PdfFacadeTests
                             Y = 24,
                             Width = 180,
                             Height = 32,
-                            Content = "PXA generator facade",
+                            Content = "PVAD generator facade",
                         }
                     ]
                 }
@@ -469,20 +469,20 @@ public sealed class PdfFacadeTests
         BuyerReference = "ORDER-42",
         PaymentReference = "INV-2026-100",
         Seller = new(
-            "Power Dox Automation AG",
+            "PVADE Example AG",
             "CHE-SELLER",
             "CHE-123.456.789 MWST",
             "seller@example.test",
             new("Example Street 1", "Zurich", "8000", "CH")),
         Buyer = new(
-            "PXA Customer AG",
+            "PVAD Customer AG",
             "CHE-BUYER",
             null,
             "buyer@example.test",
             new("Customer Street 2", "Bern", "3000", "CH")),
         Lines =
         [
-            new("1", "PXA Premium license", 1, "C62", 120m, 19m),
+            new("1", "PVADE Premium license", 1, "C62", 120m, 19m),
             new("2", "Implementation service", 2, "HUR", 40m, 19m)
         ]
     };

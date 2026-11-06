@@ -84,7 +84,7 @@ describe('CodeViewer canonical export', () => {
   test('exports the complete canonical JSON without filtering another language', async () => {
     const pageSettings = {
       ...DEFAULT_PAGE_SETTINGS,
-      metadata: { title: 'Quarterly report', author: 'PXA', subject: 'Parity', keywords: 'export' },
+      metadata: { title: 'Quarterly report', author: 'PVAD', subject: 'Parity', keywords: 'export' },
       activeLanguages: ['en', 'de'],
       targetLanguage: 'en',
       encryption: {

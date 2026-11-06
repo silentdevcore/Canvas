@@ -43,7 +43,7 @@ describe('generated code preview parity', () => {
         bleedSize: 9,
         trackChanges: true,
         activeLanguages: ['en', 'ar'],
-        metadata: { title: 'Generated', author: 'PXA', subject: 'Parity', keywords: 'code' },
+        metadata: { title: 'Generated', author: 'PVAD', subject: 'Parity', keywords: 'code' },
       },
     };
     const container = document.createElement('div');
@@ -75,7 +75,7 @@ describe('generated code preview parity', () => {
       bleedSize: 9,
       trackChanges: true,
       activeLanguages: ['en', 'ar'],
-      metadata: { title: 'Generated', author: 'PXA', subject: 'Parity', keywords: 'code' },
+      metadata: { title: 'Generated', author: 'PVAD', subject: 'Parity', keywords: 'code' },
     });
     expect(props.autoFitWidth).toBe(true);
 

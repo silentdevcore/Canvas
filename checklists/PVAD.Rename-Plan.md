@@ -4,6 +4,43 @@ Historical record: results and task states are retained. Names and rerun referen
 are editorially normalized; original commands and wording remain in Git at
 `30496722`. This is not a new execution or release approval.
 
+## Current Repository-Only Scope (2026-11-06)
+
+The owner has confirmed that the active task is **repository renaming only**.
+Technical names use **PVAD**; product, website and Designer names use **PVADE**.
+Current code, project/file names, configuration sources, examples, tests and
+documentation are in scope. Existing compatibility readers and original
+evidence retain their agreed protection.
+
+Package publication, publisher registration, release preparation, version
+increases, deployment, DNS/mail activation, remote protection changes and
+production approval are outside this task. Do not perform or require these
+operations to finish repository renaming. A repository rename is not a release.
+
+The original **90/98** count below tracks the earlier combined rename and
+release/cutover plan. It is **not a measure of unfinished source renaming**.
+Its eight unchecked operational/release gates remain intact for future work;
+they do not block the current repository-only task. Earlier execution results,
+checkbox states and approvals are not rewritten by this scope clarification.
+
+The [source acceptance](../docs/pvad-rename-source-acceptance.md) describes
+canonical output and retained contracts. The latest functional-test cleanup
+is committed as `b3812027`; its exact changes and verification are recorded in
+the [remaining-code checklist](PVAD.Remaining-Code-Naming-Cleanup.md#mechanical-test-source-cleanup---2026-11-06).
+No publication or deployment follows from that commit or this instruction.
+
+The [Grafana repository-default batch](PVAD.Remaining-Code-Naming-Cleanup.md#grafana-repository-defaults---2026-11-06)
+uses PVAD provider/folder defaults for fresh local installations and an explicit
+compatibility overlay for existing ones. The original provisioning files and
+installed services remain unchanged. This closes a concrete source-default
+finding without claiming a live cutover or changing any operational checkbox.
+
+The subsequent [large mechanical replacement batch](PVAD.Remaining-Code-Naming-Cleanup.md#large-mechanical-search-and-replace-batch---2026-11-06)
+updates 120 exact matches across 50 current test/example files in Designer,
+Account, backend document processing and migrations. Original evidence and
+compatibility contracts remain unchanged; it is not a new runtime feature or
+closure of any release gate.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

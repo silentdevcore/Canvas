@@ -4,7 +4,7 @@
 /**
  * Holds the Designer projection to the shared pagination contract.
  *
- * PXA renders an invoice twice - the Designer projects it onto Canvas and Live Preview pages, and
+ * PVAD renders an invoice twice - the Designer projects it onto Canvas and Live Preview pages, and
  * `EInvoice.CreatePdf` renders the hybrid PDF - and the two must agree, or the document approved on
  * screen is not the document issued. They agree by each implementing
  * `test-assets/e-invoicing/pagination-contract.json` rather than by sharing code, because

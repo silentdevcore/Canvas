@@ -23,9 +23,9 @@ public sealed class ConverterFacadeTests
 
     public static IEnumerable<object[]> TextExporterCases()
     {
-        yield return [new HtmlDocumentExporter(), "html", ".html", "Hello PXA"];
-        yield return [new MarkdownDocumentExporter(), "md", ".md", "Hello PXA"];
-        yield return [new CsvDocumentExporter(), "csv", ".csv", "Hello PXA"];
+        yield return [new HtmlDocumentExporter(), "html", ".html", "Hello PVAD"];
+        yield return [new MarkdownDocumentExporter(), "md", ".md", "Hello PVAD"];
+        yield return [new CsvDocumentExporter(), "csv", ".csv", "Hello PVAD"];
         yield return [new XmlDocumentExporter(), "xml", ".xml", "PvadDocument"];
         yield return [new SvgDocumentExporter(), "svg", ".svg", "<svg"];
     }
@@ -40,7 +40,7 @@ public sealed class ConverterFacadeTests
         Assert.Equal("PvadDocument", canonical.Root!.Name.LocalName);
         Assert.Equal("PxaDocument", legacy.Root!.Name.LocalName);
         Assert.Equal("1.0", canonical.Root.Attribute("version")?.Value);
-        Assert.Contains("Hello PXA", canonical.ToString());
+        Assert.Contains("Hello PVAD", canonical.ToString());
         legacy.Root.Name = canonical.Root.Name;
         Assert.True(XNode.DeepEquals(canonical, legacy));
     }
@@ -203,7 +203,7 @@ public sealed class ConverterFacadeTests
                     {
                         Id = "text-1",
                         Type = "text",
-                        Content = "Hello PXA",
+                        Content = "Hello PVAD",
                         X = 20,
                         Y = 20,
                         Width = 140,
