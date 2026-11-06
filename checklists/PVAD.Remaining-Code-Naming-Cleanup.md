@@ -487,6 +487,44 @@ remain unchanged. No commit, push, publication or deployment is performed.
 - All 179 checked corpus, fixture, Legal, schema-alias, audit/register, public-download, release/version and dedicated compatibility files are byte-identical to HEAD. Seven dedicated compatibility files remain exact. All 816 original review notes and their order are preserved; all 281 tracked Markdown files remain free of the old name, and historical checkbox states are unchanged.
 - Exact TRX counters, new PDF hashes and preservation checks are recorded in `artifacts/rename/search-replace-routes/final-checks.json`. Existing compiler warnings are not waived. `git diff --check` passes; no commit, push or runtime deployment is performed.
 
+### MCP Current Test Configuration - 2026-11-06
+
+Baseline: `629013e5`. The owner approved a scoped pass through four MCP test
+files: remote configuration, HTTP application, JWT verification and API client.
+The explicit replacement record is
+`artifacts/rename/search-replace-mcp/replacements.json`, including the baseline,
+exact literals, counts, mechanical-stage hashes and final reviewed source hashes.
+
+The mechanical stage makes **30 literal replacements**. General configuration
+uses current environment keys and synthetic hostnames; HTTP/JWT test defaults
+use the current tenant claim; general JWT and delegation inputs use registered
+current scopes. The existing alias/conflict blocks in configuration and JWT
+tests remain unchanged. Stable diagnostics, resource URIs, schema readers,
+CLI aliases and registration lists are not renamed.
+
+Three explicit compatibility/preservation cases accompany the replacement:
+both HTTP read-grant generations return a canonical access context; an old
+template grant delegates only its registered canonical scope; an unregistered
+scope is preserved without becoming a current render, validate or read grant.
+The general JWT example now uses the existing document-validation capability,
+not an unregistered render capability. No new scope or alias is invented.
+These deliberate cases retain four old-name occurrences, so the four MCP files
+have **26 fewer occurrences overall**, not a zero-match promise.
+
+A direct naming contract checks the current setups independently of the review
+ledger while requiring their explicit compatibility cases. The release fragment
+uses `none` impact because only tests and internal verification change. Product
+VERSION, production MCP behavior and packaged compatibility resources remain
+unchanged. No commit, push, publication, host restart or deployment is performed.
+
+#### Verification
+
+- MCP runtime tests pass **33/33** and toolchain contracts pass **9/9**, with no failures or skips. Real local Streamable HTTP clients exercise both read-grant generations; JWT keys are generated synthetically and verified locally.
+- MCP typecheck, production build and packaged stdio smoke pass. The smoke lists and reads both resource generations and resolves packaged schema aliases without requiring a live API or remote identity service.
+- All **410 configuration/versioning tests** pass with zero failures or skips. Residual, structural JSON, version synchronization and release-fragment validation pass. Existing schema-format warnings in the MCP smoke remain outside this naming change.
+- All 32 other tracked MCP files, including production sources, package/lock metadata, resource/CLI contracts and remaining tests, compare byte-for-byte with HEAD. Across the broader protection set, **204 original files** remain unchanged. The two original configuration/JWT alias-conflict test bodies match their baseline hashes; the exact pins are in `artifacts/rename/search-replace-mcp/final-checks.json`.
+- All 816 original review notes and their order are preserved. All 281 tracked Markdown files remain free of the old name, and existing checklist states are unchanged. `git diff --check` passes. No new .NET, Designer, website or deployed-identity regression run is claimed for this MCP-test-only batch.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

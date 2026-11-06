@@ -15,7 +15,7 @@ const baseConfig: RemoteMcpConfig = {
   jwksUri: new URL('https://account.example.test/.well-known/jwks.json'),
   allowedOrigins: new Set(['https://client.example.test']),
   allowedHosts: new Set(['mcp.example.test']),
-  organizationClaim: 'pxa_organization',
+  organizationClaim: 'pvad_organization',
   requestLimit: '11mb',
   requestsPerMinute: 120,
   apiUrl: new URL('http://127.0.0.1:5086'),
@@ -32,8 +32,8 @@ test('JWT verifier enforces issuer, audience, expiry, subject, organization, and
     createLocalJWKSet({ keys: [publicJwk] }),
   );
   const token = await new SignJWT({
-    pxa_organization: 'organization-1',
-    scope: 'pxa.docs.read pxa.documents.render',
+    pvad_organization: 'organization-1',
+    scope: 'pvad.docs.read pvad.documents.validate',
     client_id: 'client-1',
   })
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
@@ -46,10 +46,10 @@ test('JWT verifier enforces issuer, audience, expiry, subject, organization, and
 
   const auth = await verifier.verifyAccessToken(token);
   assert.equal(auth.clientId, 'client-1');
-  assert.deepEqual(auth.scopes, ['pvad.docs.read', 'pxa.docs.read', 'pxa.documents.render']);
+  assert.deepEqual(auth.scopes, ['pvad.docs.read', 'pxa.docs.read', 'pvad.documents.validate', 'pxa.documents.validate']);
   assert.equal(auth.extra?.organizationId, 'organization-1');
 
-  const wrongAudience = await new SignJWT({ pxa_organization: 'organization-1', scope: 'pxa.docs.read' })
+  const wrongAudience = await new SignJWT({ pvad_organization: 'organization-1', scope: 'pvad.docs.read' })
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
     .setIssuer(baseConfig.issuer)
     .setAudience('https://another.example.test/mcp')
@@ -58,7 +58,7 @@ test('JWT verifier enforces issuer, audience, expiry, subject, organization, and
     .sign(privateKey);
   await assert.rejects(() => verifier.verifyAccessToken(wrongAudience), InvalidTokenError);
 
-  const missingExpiry = await new SignJWT({ pxa_organization: 'organization-1', scope: 'pxa.docs.read' })
+  const missingExpiry = await new SignJWT({ pvad_organization: 'organization-1', scope: 'pvad.docs.read' })
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
     .setIssuer(baseConfig.issuer)
     .setAudience(baseConfig.resourceUri.href)
@@ -93,4 +93,24 @@ test('claim and scope aliases stay equivalent while conflicting or malformed ali
     { pvad_organization: 'org', scope: 42 },
     { pvad_organization: 'org', scp: ['pxa.docs.read', 42] },
   ]) await assert.rejects(() => sign(claims).then((token) => verifier.verifyAccessToken(token)), InvalidTokenError);
+});
+
+test('unregistered legacy scopes are preserved without promotion to current capabilities', async () => {
+  const { privateKey, publicKey } = await generateKeyPair('RS256');
+  const publicJwk = await exportJWK(publicKey);
+  publicJwk.kid = 'unregistered-scope-test';
+  const verifier = new PvadJwtTokenVerifier(baseConfig, createLocalJWKSet({ keys: [publicJwk] }));
+  const token = await new SignJWT({
+    pvad_organization: 'synthetic-organization', scope: 'pxa.documents.render',
+  })
+    .setProtectedHeader({ alg: 'RS256', kid: publicJwk.kid })
+    .setIssuer(baseConfig.issuer).setAudience(baseConfig.resourceUri.href)
+    .setSubject('synthetic-user').setExpirationTime('5m').sign(privateKey);
+
+  const auth = await verifier.verifyAccessToken(token);
+
+  assert.deepEqual(auth.scopes, ['pxa.documents.render']);
+  assert.ok(!auth.scopes.includes('pvad.documents.render'));
+  assert.ok(!auth.scopes.includes('pvad.documents.validate'));
+  assert.ok(!auth.scopes.includes('pvad.docs.read'));
 });

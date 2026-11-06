@@ -42,6 +42,13 @@ called the old prefix. Current project files and newly generated validation
 examples use current names. Explicit alias, source-preservation and diagnostic
 tests stay separate and retain their exact contracts.
 
+The [MCP fixture cleanup](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#mcp-current-test-configuration---2026-11-06)
+uses canonical configuration keys, tenant claims and registered read-only scopes
+for general tests. Original alias/conflict cases remain unchanged. Explicit
+HTTP and delegation checks retain old-input acceptance, while unknown scope
+strings remain unmodified and gain no current permission. No runtime contract
+or production MCP implementation changes.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new
