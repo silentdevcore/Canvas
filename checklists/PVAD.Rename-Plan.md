@@ -64,6 +64,11 @@ alias/conflict cases remain intact, and explicit HTTP/delegation cases preserve
 old grants. Unknown scopes are not promoted or given invented aliases. Production
 MCP sources, packages and resource identities remain unchanged.
 
+The [project archive example pass](PVAD.Remaining-Code-Naming-Cleanup.md#project-archive-current-examples---2026-11-06)
+normalizes generic atomic-file tests, editable sample text and the default
+workbook schema hint. Separate roundtrip cases preserve both schema generations;
+original project fixtures, diagnostics and production archive code stay unchanged.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

@@ -49,6 +49,11 @@ HTTP and delegation checks retain old-input acceptance, while unknown scope
 strings remain unmodified and gain no current permission. No runtime contract
 or production MCP implementation changes.
 
+The [archive example cleanup](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#project-archive-current-examples---2026-11-06)
+uses current names for general project filenames, editable example text and the
+workbook schema hint. Separate schema-hint roundtrips retain exact old input;
+original fixtures, aliases, diagnostics and production archive code do not change.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new

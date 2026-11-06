@@ -525,6 +525,33 @@ unchanged. No commit, push, publication, host restart or deployment is performed
 - All 32 other tracked MCP files, including production sources, package/lock metadata, resource/CLI contracts and remaining tests, compare byte-for-byte with HEAD. Across the broader protection set, **204 original files** remain unchanged. The two original configuration/JWT alias-conflict test bodies match their baseline hashes; the exact pins are in `artifacts/rename/search-replace-mcp/final-checks.json`.
 - All 816 original review notes and their order are preserved. All 281 tracked Markdown files remain free of the old name, and existing checklist states are unchanged. `git diff --check` passes. No new .NET, Designer, website or deployed-identity regression run is claimed for this MCP-test-only batch.
 
+### Project Archive Current Examples - 2026-11-06
+
+Baseline: `32ffddd9`. Seven literal replacements normalize the generic atomic
+PDF/Spreadsheet filenames and their temporary-file assertions, the editable
+greeting and the general workbook schema hint. Two explicit roundtrip cases
+verify that current and former schema hints are both preserved exactly. This
+leaves six fewer old-name occurrences in the archive test source; the retained
+hint is compatibility input, not the default for new test documents.
+
+- [x] Use current project extensions, sample text and schema in generic archive tests.
+- [x] Preserve explicit old-format fixtures, envelope/version aliases and diagnostic expectations.
+- [x] Verify current and former schema hints with complete-workbook roundtrips.
+- [x] Guard current test inputs independently of the reviewed-hash ledger.
+- [x] Pass the 80 archive tests and all 411 configuration/versioning tests, with no failures or skips.
+- [x] Keep production sources, original evidence, product version and published releases unchanged.
+
+The first restricted VSTest launch could not open its local communication
+socket. The compiled tests then passed outside that socket restriction. No
+whole-Solution, Designer, website or deployed-runtime acceptance is claimed.
+
+The exact seven replacements, baseline/current hashes and preservation checks
+are recorded in `artifacts/rename/search-replace-project-archive/review.json`.
+All 91 ledger-classified original-evidence files compare byte-for-byte with the
+baseline, and all 816 original review notes retain their wording and order.
+The release fragment uses `none` impact: only tests and internal documentation
+change. No commit, push, publication or service restart is part of this batch.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

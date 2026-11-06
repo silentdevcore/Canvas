@@ -1,0 +1,11 @@
+{
+  "id": "pvad-project-archive-test-examples",
+  "impact": "none",
+  "components": ["infrastructure", "spreadsheet"],
+  "category": "improved",
+  "summary": "Aligned project archive test examples with current PVAD naming and verified schema-hint preservation.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only synthetic test data, matching expectations and internal verification change. Production archive behavior, legacy project readers, diagnostic identifiers and original fixtures remain unchanged."
+}

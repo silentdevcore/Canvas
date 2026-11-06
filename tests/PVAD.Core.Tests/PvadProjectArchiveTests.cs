@@ -341,14 +341,14 @@ public sealed class PvadProjectArchiveTests
         Directory.CreateDirectory(directory);
         try
         {
-            var path = Path.Combine(directory, "project.pxap");
+            var path = Path.Combine(directory, "project.pvadp");
             await File.WriteAllTextAsync(path, "previous-content");
 
             await PvadProjectArchive.WritePdfFileAtomicallyAsync(path, PdfDesign());
 
             await using var stream = File.OpenRead(path);
             Assert.Equal(PdfDesign().Id, PvadProjectArchive.ReadPdf(stream).Document.Id);
-            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxap.*.tmp"));
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pvadp.*.tmp"));
         }
         finally
         {
@@ -363,7 +363,7 @@ public sealed class PvadProjectArchiveTests
         Directory.CreateDirectory(directory);
         try
         {
-            var path = Path.Combine(directory, "project.pxas");
+            var path = Path.Combine(directory, "project.pvads");
             var original = Encoding.UTF8.GetBytes("previous-content");
             await File.WriteAllBytesAsync(path, original);
             using var cancellation = new CancellationTokenSource();
@@ -374,7 +374,7 @@ public sealed class PvadProjectArchiveTests
                     path, CompleteSpreadsheet(), cancellationToken: cancellation.Token));
 
             Assert.Equal(original, await File.ReadAllBytesAsync(path));
-            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxas.*.tmp"));
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pvads.*.tmp"));
         }
         finally
         {
@@ -619,7 +619,7 @@ public sealed class PvadProjectArchiveTests
                     [
                         new ElementDto
                         {
-                            Id = "title-1", Type = "text", Content = "Hello PXAP",
+                            Id = "title-1", Type = "text", Content = "Hello PVADP",
                             X = 36, Y = 42, Width = 220, Height = 30,
                         },
                     ],
@@ -649,7 +649,7 @@ public sealed class PvadProjectArchiveTests
         Assert.Equal(PvadProjectFormat.PvadpFormatId, package.Manifest.FormatId);
         Assert.Equal(PvadProjectFormat.PvadpMediaType, package.Manifest.MediaType);
         Assert.Equal("pdf-project-1", package.Document.Id);
-        Assert.Equal("Hello PXAP", package.Document.Pages[0].Elements[0].Content);
+        Assert.Equal("Hello PVADP", package.Document.Pages[0].Elements[0].Content);
         Assert.Equal("en-CH", package.Manifest.Locale);
         Assert.Single(package.Assets);
         Assert.Equal("logo-primary", package.Assets[0].Id);
@@ -694,6 +694,21 @@ public sealed class PvadProjectArchiveTests
         var package = PvadProjectArchive.ReadSpreadsheet(
             new MemoryStream(PvadProjectArchive.WriteSpreadsheet(workbook)));
 
+        AssertJsonEquivalent(workbook, package.Document);
+    }
+
+    [Theory]
+    [InlineData("https://pvade.com/schemas/pvad-workbook.schema.json")]
+    [InlineData("https://powerdoxautomation.com/schemas/pxa-workbook.schema.json")]
+    public void Pvads_roundtrip_preserves_current_and_legacy_schema_hints(string schema)
+    {
+        var workbook = CompleteSpreadsheet();
+        workbook.Schema = schema;
+
+        var package = PvadProjectArchive.ReadSpreadsheet(
+            new MemoryStream(PvadProjectArchive.WriteSpreadsheet(workbook)));
+
+        Assert.Equal(schema, package.Document.Schema);
         AssertJsonEquivalent(workbook, package.Document);
     }
 
@@ -1627,7 +1642,7 @@ public sealed class PvadProjectArchiveTests
 
     private static SpreadsheetDto CompleteSpreadsheet() => new()
     {
-        Schema = "https://powerdoxautomation.com/schemas/pxa-workbook.schema.json",
+        Schema = "https://pvade.com/schemas/pvad-workbook.schema.json",
         SchemaVersion = SpreadsheetDto.CurrentSchemaVersion,
         Id = "complete-workbook",
         Name = "Complete workbook",
