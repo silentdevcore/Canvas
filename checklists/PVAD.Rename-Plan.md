@@ -41,6 +41,11 @@ Account, backend document processing and migrations. Original evidence and
 compatibility contracts remain unchanged; it is not a new runtime feature or
 closure of any release gate.
 
+The next [API/tooling mechanical batch](PVAD.Remaining-Code-Naming-Cleanup.md#api-and-tooling-mechanical-batch---2026-11-06)
+removes another 70 old-name occurrences in 29 files, including a private Core
+identifier and current test/tool text. Public serialized aliases and original
+evidence stay unchanged; this remains repository-only work.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

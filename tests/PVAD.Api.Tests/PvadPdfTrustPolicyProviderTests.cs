@@ -13,7 +13,7 @@ public sealed class PvadPdfTrustPolicyProviderTests
     [Fact]
     public void Constructor_LoadsConfiguredTrustAnchorRelativeToContentRoot()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-trust-policy-");
+        var directory = Directory.CreateTempSubdirectory("pvad-trust-policy-");
         try
         {
             using var certificate = CreateCertificate();
@@ -42,7 +42,7 @@ public sealed class PvadPdfTrustPolicyProviderTests
     [Fact]
     public void Constructor_RejectsMissingConfiguredCertificate()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-trust-policy-");
+        var directory = Directory.CreateTempSubdirectory("pvad-trust-policy-");
         try
         {
             var exception = Assert.Throws<InvalidOperationException>(() =>

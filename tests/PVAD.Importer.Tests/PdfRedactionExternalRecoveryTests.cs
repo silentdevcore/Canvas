@@ -16,9 +16,9 @@ namespace PVAD.Importer.Tests;
 
 public sealed class PdfRedactionExternalRecoveryTests
 {
-    private const string TextSecret = "PXA-RECOVERY-TEXT-7C89E1";
-    private const string ImageSecret = "PXA-RECOVERY-IMAGE-4D21B8";
-    private const string MaskSecret = "PXA-RECOVERY-MASK-91AF30";
+    private const string TextSecret = "PVAD-RECOVERY-TEXT-7C89E1";
+    private const string ImageSecret = "PVAD-RECOVERY-IMAGE-4D21B8";
+    private const string MaskSecret = "PVAD-RECOVERY-MASK-91AF30";
 
     [Fact]
     public async Task CommittedCorpus_ShouldMatchItsManifestAndSources()
@@ -58,7 +58,7 @@ public sealed class PdfRedactionExternalRecoveryTests
         var pdfimages = RequireTool("pdfimages");
         var strings = RequireTool("strings");
         var (root, manifest) = await ReadCorpusAsync();
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-redaction-corpus-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-redaction-corpus-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {
@@ -100,7 +100,7 @@ public sealed class PdfRedactionExternalRecoveryTests
         var pdftotext = RequireTool("pdftotext");
         var pdfimages = RequireTool("pdfimages");
         var strings = RequireTool("strings");
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-redaction-recovery-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-redaction-recovery-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {

@@ -28,5 +28,5 @@ if (process.argv.includes('--apply')) {
   writeFileSync(resolve(root, 'artifacts/rename/legacy-build-cleanup.json'),
     `${JSON.stringify({ schemaVersion: 1, removed: candidates, pairedHarnessPreserved: true }, null, 2)}\n`);
   for (const item of candidates) unlinkSync(resolve(root, item.path));
-  console.log(`Removed ${candidates.length} untracked generated PXA build artifacts; all job-cutover artifacts preserved.`);
+  console.log(`Removed ${candidates.length} untracked generated legacy build artifacts; all job-cutover artifacts preserved.`);
 } else console.log(`Dry run: ${candidates.length} validated untracked generated artifacts; no files removed.`);

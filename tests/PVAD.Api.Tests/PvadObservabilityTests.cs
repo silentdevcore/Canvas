@@ -495,8 +495,8 @@ public sealed class PvadObservabilityTests
     {
         var settings = Options.Create(new PvadObservabilityOptions
             {
-                ServiceName = "pxa-test",
-                ServiceNamespace = "PowerDoxAutomation",
+                ServiceName = "pvad-test",
+                ServiceNamespace = "PVAD.Testing",
             });
         var environment = new TestHostEnvironment { EnvironmentName = Environments.Production };
         PvadJsonConsoleFormatter formatter = legacy
@@ -511,7 +511,7 @@ public sealed class PvadObservabilityTests
         };
         var entry = new LogEntry<IReadOnlyList<KeyValuePair<string, object?>>>(
             LogLevel.Information,
-            "PXA.Test",
+            "PVAD.Test",
             new EventId(42, "TestCompleted"),
             attributes,
             new InvalidOperationException("must-not-appear"),
@@ -525,8 +525,8 @@ public sealed class PvadObservabilityTests
 
         using var document = JsonDocument.Parse(output.ToString());
         var root = document.RootElement;
-        Assert.Equal("pxa-test", root.GetProperty("service.name").GetString());
-        Assert.Equal("PowerDoxAutomation", root.GetProperty("service.namespace").GetString());
+        Assert.Equal("pvad-test", root.GetProperty("service.name").GetString());
+        Assert.Equal("PVAD.Testing", root.GetProperty("service.namespace").GetString());
         Assert.Equal("Production", root.GetProperty("deployment.environment.name").GetString());
         Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("service.version").GetString()));
         Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("service.instance.id").GetString()));
@@ -733,13 +733,13 @@ public sealed class PvadObservabilityTests
             "document.import",
             1,
             traceParent,
-            "pxa=correlated");
+            "pvad=correlated");
 
         Assert.NotNull(processing);
         Assert.Equal(traceId, processing.TraceId);
         Assert.Equal(producerSpanId, processing.ParentSpanId);
         Assert.Equal(traceParent, processing.ParentId);
-        Assert.Equal("pxa=correlated", processing.TraceStateString);
+        Assert.Equal("pvad=correlated", processing.TraceStateString);
     }
 
     [Fact]
@@ -831,7 +831,7 @@ public sealed class PvadObservabilityTests
                                 y = 0,
                                 width = 200,
                                 height = 30,
-                                content = "PXA remains available",
+                                content = "PVAD remains available",
                             },
                         },
                     },
@@ -842,7 +842,7 @@ public sealed class PvadObservabilityTests
         response.EnsureSuccessStatusCode();
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
         Assert.Contains(
-            "PXA remains available",
+            "PVAD remains available",
             await response.Content.ReadAsStringAsync(),
             StringComparison.Ordinal);
     }

@@ -91,7 +91,7 @@ public sealed class VisualParityArtifactTests
     /// <remarks>
     /// The backend PDF above is a DesignExport rendering of the Designer's <em>projection</em>.
     /// Comparing the Canvas to it proves the Designer agrees with itself; it says nothing about the
-    /// hybrid invoice PXA actually issues, which <see cref="EInvoice.CreatePdf"/> renders from the
+    /// hybrid invoice PVAD actually issues, which <see cref="EInvoice.CreatePdf"/> renders from the
     /// canonical invoice through its own layout. This writes that document so the parity run can
     /// compare it as a surface of its own.
     /// </remarks>
@@ -191,7 +191,7 @@ public sealed class VisualParityArtifactTests
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
         return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+            ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
     }
 
     private sealed class TestEnvironment : IWebHostEnvironment

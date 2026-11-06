@@ -24,6 +24,11 @@ then normalizes current synthetic examples and test labels in 50 files. It does
 not replace retained diagnostic, reader or historical-release contracts, and
 does not change application runtime behavior.
 
+The following [API/tooling batch](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#api-and-tooling-mechanical-batch---2026-11-06)
+normalizes current API/security fixtures and internal tool text, and renames a
+private version-state field. Its old serialized reader remains intact and the
+source guard now permits only that exact serialized key, not the private name.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new

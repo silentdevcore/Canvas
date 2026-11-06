@@ -167,7 +167,7 @@ public sealed class PvadJobProcessorTests
                 RetentionMode = PvadJobRetentionMode.Retained,
                 PayloadJson = JsonSerializer.Serialize(new TemplateRenderJobPayload(
                     templateId.ToString(),
-                    JsonSerializer.SerializeToElement(new { invoiceNumber = "PXA-1" }),
+                    JsonSerializer.SerializeToElement(new { invoiceNumber = "PVAD-1" }),
                     null)),
             });
             await context.SaveChangesAsync();

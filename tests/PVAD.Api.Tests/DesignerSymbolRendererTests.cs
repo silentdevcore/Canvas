@@ -11,7 +11,7 @@ public sealed class DesignerSymbolRendererTests
     [Fact]
     public void QrCode_is_deterministic_and_shared_with_code_execution()
     {
-        const string value = "https://powerdoxautomation.com/parity";
+        const string value = "https://pvade.com/parity";
         var canonical = PvadSymbolRenderer.RenderQrCode(value);
 
         Assert.Equal(canonical, PvadSymbolRenderer.RenderQrCode(value));

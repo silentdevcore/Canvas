@@ -163,7 +163,7 @@ test('all joined Core legacy names are bounded by diagnostic or explicit seriali
     'src/Core/PVAD.Core/ProjectFormats/PvadProjectModels.cs': [
       '"PXA-PXAP-1"', '"PXA-PXAS-1"', '"pxap"', '"pxas"',
       '"application/vnd.powerdox.pxap+zip"', '"application/vnd.powerdox.pxas+zip"',
-      '".pxap"', '".pxas"', 'minimumPxaVersion', 'LegacyMinimumPxaVersion',
+      '".pxap"', '".pxas"', '"minimumPxaVersion"', 'LegacyMinimumPxaVersion',
     ],
   };
   const seen = new Set();

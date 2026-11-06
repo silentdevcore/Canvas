@@ -17,7 +17,7 @@ const run = (command, args, env = process.env) => completed(spawn(command, args,
   cwd: repo, env, stdio: 'inherit',
 }));
 
-console.log(`Exporting immutable PXA baseline ${baseline} to ${legacyRoot}`);
+console.log(`Exporting immutable legacy baseline ${baseline} to ${legacyRoot}`);
 const archive = spawn('git', ['archive', baseline, 'Directory.Build.props', 'VERSION',
   'PXA.WebApi', 'src', 'product-metadata', 'assets/fonts', 'fonts', 'operator-docs'], {
   cwd: repo, stdio: ['ignore', 'pipe', 'inherit'],

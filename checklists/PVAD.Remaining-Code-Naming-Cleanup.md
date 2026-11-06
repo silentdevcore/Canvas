@@ -361,6 +361,49 @@ point-in-time evidence, not a new acceptance or publication approval.
 - The first broad Export selection exceeded the parent process timeout after its long dependency build. Its zero exit status does not count as a completed pass; a later broad retry was explicitly stopped. The final `dotnet-export-focused/export.trx` contains 25 passing export/spreadsheet tests. The additional 62-page real-world corpus case is excluded from accepted evidence; only its diagnostic-message edit is build-checked.
 - Final naming checks retain zero old-name matches in all 281 tracked Markdown files, exact original review notes and unchanged checklist states. `git diff --check` passes. No commit or push is performed.
 
+### API And Tooling Mechanical Batch - 2026-11-06
+
+Baseline: `1c865ee9`. A new tracked-only scan is saved as
+`artifacts/rename/search-replace-next/scan.json`; it does not include private IDE
+files, ignored outputs or untracked notes. The explicit replacement list and
+before/after hashes are in `artifacts/rename/search-replace-next/replacements.json`.
+
+This batch removes **70 old-name occurrences in 29 files**:
+
+| Reviewed area | Files | Removed occurrences |
+| --- | ---: | ---: |
+| API/security examples, telemetry test values and explanatory text | 21 | 53 |
+| Core private version state and a synthetic archive header | 2 | 6 |
+| Generated PDF recovery and timestamp test inputs | 3 | 8 |
+| Internal tool messages and the synthetic incorrect-password probe | 3 | 3 |
+
+Nine files now have no old product-name tokens. The private version field becomes
+`legacyMinimumVersion`; its public compatibility property and serialized reader
+key remain unchanged. The independent Core source guard is tightened to accept
+only the quoted serialized key, not an arbitrary private identifier with that
+name. No JSON schema, diagnostic, API route or public DTO alias changes.
+
+Existing encrypted-fixture passwords, original certificates, signed PDFs,
+customer-text preservation tests, audit/schema contracts and immutable corpus
+hashes remain unchanged. Synthetic certificates and documents generated inside
+the tests use current names. New metadata-review notes are additive; original
+review notes and checkbox states remain intact.
+
+No cleanup `--apply`, job-binary cutover, corpus regeneration, publication,
+deployment, version bump, commit or push is performed. The internal-only release
+fragment uses `none` impact. Earlier operational evidence retains its original
+source pins; message-only tool edits are not a new operational acceptance run.
+
+#### Verification
+
+- Core builds with zero warnings or errors. Focused test builds reuse unchanged project references and worker packages; the changed Core binary is checked separately.
+- All 407 configuration/versioning contracts pass, with zero failures or skips. Residual, structural JSON, version synchronization and release-fragment validation pass.
+- Four real local Poppler checks accept the existing valid fixture password and reject the renamed synthetic incorrect password. The encrypted PDF remains byte-identical. This does not claim a fresh qpdf, Docker or LibreOffice interoperability run.
+- All three changed internal tool scripts pass syntax checking. Their destructive or operational commands are not executed.
+- Focused .NET validation passes **378 tests**: Core archive contracts 78, Importer recovery/revision/timestamp tests 16 and API/security tests 284, with zero failures or skips. Both PostgreSQL and external PDF-recovery opt-ins were enabled. The TRX-derived summary is `artifacts/rename/search-replace-next/dotnet-validation.json`.
+- All three test output directories contain the exact newly built Core DLL, verified by SHA-256. The visual-artifact test's comment/message edits are build-checked only; approved image baselines are not regenerated. No full Solution, Designer or website build is claimed for this source-scoped batch.
+- 143 protected fixture, corpus, schema-alias, audit, Legal/register, published-release and VERSION files compare byte-for-byte with HEAD. All 816 original review notes, their order and original checkbox states remain intact. All 281 tracked Markdown files have zero old-name matches, and `git diff --check` passes.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

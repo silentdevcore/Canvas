@@ -109,15 +109,15 @@ public sealed class PvadProjectManifest
     public string EnvelopeVersion { get; set; } = PvadProjectFormat.EnvelopeVersion;
     public string DocumentSchemaVersion { get; set; } = PvadProjectFormat.DocumentSchemaVersion;
     private string? minimumPvadVersion;
-    private string? minimumPxaVersion;
+    private string? legacyMinimumVersion;
 
     public string MinimumPvadVersion
     {
         get
         {
-            if (minimumPvadVersion is not null && minimumPxaVersion is not null && minimumPvadVersion != minimumPxaVersion)
+            if (minimumPvadVersion is not null && legacyMinimumVersion is not null && minimumPvadVersion != legacyMinimumVersion)
                 throw new PvadProjectFormatException("PXAPROJECT008", "The project contains conflicting minimum product versions.");
-            return minimumPvadVersion ?? minimumPxaVersion ?? PvadProjectFormat.CurrentProductVersion;
+            return minimumPvadVersion ?? legacyMinimumVersion ?? PvadProjectFormat.CurrentProductVersion;
         }
         set => minimumPvadVersion = value ?? throw new JsonException("Minimum product version cannot be null.");
     }
@@ -127,7 +127,7 @@ public sealed class PvadProjectManifest
     public string? LegacyMinimumPxaVersion
     {
         get => null;
-        set => minimumPxaVersion = value ?? throw new JsonException("Minimum product version cannot be null.");
+        set => legacyMinimumVersion = value ?? throw new JsonException("Minimum product version cannot be null.");
     }
     public string DocumentId { get; set; } = "";
     public string Title { get; set; } = "";

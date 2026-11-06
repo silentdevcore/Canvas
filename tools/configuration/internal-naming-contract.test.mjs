@@ -106,6 +106,36 @@ test('bulk example renaming preserves historical release text and explicit reade
   assert.ok(template.includes('"PVAD Template"'));
 });
 
+test('current API helper data uses canonical names without replacing wire identifiers', () => {
+  for (const name of [
+    'DocumentOpsControllerTests', 'PdfEInvoicesControllerTests', 'PdfSignaturesControllerTests',
+    'PdfTrustInspectionJobTests', 'PdfViewerAnnotationsControllerTests', 'PvadJobProcessorTests',
+    'PvadOfflineLicenseValidatorTests', 'PvadPdfLongTermValidationMaterialProviderTests',
+    'PvadPdfRevocationEvidenceProviderTests', 'PvadPdfTrustPolicyProviderTests',
+    'PvadPdfTrustSecurityTests', 'PvadRetentionGovernanceTests', 'PvadSystemOperatorAccessTests',
+  ]) assert.doesNotMatch(read(`tests/PVAD.Api.Tests/${name}.cs`),
+    /pxa-(?:trust-job|revocation-cache|aia-cache|trust-policy)|PXA (?:World|Clone|note|API signing fixture|service|security test)|PXA\.Retention\.Tests|operator@powerdoxautomation\.com/i, name);
+  const observability = read('tests/PVAD.Api.Tests/PvadObservabilityTests.cs');
+  assert.ok(observability.includes('ServiceName = "pvad-test"'));
+  assert.ok(observability.includes('ServiceNamespace = "PVAD.Testing"'));
+  assert.ok(observability.includes('legacy ? "pxa-json" : "pvad-json"'));
+  const workspace = read('tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs');
+  assert.ok(workspace.includes('PXA and Canvas are customer text'));
+  assert.ok(workspace.includes('return a safe PVAD document;'));
+});
+
+test('private version state is neutral while the public legacy JSON reader stays exact', () => {
+  const model = read('src/Core/PVAD.Core/ProjectFormats/PvadProjectModels.cs');
+  assert.ok(model.includes('private string? legacyMinimumVersion;'));
+  assert.doesNotMatch(model, /private string\? minimumPxaVersion/);
+  assert.ok(model.includes('[JsonPropertyName("minimumPxaVersion")]'));
+  assert.ok(model.includes('public string? LegacyMinimumPxaVersion'));
+  assert.ok(model.includes('minimumPvadVersion ?? legacyMinimumVersion ?? PvadProjectFormat.CurrentProductVersion'));
+  const cleanup = read('tools/configuration/clean-legacy-build-artifacts.mjs');
+  assert.ok(cleanup.includes('untracked generated legacy build artifacts'));
+  assert.ok(cleanup.includes('/^PXA\\..*\\.(?:dll|exe|pdb|deps\\.json|runtimeconfig\\.json)$/'));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

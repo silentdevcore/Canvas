@@ -24,7 +24,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         {
             design = SampleDesign(),
             find = "Hello",
-            replace = "PXA"
+            replace = "PVAD"
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -34,7 +34,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(body.GetProperty("replacementCount").GetInt32() > 0);
         var firstElement = body.GetProperty("design").GetProperty("pages")[0].GetProperty("elements")[0];
-        Assert.Equal("PXA World", firstElement.GetProperty("content").GetString());
+        Assert.Equal("PVAD World", firstElement.GetProperty("content").GetString());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         var json = JsonSerializer.Serialize(new
         {
             design = SampleDesign(),
-            newName = "PXA Clone"
+            newName = "PVAD Clone"
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -51,7 +51,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("PXA Clone", body.GetProperty("name").GetString());
+        Assert.Equal("PVAD Clone", body.GetProperty("name").GetString());
         Assert.NotEqual("design-1", body.GetProperty("id").GetString());
     }
 
@@ -150,7 +150,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         var markdown = new StringBuilder()
             .AppendLine("# MarkdownIntegrationMarker")
             .AppendLine()
-            .AppendLine("Open the [PXA documentation](https://example.com/docs).")
+            .AppendLine("Open the [PVADE documentation](https://example.com/docs).")
             .AppendLine()
             .AppendLine($"![pixel](data:image/png;base64,{CreatePngBase64()})")
             .AppendLine();
