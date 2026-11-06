@@ -146,7 +146,7 @@ public sealed class PdfPageEditorTests
             static entry => entry.Value,
             StringComparer.Ordinal))
         {
-            ["PxaExternalDestination"] = pageReferences[1]
+            ["PvadExternalDestination"] = pageReferences[1]
         };
         var withExternalReference = new PdfIncrementalUpdateWriter().Append(source,
         [

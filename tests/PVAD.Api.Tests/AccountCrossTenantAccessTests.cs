@@ -22,7 +22,7 @@ namespace PVAD.Api.Tests;
 /// section of checklists/PVAD.Account.Portal-Implementation.md: a table-driven sweep
 /// proving an authenticated customer session in org A is rejected against org B's
 /// organization-member endpoints, and proving the same session is rejected against
-/// live PXA Admin routes. Per-resource cross-tenant coverage for licenses and
+/// live PVADE Admin routes. Per-resource cross-tenant coverage for licenses and
 /// service accounts already exists in AccountSubscriptionAndLicensesControllerTests
 /// and AccountServiceAccountsAndSecurityControllerTests; this file does not repeat it.
 /// </summary>
@@ -64,13 +64,13 @@ public sealed class AccountCrossTenantAccessTests
     }
 
     /// <summary>
-    /// PXA Admin already let a Company's own "Organization Administrator" (and, more
+    /// PVADE Admin already let a Company's own "Organization Administrator" (and, more
     /// narrowly, "Manager") self-administer their own tenant through the Admin API
-    /// before PVAD.Account existed - PxaRoles.Permissions intentionally grants both
-    /// PxaPermissions.* and PxaAccountPermissions.* to that one shared role, so an
+    /// before PVAD.Account existed - PvadRoles.Permissions intentionally grants both
+    /// PvadPermissions.* and PvadAccountPermissions.* to that one shared role, so an
     /// owner legitimately gets 200 from GET /admin/users today. That is pre-existing
     /// behavior this pass does not change. The real, checkable boundaries are: (1) a
-    /// lower-privileged organization member (Viewer, holding zero PxaPermissions.*
+    /// lower-privileged organization member (Viewer, holding zero PvadPermissions.*
     /// claims) gets 403 everywhere under /admin, and (2) even the owner never reaches
     /// a true System-Administrator-only action.
     /// </summary>
@@ -190,10 +190,10 @@ public sealed class AccountCrossTenantAccessTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -260,7 +260,7 @@ public sealed class AccountCrossTenantAccessTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

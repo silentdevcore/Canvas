@@ -25,7 +25,7 @@ public sealed class PdfFullRewriteWriterTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaName"] = new PdfReference(markerId)
+            ["PvadName"] = new PdfReference(markerId)
         };
         var appended = new PdfIncrementalUpdateWriter().Append(source, [
             new PdfIncrementalObjectUpdate(markerId, new PdfDictionary
@@ -86,12 +86,12 @@ public sealed class PdfFullRewriteWriterTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaMarker"] = new PdfReference(markerId)
+            ["PvadMarker"] = new PdfReference(markerId)
         };
         var appended = new PdfIncrementalUpdateWriter().Append(source, [
             new PdfIncrementalObjectUpdate(new PdfObjectId(NextObjectNumber(source), 0), new PdfDictionary
             {
-                ["Type"] = new PdfName("PxaMarker"),
+                ["Type"] = new PdfName("PvadMarker"),
                 ["Secret"] = new PdfString("must-not-survive"u8.ToArray(), IsHex: false)
             }),
             new PdfIncrementalObjectUpdate(rootId, updatedCatalog)
@@ -121,17 +121,17 @@ public sealed class PdfFullRewriteWriterTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaMarker"] = new PdfReference(markerId)
+            ["PvadMarker"] = new PdfReference(markerId)
         };
         var withSecret = new PdfIncrementalUpdateWriter().Append(source, [
             new PdfIncrementalObjectUpdate(markerId, new PdfStreamObject(
-                new PdfDictionary { ["Type"] = new PdfName("PxaMarker") },
+                new PdfDictionary { ["Type"] = new PdfName("PvadMarker") },
                 "TOP-SECRET-PAYLOAD"u8.ToArray())),
             new PdfIncrementalObjectUpdate(rootId, updatedCatalog)
         ]).Bytes;
         var superseded = new PdfIncrementalUpdateWriter().Append(withSecret, [
             new PdfIncrementalObjectUpdate(markerId, new PdfStreamObject(
-                new PdfDictionary { ["Type"] = new PdfName("PxaMarker") },
+                new PdfDictionary { ["Type"] = new PdfName("PvadMarker") },
                 "redacted"u8.ToArray()))
         ]).Bytes;
         Assert.Equal(1, CountOccurrences(superseded, "TOP-SECRET-PAYLOAD"u8));
@@ -154,12 +154,12 @@ public sealed class PdfFullRewriteWriterTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaUnknown"] = new PdfReference(markerId)
+            ["PvadUnknown"] = new PdfReference(markerId)
         };
-        var payload = "PXA unknown payload"u8.ToArray();
+        var payload = "PVAD unknown payload"u8.ToArray();
         var appended = new PdfIncrementalUpdateWriter().Append(source, [
             new PdfIncrementalObjectUpdate(markerId, new PdfStreamObject(
-                new PdfDictionary { ["Type"] = new PdfName("PxaUnknownType"), ["PxaCustom"] = new PdfInteger(7) },
+                new PdfDictionary { ["Type"] = new PdfName("PvadUnknownType"), ["PvadCustom"] = new PdfInteger(7) },
                 payload)),
             new PdfIncrementalObjectUpdate(rootId, updatedCatalog)
         ]).Bytes;
@@ -170,8 +170,8 @@ public sealed class PdfFullRewriteWriterTests
         var preserved = rewrittenGraph.Objects.Values
             .Select(static value => value.Value)
             .OfType<PdfStreamObject>()
-            .Single(static value => value.Dictionary["Type"] is PdfName { Value: "PxaUnknownType" });
-        Assert.Equal(7, Assert.IsType<PdfInteger>(preserved.Dictionary["PxaCustom"]).Value);
+            .Single(static value => value.Dictionary["Type"] is PdfName { Value: "PvadUnknownType" });
+        Assert.Equal(7, Assert.IsType<PdfInteger>(preserved.Dictionary["PvadCustom"]).Value);
         Assert.Equal(payload, preserved.EncodedBytes.ToArray());
         Assert.Equal(payload.Length, Assert.IsType<PdfInteger>(preserved.Dictionary["Length"]).Value);
     }
@@ -183,7 +183,7 @@ public sealed class PdfFullRewriteWriterTests
         var orphanId = new PdfObjectId(NextObjectNumber(source), 0);
         var appended = new PdfIncrementalUpdateWriter().Append(source, [
             new PdfIncrementalObjectUpdate(orphanId, new PdfStreamObject(
-                new PdfDictionary { ["Type"] = new PdfName("PxaOrphan") },
+                new PdfDictionary { ["Type"] = new PdfName("PvadOrphan") },
                 "ORPHANED-SECRET-PAYLOAD"u8.ToArray()))
         ]).Bytes;
 
@@ -282,7 +282,7 @@ public sealed class PdfFullRewriteWriterTests
             Updates = [
                 new PdfIncrementalObjectUpdate(
                     new PdfObjectId(NextObjectNumber(source), 0),
-                    new PdfDictionary { ["Type"] = new PdfName("PxaMarker") })
+                    new PdfDictionary { ["Type"] = new PdfName("PvadMarker") })
             ]
         });
         var rewrite = new PdfDocumentSaver().Save(source, new PdfSaveRequest
@@ -310,7 +310,7 @@ public sealed class PdfFullRewriteWriterTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA full rewrite fixture", 40, 40);
+        document.AddPage().DrawText("PVAD full rewrite fixture", 40, 40);
         return document.ToBytes();
     }
 

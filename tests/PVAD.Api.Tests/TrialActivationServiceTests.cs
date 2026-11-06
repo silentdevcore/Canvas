@@ -9,7 +9,7 @@ namespace PVAD.Api.Tests;
 /// <summary>
 /// Isolated unit coverage for the pending-to-active Trial transition:
 /// it only queues writes on the change tracker (never SaveChangesAsync), so a
-/// PxaDbContext backed by the EF Core InMemory provider is enough here - no
+/// PvadDbContext backed by the EF Core InMemory provider is enough here - no
 /// Postgres/Testcontainers/WebApplicationFactory needed.
 /// </summary>
 public sealed class TrialActivationServiceTests

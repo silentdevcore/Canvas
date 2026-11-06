@@ -98,7 +98,7 @@ public sealed class IdentityMailFlowTests
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(requestReset)).StatusCode);
         await ProcessMailAsync(factory.Services);
         var resetMail = await WaitForMessageAsync(transport, "identity.password-reset");
-        Assert.Contains("https://account.pxa.test/reset-password", resetMail.TextBody, StringComparison.Ordinal);
+        Assert.Contains("https://account.pvade.test/reset-password", resetMail.TextBody, StringComparison.Ordinal);
         var resetToken = GetToken(resetMail.TextBody);
 
         resetCsrf = await GetCsrfAsync(resetClient);
@@ -129,7 +129,7 @@ public sealed class IdentityMailFlowTests
         await ProcessMailAsync(factory.Services);
         var adminResetMail = transport.Messages.Last(value =>
             value.Subject.Contains("Reset", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains("https://admin.pxa.test/reset-password", adminResetMail.TextBody, StringComparison.Ordinal);
+        Assert.Contains("https://admin.pvade.test/reset-password", adminResetMail.TextBody, StringComparison.Ordinal);
 
         string expiredResetToken;
         await using (var expiredTokenScope = factory.Services.CreateAsyncScope())
@@ -234,11 +234,11 @@ public sealed class IdentityMailFlowTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AdminBaseUrl"] = "https://admin.pxa.test",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AdminBaseUrl"] = "https://admin.pvade.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -353,7 +353,7 @@ public sealed class IdentityMailFlowTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", csrfToken);
+        request.Headers.Add("X-PVAD-CSRF", csrfToken);
         return request;
     }
 }

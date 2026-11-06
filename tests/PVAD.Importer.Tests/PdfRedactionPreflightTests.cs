@@ -79,12 +79,12 @@ public sealed class PdfRedactionPreflightTests
     [Fact]
     public async Task Preflight_ShouldNeverEchoCoveredText()
     {
-        var pdf = CreatePdf("CONFIDENTIAL-PXA-SECRET");
+        var pdf = CreatePdf("CONFIDENTIAL-PVAD-SECRET");
 
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, WholePage));
 
         var serialized = System.Text.Json.JsonSerializer.Serialize(report);
-        Assert.DoesNotContain("CONFIDENTIAL-PXA-SECRET", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("CONFIDENTIAL-PVAD-SECRET", serialized, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public sealed class PdfRedactionPreflightTests
         var appended = new PdfIncrementalUpdateWriter().Append(pdf, [
             new PdfIncrementalObjectUpdate(
                 new PdfObjectId(NextObjectNumber(pdf), 0),
-                new PdfDictionary { ["Type"] = new PdfName("PxaMarker") })
+                new PdfDictionary { ["Type"] = new PdfName("PvadMarker") })
         ]).Bytes;
 
         var report = await PreflightAsync(appended, new PdfRedactionRegion(1, WholePage));
@@ -209,7 +209,7 @@ public sealed class PdfRedactionPreflightTests
 
     private static PdfRectangle WholePage => new(0, 0, 1000, 1000);
 
-    private static byte[] CreatePdf(string text = "PXA redaction preflight fixture")
+    private static byte[] CreatePdf(string text = "PVAD redaction preflight fixture")
     {
         var document = new PdfDocument();
         document.AddPage().DrawText(text, 40, 40);

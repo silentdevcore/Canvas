@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-rename-integration-gate-status",
+  "impact": "none",
+  "components": ["documentation", "infrastructure"],
+  "category": "improved",
+  "summary": "Internal rename acceptance guidance now records confirmed publication and deployment prerequisites.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This records owner decisions and source-only integration status without changing shipped behavior, approval gates, product versions, remote protection rules or deployment state."
+}

@@ -20,11 +20,11 @@ namespace PVAD.Api.Tests;
 /// <summary>
 /// Proves the "Account roles cannot grant products not enabled by subscription
 /// entitlements" acceptance criterion in checklists/PVAD.Account.md: role-based
-/// authorization ([Authorize(Policy = PxaAccountPermissions.X)]) and entitlement
-/// evaluation (PxaEntitlementService, driven purely by OrganizationSubscription/
+/// authorization ([Authorize(Policy = PvadAccountPermissions.X)]) and entitlement
+/// evaluation (PvadEntitlementService, driven purely by OrganizationSubscription/
 /// SubscriptionEntitlement rows) are two entirely separate code paths that never
 /// cross-reference each other. AccountEntitlementsController.Evaluate itself has
-/// no PxaAccountPermissions policy at all - only [Authorize] - so these tests
+/// no PvadAccountPermissions policy at all - only [Authorize] - so these tests
 /// exercise the org's subscription state, not the caller's role.
 /// </summary>
 public sealed class AccountEntitlementsControllerTests
@@ -92,7 +92,7 @@ public sealed class AccountEntitlementsControllerTests
         Assert.Equal(HttpStatusCode.NoContent, (await viewerClient.SendAsync(accept)).StatusCode);
         await LoginAsync(viewerClient, "viewer@viewerentitlements.test", "Pvad-Viewer-Password-42!", HttpStatusCode.OK);
 
-        // The Viewer role grants none of the PxaAccountPermissions.* policies used
+        // The Viewer role grants none of the PvadAccountPermissions.* policies used
         // to gate other controllers, and AccountEntitlementsController requires no
         // policy at all beyond [Authorize] - the entitlement outcome is decided
         // purely by the organization's subscription/entitlement rows.
@@ -147,10 +147,10 @@ public sealed class AccountEntitlementsControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -217,7 +217,7 @@ public sealed class AccountEntitlementsControllerTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

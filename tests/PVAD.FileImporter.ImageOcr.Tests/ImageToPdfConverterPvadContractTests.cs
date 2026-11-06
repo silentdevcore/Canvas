@@ -11,12 +11,12 @@ public sealed class ImageToPdfConverterPvadContractTests
         var converter = new ImageToPdfConverter(new FakeOcrEngine([
             new OcrLine
             {
-                Text = "PXA OCR",
+                Text = "PVAD OCR",
                 Bounds = new OcrBoundingBox(20, 20, 120, 24),
                 Confidence = 0.93,
                 Words =
                 [
-                    new OcrWord { Text = "PXA", Bounds = new OcrBoundingBox(20, 20, 45, 24), Confidence = 0.94 },
+                    new OcrWord { Text = "PVAD", Bounds = new OcrBoundingBox(20, 20, 45, 24), Confidence = 0.94 },
                     new OcrWord { Text = "OCR", Bounds = new OcrBoundingBox(76, 20, 50, 24), Confidence = 0.92 },
                 ],
             },
@@ -30,13 +30,13 @@ public sealed class ImageToPdfConverterPvadContractTests
             IncludeDebugOverlay = true,
         });
 
-        Assert.Equal("FakePXA", result.Diagnostics.OcrEngine);
+        Assert.Equal("FakePVAD", result.Diagnostics.OcrEngine);
         Assert.Equal("1.0", result.Diagnostics.OcrEngineVersion);
         Assert.Equal(2, result.Diagnostics.WordCount);
         Assert.Single(result.OcrPages);
         Assert.NotNull(result.DebugOverlayPng);
         Assert.NotEmpty(result.DebugOverlayPng);
-        Assert.Contains(result.Design.Pages[0].Elements, e => e.Type == "text" && e.Content == "PXA OCR");
+        Assert.Contains(result.Design.Pages[0].Elements, e => e.Type == "text" && e.Content == "PVAD OCR");
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class ImageToPdfConverterPvadContractTests
             this.lines = lines;
         }
 
-        public string Name => "FakePXA";
+        public string Name => "FakePVAD";
 
         public string Version => "1.0";
 
