@@ -334,7 +334,7 @@ test.describe('live authenticated PDF Trust workflow', () => {
     request,
   }, testInfo) => {
     test.skip(
-      process.env.PXA_RUN_LIVE_AUTH_TRUST !== '1',
+      readPvadEnvironment('PVAD_RUN_LIVE_AUTH_TRUST') !== '1',
       'Requires running Account, Designer, WebApi, PostgreSQL, and Mailpit services.',
     );
     test.setTimeout(180_000);

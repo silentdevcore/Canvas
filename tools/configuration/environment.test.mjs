@@ -25,6 +25,19 @@ test('conflicting configuration fails without disclosing values', () => {
   });
 });
 
+test('live authenticated browser opt-ins accept either generation and reject conflicts', () => {
+  for (const suffix of ['RUN_LIVE_AUTH_EINVOICE', 'RUN_LIVE_AUTH_TRUST']) {
+    const key = `PVAD_${suffix}`;
+    const legacy = `PXA_${suffix}`;
+    assert.equal(readPvadEnvironment(key, {}), undefined);
+    for (const environment of [{ [key]: '1' }, { [legacy]: '1' }, { [key]: '1', [legacy]: '1' }])
+      assert.equal(readPvadEnvironment(key, environment), '1');
+    assert.equal(readPvadEnvironment(key, { [key]: '0' }), '0');
+    assert.equal(readPvadEnvironment(key, { [legacy]: '0' }), '0');
+    assert.throws(() => readPvadEnvironment(key, { [key]: '0', [legacy]: '1' }), /Conflicting configuration keys/);
+  }
+});
+
 test('explicit empty canonical settings cannot silently fall back', () => {
   assert.equal(readPvadEnvironment('PVAD_API_KEY', { PVAD_API_KEY: '' }), '');
   assert.throws(() => readPvadEnvironment('PVAD_API_KEY', {

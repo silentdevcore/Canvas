@@ -5,6 +5,7 @@ import {
   type Page,
 } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { readPvadEnvironment } from '../../tools/configuration/environment.mjs';
 
 /**
  * The electronic-invoice workflow end to end, as a signed-in customer performs it.
@@ -126,9 +127,9 @@ test.describe('electronic invoice workspace', () => {
   // and Mailpit services all running, which a plain checkout does not have.
   test.beforeEach(() => {
     test.skip(
-      process.env.PXA_RUN_LIVE_AUTH_EINVOICE !== '1',
+      readPvadEnvironment('PVAD_RUN_LIVE_AUTH_EINVOICE') !== '1',
       'Requires running Account, Designer, WebApi, PostgreSQL, and Mailpit services. '
-      + 'Set PXA_RUN_LIVE_AUTH_EINVOICE=1 to run it.',
+      + 'Set PVAD_RUN_LIVE_AUTH_EINVOICE=1 to run it.',
     );
   });
 

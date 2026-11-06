@@ -54,6 +54,17 @@ uses current names for general project filenames, editable example text and the
 workbook schema hint. Separate schema-hint roundtrips retain exact old input;
 original fixtures, aliases, diagnostics and production archive code do not change.
 
+The [smoke/browser input review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#smoke-and-browser-current-inputs---2026-11-06)
+uses canonical general operator requests and browser opt-in keys, preserving
+former environment readers and installed Grafana bindings. Browser tests now
+match the existing navigation-only sign-in hint, with distinct current-cookie
+and retained-cookie migration scenarios. No application behavior changes.
+
+The [project API/recovery review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#project-api-recovery-and-telemetry-examples---2026-11-06)
+normalizes general project filenames, telemetry examples and pending-recovery
+inputs. Dedicated cases preserve both project-extension generations and the
+former recovery reader. Audit identifiers and original evidence are unchanged.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new

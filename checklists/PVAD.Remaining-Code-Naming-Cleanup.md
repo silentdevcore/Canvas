@@ -552,6 +552,81 @@ baseline, and all 816 original review notes retain their wording and order.
 The release fragment uses `none` impact: only tests and internal documentation
 change. No commit, push, publication or service restart is part of this batch.
 
+### Smoke And Browser Current Inputs - 2026-11-06
+
+Baseline: `eba91b97`. General observability checks now call five canonical API
+routes and look for the canonical recovery phrase. Existing datasource and
+dashboard UIDs, authentication headers, service bindings and compatibility
+readers remain unchanged. Shell syntax and source contracts are verified; this
+is not a fresh full-stack observability acceptance or an installed-state cutover.
+
+The two live authenticated browser opt-ins use the existing environment reader
+with current keys. Former keys remain accepted, matching dual values work and
+conflicting values fail rather than selecting an arbitrary generation.
+
+The Company/Account test now supplies a synthetic already-reviewed legal
+profile, acknowledges necessary storage through the UI and verifies that the
+one-navigation sign-in hint is not persisted under either storage key. Reload
+returns to the anonymous presentation. No persistent login marker is reintroduced.
+
+The general footer test uses the current storage cookie. A separate browser
+test preserves the former acknowledgement, verifies canonical-cookie migration
+and confirms that settings can still be reopened.
+
+- [x] Use canonical smoke API routes and recovery instructions without changing infrastructure bindings.
+- [x] Normalize live browser opt-ins while preserving explicit compatibility and conflict checks.
+- [x] Match Company sign-in expectations to the existing navigation-only behavior.
+- [x] Separate current-cookie footer coverage from legacy-cookie migration coverage.
+- [x] Pass all eight targeted Chromium desktop/mobile cases and the 12 shared signal/cookie tests.
+- [x] Pass Designer typecheck/build, all 413 configuration/versioning tests and naming guards.
+- [x] Keep application behavior, original evidence, product version and published releases unchanged.
+
+The initial browser run exposed missing legal-profile test setup and a mobile
+storage-notice obstruction. Both test fixtures were corrected; the final run
+passes all eight cases without retry. Account authentication/profile responses
+are mocked: this is not a new live registration or PDF Trust acceptance run.
+The actual live opt-in workflows remain opt-in and are not claimed as executed.
+Both changed live-workflow files load successfully in Playwright test discovery.
+The final browser report, Node test log and preservation summary are stored in
+`artifacts/rename/search-replace-smoke/`. All 91 ledger-classified evidence files
+and all 816 original review notes remain unchanged; original task states are retained.
+Existing build/configuration warnings are not waived. The internal release
+fragment has `none` impact. No commit, push or deployment is part of this batch.
+
+### Project API, Recovery And Telemetry Examples - 2026-11-06
+
+Baseline: `eba91b97`, with the preceding smoke/browser batch still uncommitted.
+Twenty-two generic project API filename occurrences now use current PDF and
+Spreadsheet extensions. Original reference fixtures, stable diagnostic values,
+audit action names and historical audit JSON remain unchanged. Four explicit
+API cases verify that canonical packages remain readable with either extension
+generation, separately from the general current-workflow tests.
+
+General telemetry inputs use the current session-cookie identity and database
+dependency name; the metric test also checks the emitted dependency tag. The
+separate legacy formatter and datasource assertions remain exact. Recovery
+browser coverage distinguishes current and legacy pending state, validates both
+success/failure outcomes and consumes both storage keys without recording route
+details. No application, database, audit or monitoring identity is migrated.
+
+- [x] Normalize current project API filenames without changing original fixtures or audit contracts.
+- [x] Keep current/legacy extension acceptance explicit for PDF and Spreadsheet.
+- [x] Use canonical general telemetry inputs and verify the database metric tag.
+- [x] Exercise current and retained recovery state separately on desktop and mobile.
+- [x] Pass all 82 focused .NET tests, all 414 configuration/versioning tests and naming guards, without failures or skips.
+- [x] Verify preservation of the preceding uncommitted work and protected original evidence.
+
+Replacement details and baseline preservation records are stored under
+`artifacts/rename/search-replace-api-examples/`. Four Chromium desktop/mobile
+recovery cases pass. The .NET run recompiles the changed test assembly and reuses
+unchanged project references; it is not a full Solution build. All 91 protected
+evidence files and 816 original review notes remain unchanged. Earlier source
+guards and documentation are preserved with only the new scoped additions;
+seven other files from the preceding batch remain byte-identical. Existing
+compiler warnings remain outside this test-only naming pass. The internal release fragment
+has `none` impact. Product VERSION and published releases remain unchanged;
+no commit, push, host restart or deployment is authorized by this batch.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

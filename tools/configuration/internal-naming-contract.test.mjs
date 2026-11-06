@@ -207,6 +207,58 @@ test('generic project archive examples use current filenames, content and workbo
   assert.ok(schemaCompatibility.includes('AssertJsonEquivalent(workbook, package.Document)'));
 });
 
+test('general smoke and browser workflows use current inputs with explicit retained cases', () => {
+  const smoke = read('deploy/observability/smoke-test.sh');
+  for (const path of ['auth/csrf', 'auth/login', 'admin/operator/access',
+    'admin/operator/documentation', 'admin/operator/documentation/legal-backup-restore-recovery'])
+    assert.ok(smoke.includes(`/api/pvad/v1/${path}"`), path);
+  assert.doesNotMatch(smoke, /\/api\/pxa\/|RESTORE PXA DATABASE/);
+  assert.ok(smoke.includes('contains("RESTORE PVAD DATABASE")'));
+  for (const uid of ['pxa-prometheus', 'pxa-loki', 'pxa-tempo', 'pxa-platform-overview',
+    'pxa-infrastructure', 'pxa-operations', 'pxa-document-operations', 'pxa-browser-health'])
+    assert.ok(smoke.includes(uid), uid);
+  const syntax = spawnSync('bash', ['-n', join(root, 'deploy/observability/smoke-test.sh')], { encoding: 'utf8' });
+  assert.equal(syntax.status, 0, syntax.stderr);
+  for (const [file, suffix] of [['e-invoice-authenticated', 'EINVOICE'], ['pdf-viewer-trust-authenticated', 'TRUST']]) {
+    const source = read(`pvad-designer/e2e/${file}.spec.ts`);
+    assert.ok(source.includes(`readPvadEnvironment('PVAD_RUN_LIVE_AUTH_${suffix}') !== '1'`));
+    assert.doesNotMatch(source, /process\.env\.PXA_RUN_LIVE_AUTH_/);
+  }
+  const company = read('pvad-designer/e2e/company-account-flow.spec.ts');
+  assert.ok(company.includes("['pvad_signed_in', 'pxa_signed_in']"));
+  assert.ok(company.includes('localStorage.getItem(key), marker)).toBeNull()'));
+  assert.doesNotMatch(company, /localStorage\.getItem\([^\n]*\)\)\)\.toBe\('1'\)/);
+  const storage = read('pvad-designer/e2e/legal-storage-notice.spec.ts');
+  const split = storage.indexOf("test('a legacy storage acknowledgement");
+  assert.ok(split > 0);
+  assert.ok(storage.slice(0, split).includes("name: 'PVAD.StorageNotice'"));
+  assert.doesNotMatch(storage.slice(0, split), /PXA\.StorageNotice/);
+  assert.ok(storage.slice(split).includes("name: 'PXA.StorageNotice'"));
+});
+
+test('project API, telemetry and recovery defaults use canonical test data', () => {
+  const projects = read('tests/PVAD.Api.Tests/DesignerProjectsControllerTests.cs');
+  assert.deepEqual(projects.match(/"[^"\n]+\.pxa[ps]"/g), ['"minimal.pxap"']);
+  for (const filename of ['annual-report.pvadp', 'forecast.pvads', 'document.pvads',
+    'import.pvadp', 'inspectable.pvads', 'private-name.pvadp', 'private-sheet.pvads'])
+    assert.ok(projects.includes(`"${filename}"`), filename);
+  for (const value of ['designer.projects.pxap.open', 'designer.projects.pxas.validate',
+    '[InlineData("pxap", "pvadp")]', '[InlineData("pxas", "pvads")]', 'PXAPROJECT002'])
+    assert.ok(projects.includes(value), value);
+  for (const [extension, kind] of [['pvadp', 'Pdf'], ['pxap', 'Pdf'], ['pvads', 'Spreadsheet'], ['pxas', 'Spreadsheet']])
+    assert.ok(projects.includes(`[InlineData(".${extension}", PvadProjectKind.${kind})]`));
+  const telemetry = read('tests/PVAD.Api.Tests/PvadObservabilityTests.cs');
+  assert.ok(telemetry.includes('"__Host-PVAD.Session=secret"'));
+  assert.ok(telemetry.includes('RecordDependencyHealth("pvad-database", true,'));
+  assert.doesNotMatch(telemetry, /"PXA\.Session=secret"|RecordDependencyHealth\("pxa-database"/);
+  assert.ok(telemetry.includes('Assert.Equal("pxa-database", PersistenceServiceCollectionExtensions.LegacyDataSourceName)'));
+  const recovery = read('pvad-designer/e2e/status-pages.spec.ts');
+  assert.ok(recovery.includes("['current', 'pvad-status-recovery-v1']"));
+  assert.ok(recovery.includes("['legacy', 'pxa-status-recovery-v1']"));
+  assert.ok(recovery.includes('sessionStorage.setItem(key, JSON.stringify('));
+  assert.ok(recovery.includes('(${generation} storage)'));
+});
+
 test('current MCP setups use canonical names and keep compatibility cases explicit', () => {
   const config = read('tools/PVAD.Mcp/src/remote/config.test.ts');
   const currentConfig = config.slice(config.indexOf("test('remote configuration requires"));
