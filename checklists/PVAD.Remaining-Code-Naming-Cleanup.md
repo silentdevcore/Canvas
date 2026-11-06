@@ -627,6 +627,43 @@ compiler warnings remain outside this test-only naming pass. The internal releas
 has `none` impact. Product VERSION and published releases remain unchanged;
 no commit, push, host restart or deployment is authorized by this batch.
 
+### Repository Classification And Pending Review - 2026-11-06
+
+Baseline: `24390509`. The final tracked-only inventory scans 3,214 regular files
+and is stored at `artifacts/rename/final-repository-audit/scan.json`, with compact
+counts in `summary.json`. Known source files containing null bytes are scanned;
+private paths, untracked notes, symlinks and ignored output are excluded.
+
+The retained inventory has 590 text-scanned files with 20,319 content matches,
+42 matching paths and 28 binary inputs with 127 raw-byte matches. These are not
+open defect counts. The paths are three schema aliases, one CLI adapter, two
+original project archives and 36 original signature/validation records. Binary
+findings are original evidence, vendor language data or incidental compressed
+image bytes. The three affected screenshots were visually inspected; no old
+branding is visible. No binary, original audit or accepted evidence is edited.
+
+- [x] Classify every reported text, path and binary finding without directory-wide exemptions.
+- [ ] Review remaining current identifiers and defaults individually; classification alone is not proof that replacement is unnecessary.
+- [x] Keep the self-referential review register explicit rather than treating it as product output.
+- [x] Pass all 414 configuration/versioning tests, strict Markdown/JSON/residual gates and evidence-preservation checks.
+- [ ] Close repository-only naming after the remaining semantic review, separately from operational and release gates.
+
+The detailed [naming review](../docs/pvad-rename-source-acceptance.md#repository-only-naming-review-2026-11-06)
+records scope and limits. Existing checklist states and historical 90/98
+release/cutover acceptance remain unchanged. The internal fragment has `none`
+impact; VERSION remains 1.1.0. This review does not authorize a commit, push,
+release, database change or deployment.
+
+Final verification: all 281 tracked Markdown files have zero former-short-name
+matches; the structural JSON guard scans 511 files with no unclassified findings
+or failures. All 91 protected evidence files and 816 original review notes remain
+unchanged. Removing only the three new review sections reproduces the original
+documents exactly. The primary matrix remains 90/98 with the same eight open
+operational/release gates. Detailed preservation results are in `final-checks.json`
+beside the scan; `git diff --check` passes. No new full-stack or deployed test run
+is claimed for this internal documentation-only review. The completion statement
+is withdrawn; remaining current source names need individual semantic review.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.
