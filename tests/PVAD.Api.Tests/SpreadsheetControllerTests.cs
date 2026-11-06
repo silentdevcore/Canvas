@@ -26,7 +26,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
             """;
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/spreadsheet/from-data?sheetName=Sales", content);
+        var response = await client.PostAsync("/api/pvad/spreadsheet/from-data?sheetName=Sales", content);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -41,7 +41,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
         var json = JsonSerializer.Serialize(SampleWorkbook());
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/spreadsheet/validate", content);
+        var response = await client.PostAsync("/api/pvad/spreadsheet/validate", content);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -61,7 +61,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
         var workbook = SampleWorkbook();
         workbook.Name = "Quarterly: Sales";
 
-        var response = await client.PostAsJsonAsync($"/api/pxa/spreadsheet/export?format={format}", workbook);
+        var response = await client.PostAsJsonAsync($"/api/pvad/spreadsheet/export?format={format}", workbook);
         var bytes = await response.Content.ReadAsByteArrayAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -77,7 +77,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
     [Fact]
     public async Task Export_RejectsUnknownFormatsInsteadOfReturningMislabeledXlsx()
     {
-        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/export?format=pdf", SampleWorkbook());
+        var response = await client.PostAsJsonAsync("/api/pvad/spreadsheet/export?format=pdf", SampleWorkbook());
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
@@ -88,7 +88,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
     [Fact]
     public async Task RenderPdf_ReturnsARealPdfWithMatchingFilename()
     {
-        var response = await client.PostAsJsonAsync("/api/pxa/spreadsheet/render?format=pdf", SampleWorkbook());
+        var response = await client.PostAsJsonAsync("/api/pvad/spreadsheet/render?format=pdf", SampleWorkbook());
         var bytes = await response.Content.ReadAsByteArrayAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

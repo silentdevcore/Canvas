@@ -100,7 +100,7 @@ public sealed class PvadJobProcessorTests
         var jobId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
         var traceParent = $"00-{ActivityTraceId.CreateRandom()}-{ActivitySpanId.CreateRandom()}-01";
-        var root = Path.Combine(Path.GetTempPath(), $"pxa-job-storage-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"pvad-job-storage-{Guid.NewGuid():N}");
 
         try
         {
@@ -135,7 +135,7 @@ public sealed class PvadJobProcessorTests
             {
                 OrganizationId = organizationId,
                 SubscriptionId = subscriptionId,
-                LicenseNumber = "PXA-METRICS-TEST",
+                LicenseNumber = "PVAD-METRICS-TEST",
                 EnvelopeJson = "{}",
                 Signature = "signature",
                 KeyId = "test",

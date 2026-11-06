@@ -468,7 +468,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "7d0be21644306bbe0301eecea8087c8505bc06cb87108e025507ec5e0fd28b2f",
+      "sha256": "7a3bc0a4c53607eb3ff9e5e1e6f472f11d1c6f8cd26591c987bf1e798fb37010",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -477,7 +477,7 @@
       "reviewNotes": "2026-11-05 scoped review: Historical counts, results and neutral drawing references remain unchanged; the remaining-code checklist corrects the earlier broad completion claim.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged.",
-      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged."
+      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged. Current workflow example follow-up (2026-11-06): Additive link to the current-route/project-example replacement batch; original approvals, compatibility boundaries and historical checkbox states remain unchanged."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",
@@ -1368,14 +1368,14 @@
     },
     {
       "path": "pvad-designer/e2e/status-pages.spec.ts",
-      "sha256": "cc5f62c511fa6fffbaa87f85189f2e83228247fb41211eea779943edecf150b9",
+      "sha256": "77dc1b4991b740d9b6785b5b6a476eb0fc739335324990e1b912d4bcbe7bf8d4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "pvad-designer/e2e/status-pages.spec.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged. Current workflow example follow-up (2026-11-06): The Arabic status-page test seeds the canonical locale key. The separate retained recovery-storage test remains unchanged; no application storage migration or authentication behavior changes."
     },
     {
       "path": "pvad-designer/MULTILANGUAGE.md",
@@ -1483,13 +1483,14 @@
     },
     {
       "path": "pvad-designer/src/__tests__/designerProjectApi.test.ts",
-      "sha256": "8a00b687d72d1bd943d7dc707191de8230e2d3bcea9baf0b0fe93da6ffb49d6f",
+      "sha256": "12e9422459e275302977dacc8e6d85a7d3b9d8ceeb9a8f7852214150b3b04428",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Retained legacy archive fixtures and cancellation diagnostics while verifying progress-upload identification and CSRF failure handling.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Current generic project files and matching manifest format IDs use canonical PDF and Spreadsheet formats. The dedicated original-format in-memory schema-upgrade fixture and stable diagnostics remain unchanged."
     },
     {
       "path": "pvad-designer/src/__tests__/designerTenantState.test.ts",
@@ -4071,7 +4072,7 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs",
-      "sha256": "377c362d4e3383e91b355e5e674701fb20541d99ce834fd101c0a755cfd3f71b",
+      "sha256": "1dd39e1d32651ac062337e017eceb46f7dbdb27f4ff50ba6933c964937532605",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4080,7 +4081,7 @@
       "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
-      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical. Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs",
@@ -4186,7 +4187,7 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs",
-      "sha256": "9797671c1698179caef6449e6fd61fddba5c3174f6b241a92d04d4583981e929",
+      "sha256": "e33f16ee4638c5e2c7aca65de983151994e4a67f526d843d925cb2e3722c1d59",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4194,7 +4195,7 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs",
@@ -4208,14 +4209,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/ExportControllerTests.cs",
-      "sha256": "f71289162568030e66db268378457cbd66bddfe83af6ba78038152e0c1e96edf",
+      "sha256": "27f79de35b016d64efe02e99c9a67b059b23f2ad8cd6550e583d8cdba576b04e",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/ExportControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/FileSystemPvadObjectStorageTests.cs",
@@ -4274,7 +4276,7 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationControllerTests.cs",
-      "sha256": "3b5afd771b548a729a5ed45eeda66d22b350804e9e10c22df3db8a15662993d1",
+      "sha256": "441605b764191442da3beeb8c09c67de6a0a147fc7ae7258f52e796db595d164",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4282,7 +4284,7 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-migration-artifact-identities.md",
-      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): The private test local is now generatedCode. The original serialized response field and historical route remain explicit compatibility coverage; canonical field comparison is unchanged."
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): The private test local is now generatedCode. The original serialized response field and historical route remain explicit compatibility coverage; canonical field comparison is unchanged. Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationGeneratedCodeExecutionTests.cs",
@@ -4475,7 +4477,7 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs",
-      "sha256": "d1b46564cd620a9d203d83acd9e8e468e42a3d25ddd90eeb6216d2e919d2102f",
+      "sha256": "985c950adc8b51d308d14a2effce37faa47f8ae6ee98fd8e64367eee034398ae",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4483,7 +4485,7 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Current workflow example follow-up (2026-11-06): Generic Viewer requests and freely chosen document names, identifiers and temporary storage use canonical identities. Paired redaction/audit response headers and original evidence assertions remain unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerAnnotationStoreRenameTests.cs",
@@ -4497,24 +4499,26 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs",
-      "sha256": "1390d3a1e40689b3b6dbe1178be784f567d85763952d8b76c09d249df28dc769",
+      "sha256": "d21f68d2fb55a9fb9cbbc4fea8ce731fa10394ae07bfb0d5ca60e4d9c3d01b34",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerFormsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfViewerRedactionControllerTests.cs",
-      "sha256": "e4b9ceea5326eebd632466505dc65419b24e2adbab6e9794ffa78cb44c856e53",
+      "sha256": "fb229f8f2d36737886c8bfcf066f9589496251dcf0ad83e11f2e09eebbbb35a0",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PdfViewerRedactionControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Only the newly allocated temporary test directory prefix changes. Redaction requests, stable diagnostics, audit header contracts and residue checks are unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadAntiforgeryCookieCompatibilityTests.cs",
@@ -4695,14 +4699,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadJobProcessorTests.cs",
-      "sha256": "791097cdca13f83913a37f9c751b6aa8fd95ee8495f0d2334f1de55ab263c85a",
+      "sha256": "9a5a91f3c7929dfddaefaf8297ff13883f8b00dbcb8eeeef37bbfd14749e8ae4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PvadJobProcessorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Current workflow example follow-up (2026-11-06): New temporary result-storage directories and a synthetic metrics-only license number use canonical names. PostgreSQL schema, persisted job types, key IDs and original license compatibility tests are unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs",
@@ -4905,14 +4909,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs",
-      "sha256": "9f96f847e62e997ad61ac22c01f0b8d1cce4d84be865e439d21d7851d010638a",
+      "sha256": "7328b3011549182aed0fb6621b1023171beb79131b1e537036d5c0769f19ff69",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/SystemControllerTests.cs",
@@ -4927,15 +4932,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/TemplatesControllerTests.cs",
-      "sha256": "3891fa47f5182c4f7e46e1097fad620b55cad6950f45360ac3a7b76aa7eec4c3",
+      "sha256": "bbf4bcb6321a39794d83b5985cac9dc22b891b3e6b18afd779b07b0906881faf",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/TemplatesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged. Current workflow example follow-up (2026-11-06): Generic current workflow requests now use the canonical API prefix. Dedicated old/new routing and authorization integration tests are unchanged. Stable response aliases and diagnostic IDs retain their exact values."
     },
     {
       "path": "tests/PVAD.Api.Tests/TrialActivationServiceTests.cs",
@@ -5648,13 +5653,14 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfUaGenerationTests.cs",
-      "sha256": "be92779962eb71d572842140b84cdc2d3d3bf384b34c7022580fdb9fd004bb54",
+      "sha256": "e8f55602e28e71efa12f474787b1bef5f038ff9cc82522004477e563045fc9bf",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfUaGenerationTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Four newly generated validation artifact filenames use canonical names. Original corpus bytes, compliance assertions, diagnostic IDs and visual references remain unchanged."
     },
     {
       "path": "tests/PVAD.Infrastructure.Converters.Tests/ConverterFacadeTests.cs",
@@ -5900,13 +5906,14 @@
     },
     {
       "path": "tests/PVAD.Observability.WebhookRelay.Tests/WebhookRelayTests.cs",
-      "sha256": "7ea6222f9ca872deaaa6615b558b0659f2ed38dff693b0c7fcd11c8af8512fe3",
+      "sha256": "9dbc18cb63667e95e4d875c7327555748428a03713515c01e29b32299e3183fc",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-11-05 protocol review: Historical monitoring labels and header families are explicit compatibility inputs. Both receiver generations verify equal values; a fixed independent HMAC vector pins the algorithm. Freely chosen endpoint and key labels are canonical.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Current workflow example follow-up (2026-11-06): Current synthetic alert and service labels and their matching assertions use canonical names. Retained dashboard/runbook identifiers, header compatibility, signatures and the fixed independent HMAC vector remain exact."
     },
     {
       "path": "tests/Shared/PvadTestEnvironment.cs",
@@ -7870,14 +7877,14 @@
     },
     {
       "path": "tools/configuration/internal-naming-contract.test.mjs",
-      "sha256": "26c001b809ab84743259ee47f70cf36e192c83358c1836e462e1bdc2bdbd06ae",
+      "sha256": "d397683357146287ea8a19f2c19afeceaa5b353d23e48ea3d8d971ac83afcded",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Tests verify current internal names while explicitly preserving legacy upstream headers, backup-reader behavior, restore confirmation, dashboard and runbook references. Database executables are mocked; this is not runtime recovery evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Direct current-example and recovery-prompt assertions supplement runtime tests. Dedicated original-release, customer-content, serialized-field and environment-reader compatibility assertions remain exact."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Direct current-example and recovery-prompt assertions supplement runtime tests. Dedicated original-release, customer-content, serialized-field and environment-reader compatibility assertions remain exact. Current workflow example follow-up (2026-11-06): Direct source contracts require canonical current workflow paths and current generated artifact names, while separately pinning the retained middleware, redaction headers and old-format upgrade case."
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",

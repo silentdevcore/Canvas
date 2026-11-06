@@ -36,6 +36,12 @@ Current converter, fidelity and build-test examples are normalized; original
 release text, customer content, backups and restricted contract registers remain
 unchanged. This does not authorize restoration of an installed database.
 
+The [current workflow naming pass](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#current-routes-and-project-examples---2026-11-06)
+corrects generic tests whose names already described current routes but still
+called the old prefix. Current project files and newly generated validation
+examples use current names. Explicit alias, source-preservation and diagnostic
+tests stay separate and retain their exact contracts.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new

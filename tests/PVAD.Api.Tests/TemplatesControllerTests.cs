@@ -17,7 +17,7 @@ public sealed class TemplatesControllerTests : IClassFixture<PvadApiTestFactory>
     [Fact]
     public async Task GetTemplateNames_PvadRoute_RequiresAuthentication()
     {
-        var response = await client.GetAsync("/api/pxa/templates");
+        var response = await client.GetAsync("/api/pvad/templates");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -52,7 +52,7 @@ public sealed class TemplatesControllerTests : IClassFixture<PvadApiTestFactory>
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/templates/validate", content);
+        var response = await client.PostAsync("/api/pvad/templates/validate", content);
         var result = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

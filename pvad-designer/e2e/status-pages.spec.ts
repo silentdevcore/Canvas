@@ -194,7 +194,7 @@ test('standalone failure page needs no external assets', async ({ browser }) => 
 
 test('Arabic Designer status keeps diagnostics left-to-right', async ({ browser }) => {
   const context = await browser.newContext();
-  await context.addInitScript(() => localStorage.setItem('pxa_locale', 'ar'));
+  await context.addInitScript(() => localStorage.setItem('pvad_locale', 'ar'));
   const page = await context.newPage();
   await mockAuthentication(page);
   await page.goto('http://localhost:5176/missing-status-page');

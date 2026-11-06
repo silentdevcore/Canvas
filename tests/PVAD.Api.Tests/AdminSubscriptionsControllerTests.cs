@@ -106,7 +106,7 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.DoesNotContain("\"keyHash\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         using var apiClient = CreateClient(factory);
         apiClient.DefaultRequestHeaders.Add("X-PVAD-API-Key", secret);
-        using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pxa/templates")
+        using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pvad/templates")
         {
             Content = JsonContent.Create(new { name = "API-key template" }),
         };

@@ -32,12 +32,12 @@ describe('Designer project API', () => {
     global.structuredClone = value => JSON.parse(JSON.stringify(value));
   });
 
-  test('opens a PXAP through the canonical PDF project endpoint', async () => {
-    const file = new File(['project'], 'invoice.pxap', {
+  test('opens a PVADP through the canonical PDF project endpoint', async () => {
+    const file = new File(['project'], 'invoice.pvadp', {
       type: 'application/vnd.pvad.pvadp+zip',
     });
     const response = {
-      manifest: { title: 'Invoice', formatId: 'pxap', documentSchemaVersion: '1.0' },
+      manifest: { title: 'Invoice', formatId: 'pvadp', documentSchemaVersion: '1.0' },
       document: { id: 'invoice', name: 'Invoice', pages: [{ id: 'page-1', elements: [] }] },
       packageSha256: 'a'.repeat(64),
     };
@@ -55,14 +55,14 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Invoice', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Invoice', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: { id: 'document-import-2', name: 'Invoice', pages: [] },
         packageSha256: 'a'.repeat(64),
         idRemaps: { document: 'document-import-2' },
       }),
     });
 
-    await openPdfProject(new File(['project'], 'invoice.pxap'), ['document', 'page-1']);
+    await openPdfProject(new File(['project'], 'invoice.pvadp'), ['document', 'page-1']);
 
     const init = fetchMock.mock.calls[0][1];
     expect(init.body).toBeInstanceOf(FormData);
@@ -73,13 +73,13 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Budget', formatId: 'pxas', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Budget', formatId: 'pvads', documentSchemaVersion: '1.0' },
         document: { id: 'budget', name: 'Budget', sheets: [] },
         packageSha256: 'b'.repeat(64),
       }),
     });
 
-    await openSpreadsheetProject(new File(['project'], 'budget.pxas'));
+    await openSpreadsheetProject(new File(['project'], 'budget.pvads'));
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/pvad/v1/designer/projects/spreadsheet/open');
   });
@@ -127,7 +127,7 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Future', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Future', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: {
           id: 'future',
           name: 'Future',
@@ -139,7 +139,7 @@ describe('Designer project API', () => {
       }),
     });
 
-    const result = await openPdfProject(new File(['project'], 'future.pxap'));
+    const result = await openPdfProject(new File(['project'], 'future.pvadp'));
 
     expect(result.document.extensionData).toEqual({ futureDocumentOption: { enabled: true } });
     expect(result.document.pages[0].extensionData).toEqual({ futurePageOption: 42 });
@@ -153,7 +153,7 @@ describe('Designer project API', () => {
       json: async () => ({ code: 'PXAPROJECT007', detail: 'The package was tampered with.' }),
     });
 
-    const operation = openPdfProject(new File(['broken'], 'broken.pxap'));
+    const operation = openPdfProject(new File(['broken'], 'broken.pvadp'));
 
     await expect(operation).rejects.toThrow('The package was tampered with.');
     await expect(operation).rejects.toMatchObject({
@@ -166,7 +166,7 @@ describe('Designer project API', () => {
     const setHeader = jest.fn();
     const progress: Array<{ phase: string; percent: number }> = [];
     const response = {
-      manifest: { title: 'Large', formatId: 'pxap', documentSchemaVersion: '1.0' },
+      manifest: { title: 'Large', formatId: 'pvadp', documentSchemaVersion: '1.0' },
       document: { id: 'large', name: 'Large', pages: [{ id: 'page-1', elements: [] }] },
       packageSha256: 'd'.repeat(64),
     };
@@ -189,7 +189,7 @@ describe('Designer project API', () => {
     const original = global.XMLHttpRequest;
     global.XMLHttpRequest = ProjectRequest as unknown as typeof XMLHttpRequest;
     try {
-      await openPdfProject(new File([new Uint8Array(100)], 'large.pxap'), [], {
+      await openPdfProject(new File([new Uint8Array(100)], 'large.pvadp'), [], {
         onProgress: event => progress.push({ phase: event.phase, percent: event.percent }),
       });
     } finally {
@@ -234,7 +234,7 @@ describe('Designer project API', () => {
     global.XMLHttpRequest = ProjectRequest as unknown as typeof XMLHttpRequest;
     const controller = new AbortController();
     try {
-      const operation = openPdfProject(new File(['project'], 'cancel.pxap'), [], {
+      const operation = openPdfProject(new File(['project'], 'cancel.pvadp'), [], {
         signal: controller.signal,
         onProgress: jest.fn(),
       });

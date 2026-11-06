@@ -444,6 +444,49 @@ VERSION and the published release manifest are unchanged.
 - All 85 checked original fixture, corpus, Legal, schema-alias, audit/register, published-release and VERSION files are byte-identical to HEAD. All 816 original review notes and their order are preserved. All 281 tracked Markdown files have zero old-name matches; original checklist states are unchanged.
 - All 132 Documentation build files are checked for the restricted recovery guide name and canonical restore phrase, with no leaks. The updated runbook remains restricted. The changes are not committed, pushed, published or deployed.
 
+### Current Routes And Project Examples - 2026-11-06
+
+Baseline: `a5dadf24`. The fresh tracked-only inventory is
+`artifacts/rename/search-replace-routes/scan.json`: 584 matching text files and
+20,388 occurrences of the former abbreviation. It excludes private IDE state,
+symlinks, ignored output, untracked notes and binary files. These values include
+intentional compatibility and historical data, not that many remaining defects.
+
+One explicit Search and Replace pass removes **58 occurrences in 14 files**.
+The literal replacement list and before/after hashes are stored in
+`artifacts/rename/search-replace-routes/replacements.json`.
+
+| Reviewed area | Change |
+| --- | --- |
+| Generic API workflow requests | Current document, template, Spreadsheet, export, Viewer, subscription and migration tests call the canonical prefix. Several formerly mismatched current-route test names now match their actual requests. |
+| Designer project examples | Current PDF and Spreadsheet examples use PVADP/PVADS filenames and matching manifest format IDs. The explicit old-format in-memory-upgrade case is preserved. |
+| Synthetic job, Viewer and relay inputs | New temporary paths, fake document names, a synthetic metrics license number and current operational labels use PVAD. |
+| New PDF/UA validation artifacts | The generator writes four current-named structure, custom-role, table and widget PDFs. Original corpus and approved visual references are not regenerated. |
+| Arabic status-page setup | The browser test seeds the canonical locale key. Its separate retained recovery-storage scenario remains unchanged. |
+
+Dedicated old/new route integration, authorization-path, CORS, header, project
+reader and diagnostic tests remain separate from generic current workflows.
+Stable serialized migration fields, original example content used specifically
+for preservation, runbook/dashboard IDs, cookie aliases and cryptographic values
+are not renamed. No application route, database migration or runtime capability
+is added or removed. A direct source guard prevents generic workflows from
+silently returning to the former prefix.
+
+The release fragment uses `none` impact because this batch changes tests,
+generated test artifacts and internal verification only. VERSION, published
+release history, accepted Legal records, installed applications and databases
+remain unchanged. No commit, push, publication or deployment is performed.
+
+#### Verification
+
+- All **812 Designer tests in 92 suites** pass, including the updated project examples and retained old-format upgrade case. Existing snapshot assertions are unchanged.
+- Designer typecheck and production build pass. Existing dynamic-import and bundle-size warnings remain unchanged. The targeted Chromium Arabic status-page case passes with canonical locale storage; authentication/features are mocked, and unavailable ancillary notification endpoints are not real API acceptance evidence.
+- All **409 configuration/versioning tests** pass with zero failures or skips. Residual, structural JSON, version synchronization and release-fragment validation pass.
+- Focused .NET validation passes **195 tests**: API current/compatibility/authorization workflows 172, PDF/UA generation 16 and webhook relay seven, with zero failures or skips. PostgreSQL opt-in is enabled for the isolated job-storage test. Unchanged project references are reused; no full Solution regression is claimed.
+- The generator creates exactly four current-named PDF/UA files in the ignored artifact directory. Each has a valid PDF header and is readable as a one-page PDF by Poppler. This is not a fresh independent PDF/UA certification or approval of a visual baseline.
+- All 179 checked corpus, fixture, Legal, schema-alias, audit/register, public-download, release/version and dedicated compatibility files are byte-identical to HEAD. Seven dedicated compatibility files remain exact. All 816 original review notes and their order are preserved; all 281 tracked Markdown files remain free of the old name, and historical checkbox states are unchanged.
+- Exact TRX counters, new PDF hashes and preservation checks are recorded in `artifacts/rename/search-replace-routes/final-checks.json`. Existing compiler warnings are not waived. `git diff --check` passes; no commit, push or runtime deployment is performed.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

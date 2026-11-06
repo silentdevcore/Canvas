@@ -28,7 +28,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/document/find-replace", content);
+        var response = await client.PostAsync("/api/pvad/document/find-replace", content);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,7 +47,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/document/clone", content);
+        var response = await client.PostAsync("/api/pvad/document/clone", content);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -61,7 +61,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         using var form = new MultipartFormDataContent();
         form.Add(new ByteArrayContent([1, 2, 3]), "file", "scan.txt");
 
-        var response = await client.PostAsync("/api/pxa/document/convert-image-to-pdf", form);
+        var response = await client.PostAsync("/api/pvad/document/convert-image-to-pdf", form);
 
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
     }
@@ -75,7 +75,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
             "file",
             "sample.md");
 
-        var response = await client.PostAsync("/api/pxa/document/import-markdown", form);
+        var response = await client.PostAsync("/api/pvad/document/import-markdown", form);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -93,7 +93,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         using var form = new MultipartFormDataContent();
         form.Add(new StringContent("# Document", Encoding.UTF8), "file", "sample.txt");
 
-        var response = await client.PostAsync("/api/pxa/document/import-markdown", form);
+        var response = await client.PostAsync("/api/pvad/document/import-markdown", form);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -107,7 +107,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
             "file",
             "oversized.md");
 
-        var response = await client.PostAsync("/api/pxa/document/import-markdown", form);
+        var response = await client.PostAsync("/api/pvad/document/import-markdown", form);
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
     }
@@ -120,7 +120,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         form.Add(new StringContent("file:///private/assets/"), "assetBaseUri");
 
         var response = await client.PostAsync(
-            "/api/pxa/document/import-markdown",
+            "/api/pvad/document/import-markdown",
             form);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -133,7 +133,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
         form.Add(new StringContent("![image](asset.png)", Encoding.UTF8), "file", "sample.md");
 
         var response = await client.PostAsync(
-            "/api/pxa/document/import-markdown",
+            "/api/pvad/document/import-markdown",
             form);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
@@ -170,7 +170,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
             "integration.md");
 
         var importResponse = await client.PostAsync(
-            "/api/pxa/document/import-markdown",
+            "/api/pvad/document/import-markdown",
             form);
         var design = await importResponse.Content.ReadFromJsonAsync<DesignExportDto>();
 
@@ -188,7 +188,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
                        element.Content?.StartsWith("data:image/png;base64,", StringComparison.Ordinal) == true);
 
         var pdfResponse = await client.PostAsJsonAsync(
-            "/api/pxa/templates/render-design",
+            "/api/pvad/templates/render-design",
             design);
         var pdfBytes = await pdfResponse.Content.ReadAsByteArrayAsync();
         var pdfText = Encoding.Latin1.GetString(pdfBytes);
