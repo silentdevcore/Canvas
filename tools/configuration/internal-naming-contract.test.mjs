@@ -187,6 +187,26 @@ test('generic API workflows and current project examples exercise canonical iden
   assert.ok(artifacts.includes('"PXAPDFUA009"'));
 });
 
+test('generic project archive examples use current filenames, content and workbook schema', () => {
+  const source = read('tests/PVAD.Core.Tests/PvadProjectArchiveTests.cs');
+  for (const extension of ['pvadp', 'pvads']) {
+    assert.ok(source.includes(`Path.Combine(directory, "project.${extension}")`));
+    assert.ok(source.includes(`Directory.EnumerateFiles(directory, ".project.${extension}.*.tmp")`));
+  }
+  assert.doesNotMatch(source, /"\.?project\.pxa[ps]|Hello PXAP/);
+  assert.equal((source.match(/"Hello PVADP"/g) ?? []).length, 2);
+  const schema = JSON.parse(read('docs/schema/pvad-workbook.schema.json')).$id;
+  const currentWorkbook = source.slice(source.indexOf('private static SpreadsheetDto CompleteSpreadsheet()'));
+  assert.ok(currentWorkbook.includes(`Schema = "${schema}"`));
+  assert.doesNotMatch(currentWorkbook, /pxa|powerdox/i);
+  const schemaCompatibility = source.slice(
+    source.indexOf('[InlineData("https://pvade.com/schemas/pvad-workbook.schema.json")]'),
+    source.indexOf('public void Pdf_manifest_records_the_capabilities_required_by_the_document()'));
+  assert.ok(schemaCompatibility.includes('[InlineData("https://powerdoxautomation.com/schemas/pxa-workbook.schema.json")]'));
+  assert.ok(schemaCompatibility.includes('Assert.Equal(schema, package.Document.Schema)'));
+  assert.ok(schemaCompatibility.includes('AssertJsonEquivalent(workbook, package.Document)'));
+});
+
 test('current MCP setups use canonical names and keep compatibility cases explicit', () => {
   const config = read('tools/PVAD.Mcp/src/remote/config.test.ts');
   const currentConfig = config.slice(config.indexOf("test('remote configuration requires"));
