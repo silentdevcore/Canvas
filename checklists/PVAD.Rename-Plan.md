@@ -80,6 +80,33 @@ uses current generic project filenames and telemetry inputs. Explicit tests
 retain both project-extension generations and both recovery storage readers;
 original fixtures, diagnostic IDs and audit contracts remain unchanged.
 
+## Repository-Only Naming Review (2026-11-06)
+
+Source baseline: `24390509`. The tracked-file classification is recorded, but
+repository naming is not declared complete. Classification and exact-file
+checks do not prove that every remaining current identity must be retained.
+Review remaining source identifiers and defaults individually before closure.
+
+The detailed local inventory is
+`artifacts/rename/final-repository-audit/scan.json`; its compact counts are in
+`summary.json` beside it. It scans 3,214 tracked regular files: 3,126 through the
+text boundary and 88 as binary inputs. Private IDE paths, untracked notes,
+symlinks and ignored/generated output are excluded. Known source formats with
+embedded null bytes are included in the text scan.
+
+The remaining inventory contains 590 text-scanned files with 20,319 content
+occurrences, 42 matching paths and 28 binary inputs with 127 raw-byte matches.
+These are classified findings, not a verified count of unfinished rename tasks
+or product defects. Exact counts belong to this baseline, not to all future
+commits. The [naming review](../docs/pvad-rename-source-acceptance.md#repository-only-naming-review-2026-11-06)
+explains the categories, pending semantic review and validation limits.
+
+Historical inventories, source evidence and earlier task states remain intact.
+The original eight release/cutover gates below remain open; the historical
+90/98 count is unchanged and must not be presented as the repository-only
+naming completion percentage. No publication, deployment, key rotation,
+database migration, commit or push is implied by this review.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

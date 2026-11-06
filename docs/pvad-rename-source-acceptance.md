@@ -71,6 +71,49 @@ No publisher account, non-local staging deployment, production reviewer, new
 version, tag or published artifact is required by this active task. Do not infer
 permission to remove compatibility, rewrite evidence or bypass Git protections.
 
+## Repository-Only Naming Review (2026-11-06)
+
+Baseline: `24390509`. The scan and classification are recorded, but the earlier
+completion conclusion is withdrawn. Classification alone does not establish
+that all remaining current identities are necessary compatibility values.
+Review source identifiers and defaults individually, including synthetic
+security-tool passwords and their consumers, before declaring completion.
+This is not a zero-substring claim, production approval or security/Legal
+certification.
+
+The full local report is `artifacts/rename/final-repository-audit/scan.json`.
+It records exact paths, current SHA-256 values, classification labels and line
+locations/hashes without copying source lines. Binary offsets are separate.
+The report is ignored local output, not a replacement for historical inventories
+or a new permissive naming allowlist. Repeatable repository gates remain:
+
+```bash
+node tools/configuration/rename-residual-review.mjs
+node tools/configuration/json-naming-audit.mjs
+node tools/configuration/markdown-path-audit.mjs --all --check
+node --test tools/configuration/*.test.mjs tools/versioning/*.test.mjs
+```
+
+| Boundary | Final classification |
+| --- | --- |
+| 590 text-scanned files; 20,319 content occurrences | Exact retained-file reviews, structural JSON findings, explicit compatibility tests, original evidence or neutral/incidental identifiers. Category tags may overlap and are not blanket semantic approval. |
+| 42 matching paths | Three schema compatibility resources, one compatibility CLI entrypoint, two original project-reference archives and 36 original signature/validation evidence files. |
+| 28 binary inputs; 127 raw-byte matches | Nineteen original document/signature evidence files, two original project archives, four vendor OCR language files and three compressed screenshots. Raw byte matches do not establish visible branding. |
+| Three screenshot inputs | Visually inspected at their current hashes: no old branding is visible. This is not a complete UI/layout acceptance or a reason to regenerate unrelated images. |
+| Current writers and public display | Independent writer, runtime naming, schema, UI metadata and compatibility contracts supplement the hash ledger. These checks do not replace individual semantic review of remaining identifiers. |
+
+All tracked Markdown remains free of the former short-name substring.
+The review register is explicitly self-excluded by its existing guard; its own
+names are inventoried as register data, not current product naming. The original
+JSON/Markdown inventories, accepted evidence and published releases remain
+unchanged. A raw binary finding is never corrected by editing encoded bytes.
+
+This review reruns naming/configuration/versioning gates, not the whole
+Solution, a fresh authenticated application stack or a live deployment. The
+82 focused .NET tests and desktop/mobile workflows in `24390509` remain their
+own dated evidence. The operational tasks below and all eight primary
+release/cutover gates remain open and separate from repository naming.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the
