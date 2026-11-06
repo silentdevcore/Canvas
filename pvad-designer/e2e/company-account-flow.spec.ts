@@ -17,6 +17,33 @@ test('Company sign-in returns to the original page without exposing the session 
     contentType: 'application/json',
     body: JSON.stringify({ token: 'company-account-e2e-csrf' }),
   }));
+  await page.route('**/api/pvad/v1/account/profile', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      id: '11111111-1111-1111-1111-111111111111',
+      displayName: 'Company Customer',
+      email: 'customer@example.test',
+      pendingEmail: null,
+      locale: 'en',
+      country: null,
+      roles: ['Organization Administrator'],
+      termsAcceptedVersion: '1.1',
+      currentTermsVersionId: '33333333-3333-3333-3333-333333333333',
+      currentTermsVersion: '1.1',
+      currentTermsChangeSummary: null,
+      previousTermsVersion: null,
+      requiresTermsAcceptance: false,
+      privacyAcknowledgedVersion: '1.1',
+      currentPrivacyVersionId: '44444444-4444-4444-4444-444444444444',
+      currentPrivacyVersion: '1.1',
+      currentPrivacyChangeSummary: null,
+      previousPrivacyVersion: null,
+      requiresPrivacyAcknowledgement: false,
+      legalPolicyAvailable: true,
+      marketingConsent: false,
+    }),
+  }));
   await page.route('**/api/pvad/v1/auth/login', async (route) => {
     const request = route.request();
     expect(request.postDataJSON()).toEqual({
@@ -50,6 +77,7 @@ test('Company sign-in returns to the original page without exposing the session 
 
   const originalUrl = `${companyUrl}/pricing?utm_source=account-e2e#plans`;
   await page.goto(originalUrl);
+  await page.locator('[data-pvad-storage-notice]').getByRole('button', { name: 'Understood' }).click();
   await page.getByRole('link', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL(new RegExp(`^${accountUrl}/login\\?returnUrl=`));
@@ -66,6 +94,12 @@ test('Company sign-in returns to the original page without exposing the session 
   );
   await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Register' })).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem('pxa_signed_in'))).toBe('1');
-  expect(new URL(page.url()).searchParams.has('pxa_signed_in')).toBe(false);
+  for (const marker of ['pvad_signed_in', 'pxa_signed_in']) {
+    expect(await page.evaluate(key => localStorage.getItem(key), marker)).toBeNull();
+    expect(new URL(page.url()).searchParams.has(marker)).toBe(false);
+  }
+
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'My account' })).toHaveCount(0);
 });

@@ -262,32 +262,38 @@ test('unauthenticated Designer handoff sends only the local path to Account', as
   expect(authorizeUrl?.toString()).not.toContain('attacker.example');
 });
 
-test('recovery navigation reports completed and failed outcomes without route details', async ({ page }) => {
-  const events: Array<{ type: string; outcome: string; route: string; name?: string }> = [];
-  await page.route('**/api/pvad/v1/telemetry/browser', async route => {
-    const request = route.request();
-    const body = request.postDataJSON();
-    events.push(...(body.events ?? []));
-    await route.fulfill({ status: 202, body: '' });
+for (const [generation, storageKey] of [
+  ['current', 'pvad-status-recovery-v1'],
+  ['legacy', 'pxa-status-recovery-v1'],
+] as const) {
+  test(`recovery navigation reports completed and failed outcomes without route details (${generation} storage)`, async ({ page }) => {
+    const events: Array<{ type: string; outcome: string; route: string; name?: string }> = [];
+    await page.route('**/api/pvad/v1/telemetry/browser', async route => {
+      const body = route.request().postDataJSON();
+      events.push(...(body.events ?? []));
+      await route.fulfill({ status: 202, body: '' });
+    });
+
+    await page.goto('http://localhost:5173/missing-status-page');
+    await expect(page.locator('[data-status-key="notFound"]')).toBeVisible();
+    await page.locator('[data-status-action="home"]').click();
+    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect.poll(() => events.some(event =>
+      event.type === 'status_recovery' && event.outcome === 'completed' && event.name === 'home')).toBe(true);
+
+    await page.evaluate(key => sessionStorage.setItem(key, JSON.stringify({
+      action: 'retry',
+      at: Date.now(),
+    })), storageKey);
+    await page.goto('http://localhost:5173/another-missing-status-page');
+    await expect(page.locator('[data-status-key="notFound"]')).toBeVisible();
+    await expect.poll(() => events.some(event =>
+      event.type === 'status_recovery' && event.outcome === 'failed' && event.name === 'retry')).toBe(true);
+    for (const key of ['pvad-status-recovery-v1', 'pxa-status-recovery-v1'])
+      expect(await page.evaluate(value => sessionStorage.getItem(value), key)).toBeNull();
+
+    const recoveryEvents = events.filter(event => event.type === 'status_recovery');
+    expect(recoveryEvents.every(event => ['home', 'retry'].includes(event.name ?? ''))).toBe(true);
+    expect(JSON.stringify(recoveryEvents)).not.toContain('missing-status-page');
   });
-
-  await page.goto('http://localhost:5173/missing-status-page');
-  await expect(page.locator('[data-status-key="notFound"]')).toBeVisible();
-  await page.locator('[data-status-action="home"]').click();
-  await expect(page).toHaveURL('http://localhost:5173/');
-  await expect.poll(() => events.some(event =>
-    event.type === 'status_recovery' && event.outcome === 'completed' && event.name === 'home')).toBe(true);
-
-  await page.evaluate(() => sessionStorage.setItem('pxa-status-recovery-v1', JSON.stringify({
-    action: 'retry',
-    at: Date.now(),
-  })));
-  await page.goto('http://localhost:5173/another-missing-status-page');
-  await expect(page.locator('[data-status-key="notFound"]')).toBeVisible();
-  await expect.poll(() => events.some(event =>
-    event.type === 'status_recovery' && event.outcome === 'failed' && event.name === 'retry')).toBe(true);
-
-  const recoveryEvents = events.filter(event => event.type === 'status_recovery');
-  expect(recoveryEvents.every(event => ['home', 'retry'].includes(event.name ?? ''))).toBe(true);
-  expect(JSON.stringify(recoveryEvents)).not.toContain('missing-status-page');
-});
+}

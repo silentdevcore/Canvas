@@ -56,7 +56,7 @@ public sealed class PvadObservabilityTests
         activity.SetTag("http.url", "https://example.test/import?api_key=secret");
         activity.SetTag("url.query", "token=secret");
         activity.SetTag("http.request.header.authorization", "Bearer secret");
-        activity.SetTag("http.request.header.cookie", "PXA.Session=secret");
+        activity.SetTag("http.request.header.cookie", "__Host-PVAD.Session=secret");
         activity.SetTag("user.email", "person@example.test");
         activity.SetTag("custom.api-key", "secret");
         activity.SetTag("document.id", "customer-document");
@@ -98,7 +98,7 @@ public sealed class PvadObservabilityTests
         PvadTelemetry.RecordJobEnqueued("document.import");
         PvadTelemetry.RecordJobQueueDuration("document.import", TimeSpan.FromSeconds(3));
         PvadTelemetry.RecordJobProcessed("document.import", "completed", TimeSpan.FromSeconds(2));
-        PvadTelemetry.RecordDependencyHealth("pxa-database", true, TimeSpan.FromMilliseconds(25));
+        PvadTelemetry.RecordDependencyHealth("pvad-database", true, TimeSpan.FromMilliseconds(25));
         PvadTelemetry.RecordServiceHeartbeat(
             DateTimeOffset.FromUnixTimeSeconds(1_750_000_000));
         PvadTelemetry.RecordMailQueue(4, TimeSpan.FromMinutes(3));
@@ -151,6 +151,8 @@ public sealed class PvadObservabilityTests
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.jobs.processed");
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.jobs.duration");
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.health");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.health" &&
+            value.Tags.Any(tag => tag.Key == "dependency.name" && Equals(tag.Value, "pvad-database")));
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.healthcheck.duration");
         Assert.Contains(
             recordedMeasurements,

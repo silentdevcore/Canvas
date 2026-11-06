@@ -61,7 +61,7 @@ fi
 csrf="$(
   curl --fail --silent --show-error --max-time 10 \
     --cookie-jar "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/auth/csrf" | jq -r '.token'
+    "${operator_url}/api/pvad/v1/auth/csrf" | jq -r '.token'
 )"
 login_payload="$(
   jq -nc \
@@ -75,12 +75,12 @@ curl --fail --silent --show-error --max-time 10 \
   --header "Content-Type: application/json" \
   --header "X-PVAD-CSRF: ${csrf}" \
   --data "${login_payload}" \
-  "${operator_url}/api/pxa/v1/auth/login" >/dev/null
+  "${operator_url}/api/pvad/v1/auth/login" >/dev/null
 
 operator_access_status="$(
   curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
     --cookie "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/admin/operator/access"
+    "${operator_url}/api/pvad/v1/admin/operator/access"
 )"
 if [[ "${operator_access_status}" != "204" ]]; then
   echo "Expected authenticated operator access to return 204, got ${operator_access_status}." >&2
@@ -92,15 +92,15 @@ curl --fail --silent --show-error --max-time 10 \
   grep -q "Operator Documentation"
 operator_documents="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/admin/operator/documentation"
+    "${operator_url}/api/pvad/v1/admin/operator/documentation"
 )"
 if [[ "$(jq '.documents | length' <<<"${operator_documents}")" -lt 2 ]]; then
   echo "Expected protected operator runbooks to be available." >&2
   exit 1
 fi
 curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-  "${operator_url}/api/pxa/v1/admin/operator/documentation/legal-backup-restore-recovery" | \
-  jq -e '.markdown | contains("RESTORE PXA DATABASE")' >/dev/null
+  "${operator_url}/api/pvad/v1/admin/operator/documentation/legal-backup-restore-recovery" | \
+  jq -e '.markdown | contains("RESTORE PVAD DATABASE")' >/dev/null
 
 direct_runbook_status="$(
   curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \

@@ -1,0 +1,11 @@
+{
+  "id": "pvad-smoke-and-browser-test-inputs",
+  "impact": "none",
+  "components": ["company", "account", "designer", "observability"],
+  "category": "improved",
+  "summary": "Aligned smoke checks and browser test inputs with current PVAD naming and navigation behavior.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only verification scripts, browser tests and internal documentation change. Legacy environment inputs and storage readers remain supported; application behavior, infrastructure identities and published evidence remain unchanged."
+}

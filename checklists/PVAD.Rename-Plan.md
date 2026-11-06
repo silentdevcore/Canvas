@@ -69,6 +69,17 @@ normalizes generic atomic-file tests, editable sample text and the default
 workbook schema hint. Separate roundtrip cases preserve both schema generations;
 original project fixtures, diagnostics and production archive code stay unchanged.
 
+The [smoke/browser input pass](PVAD.Remaining-Code-Naming-Cleanup.md#smoke-and-browser-current-inputs---2026-11-06)
+normalizes general operator API calls and live browser opt-ins. Current and
+legacy cookie tests stay separate; the Company test verifies navigation-only
+sign-in presentation without persistent markers. Production behavior and
+installed infrastructure identities remain unchanged.
+
+The [project API/recovery example pass](PVAD.Remaining-Code-Naming-Cleanup.md#project-api-recovery-and-telemetry-examples---2026-11-06)
+uses current generic project filenames and telemetry inputs. Explicit tests
+retain both project-extension generations and both recovery storage readers;
+original fixtures, diagnostic IDs and audit contracts remain unchanged.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the
