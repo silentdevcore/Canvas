@@ -106,7 +106,7 @@ public sealed class CodeWorkspaceConversionTests
     [InlineData("pvad-element-id:")]
     public async Task WorkerProcess_ExecutesSafePdfAndReturnsCanonicalSourceMap(string marker)
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-worker-test-").FullName;
+        var directory = Directory.CreateTempSubdirectory("pvad-worker-test-").FullName;
         try
         {
             var input = Path.Combine(directory, "input.json");
@@ -225,7 +225,7 @@ public sealed class CodeWorkspaceConversionTests
     {
         var service = new PvadCodeConversionService(new RejectingWorker());
         const string source = """
-            {"pages":[{"id":"page-1","elements":[{"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong></p>","style":{"fontSize":14,"lineHeight":19,"color":"#123456"}}]}]}
+            {"pages":[{"id":"page-1","elements":[{"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PVAD</strong></p>","style":{"fontSize":14,"lineHeight":19,"color":"#123456"}}]}]}
             """;
 
         var result = await service.ConvertAsync(PvadCodeLanguages.Json, PvadCodeLanguages.CSharpPdf, source, default);
@@ -233,7 +233,7 @@ public sealed class CodeWorkspaceConversionTests
         Assert.Contains("pvad-element-id: rich-1", result.GeneratedSource);
         Assert.Contains("new PvadPdfCodeBuilder", result.GeneratedSource);
         Assert.Contains("HtmlContent", result.GeneratedSource);
-        Assert.Contains("PXA", result.GeneratedSource);
+        Assert.Contains("PVAD", result.GeneratedSource);
         Assert.DoesNotContain(result.Diagnostics, value => value.Code == "PXACODE110" && value.ElementId == "rich-1");
         Assert.Contains(result.SourceMap, value => value.ElementId == "rich-1");
     }
@@ -248,7 +248,7 @@ public sealed class CodeWorkspaceConversionTests
             NullLogger<PvadCodeWorkerClient>.Instance);
         var service = new PvadCodeConversionService(worker);
         const string source = """
-            {"pages":[{"id":"page-1","elements":[{"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong> <a href=\"https://example.com\">Docs</a></p>","style":{"fontSize":14,"color":"#123456"}}]}]}
+            {"pages":[{"id":"page-1","elements":[{"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PVAD</strong> <a href=\"https://example.com\">Docs</a></p>","style":{"fontSize":14,"color":"#123456"}}]}]}
             """;
 
         var conversion = await service.ConvertAsync(PvadCodeLanguages.Json, PvadCodeLanguages.CSharpPdf, source, default);
@@ -272,7 +272,7 @@ public sealed class CodeWorkspaceConversionTests
               "id":"roundtrip","name":"Roundtrip","vendorDocumentFlag":true,
               "pageSettings":{"width":612,"height":792,"activeLanguages":["en","ar"],"targetLanguage":"ar","encryption":{"enabled":true,"algorithm":"Aes128","userPassword":"reader","ownerPassword":"owner","permissions":{"print":true,"copy":false}}},
               "pages":[{"id":"page-1","layout":{"width":792,"height":612,"orientation":"landscape","backgroundColor":"#f8fafc","margins":{"top":20,"right":21,"bottom":22,"left":23},"bleedSize":6},"elements":[
-                {"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PXA</strong></p>","language":"ar","textDirection":"rtl","binding":"customer.name","accessibility":{"role":"P","alternateText":"Localized introduction","readingOrder":1},"vendorElementValue":"kept"},
+                {"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PVAD</strong></p>","language":"ar","textDirection":"rtl","binding":"customer.name","accessibility":{"role":"P","alternateText":"Localized introduction","readingOrder":1},"vendorElementValue":"kept"},
                 {"id":"table-1","type":"table","x":10,"y":120,"width":300,"height":100,"cellData":[["A","B"],["1","2"]],"columnWidths":[120,180]},
                 {"id":"chart-1","type":"chart","x":10,"y":240,"width":300,"height":180,"chartType":"bar","chartData":{"labels":["A","B"],"values":[3,7]}}
               ]}]

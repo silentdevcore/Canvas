@@ -89,11 +89,11 @@ test('verifies the immutable version label on a built container', async () => {
     return { stdout: '2.3.4\n' };
   };
   assert.equal(
-    await verifyContainerVersion('pxa-webapi:test', { repoRoot: root, inspect }),
+    await verifyContainerVersion('pvad-webapi:test', { repoRoot: root, inspect }),
     '2.3.4',
   );
   await assert.rejects(
-    verifyContainerVersion('pxa-webapi:stale', {
+    verifyContainerVersion('pvad-webapi:stale', {
       repoRoot: root,
       inspect: async () => ({ stdout: '2.3.3\n' }),
     }),

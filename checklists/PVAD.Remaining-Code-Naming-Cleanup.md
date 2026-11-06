@@ -404,6 +404,46 @@ source pins; message-only tool edits are not a new operational acceptance run.
 - All three test output directories contain the exact newly built Core DLL, verified by SHA-256. The visual-artifact test's comment/message edits are build-checked only; approved image baselines are not regenerated. No full Solution, Designer or website build is claimed for this source-scoped batch.
 - 143 protected fixture, corpus, schema-alias, audit, Legal/register, published-release and VERSION files compare byte-for-byte with HEAD. All 816 original review notes, their order and original checkbox states remain intact. All 281 tracked Markdown files have zero old-name matches, and `git diff --check` passes.
 
+### Recovery And Current Example Naming - 2026-11-06
+
+Baseline: `a58736ae`. The tracked-only inventory is
+`artifacts/rename/search-replace-recovery/scan.json`: 586 matching text files and
+20,419 occurrences. It excludes private IDE state, ignored outputs, untracked
+notes and binary files. Counts include protected compatibility data and original
+evidence; they are not an unfinished-work total.
+
+An explicit mechanical pass removes **49 old-name occurrences in ten files**
+using 43 reviewed literal replacements. The exact list, counts and before/after
+hashes are in `artifacts/rename/search-replace-recovery/replacements.json`.
+It covers temporary worker/fidelity/Legal paths, synthetic rich text, migration
+test locals, fake container labels, test-author identity and explanatory comments.
+The dedicated customer-text and historical-release preservation tests remain
+unchanged, as do old element markers, diagnostic IDs and serialized response keys.
+
+New recovery instructions use `RESTORE PVAD DATABASE`. The original exact phrase
+remains an input alias; both environment-key generations remain conflict-checked.
+Missing, partial, whitespace-modified or unknown confirmations cannot execute
+database commands. An approved phrase never bypasses checksum, archive-catalog
+or empty-target checks and never chooses the target connection.
+
+The isolated drill creates its own PVAD database and role in fresh containers;
+it does not rename or inspect an installed application database. The protected
+runbook now contains an executable canonical example rather than a documentary
+legacy placeholder. Original operator registers and accepted Legal records stay
+byte-identical. A Patch fragment records the compatible recovery-command update;
+VERSION and the published release manifest are unchanged.
+
+#### Verification
+
+- Recovery, Legal snapshot and fidelity contracts pass **46 tests**, with zero failures or skips. The initial new fake-tool test had a template-literal syntax error; it was corrected before the passing rerun and is not counted as successful evidence.
+- Real isolated PostgreSQL recovery succeeds with normal and delayed startup. Each run validates backup/checksum, rejected missing confirmation, corrupt-backup rejection, successful restore, Legal relationships and rejected non-empty-target restore. A separate short readiness limit fails as expected and reports the current database name.
+- All owned recovery containers and networks are removed after the three real scenarios. No installed database, live application, mounted secret or customer document is changed.
+- Documentation passes all **60 tests** and its production build. Existing configuration-loader warnings remain outside this naming change; no restricted guide is added to public navigation.
+- The combined configuration, versioning, Legal and fidelity suite passes **464 tests**, with zero failures or skips. Its recovery/fidelity selection above is a subset, not additional coverage. Residual and structural JSON guards, version synchronization and fragment validation pass.
+- Focused .NET validation passes **203 tests**: API converter/migration/invoice contracts 108 and Importer core contracts 95, with zero failures or skips. The TRX-derived counters are in `artifacts/rename/search-replace-recovery/final-checks.json`. Existing compiler warnings are not waived; no full Solution or Designer regression is newly claimed.
+- All 85 checked original fixture, corpus, Legal, schema-alias, audit/register, published-release and VERSION files are byte-identical to HEAD. All 816 original review notes and their order are preserved. All 281 tracked Markdown files have zero old-name matches; original checklist states are unchanged.
+- All 132 Documentation build files are checked for the restricted recovery guide name and canonical restore phrase, with no leaks. The updated runbook remains restricted. The changes are not committed, pushed, published or deployed.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

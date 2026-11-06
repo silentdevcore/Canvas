@@ -136,6 +136,29 @@ test('private version state is neutral while the public legacy JSON reader stays
   assert.ok(cleanup.includes('/^PXA\\..*\\.(?:dll|exe|pdb|deps\\.json|runtimeconfig\\.json)$/'));
 });
 
+test('current recovery and converter examples use canonical names without rewriting historical inputs', () => {
+  const workspace = read('tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs');
+  assert.ok(workspace.includes('<strong>PVAD</strong>'));
+  assert.ok(workspace.includes('PXA and Canvas are customer text'));
+  assert.ok(workspace.includes('[InlineData("pxa-element-id:")]'));
+  assert.doesNotMatch(workspace, /pxa-worker-test-|<strong>PXA<\/strong>/);
+  const migration = read('tests/PVAD.Api.Tests/MigrationControllerTests.cs');
+  assert.ok(migration.includes('var generatedCode = body.GetProperty("pxaCode").GetString();'));
+  assert.doesNotMatch(migration, /var pxaCode/);
+  const fidelity = read('tools/document-fidelity/fidelity.test.mjs');
+  assert.ok(fidelity.includes("provenance: 'pvad-synthetic'"));
+  assert.ok(fidelity.includes("sourceFormat: 'pxa-json', provider: 'pxa-pdf-importer'"));
+  const version = read('tools/versioning/pvad-version.test.mjs');
+  assert.ok(version.includes("title: 'PXA 1.0.0'"));
+  assert.ok(version.includes("'PVAD Release Test'"));
+  for (const path of ['tools/legal/export-legal-snapshot.test.mjs',
+    'tools/document-fidelity/real-world-review.test.mjs'])
+    assert.doesNotMatch(read(path), /pxa/i, path);
+  const restore = read('tools/legal/restore-postgres.sh');
+  assert.ok(restore.includes("'RESTORE PVAD DATABASE'|'RESTORE PXA DATABASE'"));
+  assert.ok(restore.includes('Set PVAD_RESTORE_CONFIRM="RESTORE PVAD DATABASE"'));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);
@@ -179,7 +202,7 @@ test('backup shell flow emits current names and accepts old names using mocked d
       assert.equal(statSync(backup).mode & 0o777, 0o600);
       assert.equal(statSync(`${backup}.sha256`).mode & 0o777, 0o600);
       const canonical = spawnSync('sh', [join(root, 'tools/legal/restore-postgres.sh'), backup], {
-        env: { ...env, PVAD_RESTORE_CONFIRM: 'RESTORE PXA DATABASE' }, encoding: 'utf8',
+        env: { ...env, PVAD_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE' }, encoding: 'utf8',
       });
       assert.equal(canonical.status, 0, canonical.stderr);
       const legacy = join(output, name.replace(/^pvad-/, 'pxa-'));

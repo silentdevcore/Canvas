@@ -13,7 +13,7 @@ const policy = {
 };
 
 async function fixtureRoot() {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'pxa-fidelity-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'pvad-fidelity-'));
   await mkdir(path.join(root, 'fixtures'));
   await writeFile(path.join(root, 'fixtures/source.pdf'), '%PDF-test');
   return root;
@@ -85,7 +85,7 @@ test('rejects unknown domain, workflow, provenance, and redistribution values', 
 
 test('reports notMeasured rather than 100 percent for an empty official denominator', async () => {
   const root = await fixtureRoot();
-  const input = manifest([fixture({ officiallySupported: false, realWorld: false, provenance: 'pxa-synthetic' })]);
+  const input = manifest([fixture({ officiallySupported: false, realWorld: false, provenance: 'pvad-synthetic' })]);
   const report = evaluate(input, { schemaVersion: 1, results: [result()] }, root);
   assert.equal(report.summary.automaticMigrationPercent, 'notMeasured');
   assert.equal(report.summary.targetMet, 'notMeasured');

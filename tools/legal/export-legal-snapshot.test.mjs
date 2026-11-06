@@ -47,11 +47,11 @@ test('rejects empty and internally inconsistent deployment snapshots', () => {
 });
 
 test('writes a validated snapshot atomically for the Company deployment', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'pxa-legal-snapshot-'));
+  const directory = await mkdtemp(join(tmpdir(), 'pvad-legal-snapshot-'));
   const output = join(directory, 'en.json');
   try {
     const result = await exportLegalSnapshot({
-      apiBase: 'https://api.pxa.test',
+      apiBase: 'https://api.pvad.test',
       locale: 'en',
       audience: 'All',
       output,

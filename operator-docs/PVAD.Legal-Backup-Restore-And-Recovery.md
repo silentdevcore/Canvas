@@ -4,8 +4,12 @@
 
 Use canonical `PVAD_*` environment keys; the conflict-checked [compatibility entry `compat-9b6a1326dd22`](compatibility-identifiers.v1.json) aliases
 remain accepted during migration. Existing mounted secret basenames, backup
-filenames and the explicit [compatibility entry `compat-2d79ca4f327e`](compatibility-identifiers.v1.json) safety phrase remain unchanged
-so this rename cannot silently select a different backup or recovery target.
+filenames and the original [compatibility entry `compat-2d79ca4f327e`](compatibility-identifiers.v1.json) safety phrase remain accepted.
+New recovery commands use `PVAD_RESTORE_CONFIRM='RESTORE PVAD DATABASE'`.
+Neither spelling selects a database: the mounted connection secret always
+determines the recovery target, which must be empty and independently approved.
+If both environment-key generations are supplied, their values must match
+exactly; two different valid phrases still count as conflicting configuration.
 New backups use `pvad-<timestamp>-<pid>.dump`. Paths below are examples for new
 configuration, not permission to move installed secrets or rename existing
 backups/checksums. Restore accepts the original basename of either generation.
@@ -88,12 +92,14 @@ commercial retention period.
    directory and mount the new target connection secret.
 2. Execute the explicit restore:
 
-Explanatory transcript, not an executable replacement. The exact excerpt is recorded as [compatibility entry `compat-cd515052a2c1`](compatibility-identifiers.v1.json).
+   The original transcript remains recorded as
+   [compatibility entry `compat-cd515052a2c1`](compatibility-identifiers.v1.json).
+   For a new approved recovery, use:
 
-   ```text
+   ```bash
    PVAD_DATABASE_URL_FILE=/run/secrets/pvad_recovery_database_url \
    PGPASSFILE=/run/secrets/pvad_recovery_pgpass \
-   PVAD_RESTORE_CONFIRM='RESTORE legacy-value[compat-b17798b33ab9] DATABASE' \
+   PVAD_RESTORE_CONFIRM='RESTORE PVAD DATABASE' \
      tools/legal/restore-postgres.sh /protected/pvad-backups/pvad-UTC.dump
    ```
 

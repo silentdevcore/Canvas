@@ -487,12 +487,12 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         var response = await client.PostAsync("/api/pxa/migration/convert", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var pxaCode = body.GetProperty("pxaCode").GetString();
+        var generatedCode = body.GetProperty("pxaCode").GetString();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("new PvadWorkbook()", pxaCode);
-        Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", pxaCode);
-        Assert.Contains("ws.Cell(0, 1).Value(10)", pxaCode);
+        Assert.Contains("new PvadWorkbook()", generatedCode);
+        Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", generatedCode);
+        Assert.Contains("ws.Cell(0, 1).Value(10)", generatedCode);
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
             body.GetProperty("diagnostics").EnumerateArray(),
