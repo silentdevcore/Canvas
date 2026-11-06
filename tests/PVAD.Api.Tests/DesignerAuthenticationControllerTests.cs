@@ -102,7 +102,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             .GetString());
 
         using var me = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/auth/me");
-        me.Headers.Add("X-PXA-Application", "designer");
+        me.Headers.Add("X-PVAD-Application", "designer");
         var meResponse = await designerClient.SendAsync(me);
         Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
         Assert.Equal(
@@ -115,7 +115,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         {
             Content = JsonContent.Create(new { }),
         };
-        mutationWithoutCsrf.Headers.Add("X-PXA-Application", "designer");
+        mutationWithoutCsrf.Headers.Add("X-PVAD-Application", "designer");
         var csrfFailure = await designerClient.SendAsync(mutationWithoutCsrf);
         Assert.Equal(HttpStatusCode.BadRequest, csrfFailure.StatusCode);
         Assert.Equal(
@@ -124,7 +124,7 @@ public sealed partial class DesignerAuthenticationControllerTests
 
         using var anonymousClient = CreateClient(factory);
         using var anonymousApi = new HttpRequestMessage(HttpMethod.Get, "/api/migration/frameworks");
-        anonymousApi.Headers.Add("X-PXA-Application", "designer");
+        anonymousApi.Headers.Add("X-PVAD-Application", "designer");
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymousClient.SendAsync(anonymousApi)).StatusCode);
 
         using var replayClient = CreateClient(factory);
@@ -154,7 +154,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         designerEntitlement.Enabled = false;
         await dbContext.SaveChangesAsync();
         using var deniedMe = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/auth/me");
-        deniedMe.Headers.Add("X-PXA-Application", "designer");
+        deniedMe.Headers.Add("X-PVAD-Application", "designer");
         var deniedMeResponse = await designerClient.SendAsync(deniedMe);
         Assert.Equal(HttpStatusCode.Forbidden, deniedMeResponse.StatusCode);
         Assert.Equal(
@@ -179,7 +179,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         await dbContext.SaveChangesAsync();
 
         using var revokedMe = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/auth/me");
-        revokedMe.Headers.Add("X-PXA-Application", "designer");
+        revokedMe.Headers.Add("X-PVAD-Application", "designer");
         Assert.Equal(HttpStatusCode.Unauthorized, (await designerClient.SendAsync(revokedMe)).StatusCode);
     }
 
@@ -515,7 +515,7 @@ public sealed partial class DesignerAuthenticationControllerTests
 
         using (var list = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/designer/templates"))
         {
-            list.Headers.Add("X-PXA-Application", "designer");
+            list.Headers.Add("X-PVAD-Application", "designer");
             var listResponse = await designerClient.SendAsync(list);
             Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
             Assert.Equal(1, (await listResponse.Content.ReadFromJsonAsync<JsonElement>())
@@ -642,7 +642,7 @@ public sealed partial class DesignerAuthenticationControllerTests
                    HttpMethod.Get,
                    "/api/pvad/v1/designer/templates?archived=true"))
         {
-            archivedList.Headers.Add("X-PXA-Application", "designer");
+            archivedList.Headers.Add("X-PVAD-Application", "designer");
             Assert.Equal(1, (await (await designerClient.SendAsync(archivedList)).Content
                 .ReadFromJsonAsync<JsonElement>()).GetProperty("total").GetInt32());
         }
@@ -676,13 +676,13 @@ public sealed partial class DesignerAuthenticationControllerTests
             using var csrfRequest = new HttpRequestMessage(
                 HttpMethod.Get,
                 "/api/pvad/v1/auth/csrf");
-            csrfRequest.Headers.Add("X-PXA-Application", "designer");
+            csrfRequest.Headers.Add("X-PVAD-Application", "designer");
             var csrfResponse = await designerClient.SendAsync(csrfRequest);
             var csrf = (await csrfResponse.Content.ReadFromJsonAsync<JsonElement>())
                 .GetProperty("token")
                 .GetString()!;
-            malformed.Headers.Add("X-PXA-Application", "designer");
-            malformed.Headers.Add("X-PXA-CSRF", csrf);
+            malformed.Headers.Add("X-PVAD-Application", "designer");
+            malformed.Headers.Add("X-PVAD-CSRF", csrf);
             malformed.Content = new StringContent(
                 "{\"name\":\"Broken\",\"designDocument\":",
                 Encoding.UTF8,
@@ -704,7 +704,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using var foreignRead = new HttpRequestMessage(
             HttpMethod.Get,
             $"/api/pvad/v1/designer/templates/{templateId}");
-        foreignRead.Headers.Add("X-PXA-Application", "designer");
+        foreignRead.Headers.Add("X-PVAD-Application", "designer");
         Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignRead)).StatusCode);
 
         using (var foreignList = DesignerGet("/api/pvad/v1/designer/templates"))
@@ -1085,7 +1085,7 @@ public sealed partial class DesignerAuthenticationControllerTests
                    }),
                })
         {
-            missingCsrf.Headers.Add("X-PXA-Application", "designer");
+            missingCsrf.Headers.Add("X-PVAD-Application", "designer");
             var response = await designerClient.SendAsync(missingCsrf);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(
@@ -1209,7 +1209,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "false",
                     ["Mail:Transport"] = "Disabled",
                     ["DesignerAuthentication:AllowedOrigins:0"] = "http://localhost:5176",
@@ -1242,7 +1242,7 @@ public sealed partial class DesignerAuthenticationControllerTests
     private static HttpRequestMessage DesignerGet(string path)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, path);
-        request.Headers.Add("X-PXA-Application", "designer");
+        request.Headers.Add("X-PVAD-Application", "designer");
         return request;
     }
 
@@ -1508,14 +1508,14 @@ public sealed partial class DesignerAuthenticationControllerTests
     {
         using var csrfRequest = new HttpRequestMessage(HttpMethod.Get, "/api/pvad/v1/auth/csrf");
         if (designer)
-            csrfRequest.Headers.Add("X-PXA-Application", "designer");
+            csrfRequest.Headers.Add("X-PVAD-Application", "designer");
         var csrfResponse = await client.SendAsync(csrfRequest);
         var csrf = (await csrfResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!;
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", csrf);
+        request.Headers.Add("X-PVAD-CSRF", csrf);
         if (designer)
         {
-            request.Headers.Add("X-PXA-Application", "designer");
+            request.Headers.Add("X-PVAD-Application", "designer");
             request.Headers.Add("Origin", designerOrigin);
         }
         return request;

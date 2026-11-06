@@ -10,6 +10,68 @@ import test from 'node:test';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(join(root, path), 'utf8');
 
+test('current account, admin and Designer test factories use canonical configuration and request headers', () => {
+  const factories = [
+    'AccountClosureControllerTests', 'AccountCrossTenantAccessTests',
+    'AccountEntitlementsControllerTests', 'AccountMailNotificationsTests',
+    'AccountOrganizationControllerTests', 'AccountProfileControllerTests',
+    'AccountRegistrationControllerTests', 'AccountServiceAccountsAndSecurityControllerTests',
+    'AccountSubscriptionAndLicensesControllerTests', 'AdminOrganizationsControllerTests',
+    'AdminSubscriptionsControllerTests', 'AdminSystemControllerTests', 'AdminUsersControllerTests',
+    'AuthControllerTests', 'DesignerAuthenticationControllerTests', 'IdentityMailFlowTests',
+    'MailDeliveryLifecycleTests', 'RegistrationConflictTests',
+  ];
+  for (const name of factories) {
+    const path = `tests/PVAD.Api.Tests/${name}.cs`;
+    const source = read(path);
+    assert.ok(source.includes('["ConnectionStrings:PvadDatabase"] = connectionString'), path);
+    assert.doesNotMatch(source, /ConnectionStrings:PxaDatabase|https:\/\/account\.pxa\.test/, path);
+    assert.doesNotMatch(source, /Headers\.Add\("X-PXA-(?:CSRF|Application|API-Key)"/, path);
+  }
+  const aliases = read('tests/PVAD.Api.Tests/PvadConfigurationAliasesTests.cs');
+  assert.ok(aliases.includes('[InlineData("ConnectionStrings:PxaDatabase", "ConnectionStrings:PvadDatabase")]'));
+  const csrf = read('tests/PVAD.Api.Tests/PvadAntiforgeryCookieCompatibilityTests.cs');
+  for (const legacyCookie of ['false', 'true']) {
+    for (const identity of ['PXA', 'PVAD']) {
+      assert.ok(csrf.includes(`[InlineData(${legacyCookie}, "X-${identity}-CSRF")]`));
+    }
+  }
+  const licenses = read('tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs');
+  assert.ok(licenses.includes('"application/vnd.pvad.license+json"'));
+  assert.ok(licenses.includes('"PVAD-TEST-0001.pvad-license.json"'));
+});
+
+test('new PDF and OCR test data and explanatory names use the current identity', () => {
+  for (const path of [
+    'tests/PVAD.Api.Tests/AccountCrossTenantAccessTests.cs',
+    'tests/PVAD.Api.Tests/TrialActivationServiceTests.cs',
+    'tests/PVAD.Api.Tests/DesignerSymbolRendererTests.cs',
+    'tests/PVAD.Core.Tests/ExpressionEvaluatorTests.cs',
+    'tests/PVAD.FileImporter.ImageOcr.Tests/ImageToPdfConverterPvadContractTests.cs',
+    'tests/PVAD.Importer.Tests/PdfFullRewriteWriterTests.cs',
+    'tests/PVAD.Importer.Tests/PdfPageEditorTests.cs',
+  ]) assert.doesNotMatch(read(path), /pxa/i, path);
+  const encrypted = read('tests/PVAD.Importer.Tests/PdfEncryptedDocumentTests.cs');
+  assert.ok(encrypted.includes('"PVAD-ENCRYPTION-PROBE-71923"'));
+  assert.ok(encrypted.includes('CreateRecipientCertificate("PVAD Intended Recipient")'));
+  assert.ok(encrypted.includes('CreateRecipientCertificate("PVAD Unrelated Recipient")'));
+  assert.doesNotMatch(encrypted, /PxaMarker|PxaCompressed|PXA-(?:STRING|ENCRYPTION)|PXA (?:Intended|Unrelated)/);
+  const redaction = read('tests/PVAD.Importer.Tests/PdfRedactionPreflightTests.cs');
+  assert.ok(redaction.includes('"CONFIDENTIAL-PVAD-SECRET"'));
+  assert.doesNotMatch(redaction, /CONFIDENTIAL-PXA-SECRET|PxaMarker|PXA redaction preflight fixture/);
+});
+
+test('current mail and database fixtures use reserved synthetic domains with current names', () => {
+  for (const path of [
+    'tests/PVAD.Api.Tests/IdentityMailFlowTests.cs',
+    'tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs',
+    'tests/PVAD.Api.Tests/PvadJobProcessorTests.cs',
+    'tests/PVAD.Infrastructure.Persistence.Tests/PostgreSqlPersistenceTests.cs',
+    'tests/PVAD.Infrastructure.Persistence.Tests/PvadDbContextModelTests.cs',
+  ]) assert.doesNotMatch(read(path), /pxa\.(?:test|local)|Database=pxa-model-tests|Username=pxa/i, path);
+  assert.doesNotMatch(read('tests/PVAD.Api.Tests/AuthControllerTests.cs'), /pxa-integration-test/);
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

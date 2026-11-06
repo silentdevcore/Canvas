@@ -408,10 +408,10 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                     ["OAuth:McpDelegationSecret"] = "test-delegation-secret-at-least-32-bytes",
                 }));
             builder.ConfigureServices(services =>
@@ -463,7 +463,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
     private static HttpRequestMessage CreateCsrfRequest(HttpMethod method, string path, string token, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

@@ -423,10 +423,10 @@ public sealed class AccountProfileControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                     ["Registration:RequireCurrentTermsAcceptance"] = requireCurrentPolicies.ToString(),
                     ["Registration:RequireCurrentPrivacyAcknowledgement"] = requireCurrentPolicies.ToString(),
                 }));
@@ -488,7 +488,7 @@ public sealed class AccountProfileControllerTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

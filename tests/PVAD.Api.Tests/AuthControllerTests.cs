@@ -279,7 +279,7 @@ public sealed class AuthControllerTests
                 builder.ConfigureAppConfiguration((_, configuration) =>
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["ConnectionStrings:PvadDatabase"] = connectionString,
                     }));
                 builder.ConfigureServices(services =>
                 {
@@ -328,7 +328,7 @@ public sealed class AuthControllerTests
         {
             Id = organizationId,
             Name = "PVADE Integration Test",
-            Slug = "pxa-integration-test",
+            Slug = "pvad-integration-test",
         });
         dbContext.OrganizationMemberships.Add(new OrganizationMembership
         {
@@ -345,7 +345,7 @@ public sealed class AuthControllerTests
         object? body = null)
     {
         var request = new HttpRequestMessage(method, path);
-        request.Headers.Add("X-PXA-CSRF", csrfToken);
+        request.Headers.Add("X-PVAD-CSRF", csrfToken);
         if (body is not null)
             request.Content = JsonContent.Create(body);
 

@@ -20,7 +20,7 @@ namespace PVAD.Api.Tests;
 /// refused with a stable diagnostic rather than accepted quietly.
 /// </para>
 /// <para>
-/// Every fixture here is synthetic and PXA-authored. No customer document appears in this file.
+/// Every fixture here is synthetic and PVAD-authored. No customer document appears in this file.
 /// </para>
 /// </remarks>
 public sealed class PdfEInvoiceFailClosedTests

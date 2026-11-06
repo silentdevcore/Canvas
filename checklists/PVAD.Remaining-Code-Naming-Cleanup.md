@@ -243,6 +243,51 @@ the actual production/external acceptance evidence. The primary rename plan's
 eight release gates and 90/98 historical total remain unchanged by this local
 source acceptance. Local tests do not authorize either operational step.
 
+On 2026-11-05 the owner confirmed that NuGet/npm publishers are not yet set up,
+no non-local staging environment exists and no independent reviewer is available.
+Source-only PR 214 now targets protected develop, but neither opening the PR nor
+the owner's local-development responsibility closes those prerequisites. The
+[current decision register](../docs/pvad-rename-release-approvals.md#owner-decisions-and-integration-status-2026-11-05)
+records the answers and their limits. All original unchecked tasks remain open;
+95% primary acceptance requires four actual gate closures, not more local repeats.
+
+Source PR 214 passed all seven required GitHub Actions checks on exact head
+`a4e9c1480d17dfd86603fae4df305864571b73ff` in run `42123810665`. The PR-only
+snapshot skip is expected. The mandatory review remains missing, so no normal
+protected merge has occurred. This does not grant production approval or change
+either acceptance percentage. The current owner/CI notes are a local follow-up,
+not part of that tested PR head until separately committed and pushed.
+
+### Mechanical Test-Source Cleanup - 2026-11-06
+
+A fresh source review found freely chosen test setup values that did not need
+to retain the previous identity. An explicit mechanical replacement batch
+updates 143 occurrences in 31 existing test files; source producers and their
+assertions change together. Fifteen files now have no retained legacy identity
+under the residual review, rather than receiving broader exceptions.
+
+- Eighteen Account, Admin and Designer factories use canonical database configuration, CSRF/application/API-key request headers and synthetic Account origins.
+- Current explanatory comments reference the actual renamed permission, role, entitlement, database and expression-evaluator types.
+- Synthetic license numbers, barcode values, OCR output, PDF custom keys, encrypted-text probes and newly generated recipient subjects use current names.
+- Synthetic mail-renderer links and PostgreSQL model/job users use reserved current-name test domains; fake connection details and the ordinary authentication fixture slug are canonical.
+- The new synthetic license uses the canonical download MIME type and filename. Dedicated retained-license tests still exercise both original and current artifact generations.
+- Dedicated configuration-alias, cookie/CSRF, API-key and diagnostic compatibility tests are not rewritten. Original signed documents, historical inventories, Legal records, published notes, VERSION and live databases remain unchanged.
+- Three direct source contracts guard current factory inputs, mail/database examples and synthetic data independently of the reviewed-hash ledger. Original ledger review notes remain historical; new review explanations are additive.
+- The exact replacement list and before/after hashes are recorded in the ignored `artifacts/rename/search-replace-20261106/replacements.json` report.
+
+This is internal test-source cleanup, not a new application feature, a
+deployment acceptance or closure of an operational gate. Its release fragment
+uses `none` impact. Earlier execution totals remain point-in-time results.
+
+#### Verification
+
+- Configuration/versioning contracts: 399 passing tests. Residual-ledger, structural JSON, release-fragment, version synchronization and diff whitespace checks pass.
+- The first real PostgreSQL API selection passed 162 of 163 tests and exposed one stale license MIME assertion. That original failed TRX remains available; it is not relabeled as a successful run.
+- After correcting the current-license MIME assertion and adding its filename assertion, all 21 follow-up API tests pass, including old/new license downloads and the final mail/auth/job fixture changes.
+- Focused Importer tests: 59 passed; expression tests: 15 passed; OCR tests: two passed; model/real PostgreSQL persistence tests: 13 passed. Across the .NET selections, all 266 distinct test names have a passing latest result, with none skipped.
+- All 281 tracked Markdown files have zero old-name occurrences. Ninety-one protected originals and dedicated compatibility sources compare byte-for-byte with HEAD; all 815 original ledger review notes and their ordering are preserved.
+- No isolated Testcontainers resources remain running after the tests. No live application, database, deployment, publisher, version or published release was changed. Existing compiler/license warnings are not waived by these scoped checks.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

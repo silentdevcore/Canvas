@@ -31,8 +31,8 @@ public sealed class PostgreSqlPersistenceTests
                 Id = userId,
                 UserName = "persistence-test",
                 NormalizedUserName = "PERSISTENCE-TEST",
-                Email = "persistence-test@pxa.local",
-                NormalizedEmail = "PERSISTENCE-TEST@PXA.LOCAL",
+                Email = "persistence-test@pvad.test",
+                NormalizedEmail = "PERSISTENCE-TEST@PVAD.TEST",
                 DisplayName = "Persistence Test",
             });
             context.Organizations.Add(new Organization
@@ -81,8 +81,8 @@ public sealed class PostgreSqlPersistenceTests
                 Id = userId,
                 UserName = "job-test",
                 NormalizedUserName = "JOB-TEST",
-                Email = "job-test@pxa.local",
-                NormalizedEmail = "JOB-TEST@PXA.LOCAL",
+                Email = "job-test@pvad.test",
+                NormalizedEmail = "JOB-TEST@PVAD.TEST",
                 DisplayName = "Job Test",
             });
             context.Organizations.Add(new Organization

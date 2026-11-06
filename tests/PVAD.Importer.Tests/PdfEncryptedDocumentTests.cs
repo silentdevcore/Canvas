@@ -14,7 +14,7 @@ namespace PVAD.Importer.Tests;
 
 public sealed class PdfEncryptedDocumentTests
 {
-    private const string Secret = "PXA-ENCRYPTION-PROBE-71923";
+    private const string Secret = "PVAD-ENCRYPTION-PROBE-71923";
 
     [Fact]
     public async Task GeneratorAes256_ShouldRoundTripThroughTheImporterFacade()
@@ -114,8 +114,8 @@ public sealed class PdfEncryptedDocumentTests
     [Fact]
     public async Task CertificateEncryption_ShouldRejectAnUnrelatedCertificate()
     {
-        using var recipient = CreateRecipientCertificate("PXA Intended Recipient");
-        using var unrelated = CreateRecipientCertificate("PXA Unrelated Recipient");
+        using var recipient = CreateRecipientCertificate("PVAD Intended Recipient");
+        using var unrelated = CreateRecipientCertificate("PVAD Unrelated Recipient");
 #pragma warning disable PXA0001
         var document = new PdfDocument();
 #pragma warning restore PXA0001
@@ -192,15 +192,15 @@ public sealed class PdfEncryptedDocumentTests
     [Fact]
     public void Decrypt_ShouldRecoverDocumentStringsNotOnlyStreams()
     {
-        var source = AddCatalogString(CreatePdf(), "PXA-STRING-MARKER");
+        var source = AddCatalogString(CreatePdf(), "PVAD-STRING-MARKER");
         var encrypted = Encrypt(source, "open-me");
-        Assert.DoesNotContain("PXA-STRING-MARKER", Encoding.Latin1.GetString(encrypted), StringComparison.Ordinal);
+        Assert.DoesNotContain("PVAD-STRING-MARKER", Encoding.Latin1.GetString(encrypted), StringComparison.Ordinal);
         var (table, graph) = ParseGraph(encrypted);
 
         PdfDocumentDecryptor.Decrypt(table, graph, "open-me");
 
         var catalog = (PdfDictionary)graph.Resolve(((PdfReference)graph.Trailer!["Root"]!).Id)!.Value;
-        Assert.Equal("PXA-STRING-MARKER", Assert.IsType<PdfString>(catalog["PxaMarker"]).ToLatin1String());
+        Assert.Equal("PVAD-STRING-MARKER", Assert.IsType<PdfString>(catalog["PvadMarker"]).ToLatin1String());
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public sealed class PdfEncryptedDocumentTests
         var encrypted = Encrypt(AddCatalogString(CreatePdf(), "CATALOG-SECRET"), "open-me");
         var (table, graph) = ParseGraph(encrypted);
         var catalog = (PdfDictionary)graph.Resolve(((PdfReference)graph.Trailer!["Root"]!).Id)!.Value;
-        var originalCatalogCiphertext = Assert.IsType<PdfString>(catalog["PxaMarker"])
+        var originalCatalogCiphertext = Assert.IsType<PdfString>(catalog["PvadMarker"])
             .GetDecodedBytes()
             .ToArray();
         var streamObject = graph.Objects.Values
@@ -316,7 +316,7 @@ public sealed class PdfEncryptedDocumentTests
         catalog = (PdfDictionary)graph.Resolve(((PdfReference)graph.Trailer!["Root"]!).Id)!.Value;
         Assert.Equal(
             originalCatalogCiphertext,
-            Assert.IsType<PdfString>(catalog["PxaMarker"]).GetDecodedBytes().ToArray());
+            Assert.IsType<PdfString>(catalog["PvadMarker"]).GetDecodedBytes().ToArray());
     }
 
     [Fact]
@@ -332,7 +332,7 @@ public sealed class PdfEncryptedDocumentTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaMarker"] = new PdfString("after"u8.ToArray(), IsHex: false)
+            ["PvadMarker"] = new PdfString("after"u8.ToArray(), IsHex: false)
         };
 
         var saved = new PdfDocumentSaver().Save(encrypted, new PdfSaveRequest
@@ -358,7 +358,7 @@ public sealed class PdfEncryptedDocumentTests
         var resultGraph = PdfDocumentDecryptor.ParseAndDecrypt(resultContext, resultTable, "new-reader").Graph;
         var resultRoot = Assert.IsType<PdfReference>(resultGraph.Trailer!["Root"]);
         var resultCatalog = Assert.IsType<PdfDictionary>(resultGraph.Resolve(resultRoot.Id)!.Value);
-        Assert.Equal("after", Assert.IsType<PdfString>(resultCatalog["PxaMarker"]).ToLatin1String());
+        Assert.Equal("after", Assert.IsType<PdfString>(resultCatalog["PvadMarker"]).ToLatin1String());
 
         var oldPasswordContext = new PdfParseContext(saved.Bytes, new PdfImporterOptions());
         var oldPasswordTable = new PdfCrossReferenceParser().Parse(oldPasswordContext);
@@ -461,7 +461,7 @@ public sealed class PdfEncryptedDocumentTests
             static entry => entry.Key,
             static entry => entry.Value))
         {
-            ["PxaMarker"] = new PdfString(Encoding.Latin1.GetBytes(marker), IsHex: false)
+            ["PvadMarker"] = new PdfString(Encoding.Latin1.GetBytes(marker), IsHex: false)
         };
         return new PdfIncrementalUpdateWriter()
             .Append(source, [new PdfIncrementalObjectUpdate(rootId, updated)]).Bytes;
@@ -491,7 +491,7 @@ public sealed class PdfEncryptedDocumentTests
         WriteObject(2, handler.BuildEncryptDictionary());
 
         var objectStreamPlaintext = Encoding.ASCII.GetBytes(
-            "5 0 << /Type /PxaCompressed /Marker (OBJECT-STREAM-SECRET) >>");
+            "5 0 << /Type /PvadCompressed /Marker (OBJECT-STREAM-SECRET) >>");
         WriteObject(3, new PdfStreamObject(
             new PdfDictionary
             {

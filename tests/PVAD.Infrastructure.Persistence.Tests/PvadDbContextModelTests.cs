@@ -210,7 +210,7 @@ public sealed class PvadDbContextModelTests
     private static PvadDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PvadDbContext>()
-            .UseNpgsql("Host=localhost;Database=pxa-model-tests;Username=pxa")
+            .UseNpgsql("Host=localhost;Database=pvad-model-tests;Username=pvad")
             .Options;
 
         return new PvadDbContext(options);

@@ -257,7 +257,7 @@ public sealed class AdminUsersControllerTests
         using var revokeEditor = new HttpRequestMessage(
             HttpMethod.Delete,
             $"/api/pvad/v1/admin/roles/editor/members/{seeded.ManagedUserId}");
-        revokeEditor.Headers.Add("X-PXA-CSRF", authenticatedCsrf);
+        revokeEditor.Headers.Add("X-PVAD-CSRF", authenticatedCsrf);
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeEditor)).StatusCode);
         editorDetail = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/admin/roles/editor");
         Assert.Equal(0, editorDetail.GetProperty("total").GetInt32());
@@ -504,7 +504,7 @@ public sealed class AdminUsersControllerTests
                 {
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["ConnectionStrings:PvadDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                         ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                     });
@@ -683,7 +683,7 @@ public sealed class AdminUsersControllerTests
         {
             Content = JsonContent.Create(body),
         };
-        request.Headers.Add("X-PXA-CSRF", csrfToken);
+        request.Headers.Add("X-PVAD-CSRF", csrfToken);
         return request;
     }
 

@@ -105,7 +105,7 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.DoesNotContain("\"secret\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\"keyHash\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         using var apiClient = CreateClient(factory);
-        apiClient.DefaultRequestHeaders.Add("X-PXA-API-Key", secret);
+        apiClient.DefaultRequestHeaders.Add("X-PVAD-API-Key", secret);
         using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pxa/templates")
         {
             Content = JsonContent.Create(new { name = "API-key template" }),
@@ -411,7 +411,7 @@ public sealed class AdminSubscriptionsControllerTests
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["ProductAccess:Enabled"] = "true",
                     ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                     ["AdminSecurity:SystemOperatorEmails:0"] = "system@pvad.test",
@@ -490,7 +490,7 @@ public sealed class AdminSubscriptionsControllerTests
         HttpMethod method, string path, string csrf, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", csrf);
+        request.Headers.Add("X-PVAD-CSRF", csrf);
         return request;
     }
 

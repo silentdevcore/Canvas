@@ -3922,95 +3922,103 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountClosureControllerTests.cs",
-      "sha256": "0df2b4d37925731c4f1aeb8e0f4021d1865e086a6a807130f222f868eb3031c4",
+      "sha256": "b14f3090173e4c69d43f351e4702339722e8a297732d888292a92319554f6da4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountClosureControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountCrossTenantAccessTests.cs",
-      "sha256": "0f82161b73ea4b38bc52a3cf7d5b9a58ba50f9fe6138be55427d3aed6a10f6de",
+      "sha256": "4dc748c1d1fc174ce15081ef9ecb66d66c47292f0bec53e3105464e22190735e",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountCrossTenantAccessTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountEntitlementsControllerTests.cs",
-      "sha256": "40b727b54ced3faf45ae135b04665ff6509b7138f93f2d48a0448fd934adab16",
+      "sha256": "4696d1d06b8a671e18a871c31b278226767fad8d82b7712e30351f7ea5e00806",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountEntitlementsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountMailNotificationsTests.cs",
-      "sha256": "3fad870668afe7439bf0fc972d43274b6ad31ff727c8b51e2f59b3d03d17a168",
+      "sha256": "4710b54a00dd829e7dd846f45973c8591587520868ebab715a5d2a7b31e84cc0",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountOrganizationControllerTests.cs",
-      "sha256": "adba0ae04e8ab7f8ee156cb728cf48ab925128689d257a94297f5ed51717074f",
+      "sha256": "568ff4bd83b49ab664d4b716b7391d9689cd233b3ccb399be88b3da257ce5ae3",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountOrganizationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountProfileControllerTests.cs",
-      "sha256": "2fe9dbe92da8517d8c73221010f71fe327d69bf4d8ced75bddf6661428668552",
+      "sha256": "66de58bfb122b40f892b691063a2a23c26aaf09fb2467aec2b2d30caaeb6ae40",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountProfileControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountRegistrationControllerTests.cs",
-      "sha256": "71a0ddf43e27a9f4da367c87313929d56a59206ac9ecda0035a42c4751aed70f",
+      "sha256": "04f5439920e39b7e84b723dca2c995f91af961f0c641c3b0f61c6f6eb8b7cba7",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs",
-      "sha256": "acad84ceabf9cdceeeacad942ec699b8807f114843c38af9d37d2e417262ddfd",
+      "sha256": "85e539fce5097e5606c7743eeb6e05c9df5b681bf9503a2d1ac74dc9cbbf1569",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
       "boundaryGuide": "docs/pvad-oauth-client-transition.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs",
-      "sha256": "c0a9004695572ebbc89d32a3236ad21021b2631cec2c3a5878aa728c0510dc41",
+      "sha256": "10a7e16fca26d083507a2bdee6b25128d802ed1cc5853e58e71597f811577b49",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4018,7 +4026,8 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical. 2026-11-06: The synthetic current-generation license expectation also checks its canonical MIME type and download filename; the dedicated old/new artifact compatibility tests remain unchanged."
     },
     {
       "path": "PVAD.WebApi/Application/Designer/PvadDesignerProjectAuditWriter.cs",
@@ -4032,18 +4041,19 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminOrganizationsControllerTests.cs",
-      "sha256": "3382c9e2e3aac04c27b2561e2ccdc7787fdf6030b117d96d47e557409d547c65",
+      "sha256": "14fd356de40e32c5507a6245eba751abaf17cc9416f7778493dc90bfc40e54f1",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/AdminOrganizationsControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSubscriptionsControllerTests.cs",
-      "sha256": "d456bc2d7d424ab6f9d56a0e0a9bb7b0c33d0dbb938c05ec9e4466f499a56a5d",
+      "sha256": "377c362d4e3383e91b355e5e674701fb20541d99ce834fd101c0a755cfd3f71b",
       "reasons": [
         "test-contract",
         "compatibility-contract"
@@ -4051,41 +4061,45 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-25 final validation review: preserve deliberate old-generation inputs and diagnostics; update current selectors, subjects, safe origins and bounded artifact projections. Full Solution checks pass; the genuine stale-workspace browser conflict remains documented and is not relaxed or marked passed. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs",
-      "sha256": "76bb3b4e61d047b1ef5de6087978cf4613a861d5fb4b5722b472ba317e1bc0d1",
+      "sha256": "c4ae6ace0f90908fde653f51cd06c325ad860a1a14783a66e3fd799ebe6fb408",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/AdminSystemControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Operator headers and protected runbook registry references remain covered with isolated keys. Seeded the complete built-in operator permission claims to reproduce real bootstrap cookie size; retained operator identity and legacy API/configuration contracts are unchanged."
+      "followupReview": "2026-11-04: Operator headers and protected runbook registry references remain covered with isolated keys. Seeded the complete built-in operator permission claims to reproduce real bootstrap cookie size; retained operator identity and legacy API/configuration contracts are unchanged.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs",
-      "sha256": "60faa86afaa0e335bd3bf96a30eca17561cd45c897da98d6062089709627ace0",
+      "sha256": "d717e4ad11d3880246a9f07bc217364eb22820585ba66abefc5d8322ee5c293e",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/AdminUsersControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/AuthControllerTests.cs",
-      "sha256": "18161337969465bf2153ccb2770511b3413f6f98bfc911b4557fc57ad646e5d1",
+      "sha256": "802ba759c86a3556ea2193f6632528c227cc64ee4fa343c0b19eacc4d0099539",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/AuthControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Isolated the real PostgreSQL test host's Data Protection provider; legacy configuration inputs and existing assertions remain unchanged."
+      "followupReview": "2026-11-04: Isolated the real PostgreSQL test host's Data Protection provider; legacy configuration inputs and existing assertions remain unchanged.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical. 2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs",
@@ -4099,14 +4113,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs",
-      "sha256": "4720a1694af857cef62b2902c02b5ac8f4644075cbd7d778deba89985cb4ed59",
+      "sha256": "4796a989e4f7108ede604892fde9ac36439a3430cc00b0bcc53fde8c0cb3cd21",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "2026-11-04: Reused existing real login/handoff helpers through a partial test class with isolated temporary or ephemeral key providers; deliberate legacy headers/configuration and all original test expectations remain unchanged."
+      "followupReview": "2026-11-04: Reused existing real login/handoff helpers through a partial test class with isolated temporary or ephemeral key providers; deliberate legacy headers/configuration and all original test expectations remain unchanged.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs",
@@ -4141,13 +4156,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerSymbolRendererTests.cs",
-      "sha256": "f44c07543cdd85ef2f61fe038ea9297bb1fc2a5e50b4a28a9fdd03a4b2a2b881",
+      "sha256": "1d969f9c6fc80261a9bf5d110a788035e5ec6fa8fe368ebfef77ad75febecc85",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/DesignerSymbolRendererTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/DocumentOpsControllerTests.cs",
@@ -4193,14 +4209,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/IdentityMailFlowTests.cs",
-      "sha256": "e64ea24945c12cacf621bfe147ba02298ad8412972a2916635de9b196a50214d",
+      "sha256": "9a73436496dfdb2043456ea6bb36447c3f5b2d96c2babb9b72908483502f4aac",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/IdentityMailFlowTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical. 2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Api.Tests/ImageConversionControllerTests.cs",
@@ -4225,14 +4242,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/MailDeliveryLifecycleTests.cs",
-      "sha256": "8932cdd206b3e2af651a712b4c4d2ef8d93650f4388967ab649cb89b02128be5",
+      "sha256": "6df576d07058e09182c2ec2e53e1cfcda2ef5b7cc4df1addfa2e1651f4c6a388",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/MailDeliveryLifecycleTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationControllerTests.cs",
@@ -4327,13 +4345,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs",
-      "sha256": "27f43b2ac2a3f0f310312f32fd16581219ed0a79615b56c18983989866358e2a",
+      "sha256": "c444ba7135ae5bd77422baa84ce415c515ef830767c651365a1675dcecc8b8a1",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfEInvoicePreservedXmlTests.cs",
@@ -4648,13 +4667,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadJobProcessorTests.cs",
-      "sha256": "8ef8609a1dfb384d1972d1ac73615279e1b7e4b77a23720b76193e9300e58101",
+      "sha256": "4c56aa9c9b92452260b10a48bde2f363bd093ae7fd51775be0f19b91dca9ad5f",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PvadJobProcessorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs",
@@ -4689,14 +4709,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs",
-      "sha256": "f0d19d25f7f2078cbaeb951e6f7d7261bb9d933d8011e3e0d9b2f0c56b8a6605",
+      "sha256": "4ea4daab19f8b250af1aee3d94b01d340b430311e5f004d43ab92eb0627223d4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs",
@@ -4836,14 +4857,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/RegistrationConflictTests.cs",
-      "sha256": "68473259185e280123f0aa4b49a31968df717e560c36a7ef8d37486658e5303c",
+      "sha256": "c2f6a28754d4365e1ba1b5855853f7f3dea9aa16d9e48b7fe58737b26674337a",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/RegistrationConflictTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/SpreadsheetControllerTests.cs",
@@ -4880,13 +4902,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/TrialActivationServiceTests.cs",
-      "sha256": "53e64508cf040ce6416d46503edbac9a69578ab4bb0063d449cdd17d776fe8bb",
+      "sha256": "12e56ae90fa679f4b438a26632cecfd90575adba28046f7e8446652223ab7085",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Api.Tests/TrialActivationServiceTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical."
     },
     {
       "path": "tests/PVAD.Api.Tests/VisualParityArtifactTests.cs",
@@ -4920,13 +4943,14 @@
     },
     {
       "path": "tests/PVAD.Core.Tests/ExpressionEvaluatorTests.cs",
-      "sha256": "f34eb609809fb1b5d761979b2692f7ad9380a0c1fbb40321107f600f473513c9",
+      "sha256": "9b22a7242853a94987f6b7af0784196f2b3319fd0fb30cf0d0e5425463125f2c",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Core.Tests/ExpressionEvaluatorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.Core.Tests/PageLayoutResolverTests.cs",
@@ -5090,13 +5114,14 @@
     },
     {
       "path": "tests/PVAD.FileImporter.ImageOcr.Tests/ImageToPdfConverterPvadContractTests.cs",
-      "sha256": "7b7029ffc9da0a107820d8b4911a646741bfbf5400f733e20ba183cb304dd5a3",
+      "sha256": "09f0f6f3b1178b2ec4fb3a49488be64fbadd55786a5f627f33cbfe897a08e859",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.FileImporter.ImageOcr.Tests/ImageToPdfConverterPvadContractTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.FileImporter.ImageOcr.Tests/ImageToPdfConverterTests.cs",
@@ -5333,25 +5358,27 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfEncryptedDocumentTests.cs",
-      "sha256": "266ce7a6b47c5f1643861777b83af535472772f408de3659c1b9df2e99b7b8ab",
+      "sha256": "91b10b0549393ea67a0132f68664bd35bb3dd224779db750ed63d055e9926a63",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfEncryptedDocumentTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfFullRewriteWriterTests.cs",
-      "sha256": "82b0aee5b33e55c3f54d5f50a8310206ec7ac7eb4889e28bd5934eb70fe8bcef",
+      "sha256": "52145864d519571a49ec06a04f0f533dfc2b32c96a13ff9cead4f61215f1af37",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfFullRewriteWriterTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved."
+      "followupReview": "Scoped current-output and synthetic-test naming review; legacy identifiers and previous evidence remain preserved.",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfHybridCrossReferenceTests.cs",
@@ -5416,13 +5443,14 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfPageEditorTests.cs",
-      "sha256": "f5ca5de3132d6c9d074baf9b9ffa5c94b5e4f50cb1736cb5bdebb7b1171510e3",
+      "sha256": "7223b91372a2681690ee40149c23c1439635048412949c5d9415ddc9fe503fc1",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfPageEditorTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfParserHardeningTests.cs",
@@ -5466,13 +5494,14 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfRedactionPreflightTests.cs",
-      "sha256": "23454e689151346c70753cab44bd694ff120dde1077731cc9e1a0229c5badb83",
+      "sha256": "960f9e2644c169a5bf383740cd7051310c62018d97e080640ab723b6c21ec121",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfRedactionPreflightTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Freely chosen runtime-generated PDF/OCR markers, certificate subjects and explanatory names use the current identity, with producers and assertions updated together. Original signed fixtures, stable diagnostics and compatibility cases remain unchanged."
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfRedactionSanitizationAndVisibilityTests.cs",
@@ -5628,23 +5657,25 @@
     },
     {
       "path": "tests/PVAD.Infrastructure.Persistence.Tests/PostgreSqlPersistenceTests.cs",
-      "sha256": "ccb7a7ccdcbd93a91702b9644461a04b7bd9820ac9b6a54ea5f3abdd40c8ca4b",
+      "sha256": "a741fbb1272826f9243a2fb7704649d6487e7f2368921fa8f57b9a40709a3ebf",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tests/PVAD.Infrastructure.Persistence.Tests/PostgreSqlPersistenceTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Infrastructure.Persistence.Tests/PvadDbContextModelTests.cs",
-      "sha256": "797b829af0297ce92abf1e0e22e02868cb3e6a55bb2cce8eecf049b2045120d6",
+      "sha256": "ff6f2cf37ecc0f1d9990db27d696cc45409b8bb8ecb7c39318b794d714481a44",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Infrastructure.Persistence.Tests/PvadDbContextModelTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Replace freely chosen mail-test origins, fake PostgreSQL user/database names or the ordinary authentication fixture slug, updating matching expectations. No deployed database, retained job protocol, signed material or authentication contract changes."
     },
     {
       "path": "tests/PVAD.Infrastructure.Word.Tests/WordInfrastructureFacadeTests.cs",
@@ -7750,13 +7781,14 @@
     },
     {
       "path": "tools/configuration/internal-naming-contract.test.mjs",
-      "sha256": "9a7a3800eb842bcde0a89d061d2d9b57363fdaebe6d5e74eebe7e4a8a039349e",
+      "sha256": "792e1491c8d0d42cd8ba97504a1a46f5fc0b137b73c039b59d1a6c29d37b753b",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Tests verify current internal names while explicitly preserving legacy upstream headers, backup-reader behavior, restore confirmation, dashboard and runbook references. Database executables are mocked; this is not runtime recovery evidence.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-06: Added direct assertions for current functional-test configuration and synthetic data while explicitly retaining dedicated alias and CSRF-generation coverage. Negative naming assertions remain deliberate regression inputs. 2026-11-06: Also guard current mail-renderer origins, fake PostgreSQL identities and the ordinary authentication test slug; compatibility and negative naming assertions remain deliberate. 2026-11-06: The synthetic current-generation license expectation also checks its canonical MIME type and download filename; the dedicated old/new artifact compatibility tests remain unchanged."
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",
@@ -8239,7 +8271,8 @@
     },
     {
       "path": "docs/pvad-rename-release-approvals.md",
-      "sha256": "3bec52d86c4f8b59c7138aa2a1973770065c6330cde1c692cae8a1e6e99c9d72",
+      "sha256": "2cc682a9f524b82ae9cc9be0e55e202ffc20f34428f01be98f89c28f14c33a19",
+      "currentReviewNotes": "2026-11-05 UTC: Added owner-confirmed missing publisher, non-local staging and independent-review prerequisites, source-only PR status and exact-head CI success. Original decision rows and review notes remain intact; actual repository and CI URLs stay in local observation artifacts. No gate closure, submitted review or operational authorization is inferred.",
       "reasons": [
         "infrastructure-binding"
       ],

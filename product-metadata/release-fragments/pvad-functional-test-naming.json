@@ -1,0 +1,11 @@
+{
+  "id": "pvad-functional-test-naming",
+  "impact": "none",
+  "components": ["api", "importer", "infrastructure"],
+  "category": "improved",
+  "summary": "Functional tests now use current configuration names and synthetic document identities.",
+  "reason": "This normalizes test-only configuration, request headers, comments and generated fixture labels. Dedicated compatibility tests, runtime contracts, signed evidence and application behavior remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

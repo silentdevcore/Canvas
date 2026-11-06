@@ -111,8 +111,8 @@ public sealed class PvadJobProcessorTests
                 Id = userId,
                 UserName = "job-processor",
                 NormalizedUserName = "JOB-PROCESSOR",
-                Email = "job-processor@pxa.local",
-                NormalizedEmail = "JOB-PROCESSOR@PXA.LOCAL",
+                Email = "job-processor@pvad.test",
+                NormalizedEmail = "JOB-PROCESSOR@PVAD.TEST",
                 DisplayName = "Job Processor",
             });
             context.Organizations.Add(new Organization

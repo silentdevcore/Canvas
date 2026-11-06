@@ -59,7 +59,7 @@ public sealed class AccountClosureControllerTests
             await dbContext.SaveChangesAsync();
         }
         using var apiKeyClient = CreateClient(factory);
-        apiKeyClient.DefaultRequestHeaders.Add("X-PXA-API-Key", apiKeySecret.Secret);
+        apiKeyClient.DefaultRequestHeaders.Add("X-PVAD-API-Key", apiKeySecret.Secret);
         Assert.Equal(
             HttpStatusCode.OK,
             (await apiKeyClient.GetAsync("/api/pvad/v1/account/entitlements/pdf.generator")).StatusCode);
@@ -207,10 +207,10 @@ public sealed class AccountClosureControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -261,7 +261,7 @@ public sealed class AccountClosureControllerTests
     private static HttpRequestMessage CreateCsrfRequest(HttpMethod method, string path, string token, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

@@ -443,10 +443,10 @@ public sealed class AccountRegistrationControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                     ["Registration:TermsVersion"] = "terms-test-v2",
                     ["Registration:PrivacyVersion"] = "privacy-test-v3",
                     ["Registration:RequireDatabaseLegalDocuments"] =
@@ -564,7 +564,7 @@ public sealed class AccountRegistrationControllerTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

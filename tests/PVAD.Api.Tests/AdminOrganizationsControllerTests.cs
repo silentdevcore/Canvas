@@ -130,7 +130,7 @@ public sealed class AdminOrganizationsControllerTests
                 builder.ConfigureAppConfiguration((_, configuration) =>
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["ConnectionStrings:PvadDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                         ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                     }));
@@ -271,7 +271,7 @@ public sealed class AdminOrganizationsControllerTests
         object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", csrfToken);
+        request.Headers.Add("X-PVAD-CSRF", csrfToken);
         return request;
     }
 

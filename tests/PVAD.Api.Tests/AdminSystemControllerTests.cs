@@ -245,7 +245,7 @@ public sealed class AdminSystemControllerTests
                 builder.ConfigureAppConfiguration((_, configuration) =>
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["ConnectionStrings:PvadDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                         ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                         ["Mail:Transport"] = "Disabled",
@@ -382,7 +382,7 @@ public sealed class AdminSystemControllerTests
         {
             Content = JsonContent.Create(new { identifier, password }),
         };
-        request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
+        request.Headers.Add("X-PVAD-CSRF", csrf.GetProperty("token").GetString());
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(request)).StatusCode);
     }
 
@@ -396,7 +396,7 @@ public sealed class AdminSystemControllerTests
         var request = new HttpRequestMessage(method, path);
         if (body is not null)
             request.Content = JsonContent.Create(body);
-        request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
+        request.Headers.Add("X-PVAD-CSRF", csrf.GetProperty("token").GetString());
         return await client.SendAsync(request);
     }
 
