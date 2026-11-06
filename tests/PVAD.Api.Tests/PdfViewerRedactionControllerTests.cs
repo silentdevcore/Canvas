@@ -36,7 +36,7 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
     }
 
     private readonly string _storageRoot =
-        Path.Combine(Path.GetTempPath(), "pxa-viewer-redaction-tests", Guid.NewGuid().ToString("N"));
+        Path.Combine(Path.GetTempPath(), "pvad-viewer-redaction-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
     public async Task Redact_SplitsAPartiallyCoveredTextRun()

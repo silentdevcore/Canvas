@@ -128,7 +128,7 @@ public sealed class PdfViewerFormsControllerTests : IClassFixture<PvadApiTestFac
             },
         }, "file", "form.pdf");
 
-        var response = await _client.PostAsync("/api/pxa/pdf-viewer/forms/extract", form);
+        var response = await _client.PostAsync("/api/pvad/pdf-viewer/forms/extract", form);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 

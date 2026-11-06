@@ -52,6 +52,12 @@ exact input alias and uses current names throughout the isolated database drill.
 Converter, fidelity and release-tool test examples are normalized together with
 their expectations. Existing backup files, databases and evidence are not renamed.
 
+The [current-route and project-example pass](PVAD.Remaining-Code-Naming-Cleanup.md#current-routes-and-project-examples---2026-11-06)
+replaces 58 exact occurrences in 14 files. Generic current API workflows now
+exercise the canonical prefix instead of relying on the compatibility adapter.
+Current project examples, generated PDF/UA filenames and ephemeral test data
+use current names; dedicated legacy, header and schema tests remain unchanged.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

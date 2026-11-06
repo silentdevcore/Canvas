@@ -317,7 +317,7 @@ public sealed class ExportControllerTests : IClassFixture<PvadApiTestFactory>
     [Fact]
     public async Task GetFormats_PvadRoute_Returns200_WithAllFormats()
     {
-        var response = await _client.GetAsync("/api/pxa/export/formats");
+        var response = await _client.GetAsync("/api/pvad/export/formats");
         var formats  = await response.Content.ReadFromJsonAsync<JsonElement[]>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -366,7 +366,7 @@ public sealed class ExportControllerTests : IClassFixture<PvadApiTestFactory>
     [Fact]
     public async Task Export_PvadRoute_Html_Returns200()
     {
-        var response = await PostExport("html", "/api/pxa/export");
+        var response = await PostExport("html", "/api/pvad/export");
         var body     = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

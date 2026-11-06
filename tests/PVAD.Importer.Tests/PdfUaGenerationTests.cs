@@ -32,7 +32,7 @@ public sealed class PdfUaGenerationTests
         page.MarkLastElementAsArtifact();
 
         var bytes = document.ToBytes(new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        WriteValidationArtifact("pxa-pdfua1-structure.pdf", bytes);
+        WriteValidationArtifact("pvad-pdfua1-structure.pdf", bytes);
         var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.StartsWith("%PDF-1.7", pdf);
@@ -108,7 +108,7 @@ public sealed class PdfUaGenerationTests
         });
 
         var bytes = document.ToBytes(new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        WriteValidationArtifact("pxa-pdfua1-custom-role.pdf", bytes);
+        WriteValidationArtifact("pvad-pdfua1-custom-role.pdf", bytes);
         var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.Contains("/NutrientCallout <</MCID 0>> BDC", pdf);
@@ -224,7 +224,7 @@ public sealed class PdfUaGenerationTests
 
         var bytes = document.ToBytes(
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        WriteValidationArtifact("pxa-pdfua1-table.pdf", bytes);
+        WriteValidationArtifact("pvad-pdfua1-table.pdf", bytes);
         var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.Contains("/A << /O /Table /Scope /Column >>", pdf);
@@ -364,7 +364,7 @@ public sealed class PdfUaGenerationTests
 
         var bytes = document.ToBytes(
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        WriteValidationArtifact("pxa-pdfua1-widgets.pdf", bytes);
+        WriteValidationArtifact("pvad-pdfua1-widgets.pdf", bytes);
         var pdf = Encoding.Latin1.GetString(bytes);
 
         Assert.Contains("/FT /Btn /Ff 32768", pdf);

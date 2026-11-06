@@ -379,7 +379,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
     [Fact]
     public async Task GetFrameworks_PvadRoute_ReturnsSupportedFrameworks()
     {
-        var response = await client.GetAsync("/api/pxa/migration/frameworks");
+        var response = await client.GetAsync("/api/pvad/migration/frameworks");
         var frameworks = await response.Content.ReadFromJsonAsync<JsonElement[]>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -426,7 +426,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("/api/pxa/migration/convert", content);
+        var response = await client.PostAsync("/api/pvad/migration/convert", content);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -455,7 +455,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
                 """
         });
 
-        var response = await client.PostAsync("/api/pxa/migration/convert", Json(json));
+        var response = await client.PostAsync("/api/pvad/migration/convert", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -485,7 +485,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
                 """
         });
 
-        var response = await client.PostAsync("/api/pxa/migration/convert", Json(json));
+        var response = await client.PostAsync("/api/pvad/migration/convert", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         var generatedCode = body.GetProperty("pxaCode").GetString();
 
@@ -518,7 +518,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
                 """
         });
 
-        var response = await client.PostAsync("/api/pxa/migration/report-to-design", Json(json));
+        var response = await client.PostAsync("/api/pvad/migration/report-to-design", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         var design = body.GetProperty("design");
 
@@ -554,7 +554,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
                 """
         });
 
-        var response = await client.PostAsync("/api/pxa/migration/report-to-design", Json(json));
+        var response = await client.PostAsync("/api/pvad/migration/report-to-design", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         var design = body.GetProperty("design");
 

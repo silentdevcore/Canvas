@@ -102,7 +102,7 @@ test('bulk example renaming preserves historical release text and explicit reade
   for (const value of ['PXA-PXAP-1', 'minimal.pxap', 'minimal.pxas', 'minimumPxaVersion'])
     assert.ok(projects.includes(value), value);
   const template = read('tests/PVAD.Api.Tests/TemplatesControllerTests.cs');
-  assert.ok(template.includes('"/api/pxa/templates/validate"'));
+  assert.ok(template.includes('"/api/pvad/templates/validate"'));
   assert.ok(template.includes('"PVAD Template"'));
 });
 
@@ -157,6 +157,34 @@ test('current recovery and converter examples use canonical names without rewrit
   const restore = read('tools/legal/restore-postgres.sh');
   assert.ok(restore.includes("'RESTORE PVAD DATABASE'|'RESTORE PXA DATABASE'"));
   assert.ok(restore.includes('Set PVAD_RESTORE_CONFIRM="RESTORE PVAD DATABASE"'));
+});
+
+test('generic API workflows and current project examples exercise canonical identities', () => {
+  for (const name of ['DocumentOpsControllerTests', 'TemplatesControllerTests',
+    'SpreadsheetControllerTests', 'ExportControllerTests', 'PdfViewerFormsControllerTests',
+    'PdfViewerAnnotationsControllerTests', 'AdminSubscriptionsControllerTests',
+    'MigrationControllerTests']) {
+    const source = read(`tests/PVAD.Api.Tests/${name}.cs`);
+    assert.doesNotMatch(source, /\/api\/pxa\//, name);
+    assert.match(source, /\/api\/pvad\//, name);
+  }
+  const aliases = read('tests/PVAD.Api.Tests/PvadLegacyApiMiddlewareTests.cs');
+  assert.ok(aliases.includes('[InlineData("/api/pxa/templates", "/api/pvad/templates")]'));
+  assert.ok(aliases.includes('"/api/pxa/export/formats"'));
+  const headers = read('tests/PVAD.Api.Tests/PdfViewerAnnotationsControllerTests.cs');
+  assert.ok(headers.includes('"PXA-Redaction-Audit"'));
+  assert.ok(headers.includes('"pvad-review.pdf"'));
+  assert.doesNotMatch(headers, /pxa-(?:pdf-viewer|doc-|review\.pdf)/);
+  const projects = read('pvad-designer/src/__tests__/designerProjectApi.test.ts');
+  assert.ok(projects.includes("'invoice.pvadp'"));
+  assert.ok(projects.includes("'budget.pvads'"));
+  assert.ok(projects.includes("title: 'Legacy', formatId: 'pxap'"));
+  assert.ok(projects.includes("'legacy.pxap'"));
+  const artifacts = read('tests/PVAD.Importer.Tests/PdfUaGenerationTests.cs');
+  assert.doesNotMatch(artifacts, /pxa-pdfua1-/);
+  for (const name of ['structure', 'custom-role', 'table', 'widgets'])
+    assert.ok(artifacts.includes(`"pvad-pdfua1-${name}.pdf"`));
+  assert.ok(artifacts.includes('"PXAPDFUA009"'));
 });
 
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {

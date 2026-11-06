@@ -17,7 +17,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
 
     public PdfViewerAnnotationsControllerTests(PvadApiTestFactory factory)
     {
-        _storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
+        _storageRoot = Path.Combine(Path.GetTempPath(), "pvad-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
         _client = factory
             .WithWebHostBuilder(builder =>
             {
@@ -109,12 +109,12 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
     [Fact]
     public async Task SaveAndGetAnnotations_PvadRoute_RoundTripsSidecar()
     {
-        var documentId = $"pxa-doc-{Guid.NewGuid():N}";
+        var documentId = $"pvad-doc-{Guid.NewGuid():N}";
         var request = new
         {
             documentId,
             version = 1,
-            sourceName = "pxa-review.pdf",
+            sourceName = "pvad-review.pdf",
             annotations = new object[]
             {
                 new
@@ -135,8 +135,8 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
             },
         };
 
-        var saveResponse = await _client.PostAsJsonAsync("/api/pxa/pdf-viewer/annotations", request);
-        var getResponse = await _client.GetAsync($"/api/pxa/pdf-viewer/annotations/{documentId}");
+        var saveResponse = await _client.PostAsJsonAsync("/api/pvad/pdf-viewer/annotations", request);
+        var getResponse = await _client.GetAsync($"/api/pvad/pdf-viewer/annotations/{documentId}");
 
         Assert.Equal(HttpStatusCode.OK, saveResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -144,7 +144,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         using var json = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync());
         var root = json.RootElement;
         Assert.Equal(documentId, root.GetProperty("documentId").GetString());
-        Assert.Equal("pxa-review.pdf", root.GetProperty("sourceName").GetString());
+        Assert.Equal("pvad-review.pdf", root.GetProperty("sourceName").GetString());
         Assert.Equal(1, root.GetProperty("annotationCount").GetInt32());
         Assert.Equal("PVAD note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
     }
@@ -183,7 +183,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
     [Fact]
     public void AnnotationStore_ReloadsSavedSidecarFromDisk()
     {
-        var storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
+        var storageRoot = Path.Combine(Path.GetTempPath(), "pvad-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
         var documentId = $"doc/{Guid.NewGuid():N}";
 
         try

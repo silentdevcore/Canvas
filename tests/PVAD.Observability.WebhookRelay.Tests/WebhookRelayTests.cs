@@ -28,9 +28,9 @@ public sealed class WebhookRelayTests
                   "endsAt": "0001-01-01T00:00:00Z",
                   "fingerprint": "must-not-appear",
                   "labels": {
-                    "alertname": "PxaWebApiHighErrorRate",
+                    "alertname": "PvadWebApiHighErrorRate",
                     "severity": "critical",
-                    "service": "pxa-webapi",
+                    "service": "pvad-webapi",
                     "environment": "production",
                     "tenant_id": "must-not-appear",
                     "user_email": "must-not-appear"
@@ -50,7 +50,7 @@ public sealed class WebhookRelayTests
         var payload = AlertmanagerPayloadSanitizer.Sanitize(input.RootElement);
         var json = Encoding.UTF8.GetString(payload);
 
-        Assert.Contains("PxaWebApiHighErrorRate", json, StringComparison.Ordinal);
+        Assert.Contains("PvadWebApiHighErrorRate", json, StringComparison.Ordinal);
         Assert.Contains("PXA-OBS-004", json, StringComparison.Ordinal);
         Assert.DoesNotContain("must-not-appear", json, StringComparison.Ordinal);
         Assert.DoesNotContain("fingerprint", json, StringComparison.Ordinal);

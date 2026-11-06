@@ -1,0 +1,11 @@
+{
+  "id": "pvad-current-workflow-test-identities",
+  "impact": "none",
+  "components": ["api", "designer", "importer", "infrastructure", "observability"],
+  "category": "improved",
+  "summary": "Aligned current workflow tests and generated validation example names with PVAD naming.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only generic test requests, synthetic metadata, temporary paths and generated test artifact names change. Dedicated compatibility tests, stable wire values and approved original evidence are preserved."
+}
