@@ -10,9 +10,9 @@ on:
       container_identity:
         description: Exact image family published for this immutable release; never infer it from archive names
         required: true
-        default: PXA
+        default: PVAD
         type: choice
-        options: [PXA, PVAD]
+        options: [PVAD, PXA]
       environment:
         description: Protected target environment
         required: true

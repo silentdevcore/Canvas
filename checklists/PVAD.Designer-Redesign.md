@@ -1,18 +1,20 @@
-# PXA Designer Visual Redesign Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Visual Redesign Checklist
 
 ## Goal
 
-Make PXA Designer (`pxa-designer/`, the React+TS+Vite document-automation editor app) feel more friendly and beautiful, using the installed `pxa-designer/DESIGN.md` (Expo-inspired design language: pure-white canvas, near-black ink, Inter type with tight negative letter-spacing, JetBrains Mono for code, hairline borders, restrained single-tier shadows, 8px/12px radii) as the reference, adapted with a distinct warm orange/amber accent instead of Expo's black-only CTA — deliberately different from the cool blue already used across PXA.Company/Account/Admin, so Designer reads as its own creative tool within the product family.
+Make PVADE Designer (`pvad-designer/`, the React+TS+Vite document-automation editor app) feel more friendly and beautiful, using the installed `pvad-designer/DESIGN.md` (Expo-inspired design language: pure-white canvas, near-black ink, Inter type with tight negative letter-spacing, JetBrains Mono for code, hairline borders, restrained single-tier shadows, 8px/12px radii) as the reference, adapted with a distinct warm orange/amber accent instead of Expo's black-only CTA — deliberately different from the cool blue already used across PVAD.Company/Account/Admin, so Designer reads as its own creative tool within the product family.
 
 ## Context
 
-Current look: `pxa-designer/src/styles/variables.css` holds a single, consistently-referenced token set — generic Tailwind-blue primary (`#3b82f6`), system-font sans stack, a 4-tier heavy box-shadow scale, 0.25rem–1rem radius scale. Nearly every surface (`base.css`, `home.css`, `editor.css`, `gallery.css`, `docs.css`, `modals.css`, `migrations.css`, `importer.css`, `pdf-viewer.css`, ~8,000+ combined lines) consumes these same `var(--color-*)`/`var(--space-*)`/`var(--radius-*)`/`var(--shadow-*)` names rather than hardcoding values. Retokenizing `variables.css` alone cascades the new look across almost the entire app for free — the highest-leverage, lowest-risk first move. Scope is deliberately split into Phase 1 (tokens + shared shell + landing page) now, with the remaining per-surface files as an explicit, separately-approved follow-on.
+> Historical baseline: the appearance described below predates the completed
+> redesign. Original paths, colors and validation records are retained; this is
+> not a description of the current PVADE interface.
+
+Current look: `pvad-designer/src/styles/variables.css` holds a single, consistently-referenced token set — generic Tailwind-blue primary (`#3b82f6`), system-font sans stack, a 4-tier heavy box-shadow scale, 0.25rem–1rem radius scale. Nearly every surface (`base.css`, `home.css`, `editor.css`, `gallery.css`, `docs.css`, `modals.css`, `migrations.css`, `importer.css`, `pdf-viewer.css`, ~8,000+ combined lines) consumes these same `var(--color-*)`/`var(--space-*)`/`var(--radius-*)`/`var(--shadow-*)` names rather than hardcoding values. Retokenizing `variables.css` alone cascades the new look across almost the entire app for free — the highest-leverage, lowest-risk first move. Scope is deliberately split into Phase 1 (tokens + shared shell + landing page) now, with the remaining per-surface files as an explicit, separately-approved follow-on.
 
 ## Phase 1 — Tokens, Shell, Landing Page
 
-- [x] Update `pxa-designer/src/styles/variables.css`:
+- [x] Update `pvad-designer/src/styles/variables.css`:
   - [x] Accent: `--color-primary: #d97706` (amber-600), `--color-primary-hover: #b45309` (amber-700), `--color-primary-light: #fef3c7` (amber-100).
   - [x] Shift `--color-warning` from `#f59e0b` to `#ca8a04` (yellow-600) so it no longer sits almost on top of the new amber primary; `--color-warning-light` moved to `#fef9c3` for the same reason.
   - [x] Keep `--color-success` (`#16a34a`) and `--color-error` (`#dc2626`) standard.
@@ -20,7 +22,7 @@ Current look: `pxa-designer/src/styles/variables.css` holds a single, consistent
   - [x] Bumped radius scale: `--radius-sm: 4px`, `--radius-md: 8px`, `--radius-lg: 12px`, `--radius-xl: 16px`, `--radius-2xl: 24px`, new `--radius-pill: 9999px`.
   - [x] Softened shadow scale to a flatter, hairline-first model (`--shadow-sm`/`--shadow-md` now single soft-drop tiers; `--shadow-lg`/`--shadow-xl` lightly softened).
   - [x] `--font-family-sans` set to `'Inter', -apple-system, ...`, `--font-family-mono` to `'JetBrains Mono', 'Fira Code', monospace`.
-- [x] `pxa-designer/index.html`'s Google Fonts link: appended `;600;800` to the Inter weight list (800 added after discovering the existing font-weight 800/850 rules throughout home.css would otherwise fall back to a synthesized bold once Inter became the primary font), added `&family=JetBrains+Mono:wght@400;500`; also pointed the `body` inline style's font-family at Inter first.
+- [x] `pvad-designer/index.html`'s Google Fonts link: appended `;600;800` to the Inter weight list (800 added after discovering the existing font-weight 800/850 rules throughout home.css would otherwise fall back to a synthesized bold once Inter became the primary font), added `&family=JetBrains+Mono:wght@400;500`; also pointed the `body` inline style's font-family at Inter first.
 - [x] Restyled the shared nav (`.pdf-nav`/`.pdf-logo`/`.pdf-nav-links`, rendered by `AppHeader.tsx` on every page) — found living in `home.css`, not `base.css` as originally assumed, but confirmed as the single, non-duplicated definition. No JSX/class-name changes in `AppHeader.tsx`.
 - [x] Restyled the landing page (`IndexPage.tsx` via `home.css` only, no JSX changes): `home.css` turned out to use ~58 hardcoded hex colors throughout (not CSS variables as first assumed from exploration) — applied a full, consistent cool-blue-and-gray → warm-amber-and-stone palette substitution across the whole file (nav, hero, tool cards, trust band, template/feature/security/usage sections), left the small distinct "info" accent family (`#0284c7` etc.) and semantic error/warning colors untouched, and added tight negative letter-spacing to the hero H1 and section H2s.
 
@@ -40,7 +42,7 @@ All of the above reused the exact palette from Phase 1 (`#d97706`/`#b45309`/`#fe
 
 ## Verification
 
-- [x] `cd pxa-designer && npm run type-check` clean.
+- [x] [compatibility entry `compat-a2f9f701491b`](../docs/reference/compatibility-identifiers.v1.json) clean.
 - [x] `npm run build` clean (pre-existing chunk-size warning unrelated to this change).
 - [x] Confirmed via the full built CSS output (all chunks) that the old brand blue (`#1d6fff`/`#2563eb`/`#3b82f6`/`#1769e0`) is gone app-wide, except the one intentionally-preserved `.docs-callout--info` semantic color — plus unrelated template *content* data (`templates.ts`, `jsonToCode.ts`, `LivePreview.tsx` — sample document colors, not app chrome).
 - [x] Re-ran `npm run type-check` and `npm run build` after Phase 2 — both clean.

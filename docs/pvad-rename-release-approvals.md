@@ -3,7 +3,32 @@
 The decision register below distinguishes confirmed scope from pending release
 approval. Local tests are not authorization to publish,
 change production infrastructure or certify an existing customer installation.
-The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains authoritative.
+The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains authoritative.
+
+## Current Closeout Review (2026-11-05)
+
+The [final acceptance matrix](pvad-rename-final-acceptance.md) maps all eight
+remaining primary gates to concrete evidence and accountable roles. The completed
+HTTPS and monitoring rehearsals are local supporting evidence, not approval of
+actual production key access, customers, DNS, mail delivery or live cutover.
+
+Fresh GET-only GitHub observations confirm the selected seven-check develop
+policy, the still-three-check main policy, retained environment bindings with
+unchanged production self-review/admin-bypass controls, and no open PRs. They do
+not authorize changes or prove workflow drain. Pending local commits/work must
+still follow normal protected integration. The independent production reviewer,
+NuGet/npm selections, real target and release authorization remain open.
+Production additionally remains fail-closed on 12 pending retention approvals.
+No existing approval row is closed by this review; earlier dates below retain
+their original scope.
+
+The later [remaining-code source acceptance](pvad-rename-source-acceptance.md)
+covers the scoped internal writer/reader corrections and MCP display metadata.
+It does not close any decision-register row below. Current deployment source
+defaults to the canonical image family, with explicit historical-family input
+still available; the dated source descriptions below retain their earlier scope.
+
+## Decision Register
 
 | Area | Required decision or evidence | Responsible party | Status |
 | --- | --- | --- | --- |
@@ -35,13 +60,13 @@ Local source renaming does not establish registry access or permission to publis
 
 | Source | Retained identity | Required coordinated action |
 | --- | --- | --- |
-| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | New images use GHCR `pvad-webapi` and `pvad-observability-webhook-relay`; historical `pxa-*` images remain explicit inputs | Source changes and historical read inventory complete for owner-selected ghcr.io/silentdevcore; canonical image availability, publishing permissions and real release approval remain unverified |
-| `deployment-validation.yml` | `pxa-staging`, `pxa-production` via its environment expression | Inspect actual GitHub configuration, then verify reviewers, secrets, branch restrictions and approval behavior before changing workflow bindings |
-| `release.yml` | Old protected-branch runs may still use `pxa-stable-release`; local source uses `pvad-stable-release` | Drain earlier runs and switch every applicable branch/workflow consistently |
-| `prepare-release.yml` | Old runs may still use `pxa-release-preparation`; local source uses `pvad-release-preparation` | Drain preparation runs and retain single-writer release preparation |
-| `release-dry-run.yml` | Old runs may still use `pxa-release-dry-run`; local source uses `pvad-release-dry-run` | Coordinate old/new run cancellation and lock identity |
-| `deployment-validation.yml` | Old runs may still use `pxa-deployment-*`; local source uses `pvad-deployment-*` | Preserve per-environment serialization during the transition |
-| `job-binary-cutover.yml` | PXA in the historical worker step name | Keep identifying the real pinned old binary; it is not a PVAD build renamed cosmetically |
+| `release.yml`, `deployment-validation.yml`, deployment evidence verifier | New images use GHCR `pvad-webapi` and `pvad-observability-webhook-relay`; historical [compatibility entry `compat-14a9f154c0c0`](../operator-docs/compatibility-identifiers.v1.json) images remain explicit inputs | Source changes and historical read inventory complete for owner-selected ghcr.io/silentdevcore; canonical image availability, publishing permissions and real release approval remain unverified |
+| `deployment-validation.yml` | [compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json), [compatibility entry `compat-dfc86e9a456d`](../operator-docs/compatibility-identifiers.v1.json) via its environment expression | Inspect actual GitHub configuration, then verify reviewers, secrets, branch restrictions and approval behavior before changing workflow bindings |
+| `release.yml` | Old protected-branch runs may still use [compatibility entry `compat-7333d931f5d2`](../operator-docs/compatibility-identifiers.v1.json); local source uses `pvad-stable-release` | Drain earlier runs and switch every applicable branch/workflow consistently |
+| `prepare-release.yml` | Old runs may still use [compatibility entry `compat-1c0125a78757`](../operator-docs/compatibility-identifiers.v1.json); local source uses `pvad-release-preparation` | Drain preparation runs and retain single-writer release preparation |
+| `release-dry-run.yml` | Old runs may still use [compatibility entry `compat-0462730e953a`](../operator-docs/compatibility-identifiers.v1.json); local source uses `pvad-release-dry-run` | Coordinate old/new run cancellation and lock identity |
+| `deployment-validation.yml` | Old runs may still use [compatibility entry `compat-557c83d98b35`](../operator-docs/compatibility-identifiers.v1.json); local source uses `pvad-deployment-*` | Preserve per-environment serialization during the transition |
+| `job-binary-cutover.yml` | PVAD in the historical worker step name | Keep identifying the real pinned old binary; it is not a PVAD build renamed cosmetically |
 
 These entries do not prove a published package exists. The read-only follow-up
 below confirms actual protected environments, but does not change them or run a
@@ -85,7 +110,7 @@ New release source targets:
 Both workflow sources declare the same publisher and reject a different
 repository owner before registry operations. API and Relay version/minor/latest
 tags, immutable-version pulls and OCI metadata checks change together. Deployment
-requests select `PVAD` or historical `PXA` explicitly; the historical default
+requests select `PVAD` or historical `PVAD` explicitly; the historical default
 remains conservative, and archives do not imply an image family. The existing
 evidence verifier continues rejecting mixed families, other publishers and
 mutable tags without rewriting retained records.
@@ -130,8 +155,8 @@ non-atomic observation, not ongoing authorization or a release attestation.
 
 | Image | Observed immutable registry digest |
 | --- | --- |
-| `ghcr.io/silentdevcore/pxa-webapi:1.1.0` | `sha256:16ced89a510a01a8ac20e892969261504fd6992e83c1dbed02e5970ae73fbd97` |
-| `ghcr.io/silentdevcore/pxa-observability-webhook-relay:1.1.0` | `sha256:24630bcab45727f32caec03ebfd8358bf8fb04d4a4a340e2db8431a26b26e401` |
+| [compatibility entry `compat-22ec26ff0fc6`](../operator-docs/compatibility-identifiers.v1.json) | `sha256:16ced89a510a01a8ac20e892969261504fd6992e83c1dbed02e5970ae73fbd97` |
+| [compatibility entry `compat-ea28b5b1802a`](../operator-docs/compatibility-identifiers.v1.json) | `sha256:24630bcab45727f32caec03ebfd8358bf8fb04d4a4a340e2db8431a26b26e401` |
 
 The canonical API/Relay `pvad-*` manifest requests for `1.1.0` were unavailable
 with an authorization/not-public response. This does not prove that the image
@@ -142,7 +167,7 @@ Keep these registry digests distinct from local test image IDs and archive hashe
 
 ### Environments and Branch Protection
 
-The complete environment list contains only `pxa-staging` and `pxa-production`;
+The complete environment list contains only [compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json) and [compatibility entry `compat-dfc86e9a456d`](../operator-docs/compatibility-identifiers.v1.json);
 no canonical counterpart appeared. Both allow only protected branches. Production
 requires one environment reviewer but does not prevent self-review. Both
 environments permit administrator bypass. These existing settings were observed,
@@ -206,8 +231,8 @@ their individual package-detail responses:
 
 | Package | Version records | Tagged record | Untagged records |
 | --- | --- | --- | --- |
-| `pxa-webapi` | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
-| `pxa-observability-webhook-relay` | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
+| [compatibility entry `compat-8c78c052cc09`](../operator-docs/compatibility-identifiers.v1.json) | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
+| [compatibility entry `compat-e977912deebf`](../operator-docs/compatibility-identifiers.v1.json) | 3 | `1.1.0`, `1.1`, `latest` all reference the same digest | 2 |
 
 Both `1.1.0` digests match the earlier exact-tag manifest observations above.
 Three version records do not mean three product releases. Untagged records are
@@ -252,7 +277,7 @@ different concurrency group names. Repeat the drain check immediately before
 rollout; a point-in-time read is not an ongoing cross-generation lock.
 
 Read-only GitHub inspection on 2026-10-24 found the two existing environments
-`pxa-staging` and `pxa-production`, both restricted to protected branches.
+[compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json) and [compatibility entry `compat-dfc86e9a456d`](../operator-docs/compatibility-identifiers.v1.json), both restricted to protected branches.
 Production has a required reviewer; staging has no required reviewer in the
 returned configuration. Their names are retained to preserve those bindings.
 No secret values were requested. The most recent 100 workflow runs contained no
@@ -274,10 +299,10 @@ compares secret/variable names, not values, and never authorizes activation.
 The default report records missing snapshot evidence. No new remote inspection,
 environment migration, publisher selection or publication was performed.
 
-GET-only follow-up on 2026-10-25 reconfirmed the `pxa-staging` branch restriction
+GET-only follow-up on 2026-10-25 reconfirmed the [compatibility entry `compat-ed73e5fcd4ca`](../operator-docs/compatibility-identifiers.v1.json) branch restriction
 and an empty environment-variable list, without requesting secret values. GitHub
 also contains a historical `v1.1.0` release from 2026-08-03 with seven complete
-PXA-named archives and advertised SHA-256 digests. No archive was downloaded,
+[compatibility entry `compat-628cd48d0729`](../operator-docs/compatibility-identifiers.v1.json) archives and advertised SHA-256 digests. No archive was downloaded,
 renamed or independently hashed by that metadata check. This is not a PVAD rename
 release, proof of package-publisher ownership or evidence of customer rollout.
 The earlier owner report of no publication remains dated information; reconcile
@@ -331,7 +356,7 @@ publication gates; no DNS, account registration or mail setup was executed.
 
 These questions prepare approval; writing an answer does not execute a deployment.
 
-1. Which published PXA versions are installed, and in which environments? Provide
+1. Which published PVAD versions are installed, and in which environments? Provide
    redacted version/environment records, not customer documents or credentials.
 2. What are the approved Company, Documentation, Demo, Account, Admin, Designer
    and API hosts, support address and mail sender? Confirm ownership separately
@@ -340,7 +365,7 @@ These questions prepare approval; writing an answer does not execute a deploymen
    below; historical versions keep their original repositories, without dual
    publication. Verify actual registry permissions and identify the release
    approver before publishing. NuGet/npm publisher selection remains open.
-4. Confirm `.pvadp` and `.pvads`, old `.pxap`/`.pxas` readers, the stable diagnostic
+4. Confirm `.pvadp` and `.pvads`, old [compatibility entry `compat-20b34f83754f`](../operator-docs/compatibility-identifiers.v1.json)/[compatibility entry `compat-4e13e3e39497`](../operator-docs/compatibility-identifiers.v1.json) readers, the stable diagnostic
    policy and the exact compatibility-release window. Identify integrations that
    need the explicit legacy XML envelope rather than the new default root.
 5. Who owns each environment's backup, restore, key access, cutover and rollback?
@@ -358,7 +383,7 @@ counterparts require reviewed metadata/permissions and matching credentials.
 
 The repository [phase review](pvad-rename-phase-review.md) separates historical
 reviewed checkpoints from the current uncommitted migration follow-up and final
-candidate acceptance. The [current audit](../checklists/Rename-PXA-To-PVAD.md#current-audit-and-progress-2026-10-24)
+candidate acceptance. The [current audit](../checklists/PVAD.Rename-Plan.md#current-audit-and-progress-2026-10-24)
 records the earlier writer findings, closed by the dated OAuth follow-up, and
 remaining local validation work, not only external approvals. Neither document turns owner decisions or production evidence
 gates into completed code tasks.

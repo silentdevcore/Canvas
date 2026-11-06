@@ -64,7 +64,7 @@ describe('ProjectImportNotice', () => {
     ));
 
     expect(container.textContent).toContain('Missing: pdf.future');
-    expect(container.textContent).toContain('PXAPROJECT_EXTERNAL_LINK');
+    expect(container.textContent).toContain('PVADPROJECT_EXTERNAL_LINK');
     (Array.from(container.querySelectorAll('button')).find(button => button.textContent === 'Keep current') as HTMLButtonElement).click();
     expect(decide).toHaveBeenCalledWith(false);
   });
@@ -81,7 +81,7 @@ describe('ProjectImportNotice', () => {
     ));
 
     const alert = container.querySelector('[role="alert"]');
-    expect(alert?.textContent).toContain('PXAPROJECT007');
+    expect(alert?.textContent).toContain('PVADPROJECT007');
     expect(alert?.textContent).toContain('Current document is preserved.');
   });
 

@@ -4,7 +4,7 @@ Effective date: the effective date shown for the published version.
 
 ## Provider
 
-[PXA LEGAL ENTITY NAME]
+[LEGAL ENTITY NAME]
 
 [LEGAL FORM]
 
@@ -32,12 +32,16 @@ Telephone or other direct contact channel: [DIRECT CONTACT CHANNEL]
 
 Responsible person for editorial content: [RESPONSIBLE PERSON], at the provider address above.
 
-PXA reviews its own content with reasonable care. External links are provided for convenience; the respective operators remain responsible for their content. A reference to a third party does not imply endorsement unless expressly stated.
+PVADE reviews its own content with reasonable care. External links are provided for convenience; the respective operators remain responsible for their content. A reference to a third party does not imply endorsement unless expressly stated.
 
 ## Intellectual property
 
-PXA names, product materials, website content, documentation, graphics, and software are protected by applicable intellectual-property laws. Customer Content and third-party marks remain the property of their respective owners. Use beyond the applicable contract, license, quotation right, or other statutory permission requires prior authorization.
+PVADE names, product materials, website content, documentation, graphics, and software are protected by applicable intellectual-property laws. Customer Content and third-party marks remain the property of their respective owners. Use beyond the applicable contract, license, quotation right, or other statutory permission requires prior authorization.
 
 ## Supervisory contact
 
 Data protection authority in Switzerland: Federal Data Protection and Information Commissioner (FDPIC), subject to its statutory competence.
+
+## Technical Reference
+
+This candidate references Compatibility Identifiers v1, SHA-256 `19667963b4e062821e81be371c9e81d0ae1df5b33c54fa9b9c237d76f4960906`. The candidate manifest pins that versioned technical reference; it does not change contractual rights or authorize publication.

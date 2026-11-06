@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const requiredKeys = [
@@ -39,7 +40,7 @@ export function validateLegalContent(repositoryRoot = root) {
     .map((document) => readFileSync(join(directory, document.file), 'utf8'))
     .join('\n');
   for (const placeholder of [
-    '[PXA LEGAL ENTITY NAME]',
+    '[LEGAL ENTITY NAME]',
     '[LEGAL FORM]',
     '[STREET, POSTCODE, CITY, CANTON, SWITZERLAND]',
     '[LEGAL EMAIL ADDRESS]',
@@ -48,6 +49,24 @@ export function validateLegalContent(repositoryRoot = root) {
   }
   if (!/mandatory (?:consumer|local|law|rights|protections)/i.test(combined))
     errors.push('The global Legal set must preserve mandatory local rights.');
+
+  const reference = manifest.compatibilityReference;
+  if (reference?.file !== 'docs/reference/compatibility-identifiers.v1.json' || reference?.version !== '1')
+    errors.push('The versioned public compatibility reference is required.');
+  else {
+    const bytes = readFileSync(join(repositoryRoot, reference.file));
+    const digest = createHash('sha256').update(bytes).digest('hex');
+    if (reference.sha256 !== digest) errors.push('The compatibility reference hash does not match its pinned bytes.');
+    for (const document of manifest.documents ?? []) {
+      if (!readFileSync(join(directory, document.file), 'utf8').includes(digest))
+        errors.push(`${document.file} must name its pinned compatibility reference.`);
+    }
+  }
+  for (const document of manifest.documents ?? []) {
+    if (document.version !== '1.1') errors.push(`${document.file} must be a new version 1.1 candidate.`);
+    if (/pxa/i.test(readFileSync(join(directory, document.file), 'utf8')))
+      errors.push(`${document.file} contains a previous-name literal.`);
+  }
 
   return { manifest, errors };
 }

@@ -1,0 +1,9 @@
+{
+  "id": "pvad-checklist-editorial-cleanup",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "improved",
+  "summary": "Use current product names throughout planning documents and remove repeated naming-history banners.",
+  "breaking": false,
+  "reason": "Internal checklist and documentation-maintenance update only; runtime behavior, compatibility contracts, package versions and published evidence are unchanged."
+}

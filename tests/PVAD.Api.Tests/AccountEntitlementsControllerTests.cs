@@ -38,7 +38,7 @@ public sealed class AccountEntitlementsControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@entitlements.test", "Owner");
-        await LoginAsync(client, "owner@entitlements.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@entitlements.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var allowed = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/entitlements/generator");
         Assert.True(allowed.GetProperty("allowed").GetBoolean());
@@ -69,7 +69,7 @@ public sealed class AccountEntitlementsControllerTests
         await SeedRolesAsync(factory.Services);
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@viewerentitlements.test", "Owner");
-        await LoginAsync(ownerClient, "owner@viewerentitlements.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@viewerentitlements.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var invite = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/organization/members",
@@ -88,9 +88,9 @@ public sealed class AccountEntitlementsControllerTests
         using var viewerClient = CreateClient(factory);
         using var accept = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/accept-invitation",
-            await GetCsrfAsync(viewerClient), new { token, password = "Pxa-Viewer-Password-42!" });
+            await GetCsrfAsync(viewerClient), new { token, password = "Pvad-Viewer-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await viewerClient.SendAsync(accept)).StatusCode);
-        await LoginAsync(viewerClient, "viewer@viewerentitlements.test", "Pxa-Viewer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(viewerClient, "viewer@viewerentitlements.test", "Pvad-Viewer-Password-42!", HttpStatusCode.OK);
 
         // The Viewer role grants none of the PxaAccountPermissions.* policies used
         // to gate other controllers, and AccountEntitlementsController requires no
@@ -116,7 +116,7 @@ public sealed class AccountEntitlementsControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = $"{displayName} GmbH",
                 organizationSlug = slug,

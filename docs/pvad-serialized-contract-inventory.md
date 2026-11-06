@@ -15,7 +15,7 @@ the current writer. Existing schema/DTO coverage tests remain the behavior gate.
 | --- | --- | --- |
 | Design/page/element JSON | Neutral DTO property names | No blanket rename of arbitrary customer or extension properties |
 | Migration result | `pvadCode` / `PvadCode` | Retain legacy aliases and provider diagnostics as documented |
-| E-invoice migration mapping | `pvadEquivalent` / `PvadEquivalent` | Obsolete `pxaEquivalent` / `PxaEquivalent` remains a read/write alias to the same value for the compatibility window. |
+| E-invoice migration mapping | `pvadEquivalent` / `PvadEquivalent` | Obsolete [compatibility entry `compat-2d3483de6395`](reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-d13f4b72e65c`](reference/compatibility-identifiers.v1.json) remains a read/write alias to the same value for the compatibility window. |
 | Native archive manifest | PVAD format identities, `minimumPvadVersion` | Exact old tuples/version aliases remain readable; conflicts rejected |
 | Permission/org/active-org/service/session claims | Five `pvad_*` names | Legacy aliases recognized with conflicting-value rejection |
 | OAuth issuer and resource audience | Configured URI identity | Do not derive new domains from branding or rewrite issued tokens/grants |

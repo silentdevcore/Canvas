@@ -1,21 +1,19 @@
-# PXA Admin Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Admin Checklist
 
 ## Goal
 
-Deliver a standalone, tenant-aware PXA administration application for users, organizations, permissions, subscriptions, licenses, service access, mail delivery, and audit history.
+Deliver a standalone, tenant-aware PVADE administration application for users, organizations, permissions, subscriptions, licenses, service access, mail delivery, and audit history.
 
 ## Application Identity
 
-- [x] Create the standalone application under `websites/PXA.Admin`.
-- [ ] Use `https://admin.powerdoxautomation.com` as the public Cloud host.
+- [x] Create the standalone application under `websites/PVAD.Admin`.
+- [ ] Validate and provision the proposed `https://admin.pvade.com` Cloud host; the selected domain does not prove that this host is deployed.
 - [ ] Support `https://admin.{customer-host}` for customer-managed deployments.
 - [x] Use `http://localhost:5177` for local development.
-- [ ] Reserve `powerdox/pxa-admin` as the future container image.
+- [ ] Select and verify a container publisher before reserving the proposed `pvad-admin` image; no registry namespace is currently approved for this application.
 - [x] Access the backend through same-origin `/api` routing.
-- [x] Share PXA design tokens and navigation conventions without coupling the Admin build to PXA Designer.
-- [x] Keep Admin out of PXA.Company navigation; administrators enter the dedicated Admin host directly.
+- [x] Share PVADE design tokens and navigation conventions without coupling the Admin build to PVADE Designer.
+- [x] Keep Admin out of PVAD.Company navigation; administrators enter the dedicated Admin host directly.
 
 ## Priorities
 
@@ -28,7 +26,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 - [x] Use the subscription and entitlement model from `PVAD.Subscription-Licensing.md`.
 - [x] Use invitation, reset, and notification delivery from `PVAD.Mail-Service.md`.
-- [ ] Integrate the Admin container with `PVAD.Api-Docker.md` and the shared PXA Server bundle.
+- [ ] Integrate the Admin container with `PVAD.Api-Docker.md` and the shared PVAD Server bundle.
 - [x] Define the production database and migration strategy before replacing in-memory identity data.
 
 ## Identity Foundation
@@ -70,13 +68,13 @@ Current identity implementation:
 - [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.read`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [x] Keep roles independent from subscription and product entitlements.
-- [x] Restrict System Administrator capabilities to explicitly authorized PXA operators.
+- [x] Restrict System Administrator capabilities to explicitly authorized PVADE operators.
 - [x] Prevent administrators from changing their own active organization role or removing the last active Organization Administrator.
 - [x] Audit every privileged role, permission, subscription, and license change.
 
 ## Admin API
 
-- [x] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
+- [x] Add versioned Admin endpoints under `/api/pvad/v1/admin`.
 - [x] Add paginated user listing with server-side search, filter, and sorting.
 - [x] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [x] Add password-reset initiation and active-session revocation without returning secret tokens.
@@ -95,7 +93,7 @@ Current identity implementation:
 - [x] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
 - [x] Add a protected `/documentation` handbook route for authenticated System and Organization Administrators.
 - [x] Deliver handbook content and screenshots only through role-protected, non-cacheable Admin API endpoints.
-- [x] Keep Admin handbook content, screenshots, and navigation out of public PXA.Documentation and PXA.Company.
+- [x] Keep Admin handbook content, screenshots, and navigation out of public PVAD.Documentation and PVAD.Company.
 - [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
 - [x] Add user tables with name, email, organization, role, status, products, and last login.
 - [x] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
@@ -114,7 +112,7 @@ Current identity implementation:
 Current Admin shell implementation:
 
 - [x] Add a dedicated login route with session discovery and authenticated redirects.
-- [x] Connect login, logout, current-user, and CSRF flows to `/api/pxa/v1/auth`.
+- [x] Connect login, logout, current-user, and CSRF flows to `/api/pvad/v1/auth`.
 - [x] Keep the opt-in Development bootstrap idempotent by synchronizing an existing local administrator password with the configured bootstrap password.
 - [x] Reject authenticated users without System Administrator or Organization Administrator roles in the Admin shell.
 - [x] Add dashboard, users, organizations, roles, subscriptions, licenses, service accounts, mail, audit, and settings routes.
@@ -137,7 +135,7 @@ Current Admin security and accessibility implementation:
 - [x] Keep deployment recovery and emergency procedures in a separate restricted operator runbook.
 - [x] Require an explicit production `AdminSecurity:SystemOperatorEmails` allowlist before an Identity System Administrator receives system role claims or permissions.
 - [x] Remove unauthorized system claims during principal creation and reject already-issued privileged cookies when operator authorization is removed.
-- [x] Verify at the HTTP boundary that an unapproved System Administrator cannot invoke Admin APIs while an approved PXA operator retains system access.
+- [x] Verify at the HTTP boundary that an unapproved System Administrator cannot invoke Admin APIs while an approved PVADE operator retains system access.
 - [x] Add a keyboard-accessible skip link, visible focus treatment, Escape-to-close sidebar behavior, and responsive shell contracts.
 - [x] Verify that API-key secrets are revealed only by the creation response and never by normal service-account list responses.
 
@@ -175,7 +173,7 @@ Current session and identity-security implementation:
 Current authorization-boundary implementation:
 
 - [x] Normalize controller, authentication, authorization, CSRF, and rate-limit failures as `application/problem+json`.
-- [x] Publish stable `PXAAPI001` through `PXAAPI008` diagnostics with a request trace identifier.
+- [x] Publish stable [compatibility entry `compat-b1802e69ddb6`](../docs/reference/compatibility-identifiers.v1.json) through [compatibility entry `compat-8eadedc322a9`](../docs/reference/compatibility-identifiers.v1.json) diagnostics with a request trace identifier.
 - [x] Redirect expired or revoked browser sessions to login with an explicit explanation.
 - [x] Display API permission failures on a dedicated forbidden route without relying on hidden navigation alone.
 - [x] Preserve loaded Admin data as explicitly stale while the API or browser connection is offline.
@@ -186,7 +184,7 @@ Current organization administration implementation:
 - [x] Add tenant-scoped organization list, detail, update, and member-list endpoints.
 - [x] Allow System Administrators to list, create, update, and select any active organization.
 - [x] Restrict Organization Administrators to their authenticated active organization.
-- [x] Add CSRF-protected membership attachment and soft-removal for existing PXA users.
+- [x] Add CSRF-protected membership attachment and soft-removal for existing PVADE users.
 - [x] Prevent self-removal and removal of the last active Organization Administrator.
 - [x] Reissue the authenticated cookie with the selected tenant and tenant-specific role claims.
 - [x] Preserve System Administrator access while deriving organization roles only from the selected tenant.
@@ -233,7 +231,7 @@ Current subscription administration implementation:
 - [x] Persist idempotent period-scoped usage events and expose operation-level usage summaries.
 - [x] Issue, verify, download, list, and revoke ECDSA-signed Enterprise offline licenses.
 - [x] Add tenant-scoped service accounts and hashed API keys with immediate revocation and last-used tracking.
-- [x] Accept API keys through `X-PXA-API-Key` or Bearer authentication without granting Admin permissions.
+- [x] Accept API keys through [compatibility entry `compat-0ad1b8ff55d1`](../docs/reference/compatibility-identifiers.v1.json) or Bearer authentication without granting Admin permissions.
 - [x] Enforce API and product entitlements for protected product routes when Production enforcement is enabled.
 
 Current audit administration implementation:
@@ -244,7 +242,7 @@ Current audit administration implementation:
 - [x] Keep audit events read-only and return malformed historical details as unavailable structured data.
 - [x] Limit exports to 50,000 filtered rows and neutralize spreadsheet formula prefixes in CSV fields.
 - [x] Restrict CSV and JSON export to Enterprise subscriptions and audit each successful export.
-- [x] Add event detail, loading, empty, failure, pagination, filter reset, and export states to PXA Admin.
+- [x] Add event detail, loading, empty, failure, pagination, filter reset, and export states to PVADE Admin.
 
 Current privileged-mutation audit contract:
 
@@ -259,10 +257,10 @@ Current privileged-mutation audit contract:
 - [ ] Produce an independent Admin build for deployment.
 - [ ] Produce the future static web-server image.
 - [ ] Validate relative same-origin API routing and the development-only Vite proxy in the target deployment.
-- [ ] Route the customer Admin host to the Admin application and `/api` to PXA API.
+- [ ] Route the customer Admin host to the Admin application and `/api` to PVAD API.
 - [ ] Add compatibility checks between Admin and API versions.
 - [ ] Add CSP, security headers, cache rules, health visibility, and structured client-error reporting.
-- [ ] Add the Admin service to Cloud hosting and optional PXA Server Docker Compose profiles.
+- [ ] Add the Admin service to Cloud hosting and optional PVAD Server Docker Compose profiles.
 
 All deployment and operations tasks are intentionally deferred until the application feature and quality work is complete.
 
@@ -287,7 +285,7 @@ All deployment and operations tasks are intentionally deferred until the applica
 
 ## Acceptance Criteria
 
-- [ ] PXA Admin is deployed independently from PXA Designer.
+- [ ] PVAD Admin is deployed independently from PVADE Designer.
 - [x] Non-admin users cannot load or invoke unauthorized Admin capabilities.
 - [x] Every query and mutation respects organization isolation.
 - [x] Every privileged change is attributable through immutable audit metadata.

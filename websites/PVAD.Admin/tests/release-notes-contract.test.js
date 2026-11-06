@@ -33,6 +33,6 @@ test('Admin renders every release category and affected components', () => {
 test('the versioning checklist records the Admin release-notes integration', () => {
   assert.match(
     checklist,
-    /\[x\] Show authenticated release notes in PXA Admin from the shared release manifest\./,
+    /\[x\] Show authenticated release notes in PVADE Admin from the shared release manifest\./,
   );
 });

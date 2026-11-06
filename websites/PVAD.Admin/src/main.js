@@ -4,6 +4,7 @@ import { pvadCommit, pvadVersion } from '../../shared/buildInfo.js';
 import { siteLinks } from '../../shared/siteLinks.js';
 import { getStatusDefinition } from '../../shared/statusPages.ts';
 import pvadReleaseManifest from '../../../product-metadata/pvad-releases.json';
+import { displayDiagnosticCode, displaySystemMessage, presentRelease } from '../../shared/diagnosticPresentation.ts';
 import {
   currentUser,
   acceptInvitation,
@@ -490,7 +491,7 @@ function dashboardPage() {
 }
 
 function releaseNotesPage() {
-  const releases = pvadReleaseManifest.releases;
+  const releases = pvadReleaseManifest.releases.map(presentRelease);
   return `
     <header class="admin-page-header">
       <div>
@@ -2008,8 +2009,8 @@ function forbiddenPage() {
     <section class="admin-message-page" data-status-key="forbidden" aria-live="polite" aria-atomic="true">
       <span class="admin-error-code">${status.httpStatus}</span>
       <h1>${escapeHtml(error ? 'Administrator access required' : status.title)}</h1>
-      <p>${escapeHtml(error?.message || status.message)}</p>
-      ${error?.code ? `<code>${escapeHtml(error.code)}${error.traceId ? ` · ${escapeHtml(error.traceId)}` : ''}</code>` : ''}
+      <p>${escapeHtml(displaySystemMessage(error?.message || status.message))}</p>
+      ${error?.code ? `<code>${escapeHtml(displayDiagnosticCode(error.code))}${error.traceId ? ` · ${escapeHtml(error.traceId)}` : ''}</code>` : ''}
       <button class="pvad-button pvad-button--secondary" id="forbidden-signout" type="button">Sign out</button>
     </section>
   `;
@@ -2539,7 +2540,7 @@ function bindLicenseDetailEvents() {
     render();
     try {
       const result = await validateAdminLicense(state.licenseDetail.id);
-      state.licenseDetail.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+      state.licenseDetail.notice = `${displayDiagnosticCode(result.code)}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
     } catch (error) {
       state.licenseDetail.error = error.message;
     } finally {
@@ -2888,7 +2889,7 @@ function bindLicenseEvents() {
   document.querySelectorAll('.license-validate').forEach((button) => button.addEventListener('click', async () => {
     try {
       const result = await validateAdminLicense(button.dataset.licenseId);
-      state.licenses.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+      state.licenses.notice = `${displayDiagnosticCode(result.code)}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
       render();
     } catch (error) {
       state.licenses.error = error.message;

@@ -1,6 +1,4 @@
-# PXA Designer Element Library and Favorites
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Element Library and Favorites
 
 ## P0 - Element Organization
 
@@ -16,7 +14,7 @@
 - [x] Add an accessible star action to every element.
 - [x] Show non-empty Favorites first while retaining elements in their normal categories.
 - [x] Persist favorites per user in PostgreSQL independently of the active organization.
-- [x] Add authenticated list and replace APIs under `/api/pxa/v1/designer/preferences/element-favorites`.
+- [x] Add authenticated list and replace APIs under `/api/pvad/v1/designer/preferences/element-favorites`.
 - [x] Reject unknown element identifiers server-side.
 - [x] Use optimistic updates, rollback notifications, and a last-known local cache.
 - [x] Test synchronization across sessions, devices, and organization switches.

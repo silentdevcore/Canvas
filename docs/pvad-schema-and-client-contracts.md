@@ -9,7 +9,7 @@ required by this registry, including both native envelope generations.
 
 New maintained schemas use `https://pvade.com/schemas/...` as their canonical
 `$id`. Previous `https://powerdoxautomation.com/schemas/...` IDs and older
-`https://pxa/schema/...` IDs are explicit aliases, resolved locally by the same
+[compatibility entry `compat-ee4562a74de5`](reference/compatibility-identifiers.v1.json) IDs are explicit aliases, resolved locally by the same
 registry. This is identifier migration, not a domain redirect or proof of public
 schema hosting. Root and definition-fragment references must work offline.
 
@@ -28,11 +28,11 @@ not added as MCP resources or copied through this schema packaging step.
 | Inert code-workspace component | [pvad-code-workspace.schema.json](schema/pvad-code-workspace.schema.json) |
 
 The reader schema accepts four coherent identity tuples: PVADP, PVADS, legacy
-PXAP and legacy PXAS. It rejects mixed magic/format/media identities. The historical
-PXA manifest schema is retained separately, not redirected to a schema that rejects
+[compatibility entry `compat-ba034b6fd24f`](reference/compatibility-identifiers.v1.json) and legacy [compatibility entry `compat-00180d15e36c`](reference/compatibility-identifiers.v1.json). It rejects mixed magic/format/media identities. The historical
+PVAD manifest schema is retained separately, not redirected to a schema that rejects
 its generation. Workbook and code-workspace aliases retain equivalent constraints.
 Existing legacy archive fixtures and their hashes remain unchanged.
-The three `pxa-*.schema.json` files retain their original bytes and identities.
+The three [compatibility entry `compat-5ddb1b27df07`](reference/compatibility-identifiers.v1.json) files retain their original bytes and identities.
 The legacy native manifest stays a distinct registry entry because its envelope
 constraints differ; it is not aliased to the current writer schema. New `$ref`
 values use canonical IDs where they target current contracts, but explicit

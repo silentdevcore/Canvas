@@ -6,10 +6,11 @@ import pvadReleaseManifest from '../../../product-metadata/pvad-releases.json';
 import designerFeatureManifest from '../../../product-metadata/designer-features.json';
 import { initializeStorageNotice } from '../../shared/storageNotice.js';
 import { bindStatusPage, renderStatusPage } from '../../shared/statusPages.ts';
+import { presentRelease } from '../../shared/diagnosticPresentation.ts';
 
 initializeBrowserTelemetry({ application: 'documentation' });
 
-const pvadReleases = pvadReleaseManifest.releases;
+const pvadReleases = pvadReleaseManifest.releases.map(presentRelease);
 const designerFeatures = designerFeatureManifest.features;
 
 const editorSections = [
@@ -120,7 +121,7 @@ const editorDocs = [
       'You need a validated portable package whose images do not depend on the source organization asset store.',
     ],
     concepts: ['PVADP Project (.pvadp)', 'PVADS Project (.pvads)', 'Editable document JSON', 'Optional Code Workspace', 'Package-local assets', 'SHA-256 integrity', 'Schema compatibility'],
-    tasks: ['Save a PDF project', 'Preserve Code Workspace drafts', 'Open a PDF project', 'Save a Spreadsheet project', 'Open a Spreadsheet project', 'Validate or inspect a package', 'Troubleshoot PXAPROJECT diagnostics'],
+    tasks: ['Save a PDF project', 'Preserve Code Workspace drafts', 'Open a PDF project', 'Save a Spreadsheet project', 'Open a Spreadsheet project', 'Validate or inspect a package', 'Troubleshoot project diagnostics'],
     related: [
       { label: 'Native format specification', href: '../../docs/native-designer-project-formats.md' },
       { label: 'Designer image assets', href: '../../docs/architecture/designer-assets.md' },
@@ -200,7 +201,7 @@ const editorDocs = [
       {
         title: 'Generate and validate PDF/UA-1',
         json: '{"accessibilityProfile":"PdfUa1","title":"Accessible invoice","language":"en","claimInspection":"POST /api/pvad/v1/pdf/compliance/validate","independentValidation":"tools/pdfua/validate-pdfua.sh document.pdf"}',
-        note: 'The Generator preflight fails closed with PXAPDFUA diagnostics, page references, and element IDs when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The compliance endpoint only detects the PDF/UA metadata claim and reports it as indeterminate; it is not a PDF/UA validator. Use the pinned veraPDF ua1 wrapper, follow the PDF/UA manual evidence template, and complete manual assistive-technology review. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
+        note: 'The Generator preflight fails closed with accessibility diagnostics displayed as PVADPDFUA codes, page references, and element IDs when required title, language, tagging, alternatives, table semantics, embedded fonts, or supported annotation semantics are missing. The compliance endpoint only detects the PDF/UA metadata claim and reports it as indeterminate; it is not a PDF/UA validator. Use the pinned veraPDF ua1 wrapper, follow the PDF/UA manual evidence template, and complete manual assistive-technology review. Passing automated validation is evidence for the tested profile, not a guarantee of usable accessibility.',
       },
       {
         title: 'Remediate before export',
@@ -478,7 +479,7 @@ document.Save("archive.pdf", new PdfSaveOptions {
 Content-Type: multipart/form-data
 
 file=@archive.pdf`,
-        note: 'The Viewer and API report the exact profile, status, validator name, validation time, evidence, and stable PXAPDFTRUST rule diagnostics. A metadata string outside the catalog is only an unverified claim. The current PVADE validator is structural. Run tools/pdfa/validate-pdfa.sh with profile 2b or 3b to retain a machine-readable report from the pinned official veraPDF container. A recorded pass from a second standards-based or commercial validator, such as Adobe Acrobat Preflight, is still required before making a production conformance claim; merely opening a PDF in a reader is not validation evidence.',
+        note: 'The Viewer and API report the exact profile, status, validator name, validation time, evidence, and stable rule diagnostics with PVAD display aliases. A metadata string outside the catalog is only an unverified claim. The current PVADE validator is structural. Run tools/pdfa/validate-pdfa.sh with profile 2b or 3b to retain a machine-readable report from the pinned official veraPDF container. A recorded pass from a second standards-based or commercial validator, such as Adobe Acrobat Preflight, is still required before making a production conformance claim; merely opening a PDF in a reader is not validation evidence.',
       },
       {
         title: 'Preflight and convert an existing PDF',
@@ -685,7 +686,7 @@ POST /api/pvad/v1/pdf/redactions/apply
 POST /api/pvad/v1/pdf/compliance/preflight
 POST /api/pvad/v1/pdf/compliance/convert
 POST /api/pvad/v1/pdf/compliance/validate`,
-        note: 'All mutation endpoints require an authenticated tenant, the corresponding permission, entitlement and feature gate. Trust policy, anchors, revocation sources, TSA credentials, audit keys, and private keys remain server-owned. Responses use stable PXAPDFTRUST diagnostics and never echo passwords, keys, removed text, or document contents.',
+        note: 'All mutation endpoints require an authenticated tenant, the corresponding permission, entitlement and feature gate. Trust policy, anchors, revocation sources, TSA credentials, audit keys, and private keys remain server-owned. Trust diagnostics use PVAD display aliases over stable technical identifiers and never echo passwords, keys, removed text, or document contents.',
       },
       {
         title: 'Troubleshooting path',
@@ -723,12 +724,12 @@ notApplicable  The property does not apply to this document.`,
         json: `Factur-X   1.09.2  CII                       MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED, EXTENDED-CTC-FR  factur-x.xml
 ZUGFeRD    2.5.2   CII                       MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED                     factur-x.xml
 XRechnung  3.0.2   UBL Invoice, CreditNote   XRECHNUNG                                                        xrechnung.xml`,
-        note: 'One version per standard is maintained; any other version is rejected with PXAEINV012 instead of being silently accepted. ZUGFeRD and Factur-X share one technical hybrid format while keeping separate product identities, so ZUGFeRD 2.5.2 output uses the harmonized factur-x.xml filename and the Factur-X XMP namespace. Embedding XRechnung XML in a PDF/A-3 document is a PVADE workflow, not a claim that an XRechnung exchange requires a PDF.',
+        note: 'One version per standard is maintained; any other version is rejected with the diagnostic displayed as PVADEINV012 instead of being silently accepted. ZUGFeRD and Factur-X share one technical hybrid format while keeping separate product identities, so ZUGFeRD 2.5.2 output uses the harmonized factur-x.xml filename and the Factur-X XMP namespace. Embedding XRechnung XML in a PDF/A-3 document is a PVADE workflow, not a claim that an XRechnung exchange requires a PDF.',
       },
       {
         title: 'The three validation states',
         json: `isStructurallyValid      Parsed under a bounded DTD-free reader and recognised as CII or UBL. Not a conformance claim.
-diagnostics PXAEINV...   PVADE business validation: standard and profile agreement, arithmetic totals, required fields.
+display codes PVADEINV...   PVADE business validation: standard and profile agreement, arithmetic totals, required fields.
 isConformanceValidated   Official conformance only, from a pinned artifact set.
 conformanceStatus        validated | invalid | notEvaluated
 validatorArtifactSetId   Which pinned official artifact set produced the verdict.
@@ -855,11 +856,11 @@ file=@report.pdf`,
       "status": "reviewRequired",
       "confidence": 0.72,
       "sourceKind": "pdfVector",
-      "diagnosticCode": "PXA-PDF-CHART-102"
+      "diagnosticCode": "PVAD-PDF-CHART-102"
     }
   }
 }`,
-        note: 'PVADE metadata round trips return confidence 1.0. Heuristic recognition is local and best effort.',
+        note: 'The diagnostic code above is its display alias; established machine-readable identifiers remain stable. PVADE metadata round trips return confidence 1.0. Heuristic recognition is local and best effort.',
       },
     ],
   },

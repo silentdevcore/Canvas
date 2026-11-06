@@ -1,5 +1,9 @@
 # PVAD Electronic Invoicing
 
+Diagnostic codes in this guide are the PVAD display aliases used by the interface.
+Established machine-readable identifiers remain stable; presentation does not
+change API comparisons, audit records, or stored evidence.
+
 PVAD produces, embeds, reads and validates electronic-invoice documents. It reports what it
 actually established — structural recognition, PVAD business validation and official conformance
 are three separate states — and never presents one as another.
@@ -16,7 +20,7 @@ the document format does not make it safe to imply ownership of those obligation
 ## Supported versions and profiles
 
 The first maintained versions are the ones below. A request that names any other version is
-rejected with `PXAEINV012` rather than silently accepted.
+rejected with `PVADEINV012` rather than silently accepted.
 
 | Standard | Version | Syntax | Profiles | Embedded filename |
 |---|---|---|---|---|
@@ -38,7 +42,7 @@ This is the single most important thing to get right when reading any PVAD invoi
 | State | Field | What it means |
 |---|---|---|
 | Structural recognition | `isStructurallyValid` | The XML parsed under a bounded, DTD-free reader, was recognised as CII or UBL, and declares a guideline or customization identifier. **Not a conformance claim.** |
-| PVAD business validation | `diagnostics` with `PXAEINV…` codes | PVAD's own checks: standard and profile agreement, arithmetic totals, required fields, bounded input. |
+| PVAD business validation | `diagnostics` with `PVADEINV…` codes | PVAD's own checks: standard and profile agreement, arithmetic totals, required fields, bounded input. |
 | Official conformance | `isConformanceValidated`, `conformanceStatus` | `validated`, `invalid` or `notEvaluated`, produced only by a pinned official XSD/Schematron artifact set identified by `validatorArtifactSetId` and `validatorArtifactSetSha256`. |
 
 `conformanceStatus: "notEvaluated"` means no artifact set was configured for that standard,
@@ -120,7 +124,7 @@ var options = new PvadEInvoiceOptions
 ```
 
 XRechnung normally requires a buyer reference (BT-10, the Leitweg-ID). Omitting it produces the
-warning `PXAEINV117` rather than a silent omission.
+warning `PVADEINV117` rather than a silent omission.
 
 ## Attaching to an existing PDF
 
@@ -150,10 +154,10 @@ with the full preflight report while leaving your file untouched:
 
 | Situation | Approval | Problem code when withheld |
 |---|---|---|
-| The source is not PDF/A-3b and must be rewritten | `allowArchiveConversion` | `PXAEINVAPI022` |
-| The source is signed: a rewrite removes signatures, while an incremental update adds a later revision | `allowSignatureInvalidation` | `PXAEINVAPI022` |
-| The PDF already carries an invoice attachment | `replaceExistingInvoice` | `PXAEINVAPI022` |
-| The invoice values were not found in the visible page | `allowInconsistentPdf` | `PXAEINVAPI021` |
+| The source is not PDF/A-3b and must be rewritten | `allowArchiveConversion` | `PVADEINVAPI022` |
+| The source is signed: a rewrite removes signatures, while an incremental update adds a later revision | `allowSignatureInvalidation` | `PVADEINVAPI022` |
+| The PDF already carries an invoice attachment | `replaceExistingInvoice` | `PVADEINVAPI022` |
+| The invoice values were not found in the visible page | `allowInconsistentPdf` | `PVADEINVAPI021` |
 
 `POST /api/pvad/v1/pdf/e-invoices/attach/preflight` runs every check and produces no document, so
 you can show a user exactly what would happen before anything is written.
@@ -180,7 +184,7 @@ preserveUnrecognized=true&attachmentFileName=legacy-billing.xml
 ```
 
 Preservation withholds every standards signal. The file may not use a reserved invoice filename
-(`PXAEINVAPI026`), no Factur-X extension schema is written, the `/AFRelationship` stays
+(`PVADEINVAPI026`), no Factur-X extension schema is written, the `/AFRelationship` stays
 `/Unspecified` rather than `/Alternative`, no semantic values are extracted, and `inspect` reports
 `recognitionStatus: "unrecognized"` with `isEditable: false`. The same bounds still apply: the
 10 MiB limit, a plain ASCII `.xml` filename, `application/xml`, the bounded DTD-free parse, and
@@ -220,7 +224,7 @@ file=@invoice.pdf&attachmentName=factur-x.xml
 ```
 
 Returns the attachment exactly as stored, after verifying its declared size and PDF checksum. A
-mismatch returns `PXAEINVAPI006` instead of the bytes.
+mismatch returns `PVADEINVAPI006` instead of the bytes.
 
 ## Validation
 
@@ -253,7 +257,7 @@ Five different things are called "validation" around an invoice, and they are no
 | Layer | What it proves | What it cannot prove |
 |---|---|---|
 | Structural recognition | The bytes parse safely and look like a CII or UBL invoice. | Anything about correctness or conformance. |
-| PVAD business validation | PVAD's own rules hold: totals add up, identifiers are unique, limits are respected. Reported as `PXAEINV…` diagnostics. | That an official rule set agrees. |
+| PVAD business validation | PVAD's own rules hold: totals add up, identifiers are unique, limits are respected. Reported as `PVADEINV…` diagnostics. | That an official rule set agrees. |
 | PDF/A validation | The container meets ISO 19005-3. Run through the pinned veraPDF workflow in `tools/pdfa/`. | Anything about the invoice inside it. |
 | Official invoice conformance | The XML satisfies the published XSD and Schematron for its standard, version and profile. | Only available when a reviewed artifact set is mounted; otherwise `notEvaluated`. |
 | Independent validation evidence | A second, independent implementation agrees. | Nothing PVAD can self-certify; see the limits below. |
@@ -290,7 +294,7 @@ holds them mounts a set locally and PVAD reads it from disk. **Validation never 
 
 A set is a directory containing the XSD and precompiled Schematron XSLT plus a manifest. From
 manifest schema version 2 the manifest must carry a governance record. Version 1 manifests are
-refused with `PXAEINV027`; this prevents an older manifest from bypassing the licence gate:
+refused with `PVADEINV027`; this prevents an older manifest from bypassing the licence gate:
 
 | Field | Why it is required |
 |---|---|
@@ -310,13 +314,13 @@ stable diagnostic, never a verdict and never a silent downgrade to structural re
 
 | Situation | Diagnostic |
 |---|---|
-| A pinned artifact is missing | `PXAEINV020` |
-| An artifact's SHA-256 does not match | `PXAEINV022` |
-| The set does not match the requested standard, version, profile or syntax | `PXAEINV026` |
-| The manifest schema version is unknown to this build | `PXAEINV027` |
-| Provenance is incomplete | `PXAEINV028` |
-| The licence review is not `approved` | `PXAEINV029` |
-| The set has expired | `PXAEINV030` |
+| A pinned artifact is missing | `PVADEINV020` |
+| An artifact's SHA-256 does not match | `PVADEINV022` |
+| The set does not match the requested standard, version, profile or syntax | `PVADEINV026` |
+| The manifest schema version is unknown to this build | `PVADEINV027` |
+| Provenance is incomplete | `PVADEINV028` |
+| The licence review is not `approved` | `PVADEINV029` |
+| The set has expired | `PVADEINV030` |
 
 When a rule does fail, the finding is mapped to a stable PVAD code **and** the validator's own rule
 identifier, severity, location, message and test are preserved alongside it, so a result can still be
@@ -389,7 +393,7 @@ resolved at insertion time, which is how one definition serves all six Designer 
 
 A long invoice is projected onto as many A4 pages as it needs, and **the Designer and the hybrid-PDF
 renderer paginate it identically**. They implement one versioned contract —
-`test-assets/e-invoicing/pagination-contract.json`, schema `pxa.e-invoice.pagination/1` — which pins
+`test-assets/e-invoicing/pagination-contract.json`, its versioned schema — which pins
 the page box, the table geometry, the columns, the row metrics, the continuation headings, the
 totals block and the footer-safe bound. Neither implementation depends on the other: the Designer's
 half is `invoicePagination.ts`, the generator's is `EInvoicePageLayout`, and each asserts itself
@@ -414,8 +418,8 @@ Both renderers wrap greedily to the same column width using the same conservativ
 break at the same word and produce the same fragments.
 
 **Limit.** A single description may occupy at most eight fragments. Beyond that `EInvoice.CreatePdf`
-refuses the document with `PXAEINV122` rather than emitting one of unbounded length. The limit
-cannot be reached through the public API, because `PXAEINV109` already caps a description at 4 096
+refuses the document with `PVADEINV122` rather than emitting one of unbounded length. The limit
+cannot be reached through the public API, because `PVADEINV109` already caps a description at 4 096
 characters — about four fragments at worst — so it guards the renderer rather than the caller.
 
 ### Totals and large tax breakdowns
@@ -449,7 +453,7 @@ never shown as `consistent`.
 Structural recognition, PVAD business validation and official conformance appear as three separate
 rows. A clean local check reads "structurally recognised"; only a backend `valid` verdict — which
 comes only from a pinned official artifact set — reads as validated, and the artifact-set identifier
-is shown beside it. Diagnostics keep their `PXAEINV…` codes visible for support, and each local
+is shown beside it. Diagnostics keep their `PVADEINV…` codes visible for support, and each local
 finding has a control that focuses the field it is about.
 
 ### Saving
@@ -515,17 +519,17 @@ The full table is in
   FeRD/FNFE tooling or an independent PDF/A validator such as veraPDF in this repository, so no
   such result is asserted anywhere.
 - **Encrypted sources cannot be attached to.** Decrypt first; `attach` refuses with
-  `PXAEINVATTACH001` rather than guessing.
+  `PVADEINVATTACH001` rather than guessing.
 - **An incremental attachment leaves earlier revisions intact.** Replacing an existing invoice
   dereferences it in the new revision, but its bytes remain readable in the previous one. Use a
   full conversion when that matters.
 - **A file specification referenced outside the catalog is not replaced.** If an existing invoice
   attachment is also reachable from a file-attachment annotation, PVAD refuses to remove it
-  (`PXAEINVATTACH016`) rather than change what the document shows.
+  (`PVADEINVATTACH016`) rather than change what the document shows.
 - **`notEvaluated` consistency is not agreement.** Bounded OCR evidence is not yet available, so a
   scanned invoice's page is never compared.
 - **One version per standard.** Multiple concurrent versions of the same standard are not
-  supported; a mismatch is rejected with `PXAEINV012`.
+  supported; a mismatch is rejected with `PVADEINV012`.
 - **Synchronous limits.** 100 MiB source PDF, 10 MiB invoice XML, 120 MiB attachment output,
   50 MiB generated PDF, 2 000 lines for synchronous PDF creation, 10 000 lines for XML.
 - **Non-Latin scripts are not visually verified.** Arabic, Hebrew and CJK need the Noto faces
@@ -564,10 +568,10 @@ document's content.
 
 | Range | Source |
 |---|---|
-| `PXAEINV0xx` | Recognition, options and structural validation |
-| `PXAEINV1xx` | Typed invoice-document validation |
-| `PXAEINVATTACH0xx` | Existing-PDF attachment preflight and execution |
-| `PXAEINVAPI0xx` | API request handling and Problem Details |
+| `PVADEINV0xx` | Recognition, options and structural validation |
+| `PVADEINV1xx` | Typed invoice-document validation |
+| `PVADEINVATTACH0xx` | Existing-PDF attachment preflight and execution |
+| `PVADEINVAPI0xx` | API request handling and Problem Details |
 | `CANMIGEINV00x` | Electronic-invoice code-migration findings, one per capability |
 
 Identifiers are stable. A diagnostic keeps its code across releases even when its message is
@@ -577,9 +581,9 @@ Named codes worth knowing:
 
 | Code | Meaning |
 |---|---|
-| `PXAEINV109` | A line description exceeds 4 096 characters. |
-| `PXAEINV120` | PDF/A-3 invoice creation was asked for without an embedded-font loader. |
-| `PXAEINV122` | A line description is too long to render within eight continuation fragments. |
+| `PVADEINV109` | A line description exceeds 4 096 characters. |
+| `PVADEINV120` | PDF/A-3 invoice creation was asked for without an embedded-font loader. |
+| `PVADEINV122` | A line description is too long to render within eight continuation fragments. |
 | `CANMIGEINV001` / `002` / `003` | Factur-X / ZUGFeRD / XRechnung generation found in migrated source. |
 | `CANMIGEINV004` | PDF/A-3 attachment found in migrated source. |
 | `CANMIGEINV005` / `006` | Invoice extraction / validation found in migrated source. |

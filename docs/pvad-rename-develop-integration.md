@@ -1,5 +1,9 @@
 # Rename And Develop Integration
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 The initial candidate sections below record validation before the authorized
 transfer. The PR delivery checkpoint records subsequent commits and actual
 GitHub checks; local test results are not substituted for those checks.
@@ -13,7 +17,7 @@ is `79ff91b65a40d806ce436b59051056d4cce27097`: 119 rename-only commits, 27 devel
 commits and 77 initially conflicted paths.
 
 Candidate branch: `integration/rename-develop-20261029`.
-The original `feature/rename-pxa-to-pvad` worktree is unchanged. Its four pending
+The original predecessor implementation worktree is unchanged. Its four pending
 rename documents and pending policy fragment were backed up and verified by
 SHA-256. Their uncommitted contents are not silently included in this candidate.
 No editor configuration was inspected/copied. No remote branches, protections,

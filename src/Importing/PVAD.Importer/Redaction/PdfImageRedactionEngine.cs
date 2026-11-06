@@ -24,6 +24,8 @@ internal sealed record PdfRedactedImageMask(string DictionaryKey, PdfStreamObjec
 /// </summary>
 internal static class PdfImageRedactionEngine
 {
+    private const string RedactedMarker = "PVADRedacted";
+    private const string LegacyRedactedMarker = "PXARedacted";
     private const long MaximumPixels = 32_000_000;
     private const long MaximumSampleBytes = 64L * 1024 * 1024;
     private const int MaximumEncodedCodecBytes = 16 * 1024 * 1024;
@@ -158,7 +160,8 @@ internal static class PdfImageRedactionEngine
 
         dictionary["DecodeParms"] = null;
         dictionary["Length"] = null;
-        dictionary["PXARedacted"] = new PdfBoolean(true);
+        dictionary[LegacyRedactedMarker] = null;
+        dictionary[RedactedMarker] = new PdfBoolean(true);
         return new PdfStreamObject(dictionary, Compress(pixels.Samples));
     }
 
@@ -170,7 +173,7 @@ internal static class PdfImageRedactionEngine
         out string reason)
     {
         if (!TryResolveStream(graph, resources, image, out var stream) ||
-            !IsTruthy(Resolve(graph, stream.Dictionary["PXARedacted"])))
+            !HasRedactionMarker(graph, stream.Dictionary))
         {
             reason = "The image is not marked as a PVAD pixel-redacted resource.";
             return false;
@@ -184,7 +187,7 @@ internal static class PdfImageRedactionEngine
 
         foreach (var mask in EnumerateMaskStreams(graph, stream))
         {
-            if (!IsTruthy(Resolve(graph, mask.Stream.Dictionary["PXARedacted"])) ||
+            if (!HasRedactionMarker(graph, mask.Stream.Dictionary) ||
                 !TryDecode(graph, resources, mask.Stream, ignoreAttachedMasks: false, out var maskPixels, out reason) ||
                 !CoveredPixelsAreZero(maskPixels, image.Transform, regions, out reason))
             {
@@ -196,6 +199,9 @@ internal static class PdfImageRedactionEngine
         reason = string.Empty;
         return true;
     }
+
+    private static bool HasRedactionMarker(PdfObjectGraph graph, PdfDictionary dictionary) =>
+        IsTruthy(Resolve(graph, dictionary[RedactedMarker] ?? dictionary[LegacyRedactedMarker]));
 
     private static bool CoveredPixelsAreZero(
         PixelBuffer pixels,
@@ -365,7 +371,7 @@ internal static class PdfImageRedactionEngine
                 : new PdfStreamDecoderRegistry(new PdfParseLimits
                 {
                     MaxDecodedStreamBytes = MaximumSampleBytes,
-                    MaxDecompressionRatio = IsTruthy(Resolve(graph, stream.Dictionary["PXARedacted"]))
+                    MaxDecompressionRatio = HasRedactionMarker(graph, stream.Dictionary)
                         ? 65_536
                         : new PdfParseLimits().MaxDecompressionRatio
                 }).Decode(NormalizeInlineDictionary(stream));

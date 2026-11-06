@@ -21,16 +21,16 @@ RUN cd tools/PVAD.Mcp && npm run typecheck && npm test && npm run build
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
-RUN addgroup -S pxa && adduser -S -G pxa -h /app pxa
+RUN addgroup -S pvad && adduser -S -G pvad -h /app pvad
 
 COPY --from=build /workspace/tools/PVAD.Mcp/package.json /workspace/tools/PVAD.Mcp/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts \
     && npm cache clean --force \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
-COPY --from=build --chown=pxa:pxa /workspace/tools/PVAD.Mcp/dist ./dist
+COPY --from=build --chown=pvad:pvad /workspace/tools/PVAD.Mcp/dist ./dist
 COPY tools/PVAD.Mcp/scripts/container-entrypoint.sh /app/container-entrypoint.sh
 
-USER pxa
+USER pvad
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3000/health/ready >/dev/null || exit 1

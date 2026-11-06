@@ -1,12 +1,10 @@
 # UI-Layout2 Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Scope
 Improve visual consistency and usability in ui-designer with focus on color, background, typography, and layer stacking.
 
 > Legacy note: this checklist documents work completed in the removed `ui-designer/` implementation.
-> Active frontend work now belongs in `pxa-designer/`.
+> Active frontend work now belongs in `pvad-designer/`.
 
 ## Progress (2026-05-03)
 - [x] Step 1 baseline implemented: token foundation (color, typography, spacing, layer map) added and wired into core shell and overlays.
@@ -20,9 +18,9 @@ Improve visual consistency and usability in ui-designer with focus on color, bac
 - [~] PropertiesPanel image-edit block migrated to shared compact control classes and tokenized helper text.
 - [~] ElementRenderer shape/spacer defaults further tokenized (surface, stroke, border, secondary text fallbacks).
 - [x] PageSettingsPanel remaining color hard-codes removed from color controls, slider track, and help section headings.
-- [~] FocusIndicator, VirtualPxaSurface frame, PerformanceIndicator divider, and Button hover/active states now use token-based color definitions.
+- [~] FocusIndicator, VirtualPvadSurface frame, PerformanceIndicator divider, and Button hover/active states now use token-based color definitions.
 - [~] Presentation canvas background updated to semantic app-surface token.
-- [x] PXA grid-highlight and document-end gradient converted to semantic token-based colors (no remaining non-input hard-coded hex in ui-designer TSX).
+- [x] PVADE grid-highlight and document-end gradient converted to semantic token-based colors (no remaining non-input hard-coded hex in ui-designer TSX).
 - [~] Remaining hex literals are limited to PropertiesPanel color input default values (intentional for input type=color compatibility).
 - [x] PropertiesPanel static inline layout styles largely consolidated into reusable utility classes; only one dynamic table-cell inline style remains by design.
 - [~] ElementRenderer static inline visuals significantly reduced (30 -> 12 style blocks) via reusable classes for column/table/image/list/choice controls/link/page-break/grid/spacer/button/lock-badge/resize-handles.
@@ -52,7 +50,7 @@ Improve visual consistency and usability in ui-designer with focus on color, bac
 - [x] Input, ZoomControls, and ExportPanel static style blocks migrated to reusable CSS classes to further reduce inline-style duplication.
 - [x] ContextMenu, CodePanel, JSONPanel, and PageSettingsPanel static style blocks further migrated to shared CSS classes for non-geometry UI surfaces.
 - [x] PerformanceIndicator and ToastContainer static skins migrated to shared classes; only dynamic telemetry coloring remains inline by design.
-- [x] PXA and VirtualPxaSurface static overlay/marker/empty-state styles migrated to shared classes; inline styles are now predominantly dynamic geometry/positioning.
+- [x] PVADE and VirtualPvadSurface static overlay/marker/empty-state styles migrated to shared classes; inline styles are now predominantly dynamic geometry/positioning.
 - [x] Toolbar Suspense fallbacks migrated from inline placeholders to reusable classes, further reducing static TSX style literals.
 - [x] Presentation-layer canvas shell styles and PropertiesPanel table preview cell padding migrated to classes, leaving only dynamic placement/appearance inline in those areas.
 - [x] PerformanceIndicator inline color styles replaced with semantic state classes, leaving no inline styles in that component.
@@ -130,7 +128,7 @@ Improve visual consistency and usability in ui-designer with focus on color, bac
 ## J. Validation Checklist
 - [x] No new direct hard-coded UI colors in TSX/CSS except user-selected document colors.
 - [x] All overlays follow the z-index map and stack predictably.
-- [x] Typography and spacing are consistent across Sidebar/PXA/Properties.
+- [x] Typography and spacing are consistent across [compatibility entry `compat-bafe37e595fc`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Contrast checks pass for key UI states.
 - [x] No regressions in drag/drop, selection, context menu, or keyboard help.
 
@@ -141,7 +139,7 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 ### Desktop (>=1280px)
 - [x] Toolbar grouping readability
 	Acceptance criteria: section separators visible, control labels readable, no clipped controls.
-- [x] Sidebar/PXA/Properties spacing consistency
+- [x] [compatibility entry `compat-bafe37e595fc`](../docs/reference/compatibility-identifiers.v1.json) spacing consistency
 	Acceptance criteria: spacing scale appears consistent; no abrupt spacing jumps between sections.
 - [x] Keyboard shortcuts modal layering and scroll
 	Acceptance criteria: modal appears above all overlays; content scroll works; close button and backdrop close both work.
@@ -153,7 +151,7 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 ### Tablet (768px-1279px)
 - [x] Panel stacking and overflow
 	Acceptance criteria: sidebar/properties panel remain usable, no overlapping text, no hidden critical controls.
-- [x] PXA minimum usable area
+- [x] PVADE minimum usable area
 	Acceptance criteria: canvas remains interactive and selection/drag operations are possible without layout breakage.
 - [x] Toolbar wrap behavior
 	Acceptance criteria: wrapped controls remain discoverable and actionable.
@@ -207,7 +205,7 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 	2026-05-03 | <=480px | Button text/readability floor | pass | minimum compact toolbar button font size increased from `0.75rem` to `0.8125rem`; panel heading size increased to `0.9375rem`.
 	2026-05-03 | <=1024px / <=768px / <=480px | Panel compression thresholds | pass | sidebar/properties now use viewport-aware `max-height` plus `min-height` to avoid unreadable over-compression.
 - [x] Empty-state guidance evidence
-	Files: `ui-designer/src/PXA.tsx`, `ui-designer/src/PropertiesPanel.tsx`, `ui-designer/src/App.css`.
+	Files: [compatibility entry `compat-8c3e2c0e078b`](../docs/reference/compatibility-identifiers.v1.json), `ui-designer/src/PropertiesPanel.tsx`, `ui-designer/src/App.css`.
 	Changes: canvas empty state now includes clear starter instructions and quick-action hint; properties empty state now provides selection guidance and multi-select tip with dedicated semantic styles.
 	Outcome: users now see explicit next steps instead of ambiguous single-line placeholders.
 - [x] Non-hover interaction parity evidence
@@ -246,7 +244,7 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 	Outcome: lower TSX style duplication and improved consistency with existing tokenized spacing system.
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
 - [x] Spacing consistency verification note
-	2026-05-03 | desktop/tablet/mobile | Sidebar/PXA/Properties spacing consistency | pass | shared spacing tokens and class-based panel/toolbar/input/zoom/export spacing now applied consistently without contradictory inline overrides.
+	2026-05-03 | desktop/tablet/mobile | [compatibility entry `compat-bafe37e595fc`](../docs/reference/compatibility-identifiers.v1.json) spacing consistency | pass | shared spacing tokens and class-based panel/toolbar/input/zoom/export spacing now applied consistently without contradictory inline overrides.
 - [x] Page-settings/menu/mono-panel consolidation evidence
 	Files: `ui-designer/src/ContextMenu.tsx`, `ui-designer/src/CodePanel.tsx`, `ui-designer/src/JSONPanel.tsx`, `ui-designer/src/PageSettingsPanel.tsx`, `ui-designer/src/App.css`.
 	Changes: moved static menu skin, code/json panel formatting, and page-settings helper/tab/grid utility styling into shared classes (`.ui-context-menu*`, `.ui-mono-panel*`, `.ui-help-*`, `.ui-grid-2`, `.ui-range-control`, `.ui-color-swatch`, `.ui-tab-nav-wrap`).
@@ -257,28 +255,28 @@ Legend: [ ] Not started, [~] In progress, [x] Passed, [!] Failed
 	Changes: migrated static overlay container/indicator skin rows to reusable classes (`.ui-toast-container`, `.performance-indicator*`) and retained only dynamic metric color spans inline.
 	Outcome: reduced remaining static inline style footprint in runtime overlay components.
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
-- [x] PXA/virtual-canvas static overlay consolidation evidence
-	Files: `ui-designer/src/PXA.tsx`, `ui-designer/src/VirtualPxaSurface.tsx`, `ui-designer/src/App.css`.
+- [x] [compatibility entry `compat-fb353e6fb2b0`](../docs/reference/compatibility-identifiers.v1.json) static overlay consolidation evidence
+	Files: [compatibility entry `compat-8c3e2c0e078b`](../docs/reference/compatibility-identifiers.v1.json), [compatibility entry `compat-e37ca9c28762`](../docs/reference/compatibility-identifiers.v1.json), `ui-designer/src/App.css`.
 	Changes: moved static grid/guides overlay shell styles, selection-rect visual skin, document-end marker/label skin, zoom-layer static properties, and virtual-canvas empty-state/container shell styles into shared classes (`.canvas-grid-overlay`, `.canvas-guides-overlay`, `.canvas-selection-rect`, `.canvas-end-*`, `.canvas-zoom-layer`, `.virtual-canvas-*`).
 	Outcome: remaining inline styles are increasingly focused on dynamic coordinates/sizes/transforms/background values.
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
 - [x] Toolbar fallback placeholder consolidation evidence
 	Files: `ui-designer/src/App.tsx`, `ui-designer/src/App.css`.
 	Changes: replaced static Suspense fallback inline size objects with reusable classes (`.ui-toolbar-fallback*`).
-	Outcome: source-wide `style={{ ... }}` object-literal matches reduced to 20 at this step, with hotspots mostly dynamic-position/geometry usage (`PXA`, `VirtualPxaSurface`, `ContextMenu`, `Tooltip`) plus intentional dynamic color/preview cases (`PerformanceIndicator`, `PropertiesPanel`).
+	Outcome: source-wide `style={{ ... }}` object-literal matches reduced to 20 at this step, with hotspots mostly dynamic-position/geometry usage (`PVAD`, [compatibility entry `compat-579db62fd280`](../docs/reference/compatibility-identifiers.v1.json), `ContextMenu`, `Tooltip`) plus intentional dynamic color/preview cases (`PerformanceIndicator`, `PropertiesPanel`).
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
 - [x] Presentation-canvas/properties-preview consolidation evidence
-	Files: `ui-designer/src/presentation/components/canvas/PXA.tsx`, `ui-designer/src/PropertiesPanel.tsx`, `ui-designer/src/App.css`.
+	Files: [compatibility entry `compat-bb2ea5df0a54`](../docs/reference/compatibility-identifiers.v1.json), `ui-designer/src/PropertiesPanel.tsx`, `ui-designer/src/App.css`.
 	Changes: moved static presentation-canvas shell/drop-zone skin and PropertiesPanel table preview cell padding into classes (`.canvas-presentation*`, `.canvas-drop-zone-overlay`, `.ui-properties-table-preview-cell`), keeping only dynamic geometry/color values inline.
 	Outcome: source-wide `style={{ ... }}` object-literal matches reduced further to 18 at this step.
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
 - [x] Performance indicator dynamic-color class consolidation evidence
 	Files: `ui-designer/src/PerformanceIndicator.tsx`, `ui-designer/src/App.css`.
 	Changes: replaced inline metric/status color styles with semantic state classes (`.performance-indicator-value.is-success/.is-warning/.is-danger/.is-info`) driven by runtime classification helpers.
-	Outcome: source-wide `style={{ ... }}` object-literal matches are now down to 11, with remaining cases concentrated in dynamic geometry/positioning surfaces (`PXA`, `VirtualPxaSurface`, `ContextMenu`, `Tooltip`, presentation canvas element wrapper) plus two intentional dynamic preview/focus cases (`PropertiesPanel` table preview colors, `FocusIndicator`).
+	Outcome: source-wide `style={{ ... }}` object-literal matches are now down to 11, with remaining cases concentrated in dynamic geometry/positioning surfaces (`PVAD`, [compatibility entry `compat-579db62fd280`](../docs/reference/compatibility-identifiers.v1.json), `ContextMenu`, `Tooltip`, presentation canvas element wrapper) plus two intentional dynamic preview/focus cases (`PropertiesPanel` table preview colors, `FocusIndicator`).
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.
 - [x] Focus-indicator class consolidation evidence
 	Files: `ui-designer/src/FocusIndicator.tsx`, `ui-designer/src/App.css`.
 	Changes: moved focus ring rendering from inline style object to class-driven rules (`.focus-indicator`, `.focus-indicator.is-focused`) powered by CSS variables for configurable ring color/offset/width.
-	Outcome: source-wide `style={{ ... }}` object-literal matches are now down to 10, and all remaining literals are runtime-driven positioning/geometry or live preview values (`PXA`, `VirtualPxaSurface`, `ContextMenu`, `Tooltip`, presentation canvas element wrapper, table preview dynamic border/background).
+	Outcome: source-wide `style={{ ... }}` object-literal matches are now down to 10, and all remaining literals are runtime-driven positioning/geometry or live preview values (`PVAD`, [compatibility entry `compat-579db62fd280`](../docs/reference/compatibility-identifiers.v1.json), `ContextMenu`, `Tooltip`, presentation canvas element wrapper, table preview dynamic border/background).
 	Validation: `npm run build` and `npm test -- --runInBand` both pass after consolidation.

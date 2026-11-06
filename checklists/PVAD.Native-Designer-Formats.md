@@ -1,17 +1,26 @@
-# PXA Native Designer Formats
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Native Designer Formats
 
 ## Goal
 
-Define safe, versioned, portable native project formats for PXA Designer:
+Define safe, versioned, portable native project formats for PVADE Designer:
 
-- `.pxap` for PDF Designer projects.
-- `.pxas` for Spreadsheet Designer projects.
+- `.pvadp` for PDF Designer projects.
+- `.pvads` for Spreadsheet Designer projects.
 
 These formats preserve editable project state, assets, bindings, localization,
 settings, and compatibility metadata. They are project packages, not final PDF
 or spreadsheet delivery formats.
+
+## Current Naming Contract
+
+New packages use `application/vnd.pvad.pvadp+zip` and
+`application/vnd.pvad.pvads+zip`, with magic identifiers `PVAD-PVADP-1` and
+`PVAD-PVADS-1`. Current API examples use `/api/pvad/v1/designer/projects`.
+See the [current format guide](../docs/native-designer-project-formats.md).
+
+Task wording uses current names. Earlier formats remain readable through
+explicit compatibility readers. Editorial normalization does not change original
+package bytes, test results, or pending platform and artwork approvals.
 
 ## Priorities
 
@@ -27,14 +36,14 @@ or spreadsheet delivery formats.
 
 ## Naming And Media Types
 
-- [x] Use lowercase canonical file extensions `.pxap` and `.pxas`; UI labels may
-  display them as `PXAP` and `PXAS`.
-- [x] Define PXAP as **PXA PDF Project** and PXAS as **PXA Spreadsheet Project**.
-- [x] Retire the generic `.pxa` reservation. Native Designer projects use the
-  explicit `.pxap` and `.pxas` formats only.
+- [x] Use lowercase canonical file extensions `.pvadp` and `.pvads`; UI labels may
+  display them as `PVADP` and `PVADS`.
+- [x] Define PVADP as **PVAD PDF Project** and PVADS as **PVAD Spreadsheet Project**.
+- [x] Retire the generic [compatibility entry `compat-e5647e1a3a98`](../docs/reference/compatibility-identifiers.v1.json) reservation. Native Designer projects use the
+  explicit `.pvadp` and `.pvads` formats only.
 - [x] Register internal media types:
-  `application/vnd.powerdox.pxap+zip` and
-  `application/vnd.powerdox.pxas+zip`.
+  `application/vnd.pvad.pvadp+zip` and
+  `application/vnd.pvad.pvads+zip`.
 - [x] Use distinct magic/package identifiers so renamed ZIP or JSON files cannot
   be accepted as native projects.
 - [ ] Define stable icons and OS file associations only after the logo system is
@@ -44,7 +53,7 @@ or spreadsheet delivery formats.
 
 - [x] Use a ZIP-compatible package with a mandatory `manifest.json` at its root.
 - [x] Require manifest fields for format ID, schema version, minimum compatible
-  PXA version, document ID, title, created/modified timestamps, locale, entry
+  PVADE version, document ID, title, created/modified timestamps, locale, entry
   document, asset index, and content checksums.
 - [x] Keep generated previews, source files, fonts, images, and other assets in
   typed package folders referenced through stable asset IDs.
@@ -58,7 +67,7 @@ or spreadsheet delivery formats.
 - [x] Never include authentication tokens, local filesystem paths, temporary
   object-storage URLs, secrets, or tenant identifiers intended only for servers.
 
-## PXAP Document Contract
+## PVADP Document Contract
 
 - [x] Store the normalized `DesignExportDto` document as the canonical editable
   PDF design.
@@ -72,7 +81,7 @@ or spreadsheet delivery formats.
 - [x] Record required Designer features and warn before opening a project that
   uses unavailable or disabled functionality.
 
-## PXAS Document Contract
+## PVADS Document Contract
 
 - [x] Store the normalized workbook model as the canonical editable Spreadsheet
   design.
@@ -112,12 +121,12 @@ or spreadsheet delivery formats.
   element count, cells, formulas, image pixels, and parsing duration.
 - [x] Validate declared sizes and checksums before materializing assets.
 - [x] Sniff asset bytes instead of trusting filenames or declared MIME types.
-- [x] Sanitize SVG, HTML, Rich Text, metadata, and filenames using existing PXA
+- [x] Sanitize SVG, HTML, Rich Text, metadata, and filenames using existing PVADE
   security policies.
 - [x] Do not execute Code Workspace content while opening a package.
 - [x] Apply tenant, entitlement, permission, rate-limit, audit, and cancellation
   policies to server-side package operations.
-- [x] Return stable `PXAPROJECT...` diagnostics without exposing filesystem or
+- [x] Return stable [compatibility entry `compat-e6f0d2c20b79`](../docs/reference/compatibility-identifiers.v1.json) diagnostics without exposing filesystem or
   archive-parser internals.
 
 ## Versioning And Compatibility
@@ -137,9 +146,9 @@ or spreadsheet delivery formats.
 ## API, SDK, And Documentation
 
 - [x] Add authenticated inspect, validate, import, and export endpoints under
-  `/api/pxa/v1/designer/projects`.
+  `/api/pvad/v1/designer/projects`.
 - [x] Expose envelope metadata without extracting full assets when possible.
-- [x] Add OpenAPI contracts and SDK streaming helpers for PXAP and PXAS.
+- [x] Add OpenAPI contracts and SDK streaming helpers for [compatibility entry `compat-ba034b6fd24f`](../docs/reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-00180d15e36c`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Document format purpose, security model, version policy, package layout,
   recovery, and differences from PDF, XLSX, JSON, and template persistence.
 - [x] Publish small synthetic reference fixtures and JSON Schemas.
@@ -174,7 +183,7 @@ or spreadsheet delivery formats.
 
 ## Acceptance Criteria
 
-- [x] PXAP and PXAS projects reopen with the same editable content and assets.
+- [x] PVADP and PVADS projects reopen with the same editable content and assets.
 - [x] The two formats cannot be confused with each other or with exported files.
 - [x] A hostile package cannot escape extraction limits or access another tenant.
 - [x] Package upgrades are explicit, tested, reversible until save, and
@@ -190,16 +199,23 @@ or spreadsheet delivery formats.
   [PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md](PVAD.Designer-Per-Page-Settings-And-Backend-Parity.md).
 - [x] Align version policy with
   [PVAD.Application-Versioning-And-Releases.md](PVAD.Application-Versioning-And-Releases.md).
-- [x] Replace the generic `.pxa` reservation in
-  [Rename-To-PXA.md](Rename-To-PXA.md) with the implemented `.pxap` and `.pxas`
+- [x] Replace the generic [compatibility entry `compat-e5647e1a3a98`](../docs/reference/compatibility-identifiers.v1.json) reservation in
+  [the earlier rename record](PVAD.Legacy-Rename-Archive.md) with the implemented `.pvadp` and `.pvads`
   project formats.
 
 ## Assumptions
 
-- PXAP and PXAS are editable project packages, not archival or final delivery
+- PVADP and PVADS are editable project packages, not archival or final delivery
   formats.
 - JSON remains available for interoperability but is not a complete substitute
   for packaged assets and workspace state.
 - Local project files are portable and do not grant access to server-side assets
   or organizations.
 - Digital package signing and encrypted project packages are later milestones.
+
+## Legacy Reader Values
+
+The earlier [compatibility entry `compat-461f2edebf37`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-248f94c0d0d1`](../docs/reference/compatibility-identifiers.v1.json) packages retain the exact media types
+[compatibility entry `compat-3c0c5167326a`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-3d9ed408945e`](../docs/reference/compatibility-identifiers.v1.json) and
+the [compatibility entry `compat-bea571ba4815`](../docs/reference/compatibility-identifiers.v1.json) / [compatibility entry `compat-d1b9fec09994`](../docs/reference/compatibility-identifiers.v1.json) magic identifiers. Readers preserve those values
+for compatibility; new writers use the current naming contract above.

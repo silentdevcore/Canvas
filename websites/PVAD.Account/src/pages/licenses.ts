@@ -2,6 +2,7 @@ import { escapeHtml } from '../shell';
 import { accountLicenseDownloadUrl, getAccountLicenses, validateAccountLicense } from '../api';
 import type { ApiError, AccountLicenseResponse } from '../api';
 import { registerAccountStateReset } from '../accountContext';
+import { displayDiagnosticCode } from '../../../shared/diagnosticPresentation';
 
 interface LicensesPageState {
   licenses: AccountLicenseResponse[];
@@ -85,7 +86,7 @@ export function bindLicensesEvents(): void {
       try {
         const result = await validateAccountLicense(licenseId);
         state.validation[licenseId] = result
-          ? `${result.valid ? 'Valid' : 'Invalid'} (${result.code})`
+          ? `${result.valid ? 'Valid' : 'Invalid'} (${displayDiagnosticCode(result.code)})`
           : 'Validation failed.';
       } catch (error) {
         state.validation[licenseId] = (error as ApiError).message;

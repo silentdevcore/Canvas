@@ -1,5 +1,9 @@
 # PVAD Frontend Host Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Verified Boundaries
 
 - Six development API proxies target the local WebApi at port 5086. Designer
@@ -7,16 +11,16 @@
   incoming origin. The structural contract test covers all six configurations.
 - The real desktop/mobile Account-to-Designer handoff is recorded in the
   [rename test report](../checklists/PVAD.Rename-Test-Report.md).
-- Website links accept reviewed PVAD environment keys and their PXA aliases;
+- Website links accept reviewed PVAD environment keys and their predecessor aliases;
   contradictory inputs fail with key-only errors. Customer-specific base paths
   and percent-encoded spaces remain supported.
 - Return URLs require a configured product origin and reject credentials,
   backslashes and raw control/space characters. Admin is not a public return
   target. These checks do not replace server-side handoff allowlisting.
 - Designer runtime scripts may set `__PVAD_CONFIG__.accountUrl` before bundle
-  loading. The legacy `__PXA_CONFIG__` reader remains, with conflict detection.
+  loading. The legacy legacy CONFIG component reader remains, with conflict detection.
 - Local Nginx container tests verify SPA 404 handling, asset/shell caching and
-  canonical/legacy API outage responses. The proxy preserves `PXAAPI018` and adds
+  canonical/legacy API outage responses. The proxy preserves legacy API018 component and adds
   `PVADAPI018` as `canonicalCode`; its current display title uses PVAD.
 
 ## Deployment Checks Still Required
@@ -30,7 +34,7 @@ there. Never infer production readiness solely from localhost or source tests.
 
 The Nginx template consumes `PVAD_API_UPSTREAM` and `PVAD_SPA_ROUTE_PATTERN`.
 Its executable `15-pvad-environment.envsh` hook accepts the corresponding legacy
-PXA inputs, rejects contradictory aliases and requires nonempty configuration
+predecessor inputs, rejects contradictory aliases and requires nonempty configuration
 before template substitution. Install the hook and template together; a template
 update alone is not a compatible cutover. Local container checks cover both new
 and legacy-only inputs. See the [hosting instructions](../deploy/websites/README.md).

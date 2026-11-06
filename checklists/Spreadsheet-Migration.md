@@ -1,26 +1,31 @@
 # Spreadsheet Framework Migration + Canonical Workbook JSON
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
 
 Migrate C# code from other spreadsheet libraries (ClosedXML, EPPlus, GemBox.Spreadsheet, Aspose.Cells)
-into PXA spreadsheet code, and formalize a **versioned "PXA Workbook JSON"** as the canonical
+into PVAD spreadsheet code, and formalize a **versioned "PVAD Workbook JSON"** as the canonical
 interchange + migration target. Built in-house, reusing the existing Roslyn PDF-migration architecture.
 
 ## Context
+
+> Historical baseline: this section describes the initial migration gap, not
+> current provider coverage. Use [the unified migration checklist](PVAD.Unified-Migration-Frameworks.md)
+> for the current architecture. Original implementation records remain below.
 - **De-facto JSON exists but is informal:** `SpreadsheetDto` serialized camelCase *is* the workbook JSON,
   but has no version field, no `$schema`, no published JSON Schema (only designs do:
   `docs/schema/design-export.schema.json`), and the frontend wire type
-  (`pxa-designer/src/spreadsheet/types.ts`) has drifted to a **subset** — it omits every Phase-2 field
+  (`pvad-designer/src/spreadsheet/types.ts`) has drifted to a **subset** — it omits every Phase-2 field
   (pageSetup, protection, conditionalFormats, dataValidations, column/row `outlineLevel`, cell
   `comment`/`hyperlink`). Editor-saved JSON is lossy vs. what the backend holds.
-- **Migration architecture exists — for PDF, not spreadsheets:** `PXA.Migration.Roslyn/CSharpSourceMigration.cs`
-  (base) → per-library `CSharpSyntaxRewriter` (e.g. `GemBoxPdfMigration`) → emits PXA.Pdf code;
+- **Migration architecture exists — for PDF, not spreadsheets:** `PVAD.Migration.Roslyn/CSharpSourceMigration.cs`
+  (base) → per-library `CSharpSyntaxRewriter` (e.g. `GemBoxPdfMigration`) → emits PVAD.Pdf code;
   `ICodeConverter` registered in `MigrationService`, exposed at `GET /api/migration/frameworks` +
   `POST /api/migration/convert`. 15 PDF libs ship this way. **No spreadsheet migration, and no fluent
-  PXA spreadsheet authoring API to rewrite *into*.**
+  PVADE spreadsheet authoring API to rewrite *into*.**
 
 ### Decisions (confirmed)
-- Code-library migration (not file-format). Formalize a versioned PXA Workbook JSON. All four sources:
+- Code-library migration (not file-format). Formalize a versioned PVADE Workbook JSON. All four sources:
   ClosedXML, EPPlus, GemBox.Spreadsheet, Aspose.Cells.
 
 > **Diagnostic to surface:** ClosedXML's formula engine covers common functions but not Aspose's ~450 —
@@ -28,7 +33,7 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 
 ---
 
-## Pillar A — Canonical "PXA Workbook JSON" — DONE (commit pending)
+## Pillar A — Canonical "PVADE Workbook JSON" — DONE (commit pending)
 - [x] **A1 Version the model** — `SchemaVersion` (default `"1.0"`, `const CurrentSchemaVersion`) + optional
       `Schema` (`[JsonPropertyName("$schema")]`) on `SpreadsheetDto`. Defaults keep old payloads loading.
 - [x] **A2 Frontend/backend parity (lossless JSON)** — `types.ts` wire types gained `comment`/`hyperlink`
@@ -43,25 +48,25 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 - [x] `POST /api/spreadsheet/validate` + import major-version warning — done in `Spreadsheet-Polish.md`
       Phase 1 (`SpreadsheetValidator`, frontend version guard, editor "Validate" button).
 
-## Pillar B — Code-library migration (Roslyn rewriters → PXA authoring API)
-- [x] **B1 PXA spreadsheet authoring API (the rewrite target)** — `PxaWorkbookBuilder.cs`:
-      `PxaWorkbook` (`AddSheet`, `Sheet`, `ToWorkbook`, `ToXlsx`, `Save` by extension xlsx/xls/csv/tsv),
-      `PxaWorksheet` (`Cell("A1")`/`Cell(r,c)`, `Range(..).Merge()`, `Column(i).Width/Hidden/OutlineLevel`,
-      `Freeze`), `PxaCell` (`Value` w/ type inference, `Formula`, `NumberFormat`, `Comment`, `Hyperlink`,
-      `Style(s => ...)`), `PxaCellStyle` (Bold/Italic/Background/Color/Font/FontSize/Align). Test
-      `PxaWorkbook_FluentApi_BuildsCalculableWorkbook` (build → .xlsx round-trip + `/calculate` = 20).
-- [x] **B2/B3 ClosedXML** (reference impl) — `PXA.Migration.Spreadsheet.Code.ClosedXml` (Roslyn rewriter),
+## Pillar B — Code-library migration (Roslyn rewriters → PVADE authoring API)
+- [x] **B1 PVADE spreadsheet authoring API (the rewrite target)** — `PvadWorkbookBuilder.cs`:
+      `PvadWorkbook` (`AddSheet`, `Sheet`, `ToWorkbook`, `ToXlsx`, `Save` by extension xlsx/xls/csv/tsv),
+      `PvadWorksheet` (`Cell("A1")`/`Cell(r,c)`, `Range(..).Merge()`, `Column(i).Width/Hidden/OutlineLevel`,
+      `Freeze`), `PvadCell` (`Value` w/ type inference, `Formula`, `NumberFormat`, `Comment`, `Hyperlink`,
+      `Style(s => ...)`), `PvadCellStyle` (Bold/Italic/Background/Color/Font/FontSize/Align). Test
+      `PvadWorkbook_FluentApi_BuildsCalculableWorkbook` (build → .xlsx round-trip + `/calculate` = 20).
+- [x] **B2/B3 ClosedXML** (reference impl) — `PVAD.Migration.Spreadsheet.Code.ClosedXml` (Roslyn rewriter),
       `CANMIGCLXL`; `ClosedXmlSpreadsheetConverter` registered in `MigrationService` (Status `full`). Handles
       new workbook, AddSheet, Value/Formula/Width/Height property→method, Bold/Italic/FontSize style lambdas,
       1-based→0-based index shift, SaveAs→Save, usings swap; diagnostics for the rest. 3 tests + live convert.
       See `checklists/Spreadsheet-Migration-ClosedXML.md`.
-- [x] **B2/B3 EPPlus** — `PXA.Migration.Spreadsheet.Code.Epplus`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
+- [x] **B2/B3 EPPlus** — `PVAD.Migration.Spreadsheet.Code.Epplus`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
       `pkg.Workbook.Worksheets.Add`→`AddSheet`, `Merge=true`→`Range(..).Merge()`, value/formula/style/SaveAs,
       index shift. Converter registered; 3 tests. See `checklists/Spreadsheet-Migration-EPPlus.md`.
-- [x] **B2/B3 GemBox.Spreadsheet** — `PXA.Migration.Spreadsheet.Code.GemBox`, `CANMIGGBSS`. Drops SetLicense;
-      ExcelFile→PxaWorkbook, Cells[..]→Cell(..) (0-based, no shift), Font.Weight→Bold(), value/formula/save.
+- [x] **B2/B3 GemBox.Spreadsheet** — `PVAD.Migration.Spreadsheet.Code.GemBox`, `CANMIGGBSS`. Drops SetLicense;
+      ExcelFile→PvadWorkbook, Cells[..]→Cell(..) (0-based, no shift), Font.Weight→Bold(), value/formula/save.
       Converter registered; 2 tests. See `checklists/Spreadsheet-Migration-GemBox.md`.
-- [x] **B2/B3 Aspose.Cells** — `PXA.Migration.Spreadsheet.Code.Aspose`, `CANMIGASPC`. Workbook→PxaWorkbook,
+- [x] **B2/B3 Aspose.Cells** — `PVAD.Migration.Spreadsheet.Code.Aspose`, `CANMIGASPC`. Workbook→PvadWorkbook,
       `Worksheets[0]`→`AddSheet`, `Cells[..]`→`Cell(..)` (0-based), `PutValue`→`Value`, Formula→method,
       `SetColumnWidth`→`Column().Width()`, save; GetStyle/SetStyle + charts diagnosed. Registered; 2 tests.
       See `checklists/Spreadsheet-Migration-Aspose.md`.
@@ -71,14 +76,14 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 
 ## Status — all done
 All four converters live at `GET /api/migration/frameworks` + `POST /api/migration/convert` (Status `full`).
-10 migration unit tests green; `dotnet build PXA.sln` clean. Live-verified each emits PXA code.
+10 migration unit tests green; `dotnet build PVAD.sln` clean. Live-verified each emits PVAD code.
 
 ## Follow-up — migration list categorization — DONE
 - [x] `ICodeConverter.Kind` ("pdf" default | "spreadsheet"); exposed via `FrameworkInfo.Kind` + the
       `/frameworks` endpoint (`kind`). New `BaseSpreadsheetConverter` (the 4 extend it) sets Kind +
       renders a spreadsheet-appropriate preview (sheets/cells counts, not PDF draw-call replay).
-- [x] Frontend `MigrationsPage`: `<optgroup>` split ("PDF libraries → PXA.Pdf" vs "Spreadsheet libraries
-      → PXA spreadsheet"); output pane labels "PXA Spreadsheet Code" for spreadsheet kind.
+- [x] Frontend `MigrationsPage`: `<optgroup>` split ("PDF libraries → PVAD.Pdf" vs "Spreadsheet libraries
+      → PVADE spreadsheet"); output pane labels "PVADE Spreadsheet Code" for spreadsheet kind.
 - [x] Live: 15 pdf + 4 spreadsheet tagged; spreadsheet `/preview` → valid `%PDF`. tsc clean.
 
 ## Follow-up — split Migrations into PDF and Spreadsheet domains (+ grid previewer)
@@ -86,8 +91,8 @@ Reorganize Migrations **domain-first** (replacing the Code-vs-Format split). Two
 its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previewer. Plan mirrored from
 `~/.claude/plans/can-you-analyse-migrations-valiant-beaver.md`.
 
-- **PDF Migration** (`/migrations/pdf`): Code (`/pdf/code`, 15 libs → PXA.Pdf) · UI-Designer (`/pdf/designer`, report files → design).
-- **Spreadsheet Migration** (`/migrations/spreadsheet`): Code (`/spreadsheet/code`, 4 libs → PXA spreadsheet API, **grid preview**) · Datasource (`/spreadsheet/datasource`, .xlsx/.csv → workbook).
+- **PDF Migration** (`/migrations/pdf`): Code (`/pdf/code`, 15 libs → PVAD.Pdf) · UI-Designer (`/pdf/designer`, report files → design).
+- **Spreadsheet Migration** (`/migrations/spreadsheet`): Code (`/spreadsheet/code`, 4 libs → PVADE spreadsheet API, **grid preview**) · Datasource (`/spreadsheet/datasource`, .xlsx/.csv → workbook).
 - Document importer stays standalone at `/importer` (out of scope).
 
 - [x] Routing (`App.tsx`): `/migrations/pdf/{code,designer}`, `/migrations/spreadsheet/{code,datasource}`,
@@ -100,7 +105,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
       (`AddSheet`/`Cell("A1"|r,c).Value`/`Formula`) → styled HTML `<table>`; `MigrationController` + `MigrationService.GetKind`
       set content-type (`text/html` spreadsheet, `application/pdf` pdf).
 - [x] `SpreadsheetImportPage` → `sheetTabs('datasource')`; `ImporterPage` standalone (format tabs dropped, nav restored).
-- [x] Verified: tsc + vite build + `dotnet build PXA.sln` clean; live — spreadsheet `/preview` → `text/html`
+- [x] Verified: tsc + vite build + `dotnet build PVAD.sln` clean; live — spreadsheet `/preview` → `text/html`
       with `<table>` (Item/Coffee/SUM); PDF `/preview` → `application/pdf`.
 
 ## Sequencing (phase-by-phase, commit each)
@@ -108,21 +113,21 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
 5. Wrap-up docs (Migration page lists the 4 new spreadsheet sources).
 
 ## Critical files
-- **Format:** `src/Core/PXA.Core/Contracts/SpreadsheetDto.cs`; `docs/schema/canvas-workbook.schema.json` (new);
-  `pxa-designer/src/spreadsheet/{types.ts,io.ts,store}`; `pxa-designer/src/pages/DocsPage.tsx`;
-  `llms.txt`; `tools/PXA.Mcp`.
-- **Authoring API:** `src/Infrastructure/PXA.Infrastructure.Spreadsheet/PxaWorkbookBuilder.cs` (new).
-- **Migration (reuse):** `src/Migrations/Common/PXA.Migration.Roslyn/CSharpSourceMigration.cs`;
-  clone `src/Migrations/PDF/PXA.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs`; `PXA.Migration.Abstractions` (`MigrationDiagnostic`);
-  new `src/PXA.Migration.<Lib>Spreadsheet/`; `PXA.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
+- **Format:** `src/Core/PVAD.Core/Contracts/SpreadsheetDto.cs`; `docs/schema/canvas-workbook.schema.json` (new);
+  `pvad-designer/src/spreadsheet/{types.ts,io.ts,store}`; `pvad-designer/src/pages/DocsPage.tsx`;
+  `llms.txt`; `tools/PVAD.Mcp`.
+- **Authoring API:** `src/Infrastructure/PVAD.Infrastructure.Spreadsheet/PvadWorkbookBuilder.cs` (new).
+- **Migration (reuse):** `src/Migrations/Common/PVAD.Migration.Roslyn/CSharpSourceMigration.cs`;
+  clone `src/Migrations/PDF/PVAD.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs`; `PVAD.Migration.Abstractions` (`MigrationDiagnostic`);
+  new `src/PVAD.Migration.<Lib>Spreadsheet/`; `PVAD.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
 
 ## Verification
-- **Format:** `PXA.Export.Tests` JSON round-trip preserves Phase-2 fields + `schemaVersion`; sample
+- **Format:** `PVAD.Export.Tests` JSON round-trip preserves Phase-2 fields + `schemaVersion`; sample
   validates against `canvas-workbook.schema.json`. Frontend `jest` round-trip lossless; `tsc` clean.
-- **Authoring API:** unit test builds via `PxaWorkbook` → `.xlsx`; `/calculate` computes a fluent formula.
-- **Migration:** per-lib unit test (source snippet → expected PXA code + diagnostics, e.g. chart →
+- **Authoring API:** unit test builds via `PvadWorkbook` → `.xlsx`; `/calculate` computes a fluent formula.
+- **Migration:** per-lib unit test (source snippet → expected PVAD code + diagnostics, e.g. chart →
   `CANMIG…` Warning). Live: `/api/migration/frameworks` lists 4 new sources; `/api/migration/convert`
-  returns PXA code for a ClosedXML sample. `dotnet build PXA.sln` clean; full suite green.
+  returns PVAD code for a ClosedXML sample. `dotnet build PVAD.sln` clean; full suite green.
 
 ## Deferred
 File-format migration (`.ods`, Google Sheets, SpreadsheetML 2003, `.numbers`); charts + pivots in the

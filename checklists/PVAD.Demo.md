@@ -1,19 +1,17 @@
-# PXA.Demo Website Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD.Demo Website Checklist
 
 ## Ziel
-`PXA.Demo` ist die interaktive Demo-Website fuer PXA. Sie soll Beispiele katalogisieren, live erlebbar machen und jeweils zu Source, Documentation und passenden Checklists fuehren.
+`PVAD.Demo` ist die interaktive Demo-Website fuer PVADE. Sie soll Beispiele katalogisieren, live erlebbar machen und jeweils zu Source, Documentation und passenden Checklists fuehren.
 
 ## Referenz
 - Aufbau orientiert sich an DevExpress Demos: Demo-Katalog, Kategorien, kurze Erklaerung und direkte "Open demo"-Einstiege.
 - Unfertige Demos zeigen Status statt leere Seiten.
 
 ## Zielstruktur
-- [x] Website/App unter `websites/PXA.Demo` planen.
+- [x] Website/App unter `websites/PVAD.Demo` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
-- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
+- [x] Live Demo als globale Header-CTA zu `PVADE Designer` ergaenzen.
 - [x] Demo Home erstellen:
   - [x] Kategorien
   - [x] Suche
@@ -89,7 +87,7 @@
 - [x] Keine alten `Canvas`-Brandingreste in neuen Demo-Inhalten.
 
 ## Tests
-- [x] Build fuer `PXA.Demo` ausfuehren, sobald die App existiert.
+- [x] Build fuer `PVAD.Demo` ausfuehren, sobald die App existiert.
 - [x] Demo-Routen smoke-testen.
 - [x] Filter/Suche testen.
 - [x] Links zu Docs, Source und Checklists pruefen.
@@ -102,5 +100,5 @@
 
 ## Offene Entscheidungen
 - [x] Demo-Datenquelle festlegen: statische Daten im MVP, spaeter API oder gemischter Ansatz.
-- [x] Hosting fuer Beispiel-Dateien festlegen: statische Vite Public Assets unter `websites/PXA.Demo/public/examples/<demo-id>/`.
-- [x] Sicherheitsgrenzen fuer Upload-/Live-Migration-Demos festlegen: keine Uploads/Live-Migration im statischen MVP; Details siehe `websites/PXA.Demo/SECURITY_AND_HOSTING.md`.
+- [x] Hosting fuer Beispiel-Dateien festlegen: statische Vite Public Assets unter `websites/PVAD.Demo/public/examples/<demo-id>/`.
+- [x] Sicherheitsgrenzen fuer Upload-/Live-Migration-Demos festlegen: keine Uploads/Live-Migration im statischen MVP; Details siehe `websites/PVAD.Demo/SECURITY_AND_HOSTING.md`.

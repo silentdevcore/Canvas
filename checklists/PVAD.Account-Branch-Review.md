@@ -1,10 +1,12 @@
-# PXA Account Branch Review Checklist
+# predecessor Account Branch Review Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
 
 ## Scope
 
-Track the findings from the full review of branch `pxa-account-all-open-points`.
+Track the findings from the full review of branch predecessor implementation.
 This checklist covers corrective work only. Product roadmap items remain in
 `PVAD.Account.md` and deployment work remains deferred.
 
@@ -28,8 +30,8 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 ## P0 Account Recovery
 
-- [x] Generate PXA Account password-reset links with the Account base URL.
-- [x] Keep PXA Admin recovery links separate from customer Account recovery.
+- [x] Generate predecessor Account password-reset links with the Account base URL.
+- [x] Keep predecessor Admin recovery links separate from customer Account recovery.
 - [x] Add a mail-flow test asserting the correct reset host for each application surface.
 
 ## P1 Validation And API Contracts
@@ -67,26 +69,26 @@ This checklist covers corrective work only. Product roadmap items remain in
 ## Branch Hygiene
 
 - [x] Keep Account commits `76ae0f97` through `16d64574` together; the audited history contains the complete contiguous Phase 0-12 sequence.
-- [x] Preserve Designer redesign commits `e319afeb` and `3ec60517` on the stacked topic branch `pxa-designer-redesign-topic`.
-- [x] Preserve localization and template commits `df1764ec` and `dd411030` on the stacked topic branch `pxa-designer-localization-topic`.
-- [x] Preserve Markdown importer commit `03071fab` on the stacked topic branch `pxa-markdown-importer-topic`.
+- [x] Preserve Designer redesign commits `e319afeb` and `3ec60517` on the stacked topic branch predecessor implementation.
+- [x] Preserve localization and template commits `df1764ec` and `dd411030` on the stacked topic branch predecessor implementation.
+- [x] Preserve Markdown importer commit `03071fab` on the stacked topic branch predecessor implementation.
 - [x] Confirm that the Admin platform base commit `a719476b` is intentional: Account reuses its persistent identity, mail, subscription, and administration foundation.
 
 ## Validation
 
-- [x] Run targeted PXA WebApi account, authentication, membership, closure, entitlement, and API-key tests.
-- [x] Run the PXA Account unit tests, type check, and production build.
-- [x] Run the PXA Company build after shared return-URL changes.
+- [x] Run targeted predecessor WebApi account, authentication, membership, closure, entitlement, and API-key tests.
+- [x] Run the predecessor Account unit tests, type check, and production build.
+- [x] Run the predecessor Company build after shared return-URL changes.
 - [x] Run `git diff --check`.
 - [x] Confirm that the worktree contains no generated build output.
-- [x] Run the complete solution build. `dotnet build PXA.sln --no-restore -p:UseSharedCompilation=false -m:1` completed with 0 errors; existing dependency, analyzer, obsolete-API, nullable, and license warnings remain.
+- [x] Run the complete solution build. `dotnet build PVAD.sln --no-restore -p:UseSharedCompilation=false -m:1` completed with 0 errors; existing dependency, analyzer, obsolete-API, nullable, and license warnings remain.
 
 ## Acceptance Criteria
 
 - [x] Removed roles and memberships stop authorizing existing sessions immediately.
 - [x] A closed organization cannot access products through browser cookies, API keys, or entitlements; only the requesting session can cancel its pending closure.
 - [x] Account data from one identity is never rendered for another identity because logout and expiry replace the SPA document.
-- [x] Account password-reset messages always lead to PXA Account.
+- [x] Account password-reset messages always lead to predecessor Account.
 - [x] Registration rejects invalid country and locale values without a database exception.
 - [x] Public error responses use stable, tested Account-specific codes for every reserved lifecycle condition.
 - [x] Production return URLs cannot redirect to localhost or another environment.

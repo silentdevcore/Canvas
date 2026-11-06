@@ -2,6 +2,7 @@ import html2canvas from 'html2canvas';
 import type { SimpleElement, Template, PageSettings, Page } from '@/types';
 import { validateDesignerAccessibility, type DesignerAccessibilityIssue } from '@/accessibility/designerAccessibility';
 import { validatePdfTrustSettings, type PdfTrustValidationIssue } from '@/utils/pdfTrustValidation';
+import { normalizeChartMetadataElement } from '@/chart/model';
 
 export type ExportFormat = 'pdf' | 'json' | 'html' | 'xml' | 'word' | 'excel' | 'png' | 'jpeg' | 'svg' | 'csv' | 'md' | 'tiff' | 'odt';
 
@@ -89,10 +90,10 @@ export class ExportService {
       pages: pages.map(page => ({
         ...(page.extensionData ?? {}),
         id: page.id,
-        elements: page.elements,
+        elements: page.elements.map(element => element.type === 'chart' ? normalizeChartMetadataElement(element) : element),
         layout: page.layout ?? null,
       })),
-      sharedElements,
+      sharedElements: sharedElements.map(element => element.type === 'chart' ? normalizeChartMetadataElement(element) : element),
       pageSettings: {
         ...(settings.extensionData ?? {}),
         width: settings.width,

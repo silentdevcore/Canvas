@@ -1,16 +1,14 @@
-# PXA Designer Releases and Notifications
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Releases and Notifications
 
 ## Goal
 
-- [x] Provide one versioning, release-note, feature-maturity, toast, and notification system for PXA Designer.
+- [x] Provide one versioning, release-note, feature-maturity, toast, and notification system for PVADE Designer.
 - [x] Keep the Designer and public Documentation consistent through shared product metadata.
 - [x] Keep API compatibility versions separate from the Designer product version.
 
 ## P0 - Versioning and Release Notes
 
-- [x] Keep `pxa-designer/package.json` as the Designer SemVer source.
+- [x] Keep `pvad-designer/package.json` as the Designer SemVer source.
 - [x] Inject Designer version, build time, and Git commit into production builds.
 - [x] Add a validated, curated release manifest shared by Designer, WebApi, and Documentation.
 - [x] Require one manifest entry for every shipped Designer version.
@@ -18,7 +16,7 @@
 - [x] Show the current version and a "What's New" action in the Designer user menu.
 - [x] Add an accessible release-notes drawer and show it once for each unseen release.
 - [x] Persist release-read state per user in PostgreSQL.
-- [x] Add public release-note navigation and version pages to PXA.Documentation.
+- [x] Add public release-note navigation and version pages to PVAD.Documentation.
 
 ## P0 - Toasts
 
@@ -71,7 +69,7 @@
 - [x] Test Documentation sidebar, focus mode, search, filters, and internal links.
 - [x] Run WebApi tests and build.
 - [x] Run Designer tests, type check, and production build.
-- [x] Run PXA.Documentation production build and desktop/mobile smoke tests.
+- [x] Run PVAD.Documentation production build and desktop/mobile smoke tests.
 
 ## Acceptance Criteria
 
@@ -84,7 +82,7 @@
 
 ## Verification Record
 
-- [x] `PXA.Api.Tests`: 261 passed; 59 existing PostgreSQL-gated tests skipped by configuration.
+- [x] [compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json): 261 passed; 59 existing PostgreSQL-gated tests skipped by configuration.
 - [x] Designer: type check passed; 287 tests passed; production build passed.
 - [x] Documentation: 3 release-contract tests passed; production build passed.
 - [x] Documentation desktop and mobile smoke checks passed without horizontal overflow.
@@ -96,6 +94,6 @@
 - [ ] Add real-time notification delivery.
 - [ ] Add external release publishing automation.
 - [ ] Add versioned translations for authored release-note and notification payloads. Feature descriptions, maturity labels, categories, decisions, and fallback UI are localized in all six languages.
-- [ ] Finish global toast presentation polish. Release drawer, notification center, feature badges, and product-experience states now match the established PXA Designer visual system.
+- [ ] Finish global toast presentation polish. Release drawer, notification center, feature badges, and product-experience states now match the established PVADE Designer visual system.
 - [x] Keep notifications clickable after they are read so users can reopen and review their complete content multiple times.
-- [ ] Add release authoring and notification publishing tools to PXA Admin.
+- [ ] Add release authoring and notification publishing tools to PVAD Admin.

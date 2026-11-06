@@ -1,11 +1,9 @@
 # PDF Tools Web Viewer Feature Gaps
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Scope
 
 This checklist tracks ideas from the **Pdftools Web Viewer** demo (`https://viewer.pdf-tools.com/v5/`)
-as a reference for PXA viewer/review workflows and PXA.PDF-adjacent capabilities.
+as a reference for PVADE viewer/review workflows and PVAD.PDF-adjacent capabilities.
 
 This is **not** a report-designer migration checklist. Pdftools Web Viewer is a browser PDF viewer and
 annotation SDK, not a format like `.rdl`, `.repx`, `.jrxml`, or `.frx`.
@@ -25,19 +23,19 @@ Observed demo/source facts:
 | Area | Belongs here? | Notes |
 | --- | --- | --- |
 | Report designer migration | No | No designer file format is involved. |
-| PXA.PDF engine parity | Partly | Some features require PDF writer/model support, for example annotations, forms, redaction, accessibility. |
-| PXA web viewer / review UX | Yes | Main value: viewing, searching, annotating, redacting, saving, printing. |
+| PVAD.PDF engine parity | Partly | Some features require PDF writer/model support, for example annotations, forms, redaction, accessibility. |
+| PVADE web viewer / review UX | Yes | Main value: viewing, searching, annotating, redacting, saving, printing. |
 | Existing PDF editing | Partly | Save/annotation/redaction workflows need imported/existing PDF support, not only generation. |
 | PDF Tools code migration | Adjacent | Separate from `Code-Migration-PdfTools.md` and `Code-Migration-PdfToolsToolbox.md`. |
 
-## Already Related In PXA
+## Already Related In PVADE
 
-- [x] PXA can generate PDFs via `PXA.Pdf`.
-- [x] PXA has basic document preview/export flows.
-- [x] PXA.PDF supports links/bookmarks/outlines and viewer preferences.
-- [x] PXA.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
-- [x] PXA has file importer and PDF importer foundations for existing documents.
-- [x] PXA has a broader provider feature-gap roadmap in
+- [x] PVADE can generate PDFs via `PVAD.Pdf`.
+- [x] PVADE has basic document preview/export flows.
+- [x] PVAD.PDF supports links/bookmarks/outlines and viewer preferences.
+- [x] PVAD.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
+- [x] PVADE has file importer and PDF importer foundations for existing documents.
+- [x] PVADE has a broader provider feature-gap roadmap in
       [PvadPdf-Provider-Feature-Gaps.md](PvadPdf-Provider-Feature-Gaps.md).
 
 ## Current Implementation Status
@@ -66,11 +64,11 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       revision retains the removed content, and it is verified before being returned. The former
       regenerate-the-whole-document path has been removed. Remaining Milestone 3 gaps are tracked
       in `PVAD.PDF-Trust-Foundation.md`.
-- [x] Redaction preflight: `POST /api/pxa/v1/pdf/redactions/preflight` reports per region what
-      would be removed and what PXA cannot account for, without mutating the document
+- [x] Redaction preflight: `POST /api/pvad/v1/pdf/redactions/preflight` reports per region what
+      would be removed and what PVADE cannot account for, without mutating the document
 - [x] Redaction audit record: apply returns the source and result hashes, regions, actor, reason,
       sanitizations, and verification outcome, hashed in canonical form. It is returned out of
-      band, in the `PXA-Redaction-Audit` and `PXA-Redaction-Result-Sha256` response headers, and
+      band, in the [compatibility entry `compat-217c15ea577d`](../docs/reference/compatibility-identifiers.v1.json) and [compatibility entry `compat-77f726242739`](../docs/reference/compatibility-identifiers.v1.json) response headers, and
       is deliberately no longer written into the redacted document's info metadata: the reason
       and the actor would otherwise be disclosed to every recipient of a file that was redacted
       to limit disclosure.
@@ -117,7 +115,7 @@ Intentional remaining gaps:
 ## P0 - Viewer Foundation
 
 - [x] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
-      Implemented in `pxa-designer` at `/pdf-viewer`.
+      Implemented in `pvad-designer` at `/pdf-viewer`.
 - [x] **Document open sources** - Open generated PDFs, uploaded local files, and backend-served PDFs through one viewer abstraction.
       Implemented for uploaded local files, direct/backend URLs, `?src=` URL handoff, migration-preview generated PDF handoff, and normal Designer PDF export handoff.
 - [x] **Thumbnails/sidebar** - Page thumbnails with current-page state and click-to-navigate.
@@ -130,14 +128,14 @@ Intentional remaining gaps:
 - [x] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
       Implemented as browser `pdf-viewer:event` custom events plus a small in-view event trace.
 
-## PXA Viewer Adaptation Plan
+## PVADE Viewer Adaptation Plan
 
-Goal: make the PXA PDF viewing experience feel comparable to the PDF Tools Web Viewer while keeping
+Goal: make the PVADE PDF viewing experience feel comparable to the PDF Tools Web Viewer while keeping
 our own implementation, UI language, and engine boundaries.
 
 ### Phase 1 - PDF Tools-like viewer baseline
 
-- [x] Add a dedicated PDF viewer route/page in `pxa-designer`.
+- [x] Add a dedicated PDF viewer route/page in `pvad-designer`.
 - [x] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
       Implemented as `PdfViewer` plus a thin route page. Upload, direct URL, backend URL, and session handoff are supported through `handoff.ts`.
 - [x] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
@@ -169,7 +167,7 @@ our own implementation, UI language, and engine boundaries.
       Selection, text editing, move, resize, color, size, delete, lock, and unlock are implemented for sidecar annotations.
 - [x] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
       Implemented import/export for annotation sidecar JSON.
-      Sidecar schema/types and parser/serializer are centralized in `pxa-designer/src/features/pdf-viewer/annotations.ts`.
+      Sidecar schema/types and parser/serializer are centralized in `pvad-designer/src/features/pdf-viewer/annotations.ts`.
 
 ### Phase 3 - Professional PDF workflows
 
@@ -201,24 +199,24 @@ our own implementation, UI language, and engine boundaries.
 ### Technical Decision Points
 
 - [ ] Decide whether the viewer rendering basis is PDF.js, browser-native PDF embedding, or a custom
-      PXA rendering layer.
+      PVAD rendering layer.
 - [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
 - [x] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
       Decision implemented: sidecar JSON remains the review-state source for the viewer, with a backend export path that
       embeds supported annotations as native PDF annotation objects.
-- [ ] Decide the boundary between `PXA.Importer` existing-PDF parsing and `PXA.Pdf` rewritten output.
+- [ ] Decide the boundary between `PVAD.Importer` existing-PDF parsing and `PVAD.Pdf` rewritten output.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
       Added focused Jest tests for `annotations.ts` sidecar parsing/serialization and `annotationApi.ts` API client behavior. Playwright smoke tests and PDF binary tests remain open.
       Added API coverage for durable sidecar reload from disk.
-      Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `pxa-designer`.
+      Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `pvad-designer`.
       Added focused Jest coverage for AcroForm read/fill helper behavior.
       Added API coverage for applying redaction marks and verifying covered text is no longer extractable.
 
 ## P1 - Review And Annotation Workflow
 
-- [x] **Annotation model** - Define PXA-side model for PDF annotations independent from UI widgets.
+- [x] **Annotation model** - Define [compatibility entry `compat-0e1b0f21bdf1`](../docs/reference/compatibility-identifiers.v1.json) model for PDF annotations independent from UI widgets.
       Baseline sidecar model includes id, type, page, relative position/size, text, author, timestamp, and color.
 - [x] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
       Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups and can now be created
@@ -271,12 +269,12 @@ our own implementation, UI language, and engine boundaries.
 
 ## P2 - Engine/Backend Support
 
-- [ ] **Existing PDF save/edit bridge** - Decide how `PXA.Importer` and `PXA.Pdf` cooperate for editing existing PDFs.
-- [x] **Annotation writer support** - Emit PDF annotations from PXA model.
+- [ ] **Existing PDF save/edit bridge** - Decide how `PVAD.Importer` and `PVAD.Pdf` cooperate for editing existing PDFs.
+- [x] **Annotation writer support** - Emit PDF annotations from PVADE model.
       Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
       redaction annotations, wired to the viewer sidecar embed endpoint. Basic normal appearance Form XObjects are
       emitted for supported types; richer viewer-specific appearance fidelity remains open.
-- [x] **Annotation reader support** - Import existing PDF annotations into PXA model.
+- [x] **Annotation reader support** - Import existing PDF annotations into PVADE model.
       Baseline reader support extracts text, free text, highlight, underline, strikeout, square, circle, and redaction
       annotations into the viewer sidecar model. Highlight/underline/strikeout `QuadPoints` are preserved as sidecar
       text-selection quads. Rich annotation metadata, appearance stream fidelity, replies, and less common annotation
@@ -344,7 +342,7 @@ V2 should focus on hardening, configurability, collaboration boundaries, and fid
 
 ### V2 - Engine And Save Strategy
 
-- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `PXA.Importer` + `PXA.Pdf`, when we patch incrementally, and when we reject unsupported edits.
+- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `PVAD.Importer` + `PVAD.Pdf`, when we patch incrementally, and when we reject unsupported edits.
       Acceptance: architecture note documents boundaries, failure modes, and test expectations.
 - [ ] **Incremental update strategy** - Decide and implement incremental save for annotation/form changes where full rewrite is not required.
       Acceptance: simple annotation/form edits can be appended incrementally and preserve unrelated original PDF structures.
@@ -370,7 +368,7 @@ redaction and form editing.
 ## References
 
 - Pdftools Web Viewer demo: https://viewer.pdf-tools.com/v5/
-- PXA.PDF provider gaps: [PvadPdf-Provider-Feature-Gaps.md](PvadPdf-Provider-Feature-Gaps.md)
+- PVAD.PDF provider gaps: [PvadPdf-Provider-Feature-Gaps.md](PvadPdf-Provider-Feature-Gaps.md)
 - Specialized PDF domains: [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md)
 - PDF Tools SDK migration checklist: [Code-Migration-PdfTools.md](Code-Migration-PdfTools.md)
 - PDF Toolbox migration checklist: [Code-Migration-PdfToolsToolbox.md](Code-Migration-PdfToolsToolbox.md)

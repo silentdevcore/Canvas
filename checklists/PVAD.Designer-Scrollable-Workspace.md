@@ -1,6 +1,4 @@
-# PXA Designer Scrollable Workspace
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Scrollable Workspace
 
 ## Goal
 
@@ -8,7 +6,7 @@ Make page navigation, the document workspace, and both editor side panels adapt 
 
 ## Priority
 
-P0 usability fix for the PXA Designer.
+P0 usability fix for the PVADE Designer.
 
 ## Scope
 
@@ -57,8 +55,8 @@ P0 usability fix for the PXA Designer.
 - [x] Add tests that side-panel height follows the complete editor-stage height and retains internal overflow.
 - [x] Verify page selection automatically reveals the active page thumbnail.
 - [x] Verify element drag, resize, marquee selection, and context-menu placement after horizontal and vertical scrolling. *(Authenticated Playwright flow passed.)*
-- [x] Run `npm test` in `pxa-designer`. *(26 suites, 262 tests passed.)*
-- [x] Run `npm run build` in `pxa-designer`.
+- [x] Run `npm test` in `pvad-designer`. *(26 suites, 262 tests passed.)*
+- [x] Run `npm run build` in `pvad-designer`.
 - [x] Perform desktop smoke tests at 1280x720, 1440x900, and 1920x1080.
 - [x] Perform mobile and tablet smoke tests without regressing drawer navigation. *(720x1024 and 390x844 passed; the audit also corrected Home hero/header overflow.)*
 

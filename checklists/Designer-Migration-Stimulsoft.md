@@ -1,15 +1,13 @@
-# Designer Migration: Stimulsoft Reports (`.mrt`) → PXA Designer
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# Designer Migration: Stimulsoft Reports (`.mrt`) → PVADE Designer
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-Stimulsoft `.mrt` → PXA `DesignExportDto` converter.
+Stimulsoft `.mrt` → PVAD `DesignExportDto` converter.
 
 - **Designer:** Stimulsoft Reports (Designer / Reports.JS) · **Manufacturer:** Stimulsoft
 - **Format:** `.mrt` — `StiSerializer` **XML** (the format real `.mrt` files use, incl. Stimulsoft's own
   sample repos). A newer **JSON** `.mrt` variant also exists (V2). **Banded.**
-- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.Stimulsoft`). Band-flatten with explicit band positions
-  (mirrors `PXA.Migration.Report.Designer.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
+- **Status:** ✅ **Shipped** (`PVAD.Migration.Report.Designer.Stimulsoft`). Band-flatten with explicit band positions
+  (mirrors `PVAD.Migration.Report.Designer.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
 
 ---
 
@@ -61,7 +59,7 @@ Root LocalName `StiSerializer` is unique → `LooksLikeMrt` = root `<StiSerializ
 
 ## Control mapping
 
-| `.mrt` item | PXA `ElementDto.Type` | Notes |
+| `.mrt` item | PVADE `ElementDto.Type` | Notes |
 | --- | --- | --- |
 | `Text` | `text` | `{Source.Field}` → binding; other `{…}` → expression |
 | `Image` | `image` | embedded base64 → data URL, else placeholder |
@@ -80,8 +78,8 @@ Root LocalName `StiSerializer` is unique → `LooksLikeMrt` = root `<StiSerializ
 | `CANMIGMRT010` | Info / Warning | `{Source.Field}` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGMRT011` | Warning | Unsupported item / SubReport — labeled placeholder |
 | `CANMIGMRT012` | Warning | Image not embeddable — placeholder inserted |
-| `CANMIGMRT013` | Warning | `GroupHeaderBand`/`GroupFooterBand` item mapped to PXA repeat metadata; group runtime semantics need review |
-| `CANMIGMRT014` | Warning | `Chart`/`CrossTab` has no native PXA equivalent — positioned placeholder inserted |
+| `CANMIGMRT013` | Warning | `GroupHeaderBand`/`GroupFooterBand` item mapped to PVADE repeat metadata; group runtime semantics need review |
+| `CANMIGMRT014` | Warning | `Chart`/`CrossTab` has no native PVADE equivalent — positioned placeholder inserted |
 
 ## V1 checklist
 
@@ -110,11 +108,11 @@ more value than another parser path.
 - [x] **P1** Per-side `<Border>` parsing: StiBorder `Sides;Color;Size;…` strings map to a uniform
       `borderColor`/`borderWidth` (sides include `All`) or per-side `border{Side}Color/Width` keys, on text
       and rectangle elements (element + named-style fallback).
-- [x] **P1** Group bands repeat semantics: `GroupHeaderBand`/`GroupFooterBand` items carry PXA `RepeatDto`
+- [x] **P1** Group bands repeat semantics: `GroupHeaderBand`/`GroupFooterBand` items carry PVADE `RepeatDto`
       (data path from the band `<Condition>`, e.g. `{Customers.Country}`→`Country`) + `style.mrtGroup`
       (name/role/condition); footers inherit the paired header's group key. Diagnostic `CANMIGMRT013`.
 - [x] **P1** Page `PaperSize`/`PageWidth` units (named PaperSize, else explicit `PageWidth`/`PageHeight`
       hundredths-inch → pt); `Chart`/`CrossTab` → positioned placeholders with `CANMIGMRT014`.
 - [x] **P1** Stimulsoft expression dialect: single `{Source.Field}` → binding; compound expressions/functions
       preserved on `Expression` + `style.mrtExpression` with every `{Source.Field}`/`{Field}` normalized to a
-      PXA `{{Field}}` token (system variables left intact).
+      PVADE `{{Field}}` token (system variables left intact).

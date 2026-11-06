@@ -1,6 +1,4 @@
-# Designer Migration: Crystal Reports (`.rpt`) → PXA Designer
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# Designer Migration: Crystal Reports (`.rpt`) → PVADE Designer
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md).
 
@@ -19,7 +17,7 @@ Unlike every other designer in this suite, `.rpt` is **not a parseable text form
    **undocumented and SAP-controlled**. There is **no open-source, neutral, cross-platform parser** for
    the layout — confirmed against the available references.
 2. **Requires the SAP Crystal Reports SDK.** The only supported way to read a `.rpt`'s layout is the SAP
-   Crystal Reports SDK for .NET/Java — which is **Windows/COM-based** and not usable on PXA's
+   Crystal Reports SDK for .NET/Java — which is **Windows/COM-based** and not usable on PVADE's
    cross-platform `net10.0` target.
 3. **Binary input doesn't fit the endpoint.** `POST /api/migration/report-to-design` takes a
    `sourceCode` **string**; a binary `.rpt` can't be passed as text without a base64/file-upload path
@@ -32,10 +30,10 @@ works, so **no converter is shipped**. This file records the decision.
 
 - **SDK-backed `RptToXml` (Windows only).** On a Windows host with the SAP Crystal SDK, convert
   `.rpt → XML` (e.g. the community `RptToXml` tool, which uses the RAS SDK), then write an
-  `PXA.Migration.CrystalXml` converter against that XML. Needs: a Windows build/runtime + the SDK +
+  `PVAD.Migration.CrystalXml` converter against that XML. Needs: a Windows build/runtime + the SDK +
   a binary/file upload path on the endpoint.
 - **User-side re-export.** Crystal can't export to RDL directly, but a third-party Crystal→SSRS migration
-  can produce **RDL**, which already converts via `PXA.Migration.Report.Designer.Rdl`. Document this as the
+  can produce **RDL**, which already converts via `PVAD.Migration.Report.Designer.Rdl`. Document this as the
   recommended manual workaround.
 - **Binary upload + CFB string extraction (low value).** Detect the CFB signature and extract readable
   strings (field names, captions) — but **no geometry/layout** is recoverable, so the result isn't a
@@ -44,4 +42,4 @@ works, so **no converter is shipped**. This file records the decision.
 ## Recommendation
 
 Leave Crystal **blocked** and steer users to the SDK-export → RDL/XML path. Revisit only if a Windows +
-SAP-SDK build target is added to PXA.
+SAP-SDK build target is added to PVADE.

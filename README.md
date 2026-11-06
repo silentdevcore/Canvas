@@ -1,6 +1,6 @@
 # PVADE - Document Automation Platform
 
-A document automation platform with a visual template designer, expression engine, and multi-format export/import, built on .NET 10 and React/TypeScript. Current validation and rollout gates are tracked in [the rename checklist](checklists/Rename-PXA-To-PVAD.md).
+A document automation platform with a visual template designer, expression engine, and multi-format export/import, built on .NET 10 and React/TypeScript. Current validation and rollout gates are tracked in [the rename checklist](checklists/PVAD.Rename-Plan.md).
 
 ---
 
@@ -11,7 +11,7 @@ A document automation platform with a visual template designer, expression engin
 | PVADE | Platform, website and Designer display name |
 | PVAD | Technical identity for APIs, packages, namespaces, CLI and configuration |
 | PVADP / PVADS | PDF / Spreadsheet product names; native formats `.pvadp` / `.pvads` |
-| PXA / `PXA.*` | Previous identity, retained only for documented compatibility and historical evidence |
+| Previous identity | Exact compatibility identifiers are maintained in the versioned contract register; original naming remains in Git. |
 
 ---
 
@@ -162,7 +162,7 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-PVAD.WebApi                  ← ASP.NET Core presentation layer with stable API routes and PXA aliases
+PVAD.WebApi                  ← ASP.NET Core presentation layer with stable API routes and legacy aliases
   ↓
 PVAD.Application             ← Use-case orchestration
   ↓

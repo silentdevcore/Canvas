@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -82,8 +83,8 @@ public sealed class AdminSystemControllerTests
         using var organizationClient = CreateClient(factory);
         await LoginAsync(
             organizationClient,
-            "organization-admin@pxa.test",
-            "Pxa-OrgAdmin-Integration-42!");
+            "organization-admin@pvad.test",
+            "Pvad-OrgAdmin-Integration-42!");
         Assert.Equal(
             HttpStatusCode.Forbidden,
             (await organizationClient.GetAsync("/api/pvad/v1/admin/system/health")).StatusCode);
@@ -104,8 +105,8 @@ public sealed class AdminSystemControllerTests
         using var systemClient = CreateClient(factory);
         await LoginAsync(
             systemClient,
-            "system-admin@pxa.test",
-            "Pxa-SystemAdmin-Integration-42!");
+            "system-admin@pvad.test",
+            "Pvad-SystemAdmin-Integration-42!");
         using var response = await systemClient.GetAsync("/api/pvad/v1/admin/system/health");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
@@ -126,8 +127,8 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(1, jobs.GetProperty("pendingJobs").GetInt64());
         Assert.Equal(1, jobs.GetProperty("deadLetterJobs").GetInt64());
         Assert.True(jobs.GetProperty("oldestPendingSeconds").GetInt64() >= 0);
-        Assert.DoesNotContain("system-admin@pxa.test", body, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("organization-admin@pxa.test", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("system-admin@pvad.test", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("organization-admin@pvad.test", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Password=", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Host=", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("trace", body, StringComparison.OrdinalIgnoreCase);
@@ -200,6 +201,7 @@ public sealed class AdminSystemControllerTests
             "/api/pvad/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
         var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PXA-Operator"));
+        Assert.Equal(operatorName, Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator")));
         Assert.Matches("^pxa-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
 
@@ -215,7 +217,7 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(HttpStatusCode.OK, runbookResponse.StatusCode);
         var runbook = await runbookResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Contains(
-            "RESTORE PXA DATABASE",
+            "[compatibility entry `compat-2d79ca4f327e`](compatibility-identifiers.v1.json)",
             runbook.GetProperty("markdown").GetString(),
             StringComparison.Ordinal);
         Assert.Equal(
@@ -245,7 +247,7 @@ public sealed class AdminSystemControllerTests
                     {
                         ["ConnectionStrings:PxaDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
-                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pxa.test",
+                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                         ["Mail:Transport"] = "Disabled",
                     }));
                 builder.ConfigureServices(services =>
@@ -253,6 +255,7 @@ public sealed class AdminSystemControllerTests
                     services.RemoveAll<DbContextOptions<PvadDbContext>>();
                     services.AddDbContext<PvadDbContext>(
                         options => options.UseNpgsql(connectionString));
+                    services.AddDataProtection().UseEphemeralDataProtectionProvider();
                 });
             });
 
@@ -274,12 +277,16 @@ public sealed class AdminSystemControllerTests
 
         foreach (var roleName in PvadRoles.Permissions.Keys)
         {
-            var result = await roleManager.CreateAsync(new PvadIdentityRole
+            var role = new PvadIdentityRole
             {
                 Name = roleName,
                 IsSystemRole = true,
-            });
+            };
+            var result = await roleManager.CreateAsync(role);
             Assert.True(result.Succeeded, Describe(result));
+            if (roleName == PvadRoles.SystemAdministrator)
+                foreach (var permission in PvadRoles.Permissions[roleName])
+                    Assert.True((await roleManager.AddClaimAsync(role, new System.Security.Claims.Claim(PvadClaimTypes.Permission, permission))).Succeeded);
         }
 
         var organization = new Organization
@@ -292,17 +299,17 @@ public sealed class AdminSystemControllerTests
 
         var systemAdministrator = await CreateUserAsync(
             userManager,
-            "system-admin@pxa.test",
+            "system-admin@pvad.test",
             "System Administrator",
-            "Pxa-SystemAdmin-Integration-42!");
+            "Pvad-SystemAdmin-Integration-42!");
         Assert.True((await userManager.AddToRoleAsync(
             systemAdministrator,
             PvadRoles.SystemAdministrator)).Succeeded);
         var organizationAdministrator = await CreateUserAsync(
             userManager,
-            "organization-admin@pxa.test",
+            "organization-admin@pvad.test",
             "Organization Administrator",
-            "Pxa-OrgAdmin-Integration-42!");
+            "Pvad-OrgAdmin-Integration-42!");
 
         var systemMembership = new OrganizationMembership
         {

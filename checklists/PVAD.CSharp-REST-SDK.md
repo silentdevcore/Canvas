@@ -1,10 +1,8 @@
-# PXA C# REST SDK Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD C# REST SDK Checklist
 
 ## Goal
 
-Deliver a lightweight C# REST client for remote PXA Cloud and PXA Server usage while keeping it clearly separate from the native embedded PXA .NET libraries.
+Deliver a lightweight C# REST client for remote PVAD Cloud and PVAD Server usage while keeping it clearly separate from the native embedded PVAD .NET libraries.
 
 ## Priority And Dependencies
 
@@ -15,7 +13,7 @@ Deliver a lightweight C# REST client for remote PXA Cloud and PXA Server usage w
 ## Package And Runtime
 
 - [ ] Target .NET 8 or newer.
-- [ ] Publish the `PXA.Client` package to NuGet.
+- [ ] Publish the proposed `PVAD.Client` package to NuGet only after publisher ownership and package availability are verified.
 - [ ] Generate the internal transport and DTO layer from OpenAPI.
 - [ ] Use `HttpClient`, `System.Text.Json`, and standard dependency injection.
 - [ ] Expose handwritten client interfaces and product-specific clients.
@@ -31,14 +29,14 @@ Deliver a lightweight C# REST client for remote PXA Cloud and PXA Server usage w
 
 ## Documentation And Tests
 
-- [ ] Explain when to use `PXA.Client` versus native PXA libraries.
+- [ ] Explain when to use `PVAD.Client` versus native PVAD libraries.
 - [ ] Provide ASP.NET Core, worker-service, console, Cloud, and On-Premise examples.
-- [ ] Run unit and integration tests against the PXA Server container.
+- [ ] Run unit and integration tests against the PVAD Server container.
 - [ ] Test dependency injection, cancellation, uploads, downloads, and errors.
 - [ ] Validate NuGet packaging and public API compatibility.
 
 ## Acceptance Criteria
 
-- [ ] Customers can identify remote and embedded PXA products without ambiguity.
+- [ ] Customers can identify remote and embedded PVADE products without ambiguity.
 - [ ] The client follows standard .NET hosting and dependency-injection patterns.
-- [ ] No native document engine is included transitively in `PXA.Client`.
+- [ ] No native document engine is included transitively in `PVAD.Client`.

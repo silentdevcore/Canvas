@@ -91,6 +91,26 @@ test('reports notMeasured rather than 100 percent for an empty official denomina
   assert.equal(report.summary.targetMet, 'notMeasured');
 });
 
+test('legacy fixture labels are read without mutation and reports use canonical provider identities', async () => {
+  const root = await fixtureRoot();
+  const legacy = manifest([fixture({
+    sourceFormat: 'pxa-json', provider: 'pxa-pdf-importer',
+    provenance: 'pxa-synthetic', officiallySupported: false, realWorld: false,
+  })]);
+  const original = structuredClone(legacy);
+  const normalized = validateManifest(legacy, root);
+  assert.deepEqual(legacy, original);
+  assert.equal(normalized.fixtures[0].sourceFormat, 'pvad-json');
+  assert.equal(normalized.fixtures[0].provenance, 'pvad-synthetic');
+  assert.equal(normalized.fixtures[0].provider, 'pvad-pdf-importer');
+  const report = evaluate(legacy, { schemaVersion: 1, results: [result()] }, root);
+  assert.equal(report.results[0].provider, 'pvad-pdf-importer');
+  assert.equal(report.summary.automaticMigrationPercent, 'notMeasured');
+  assert.deepEqual(legacy, original);
+  const canonical = structuredClone(normalized);
+  assert.deepEqual(validateManifest(canonical, root), normalized);
+});
+
 test('calculates the official automatic migration percentage', async () => {
   const root = await fixtureRoot();
   await writeFile(path.join(root, 'fixtures/second.pdf'), '%PDF-second');

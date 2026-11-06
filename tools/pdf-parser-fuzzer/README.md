@@ -17,6 +17,21 @@ Run from the repository root:
 tools/pdf-parser-fuzzer/run.sh
 ```
 
+New version-2 reports identify the first-party parser as `pvad`. The read-only
+`report.mjs` reader accepts both name generations, normalizes only that parser
+identity in memory, and preserves hashes, outcomes, durations and differential
+results. It rejects alias collisions, unknown outcome parsers, missing results
+and inconsistent counts rather than silently combining them.
+
+```bash
+node tools/pdf-parser-fuzzer/report.mjs artifacts/pdf-fuzz/parser-fuzz-report.json
+```
+
+The reader does not overwrite its input. A crash or timeout still fails its exit
+status; parser disagreement alone does not. Schema version, deterministic seed,
+input limits and stable diagnostic IDs are unchanged. Historical reports remain
+original evidence, not renamed fixtures.
+
 For a bounded coverage-guided AFL++ campaign, install `afl-fuzz` and the
 `SharpFuzz.CommandLine` tool, then run:
 

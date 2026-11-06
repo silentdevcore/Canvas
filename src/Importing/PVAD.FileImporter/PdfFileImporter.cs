@@ -208,10 +208,19 @@ public sealed class PdfFileImporter : IFileImporter
         PdfDocumentModel document,
         List<ImportDiagnosticDto> diagnostics)
     {
-        if (document.Metadata[ChartMetadataCodec.PdfInfoKey] is not PVAD.Importer.Objects.PdfString value)
+        var canonical = document.Metadata[ChartMetadataCodec.PdfInfoKey];
+        var legacy = document.Metadata[ChartMetadataCodec.LegacyPdfInfoKey];
+        if (canonical is null && legacy is null)
             return [];
 
-        if (!ChartMetadataCodec.TryDecode(value.ToLatin1String(), out var envelope))
+        var value = (canonical ?? legacy) as PVAD.Importer.Objects.PdfString;
+        // A conflicting alias must not replace or rescue the authoritative payload.
+        var conflicting = canonical is not null && legacy is not null &&
+            (canonical is not PVAD.Importer.Objects.PdfString current ||
+             legacy is not PVAD.Importer.Objects.PdfString previous ||
+             !string.Equals(current.ToLatin1String(), previous.ToLatin1String(), StringComparison.Ordinal));
+        if (value is null || conflicting ||
+            !ChartMetadataCodec.TryDecode(value.ToLatin1String(), out var envelope))
         {
             diagnostics.Add(new ImportDiagnosticDto
             {
@@ -239,7 +248,7 @@ public sealed class PdfFileImporter : IFileImporter
         {
             Status = "automatic",
             Confidence = 1,
-            SourceKind = "pxaMetadata",
+            SourceKind = ChartDefinitionNormalizer.MetadataSourceKind,
             DiagnosticCode = "PXA-PDF-CHART-002"
         };
         var element = new ElementDto
@@ -255,7 +264,7 @@ public sealed class PdfFileImporter : IFileImporter
             {
                 ["pdfChartRecognitionStatus"] = "automatic",
                 ["pdfChartRecognitionConfidence"] = 1d,
-                ["pdfChartRecognitionSource"] = "pxaMetadata"
+                ["pdfChartRecognitionSource"] = ChartDefinitionNormalizer.MetadataSourceKind
             }
         };
         ChartDefinitionNormalizer.SynchronizeLegacyFields(element);

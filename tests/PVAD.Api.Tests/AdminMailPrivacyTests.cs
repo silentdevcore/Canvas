@@ -5,7 +5,7 @@ namespace PVAD.Api.Tests;
 public sealed class AdminMailPrivacyTests
 {
     [Theory]
-    [InlineData("invited@pxa.test", "i***@p***.test")]
+    [InlineData("invited@pvad.test", "i***@p***.test")]
     [InlineData("a@example.com", "a***@e***.com")]
     [InlineData("user@localhost", "u***@l***")]
     [InlineData("invalid", "***")]

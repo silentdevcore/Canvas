@@ -36,6 +36,13 @@ Core chart types are drawn as PDF vectors, so lines, text, and shapes stay sharp
 
 PVAD-generated PDFs carry hashed chart metadata. Importing such a PDF restores the original editable definition with confidence `1.0` and suppresses duplicate visual primitives.
 
+New chart recognition output uses `pvadMetadata` for embedded chart definitions,
+`pdfVector` for vector analysis and `pdfRaster` for raster analysis. The Designer
+and backend normalize the earlier metadata-source spelling when reading older
+documents. The typed recognition source and its optional
+`pdfChartRecognitionSource` style projection agree after normalization; source
+drafts and existing stored documents are not rewritten automatically.
+
 ## Import charts from PDFs
 
 The PDF importer accepts `chartRecognition=off`, `safe`, or `review`:

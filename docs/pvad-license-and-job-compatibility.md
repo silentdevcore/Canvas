@@ -10,7 +10,7 @@ Do not deserialize, rename and reserialize an issued envelope in the database.
 | Signed property | Preservation rule |
 | --- | --- |
 | `schemaVersion` | Retain 1/2; new issuance uses schema 2 |
-| `licenseId`, `licenseNumber` | Retain original identifiers, including PXA numbers |
+| `licenseId`, `licenseNumber` | Retain original identifiers, including PVAD numbers |
 | `organizationId`, `organizationName` | Retain original signed values |
 | `edition`, `accountType`, `deploymentMode` | Retain original contractual values |
 | `validFrom`, `validUntil`, `issuedAt` | Preserve exact serialized timestamps |
@@ -28,7 +28,7 @@ New issuance allocates `PVAD-*` numbers. It does not update the number, payload
 or signature of an existing license.
 PVAD-numbered downloads use `application/vnd.pvad.license+json` and
 `.pvad-license.json`. Historical/custom numbers retain the old MIME type and
-`.pxa-license.json` filename so existing downloads remain compatible.
+[compatibility entry `compat-d0a570efa7f5`](../operator-docs/compatibility-identifiers.v1.json) filename so existing downloads remain compatible.
 
 New-format wrappers add `envelopeJson`, the exact signed text. Verify its UTF-8
 bytes against `signature` with the trusted key selected by `keyId` and the allowed
@@ -42,8 +42,8 @@ valid active license inside one serializable transaction, including the old
 `Replaced` status, new row, linked audit event and transactional mail outbox.
 No signed bytes on the old row are modified.
 There is no mass replacement during startup and no automatic license extension.
-Existing `PXA_LICENSE_*` diagnostics remain compatibility identifiers pending the
-separate diagnostic-family migration. This stage does not silently rename them.
+Existing [compatibility entry `compat-c17ef4e927b4`](../operator-docs/compatibility-identifiers.v1.json) diagnostics remain stable compatibility identifiers.
+The technical rename does not require a diagnostic-family migration.
 
 ### Explicit Replacement
 
@@ -78,7 +78,7 @@ alone does not remotely invalidate already distributed offline artifacts.
 ## Signing Key Cutover
 
 - Retain configured `Licensing:KeyId`, private/public key paths and mounted files.
-- The historical default `pxa-development-1` is deliberately unchanged. Do not
+- The historical default [compatibility entry `compat-af09d32ae016`](../operator-docs/compatibility-identifiers.v1.json) is deliberately unchanged. Do not
   substitute a PVAD key ID for an existing verifier without a rotation design.
 - A complete existing pair is reused. An incomplete pair fails even in Testing
   and Development, rather than overwriting the surviving key.
@@ -118,9 +118,10 @@ Job/storage metrics and activities use canonical `pvad.*` identities. Historical
 metric data is handled by the observability compatibility rules, not rewritten.
 
 Filesystem storage writes supplied bytes; this inventory is not an encryption-at-rest
-guarantee. Retained object encryption, representative backup/restore and a real
-cross-binary in-flight job cutover remain open acceptance gates. Never claim that
-normal processor tests alone prove a production rolling upgrade.
+guarantee. Encryption at rest is a separate capability, not an existing protected
+envelope to rename. Representative deployed backup/restore and actual operator
+cutover remain open acceptance gates; the synthetic paired-binary evidence below
+does not certify a production rolling upgrade.
 
 ### Restart, Leases And Cancellation
 
@@ -142,7 +143,7 @@ normal processor tests alone prove a production rolling upgrade.
 Source-level tests use persisted legacy-shaped payloads, fresh DbContexts/processors
 and reopened filesystem storage. They simulate shutdown, claim loss, cancellation
 and retry exhaustion against PostgreSQL. A separate paired-binary test now also
-kills a real PXA worker process and resumes its job with PVAD; see below.
+kills a real PVAD worker process and resumes its job with PVAD; see below.
 An abrupt process death between storing a
 result and publishing it can still leave an unreferenced object; these tests do
 not guarantee orphan-free storage or universal side-effect deduplication.
@@ -150,14 +151,14 @@ not guarantee orphan-free storage or universal side-effect deduplication.
 ### Coordinated Worker Cutover
 
 1. Back up database/object storage and retain the matching old configuration.
-2. Stop submissions and gracefully stop all old PXA workers; confirm they exited.
+2. Stop submissions and gracefully stop all old PVAD workers; confirm they exited.
 3. Keep database rows, object roots, keys and type strings unchanged. Do not reset
    attempt counters or manually delete active leases as a rename shortcut.
 4. Start the compatible PVAD workers. Wait for unexpired leases to expire naturally
    before interrupted work is eligible for recovery.
 5. Check status, attempts, result access and tenant isolation before reopening traffic.
 
-Do not run old PXA and new PVAD workers concurrently as a rolling upgrade: old
+Do not run old PVAD and new PVAD workers concurrently as a rolling upgrade: old
 binaries do not enforce conditional publication. The new guard cannot prevent an
 old binary from writing directly. Production cutover/rollback still requires a
 representative customer-like backup and deployment verification, beyond the
@@ -165,14 +166,14 @@ synthetic paired-binary test.
 
 ### Representative Paired-Binary Test
 
-The [job cutover harness](../tools/job-cutover/README.md) builds real PXA application
+The [job cutover harness](../tools/job-cutover/README.md) builds real PVAD application
 assemblies from immutable commit `fce423cf8c5f5e71eff6178f712fe4e5eb5af69a` and
 the current PVAD assemblies. The common test driver is compiled separately against
 each generation, with an assembly-identity assertion; production baseline sources
 are not renamed or patched to make the test pass.
 
-PXA applies its migrations and creates synthetic users, organization, role links,
-subscription/entitlement, template, input object and jobs. After the PXA worker
+PVAD applies its migrations and creates synthetic users, organization, role links,
+subscription/entitlement, template, input object and jobs. After the PVAD worker
 claims a document-import job, the parent terminates the OS process and waits for
 exit. PVAD then cancels the other Pending job, recovers and completes the first,
 and both generations independently verify the retained data and result.
@@ -192,5 +193,5 @@ adding the workflow does not imply it has already run on GitHub.
 ## Related Guides
 
 - [Identity compatibility](pvad-identity-compatibility.md)
-- [Rename roadmap](../checklists/Rename-PXA-To-PVAD.md)
+- [Rename roadmap](../checklists/PVAD.Rename-Plan.md)
 - [Rename test report](../checklists/PVAD.Rename-Test-Report.md)

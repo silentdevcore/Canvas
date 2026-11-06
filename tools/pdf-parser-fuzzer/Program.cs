@@ -32,7 +32,7 @@ var mutations = CreateMutations(source)
     .ToArray();
 var results = new List<MutationResult>(mutations.Length);
 var externalParsers = DiscoverExternalParsers();
-var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pxa-pdf-fuzz-{Guid.NewGuid():N}");
+var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pvad-pdf-fuzz-{Guid.NewGuid():N}");
 Directory.CreateDirectory(temporaryDirectory);
 
 try
@@ -42,11 +42,11 @@ try
         var mutation = mutations[index];
         var inputPath = Path.Combine(temporaryDirectory, $"case-{index:D3}.pdf");
         await File.WriteAllBytesAsync(inputPath, mutation.Bytes);
-        var pxa = await RunIsolatedCaseAsync(inputPath, childTimeoutMilliseconds);
+        var pvad = await RunIsolatedCaseAsync(inputPath, childTimeoutMilliseconds);
         var external = new List<ParserOutcome>(externalParsers.Count);
         foreach (var parser in externalParsers)
             external.Add(await RunExternalParserAsync(parser, inputPath, childTimeoutMilliseconds));
-        results.Add(mutation.ToResult(pxa, external));
+        results.Add(mutation.ToResult(pvad, external));
     }
 }
 finally
@@ -62,7 +62,7 @@ var report = new FuzzReport(
     MaximumInputBytes: maximumInputBytes,
     ChildTimeoutMilliseconds: childTimeoutMilliseconds,
     MaximumCapturedOutputCharacters: maximumCapturedOutputCharacters,
-    Parsers: new[] { "pxa" }.Concat(externalParsers.Select(parser => parser.Id)).ToArray(),
+    Parsers: new[] { "pvad" }.Concat(externalParsers.Select(parser => parser.Id)).ToArray(),
     MutationCount: results.Count,
     Cases: results);
 var fullReportPath = Path.GetFullPath(reportPath);
@@ -81,7 +81,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
     var stopwatch = Stopwatch.StartNew();
     using var process = new Process { StartInfo = CreateChildStartInfo(inputPath) };
     if (!process.Start())
-        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "crashed", null, stopwatch.ElapsedMilliseconds, null);
 
     using var timeout = new CancellationTokenSource(timeoutMilliseconds);
     var outputTask = ReadBoundedAsync(process.StandardOutput, maximumCapturedOutputCharacters);
@@ -94,7 +94,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
         stopwatch.Stop();
         var status = process.ExitCode == 0 ? ReadChildStatus(output) : "crashed";
         return new ParserOutcome(
-            "pxa",
+            "pvad",
             status,
             process.ExitCode,
             stopwatch.ElapsedMilliseconds,
@@ -114,7 +114,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
             // The child may have exited between the checks.
         }
 
-        return new ParserOutcome("pxa", "timeout", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "timeout", null, stopwatch.ElapsedMilliseconds, null);
     }
     catch
     {
@@ -129,7 +129,7 @@ static async Task<ParserOutcome> RunIsolatedCaseAsync(string inputPath, int time
             // The child may have exited between the checks.
         }
 
-        return new ParserOutcome("pxa", "crashed", null, stopwatch.ElapsedMilliseconds, null);
+        return new ParserOutcome("pvad", "crashed", null, stopwatch.ElapsedMilliseconds, null);
     }
 }
 
@@ -469,9 +469,9 @@ static Mutation Insert(byte[] source, string id, int offset, byte[] inserted)
 
 sealed record Mutation(string Id, byte[] Bytes)
 {
-    public MutationResult ToResult(ParserOutcome pxa, IReadOnlyList<ParserOutcome> external)
+    public MutationResult ToResult(ParserOutcome pvad, IReadOnlyList<ParserOutcome> external)
     {
-        var outcomes = new[] { pxa }.Concat(external).ToArray();
+        var outcomes = new[] { pvad }.Concat(external).ToArray();
         var decisions = outcomes
             .Where(outcome => outcome.Status is "accepted" or "rejected")
             .Select(outcome => outcome.Status)

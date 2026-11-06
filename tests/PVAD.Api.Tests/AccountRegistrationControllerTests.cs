@@ -53,7 +53,7 @@ public sealed class AccountRegistrationControllerTests
         {
             email,
             displayName = "Legal Registration",
-            password = "Pxa-Customer-Password-42!",
+            password = "Pvad-Customer-Password-42!",
             accountType = "IndividualDeveloper",
             locale = "de",
             acceptTerms = true,
@@ -176,7 +176,7 @@ public sealed class AccountRegistrationControllerTests
             {
                 email = "owner@customer.test",
                 displayName = "Customer Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "Customer Documents GmbH",
                 organizationSlug = "customer-documents",
@@ -200,7 +200,7 @@ public sealed class AccountRegistrationControllerTests
             {
                 email = "owner@customer.test",
                 displayName = "Customer Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "Different Name",
                 organizationSlug = "different-name",
@@ -262,7 +262,7 @@ public sealed class AccountRegistrationControllerTests
         }
 
         using (var unverifiedLoginResponse = await LoginAsync(
-            client, "owner@customer.test", "Pxa-Customer-Password-42!", HttpStatusCode.Forbidden))
+            client, "owner@customer.test", "Pvad-Customer-Password-42!", HttpStatusCode.Forbidden))
         {
             var problem = await unverifiedLoginResponse.Content.ReadFromJsonAsync<JsonElement>();
             Assert.Equal(PvadApiProblems.VerificationRequired, problem.GetProperty("code").GetString());
@@ -293,7 +293,7 @@ public sealed class AccountRegistrationControllerTests
             new { token = verificationToken });
         Assert.Equal(HttpStatusCode.BadRequest, (await client.SendAsync(reuse)).StatusCode);
 
-        await LoginAsync(client, "owner@customer.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@customer.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         var current = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/auth/me");
         Assert.Equal(userId, current.GetProperty("id").GetGuid());
         Assert.Equal(organizationId, current.GetProperty("activeOrganizationId").GetGuid());
@@ -339,7 +339,7 @@ public sealed class AccountRegistrationControllerTests
             {
                 email = "resend@customer.test",
                 displayName = "Resend Customer",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "IndividualDeveloper",
                 acceptTerms = true,
                 acceptPrivacy = true,
@@ -405,7 +405,7 @@ public sealed class AccountRegistrationControllerTests
             {
                 email = "owner@campaign.test",
                 displayName = "Campaign Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "Campaign GmbH",
                 organizationSlug = "campaign-co",
@@ -467,10 +467,10 @@ public sealed class AccountRegistrationControllerTests
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
         var author = new PvadIdentityUser
         {
-            UserName = "legal-author@pxa.test",
-            NormalizedUserName = "LEGAL-AUTHOR@PXA.TEST",
-            Email = "legal-author@pxa.test",
-            NormalizedEmail = "LEGAL-AUTHOR@PXA.TEST",
+            UserName = "legal-author@pvad.test",
+            NormalizedUserName = "LEGAL-AUTHOR@PVAD.TEST",
+            Email = "legal-author@pvad.test",
+            NormalizedEmail = "LEGAL-AUTHOR@PVAD.TEST",
             EmailConfirmed = true,
             DisplayName = "Legal Author",
         };

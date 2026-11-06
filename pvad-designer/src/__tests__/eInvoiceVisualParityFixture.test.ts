@@ -226,7 +226,7 @@ function fixtureEnvelope(
     // The standard and version the projected document represents. PXA makes no conformance
     // claim here; this only records which maintained layout the fixture came from.
     category: 'invoice',
-    description: 'Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PXA invoice model.',
+    description: 'Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PVAD invoice model.',
     pageSettings: {
       width: definition.pageWidth,
       height: definition.pageHeight,

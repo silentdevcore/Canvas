@@ -1,29 +1,27 @@
-# PXA.Company Website Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD.Company Website Checklist
 
 ## Ziel
-`PXA.Company` ist die Marketing- und Verkaufswebsite fuer Power Dox Automation. Sie soll erklaeren, Vertrauen aufbauen und Besucher zu Demo, Documentation oder Kontakt fuehren.
+`PVAD.Company` ist die Marketing- und Verkaufswebsite fuer PVADE. Sie soll erklaeren, Vertrauen aufbauen und Besucher zu Demo, Documentation oder Kontakt fuehren.
 
 ## Referenz
 - Aufbau orientiert sich an GemBox: Produkt-Hub, klare Produktkarten, Support, Pricing, News und Trust-Signale.
-- Keine 1:1-Kopie; PXA bleibt technisch, ruhig und B2B-orientiert.
+- Keine 1:1-Kopie; PVADE bleibt technisch, ruhig und B2B-orientiert.
 
 ## Zielstruktur
-- [x] Website/App unter `websites/PXA.Company` planen.
+- [x] Website/App unter `websites/PVAD.Company` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
-- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
-- [x] Hero fuer Power Dox Automation erstellen.
+- [x] Live Demo als globale Header-CTA zu `PVADE Designer` ergaenzen.
+- [x] Hero fuer PVADE erstellen.
 - [x] About-Sektion fuer Produkt-/Firmenkontext erstellen.
 - [x] CTAs definieren: Demo ansehen, Documentation lesen, Sales kontaktieren.
 - [x] Produktkarten erstellen:
-  - [x] PXA Generator
-  - [x] PXA Migration
-  - [x] PXA Importer
-  - [x] PXA Designer
-  - [x] PXA PDF Viewer
-  - [x] PXA Spreadsheet
+  - [x] PVADE Generator
+  - [x] PVADE Migration
+  - [x] PVADE Importer
+  - [x] PVADE Designer
+  - [x] PVADE PDF Viewer
+  - [x] PVADE Spreadsheet
 - [x] Use-Case-Sektionen erstellen:
   - [x] PDF-Erstellung
   - [x] Designer-Migration
@@ -53,8 +51,8 @@
 - [x] Company Home und Products Overview mit erstem produktnahen B2B-Content ersetzen.
 - [x] Pricing, About und Support mit produktnahen B2B-Inhalten ausbauen.
 - [x] Contact, Terms, Privacy und License mit strukturierten Draft-Inhalten ausbauen.
-- [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
-- [x] Demo-CTA mit Link zu `PXA.Demo`.
+- [x] Use-Case-Uebersicht mit Links zu `PVAD.Documentation`.
+- [x] Demo-CTA mit Link zu `PVAD.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
 - [x] Showcase-Karten mit direkten Demo- und Documentation-Links.
 - [x] Kontaktseite mit Sales-, Migration-Assessment- und Technical-Evaluation-Pfaden.
@@ -67,7 +65,7 @@
 - [x] About-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
-- [x] Sign in und Start free trial fuehren von allen Company-Seiten zu PXA.Account.
+- [x] Sign in und Start free trial fuehren von allen Company-Seiten zu PVAD.Account.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Footer enthaelt Copyright, Terms-Link und Privacy-Link.
 - [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.
@@ -77,7 +75,7 @@
 - [x] Domain-, Pricing- und Kontaktentscheidungen sind fuer den MVP festgehalten.
 
 ## Tests
-- [x] Build fuer `PXA.Company` ausfuehren, sobald die App existiert.
+- [x] Build fuer `PVAD.Company` ausfuehren, sobald die App existiert.
 - [x] Interne Links pruefen.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 - [x] Suche nach `Canvas` in neuen Website-Dateien durchfuehren.

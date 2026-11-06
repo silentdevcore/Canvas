@@ -1,6 +1,4 @@
-# PXA PDF Specialized Features Roadmap
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD PDF Specialized Features Roadmap
 
 ## Purpose
 
@@ -59,7 +57,7 @@ and duplicate-cleanup decisions.
 
 ## P0 - Commercial PDF Domains
 
-### PXA-PDF-EINV - Electronic Invoicing
+### PVAD-PDF-EINV - Electronic Invoicing
 
 Current state: `inProgress`. The focused implementation tracker is
 [PVAD.E-Invoicing.md](PVAD.E-Invoicing.md).
@@ -90,12 +88,12 @@ Current state: `inProgress`. The focused implementation tracker is
   the Viewer.
 - [ ] Add API, migration, Documentation, sample invoices, schema validation, and
   independent conformance evidence. API, migration mappings, Documentation, and a
-  PXA-authored sample corpus are done; pinned official schema validation and
+  PVAD-authored sample corpus are done; pinned official schema validation and
   independent conformance evidence remain blocked on artifact redistribution terms.
 - [x] Keep Peppol transport and national tax submission outside the PDF engine and
   document them as integration boundaries.
 
-### PXA-PDF-LEGAL - Legal Document Workflows
+### PVAD-PDF-LEGAL - Legal Document Workflows
 
 Current state: `discovered`; generic comparison and audit foundations exist, but
 there is no PDF legal-workflow plan.
@@ -114,7 +112,7 @@ there is no PDF legal-workflow plan.
 - [ ] Validate that redaction, encryption, signatures, and retention rules remain
   intact through legal-document operations.
 
-### PXA-PDF-FORMS - Advanced Forms and Signing Workflows
+### PVAD-PDF-FORMS - Advanced Forms and Signing Workflows
 
 Current state: `partial`. Technical PAdES signing exists; advanced AcroForms and
 business signing ceremonies remain incomplete.
@@ -134,7 +132,7 @@ business signing ceremonies remain incomplete.
 
 ## P1 - Engine and Enterprise Depth
 
-### PXA-PDF-CAPTURE - Document Capture
+### PVAD-PDF-CAPTURE - Document Capture
 
 Current state: `partial`; OCR and image conversion exist, but a complete capture
 pipeline has not been planned.
@@ -151,7 +149,7 @@ pipeline has not been planned.
 - [ ] Add bounded batch processing, cancellation, memory and pixel limits, worker
   isolation, and resumable job reporting.
 
-### PXA-PDF-PRINT - Print Production and PDF/X
+### PVAD-PDF-PRINT - Print Production and PDF/X
 
 Current state: `discovered/deferred`; crop marks and basic color handling exist,
 while PDF/X and production preflight do not.
@@ -172,7 +170,7 @@ while PDF/X and production preflight do not.
   imposition without changing the source document.
 - [ ] Retain machine-readable independent validator evidence per supported profile.
 
-### PXA-PDF-OPT - Optimization and Delivery
+### PVAD-PDF-OPT - Optimization and Delivery
 
 Current state: `partial`; stream compression exists, but optimization profiles
 and linearization are incomplete.
@@ -191,7 +189,7 @@ and linearization are incomplete.
 
 ## P2 - Specialized Markets
 
-### PXA-PDF-VT - PDF/VT and Variable-Data Printing
+### PVAD-PDF-VT - PDF/VT and Variable-Data Printing
 
 Current state: `deferred`; only the standard family is named in PDF Trust.
 
@@ -201,7 +199,7 @@ Current state: `deferred`; only the standard family is named in PDF Trust.
 - [ ] Define streaming data binding, restartable batches, deterministic record
   manifests, and high-volume performance gates.
 
-### PXA-PDF-GEO - Geospatial PDF
+### PVAD-PDF-GEO - Geospatial PDF
 
 Current state: `discovered`; RDL map migration is adjacent but does not provide
 GeoPDF semantics.
@@ -214,7 +212,7 @@ GeoPDF semantics.
   controls, and explicit unsupported-projection diagnostics.
 - [ ] Preserve unknown GIS metadata without presenting it as semantically editable.
 
-### PXA-PDF-ENG - Engineering and 3D PDF
+### PVAD-PDF-ENG - Engineering and 3D PDF
 
 Current state: `deferred`; PDF/E and 3D structures are detected only as Trust
 risks or unsupported content.
@@ -225,10 +223,10 @@ risks or unsupported content.
 - [ ] Keep 3D authoring outside the first milestone and require a proven library or
   service before committing to native PRC/U3D generation.
 
-### PXA-PDF-RICH - Rich Media and Interactive PDF
+### PVAD-PDF-RICH - Rich Media and Interactive PDF
 
 Current state: `partial inspection`; Trust reports detect risky multimedia and
-JavaScript, but PXA does not provide a rich-media runtime.
+JavaScript, but PVADE does not provide a rich-media runtime.
 
 - [ ] Preserve and inspect Sound, Movie, Screen, 3D, and RichMedia annotations
   without automatically executing them.
@@ -239,7 +237,7 @@ JavaScript, but PXA does not provide a rich-media runtime.
 - [ ] Require tenant policy, permissions, CSP, sandboxing, and user confirmation
   before any future interactive playback.
 
-### PXA-PDF-PROV - Content Provenance
+### PVAD-PDF-PROV - Content Provenance
 
 Current state: `discovered`; operation audits and cryptographic signatures provide
 foundations, but no document-provenance product exists.
@@ -272,17 +270,17 @@ foundations, but no document-provenance product exists.
 
 | Feature family | Existing checklist references | Central owner after promotion |
 | --- | --- | --- |
-| Electronic invoicing | No dedicated existing checklist | `PXA-PDF-EINV` |
-| Legal PDF workflows | Competitive readiness; Viewer comparison and Trust audit foundations | `PXA-PDF-LEGAL` |
-| Forms and signing workflow | [Provider gaps](PvadPdf-Provider-Feature-Gaps.md), [Viewer gaps](PdfTools-WebViewer-Feature-Gaps.md), [PDF Trust](PVAD.PDF-Trust-Foundation.md), [Nutrient migration](PVAD.Migration-Nutrient-Code-And-Viewer.md) | `PXA-PDF-FORMS` |
-| Capture and OCR | [Image OCR](Image-Converter2.md), [Importer](Importer-New-Featuers.md), [provider gaps](PvadPdf-Provider-Feature-Gaps.md) | `PXA-PDF-CAPTURE` |
-| PDF/X and print | [PDF Trust](PVAD.PDF-Trust-Foundation.md), [Page Settings](UI-Page-Settings.md) | `PXA-PDF-PRINT` |
-| Optimization | Provider gaps, Importer, PDF Trust, Nutrient migration | `PXA-PDF-OPT` |
-| PDF/VT | [PDF Trust deferred list](PVAD.PDF-Trust-Foundation.md) | `PXA-PDF-VT` |
-| GeoPDF | No dedicated existing checklist; RDL maps are adjacent only | `PXA-PDF-GEO` |
-| PDF/E and 3D | [PDF Trust deferred/risk handling](PVAD.PDF-Trust-Foundation.md) | `PXA-PDF-ENG` |
-| Rich media and JavaScript | PDF Trust, Viewer, Redaction, Nutrient migration | `PXA-PDF-RICH` |
-| Content provenance | Trust audit and commercial evidence foundations only | `PXA-PDF-PROV` |
+| Electronic invoicing | No dedicated existing checklist | `PVAD-PDF-EINV` |
+| Legal PDF workflows | Competitive readiness; Viewer comparison and Trust audit foundations | `PVAD-PDF-LEGAL` |
+| Forms and signing workflow | [Provider gaps](PvadPdf-Provider-Feature-Gaps.md), [Viewer gaps](PdfTools-WebViewer-Feature-Gaps.md), [PDF Trust](PVAD.PDF-Trust-Foundation.md), [Nutrient migration](PVAD.Migration-Nutrient-Code-And-Viewer.md) | `PVAD-PDF-FORMS` |
+| Capture and OCR | [Image OCR](Image-Converter2.md), [Importer](Importer-New-Featuers.md), [provider gaps](PvadPdf-Provider-Feature-Gaps.md) | `PVAD-PDF-CAPTURE` |
+| PDF/X and print | [PDF Trust](PVAD.PDF-Trust-Foundation.md), [Page Settings](UI-Page-Settings.md) | `PVAD-PDF-PRINT` |
+| Optimization | Provider gaps, Importer, PDF Trust, Nutrient migration | `PVAD-PDF-OPT` |
+| PDF/VT | [PDF Trust deferred list](PVAD.PDF-Trust-Foundation.md) | `PVAD-PDF-VT` |
+| GeoPDF | No dedicated existing checklist; RDL maps are adjacent only | `PVAD-PDF-GEO` |
+| PDF/E and 3D | [PDF Trust deferred/risk handling](PVAD.PDF-Trust-Foundation.md) | `PVAD-PDF-ENG` |
+| Rich media and JavaScript | PDF Trust, Viewer, Redaction, Nutrient migration | `PVAD-PDF-RICH` |
+| Content provenance | Trust audit and commercial evidence foundations only | `PVAD-PDF-PROV` |
 
 ## Promotion, Completion, and Cleanup
 

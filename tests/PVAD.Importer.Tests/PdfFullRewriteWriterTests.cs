@@ -339,7 +339,7 @@ public sealed class PdfFullRewriteWriterTests
         {
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA PDF Rewrite Test",
+                "CN=PVAD PDF Rewrite Test",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

@@ -32,7 +32,7 @@ public sealed class AccountProfileControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@profile.test", "Profile Owner");
-        await LoginAsync(client, "owner@profile.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@profile.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var profile = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/profile");
         Assert.Equal("Profile Owner", profile.GetProperty("displayName").GetString());
@@ -64,7 +64,7 @@ public sealed class AccountProfileControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@displayname.test", "Original Name");
-        await LoginAsync(client, "owner@displayname.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@displayname.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var tooShort = CreateCsrfRequest(
             HttpMethod.Patch, "/api/pvad/v1/account/profile/display-name",
@@ -94,7 +94,7 @@ public sealed class AccountProfileControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@locale.test", "Locale Owner");
-        await LoginAsync(client, "owner@locale.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@locale.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var update = CreateCsrfRequest(
             HttpMethod.Patch, "/api/pvad/v1/account/profile/locale",
@@ -122,7 +122,7 @@ public sealed class AccountProfileControllerTests
             user.PrivacyAcknowledgedVersion = "previous-privacy";
             await dbContext.SaveChangesAsync();
         }
-        await LoginAsync(client, "owner@consent.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@consent.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var profile = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/profile");
         Assert.True(profile.GetProperty("requiresTermsAcceptance").GetBoolean());
@@ -214,7 +214,7 @@ public sealed class AccountProfileControllerTests
         }
 
         await LoginAsync(
-            client, "owner@legal-review.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+            client, "owner@legal-review.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         var profile = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/profile");
         Assert.Equal(termsId, profile.GetProperty("currentTermsVersionId").GetGuid());
         Assert.Equal(privacyId, profile.GetProperty("currentPrivacyVersionId").GetGuid());
@@ -304,7 +304,7 @@ public sealed class AccountProfileControllerTests
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@emailchange.test", "Email Owner");
         await RegisterVerifiedCompanyAsync(factory, client, "taken@emailchange.test", "Someone Else");
-        await LoginAsync(client, "owner@emailchange.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@emailchange.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var takenRequest = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/profile/email-change/request",
@@ -338,7 +338,7 @@ public sealed class AccountProfileControllerTests
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(confirm)).StatusCode);
 
         // Confirming an email change revokes active sessions, same as password reset.
-        await LoginAsync(client, "new-address@emailchange.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "new-address@emailchange.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         var profile = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/profile");
         Assert.Equal("new-address@emailchange.test", profile.GetProperty("email").GetString());
     }
@@ -352,27 +352,27 @@ public sealed class AccountProfileControllerTests
         await SeedRolesAsync(factory.Services);
         using var primaryClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, primaryClient, "owner@password.test", "Password Owner");
-        await LoginAsync(primaryClient, "owner@password.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(primaryClient, "owner@password.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var secondaryClient = CreateClient(factory);
-        await LoginAsync(secondaryClient, "owner@password.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(secondaryClient, "owner@password.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         Assert.Equal(HttpStatusCode.OK, (await secondaryClient.GetAsync("/api/pvad/v1/auth/me")).StatusCode);
 
         using var wrongCurrent = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/profile/password-change",
             await GetCsrfAsync(primaryClient),
-            new { currentPassword = "not-the-password", newPassword = "Pxa-Customer-Password-99!" });
+            new { currentPassword = "not-the-password", newPassword = "Pvad-Customer-Password-99!" });
         Assert.Equal(HttpStatusCode.BadRequest, (await primaryClient.SendAsync(wrongCurrent)).StatusCode);
 
         using var change = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/profile/password-change",
             await GetCsrfAsync(primaryClient),
-            new { currentPassword = "Pxa-Customer-Password-42!", newPassword = "Pxa-Customer-Password-99!" });
+            new { currentPassword = "Pvad-Customer-Password-42!", newPassword = "Pvad-Customer-Password-99!" });
         Assert.Equal(HttpStatusCode.NoContent, (await primaryClient.SendAsync(change)).StatusCode);
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await secondaryClient.GetAsync("/api/pvad/v1/auth/me")).StatusCode);
-        await LoginAsync(secondaryClient, "owner@password.test", "Pxa-Customer-Password-42!", HttpStatusCode.Unauthorized);
-        await LoginAsync(secondaryClient, "owner@password.test", "Pxa-Customer-Password-99!", HttpStatusCode.OK);
+        await LoginAsync(secondaryClient, "owner@password.test", "Pvad-Customer-Password-42!", HttpStatusCode.Unauthorized);
+        await LoginAsync(secondaryClient, "owner@password.test", "Pvad-Customer-Password-99!", HttpStatusCode.OK);
     }
 
     private static async Task RegisterVerifiedCompanyAsync(
@@ -390,7 +390,7 @@ public sealed class AccountProfileControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = $"{displayName} GmbH",
                 organizationSlug = slug,

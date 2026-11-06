@@ -177,7 +177,7 @@ public sealed class PvadDesignerAccessMiddleware(RequestDelegate next)
             .Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (segments.Length < 5 ||
             !string.Equals(segments[0], "api", StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(segments[1], "pxa", StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(segments[1], "pvad", StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(segments[2], "v1", StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(segments[3], "migrations", StringComparison.OrdinalIgnoreCase))
             return false;

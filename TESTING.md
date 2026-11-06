@@ -1,5 +1,8 @@
 # Testing Strategy
 
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
+
 ## Test Project Matrix
 
 | Group | Projects | Focus |
@@ -61,7 +64,7 @@ Normal Dependabot version proposals are temporarily paused during rename using
 automatic security-update PRs are enabled separately on GitHub; security audits
 and required CI checks are unchanged. Restore version proposals after rename
 acceptance using the recorded limits in the
-[dependency closure checklist](checklists/PXA.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
+[dependency closure checklist](checklists/PVAD.Dependency-PR-Review-2026-10-26.md#temporary-version-proposal-pause).
 
 After restoring and building Release, install `xmllint` (`libxml2-utils` on
 Ubuntu; supplied by macOS) and run:
@@ -359,7 +362,7 @@ CI should validate:
 
 ## Notes
 
-- Active projects and namespaces use `PVAD.*`. Previous `PXA.*` names survive only in documented compatibility adapters, historical fixtures and signed evidence.
+- Active projects and namespaces use `PVAD.*`. Previous [compatibility entry `compat-c6795849a1f1`](docs/reference/compatibility-identifiers.v1.json) names survive only in documented compatibility adapters, historical fixtures and signed evidence.
 - `CANMIG...` diagnostic identifiers remain stable even though provider namespaces are now `PVAD.Migration.*`.
 - Many migration providers are intentionally conservative. Tests should assert diagnostics for unsupported APIs instead of forcing unsafe rewrites.
 - Report converters should test both element mapping and final renderability where possible.

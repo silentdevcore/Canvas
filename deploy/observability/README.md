@@ -85,7 +85,7 @@ The local sender `pvad-alerts@example.test` and recipient
 mailboxes. Configure approved delivery identities separately for deployment.
 
 Internal Nginx auth locations and helper variables use PVAD. The upstream
-`X-PXA-Operator` response header and legacy request-header stripping remain
+[compatibility entry `compat-49ffd55c615e`](../../operator-docs/compatibility-identifiers.v1.json) response header and legacy request-header stripping remain
 compatibility contracts; they are not public branding.
 
 Readiness endpoints are:
@@ -255,9 +255,20 @@ docker compose \
 The relay accepts Alertmanager only on its internal network, removes arbitrary labels and
 annotations, and forwards at most 100 alerts. It signs
 `<unix-timestamp>\n<exact-json-body>` with HMAC-SHA256 and sends the lowercase hexadecimal result
-as `X-PXA-Webhook-Signature: sha256=<digest>`. Receivers must reject stale timestamps, compare the
-signature in constant time, and deduplicate `X-PXA-Webhook-Idempotency-Key`. Rotate the mounted
+with the `sha256=` prefix in `X-PVAD-Webhook-Signature`. The matching timestamp
+is `X-PVAD-Webhook-Timestamp`; `X-PVAD-Webhook-Idempotency-Key` is the SHA-256 of
+the exact sanitized body. Identical historical header aliases remain for one
+rename compatibility major, including
+[compatibility entry `compat-ac7f4306e2ae`](../../operator-docs/compatibility-identifiers.v1.json)
+and [compatibility entry `compat-4919280226de`](../../operator-docs/compatibility-identifiers.v1.json).
+Receivers must reject stale timestamps, compare signatures in constant time,
+and durably deduplicate the payload digest. A receiver accepting both families
+must reject conflicts or partial aliases rather than combining them. Rotate the mounted
 secret through the deployment secret manager; the relay rereads it for every delivery.
+
+See [HTTP compatibility](../../docs/pvad-http-compatibility.md#webhook-delivery-headers)
+for the paired-header contract. Adding headers does not certify live receiver
+compatibility or authorize an operational cutover.
 
 ## Retention And Performance Verification
 

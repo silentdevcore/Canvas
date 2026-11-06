@@ -1,10 +1,8 @@
-# PXA Database Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Database Checklist
 
 ## Goal
 
-Provide one secure, tenant-aware, and operationally reliable persistence platform for PXA identity, administration, subscriptions, licensing, usage, audit, mail, templates, and document metadata across Cloud and On-Premise deployments.
+Provide one secure, tenant-aware, and operationally reliable persistence platform for PVAD identity, administration, subscriptions, licensing, usage, audit, mail, templates, and document metadata across Cloud and On-Premise deployments.
 
 ## Priorities
 

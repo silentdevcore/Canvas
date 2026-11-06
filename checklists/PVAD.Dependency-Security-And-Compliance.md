@@ -1,10 +1,8 @@
-# PXA Dependency Security and Compliance
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Dependency Security and Compliance
 
 ## Purpose
 
-Track the controls that keep third-party dependencies secure, traceable, and legally approved across the PXA monorepo. Generated SBOMs are the complete dependency inventory; the curated compliance catalog records exceptional approval decisions and production blockers.
+Track the controls that keep third-party dependencies secure, traceable, and legally approved across the PVAD monorepo. Generated SBOMs are the complete dependency inventory; the curated compliance catalog records exceptional approval decisions and production blockers.
 
 ## P0 - Enforced Supply-Chain Controls
 

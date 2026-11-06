@@ -8,14 +8,13 @@ PVADE Designer uses two portable, editable project formats:
 | `.pvads` | PVADS Spreadsheet Project | `application/vnd.pvad.pvads+zip` |
 
 These files preserve editable Designer state. They are not substitutes for a final PDF,
-XLSX, CSV, or other delivery format. No generic `.pxa` project format is defined;
-new exports use `.pvadp` and `.pvads`.
+XLSX, CSV, or other delivery format. New exports use `.pvadp` and `.pvads`.
 
 ### Legacy Project Compatibility
 
-Existing `.pxap` and `.pxas` files remain readable in the matching Designer.
-Their original magic (`PXA-PXAP-1` / `PXA-PXAS-1`), format ID, MIME entry and
-`minimumPxaVersion` are validated as a complete legacy envelope. Mixed old/new
+Earlier project formats remain readable in the matching Designer.
+Their original magic, format ID, MIME entry and minimum-version field
+are validated as a complete legacy envelope. Mixed old/new
 identity fields and mismatched MIME entries are rejected. The canonical envelopes
 use `PVAD-PVADP-1` / `PVAD-PVADS-1`, `pvadp` / `pvads`, and
 `minimumPvadVersion`. Equal minimum-version aliases are accepted; conflicting
@@ -31,7 +30,8 @@ Canonical schemas are `docs/schema/pvad-project-manifest.schema.json` and
 `docs/schema/pvad-code-workspace.schema.json`. Historical schemas remain available
 for legacy validation. The legacy manifest cannot simply alias the new schema,
 because its envelope constraints intentionally differ. Audit event names and
-`PXAPROJECT...` diagnostics remain stable during this migration.
+technical diagnostic identifiers remain stable. The interface presents diagnostic
+aliases beginning with `PVADPROJECT`; aliases do not replace machine-readable values.
 
 Unlike PostgreSQL template persistence, a project file is a user-controlled portable
 snapshot. It has no server revision, organization ownership, autosave history, published
@@ -187,7 +187,7 @@ and the matching PDF or Spreadsheet permission.
 
 Open, validate, and inspect accept multipart field `file`. Save accepts the matching
 canonical JSON document and returns the native media type with a sanitized download
-name. Rejections use Problem Details and a stable `PXAPROJECT...` diagnostic code.
+name. Rejections use Problem Details and a stable `PVADPROJECT...` diagnostic code.
 PDF Designer uses `POST /api/pvad/v1/designer/projects/pdf/export-with-workspace` when
 an optional Code Workspace is included. Existing clients remain compatible with the
 document-only export route.
@@ -197,6 +197,10 @@ payload checksums; use Validate or Open when full content integrity is required.
 
 Every export, open, validate, and inspect attempt writes a tenant-scoped audit event.
 Successful and rejected operations use `designer.projects.<format>.<operation>` actions.
+The action keys and existing `formatId` retain their stable operational values.
+New details additionally contain `canonicalFormatId`: `pvadp` for PDF projects
+and `pvads` for Spreadsheet projects. Existing audit rows remain unchanged and
+may omit this new field; consumers must continue accepting those older rows.
 Audit details are deliberately limited to format, operation, package byte count, asset
 count, review status, and a stable rejection diagnostic. They never contain the upload
 filename, document title, element or cell content, asset bytes, source path, or project
@@ -253,14 +257,14 @@ versions. PVAD 1.1 writes envelope `1.0` and document schema `1.0`.
 - A lower minor version within the current major is backward compatible and can be
   opened without rewriting the source package.
 - A higher minor or major version requires a newer PVAD application and fails with
-  `PXAPROJECT014` instead of being opened partially.
+  `PVADPROJECT014` instead of being opened partially.
 - A previous major version is accepted only when PVAD ships an explicit, pure upgrade
   path. Such an upgrade must produce a new package and must never overwrite or
   downgrade the source file in place.
 - Schema versions use canonical `major.minor` notation. The minimum application
   version uses canonical Semantic Versioning. PVAD compares that minimum with the
   running product assembly version before reading document content; a package that
-  requires a newer application fails with `PXAPROJECT014`.
+  requires a newer application fails with `PVADPROJECT014`.
 
 The compatibility decision is centralized in `PvadProjectVersionPolicy`, so API,
 Designer, future SDKs, and upgrade steps use the same rules. No major-version upgrade
@@ -283,7 +287,7 @@ the original project file until an upgraded project has opened and been saved su
 
 For large projects, the Designer reports upload percentage followed by package validation,
 asset storage, and apply phases. Uploads can be cancelled while data is still being sent.
-Stable `PXAPROJECT...` diagnostics remain visible after a failure instead of disappearing
+Stable `PVADPROJECT...` diagnostics remain visible after a failure instead of disappearing
 with a toast. Projects with unavailable features or warning diagnostics pause at a review
 step: the user must explicitly open the project or keep the current document. This status
 surface is keyboard accessible, scrollable, and adapts to narrow mobile viewports.

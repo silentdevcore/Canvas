@@ -43,7 +43,7 @@ public sealed class RegistrationConflictTests
             {
                 email = "developer@individual.test",
                 displayName = "Solo Developer",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "IndividualDeveloper",
                 acceptTerms = true,
                 acceptPrivacy = true,
@@ -89,7 +89,7 @@ public sealed class RegistrationConflictTests
 
         using var login = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/login", await GetCsrfAsync(client),
-            new { identifier = "developer@individual.test", password = "Pxa-Customer-Password-42!" });
+            new { identifier = "developer@individual.test", password = "Pvad-Customer-Password-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(login)).StatusCode);
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/auth/me");
@@ -111,7 +111,7 @@ public sealed class RegistrationConflictTests
             {
                 email = "first@slugconflict.test",
                 displayName = "First Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "First Co",
                 organizationSlug = "shared-slug",
@@ -127,7 +127,7 @@ public sealed class RegistrationConflictTests
             {
                 email = "second@slugconflict.test",
                 displayName = "Second Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "Second Co",
                 organizationSlug = "shared-slug",
@@ -162,7 +162,7 @@ public sealed class RegistrationConflictTests
         {
             email = "race@concurrent.test",
             displayName = "Race Owner",
-            password = "Pxa-Customer-Password-42!",
+            password = "Pvad-Customer-Password-42!",
             accountType = "Company",
             companyName,
             organizationSlug = slug,

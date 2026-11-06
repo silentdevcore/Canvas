@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-committed-integration-preflight",
+  "impact": "none",
+  "components": ["documentation", "infrastructure"],
+  "category": "improved",
+  "summary": "Internal integration guidance now records committed-source build and release-preparation checks.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This documents local builds, unit tests and an isolated metadata-copy release rehearsal. It changes no shipped behavior, product version, deployment configuration or production authorization."
+}

@@ -9,6 +9,10 @@ public static class ChartDefinitionNormalizer
 {
     public const int MaximumSeries = 32;
     public const int MaximumPoints = 5000;
+    public const string MetadataSourceKind = "pvadMetadata";
+
+    public static string? NormalizeRecognitionSource(string? source) =>
+        source == "pxaMetadata" ? MetadataSourceKind : source;
 
     private static readonly string[] Palette =
     [
@@ -28,6 +32,9 @@ public static class ChartDefinitionNormalizer
         var chart = Normalize(element);
         element.Chart = chart;
         element.ChartType = chart.Type;
+        if (element.Style?.TryGetValue("pdfChartRecognitionSource", out var source) == true)
+            element.Style["pdfChartRecognitionSource"] = chart.Recognition?.SourceKind
+                ?? NormalizeRecognitionSource(source?.ToString())!;
         var legacy = element.ChartData is null
             ? new Dictionary<string, object>()
             : new Dictionary<string, object>(element.ChartData);
@@ -96,7 +103,7 @@ public static class ChartDefinitionNormalizer
                 {
                     Status = NormalizeRecognitionStatus(source.Recognition.Status),
                     Confidence = Math.Clamp(source.Recognition.Confidence, 0, 1),
-                    SourceKind = source.Recognition.SourceKind,
+                    SourceKind = NormalizeRecognitionSource(source.Recognition.SourceKind),
                     SourceAssetId = source.Recognition.SourceAssetId,
                     DiagnosticCode = source.Recognition.DiagnosticCode
                 }

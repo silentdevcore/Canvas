@@ -1,6 +1,4 @@
-# PXA Proven Document Fidelity
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Proven Document Fidelity
 
 ## Goal
 
@@ -67,7 +65,7 @@ migration, Designer, Preview, and export. The backend PDF remains the printable 
 - [ ] Expose a customer-safe fidelity report after import or migration.
 - [ ] Link every manual-review item to the affected page, sheet, element, or source line.
 - [ ] Add side-by-side source/result review in Designer and Viewer where licensing permits it.
-- [ ] Document supported fidelity levels and known limitations in PXA.Documentation.
+- [ ] Document supported fidelity levels and known limitations in PVAD.Documentation.
 - [ ] Publish only reviewed aggregate numbers; do not expose customer files or internal paths.
 - [ ] Add provider- and format-specific compatibility pages generated from approved evidence.
 

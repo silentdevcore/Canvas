@@ -1,5 +1,9 @@
 # PVAD Rename Validation Blockers
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Current Follow-up: 2026-10-23
 
 The later source checkpoint `5a0f48c4` builds successfully as a complete Solution
@@ -65,7 +69,7 @@ made to satisfy that assertion.
   passed without skips; fixture bytes and expected reports remain unchanged.
 - PDF golden hash: resolved with an isolated comparison against unmodified
   pre-rename HEAD fce423cf8c5f5e71eff6178f712fe4e5eb5af69a. A probe referencing
-  both original PXA.Pdf and current PVAD.Pdf generated the exact same representative
+  both original legacy Pdf component and current PVAD.Pdf generated the exact same representative
   document byte-for-byte. Both hashes were
   `256569dcef40dd183fdc288ecdb6b4fc9507aaa023df23ecd2e4f8986d37b5b6`.
   The previous expected hash was already stale before this rename. The test now

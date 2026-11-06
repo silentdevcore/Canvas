@@ -1,17 +1,15 @@
-# PXA Unified Migration Frameworks
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Unified Migration Frameworks
 
 ## Goal
 
 Provide one migration architecture while keeping PDF, Spreadsheet, and Report as separate product domains.
-The canonical taxonomy is `PXA.Migration.<Domain>.<Kind>.<Provider>`.
+The canonical taxonomy is `PVAD.Migration.<Domain>.<Kind>.<Provider>`.
 
 ## P0 - Registry And API
 
 - [x] Add typed migration domain, kind, input, artifact, and provider descriptor contracts.
 - [x] Create one canonical catalog for all PDF Code, PDF Viewer, Spreadsheet Code, and Report Designer providers.
-- [x] Expose the catalog through `GET /api/pxa/v1/migrations/catalog`.
+- [x] Expose the catalog through `GET /api/pvad/v1/migrations/catalog`.
 - [x] Add provider-detail, examples, convert, and preview routes under the canonical domain/kind/provider path.
 - [x] Return one result envelope with typed artifacts, diagnostics, summary, fidelity, source preservation, and metadata.
 - [x] Keep the existing migration routes as compatibility adapters for one major release.
@@ -81,5 +79,5 @@ The canonical taxonomy is `PXA.Migration.<Domain>.<Kind>.<Provider>`.
 - [x] PDF and Spreadsheet are distinct product areas; Report Designer remains a distinct API domain exposed within the PDF migration experience.
 - [x] Every provider is discoverable from one backend catalog and appears only in its valid domain and kind.
 - [x] Every canonical conversion route uses the same result envelope without flattening kind-specific artifacts.
-- [x] Nutrient Viewer produces one editable PXA design with backend preview and no disconnected user-facing artifact bundle.
+- [x] Nutrient Viewer produces one editable PVADE design with backend preview and no disconnected user-facing artifact bundle.
 - [x] Existing integrations continue to work during the compatibility period.

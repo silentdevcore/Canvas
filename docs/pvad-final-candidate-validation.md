@@ -1,5 +1,9 @@
 # PVAD Final Candidate Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Committed Candidate: Local Acceptance Passed
 
 Date: 2026-10-25. All automated checks below ran against the same commit,
@@ -116,7 +120,7 @@ The results and failed attempts below retain their original source scope.
 Review date: 2026-10-25. Base source commit: `f49df8c24fad4be41e6033fc3e3ab1c61775c804`,
 plus the reviewed uncommitted validation, documentation and packaging corrections.
 This is not a clean committed release, deployment approval or a security certification.
-The [rename tracker](../checklists/Rename-PXA-To-PVAD.md) remains at **88/98 (89.8%)**.
+The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains at **88/98 (89.8%)**.
 Its combined final-candidate gate is still open; partial results are not counted twice.
 
 ## Results
@@ -187,7 +191,7 @@ Reproduced with synthetic data:
 2. Save its native project; the save path reads/initializes its code workspace.
 3. Reopen that project and save or publish the changed template.
 4. Open Code mode, convert through the four representations and run JSON.
-5. Apply to Designer returns `PXACODE123` and the JSON tab becomes Conflict.
+5. Apply to Designer returns legacy CODE123 component and the JSON tab becomes Conflict.
 
 `LiveCodeEditor` restores `activeTemplateRevision` from the workspace's earlier
 `baseTemplateRevision`. Project import/autosave has advanced the actual template.

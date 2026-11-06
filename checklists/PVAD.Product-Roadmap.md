@@ -1,13 +1,11 @@
-# PXA Product Roadmap
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Product Roadmap
 
 Cross-format fidelity evidence, corpus governance, and the official 95 percent migration gate are
 tracked in `PVAD.Proven-Document-Fidelity.md`.
 
 ## Goal
 
-Maintain one prioritized index of product work outside PXA Admin. Detailed implementation tasks remain owned by the linked checklists.
+Maintain one prioritized index of product work outside PVAD Admin. Detailed implementation tasks remain owned by the linked checklists.
 
 ## P0 - Customer Platform
 
@@ -41,8 +39,8 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 ## P1 - Documentation And Product Sites
 
 - [ ] Keep product documentation aligned with implementation through `Documentation-Audit.md`.
-- [x] Connect PXA.Company to PXA.Account for `Sign in` and `Start free trial` without exposing PXA Admin.
-- [ ] Continue production examples and source-linked scenarios in PXA.Demo as product capabilities mature.
+- [x] Connect PVAD.Company to PVAD.Account for `Sign in` and `Start free trial` without exposing PVADE Admin.
+- [ ] Continue production examples and source-linked scenarios in PVAD.Demo as product capabilities mature.
 
 ## Deferred Platform Work
 

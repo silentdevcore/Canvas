@@ -2,7 +2,7 @@
   "id": "e-invoice-multipage",
   "name": "Electronic invoice parity (multi-page)",
   "category": "invoice",
-  "description": "Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PXA invoice model.",
+  "description": "Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PVAD invoice model.",
   "pageSettings": {
     "width": 595,
     "height": 842,

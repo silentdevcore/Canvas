@@ -77,7 +77,7 @@ bleed, localization, protection, metadata, bindings, RTL, charts, tables, forms,
 | `unsupported` | Errors prevent a safe canonical result. |
 
 Generated C# PDF includes `pvad-element-id` metadata comments. The compatibility
-reader still accepts historical `pxa-element-id` comments without rewriting stored
+reader still accepts historical element-ID comments without rewriting stored
 source. Source maps use these IDs to associate diagnostics and generated lines
 with Designer elements. Executed loops and conditions produce their resulting
 elements; their original source structure is not represented in the visual model.

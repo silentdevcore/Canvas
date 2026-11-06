@@ -1,5 +1,9 @@
 # PVAD Local Staging Validation
 
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 ## Scope And Status
 
 The owner selected **localhost** on 2026-10-25. This is an isolated development
@@ -95,10 +99,10 @@ database files, browser sessions or entire artifact directories.
 
 On 2026-10-25 a GET-only inspection confirmed:
 
-- `pxa-staging` exists and permits protected branches; the returned rules contain
+- legacy staging component exists and permits protected branches; the returned rules contain
   a branch policy, not a required reviewer.
 - Its environment-variable list is empty. No secret values were requested.
-- A historical `v1.1.0` release, published 2026-08-03, contains seven `pxa-*`
+- A historical `v1.1.0` release, published 2026-08-03, contains seven predecessor implementation
   archives with advertised SHA-256 digests. These metadata were inspected; the
   archives were not downloaded or independently hashed by this check.
 - The local deployment workflow records `validated`, not `succeeded`: no target
@@ -123,4 +127,4 @@ VERSION remains **1.1.0**. The Account route fix has a Patch fragment. No releas
 tag, push, registry publication, DNS change or external deployment was performed.
 See the [approval register](pvad-rename-release-approvals.md),
 [rollback procedure](pvad-rename-rollback.md) and
-[rename checklist](../checklists/Rename-PXA-To-PVAD.md).
+[rename checklist](../checklists/PVAD.Rename-Plan.md).

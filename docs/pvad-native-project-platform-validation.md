@@ -108,4 +108,4 @@ uninstall in `finally`; inspect `cleanupError` before another run.
 The rename association criterion is locally satisfied for the explicitly selected
 macOS/Chrome scope only. Remote release, publisher, domain, infrastructure and
 deployment gates remain open. See [project opening](pvad-native-project-opening.md)
-and the [rename checklist](../checklists/Rename-PXA-To-PVAD.md).
+and the [rename checklist](../checklists/PVAD.Rename-Plan.md).

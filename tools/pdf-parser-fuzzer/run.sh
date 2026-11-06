@@ -14,3 +14,4 @@ dotnet run \
   --no-build \
   -- \
   --report "$REPORT_PATH"
+node tools/pdf-parser-fuzzer/report.mjs "$REPORT_PATH"

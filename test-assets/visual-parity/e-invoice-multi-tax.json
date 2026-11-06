@@ -2,7 +2,7 @@
   "id": "e-invoice-multi-tax",
   "name": "Electronic invoice parity (many tax groups)",
   "category": "invoice",
-  "description": "Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PXA invoice model.",
+  "description": "Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PVAD invoice model.",
   "pageSettings": {
     "width": 595,
     "height": 842,

@@ -54,7 +54,7 @@ export interface ChartDefinition {
   recognition?: {
     status: 'native' | 'automatic' | 'reviewRequired' | 'visualFallback';
     confidence: number;
-    sourceKind?: 'pxaMetadata' | 'pdfVector' | 'pdfRaster';
+    sourceKind?: 'pvadMetadata' | 'pxaMetadata' | 'pdfVector' | 'pdfRaster';
     sourceAssetId?: string;
     diagnosticCode?: string;
   };

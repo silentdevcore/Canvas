@@ -1,23 +1,21 @@
-# PXA Website Hosting Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Website Hosting Checklist
 
 ## Ziel
-Hosting fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` so vorbereiten, dass die drei Websites getrennt gebaut, geprueft und spaeter getrennt deployed werden koennen.
+Hosting fuer `PVAD.Company`, `PVAD.Documentation` und `PVAD.Demo` so vorbereiten, dass die drei Websites getrennt gebaut, geprueft und spaeter getrennt deployed werden koennen.
 
 ## Deployment-Ziele
-- [x] `PXA.Company` als Marketing-/Sales-Site planen.
-- [x] `PXA.Documentation` als technische Docs-Site planen.
-- [x] `PXA.Demo` als Demo-Galerie planen.
+- [x] `PVAD.Company` als Marketing-/Sales-Site planen.
+- [x] `PVAD.Documentation` als technische Docs-Site planen.
+- [x] `PVAD.Demo` als Demo-Galerie planen.
 - [x] Public Host-Empfehlungen festlegen:
   - [x] `powerdoxautomation.com`
   - [x] `docs.powerdoxautomation.com`
   - [x] `demos.powerdoxautomation.com`
 
 ## Build-Artefakte
-- [x] `websites/PXA.Company/dist`
-- [x] `websites/PXA.Documentation/dist`
-- [x] `websites/PXA.Demo/dist`
+- [x] `websites/PVAD.Company/dist`
+- [x] `websites/PVAD.Documentation/dist`
+- [x] `websites/PVAD.Demo/dist`
 - [x] `dist` bleibt Git-ignoriert.
 - [x] `websites/shared` bleibt Source-only und wird je Site gebundled.
 
@@ -34,7 +32,7 @@ Hosting fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` so vorbereiten, d
 - [x] `git diff --check` ausfuehren.
 - [x] Legacy-Branding-Suche fuer `Canvas` in Website-Dateien ausfuehren.
 - [x] Lokale URLs smoke-testen.
-- [x] PXA.Demo Example-Dateien als synthetische Public Assets dokumentieren.
+- [x] PVAD.Demo Example-Dateien als synthetische Public Assets dokumentieren.
 - [x] Environment-aware Site URLs zentralisieren.
 - [x] Company Clean Paths fuer Products, Pricing, About, Support und Contact vorbereiten.
 - [x] Company Clean Paths setzen Title und Meta Description im SPA-MVP.

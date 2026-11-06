@@ -1,12 +1,10 @@
 # UI-Template Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Scope
 Create a dynamic template system similar to CraftMyPDF where users design reusable templates and generate final PDFs by merging template layout with runtime JSON data.
 
 > Legacy note: this checklist documents work completed in the removed `ui-designer/` implementation.
-> Active frontend work now belongs in `pxa-designer/`.
+> Active frontend work now belongs in `pvad-designer/`.
 
 ## Definition of Done
 - [x] Users can create a template visually (drag/drop + property editing).
@@ -260,9 +258,9 @@ Implementation targets:
 - [x] SOLID principles throughout codebase
 
 Implementation targets:
-- [x] src/Core/PXA.Core/: domain entities and abstractions
-- [x] src/Core/PXA.Application/: use cases and business logic
-- [x] PXA.WebApi/: clean API layer
+- [x] src/Core/PVAD.Core/: domain entities and abstractions
+- [x] src/Core/PVAD.Application/: use cases and business logic
+- [x] PVAD.WebApi/: clean API layer
 - [x] Proper architectural boundaries and patterns
 
 ### 1) Binding Properties (Critical)
@@ -327,7 +325,7 @@ Implementation targets:
 Implementation targets:
 - [x] ui-designer/src/PropertiesPanel.tsx: overflow/pagination controls.
 - [x] ui-designer/src/ElementRenderer.tsx: preview overflow behavior.
-- [x] PXA/Pdf renderer pipeline: final pagination behavior parity with preview.
+- [x] PVAD.Pdf renderer pipeline: final pagination behavior parity with preview.
 
 ### 6) Image-Specific Dynamic Properties (High)
 - [x] Add imageFit mode (contain, cover, fill, none).

@@ -1,7 +1,5 @@
 # UI Page Settings Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 > PDF/X, print-production, marks, color, and imposition work is coordinated in
 > [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md).
 
@@ -10,13 +8,13 @@ Improve Page Settings so users can configure document/page behavior before desig
 
 ## Current State — Code Analysis (2026-05-15)
 
-Analysis of `src/components/Editor/SimplePxaSurface.tsx`, `src/store.ts`, and `src/styles/index.css`.
+Analysis of `src/components/Editor/SimplePvadSurface.tsx`, `src/store.ts`, and `src/styles/index.css`.
 
 | Area | Status | Notes |
 |---|---|---|
 | Paper size | ❌ Not implemented | Hardcoded `PAGE_WIDTH = 595`, `PAGE_HEIGHT = 842` (A4 only) |
 | Orientation | ❌ Not implemented | Always portrait, no toggle |
-| Page background | ❌ Not implemented | PXA always white, no control in store or UI |
+| Page background | ❌ Not implemented | PVADE always white, no control in store or UI |
 | Margins | ❌ Not implemented | Hardcoded `padding: 48px` in `.editor-page-content` CSS |
 | Header / Footer | ❌ Not implemented | No dedicated area or controls |
 | Page numbering (global) | ⚠️ Partial | `pagenumber` canvas element exists, but no global config panel |
@@ -39,7 +37,7 @@ Analysis of `src/components/Editor/SimplePxaSurface.tsx`, `src/store.ts`, and `s
 - [x] Defaults are safe for common PDF documents. *(A4, 48 px margins, white background)*
 
 ## A. Page Format
-> **Current:** Hardcoded A4 portrait (595 × 842 px). Constants in `SimplePxaSurface.tsx:101-102`. No store field for page size.
+> **Current:** Hardcoded A4 portrait (595 × 842 px). Constants in `SimplePvadSurface.tsx:101-102`. No store field for page size.
 - [x] Support preset sizes: A4, A5, Letter, Legal, Invoice, Label, Custom. *(A4/A5/A3/Letter/Legal dropdown)*
 - [x] Support custom width and height. *(number inputs)*
 - [x] Support units: mm, cm, inch, px, pt. *(Unit dropdown in Paper section; all inputs convert live)*
@@ -74,7 +72,7 @@ Analysis of `src/components/Editor/SimplePxaSurface.tsx`, `src/store.ts`, and `s
 - [ ] Ensure numbering resolves after final pagination. *(backend rendering concern)*
 
 ## E. Background and Watermark
-> **Current:** `pageSettings.globalWatermark` stores all watermark config. PXA shows live preview overlay. Export payload includes watermark when enabled.
+> **Current:** `pageSettings.globalWatermark` stores all watermark config. PVADE shows live preview overlay. Export payload includes watermark when enabled.
 - [x] Configure page background color. *(color picker in Page Settings panel)*
 - [x] Configure background image. *(URL input in Background section)*
 - [x] Configure image fit: contain, cover, stretch, tile. *(fit mode dropdown)*
@@ -83,10 +81,10 @@ Analysis of `src/components/Editor/SimplePxaSurface.tsx`, `src/store.ts`, and `s
 - [x] Ensure background/watermark layer order is predictable. *(z-index 19 overlay, below crop marks at 20, above all elements)*
 
 ## F. Bleed, Crop, and Print Guides
-> **Current:** Bleed has size input + red trim guide. Crop marks toggle shows SVG L-shaped corner marks. Grid/snap in PXA section.
+> **Current:** Bleed has size input + red trim guide. Crop marks toggle shows SVG L-shaped corner marks. Grid/snap in PVADE section.
 - [x] Add optional bleed settings. *(Bleed size input; 0 = off; red trim guide on canvas)*
 - [x] Add crop mark toggle. *(Show crop marks checkbox → SVG L-shaped corner brackets on canvas)*
-- [x] Add trim/safe area guide toggles. *(Show margin guide + Show safe area guide checkboxes in PXA section)*
+- [x] Add trim/safe area guide toggles. *(Show margin guide + Show safe area guide checkboxes in PVADE section)*
 - [x] Add grid visibility toggle. *(Show grid checkbox)*
 - [x] Add snap-to-grid toggle and grid size. *(Snap to grid checkbox + grid size input)*
 - [x] Ensure guides are preview-only unless explicitly exported. *(export payload includes `guides: { previewOnly: true }`)*

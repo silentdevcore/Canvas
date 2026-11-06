@@ -1,5 +1,6 @@
 import React from 'react';
 import toast, { Toaster, type ToastOptions } from 'react-hot-toast';
+import { displaySystemMessage } from '@/utils/presentation';
 
 export interface PvadToastOptions extends ToastOptions {
   action?: {
@@ -10,7 +11,7 @@ export interface PvadToastOptions extends ToastOptions {
 
 const content = (message: string, options?: PvadToastOptions) => (
   <span className="pvad-toast-content">
-    <span>{message}</span>
+    <span>{displaySystemMessage(message)}</span>
     {options?.action && (
       <button
         type="button"

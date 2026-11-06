@@ -1,7 +1,5 @@
 # Word Converter — PDF Fidelity Checklist (Execution)
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 > Goal: Make Word export visually and structurally as close as possible to PDF output for the same DesignExportDto input.
 
 ---
@@ -75,8 +73,8 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 | Merged duplicate `SpacingBetweenLines` (typography + positioning) | One element per `pPr` |
 
 ### Test Coverage
-- 84 unit tests (`PXA.Export.Tests`) — all passing
-- 15 integration tests (`PXA.Api.Tests`) — all passing
+- 84 unit tests ([compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json)) — all passing
+- 15 integration tests ([compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json)) — all passing
 - 13-fixture fidelity harness — **90.244% average score** (target: ≥ 90%)
 
 ### Known Remaining Gaps
@@ -102,8 +100,8 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 - [x] Fixed duplicate `SpacingBetweenLines` when typography and positioning both add spacing — merged into single element with both Line and Before attributes.
 - [x] Confirmed JSON→Word (OpenXML SDK) is the correct architecture; PDF→Word approach rejected (structure loss, non-editable output, paid library dependency).
 - [x] Created and expanded fidelity sample pack (13 fixtures) under checklists/word-fidelity-samples.
-- [x] Added automated Word vs PDF fidelity harness in tests/PXA.Export.Tests/WordPdfFidelityTests.cs.
-- [x] Harness writes baseline artifacts to tests/PXA.Export.Tests/Fidelity/artifacts/latest.
+- [x] Added automated Word vs PDF fidelity harness in tests/PVAD.Export.Tests/WordPdfFidelityTests.cs.
+- [x] Harness writes baseline artifacts to tests/PVAD.Export.Tests/Fidelity/artifacts/latest.
 - [x] Added DOCX-to-PDF conversion step via LibreOffice when available.
 - [x] Added first-page geometry drift assertion for converted output.
 - [x] Added optional first-page PNG snapshot generation and pixel diff ratio report in fidelity harness.
@@ -125,7 +123,7 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 - [x] Added regression tests for anchored image offsets and z-order monotonicity.
 - [x] Added safe image fallback placeholder rendering for invalid/unavailable image sources.
 - [x] Added deterministic sequential drawing IDs for images and regression coverage.
-- [x] Added tested PXA width/height -> image extent EMU conversion checks.
+- [x] Added tested PVADE width/height -> image extent EMU conversion checks.
 - [x] Added fit mode mapping: fill stretches, contain/cover preserve aspect (cover uses preserve-aspect fallback).
 - [x] Added deterministic element ordering (Y/X/zIndex/Id) with regression coverage for equal-coordinate elements.
 - [x] Added remote image fetch retry+timeout policy with graceful placeholder fallback.
@@ -184,7 +182,7 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 
 - [x] Add golden output folder structure:
   - checklists/word-fidelity-samples/
-  - tests/PXA.Export.Tests/Fidelity/
+  - tests/PVAD.Export.Tests/Fidelity/
 - [x] For each sample input, generate both outputs:
   - PDF via current PDF renderer
   - DOCX via WordDocumentExporter
@@ -211,7 +209,7 @@ Acceptance:
 
 ## 4. Page Geometry and Units
 
-- [x] Map PXA page size to Word section page size precisely (twips)
+- [x] Map PVADE page size to Word section page size precisely (twips)
 - [x] Map margins from PageSettings to section properties
 - [x] Respect page orientation per page
 - [x] Replace loose px conversion with centralized converter:
@@ -252,7 +250,7 @@ Acceptance:
 
 ## 7. Table Parity
 
-- [x] Use fixed table layout with explicit grid widths from PXA widths
+- [x] Use fixed table layout with explicit grid widths from PVADE widths
 - [x] Map header row shading, bold, and repeat-on-page-break behavior
 - [x] Map border width/color/style consistently
 - [x] Support zebra rows and per-column alignment
@@ -268,7 +266,7 @@ Acceptance:
 - [x] Support data URLs, http/https images, and safe fallback placeholders
 - [x] Preserve fit mode semantics as close as possible:
   - contain, cover, fill fallback behavior documented
-- [x] Set image extents from PXA width/height with tested conversion
+- [x] Set image extents from PVADE width/height with tested conversion
 - [x] Add deterministic image ID generation per document
 
 Acceptance:

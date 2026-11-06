@@ -41,7 +41,7 @@ This guide prepares a separately protected operator documentation deployment. It
 - Permit only explicitly allowlisted System Administrators; Organization Administrators and
   anonymous users must receive `403` and `401` respectively.
 - Strip browser-supplied `Authorization`, current and legacy API-key/Application
-  headers (`X-PVAD-*` and `X-PXA-*`), and `X-WEBAUTH-*` authentication headers before
+  headers (`X-PVAD-*` and [compatibility entry `compat-dcc821f12f01`](compatibility-identifiers.v1.json)), and `X-WEBAUTH-*` authentication headers before
   forwarding to Grafana.
 - Forward only the pseudonymous operator identifier returned by PVAD.WebApi.
 - Keep Grafana Auth Proxy limited to the fixed operator-gateway address on the internal ingress

@@ -4,11 +4,11 @@
 
 | Boundary | New default | Retained reader/registration |
 | --- | --- | --- |
-| Public interactive client | `pvad-mcp-public` | `pxa-mcp-public` |
-| Internal confidential client | `pvad-mcp-server` | `pxa-mcp-server` |
-| Service-account client | `pvad-sa-<key-id-N>` | `pxa-sa-<key-id-N>` |
-| API resource option | `pvad-api` | Explicit `pxa-api` configuration override |
-| OAuth scope catalog | Twelve known `pvad.*` scopes | Their exact `pxa.*` aliases |
+| Public interactive client | `pvad-mcp-public` | [compatibility entry `compat-b154cba9014f`](../operator-docs/compatibility-identifiers.v1.json) |
+| Internal confidential client | `pvad-mcp-server` | [compatibility entry `compat-b93898a80e92`](../operator-docs/compatibility-identifiers.v1.json) |
+| Service-account client | `pvad-sa-<key-id-N>` | [compatibility entry `compat-71654599bb5a`](../operator-docs/compatibility-identifiers.v1.json) |
+| API resource option | `pvad-api` | Explicit [compatibility entry `compat-ca1eb4ce6067`](../operator-docs/compatibility-identifiers.v1.json) configuration override |
+| OAuth scope catalog | Twelve known `pvad.*` scopes | Their exact [compatibility entry `compat-fb5db5457234`](../operator-docs/compatibility-identifiers.v1.json) aliases |
 | MCP protected-resource metadata | `pvad.docs.read`, `pvad.documents.validate` | Existing tokens with equivalent read scopes remain accepted |
 
 New built-in/public/DCR/service-account permissions include both generations of
@@ -95,5 +95,5 @@ the final whole-repository, multi-host release acceptance.
 
 See [identity compatibility](pvad-identity-compatibility.md),
 [client setup](mcp-client-setup.md),
-[rename tracker](../checklists/Rename-PXA-To-PVAD.md) and
+[rename tracker](../checklists/PVAD.Rename-Plan.md) and
 [release approvals](pvad-rename-release-approvals.md).

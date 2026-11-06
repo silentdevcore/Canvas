@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-current-writers-and-migration-access",
+  "impact": "patch",
+  "components": ["api", "importer", "infrastructure", "migration", "sdk", "admin", "documentation"],
+  "category": "fixed",
+  "summary": "Designer migration access now honors scoped permissions consistently. New chart metadata and redacted image resources use PVAD names while existing documents remain readable.",
+  "breaking": false
+}

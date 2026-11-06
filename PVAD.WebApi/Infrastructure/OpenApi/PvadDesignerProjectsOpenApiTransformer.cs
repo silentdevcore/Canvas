@@ -41,8 +41,8 @@ public sealed class PvadDesignerProjectsOpenApiTransformer : IOpenApiDocumentTra
                 operation.Description = contract.Export
                     ? $"Streams a deterministic .{contract.Format} package. The response media type is the native PVAD project media type and Content-Disposition supplies the sanitized filename."
                     : contract.AcceptsReservedIds
-                        ? $"Accepts a bounded .{contract.Format} package (or its matching legacy PXA extension) as multipart field `file`. Optional `reservedIds` is a JSON string array used only to remap IDs that collide with the selected target. A reviewed schema upgrade is reported through `upgradeReport` and never modifies the uploaded source package."
-                        : $"Accepts a bounded .{contract.Format} package (or its matching legacy PXA extension) as multipart field `file`.";
+                        ? $"Accepts a bounded .{contract.Format} package (or its matching previous-generation extension) as multipart field `file`. Optional `reservedIds` is a JSON string array used only to remap IDs that collide with the selected target. A reviewed schema upgrade is reported through `upgradeReport` and never modifies the uploaded source package."
+                        : $"Accepts a bounded .{contract.Format} package (or its matching previous-generation extension) as multipart field `file`.";
                 operation.Tags = new HashSet<OpenApiTagReference>
                 {
                     new("Designer Projects", document),

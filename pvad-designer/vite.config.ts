@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { pvadBuildInfoPlugin, pvadStaticStatusPagesPlugin, readPvadBuildInfo } from '../websites/shared/vitePvadVersion.js'
 import { readPvadEnvironment } from '../tools/configuration/environment.mjs'
+import { resolveSiteLinks } from '../websites/shared/siteLinks.js'
 
 const buildInfo = readPvadBuildInfo()
 const version = buildInfo.productVersion
@@ -13,6 +14,7 @@ const version = buildInfo.productVersion
 export default defineConfig({
   plugins: [react(), pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Designer')],
   define: {
+    __PVAD_ABOUT_URL__: JSON.stringify(`${resolveSiteLinks(process.env.NODE_ENV, process.env).company}about.html#rename-history`),
     __PVAD_VERSION__: JSON.stringify(version),
     __PVAD_BUILD_COMMIT__: JSON.stringify(buildInfo.commitId),
     __PVAD_BUILD_TIME__: JSON.stringify(buildInfo.buildTime),

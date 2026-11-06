@@ -1,6 +1,7 @@
 # Spreadsheet Polish — remaining follow-ups
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
 
 Closes the loose ends after the backend engine + migration suite + Workbook JSON: validation/versioning,
 deeper migration fidelity, and surfacing the now-lossless advanced features in the editor UI. Builds on
@@ -21,7 +22,7 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       `Style.Alignment.Horizontal` + EPPlus `Style.HorizontalAlignment` (enum rightmost name → value).
 - [x] **Fill/background color** (ClosedXML `Style.Fill.BackgroundColor = XLColor.Name`) → `.Style(s =>
       s.Background("#RRGGBB"))` via a named-color lookup (~16 common names); unknown colors → `CANMIGCLXL023`.
-- [x] **Named ranges**: `PxaWorkbook.DefineName(name, refersTo)` builder method; ClosedXML
+- [x] **Named ranges**: `PvadWorkbook.DefineName(name, refersTo)` builder method; ClosedXML
       `wb.NamedRanges.Add("X", "Sheet!A1")` → `wb.DefineName(...)`.
 - [x] Tests added (ClosedXML 4, EPPlus 4, GemBox 3). Horizontal alignment now covered for ClosedXML +
       EPPlus + **GemBox** (`Style.HorizontalAlignment`). Aspose alignment + GemBox/Aspose fill colour stay
@@ -43,7 +44,7 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       colours / dataBar remain out of scope.
 
 ## Verification
-- `dotnet build PXA.sln` clean; `PXA.Export.Tests` + migration test projects green; frontend `tsc` +
+- `dotnet build PVAD.sln` clean; [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json) + migration test projects green; frontend `tsc` +
   `jest` green. Live (`:5086`): `/validate` flags a bad workbook; a migrated sample carries fill/alignment +
   named ranges; the editor sets page setup/CF/validation that survives an `.xlsx` round-trip.
 

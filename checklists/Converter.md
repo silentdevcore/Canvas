@@ -1,8 +1,6 @@
 # Export Converters — Implementation Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
-> **Goal:** Let users export any PXA design to HTML, XML, Word (.docx), Excel (.xlsx),
+> **Goal:** Let users export any PVADE design to HTML, XML, Word (.docx), Excel (.xlsx),
 > Image (PNG / JPEG / SVG), CSV, and Markdown — in addition to the existing PDF and JSON.
 > The frontend sends the same `DesignExportDto` payload to a single new endpoint; the backend
 > dispatches it to a format-specific converter and streams the file back.
@@ -14,28 +12,28 @@
 ```
 Frontend (ExportService.ts)
   └── POST /api/templates/export?format=html
-        └── ExportController (PXA.WebApi)
-              └── ExportDocumentUseCase (PXA.Application)
+        └── ExportController (PVAD.WebApi)
+              └── ExportDocumentUseCase (PVAD.Application)
                     └── IDocumentExporter  ←  one implementation per format
-                          ├── HtmlDocumentExporter     (PXA.Infrastructure.Converters)
-                          ├── XmlDocumentExporter      (PXA.Infrastructure.Converters)
-                          ├── WordDocumentExporter     (PXA.Infrastructure.Word)
-                          ├── ExcelDocumentExporter    (PXA.Infrastructure.Sheet)
-                          ├── ImageDocumentExporter    (PXA.Infrastructure.Converters)
-                          ├── SvgDocumentExporter      (PXA.Infrastructure.Converters)
-                          ├── CsvDocumentExporter      (PXA.Infrastructure.Converters)
-                          └── MarkdownDocumentExporter (PXA.Infrastructure.Converters)
+                          ├── HtmlDocumentExporter     (PVAD.Infrastructure.Converters)
+                          ├── XmlDocumentExporter      (PVAD.Infrastructure.Converters)
+                          ├── WordDocumentExporter     (PVAD.Infrastructure.Word)
+                          ├── ExcelDocumentExporter    (PVAD.Infrastructure.Sheet)
+                          ├── ImageDocumentExporter    (PVAD.Infrastructure.Converters)
+                          ├── SvgDocumentExporter      (PVAD.Infrastructure.Converters)
+                          ├── CsvDocumentExporter      (PVAD.Infrastructure.Converters)
+                          └── MarkdownDocumentExporter (PVAD.Infrastructure.Converters)
 ```
 
-**Input** (already exists): `DesignExportDto` in `PXA.WebApi/Infrastructure/DesignExportDto.cs`
+**Input** (already exists): `DesignExportDto` in `PVAD.WebApi/Infrastructure/DesignExportDto.cs`
 **Existing PDF path**: `POST /api/templates/render-design` → keep unchanged for backward compat
 **New path**: `POST /api/templates/export?format=<key>` → returns file with correct MIME type
 
 ---
 
-## Phase 1 — Shared Contract (PXA.Core)
+## Phase 1 — Shared Contract (PVAD.Core)
 
-- [x] Add `IDocumentExporter` interface to `PXA.Core/Abstractions/`:
+- [x] Add `IDocumentExporter` interface to `PVAD.Core/Abstractions/`:
   ```csharp
   public interface IDocumentExporter
   {
@@ -45,21 +43,21 @@ Frontend (ExportService.ts)
       byte[] Export(DesignExportDto design);
   }
   ```
-- [x] Add `ExportFormat` enum (or string constants) to `PXA.Core/Primitives/` for type-safe dispatch
+- [x] Add `ExportFormat` enum (or string constants) to `PVAD.Core/Primitives/` for type-safe dispatch
 - [x] Add `ExportCapabilities` record to `IRendererCapabilities` or a new `IExporterCapabilities`
   - Fields: `SupportsMultiPage`, `SupportsImages`, `SupportsRichText`, `SupportsFormFields`
 
-> **Note:** `DesignExportDto` was moved from `PXA.WebApi.Infrastructure` →
-> `PXA.Core.Contracts` so all infrastructure projects can access it. The old file in
-> PXA.WebApi now has a `global using PXA.Core.Contracts;` for backward compatibility.
+> **Note:** `DesignExportDto` was moved from `PVAD.WebApi.Infrastructure` →
+> `PVAD.Core.Contracts` so all infrastructure projects can access it. The old file in
+> PVAD.WebApi now has a `global using PVAD.Core.Contracts;` for backward compatibility.
 > New fields added: `Href`, `LinkTarget`, `ButtonAction`, `NumberValue/Style/Currency/Locale`,
 > `ListStyle`, `ArrowDirection`, `ArrowRotation`.
 
 ---
 
-## Phase 2 — Application Layer (PXA.Application)
+## Phase 2 — Application Layer (PVAD.Application)
 
-- [x] Create `ExportDocumentRequest` in `PXA.Application/UseCases/`:
+- [x] Create `ExportDocumentRequest` in `PVAD.Application/UseCases/`:
   ```csharp
   public record ExportDocumentRequest(DesignExportDto Design, string Format);
   ```
@@ -72,9 +70,9 @@ Frontend (ExportService.ts)
 
 ---
 
-## Phase 3 — API Endpoint (PXA.WebApi)
+## Phase 3 — API Endpoint (PVAD.WebApi)
 
-- [x] Add `ExportController` at `PXA.WebApi/Controllers/ExportController.cs`:
+- [x] Add `ExportController` at `PVAD.WebApi/Controllers/ExportController.cs`:
   ```
   POST /api/export?format={key}
   Body: DesignExportDto
@@ -89,7 +87,7 @@ Frontend (ExportService.ts)
 
 ## Phase 4 — Format Converters
 
-### 4.1 HTML  (`PXA.Infrastructure.Converters`)
+### 4.1 HTML  (`PVAD.Infrastructure.Converters`)
 - [x] `HtmlDocumentExporter : IDocumentExporter` — FormatKey `"html"`
 - [x] Walk each `ElementDto` and emit positioned `<div>` / `<span>` elements with inline CSS
   - `text` → `<div style="position:absolute; left:{x}px; top:{y}px; ...">content</div>`
@@ -106,12 +104,12 @@ Frontend (ExportService.ts)
 - [x] Emit a minimal embedded `<style>` block (reset, page container, font fallbacks)
 - [x] Multi-page: each page in its own `.canvas-page` div, separated by a page-break style
 
-### 4.2 XML  (`PXA.Infrastructure.Converters`)
+### 4.2 XML  (`PVAD.Infrastructure.Converters`)
 - [x] `XmlDocumentExporter : IDocumentExporter` — FormatKey `"xml"`
 - [x] Use `System.Xml.Linq` (built-in, no new package)
 - [x] Schema:
   ```xml
-  <PxaDocument name="…" version="1.0">
+  <PvadDocument name="…" version="1.0">
     <PageSettings width="595" height="842" orientation="portrait" />
     <Pages>
       <Page id="page-1" index="0">
@@ -124,17 +122,17 @@ Frontend (ExportService.ts)
         </Elements>
       </Page>
     </Pages>
-  </PxaDocument>
+  </PvadDocument>
   ```
 - [x] Map every element type to its XML representation — properties go as child elements or attributes
 - [x] Include `XmlDeclaration` (`<?xml version="1.0" encoding="utf-8"?>`)
 - [x] Return UTF-8 bytes with MIME `application/xml`
 
-### 4.3 Word (.docx)  (`PXA.Infrastructure.Word`)
+### 4.3 Word (.docx)  (`PVAD.Infrastructure.Word`)
 - [x] Add NuGet: **`DocumentFormat.OpenXml`** (OpenXML SDK — MIT, no runtime cost)
 - [x] `WordDocumentExporter : IDocumentExporter` — FormatKey `"word"`
 - [x] Build a `WordprocessingDocument` in a `MemoryStream`
-- [x] Map PXA elements → Word constructs:
+- [x] Map PVADE elements → Word constructs:
   - `text` / `richtext` → `<w:p><w:r><w:t>` paragraph with run properties (bold, italic, font size, color)
   - `table` → `<w:tbl>` with rows/cells; header row → `<w:trPr><w:tblHeader/>`
   - `signature` → signature line paragraph with underline styling + label
@@ -145,10 +143,10 @@ Frontend (ExportService.ts)
 - [x] Set document metadata (title, author) from `PageSettings.Metadata`
 - [x] Return MIME `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
 
-### 4.4 Excel (.xlsx)  (`PXA.Infrastructure.Sheet`)
+### 4.4 Excel (.xlsx)  (`PVAD.Infrastructure.Sheet`)
 - [x] Add NuGet: **`ClosedXML`** (MIT) — simpler API than raw OpenXML for spreadsheets
 - [x] `ExcelDocumentExporter : IDocumentExporter` — FormatKey `"excel"`
-- [x] Strategy: each PXA `table` element → dedicated worksheet; other text elements → first sheet summary
+- [x] Strategy: each PVADE `table` element → dedicated worksheet; other text elements → first sheet summary
 - [x] For each `table` element:
   - Sheet name = element `name` ?? `"Table {n}"`
   - `cellData[row][col]` → cell value; apply header row bold + background; zebra rows via pattern fill
@@ -158,7 +156,7 @@ Frontend (ExportService.ts)
 - [x] `optionlist` / `dropdown` → sheet column with all options listed
 - [x] Return MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
-### 4.5 PNG / JPEG  (`PXA.Infrastructure.Converters`)
+### 4.5 PNG / JPEG  (`PVAD.Infrastructure.Converters`)
 - [x] Add NuGet: **`SkiaSharp`** (MIT; platform-native, no Chrome needed)
 - [x] `ImageDocumentExporter : IDocumentExporter` — FormatKey `"png"` (and `JpegDocumentExporter` for `"jpeg"`)
 - [x] For each page: create `SKBitmap` at `(width × dpi/72, height × dpi/72)` (default 150 dpi)
@@ -172,7 +170,7 @@ Frontend (ExportService.ts)
 - [x] Multi-page: zip all page images into a single `.zip` file, MIME `application/zip`
 - [x] Single-page: return raw PNG/JPEG bytes
 
-### 4.6 SVG  (`PXA.Infrastructure.Converters`)
+### 4.6 SVG  (`PVAD.Infrastructure.Converters`)
 - [x] `SvgDocumentExporter : IDocumentExporter` — FormatKey `"svg"`
 - [x] Use `System.Xml.Linq` (no new package)
 - [x] Emit one `<svg viewBox="0 0 {w} {h}">` per page; multi-page → zip
@@ -186,7 +184,7 @@ Frontend (ExportService.ts)
   - `table` → `<g>` of rects + text elements per cell
   - `link` → `<a href>` wrapping child element
 
-### 4.7 CSV  (`PXA.Infrastructure.Converters`)
+### 4.7 CSV  (`PVAD.Infrastructure.Converters`)
 - [x] `CsvDocumentExporter : IDocumentExporter` — FormatKey `"csv"`
 - [x] Target: tabular data only — each `table` element → its own CSV section
 - [x] Each table prefixed with `# Table: {name}` comment row
@@ -195,7 +193,7 @@ Frontend (ExportService.ts)
 - [x] Return UTF-8 with BOM (`\xEF\xBB\xBF`) so Excel opens it correctly
 - [x] MIME `text/csv`; filename `{designName}.csv`
 
-### 4.8 Markdown  (`PXA.Infrastructure.Converters`)
+### 4.8 Markdown  (`PVAD.Infrastructure.Converters`)
 - [x] `MarkdownDocumentExporter : IDocumentExporter` — FormatKey `"md"`
 - [x] Walk elements sorted by Y position (top-to-bottom reading order)
 - [x] Map:
@@ -263,14 +261,14 @@ Frontend (ExportService.ts)
   services.AddScoped<IDocumentExporter, CsvDocumentExporter>();
   services.AddScoped<IDocumentExporter, MarkdownDocumentExporter>();
   ```
-- [x] Add project references in `PXA.WebApi/PXA.WebApi.csproj`:
-  - `PXA.Infrastructure.Word` ✓
-  - `PXA.Infrastructure.Sheet` ✓
-  - `PXA.Infrastructure.Converters` ✓
+- [x] Add project references in `PVAD.WebApi/PVAD.WebApi.csproj`:
+  - `PVAD.Infrastructure.Word` ✓
+  - `PVAD.Infrastructure.Sheet` ✓
+  - `PVAD.Infrastructure.Converters` ✓
 - [x] Add NuGet packages:
-  - [x] `DocumentFormat.OpenXml` 3.5.1 → `PXA.Infrastructure.Word`
-  - [x] `ClosedXML` 0.105.0 → `PXA.Infrastructure.Sheet`
-  - [x] `SkiaSharp` 3.119.2 → `PXA.Infrastructure.Converters`
+  - [x] `DocumentFormat.OpenXml` 3.5.1 → `PVAD.Infrastructure.Word`
+  - [x] `ClosedXML` 0.105.0 → `PVAD.Infrastructure.Sheet`
+  - [x] `SkiaSharp` 3.119.2 → `PVAD.Infrastructure.Converters`
 
 ---
 
@@ -281,7 +279,7 @@ Frontend (ExportService.ts)
   - Assert MIME type matches
   - For XML/HTML/SVG/CSV/MD: parse output and assert key content is present
 - [x] `ExportDocumentUseCaseTests`: resolves by key, case-insensitive, unknown throws, null throws, all 9 formats, capabilities, filename from design name
-- [x] Integration tests (`PXA.Api.Tests`) — 15 tests: POST html/xml/csv/md/word/excel/png → 200, unknown → 415, formats list → 9 entries with capability fields
+- [x] Integration tests ([compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json)) — 15 tests: POST html/xml/csv/md/word/excel/png → 200, unknown → 415, formats list → 9 entries with capability fields
 - [ ] Frontend: manual smoke test for each format card — download file, open in target app
 
 ---
@@ -309,24 +307,24 @@ Frontend (ExportService.ts)
 
 | File | Project | Status |
 |------|---------|--------|
-| `PXA.Core/Contracts/DesignExportDto.cs` | PXA.Core | ✅ done |
-| `PXA.Core/Abstractions/IDocumentExporter.cs` | PXA.Core | ✅ done |
-| `PXA.Core/Primitives/ExportFormat.cs` | PXA.Core | ✅ done |
-| `PXA.Application/UseCases/ExportDocumentUseCase.cs` | PXA.Application | ✅ done |
-| `PXA.Application/UseCases/ExportDocumentRequest.cs` | PXA.Application | ✅ done |
-| `PXA.WebApi/Controllers/ExportController.cs` | PXA.WebApi | ✅ done |
-| `PXA.Infrastructure.Converters/HtmlDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/XmlDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/ImageDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/SvgDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/CsvDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/MarkdownDocumentExporter.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Converters/StyleExtensions.cs` | PXA.Infrastructure.Converters | ✅ done |
-| `PXA.Infrastructure.Word/WordDocumentExporter.cs` | PXA.Infrastructure.Word | ✅ done |
-| `PXA.Infrastructure.Word/StyleExtensions.cs` | PXA.Infrastructure.Word | ✅ done |
-| `PXA.Infrastructure.Sheet/ExcelDocumentExporter.cs` | PXA.Infrastructure.Sheet | ✅ done |
-| `PXA.Infrastructure.Sheet/StyleExtensions.cs` | PXA.Infrastructure.Sheet | ✅ done |
-| `pxa-designer/src/components/Editor/ExportModal.tsx` | Frontend | ✅ done |
+| `PVAD.Core/Contracts/DesignExportDto.cs` | PVAD.Core | ✅ done |
+| `PVAD.Core/Abstractions/IDocumentExporter.cs` | PVAD.Core | ✅ done |
+| `PVAD.Core/Primitives/ExportFormat.cs` | PVAD.Core | ✅ done |
+| `PVAD.Application/UseCases/ExportDocumentUseCase.cs` | PVAD.Application | ✅ done |
+| `PVAD.Application/UseCases/ExportDocumentRequest.cs` | PVAD.Application | ✅ done |
+| `PVAD.WebApi/Controllers/ExportController.cs` | PVAD.WebApi | ✅ done |
+| `PVAD.Infrastructure.Converters/HtmlDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/XmlDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/ImageDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/SvgDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/CsvDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/MarkdownDocumentExporter.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Converters/StyleExtensions.cs` | PVAD.Infrastructure.Converters | ✅ done |
+| `PVAD.Infrastructure.Word/WordDocumentExporter.cs` | PVAD.Infrastructure.Word | ✅ done |
+| `PVAD.Infrastructure.Word/StyleExtensions.cs` | PVAD.Infrastructure.Word | ✅ done |
+| `PVAD.Infrastructure.Sheet/ExcelDocumentExporter.cs` | PVAD.Infrastructure.Sheet | ✅ done |
+| `PVAD.Infrastructure.Sheet/StyleExtensions.cs` | PVAD.Infrastructure.Sheet | ✅ done |
+| `pvad-designer/src/components/Editor/ExportModal.tsx` | Frontend | ✅ done |
 
 ---
 
@@ -334,15 +332,15 @@ Frontend (ExportService.ts)
 
 | File | Change | Status |
 |------|--------|--------|
-| `PXA.WebApi/Program.cs` | Registered `ExportDocumentUseCase` + 9 exporters in DI | ✅ done |
-| `PXA.WebApi/PXA.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
-| `PXA.WebApi/Infrastructure/DesignExportDto.cs` | Replaced with `global using PXA.Core.Contracts` | ✅ done |
-| `PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj` | Added `DocumentFormat.OpenXml` 3.5.1 | ✅ done |
-| `PXA.Infrastructure.Sheet/PXA.Infrastructure.Sheet.csproj` | Added `ClosedXML` 0.105.0 | ✅ done |
-| `PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj` | Added `SkiaSharp` 3.119.2 | ✅ done |
-| `pxa-designer/src/services/ExportService.ts` | Added `ExportFormat` type, `exportViaBackend`, `listSupportedFormats` | ✅ done |
-| `pxa-designer/src/components/Preview/LivePreview.tsx` | Added "More formats…" entry + `ExportModal` integration | ✅ done |
-| `pxa-designer/src/styles/index.css` | Added `.export-modal-*` styles | ✅ done |
+| `PVAD.WebApi/Program.cs` | Registered `ExportDocumentUseCase` + 9 exporters in DI | ✅ done |
+| `PVAD.WebApi/PVAD.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
+| `PVAD.WebApi/Infrastructure/DesignExportDto.cs` | Replaced with `global using PVAD.Core.Contracts` | ✅ done |
+| `PVAD.Infrastructure.Word/PVAD.Infrastructure.Word.csproj` | Added `DocumentFormat.OpenXml` 3.5.1 | ✅ done |
+| `PVAD.Infrastructure.Sheet/PVAD.Infrastructure.Sheet.csproj` | Added `ClosedXML` 0.105.0 | ✅ done |
+| `PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj` | Added `SkiaSharp` 3.119.2 | ✅ done |
+| `pvad-designer/src/services/ExportService.ts` | Added `ExportFormat` type, `exportViaBackend`, `listSupportedFormats` | ✅ done |
+| `pvad-designer/src/components/Preview/LivePreview.tsx` | Added "More formats…" entry + `ExportModal` integration | ✅ done |
+| `pvad-designer/src/styles/index.css` | Added `.export-modal-*` styles | ✅ done |
 
 ---
 
@@ -350,8 +348,8 @@ Frontend (ExportService.ts)
 
 - [x] `ExportCapabilities` record on `IExporterCapabilities` (Phase 1 item)
 - [x] Persist last-used export format in `localStorage`
-- [x] Unit tests (Phase 7) — 41 tests passing in `PXA.Export.Tests`
-- [x] Integration tests — 15 tests in `PXA.Api.Tests` (HTTP 200, formats JSON, 415, case-insensitive key, capabilities fields)
+- [x] Unit tests (Phase 7) — 41 tests passing in [compatibility entry `compat-0a8a4c3179b0`](../docs/reference/compatibility-identifiers.v1.json)
+- [x] Integration tests — 15 tests in [compatibility entry `compat-bef49bdc75d9`](../docs/reference/compatibility-identifiers.v1.json) (HTTP 200, formats JSON, 415, case-insensitive key, capabilities fields)
 - [x] Image exporter: fetch remote URLs via `HttpClient` (`HttpImageCache` with in-process cache)
 - [x] JPEG quality / PNG DPI as optional query params (`?dpi=300&quality=85`) — threaded through `ExportOptions`
 - [x] Word: embed images via `ImagePart` + DrawingML (data URLs + remote URLs via HttpClient)

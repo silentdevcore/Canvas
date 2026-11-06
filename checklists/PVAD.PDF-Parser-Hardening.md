@@ -1,11 +1,9 @@
-# PXA PDF Parser Hardening
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD PDF Parser Hardening
 
 ## Purpose
 
 The PDF trust stack — inspection, signature validation, DocMDP enforcement, and every
-future redaction and compliance capability — runs on `PXA.Importer`'s object parser and
+future redaction and compliance capability — runs on `PVAD.Importer`'s object parser and
 stream decoders. Those layers currently accept arbitrary attacker-controlled input from
 an authenticated but publicly reachable endpoint without bounding what that input
 expands into.
@@ -21,7 +19,7 @@ limit can never be reported as structurally `valid`.
 ## Confirmed Defects
 
 These were verified in the code on `feature/pdf-trust-foundation` before this checklist
-was written. All are reachable through `POST /api/pxa/v1/pdf/trust/inspect`, which
+was written. All are reachable through `POST /api/pvad/v1/pdf/trust/inspect`, which
 accepts up to 100 MB of arbitrary PDF.
 
 - [x] **Unbounded parser recursion.** `ParseObject` -> `ParseArray` -> `ParseObject` and
@@ -50,7 +48,7 @@ accepts up to 100 MB of arbitrary PDF.
   for each; a limit that fires on real documents is a bug, not protection.
 - [x] Allow a decompression floor so that small streams which legitimately expand by a
   large ratio are not rejected by the ratio rule alone.
-- [x] Never make a limit breach silent: every breach records a `PXAPDFPARSE` diagnostic
+- [x] Never make a limit breach silent: every breach records a [compatibility entry `compat-7778695a4060`](../docs/reference/compatibility-identifiers.v1.json) diagnostic
   carrying the limit name, the observed value, and the object it applies to.
 
 ## Enforcement
@@ -85,7 +83,7 @@ accepts up to 100 MB of arbitrary PDF.
 - [x] Prove each fixture is bounded and produces the expected diagnostic instead of
   exhausting memory or the stack.
 - [x] Prove the limits do not change parsing results for the existing corpus.
-- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check`.
+- [x] Run `dotnet build PVAD.sln`, the Importer and API suites, and `git diff --check`.
 
 ## Reader Divergence
 

@@ -1,6 +1,4 @@
-# PXA TypeScript And JavaScript SDK Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD TypeScript And JavaScript SDK Checklist
 
 ## Goal
 
@@ -10,16 +8,16 @@ Deliver one TypeScript implementation that provides typed TypeScript APIs and pr
 
 - [ ] P1: Release after the Java SDK contract has proven stable.
 - [ ] Complete the P0 contract work in `PVAD.SDK-Roadmap.md` first.
-- [ ] Reserve the `@powerdox` npm organization and package scope.
+- [ ] Verify and reserve a publisher-owned npm scope; `@pvade` is a proposal, not a registered organization.
 
 ## Package And Runtime
 
-- [ ] Publish `@powerdox/pxa` to npm.
+- [ ] Publish the proposed `@pvade/pvad` package only after scope ownership and package availability are confirmed.
 - [ ] Support Node.js 20 or newer and current evergreen browsers.
 - [ ] Produce ESM, CommonJS, source maps, and TypeScript declarations.
 - [ ] Use native Fetch-compatible transport and avoid Node-only code in browser entry points.
 - [ ] Generate the internal transport and model layer from OpenAPI.
-- [ ] Expose a handwritten `PxaClient` and product-specific clients.
+- [ ] Expose a handwritten `PvadClient` and product-specific clients.
 
 ## Client Features
 
@@ -35,14 +33,14 @@ Deliver one TypeScript implementation that provides typed TypeScript APIs and pr
 - [ ] Publish one package for both TypeScript and JavaScript consumers.
 - [ ] Declare package exports explicitly and verify tree-shaking.
 - [ ] Provide Node, browser, React, and vanilla JavaScript examples.
-- [ ] Document Cloud and local PXA Server connection patterns.
+- [ ] Document Cloud and local PVAD Server connection patterns.
 - [ ] Automate generation, tests, provenance, and npm publication.
 
 ## Tests
 
 - [ ] Run type-level API tests and compile representative TypeScript projects.
 - [ ] Run unit tests in Node and a browser environment.
-- [ ] Run integration tests against the PXA Server container.
+- [ ] Run integration tests against the PVAD Server container.
 - [ ] Test browser and Node uploads, downloads, cancellation, and errors.
 - [ ] Verify ESM and CommonJS consumers before release.
 
@@ -51,4 +49,4 @@ Deliver one TypeScript implementation that provides typed TypeScript APIs and pr
 - [ ] TypeScript and JavaScript use the same package and implementation.
 - [ ] Consumers receive correct declarations without additional type packages.
 - [ ] Browser builds do not contain Node-only dependencies or embedded secrets.
-- [ ] The same public workflow works against Cloud and local PXA Server.
+- [ ] The same public workflow works against Cloud and local PVAD Server.

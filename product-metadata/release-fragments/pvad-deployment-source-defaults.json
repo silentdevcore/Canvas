@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-deployment-source-defaults",
+  "impact": "patch",
+  "components": ["infrastructure", "observability", "documentation"],
+  "category": "fixed",
+  "summary": "Deployment validation defaults to PVAD images while retaining explicit selection of historical releases. Monitoring display tags use PVAD without changing existing dashboard links.",
+  "breaking": false
+}

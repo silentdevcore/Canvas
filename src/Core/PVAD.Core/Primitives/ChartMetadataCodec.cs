@@ -27,7 +27,8 @@ public sealed class ChartMetadataEntry
 
 public static class ChartMetadataCodec
 {
-    public const string PdfInfoKey = "PXAChartsV2";
+    public const string PdfInfoKey = "PVADChartsV2";
+    public const string LegacyPdfInfoKey = "PXAChartsV2";
     public const int MaximumCharts = 256;
     public const int MaximumCompressedBytes = 512 * 1024;
 
@@ -107,12 +108,20 @@ public static class ChartMetadataCodec
 
             foreach (var entry in decoded.Charts)
             {
-                entry.Definition = ChartDefinitionNormalizer.Normalize(new ElementDto { Chart = entry.Definition });
-                if (entry.PageIndex < 0 || string.IsNullOrWhiteSpace(entry.ElementId) ||
-                    !CryptographicOperations.FixedTimeEquals(
-                        Encoding.ASCII.GetBytes(ComputeHash(entry.Definition)),
-                        Encoding.ASCII.GetBytes(entry.Hash ?? "")))
+                var originalSource = entry.Definition.Recognition?.SourceKind;
+                var normalized = ChartDefinitionNormalizer.Normalize(new ElementDto { Chart = entry.Definition });
+                var matches = HashMatches(ComputeNormalizedHash(normalized), entry.Hash);
+                // Earlier envelopes hashed the prior source spelling; validate it without rewriting the source bytes.
+                if (!matches && originalSource != normalized.Recognition?.SourceKind &&
+                    normalized.Recognition?.SourceKind == ChartDefinitionNormalizer.MetadataSourceKind)
+                {
+                    var original = ChartDefinitionNormalizer.Normalize(new ElementDto { Chart = entry.Definition });
+                    original.Recognition!.SourceKind = originalSource;
+                    matches = HashMatches(ComputeNormalizedHash(original), entry.Hash);
+                }
+                if (entry.PageIndex < 0 || string.IsNullOrWhiteSpace(entry.ElementId) || !matches)
                     return false;
+                entry.Definition = normalized;
             }
 
             envelope = decoded;
@@ -127,7 +136,15 @@ public static class ChartMetadataCodec
     public static string ComputeHash(ChartDefinitionDto definition)
     {
         var normalized = ChartDefinitionNormalizer.Normalize(new ElementDto { Chart = definition });
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(normalized, JsonOptions);
+        return ComputeNormalizedHash(normalized);
+    }
+
+    private static bool HashMatches(string actual, string? expected) => CryptographicOperations.FixedTimeEquals(
+        Encoding.ASCII.GetBytes(actual), Encoding.ASCII.GetBytes(expected ?? ""));
+
+    private static string ComputeNormalizedHash(ChartDefinitionDto definition)
+    {
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(definition, JsonOptions);
         return Convert.ToHexStringLower(SHA256.HashData(bytes));
     }
 }

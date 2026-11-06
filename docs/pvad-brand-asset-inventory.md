@@ -50,7 +50,7 @@ validated simply by renaming a file. Recheck provenance before replacing images.
 
 `node tools/configuration/rename-screenshot-audit.mjs` scans all 22 captures with
 local Tesseract and writes only byte hashes and branding flags, never extracted
-identity text. Ten protected Admin screenshots contain old PXA/Power Dox branding.
+identity text. Ten protected Admin screenshots contain old [compatibility entry `compat-4e4703cf753f`](reference/compatibility-identifiers.v1.json) Dox branding.
 The dashboard was also visually inspected and confirms the finding. The mixed-page
 Designer image was visually inspected as a geometry example without visible brand
 text. Absence of an OCR match is not proof that any other screenshot is current.
@@ -105,7 +105,7 @@ illustration remains unchanged and is not evidence of application chrome.
 4. Recapture and review documentation screenshots against the renamed UI.
 5. Verify published asset URLs, content types and caching through the real proxy.
 
-See the [rename tracker](../checklists/Rename-PXA-To-PVAD.md) and the historical
+See the [rename tracker](../checklists/PVAD.Rename-Plan.md) and the historical
 [logo-system roadmap](../checklists/PVAD.Brand-And-Logo-System.md). That roadmap's
-old PXA names are superseded by the PVAD/PVADE identity above; its approval tasks
+old PVAD names are superseded by the PVAD/PVADE identity above; its approval tasks
 remain separate from the completed inventory.

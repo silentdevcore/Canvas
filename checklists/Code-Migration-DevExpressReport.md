@@ -1,13 +1,11 @@
-# PXA Migration: DevExpress XtraReport → PXA Designer
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Migration: DevExpress XtraReport → PVADE Designer
 
 ## Goal
 
-Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
-and is editable in `pxa-designer` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
+Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PVADE design** that opens
+and is editable in `pvad-designer` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
-([DevExpressPdfMigration.cs](../src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
+([DevExpressPdfMigration.cs](../src/Migrations/PDF/PVAD.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
 
 - **Input**: a C# `XtraReport` subclass + designer code (`InitializeComponent()` configuring `XRLabel`,
   `XRLine`, `XRPictureBox`, `XRShape`, `XRTable`, … via `LocationF`/`SizeF`/`Text`/`Font`/`ForeColor`).
@@ -39,7 +37,7 @@ the next, unstarted milestone.
       to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
 ### Architecture
-- [x] Isolated project `src/Migrations/Report/PXA.Migration.Report.Designer.DevExpress` (refs `PXA.Core` + Roslyn); returns a
+- [x] Isolated project `src/Migrations/Report/PVAD.Migration.Report.Designer.DevExpress` (refs `PVAD.Core` + Roslyn); returns a
       `DesignExportDto`, not a code string.
 - [x] `XtraReportToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`.
 - [x] Roslyn pre-scan: locate `: XtraReport`; collect control field declarations; read
@@ -47,7 +45,7 @@ the next, unstarted milestone.
       rows/cells from `*.Controls/Rows/Cells.Add(Range)`.
 
 ### Control mapping
-| XtraReport control | PXA `ElementDto.Type` | Status |
+| XtraReport control | PVADE `ElementDto.Type` | Status |
 | --- | --- | --- |
 | `XRLabel` / `XRPageInfo` | `text` (+ font/colour/align style) | [x] |
 | `XRLine` | `line` | [x] |
@@ -60,9 +58,9 @@ the next, unstarted milestone.
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` → `{ design, diagnostics }`
-      ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
+      ([MigrationController.cs](../PVAD.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"DevExpress Reports"** entry + **Open in Designer** (loads via `bulkReplaceContent`,
-      navigates to the editor) ([MigrationsPage.tsx](../pxa-designer/src/pages/MigrationsPage.tsx)).
+      navigates to the editor) ([MigrationsPage.tsx](../pvad-designer/src/pages/MigrationsPage.tsx)).
 
 ### Tests (17 passing)
 - [x] Band-flattened + unit-converted coordinates; label style mapping; line/rect/image.
@@ -70,24 +68,24 @@ the next, unstarted milestone.
 - [x] XRTable rows/cells; single-field binding + complex expression; page header/footer → shared.
 - [x] Unsupported control → `CANMIGDEVREP011`.
 - [x] **End-to-end**: a converted report (C# and `.repx`) renders to a valid PDF through the real export
-      pipeline (`DesignJsonMapper` → `ToBytes`) — in `PXA.Export.Tests`.
+      pipeline (`DesignJsonMapper` → `ToBytes`) — in `PVAD.Export.Tests`.
 
 ### Diagnostics (implemented)
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
-| `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → PXA type`) |
+| `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → PVADE type`) |
 | `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
 | `CANMIGDEVREP012` | Warning | Sub-report placeholder inserted, or report scripts/event handlers require manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |
-| `CANMIGDEVREP014` | Warning | `DetailReportBand` / sub-detail layout flattened; data-repeat semantics require PXA template wiring |
-| `CANMIGDEVREP015` | Warning | `GroupHeaderBand` / `GroupFooterBand` layout flattened; group/sort repeat semantics require PXA template wiring |
-| `CANMIGDEVREP016` | Warning | `CanGrow` / `CanShrink` imported as PXA text wrapping/overflow hints; dynamic band reflow requires review |
+| `CANMIGDEVREP014` | Warning | `DetailReportBand` / sub-detail layout flattened; data-repeat semantics require PVADE template wiring |
+| `CANMIGDEVREP015` | Warning | `GroupHeaderBand` / `GroupFooterBand` layout flattened; group/sort repeat semantics require PVADE template wiring |
+| `CANMIGDEVREP016` | Warning | `CanGrow` / `CanShrink` imported as PVADE text wrapping/overflow hints; dynamic band reflow requires review |
 | `CANMIGDEVREP017` | Warning | DevExpress anchoring imported as metadata; responsive positioning requires review |
-| `CANMIGDEVREP018` | Warning | `XRChart` imported as editable PXA chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
-| `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as PXA arrow; direction/head style requires visual review |
-| `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as PXA `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
+| `CANMIGDEVREP018` | Warning | `XRChart` imported as editable PVADE chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
+| `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as PVADE arrow; direction/head style requires visual review |
+| `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as PVADE `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
 | `CANMIGDEVREP021` | Warning | C# designer image resource key preserved; `.resx`/resource payload is needed for automatic image embedding |
 | `CANMIGDEVREP022` | Warning | DevExpress `MultiColumn` band mode detected; repeated column flow requires manual review |
 | `CANMIGDEVREP023` | Warning | DevExpress `TextFitMode` / `TextTrimming` imported as metadata; text shrink/trimming requires manual review |
@@ -110,7 +108,7 @@ before lower-value table styling.
       controls, fonts/colours, alignment, expression bindings, and page header/footer → shared elements.
 
 ### 2. Richer controls & styling  *(partly done)*
-- [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → PXA image `Content` data
+- [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → PVADE image `Content` data
       URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
 - [x] C# `XRPictureBox.ImageSource = new ImageSource("img", resources.GetString("..."))` preserves the
       resource key as `style.devExpressImageResourceKey` and emits `CANMIGDEVREP021` when the `.resx`
@@ -124,25 +122,25 @@ before lower-value table styling.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
-- [x] `XRControlStyle` / `StyleName` → inherited PXA font/colour/border/padding style hints.
+- [x] `XRControlStyle` / `StyleName` → inherited PVADE font/colour/border/padding style hints.
 - [x] `TextFitMode` / `TextTrimming` → `style.devExpressTextFitMode` /
       `style.devExpressTextTrimming` with `CANMIGDEVREP023`.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
 - [x] Per-cell font/colour table styling — `XRTableCell` `BackColor`/`ForeColor`/`TextAlignment`/`Font`/
-      `Borders` are extracted into sparse PXA `CellStyles` (uniform + per-side borders) and rendered by
+      `Borders` are extracted into sparse PVADE `CellStyles` (uniform + per-side borders) and rendered by
       the canvas/preview and all exporters.
 - [x] Standard expressions are **executable** in the designer/preview: non-trivial bindings emit a
-      translated PXA-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
+      translated PVAD-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
       `style.devExpressExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
       Custom functions / aggregates remain out of scope.
-- [x] **P0** More controls: `XRChart` → editable PXA `chart`; `XRGauge`/`XRPivotGrid` →
+- [x] **P0** More controls: `XRChart` → editable PVADE `chart`; `XRGauge`/`XRPivotGrid` →
       positioned placeholders with `CANMIGDEVREP018` diagnostics instead of layout holes.
 - [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.
 - [x] **P1** `XRShape` arrow kinds; per-side `.Borders` selection.
 
 ### 3. Data & layout fidelity
-- [~] ~~Translate DevExpress expression syntax to the PXA expression DSL.~~ **Not worth doing** —
-      PXA's `ExpressionEvaluator` ([src/Core/PXA.Core/Primitives/ExpressionEvaluator.cs](../src/Core/PXA.Core/Primitives/ExpressionEvaluator.cs))
+- [~] ~~Translate DevExpress expression syntax to the PVADE expression DSL.~~ **Not worth doing** —
+      PVADE's `ExpressionEvaluator` ([src/Core/PVAD.Core/Primitives/ExpressionEvaluator.cs](../src/Core/PVAD.Core/Primitives/ExpressionEvaluator.cs))
       is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
       richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
       preserved verbatim on `expression` with a warning.
@@ -150,11 +148,11 @@ before lower-value table styling.
 - [x] **P0** Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — group/footer layout is
       imported and stacked in band order; C# `GroupFields`/`SortFields` and `.repx` `<GroupFields>`/
       `<SortFields>` are captured in `CANMIGDEVREP015` diagnostics. **Repeat semantics:** each group-band
-      control now carries PXA `RepeatDto` (data path from the first group field) plus
+      control now carries PVADE `RepeatDto` (data path from the first group field) plus
       `style.devExpressGroup` (name/role/band/fields/sorts), mirroring the RDL/Jasper group-repeat mapping,
-      so the band can be wired as a repeating template. Runtime data-binding still needs PXA template wiring.
+      so the band can be wired as a repeating template. Runtime data-binding still needs PVADE template wiring.
 - [x] **P0** `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing: imported as
-      PXA style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
+      PVADE style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
       `CANMIGDEVREP016/017` diagnostics for dynamic reflow/anchoring review.
 - [x] **P0** `ReportFooterBand` once-at-end semantics: report-footer elements are imported as
       `PageScope = "last"` so export renders them only on the final page while single-page designs
@@ -175,6 +173,6 @@ before lower-value table styling.
 - [x] **P1** `MultiColumn.Mode` detection on bands with `CANMIGDEVREP022` diagnostic.
 
 ## Assumptions
-- [x] Use `PXA.Migration.Report.Designer.DevExpress`, separate from `PXA.Migration.Pdf.Code.DevExpress`.
-- [x] Output target is PXA design JSON (designer), not PXA.Pdf C# code.
+- [x] Use `PVAD.Migration.Report.Designer.DevExpress`, separate from `PVAD.Migration.Pdf.Code.DevExpress`.
+- [x] Output target is PVADE design JSON (designer), not PVAD.Pdf C# code.
 - [x] Default page size A4 when the report declares none.

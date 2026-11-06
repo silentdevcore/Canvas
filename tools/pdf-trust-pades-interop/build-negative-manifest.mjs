@@ -1,15 +1,16 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolvePadesEvidence } from './corpus-contract.mjs';
 
 const directory = path.resolve(process.argv[2] ?? 'artifacts/pdf-trust-pades-interop');
 const cases = [
-  ['pxa-pades-revoked', 'PAdES-BASELINE-T', 'REVOKED_NO_POE'],
-  ['pxa-pades-untrusted', 'PAdES-BASELINE-T', 'NO_CERTIFICATE_CHAIN_FOUND'],
-  ['pxa-pades-revocation-unavailable', 'PAdES-BASELINE-T', 'CERTIFICATE_CHAIN_GENERAL_FAILURE'],
-  ['pxa-pades-expired', 'PAdES-BASELINE-B', 'OUT_OF_BOUNDS_NOT_REVOKED'],
-  ['pxa-pades-tampered-lt', 'PAdES-BASELINE-T', 'CERTIFICATE_CHAIN_GENERAL_FAILURE'],
-  ['pxa-pades-tampered-lta', 'PAdES-BASELINE-LTA', 'SIG_CRYPTO_FAILURE'],
+  ['pvad-pades-revoked', 'PAdES-BASELINE-T', 'REVOKED_NO_POE'],
+  ['pvad-pades-untrusted', 'PAdES-BASELINE-T', 'NO_CERTIFICATE_CHAIN_FOUND'],
+  ['pvad-pades-revocation-unavailable', 'PAdES-BASELINE-T', 'CERTIFICATE_CHAIN_GENERAL_FAILURE'],
+  ['pvad-pades-expired', 'PAdES-BASELINE-B', 'OUT_OF_BOUNDS_NOT_REVOKED'],
+  ['pvad-pades-tampered-lt', 'PAdES-BASELINE-T', 'CERTIFICATE_CHAIN_GENERAL_FAILURE'],
+  ['pvad-pades-tampered-lta', 'PAdES-BASELINE-LTA', 'SIG_CRYPTO_FAILURE'],
 ];
 
 function describe(file) {
@@ -22,7 +23,9 @@ function describe(file) {
 }
 
 const entries = cases.map(([id, expectedProfile, expectedSubIndication]) => {
-  const simple = describe(`${id}-dss-simple.xml`);
+  const [pdfFile, simpleFile, detailedFile, diagnosticFile] = resolvePadesEvidence(directory, id,
+    ['.pdf', '-dss-simple.xml', '-dss-detailed.xml', '-dss-diagnostic.xml']);
+  const simple = describe(simpleFile);
   const simpleXml = fs.readFileSync(path.join(directory, simple.file), 'utf8');
   if (!simpleXml.includes(`SignatureFormat="${expectedProfile}"`) ||
       !simpleXml.includes(`<SubIndication>${expectedSubIndication}</SubIndication>`)) {
@@ -32,18 +35,18 @@ const entries = cases.map(([id, expectedProfile, expectedSubIndication]) => {
     id,
     expectedProfile,
     expectedSubIndication,
-    pdf: describe(`${id}.pdf`),
+    pdf: describe(pdfFile),
     reports: {
       simple,
-      detailed: describe(`${id}-dss-detailed.xml`),
-      diagnostic: describe(`${id}-dss-diagnostic.xml`),
+      detailed: describe(detailedFile),
+      diagnostic: describe(diagnosticFile),
     },
   };
 });
 
 const manifest = {
   schemaVersion: 1,
-  description: 'Synthetic PXA PAdES failure fixtures independently classified with EU DSS 6.4.',
+  description: 'Synthetic PVAD PAdES failure fixtures independently classified with EU DSS 6.4.',
   validator: {
     name: 'EU Digital Signature Services',
     version: '6.4',

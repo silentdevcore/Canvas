@@ -37,9 +37,9 @@ foreach (var profile in new[]
 {
     var id = profile switch
     {
-        PdfPadesProfile.BaselineT => "pxa-pades-b-t",
-        PdfPadesProfile.BaselineLT => "pxa-pades-b-lt",
-        PdfPadesProfile.BaselineLTA => "pxa-pades-b-lta",
+        PdfPadesProfile.BaselineT => "pvad-pades-b-t",
+        PdfPadesProfile.BaselineLT => "pvad-pades-b-lt",
+        PdfPadesProfile.BaselineLTA => "pvad-pades-b-lta",
         _ => throw new InvalidOperationException($"Unsupported profile {profile}.")
     };
     var result = await service.SignAsync(
@@ -48,7 +48,7 @@ foreach (var profile in new[]
         new PdfSigningOptions
         {
             FieldName = "SyntheticApproval",
-            Reason = "PXA PAdES interoperability verification",
+            Reason = "PVAD PAdES interoperability verification",
             Location = "Zurich",
             SigningTime = signingTime,
             Profile = profile,
@@ -94,20 +94,20 @@ await File.WriteAllBytesAsync(
     pki.SignerRevokedCertificateRevocationList);
 
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-revoked.pdf"),
-    generatedPdfs["pxa-pades-b-t"]);
+    Path.Combine(outputDirectory, "pvad-pades-revoked.pdf"),
+    generatedPdfs["pvad-pades-b-t"]);
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-untrusted.pdf"),
-    generatedPdfs["pxa-pades-b-t"]);
+    Path.Combine(outputDirectory, "pvad-pades-untrusted.pdf"),
+    generatedPdfs["pvad-pades-b-t"]);
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-revocation-unavailable.pdf"),
-    generatedPdfs["pxa-pades-b-t"]);
+    Path.Combine(outputDirectory, "pvad-pades-revocation-unavailable.pdf"),
+    generatedPdfs["pvad-pades-b-t"]);
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-tampered-lt.pdf"),
-    TamperEmbeddedBytes(generatedPdfs["pxa-pades-b-lt"], pki.CertificateRevocationList));
+    Path.Combine(outputDirectory, "pvad-pades-tampered-lt.pdf"),
+    TamperEmbeddedBytes(generatedPdfs["pvad-pades-b-lt"], pki.CertificateRevocationList));
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-tampered-lta.pdf"),
-    TamperLastDocumentTimestamp(generatedPdfs["pxa-pades-b-lta"]));
+    Path.Combine(outputDirectory, "pvad-pades-tampered-lta.pdf"),
+    TamperLastDocumentTimestamp(generatedPdfs["pvad-pades-b-lta"]));
 
 using var untrustedPki = SyntheticPki.Create(signingTime, "Untrusted");
 await File.WriteAllBytesAsync(
@@ -119,19 +119,19 @@ using var expiredPki = SyntheticPki.Create(
     "Expired",
     signerNotAfter: signingTime.AddDays(1));
 var expiredResult = await service.SignAsync(
-    CreatePdf("pxa-pades-expired"),
+    CreatePdf("pvad-pades-expired"),
     expiredPki.Signer.Key,
     new PdfSigningOptions
     {
         FieldName = "SyntheticExpiredApproval",
-        Reason = "PXA expired-certificate validation fixture",
+        Reason = "PVAD expired-certificate validation fixture",
         Location = "Zurich",
         SigningTime = signingTime,
         Profile = PdfPadesProfile.BaselineB
     },
     timestampAuthority: null);
 await File.WriteAllBytesAsync(
-    Path.Combine(outputDirectory, "pxa-pades-expired.pdf"),
+    Path.Combine(outputDirectory, "pvad-pades-expired.pdf"),
     expiredResult.Bytes);
 await File.WriteAllBytesAsync(
     Path.Combine(outputDirectory, "expired-root.cer"),
@@ -140,28 +140,28 @@ await File.WriteAllBytesAsync(
     Path.Combine(outputDirectory, "expired-root-current.crl"),
     expiredPki.CertificateRevocationList);
 await File.WriteAllTextAsync(
-    Path.Combine(outputDirectory, "pxa-pades-corpus.json"),
+    Path.Combine(outputDirectory, "pvad-pades-corpus.json"),
     new JsonObject
     {
         ["schemaVersion"] = 1,
-        ["generator"] = "PXA PdfPadesSigningService",
+        ["generator"] = "PVAD PdfPadesSigningService",
         ["signingTimeUtc"] = signingTime.ToString("O"),
         ["fixtures"] = new JsonArray(fixtures.Select(fixture => (JsonNode)new JsonObject
         {
             ["id"] = fixture.Id,
             ["requestedProfile"] = fixture.RequestedProfile,
-            ["pxaClassifiedProfile"] = fixture.PxaClassifiedProfile,
+            ["pvadClassifiedProfile"] = fixture.PvadClassifiedProfile,
             ["pdf"] = fixture.Pdf,
             ["sha256"] = fixture.Sha256,
             ["fileSizeBytes"] = fixture.FileSizeBytes
         }).ToArray()),
         ["negativeFixtures"] = new JsonArray(
-            new JsonObject { ["id"] = "pxa-pades-revoked", ["expectedSubIndication"] = "REVOKED_NO_POE" },
-            new JsonObject { ["id"] = "pxa-pades-untrusted", ["expectedSubIndication"] = "NO_CERTIFICATE_CHAIN_FOUND" },
-            new JsonObject { ["id"] = "pxa-pades-revocation-unavailable", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
-            new JsonObject { ["id"] = "pxa-pades-expired", ["expectedSubIndication"] = "OUT_OF_BOUNDS_NOT_REVOKED" },
-            new JsonObject { ["id"] = "pxa-pades-tampered-lt", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
-            new JsonObject { ["id"] = "pxa-pades-tampered-lta", ["expectedSubIndication"] = "SIG_CRYPTO_FAILURE" })
+            new JsonObject { ["id"] = "pvad-pades-revoked", ["expectedSubIndication"] = "REVOKED_NO_POE" },
+            new JsonObject { ["id"] = "pvad-pades-untrusted", ["expectedSubIndication"] = "NO_CERTIFICATE_CHAIN_FOUND" },
+            new JsonObject { ["id"] = "pvad-pades-revocation-unavailable", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
+            new JsonObject { ["id"] = "pvad-pades-expired", ["expectedSubIndication"] = "OUT_OF_BOUNDS_NOT_REVOKED" },
+            new JsonObject { ["id"] = "pvad-pades-tampered-lt", ["expectedSubIndication"] = "CERTIFICATE_CHAIN_GENERAL_FAILURE" },
+            new JsonObject { ["id"] = "pvad-pades-tampered-lta", ["expectedSubIndication"] = "SIG_CRYPTO_FAILURE" })
     }.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine,
     new UTF8Encoding(false));
 
@@ -172,8 +172,8 @@ static byte[] CreatePdf(string id)
 #pragma warning disable PXA0001
     var document = new PdfDocument();
 #pragma warning restore PXA0001
-    document.Info.Title = $"PXA PAdES interoperability fixture {id}";
-    document.Info.Author = "PXA synthetic interoperability corpus";
+    document.Info.Title = $"PVAD PAdES interoperability fixture {id}";
+    document.Info.Author = "PVAD synthetic interoperability corpus";
     document.Info.CreationDate = new DateTimeOffset(2026, 6, 15, 10, 0, 0, TimeSpan.Zero);
     document.Info.ModificationDate = document.Info.CreationDate;
     document.AddPage().DrawText($"Synthetic {id} document", 40, 40);
@@ -257,7 +257,7 @@ static string FindRepositoryRoot(string start)
 internal sealed record PadesFixture(
     string Id,
     string RequestedProfile,
-    string? PxaClassifiedProfile,
+    string? PvadClassifiedProfile,
     string Pdf,
     string Sha256,
     long FileSizeBytes);
@@ -291,7 +291,7 @@ internal sealed class SyntheticPki : IDisposable
     {
         using var rootKey = RSA.Create(2048);
         var rootRequest = new CertificateRequest(
-            $"CN=PXA Synthetic PAdES {nameSuffix} Root CA,O=PXA Synthetic Tests,C=CH",
+            $"CN=PVAD Synthetic PAdES {nameSuffix} Root CA,O=PVAD Synthetic Tests,C=CH",
             rootKey,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -359,7 +359,7 @@ internal sealed class SyntheticSigner : IDisposable
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Synthetic PAdES Signer,O=PXA Synthetic Tests,C=CH",
+            "CN=PVAD Synthetic PAdES Signer,O=PVAD Synthetic Tests,C=CH",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
@@ -407,7 +407,7 @@ internal sealed class SyntheticTimestampAuthority : IPdfTimestampAuthority, IDis
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Synthetic TSA,O=PXA Synthetic Tests,C=CH",
+            "CN=PVAD Synthetic TSA,O=PVAD Synthetic Tests,C=CH",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

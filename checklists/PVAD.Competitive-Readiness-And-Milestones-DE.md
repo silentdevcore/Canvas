@@ -1,24 +1,22 @@
-# PXA Wettbewerbsreife und Meilenstein-Grundlage
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Wettbewerbsreife und Meilenstein-Grundlage
 
 Bewertung aktualisiert: 26.09.2026, nach der Implementierung der
 PDF-Vertrauensbasis.
 
 ## Klare Bewertung
 
-PXA ist bereits ein echter Konkurrent in einer bestimmten Nische, aber noch kein
+PVADE ist bereits ein echter Konkurrent in einer bestimmten Nische, aber noch kein
 vollwertiger Konkurrent zu den vollständigen Produktportfolios von Aspose,
 Syncfusion, DevExpress, Apryse oder Nutrient.
 
-## Wo PXA heute konkurrenzfähig ist
+## Wo PVADE heute konkurrenzfähig ist
 
-PXA ist besonders stark als:
+PVADE ist besonders stark als:
 
 > Herstellerneutrale Plattform zur Migration, visuellen Bearbeitung und
 > Automatisierung bestehender Dokumentlösungen.
 
-PXA verbindet bereits eine ungewöhnliche Kombination von Fähigkeiten:
+PVADE verbindet bereits eine ungewöhnliche Kombination von Fähigkeiten:
 
 - Migration von PDF-Code zahlreicher Anbieter.
 - Migration von Report-Designern.
@@ -31,12 +29,12 @@ PXA verbindet bereits eine ungewöhnliche Kombination von Fähigkeiten:
 - Entstehende MCP- und Agenten-Integration.
 
 Für ein Unternehmen, das DevExpress, Aspose, iText, Syncfusion oder eine ähnliche
-Technologie ablösen muss, kann PXA bereits interessanter sein als ein weiterer
+Technologie ablösen muss, kann PVADE bereits interessanter sein als ein weiterer
 klassischer PDF-Anbieter.
 
-## Wo PXA noch kein vollwertiger Konkurrent ist
+## Wo PVADE noch kein vollwertiger Konkurrent ist
 
-| Marktsegment | PXA heute |
+| Marktsegment | PVADE heute |
 | --- | --- |
 | Alternative zu GemBox oder IronPDF | Bei fokussierter PDF-Automation und Migration konkurrenzfähig |
 | DevExpress-Reportmigration | Bei der Migration konkurrenzfähig, nicht bei der vollständigen Reporting Runtime |
@@ -46,7 +44,7 @@ klassischer PDF-Anbieter.
 | iText- oder Pdftools-Compliance-Engine | Bei unterstützten Profilen glaubwürdiger Konkurrent, aber noch ohne vollständige Standardbreite |
 | Enterprise-Dokumentplattform | Architektur vorhanden, aber Marktbeweis fehlt |
 
-## Was PXA braucht, um ein echter Konkurrent zu werden
+## Was PVADE braucht, um ein echter Konkurrent zu werden
 
 ### 1. PDF-Vertrauensbasis
 
@@ -72,7 +70,7 @@ manuelle Prüfung mit assistiven Technologien, qualifizierte Signaturanbieter un
 rechtliche Bewertung, PDF/A-4, evaluiertes PDF/UA-2 sowie Remote- oder HSM-Key-
 Provider.
 
-Damit ändert sich die Wettbewerbsbewertung wesentlich: PXA besitzt nun eine
+Damit ändert sich die Wettbewerbsbewertung wesentlich: PVADE besitzt nun eine
 glaubwürdige PDF-Vertrauensbasis für kontrollierte Produktionsprofile. Breite
 Aussagen wie universelle Compliance, vollständige Barrierefreiheit, Reparatur
 beliebiger schädlicher PDFs oder qualifizierte rechtswirksame Signaturen bleiben
@@ -88,7 +86,7 @@ Reparatur beliebiger feindlicher PDFs werden nicht behauptet.
 
 ### 2. Nachgewiesene Dokumenttreue
 
-Unterstützung muss mehr bedeuten, als nur eine Dateiendung zu akzeptieren. PXA
+Unterstützung muss mehr bedeuten, als nur eine Dateiendung zu akzeptieren. PVADE
 benötigt:
 
 - Reproduzierbare visuelle Vergleichstests.
@@ -108,7 +106,7 @@ Die Qualitätsziele sollten Folgendes umfassen:
 
 ### 3. Office-Tiefe
 
-Um mit Aspose und Syncfusion konkurrieren zu können, benötigt PXA:
+Um mit Aspose und Syncfusion konkurrieren zu können, benötigt PVADE:
 
 - Vollständigere Word-Layout-Funktionen.
 - Sections, Felder, Track Changes und Dokumentvergleich.
@@ -119,13 +117,13 @@ Um mit Aspose und Syncfusion konkurrieren zu können, benötigt PXA:
 - Tiefere PowerPoint-Unterstützung.
 - Wesentlich größere Kompatibilitätstests.
 
-PXA muss nicht sofort jede seltene Office-Funktion unterstützen. Wichtige
+PVADE muss nicht sofort jede seltene Office-Funktion unterstützen. Wichtige
 Geschäftsdokumente wie Rechnungen, Angebote, Berichte, Zertifikate und Tabellen
 müssen jedoch sehr zuverlässig funktionieren.
 
 ### 4. Ausgereifter Viewer und Editor
 
-Im Vergleich mit Apryse oder Nutrient benötigt PXA insbesondere:
+Im Vergleich mit Apryse oder Nutrient benötigt PVADE insbesondere:
 
 - Schnelle Darstellung sehr großer PDFs.
 - Progressive Seitenauslieferung.
@@ -177,7 +175,7 @@ Go, PHP, PowerShell und native Mobile SDKs können später folgen.
 
 ### 7. Sicherheit und Compliance
 
-Vor einem breiten Enterprise-Vertrieb benötigt PXA:
+Vor einem breiten Enterprise-Vertrieb benötigt PVADE:
 
 - Einen unabhängigen Penetrationstest.
 - Eine Software Bill of Materials.
@@ -195,7 +193,7 @@ bei größeren Verträgen jedoch schnell relevant.
 ### 8. Marktbeweis
 
 Das entscheidende Hindernis ist nicht die nächste Funktion. Entscheidend ist der
-Beweis, dass Kunden für PXA bezahlen und es produktiv einsetzen.
+Beweis, dass Kunden für PVADE bezahlen und es produktiv einsetzen.
 
 Der minimale Marktbeweis umfasst:
 
@@ -207,24 +205,24 @@ Der minimale Marktbeweis umfasst:
 - Dokumentierte Migrationsergebnisse.
 - Einen funktionierenden Supportprozess.
 
-Erst dann entwickelt sich PXA von einem technisch interessanten Projekt zu einem
+Erst dann entwickelt sich PVADE von einem technisch interessanten Projekt zu einem
 glaubwürdigen Wettbewerber.
 
 ## Empfohlene Positionierung
 
-PXA sollte nicht so positioniert werden:
+PVADE sollte nicht so positioniert werden:
 
-> PXA kann alles, was Aspose, Syncfusion, DevExpress, Apryse und Nutrient können.
+> PVADE kann alles, was Aspose, Syncfusion, DevExpress, Apryse und Nutrient können.
 
 Diese Behauptung wäre aktuell nicht glaubwürdig.
 
 Empfohlene Positionierung:
 
-> PXA migriert bestehende PDF-, Spreadsheet- und Reporting-Lösungen in eine
+> PVADE migriert bestehende PDF-, Spreadsheet- und Reporting-Lösungen in eine
 > einheitliche Plattform, in der Dokumente visuell bearbeitet und durch Code,
 > APIs und Agenten automatisiert werden können.
 
-Dadurch kann PXA etablierte Anbieter dort angreifen, wo diese vergleichsweise
+Dadurch kann PVADE etablierte Anbieter dort angreifen, wo diese vergleichsweise
 schwach sind: beim Wechsel von anderen Technologien und bei der Verbindung von
 Migration, visuellem Design und Code.
 
@@ -261,13 +259,13 @@ Migration, visuellem Design und Code.
 
 | Wettbewerbsfrage | Bewertung |
 | --- | --- |
-| Ist PXA ein echter Nischenkonkurrent? | Ja |
-| Ist PXA ein echter Konkurrent bei Migrationstechnologie? | Ja |
-| Ist PXA ein vollwertiger PDF-SDK-Konkurrent? | Im unterstützten Trust- und Automatisierungsumfang konkurrenzfähig, aber noch nicht in voller Breite |
-| Ist PXA ein vollwertiger Document-Suite-Konkurrent? | Noch nicht |
-| Ist PXA eine Enterprise-reife Plattform? | Auf dem Weg, aber noch nicht bewiesen |
+| Ist PVADE ein echter Nischenkonkurrent? | Ja |
+| Ist PVADE ein echter Konkurrent bei Migrationstechnologie? | Ja |
+| Ist PVADE ein vollwertiger PDF-SDK-Konkurrent? | Im unterstützten Trust- und Automatisierungsumfang konkurrenzfähig, aber noch nicht in voller Breite |
+| Ist PVADE ein vollwertiger Document-Suite-Konkurrent? | Noch nicht |
+| Ist PVADE eine Enterprise-reife Plattform? | Auf dem Weg, aber noch nicht bewiesen |
 
-PXA ist technisch bereits ein glaubwürdiger und potenziell verkaufbarer Anbieter
+PVADE ist technisch bereits ein glaubwürdiger und potenziell verkaufbarer Anbieter
 in der fokussierten Nische aus Migration, Automatisierung und unterstütztem PDF
 Trust. Für einen Produktionsstart fehlen weiterhin die erklärten externen
 Release-Prüfungen, reproduzierbare Produktauslieferung, Support-Prozesse und
@@ -280,9 +278,9 @@ Eine breite Konkurrenz zu den vollständigen Portfolios von Aspose, Syncfusion
 oder Apryse würde weiterhin realistischerweise 18-30 Monate, Kundennachweise und
 eine strenge Begrenzung des Produktumfangs erfordern.
 
-Die wichtigste Schlussfolgerung ist, dass PXA nicht jeden Anbieter in jeder
+Die wichtigste Schlussfolgerung ist, dass PVADE nicht jeden Anbieter in jeder
 Funktionskategorie besiegen muss. Es muss ein wichtiges Kundenproblem wesentlich
-besser lösen. PXA besitzt diesen Problembereich bereits:
+besser lösen. PVADE besitzt diesen Problembereich bereits:
 
 > Bestehende Dokumenttechnologien ablösen und vereinheitlichen.
 

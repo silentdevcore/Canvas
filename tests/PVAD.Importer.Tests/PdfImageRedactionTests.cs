@@ -34,10 +34,12 @@ public sealed class PdfImageRedactionTests
         var (_, page) = FindPage(graph);
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, Assert.IsType<PdfDictionary>(
             Resolve(graph, page["Resources"]))["XObject"]));
-        var redactedEntry = Assert.Single(xObjects.Values, entry => entry.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var redactedEntry = Assert.Single(xObjects.Values, entry => entry.Key.Contains("_PVADRedacted", StringComparison.Ordinal));
         var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, redactedEntry.Value));
         var decoded = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
 
+        Assert.True(Assert.IsType<PdfBoolean>(stream.Dictionary["PVADRedacted"]).Value);
+        Assert.Null(stream.Dictionary["PXARedacted"]);
         Assert.Equal(24, decoded.Length);
         Assert.All(decoded.Take(6), value => Assert.Equal(0, value));
         Assert.Equal(Samples.Skip(6).Take(6), decoded.Skip(6).Take(6));
@@ -59,13 +61,13 @@ public sealed class PdfImageRedactionTests
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
         Assert.NotNull(xObjects["Im0"]);
-        Assert.Contains(xObjects.Values.Keys, name => name.StartsWith("Im0_PXARedacted", StringComparison.Ordinal));
+        Assert.Contains(xObjects.Values.Keys, name => name.StartsWith("Im0_PVADRedacted", StringComparison.Ordinal));
 
         var original = Assert.IsType<PdfStreamObject>(Resolve(graph, xObjects["Im0"]));
         Assert.Equal(Samples, original.EncodedBytes.ToArray());
         var content = ReadPageContent(graph, page);
         Assert.Contains("/Im0 Do", content, StringComparison.Ordinal);
-        Assert.Contains("/Im0_PXARedacted1 Do", content, StringComparison.Ordinal);
+        Assert.Contains("/Im0_PVADRedacted1 Do", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -130,7 +132,7 @@ public sealed class PdfImageRedactionTests
         var (_, page) = FindPage(graph);
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
-        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PVADRedacted", StringComparison.Ordinal));
         var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
         Assert.Equal("FlateDecode", Assert.IsType<PdfName>(stream.Dictionary["Filter"]).Value);
         var decoded = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
@@ -433,7 +435,7 @@ public sealed class PdfImageRedactionTests
         var (_, page) = FindPage(graph);
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
-        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PVADRedacted", StringComparison.Ordinal));
         var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
         Assert.IsType<PdfArray>(stream.Dictionary["Mask"]);
     }
@@ -454,7 +456,7 @@ public sealed class PdfImageRedactionTests
         var (_, page) = FindPage(graph);
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
-        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PVADRedacted", StringComparison.Ordinal));
         var image = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
         var mask = Assert.IsType<PdfStreamObject>(Resolve(graph, image.Dictionary[maskKey]));
         var decodedMask = new PdfStreamDecoderRegistry().Decode(mask).ToArray();
@@ -463,7 +465,8 @@ public sealed class PdfImageRedactionTests
         Assert.Equal(maskSamples.Skip(2).Take(2), decodedMask.Skip(2).Take(2));
         Assert.All(decodedMask.Skip(4).Take(2), value => Assert.Equal(0, value));
         Assert.Equal(maskSamples.Skip(6).Take(2), decodedMask.Skip(6).Take(2));
-        Assert.True(Assert.IsType<PdfBoolean>(mask.Dictionary["PXARedacted"]).Value);
+        Assert.True(Assert.IsType<PdfBoolean>(mask.Dictionary["PVADRedacted"]).Value);
+        Assert.Null(mask.Dictionary["PXARedacted"]);
     }
 
     [Fact]
@@ -480,7 +483,7 @@ public sealed class PdfImageRedactionTests
         Assert.Empty(Assert.IsType<PdfArray>(page["Annots"]).Items);
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
-        Assert.Contains(xObjects.Values.Keys, name => name.Contains("_PXARedacted", StringComparison.Ordinal));
+        Assert.Contains(xObjects.Values.Keys, name => name.Contains("_PVADRedacted", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -528,10 +531,12 @@ public sealed class PdfImageRedactionTests
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding => finding.Code == "PXAPDFREDACT209");
     }
 
-    [Fact]
-    public async Task Verification_ShouldRejectAForgedRedactionMarkerWithLivePixels()
+    [Theory]
+    [InlineData("PVADRedacted")]
+    [InlineData("PXARedacted")]
+    public async Task Verification_ShouldRejectAForgedRedactionMarkerWithLivePixels(string marker)
     {
-        var pdf = CreateImagePdf(Samples, markedRedacted: true);
+        var pdf = CreateImagePdf(Samples, redactionMarker: marker);
         var (_, graph) = ParseGraph(pdf);
         var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).Build(graph);
         var findings = new List<PdfRedactionFinding>();
@@ -547,6 +552,42 @@ public sealed class PdfImageRedactionTests
             ]);
 
         Assert.Contains(findings, finding => finding.Code == "PXAPDFREDACT304");
+    }
+
+    [Theory]
+    [InlineData("PVADRedacted")]
+    [InlineData("PXARedacted")]
+    public async Task Verification_accepts_zeroed_pixels_in_both_marker_generations(string marker)
+    {
+        var samples = Samples.ToArray();
+        Array.Clear(samples, 0, 6);
+        Array.Clear(samples, 12, 6);
+        var (_, graph) = ParseGraph(CreateImagePdf(samples, redactionMarker: marker));
+        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).Build(graph);
+        var page = Assert.Single(document.Pages);
+        var image = Assert.Single(page.GraphicsObjects.OfType<PdfImageElement>());
+
+        Assert.True(PdfImageRedactionEngine.IsSecurelyRedacted(
+            graph, page.Resources, image, [new PdfRectangle(50, 50, 100, 200)], out var reason), reason);
+    }
+
+    [Fact]
+    public async Task Repeated_redaction_replaces_the_legacy_marker_without_restoring_pixels()
+    {
+        var samples = Samples.ToArray();
+        Array.Clear(samples, 0, 6);
+        Array.Clear(samples, 12, 6);
+        var source = CreateImagePdf(samples, redactionMarker: "PXARedacted");
+
+        var result = await ApplyAsync(source, new PdfRectangle(150, 50, 100, 200));
+
+        Assert.True(result.Verification.Passed);
+        Assert.All(ReadRedactedImageSamples(result.Bytes), value => Assert.Equal(0, value));
+        var (_, graph) = ParseGraph(result.Bytes);
+        var rewritten = graph.Objects.Values.Select(item => item.Value).OfType<PdfStreamObject>()
+            .Where(stream => stream.Dictionary["Subtype"] is PdfName { Value: "Image" }).ToArray();
+        Assert.NotEmpty(rewritten);
+        Assert.All(rewritten, stream => Assert.Null(stream.Dictionary["PXARedacted"]));
     }
 
     private static async Task<PdfRedactionApplyResult> ApplyAsync(byte[] pdf, PdfRectangle bounds)
@@ -576,7 +617,7 @@ public sealed class PdfImageRedactionTests
         bool drawTwice = false,
         string? filter = null,
         bool softMask = false,
-        bool markedRedacted = false,
+        string? redactionMarker = null,
         int width = 4,
         int height = 2,
         int bitsPerComponent = 8,
@@ -623,9 +664,9 @@ public sealed class PdfImageRedactionTests
             dictionary["SMask"] = new PdfName("Placeholder");
         }
 
-        if (markedRedacted)
+        if (redactionMarker is not null)
         {
-            dictionary["PXARedacted"] = new PdfBoolean(true);
+            dictionary[redactionMarker] = new PdfBoolean(true);
         }
 
         var content = drawTwice
@@ -743,7 +784,7 @@ public sealed class PdfImageRedactionTests
         var (_, page) = FindPage(graph);
         var resources = Assert.IsType<PdfDictionary>(Resolve(graph, page["Resources"]));
         var xObjects = Assert.IsType<PdfDictionary>(Resolve(graph, resources["XObject"]));
-        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PXARedacted", StringComparison.Ordinal));
+        var entry = Assert.Single(xObjects.Values, item => item.Key.Contains("_PVADRedacted", StringComparison.Ordinal));
         var stream = Assert.IsType<PdfStreamObject>(Resolve(graph, entry.Value));
         return new PdfStreamDecoderRegistry().Decode(stream).ToArray();
     }

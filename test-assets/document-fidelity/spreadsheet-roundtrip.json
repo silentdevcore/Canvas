@@ -23,7 +23,7 @@
           "value": "Quarterly revenue",
           "style": { "bold": true, "backgroundColor": "#D9EAF7", "color": "#102A43" },
           "comment": "Reviewed value",
-          "hyperlink": "https://powerdoxautomation.com"
+          "hyperlink": "https://pvade.com/"
         },
         { "row": 1, "col": 0, "type": "text", "value": "Q1" },
         { "row": 1, "col": 1, "type": "number", "value": 1250.5, "numberFormat": "#,##0.00" },
@@ -42,7 +42,7 @@
         "orientation": "landscape",
         "paperSize": "A4",
         "printArea": "A1:H20",
-        "header": "PXA fidelity",
+        "header": "PVADE fidelity",
         "footer": "Synthetic fixture",
         "fitToWidth": 1,
         "fitToHeight": 1,

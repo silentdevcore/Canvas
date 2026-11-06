@@ -7,11 +7,11 @@ namespace PVAD.WebApi.Security;
 
 public static class PvadSecurityPolicies
 {
-    public const string RecentAuthentication = "pxa.security.recent-authentication";
-    public const string OrganizationPdfSigning = "pxa.pdf.signatures.organization-sign";
-    public const string AppliedPdfRedaction = "pxa.pdf.redactions.apply";
-    public const string PdfTrustPolicyManagement = "pxa.pdf.trust-policies.manage";
-    public const string PdfKeyProviderManagement = "pxa.pdf.key-providers.manage";
+    public const string RecentAuthentication = "pvad.security.recent-authentication";
+    public const string OrganizationPdfSigning = "pvad.pdf.signatures.organization-sign";
+    public const string AppliedPdfRedaction = "pvad.pdf.redactions.apply";
+    public const string PdfTrustPolicyManagement = "pvad.pdf.trust-policies.manage";
+    public const string PdfKeyProviderManagement = "pvad.pdf.key-providers.manage";
 }
 
 public sealed class PvadStepUpOptions

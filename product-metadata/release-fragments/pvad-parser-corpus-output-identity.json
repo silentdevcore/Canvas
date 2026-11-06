@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-parser-corpus-output-identity",
+  "impact": "patch",
+  "components": ["importer", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Generated parser reports and synthetic PDF test corpora now use PVAD names. Readers accept older reports without rewriting original validation evidence.",
+  "breaking": false
+}

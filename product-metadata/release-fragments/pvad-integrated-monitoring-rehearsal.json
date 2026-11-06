@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-integrated-monitoring-rehearsal",
+  "impact": "none",
+  "components": ["api", "admin", "observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Internal monitoring validation now combines live telemetry, signed alert delivery and protected dashboard recovery checks.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds an isolated synthetic integration test and internal guidance. It does not alter shipped telemetry, installed infrastructure, identity contracts or production deployment state."
+}

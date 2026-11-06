@@ -1,10 +1,8 @@
-# PXA API Docker Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD API Docker Checklist
 
 ## Goal
 
-Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux container for PXA Cloud and customer-managed PXA Server installations.
+Deliver `PVAD.WebApi` as a secure, observable, and offline-capable Linux container for PVAD Cloud and customer-managed PVAD Server installations.
 
 ## Priorities
 
@@ -25,7 +23,7 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 ## Container Image
 
 - [ ] Add a multi-stage Dockerfile using .NET 10 SDK and ASP.NET runtime images.
-- [ ] Publish `PXA.WebApi` as a release build for Linux.
+- [ ] Publish `PVAD.WebApi` as a release build for Linux.
 - [ ] Run as a dedicated non-root user and listen on port `8080`.
 - [ ] Copy the existing OCR executable into the application-owned `ocr-worker/` directory.
 - [ ] Include or mount compatible Tesseract and Leptonica libraries.
@@ -57,13 +55,13 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 - [ ] Enforce licensed products, expiry, tenant, and instance limits in the API.
 - [ ] Produce structured audit events without document contents or credentials.
 
-## PXA Server Bundle
+## PVAD Server Bundle
 
 - [ ] Add Docker Compose services for API, Designer, and reverse proxy.
 - [ ] Expose the Designer at `/` and the API at `/api` through one customer-facing origin.
 - [ ] Add named volumes for persistent data and explicit read-only mounts for configuration.
 - [ ] Define restart policies, health dependencies, resource limits, and log rotation.
-- [ ] Add a later `pxa-server` all-in-one image for evaluation and small installations.
+- [ ] Add a later `pvad-server` all-in-one image for evaluation and small installations.
 
 ## Tests
 

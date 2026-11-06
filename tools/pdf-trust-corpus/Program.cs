@@ -106,7 +106,7 @@ static byte[] CreateSignedPdf(DateTimeOffset signingTime)
 {
     using var rsa = RSA.Create(2048);
     var request = new CertificateRequest(
-        "CN=PXA Synthetic Corpus Signer",
+        "CN=PVAD Synthetic Corpus Signer",
         rsa,
         HashAlgorithmName.SHA256,
         RSASignaturePadding.Pkcs1);
@@ -203,7 +203,7 @@ static PdfDocument CreateDocument(string title)
     var document = new PdfDocument();
 #pragma warning restore PXA0001
     document.Info.Title = title;
-    document.Info.Author = "PXA synthetic test corpus";
+    document.Info.Author = "PVAD synthetic test corpus";
     document.Info.CreationDate = new DateTimeOffset(2026, 1, 15, 10, 0, 0, TimeSpan.Zero);
     document.Info.ModificationDate = new DateTimeOffset(2026, 1, 15, 10, 0, 0, TimeSpan.Zero);
     return document;

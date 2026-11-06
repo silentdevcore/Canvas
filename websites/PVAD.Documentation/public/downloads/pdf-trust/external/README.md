@@ -33,7 +33,7 @@ tools/pdf-trust-external-corpus/generate-external-profiles.sh
 ```
 
 The generation script uses ephemeral signing keys and stores no private key. The
-encrypted fixture uses the synthetic reader password `PXA-reader-ä漢字`.
+encrypted fixture uses the synthetic reader password [compatibility entry `compat-4e1c870f20df`](../../../../../../docs/reference/compatibility-identifiers.v1.json).
 
 This positive baseline does not cover PAdES B-T/B-LT/B-LTA, revoked or expired
 certificates, incorrect passwords, damaged encryption dictionaries, or non-conforming

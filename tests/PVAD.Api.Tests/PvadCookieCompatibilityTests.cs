@@ -165,6 +165,7 @@ public sealed class PvadCookieConfigurationTests(PvadApiTestFactory factory)
         var options = services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>();
         var account = options.Get(IdentityConstants.ApplicationScheme);
         var designer = options.Get(PvadAuthenticationSchemes.DesignerCookie);
+        Assert.IsType<PvadMigratingTicketDataFormat>(designer.TicketDataFormat);
         Assert.Equal(PvadCookieNames.Session(secure), account.Cookie.Name);
         Assert.Equal(PvadCookieNames.Designer(secure), designer.Cookie.Name);
         foreach (var value in new[] { account, designer })
@@ -185,5 +186,27 @@ public sealed class PvadCookieConfigurationTests(PvadApiTestFactory factory)
         var protectedTicket = oldFormat.Protect(ticket);
         Assert.NotNull(account.TicketDataFormat.Unprotect(protectedTicket));
         Assert.Null(designer.TicketDataFormat.Unprotect(protectedTicket));
+    }
+
+    [Fact]
+    public async Task Actual_scheme_registration_forwards_old_names_without_issuing_old_schemes()
+    {
+        var schemes = factory.Services.GetRequiredService<IAuthenticationSchemeProvider>();
+        var policyOptions = factory.Services.GetRequiredService<IOptionsMonitor<PolicySchemeOptions>>();
+        foreach (var (legacy, current) in new[]
+        {
+            (PvadAuthenticationSchemes.LegacyCombined, PvadAuthenticationSchemes.Combined),
+            (PvadAuthenticationSchemes.LegacyApiKey, PvadAuthenticationSchemes.ApiKey),
+            (PvadAuthenticationSchemes.LegacyMcpDelegation, PvadAuthenticationSchemes.McpDelegation),
+            (PvadAuthenticationSchemes.LegacyDesignerCookie, PvadAuthenticationSchemes.DesignerCookie),
+        })
+        {
+            Assert.NotNull(await schemes.GetSchemeAsync(current));
+            Assert.Equal(typeof(PolicySchemeHandler), (await schemes.GetSchemeAsync(legacy))!.HandlerType);
+            Assert.Equal(current, policyOptions.Get(legacy).ForwardDefault);
+        }
+        var defaults = factory.Services.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+        Assert.Equal(PvadAuthenticationSchemes.Combined, defaults.DefaultAuthenticateScheme);
+        Assert.Equal(IdentityConstants.ApplicationScheme, defaults.DefaultSignInScheme);
     }
 }

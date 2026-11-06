@@ -178,13 +178,17 @@ export function prepareContainerWorkflows(releaseSource, deploymentSource, envir
   const identityInput = {
     description: 'Exact image family published for this immutable release; never infer it from archive names',
     required: true,
-    default: 'PXA',
+    default: 'PVAD',
     type: 'choice',
-    options: ['PXA', 'PVAD'],
+    options: ['PVAD', 'PXA'],
   };
-  if (deployment.on.workflow_dispatch.inputs.container_identity !== undefined)
-    assert.deepEqual(deployment.on.workflow_dispatch.inputs.container_identity, identityInput, 'Unexpected image-family input.');
-  else deployment.on.workflow_dispatch.inputs.container_identity = identityInput;
+  const existingIdentityInput = deployment.on.workflow_dispatch.inputs.container_identity;
+  if (existingIdentityInput !== undefined) {
+    const historicalInput = { ...identityInput, default: 'PXA', options: ['PXA', 'PVAD'] };
+    const expected = existingIdentityInput.default === 'PXA' ? historicalInput : identityInput;
+    assert.deepEqual(existingIdentityInput, expected, 'Unexpected image-family input.');
+  }
+  deployment.on.workflow_dispatch.inputs.container_identity = identityInput;
   const inspections = deployment.jobs.preflight.steps.filter(step => step.name === 'Verify immutable container tags');
   if (inspections.length !== 1) throw new Error('Missing or duplicate immutable container inspection step.');
   const inspect = inspections[0];

@@ -1,13 +1,15 @@
 # PVAD Rename Audit
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
 
 Date: 2026-10-17
 Scope: repository analysis and planning only.
 Baseline branch: `feature/native-designer-formats`; working tree clean at audit start.
 Source brief: user-supplied `/Users/mannheimer/Downloads/PVADE_RENAME_HANDOFF.md`.
 Authority: the user's clarification distinguishes technical identity from market identity.
-**PVAD** replaces PXA in technical names. **PVADE** is the market name displayed
+**PVAD** replaces predecessor in technical names. **PVADE** is the market name displayed
 on websites and in Designer. These are intentional names, not alternate spellings.
 PVADE means Platform for Visualization & Automation of Documents - Engine;
 the final E represents Engine. The claim is Create. Visualize. Automate.
@@ -16,7 +18,7 @@ PDF and Spreadsheet product names remain PVADP and PVADS.
 ## Inventory And Method
 
 Git-tracked files were enumerated with `git ls-files -z`. UTF-8 text was searched
-case-insensitively for PXA and Power Dox/PowerDox variants; binary files were not
+case-insensitively for predecessor and Power Dox/PowerDox variants; binary files were not
 rewritten or searched as text. Counts represent matching lines, not occurrences.
 
 - 2,656 tracked files; 115 C# project files.
@@ -39,25 +41,25 @@ rewritten or searched as text. Counts represent matching lines, not occurrences.
 
 | Area | Evidence | Consequence |
 |---|---|---|
-| .NET platform | `Directory.Build.props`, `src/`, `PXA.WebApi/PXA.WebApi.csproj` | .NET 10; rename projects, assemblies, namespaces, types, MSBuild properties and every project reference together |
-| Solutions | `PXA.sln`, `PXA.slnx` | SLNX currently lists only six projects; verify membership separately and preserve each solution's intended scope |
-| PDF | `src/Generation/PXA.Pdf`, `PXA.Generator`, `PXA.Infrastructure.Pdf`, `PXA.Importer` | PDF spans multiple layers; product PVADP does not imply merging those layers |
-| Spreadsheet | `PXA.Infrastructure.Spreadsheet`, Generator facade, Designer spreadsheet features | Product PVADS; retain shared API/Designer and architecture boundaries |
+| .NET platform | `Directory.Build.props`, `src/`, `PVAD.WebApi/PVAD.WebApi.csproj` | .NET 10; rename projects, assemblies, namespaces, types, MSBuild properties and every project reference together |
+| Solutions | `PVAD.sln`, `PVAD.slnx` | SLNX currently lists only six projects; verify membership separately and preserve each solution's intended scope |
+| PDF | `src/Generation/PVAD.Pdf`, legacy Generator component, legacy Infrastructure.Pdf component, legacy Importer component | PDF spans multiple layers; product PVADP does not imply merging those layers |
+| Spreadsheet | legacy Infrastructure.Spreadsheet component, Generator facade, Designer spreadsheet features | Product PVADS; retain shared API/Designer and architecture boundaries |
 | Migrations | `src/Migrations/{Common,PDF,Spreadsheet,Report}` | Preserve domain/kind/provider taxonomy and vendor identifiers |
-| Frontends | `pxa-designer/package.json`, `websites/PXA.*` | React/TypeScript Designer; Vite websites; migrate six locales and shared assets |
+| Frontends | `pvad-designer/package.json`, predecessor implementation | React/TypeScript Designer; Vite websites; migrate six locales and shared assets |
 | Worker execution | WebApi csproj build/copy targets | OCR and C# worker assembly paths are runtime contracts as well as project references |
-| MCP | `tools/PXA.Mcp/package.json` | Both pxa executables and a canvas-mcp alias exist; inspect tooling, transport identity and clients |
-| Release tooling | `tools/versioning/pxa-version.mjs` | Explicit frontend paths, Docker ARGs and manifest product PXA are hard-coded |
-| Product files | `PxaProjectModels.cs` | Extension, magic, MIME, format ID and minimumPxaVersion are separate serialized contracts |
+| MCP | `tools/PVAD.Mcp/package.json` | Both predecessor executables and a canvas-mcp alias exist; inspect tooling, transport identity and clients |
+| Release tooling | predecessor implementation | Explicit frontend paths, Docker ARGs and manifest product predecessor are hard-coded |
+| Product files | legacy ProjectModels.cs component | Extension, magic, MIME, format ID and legacy minimumVersion component are separate serialized contracts |
 | Persistence | `DatabaseSchemas.cs`, configurations, EF migrations | Schemas identity/administration/designer are neutral and need no branding rename |
 | Public URLs | `websites/shared/siteLinks.js` | Production defaults contain powerdoxautomation.com and several subdomains |
-| Documentation | `ARCHITECTURE.md` | Naming glossary has contradictory duplicate PXA rows; migration path description is outdated |
+| Documentation | `ARCHITECTURE.md` | Naming glossary has contradictory duplicate predecessor rows; migration path description is outdated |
 
 ## High-Risk Findings
 
 ### Authentication And Encryption
 
-`PXA.WebApi/Program.cs` names Account, Designer and CSRF cookies with PXA and
+`PVAD.WebApi/Program.cs` names Account, Designer and CSRF cookies with predecessor and
 sets Data Protection application name to `PowerDoxAutomation`. New names require
 a migration strategy for authenticated sessions, cookie schemes, key rings,
 protected job inputs/results and token purposes. Changing the application name
@@ -82,9 +84,9 @@ events and audit history cannot be changed through text replacement.
 
 ### Native Project Formats And Checksums
 
-Current contracts include `.pxap`, `.pxas`, `PXA-PXAP-1`,
-`PXA-PXAS-1`, `application/vnd.powerdox.pxap+zip`,
-`application/vnd.powerdox.pxas+zip`, format IDs and `minimumPxaVersion`.
+Current contracts include legacy p component, legacy s component, predecessor implementation,
+predecessor implementation, predecessor implementation,
+predecessor implementation, format IDs and legacy minimumVersion component.
 Proposed new output uses `.pvadp` and `.pvads`, matching product names.
 Reader compatibility must recognize the complete old envelope, not merely rename
 the extension. Convert explicitly and recalculate hashes only for new output.
@@ -92,15 +94,15 @@ Preserve original packages and signed evidence.
 
 ### APIs, Generated Code And Diagnostics
 
-Canonical routes contain `/api/pxa/v1`. Code converters generate PXA C#;
+Canonical routes contain predecessor implementation. Code converters generate predecessor C#;
 the sandbox validates namespaces, references and builder types. Rename these
 together with the worker, semantic analyzers, reflection-dependent code,
 source maps, SDK examples and migration-provider generated strings.
 
-Diagnostics include PXAAPI, PXACODE, PXAPROJECT, PXA_LICENSE and historical
+Diagnostics include legacy API component, legacy CODE component, legacy PROJECT component, legacy LICENSE component and historical
 CANMIG families. New diagnostics need old-to-new translation and tests for
 support tooling and client behavior. CANMIG is historical; changing it is a
-separate contract migration rather than a PXA token replacement.
+separate contract migration rather than a predecessor token replacement.
 
 ### Evidence, Legal And External Systems
 
@@ -134,4 +136,4 @@ Preserve old names only as explicitly inventoried compatibility inputs or
 immutable evidence, each with an owner, reason and removal condition. Final
 acceptance requires no unexplained old brand in active product surfaces.
 
-Implementation plan: [Rename-PXA-To-PVAD.md](Rename-PXA-To-PVAD.md).
+Implementation plan: [PVAD.Rename-Plan.md](PVAD.Rename-Plan.md).

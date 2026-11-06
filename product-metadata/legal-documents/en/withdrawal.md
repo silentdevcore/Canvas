@@ -2,11 +2,11 @@
 
 Effective date: the effective date shown for the published version.
 
-This information applies only where PXA expressly offers a paid contract to a consumer. A consumer is a natural person acting mainly outside a trade, business, craft, or profession.
+This information applies only where PVADE expressly offers a paid contract to a consumer. A consumer is a natural person acting mainly outside a trade, business, craft, or profession.
 
 ## 1. Swiss position
 
-Swiss law does not provide a general statutory withdrawal right for ordinary online purchases. PXA does not create a voluntary withdrawal right unless an order or offer expressly says so. Mandatory rights for particular contract types remain unaffected.
+Swiss law does not provide a general statutory withdrawal right for ordinary online purchases. PVADE does not create a voluntary withdrawal right unless an order or offer expressly says so. Mandatory rights for particular contract types remain unaffected.
 
 ## 2. Consumers in other countries
 
@@ -18,25 +18,25 @@ For consumers protected by the European Union or United Kingdom distance-contrac
 
 Where a withdrawal right applies, send an unambiguous statement containing your name, contact details, order or subscription identifier, the affected service, and your decision to withdraw to:
 
-[PXA LEGAL ENTITY NAME]
+[LEGAL ENTITY NAME]
 
 [STREET, POSTCODE, CITY, CANTON, SWITZERLAND]
 
 Email: [WITHDRAWAL EMAIL ADDRESS]
 
-You may use the model form below, but it is not mandatory. A withdrawal is timely if sent before the applicable deadline. PXA will acknowledge electronic submissions on a durable medium.
+You may use the model form below, but it is not mandatory. A withdrawal is timely if sent before the applicable deadline. PVADE will acknowledge electronic submissions on a durable medium.
 
 ## 4. Early performance and digital content
 
-Where law requires it, PXA requests separately that service performance begin during the withdrawal period and records the consumer's acknowledgement of the resulting consequences. This request is not bundled with acceptance of the Terms. A consumer is charged only as permitted by mandatory law for service supplied before a valid withdrawal.
+Where law requires it, PVADE requests separately that service performance begin during the withdrawal period and records the consumer's acknowledgement of the resulting consequences. This request is not bundled with acceptance of the Terms. A consumer is charged only as permitted by mandatory law for service supplied before a valid withdrawal.
 
 ## 5. Effects
 
-Following a valid withdrawal, PXA refunds payments required by applicable law using the original payment method unless another method is expressly agreed. Access, entitlements, licenses, and processing stop to the extent required by the withdrawal. Refund timing and any permitted proportionate charge follow the applicable mandatory rules.
+Following a valid withdrawal, PVADE refunds payments required by applicable law using the original payment method unless another method is expressly agreed. Access, entitlements, licenses, and processing stop to the extent required by the withdrawal. Refund timing and any permitted proportionate charge follow the applicable mandatory rules.
 
 ## 6. Model withdrawal form
 
-To: [PXA LEGAL ENTITY NAME], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND], [WITHDRAWAL EMAIL ADDRESS]
+To: [LEGAL ENTITY NAME], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND], [WITHDRAWAL EMAIL ADDRESS]
 
 I/We hereby give notice that I/We withdraw from my/our contract for the following service:
 
@@ -56,4 +56,8 @@ Signature, only if submitted on paper:
 
 ## 7. Checkout availability
 
-PXA enables paid consumer checkout only for countries where the applicable pre-contract information, tax, payment, confirmation, withdrawal, and support workflow has been approved. A Free account or Trial does not automatically become a paid consumer subscription.
+PVADE enables paid consumer checkout only for countries where the applicable pre-contract information, tax, payment, confirmation, withdrawal, and support workflow has been approved. A Free account or Trial does not automatically become a paid consumer subscription.
+
+## Technical Reference
+
+This candidate references Compatibility Identifiers v1, SHA-256 `19667963b4e062821e81be371c9e81d0ae1df5b33c54fa9b9c237d76f4960906`. The candidate manifest pins that versioned technical reference; it does not change contractual rights or authorize publication.

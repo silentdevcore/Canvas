@@ -1,10 +1,8 @@
-# PXA Designer Authentication Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Authentication Checklist
 
 ## Goal
 
-Protect every PXA Designer workflow so that only active, email-verified users with an effective Designer entitlement can use the application. Authentication remains owned by PXA Account and is transferred to the Designer through a short-lived authorization-code handoff.
+Protect every PVADE Designer workflow so that only active, email-verified users with an effective Designer entitlement can use the application. Authentication remains owned by PVAD Account and is transferred to the Designer through a short-lived authorization-code handoff.
 
 ## Priorities
 
@@ -35,11 +33,11 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 ## Account Redirect
 
-- [x] Redirect unauthenticated Designer visitors to the PXA Account login page.
+- [x] Redirect unauthenticated Designer visitors to the PVADE Account login page.
 - [x] Include the absolute Account authorization continuation as an allowlisted `returnUrl`.
 - [x] Preserve the original Designer path, query parameters, and hash only after validation.
 - [x] Never redirect to protocol-relative, non-HTTP(S), external, Admin, or unconfigured origins.
-- [x] Provide registration through the PXA Account login page only.
+- [x] Provide registration through the PVADE Account login page only.
 - [x] Do not add login or registration credential forms to the Designer.
 
 ## Authorization-Code Handoff
@@ -73,7 +71,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 ## Designer Application
 
-- [x] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
+- [x] Add an authentication bootstrap that calls `GET /api/pvad/v1/auth/me`.
 - [x] Prevent protected route content from rendering before bootstrap completes.
 - [x] Add explicit route states for verification, disabled accounts, suspended organizations, expired subscriptions, missing entitlements, offline access, and incompatible API versions.
 - [x] Preserve Designer handoff denials as dedicated Account states with localized explanations, diagnostic codes, and subscription, legal-review, support, or retry actions.
@@ -102,7 +100,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Allow Manager to manage and publish templates, execute migrations, and perform PDF redaction while reserving organization feature-policy changes for Organization Administrator.
 - [x] Allow Editor to create and edit documents, assets, code, imports, exports, migrations, spreadsheets, annotations, and forms without template publication, archive, feature-policy, or redaction rights.
 - [x] Keep Viewer read-only for templates, code, spreadsheets, PDF viewing, migration discovery, and exports.
-- [x] Register every permission as an ASP.NET Core authorization policy and expose effective Designer permissions through `/api/pxa/v1/auth/me`.
+- [x] Register every permission as an ASP.NET Core authorization policy and expose effective Designer permissions through `/api/pvad/v1/auth/me`.
 - [x] Treat pre-RBAC Designer cookies as expired so users receive a fresh permission-bearing session through the normal Account handoff.
 - [x] Protect dedicated Designer controllers with action-level policies.
 - [x] Resolve and enforce permissions for shared import, export, migration, Spreadsheet, PDF Viewer, document, and legacy template routes when invoked by the Designer.
@@ -162,7 +160,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 ## Acceptance Criteria
 
 - [x] An anonymous visitor cannot view or invoke protected Designer functionality.
-- [x] Login credentials are entered only on PXA Account.
+- [x] Login credentials are entered only on PVADE Account.
 - [x] A verified entitled user returns to the original safe Designer destination after login.
 - [x] A handoff code cannot be reused, extended, redirected, or exchanged by another origin.
 - [x] Account and Designer retain separate host-only session cookies.
@@ -173,5 +171,5 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 - [ ] Implement Admin-managed custom roles and persisted permission selection before exposing arbitrary limited-role creation in production; the current Admin role workspace manages protected built-in roles only (`PVAD.Admin.md` P2).
 - [ ] Add enterprise OIDC and SAML providers.
-- [ ] Add coordinated global sign-out across PXA applications.
+- [ ] Add coordinated global sign-out across PVADE applications.
 - [ ] Add MFA step-up policies for selected Designer operations.

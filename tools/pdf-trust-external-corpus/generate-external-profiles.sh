@@ -69,7 +69,7 @@ docker run --rm \
   --volume "$work/crypto:/crypto" \
   "$IMAGE" \
   sh -ec 'openssl req -x509 -newkey rsa:2048 -nodes -days 30 \
-      -subj "/CN=PXA External Corpus Signer/O=PXA Synthetic Tests/C=CH" \
+      -subj "/CN=PVAD External Corpus Signer/O=PVAD Synthetic Tests/C=CH" \
       -keyout /crypto/signer.key.pem -out /crypto/signer.cert.pem >/dev/null 2>&1
     pyhanko sign addsig --field "1/40,40,240,100/SyntheticSignature" --use-pades \
       pemder --no-pass --key /crypto/signer.key.pem --cert /crypto/signer.cert.pem \

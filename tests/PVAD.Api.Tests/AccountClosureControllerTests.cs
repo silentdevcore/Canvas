@@ -30,10 +30,10 @@ public sealed class AccountClosureControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@closure.test", "Owner", "Closure GmbH", "closure-co");
-        await LoginAsync(client, "owner@closure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@closure.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var secondaryClient = CreateClient(factory);
-        await LoginAsync(secondaryClient, "owner@closure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(secondaryClient, "owner@closure.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         var apiKeySecret = PvadApiKeySecret.Create();
         await using (var setupScope = factory.Services.CreateAsyncScope())
         {
@@ -139,10 +139,10 @@ public sealed class AccountClosureControllerTests
         await SeedRolesAsync(factory.Services);
         using var primaryClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, primaryClient, "owner@selfclosure.test", "Owner", "SelfClosure GmbH", "self-closure-co");
-        await LoginAsync(primaryClient, "owner@selfclosure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(primaryClient, "owner@selfclosure.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var secondaryClient = CreateClient(factory);
-        await LoginAsync(secondaryClient, "owner@selfclosure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(secondaryClient, "owner@selfclosure.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var request = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/closure/account", await GetCsrfAsync(primaryClient), new { reason = null as string });
@@ -180,7 +180,7 @@ public sealed class AccountClosureControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName,
                 organizationSlug = slug,

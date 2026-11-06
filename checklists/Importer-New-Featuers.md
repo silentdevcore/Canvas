@@ -1,16 +1,14 @@
 # Importer New Featuers Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 > Specialized capture, GeoPDF, PDF/E/3D, rich-media, legal-document, and
 > e-invoicing requirements are coordinated through
 > [PVAD.PDF-Specialized-Features-Roadmap.md](PVAD.PDF-Specialized-Features-Roadmap.md).
 
-Scope: this checklist tracks core PXA.Importer PDF parsing, interpretation, editing, and regeneration work. Annotations, forms, signatures, OCR, and AI remain separate layers over the parsed DOM and are intentionally out of scope here.
+Scope: this checklist tracks core PVAD.Importer PDF parsing, interpretation, editing, and regeneration work. Annotations, forms, signatures, OCR, and AI remain separate layers over the parsed DOM and are intentionally out of scope here.
 
 ## Parser Core
 
-- [x] Create `PXA.Importer` .NET 10 project.
+- [x] Create `PVAD.Importer` .NET 10 project.
 - [x] Add low-level tokenizer, object parser, object graph, content parser, graphics scene graph, and generator bridge contracts.
 - [x] Replace parser rewind behavior with explicit token lookahead.
 - [x] Resolve indirect `/Length` values while parsing streams.
@@ -58,7 +56,7 @@ Scope: this checklist tracks core PXA.Importer PDF parsing, interpretation, edit
 - [x] Add editing session primitives for replace, move, delete, and metadata update.
 - [x] Add insertion editing primitives.
 - [x] Add `IPdfGeneratorBridge` contract.
-- [x] Add generator bridge sample adapter against `PXA.Infrastructure.Pdf` / `PXA.Pdf`.
+- [x] Add generator bridge sample adapter against `PVAD.Infrastructure.Pdf` / `PVAD.Pdf`.
 - [x] Add round-trip content stream rewrite model.
 - [x] Add focused fixture tests for tokenizer, objects, xref, page tree, and content parsing.
 - [x] Add focused fixture tests for marked content, color operators, extended page boxes, and regeneration/editing edge cases.
@@ -126,14 +124,14 @@ Scope: this checklist tracks core PXA.Importer PDF parsing, interpretation, edit
 - [x] Add debug overlay model for bounds, baselines, matrices, z-order, object ids, grouping, reading order, and classifications.
 - [x] Add focused Phase 5 tests for matrix math, bounding boxes, reading order, grouping, and classification heuristics.
 - [x] Wire `PdfFileImporter` to import from `SceneGraphEngine` primitives while preserving the `DesignExportDto` API response shape.
-- [x] Map `PrimitiveText`, `PrimitiveShape`, `PrimitivePath`, `PrimitiveImage`, and nested `PrimitiveGroup` nodes into editable PXA elements.
+- [x] Map `PrimitiveText`, `PrimitiveShape`, `PrimitivePath`, `PrimitiveImage`, and nested `PrimitiveGroup` nodes into editable PVADE elements.
 - [x] Preserve repeated multi-page header/footer promotion while using Phase 5 reading order, bounds, rotation, and classification metadata.
 - [x] Extend `debug-pdf-engine` diagnostics with Phase 5 scene graph metrics, classification counts, reading order, groups, layout nodes, and debug overlays.
 - [x] Add backend importer coverage for rotated text, draw-order-independent text import, vector shapes, image XObjects, barcode-like bars, and shared headers.
 
 ## SVG Import
 
-Goal: convert `.svg` files into editable PXA designs with full vector fidelity. No new NuGet dependencies — uses `System.Xml.Linq` (already used in `OdtImporter`). New static class `SvgImporter` in `PXA.Infrastructure.Converters`.
+Goal: convert `.svg` files into editable PVADE designs with full vector fidelity. No new NuGet dependencies — uses `System.Xml.Linq` (already used in `OdtImporter`). New static class `SvgImporter` in `PVAD.Infrastructure.Converters`.
 
 ### Page dimensions
 - [ ] Read `viewBox` attribute from `<svg>` root for canvas width/height.
@@ -145,7 +143,7 @@ Goal: convert `.svg` files into editable PXA designs with full vector fidelity. 
 
 ### Element mapping
 - [ ] Map `<rect>` → `shape` element (fill + stroke from attributes/inline style).
-- [ ] Map `<circle>` and `<ellipse>` → inline SVG data-URI `image` element (PXA has no circle primitive).
+- [ ] Map `<circle>` and `<ellipse>` → inline SVG data-URI `image` element (PVAD has no circle primitive).
 - [ ] Map `<line>`, `<polyline>`, `<polygon>`, `<path>` → inline SVG data-URI `image` element (same technique as `PdfFileImporter.EmitSvgPath`).
 - [ ] Map `<text>` / `<tspan>` → `text` element (x/y, font-size, fill color, font-family, font-weight).
 - [ ] Map `<image>` → `image` element; resolve `href` / `xlink:href`; embed referenced file as base64 data-URI if relative path.
@@ -169,7 +167,7 @@ Goal: convert `.svg` files into editable PXA designs with full vector fidelity. 
 
 ## PowerPoint Import (.pptx)
 
-Goal: convert `.pptx` files into editable PXA designs with full slide fidelity (text, images, shapes, backgrounds, slide dimensions). Uses `DocumentFormat.OpenXml` — already a dependency of `PXA.Infrastructure.Word` (same project as `DocxImporter`). New class `PptxImporter` in `PXA.Infrastructure.Word`.
+Goal: convert `.pptx` files into editable PVADE designs with full slide fidelity (text, images, shapes, backgrounds, slide dimensions). Uses `DocumentFormat.OpenXml` — already a dependency of `PVAD.Infrastructure.Word` (same project as `DocxImporter`). New class `PptxImporter` in `PVAD.Infrastructure.Word`.
 
 ### Slide dimensions and page settings
 - [ ] Read `PresentationPart.Presentation.SlideSize` (cx/cy in EMU); convert EMU → px (÷ 9144 × 96).

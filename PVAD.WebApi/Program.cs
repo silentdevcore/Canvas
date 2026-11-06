@@ -141,7 +141,8 @@ builder.Services.AddAuthentication(options =>
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
         options.EventsType = typeof(PvadCookieAuthenticationEvents);
-    });
+    })
+    .AddPvadAuthenticationCompatibility();
 builder.Services.AddScoped<PvadCookieAuthenticationEvents>();
 builder.Services.AddScoped<IClaimsTransformation, PvadPermissionClaimsTransformation>();
 builder.Services.AddScoped<PVAD.Importer.Trust.IPdfTrustInspector, PVAD.Importer.Trust.PdfTrustInspector>();

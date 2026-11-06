@@ -1,10 +1,8 @@
 # PDF Importer — Fidelity Improvement Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Goals
 
-Convert a PDF file to PXA JSON that visually matches the original:
+Convert a PDF file to PVADE JSON that visually matches the original:
 grouped paragraph text with wrapping, correct text/background colors,
 rotation, table grids detected from vector paths, and header/footer
 elements routed to `sharedElements`.
@@ -42,7 +40,7 @@ elements routed to `sharedElements`.
 
 - [x] Read `letter.TextOrientation` for the dominant orientation of the paragraph
 - [x] Map: Horizontal→0°, Rotate90→90°, Rotate180→180°, Rotate270→270°
-- [x] Set `style.rotation` on element (PXA rotates around element center)
+- [x] Set `style.rotation` on element (PVADE rotates around element center)
 - [ ] Test: import PDF with rotated text (sideways column headers, watermarks)
 
 ### 5. Table Detection [high]

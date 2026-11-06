@@ -1,10 +1,8 @@
-# PXA Designer Home Page Restructure Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Home Page Restructure Checklist
 
 ## Goal
 
-Restructure PXA Designer's Home page (`IndexPage.tsx`) to full parity with the hub navigation restructure: more description, direct links to every reachable item in both the PDF and Spreadsheet hubs (not just a subset), fixed routing to the new direct paths instead of the old redirect-through routes.
+Restructure PVADE Designer's Home page (`IndexPage.tsx`) to full parity with the hub navigation restructure: more description, direct links to every reachable item in both the PDF and Spreadsheet hubs (not just a subset), fixed routing to the new direct paths instead of the old redirect-through routes.
 
 ## Context
 
@@ -48,7 +46,7 @@ Home used to link to only 4 of the PDF hub's 7 sidebar items and had **zero pres
 
 ## Verification
 
-- [x] `cd pxa-designer && npx tsc --noEmit` clean.
+- [x] [compatibility entry `compat-c192f0feecb3`](../docs/reference/compatibility-identifiers.v1.json) clean.
 - [x] `npm run build` clean.
 - [x] `npm run test` (Jest, 19 suites/209 tests) — all pass. Added a new smoke test in `src/__tests__/appRouteSmoke.test.tsx` asserting Home (`/`) shows both the "Every PDF tool you need" and "Every spreadsheet tool you need" section headings plus representative cards from each grid — a regression guard against this gap reappearing.
 - [x] Authenticated browser walkthrough confirms Home navigation coverage, the Sign DOCX toast, the disabled Convert to Spreadsheet card, language switching, and responsive drawer behavior. Route smoke tests continue to cover direct card destinations.

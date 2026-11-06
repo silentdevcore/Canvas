@@ -1,7 +1,5 @@
 # Spreadsheet Import / Export Formats
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Expands the Spreadsheet Editor SDK's file in/out. Today only `.xlsx` round-trips; this adds the common
 lightweight formats (CSV, JSON) and tracks the heavier ones (xls/ods/pdf) as deferred.
 
@@ -22,7 +20,7 @@ already exposes `toWire()` (model) and `loadWorkbook()`, and HyperFormula provid
 
 ## Phase 1 — CSV (recommended; no new dependency) — DONE
 Plain values only (CSV has no formulas/styles). Export uses HyperFormula **computed** values so the file
-matches what's on screen. Implemented in `pxa-designer/src/spreadsheet/io.ts`.
+matches what's on screen. Implemented in `pvad-designer/src/spreadsheet/io.ts`.
 - [x] **CSV export** (client-side): `sheetToCsv(sheet, getComputed)` — RFC 4180 quoting (wrap fields with
       `,`/`"`/newline; double embedded quotes); exports the active sheet's computed values via `downloadText`.
 - [x] **CSV import** (client-side): `parseCsv` (RFC 4180-aware) + `csvToSheet` (number vs text per cell) →
@@ -40,7 +38,7 @@ The native `Workbook` model — lossless save/load, offline, no backend.
 ## Backend formats — shipped via the Spreadsheet Backend Engine
 See `checklists/Spreadsheet-Backend-Engine.md` (commits `39de695b`..`6490ab9a`, 2026-06-28).
 - [x] **`.xls` (legacy Excel)** — `XlsWorkbookIo` via **NPOI 2.8** (Phase 4); `/export?format=xls`, `/import` `.xls`.
-- [x] **PDF export** — `/render?format=pdf` renders the sheet to PDF via `PXA.Pdf` (Phase 3); also html/png/jpeg.
+- [x] **PDF export** — `/render?format=pdf` renders the sheet to PDF via `PVAD.Pdf` (Phase 3); also html/png/jpeg.
 - [x] **TSV** — `CsvSheetIo` takes a delimiter; `/export?format=tsv`, `/import` `.tsv`. Test `Tsv_RoundTrip_TabDelimited`.
 
 ## Still deferred (need new libraries)

@@ -1,6 +1,4 @@
-# PXA Nutrient Code and Viewer Migration
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Nutrient Code and Viewer Migration
 
 > Cross-provider specialized PDF capabilities detected during migration are
 > coordinated through
@@ -9,14 +7,14 @@
 ## Goal
 
 Deliver first-class migration paths from Nutrient document-processing code and
-Nutrient Web SDK applications into PXA. Preserve historical product identities
+Nutrient Web SDK applications into PVADE. Preserve historical product identities
 such as PSPDFKit and GdPicture.NET so customers can migrate both current and
 legacy implementations.
 
 This milestone covers migration analysis, deterministic conversion, diagnostics,
-PXA Viewer configuration, annotation and form-data conversion, UI integration,
+PVADE Viewer configuration, annotation and form-data conversion, UI integration,
 documentation, and tests. It does not implement the separate PDF Trust
-Foundation. Unsupported PXA capabilities must remain explicit instead of being
+Foundation. Unsupported PVAD capabilities must remain explicit instead of being
 represented as successfully migrated.
 
 ## Implementation Status (2026-09-24)
@@ -26,19 +24,19 @@ represented as successfully migrated.
   origin, text, save, disposal, and explicit gap diagnostics.
 - [x] Registered canonical code provider `nutrient`, GdPicture aliases, WebApi
   converter metadata, and provider-specific Designer authorization.
-- [x] Added the first isolated Nutrient Viewer project and canonical
-  `POST /api/pxa/v1/migrations/pdf/viewer/convert` endpoint.
+- [x] Added the first isolated Nutrient Viewer project and initial
+  [compatibility entry `compat-7e84f6821c46`](../docs/reference/compatibility-identifiers.v1.json) endpoint, now a compatibility alias.
 - [x] Added typed PSPDFKit Instant JSON v1 conversion for the currently
-  supported PXA annotation families, page geometry, rotation, CropBox offsets,
+  supported PVADE annotation families, page geometry, rotation, CropBox offsets,
   ID remapping, and redaction-mark warnings.
-- [x] Added both implementation projects and both test projects to `PXA.sln`.
+- [x] Added both implementation projects and both test projects to `PVAD.sln`.
 - [x] Added a comprehensive synthetic Beta example spanning GdPicture C#,
   TypeScript Viewer configuration, Viewer events, Instant JSON annotations,
   forms, rotated/CropBox page geometry, and explicit trust/security gaps.
 - [x] Added non-executing Esprima AST analysis for JavaScript
   `NutrientViewer.load` and `PSPDFKit.load` bootstrap/configuration source,
   including aliases, literal view state, secure source handling, checksums,
-  diagnostics, source map, normalized settings, and a generated PXA module.
+  diagnostics, source map, normalized settings, and a generated PVADE module.
 - [x] Added the localized Designer Viewer Migration workflow for JavaScript,
   TypeScript, and Instant JSON plus the typed one-time Viewer handoff for
   initial page and fit.
@@ -59,9 +57,9 @@ represented as successfully migrated.
   resources, web links, text and checkbox fields, sticky notes, and stateful
   line/fill appearance. Right-side origins are rejected with review diagnostics
   instead of producing incorrect geometry. Generated comprehensive output is
-  compiled against `PXA.Pdf` in tests.
+  compiled against `PVAD.Pdf` in tests.
 - [x] Added the first exact existing-document editing path: `LoadFromFile`,
-  `MovePage`, and `DeletePage` migrate to the typed `PXA.Importer` page editor,
+  `MovePage`, and `DeletePage` migrate to the typed `PVAD.Importer` page editor,
   preserve reachable page content and resources, and save through a full
   rewrite instead of reconstructing the document through Designer elements.
 - [x] Added fail-closed page-deletion rules for the last remaining page and for
@@ -94,13 +92,13 @@ represented as successfully migrated.
   selections, encrypted boundaries, and compilable generated code.
 - [x] Preserve Nutrient stream ownership, one-based page positions, operation
   order, repeated loads, multiple document variables, and `GdPictureStatus.OK`
-  control flow in generated PXA code.
+  control flow in generated PVADE code.
 - [ ] Next: expand .NET semantic coverage to additional annotations and form
   families, conversion, OCR service handoff, and async/cancellation patterns.
 - [x] Replaced generated `TODO` statements for advanced operations with stable,
   actionable migration-review entries. OCR is not confused with image-to-design
   OCR, TWAIN remains an external hardware boundary, irreversible redaction points
-  to the PXA Trust pipeline, and signing never copies certificate secrets.
+  to the PVADE Trust pipeline, and signing never copies certificate secrets.
 - [x] Mapped the supported two-password Nutrient `Encrypt(owner, user)` pattern
   to `PdfSaveOptions.Encryption` with AES-256, runtime secret lookups, compile
   coverage, and a fail-closed PDF/A-plus-encryption conflict diagnostic.
@@ -135,12 +133,12 @@ Official reference baseline:
 ## Migration Taxonomy and Projects
 
 - [x] Extend the migration taxonomy with `Viewer` as a valid migration kind:
-  `PXA.Migration.<Domain>.Viewer.<Provider>`.
-- [x] Add `PXA.Migration.Pdf.Code.Nutrient` under `src/Migrations/PDF`.
-- [x] Add `PXA.Migration.Pdf.Viewer.Nutrient` under `src/Migrations/PDF`.
-- [x] Add `PXA.Migration.Pdf.Code.Nutrient.Tests` under `tests`.
-- [x] Add `PXA.Migration.Pdf.Viewer.Nutrient.Tests` under `tests`.
-- [x] Reference both projects from `PXA.sln` and the appropriate PDF migration
+  `PVAD.Migration.<Domain>.Viewer.<Provider>`.
+- [x] Add `PVAD.Migration.Pdf.Code.Nutrient` under `src/Migrations/PDF`.
+- [x] Add `PVAD.Migration.Pdf.Viewer.Nutrient` under `src/Migrations/PDF`.
+- [x] Add `PVAD.Migration.Pdf.Code.Nutrient.Tests` under `tests`.
+- [x] Add `PVAD.Migration.Pdf.Viewer.Nutrient.Tests` under `tests`.
+- [x] Reference both projects from `PVAD.sln` and the appropriate PDF migration
   aggregator.
 - [x] Use canonical provider name `Nutrient` and technical provider key
   `nutrient` for code migration.
@@ -155,9 +153,9 @@ Official reference baseline:
 
 - [x] Define one structured Nutrient Viewer migration result shared by API and UI.
 - [x] Consolidate the user-facing Viewer result into one versioned, importable
-  `pxa-viewer-package` instead of exposing disconnected generated files.
+  `pvad-viewer-package` instead of exposing disconnected generated files.
 - [x] Support package download and re-import in Designer.
-- [x] Preview migrated settings, annotations, and form values in the real PXA
+- [x] Preview migrated settings, annotations, and form values in the real PVADE
   PDF Viewer, using an attached PDF or generated geometry-only preview pages.
 - [x] Integrate the customer-facing Nutrient workflow into PDF Designer Migration.
 - [x] Require the original PDF, import it into `DesignExportDto`, and overlay
@@ -173,8 +171,8 @@ Official reference baseline:
 - [x] Return `sourcePreservation` as `preserved`, `regenerated`, or
   `structureLost`.
 - [ ] Return stable diagnostics with code, severity, source location, affected
-  API, PXA replacement, manual action, and Documentation link.
-- [x] Return a source map between recognized Nutrient calls and generated PXA
+  API, PVAD replacement, manual action, and Documentation link.
+- [x] Return a source map between recognized Nutrient calls and generated PVADE
   statements or Viewer settings.
 - [x] Attach source locations to Trust evidence for recognized signature and
   redaction calls so reviewers can navigate back to the original invocation.
@@ -182,7 +180,7 @@ Official reference baseline:
   source secrets or document content.
 - [x] Return a capability report containing migrated, approximated, omitted,
   and blocked features.
-- [x] Never report `exact` when the source uses behavior unavailable in PXA.
+- [x] Never report `exact` when the source uses behavior unavailable in PVADE.
 - [ ] Preserve unknown but serializable metadata in a bounded, versioned
   extension object where this is safe.
 - [x] Add deterministic checksums for source, normalized migration model, and
@@ -210,40 +208,40 @@ Official reference baseline:
 ### Deterministic Mappings
 
 - [x] Map supported document creation and disposal plus file-based existing-PDF
-  load/save patterns to the appropriate PXA generator or importer APIs.
+  load/save patterns to the appropriate PVADE generator or importer APIs.
 - [ ] Map all page add, insert, remove, reorder, rotate, crop, merge, and split
-  patterns where an equivalent PXA operation exists. Static creation, blank
+  patterns where an equivalent PVAD operation exists. Static creation, blank
   insertion, rotation, remove, reorder, cross-document clone, supported merge
   overloads, `CropBox` set/read/reset, and explicit page-range extraction are
   covered. Other page-box kinds, bookmark/barcode/repeating-content split modes,
   and encrypted source workflows remain open.
 - [ ] Map text, image, shape, link, bookmark, metadata, and basic page-content
   operations where semantic equivalence can be proven.
-- [ ] Map supported annotations to PXA note, free text, stamp, image, line,
+- [ ] Map supported annotations to PVAD note, free text, stamp, image, line,
   rectangle, circle, ink, highlight, underline, and strikeout contracts.
 - [ ] Map supported AcroForm text, checkbox, radio, dropdown, and list fields.
-- [ ] Map PDF/image conversion and OCR calls only to existing PXA importer,
+- [ ] Map PDF/image conversion and OCR calls only to existing PVAD importer,
   export, and OCR application services with equivalent options.
-- [ ] Map barcode operations only where PXA supports the same barcode type,
+- [ ] Map barcode operations only where PVAD supports the same barcode type,
   encoding, error correction, and output semantics.
-- [ ] Preserve cancellation and async behavior where the target PXA API supports
+- [ ] Preserve cancellation and async behavior where the target PVAD API supports
   it.
-- [x] Generate compilable PXA code with stable formatting and no Nutrient
+- [x] Generate compilable PVADE code with stable formatting and no Nutrient
   package references for automatically migrated operations.
 
 ### Honest Gap Diagnostics
 
 - [x] Mark PDF digital signatures, PAdES, timestamping, and validation as
   `reviewRequired` or `unsupported` until the PDF Trust Foundation is delivered.
-- [x] Mark irreversible redaction as unsupported when PXA can only create a
+- [x] Mark irreversible redaction as unsupported when PVADE can only create a
   visual overlay.
 - [x] Mark unsupported PDF/A or PDF/UA conversion and validation explicitly.
 - [x] Mark AES-256, certificate security, advanced permissions, linearization,
-  and advanced optimization according to actual PXA support.
+  and advanced optimization according to actual PVADE support.
 - [x] Mark TWAIN/WIA scanning, native printing, proprietary OCR options,
   hyper-compression, and unsupported image processing for manual replacement.
 - [x] Externalize recognized official Nutrient signature and redaction calls as
-  PXA Trust review evidence with source location, affected operation, and
+  PVADE Trust review evidence with source location, affected operation, and
   required manual action. This review handoff does not execute signing or
   irreversible redaction and does not copy PFX paths, passwords, private keys,
   certificate material, or removed document text.
@@ -261,7 +259,7 @@ Official reference baseline:
   editing, extraction, OCR, annotation, form, signature, and redaction patterns.
 - [ ] Normalize recognized Java operations into the same language-neutral
   migration model used by the .NET converter.
-- [ ] Generate C# PXA code first; generating a future PXA Java SDK target remains
+- [ ] Generate C# PVAD code first; generating a future PVAD Java SDK target remains
   blocked until that SDK is published.
 - [ ] Preserve source locations and diagnostics across Java AST to C# output.
 - [ ] Keep Java-specific resource handling, exceptions, concurrency, and stream
@@ -281,9 +279,9 @@ Official reference baseline:
   source code.
 - [x] Accept optional Instant JSON as a dedicated typed input, not as executable
   JavaScript.
-- [ ] Add XFDF input in a later subphase after the PXA annotation interchange
+- [ ] Add XFDF input in a later subphase after the PVAD annotation interchange
   contract is finalized.
-- [x] Generate a PXA Viewer integration module, normalized Viewer settings,
+- [x] Generate a PVADE Viewer integration module, normalized Viewer settings,
   annotation sidecar, form-value payload, diagnostics, and a manual follow-up
   report.
 - [x] Never execute uploaded JavaScript or TypeScript during migration.
@@ -292,24 +290,24 @@ Official reference baseline:
 
 - [x] Detect both `NutrientViewer.load(...)` and historical
   `PSPDFKit.load(...)` bootstrap calls.
-- [x] Map literal container selection to the generated PXA Viewer mount
+- [x] Map literal container selection to the generated PVADE Viewer mount
   contract.
-- [ ] Map document Blob, ArrayBuffer, and application-owned URL sources to PXA
+- [ ] Map document Blob, ArrayBuffer, and application-owned URL sources to PVAD
   file or handoff sources without copying arbitrary URLs blindly.
 - [x] Remove Nutrient license keys and emit a secure configuration diagnostic.
 - [ ] Map initial page, zoom, fit mode, scroll mode, spread/layout mode, locale,
-  theme, and permitted toolbar actions where PXA has equivalents.
+  theme, and permitted toolbar actions where PVAD has equivalents.
 - [x] Keep download, print, annotate, form-fill, and redact visibility under
-  server-authorized PXA capabilities rather than accepting migrated client
+  server-authorized PVADE capabilities rather than accepting migrated client
   flags.
-- [x] Translate supported initial page and fit mode into the typed PXA Viewer
+- [x] Translate supported initial page and fit mode into the typed PVADE Viewer
   handoff while retaining locale, theme, and toolbar requests for review.
 - [ ] Translate additional download, print, annotate, form-fill, and redact UI visibility
-  into server-authorized PXA capabilities rather than trusting client flags.
+  into server-authorized PVAD capabilities rather than trusting client flags.
 - [ ] Map supported search, page navigation, thumbnail, outline, and bookmark
   behavior.
 - [x] Preserve custom toolbar and UI customization requirements as structured
-  review items when no deterministic PXA equivalent exists.
+  review items when no deterministic PVADE equivalent exists.
 - [ ] Mark custom renderers, custom overlays, AI Assistant, measurement tools,
   layers, comparison, collaboration, and unsupported editing modes honestly.
 
@@ -317,15 +315,15 @@ Official reference baseline:
 
 - [ ] Inventory and map document-loaded, page-change, view-state, annotation,
   form, text-selection, search, bookmark, print, and download events.
-- [ ] Generate typed PXA callback stubs for supported event equivalents.
+- [ ] Generate typed PVAD callback stubs for supported event equivalents.
 - [ ] Preserve application-owned business logic around callbacks and mark only
   the SDK-specific portion for regeneration.
 - [ ] Detect direct calls to remote Document Engine or PSPDFKit Server and
   generate a deployment/data-flow review rather than embedding old endpoints.
-- [x] Map authentication to existing PXA session, tenant, entitlement, and
+- [x] Map authentication to existing PVADE session, tenant, entitlement, and
   permission contracts; never migrate source JWTs or API keys.
 - [ ] Identify real-time Instant synchronization and collaboration as a separate
-  architecture gap until PXA supports equivalent semantics.
+  architecture gap until PVAD supports equivalent semantics.
 
 ### Instant JSON and Annotation Conversion
 
@@ -334,15 +332,15 @@ Official reference baseline:
 - [ ] Validate payload size, page indexes, IDs, coordinates, colors, dates, and
   annotation-specific fields before conversion.
 - [x] Map notes, free text, stamps, images, redactions, lines, rectangles,
-  ellipses, ink, highlights, underlines, and strikeouts to PXA annotation types.
-- [x] Convert Nutrient point-based bounding boxes to PXA page-relative
+  ellipses, ink, highlights, underlines, and strikeouts to PVADE annotation types.
+- [x] Convert Nutrient point-based bounding boxes to PVADE page-relative
   percentages using the actual CropBox, rotation, and page dimensions.
 - [x] Convert line endings, stroke, fill, opacity, quad points, and ink point
-  lists where PXA supports them.
+  lists where PVADE supports them.
 - [x] Preserve stable IDs where collision-free; otherwise emit an ID remap table.
 - [x] Preserve author, creation time, update time, lock state, and safe custom
   metadata.
-- [ ] Map comment threads and replies only after PXA defines an equivalent
+- [ ] Map comment threads and replies only after PVAD defines an equivalent
   threaded-comment contract; otherwise retain them in the report and extension
   data.
 - [x] Diagnose unsupported callouts, polygons, polylines, attachments, sound,
@@ -355,7 +353,7 @@ Official reference baseline:
 - [x] Map supported text, multiline text, checkbox, radio, dropdown, and list
   form values and field metadata.
 - [x] Preserve required, read-only, option, and default-value semantics where
-  PXA supports them.
+  PVADE supports them.
 - [x] Diagnose push buttons, JavaScript actions, calculations, validation
   scripts, and unsupported widget appearances.
 - [ ] Preserve signature-field placement as review metadata without claiming a
@@ -368,7 +366,7 @@ Official reference baseline:
 - [x] Keep `POST /api/migration/convert` compatible for Nutrient C# code
   migration through provider key `nutrient`.
 - [x] Add a canonical Viewer endpoint under
-  `/api/pxa/v1/migrations/pdf/viewer/convert`.
+  `/api/pvad/v1/migrations/pdf/viewer/nutrient/convert`.
 - [x] Extend `/api/migration/frameworks` and its canonical successor with
   `domain: pdf`, `migrationKind: viewer`, and `provider: Nutrient`.
 - [x] Add separate permissions for Nutrient code migration and Nutrient Viewer
@@ -398,8 +396,8 @@ Official reference baseline:
 - [ ] Show detected API family and generation before conversion.
 - [ ] Show generated files, structural diff, source map, fidelity, migrated
   capabilities, blocked security operations, and manual actions.
-- [ ] Provide side-by-side Nutrient/PXA Viewer configuration comparison.
-- [x] Provide an isolated PXA Viewer preview using synthetic or user-provided
+- [ ] Provide side-by-side Nutrient/PVADE Viewer configuration comparison.
+- [x] Provide an isolated PVADE Viewer preview using synthetic or user-provided
   authorized documents.
 - [ ] Never show a successful status when blocked security or compliance
   operations remain.
@@ -408,7 +406,7 @@ Official reference baseline:
 
 ## Documentation
 
-- [x] Add a public Nutrient migration overview to PXA.Documentation.
+- [x] Add a public Nutrient migration overview to PVAD.Documentation.
 - [x] Add public guidance for Nutrient .NET/GdPicture code and Nutrient Web
   SDK/PSPDFKit Viewer migration. Keep the Java guide open until Track B exists.
 - [x] Document provider detection, accepted aliases, supported API generations,
@@ -422,7 +420,7 @@ Official reference baseline:
 - [ ] Add a guide for replacing Document Engine deployment and authentication
   without exposing internal operator configuration.
 - [x] Add troubleshooting by stable `CANMIGNUT...` diagnostic family.
-- [ ] Link the relevant PXA Viewer, forms, annotations, permissions, migration,
+- [ ] Link the relevant PVADE Viewer, forms, annotations, permissions, migration,
   and deployment documentation.
 - [x] Update the Documentation search index and migration provider coverage
   tables.
@@ -451,7 +449,7 @@ Official reference baseline:
   embedded secrets, unsafe paths, and dynamic values.
 - [ ] Create the remaining Web fixtures for forms, custom integrations,
   Document Engine, and deprecated PSPDFKit Server.
-- [x] Create Instant JSON fixtures for every mapped PXA annotation type,
+- [x] Create Instant JSON fixtures for every mapped PVADE annotation type,
   rotations, CropBoxes, comment threads, unsupported annotations, and malformed
   input.
 - [x] Verify point-to-percentage coordinate conversion against portrait,
@@ -487,8 +485,8 @@ Official reference baseline:
 
 - [x] Deliver JavaScript `NutrientViewer` and `PSPDFKit`
   bootstrap/configuration migration.
-- [x] Deliver Instant JSON conversion for PXA-supported annotations and forms.
-- [x] Deliver PXA Viewer preview, comparison, Documentation, and tests.
+- [x] Deliver Instant JSON conversion for PVAD-supported annotations and forms.
+- [x] Deliver PVADE Viewer preview, comparison, Documentation, and tests.
 - [x] Deliver TypeScript Compiler API input, deterministic checksums, capability
   reporting, and the comprehensive synthetic Beta example.
 - [x] Expose the comprehensive Viewer/Instant JSON and GdPicture C# examples
@@ -509,9 +507,9 @@ Official reference baseline:
   - [x] Map official static page selection, rotation, text boxes, primitive
     graphics, file-image resources, web links, text/checkbox fields, and sticky
     notes with origin- and unit-aware geometry.
-  - [x] Compile generated comprehensive C# against `PXA.Pdf` in the test suite.
+  - [x] Compile generated comprehensive C# against `PVAD.Pdf` in the test suite.
   - [x] Map the documented GdPicture free-text, square, and circle annotation
-    overloads and grouped radio-button fields to PXA contracts while diagnosing
+    overloads and grouped radio-button fields to PVADE contracts while diagnosing
     unsupported appearance and selection properties.
   - [ ] Add remaining annotation and form families, existing-document editing,
     OCR/conversion service handoff, and async/cancellation mappings.
@@ -524,7 +522,7 @@ Official reference baseline:
 - [x] Record the dated Java SDK and Document Engine API inventory, product
   boundaries, provenance policy, and synthetic fixture matrix in
   `docs/migrations/nutrient-java-document-engine-inventory.md`.
-- [ ] Deliver Java AST analysis and C# PXA generation after N1-N3 contracts are
+- [ ] Deliver Java AST analysis and C# PVAD generation after N1-N3 contracts are
   stable.
 - [ ] Add Java-specific examples, diagnostics, and Documentation.
 
@@ -532,12 +530,12 @@ Official reference baseline:
 
 Implementation tracker: [PVAD.PDF-Trust-Foundation.md](PVAD.PDF-Trust-Foundation.md)
 
-- [x] PXA now provides native Trust capabilities for signatures/PAdES,
+- [x] PVADE now provides native Trust capabilities for signatures/PAdES,
   irreversible redaction, PDF/A, PDF/UA, and AES-256 as tracked by the linked
   PDF Trust checklist.
 - [ ] Map Nutrient signature, timestamp, validation, and certificate calls to
-  semantically equivalent PXA Trust workflows.
-- [ ] Map Nutrient redaction calls to PXA preflight, apply, verification, and
+  semantically equivalent PVAD Trust workflows.
+- [ ] Map Nutrient redaction calls to PVAD preflight, apply, verification, and
   audit workflows without replacing removal with visual overlays.
 - [x] Preserve official signature and redaction call identity, source location,
   Trust review status, and safe next action without claiming that either
@@ -546,10 +544,10 @@ Implementation tracker: [PVAD.PDF-Trust-Foundation.md](PVAD.PDF-Trust-Foundation
   generation and validation semantics are equivalent.
 - [x] Map Nutrient `PDF_A_2b` generation requests to
   `PdfComplianceProfile.PdfA2B` with explicit font, regeneration, and review warnings.
-- [x] Map the supported Nutrient password-encryption pattern to PXA AES-256.
+- [x] Map the supported Nutrient password-encryption pattern to PVADE AES-256.
 - [ ] Map advanced Nutrient permissions and certificate-security options to
-  equivalent PXA policies; keep unmatched options as review items.
-- [ ] Connect migrated signature and compliance operations to the existing PXA
+  equivalent PVAD policies; keep unmatched options as review items.
+- [ ] Connect migrated signature and compliance operations to the existing PVAD
   Viewer Trust UI.
 
 The Nutrient migrators detect and report these APIs today, but they must not
@@ -561,7 +559,7 @@ evidence.
 
 - [x] Add a customer-facing `minor` release fragment when the first Nutrient
   Beta is complete; do not change `VERSION` outside release preparation.
-- [x] PXA detects current and historical Nutrient identities without confusing
+- [x] PVADE detects current and historical Nutrient identities without confusing
   them with Apryse.
 - [x] Generated C# and Viewer integration code builds without Nutrient
   dependencies for automatically migrated features.
@@ -581,13 +579,13 @@ evidence.
 ## Assumptions
 
 - Nutrient .NET/GdPicture migration is implemented before Java migration because
-  the existing PXA code-migration infrastructure is Roslyn-based.
-- Viewer migration targets PXA's existing responsive Web Viewer; native iOS,
+  the existing PVAD code-migration infrastructure is Roslyn-based.
+- Viewer migration targets PVAD's existing responsive Web Viewer; native iOS,
   Android, Flutter, React Native, and MAUI migration is outside this milestone.
 - Current and historical product names are input aliases, while `Nutrient` is
   the canonical provider identity.
 - Customer documents and proprietary source are used only with explicit
   authorization and are never committed as public fixtures.
-- Migration reports target equivalent PXA behavior, not textual replacement of
+- Migration reports target equivalent PVAD behavior, not textual replacement of
   every Nutrient call.
 - The PDF Trust Foundation remains a separate later milestone.

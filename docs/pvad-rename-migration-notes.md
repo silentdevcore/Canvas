@@ -1,6 +1,10 @@
 # PVAD Technical Rename Migration Notes
 
-Implementation in progress. This is not a released upgrade announcement.
+The technical source rename is complete on `develop`. This is an upgrade guide,
+not a released upgrade announcement or production cutover approval. The current
+product version remains 1.1.0; the next Major release must be prepared and reviewed
+through the normal release workflow. See the
+[internal release dry run](pvad-rename-release-dry-run.md) for its exact scope.
 
 PVAD is the technical identity. PVADE is the public platform and Designer brand.
 PVADP and PVADS identify the PDF and Spreadsheet products respectively.
@@ -8,7 +12,7 @@ PVADP and PVADS identify the PDF and Spreadsheet products respectively.
 ## Compose Defaults And Compatibility
 
 Fresh defaults now use PVAD for service/resource keys, secret mounts and local
-database credentials. WebApi and EF fallbacks target `pvad`, not an old `pxa`
+database credentials. WebApi and EF fallbacks target `pvad`, not an old [compatibility entry `compat-e87018c0733d`](reference/compatibility-identifiers.v1.json)
 database. Existing installations require the explicit root/API legacy overlays
 and verified external resource IDs. They preserve old data and optional DNS
 aliases without creating a second database or changing stored key bytes.
@@ -42,11 +46,15 @@ old files automatically. Keep stored object keys, annotation document IDs and
 customer filenames/content unchanged. Do not run missing-object reconciliation
 against an accidentally empty replacement mount.
 
-The API Compose definition deliberately retains `pxa-api-data` at `/app/data`,
-and its configured objects, annotation store, keyring and PDF Trust cache all
-resolve inside that mount. Preserve the explicit installed Compose project name
-as well: a different project can select a different physical volume despite an
-unchanged volume key. Existing licensing secret names are also retained.
+The fresh API Compose definition mounts `pvad-api-data` at `/app/data`; its
+configured objects, annotation store, keyring and PDF Trust cache resolve inside
+that mount. Existing installations must apply the API legacy overlay and set
+`PVAD_LEGACY_API_VOLUME` to the verified existing physical volume ID. The logical
+name alone does not select the previous storage. Preserve the explicit installed
+Compose project name as well. Canonical licensing secret mounts use
+`pvad_license_private_key` and `pvad_license_public_key`; their configured source
+files and signing-key bytes must remain unchanged. See the
+[fresh/legacy binding table](pvad-infrastructure-mapping.md#explicit-legacy-overlays).
 
 Code execution uses the packaged `code-worker` directory with
 `PVAD.CodeWorker.dll`; OCR uses `PVAD.FileImporter.ImageOcr.Worker.dll` inside
@@ -57,7 +65,7 @@ the rename does not enable it.
 
 ## .NET Projects And Namespaces
 
-All 115 first-party project files now use the PVAD prefix. Update project paths,
+First-party project files now use the PVAD prefix. Update project paths,
 assembly references and C# namespace imports, for example:
 
 ```csharp
@@ -82,11 +90,13 @@ Projects, namespaces and owned symbols now use PVAD/Pvad. The Designer is in
 headers use PVADE. A central brand definition supplies the confirmed identities.
 
 Session names and five claim families now use PVAD with compatibility readers;
-mail/cache protection contexts retain legacy readers. Remaining diagnostics,
-retained-job encryption and production cutover still require dedicated work.
-Their old names are not evidence that the complete rename is delivered.
+mail/cache protection contexts retain legacy readers. Stable diagnostic IDs and
+cryptographic compatibility purposes are intentional exceptions, not unfinished
+cosmetic renames. Job payloads and filesystem objects have no rename-specific
+Data Protection envelope; this is not an encryption-at-rest guarantee. Actual
+keyring, storage recovery and production cutover require operator verification.
 Native writers now use PVADP/PVADS and `minimumPvadVersion`;
-legacy envelopes and `minimumPxaVersion` remain readable. Conflicting version
+legacy envelopes and [compatibility entry `compat-c29574ca3da7`](reference/compatibility-identifiers.v1.json) remain readable. Conflicting version
 aliases are rejected. See [native project compatibility](native-designer-project-formats.md).
 
 ## Coordinated Upgrade Checklist
@@ -129,7 +139,7 @@ the checked-in OpenAPI schema and generated OpenAPI paths use this prefix.
 Operation identifiers are retained; this is a product-name migration, not a new
 API contract version.
 
-Requests to `/api/pxa/v1` are internally mapped before routing to the same
+Requests to [compatibility entry `compat-1b6760bed501`](reference/compatibility-identifiers.v1.json) are internally mapped before routing to the same
 controller and authorization, feature-gate, entitlement, rate-limit and audit
 pipeline. The adapter preserves method, body, query and authentication headers;
 it does not redirect clients or replay requests. Legacy responses include
@@ -144,7 +154,7 @@ contracts remain subject to their separate compatibility work.
 
 Cookies and protected payloads now have explicit legacy readers and canonical
 PVAD writes; authentication schemes, keyring identity and EF migration IDs retain
-their values. Legacy PXAP/PXAS envelopes retain their validated reader;
+their values. Legacy [compatibility entry `compat-029bfd798eb4`](reference/compatibility-identifiers.v1.json) envelopes retain their validated reader;
 new saves produce a separate PVADP/PVADS download after an explicit legacy review.
 Remaining compatibility gates must finish before a complete renamed release is published.
 
@@ -154,7 +164,7 @@ has been migrated by this source-level change.
 ## Configuration Transition In Progress
 
 The following environment keys now accept both canonical PVAD names and their
-PXA aliases:
+PVAD aliases:
 
 - PVAD_BUILD_COMMIT and PVAD_BUILD_TIME in frontend builds, packaged build-info
   generation and WebApi version metadata.
@@ -170,7 +180,7 @@ values are not silently replaced by legacy secrets. Bootstrap remains restricted
 to development. The existing physical database and user are not renamed.
 
 The .NET sections now use `Pvad:EInvoices:*` and
-`ConnectionStrings:PvadDatabase`. Old `Pxa:*` and `PxaDatabase` aliases are
+`ConnectionStrings:PvadDatabase`. Old [compatibility entry `compat-53b99df994b5`](reference/compatibility-identifiers.v1.json) and operator-only compatibility entry `compat-759b95ae9020` (available in the protected operator register) aliases are
 resolved once at startup, before options are consumed. Normal configuration
 provider precedence is retained: an environment setting may override a JSON
 default regardless of which spelling it uses. Conflicting aliases in the same
@@ -178,13 +188,13 @@ provider fail without exposing values. Restart to apply changed aliases; runtime
 hot reload is not part of this transition.
 
 The API Compose file uses canonical PVAD variables. Run it through
-`node tools/configuration/pvad-compose.mjs` to accept old PXA environment names
+`node tools/configuration/pvad-compose.mjs` to accept old PVAD environment names
 and check conflicts. Use an explicit `--env-file` for files outside the working
 directory. Only literal dotenv values are supported by this launcher; unresolved
 `${...}` interpolation is rejected. Raw Docker Compose bypasses this validation.
 
 WebApi and WebhookRelay build arguments are PVAD_VERSION, PVAD_COMMIT and
-PVAD_BUILD_TIME; legacy PXA arguments remain fallback inputs with conflict guards.
+PVAD_BUILD_TIME; legacy PVAD arguments remain fallback inputs with conflict guards.
 The publish command now supplies PvadBuildMetadata, matching Directory.Build.props.
 The fallback mechanism follows the [Dockerfile environment replacement rules](https://docs.docker.com/reference/dockerfile/#environment-replacement).
 Full production image builds have not yet been validated.
@@ -205,8 +215,8 @@ consumers must update their queries when upgrading; measurements are not emitted
 twice under both names.
 
 Managed Grafana queries and alert expressions use dual-name selectors such as
-`{__name__=~"(pvad|pxa)_jobs_processed_total"}`. Managed log filters accept both
-`pvad-webapi` and `pxa-webapi`, so existing retained data remains queryable.
+operator-only compatibility entry `compat-1c73bb1433d5` (available in the protected operator register). Managed log filters accept both
+`pvad-webapi` and operator-only compatibility entry `compat-0a831881f47d` (available in the protected operator register), so existing retained data remains queryable.
 No stored logs, traces or metrics have been rewritten or deleted.
 
 Grafana dashboard/datasource UIDs, provisioning filenames, physical service and
@@ -235,7 +245,7 @@ PVAD_RUN_POSTGRES_TESTS, PVAD_PDFA_ARTIFACT_DIR,
 PVAD_SPREADSHEET_FIDELITY_ARTIFACTS and PVAD_VISUAL_PARITY_FIXTURE.
 
 PDF/A, PDF/UA, fuzzing, redaction-recovery and Legal backup/recovery shell entry
-points accept the corresponding legacy PXA names. Their POSIX adapter rejects
+points accept the corresponding legacy PVAD names. Their POSIX adapter rejects
 conflicts without printing values and exports canonical names only to child
 processes. It uses no eval and preserves quoted/multiline values literally.
 Legacy aliases are removed from the child environment after normalization.
@@ -248,7 +258,7 @@ require the explicit test opt-in and an isolated test database.
 
 ## References
 
-- [Rename plan](../checklists/Rename-PXA-To-PVAD.md)
+- [Rename plan](../checklists/PVAD.Rename-Plan.md)
 - [Repository audit](../checklists/PVAD.Rename-Audit.md)
 ## Workbook Browser Storage
 
@@ -258,7 +268,7 @@ The Designer resets workbook memory before loading another scope. Signing out
 does not delete scoped drafts; another account does not load them. Clearing site
 data removes them. Browser storage is not encrypted storage or server authorization.
 
-Unscoped `pxa-spreadsheet` and `canvas-spreadsheet` drafts are not adopted
+Unscoped operator-only compatibility entry `compat-aa442e855094` (available in the protected operator register) and `canvas-spreadsheet` drafts are not adopted
 automatically, because their owner cannot be established. They remain untouched
 by workbook startup; the existing sign-out/organization-switch cleanup can remove
 them. In the Spreadsheet editor, select "Find old local drafts" to list recovery
@@ -283,7 +293,7 @@ control; server authorization still applies to all protected resources.
 ## Sign-In And Browser Telemetry
 
 New sign-ins store PKCE state under `pvad.designer.auth-transaction`. An unfinished
-`pxa.designer.auth-transaction` may be consumed once only when no canonical
+[compatibility entry `compat-b5cd10027d67`](reference/compatibility-identifiers.v1.json) may be consumed once only when no canonical
 transaction exists. Both copies are consumed before exchange; the original state,
 verifier and ten-minute validity remain mandatory. Malformed, expired, future-dated
 or mismatched state never reaches the exchange API. Callback parameters are removed
@@ -304,7 +314,7 @@ response aliases, website environment inputs and preserved diagnostic contracts.
 See the [browser identifier audit](../checklists/PVAD.Browser-Identifier-Audit.md)
 for the complete distinction between canonical writes and retained legacy readers.
 
-New API keys now use `pvad_`, with unchanged validation for existing `pxa_` keys.
+New API keys now use `pvad_`, with unchanged validation for existing [compatibility entry `compat-304c10a72885`](reference/compatibility-identifiers.v1.json) keys.
 Mail outbox and PDF revocation-cache readers handle both protection generations;
 new writes use PVAD purposes without changing the keyring application identity.
 See [license and job compatibility](pvad-license-and-job-compatibility.md) and
@@ -332,7 +342,7 @@ fragment. A missing trailing slash is normalized; a customer base path is retain
 HTTP remains available for local and customer-managed deployments; use HTTPS in
 production. Do not put secrets in browser configuration.
 
-An old `__PXA_CONFIG__.accountUrl` is accepted when the new field is absent. If
+An old [compatibility entry `compat-abc27366497a`](reference/compatibility-identifiers.v1.json) is accepted when the new field is absent. If
 both exist they must normalize to the same URL; conflicting values fail closed.
 Explicit blank values preserve default-host behavior but conflict with a nonblank
 alias. Invalid object/field types are rejected. Unknown future fields are ignored.
@@ -347,7 +357,7 @@ allowlist is changed by this browser resolver; configure those separately.
 ## Code Element Markers
 
 New C# Model and C# PDF source uses `// pvad-element-id: <id>`. Both the API
-source-map reader and the worker readers accept historical `pxa-element-id:`
+source-map reader and the worker readers accept historical [compatibility entry `compat-d4533c00f1a8`](reference/compatibility-identifiers.v1.json)
 comments, preserving IDs in existing drafts. Element IDs themselves are unchanged.
 The shared reader retains the 200-character ID bound and case-insensitive marker
 matching. Empty and oversized IDs are ignored as before.
@@ -358,18 +368,18 @@ do not understand the new marker. This does not certify mixed-version execution.
 ## Migration Code Result Compatibility
 
 Migration service callers use `MigrationResult.PvadCode`. The read-only obsolete
-`PxaCode` property remains a compatibility alias through 2.x; removal is planned
+[compatibility entry `compat-9d2082b0fe2c`](reference/compatibility-identifiers.v1.json) property remains a compatibility alias through 2.x; removal is planned
 for 3.0.0. Positional record construction remains unchanged, but source callers
 using the old named constructor argument must change it to `PvadCode`.
 
-The compatibility conversion HTTP response adds `pvadCode` and retains `pxaCode`
+The compatibility conversion HTTP response adds `pvadCode` and retains [compatibility entry `compat-574f715a7b77`](reference/compatibility-identifiers.v1.json)
 with identical content. Unified v1 migration responses still use their neutral
 artifact `content` field; no artifact IDs or provider diagnostic IDs change.
 The Designer consumes artifact content under the canonical internal name.
 
-New background code-migration result files contain both `PvadCode` and `PxaCode`
+New background code-migration result files contain both `PvadCode` and [compatibility entry `compat-9d2082b0fe2c`](reference/compatibility-identifiers.v1.json)
 (Pascal case, as in historical job-result JSON). Existing stored objects are not
-rewritten. Consumers reading historical results must still accept `PxaCode`;
+rewritten. Consumers reading historical results must still accept [compatibility entry `compat-9d2082b0fe2c`](reference/compatibility-identifiers.v1.json);
 new consumers should prefer `PvadCode`. This is an additive output transition,
 not a migration of retained object bytes or a change to job-result download APIs.
 
@@ -392,7 +402,7 @@ subject and keyword values are unchanged.
 
 ## XML Export Envelope
 
-The major rename changes the default XML export root from `PxaDocument` to
+The major rename changes the default XML export root from [compatibility entry `compat-ee27215b8284`](reference/compatibility-identifiers.v1.json) to
 `PvadDocument`. Child elements and the existing XML format version remain the
 same; this is not a new full-fidelity template serialization format. Update XPath,
 XSD root declarations and external import consumers before adopting the new

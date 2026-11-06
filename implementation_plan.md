@@ -1,7 +1,5 @@
 # Implementation Plan: CraftMyPDF-Style UI Designer
 
-> Naming history: This retained planning or migration note predates PVAD/PVADE. Legacy project names below are historical references, not current integration instructions. See README.md and the rename compatibility guides for the current contracts.
-
 ## Overview
 Build a user-friendly UI designer inspired by CraftMyPDF.com, focusing on template gallery and guided onboarding. Replace the current complex, developer-focused interface with an intuitive, beginner-friendly design tool that guides users through template creation with visual templates and progressive feature disclosure.
 

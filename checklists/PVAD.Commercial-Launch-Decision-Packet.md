@@ -1,10 +1,8 @@
-# PXA Commercial Launch Decision Packet
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Commercial Launch Decision Packet
 
 ## Goal
 
-Provide one approval packet for the first commercial PXA launch. Recommendations
+Provide one approval packet for the first commercial PVAD launch. Recommendations
 are based on the current product, Legal, pricing, tax, privacy, and country
 research. Checked preparation items are complete; unchecked decisions require an
 accountable human approval and, where stated, qualified professional advice.
@@ -73,12 +71,12 @@ Decision owners: Product, Finance, Tax, Legal, and Sales.
 
 ## Decision 3: Merchant of Record
 
-Recommendation: evaluate Paddle first because PXA needs global SaaS subscriptions,
+Recommendation: evaluate Paddle first because PVADE needs global SaaS subscriptions,
 B2B tax evidence, localized payments, invoicing, refunds, chargebacks, and tax
 remittance under one accountable seller model. Keep Stripe Managed Payments as
 the fallback. Do not sign a provider solely from list pricing.
 
-- [ ] Confirm that Paddle accepts the PXA business, products, API/SDK model, On-Premise sales, and target countries.
+- [ ] Confirm that Paddle accepts the PVAD business, products, API/SDK model, On-Premise sales, and target countries.
 - [ ] Obtain a written fee proposal including international cards, PayPal, refunds, chargebacks, FX, payouts, and volume tiers.
 - [ ] Verify B2B VAT/GST ID handling, reverse-charge evidence, invoice corrections, credit notes, and tax exports.
 - [ ] Verify subscription upgrades, downgrades, proration, grace periods, dunning, cancellation, and webhook replay.
@@ -119,7 +117,7 @@ invoice model; EU business sales additionally require the applicable EUR, VAT,
 reverse-charge, privacy, and transfer controls.
 
 - [ ] Complete the Swiss operator identity and authoritative English Legal documents.
-- [ ] Approve PXA's Swiss VAT, UID, accounting, invoice, and export-of-services model.
+- [ ] Approve PVAD's Swiss VAT, UID, accounting, invoice, and export-of-services model.
 - [ ] Approve a CHF price book or document why another checkout currency is used for Swiss customers.
 - [ ] Approve EU B2B place-of-supply, VIES, reverse-charge, evidence, and invoice rules.
 - [ ] Approve EU GDPR controller/processor roles, DPA, TOM, subprocessors, SCCs, and rights workflow.
@@ -185,7 +183,7 @@ Hold before changing `approvalStatus` in the processing inventory.
 
 ### 7. Legal Governance and Evidence
 
-- [ ] Keep published Legal document versions and publication approvals permanently while PXA must prove publication history.
+- [ ] Keep published Legal document versions and publication approvals permanently while PVAD must prove publication history.
 - [ ] Propose acceptance evidence for the contract term plus the applicable claims limitation period.
 - [ ] Pseudonymize user identity after account deletion where proof can remain effective without direct identity.
 - [ ] Keep full IP addresses excluded unless a documented necessity and period are approved.

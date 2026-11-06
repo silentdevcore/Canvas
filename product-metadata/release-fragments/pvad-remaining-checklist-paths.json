@@ -1,0 +1,9 @@
+{
+  "id": "pvad-remaining-checklist-paths",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "improved",
+  "summary": "Align remaining internal checklist paths and PDF roadmap milestone names with the current product identity.",
+  "breaking": false,
+  "reason": "Internal planning and review-metadata cleanup only; application behavior, compatibility identifiers, legal versions and original test evidence are unchanged."
+}

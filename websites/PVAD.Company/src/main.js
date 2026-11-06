@@ -416,7 +416,7 @@ const legalPages = {
     sections: [
       {
         title: 'Storage notice acknowledgement',
-        text: 'The first-party PVAD.StorageNotice cookie stores only the notice version for 180 days. The previous PXA.StorageNotice acknowledgement is recognized during migration. Neither cookie contains a user or device identifier.',
+        text: 'The first-party PVAD.StorageNotice cookie stores only the notice version for 180 days. Acknowledgements from earlier versions remain recognized. Neither cookie contains a user or device identifier.',
       },
       {
         title: 'Security and authenticated sessions',
@@ -424,11 +424,11 @@ const legalPages = {
       },
       {
         title: 'Language and interface preferences',
-        text: 'Local keys pvad_locale, editor-storage, pvad_export_format, and the PDF and Spreadsheet sidebar keys retain interface choices. Earlier PXA preference keys are read during migration. Preferences remain until changed, cleared, or removed during a tenant-state reset where applicable.',
+        text: 'Local keys pvad_locale, editor-storage, pvad_export_format, and the PDF and Spreadsheet sidebar keys retain interface choices. Earlier preferences remain readable. Preferences remain until changed, cleared, or removed during a tenant-state reset where applicable.',
       },
       {
         title: 'Temporary tab handoffs',
-        text: 'The pvad.designer.auth-transaction session key completes authentication. An already started PXA sign-in may be consumed once using its original verification state. Document keys pvad_migration_designer_handoff and pvad_pdf_viewer_handoff bind temporary transfers to the current user and organization. Document transfers expire after five minutes and are consumed by the target flow. Earlier unassigned document transfers are not loaded.',
+        text: 'The pvad.designer.auth-transaction session key completes authentication. An already started sign-in from an earlier version may be consumed once using its original verification state. Document keys pvad_migration_designer_handoff and pvad_pdf_viewer_handoff bind temporary transfers to the current user and organization. Document transfers expire after five minutes and are consumed by the target flow. Earlier unassigned document transfers are not loaded.',
       },
       {
         title: 'Local document working copies',
@@ -997,6 +997,12 @@ function renderAboutPage() {
         <div class="pvad-company-story-grid">
           ${renderTextCards(aboutStory, 'pvad-company-story-card')}
         </div>
+        <section id="rename-history" aria-labelledby="rename-history-title">
+          <h2 id="rename-history-title">Product naming</h2>
+          <p>PXA has been renamed to PVAD. PVADE is the product and Designer name.
+            Earlier project files and supported integrations remain compatible.
+            Diagnostic display aliases use PVAD while established technical identifiers remain stable.</p>
+        </section>
       </div>
     </section>
   `;

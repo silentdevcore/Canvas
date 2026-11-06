@@ -1,6 +1,4 @@
-# PXA Python SDK Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Python SDK Checklist
 
 ## Goal
 
@@ -10,16 +8,16 @@ Deliver a typed Python SDK with synchronous and asynchronous clients for automat
 
 - [ ] P1: Release after Java and TypeScript/JavaScript.
 - [ ] Complete the P0 contract work in `PVAD.SDK-Roadmap.md` first.
-- [ ] Reserve the `powerdox-pxa` name on PyPI.
+- [ ] Verify and reserve the proposed `pvade-pvad` distribution name on PyPI.
 
 ## Package And Runtime
 
 - [ ] Support Python 3.10 or newer.
-- [ ] Publish the `powerdox-pxa` distribution with the `pxa` import namespace.
+- [ ] Publish the proposed `pvade-pvad` distribution with the `pvad` import namespace after publisher and package availability are verified.
 - [ ] Use `httpx` for synchronous and asynchronous HTTP clients.
 - [ ] Use Pydantic models for stable public request and response types.
 - [ ] Generate the internal transport and schemas from OpenAPI.
-- [ ] Expose handwritten `PxaClient` and `AsyncPxaClient` facades.
+- [ ] Expose handwritten `PvadClient` and `AsyncPvadClient` facades.
 
 ## Client Features
 
@@ -28,7 +26,7 @@ Deliver a typed Python SDK with synchronous and asynchronous clients for automat
 - [ ] Provide context managers for client and response resource cleanup.
 - [ ] Support API-key and bearer-token authentication.
 - [ ] Add configurable base URL, timeouts, proxy, retry policy, and user agent.
-- [ ] Map Problem Details to a stable `PxaError` hierarchy.
+- [ ] Map Problem Details to a stable `PvadError` hierarchy.
 
 ## Distribution And Documentation
 
@@ -42,7 +40,7 @@ Deliver a typed Python SDK with synchronous and asynchronous clients for automat
 
 - [ ] Test all supported Python versions and major operating systems.
 - [ ] Unit-test facade mapping, validation, errors, and client lifecycle.
-- [ ] Run synchronous and asynchronous integration tests against PXA Server.
+- [ ] Run synchronous and asynchronous integration tests against PVAD Server.
 - [ ] Test large file streams, cancellation, timeouts, and malformed responses.
 - [ ] Verify static typing with representative consumer projects.
 
@@ -51,4 +49,4 @@ Deliver a typed Python SDK with synchronous and asynchronous clients for automat
 - [ ] Installation requires one documented PyPI package.
 - [ ] Synchronous and asynchronous clients expose equivalent capabilities.
 - [ ] Common workflows do not expose generated transport classes.
-- [ ] The same user code can target Cloud or local PXA Server through configuration.
+- [ ] The same user code can target Cloud or local PVAD Server through configuration.

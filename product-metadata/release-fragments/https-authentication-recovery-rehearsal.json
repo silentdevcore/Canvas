@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "https-authentication-recovery-rehearsal",
+  "impact": "none",
+  "components": ["account", "admin", "api", "designer", "infrastructure"],
+  "category": "improved",
+  "summary": "Expanded isolated HTTPS authentication and session recovery validation.",
+  "breaking": false,
+  "reason": "Internal release-readiness tooling and synthetic evidence only; no shipped authentication, legal approval or deployment behavior changes."
+}

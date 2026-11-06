@@ -1,10 +1,8 @@
-# PXA Logging, Monitoring, and Alerting
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Logging, Monitoring, and Alerting
 
 ## Goal
 
-Deliver privacy-safe, vendor-neutral observability for the complete PXA platform. Logging, metrics,
+Deliver privacy-safe, vendor-neutral observability for the complete PVADE platform. Logging, metrics,
 distributed tracing, dashboards, and alerts must work in Cloud and On-Premise deployments without
 making application availability depend on the telemetry backend.
 
@@ -27,8 +25,8 @@ making application availability depend on the telemetry backend.
 - [x] Configure the service name, namespace, version, environment, and instance as resource
       attributes.
 - [x] Export logs, metrics, and traces over OTLP only when an endpoint is configured.
-- [x] Keep OTLP export bounded and non-blocking so Collector outages do not stop PXA.
-- [x] Instrument ASP.NET Core requests, outgoing HTTP calls, .NET runtime, Npgsql, and custom PXA
+- [x] Keep OTLP export bounded and non-blocking so Collector outages do not stop PVADE.
+- [x] Instrument ASP.NET Core requests, outgoing HTTP calls, .NET runtime, Npgsql, and custom PVADE
       activities and meters.
 - [x] Exclude liveness and readiness probes from distributed traces.
 - [x] Sanitize URL query strings and sensitive HTTP attributes before trace export.
@@ -101,11 +99,11 @@ making application availability depend on the telemetry backend.
       operations, object storage, licensing, and infrastructure.
 - [x] Add a dashboard for browser health.
 - [x] Expose Grafana only through a protected operator host and reverse proxy.
-- [x] Add a sanitized System Status workspace to PXA.Admin for System Administrators.
-- [x] Add `/api/pxa/v1/admin/system/health` with coarse dependency, worker, and queue status.
+- [x] Add a sanitized System Status workspace to PVAD.Admin for System Administrators.
+- [x] Add `/api/pvad/v1/admin/system/health` with coarse dependency, worker, and queue status.
 - [x] Do not expose raw logs, traces, Grafana links, secrets, or customer data to Organization
       Administrators.
-- [x] Keep operator dashboards and runbooks outside public PXA.Documentation.
+- [x] Keep operator dashboards and runbooks outside public PVAD.Documentation.
 
 ## Alerting
 
@@ -152,7 +150,7 @@ making application availability depend on the telemetry backend.
       health.
 - [x] Stop PostgreSQL and the OpenTelemetry Collector independently and verify alerts, recovery,
       firing notifications, and resolved notifications.
-- [x] Stop the containerized WebApi and verify alerts and recovery after PXA.Api Docker owns its
+- [x] Stop the containerized WebApi and verify alerts and recovery after [compatibility entry `compat-4bdb724454ff`](../docs/reference/compatibility-identifiers.v1.json) Docker owns its
       lifecycle.
 - [x] Add bounded non-production OCR failure injection that is rejected outside Development and
       Testing.
@@ -169,7 +167,7 @@ making application availability depend on the telemetry backend.
 
 ## Acceptance Criteria
 
-- [x] PXA emits correlated logs, metrics, and traces without document content or customer secrets.
+- [x] PVADE emits correlated logs, metrics, and traces without document content or customer secrets.
 - [x] Collector or telemetry-storage outages never make document operations unavailable.
 - [x] Metrics use bounded labels and dashboards identify API, worker, database, and queue failures.
 - [x] Raw observability data is available only to authorized operators.
@@ -179,9 +177,9 @@ making application availability depend on the telemetry backend.
 
 ## Dependencies
 
-- PXA.WebApi and background-job services.
+- PVAD.WebApi and background-job services.
 - PostgreSQL persistence and existing live/ready health checks.
-- PXA.Api Docker and PXA.Admin roadmaps.
+- PVAD.Api Docker and PVAD.Admin roadmaps.
 - Reverse-proxy, secret-management, mail, storage, and future object-storage deployment work.
 
 The P2 gates are complete. The containerized WebApi stop/recovery scenario delivered FIRING and
@@ -191,7 +189,7 @@ markers, and both v1 capacity profiles passed their protected 100-page export wo
 ## Defaults
 
 - OpenTelemetry is the instrumentation and transport standard.
-- The PXA-hosted stack uses Collector, Prometheus, Loki, Tempo, Grafana, and Alertmanager.
+- The [compatibility entry `compat-a3e5067dbad9`](../docs/reference/compatibility-identifiers.v1.json) stack uses Collector, Prometheus, Loki, Tempo, Grafana, and Alertmanager.
 - Raw telemetry is operator-only.
 - Successful traces use 10% tail sampling; errors and slow traces are retained.
 - Browser telemetry is operational only and excludes session replay and product analytics.

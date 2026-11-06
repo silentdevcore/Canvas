@@ -243,11 +243,12 @@ describe('pdf viewer smoke test', () => {
     expect(container.querySelector('[aria-label^="Valid."]')).not.toBeNull();
     expect(container.textContent).toContain('ABC123');
     expect(container.textContent).toContain('Later revisions exist');
-    expect(container.textContent).toContain('Check PXATEST999 requires review.');
-    expect(container.querySelector('code[title="PXAPDFTRUST001"]')?.textContent)
+    expect(container.textContent).toContain('Check PVADTEST999 requires review.');
+    expect(container.querySelector('code[title="PVADPDFTRUST001"]')?.textContent)
       .toBe('PVADPDFTRUST001');
-    expect(container.querySelector('code[title="PXATEST999"]')?.textContent)
-      .toBe('PXATEST999');
+    expect(container.querySelector('code[title="PVADTEST999"]')?.textContent)
+      .toBe('PVADTEST999');
+    expect(container.textContent).not.toContain('PXA');
 
     const objectNavigation = jest.fn();
     window.addEventListener('pdf-viewer:navigate-object', objectNavigation, { once: true });

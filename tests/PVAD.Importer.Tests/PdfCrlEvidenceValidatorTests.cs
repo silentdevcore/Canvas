@@ -142,7 +142,7 @@ public sealed class PdfCrlEvidenceValidatorTests
             var now = new DateTimeOffset(2026, 8, 28, 12, 0, 0, TimeSpan.Zero);
             using var issuerKey = RSA.Create(2048);
             var issuerRequest = new CertificateRequest(
-                "CN=PXA CRL Test Root",
+                "CN=PVAD CRL Test Root",
                 issuerKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -154,7 +154,7 @@ public sealed class PdfCrlEvidenceValidatorTests
 
             using var leafKey = RSA.Create(2048);
             var leafRequest = new CertificateRequest(
-                "CN=PXA CRL Test Signer",
+                "CN=PVAD CRL Test Signer",
                 leafKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

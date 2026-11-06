@@ -1,6 +1,4 @@
-# PXA Admin Documentation Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Admin Documentation Checklist
 
 ## Goal
 
@@ -8,12 +6,12 @@ Deliver complete English-language administration documentation for customer admi
 
 ## Protected Admin Handbook
 
-- [x] Keep all administration documentation inside the authenticated `PXA.Admin` application.
-- [x] Add `/documentation` to the protected PXA.Admin navigation.
+- [x] Keep all administration documentation inside the authenticated `PVAD.Admin` application.
+- [x] Add `/documentation` to the protected PVAD.Admin navigation.
 - [x] Require an authenticated Administrator session before rendering any handbook content.
 - [x] Serve handbook JSON and screenshots through an authorized, no-store Admin API instead of public static assets.
 - [x] Require `System Administrator` or `Organization Administrator` for handbook and image endpoints.
-- [x] Exclude the handbook, its data module, screenshots, and navigation from public `PXA.Documentation`.
+- [x] Exclude the handbook, its data module, screenshots, and navigation from public `PVAD.Documentation`.
 - [x] Document Admin access, login, organization context, and dashboard behavior.
 - [x] Document users, invitations, profile changes, status, recovery, sessions, seats, roles, and bulk actions.
 - [x] Document organizations, memberships, tenant switching, and last-administrator protections.
@@ -30,7 +28,7 @@ Deliver complete English-language administration documentation for customer admi
 
 - [x] Document the dedicated Admin host and same-origin API architecture.
 - [x] Document session cookies, CSRF, API-key boundaries, authorization, and tenant isolation.
-- [x] Document `/api/pxa/v1/admin`, pagination expectations, Problem Details, and `PXAAPI001` through `PXAAPI008`.
+- [x] Document `/api/pvad/v1/admin`, pagination expectations, Problem Details, and [compatibility entry `compat-b1802e69ddb6`](../docs/reference/compatibility-identifiers.v1.json) through [compatibility entry `compat-8eadedc322a9`](../docs/reference/compatibility-identifiers.v1.json).
 - [x] Provide route-to-documentation coverage for every implemented Admin workspace.
 - [x] Use synthetic examples and prohibit credentials, tokens, signing material, and customer data.
 
@@ -38,7 +36,7 @@ Deliver complete English-language administration documentation for customer admi
 
 - [x] Classify the customer-facing Admin handbook as protected product documentation.
 - [x] Classify the operator guide as a restricted operational guideline/runbook.
-- [x] Create a separate operator guide outside both public Documentation and the PXA.Admin bundle.
+- [x] Create a separate operator guide outside both public Documentation and the PVAD.Admin bundle.
 - [x] Cover bootstrap boundaries, operator allowlist, hosting, reverse proxy, migrations, readiness, recovery, and emergency access principles.
 - [x] Add a restricted Legal backup, restore, verification, rollback, and disaster-recovery runbook outside the Admin and public Documentation bundles.
 - [x] Add an authenticated operator-documentation deployment with gateway and API enforcement for allowlisted System Administrators.
@@ -52,7 +50,7 @@ Deliver complete English-language administration documentation for customer admi
 - [x] Add a reproducible Playwright capture script with intercepted synthetic API fixtures.
 - [x] Add contract tests for navigation, coverage, links, restricted-content exclusion, and assets.
 - [x] Add API tests proving anonymous handbook and screenshot downloads return HTTP 401.
-- [x] Run the PXA.Admin production build and branding/secret scans.
+- [x] Run the PVAD.Admin production build and branding/secret scans.
 
 ## Acceptance Criteria
 
@@ -61,5 +59,5 @@ Deliver complete English-language administration documentation for customer admi
 - [x] Roles, permissions, seats, subscriptions, and entitlements are distinct concepts.
 - [x] Every documented privileged workflow explains its audit effect.
 - [x] Restricted operator guidance is absent from public navigation and output.
-- [x] Admin handbook content and screenshots are absent from the public PXA.Documentation build.
-- [x] PXA.Company receives no Admin navigation link.
+- [x] Admin handbook content and screenshots are absent from the public PVAD.Documentation build.
+- [x] PVAD.Company receives no Admin navigation link.

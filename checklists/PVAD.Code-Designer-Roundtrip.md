@@ -1,12 +1,10 @@
-# PXA Code Designer Roundtrip and Secure Execution
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Code Designer Roundtrip and Secure Execution
 
 ## Goal
 
 Connect JSON, C# Model, C# PDF, and the visual Designer through one canonical
 `DesignExportDto` contract while preserving independent source drafts and executing C# only in an
-isolated, tenant-aware PXA sandbox.
+isolated, tenant-aware PVAD sandbox.
 
 ## P0 - Canonical Conversion
 
@@ -14,13 +12,13 @@ isolated, tenant-aware PXA sandbox.
 - [x] Return canonical design, generated source, checksums, fidelity, diagnostics, and source maps.
 - [x] Generate C# Model and C# PDF deterministically from normalized design JSON.
 - [x] Convert C# Model and C# PDF back to canonical design through the sandbox worker.
-- [x] Replace WebApi reflection over PDF internals with a typed PXA PDF design snapshot.
+- [x] Replace WebApi reflection over PDF internals with a typed PVADE PDF design snapshot.
 - [x] Preserve stable element IDs and diagnose evaluated control flow or unsupported constructs.
 - [x] Keep assets tenant-bound and reject network or filesystem asset loading in code.
 
 ## P0 - Secure Execution
 
-- [x] Add the `PXA.CodeWorker` executable and bounded request/response contracts.
+- [x] Add the `PVAD.CodeWorker` executable and bounded request/response contracts.
 - [x] Reject filesystem, network, process, environment, reflection, assembly loading, native interop,
   threading, `unsafe`, `dynamic`, directives, and additional references.
 - [x] Enforce source, output, page, element, execution-time, and process-output limits.
@@ -119,7 +117,7 @@ migration workflow. Historical completed tasks above keep their original scope.
   the compatibility alias.
 - [x] Generate a real readable C# object initializer without Base64 or a hidden complete JSON
   payload in the C# Model tab.
-- [x] Generate semantic `PxaPdfCodeBuilder` source that preserves every current `ElementDto` field
+- [x] Generate semantic `PvadPdfCodeBuilder` source that preserves every current `ElementDto` field
   and renders the resulting canonical document through the tenant-aware backend renderer.
 - [x] Retain low-level `PdfDocument` execution with honest `compatible` or `reviewRequired`
   fidelity for one major version.
@@ -203,7 +201,7 @@ migration workflow. Historical completed tasks above keep their original scope.
 ## Native Project Format Integration
 
 - [x] Use the canonical `DesignExportDto` shared by JSON and Code Workspace conversion as the
-  editable document inside `.pxap` packages.
+  editable document inside `.pvadp` packages.
 - [x] Keep Code Workspace drafts and source maps outside the initial package contract until their
   schema and security classification are explicitly approved in
   [PVAD.Native-Designer-Formats.md](PVAD.Native-Designer-Formats.md).

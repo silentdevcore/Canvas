@@ -1,11 +1,9 @@
-# PXA Migration: GemBox.Pdf
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Migration: GemBox.Pdf
 
 ## V1 Pilot Analysis
 
-- [x] GemBox.Pdf is a close fit for simple PXA.Pdf generation: document, page, text content, and save/export.
-- [x] `PdfDocument` has a name collision with PXA.Pdf, so migration must remove GemBox usings and introduce `using PXA.Pdf`.
+- [x] GemBox.Pdf is a close fit for simple PVAD.Pdf generation: document, page, text content, and save/export.
+- [x] `PdfDocument` has a name collision with PVAD.Pdf, so migration must remove GemBox usings and introduce `using PVAD.Pdf`.
 - [x] GemBox content APIs vary between formatted text, low-level content objects, and direct draw calls; only simple direct text is deterministic in v1.
 - [x] Forms, signatures, security, annotations, tagged PDF, attachments, and existing-PDF editing remain manual in v1.
 
@@ -31,8 +29,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.GemBox`
-- [x] Add `tests/PXA.Migration.Pdf.Code.GemBox.Tests`
+- [x] Add `src/Migrations/PDF/PVAD.Migration.Pdf.Code.GemBox`
+- [x] Add `tests/PVAD.Migration.Pdf.Code.GemBox.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Rewrite deterministic document/page/simple text/save patterns
@@ -40,16 +38,16 @@
 
 ## Mapping Table
 
-| GemBox.Pdf API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| GemBox.Pdf API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `ComponentInfo.SetLicense(...)` | No PXA equivalent | Code removal in v1 | Emits info diagnostic. |
-| `new PdfDocument()` | `new PXA.Pdf.PdfDocument()` | Code fix in v1 | Requires removing GemBox usings to resolve type conflict. |
+| `ComponentInfo.SetLicense(...)` | No PVADE equivalent | Code removal in v1 | Emits info diagnostic. |
+| `new PdfDocument()` | `new PVAD.Pdf.PdfDocument()` | Code fix in v1 | Requires removing GemBox usings to resolve type conflict. |
 | `document.Pages.Add()` | `document.AddPage()` | Code fix in v1 | Page size/media box still needs review for overloads. |
 | `page.Content.DrawText("text", new PdfPoint(x, y))` | `page.DrawTextFromTop("text", x, y, 12)` | Code fix in v1 | Direct literal text only. Review coordinate origin. |
 | `page.Content.DrawText("text", x, y)` | `page.DrawTextFromTop("text", x, y, 12)` | Code fix in v1 | Direct literal text only. |
-| `page.Content.DrawText(formattedText, ...)` | Manual PXA text calls | Warning in v1 | Requires formatted-text extraction. |
+| `page.Content.DrawText(formattedText, ...)` | Manual PVADE text calls | Warning in v1 | Requires formatted-text extraction. |
 | `page.Content.DrawImage(...)` | `page.DrawImage(...)` | Warning in v1 | Image resource and sizing need manual review. |
-| `page.Content.DrawLine(...)`, `DrawRectangle(...)`, `DrawPath(...)` | PXA shape/path drawing | Warning in v1 | Shape styles and geometry need manual review. |
+| `page.Content.DrawLine(...)`, `DrawRectangle(...)`, `DrawPath(...)` | PVADE shape/path drawing | Warning in v1 | Shape styles and geometry need manual review. |
 | `document.Save(...)` | `document.Save(...)` | Code fix in v1 | Stream/path overload preserved. |
 
 ## Unsupported / Manual Follow-Up
@@ -91,10 +89,10 @@ page.Content.DrawText("Hello", new PdfPoint(40, 40));
 doc.Save(path);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -118,7 +116,7 @@ document.Save(path);
 - [x] Replace basic document creation
 - [x] Replace basic page creation
 - [x] Replace simple save calls
-- [x] Add `using PXA.Pdf`
+- [x] Add `using PVAD.Pdf`
 - [x] Remove GemBox usings
 - [x] Remove license initialization
 - [x] Convert direct literal text draw calls

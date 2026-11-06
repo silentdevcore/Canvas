@@ -1,0 +1,9 @@
+{
+  "id": "pvad-migration-checklist-naming",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "Align internal migration instructions and examples with current product names and API contracts.",
+  "breaking": false,
+  "reason": "Internal roadmap and checklist corrections only; migration runtime behavior, compatibility aliases and original recorded test results are unchanged."
+}

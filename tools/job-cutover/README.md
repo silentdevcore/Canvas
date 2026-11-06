@@ -1,6 +1,6 @@
-# Paired PXA / PVAD Job Cutover
+# Paired PVAD / PVAD Job Cutover
 
-This isolated integration test uses the real PXA WebApi, persistence and worker
+This isolated integration test uses the real PVAD WebApi, persistence and worker
 assemblies built from immutable commit `fce423cf8c5f5e71eff6178f712fe4e5eb5af69a`,
 and the current PVAD assemblies. The shared harness is compiled separately against
 each generation; historical application sources are exported, not rewritten.
@@ -29,16 +29,16 @@ not command-line arguments or reports. All users/documents are synthetic.
 
 ## Scenario
 
-1. PXA applies its real database migrations and creates an organization, user,
+1. PVAD applies its real database migrations and creates an organization, user,
    role/membership, subscription, entitlement, template, input object and two jobs
    with historical payloads/filenames.
-2. A PXA worker claims the first job and pauses inside a controlled importer.
+2. A PVAD worker claims the first job and pauses inside a controlled importer.
 3. The parent kills that OS process and confirms it exited.
 4. Only then, the PVAD harness advances lease expiry for the test and cancels the
    other persisted Pending job. This avoids waiting for the ten-minute lease and
    is not a recommended production procedure.
 5. A fresh PVAD process recovers and completes the interrupted job.
-6. Fresh PVAD and PXA processes verify IDs, role/subscription/template links,
+6. Fresh PVAD and PVAD processes verify IDs, role/subscription/template links,
    attempts, status, tenant isolation, input/output access, pending migrations and
    applied migration IDs. The parent compares physical column/table metadata.
 
@@ -51,7 +51,7 @@ backup/restore, exactly-once side effects or orphan-free crash handling.
 
 An exported baseline may be reused by building this project with
 `-p:LegacyRoot=/absolute/export/path`, then building it again without that property.
-The outputs have different names (`PXA.JobCutover.dll` and `PVAD.JobCutover.dll`).
+The outputs have different names ([compatibility entry `compat-51ff5131863b`](../../operator-docs/compatibility-identifiers.v1.json) and `PVAD.JobCutover.dll`).
 The legacy output is under `bin/legacy/Debug/net10.0`; the current output is under
 `bin/Debug/net10.0`. Canonicalize the exported source path on macOS to avoid
 mixing `/tmp` and `/private/tmp` in MSBuild incremental output tracking.

@@ -29,7 +29,7 @@ public sealed class PdfRfc3161TimestampAuthorityTests
             HashAlgorithmName.SHA256);
 
         Assert.Equal(timestamp, token.Timestamp);
-        Assert.Contains("PXA RFC3161 Test TSA", token.AuthoritySubject, StringComparison.Ordinal);
+        Assert.Contains("PVAD RFC3161 Test TSA", token.AuthoritySubject, StringComparison.Ordinal);
         Assert.NotEmpty(token.Cms);
         Assert.Equal("application/timestamp-query", handler.RequestContentType);
     }
@@ -58,7 +58,7 @@ public sealed class PdfRfc3161TimestampAuthorityTests
             _timestamp = timestamp;
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
-                "CN=PXA RFC3161 Test TSA",
+                "CN=PVAD RFC3161 Test TSA",
                 rsa,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

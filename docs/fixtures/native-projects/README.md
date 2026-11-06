@@ -3,8 +3,8 @@
 These synthetic files contain no customer data, credentials, tenant identifiers, or
 external resources:
 
-- `minimal.pxap`: one editable PDF page with one text element.
-- `minimal.pxas`: one worksheet with text, numeric, and formula cells.
+- [compatibility entry `compat-bab92faade31`](../../reference/compatibility-identifiers.v1.json): one editable PDF page with one text element.
+- [compatibility entry `compat-26397be11435`](../../reference/compatibility-identifiers.v1.json): one worksheet with text, numeric, and formula cells.
 - `minimal.pvadp` and `minimal.pvads`: the corresponding canonical PVAD envelopes.
 
 Regenerate both deterministic packages and `SHA256SUMS` from the repository root:

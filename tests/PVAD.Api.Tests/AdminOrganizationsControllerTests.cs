@@ -27,7 +27,7 @@ public sealed class AdminOrganizationsControllerTests
         var seeded = await SeedAsync(factory.Services);
 
         using var systemClient = CreateClient(factory);
-        await LoginAsync(systemClient, "system-admin@pxa.test", "Pxa-Admin-Integration-42!");
+        await LoginAsync(systemClient, "system-admin@pvad.test", "Pvad-Admin-Integration-42!");
 
         var organizations = await systemClient.GetFromJsonAsync<JsonElement>(
             "/api/pvad/v1/admin/organizations?page=1&pageSize=20");
@@ -67,7 +67,7 @@ public sealed class AdminOrganizationsControllerTests
             HttpMethod.Post,
             $"/api/pvad/v1/admin/organizations/{seeded.SecondOrganizationId}/members",
             csrf,
-            new { email = "candidate@pxa.test", roles = new[] { PvadRoles.Viewer } });
+            new { email = "candidate@pvad.test", roles = new[] { PvadRoles.Viewer } });
         var addMemberResponse = await systemClient.SendAsync(addMember);
         Assert.Equal(HttpStatusCode.OK, addMemberResponse.StatusCode);
         var member = await addMemberResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -97,7 +97,7 @@ public sealed class AdminOrganizationsControllerTests
             (await systemClient.SendAsync(removeLastAdministrator)).StatusCode);
 
         using var organizationClient = CreateClient(factory);
-        await LoginAsync(organizationClient, "organization-admin@pxa.test", "Pxa-OrgAdmin-Integration-42!");
+        await LoginAsync(organizationClient, "organization-admin@pvad.test", "Pvad-OrgAdmin-Integration-42!");
         var tenantOrganizations = await organizationClient.GetFromJsonAsync<JsonElement>(
             "/api/pvad/v1/admin/organizations");
         Assert.Equal(1, tenantOrganizations.GetProperty("total").GetInt32());
@@ -132,7 +132,7 @@ public sealed class AdminOrganizationsControllerTests
                     {
                         ["ConnectionStrings:PxaDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
-                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pxa.test",
+                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                     }));
                 builder.ConfigureServices(services =>
                 {
@@ -174,20 +174,20 @@ public sealed class AdminOrganizationsControllerTests
 
         var systemAdmin = await CreateUserAsync(
             userManager,
-            "system-admin@pxa.test",
+            "system-admin@pvad.test",
             "System Administrator",
-            "Pxa-Admin-Integration-42!");
+            "Pvad-Admin-Integration-42!");
         Assert.True((await userManager.AddToRoleAsync(systemAdmin, PvadRoles.SystemAdministrator)).Succeeded);
         var organizationAdmin = await CreateUserAsync(
             userManager,
-            "organization-admin@pxa.test",
+            "organization-admin@pvad.test",
             "Organization Administrator",
-            "Pxa-OrgAdmin-Integration-42!");
+            "Pvad-OrgAdmin-Integration-42!");
         var secondOrganizationUser = await CreateUserAsync(
             userManager,
-            "second-user@pxa.test",
+            "second-user@pvad.test",
             "Second Tenant User");
-        var candidate = await CreateUserAsync(userManager, "candidate@pxa.test", "Candidate User");
+        var candidate = await CreateUserAsync(userManager, "candidate@pvad.test", "Candidate User");
 
         var systemMembership = new OrganizationMembership
         {
@@ -234,7 +234,7 @@ public sealed class AdminOrganizationsControllerTests
         UserManager<PvadIdentityUser> userManager,
         string email,
         string displayName,
-        string password = "Pxa-Member-Integration-42!")
+        string password = "Pvad-Member-Integration-42!")
     {
         var user = new PvadIdentityUser
         {

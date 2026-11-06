@@ -260,7 +260,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
             var now = DateTimeOffset.UtcNow;
             using var issuerKey = RSA.Create(2048);
             var issuerRequest = new CertificateRequest(
-                "CN=PXA Evidence Test Root",
+                "CN=PVAD Evidence Test Root",
                 issuerKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -272,7 +272,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
 
             using var leafKey = RSA.Create(2048);
             var leafRequest = new CertificateRequest(
-                "CN=PXA Evidence Test Signer",
+                "CN=PVAD Evidence Test Signer",
                 leafKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

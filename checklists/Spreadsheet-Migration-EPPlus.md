@@ -1,18 +1,16 @@
 # Spreadsheet Migration — EPPlus
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
-Migrates EPPlus (`ExcelPackage`) authoring code → PXA spreadsheet API (`PxaWorkbook`). Clones the
+Migrates EPPlus (`ExcelPackage`) authoring code → PVAD spreadsheet API (`PvadWorkbook`). Clones the
 ClosedXML reference; EPPlus differs in the cell **indexer** (`Cells[..]`), the `Merge` property, the
 `pkg.Workbook.Worksheets` path, and `SaveAs(FileInfo)`.
 
-- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
-- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
+- **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
+- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
 
 ## API mapping
-| EPPlus | PXA |
+| EPPlus | PVADE |
 |---|---|
-| `new ExcelPackage()` | `new PxaWorkbook()` |
+| `new ExcelPackage()` | `new PvadWorkbook()` |
 | `pkg.Workbook.Worksheets.Add("S")` | `pkg.AddSheet("S")` |
 | `ws.Cells["A1"]` | `ws.Cell("A1")` |
 | `ws.Cells[1,2]` (1-based) | `ws.Cell(0,1)` |

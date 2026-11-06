@@ -126,7 +126,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, client, "owner@keys.test", "Owner", "Keys GmbH", "keys-co");
-        await LoginAsync(client, "owner@keys.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(client, "owner@keys.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var create = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/service-accounts", await GetCsrfAsync(client), new { name = "CI pipeline" });
@@ -305,7 +305,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
 
         using var ownerClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, ownerClient, "owner@svcscope.test", "Owner", "Scope GmbH", "svc-scope-co");
-        await LoginAsync(ownerClient, "owner@svcscope.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(ownerClient, "owner@svcscope.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
         using var create = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/account/service-accounts", await GetCsrfAsync(ownerClient), new { name = "Shared tooling" });
         var account = await (await ownerClient.SendAsync(create)).Content.ReadFromJsonAsync<JsonElement>();
@@ -313,7 +313,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
 
         using var otherClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, otherClient, "owner@svcother.test", "Other Owner", "Other Scope GmbH", "svc-other-co");
-        await LoginAsync(otherClient, "owner@svcother.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(otherClient, "owner@svcother.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var otherAccounts = await otherClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/service-accounts");
         Assert.Equal(0, otherAccounts.GetArrayLength());
@@ -333,10 +333,10 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         await SeedRolesAsync(factory.Services);
         using var primaryClient = CreateClient(factory);
         await RegisterVerifiedCompanyAsync(factory, primaryClient, "owner@sessions.test", "Owner", "Sessions GmbH", "sessions-co");
-        await LoginAsync(primaryClient, "owner@sessions.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(primaryClient, "owner@sessions.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         using var secondaryClient = CreateClient(factory);
-        await LoginAsync(secondaryClient, "owner@sessions.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        await LoginAsync(secondaryClient, "owner@sessions.test", "Pvad-Customer-Password-42!", HttpStatusCode.OK);
 
         var sessions = await primaryClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/security/sessions");
         Assert.Equal(2, sessions.GetArrayLength());
@@ -381,7 +381,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName,
                 organizationSlug = slug,

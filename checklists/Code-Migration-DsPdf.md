@@ -1,11 +1,12 @@
-# PXA Migration: DsPdf / Document Solutions
+# PVAD Migration: DsPdf / Document Solutions
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
 
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using DsPdf/GcPdf.
-- [x] Roslyn-backed migration connected through `PXA.WebApi` via framework id `DsPdf`.
+- [x] Roslyn-backed migration connected through `PVAD.WebApi` via framework id `DsPdf`.
 - [x] Status upgraded from pilot to **full** converter.
 - [x] Basic document lifecycle: `new GcPdfDocument()` → `new PdfDocument()`.
 - [x] `doc.NewPage()` / `doc.AddPage()` → `document.AddPage()`.
@@ -16,7 +17,7 @@
 - [x] `page.Graphics.DrawLine(pen, new PointF(x1,y1), new PointF(x2,y2))` → `page.DrawLineFromTop(x1, y1, x2, y2)`.
 - [x] `page.Graphics.DrawRectangle(pen, new RectangleF(x, y, w, h))` → `page.DrawRectangleFromTop(x, y, w, h)`.
 - [x] `page.Graphics.FillRectangle(brush, new RectangleF(x, y, w, h))` → `page.DrawRectangleFromTop(x, y, w, h, 1, true)`.
-- [x] All `DS.Documents.*` / `GrapeCity.Documents.*` usings removed; `using PXA.Pdf;` added.
+- [x] All `DS.Documents.*` / `GrapeCity.Documents.*` usings removed; `using PVAD.Pdf;` added.
 - [x] `DrawImage` — kept with warning (out of v1 scope).
 - [x] `DrawEllipse`, `DrawPolygon`, `DrawPath` — kept with warnings.
 - [x] Existing-PDF editing (`Load`, `DeletePage`, `MergeWithDocument`, etc.) → warnings.
@@ -48,9 +49,9 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.DsPdf`
-- [x] Add `tests/PXA.Migration.Pdf.Code.DsPdf.Tests`
-- [x] Add projects to `PXA.sln`
+- [x] Add `src/Migrations/PDF/PVAD.Migration.Pdf.Code.DsPdf`
+- [x] Add `tests/PVAD.Migration.Pdf.Code.DsPdf.Tests`
+- [x] Add projects to `PVAD.sln`
 - [x] Implement source migration entry point: `DsPdfMigration` as a real `CSharpSyntaxRewriter`
 - [x] Pre-scan phase: find document variable (from `new GcPdfDocument()`), page variables (from `doc.NewPage()/AddPage()`), save target
 - [x] Convert `GcPdfDocument` construction
@@ -64,16 +65,16 @@
 - [x] Warn and keep existing-PDF editing APIs
 - [x] Warn and keep compliance/security APIs
 - [x] Scan for unsupported identifiers (AcroForm, TableRenderer, etc.)
-- [x] Remove DS.Documents.*/GrapeCity.Documents.* usings, add `using PXA.Pdf;`
+- [x] Remove DS.Documents.*/GrapeCity.Documents.* usings, add `using PVAD.Pdf;`
 - [x] Connect WebApi DsPdf converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.DsPdf.Tests`: `10/10` passed
-- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
+- [x] Recorded result: `10/10` passed Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.DsPdf.Tests`.
+- [x] Recorded result: `22/22` passed Current rerun reference: `dotnet test tests/PVAD.Api.Tests`.
 
 ## Mapping Table
 
-| DsPdf API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| DsPdf API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new GcPdfDocument()` | `new PXA.Pdf.PdfDocument()` | Automatic | |
+| `new GcPdfDocument()` | `new PVAD.Pdf.PdfDocument()` | Automatic | |
 | `doc.NewPage()` / `doc.AddPage()` | `document.AddPage()` | Automatic | |
 | `page.Graphics.DrawString(text, new TextFormat(), new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, 12)` | Automatic | Default font size 12 |
 | `page.Graphics.DrawString(text, new TextFormat { FontSize = N }, new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, N)` | Automatic | FontSize extracted from initializer |
@@ -129,10 +130,10 @@ page.Graphics.DrawRectangle(pen, new RectangleF(72, 200, 468, 300));
 doc.Save(outputPath);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();

@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-postgres-auth-rehearsal",
+  "impact": "none",
+  "components": ["account", "api", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Authentication compatibility checks now verify persistent Designer sessions across API restarts using isolated PostgreSQL databases.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds internal integration tests and reproduction instructions without changing deployed authentication, database schemas, existing sessions or production configuration."
+}

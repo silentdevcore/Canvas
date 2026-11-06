@@ -1,10 +1,8 @@
-# PXA Legal Terms, Privacy, and Consent
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Legal Terms, Privacy, and Consent
 
 ## Goal
 
-Deliver a central, PostgreSQL-backed legal-document system for PXA. Published
+Deliver a central, PostgreSQL-backed legal-document system for PVAD. Published
 documents are immutable, versioned, auditable, and linked to the exact terms
 accepted or privacy notice acknowledged by a user.
 
@@ -13,7 +11,7 @@ accepted or privacy notice acknowledged by a user.
 > and production publication require approval by qualified Swiss legal counsel
 > experienced in international software and privacy law.
 
-The researched market patterns, source links, PXA recommendations, and remaining
+The researched market patterns, source links, PVAD recommendations, and remaining
 owners for these blockers are tracked in
 `PVAD.Legal-Benchmark-And-Decision-Register.md`.
 Worldwide sales, regional checkout gates, tax ownership, currencies, and the
@@ -23,7 +21,7 @@ approval fields are consolidated in `PVAD.Commercial-Launch-Decision-Packet.md`.
 
 ## Scope Boundary And Related Compliance
 
-- [x] Keep this workflow limited to legal documents, notices, acknowledgements, and consents governing the relationship between PXA and its customers or users.
+- [x] Keep this workflow limited to legal documents, notices, acknowledgements, and consents governing the relationship between PVADE and its customers or users.
 - [x] Keep third-party software license decisions in the dependency-compliance workflow rather than publishing them as customer Legal documents.
 - [x] Never store an NPOI EULA approval or another supplier-license decision in `legal_acceptance_events`; those events represent customer or user actions only.
 - [x] Share qualified Legal ownership and review standards across customer Legal content and third-party license compliance without combining their records, permissions, or approval states.
@@ -37,7 +35,7 @@ approval fields are consolidated in `PVAD.Commercial-Launch-Decision-Packet.md`.
 - [x] P0: Provide public current/version APIs and protected Admin authoring APIs.
 - [x] P0: Enforce a four-eyes publication rule.
 - [x] P0: Add Company legal routes and a necessary-storage notice.
-- [x] P0: Add a protected Legal workspace to PXA.Admin.
+- [x] P0: Add a protected Legal workspace to PVAD.Admin.
 - [x] P0: Prepare complete English Swiss-law candidate text for all seven initial Legal documents.
 - [ ] P0: Replace candidate text with counsel-approved English text before production publication.
 - [ ] P0: Add the real operator name, legal form, address, representatives, register, VAT ID, and contact details.
@@ -64,7 +62,7 @@ must continue to block Production publication.
 - [x] Provide a protected System Administrator retention status and non-destructive dry run covering every processing category.
 - [x] Persist auditable global and organization-scoped legal holds and enforce them in active job and mail cleanup services.
 - [x] Default queued document operations to transient retention, purge content after successful download or within 24 hours, require explicit seven-day retention, scrub payloads with content, and expire minimized terminal metadata after 30 days while honoring Legal Holds.
-- [x] Expose Legal Hold creation and release without exposing a manual destructive cleanup operation in PXA.Admin.
+- [x] Expose Legal Hold creation and release without exposing a manual destructive cleanup operation in PVAD.Admin.
 - [x] Draft B2B and B2C distinctions without blanket liability or warranty exclusions.
 - [x] Prepare withdrawal instructions and a model withdrawal form that explain the Swiss baseline and preserve mandatory foreign consumer rights.
 - [ ] Add any electronic withdrawal function required in an enabled consumer market, including a permanently accessible first action, confirmation action, and immediate durable receipt.
@@ -73,11 +71,11 @@ must continue to block Production publication.
 
 ## Public Legal API
 
-- [x] Add `GET /api/pxa/v1/legal/documents`.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/current`.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/versions` with public metadata for every effective published or retired version.
-- [x] Add `GET /api/pxa/v1/legal/documents/{type}/versions/{version}`.
-- [x] Add `GET /api/pxa/v1/legal/storage-policy`.
+- [x] Add `GET /api/pvad/v1/legal/documents`.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/current`.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/versions` with public metadata for every effective published or retired version.
+- [x] Add `GET /api/pvad/v1/legal/documents/{type}/versions/{version}`.
+- [x] Add `GET /api/pvad/v1/legal/storage-policy`.
 - [x] Return ETags derived from the immutable content hash.
 - [x] Resolve scheduled versions by effective time without mutating historical content.
 - [x] Return only public published or effective scheduled versions.
@@ -86,12 +84,12 @@ must continue to block Production publication.
 - [x] Generate a deployment-time last-known-good static snapshot.
 - [x] Add a shared checkout-readiness gate that fails closed unless Consumer Terms, Privacy, and Withdrawal versions are current and the commercial checkout switch is explicitly enabled.
 - [x] Provide a shared fail-closed paid-checkout readiness gate combining catalog, price-book, billing-provider, restriction, country, B2B/B2C, and Consumer Legal readiness.
-- [ ] Require every future paid checkout mutation to call `PxaPaidCheckoutReadinessGate.RequireAsync` before payment-provider or order work begins.
+- [ ] Require every future paid checkout mutation to call `PvadPaidCheckoutReadinessGate.RequireAsync` before payment-provider or order work begins.
 
 ## Admin Legal Workflow
 
 - [x] Add `legal.read`, `legal.author`, and `legal.approve` permissions.
-- [x] Add a protected Legal navigation item and workspace to PXA.Admin.
+- [x] Add a protected Legal navigation item and workspace to PVAD.Admin.
 - [x] List documents and all versions with status, locale, audience, and effective date.
 - [x] Create documents and new draft versions.
 - [x] Import the seven repository-managed English Swiss-law candidates as non-published Draft versions without overwriting existing content.
@@ -120,7 +118,7 @@ must continue to block Production publication.
 - [x] Require renewed Terms acceptance only for versions explicitly marked as requiring reacceptance.
 - [x] Treat Privacy updates as acknowledgement unless a separate consent-based purpose applies.
 - [x] Gate authenticated Account and Designer return flows until current legal obligations are completed.
-- [x] Reject stale Account acknowledgements with stable `PXAAPI017` diagnostics.
+- [x] Reject stale Account acknowledgements with stable [compatibility entry `compat-ca65dbaf43d7`](../docs/reference/compatibility-identifiers.v1.json) diagnostics.
 - [x] Make exact-version evidence idempotent under concurrent Account submissions with row serialization and database uniqueness.
 - [ ] Define pseudonymized evidence retention and account-deletion behavior with legal counsel.
 - [x] Avoid storing full IP addresses in Legal acceptance evidence; enforce the minimized evidence shape with model and export tests unless a documented necessity and retention rule is approved later.
@@ -131,15 +129,15 @@ must continue to block Production publication.
 - [x] Keep scheduled notifications hidden until the document becomes effective.
 - [x] Remove a pending notification when its scheduled Legal version is retired before taking effect.
 - [x] Keep read notifications available for repeated review until the user explicitly dismisses them.
-- [x] Link Designer Legal notifications to the trusted PXA.Account origin rather than treating server-provided URLs as arbitrary external links.
-- [x] Add a persistent PXA.Account Legal updates page with current status, public change summary, and current and previous publication links.
+- [x] Link Designer Legal notifications to the trusted PVAD.Account origin rather than treating server-provided URLs as arbitrary external links.
+- [x] Add a persistent PVAD.Account Legal updates page with current status, public change summary, and current and previous publication links.
 - [x] Show the same change summary and predecessor link in the blocking Account Legal review.
 - [x] Keep Terms acceptance, Privacy acknowledgement, and marketing consent visibly and technically separate.
 - [x] Avoid copying document bodies or internal review comments into notification records.
 
 ## Necessary Storage Notice
 
-- [x] Add a shared, accessible storage notice to PXA.Company, PXA.Documentation, PXA.Demo, and public PXA.Account pages.
+- [x] Add a shared, accessible storage notice to PVAD.Company, PVAD.Documentation, PVAD.Demo, and public PVAD.Account pages.
 - [x] Explain that only necessary cookies and browser storage are used at launch.
 - [x] Provide `Understood` and `Learn more` actions without a misleading consent choice.
 - [x] Store anonymous acknowledgement only in a first-party browser cookie.
@@ -172,7 +170,7 @@ must continue to block Production publication.
 - [x] Keep published legal pages readable from a validated static snapshot during Legal API outages.
 - [x] Mark snapshot content and age visibly without allowing it to authorize registration or checkout.
 - [x] Add a legal-document backup, restore, and disaster-recovery runbook with checksum validation, empty-target restore, domain verification, snapshot regeneration, and an isolated recovery drill.
-- [x] Make the isolated recovery drill wait for the `pxa` database, fail with bounded diagnostics, and test delayed PostgreSQL initialization in CI.
+- [x] Make the isolated recovery drill wait for the [compatibility entry `compat-e87018c0733d`](../docs/reference/compatibility-identifiers.v1.json) database, fail with bounded diagnostics, and test delayed PostgreSQL initialization in CI.
 - [x] Protect separately deployed restricted operator legal guidance behind the operator gateway, System Administrator role, explicit production allowlist, no-store delivery, fixed runbook registration, and audited reads.
 - [x] Require an explicit, auditable Legal Hold release reason before an approved cleanup can resume for the affected scope.
 
@@ -182,7 +180,7 @@ must continue to block Production publication.
 - [x] Add API coverage for anonymous reads, draft exclusion, lifecycle transitions, four-eyes enforcement, and immutable publication.
 - [x] Add Legal Admin comparison coverage for line alignment, cross-document rejection, permissions, and review/publication gates.
 - [x] Add model tests for relationships, indexes, lengths, and delete behavior.
-- [x] Build PXA.WebApi, PXA.Admin, PXA.Company, PXA.Documentation, PXA.Demo, and PXA.Account.
+- [x] Build PVAD.WebApi, PVAD.Admin, PVAD.Company, PVAD.Documentation, PVAD.Demo, and PVAD.Account.
 - [x] Add PostgreSQL integration coverage for stale registration versions and exact acceptance evidence.
 - [x] Add Account reacceptance, Admin progress, minimized export, and exact-version mismatch coverage.
 - [x] Add Account and Admin accessibility contract tests for legal review, progress, and export states.
@@ -207,7 +205,7 @@ must continue to block Production publication.
 - [x] Public consumers can retrieve only the current effective legal versions.
 - [x] Company Legal pages show the active document, authoritative status, effective date, content hash, change summary, related Legal documents, and immutable public version history.
 - [x] One administrator cannot author and approve the same version.
-- [x] PXA.Admin exposes a protected Legal workflow without linking Admin from PXA.Company.
+- [x] PVAD.Admin exposes a protected Legal workflow without linking Admin from PVAD.Company.
 - [x] Necessary storage is explained without pretending that consent is required.
 - [ ] Counsel-approved English documents and complete Swiss operator data replace all launch-blocking placeholders.
 - [x] Paid B2C checkout remains unavailable by default and cannot report readiness without every required Consumer document.

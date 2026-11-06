@@ -239,7 +239,7 @@ public sealed class PdfTrustPostProcessingPipelineTests
 
         public TestSigningKey()
         {
-            var request = new CertificateRequest("CN=PXA Pipeline Test", _rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var request = new CertificateRequest("CN=PVAD Pipeline Test", _rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             Certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
         }
 

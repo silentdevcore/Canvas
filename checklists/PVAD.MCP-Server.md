@@ -1,42 +1,40 @@
-# PXA MCP Server
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD MCP Server
 
 ## Purpose
 
-Evolve the existing local PXA MCP documentation helper into a production-ready Model Context
-Protocol server for PXA Cloud, PXA Server, and local developer workflows. The implementation must
+Evolve the existing local PVAD MCP documentation helper into a production-ready Model Context
+Protocol server for PVAD Cloud, PVAD Server, and local developer workflows. The implementation must
 preserve the current `stdio` experience while adding an authenticated remote server and a shared,
 tenant-safe tool layer.
 
 ## Existing Baseline
 
-- A TypeScript MCP server exists under `tools/PXA.Mcp`.
+- A TypeScript MCP server exists under `tools/PVAD.Mcp`.
 - The server uses `@modelcontextprotocol/sdk` and currently runs over `stdio`.
 - Eleven tools expose the access context, element catalog, examples, documentation search, design
   validation, PDF preview rendering, export formats, migration providers, and tenant templates.
-- Five `pxa://` resources expose the design schema, workbook schema, OpenAPI document, AI reference,
+- Five [compatibility entry `compat-82d933aea411`](../docs/reference/compatibility-identifiers.v1.json) resources expose the design schema, workbook schema, OpenAPI document, AI reference,
   and C# cookbook.
 - The element catalog is imported from the Designer source of truth.
-- PXA WebApi already provides organizations, service accounts, API keys, entitlements, usage
+- PVAD WebApi already provides organizations, service accounts, API keys, entitlements, usage
   metering, templates, assets, background jobs, audit events, and observability infrastructure.
 - The current MCP type-check and smoke test pass with 38 registered Designer elements.
 
 ## Target Architecture
 
-- [x] Split the current implementation into a transport-independent `PXA.Mcp.Core` package and thin
+- [x] Split the current implementation into a transport-independent `PVAD.Mcp.Core` package and thin
   local and remote hosts.
-- [x] Keep `PXA.Mcp.Local` as the process-spawned `stdio` host for local IDE and desktop clients.
-- [x] Add `PXA.Mcp.Server` as a separately deployable Streamable HTTP host.
+- [x] Keep `PVAD.Mcp.Local` as the process-spawned `stdio` host for local IDE and desktop clients.
+- [x] Add `PVAD.Mcp.Server` as a separately deployable Streamable HTTP host.
 - [ ] Expose the remote endpoint at `/mcp`, with the intended Cloud address
-  `https://mcp.powerdoxautomation.com/mcp`.
-- [x] Support an On-Premise endpoint through the PXA Server reverse proxy without requiring public
+  `https://mcp.pvade.com/mcp` (proposed host; DNS, TLS, operator ownership and deployment are not validated).
+- [x] Support an On-Premise endpoint through the PVADE Server reverse proxy without requiring public
   internet access.
-- [x] Keep MCP transport and protocol code outside `PXA.WebApi`; access PXA business capabilities
+- [x] Keep MCP transport and protocol code outside `PVAD.WebApi`; access PVADE business capabilities
   only through stable application/API contracts.
 - [x] Package catalog, schemas, documentation metadata, and tool definitions so the MCP server can be
   built without importing TypeScript source files from the Designer at runtime.
-- [x] Derive the advertised MCP server version from the root PXA version instead of the hard-coded
+- [x] Derive the advertised MCP server version from the root PVADE version instead of the hard-coded
   `0.1.0` value.
 - [x] Document supported MCP protocol revisions and the compatibility policy.
 
@@ -44,7 +42,7 @@ tenant-safe tool layer.
 
 ### Local stdio
 
-- [x] Preserve the existing `pxa-mcp` command and `stdio` transport.
+- [x] Preserve the existing [compatibility entry `compat-6729a58eebb7`](../docs/reference/compatibility-identifiers.v1.json) command and `stdio` transport.
 - [ ] Remove the obsolete `canvas-mcp` binary after the documented compatibility period.
 - [x] Read local credentials from environment variables or the operating-system credential store.
 - [x] Guarantee that stdout contains MCP messages only and send operational logs to stderr.
@@ -63,7 +61,7 @@ tenant-safe tool layer.
 - [x] Add request-body, header, request-duration, capability-response, and preview-output limits.
 - [ ] Add session-count and connection-duration limits when stateful sessions are introduced.
 - [ ] Implement cancellation and MCP progress notifications for eligible operations.
-- [ ] Evaluate experimental MCP Tasks only behind a feature flag and retain the existing PXA job API
+- [ ] Evaluate experimental MCP Tasks only behind a feature flag and retain the existing PVAD job API
   as the authoritative execution state.
 - [ ] Do not implement the deprecated HTTP+SSE transport unless a documented customer compatibility
   requirement appears.
@@ -72,7 +70,7 @@ tenant-safe tool layer.
 
 - [x] Treat the remote MCP host as an OAuth 2.1 protected resource.
 - [x] Add OAuth Protected Resource Metadata pointing clients to the configured authorization server.
-- [x] Implement and publish authorization-server discovery metadata in PXA Account.
+- [x] Implement and publish authorization-server discovery metadata in PVADE Account.
 - [x] Advertise RFC 7591 dynamic client registration and restrict registrations to public
   authorization-code clients with PKCE and exact HTTPS or loopback HTTP redirect URIs.
 - [x] Support Authorization Code with PKCE for interactive users.
@@ -81,25 +79,25 @@ tenant-safe tool layer.
   their OAuth client ID while keeping the secret one-time-only.
 - [x] Validate issuer, signature, expiry, audience, resource indicator, organization, user or service
   account, and granted scopes on every request.
-- [x] Issue short-lived tokens specifically for the MCP resource in PXA Account.
+- [x] Issue short-lived tokens specifically for the MCP resource in PVADE Account.
 - [x] Never pass inbound MCP tokens through to
-  PXA WebApi or another downstream service.
+  PVADE WebApi or another downstream service.
 - [x] Use a separate internal API-key credential for fixed global capability and rendering routes.
 - [x] Add a separately signed, 30-second internal delegation before exposing tenant-owned WebApi
   resources; the original MCP bearer token is never forwarded.
 - [x] Define least-privilege scopes:
-  - `pxa.docs.read`
-  - `pxa.templates.read`
-  - `pxa.templates.write`
-  - `pxa.assets.read`
-  - `pxa.assets.write`
-  - `pxa.documents.validate`
-  - `pxa.documents.render`
-  - `pxa.documents.export`
-  - `pxa.documents.import`
-  - `pxa.migrations.execute`
-  - `pxa.jobs.read`
-  - `pxa.jobs.cancel`
+  - [compatibility entry `compat-9a5cb15c3d8d`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-77c910231cc3`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-f10305e3d0b9`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-7e8157838c8f`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b8fc3ddf2a9c`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-f150996698a3`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b3d0a1003b54`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-dc0309610106`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-1356c2ebd474`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-b038a4972981`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-3fd5a752d603`](../docs/reference/compatibility-identifiers.v1.json)
+  - [compatibility entry `compat-5b4ef240d6b7`](../docs/reference/compatibility-identifiers.v1.json)
 - [ ] Map scopes to existing roles, permissions, product entitlements, and active-organization context
   without treating those concepts as interchangeable.
 - [ ] Require step-up confirmation for destructive, publishing, or externally visible operations.
@@ -115,7 +113,7 @@ tenant-safe tool layer.
 - [x] Return `structuredContent` for machine-readable results and concise text content for clients
   that do not render structured output.
 - [x] Add accurate read-only, destructive, idempotent, and open-world annotations to every tool.
-- [x] Use stable `PXAMCP...` diagnostics and MCP error results instead of unstructured exception text.
+- [x] Use stable [compatibility entry `compat-30dd63955344`](../docs/reference/compatibility-identifiers.v1.json) diagnostics and MCP error results instead of unstructured exception text.
 - [ ] Include correlation ID, job ID, affected resource URI, warnings, and retry guidance where
   applicable.
 - [ ] Add idempotency keys to mutating and job-starting operations.
@@ -164,7 +162,7 @@ tenant-safe tool layer.
 
 - [ ] Add `import_document` for supported PDF, Word, image, presentation, and Spreadsheet inputs.
 - [ ] Add `start_migration` with provider, source type, options, and target contract.
-- [ ] Add `get_job`, `get_job_result`, and `cancel_job` mapped to the persistent PXA job system.
+- [ ] Add `get_job`, `get_job_result`, and `cancel_job` mapped to the persistent PVAD job system.
 - [ ] Expose progress without leaking another tenant's task or job state.
 - [ ] Return fidelity, diagnostics, unsupported elements, review requirements, and source maps.
 - [ ] Integrate OCR and PDF chart recognition only through explicit options and existing feature gates.
@@ -173,7 +171,7 @@ tenant-safe tool layer.
 
 ## Resources And Prompts
 
-- [ ] Preserve the existing static `pxa://` resources with explicit version and locale metadata.
+- [ ] Preserve the existing static [compatibility entry `compat-82d933aea411`](../docs/reference/compatibility-identifiers.v1.json) resources with explicit version and locale metadata.
 - [ ] Add tenant-scoped resource templates for templates, versions, jobs, diagnostics, and generated
   artifacts.
 - [ ] Prevent resource enumeration across organizations and users.
@@ -196,9 +194,9 @@ tenant-safe tool layer.
   resource-exhaustion attacks.
 - [ ] Separate public documentation tools from authenticated customer-data tools.
 - [ ] Require explicit client or user confirmation for mutating and destructive tool calls.
-- [ ] Validate tool arguments again in the PXA application layer; MCP schemas are not a security
+- [ ] Validate tool arguments again in the PVADE application layer; MCP schemas are not a security
   boundary.
-- [x] Prohibit arbitrary network egress from the MCP container except allowlisted internal PXA
+- [x] Prohibit arbitrary network egress from the MCP container except allowlisted internal PVADE
   services.
 - [x] Use non-root containers, read-only filesystems, temporary storage quotas, dropped capabilities,
   and restricted process limits for the Beta MCP service and TLS gateway.
@@ -211,10 +209,10 @@ tenant-safe tool layer.
 ## Reliability And Observability
 
 - [x] Add liveness and readiness endpoints outside the MCP protocol endpoint.
-- [x] Add dependency-readiness checks for PXA WebApi and the configured identity provider.
+- [x] Add dependency-readiness checks for PVADE WebApi and the configured identity provider.
 - [x] Add structured logs with request, tool, pseudonymous organization, user or service-account
   references, and correlation identifiers, excluding sensitive arguments and results.
-- [ ] Add OpenTelemetry traces across MCP, PXA WebApi, workers, storage, and database operations.
+- [ ] Add OpenTelemetry traces across MCP, PVAD WebApi, workers, storage, and database operations.
 - [x] Add Beta metrics for active requests, tool calls, latency, HTTP errors, rate limits, and
   dependency readiness. Session, cancellation, payload, and job metrics remain tied to later
   stateful and long-running operations.
@@ -229,8 +227,8 @@ tenant-safe tool layer.
 
 - [x] Produce compiled Local and Server bundles from the monorepo version source.
 - [ ] Publish the local package through the selected public or private npm registry.
-- [x] Add a multi-stage Linux container for `PXA.Mcp.Server` running as a non-root user.
-- [x] Add PXA Server Docker Compose integration with WebApi, PostgreSQL, bundled workers, MCP, and a
+- [x] Add a multi-stage Linux container for `PVAD.Mcp.Server` running as a non-root user.
+- [x] Add PVADE Server Docker Compose integration with WebApi, PostgreSQL, bundled workers, MCP, and a
   hardened reverse proxy.
 - [ ] Support amd64 initially and arm64 after dependency validation.
 - [x] Configure runtime API URLs, OAuth issuer, canonical MCP resource URI, origin allowlist, limits,
@@ -256,7 +254,7 @@ tenant-safe tool layer.
 - [ ] Run interoperability tests with representative MCP clients.
 - [x] Add Docker smoke tests, TLS health checks, dependency-failure tests, and graceful-shutdown
   tests.
-- [x] Run type-check, unit tests, protocol tests, PXA API integration tests, dependency audit,
+- [x] Run type-check, unit tests, protocol tests, PVADE API integration tests, dependency audit,
   container build/smoke tests, blocking container vulnerability scanning, SBOM generation, and
   `git diff --check` in CI.
 
@@ -299,7 +297,7 @@ tenant-safe tool layer.
 - [x] The non-root multi-stage container builds successfully and its readiness health check passes
   in Rancher Desktop.
 - [x] Type-check, compiled builds, source/distribution smoke tests, and dependency audit pass.
-- [x] PXA Account provides OpenIddict discovery, authorization-code/PKCE, and service-account
+- [x] PVAD Account provides OpenIddict discovery, authorization-code/PKCE, and service-account
   client-credentials issuance backed by PostgreSQL.
 - [x] Tenant `list_templates` and `get_template` tools use independently validated internal
   delegation and server-enforced organization filtering.
@@ -327,7 +325,7 @@ tenant-safe tool layer.
 ### Phase 3 - Jobs, import and migration
 
 - [ ] Add persistent long-running operations, progress, cancellation, import, OCR, and migration.
-- [ ] Evaluate MCP Tasks only after stable PXA job integration and client compatibility testing.
+- [ ] Evaluate MCP Tasks only after stable PVAD job integration and client compatibility testing.
 
 ## Beta Acceptance Criteria
 
@@ -336,7 +334,7 @@ tenant-safe tool layer.
   service accounts, short-lived audience-bound tokens, and tenant-bound downstream delegation.
 - [x] The Beta exposes read-only catalog, validation, capability, migration, and tenant-template tools
   without mutating customer-data operations.
-- [x] PXA Server terminates TLS at a hardened gateway and keeps WebApi, MCP, and PostgreSQL on
+- [x] PVADE Server terminates TLS at a hardened gateway and keeps WebApi, MCP, and PostgreSQL on
   appropriately isolated container networks.
 - [x] Liveness, fail-closed dependency readiness, structured privacy-safe logs, Prometheus metrics,
   operational objectives, and alerts are available.
@@ -350,8 +348,8 @@ phase work.
 
 ## Acceptance Criteria
 
-- [ ] Local clients can install and run `pxa-mcp` without cloning the monorepo.
-- [x] Remote clients can discover and connect to PXA MCP through standards-compliant OAuth and
+- [ ] Local clients can install and run `pvad-mcp` without cloning the monorepo.
+- [x] Remote clients can discover and connect to PVADE MCP through standards-compliant OAuth and
   Streamable HTTP.
 - [ ] Every customer-data operation is authenticated, tenant-isolated, entitled, scoped, metered,
   and audited.
@@ -366,9 +364,9 @@ phase work.
 - TypeScript remains the MCP implementation language because the existing server and official SDK
   support are already established.
 - `stdio` remains the preferred local transport and Streamable HTTP is the remote transport.
-- PXA Account or a compatible external identity provider will become the OAuth authorization server;
+- PVADE Account or a compatible external identity provider will become the OAuth authorization server;
   the MCP host remains a protected resource.
-- PXA WebApi and its persistent job system remain authoritative for business operations and data.
+- PVAD WebApi and its persistent job system remain authoritative for business operations and data.
 - API keys may support controlled On-Premise automation but do not replace standards-compliant OAuth
   for the public remote MCP server.
 - Sampling, elicitation, experimental MCP Tasks, real-time notifications, and third-party marketplace

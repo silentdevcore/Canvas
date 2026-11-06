@@ -6,7 +6,7 @@ published release entries retain their original wording and identifiers.
 All new frontend and packaged API builds emit `pvad-build-info.json` with the
 technical product identity `PVAD`. Build compiler constants use `__PVAD_*`.
 Canonical `PVAD_BUILD_*` environment inputs and Docker build arguments are used
-for new builds. Historical `PXA_BUILD_*` inputs remain conflict-checked aliases.
+for new builds. Historical operator-only compatibility entry `compat-5f3fe9d0846e` (available in the protected operator register) inputs remain conflict-checked aliases.
 
 ```bash
 node tools/versioning/pvad-version.mjs current

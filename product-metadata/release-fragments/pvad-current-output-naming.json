@@ -1,0 +1,8 @@
+{
+  "id": "pvad-current-output-naming",
+  "impact": "patch",
+  "components": ["designer", "api", "importer", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Chart recognition now writes consistent product identifiers while continuing to read older documents. New project audit details include canonical format names without changing historical event identifiers.",
+  "breaking": false
+}

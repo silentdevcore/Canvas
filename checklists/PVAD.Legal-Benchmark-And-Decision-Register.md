@@ -1,10 +1,8 @@
-# PXA Legal Benchmark and Decision Register
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Legal Benchmark and Decision Register
 
 ## Goal
 
-Turn the six remaining Legal launch blockers into explicit PXA decisions. The
+Turn the six remaining Legal launch blockers into explicit PVAD decisions. The
 research below records useful market patterns, but it does not copy competitor
 terms and does not replace review by qualified Swiss legal counsel with
 international software, consumer, and privacy expertise.
@@ -28,7 +26,7 @@ Research findings:
 - [x] Confirm that the same verified identity should feed Imprint, Terms, Privacy,
   DPA, invoices, and contractual confirmations.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [ ] Obtain the exact legal name, legal form, registered address, authorized
   representatives, competent Commercial Register, register number, Swiss UID or VAT ID if
@@ -56,7 +54,7 @@ Research findings:
 - [x] Review Syncfusion's controller-versus-processor distinction.
 - [x] Review Atlassian's DPA, TOM, subprocessor notice, and Legal archive model.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [x] Prepare separate English-authoritative candidates for Website and Cloud
   Subscription Terms, B2B Terms, B2C Terms, On-Premise/CLI/SDK EULA, Privacy,
@@ -64,7 +62,7 @@ PXA decision proposal:
   Subprocessors, and any promised SLA.
 - [x] Make English the sole authoritative language and treat future localized
   versions as market-specific notices or translations unless expressly agreed otherwise.
-- [ ] Define PXA as controller for account, billing, security, Legal evidence,
+- [ ] Define PVAD as controller for account, billing, security, Legal evidence,
   and service administration data, and as processor for customer document and
   template content where the customer determines purpose and means.
 - [ ] Complete the Article 28 DPA schedules for processing scope, documented
@@ -96,7 +94,7 @@ Research findings:
   Syncfusion, DevExpress, and GemBox.
 - [x] Review German tax-record retention baselines separately from product data.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [ ] Counsel must approve every category in
   `product-metadata/data-processing-inventory.json`; research does not approve a
@@ -112,7 +110,7 @@ PXA decision proposal:
 - [ ] Retain invoice and booking evidence according to the applicable eight-year
   German rules, business correspondence where applicable for six years, and
   books or records subject to ten-year rules; counsel and tax advice must map
-  each PXA entity to the applicable category.
+  each PVAD entity to the applicable category.
 - [ ] Define pseudonymization and deletion behavior for Legal acceptance and
   audit evidence without adding full IP addresses.
 - [ ] Define bounded backup rotation, deletion propagation, documented Legal
@@ -133,14 +131,14 @@ Research findings:
 
 - [x] Compare Syncfusion and DevExpress presentation of subscription duration,
   seats, renewal, usage, and post-expiry rights.
-- [x] Confirm that supplier models differ and PXA must explicitly decide whether
+- [x] Confirm that supplier models differ and PVADE must explicitly decide whether
   subscription expiry ends access or only updates and support.
 - [x] Review German pre-contract, payment-button, durable-confirmation, withdrawal,
   and current electronic-withdrawal-function requirements.
 - [x] Confirm that the electronic withdrawal function has applied since
   2026-06-19 to qualifying online distance contracts.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [ ] Decide prices, currency, VAT handling, account and seat model, billing
   cadence, Trial conversion, auto-renewal, cancellation effect, grace period,
@@ -180,7 +178,7 @@ Research findings:
   rejection and withdrawal must be as accessible as acceptance.
 - [x] Compare Syncfusion's dedicated Cookie Policy without importing its tracker set.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [x] Launch with necessary first-party storage only and the existing informative
   Storage Notice instead of a misleading `Accept all` banner.
@@ -207,10 +205,10 @@ Research findings:
 - [x] Review Atlassian's effective-date archive, prior versions, subprocessor
   notifications, and separate Legal publications.
 - [x] Review GitHub's public policy source history and material-change notice model.
-- [x] Confirm that the PXA immutable publication and content-hash architecture can
+- [x] Confirm that the PVADE immutable publication and content-hash architecture can
   support equivalent transparency without exposing internal review material.
 
-PXA decision proposal:
+PVADE decision proposal:
 
 - [x] Add a repeatable Legal launch-readiness validator for development and a
   fail-closed Production mode.
@@ -234,7 +232,7 @@ Sources:
 
 ## Current Decision Status
 
-- [x] Research for points 1-6 is complete and mapped to PXA.
+- [x] Research for points 1-6 is complete and mapped to PVADE.
 - [x] Technical launch blockers remain machine-detectable.
 - [ ] Company owner has supplied and approved the operator profile.
 - [ ] Qualified Swiss counsel has approved the English document set and retention matrix.

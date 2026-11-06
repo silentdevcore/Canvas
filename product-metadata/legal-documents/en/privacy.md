@@ -2,15 +2,15 @@
 
 Effective date: the effective date shown for the published version.
 
-This Privacy Notice explains how [PXA LEGAL ENTITY NAME], [LEGAL FORM], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND] (PXA, we, us) processes personal data in connection with Power Dox Automation.
+This Privacy Notice explains how [LEGAL ENTITY NAME], [LEGAL FORM], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND] (PVADE, we, us) processes personal data in connection with PVADE.
 
-PXA applies the Swiss Federal Act on Data Protection (FADP). Where its territorial requirements apply, we also comply with the EU General Data Protection Regulation (GDPR), the UK GDPR, and other mandatory local privacy laws.
+PVADE applies the Swiss Federal Act on Data Protection (FADP). Where its territorial requirements apply, we also comply with the EU General Data Protection Regulation (GDPR), the UK GDPR, and other mandatory local privacy laws.
 
 ## 1. Our roles
 
-PXA is the controller for website, account, organization, billing, security, support, communication, Legal, and service-operation data that we determine how and why to process.
+PVADE is the controller for website, account, organization, billing, security, support, communication, Legal, and service-operation data that we determine how and why to process.
 
-For personal data contained in documents, templates, code, images, spreadsheets, migration sources, and other Customer Content processed at a business customer's instruction, the customer is normally the controller and PXA is its processor. The Data Processing Agreement governs that processing.
+For personal data contained in documents, templates, code, images, spreadsheets, migration sources, and other Customer Content processed at a business customer's instruction, the customer is normally the controller and PVADE is its processor. The Data Processing Agreement governs that processing.
 
 ## 2. Data we process
 
@@ -45,11 +45,11 @@ Depending on the jurisdiction and context, the legal ground is performance of a 
 
 ## 4. Customer Content
 
-PXA processes Customer Content only to provide the requested operation, maintain the contracted workspace, secure the service, comply with documented customer instructions, or meet a binding legal obligation. Access is limited by role and operational need.
+PVADE processes Customer Content only to provide the requested operation, maintain the contracted workspace, secure the service, comply with documented customer instructions, or meet a binding legal obligation. Access is limited by role and operational need.
 
 Synchronous document content is released from process memory and temporary storage after the operation. Transient background-job input and output is deleted after successful result download or no later than 24 hours after terminal completion. A customer may explicitly choose retained processing, currently up to seven days. Minimized terminal job metadata expires after 30 days. Active legal holds may suspend deletion.
 
-PXA does not use Customer Content to train a general-purpose artificial-intelligence model unless a separate agreement and any required consent expressly authorize it.
+PVADE does not use Customer Content to train a general-purpose artificial-intelligence model unless a separate agreement and any required consent expressly authorize it.
 
 ## 5. Sharing and processors
 
@@ -60,11 +60,11 @@ We disclose personal data only as necessary to:
 - authorities or parties where disclosure is legally required or needed to protect rights and security; and
 - a successor in a merger, financing, reorganization, or sale, subject to appropriate safeguards.
 
-On-Premise customers may operate core components in their own environment and select their own SMTP, storage, telemetry, and infrastructure providers. The applicable order and current subprocessor information identify production providers and locations. PXA does not sell personal data.
+On-Premise customers may operate core components in their own environment and select their own SMTP, storage, telemetry, and infrastructure providers. The applicable order and current subprocessor information identify production providers and locations. PVADE does not sell personal data.
 
 ## 6. International transfers
 
-Data is processed in the region selected for the PXA deployment and by approved providers. Where personal data is transferred from Switzerland or another protected jurisdiction to a country without recognized adequate protection, PXA uses an approved safeguard such as the Swiss or EU standard contractual clauses, supplemented where necessary, or another lawful transfer mechanism. Transfer details are provided in the applicable DPA or provider information.
+Data is processed in the region selected for the PVADE deployment and by approved providers. Where personal data is transferred from Switzerland or another protected jurisdiction to a country without recognized adequate protection, PVADE uses an approved safeguard such as the Swiss or EU standard contractual clauses, supplemented where necessary, or another lawful transfer mechanism. Transfer details are provided in the applicable DPA or provider information.
 
 ## 7. Retention
 
@@ -82,21 +82,21 @@ Deletion from active systems may be followed by bounded backup expiry. Legal hol
 
 ## 8. Security
 
-PXA uses role-based access, tenant isolation, protected session cookies, anti-forgery controls, encryption in transit, protected secrets, logging minimization, audit trails, backup and recovery controls, and other technical and organizational measures appropriate to risk. Customers must protect credentials, assign least privilege, configure deployment security, and avoid placing secrets in documents or support requests unnecessarily.
+PVADE uses role-based access, tenant isolation, protected session cookies, anti-forgery controls, encryption in transit, protected secrets, logging minimization, audit trails, backup and recovery controls, and other technical and organizational measures appropriate to risk. Customers must protect credentials, assign least privilege, configure deployment security, and avoid placing secrets in documents or support requests unnecessarily.
 
 ## 9. Browser storage and telemetry
 
-The Cookie and Storage Policy lists first-party cookies, Local Storage, and Session Storage used for sessions, security, language, application preferences, and local working state. PXA does not enable optional advertising, cross-site tracking, or marketing storage at launch. If optional analytics or marketing technologies are introduced, they will be blocked until any required consent is obtained.
+The Cookie and Storage Policy lists first-party cookies, Local Storage, and Session Storage used for sessions, security, language, application preferences, and local working state. PVADE does not enable optional advertising, cross-site tracking, or marketing storage at launch. If optional analytics or marketing technologies are introduced, they will be blocked until any required consent is obtained.
 
 ## 10. Your rights
 
 Subject to applicable law, you may request access, correction, deletion, restriction, portability, objection, withdrawal of consent, or information about processing and transfers. You may also complain to a competent supervisory authority. In Switzerland, the supervisory authority is the Federal Data Protection and Information Commissioner (FDPIC).
 
-For Customer Content controlled by an organization, contact that organization first. PXA assists the customer as required by the DPA. We may verify identity and may retain information where law or overriding legitimate grounds require it.
+For Customer Content controlled by an organization, contact that organization first. PVADE assists the customer as required by the DPA. We may verify identity and may retain information where law or overriding legitimate grounds require it.
 
 ## 11. Automated decisions and children
 
-PXA does not make a solely automated decision producing legal or similarly significant effects about an individual unless the feature, safeguards, and applicable rights are specifically disclosed. PXA is not directed to children, and minors may not register without the consent required by applicable law.
+PVADE does not make a solely automated decision producing legal or similarly significant effects about an individual unless the feature, safeguards, and applicable rights are specifically disclosed. PVADE is not directed to children, and minors may not register without the consent required by applicable law.
 
 ## 12. Marketing communications
 
@@ -108,8 +108,12 @@ Published versions are identified by version and effective date. We provide noti
 
 ## 14. Contact
 
-Controller: [PXA LEGAL ENTITY NAME], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND]
+Controller: [LEGAL ENTITY NAME], [STREET, POSTCODE, CITY, CANTON, SWITZERLAND]
 
 Privacy contact: [PRIVACY EMAIL ADDRESS]
 
 EU or UK representative, where legally required: [REPRESENTATIVE OR NOT APPLICABLE]
+
+## Technical Reference
+
+This candidate references Compatibility Identifiers v1, SHA-256 `19667963b4e062821e81be371c9e81d0ae1df5b33c54fa9b9c237d76f4960906`. The candidate manifest pins that versioned technical reference; it does not change contractual rights or authorize publication.

@@ -1,6 +1,4 @@
-# PXA Designer Template Persistence Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Designer Template Persistence Checklist
 
 ## Goal
 
@@ -19,7 +17,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 ## Dependencies
 
 - [x] Use `PVAD.Designer-Authentication.md` for user, session, active organization, and entitlement enforcement.
-- [x] Use PostgreSQL and EF Core through `PXA.Infrastructure.Persistence`.
+- [x] Use PostgreSQL and EF Core through `PVAD.Infrastructure.Persistence`.
 - [x] Align schema and migration operations with `PVAD.Database.md`.
 - [x] Keep gallery examples as static product assets rather than customer database records.
 - [x] Define object-storage integration for Designer image assets.
@@ -80,7 +78,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## API Contract
 
-- [x] Add tenant-scoped routes under `/api/pxa/v1/designer/templates`.
+- [x] Add tenant-scoped routes under `/api/pvad/v1/designer/templates`.
 - [x] Add paginated list with search, tags, status, updated-time ordering, and archived filtering.
 - [x] Add create, read, update metadata, update draft, archive, and restore operations.
 - [x] Add version list, version create, version read, and publish operations.
@@ -165,7 +163,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## Native Project Format Integration
 
-- [x] Keep portable `.pxap` files tenant-neutral while resolving embedded images into
+- [x] Keep portable `.pvadp` files tenant-neutral while resolving embedded images into
   organization-owned assets before applying the document.
 - [x] Preserve the active server template identity and optimistic-concurrency revision when a
   native project replaces its editable draft content.

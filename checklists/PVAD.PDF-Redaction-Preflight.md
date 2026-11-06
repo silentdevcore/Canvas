@@ -1,16 +1,17 @@
-# PXA PDF Redaction Preflight
+# PVAD PDF Redaction Preflight
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
 
 ## Purpose
 
-PXA ships a redaction workflow today. It is not a visual overlay — it drops scene-graph
+PVAD ships a redaction workflow today. It is not a visual overlay — it drops scene-graph
 elements and regenerates the document — but it produces no evidence, so nobody can tell
 what it removed, what it could not see, and what it silently changed elsewhere.
 
 This checklist covers the first stage of `PVAD.PDF-Trust-Foundation.md` Milestone 3: a
 preflight that mutates nothing and reports, per redaction region, exactly what would be
-removed and what PXA cannot confidently account for.
+removed and what PVAD cannot confidently account for.
 
 Preflight must be honest about its own blind spot. The current implementation tests
 intersection only against content the importer modelled, so anything it failed to model
@@ -66,14 +67,14 @@ silently passed over.
 - [x] Return `removable`, `reviewRequired`, or `unsupported` per region and for the
   document, never collapsing unknown into removable.
 - [x] Derive the document capability from the worst region or finding.
-- [x] Carry stable `PXAPDFREDACT` diagnostic codes with page and region context.
+- [x] Carry stable [compatibility entry `compat-e96bde4282cd`](../docs/reference/compatibility-identifiers.v1.json) diagnostic codes with page and region context.
 - [x] Include the document SHA-256 so a preflight result can be correlated with a later
   apply without storing content.
 - [x] Keep covered text, metadata values, and attachment contents out of the report.
 
 ## API
 
-- [x] Expose `POST /api/pxa/v1/pdf/redactions/preflight` as an authenticated, entitled,
+- [x] Expose `POST /api/pvad/v1/pdf/redactions/preflight` as an authenticated, entitled,
   rate-limited streaming upload endpoint.
 - [x] Require a dedicated redaction inspection permission.
 - [x] Bound request size, region count, and cancellation.
@@ -85,7 +86,7 @@ silently passed over.
 - [x] Prove each blind spot produces its diagnostic on a fixture that contains it.
 - [x] Prove preflight never mutates the input bytes.
 - [x] Prove the report contains no covered text.
-- [x] Run `dotnet build PXA.sln`, the Importer and API suites, and `git diff --check`.
+- [x] Run `dotnet build PVAD.sln`, the Importer and API suites, and `git diff --check`.
 
 ## Explicitly Deferred
 

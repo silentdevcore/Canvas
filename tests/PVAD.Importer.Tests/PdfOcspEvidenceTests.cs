@@ -134,7 +134,7 @@ public sealed class PdfOcspEvidenceTests
             var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()).AddMinutes(-1);
             var issuerKey = RSA.Create(2048);
             var issuerRequest = new CertificateRequest(
-                "CN=PXA OCSP Test Root",
+                "CN=PVAD OCSP Test Root",
                 issuerKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -146,7 +146,7 @@ public sealed class PdfOcspEvidenceTests
 
             using var leafKey = RSA.Create(2048);
             var leafRequest = new CertificateRequest(
-                "CN=PXA OCSP Test Signer",
+                "CN=PVAD OCSP Test Signer",
                 leafKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);

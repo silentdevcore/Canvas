@@ -1,20 +1,18 @@
 # Code-Migrations-UI — Feature Checklist
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 ## Overview
 
-A **Migrations** page in the PXA web app (`pxa-designer`) that lets developers paste code written for another PDF library, convert it to PXA.Pdf C# code, and preview the resulting PDF — all in the browser.
+A **Migrations** page in the PVADE web app (`pvad-designer`) that lets developers paste code written for another PDF library, convert it to PVAD.Pdf C# code, and preview the resulting PDF — all in the browser.
 
 ---
 
 ## User Flow
 
-1. Developer opens the PXA web app and clicks **Migrations** in the top navigation bar.
+1. Developer opens the PVADE web app and clicks **Migrations** in the top navigation bar.
 2. The `/migrations` route renders the full `MigrationsPage` component.
 3. Developer selects the source PDF framework from the dropdown.
 4. Developer pastes their existing code into the **Source Code** textarea, or clicks **Load example** to fill in a realistic sample for the selected framework.
-5. Developer clicks **Convert →** → the right panel shows the equivalent **PXA.Pdf** C# code, plus a diagnostics bar.
+5. Developer clicks **Convert →** → the right panel shows the equivalent **PVAD.Pdf** C# code, plus a diagnostics bar.
 6. Developer clicks **Generate Preview** → an iframe (860 px tall) renders the actual PDF.
 7. Developer copies or downloads the canvas code with the **Copy** / **Download .cs** buttons.
 8. Switching the framework dropdown **clears** the source code, output, diagnostics and preview.
@@ -25,15 +23,15 @@ A **Migrations** page in the PXA web app (`pxa-designer`) that lets developers p
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  [PXA logo]  Home  Templates  Docs  [Migrations]              │  ← AppHeader nav
+│  [PVADE logo]  Home  Templates  Docs  [Migrations]              │  ← AppHeader nav
 ├──────────────────────────────────────────────────────────────────┤
 │  ⌨  Code Migrations                                              │
-│     Paste code from another PDF library, convert to PXA.Pdf   │
+│     Paste code from another PDF library, convert to PVAD.Pdf   │
 │                                                                  │
 │  Source framework: [iText7 (pilot) ▼]  <description>  [Pilot]   │
 │                                                     [Load example]│
 ├─────────────────────────┬────────────────────────────────────────┤
-│  Source Code — iText7   │  PXA.Pdf Code                       │
+│  Source Code — iText7   │  PVAD.Pdf Code                       │
 │                         │                         [Copy] [↓ .cs] │
 │  <textarea>             │  <pre> (read-only)                     │
 │                         │                                        │
@@ -87,12 +85,12 @@ A **Migrations** page in the PXA web app (`pxa-designer`) that lets developers p
 
 | File | Purpose |
 |------|---------|
-| `pxa-designer/src/pages/MigrationsPage.tsx` | Full page: framework selector, source/output split, diagnostics, PDF preview |
-| `pxa-designer/src/styles/migrations.css` | All styles under `mgr-` prefix; PDF preview 860 px tall |
-| `pxa-designer/src/styles/index.css` | `@import './migrations.css'` added |
-| `pxa-designer/src/components/Layout/AppHeader.tsx` | `activePage` extended with `'migrations'`; nav link to `/migrations` |
-| `pxa-designer/src/App.tsx` | `<Route path="/migrations" element={<MigrationsPage />} />` added |
-| `pxa-designer/vite.config.ts` | Vite proxy: `/api` → `http://localhost:5086` |
+| `pvad-designer/src/pages/MigrationsPage.tsx` | Full page: framework selector, source/output split, diagnostics, PDF preview |
+| `pvad-designer/src/styles/migrations.css` | All styles under `mgr-` prefix; PDF preview 860 px tall |
+| `pvad-designer/src/styles/index.css` | `@import './migrations.css'` added |
+| `pvad-designer/src/components/Layout/AppHeader.tsx` | `activePage` extended with `'migrations'`; nav link to `/migrations` |
+| `pvad-designer/src/App.tsx` | `<Route path="/migrations" element={<MigrationsPage />} />` added |
+| `pvad-designer/vite.config.ts` | Vite proxy: `/api` → `http://localhost:5086` |
 
 ### Key Frontend Behaviours
 
@@ -105,7 +103,7 @@ A **Migrations** page in the PXA web app (`pxa-designer`) that lets developers p
 
 ## Backend API
 
-Base path: `PXA.WebApi/Controllers/MigrationController.cs`
+Base path: `PVAD.WebApi/Controllers/MigrationController.cs`
 Backend port: **5086** (proxied via Vite `/api`)
 
 ### `GET /api/migration/frameworks`
@@ -120,7 +118,7 @@ Returns metadata for all supported frameworks (id, name, status, description).
 
 // Response
 {
-  "pxaCode": "using PXA.Pdf;\n...",
+  "pvadCode": "using PVAD.Pdf;\n...",
   "summary": { "convertedCount": 4, "warningCount": 0, "errorCount": 0, "totalDiagnostics": 4 },
   "diagnostics": [
     { "code": "CANMIGAPRYSE001", "severity": "Info", "message": "new PDFDoc() → new PdfDocument()" }
@@ -132,33 +130,36 @@ Returns metadata for all supported frameworks (id, name, status, description).
 
 Same request body as `/convert`. Returns `application/pdf` bytes.
 
+The response example uses the current primary code field. Older response aliases
+remain compatibility contracts; see [migration artifact identities](../docs/pvad-migration-artifact-identities.md).
+
 ---
 
 ## Backend Services
 
 | File | Purpose |
 |------|---------|
-| `PXA.WebApi/Services/ICodeConverter.cs` | Interface: `FrameworkId`, `FrameworkName`, `Status`, `Description`, `ConvertCode`, `GeneratePreview`, `GetDiagnostics` |
-| `PXA.WebApi/Services/MigrationDiagnostic.cs` | Record: `Code`, `Severity`, `Message` |
-| `PXA.WebApi/Services/MigrationResult.cs` | Record: `PxaCode`, `Diagnostics`, `Summary` |
-| `PXA.WebApi/Services/MigrationService.cs` | Singleton — dispatches to the right converter by framework ID |
-| `PXA.WebApi/Services/Converters/BasePdfConverter.cs` | Abstract base; `DrawPreviewChrome`, `ReplayPxaCalls`, `GeneratePreview` shared logic |
-| `PXA.WebApi/Services/Converters/SyncfusionPdfConverter.cs` | Roslyn-based full conversion |
-| `PXA.WebApi/Services/Converters/IText7PdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/AprysePdfConverter.cs` | Roslyn-based full conversion |
-| `PXA.WebApi/Services/Converters/AsposePdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/DsPdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/FoxitPdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/DevExpressPdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/IronPdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/SpirePdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/GemBoxPdfConverter.cs` | Roslyn-based pilot |
-| `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs` | Roslyn-based cautious pilot |
-| `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs` | Roslyn-based cautious pilot |
-| `PXA.WebApi/Services/Converters/ActivePdfConverter.cs` | Roslyn-based cautious pilot |
-| `PXA.WebApi/Services/Converters/PdfToolsConverter.cs` | Roslyn-based cautious pilot |
-| `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs` | Roslyn-based cautious direct-generation pilot |
-| `PXA.WebApi/Program.cs` | `AddSingleton<MigrationService>()` registered |
+| `PVAD.WebApi/Services/ICodeConverter.cs` | Interface: `FrameworkId`, `FrameworkName`, `Status`, `Description`, `ConvertCode`, `GeneratePreview`, `GetDiagnostics` |
+| `PVAD.WebApi/Services/MigrationDiagnostic.cs` | Record: `Code`, `Severity`, `Message` |
+| `PVAD.WebApi/Services/MigrationResult.cs` | Record: `PvadCode`, `Diagnostics`, `Summary`; the older code property remains an obsolete compatibility alias |
+| `PVAD.WebApi/Services/MigrationService.cs` | Singleton — dispatches to the right converter by framework ID |
+| `PVAD.WebApi/Services/Converters/BasePdfConverter.cs` | Abstract base; `DrawPreviewChrome`, `ReplayPvadCalls`, `GeneratePreview` shared logic |
+| `PVAD.WebApi/Services/Converters/SyncfusionPdfConverter.cs` | Roslyn-based full conversion |
+| `PVAD.WebApi/Services/Converters/IText7PdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/AprysePdfConverter.cs` | Roslyn-based full conversion |
+| `PVAD.WebApi/Services/Converters/AsposePdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/DsPdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/FoxitPdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/DevExpressPdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/IronPdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/SpirePdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/GemBoxPdfConverter.cs` | Roslyn-based pilot |
+| `PVAD.WebApi/Services/Converters/PdfKitNetConverter.cs` | Roslyn-based cautious pilot |
+| `PVAD.WebApi/Services/Converters/LeadtoolsPdfConverter.cs` | Roslyn-based cautious pilot |
+| `PVAD.WebApi/Services/Converters/ActivePdfConverter.cs` | Roslyn-based cautious pilot |
+| `PVAD.WebApi/Services/Converters/PdfToolsConverter.cs` | Roslyn-based cautious pilot |
+| `PVAD.WebApi/Services/Converters/PdfToolsToolboxConverter.cs` | Roslyn-based cautious direct-generation pilot |
+| `PVAD.WebApi/Program.cs` | `AddSingleton<MigrationService>()` registered |
 
 ---
 
@@ -169,8 +170,8 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 | Region | Content |
 |--------|---------|
 | **Left strip** (22 pt wide, blue) | "Code migration for {Framework Name}" — white text, rotated 90° |
-| **Footer bar** (28 pt tall, blue) | "Generated with PXA.Pdf · Power Dox Automation" — white text |
-| **Content area** | Replayed PXA draw calls from the converted code |
+| **Footer bar** (28 pt tall, blue) | "Generated with PVAD.Pdf · PVADE" — white text |
+| **Content area** | Replayed PVADE draw calls from the converted code |
 
 ### Multi-page support
 
@@ -179,9 +180,9 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 > **Content requires manual migration.**
 > The converted code structure is correct — see the code panel for the draw calls to add.
 
-### `ReplayPxaCalls` — supported patterns
+### `ReplayPvadCalls` — supported patterns
 
-| Pattern parsed | PXA method called |
+| Pattern parsed | PVADE method called |
 |---------------|---------------------|
 | `page.DrawTextFromTop("…", x: X, topY: Y, fontSize: F)` | `DrawTextFromTop` |
 | `page.DrawTextFromTop("…", X, Y, F)` | `DrawTextFromTop` |
@@ -195,9 +196,9 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 
 ## Conversion Mapping — Syncfusion PDF (Full)
 
-| Syncfusion pattern | PXA.Pdf equivalent |
+| Syncfusion pattern | PVAD.Pdf equivalent |
 |---|---|
-| `using Syncfusion.Pdf;` | `using PXA.Pdf;` |
+| `using Syncfusion.Pdf;` | `using PVAD.Pdf;` |
 | `using Syncfusion.Pdf.Graphics;` | *(removed)* |
 | `new PdfDocument()` | `new PdfDocument()` |
 | `document.Pages.Add()` | `document.AddPage()` |
@@ -212,10 +213,10 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 
 ## Conversion Mapping — Apryse (PDFTron) (Full)
 
-| Apryse pattern | PXA.Pdf equivalent |
+| Apryse pattern | PVAD.Pdf equivalent |
 |---|---|
-| `using pdftron;` / `using pdftron.PDF;` / `using pdftron.SDF;` | *(removed)* → `using PXA.Pdf;` added |
-| `PDFNet.Initialize(…)` | *(removed)* — PXA.Pdf requires no SDK initialisation |
+| `using pdftron;` / `using pdftron.PDF;` / `using pdftron.SDF;` | *(removed)* → `using PVAD.Pdf;` added |
+| `PDFNet.Initialize(…)` | *(removed)* — PVAD.Pdf requires no SDK initialisation |
 | `using var doc = new PDFDoc()` | `var document = new PdfDocument()` |
 | `var page = doc.PageCreate(…)` | *(removed)* — AddPage() creates and attaches in one step |
 | `doc.PagePushBack(page)` | `var page = document.AddPage()` (uses the pushed variable name) |
@@ -229,7 +230,7 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 
 | Task | Status |
 |------|--------|
-| `/migrations` route in `pxa-designer` | ✅ Done |
+| `/migrations` route in `pvad-designer` | ✅ Done |
 | `MigrationsPage.tsx` with split panes, diagnostics, preview | ✅ Done |
 | `migrations.css` (860 px preview, `mgr-` prefix) | ✅ Done |
 | `AppHeader.tsx` nav link | ✅ Done |
@@ -242,7 +243,7 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 | `MigrationService` singleton | ✅ Done |
 | `MigrationController` (3 endpoints) | ✅ Done |
 | `BasePdfConverter` — `DrawPreviewChrome` (blue strip + footer) | ✅ Done |
-| `BasePdfConverter` — `ReplayPxaCalls` (7 patterns) | ✅ Done |
+| `BasePdfConverter` — `ReplayPvadCalls` (7 patterns) | ✅ Done |
 | `BasePdfConverter` — multi-page preview (counts `AddPage()`) | ✅ Done |
 | `SyncfusionPdfConverter` — Roslyn-backed full conversion | ✅ Done |
 | `IText7PdfConverter` — Roslyn-backed full conversion (PdfWriter+Document → PdfDocument, Paragraph/SetFontSize → DrawTextFromTop, Close/SetMargins removed, PdfCanvas drawing) | ✅ Done |
@@ -253,12 +254,12 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 | `DevExpressPdfConverter` — Roslyn-backed full conversion (PdfDocumentProcessor → PdfDocument, draw calls repositioned after AddPage, SaveDocument → Save) | ✅ Done |
 | `IronPdfConverter` — Roslyn-backed pilot (ChromePdfRenderer/HtmlToPdf → PdfDocument scaffold; SaveAs → Save; HTML/URL/Razor render calls removed with diagnostics) | ✅ Done |
 | `GemBoxPdfConverter` — Roslyn-backed pilot (PdfDocument → PdfDocument, Pages.Add → AddPage, simple Content.DrawText → DrawTextFromTop, Save; complex content/forms/security warned) | ✅ Done |
-| `SpirePdfConverter` — Roslyn-backed pilot (PdfDocument → PdfDocument, Pages.Add → AddPage, page.Canvas.DrawString/DrawLine/DrawRectangle → PXA draw calls, SaveToFile → Save) | ✅ Done |
-| `PdfKitNetConverter` — Roslyn-backed cautious pilot (likely Document/NewPage/DrawText/DrawString/DrawLine/DrawRectangle/Render/Write/SaveAs → PXA.Pdf, always warns package/API identity is unconfirmed) | ✅ Done |
-| `LeadtoolsPdfConverter` — Roslyn-backed cautious pilot (likely PDFDocument/AddPage/DrawText/DrawString/DrawLine/DrawRectangle/Save → PXA.Pdf, warns for raster/OCR/barcode/conversion flows) | ✅ Done |
-| `ActivePdfConverter` — Roslyn-backed cautious pilot (likely Toolkit/APDoc/AddPage/PrintText/DrawLine/DrawRectangle/Save → PXA.Pdf, warns for DocConverter/WebGrabber/COM/printer/merge/stamp flows) | ✅ Done |
+| `SpirePdfConverter` — Roslyn-backed pilot (PdfDocument → PdfDocument, Pages.Add → AddPage, page.Canvas.DrawString/DrawLine/DrawRectangle → PVADE draw calls, SaveToFile → Save) | ✅ Done |
+| `PdfKitNetConverter` — Roslyn-backed cautious pilot (likely Document/NewPage/DrawText/DrawString/DrawLine/DrawRectangle/Render/Write/SaveAs → PVAD.Pdf, always warns package/API identity is unconfirmed) | ✅ Done |
+| `LeadtoolsPdfConverter` — Roslyn-backed cautious pilot (likely PDFDocument/AddPage/DrawText/DrawString/DrawLine/DrawRectangle/Save → PVAD.Pdf, warns for raster/OCR/barcode/conversion flows) | ✅ Done |
+| `ActivePdfConverter` — Roslyn-backed cautious pilot (likely Toolkit/APDoc/AddPage/PrintText/DrawLine/DrawRectangle/Save → PVAD.Pdf, warns for DocConverter/WebGrabber/COM/printer/merge/stamp flows) | ✅ Done |
 | `PdfToolsConverter` — Roslyn-backed diagnostics-first pilot (removes `Sdk.Initialize`, warns for SDK processing workflows and Toolbox boundary) | ✅ Done |
-| `PdfToolsToolboxConverter` — Roslyn-backed cautious direct-generation pilot (`Document.Create`/`Page.Create`/`TextGenerator` → PXA.Pdf) | ✅ Done |
+| `PdfToolsToolboxConverter` — Roslyn-backed cautious direct-generation pilot (`Document.Create`/`Page.Create`/`TextGenerator` → PVAD.Pdf) | ✅ Done |
 | 0 skeleton converters | ✅ Done |
 | `Program.cs` DI registration | ✅ Done |
 | `bin/` `obj/` removed from git tracking | ✅ Done |
@@ -267,11 +268,11 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 
 ## Verification Steps
 
-1. `dotnet run --project PXA.WebApi` — API starts on http://localhost:5086
-2. `cd pxa-designer && npm run dev` — UI starts on http://localhost:5174
-3. Open http://localhost:5174 → click **Migrations** in nav
+1. `dotnet run --project PVAD.WebApi/PVAD.WebApi.csproj` — API starts on http://localhost:5086
+2. `npm --prefix pvad-designer run dev` — UI starts on http://localhost:5176, as configured in `pvad-designer/vite.config.ts`
+3. Open http://localhost:5176/pdf/migrations/code after signing in through Account
 4. Select **Syncfusion PDF** → click **Load example** → click **Convert →**
-   - PXA code appears; diagnostics show info/warning chips
+   - PVAD code appears; diagnostics show info/warning chips
 5. Click **Generate Preview** → 860 px iframe renders PDF with blue strip + footer
 6. Select **Apryse (PDFTron)** → source code clears automatically
 7. Click **Load example** → realistic PDFDoc + two pages + ElementBuilder sample loads
@@ -283,4 +284,4 @@ Every preview PDF is generated by `BasePdfConverter.GeneratePreview` and uses `D
 13. Select **LEADTOOLS** → click **Load example** → convert → diagnostics include the LEADTOOLS API-family warning plus converted draw/save calls
 14. Select **ActivePDF** → click **Load example** → convert → diagnostics include the ActivePDF product-family warning plus converted draw/save calls
 15. Select **PDFTools / Pdftools SDK** → click **Load example** → convert → diagnostics include the SDK-processing warning and `Sdk.Initialize` removal; source processing calls are kept for manual migration
-16. Select **PDF Toolbox SDK / Toolbox add-on** → click **Load example** → convert → simple `Document.Create`/`Page.Create`/`TextGenerator.ShowLine` flow becomes PXA.Pdf code with cautious pilot diagnostics
+16. Select **PDF Toolbox SDK / Toolbox add-on** → click **Load example** → convert → simple `Document.Create`/`Page.Create`/`TextGenerator.ShowLine` flow becomes PVAD.Pdf code with cautious pilot diagnostics

@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-combined-operator-browser-rehearsal",
+  "impact": "none",
+  "components": ["admin", "api", "observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Operator integration checks now exercise browser access through the real API, persistent sessions and monitoring gateway.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This adds an isolated internal rehearsal and its documentation without changing shipped authorization, production gateway configuration, existing data or release versions."
+}

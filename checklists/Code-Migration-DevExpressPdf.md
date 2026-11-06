@@ -1,28 +1,26 @@
-# PXA Migration: DevExpress PDF
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Migration: DevExpress PDF
 
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using the DevExpress PdfDocumentProcessor/PdfGraphics API.
-- [x] Roslyn-backed migration connected through `PXA.WebApi` via framework id `DevExpress`.
+- [x] Roslyn-backed migration connected through `PVAD.WebApi` via framework id `DevExpress`.
 - [x] Status upgraded from reporting pilot to **full** converter.
 - [x] `new PdfDocumentProcessor()` → `var document = new PdfDocument()`.
 - [x] `processor.CreateEmptyDocument()` → removed (document created by constructor).
-- [x] `using var graphics = processor.CreateGraphics()` → removed (PXA uses PdfPage surface directly).
+- [x] `using var graphics = processor.CreateGraphics()` → removed (PVADE uses PdfPage surface directly).
 - [x] `graphics.DrawString(text, font, brush, x, y)` → deferred, emitted as `page.DrawTextFromTop(text, x, y, fontSize)` after AddPage.
 - [x] `graphics.DrawLine(pen, x1, y1, x2, y2)` → deferred, emitted as `page.DrawLine(x1, y1, x2, y2)`.
 - [x] `graphics.DrawRectangle(pen, x, y, w, h)` → deferred, emitted as `page.DrawRectangle(x, y, w, h)`.
 - [x] `processor.RenderNewPage(...)` → `var page = document.AddPage()` + all deferred draw calls repositioned after it.
 - [x] `processor.SaveDocument(path)` → `document.Save(path)`.
-- [x] All `DevExpress.*` usings removed; `using PXA.Pdf;` inserted.
+- [x] All `DevExpress.*` usings removed; `using PVAD.Pdf;` inserted.
 - [x] Existing-PDF processing (`LoadDocument`, `AppendDocument`, `DeletePage`, `InsertPage`) kept with `CANMIGDEVEXP021` warning.
 - [x] Forms, signatures, annotations, bookmarks emit `CANMIGDEVEXP022` warning.
-- [x] Encryption (`PdfEncryptionOptions`) emits dedicated `CANMIGDEVEXP024` guidance (PXA now supports it via `PdfSaveOptions.Encryption`).
+- [x] Encryption (`PdfEncryptionOptions`) emits dedicated `CANMIGDEVEXP024` guidance (PVADE now supports it via `PdfSaveOptions.Encryption`).
 - [x] Report export (`XtraReport`, `ExportToPdf`) emit `CANMIGDEVEXP020` warning.
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
 - [x] V2 preserves font size from `DXFont` when the font is passed as an identifier (pre-scan recovery; defaults to 12 only when unknown).
-- [x] V2 preserves pen colour and brush colour (mapped to PXA `strokeColor`/`FillColor`).
+- [x] V2 preserves pen colour and brush colour (mapped to PVADE `strokeColor`/`FillColor`).
 - [x] V2 handles `DrawRectangle(pen, RectangleF)` (2-arg form) when the rectangle is constructed inline.
 - [x] V2 extracts font size from `new DXFont("family", size)` constructors and font-variable declarations.
 - [x] V2 uses hybrid semantic matching (local-symbol tracking) with syntactic vendor-name fallback.
@@ -30,7 +28,7 @@
 ## V2 Hardening Plan
 
 Moves the provider from "deterministic single-page V1" to a more robust V2. Work is isolated to
-`src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs` and its test project.
+`src/Migrations/PDF/PVAD.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs` and its test project.
 
 ### 1. Multi-page fix (correctness bug)
 
@@ -43,7 +41,7 @@ Moves the provider from "deterministic single-page V1" to a more robust V2. Work
 
 ### 2. Preserve pen / brush colour
 
-PXA.Pdf supports colour: `DrawLine(..., strokeColor)`, `DrawRectangle(..., strokeColor, fillColor)`,
+PVAD.Pdf supports colour: `DrawLine(..., strokeColor)`, `DrawRectangle(..., strokeColor, fillColor)`,
 text colour via `DrawTextFromTop(text, x, topY, PdfDrawTextOptions { FillColor })`.
 
 - [x] New helper `MapDxColor(ExpressionSyntax) -> string?` (returns `null` for default black / unknown):
@@ -107,10 +105,10 @@ graphics.DrawString(...)   // draw first
 processor.RenderNewPage()  // page created after drawing
 ```
 
-PXA.Pdf requires **draw calls to come after `AddPage()`**:
+PVAD.Pdf requires **draw calls to come after `AddPage()`**:
 
 ```csharp
-// PXA order: add page → draw
+// PVADE order: add page → draw
 var page = document.AddPage();  // page first
 page.DrawTextFromTop(...)        // draw after
 ```
@@ -123,7 +121,7 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 - [x] Pre-scan phase: `FindProcessorVariable`, `FindGraphicsVariable`, `FindSaveTarget`.
 - [x] `VisitCompilationUnit` overridden (not `VisitGlobalStatement`) to allow one-to-many statement expansion when `RenderNewPage` is encountered.
 - [x] `TransformGlobal`: dispatches each `GlobalStatementSyntax` to the right transformation.
-- [x] `TryConvertDrawCall`: converts draw calls on `_graphicsVar` to PXA calls and defers them in `_deferredDrawCalls`.
+- [x] `TryConvertDrawCall`: converts draw calls on `_graphicsVar` to PVADE calls and defers them in `_deferredDrawCalls`.
 - [x] `TryExtractDxFontSize`: extracts font size from `new DXFont("family", size)` constructors.
 - [x] `IsCreationDeclaration`: matches `var x = new TypeName(...)` (handles `using var` too).
 - [x] `IsDeclarationWithCall`: matches `var x = obj.Method(...)` (used for `CreateGraphics`).
@@ -132,12 +130,12 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 
 ## Mapping Table
 
-| DevExpress PDF API / pattern | PXA.Pdf replacement | Notes |
+| DevExpress PDF API / pattern | PVAD.Pdf replacement | Notes |
 | --- | --- | --- |
-| `using DevExpress.Pdf[.*];` | *(removed)* + `using PXA.Pdf;` | All DevExpress.* namespaces stripped |
+| `using DevExpress.Pdf[.*];` | *(removed)* + `using PVAD.Pdf;` | All DevExpress.* namespaces stripped |
 | `new PdfDocumentProcessor()` | `new PdfDocument()` | `using var` keyword also handled |
 | `processor.CreateEmptyDocument()` | *(removed)* | Document created by constructor |
-| `using var graphics = processor.CreateGraphics()` | *(removed)* | PXA uses PdfPage surface directly |
+| `using var graphics = processor.CreateGraphics()` | *(removed)* | PVADE uses PdfPage surface directly |
 | `graphics.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, fontSize)` | Deferred; font size from DXFont ctor or font variable; non-black brush → `PdfDrawTextOptions { FillColor }` |
 | `graphics.DrawLine(pen, x1, y1, x2, y2)` | `page.DrawLine(x1, y1, x2, y2)` | Deferred; non-default pen → `(.., lineWidth, strokeColor)` |
 | `graphics.DrawRectangle(pen, x, y, w, h)` | `page.DrawRectangle(x, y, w, h)` | Deferred; non-default pen → `(.., lineWidth, false, strokeColor)` |
@@ -157,7 +155,7 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 | `CANMIGDEVEXP006` | Info | `DrawLine(...)` → `page.DrawLine(...)` |
 | `CANMIGDEVEXP007` | Info | `DrawRectangle(...)` → `page.DrawRectangle(...)` |
 | `CANMIGDEVEXP008` | Info | `SaveDocument(...)` → `document.Save(...)` |
-| `CANMIGDEVEXP009` | Info | Pen/brush colour mapped to PXA colour argument |
+| `CANMIGDEVEXP009` | Info | Pen/brush colour mapped to PVADE colour argument |
 | `CANMIGDEVEXP010` | Info | DevExpress encryption mapped to `PdfSaveOptions.Encryption` |
 | `CANMIGDEVEXP020` | Warning | Report export workflow requires manual migration |
 | `CANMIGDEVEXP021` | Warning | Existing-PDF processing/page editing APIs are outside v1 |
@@ -165,7 +163,7 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 | `CANMIGDEVEXP023` | Warning | `DrawRectangle(pen, RectangleF)` bounds could not be decomposed |
 | `CANMIGDEVEXP024` | Warning | Encryption present but not auto-mappable (no 2-arg `SaveDocument`) — apply `PdfSaveOptions.Encryption` manually |
 | `CANMIGDEVEXP025` | Info | `DXFont` declaration removed — font size inlined into `DrawTextFromTop` |
-| `CANMIGDEVEXP026` | Warning | `PdfPaperSize.X` has no PXA preset — defaulted to A4 (use `AddPage(width, height)`) |
+| `CANMIGDEVEXP026` | Warning | `PdfPaperSize.X` has no PVADE preset — defaulted to A4 (use `AddPage(width, height)`) |
 
 ## Unsupported / Manual Follow-Up
 
@@ -174,9 +172,9 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 - [x] `DrawRectangle(pen, RectangleF)` (2-arg form, inline rectangle — V2)
 - [ ] AcroForms, document merge/split
 - [ ] Digital signatures
-- [x] Encryption — PXA.Pdf now supports it (`PdfSaveOptions.Encryption`); migration emits `CANMIGDEVEXP024` guidance
+- [x] Encryption — PVAD.Pdf now supports it (`PdfSaveOptions.Encryption`); migration emits `CANMIGDEVEXP024` guidance
 - [ ] Printing/rendering workflows
-- [ ] Report export (XtraReport → PXA generation)
+- [ ] Report export (XtraReport → PVAD generation)
 
 ## Sample Input
 
@@ -198,10 +196,10 @@ processor.RenderNewPage(PdfPaperSize.A4, graphics);
 processor.SaveDocument(outputPath);
 ```
 
-## Expected PXA.Pdf Output
+## Expected PVAD.Pdf Output
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -212,13 +210,13 @@ page.DrawRectangle(40, 620, 200, 60);
 document.Save(outputPath);
 ```
 
-> **Note:** `DXPens.Black` maps to the PXA default stroke colour, so the short-form call is emitted.
-> Non-black pens/brushes (e.g. `DXPens.Red`, `DXColor.FromArgb(...)`) are mapped to explicit PXA
+> **Note:** `DXPens.Black` maps to the PVADE default stroke colour, so the short-form call is emitted.
+> Non-black pens/brushes (e.g. `DXPens.Red`, `DXColor.FromArgb(...)`) are mapped to explicit PVADE
 > colour arguments in V2.
 
 ## Code Fix Checklist
 
-- [x] Remove `DevExpress.*` usings, add `using PXA.Pdf;`
+- [x] Remove `DevExpress.*` usings, add `using PVAD.Pdf;`
 - [x] Replace `new PdfDocumentProcessor()` with `new PdfDocument()`
 - [x] Remove `processor.CreateEmptyDocument()`
 - [x] Remove `using var graphics = processor.CreateGraphics()`
@@ -232,15 +230,15 @@ document.Save(outputPath);
 
 ## Tests Checklist
 
-- [x] Basic generation workflow → PXA code (PdfDocument, AddPage, DrawTextFromTop, Save)
-- [x] Line and rectangle drawing → PXA DrawLine/DrawRectangle
+- [x] Basic generation workflow → PVADE code (PdfDocument, AddPage, DrawTextFromTop, Save)
+- [x] Line and rectangle drawing → PVADE DrawLine/DrawRectangle
 - [x] Draw calls repositioned after AddPage (ordering assertion)
 - [x] Existing-PDF processing → CANMIGDEVEXP021 warning
 - [x] Forms/signatures/encryption → CANMIGDEVEXP022 warning
 - [x] Report export workflow → CANMIGDEVEXP020 warning
 - [x] WebApi migration-service smoke test
 - [x] Multi-page sample (multiple RenderNewPage calls)
-- [x] Named pen colour → PXA colour argument + CANMIGDEVEXP009
+- [x] Named pen colour → PVADE colour argument + CANMIGDEVEXP009
 - [x] Default black colour keeps short-form call (regression guard)
 - [x] `DXColor.FromArgb(...)` → `PdfColor.FromRgb(...)`
 - [x] Brush on `DrawString` → `PdfDrawTextOptions { FillColor }`

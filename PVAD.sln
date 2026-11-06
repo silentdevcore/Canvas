@@ -239,6 +239,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pdf-parser-fuzzer", "pdf-pa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVAD.PdfParserFuzzer", "tools\pdf-parser-fuzzer\PVAD.PdfParserFuzzer.csproj", "{23C37F69-A872-44D9-A50E-5E913E210CDD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity-browser-rehearsal", "identity-browser-rehearsal", "{1C0DB564-B3BB-D80F-1BB6-51D72F15A67E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVAD.IdentityBrowserRehearsal", "tools\identity-browser-rehearsal\PVAD.IdentityBrowserRehearsal.csproj", "{72FF519B-3BA6-4056-A79A-01583D9BB043}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1581,6 +1585,18 @@ Global
 		{23C37F69-A872-44D9-A50E-5E913E210CDD}.Release|x64.Build.0 = Release|Any CPU
 		{23C37F69-A872-44D9-A50E-5E913E210CDD}.Release|x86.ActiveCfg = Release|Any CPU
 		{23C37F69-A872-44D9-A50E-5E913E210CDD}.Release|x86.Build.0 = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|x64.Build.0 = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Debug|x86.Build.0 = Debug|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|x64.ActiveCfg = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|x64.Build.0 = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|x86.ActiveCfg = Release|Any CPU
+		{72FF519B-3BA6-4056-A79A-01583D9BB043}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1699,5 +1715,7 @@ Global
 		{606E5D5F-E87D-40BB-B7A0-B980DF3D4447} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{7A185A0A-7E98-613C-DD10-99686132BDAF} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{23C37F69-A872-44D9-A50E-5E913E210CDD} = {7A185A0A-7E98-613C-DD10-99686132BDAF}
+		{1C0DB564-B3BB-D80F-1BB6-51D72F15A67E} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{72FF519B-3BA6-4056-A79A-01583D9BB043} = {1C0DB564-B3BB-D80F-1BB6-51D72F15A67E}
 	EndGlobalSection
 EndGlobal

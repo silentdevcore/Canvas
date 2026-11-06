@@ -45,4 +45,14 @@ describe('chart definition model', () => {
     expect(legacy.labels).toEqual(chart.categories);
     expect(legacy.datasets).toHaveLength(2);
   });
+
+  test.each(['pxaMetadata', 'pvadMetadata'] as const)('canonicalizes %s without modifying the source definition', sourceKind => {
+    const chart = normalizeChartDefinition(createDefaultChartDefinition());
+    chart.recognition = { status: 'automatic', confidence: 1, sourceKind };
+    const normalized = normalizeChartDefinition(chart);
+    expect(normalized.recognition?.sourceKind).toBe('pvadMetadata');
+    expect(chart.recognition.sourceKind).toBe(sourceKind);
+    expect(normalized.series).toEqual(chart.series);
+    expect(normalizeChartDefinition(normalized)).toEqual(normalized);
+  });
 });

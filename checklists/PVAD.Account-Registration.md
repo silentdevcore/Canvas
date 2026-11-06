@@ -1,14 +1,12 @@
-# PXA Account Registration Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Account Registration Checklist
 
 ## Goal
 
-Provide one secure customer-registration flow exclusively through PXA Account. Registration creates the correct organization ownership model, verifies the email address, activates one 30-day Premium Trial, and safely returns eligible users to the requested PXA product.
+Provide one secure customer-registration flow exclusively through PVAD Account. Registration creates the correct organization ownership model, verifies the email address, activates one 30-day Premium Trial, and safely returns eligible users to the requested PVADE product.
 
 ## Priorities
 
-- [x] P0: Keep all customer registration UI on PXA Account.
+- [x] P0: Keep all customer registration UI on PVADE Account.
 - [x] P0: Complete secure Individual Developer and Company registration.
 - [x] P0: Require email verification before authentication and Trial activation.
 - [x] P0: Integrate safe Designer return and authorization-code handoff.
@@ -21,14 +19,14 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Use `PVAD.Designer-Authentication.md` for post-login Designer handoff.
 - [x] Use `PVAD.Subscription-Licensing.md` for Trial and entitlement definitions.
 - [x] Use `PVAD.Mail-Service.md` for verification and security mail delivery.
-- [x] Keep PXA Admin registration and administrator bootstrap outside this customer flow.
+- [x] Keep PVADE Admin registration and administrator bootstrap outside this customer flow.
 
 ## Account-Only Entry Points
 
-- [x] Keep the registration page at `PXA.Account/register`.
-- [x] Do not add registration forms to PXA Company, Designer, Documentation, Demo, or Admin.
-- [x] Make Company Trial and registration calls to action link to PXA Account.
-- [x] Make Designer registration links point to PXA Account.
+- [x] Keep the registration page at `PVAD.Account/register`.
+- [x] Do not add registration forms to PVADE Company, Designer, Documentation, Demo, or Admin.
+- [x] Make Company Trial and registration calls to action link to PVADE Account.
+- [x] Make Designer registration links point to PVADE Account.
 - [x] Preserve allowlisted campaign parameters across the Account redirect.
 - [x] Preserve only an allowlisted absolute `returnUrl`.
 - [x] Reject external, protocol-relative, non-HTTP(S), Admin, and malformed return destinations.
@@ -87,20 +85,20 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Create the Trial subscription and effective product entitlements atomically.
 - [x] Prevent Trial duplication through token replay, resend, invitation, or concurrent requests.
 - [x] Do not hard-code Designer access by edition; expose it through the resulting entitlement set.
-- [x] Direct the verified user to PXA Account login with only a safe preserved destination.
+- [x] Direct the verified user to PVAD Account login with only a safe preserved destination.
 
 ## Login And Product Return
 
-- [x] Keep login credentials exclusively on PXA Account.
+- [x] Keep login credentials exclusively on PVADE Account.
 - [x] Preserve a safe Designer destination through registration, verification, and login.
-- [x] Create a Designer authorization-code handoff after login when the validated target is PXA Designer.
-- [x] Return directly to other allowlisted PXA surfaces only according to their authentication contract.
+- [x] Create a Designer authorization-code handoff after login when the validated target is PVADE Designer.
+- [x] Return directly to other allowlisted PVADE surfaces only according to their authentication contract.
 - [x] Fall back to the Account dashboard when the destination is missing or invalid.
 - [x] Show verification-required, expired-link, already-used, suspended, and service-unavailable states without leaking account existence.
 
 ## Invitation Acceptance
 
-- [x] Route invitation acceptance through PXA Account.
+- [x] Route invitation acceptance through PVADE Account.
 - [x] Allow an existing user to authenticate before accepting an invitation.
 - [x] Allow a new invited user to set credentials and verify ownership through the invitation flow.
 - [x] Add the user only to the inviting organization.
@@ -142,7 +140,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 
 ## Acceptance Criteria
 
-- [x] Customer registration is available only through the PXA Account user interface.
+- [x] Customer registration is available only through the PVADE Account user interface.
 - [x] Both account types create the correct organization and owner role.
 - [x] No user can sign in before email verification.
 - [x] Verification creates exactly one 30-day Premium Trial and its entitlements.

@@ -1,11 +1,9 @@
-# PXA Migration: Spire.PDF
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Migration: Spire.PDF
 
 ## V1 Pilot Analysis
 
 - [x] Spire.PDF is a good fit for simple generation flows: document, page, canvas text, shapes, and save.
-- [x] `PdfDocument` collides with PXA.Pdf, so migration removes Spire usings and introduces `using PXA.Pdf`.
+- [x] `PdfDocument` collides with PVAD.Pdf, so migration removes Spire usings and introduces `using PVAD.Pdf`.
 - [x] Direct `page.Canvas.DrawString(...)`, `DrawLine(...)`, and `DrawRectangle(...)` are deterministic enough for v1.
 - [x] Images, tables, forms, security, attachments, extraction/conversion, and existing-PDF editing remain manual in v1.
 
@@ -31,8 +29,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Spire`
-- [x] Add `tests/PXA.Migration.Pdf.Code.Spire.Tests`
+- [x] Add `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Spire`
+- [x] Add `tests/PVAD.Migration.Pdf.Code.Spire.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Rewrite deterministic document/page/text/line/rectangle/save patterns
@@ -40,9 +38,9 @@
 
 ## Mapping Table
 
-| Spire.PDF API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| Spire.PDF API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new PdfDocument()` | `new PXA.Pdf.PdfDocument()` | Code fix in v1 | Removes Spire usings to resolve type conflict. |
+| `new PdfDocument()` | `new PVAD.Pdf.PdfDocument()` | Code fix in v1 | Removes Spire usings to resolve type conflict. |
 | `document.Pages.Add(...)` | `document.AddPage()` | Code fix in v1 | Page size overloads need future mapping. |
 | `page.Canvas.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, fontSize)` | Code fix in v1 | Extracts simple literal text and simple font size. |
 | `page.Canvas.DrawString(text, font, brush, new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, fontSize)` | Code fix in v1 | Direct `PointF` only. |
@@ -90,10 +88,10 @@ page.Canvas.DrawRectangle(pen, 40, 620, 200, 80);
 document.SaveToFile(path);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -119,10 +117,10 @@ document.Save(path);
 - [x] Replace simple draw string calls
 - [x] Replace line/rectangle calls
 - [x] Replace save calls
-- [x] Add `using PXA.Pdf`
+- [x] Add `using PVAD.Pdf`
 - [x] Remove Spire usings
 - [ ] Convert image drawing after resource mapping is defined
-- [ ] Convert table/form/security APIs only after PXA equivalents exist
+- [ ] Convert table/form/security APIs only after PVAD equivalents exist
 
 ## Tests Checklist
 

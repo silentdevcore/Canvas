@@ -108,7 +108,7 @@ public sealed class PdfEncryptionTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Recipient",
+            "CN=PVAD Recipient",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

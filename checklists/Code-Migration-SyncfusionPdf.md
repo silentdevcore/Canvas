@@ -1,6 +1,7 @@
-# PXA Migration: Syncfusion PDF
+# PVAD Migration: Syncfusion PDF
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+Recorded outcomes remain historical. Current project names in rerun references
+do not claim that the checks were newly executed; original commands are in Git.
 
 ## V1 Pilot Analysis
 
@@ -10,8 +11,8 @@
 - [x] WebApi conversion uses the same Roslyn migration engine as the tests.
 - [x] WebApi conversion returns summary counts for converted, warning, error, and total diagnostics.
 - [x] Realistic invoice-style fixture validates the end-to-end migration shape.
-- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.Syncfusion.Tests/PXA.Migration.Pdf.Code.Syncfusion.Tests.csproj --no-restore --no-build`: `20/20` passed.
-- [x] Verified with `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore`.
+- [x] Recorded result: `20/20` passed. Current rerun reference: `dotnet test tests/PVAD.Migration.Pdf.Code.Syncfusion.Tests/PVAD.Migration.Pdf.Code.Syncfusion.Tests.csproj --no-restore --no-build`.
+- [x] Recorded build check: successful. Current rerun reference: `dotnet build PVAD.WebApi/PVAD.WebApi.csproj --no-restore`.
 - [ ] Semantic symbol matching remains a post-v1 hardening task.
 - [ ] Real analyzer/codefix packaging remains a post-v1 IDE integration task.
 - [ ] Visual PDF fixture comparison remains a post-v1 quality gate.
@@ -49,15 +50,15 @@
 - [x] Convert standard Helvetica/Times/Courier fonts where explicit
 - [x] Convert common predefined brushes and simple solid RGB brushes
 - [x] Convert simple `document.Save(pathOrStream)` calls
-- [ ] Defer grid/table migration until PXA table mapping is reviewed
+- [ ] Defer grid/table migration until PVAD table mapping is reviewed
 - [ ] Defer existing-PDF processing, forms, security, and PDF/A
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Migrations/Common/PXA.Migration.Abstractions`
-- [x] Add `src/Migrations/Common/PXA.Migration.Roslyn`
-- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Syncfusion`
-- [x] Add `tests/PXA.Migration.Pdf.Code.Syncfusion.Tests`
+- [x] Add `src/Migrations/Common/PVAD.Migration.Abstractions`
+- [x] Add `src/Migrations/Common/PVAD.Migration.Roslyn`
+- [x] Add `src/Migrations/PDF/PVAD.Migration.Pdf.Code.Syncfusion`
+- [x] Add `tests/PVAD.Migration.Pdf.Code.Syncfusion.Tests`
 - [x] Implement first source migration entry point: `SyncfusionPdfMigration`
 - [x] Convert Hello World sample end to end
 - [x] Emit `CANMIGSYNC001`, `CANMIGSYNC002`, and `CANMIGSYNC003` diagnostics
@@ -71,18 +72,18 @@
 
 ## Mapping Rules
 
-| Syncfusion API / pattern | PXA.Pdf replacement | Migration mode | Notes |
+| Syncfusion API / pattern | PVAD.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new Syncfusion.Pdf.PdfDocument()` | `new PXA.Pdf.PdfDocument()` | Code fix candidate | Prefer fully qualified replacement when both APIs use `PdfDocument` |
-| `using var document = new PdfDocument();` | `var document = new PXA.Pdf.PdfDocument();` | Code fix candidate | PXA `PdfDocument` is not disposable |
-| `document.Pages.Add()` | `document.AddPage()` | Code fix candidate | PXA default page is A4, same migration default for v1 |
+| `new Syncfusion.Pdf.PdfDocument()` | `new PVAD.Pdf.PdfDocument()` | Code fix candidate | Prefer fully qualified replacement when both APIs use `PdfDocument` |
+| `using var document = new PdfDocument();` | `var document = new PVAD.Pdf.PdfDocument();` | Code fix candidate | PVADE `PdfDocument` is not disposable |
+| `document.Pages.Add()` | `document.AddPage()` | Code fix candidate | PVADE default page is A4, same migration default for v1 |
 | `var graphics = page.Graphics;` | Remove or inline `page` | Code fix candidate | Only remove when all uses are migrated |
-| `page.Graphics.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, options)` | Code fix candidate | Uses PXA top-left migration adapter |
+| `page.Graphics.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, options)` | Code fix candidate | Uses PVADE top-left migration adapter |
 | `graphics.DrawString(text, font, brush, new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, options)` | Code fix candidate | Supports `Syncfusion.Drawing.PointF` and `System.Drawing.PointF` |
 | `graphics.DrawString(text, font, brush, new RectangleF(x, y, w, h))` | `page.DrawTextBoxFromTop(text, x, y, w, h, options)` | Code fix candidate | Maps wrapping plus basic horizontal/vertical alignment |
 | `graphics.DrawLine(pen, x1, y1, x2, y2)` | `page.DrawLineFromTop(x1, y1, x2, y2, lineWidth, color)` | Code fix candidate | Maps top-left endpoints |
-| `graphics.DrawRectangle(pen, x, y, w, h)` | `page.DrawRectangleFromTop(x, y, w, h, lineWidth, ...)` | Code fix candidate | Maps top-left box to PXA bottom-left rectangle |
-| `graphics.DrawRectangle(brush, x, y, w, h)` | `page.DrawRectangleFromTop(x, y, w, h, fill: true, fillColor: color)` | Code fix candidate | Fill-only Syncfusion call maps to filled PXA rectangle |
+| `graphics.DrawRectangle(pen, x, y, w, h)` | `page.DrawRectangleFromTop(x, y, w, h, lineWidth, ...)` | Code fix candidate | Maps top-left box to PVADE bottom-left rectangle |
+| `graphics.DrawRectangle(brush, x, y, w, h)` | `page.DrawRectangleFromTop(x, y, w, h, fill: true, fillColor: color)` | Code fix candidate | Fill-only Syncfusion call maps to filled PVADE rectangle |
 | `graphics.DrawImage(image, x, y)` | `page.DrawImageFromTop(imagePath, x, y)` | Manual/code fix candidate | Needs source image path or byte mapping strategy |
 | `graphics.DrawImage(image, x, y, w, h)` | `page.DrawImageFromTop(imagePath, x, y, w, h)` | Manual/code fix candidate | Needs source image path or byte mapping strategy |
 | `graphics.DrawImage(PdfImage.FromFile(path), x, y, w, h)` | `page.DrawImageFromTop(path, x, y, w, h)` | Code fix candidate | Direct file path mapping |
@@ -97,27 +98,27 @@
 | `new PdfPen(Color.FromArgb(r, g, b), width)` | `strokeColor: PdfColor.FromRgb(r, g, b), lineWidth: width` | Code fix candidate | Only for simple pen usages |
 | `document.Save(path)` | `document.Save(path)` | Code fix candidate | Safe after target document variable is migrated |
 | `document.Save(stream)` | `document.Save(stream)` | Code fix candidate | Safe after target document variable is migrated |
-| `document.Close(true)` | Remove | Code fix candidate | PXA save handles writing; no close call exists |
+| `document.Close(true)` | Remove | Code fix candidate | PVADE save handles writing; no close call exists |
 
 ## Coordinate Policy
 
 - [x] Assume Syncfusion drawing coordinates use a top-left page origin in common graphics samples
 - [x] Convert text Y with `canvasY = page.Height - syncfusionY - fontSize`
 - [x] Keep X unchanged
-- [x] Add `PdfPage.DrawTextFromTop(...)` and `PdfPage.DrawParagraphFromTop(...)` as migration-friendly PXA adapters
+- [x] Add `PdfPage.DrawTextFromTop(...)` and `PdfPage.DrawParagraphFromTop(...)` as migration-friendly PVADE adapters
 - [x] Add `PdfPage.DrawTextBoxFromTop(...)` for `RectangleF` text migration
 - [x] Add `PdfPage.DrawLineFromTop(...)`, `DrawRectangleFromTop(...)`, `DrawRoundedRectangleFromTop(...)`, `DrawCircleFromTop(...)`, and `DrawImageFromTop(...)`
 - [x] Add `DrawImage(...)` and `DrawImageFromTop(...)` overloads for `byte[]` and `Stream`
 - [x] Add `PdfColor.FromRgb(...)` for `Color.FromArgb(r, g, b)` migration
 - [x] Add a migration diagnostic when font size cannot be resolved at migration time
-- [x] Use the new PXA top-left coordinate adapter in generated migration output
+- [x] Use the new PVADE top-left coordinate adapter in generated migration output
 - [ ] Verify output visually with a fixture PDF after the first codefix prototype
 
 ## Diagnostic IDs
 
 | ID | Severity | Meaning | Code fix |
 | --- | --- | --- | --- |
-| `CANMIGSYNC001` | Info | Syncfusion PDF document creation can migrate to `PXA.Pdf.PdfDocument` | Yes |
+| `CANMIGSYNC001` | Info | Syncfusion PDF document creation can migrate to `PVAD.Pdf.PdfDocument` | Yes |
 | `CANMIGSYNC002` | Info | Syncfusion page creation can migrate to `document.AddPage()` | Yes |
 | `CANMIGSYNC003` | Info | Simple `DrawString` can migrate to `page.DrawText(...)` | Yes |
 | `CANMIGSYNC004` | Warning | `DrawString` uses rectangle layout or string format requiring manual layout review | Partial/manual |
@@ -140,8 +141,8 @@
 - [x] `MigrationDiagnostic`: provider diagnostic id, severity, message, manual guidance
 - [ ] `CodeFixStrategy`: deterministic syntax rewrite
 - [x] `MigrationReport`: converted nodes, unsupported nodes, manual follow-up notes
-- [ ] `CoordinateTransform`: provider coordinate system to PXA coordinate system
-- [ ] `SymbolMap`: vendor type/member symbol to PXA target symbol
+- [ ] `CoordinateTransform`: provider coordinate system to PVAD coordinate system
+- [ ] `SymbolMap`: vendor type/member symbol to PVAD target symbol
 
 ## Unsupported / Manual Follow-Up
 
@@ -217,12 +218,12 @@ page.Graphics.DrawImage(new PdfBitmap(imageStream), 140, 200, 80, 40);
 document.Save(path);
 ```
 
-## Expected PXA.Pdf Output Snippets
+## Expected PVAD.Pdf Output Snippets
 
 ### Basic Document And Text
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -233,7 +234,7 @@ document.Save(path);
 ### Graphics Variable
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -250,7 +251,7 @@ document.Save(stream);
 ### Manual Layout Case
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -268,7 +269,7 @@ document.Save(path);
 ### Shapes And Image
 
 ```csharp
-using PXA.Pdf;
+using PVAD.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -307,7 +308,7 @@ document.Save(path);
 - [x] Replace `new PdfBitmap(stream)` image draw calls
 - [x] Replace `PdfSolidBrush(Color.FromArgb(...))` in simple fill calls
 - [x] Replace `PdfPen(Color.FromArgb(...), width)` in simple stroke calls
-- [x] Add `using PXA.Pdf`
+- [x] Add `using PVAD.Pdf`
 - [x] Convert obvious colors/fonts
 - [x] Remove `document.Close(true)` after save when the target is migrated
 - [ ] Remove unused Syncfusion `using` directives only when semantic analysis confirms no remaining Syncfusion symbols
@@ -321,7 +322,7 @@ document.Save(path);
 - [x] Unsupported grid diagnostic sample
 - [x] Snapshot before/after migration sample
 - [x] Realistic invoice-style end-to-end fixture
-- [x] `using var PdfDocument` becomes non-disposable PXA document
+- [x] `using var PdfDocument` becomes non-disposable PVADE document
 - [x] `page.Graphics.DrawString(...)` migrates without explicit graphics variable
 - [x] `PdfGraphics graphics = page.Graphics` migrates when all graphics calls are supported
 - [x] `RectangleF` `DrawString` migrates to `DrawTextBoxFromTop`
@@ -331,7 +332,7 @@ document.Save(path);
 - [x] Simple `DrawRectangle` maps to `DrawRectangleFromTop`
 - [x] Simple image drawing maps to `DrawImageFromTop` when image path or stream is known
 - [x] Simple image drawing maps to `DrawImageFromTop` when byte source is known
-- [ ] `PdfBrushes.Black/Red/Green/Blue` map to PXA colors
+- [ ] `PdfBrushes.Black/Red/Green/Blue` map to PVAD colors
 - [x] `PdfSolidBrush(Color.FromArgb(...))` maps to `PdfColor.FromRgb(...)` for integer RGB
 - [x] Simple `PdfPen(Color.FromArgb(...), width)` maps to `PdfColor.FromRgb(...)` plus line width
 - [x] Rectangle/string-format `DrawString` emits `CANMIGSYNC004`

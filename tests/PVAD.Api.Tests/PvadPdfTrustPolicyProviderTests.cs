@@ -65,7 +65,7 @@ public sealed class PvadPdfTrustPolicyProviderTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA Trust Anchor Test",
+            "CN=PVAD Trust Anchor Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

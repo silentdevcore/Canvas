@@ -5,7 +5,7 @@ import test from 'node:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
-import { createExample, findElement } from './content.js';
+import { createExample, findElement, PvadMcpContentRepository } from './content.js';
 import { createPvadMcpServer, type PvadMcpServerOptions } from './server.js';
 
 async function withClient(
@@ -27,6 +27,9 @@ async function withClient(
 test('canonical resources and deprecated resource aliases remain readable', async () => {
   await withClient({}, async (client) => {
     const resources = (await client.listResources()).resources;
+    assert.equal(resources.length, 10);
+    assert.ok(resources.every(resource => !/pxa|power\s?dox/i.test(resource.title ?? '')));
+    assert.ok(resources.every(resource => !/pxa|power\s?dox/i.test(resource.description ?? '')));
     for (const uri of [
       'pvad://schema/design-export', 'pvad://schema/pvad-workbook', 'pvad://openapi',
       'pvad://docs/llms-full', 'pvad://docs/cookbook',
@@ -37,6 +40,28 @@ test('canonical resources and deprecated resource aliases remain readable', asyn
       const result = await client.readResource({ uri });
       assert.ok(result.contents.some((item) => 'text' in item && item.text.length > 0), uri);
     }
+  });
+});
+
+test('resource display names are canonical while aliases return the exact original schema content', async () => {
+  const content = new PvadMcpContentRepository();
+  await withClient({}, async client => {
+    const listed = (await client.listResources()).resources;
+    for (const [uri, path] of [
+      ['pvad://schema/pvad-workbook', 'docs/schema/pvad-workbook.schema.json'],
+      ['pxa://schema/pxa-workbook', 'docs/schema/pxa-workbook.schema.json'],
+      ['pvad://openapi', 'docs/schema/openapi.json'],
+      ['pxa://openapi', 'docs/schema/openapi.json'],
+    ]) {
+      const resource = listed.find(value => value.uri === uri)!;
+      assert.ok(resource);
+      const result = await client.readResource({ uri });
+      const entry = result.contents[0];
+      assert.equal('text' in entry ? entry.text : undefined, content.read(path));
+      if (uri.startsWith('pxa:')) assert.match(resource.description ?? '', /Deprecated compatibility resource/);
+    }
+    for (const uri of ['pvad://docs/llms-full', 'pxa://docs/llms-full'])
+      assert.equal(listed.find(value => value.uri === uri)?.title, 'PVADE AI reference');
   });
 });
 
@@ -98,7 +123,7 @@ test('render preview rejects a successful non-PDF response', async () => {
   });
 });
 
-test('read-only capability tools return validated PXA WebApi metadata', async () => {
+test('read-only capability tools return validated PVAD WebApi metadata', async () => {
   const fakeFetch = (async (input) => {
     const url = String(input);
     if (url.endsWith('/api/export/formats')) {

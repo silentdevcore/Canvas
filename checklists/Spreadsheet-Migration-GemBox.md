@@ -1,19 +1,17 @@
 # Spreadsheet Migration — GemBox.Spreadsheet
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
-Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → PXA spreadsheet API (`PxaWorkbook`).
+Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → PVAD spreadsheet API (`PvadWorkbook`).
 GemBox cell indexes are **already 0-based** (no shift), bold is `Font.Weight = BoldWeight`, and a
 `SpreadsheetInfo.SetLicense(...)` call is dropped.
 
-- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.GemBox/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
-- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.GemBox.Tests/` (2, green).
+- **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.GemBox/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
+- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.GemBox.Tests/` (2, green).
 
 ## API mapping
-| GemBox.Spreadsheet | PXA |
+| GemBox.Spreadsheet | PVADE |
 |---|---|
 | `SpreadsheetInfo.SetLicense(...)` | (removed) |
-| `new ExcelFile()` | `new PxaWorkbook()` |
+| `new ExcelFile()` | `new PvadWorkbook()` |
 | `wb.Worksheets.Add("S")` | `wb.AddSheet("S")` |
 | `ws.Cells["A1"]` / `ws.Cells[0,1]` (0-based) | `ws.Cell("A1")` / `ws.Cell(0,1)` |
 | `ws.Cells["A1"].Value = v` | `ws.Cell("A1").Value(v)` |

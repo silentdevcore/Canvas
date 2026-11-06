@@ -43,8 +43,25 @@ test('offline candidate changes image producers/consumers together and preserves
     const consumer = steps.find(step => step.run?.includes(`docker pull ghcr.io/\${{ env.PVAD_CONTAINER_PUBLISHER }}/pvad-${component}:`));
     assert.ok(consumer);
   }
-  assert.deepEqual(result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity.options, ['PXA', 'PVAD']);
-  assert.equal(result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity.default, 'PXA');
+  assert.deepEqual(result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity.options, ['PVAD', 'PXA']);
+  assert.equal(result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity.default, 'PVAD');
+});
+
+test('workflow preparation accepts the historical choice contract but writes the canonical default idempotently', () => {
+  const deployment = read('deployment-validation');
+  const identity = deployment.on.workflow_dispatch.inputs.container_identity;
+  identity.default = 'PXA';
+  identity.options = ['PXA', 'PVAD'];
+  const before = JSON.stringify(deployment);
+  const result = prepareContainerWorkflows(read('release'), deployment);
+  assert.equal(JSON.stringify(deployment), before);
+  const canonical = result.deploymentWorkflow.on.workflow_dispatch.inputs.container_identity;
+  assert.equal(canonical.default, 'PVAD');
+  assert.deepEqual(canonical.options, ['PVAD', 'PXA']);
+  assert.deepEqual(prepareContainerWorkflows(result.releaseWorkflow, result.deploymentWorkflow).deploymentWorkflow,
+    result.deploymentWorkflow);
+  identity.default = 'unknown';
+  assert.throws(() => prepareContainerWorkflows(read('release'), deployment), /Unexpected image-family input/);
 });
 
 test('candidate inspection shell selects exact immutable families without invoking a real registry', () => {

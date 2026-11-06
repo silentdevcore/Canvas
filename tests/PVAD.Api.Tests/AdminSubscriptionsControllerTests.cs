@@ -29,7 +29,7 @@ public sealed class AdminSubscriptionsControllerTests
         using var factory = CreateFactory(postgres.GetConnectionString());
         var seeded = await SeedAsync(factory.Services);
         using var systemClient = CreateClient(factory);
-        await LoginAsync(systemClient, "system@pxa.test", "Pxa-System-Subscription-42!");
+        await LoginAsync(systemClient, "system@pvad.test", "Pvad-System-Subscription-42!");
 
         using var create = CreateCsrfRequest(HttpMethod.Post, "/api/pvad/v1/admin/subscriptions",
             await GetCsrfAsync(systemClient), new
@@ -83,7 +83,7 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(updateEntitlements)).StatusCode);
 
         using var organizationClient = CreateClient(factory);
-        await LoginAsync(organizationClient, "organization@pxa.test", "Pxa-Organization-Subscription-42!");
+        await LoginAsync(organizationClient, "organization@pvad.test", "Pvad-Organization-Subscription-42!");
         using var createServiceAccount = CreateCsrfRequest(HttpMethod.Post,
             "/api/pvad/v1/admin/service-accounts", await GetCsrfAsync(organizationClient),
             new { name = "Integration SDK" });
@@ -414,7 +414,7 @@ public sealed class AdminSubscriptionsControllerTests
                     ["ConnectionStrings:PxaDatabase"] = connectionString,
                     ["ProductAccess:Enabled"] = "true",
                     ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
-                    ["AdminSecurity:SystemOperatorEmails:0"] = "system@pxa.test",
+                    ["AdminSecurity:SystemOperatorEmails:0"] = "system@pvad.test",
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
                 }));
@@ -446,8 +446,8 @@ public sealed class AdminSubscriptionsControllerTests
         var organization = new Organization { Name = "Subscription Tenant", Slug = "subscription-tenant" };
         dbContext.Organizations.Add(organization);
         await dbContext.SaveChangesAsync();
-        var system = await CreateUser(userManager, "system@pxa.test", "System", "Pxa-System-Subscription-42!");
-        var organizationAdmin = await CreateUser(userManager, "organization@pxa.test", "Organization", "Pxa-Organization-Subscription-42!");
+        var system = await CreateUser(userManager, "system@pvad.test", "System", "Pvad-System-Subscription-42!");
+        var organizationAdmin = await CreateUser(userManager, "organization@pvad.test", "Organization", "Pvad-Organization-Subscription-42!");
         Assert.True((await userManager.AddToRoleAsync(system, PvadRoles.SystemAdministrator)).Succeeded);
         var systemMembership = new OrganizationMembership { OrganizationId = organization.Id, UserId = system.Id };
         var adminMembership = new OrganizationMembership { OrganizationId = organization.Id, UserId = organizationAdmin.Id };

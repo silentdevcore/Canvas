@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-visible-branding",
+  "impact": "patch",
+  "components": ["designer", "account", "admin", "company", "documentation"],
+  "category": "fixed",
+  "summary": "Show consistent PVADE branding and PVAD diagnostic display aliases across applications, release history and current guides while preserving established integrations and original records.",
+  "breaking": false
+}

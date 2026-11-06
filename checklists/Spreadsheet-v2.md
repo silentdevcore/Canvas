@@ -1,7 +1,5 @@
 # Spreadsheet v2 — editing essentials
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Makes the Spreadsheet Editor ([Spreadsheet-SDK.md](Spreadsheet-SDK.md)) feel like a real spreadsheet:
 full cell formatting, row/column ops, clipboard, number-format display, merge/freeze, a selection status
 bar, and a backend bridge to embed a sheet into a document/PDF.
@@ -61,12 +59,12 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
       backend round-trip test).
 
 ## #7 — Backend: spreadsheet → document / PDF bridge — DONE
-- [x] `SpreadsheetToDesignConverter` maps a `SheetDto` → a PXA `table` `ElementDto` (CellData from the
+- [x] `SpreadsheetToDesignConverter` maps a `SheetDto` → a PVADE `table` `ElementDto` (CellData from the
       computed values, per-cell `CellStyles`, `ColumnWidths` char-units→points) inside a `DesignExportDto`.
       Endpoint `POST /api/spreadsheet/to-design?sheet=0`; registered in `Program.cs`. A sheet can now be
       embedded in a PDF/Word/HTML document via the standard exporters. Test: `ToDesign_MapsSheetToTableElement`
       (formula's cached value + bold style + width carried through). Solution builds clean.
-      *(Direct sheet→PDF via `PXA.Pdf` is covered transitively: to-design → `/api/export?format=pdf`.)*
+      *(Direct sheet→PDF via `PVAD.Pdf` is covered transitively: to-design → `/api/export?format=pdf`.)*
 
 ## Verification
 - Frontend: `tsc --noEmit` + `jest` (formatting/range/rows-cols/clipboard/number-format) green; vite build green.

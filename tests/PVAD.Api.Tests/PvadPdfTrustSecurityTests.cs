@@ -12,6 +12,16 @@ namespace PVAD.Api.Tests;
 
 public sealed class PvadPdfTrustSecurityTests
 {
+    [Fact]
+    public void Step_up_policy_names_use_the_canonical_technical_identity()
+    {
+        Assert.Equal("pvad.security.recent-authentication", PvadSecurityPolicies.RecentAuthentication);
+        Assert.Equal("pvad.pdf.signatures.organization-sign", PvadSecurityPolicies.OrganizationPdfSigning);
+        Assert.Equal("pvad.pdf.redactions.apply", PvadSecurityPolicies.AppliedPdfRedaction);
+        Assert.Equal("pvad.pdf.trust-policies.manage", PvadSecurityPolicies.PdfTrustPolicyManagement);
+        Assert.Equal("pvad.pdf.key-providers.manage", PvadSecurityPolicies.PdfKeyProviderManagement);
+    }
+
     [Theory]
     [InlineData("/api/pvad/v1/pdf/trust/inspect", PvadPdfTrustCapabilities.Inspection)]
     [InlineData("/api/pvad/v1/pdf/signatures/sign", PvadPdfTrustCapabilities.Signing)]

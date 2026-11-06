@@ -261,7 +261,7 @@ public sealed class PdfSignaturesControllerTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA API Signing Test",
+            "CN=PVAD API Signing Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

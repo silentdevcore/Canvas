@@ -1,4 +1,4 @@
-# PXA PAdES Negative Trust Corpus
+# PVAD PAdES Negative Trust Corpus
 
 This directory contains synthetic failure cases for PAdES validation. EU Digital
 Signature Services 6.4 evaluated every file in a container with network access

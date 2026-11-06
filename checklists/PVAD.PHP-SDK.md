@@ -1,6 +1,4 @@
-# PXA PHP SDK Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD PHP SDK Checklist
 
 ## Goal
 
@@ -10,12 +8,12 @@ Deliver a framework-independent PHP SDK for web applications, background workers
 
 - [ ] P2: Start after the primary SDK releases are stable.
 - [ ] Complete the shared contract work in `PVAD.SDK-Roadmap.md` first.
-- [ ] Reserve the `powerdox/pxa` package name on Packagist.
+- [ ] Select and verify a Packagist vendor and reserve its proposed `pvad` package; no vendor ownership is assumed.
 
 ## Package And Runtime
 
 - [ ] Support PHP 8.2 or newer.
-- [ ] Publish `powerdox/pxa` through Composer and Packagist.
+- [ ] Publish the `pvad` package through Composer and Packagist under the verified vendor; record the final vendor/package name before implementation.
 - [ ] Generate the internal transport and model layer from OpenAPI.
 - [ ] Use PSR-18 HTTP clients, PSR-7 messages, and PSR-17 factories.
 - [ ] Expose handwritten PDF, Spreadsheet, Templates, Migration, Import, and Export clients.
@@ -39,11 +37,11 @@ Deliver a framework-independent PHP SDK for web applications, background workers
 
 - [ ] Test all supported PHP versions.
 - [ ] Test with at least two compatible PSR-18 client implementations.
-- [ ] Run integration tests against the PXA Server container.
+- [ ] Run integration tests against the PVAD Server container.
 - [ ] Test large streams, timeouts, authentication, and structured errors.
 
 ## Acceptance Criteria
 
 - [ ] Customers install one Composer package and choose their PSR-18 transport.
 - [ ] The SDK remains framework-independent.
-- [ ] Cloud and local PXA Server use the same public client API.
+- [ ] Cloud and local PVAD Server use the same public client API.

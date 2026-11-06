@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pvad-monitoring-cutover-inventory",
+  "impact": "patch",
+  "components": ["observability", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Monitoring rename preparation now checks dashboard, datasource and alert references and records source checksums without changing the running stack.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

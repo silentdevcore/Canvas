@@ -1,12 +1,10 @@
-# PXA Web Design System Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Web Design System Checklist
 
 ## Ziel
-Ein gemeinsames Layout- und Design-System fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo`. Alle drei Websites sollen wie ein Produkt wirken, aber unterschiedliche Nutzungsmodi unterstuetzen: Marketing, technische Dokumentation und interaktive Demos.
+Ein gemeinsames Layout- und Design-System fuer `PVAD.Company`, `PVAD.Documentation` und `PVAD.Demo`. Alle drei Websites sollen wie ein Produkt wirken, aber unterschiedliche Nutzungsmodi unterstuetzen: Marketing, technische Dokumentation und interaktive Demos.
 
 ## Grundsaetze
-- [ ] Gemeinsames Branding: Power Dox Automation / PXA.
+- [ ] Gemeinsames Branding: PVADE / PVAD.
 - [ ] Gemeinsame Navigation: Company, Documentation, Demo, Pricing, Support.
 - [ ] Ruhige, professionelle B2B-Optik.
 - [ ] Funktionale, scanbare Layouts fuer Docs und Demo.
@@ -33,9 +31,9 @@ Ein gemeinsames Layout- und Design-System fuer `PXA.Company`, `PXA.Documentation
 
 ## Layout Templates
 - [ ] `AppShell` fuer Header, Main und Footer planen.
-- [x] `MarketingLayout` fuer `PXA.Company` planen.
-- [x] `DocsLayout` fuer `PXA.Documentation` planen.
-- [x] `DemoLayout` fuer `PXA.Demo` planen.
+- [x] `MarketingLayout` fuer `PVAD.Company` planen.
+- [x] `DocsLayout` fuer `PVAD.Documentation` planen.
+- [x] `DemoLayout` fuer `PVAD.Demo` planen.
 - [ ] Responsive Navigation planen.
 - [ ] Footer mit Crosslinks zwischen den drei Websites planen.
 
@@ -77,7 +75,7 @@ Ein gemeinsames Layout- und Design-System fuer `PXA.Company`, `PXA.Documentation
 - [x] Build in erster Website-App durchfuehren.
 - [x] Smoke-Test in erster Website-App durchfuehren.
 - [x] Alle drei Website-Apps parallel lokal starten.
-- [x] HTTP 200 fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` pruefen.
+- [x] HTTP 200 fuer `PVAD.Company`, `PVAD.Documentation` und `PVAD.Demo` pruefen.
 - [x] Desktop-Screenshots fuer alle drei Websites pruefen.
 - [x] Mobile-Overflow-Regeln fuer Header, Container und responsive Layouts fixen.
 - [ ] Mobile/Desktop Screenshot-Pruefung durchfuehren, sobald die Websites laufen.

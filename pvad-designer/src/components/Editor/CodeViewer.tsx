@@ -1,3 +1,4 @@
+import { displayDiagnosticCode, displaySystemMessage } from '@/utils/presentation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheck, FiCode, FiCopy, FiDownload, FiX } from 'react-icons/fi';
 import type { Page, PageSettings, SimpleElement } from '@/types';
@@ -71,7 +72,7 @@ const CodeViewer: React.FC<Props> = ({
         const errors = result.diagnostics.filter(item => item.severity === 'error');
         if (errors.length > 0 || !result.generatedSource) {
           setCsharpResult(null);
-          setCsharpError(errors.map(item => `${item.code}: ${item.message}`).join('\n') || 'C# code could not be generated.');
+          setCsharpError(errors.map(item => `${displayDiagnosticCode(item.code)}: ${displaySystemMessage(item.message)}`).join('\n') || 'C# code could not be generated.');
           return;
         }
         setCsharpResult({
@@ -197,7 +198,7 @@ const CodeViewer: React.FC<Props> = ({
             <>
               {activeTab === 'csharp' && csharpResult && csharpResult.diagnostics.length > 0 && (
                 <div className="code-panel-error" style={{ whiteSpace: 'pre-wrap' }}>
-                  {csharpResult.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n')}
+                  {csharpResult.diagnostics.map(item => `${displayDiagnosticCode(item.code)}: ${displaySystemMessage(item.message)}`).join('\n')}
                 </div>
               )}
               <pre className="code-panel-pre"><code>{code}</code></pre>

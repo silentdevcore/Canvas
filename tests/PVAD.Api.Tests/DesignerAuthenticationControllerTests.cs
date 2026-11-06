@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
@@ -24,7 +25,7 @@ using Testcontainers.PostgreSql;
 
 namespace PVAD.Api.Tests;
 
-public sealed class DesignerAuthenticationControllerTests
+public sealed partial class DesignerAuthenticationControllerTests
 {
     [PostgreSqlFact]
     public async Task Account_handoff_creates_a_separate_designer_session_and_rejects_replay()
@@ -42,7 +43,7 @@ public sealed class DesignerAuthenticationControllerTests
             new
             {
                 identifier = "designer@customer.test",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
             });
         var loginResponse = await accountClient.SendAsync(login);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
@@ -1201,7 +1202,7 @@ public sealed class DesignerAuthenticationControllerTests
         Assert.Equal(HttpStatusCode.TooManyRequests, statuses[^1]);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
+    private static WebApplicationFactory<Program> CreateFactory(string connectionString, string? keysDirectory = null) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
@@ -1215,11 +1216,18 @@ public sealed class DesignerAuthenticationControllerTests
                     ["DesignerTemplates:MaximumDesignJsonBytes"] = "4096",
                     ["CodeWorker:Enabled"] = "false",
                 }));
+            if (keysDirectory is not null)
+                builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
+                    new Dictionary<string, string?> { ["DataProtection:KeysDirectory"] = keysDirectory }));
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<DbContextOptions<PvadDbContext>>();
                 services.RemoveAll<IHostedService>();
                 services.AddDbContext<PvadDbContext>(options => options.UseNpgsql(connectionString));
+                if (keysDirectory is not null)
+                    services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
+                else
+                    services.AddDataProtection().UseEphemeralDataProtectionProvider();
             });
         });
 
@@ -1260,7 +1268,7 @@ public sealed class DesignerAuthenticationControllerTests
             DisplayName = "Designer Customer",
             IsActive = true,
         };
-        Assert.True((await userManager.CreateAsync(user, "Pxa-Customer-Password-42!")).Succeeded);
+        Assert.True((await userManager.CreateAsync(user, "Pvad-Customer-Password-42!")).Succeeded);
         var organization = new Organization { Name = "Designer Customer", Slug = "designer-customer" };
         var membership = new OrganizationMembership
         {
@@ -1303,7 +1311,7 @@ public sealed class DesignerAuthenticationControllerTests
             new
             {
                 identifier = "designer@customer.test",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
             });
         Assert.Equal(HttpStatusCode.OK, (await accountClient.SendAsync(login)).StatusCode);
     }

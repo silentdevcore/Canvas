@@ -171,7 +171,7 @@
     "couldNotReadJrxml": "Eine oder mehrere .jrxml-Ressourcendateien konnten nicht gelesen werden.",
     "couldNotReadRpx": "Eine oder mehrere .rpx-Ressourcendateien konnten nicht gelesen werden.",
     "couldNotReadPackage": "Die Report-Paketdatei konnte nicht gelesen werden.",
-    "conversionFailed": "Konvertierung fehlgeschlagen — läuft das Power-Dox-Automation-Backend auf Port 5086?",
-    "previewFailed": "Vorschau fehlgeschlagen — läuft das Power-Dox-Automation-Backend auf Port 5086?"
+    "conversionFailed": "Konvertierung fehlgeschlagen. Prüfen Sie die Verbindung zum PVAD-Backend.",
+    "previewFailed": "Vorschau fehlgeschlagen. Prüfen Sie die Verbindung zum PVAD-Backend."
   }
 }

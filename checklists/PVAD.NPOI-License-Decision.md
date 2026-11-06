@@ -1,6 +1,4 @@
-# PXA NPOI License Decision
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD NPOI License Decision
 
 ## Purpose
 
@@ -8,19 +6,19 @@ Resolve the production blocker created by the NPOI 2.8.0 binary-package EULA whi
 
 ## Scope Boundary
 
-- [x] Treat this as a supplier and dependency-license decision between PXA and NPOI, not as Terms, Privacy, Cookie, or customer-consent content.
+- [x] Treat this as a supplier and dependency-license decision between PVADE and NPOI, not as Terms, Privacy, Cookie, or customer-consent content.
 - [x] Keep approval evidence in the dependency-compliance record and its protected audit trail, never in customer `legal_acceptance_events`.
 - [x] Use the same qualified Legal function required by `PVAD.Legal-Terms-Privacy-And-Consent.md`, while keeping permissions, records, and publication workflows separate.
-- [x] Ensure that accepting PXA Terms or acknowledging the Privacy Notice cannot clear this production blocker.
+- [x] Ensure that accepting PVADE Terms or acknowledging the Privacy Notice cannot clear this production blocker.
 
 ## Current Usage Inventory
 
-- [x] Confirm that `PXA.Infrastructure.Spreadsheet` is the only project that directly requires NPOI at runtime.
+- [x] Confirm that `PVAD.Infrastructure.Spreadsheet` is the only project that directly requires NPOI at runtime.
 - [x] Confirm that `XlsWorkbookIo` uses NPOI HSSF for BIFF8 `.xls` import and export.
 - [x] Confirm that the WebApi exposes this dependency through spreadsheet `.xls` import and export operations.
-- [x] Confirm that `PxaWorkbookBuilder.Save` uses it when the requested output extension is `.xls`.
+- [x] Confirm that `PvadWorkbookBuilder.Save` uses it when the requested output extension is `.xls`.
 - [x] Confirm that NPOI migration providers analyze source text through Roslyn and do not require the NPOI runtime package.
-- [x] Remove the unused NPOI package reference from `PXA.Infrastructure.Converters`.
+- [x] Remove the unused NPOI package reference from `PVAD.Infrastructure.Converters`.
 - [x] Keep `.xlsx`, CSV, and TSV processing independent of NPOI.
 
 ## License Evidence
@@ -29,7 +27,7 @@ Resolve the production blocker created by the NPOI 2.8.0 binary-package EULA whi
 - [x] Record that the packaged EULA applies a maintenance fee to revenue-generating users with annual gross revenue of at least USD 10,000, subject to its stated exemptions.
 - [x] Record that the packaged EULA distinguishes the distributed binary release from source code and self-compiled binaries under Apache-2.0.
 - [x] Keep `AcceptNPOIOSMFLicense` disabled until a written decision and payment determination exist.
-- [ ] Obtain a written interpretation from qualified Legal counsel for PXA Cloud, On-Premise images, SDK distribution, customer redistribution, and CI artifacts.
+- [ ] Obtain a written interpretation from qualified Legal counsel for PVAD Cloud, On-Premise images, SDK distribution, customer redistribution, and CI artifacts.
 - [ ] Preserve the reviewed EULA text, package version, counsel decision, decision owner, evidence reference, and review date in the approved compliance record.
 
 Authoritative evidence reviewed on 2026-08-02:
@@ -43,7 +41,7 @@ Authoritative evidence reviewed on 2026-08-02:
 
 ### Option A - Approve the NPOI Binary EULA
 
-- [ ] Confirm whether PXA meets the revenue threshold and whether a support or maintenance exemption applies.
+- [ ] Confirm whether PVAD meets the revenue threshold and whether a support or maintenance exemption applies.
 - [ ] Confirm the required maintenance fee, payment channel, renewal cadence, and redistribution obligations with the NPOI maintainer.
 - [ ] Obtain written Legal and commercial approval.
 - [ ] Record payment or exemption evidence without storing secrets in the repository.
@@ -61,13 +59,13 @@ Engineering assessment: lowest implementation risk and the recommended route whe
 - [ ] Define ownership for upstream security patches and compatibility testing.
 - [ ] Verify functional parity for formulas, typed values, merges, column widths, malformed files, and Linux containers.
 
-Engineering assessment: preserves `.xls` behavior but transfers package maintenance and supply-chain responsibility to PXA.
+Engineering assessment: preserves `.xls` behavior but transfers package maintenance and supply-chain responsibility to PVADE.
 
 ### Option C - Replace Or Reduce Legacy XLS Support
 
 - [ ] Decide whether `.xls` import-only support is sufficient; ExcelDataReader can be evaluated for BIFF input but does not replace export.
 - [ ] Decide whether `.xls` export may be removed in favor of `.xlsx`, CSV, and TSV.
-- [ ] If full import and export remain required, evaluate a commercially licensed spreadsheet engine against the PXA deployment and redistribution model.
+- [ ] If full import and export remain required, evaluate a commercially licensed spreadsheet engine against the PVAD deployment and redistribution model.
 - [ ] Do not treat ClosedXML as a direct replacement because it targets Excel 2007+ OpenXML formats rather than legacy BIFF `.xls`.
 - [ ] Document any removed capability as a breaking product change and provide migration guidance.
 - [ ] Remove NPOI from all production dependency graphs, SBOMs, containers, and license records before clearing the blocker.
@@ -76,7 +74,7 @@ Engineering assessment: import-only replacement is feasible; a free, maintained,
 
 ## Recommendation And Decision Gate
 
-- [x] Recommend Option A when PXA commits to full `.xls` import and export because it has the smallest engineering and compatibility risk.
+- [x] Recommend Option A when PVADE commits to full `.xls` import and export because it has the smallest engineering and compatibility risk.
 - [x] Recommend Option C with `.xls` export retirement when legacy export has low commercial value and minimizing special licensing obligations is more important.
 - [ ] Product confirms whether full `.xls` export is a launch requirement.
 - [ ] Legal selects and signs off Option A, B, or C.

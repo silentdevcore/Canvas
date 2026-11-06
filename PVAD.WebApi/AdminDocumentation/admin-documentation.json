@@ -660,7 +660,7 @@
           "screenshot": "user-detail.png",
           "notes": [
             "Admin uses a host-only HttpOnly Secure SameSite cookie. Do not introduce a parent-domain authentication cookie.",
-            "Browser mutations require a fresh CSRF token and X-PVAD-CSRF header; X-PXA-CSRF remains a compatibility alias. API keys are for service clients, not Admin browser elevation.",
+            "Browser mutations require a fresh CSRF token and X-PVAD-CSRF header; previous-generation anti-forgery header aliases remain supported. API keys are for service clients, not Admin browser elevation.",
             "The server resolves organization context from the authenticated session and never trusts a tenant ID in a request body."
           ],
           "references": [],
@@ -689,7 +689,7 @@
           ],
           "result": "Clients receive bounded tenant-scoped data and stable error contracts.",
           "failures": [
-            "Use the diagnostic code, not the problem-type hostname, to classify failures. PXAAPI001 is authentication required, PXAAPI002 is permission denied, and PXAAPI008 is invalid CSRF.",
+            "Use the diagnostic code, not the problem-type hostname, to classify failures. The canonical display aliases PVADAPI001, PVADAPI002 and PVADAPI008 mean authentication required, permission denied and invalid CSRF respectively; original wire identifiers remain unchanged.",
             "Never log cookies, raw API keys, reset tokens, or mail payloads."
           ],
           "audit": "Every successful privileged mutation declares and persists its expected audit action.",
@@ -697,7 +697,7 @@
           "screenshot": "audit.png",
           "notes": [
             "Public Admin operations use /api/pvad/v1/admin and bounded pagination. OpenAPI is available from the deployment API reference.",
-            "Problem Details codes remain stable: PXAAPI001 authentication required, PXAAPI002 permission denied, PXAAPI003 organization required, PXAAPI004 resource not found, PXAAPI005 invalid request, PXAAPI006 conflict, PXAAPI007 rate limited, PXAAPI008 invalid CSRF, and PXAAPI018 unexpected server error.",
+            "Canonical diagnostic display codes: PVADAPI001 authentication required, PVADAPI002 permission denied, PVADAPI003 organization required, PVADAPI004 resource not found, PVADAPI005 invalid request, PVADAPI006 conflict, PVADAPI007 rate limited, PVADAPI008 invalid CSRF, and PVADAPI018 unexpected server error. The canonicalCode field exposes these reviewed aliases; the original code field remains unchanged.",
             "Generated problem types on /api/pvad routes use the selected PVAD documentation domain. Legacy API routes keep their original type URLs; canonicalType and legacyType identify the same generated problem across both representations. Explicit custom problem types are not replaced.",
             "Retain the diagnostic code and trace ID for support, but never log cookies, raw keys, tokens, or customer document data."
           ],

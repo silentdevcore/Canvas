@@ -22,11 +22,11 @@ Retry and rollback are new workflow runs against an existing stable version.
 They require the source workflow run ID and never change version metadata or
 release notes.
 
-New archive sets use `pvad-*` names. Complete historical `pxa-*` archive sets
+New archive sets use `pvad-*` names. Complete historical [compatibility entry `compat-14a9f154c0c0`](../../operator-docs/compatibility-identifiers.v1.json) archive sets
 remain valid inputs for immutable release verification; names and digests are
 not rewritten. Mixed, duplicate or incomplete sets are rejected. New evidence
 writes `product: PVAD` and records the artifact identity separately. The old
-`pxa-deployment.mjs` command delegates to `pvad-deployment.mjs` for compatibility.
+[compatibility entry `compat-2ed6087b4add`](../../operator-docs/compatibility-identifiers.v1.json) command delegates to `pvad-deployment.mjs` for compatibility.
 New release workflow sources now target `ghcr.io/silentdevcore/pvad-webapi` and
 `ghcr.io/silentdevcore/pvad-observability-webhook-relay`, selected by the owner
 on 2026-10-26. The two workflows reject a repository owner outside the selected
@@ -45,8 +45,8 @@ do not certify remote configuration, approve publication or execute a cutover.
 
 Repository environments:
 
-- `pxa-staging` accepts deployment validation only from protected branches.
-- `pxa-production` additionally requires approval by the configured release
+- [compatibility entry `compat-ed73e5fcd4ca`](../../operator-docs/compatibility-identifiers.v1.json) accepts deployment validation only from protected branches.
+- [compatibility entry `compat-dfc86e9a456d`](../../operator-docs/compatibility-identifiers.v1.json) additionally requires approval by the configured release
   operator before the environment job can create evidence.
 
 Both environments are serialized independently by workflow concurrency. The
@@ -69,14 +69,14 @@ Output under `artifacts/rename/container-workflows/` is ignored local preparatio
   Already migrated sources are preserved; older input models remain supported
   as offline candidates without inventing a confirmed publisher.
 - `deployment-validation.candidate.yml`: an explicit image-family choice selects
-  the original PXA or new PVAD names for the requested immutable version. It
-  defaults to PXA for historical releases; new PVAD images require selecting PVAD.
+  the original PVAD or new PVAD names for the requested immutable version. It
+  defaults to PVAD for historical releases; new PVAD images require selecting PVAD.
   Archive names are never used to guess the image family.
 - `report.json`: `deploymentAuthorized: false` and outstanding approval gates.
 
 For deployment/retry/rollback, select the exact `container_identity` explicitly:
-`PVAD` for new canonical images and `PXA` for historical images. The conservative
-default stays `PXA` for historical requests; archive names never select the image
+`PVAD` for new canonical images and `PVAD` for historical images. The conservative
+default stays `PVAD` for historical requests; archive names never select the image
 family automatically. Missing or invalid identities fail before inspection.
 Do not republish old versions under new image names or use `latest` for rollback.
 
@@ -129,7 +129,7 @@ Required root fields:
 | `capturedAt` | UTC ISO timestamp ending in `Z`; no future timestamp and at most 24 hours old |
 | `paginationComplete` | Boolean declaration that all relevant environment, policy, metadata and workflow-run pages were reviewed; `false` blocks comparison |
 | `workflowRuns` | Every relevant run across workflow generations/refs, normalized to `{ "id": 123, "status": "completed" }`; any non-completed or unknown status blocks comparison |
-| `environments` | Snapshots for `pxa-staging`, `pvad-staging`, `pxa-production` and `pvad-production`; missing source/target blocks comparison |
+| `environments` | Snapshots for [compatibility entry `compat-ed73e5fcd4ca`](../../operator-docs/compatibility-identifiers.v1.json), `pvad-staging`, [compatibility entry `compat-dfc86e9a456d`](../../operator-docs/compatibility-identifiers.v1.json) and `pvad-production`; missing source/target blocks comparison |
 
 Each environment has exactly these fields:
 

@@ -86,8 +86,19 @@ public sealed class PvadDocumentHeaderCompatibilityTests
             "Synthetic subject", "<p>Content</p>", "Content"));
         Assert.Equal(id.ToString(), mail.Headers["X-PVAD-Outbox-Id"]);
         Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], mail.Headers["X-PXA-Outbox-Id"]);
+        Assert.Single(mail.Headers.GetValues("X-PVAD-Outbox-Id")!);
+        Assert.Single(mail.Headers.GetValues("X-PXA-Outbox-Id")!);
         Assert.Equal("Synthetic subject", mail.Subject);
+        Assert.Equal("<p>Content</p>", mail.Body);
         Assert.Single(mail.AlternateViews);
         Assert.Equal("recipient@example.invalid", Assert.Single(mail.To).Address);
+
+        using var retried = transport.CreateMessage(new RenderedMail(id, "recipient@example.invalid",
+            "Synthetic subject", "<p>Content</p>", "Content"));
+        Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], retried.Headers["X-PVAD-Outbox-Id"]);
+        Assert.Equal(mail.Headers["X-PXA-Outbox-Id"], retried.Headers["X-PXA-Outbox-Id"]);
+        using var unrelated = transport.CreateMessage(new RenderedMail(Guid.NewGuid(), "recipient@example.invalid",
+            "Synthetic subject", "<p>Content</p>", "Content"));
+        Assert.NotEqual(mail.Headers["X-PVAD-Outbox-Id"], unrelated.Headers["X-PVAD-Outbox-Id"]);
     }
 }

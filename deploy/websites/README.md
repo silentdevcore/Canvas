@@ -24,7 +24,7 @@ Required environment values:
 - `PVAD_SPA_ROUTE_PATTERN`: the anchored route pattern for the deployed app.
   Approved patterns are listed in `route-patterns.env.example`.
 
-Legacy `PXA_API_UPSTREAM` and `PXA_SPA_ROUTE_PATTERN` remain accepted inputs.
+Legacy [compatibility entry `compat-b5128f908010`](../../operator-docs/compatibility-identifiers.v1.json) and [compatibility entry `compat-9c78d84d39d4`](../../operator-docs/compatibility-identifiers.v1.json) remain accepted inputs.
 Matching aliases are accepted; contradictory aliases fail before template
 generation with key names only. An explicitly empty canonical value never falls
 back to the legacy value. Missing/empty required values and unanchored route
@@ -60,10 +60,10 @@ sh deploy/websites/status-hosting-smoke-test.sh
 
 This executes the same HTTP checks twice: once with canonical inputs and once
 with legacy-only inputs. `PVAD_STATUS_SMOKE_PORT` selects the local port; its
-`PXA_STATUS_SMOKE_PORT` alias follows the same conflict rules. The default is 4183.
+[compatibility entry `compat-a32d9cefdbb0`](../../operator-docs/compatibility-identifiers.v1.json) alias follows the same conflict rules. The default is 4183.
 
 Post-deployment checks should request one valid deep link, one unknown path,
-`/api/pvad/v1/version`, its `/api/pxa/v1/version` compatibility alias, and a
+`/api/pvad/v1/version`, its [compatibility entry `compat-6a79e469a876`](../../operator-docs/compatibility-identifiers.v1.json) compatibility alias, and a
 deliberately unavailable upstream. Verify the HTTP
 status, `Content-Type`, `Cache-Control`, response body, and correlation headers
 at the public hostname rather than only inside the container.

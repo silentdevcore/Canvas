@@ -1,10 +1,8 @@
-# PXA Software Valuation and Value Growth
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVADE Software Valuation and Value Growth
 
 ## Purpose
 
-Preserve the current indicative valuation of Power Dox Automation (PXA), the
+Preserve the current indicative valuation of PVADE (technical identity PVAD), the
 assumptions behind it, and the development and commercial milestones that could
 increase its value.
 
@@ -33,14 +31,14 @@ operational quality, and manageable risk.
 
 ## Current Indicative Valuation
 
-Assumption: PXA has little or no verified recurring revenue and is offered as a
+Assumption: PVADE has little or no verified recurring revenue and is offered as a
 software/IP asset rather than as a proven SaaS company.
 
 | Transaction context | Indicative value |
 | --- | ---: |
 | Source-code and IP asset sale | CHF 350,000-950,000 |
 | Prepared asset deal including documentation, brand, domains, and deployment material | CHF 600,000-1,300,000 |
-| Strategic acquirer with a specific need for PXA migration and PDF Trust technology | CHF 1,000,000-2,000,000 |
+| Strategic acquirer with a specific need for PVADE migration and PDF Trust technology | CHF 1,000,000-2,000,000 |
 | Indicative initial asking range | CHF 900,000-1,200,000 |
 | Indicative likely closing range without meaningful ARR | CHF 600,000-950,000 |
 
@@ -82,7 +80,7 @@ Indicative technical value effect: 20-40 percent.
 These capabilities are important for regulated and Enterprise buyers.
 
 Post-implementation assessment: this milestone is substantially realized for
-the supported profiles. PXA now includes PAdES B-B/B-T/B-LT/B-LTA, AES-256
+the supported profiles. PVADE now includes PAdES B-B/B-T/B-LT/B-LTA, AES-256
 revision 6, PDF/A-2b/3b, PDF/UA-1, bounded irreversible redaction, Viewer and
 Migration integration, public guidance, and reproducible evidence using
 independent tools. The valuation ranges above apply a conservative partial
@@ -173,7 +171,7 @@ Market references:
   support a revenue-based premium:
   https://blog.acquire.com/acquire-com-biannual-acquisition-multiples-report-jan-2026/
 
-These market references are directional. PXA does not automatically qualify for
+These market references are directional. PVADE does not automatically qualify for
 the referenced multiples.
 
 ## Customer Pricing Available for Early Commercialization
@@ -191,7 +189,7 @@ pilot, subject to commercial and legal approval:
 | Migration engagement | CHF 5,000-50,000 per project |
 
 Migration services should not be absorbed without limits into ordinary
-subscriptions. They are one of PXA's strongest differentiators and can be sold
+subscriptions. They are one of PVADE's strongest differentiators and can be sold
 as assessment, automated conversion, fidelity review, remediation, and support.
 
 The fuller multi-currency subscription proposal remains in

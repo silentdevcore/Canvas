@@ -1,11 +1,9 @@
-# PXA Standard Status Pages
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Standard Status Pages
 
 ## Goal
 
-Provide consistent, accessible, localized status pages across PXA.Company,
-PXA.Account, PXA.Admin, PXA.Designer, PXA.Documentation, and PXA.Demo. Users
+Provide consistent, accessible, localized status pages across PVAD.Company,
+PVAD.Account, PVAD.Admin, PVAD.Designer, PVAD.Documentation, and PVAD.Demo. Users
 must understand what happened, whether their work is safe, and what action is
 available without exposing internal implementation details.
 
@@ -53,14 +51,14 @@ available without exposing internal implementation details.
   tenant IDs, or personal information.
 - [x] Use one clear primary action such as Retry, Sign in, Return to Designer,
   View subscription, or Go home.
-- [x] Preserve only allowlisted same-origin or configured PXA return destinations.
+- [x] Preserve only allowlisted same-origin or configured PVADE return destinations.
 - [x] Explain whether unsaved work is preserved, recoverable, or at risk.
 - [x] Add copy-diagnostic-details without copying sensitive data.
 - [x] Map stable API diagnostic codes to page states instead of parsing prose.
 
 ## Design And Application Integration
 
-- [x] Build a shared visual specification using PXA design tokens, logo assets,
+- [x] Build a shared visual specification using PVADE design tokens, logo assets,
   typography, spacing, buttons, icons, and focus styles.
 - [x] Keep each application independently deployable; share a package or generated
   assets rather than importing another website bundle.
@@ -87,15 +85,15 @@ available without exposing internal implementation details.
   or 500 into HTTP 200.
 - [x] Provide static `404.html`, `500.html`, and maintenance fallbacks where the
   hosting platform supports them.
-- [x] Confirm that no PXA web application currently registers a service worker.
+- [x] Confirm that no PVADE web application currently registers a service worker.
 - [x] Configure deployed cache headers so obsolete status pages cannot trap users.
 - [x] Define safe retry behavior and avoid automatic retry loops.
 
 ## Authentication And Authorization
 
-- [x] Route unauthenticated users to PXA.Account only when authentication can
+- [x] Route unauthenticated users to PVAD.Account only when authentication can
   recover the requested action.
-- [x] Keep sign-in and registration exclusively in PXA.Account.
+- [x] Keep sign-in and registration exclusively in PVAD.Account.
 - [x] Distinguish missing permission, missing entitlement, inactive organization,
   suspended account, expired trial, and failed Designer handoff.
 - [x] Preserve PKCE/state and allowlisted return paths during recoverable handoff
@@ -168,7 +166,7 @@ available without exposing internal implementation details.
 
 ## Acceptance Criteria
 
-- [x] Every PXA application has a branded 404 and recoverable fatal-error path.
+- [x] Every PVADE application has a branded 404 and recoverable fatal-error path.
 - [x] Authentication, authorization, entitlement, offline, and server failures are
   distinguishable and actionable.
 - [x] Status pages remain usable when the API, JavaScript application, or remote
@@ -193,7 +191,7 @@ available without exposing internal implementation details.
 
 - Status pages are product UI, while API callers continue receiving Problem
   Details.
-- Each deployment can render a minimal local fallback without another PXA host.
+- Each deployment can render a minimal local fallback without another PVADE host.
 - Product-specific recovery actions are adapters over one shared status contract.
 - Incident-management and public status-site hosting remain separate concerns.
 

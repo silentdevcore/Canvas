@@ -31,7 +31,7 @@ public sealed class AccountMailNotificationsTests
 
         using var login = CreateCsrfRequest(
             HttpMethod.Post, "/api/pvad/v1/auth/login", await GetCsrfAsync(client),
-            new { identifier = "owner@newlogin.test", password = "Pxa-Customer-Password-42!" });
+            new { identifier = "owner@newlogin.test", password = "Pvad-Customer-Password-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(login)).StatusCode);
 
         await using var scope = factory.Services.CreateAsyncScope();
@@ -94,7 +94,7 @@ public sealed class AccountMailNotificationsTests
             {
                 email = "owner@newsletter.test",
                 displayName = "Owner",
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName = "Newsletter GmbH",
                 organizationSlug = "newsletter-co",
@@ -223,7 +223,7 @@ public sealed class AccountMailNotificationsTests
             {
                 email,
                 displayName,
-                password = "Pxa-Customer-Password-42!",
+                password = "Pvad-Customer-Password-42!",
                 accountType = "Company",
                 companyName,
                 organizationSlug = slug,

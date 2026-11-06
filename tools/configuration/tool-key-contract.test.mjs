@@ -9,12 +9,12 @@ import { tmpdir } from 'node:os';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-test('corpus root failure uses the current name without changing signed fixture identity', async () => {
+test('corpus generator uses current naming without rewriting historical fixture identity', async () => {
   const source = await readFile(resolve(root, 'tools/pdf-trust-corpus/Program.cs'), 'utf8');
   assert.ok(source.includes('Could not locate the PVAD repository root.'));
   assert.ok(!source.includes('Could not locate the PXA repository root.'));
-  assert.ok(source.includes('CN=PXA Synthetic Corpus Signer'));
-  assert.ok(source.includes('document.Info.Author = "PXA synthetic test corpus"'));
+  assert.ok(source.includes('CN=PVAD Synthetic Corpus Signer'));
+  assert.ok(source.includes('document.Info.Author = "PVAD synthetic test corpus"'));
 });
 
 test('remaining test and PDF validation callers use canonical keys accepted by their receivers', async () => {
@@ -101,7 +101,9 @@ test('AES-256 local fallback image matches its current producer and documentatio
   assert.ok(runner.includes(`readPvadEnvironment('PVAD_AES256_QPDF_IMAGE') ?? '${image}'`));
   assert.ok(documentation.includes(`\`${image}\``));
   assert.doesNotMatch(runner, /pxa-pdf-trust-external-tools:1/);
-  assert.ok(documentation.includes('PXA_AES256_QPDF_IMAGE'));
+  assert.ok(documentation.includes('operator-only compatibility entry `compat-5622f2143f23`'));
+  const registry = JSON.parse(await read('operator-docs/compatibility-identifiers.v1.json'));
+  assert.ok(registry.entries.some(entry => entry.value === 'PXA_AES256_QPDF_IMAGE'));
 });
 
 test('JavaScript tools do not bypass the configuration alias resolver', async () => {

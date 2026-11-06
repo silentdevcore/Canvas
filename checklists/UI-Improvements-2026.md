@@ -1,7 +1,5 @@
 # UI Improvements 2026
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Six targeted improvement areas for the UI Designer v2. Each section contains a
 checklist of concrete tasks ready for implementation.
 
@@ -98,12 +96,12 @@ dimension/format filter.
 
 ## 5. F1 Key Help Popup Dialog
 
-The keyboard shortcut handler in `SimplePxaSurface.tsx` has no F1 binding. No help modal
+The keyboard shortcut handler in `SimplePvadSurface.tsx` has no F1 binding. No help modal
 component exists in the codebase. The `DocsPage` is a separate route that requires
 leaving the editor entirely to access.
 
-- [x] Add `F1` to the keyboard shortcut handler in `SimplePxaSurface.tsx`
-- [x] Create `pxa-designer/src/components/Editor/HelpModal.tsx` with four tabs:
+- [x] Add `F1` to the keyboard shortcut handler in `SimplePvadSurface.tsx`
+- [x] Create `pvad-designer/src/components/Editor/HelpModal.tsx` with four tabs:
   - **Quick Start** — 5-step visual guide: open template → add elements → edit properties → preview → export
   - **Keyboard Shortcuts** — table of all shortcuts (Undo, Redo, Copy, Paste, Duplicate, Delete, Arrow nudge, Zoom, F1)
   - **Elements Reference** — list of all element types with a one-liner description and PDF / Word support badge
@@ -121,8 +119,8 @@ leaving the editor entirely to access.
 
 39 element types are available in the toolbar. The analysis below shows which are fully
 rendered in PDF export, which are placeholders, and which have no handler at all.
-Audit is based on the `case` handlers in `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
-(PDF renderer) and `src/Infrastructure/PXA.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
+Audit is based on the `case` handlers in `PVAD.WebApi/Infrastructure/DesignJsonMapper.cs`
+(PDF renderer) and `src/Infrastructure/PVAD.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
 
 ### Support Matrix
 
@@ -206,7 +204,7 @@ Audit is based on the `case` handlers in `PXA.WebApi/Infrastructure/DesignJsonMa
 - [x] When mode = PDF: hide the entire "Word / DOCX Elements" toolbar group
 - [x] Show an inline warning banner when an unsupported element is on the canvas and user switches to PDF mode
 - [x] Update the DocsPage element reference table with "Supported in PDF" / "Supported in Word" columns
-- [x] Add a `supportedOutputs: ('pdf' | 'word')[]` field to each tool-definition object in `SimplePxaSurface.tsx`
+- [x] Add a `supportedOutputs: ('pdf' | 'word')[]` field to each tool-definition object in `SimplePvadSurface.tsx`
 - [x] Write unit tests: switching to PDF mode hides Word tools; switching back restores them
 
 ---
@@ -231,7 +229,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 
 ### Implementation Checklist
 
-- [x] Add "Fill background" checkbox to `field` and `textarea` inspector blocks (`SimplePxaSurface.tsx`)
+- [x] Add "Fill background" checkbox to `field` and `textarea` inspector blocks (`SimplePvadSurface.tsx`)
 - [x] Fix label row offset: `20` → `26` in `case "field"` and `case "textarea"` (`DesignJsonMapper.cs`); use named constant `labelOffset`
 - [x] Fix `getSurfacePoint` to divide by `zoomLevel` so drag/resize coordinates are correct at all zoom levels
 - [x] Add `is-hidden` CSS class to hidden canvas elements (opacity 0.3 + amber dashed outline); add "Visible in output" checkbox to inspector
@@ -239,7 +237,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 - [x] Add PDF link annotation in `case "button"`: `page.AddWebLink()` for URL actions, `page.AddPageLink()` for `page:N` actions
 - [x] Replace German toolbar labels: `Markieren` → `Highlight`, `Ankreuzen` → `Checkmark`, `Auswahl` → `Selection`
 - [x] Add `el.SignatureLabel = Substitute(...)` to `SubstituteElement` in `DesignJsonMapper.cs`
-- [x] Wrap `element.signatureLabel`, `element.fieldLabel` in `resolveContent()` at all rendering sites in `SimplePxaSurface.tsx`
+- [x] Wrap `element.signatureLabel`, `element.fieldLabel` in `resolveContent()` at all rendering sites in `SimplePvadSurface.tsx`
 - [x] Add `{{key}}` hint text to label inputs in inspector (field, textarea, checkbox, checkmark, signature)
 
 ---
@@ -260,7 +258,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 
 ### Notable Additions (Section 6)
 
-- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `PXA/Pdf/`.
-- **`supportedOutputs`** added to all 38 tool definitions in `SimplePxaSurface.tsx` (`['pdf', 'word']` for 35 tools; `['word']` for `footnote`, `endnote`, `contentcontrol`).
+- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `src/Generation/PVAD.Pdf/`.
+- **`supportedOutputs`** added to all 38 tool definitions in `SimplePvadSurface.tsx` (`['pdf', 'word']` for 35 tools; `['word']` for `footnote`, `endnote`, `contentcontrol`).
 - All PDF case handlers implemented for: `link`, `number`, `bookmark`, `footnote`, `endnote`, `comment`, `draw` (SVG path parsing), `chart` (SkiaSharp PNG render).
 - All Word case handlers implemented for: `qrcode`, `barcode`, `date`, `dropdown` (native SDT content control).

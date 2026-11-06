@@ -43,6 +43,14 @@ test('Admin screenshot and smoke producers accept canonical environment inputs t
   }
 });
 
+test('Admin screenshot examples use canonical synthetic license and key identities', () => {
+  const source = readFileSync(resolve(root,
+    'websites/PVAD.Admin/scripts/capture-documentation-screenshots.mjs'), 'utf8');
+  assert.match(source, /licenseNumber: 'PVAD-ENT-/);
+  assert.match(source, /prefix: 'pvad_live_/);
+  assert.doesNotMatch(source, /PXA-ENT-|pxa_live_/);
+});
+
 test('Designer text renderer requests the bundled font registered for every style', () => {
   const renderer = readFileSync(resolve(root,
     'pvad-designer/src/components/Rendering/PdfTextRenderer.tsx'), 'utf8');
@@ -110,8 +118,6 @@ test('generation, importing and infrastructure retain only documented legacy ide
   const exceptions = {
     'src/Generation/PVAD.Generator/EInvoicePageLayout.cs': ['"pxa.e-invoice.pagination/1"'],
     'src/Importing/PVAD.FileImporter.ImageOcr/ProcessIsolatedTesseractOcrEngine.cs': ['"PXA.ImageOcr"'],
-    'src/Importing/PVAD.FileImporter/PdfFileImporter.cs': ['"pxaMetadata"'],
-    'src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs': ['_PXARedacted'],
     'src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs': ['"PXARedacted"'],
     'src/Infrastructure/PVAD.Infrastructure.Converters/XmlDocumentExporter.cs': ['"PxaDocument"'],
     'src/Infrastructure/PVAD.Infrastructure.Persistence/PersistenceServiceCollectionExtensions.cs': ['"pxa-database"'],
@@ -136,9 +142,23 @@ test('generation, importing and infrastructure retain only documented legacy ide
   assert.deepEqual([...seen].sort(), Object.keys(exceptions).sort());
 });
 
+test('chart and redaction writers use canonical identities with explicit legacy readers', () => {
+  const chart = readFileSync(resolve(root, 'src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs'), 'utf8');
+  assert.match(chart, /PdfInfoKey = "PVADChartsV2"/);
+  assert.match(chart, /LegacyPdfInfoKey = "PXAChartsV2"/);
+  const images = readFileSync(resolve(root, 'src/Importing/PVAD.Importer/Redaction/PdfImageRedactionEngine.cs'), 'utf8');
+  assert.match(images, /dictionary\[LegacyRedactedMarker\] = null/);
+  assert.match(images, /dictionary\[RedactedMarker\] = new PdfBoolean\(true\)/);
+  assert.doesNotMatch(images, /dictionary\[LegacyRedactedMarker\] = new PdfBoolean/);
+  const applier = readFileSync(resolve(root, 'src/Importing/PVAD.Importer/Redaction/PdfRedactionApplier.cs'), 'utf8');
+  assert.match(applier, /_PVADRedacted/);
+  assert.doesNotMatch(applier, /_PXARedacted/);
+});
+
 test('all joined Core legacy names are bounded by diagnostic or explicit serialized-reader contracts', () => {
   const exceptions = {
     'src/Core/PVAD.Core/Primitives/ChartMetadataCodec.cs': ['"PXAChartsV2"'],
+    'src/Core/PVAD.Core/Primitives/ChartDefinitionNormalizer.cs': ['"pxaMetadata"'],
     'src/Core/PVAD.Core/Contracts/PvadCodeElementMarker.cs': ['"pxa-element-id:"'],
     'src/Core/PVAD.Core/ProjectFormats/PvadProjectModels.cs': [
       '"PXA-PXAP-1"', '"PXA-PXAS-1"', '"pxap"', '"pxas"',
@@ -235,7 +255,6 @@ test('WebApi standalone old identity occurs only in explicit compatibility contr
     'Security/PvadMcpDelegationAuthenticationHandler.cs': ['PXA-MCP '],
     'Infrastructure/PvadResponseHeaders.cs': ['X-PXA-{suffix}', 'PXA-{suffix}'],
     'Infrastructure/PvadSecurityHeaderMiddleware.cs': ['X-PXA-{name}'],
-    'Infrastructure/OpenApi/PvadDesignerProjectsOpenApiTransformer.cs': ['legacy PXA extension'],
     'Controllers/SystemController.cs': ['LegacyProductName: "PXA"', 'LegacyNamespacePrefix: "PXA"'],
     'Services/Mail/SmtpMailTransport.cs': ['X-PXA-Outbox-Id'],
   };
@@ -260,7 +279,7 @@ test('unpublished release summaries use the current brand', () => {
     if (fragment.id === 'release-1.1.0-verification') {
       assert.equal(fragment.impact, 'none');
       assert.equal(fragment.summary,
-        'Release records now document the verified PXA 1.1.0 publication and its protected branch workflow.');
+        'Release records now document the verified 1.1.0 publication and its protected branch workflow.');
       continue;
     }
     assert.doesNotMatch(fragment.summary, /\bPXA\b/, name);

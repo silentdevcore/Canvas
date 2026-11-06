@@ -382,7 +382,8 @@ describe('diagnostics and validation states', () => {
 
     const diagnostics = testId('einvoice-diagnostics');
     expect(diagnostics.querySelector('[data-code="PXAEINV100"]')).toBeTruthy();
-    expect(diagnostics.textContent).toContain('PXAEINV100');
+    expect(diagnostics.textContent).toContain('PVADEINV100');
+    expect(diagnostics.textContent).not.toContain('PXAEINV100');
 
     const invoiceNumberFinding = diagnostics.querySelector('[data-code="PXAEINV100"]');
     await click(invoiceNumberFinding!.querySelector('button'));
@@ -821,7 +822,7 @@ describe('generation, download and viewer handoff', () => {
     await click(testId('einvoice-create-pdf'));
     await flush();
 
-    expect(testId('einvoice-error').textContent).toContain('PXAEINVAPI011');
+    expect(testId('einvoice-error').textContent).toContain('PVADEINVAPI011');
   });
 });
 

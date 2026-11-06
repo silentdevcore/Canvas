@@ -1,6 +1,47 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hasLegacyIdentity, validateReview } from './rename-residual-review.mjs';
+import { hasLegacyIdentity, residualFiles, resolvedReviewFiles, validateReview } from './rename-residual-review.mjs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+test('the invoice attachment source is scanned despite its preserved null byte', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const path = 'tests/PVAD.Importer.Tests/PdfEInvoiceAttacherTests.cs';
+  const original = execFileSync('git', ['show', `aa7c18cb:${path}`], { cwd: root });
+  const current = readFileSync(join(root, path));
+  assert.equal([...original].filter(value => value === 0).length, 1);
+  assert.equal([...current].filter(value => value === 0).length, 1);
+  assert.equal([...original.toString('utf8').matchAll(/pxa/gi)].length, 10);
+  assert.ok(residualFiles(root).some(file => file.path === path));
+});
+
+test('residual scanning reads only tracked regular public files and scans null-byte source', () => {
+  const root = mkdtempSync(join(tmpdir(), 'pvad-source-naming-'));
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: root });
+    for (const directory of ['.vscode', '.aws', '.codex', 'nested/.vscode']) mkdirSync(join(root, directory), { recursive: true });
+    const fixtures = {
+      'Source.cs': 'class Synthetic { string value = "pXa\\0PXA"; }'.replace('\\0', '\0'),
+      'pXa-name.txt': 'No historical content',
+      'Mixed.TS': 'const value = "PxA";',
+      'normal.ts': 'const value = "PVAD";',
+      'asset.bin': Buffer.from([0, 80, 88, 65]),
+      '.vscode/private.ts': 'PXA', '.aws/private.txt': 'PXA', '.codex/private.cs': 'PXA',
+      'nested/.vscode/private.ts': 'PXA',
+    };
+    for (const [path, bytes] of Object.entries(fixtures)) writeFileSync(join(root, path), bytes);
+    writeFileSync(join(root, 'untracked.ts'), 'PXA');
+    writeFileSync(join(root, 'ignored.ts'), 'PXA');
+    writeFileSync(join(root, '.gitignore'), 'ignored.ts\n');
+    symlinkSync('untracked.ts', join(root, 'linked.ts'));
+    execFileSync('git', ['add', '--', ...Object.keys(fixtures), '.gitignore', 'linked.ts'], { cwd: root });
+    assert.deepEqual(residualFiles(root).map(file => file.path), ['Mixed.TS', 'Source.cs', 'pXa-name.txt']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test('residual inventory includes lowercase legacy domains and spaced product names', () => {
   for (const value of ['https://powerdoxautomation.com', 'support@powerdoxautomation.com', 'Power Dox Automation', 'POWERDOX', 'pXa.Core', 'PXA.Core', 'Canvas']) {
@@ -39,4 +80,39 @@ test('residual entries require known reasons, hashes and unique paths', () => {
   assert.throws(() => validateReview([file], duplicate), /duplicate/);
   const invalid = ledger(); invalid.files[0].sha256 = 'not-a-hash';
   assert.throws(() => validateReview([file], invalid), /Invalid/);
+});
+
+test('resolved records require a verified clean tracked source and its exact reviewed hash', () => {
+  const root = mkdtempSync(join(tmpdir(), 'pvad-resolved-naming-'));
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: root });
+    const path = 'runtime.ts';
+    const source = 'const product = "PVAD";';
+    writeFileSync(join(root, path), source);
+    execFileSync('git', ['add', '--', path], { cwd: root });
+    const value = ledger();
+    value.files[0] = { ...value.files[0], path, reviewStatus: 'resolved',
+      sha256: createHash('sha256').update(source).digest('hex') };
+    assert.deepEqual(validateReview([], value), [path], 'A status flag alone cannot certify resolution.');
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), []);
+
+    writeFileSync(join(root, path), source + '\n');
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), [path]);
+    writeFileSync(join(root, path), 'const product = "PXA";');
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    assert.deepEqual(validateReview(residualFiles(root), value, resolvedReviewFiles(root, value)), [path]);
+
+    rmSync(join(root, path));
+    assert.deepEqual(validateReview([], value, resolvedReviewFiles(root, value)), [path]);
+    writeFileSync(join(root, 'untracked.ts'), source);
+    symlinkSync('untracked.ts', join(root, path));
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    value.files[0].path = 'untracked.ts';
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+    mkdirSync(join(root, '.vscode'));
+    writeFileSync(join(root, '.vscode/private.ts'), source);
+    execFileSync('git', ['add', '--', '.vscode/private.ts'], { cwd: root });
+    value.files[0].path = '.vscode/private.ts';
+    assert.deepEqual(resolvedReviewFiles(root, value), []);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

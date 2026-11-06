@@ -1,17 +1,15 @@
 # Spreadsheet Migration — Aspose.Cells
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
-Migrates Aspose.Cells (`Workbook`) authoring code → PXA spreadsheet API (`PxaWorkbook`). The most
+Migrates Aspose.Cells (`Workbook`) authoring code → PVAD spreadsheet API (`PvadWorkbook`). The most
 divergent source: `PutValue()` method, `Worksheets[0]` default sheet, 0-based indexes, `GetStyle/SetStyle`.
 
-- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.Aspose/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
-- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Aspose.Tests/` (2, green).
+- **Project:** `src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Aspose/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
+- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PVAD.Migration.Spreadsheet.Code.Aspose.Tests/` (2, green).
 
 ## API mapping
-| Aspose.Cells | PXA |
+| Aspose.Cells | PVADE |
 |---|---|
-| `new Workbook()` | `new PxaWorkbook()` (+ default-sheet note) |
+| `new Workbook()` | `new PvadWorkbook()` (+ default-sheet note) |
 | `wb.Worksheets[0]` | `wb.AddSheet("Sheet1")` |
 | `wb.Worksheets[i]` (i>0) | `wb.Sheet(i)` |
 | `wb.Worksheets.Add("S")` | `wb.AddSheet("S")` |

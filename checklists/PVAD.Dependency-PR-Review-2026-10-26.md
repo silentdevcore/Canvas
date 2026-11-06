@@ -1,6 +1,9 @@
 # Dependency PR Review - 2026-10-26
 
-> Naming history: PXA has been renamed to PVAD (technical name); PVADE is the market name. Historical evidence and task statuses are unchanged.
+Historical record: results and task states are retained. Names and rerun references
+are editorially normalized; original commands and wording remain in Git at
+`30496722`. This is not a new execution or release approval.
+
 > This historical review retains original paths, commands and evidence from the
 > reviewed commits. Use TESTING.md for commands against the renamed tree.
 
@@ -107,7 +110,7 @@ separate follow-up, not an implicit compiler upgrade in this batch.
 Before any package change, the PostgreSQL-enabled API baseline ran 339 tests:
 338 passed and one failed. The failing Admin test expected 401 for a correct
 password on a disabled account; the existing implementation and dedicated Auth
-contract already require 403 with `PXAAPI015`. Correct that obsolete expectation,
+contract already require 403 with legacy API015 component. Correct that obsolete expectation,
 assert the explicit diagnostic, and retain the check that protected Admin
 requests remain unauthenticated. Do not change application authorization.
 
@@ -787,7 +790,7 @@ clean baseline. The native OCR limitation is not claimed fixed.
 
 The smoke covers all migration suites and selected real production paths for
 the other hosts; it is not a full product coverage percentage or a replacement
-for existing CI suites. Collector reports include only PXA production modules,
+for existing CI suites. Collector reports include only predecessor production modules,
 not test/tool assemblies or `obj` source. JSON and XML module sets must agree.
 New output directories prevent stale attachments from becoming false evidence.
 Line-denominator and hit-set changes are reported explicitly because upstream
@@ -949,7 +952,7 @@ Primary references: [Microsoft's native compiler transition](https://devblogs.mi
 ### Coordinated React Upgrade: Required Follow-up
 
 - [ ] Keep React, React DOM and their two declaration packages on matching majors.
-- [ ] Replace or upgrade `react-beautiful-dnd` and exercise the actual PxaSurface
+- [ ] Replace or upgrade `react-beautiful-dnd` and exercise the actual PvadSurface
   drag/drop, reorder, selection and undo behavior; current 13.1.1 is deprecated
   and its React/DOM peers stop at 18.
 - [ ] Upgrade or replace Glide Data Grid with an implementation declaring React 19
@@ -1013,11 +1016,11 @@ The two React-major proposals remain deferred, not accepted by this work.
   and merged as `8d35d348e47b57478677b4afa2beda0e72d4dec3`.
   [Final technical audit](https://github.com/silentdevcore/Canvas/pull/190#issuecomment-6475676441).
 
-The source inventory finds `ComplexEditor`, `PxaSurface` and `JsonEditorPanel`
+The source inventory finds `ComplexEditor`, `PvadSurface` and `JsonEditorPanel`
 are legacy components with no current application route. Keep their behavior
-compatible rather than claiming new routed functionality. `PxaSurface` already
+compatible rather than claiming new routed functionality. `PvadSurface` already
 has a no-op reorder callback; this change does not silently implement or claim
-working legacy reordering. The actual current surface is `SimplePxaSurface`.
+working legacy reordering. The actual current surface is legacy SimpleSurface component.
 `SpreadsheetGrid` is routed and retains the stable upstream package. Actual
 browser tests expose two existing integration defects: its selection callback
 does not pass controlled selection back to Glide, and ordinary `index.html`
@@ -1100,7 +1103,7 @@ Primary sources: [Grid stable metadata](https://registry.npmjs.org/@glideapps%2f
 The owner's request is to finish the dependency queue before resuming the rename,
 not to merge every proposal indiscriminately. The queue contains twelve proposals
 at this checkpoint. Preserve the separate dirty rename worktree and do not merge
-`develop` into it implicitly. Stable `develop` still uses PXA technical names.
+`develop` into it implicitly. Stable `develop` still uses predecessor technical names.
 
 | Proposals | Disposition | Evidence / follow-up |
 | --- | --- | --- |
@@ -1387,7 +1390,7 @@ a separate review and the exact public security fragment sentence.
 - [ ] Inspect the live PR queue again and report any newly generated security proposal separately.
 
 This is dependency hygiene, not evidence of an exposed vulnerable static-file
-route in PXA MCP. The upstream issue affects the adapter's static-file middleware;
+route in predecessor MCP. The upstream issue affects the adapter's static-file middleware;
 the current MCP server remains stdio-only. The new contract imports the actual
 HTTP adapter and checks its metadata, but does not claim to validate a deployed
 HTTP/2 listener or production static hosting. The existing smoke test starts a

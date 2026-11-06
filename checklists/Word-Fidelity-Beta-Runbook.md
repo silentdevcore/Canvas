@@ -1,7 +1,5 @@
 # Word Fidelity V2 Beta Runbook
 
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
-
 Last updated: 2026-05-19
 
 ## Objective
@@ -13,7 +11,7 @@ Run a controlled internal beta for `word_fidelity_v2`, collect mismatch artifact
 - `word_fidelity_v2` flag available via export options (`ExportOptions.WordFidelityV2`).
 - Baseline sample pack and regression/fidelity suites are green.
 - Artifact output path is available:
-  - `tests/PXA.Export.Tests/Fidelity/artifacts/latest/`
+  - `tests/PVAD.Export.Tests/Fidelity/artifacts/latest/`
 
 ## Beta Scope
 
@@ -34,9 +32,9 @@ Run a controlled internal beta for `word_fidelity_v2`, collect mismatch artifact
    - `WordFidelityV2=true`
    - `WordFidelityV2=false` (fallback baseline)
 4. Run fidelity harness:
-   - `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --filter "WordPdfFidelityTests"`
+   - `dotnet test tests/PVAD.Export.Tests/PVAD.Export.Tests.csproj --filter "WordPdfFidelityTests"`
 5. Collect artifacts from:
-   - `tests/PXA.Export.Tests/Fidelity/artifacts/latest/`
+   - `tests/PVAD.Export.Tests/Fidelity/artifacts/latest/`
 6. Collect user-reported mismatches:
    - template id
    - page number

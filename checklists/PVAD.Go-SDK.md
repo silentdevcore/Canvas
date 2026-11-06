@@ -1,20 +1,18 @@
-# PXA Go SDK Checklist
-
-> Naming history: **PXA has been renamed to PVAD (technical name). PVADE is the market name.** PDF uses PVADP and Spreadsheet uses PVADS. Historical PXA/Canvas product references, implementation notes and compatibility identifiers are retained; task statuses are unchanged.
+# PVAD Go SDK Checklist
 
 ## Goal
 
-Deliver an idiomatic Go client for server, cloud, and automation workloads that communicate with PXA Cloud or PXA Server.
+Deliver an idiomatic Go client for server, cloud, and automation workloads that communicate with PVAD Cloud or PVAD Server.
 
 ## Priority And Dependencies
 
 - [ ] P2: Start after the primary SDK releases are stable.
 - [ ] Complete the shared contract work in `PVAD.SDK-Roadmap.md` first.
-- [ ] Reserve and verify the official `github.com/powerdox/pxa-go` module path.
+- [ ] Select and verify a publisher-owned GitHub account and the proposed `pvad-go` repository; the publisher is not yet selected or registered for this SDK.
 
 ## Package And API
 
-- [ ] Publish a versioned Go module at `github.com/powerdox/pxa-go`.
+- [ ] Publish a versioned `pvad-go` module under the verified publisher; record its final import path before implementing generated imports.
 - [ ] Generate an internal transport and model layer from OpenAPI.
 - [ ] Expose handwritten service clients from one root client.
 - [ ] Accept `context.Context` on every network operation.
@@ -33,7 +31,7 @@ Deliver an idiomatic Go client for server, cloud, and automation workloads that 
 ## Tests
 
 - [ ] Unit-test requests, authentication, errors, contexts, and streaming.
-- [ ] Run integration tests against the versioned PXA Server container.
+- [ ] Run integration tests against the versioned PVAD Server container.
 - [ ] Test cancellation, deadlines, retries, large uploads, and partial downloads.
 - [ ] Run race detection and static analysis in CI.
 
@@ -41,4 +39,4 @@ Deliver an idiomatic Go client for server, cloud, and automation workloads that 
 
 - [ ] The SDK follows standard Go context, error, and streaming conventions.
 - [ ] Common workflows use the handwritten API rather than generated operations.
-- [ ] One code path supports Cloud and local PXA Server endpoints.
+- [ ] One code path supports Cloud and local PVAD Server endpoints.

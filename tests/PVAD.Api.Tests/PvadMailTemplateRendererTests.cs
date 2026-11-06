@@ -113,7 +113,7 @@ public sealed class PvadMailTemplateRendererTests
 
     private static MailOutboxMessage Message(string templateKey, string locale) => new()
     {
-        RecipientEmail = "recipient@pxa.test",
+        RecipientEmail = "recipient@pvad.test",
         TemplateKey = templateKey,
         ProtectedPayload = "not-used",
         IdempotencyKey = $"{templateKey}:{locale}",
