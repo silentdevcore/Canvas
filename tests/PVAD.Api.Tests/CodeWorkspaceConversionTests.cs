@@ -98,7 +98,7 @@ public sealed class CodeWorkspaceConversionTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
-        return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
     }
 
     [Theory]
@@ -583,7 +583,7 @@ public sealed class CodeWorkspaceConversionTests
     {
         var service = new PvadCodeConversionService(new CanonicalWorker());
 
-        var result = await service.ConvertAsync(sourceLanguage, targetLanguage, "return a safe PXA document;", default);
+        var result = await service.ConvertAsync(sourceLanguage, targetLanguage, "return a safe PVAD document;", default);
 
         Assert.NotNull(result.CanonicalDesign);
         Assert.Equal("worker-element", result.CanonicalDesign.Pages[0].Elements[0].Id);

@@ -185,7 +185,7 @@ public sealed class PvadOfflineLicenseValidatorTests
         {
             OrganizationId = subscription.OrganizationId,
             SubscriptionId = subscription.Id,
-            LicenseNumber = "PXA-UNIT-0001",
+            LicenseNumber = "PVAD-UNIT-0001",
             EnvelopeJson = string.Empty,
             Signature = "test-signature",
             KeyId = "test-key",

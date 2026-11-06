@@ -9,7 +9,7 @@ using PVAD.WebApi.Controllers;
 namespace PVAD.Api.Tests;
 
 /// <summary>
-/// EINV-10: XML PXA does not recognize may be stored byte for byte, but only when the caller
+/// EINV-10: XML PVAD does not recognize may be stored byte for byte, but only when the caller
 /// asks for it, and never as a standards claim.
 /// </summary>
 public sealed class PdfEInvoicePreservedXmlTests

@@ -43,7 +43,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
     [Fact]
     public async Task GetEvidence_ShouldValidateDownloadAndReuseEncryptedCache()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-revocation-cache-");
+        var directory = Directory.CreateTempSubdirectory("pvad-revocation-cache-");
         try
         {
             using var fixture = CrlFixture.Create("https://crl.example.test/root.crl");
@@ -80,7 +80,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
     [Fact]
     public async Task GetEvidence_ShouldRejectEndpointOutsideAllowlist()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-revocation-cache-");
+        var directory = Directory.CreateTempSubdirectory("pvad-revocation-cache-");
         try
         {
             using var fixture = CrlFixture.Create("https://blocked.example.test/root.crl");
@@ -106,7 +106,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
     [Fact]
     public async Task GetEvidence_ShouldPostBoundOcspRequestToAllowlistedEndpoint()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-revocation-cache-");
+        var directory = Directory.CreateTempSubdirectory("pvad-revocation-cache-");
         try
         {
             using var fixture = CrlFixture.Create(null, "https://ocsp.example.test/status");
@@ -133,7 +133,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
     [Fact]
     public async Task GetIssuerCertificates_ShouldDownloadValidateAndReuseEncryptedAiaCache()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-aia-cache-");
+        var directory = Directory.CreateTempSubdirectory("pvad-aia-cache-");
         try
         {
             using var fixture = CrlFixture.Create(
@@ -167,7 +167,7 @@ public sealed class PvadPdfRevocationEvidenceProviderTests
     [Fact]
     public async Task GetIssuerCertificates_ShouldRejectAiaOutsideAllowlist()
     {
-        var directory = Directory.CreateTempSubdirectory("pxa-aia-cache-");
+        var directory = Directory.CreateTempSubdirectory("pvad-aia-cache-");
         try
         {
             using var fixture = CrlFixture.Create(

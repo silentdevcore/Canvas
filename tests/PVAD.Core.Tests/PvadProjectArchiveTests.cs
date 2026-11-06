@@ -1669,7 +1669,7 @@ public sealed class PvadProjectArchiveTests
                 PageSetup = new PageSetupDto
                 {
                     Orientation = "landscape", PaperSize = "A4", PrintArea = "A1:D20",
-                    Header = "PXA", Footer = "Page &P", FitToWidth = 1, FitToHeight = 2,
+                    Header = "PVAD", Footer = "Page &P", FitToWidth = 1, FitToHeight = 2,
                     Scale = 90, Margins = new MarginsDto { Top = 10, Right = 11, Bottom = 12, Left = 13 },
                     RowPageBreaks = [20], ColPageBreaks = [4],
                 },

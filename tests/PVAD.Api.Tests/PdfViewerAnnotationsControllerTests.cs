@@ -126,7 +126,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
                     yPct = 10,
                     widthPct = 20,
                     heightPct = 8,
-                    text = "PXA note",
+                    text = "PVAD note",
                     author = "Reviewer",
                     createdAt = "2026-06-25T10:00:00Z",
                     color = "#facc15",
@@ -146,7 +146,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         Assert.Equal(documentId, root.GetProperty("documentId").GetString());
         Assert.Equal("pxa-review.pdf", root.GetProperty("sourceName").GetString());
         Assert.Equal(1, root.GetProperty("annotationCount").GetInt32());
-        Assert.Equal("PXA note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
+        Assert.Equal("PVAD note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
     }
 
     [Fact]

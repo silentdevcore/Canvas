@@ -1,0 +1,11 @@
+{
+  "id": "pvad-api-and-security-example-names",
+  "impact": "none",
+  "components": ["api", "generator", "importer", "infrastructure", "observability"],
+  "category": "improved",
+  "summary": "Aligned current API test examples and internal maintenance messages with PVAD naming.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Changes are limited to internal private-state names, synthetic test data, comments and maintenance-tool messages. Public JSON fields, diagnostic IDs, retained evidence and runtime behavior are unchanged."
+}

@@ -190,7 +190,7 @@ public sealed class PvadPdfTrustSecurityTests
     {
         UserId = Guid.NewGuid(),
         IpAddressHash = new string('a', 64),
-        UserAgent = "PXA security test",
+        UserAgent = "PVAD security test",
         CreatedAt = createdAt,
         LastSeenAt = createdAt,
         ExpiresAt = expiresAt,

@@ -253,7 +253,7 @@ public sealed class PdfSignaturesControllerTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA API signing fixture", 40, 40);
+        document.AddPage().DrawText("PVAD API signing fixture", 40, 40);
         return document.ToBytes();
     }
 

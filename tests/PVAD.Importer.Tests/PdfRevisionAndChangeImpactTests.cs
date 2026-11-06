@@ -123,7 +123,7 @@ public sealed class PdfRevisionAndChangeImpactTests
             new PdfObjectId(3, 0),
             new PdfDictionary
             {
-                ["Type"] = new PdfName("PXA Test"),
+                ["Type"] = new PdfName("PVAD Test"),
                 ["Value"] = new PdfString("updated"u8.ToArray(), IsHex: false)
             });
 
@@ -180,7 +180,7 @@ public sealed class PdfRevisionAndChangeImpactTests
         builder.Append(firstXrefOffset).Append("\n%%EOF\n");
 
         var objectTwoOffset = builder.Length;
-        builder.Append("2 0 obj\n<< /Producer (PXA) >>\nendobj\n");
+        builder.Append("2 0 obj\n<< /Producer (PVAD) >>\nendobj\n");
         var secondXrefOffset = builder.Length;
         builder.Append("xref\n2 1\n");
         builder.Append($"{objectTwoOffset:0000000000} 00000 n \n");

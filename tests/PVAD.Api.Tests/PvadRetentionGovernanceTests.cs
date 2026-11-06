@@ -90,7 +90,7 @@ public sealed class PvadRetentionGovernanceTests
     private sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = environmentName;
-        public string ApplicationName { get; set; } = "PXA.Retention.Tests";
+        public string ApplicationName { get; set; } = "PVAD.Retention.Tests";
         public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
         public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }

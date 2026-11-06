@@ -22,7 +22,7 @@ public sealed class PdfRfc3161TimestampAuthorityTests
                 Endpoint = new Uri("https://tsa.example.test/rfc3161"),
                 RequireTrustedCertificateChain = false
             });
-        var signatureDigest = SHA256.HashData("PXA signature value"u8);
+        var signatureDigest = SHA256.HashData("PVAD signature value"u8);
 
         var token = await authority.GetTimestampTokenAsync(
             signatureDigest,

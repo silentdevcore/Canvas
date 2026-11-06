@@ -20,7 +20,7 @@ public sealed class PdfTrustInspectionJobTests
     [Fact]
     public async Task Executor_stores_tenant_scoped_report_and_correlates_immutable_audit()
     {
-        var root = Path.Combine(Path.GetTempPath(), $"pxa-trust-job-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"pvad-trust-job-{Guid.NewGuid():N}");
         try
         {
             await using var context = CreateContext();
@@ -98,7 +98,7 @@ public sealed class PdfTrustInspectionJobTests
     [Fact]
     public async Task Executor_honors_cancellation_before_reading_tenant_input()
     {
-        var root = Path.Combine(Path.GetTempPath(), $"pxa-trust-job-cancel-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"pvad-trust-job-cancel-{Guid.NewGuid():N}");
         try
         {
             await using var context = CreateContext();
@@ -142,7 +142,7 @@ public sealed class PdfTrustInspectionJobTests
     [Fact]
     public async Task Executor_removes_result_when_immutable_audit_cannot_be_written()
     {
-        var root = Path.Combine(Path.GetTempPath(), $"pxa-trust-job-audit-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"pvad-trust-job-audit-{Guid.NewGuid():N}");
         try
         {
             await using var context = CreateContext();

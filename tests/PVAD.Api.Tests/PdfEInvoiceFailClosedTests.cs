@@ -9,12 +9,12 @@ using PVAD.WebApi.Services.Pdf;
 namespace PVAD.Api.Tests;
 
 /// <summary>
-/// The refusals PXA can prove without any official validation artifact.
+/// The refusals PVAD can prove without any official validation artifact.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Official conformance needs the FeRD/FNFE and KoSIT artifact sets, whose licensing is unresolved,
-/// so none of this claims an invoice is conformant. What it does prove is that every input PXA can
+/// so none of this claims an invoice is conformant. What it does prove is that every input PVAD can
 /// judge on its own - malformed XML, a DTD, a mismatched profile, an unsafe attachment, arithmetic
 /// that does not add up, a payload that is too large, a filename or media type that is wrong - is
 /// refused with a stable diagnostic rather than accepted quietly.
@@ -116,7 +116,7 @@ public sealed class PdfEInvoiceFailClosedTests
         Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Severity == "error");
     }
 
-    // ── Business arithmetic PXA can check on its own ─────────────────────────
+    // ── Business arithmetic PVAD can check on its own ─────────────────────────
 
     [Theory]
     [InlineData(0, "PXAEINV113")]
@@ -337,7 +337,7 @@ public sealed class PdfEInvoiceFailClosedTests
 
         var result = await Validate(generated.Xml.ToArray());
 
-        // Structural recognition and official conformance are different states, and PXA ships no
+        // Structural recognition and official conformance are different states, and PVAD ships no
         // official artifact set, so the second must stay unevaluated however clean the first is.
         Assert.True(result.IsStructurallyValid);
         Assert.False(result.IsConformanceValidated);
