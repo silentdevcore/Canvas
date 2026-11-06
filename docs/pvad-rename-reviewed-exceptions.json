@@ -468,7 +468,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "7a3bc0a4c53607eb3ff9e5e1e6f472f11d1c6f8cd26591c987bf1e798fb37010",
+      "sha256": "d6e0977c627844dbe7b6d32a023dce11f3c96464bb51c4b39bf5e28b1d2713f3",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -477,7 +477,7 @@
       "reviewNotes": "2026-11-05 scoped review: Historical counts, results and neutral drawing references remain unchanged; the remaining-code checklist corrects the earlier broad completion claim.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged.",
-      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged. Current workflow example follow-up (2026-11-06): Additive link to the current-route/project-example replacement batch; original approvals, compatibility boundaries and historical checkbox states remain unchanged."
+      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged. Current workflow example follow-up (2026-11-06): Additive link to the current-route/project-example replacement batch; original approvals, compatibility boundaries and historical checkbox states remain unchanged. MCP test-setup follow-up (2026-11-06): Additive link to the scoped MCP test naming pass; original checkbox states, release gates and historical results remain unchanged."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",
@@ -6786,13 +6786,14 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/core/apiClient.test.ts",
-      "sha256": "4f7d52dc1275d232179d08fdf6ecd26bb5397f94d4265527e1bb8f2108e932c8",
+      "sha256": "49be71b9f22eae1b82e0ad9631b033fbbaa7065537b6b7f3df03499d9920e8fa",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/src/core/apiClient.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "MCP test-setup follow-up (2026-11-06): General delegation input uses the current template-read scope. A separate retained-input case still verifies old-scope normalization in the actual generated delegation payload; stable diagnostic IDs remain unchanged."
     },
     {
       "path": "tools/PVAD.Mcp/src/core/apiClient.ts",
@@ -6867,23 +6868,25 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/app.test.ts",
-      "sha256": "b36dcc5b92364948401bf7f5d403faf43032b4951008f7a2db9e383e1bede14f",
+      "sha256": "8697f3f97d55138ec5288b59dec665d733798928d7b780591c5f97ebcb9ef8f9",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Synthetic legacy IDs/scopes, retained fixture credentials and negative old-prefix assertions verify known-only readers, exact client binding, metadata/grant/token preservation, current writers and revoked access; they are not active defaults or real credentials.",
-      "boundaryGuide": "docs/pvad-oauth-client-transition.md"
+      "boundaryGuide": "docs/pvad-oauth-client-transition.md",
+      "currentReviewNotes": "MCP test-setup follow-up (2026-11-06): General HTTP test verifier and tenant-claim setup use current names. Explicit old/current grant cases both prove canonical access-context output through a real local MCP transport; diagnostic IDs remain exact."
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/auth.test.ts",
-      "sha256": "18583929d3d847e21ca676de7114277ae8a4e299ce0d7d07e7d283993a1252b7",
+      "sha256": "cdf101ec598215b09904b24f07c872613bc60b542e6b69ec98488de3fd4d28d5",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/src/remote/auth.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "MCP test-setup follow-up (2026-11-06): General JWT inputs use current tenant claims and registered read-only capabilities. The original alias/conflict case remains unchanged, and a separate test pins unknown-scope preservation without inventing privileges or aliases."
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/auth.ts",
@@ -6897,13 +6900,14 @@
     },
     {
       "path": "tools/PVAD.Mcp/src/remote/config.test.ts",
-      "sha256": "474802a656eb64847a6e08b127a2da88bf0d0a5f0e713dfc5bef996e4d467607",
+      "sha256": "b6d8d684ffcc0f0bfdf6f19f2e218ec4b801f1c6e567820e50c1755467ba4579",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/PVAD.Mcp/src/remote/config.test.ts: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "MCP test-setup follow-up (2026-11-06): General MCP configuration cases now use current environment names and synthetic API/JWKS hostnames. The original exact environment-alias equality/conflict test remains unchanged."
     },
     {
       "path": "tools/versioning/pvad-build-consistency.test.mjs",
@@ -7877,14 +7881,14 @@
     },
     {
       "path": "tools/configuration/internal-naming-contract.test.mjs",
-      "sha256": "d397683357146287ea8a19f2c19afeceaa5b353d23e48ea3d8d971ac83afcded",
+      "sha256": "eed3a1aa0a08b00ed2a3dd39a2dd5dc9514eda1243564385119ad870e6d48a84",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Tests verify current internal names while explicitly preserving legacy upstream headers, backup-reader behavior, restore confirmation, dashboard and runbook references. Database executables are mocked; this is not runtime recovery evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Direct current-example and recovery-prompt assertions supplement runtime tests. Dedicated original-release, customer-content, serialized-field and environment-reader compatibility assertions remain exact. Current workflow example follow-up (2026-11-06): Direct source contracts require canonical current workflow paths and current generated artifact names, while separately pinning the retained middleware, redaction headers and old-format upgrade case."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Direct current-example and recovery-prompt assertions supplement runtime tests. Dedicated original-release, customer-content, serialized-field and environment-reader compatibility assertions remain exact. Current workflow example follow-up (2026-11-06): Direct source contracts require canonical current workflow paths and current generated artifact names, while separately pinning the retained middleware, redaction headers and old-format upgrade case. MCP test-setup follow-up (2026-11-06): Direct source checks require current MCP setup values and explicit retained-input/unknown-scope cases. These checks do not exempt production contracts or original evidence by updating a hash."
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",

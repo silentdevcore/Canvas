@@ -58,6 +58,12 @@ exercise the canonical prefix instead of relying on the compatibility adapter.
 Current project examples, generated PDF/UA filenames and ephemeral test data
 use current names; dedicated legacy, header and schema tests remain unchanged.
 
+The [MCP current-test pass](PVAD.Remaining-Code-Naming-Cleanup.md#mcp-current-test-configuration---2026-11-06)
+normalizes four configuration, JWT, HTTP and API-client test files. Dedicated
+alias/conflict cases remain intact, and explicit HTTP/delegation cases preserve
+old grants. Unknown scopes are not promoted or given invented aliases. Production
+MCP sources, packages and resource identities remain unchanged.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the

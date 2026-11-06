@@ -187,6 +187,30 @@ test('generic API workflows and current project examples exercise canonical iden
   assert.ok(artifacts.includes('"PXAPDFUA009"'));
 });
 
+test('current MCP setups use canonical names and keep compatibility cases explicit', () => {
+  const config = read('tools/PVAD.Mcp/src/remote/config.test.ts');
+  const currentConfig = config.slice(config.indexOf("test('remote configuration requires"));
+  assert.doesNotMatch(currentConfig, /PXA_|http:\/\/pxa-/);
+  assert.ok(config.includes("[key.replace('PVAD_', 'PXA_'), value]"));
+  assert.ok(config.includes("PXA_API_KEY: 'different-key'"));
+  const auth = read('tools/PVAD.Mcp/src/remote/auth.test.ts');
+  const currentAuth = auth.split("test('claim and scope aliases stay equivalent")[0];
+  assert.ok(currentAuth.includes("organizationClaim: 'pvad_organization'"));
+  assert.ok(currentAuth.includes("scope: 'pvad.docs.read pvad.documents.validate'"));
+  assert.doesNotMatch(currentAuth, /pxa_organization:|scope: 'pxa\./);
+  assert.ok(auth.includes("assert.deepEqual(auth.scopes, ['pxa.documents.render'])"));
+  const app = read('tools/PVAD.Mcp/src/remote/app.test.ts');
+  const defaultVerifier = app.split('for (const scope of')[0];
+  assert.ok(defaultVerifier.includes("scopes: ['pvad.docs.read']"));
+  assert.ok(app.includes("for (const scope of ['pvad.docs.read', 'pxa.docs.read'])"));
+  assert.doesNotMatch(app, /organizationClaim: 'pxa_organization'/);
+  const client = read('tools/PVAD.Mcp/src/core/apiClient.test.ts');
+  const currentClient = client.split("test('legacy template grants")[0];
+  assert.ok(currentClient.includes("scopes: ['pvad.templates.read']"));
+  assert.doesNotMatch(currentClient, /scopes: \['pxa\./);
+  assert.ok(client.includes("scopes: ['pxa.templates.read']"));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

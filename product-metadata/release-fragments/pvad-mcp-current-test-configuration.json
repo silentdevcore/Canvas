@@ -1,0 +1,11 @@
+{
+  "id": "pvad-mcp-current-test-configuration",
+  "impact": "none",
+  "components": ["sdk", "infrastructure"],
+  "category": "improved",
+  "summary": "Aligned current MCP test configuration and authentication examples with PVAD naming.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only test inputs, expectations and internal verification change. Production MCP behavior, legacy aliases, registered scopes, diagnostics and packaged resource contracts remain unchanged."
+}
