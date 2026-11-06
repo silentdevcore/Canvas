@@ -1,0 +1,10 @@
+{
+  "id": "pvad-recovery-command-naming",
+  "impact": "patch",
+  "components": ["api", "importer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Updated recovery commands and internal examples to use PVAD naming while retaining compatibility with existing backups.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

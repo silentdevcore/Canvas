@@ -22,7 +22,7 @@ test('requires complete and unique human review decisions', () => {
     'real-world-pdf-ukgi-annual-report',
     'real-world-docx-suffolk-mapping-guidance',
     'real-world-xlsx-suffolk-buildings'
-  ].map(fixtureId => ({ fixtureId, decision: 'rejected', reviewedAt: '2026-09-20', reviewer: 'PXA engineering', findings: ['Mismatch.'] }));
+  ].map(fixtureId => ({ fixtureId, decision: 'rejected', reviewedAt: '2026-09-20', reviewer: 'PVAD engineering', findings: ['Mismatch.'] }));
   assert.equal(validateReviewDecisions({ schemaVersion: 1, fixtures }).fixtures.length, 3);
   assert.throws(() => validateReviewDecisions({ schemaVersion: 1, fixtures: fixtures.slice(0, 2) }), /exactly three fixtures/);
   assert.throws(() => validateReviewDecisions({ schemaVersion: 1, fixtures: fixtures.map((item, index) => index === 0 ? { ...item, findings: [] } : item) }), /incomplete review decision/);

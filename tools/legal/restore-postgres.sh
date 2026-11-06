@@ -20,10 +20,13 @@ if [ -z "$backup" ] || [ ! -r "$backup" ]; then
   printf '%s\n' 'Usage: restore-postgres.sh <verified-backup.dump>' >&2
   exit 1
 fi
-if [ "${PVAD_RESTORE_CONFIRM:-}" != 'RESTORE PXA DATABASE' ]; then
-  printf '%s\n' 'Set PVAD_RESTORE_CONFIRM="RESTORE PXA DATABASE" for an approved restore.' >&2
-  exit 1
-fi
+case "${PVAD_RESTORE_CONFIRM:-}" in
+  'RESTORE PVAD DATABASE'|'RESTORE PXA DATABASE') ;;
+  *)
+    printf '%s\n' 'Set PVAD_RESTORE_CONFIRM="RESTORE PVAD DATABASE" for an approved restore.' >&2
+    exit 1
+    ;;
+esac
 
 checksum="$backup.sha256"
 if [ ! -r "$checksum" ]; then

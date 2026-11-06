@@ -468,7 +468,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "2587e2c6e0197e581a06461d430ee189a07e472d8821ec99326653e93c7c5be5",
+      "sha256": "7d0be21644306bbe0301eecea8087c8505bc06cb87108e025507ec5e0fd28b2f",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -477,7 +477,7 @@
       "reviewNotes": "2026-11-05 scoped review: Historical counts, results and neutral drawing references remain unchanged; the remaining-code checklist corrects the earlier broad completion claim.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged.",
-      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates."
+      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",
@@ -4121,14 +4121,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs",
-      "sha256": "509e2e5861c3894815a74a0f1c169436ec1b52a49955ebbcd7c0c07f34b045ea",
+      "sha256": "a6b2c1af0a2a56aebace4633583166b7f0d1a79c205320f837b46da6747913e4",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Current synthetic rich text and fresh worker temporary directories use the current identity. Dedicated customer-content preservation, old source-map markers and stable diagnostic assertions remain unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs",
@@ -4274,14 +4274,15 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationControllerTests.cs",
-      "sha256": "721c048963001ec4a1610a27ab92600efe5a884b9e98c24370043c6cda337cc9",
+      "sha256": "3b5afd771b548a729a5ed45eeda66d22b350804e9e10c22df3db8a15662993d1",
       "reasons": [
         "test-contract",
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Retain explicit legacy route, artifact and diagnostic fixtures to verify current writers, compatibility outputs, strict tuple matching and unchanged code downloads. These values are intentional test inputs, not current defaults. 2026-10-29 integration review: Reviewed test-only host isolation and imported timestamp/QR/auth checks. Historical diagnostics, signed-payload examples, synthetic seed identities, legacy API readers and neutral drawing APIs remain deliberate regression inputs.",
-      "boundaryGuide": "docs/pvad-migration-artifact-identities.md"
+      "boundaryGuide": "docs/pvad-migration-artifact-identities.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): The private test local is now generatedCode. The original serialized response field and historical route remain explicit compatibility coverage; canonical field comparison is unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/MigrationGeneratedCodeExecutionTests.cs",
@@ -4367,14 +4368,14 @@
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs",
-      "sha256": "eb6e60bdee6cfcad5901cd638f3f7eee599ca9a44188ddd9561bb731dd85c72d",
+      "sha256": "5a7c98d78d11d9910cba08c11bc09883d5de4ce97c970ddf5bc7c1d4be45208a",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Api.Tests/PdfEInvoiceFailClosedTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06: Current functional-test setup now uses canonical database configuration, request headers, synthetic origins and explanatory type names. Dedicated alias, CSRF, key and diagnostic compatibility tests remain unchanged; original review notes are historical.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): An explanatory arithmetic comment uses the current technical name. Stable diagnostics and all calculation, fail-closed and original evidence assertions remain unchanged."
     },
     {
       "path": "tests/PVAD.Api.Tests/PdfEInvoicePreservedXmlTests.cs",
@@ -5455,14 +5456,14 @@
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfImporterCoreTests.cs",
-      "sha256": "708c9c1d9b8ff2698108f9fa30034fe354a14102dfce7432fa86749899e495cb",
+      "sha256": "2ed6d7053705bf55c5ba51be34133b69a345fca138f0a32382fe429240ae689e",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tests/PVAD.Importer.Tests/PdfImporterCoreTests.cs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged. Recovery/example follow-up (2026-11-06): The current low-level engine comment uses the current technical name. The compiler diagnostic ID and all parser fixtures and expectations remain unchanged."
     },
     {
       "path": "tests/PVAD.Importer.Tests/PdfImportFacadeTests.cs",
@@ -6356,23 +6357,25 @@
     },
     {
       "path": "tools/document-fidelity/fidelity.test.mjs",
-      "sha256": "85a6b8d6302f5e23e610053bee732449fb82619d7ee62585b9f071d92d5bfb0a",
+      "sha256": "7787c4d12ee37394095fa837fce44eac66c41dca9bacbef70de1492b3a0ce67d",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Scoped JSON naming cleanup: canonical editable descriptions, examples and fidelity writer labels. Retained matches are exact compatibility readers, diagnostics, review context or neutral rendering terminology. No signed evidence, deployment binding or published release identity is changed.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): New temporary directories and the current synthetic fixture use canonical names. A separate old-generation fixture still verifies normalization without mutating input; policy, thresholds and original reviews are unchanged."
     },
     {
       "path": "tools/document-fidelity/real-world-review.test.mjs",
-      "sha256": "0755bab87ce935a302d567562e409b419a7ca234b26cf5159f03e6e0261e0b7e",
+      "sha256": "890921a95f61048190f1affcf2f13b049025cb2b2270b8c1ff15b43f3a21e0ad",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tools/document-fidelity/real-world-review.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): A freely chosen synthetic reviewer label uses the current identity. No actual human review decision, original review report or fidelity threshold is changed."
     },
     {
       "path": "tools/job-cutover/Program.cs",
@@ -6427,13 +6430,14 @@
     },
     {
       "path": "tools/legal/export-legal-snapshot.test.mjs",
-      "sha256": "30d6da47832018b7bf672daef90cff437d056781604812bd1e68f870cb71f014",
+      "sha256": "9c1e5c77934bd14af71ebd7c630abcada79261ac5159c7ac5cb362cb65d669f7",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "reviewed",
+      "reviewStatus": "resolved",
       "reviewNotes": "tools/legal/export-legal-snapshot.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): Temporary output directory and a fake request origin use current identities. Actual snapshots, Legal content hashes and exported byte assertions are unchanged."
     },
     {
       "path": "tools/legal/README.md",
@@ -6447,33 +6451,36 @@
     },
     {
       "path": "tools/legal/recovery-contract.test.mjs",
-      "sha256": "1f49c74f0a27e5b3a6407d813159e92bb2df855308d3c8f61a9386338e1058df",
+      "sha256": "6b5758a748496a5ed0081af02d05e89db6e11171e1e72f1b1ca53a8a4512145d",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Current temporary resource-prefix assertions match the renamed drill. Legacy restore guard, readiness aliases and synthetic legacy database checks remain explicit compatibility tests.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): Executable fake-tool tests pin both exact confirmation phrases and key generations, reject conflicts and malformed confirmations, and retain old backup basenames. Current drill assertions use canonical database, role and command values."
     },
     {
       "path": "tools/legal/restore-postgres.sh",
-      "sha256": "74605e259bf6da0577a4f3b21b098f6d485bd64a283f8e9785184fbd6b46036e",
+      "sha256": "edd3dfc1275ffb1848d6e5d7e19423d217b2cc47f59f50d8c7ce48074bfe4f4f",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/legal/restore-postgres.sh: Retain bounded legacy diagnostics, protocol/schema identities, readers or documented naming-history references; new first-party symbols and displayed product text were reviewed separately.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): Canonical restore instructions emit the current phrase. The original exact phrase and environment-key aliases remain accepted with strict conflicts; checksum, catalog and empty-target requirements are unchanged."
     },
     {
       "path": "tools/legal/run-backup-restore-smoke-test.sh",
-      "sha256": "ec8b80934a88994a444d308f84136a5cc6ce2807fecf903ce875f21aebfd8aab",
+      "sha256": "9c3a5744462f9fd08912f9d668a34232ca075395e530703eb2217f255a943d58",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Retained compatibility environment aliases, synthetic database identities and recovery phrases; cleanup now removes only the newly created test containers and their anonymous volumes. Scoped internal-name follow-up: local helpers, new outputs and ephemeral probes use PVAD; remaining historical names are compatibility assertions, upstream headers, restore guards or retained dashboard/rule identifiers. No external cutover is approved.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): New isolated drill databases, users, connection URLs and restore requests use current identities. Only explicit input environment aliases retain the historical identity; installed resources and original operator registers are unchanged."
     },
     {
       "path": "tools/legal/run-deployment-smoke-tests.sh",
@@ -6893,13 +6900,14 @@
     },
     {
       "path": "tools/versioning/pvad-build-consistency.test.mjs",
-      "sha256": "b1e115577fbb4ca1073e3929b1130104c0128c8b56bf02ae8e03f8cb92412a22",
+      "sha256": "7c67d1b752798c78c9b5692a23d275fe2071b1bb02e2786454ebd326c3c9fcd7",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/versioning/pvad-build-consistency.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): Fake container image labels use the current family. The deliberate previous-product rejection input and all immutable version and provenance checks remain unchanged."
     },
     {
       "path": "tools/versioning/pvad-version.mjs",
@@ -6913,13 +6921,14 @@
     },
     {
       "path": "tools/versioning/pvad-version.test.mjs",
-      "sha256": "9157e979fc55d7d232c941aabdf03741572a9508ed56b5ff70da682470576c90",
+      "sha256": "e36b82bfa914208fa7b3d626c06adb5eb323ddde7af995d376f85dbf25902fba",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "tools/versioning/pvad-version.test.mjs: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "Recovery/example follow-up (2026-11-06): Temporary impact-label repository and synthetic test author use the current identity. Original release wording, historical build-argument coverage and rejected internal-ticket data remain exact."
     },
     {
       "path": "tools/visual-parity/run.mjs",
@@ -7861,14 +7870,14 @@
     },
     {
       "path": "tools/configuration/internal-naming-contract.test.mjs",
-      "sha256": "294244f4e923e582e6c2d5d96996c5d0bcf9ca974101206a4e6de14fc0337710",
+      "sha256": "26c001b809ab84743259ee47f70cf36e192c83358c1836e462e1bdc2bdbd06ae",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Tests verify current internal names while explicitly preserving legacy upstream headers, backup-reader behavior, restore confirmation, dashboard and runbook references. Database executables are mocked; this is not runtime recovery evidence.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged.\n2026-11-06 API/tooling mechanical batch: Current synthetic API/security data, temporary paths, explanatory text and internal maintenance messages use current naming. Dedicated reader, diagnostic and original-evidence contracts remain exact. Recovery/example follow-up (2026-11-06): Direct current-example and recovery-prompt assertions supplement runtime tests. Dedicated original-release, customer-content, serialized-field and environment-reader compatibility assertions remain exact."
     },
     {
       "path": "tools/configuration/operator-guide-contract.test.mjs",

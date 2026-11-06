@@ -29,6 +29,13 @@ normalizes current API/security fixtures and internal tool text, and renames a
 private version-state field. Its old serialized reader remains intact and the
 source guard now permits only that exact serialized key, not the private name.
 
+The [recovery naming follow-up](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#recovery-and-current-example-naming---2026-11-06)
+adds the canonical explicit recovery phrase without removing its former exact
+input or changing database selection. New isolated drill databases use PVAD.
+Current converter, fidelity and build-test examples are normalized; original
+release text, customer content, backups and restricted contract registers remain
+unchanged. This does not authorize restoration of an installed database.
+
 The eight original gates in the release/cutover matrix stay open for future
 operations. They are not prerequisites for repository-only rename completion.
 No publisher account, non-local staging deployment, production reviewer, new

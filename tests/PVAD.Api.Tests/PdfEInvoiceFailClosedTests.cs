@@ -190,7 +190,7 @@ public sealed class PdfEInvoiceFailClosedTests
     [Fact]
     public void The_generated_totals_are_the_ones_the_lines_add_up_to()
     {
-        // Not a conformance claim - just that PXA's own arithmetic reaches the XML unaltered.
+        // Not a conformance claim - just that PVAD's own arithmetic reaches the XML unaltered.
         var generated = Generate(Invoice() with
         {
             Lines =

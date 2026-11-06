@@ -46,6 +46,12 @@ removes another 70 old-name occurrences in 29 files, including a private Core
 identifier and current test/tool text. Public serialized aliases and original
 evidence stay unchanged; this remains repository-only work.
 
+The [recovery and current-example batch](PVAD.Remaining-Code-Naming-Cleanup.md#recovery-and-current-example-naming---2026-11-06)
+provides a canonical explicit restore phrase, retains the former phrase as an
+exact input alias and uses current names throughout the isolated database drill.
+Converter, fidelity and release-tool test examples are normalized together with
+their expectations. Existing backup files, databases and evidence are not renamed.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the
