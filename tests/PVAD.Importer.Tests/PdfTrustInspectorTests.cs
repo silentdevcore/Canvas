@@ -167,11 +167,11 @@ public sealed class PdfTrustInspectorTests
             FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
         };
         document.Info.Title = "Archival fixture";
-        document.Info.Author = "PXA QA";
+        document.Info.Author = "PVAD QA";
         document.Info.Subject = "PDF/A-2b interoperability fixture";
-        document.Info.Keywords = "PXA, PDF/A";
-        document.Info.Creator = "PXA tests";
-        document.Info.Producer = "PXA";
+        document.Info.Keywords = "PVAD, PDF/A";
+        document.Info.Creator = "PVAD tests";
+        document.Info.Producer = "PVAD";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = new DateTimeOffset(2026, 8, 31, 10, 30, 0, TimeSpan.Zero);
         document.AddPage().DrawText("Embedded archival text", 40, 40, new PdfDrawTextOptions
@@ -303,7 +303,7 @@ public sealed class PdfTrustInspectorTests
 
         var report = await InspectAsync(source.Concat(shadowObject).ToArray());
 
-        // A reader resolves nothing here, so PXA must not present the appended bytes as a
+        // A reader resolves nothing here, so PVAD must not present the appended bytes as a
         // signature; it reports them as an unreferenced definition instead.
         Assert.Empty(report.Signatures);
         Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);

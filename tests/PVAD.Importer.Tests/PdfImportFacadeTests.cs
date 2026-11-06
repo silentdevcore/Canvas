@@ -7,14 +7,14 @@ public sealed class PdfImportFacadeTests
     {
         var source = PVAD.Generator.Pdf.CreateDocument();
         var page = source.AddPage(300, 180);
-        page.DrawTextFromTop("PXA importer facade", 24, 24, 12);
+        page.DrawTextFromTop("PVAD importer facade", 24, 24, 12);
 
         await using var stream = new MemoryStream(source.ToBytes());
 
         var imported = await Pdf.LoadAsync(stream);
 
         var importedPage = Assert.Single(imported.Pages);
-        Assert.Contains(importedPage.TextObjects, text => text.Text == "PXA importer facade");
+        Assert.Contains(importedPage.TextObjects, text => text.Text == "PVAD importer facade");
     }
 
     [Fact]
@@ -39,12 +39,12 @@ public sealed class PdfImportFacadeTests
     public async Task PvadImporterClass_StillLoadsPdf()
     {
         var source = PVAD.Generator.Pdf.CreateDocument();
-        source.AddPage(300, 180).DrawTextFromTop("PXA importer class compatibility", 24, 24, 12);
+        source.AddPage(300, 180).DrawTextFromTop("PVAD importer class compatibility", 24, 24, 12);
         await using var stream = new MemoryStream(source.ToBytes());
 
         var imported = await new PdfImporter().LoadAsync(stream);
 
         var importedPage = Assert.Single(imported.Pages);
-        Assert.Contains(importedPage.TextObjects, text => text.Text == "PXA importer class compatibility");
+        Assert.Contains(importedPage.TextObjects, text => text.Text == "PVAD importer class compatibility");
     }
 }

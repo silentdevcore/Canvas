@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { checkFolderTarget, curlRequest, grafanaRestoreScript, runGrafanaRehearsal } from './grafana-cutover-smoke.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+
+test('profile evidence uses a separate output directory and creates it before the first report write', () => {
+  const source = readFileSync(new URL('./grafana-cutover-smoke.mjs', import.meta.url), 'utf8');
+  const cli = source.slice(source.indexOf('if (process.argv[1]'));
+  assert.match(cli, /const reportFile = resolve\(root, 'artifacts\/rename\/grafana-profiles-rehearsal\/report\.json'\)/);
+  const create = cli.indexOf('await mkdir(dirname(reportFile), { recursive: true })');
+  assert.ok(create !== -1 && create < cli.indexOf('await writeFile(reportFile,'));
+  assert.doesNotMatch(source, /resolve\(root, 'artifacts\/rename\/grafana-rehearsal(?:\/report\.json)?'\)/);
+});
 
 test('folder rename requires the original UID and rejects case-insensitive target collisions', () => {
   checkFolderTarget([{ uid: 'retained', title: 'Previous' }], 'retained', 'PVAD');

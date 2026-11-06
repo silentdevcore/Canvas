@@ -426,7 +426,7 @@ public sealed class DevExpressPdfMigrationTests
         // Fix 1: the DXFont declarations are removed (no leftover vendor type that won't compile).
         Assert.DoesNotContain("DXFont", code);
 
-        // Fix 2: encryption is actually applied — Save carries mapped PXA options, not dropped.
+        // Fix 2: encryption is actually applied — Save carries mapped PVAD options, not dropped.
         Assert.Contains("document.Save(outputPath, new PdfSaveOptions", code);
         Assert.Contains("Encryption = new PdfEncryptionOptions", code);
         Assert.Contains("UserPassword = \"open-sesame\"", code);

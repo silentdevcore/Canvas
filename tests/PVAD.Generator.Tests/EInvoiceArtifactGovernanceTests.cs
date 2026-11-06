@@ -9,13 +9,13 @@ namespace PVAD.Generator.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// PXA ships no FeRD/FNFE or KoSIT artifacts. When an operator mounts a set, the only thing standing
+/// PVAD ships no FeRD/FNFE or KoSIT artifacts. When an operator mounts a set, the only thing standing
 /// between "some files in a directory" and a conformance verdict a customer will rely on is this
 /// gate. Every refusal below produces <c>unavailable</c> and a diagnostic explaining why - never a
 /// verdict, and never a silent fall back to structural recognition, which would look like a pass.
 /// </para>
 /// <para>
-/// The artifacts here are synthetic and PXA-authored. Nothing in this file is, or stands in for, an
+/// The artifacts here are synthetic and PVAD-authored. Nothing in this file is, or stands in for, an
 /// official distribution.
 /// </para>
 /// </remarks>
@@ -188,7 +188,7 @@ public sealed class EInvoiceArtifactGovernanceTests
 
         Assert.Equal("invalid", report.ConformanceStatus);
         var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PXAEINV024");
-        // Mapped to a stable PXA code, without discarding what the artifact set actually said.
+        // Mapped to a stable PVAD code, without discarding what the artifact set actually said.
         var original = diagnostic.OriginalFinding;
         Assert.NotNull(original);
         Assert.Equal("schematron", original!.Source);
@@ -364,7 +364,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             int schemaVersion,
             string? schematron)
         {
-            var root = Path.Combine(Path.GetTempPath(), "pxa-einvoice-gov-" + Guid.NewGuid().ToString("N"));
+            var root = Path.Combine(Path.GetTempPath(), "pvad-einvoice-gov-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
             var schemaPath = Path.Combine(root, "invoice.xsd");
             var schematronPath = Path.Combine(root, "rules.xsl");
@@ -380,7 +380,7 @@ public sealed class EInvoiceArtifactGovernanceTests
                 Profile = "EN 16931",
                 Syntax = "CII",
                 SourceUri = new Uri("https://example.invalid/synthetic-artifact-set"),
-                License = "Synthetic PXA-authored stand-in; not an official distribution",
+                License = "Synthetic PVAD-authored stand-in; not an official distribution",
                 XmlSchemas = [new PvadEInvoiceValidationArtifact("invoice.xsd", Hash(schemaPath))],
                 SchematronXslt = new PvadEInvoiceValidationArtifact("rules.xsl", Hash(schematronPath)),
                 Governance = governance
@@ -394,7 +394,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             UpstreamVersion = "1.09.2",
             RetrievedOn = new DateOnly(2026, 9, 1),
             LicenseReview = PvadEInvoiceLicenseReviewState.Approved,
-            LicenseReviewedBy = "PXA synthetic test reviewer",
+            LicenseReviewedBy = "PVAD synthetic test reviewer",
             LicenseReviewedOn = new DateOnly(2026, 9, 2),
             SupportedProfiles = ["MINIMUM", "BASIC WL", "BASIC", "EN 16931", "EXTENDED"],
             UpdatePolicy = "Re-fetched and re-reviewed whenever the upstream publishes a release.",

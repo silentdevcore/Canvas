@@ -429,7 +429,7 @@ public sealed class PdfCertificationPolicyTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA certification fixture", 40, 40);
+        document.AddPage().DrawText("PVAD certification fixture", 40, 40);
         return document.ToBytes();
     }
 

@@ -159,7 +159,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         public static ArtifactFixture Create(string schematron)
         {
-            var root = Path.Combine(Path.GetTempPath(), "pxa-einvoice-" + Guid.NewGuid().ToString("N"));
+            var root = Path.Combine(Path.GetTempPath(), "pvad-einvoice-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
             var schemaPath = Path.Combine(root, "invoice.xsd");
             var schematronPath = Path.Combine(root, "rules.xsl");
@@ -186,7 +186,7 @@ public sealed class EInvoiceConformanceValidatorTests
                     UpstreamVersion = "synthetic-test-1",
                     RetrievedOn = new DateOnly(2026, 9, 1),
                     LicenseReview = PvadEInvoiceLicenseReviewState.Approved,
-                    LicenseReviewedBy = "PXA synthetic test reviewer",
+                    LicenseReviewedBy = "PVAD synthetic test reviewer",
                     LicenseReviewedOn = new DateOnly(2026, 9, 2),
                     SupportedProfiles = ["EN 16931"],
                     UpdatePolicy = "Updated with the synthetic test contract.",

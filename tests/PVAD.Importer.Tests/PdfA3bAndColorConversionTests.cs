@@ -272,7 +272,7 @@ public sealed class PdfA3bAndColorConversionTests
         var (_, graph) = ParseGraph(result.Bytes);
         Assert.Contains("<pdfaid:part>3</pdfaid:part>", ReadXmp(graph), StringComparison.Ordinal);
         Assert.Contains("<pdfaid:conformance>B</pdfaid:conformance>", ReadXmp(graph), StringComparison.Ordinal);
-        Assert.Contains("PXA attachment payload", Encoding.Latin1.GetString(result.Bytes), StringComparison.Ordinal);
+        Assert.Contains("PVAD attachment payload", Encoding.Latin1.GetString(result.Bytes), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public sealed class PdfA3bAndColorConversionTests
             FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
         };
         document.Info.Title = "Colour conversion fixture";
-        document.Info.Producer = "PXA";
+        document.Info.Producer = "PVAD";
         document.AddPage().DrawText("Archival text", 40, 40, new PdfDrawTextOptions { Language = "en" });
         return document.ToBytes(new PdfSaveOptions { ComplianceProfile = PdfComplianceProfile.PdfA2B });
     }
@@ -623,7 +623,7 @@ public sealed class PdfA3bAndColorConversionTests
         return Append(source, [
             new PdfIncrementalObjectUpdate(streamId, new PdfStreamObject(
                 new PdfDictionary { ["Subtype"] = new PdfName("text/plain") },
-                "PXA attachment payload"u8.ToArray())),
+                "PVAD attachment payload"u8.ToArray())),
             new PdfIncrementalObjectUpdate(specificationId, new PdfDictionary
             {
                 ["Type"] = new PdfName("Filespec"),

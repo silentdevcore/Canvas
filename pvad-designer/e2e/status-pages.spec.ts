@@ -229,7 +229,7 @@ test('Designer keeps entitlement, Trial, and suspension failures distinct', asyn
       body: JSON.stringify({
         status: 403,
         title: 'Designer access unavailable',
-        detail: 'Use the recovery action shown by PXA Account.',
+        detail: 'Use the recovery action shown by PVADE Account.',
         code: scenario.code,
       }),
     }));

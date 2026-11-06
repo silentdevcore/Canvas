@@ -122,6 +122,11 @@ test('root legacy overlay retains external storage, topology and credential pair
     assert.equal(model.services['pvad-postgres-exporter'].environment.DATA_SOURCE_USER, 'pxa');
     assert.equal(model.services['pvad-database'].networks['pvad-observability'].aliases[0], 'pxa-database');
     assert.equal(model.services['pvad-grafana'].networks['pvad-observability-ingress'].ipv4_address, '172.30.50.11');
+    const provider = model.services['pvad-grafana'].volumes.filter(volume =>
+      volume.target === '/etc/grafana/provisioning/dashboards/dashboards.yml');
+    assert.equal(provider.length, 1);
+    assert.ok(provider[0].source.endsWith('/grafana/provisioning/dashboards/dashboards.yml'));
+    assert.equal(provider[0].read_only, true);
     assert.notEqual(run({}).status, 0);
   });
 
@@ -147,6 +152,32 @@ test('observability Compose forwards canonical Collector settings from both inpu
     });
     assert.equal(document.services['pvad-database'].environment.POSTGRES_DB, 'pvad');
     assert.ok(document.volumes['pvad-database-data']);
+  });
+
+test('fresh Grafana selects the current provider while explicit overlays preserve the installed profile',
+  { skip: !available }, () => {
+    const run = overlays => spawnSync(process.execPath, [
+      'tools/configuration/pvad-compose.mjs', '--env-file', emptyEnvFile,
+      '-f', 'docker-compose.yml', ...overlays, '--profile', 'observability', 'config', '--format', 'json',
+    ], { cwd: root, encoding: 'utf8', env: { PATH: process.env.PATH, HOME: process.env.HOME } });
+    const current = run([]);
+    assert.equal(current.status, 0, current.stderr);
+    const before = JSON.parse(current.stdout);
+    const providerTarget = '/etc/grafana/provisioning/dashboards/dashboards.yml';
+    const provider = before.services['pvad-grafana'].volumes.find(volume => volume.target === providerTarget);
+    assert.ok(provider, 'Fresh installations need an explicit current provider mount.');
+    assert.ok(provider.source.endsWith('/deploy/observability/grafana/profiles/current/dashboards.yml'));
+    assert.equal(provider.read_only, true);
+    const legacy = run(['-f', 'deploy/rename/docker-compose.grafana-legacy.yml']);
+    assert.equal(legacy.status, 0, legacy.stderr);
+    const after = JSON.parse(legacy.stdout);
+    const changed = after.services['pvad-grafana'].volumes.filter(volume => volume.target === providerTarget);
+    assert.equal(changed.length, 1);
+    assert.ok(changed[0].source.endsWith('/deploy/observability/grafana/provisioning/dashboards/dashboards.yml'));
+    assert.equal(changed[0].read_only, true);
+    const expected = structuredClone(before);
+    expected.services['pvad-grafana'].volumes.find(volume => volume.target === providerTarget).source = changed[0].source;
+    assert.deepEqual(after, expected, 'The overlay may change only the provider mount.');
   });
 
 test('Alertmanager, webhook overlay and retention fixtures resolve identical canonical and legacy inputs',

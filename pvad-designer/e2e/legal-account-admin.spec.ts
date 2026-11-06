@@ -239,7 +239,7 @@ test('Admin compares legal versions and exports audited minimized evidence', asy
     await route.fulfill({
       status: 200,
       contentType: 'text/csv',
-      headers: { 'Content-Disposition': 'attachment; filename="pxa-legal-acceptance-2026-08.csv"' },
+      headers: { 'Content-Disposition': 'attachment; filename="pvad-legal-acceptance-2026-08.csv"' },
       body: 'evidenceId,organizationId,contentHash\nsynthetic,synthetic,hash\n',
     });
   });
@@ -260,7 +260,7 @@ test('Admin compares legal versions and exports audited minimized evidence', asy
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV' }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe('pxa-legal-acceptance-2026-08.csv');
+  expect(download.suggestedFilename()).toBe('pvad-legal-acceptance-2026-08.csv');
   expect(exportBody).toEqual({
     format: 'csv',
     organizationId: '',

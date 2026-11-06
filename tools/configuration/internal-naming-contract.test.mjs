@@ -72,6 +72,40 @@ test('current mail and database fixtures use reserved synthetic domains with cur
   assert.doesNotMatch(read('tests/PVAD.Api.Tests/AuthControllerTests.cs'), /pxa-integration-test/);
 });
 
+test('current frontend examples and synthetic facade documents use canonical names', () => {
+  for (const path of [
+    'pvad-designer/src/__tests__/backendSymbolRenderer.test.ts',
+    'pvad-designer/src/__tests__/codePreviewParity.test.tsx',
+    'pvad-designer/src/__tests__/codeViewerExport.test.tsx',
+    'pvad-designer/src/__tests__/pageLayout.test.ts',
+    'pvad-designer/e2e/account-accessibility.spec.ts',
+    'pvad-designer/e2e/legal-account-admin.spec.ts',
+    'websites/PVAD.Account/tests/accountContext.test.ts',
+    'websites/PVAD.Account/tests/accountPermissions.test.ts',
+    'tests/PVAD.Application.Tests/DesignUseCaseFacadeTests.cs',
+    'tests/PVAD.Export.Tests/PvadExportCompositionTests.cs',
+    'tests/PVAD.Infrastructure.Pdf.Tests/PdfInfrastructureFacadeTests.cs',
+    'tests/PVAD.Generator.Tests/PdfFacadeTests.cs',
+    'tests/PVAD.Importer.Tests/PdfImportFacadeTests.cs',
+  ]) assert.doesNotMatch(read(path), /\bPXA\b|Power Dox Automation|powerdoxautomation\.com|pxa-(?:export|pdf|legal)|@pxa\.test/, path);
+});
+
+test('bulk example renaming preserves historical release text and explicit reader contracts', () => {
+  const releases = read('pvad-designer/src/__tests__/productExperiencePanel.test.tsx');
+  assert.ok(releases.includes("title: 'PXA 1.1.0'"));
+  assert.ok(releases.includes("toHaveAccessibleName('PXA 1.1.0')"));
+  assert.ok(releases.includes('acceptance in PVADE Account.'));
+  const converters = read('tests/PVAD.Infrastructure.Converters.Tests/ConverterFacadeTests.cs');
+  assert.ok(converters.includes('Assert.Equal("PxaDocument", legacy.Root!.Name.LocalName)'));
+  assert.ok(converters.includes('Assert.Contains("Hello PVAD", canonical.ToString())'));
+  const projects = read('tests/PVAD.Core.Tests/PvadProjectArchiveTests.cs');
+  for (const value of ['PXA-PXAP-1', 'minimal.pxap', 'minimal.pxas', 'minimumPxaVersion'])
+    assert.ok(projects.includes(value), value);
+  const template = read('tests/PVAD.Api.Tests/TemplatesControllerTests.cs');
+  assert.ok(template.includes('"/api/pxa/templates/validate"'));
+  assert.ok(template.includes('"PVAD Template"'));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

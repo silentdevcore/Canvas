@@ -1,0 +1,11 @@
+{
+  "id": "pvad-repository-rename-scope",
+  "impact": "none",
+  "components": ["documentation"],
+  "category": "improved",
+  "summary": "Internal guidance distinguishes repository renaming from future release and deployment work.",
+  "reason": "This records the owner's repository-only scope while preserving original operational tasks, compatibility rules and test evidence. No product behavior, version, release or deployment changes.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

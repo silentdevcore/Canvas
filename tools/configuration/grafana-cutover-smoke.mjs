@@ -3,9 +3,9 @@ import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { prepareGrafanaInventory, prepareGrafanaProvider } from './rename-grafana-provider.mjs';
+import { grafanaDatasourcePath, grafanaProviderPath, prepareGrafanaInventory, prepareGrafanaProvider } from './rename-grafana-provider.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { load, dump } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
@@ -48,11 +48,12 @@ export async function runGrafanaRehearsal({ docker = dockerCommand, progress = (
   const imageTag = compose.services['pvad-grafana'].image;
   const image = docker(['image', 'inspect', '--format', '{{.Id}}', imageTag]);
   assert.match(image, /^sha256:[a-f0-9]{64}$/, 'A cached Compose-selected Grafana image is required.');
-  const originalSource = await readFile(resolve(root, 'deploy/observability/grafana/provisioning/dashboards/dashboards.yml'), 'utf8');
+  const originalSource = await readFile(resolve(root, grafanaProviderPath('legacy')), 'utf8');
+  const currentSource = await readFile(resolve(root, grafanaProviderPath()), 'utf8');
   const prepared = prepareGrafanaProvider(originalSource);
   const inventory = prepareGrafanaInventory();
   const id = randomUUID(), prefix = `pvad-grafana-rehearsal-${id}`;
-  const output = resolve(root, 'artifacts/rename/grafana-rehearsal');
+  const output = resolve(root, 'artifacts/rename/grafana-profiles-rehearsal');
   await mkdir(output, { recursive: true });
   const work = await mkdtemp(resolve(output, 'work-'));
   const resources = [], admin = `pvad-lab-admin:${randomUUID()}`, reader = `pvad-lab-reader:${randomUUID()}`;
@@ -158,7 +159,7 @@ export async function runGrafanaRehearsal({ docker = dockerCommand, progress = (
     const providerFile = resolve(work, 'provisioning/dashboards/dashboards.yml');
     await writeFile(providerFile, originalSource);
     await writeFile(resolve(work, 'provisioning/datasources/datasources.yml'),
-      await readFile(resolve(root, 'deploy/observability/grafana/provisioning/datasources/datasources.yml')));
+      await readFile(resolve(root, grafanaDatasourcePath)));
     for (const dashboard of inventory.dashboards)
       await writeFile(resolve(work, 'dashboards', dashboard.path.split('/').at(-1)), await readFile(resolve(root, dashboard.path)));
     const data = volume('data'), backup = volume('backup'), restoredData = volume('restored');
@@ -217,12 +218,30 @@ export async function runGrafanaRehearsal({ docker = dockerCommand, progress = (
     assert.deepEqual(rollback, before, 'Restored placement, permissions or content differ from the snapshot.');
     assert.equal(request(restored, 'GET', '/api/annotations?tags=pvad-rehearsal-after-backup').length, 0);
     stop(restored);
+    step('fresh-current-profile');
+    await writeFile(providerFile, currentSource);
+    const fresh = await start('fresh', volume('fresh'));
+    const freshFolders = request(fresh, 'GET', '/api/folders?limit=100');
+    assert.equal(freshFolders.length, 1);
+    assert.equal(freshFolders[0].title, 'PVAD');
+    for (const dashboard of inventory.dashboards) {
+      const result = request(fresh, 'GET', `/api/dashboards/uid/${dashboard.uid}`);
+      assert.equal(result.meta.folderUid, freshFolders[0].uid);
+      assert.equal(result.dashboard.title, dashboard.title);
+    }
+    assert.deepEqual(request(fresh, 'GET', '/api/datasources').map(value => value.uid).sort(),
+      inventory.datasources.map(value => value.uid).sort());
+    request(fresh, 'GET', '/api/user', undefined, 'synthetic-invalid:unusable-password', [401]);
+    stop(fresh);
     assert.deepEqual(prepareGrafanaInventory(), inventory, 'Reviewed source changed during the rehearsal.');
     report = { schemaVersion: 1, status: 'passed', deploymentAuthorized: false, syntheticOnly: true,
       imageTag, image, dashboardCount: inventory.dashboards.length, datasourceCount: inventory.datasources.length,
       originalFolderUidPreserved: true, permissionsPreserved: true, unauthorizedReadersDenied: true,
       collisionRejected: true, corruptArchiveRejectedBeforeExtraction: true,
       pointInTimeRestoreVerified: true, postSnapshotWritesReplayed: false,
+      freshInstallationVerified: true, freshFolderTitle: freshFolders[0].title,
+      freshDashboardCount: inventory.dashboards.length, freshUnauthenticatedAccessDenied: true,
+      legacyProviderSha256: sha256(originalSource), currentProviderSha256: sha256(currentSource),
       backupSha256: backupHash, baselineSha256: sha256(JSON.stringify(before)), restoredSha256: sha256(JSON.stringify(rollback)),
       sourceInventorySha256: sha256(JSON.stringify(inventory)),
       limits: ['synthetic-basic-auth-not-pvad-gateway', 'no-live-query-or-alert-delivery-check',
@@ -246,11 +265,11 @@ export async function runGrafanaRehearsal({ docker = dockerCommand, progress = (
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const reportFile = resolve(root, 'artifacts/rename/grafana-rehearsal/report.json');
+  const reportFile = resolve(root, 'artifacts/rename/grafana-profiles-rehearsal/report.json');
   let startedAt;
   try {
     if (process.argv.length !== 2) throw new Error('No arguments or external resource names are accepted.');
-    await mkdir(resolve(root, 'artifacts/rename/grafana-rehearsal'), { recursive: true });
+    await mkdir(dirname(reportFile), { recursive: true });
     startedAt = new Date().toISOString();
     await writeFile(reportFile, JSON.stringify({ schemaVersion: 1, status: 'running', startedAt, deploymentAuthorized: false }) + '\n');
     const report = await runGrafanaRehearsal({ progress: phase => console.error(`Grafana rehearsal: ${phase}`) });

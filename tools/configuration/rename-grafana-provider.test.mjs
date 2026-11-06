@@ -12,7 +12,7 @@ const { load, dump } = createRequire(new URL('../../pvad-designer/package.json',
 const path = 'deploy/observability/grafana/provisioning/dashboards/dashboards.yml';
 const source = readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 
-test('Grafana candidate changes only provider and folder labels; active source remains unchanged', () => {
+test('legacy Grafana candidate changes only provider and folder labels; retained source remains unchanged', () => {
   const before = load(source);
   const result = prepareGrafanaProvider(source);
   const expected = structuredClone(before);
@@ -24,9 +24,38 @@ test('Grafana candidate changes only provider and folder labels; active source r
   assert.equal(result.report.sourceSha256, createHash('sha256').update(source).digest('hex'));
   assert.equal(result.report.deploymentAuthorized, false);
   assert.equal(result.report.blockers.length, 4);
+  assert.equal(result.report.migrationRequired, true);
+  assert.equal(result.report.provisioningProfile, 'legacy');
   assert.match(result.report.warning, /not a database backup/);
   assert.equal(readFileSync(new URL('../../' + path, import.meta.url), 'utf8'), source);
   assert.equal(execFileSync('git', ['show', `HEAD:${path}`], { cwd: root, encoding: 'utf8' }), source);
+});
+
+test('current Grafana profile is canonical and preparing it again is idempotent', () => {
+  const current = readFileSync(new URL('../../deploy/observability/grafana/profiles/current/dashboards.yml', import.meta.url), 'utf8');
+  const result = prepareGrafanaProvider(current);
+  assert.equal(load(current).providers[0].name, 'PVAD');
+  assert.equal(load(current).providers[0].folder, 'PVAD');
+  assert.deepEqual(result.candidate, load(current));
+  assert.deepEqual(result.report.changes, []);
+  assert.deepEqual(result.report.blockers, []);
+  assert.equal(result.report.migrationRequired, false);
+  assert.deepEqual(prepareGrafanaProvider(dump(result.candidate)).candidate, result.candidate);
+  assert.equal(result.report.deploymentAuthorized, false);
+});
+
+test('repository inventory selects current or legacy provider explicitly and rejects unknown profiles', () => {
+  const current = prepareGrafanaInventory();
+  const legacy = prepareGrafanaInventory(root, 'legacy');
+  assert.equal(current.provisioningProfile, 'current');
+  assert.equal(legacy.provisioningProfile, 'legacy');
+  assert.ok(current.sources.some(file => file.path === 'deploy/observability/grafana/profiles/current/dashboards.yml'));
+  assert.ok(legacy.sources.some(file => file.path === path));
+  assert.deepEqual(current.sources, legacy.sources, 'Either profile must pin both provider generations.');
+  assert.deepEqual(current.dashboards, legacy.dashboards);
+  assert.deepEqual(current.datasources, legacy.datasources);
+  assert.deepEqual(current.alerts, legacy.alerts);
+  assert.throws(() => prepareGrafanaInventory(root, '../external'), /profile/);
 });
 
 test('unexpected Grafana provider, folder UID, policy or additional provider fails closed', () => {
@@ -39,10 +68,15 @@ test('unexpected Grafana provider, folder UID, policy or additional provider fai
     config => { config.providers.push(structuredClone(config.providers[0])); },
     config => { config.providers[0].options.path = '/another/path'; },
   ];
-  for (const mutate of mutations) {
-    const config = load(source);
-    mutate(config);
-    assert.throws(() => prepareGrafanaProvider(dump(config)), /provisioning changed/);
+  for (const original of [source, dump(prepareGrafanaProvider(source).candidate)]) {
+    for (const mutate of mutations) {
+      const config = load(original);
+      mutate(config);
+      assert.throws(() => prepareGrafanaProvider(dump(config)), /provisioning changed/);
+    }
+    const mixed = load(original);
+    mixed.providers[0].folder = mixed.providers[0].name === 'PVAD' ? 'PXA' : 'PVAD';
+    assert.throws(() => prepareGrafanaProvider(dump(mixed)), /provisioning changed/);
   }
   assert.throws(() => prepareGrafanaProvider('null'), /provisioning changed/);
   assert.throws(() => prepareGrafanaProvider('providers: ['));
@@ -133,12 +167,17 @@ test('repository inventory is deterministic and pins every included source witho
 });
 
 test('CLI binds its candidate and reference inventory to exact checksums without implying deployment readiness', () => {
-  const run = spawnSync(process.execPath, ['tools/configuration/rename-grafana-provider.mjs'], { cwd: root, encoding: 'utf8' });
-  assert.equal(run.status, 0, run.stderr);
-  const report = JSON.parse(run.stdout);
-  const output = new URL('../../artifacts/rename/grafana-provider/', import.meta.url);
-  assert.equal(report.inventorySha256, createHash('sha256').update(readFileSync(new URL('inventory.json', output))).digest('hex'));
-  assert.equal(report.candidateSha256, createHash('sha256').update(readFileSync(new URL('dashboards.candidate.yml', output))).digest('hex'));
-  assert.equal(report.deploymentAuthorized, false);
-  assert.equal(report.blockers.length, 4);
+  for (const profile of ['current', 'legacy']) {
+    const run = spawnSync(process.execPath, ['tools/configuration/rename-grafana-provider.mjs',
+      ...(profile === 'legacy' ? ['--legacy'] : [])], { cwd: root, encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    const report = JSON.parse(run.stdout);
+    const output = new URL(`../../artifacts/rename/grafana-provider/${profile}/`, import.meta.url);
+    assert.equal(report.inventorySha256, createHash('sha256').update(readFileSync(new URL('inventory.json', output))).digest('hex'));
+    assert.equal(report.candidateSha256, createHash('sha256').update(readFileSync(new URL('dashboards.candidate.yml', output))).digest('hex'));
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.provisioningProfile, profile);
+    assert.equal(report.migrationRequired, profile === 'legacy');
+    assert.equal(report.blockers.length, profile === 'legacy' ? 4 : 0);
+  }
 });

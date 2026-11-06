@@ -1,5 +1,35 @@
 # PVAD Remaining Code Source Acceptance
 
+## Current Repository-Only Scope (2026-11-06)
+
+The owner's active instruction is to finish renaming the repository, not to
+publish or deploy the product. Current technical names are PVAD and current
+product/Designer names are PVADE. Source, project names, configuration, examples,
+tests and documentation belong to this task; protected legacy readers and
+original evidence retain the agreed compatibility rules.
+
+The final functional-test cleanup is committed as `b3812027`: 143 old-name
+occurrences were removed from 31 test files, with matching expectations and
+focused regression coverage. See the
+[verification record](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#mechanical-test-source-cleanup---2026-11-06).
+These are repository changes, not a runtime cutover or publication.
+
+The subsequent [Grafana repository-default review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#grafana-repository-defaults---2026-11-06)
+sets fresh local provider/folder names to PVAD and makes installed-provider
+compatibility an explicit selection. Original provisioning and dashboard files
+remain unchanged; existing services are not restarted or migrated.
+
+The [large mechanical replacement batch](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#large-mechanical-search-and-replace-batch---2026-11-06)
+then normalizes current synthetic examples and test labels in 50 files. It does
+not replace retained diagnostic, reader or historical-release contracts, and
+does not change application runtime behavior.
+
+The eight original gates in the release/cutover matrix stay open for future
+operations. They are not prerequisites for repository-only rename completion.
+No publisher account, non-local staging deployment, production reviewer, new
+version, tag or published artifact is required by this active task. Do not infer
+permission to remove compatibility, rewrite evidence or bypass Git protections.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the
@@ -25,7 +55,7 @@ Earlier execution counts and approvals remain point-in-time evidence.
 | Redacted image resources | Canonical marker and resource suffix. Rewriting removes the old marker; readers still verify old PDFs with existing pixel/mask/residue checks. | Importer redaction suites, repeated-redaction and forgery tests; direct writer guard. |
 | Mail and webhook headers | Canonical headers with identical bounded compatibility aliases. Outbox correlation, signed bytes, HMAC algorithm and idempotency values are unchanged. | API mail/header contracts; relay integration tests for both receivers and a fixed signature vector; rejection of conflicting/partial pairs. |
 | Parser and synthetic corpus output | Canonical newly generated IDs, metadata and subjects; explicit readers accept original reports without rewriting hashes or evidence. | Real bounded fuzz run and isolated generation recorded in Batch 4; read-only report, manifest, collision and evidence-selection tests. |
-| Monitoring display | Canonical titles/tags, with exactly two reviewed JSON-pointer transitions. Datasource/dashboard UIDs, rule/runbook identities and folder placement remain operational bindings. | Dashboard-reference inventory, exact-value transition tests, unchanged original JSON audit. |
+| Monitoring display | Canonical titles/tags and fresh PVAD provider/folder defaults; existing providers require an explicit compatibility profile. Datasource/dashboard UIDs, rule/runbook identities and installed folder permissions stay stable. | Profile-specific inventory, actual Compose merge tests and isolated fresh-install/cutover/restore checks; unchanged original JSON audit and installed provisioning sources. |
 | Deployment defaults | Canonical image-family default with explicit historical-family selection. Protected environments, publisher, action pins, token permissions and lock groups are unchanged. | Actual workflow shell executed against a Docker stub; unknown-family rejection and idempotent old/new workflow preparation. |
 | Browser and response aliases | Canonical new request/storage writers; explicit old readers and documented paired responses. One telemetry bridge serves both names without a second collector. | Shared storage/telemetry tests, Designer headers/configuration/tenant-state tests and API compatibility tests. |
 
@@ -60,6 +90,10 @@ legacy fixtures and are not a progress metric.
 
 ## Operational Work Still Open
 
+The following operations are deferred and outside the current repository-only
+rename task. They remain recorded for a later, separately authorized rollout;
+they are not outstanding source replacements or current completion blockers.
+
 1. Authorize a concrete monitoring identity cutover, capture the actual state and
    backup, verify folder permissions and saved links, exercise real alert/mail
    delivery, and prove restore/rollback for that target.
@@ -77,4 +111,5 @@ Exact commands and results for this review are recorded in Batch 5 of the
 [remaining-code checklist](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md).
 Skipped and unavailable external scenarios are not passing evidence. Product
 VERSION and the published release manifest remain unchanged; a normal reviewed
-integration and release-preparation workflow is still required.
+repository integration remains separate from any future release preparation.
+No release-preparation or publication work is required for the current rename.

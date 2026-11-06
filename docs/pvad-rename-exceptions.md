@@ -1,5 +1,14 @@
 # PVAD Rename Classification And Historical Exceptions
 
+## Grafana Default Selection - 2026-11-06
+
+Fresh local installations now use canonical PVAD provider/folder names. The
+original provider is retained only for explicitly selected compatibility and
+existing bind mounts; it is not the new-installation default. Shared datasource
+and dashboard UIDs, installed folder permissions and original evidence remain
+unchanged. See the [profile selection and focused verification](pvad-grafana-provider-cutover.md)
+before interpreting the older operational-binding decisions below.
+
 ## Current Source Corrections - 2026-11-05
 
 The [remaining code checklist](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md)

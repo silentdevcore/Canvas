@@ -7,8 +7,8 @@ import { accountPermissions, hasAccountPermission } from '../src/permissions.ts'
 function user(permissions: string[]): UserInfo {
   return {
     id: 'user',
-    username: 'user@pxa.test',
-    email: 'user@pxa.test',
+    username: 'user@pvad.test',
+    email: 'user@pvad.test',
     displayName: 'User',
     roles: ['Viewer'],
     permissions,

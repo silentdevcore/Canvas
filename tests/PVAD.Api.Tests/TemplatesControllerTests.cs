@@ -28,7 +28,7 @@ public sealed class TemplatesControllerTests : IClassFixture<PvadApiTestFactory>
         var json = JsonSerializer.Serialize(new
         {
             id = "template-1",
-            name = "PXA Template",
+            name = "PVAD Template",
             elements = new[]
             {
                 new

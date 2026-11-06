@@ -184,6 +184,10 @@ test('cleanup includes owned backup volumes and rejects unrelated volume ownersh
 test('the lab uses the unchanged relay and real gateway without TLS or authentication bypasses', () => {
   const setup = readFileSync(new URL('./monitoring-operator-lab.mjs', import.meta.url), 'utf8');
   const scenarios = readFileSync(new URL('./monitoring-operator-checks.mjs', import.meta.url), 'utf8');
+  const browser = readFileSync(new URL('./operator-browser-rehearsal.mjs', import.meta.url), 'utf8');
+  assert.match(setup, /grafanaProviderPath\('legacy'\)/);
+  assert.match(browser, /monitoring\?\.grafanaProvisioning/);
+  assert.match(browser, /mount\(grafanaProviderPath\(\), '\/etc\/grafana\/provisioning\/dashboards\/dashboards\.yml'\)/);
   assert.match(setup, /WebhookRelay__Destination=https:\/\/pvad-webhook-receiver:8443\/alerts/);
   assert.match(setup, /SSL_CERT_FILE=\/lab\/receiver\.crt/);
   assert.match(scenarios, /anonymousRequest\.get/);

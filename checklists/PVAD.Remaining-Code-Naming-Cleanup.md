@@ -288,6 +288,79 @@ uses `none` impact. Earlier execution totals remain point-in-time results.
 - All 281 tracked Markdown files have zero old-name occurrences. Ninety-one protected originals and dedicated compatibility sources compare byte-for-byte with HEAD; all 815 original ledger review notes and their ordering are preserved.
 - No isolated Testcontainers resources remain running after the tests. No live application, database, deployment, publisher, version or published release was changed. Existing compiler/license warnings are not waived by these scoped checks.
 
+### Grafana Repository Defaults - 2026-11-06
+
+This source-only batch closes a concrete default-provider naming finding. New
+local Compose installations select
+`deploy/observability/grafana/profiles/current/dashboards.yml`, with PVAD as both
+provider and folder. The original provider and all shared datasource/dashboard
+files remain unchanged for installed services.
+
+- `deploy/rename/docker-compose.grafana-legacy.yml` explicitly selects only the original provider file. Actual resolved-model comparison proves no other setting changes. The complete legacy overlay also selects the retained provider while preserving its existing external resource bindings.
+- Provider preparation defaults to the current profile and is idempotent, with no migration changes or blockers. `--legacy` explicitly prepares the compatibility transition. Both provider profiles are validated, source-pinned and written to separate ignored output directories; neither command can apply a change.
+- Standalone operator-browser preparation uses the current provider. The integrated monitoring transition lab explicitly seeds the legacy provider in temporary configuration so its cutover remains a real transition, not a no-op.
+- Profile rehearsal reports use `artifacts/rename/grafana-profiles-rehearsal/report.json`. The CLI creates the new report directory before its first write; a regression contract prevents accidental dependence on an existing output directory. Older reports and their original source pins are not overwritten or relabeled.
+- The provider guide, observability startup instructions, compatibility-overlay guide and source/final-acceptance boundaries document the two choices. Existing live cutover procedures remain deferred, not requirements for repository-only completion.
+- A Patch fragment records the fresh-installation default correction. VERSION, the published release manifest, original Markdown/JSON inventories and Legal compatibility registers are unchanged. No publication, version preparation, deployment, commit or push is performed.
+
+#### Verification
+
+- All configuration and versioning contracts pass: **403 tests, zero failures or skips**. The ignored log is `artifacts/rename/grafana-current-default/configuration-versioning-tests.txt`.
+- Documentation passes **60 tests** and its production build. Existing Vite warnings about a future native configuration loader remain; no public UI or operator-navigation change is introduced.
+- The actual isolated rehearsal passes with cached `grafana/grafana:13.1.0`: five dashboards, three datasources, retained legacy folder UID and permissions, denied unauthorized reads, collision rejection, corrupt-backup rejection and matching point-in-time restore. A separate fresh volume provisions exactly one PVAD folder with all five dashboards and unchanged datasource UIDs, and rejects invalid authentication.
+- The real test uses network-isolated synthetic containers and no published ports or installed volumes. Owned test containers and volumes are removed. The existing local Grafana container remains running with its original read-only provisioning bind mount; it is not restarted.
+- The nine original provisioning/dashboard files compare byte-for-byte with baseline commit `b3812027`. All 815 original ledger review notes and their order are preserved; current hash reviews and one precise compatibility-test entry are additive.
+- Structural JSON and residual naming guards pass. Existing checklist states and historical result counts remain unchanged. The new result does not recertify the earlier combined HTTP/browser, telemetry, alert-delivery or production scenarios whose changed source pins are now historical.
+
+### Large Mechanical Search-And-Replace Batch - 2026-11-06
+
+The owner requested direct search and replacement in larger reviewed areas.
+The fresh tracked-file inventory is
+`artifacts/rename/search-replace-current/scan.json`. It records the working tree
+based on `b3812027`, including the uncommitted Grafana batch, rather than claiming
+a new clean-commit audit. Its 643 matching text files and 20,761 occurrences
+include historical evidence and compatibility values, not that many open defects.
+
+One explicit literal-replacement batch updates **120 matches in 50 files**:
+
+| Reviewed area | Files | Replacements |
+| --- | ---: | ---: |
+| Designer test examples, metadata, labels and E2E inputs | 15 | 25 |
+| Account synthetic users and test descriptions | 4 | 6 |
+| Backend document, import/export, signing and archive test inputs | 23 | 73 |
+| PDF, Spreadsheet and Report migration test examples and comments | 8 | 16 |
+
+The exact replacement list, occurrence counts and before/after hashes are stored
+in `artifacts/rename/search-replace-current/replacements.json`. Twenty-five files
+now have no old product-name tokens. Twenty-four ledger entries also become
+resolved; neutral drawing terminology accounts for the different classification.
+All original review notes remain intact, with current review explanations added.
+
+Only freely chosen current test inputs, matching assertions, explanatory comments
+and newly allocated temporary names change. The historical release title remains
+an explicit preservation test; current synthetic Legal notifications use PVADE.
+Original PDFs, signature subjects, independent reports, corpus schema values,
+project format aliases, diagnostic IDs, API routes, XML compatibility envelopes
+and existing storage keys are not renamed. Direct source contracts independently
+check current examples and the retained reader/history boundaries.
+
+The internal-only release fragment uses `none` impact. No runtime behavior,
+version, published release, database, live service, deployment or Git history is
+changed by this mechanical batch. Earlier checklist states and results remain
+point-in-time evidence, not a new acceptance or publication approval.
+
+#### Verification
+
+- Designer: all 812 tests in 92 suites, typecheck and production build pass. Existing module/chunk warnings are unchanged.
+- Account: all 53 tests and typecheck pass.
+- Configuration/versioning: all 405 tests pass, with no failures or skips. Residual, structural JSON, version synchronization and fragment validation pass.
+- Playwright discovers all 24 selected cases in the four changed E2E files. This is syntax/discovery validation, not a new browser execution.
+- 143 protected corpus, project-fixture, schema-alias, audit, Legal/register, published-release and VERSION files compare byte-for-byte with HEAD.
+- The initial restricted .NET attempt could not open its test-runner socket and was stopped. Its logs remain under `artifacts/rename/search-replace-current/dotnet/`; it is not counted as passing evidence. The permitted local rerun writes separate logs and TRX files under `dotnet-local/`.
+- Final focused .NET validation passes **590 tests across 16 projects**, with zero failures or skips in the selected cases. The summary is `artifacts/rename/search-replace-current/dotnet-validation.json`, generated from TRX counters through an XML parser. It is not a full Solution test run.
+- The first broad Export selection exceeded the parent process timeout after its long dependency build. Its zero exit status does not count as a completed pass; a later broad retry was explicitly stopped. The final `dotnet-export-focused/export.trx` contains 25 passing export/spreadsheet tests. The additional 62-page real-world corpus case is excluded from accepted evidence; only its diagnostic-message edit is build-checked.
+- Final naming checks retain zero old-name matches in all 281 tracked Markdown files, exact original review notes and unchanged checklist states. `git diff --check` passes. No commit or push is performed.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

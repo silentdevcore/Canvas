@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('Company and Designer delegate customer registration exclusively to PXA Account', async () => {
+test('Company and Designer delegate customer registration exclusively to PVADE Account', async () => {
   const [company, designerAuth, designerGate, account, accountApi] = await Promise.all([
     readFile(new URL('../../PVAD.Company/src/main.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../pvad-designer/src/auth/designerAuth.ts', import.meta.url), 'utf8'),
