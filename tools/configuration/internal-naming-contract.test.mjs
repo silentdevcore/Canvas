@@ -283,6 +283,50 @@ test('current MCP setups use canonical names and keep compatibility cases explic
   assert.ok(client.includes("scopes: ['pxa.templates.read']"));
 });
 
+test('general PDF workflows assert canonical document headers while explicit aliases stay covered', () => {
+  for (const name of ['PdfEInvoiceCanonicalValueParityTests', 'PdfEInvoicePreservedXmlTests',
+    'PdfEInvoiceScannedDocumentTests', 'PdfEInvoiceValidationEvidenceTests',
+    'PdfEInvoicesAttachControllerTests', 'PdfSignaturesControllerTests',
+    'PdfViewerRedactionControllerTests']) {
+    const source = read(`tests/PVAD.Api.Tests/${name}.cs`);
+    assert.match(source, /Headers\["(?:X-)?PVAD-/, name);
+    assert.doesNotMatch(source, /Headers\["(?:X-)?PXA-/, name);
+  }
+  for (const name of ['PdfTrustControllerTests', 'PdfRedactionsControllerTests']) {
+    const source = read(`tests/PVAD.Api.Tests/${name}.cs`);
+    assert.doesNotMatch(source, /Assert\.Equal\((?:64|"PDF\/A-2b"), controller\.Response\.Headers\["PXA-/);
+    assert.match(source, /Assert\.Equal\(controller\.Response\.Headers\["PXA-[^"]+"\], controller\.Response\.Headers\["PVAD-/);
+  }
+  const aliases = read('tests/PVAD.Api.Tests/PvadDocumentHeaderCompatibilityTests.cs');
+  assert.ok(aliases.includes('PvadResponseHeaders.DocumentSuffixes.Select'));
+  for (const prefix of ['PVAD', 'PXA'])
+    assert.ok(aliases.includes(`context.Response.Headers[$"${prefix}-{suffix}"]`));
+});
+
+test('account delegation and job trace fixtures use canonical current identities', () => {
+  const account = read('tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs');
+  for (const value of ['PVAD-MCP', 'pvad-mcp-server', 'pvad-api', 'pvad.templates.read'])
+    assert.ok(account.includes(`"${value}"`), value);
+  assert.doesNotMatch(account, /"PXA-MCP"|"pxa-(?:mcp-server|api)"|"pxa\.templates\.read"/);
+  const compatibility = read('tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs');
+  assert.ok(compatibility.includes('[InlineData("PXA-MCP", "pxa-mcp-server", "pxa-api", "pxa.templates.read", true)]'));
+  const jobs = read('tests/PVAD.Api.Tests/PvadJobProcessorTests.cs');
+  assert.ok(jobs.includes('TraceState = "pvad=integration-test"'));
+  assert.ok(jobs.includes('Assert.Equal("pvad=integration-test", completed.TraceState)'));
+  assert.doesNotMatch(jobs, /pxa=integration-test/);
+});
+
+test('Viewer workflow defaults use canonical headers and API tests retain both generations', () => {
+  const browser = read('pvad-designer/e2e/pdf-viewer-trust-authenticated.spec.ts');
+  assert.doesNotMatch(browser, /'PXA-Redaction-/);
+  for (const suffix of ['Result-Sha256', 'Audit', 'Audit-Signed'])
+    assert.ok(browser.includes(`'PVAD-Redaction-${suffix}'`));
+  const client = read('pvad-designer/src/__tests__/pdfViewerAnnotationApi.test.ts');
+  assert.equal((client.match(/test\.each\(\['PVAD', 'PXA'\]\)/g) ?? []).length, 2);
+  assert.ok(client.includes('rejects conflicting %s aliases without disclosing their values'));
+  assert.ok(client.includes('accepts equal current and retained audit headers together'));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

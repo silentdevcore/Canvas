@@ -163,7 +163,7 @@ public sealed class PvadJobProcessorTests
                 CreatedByUserId = userId,
                 Type = PvadJobQueue.TemplateRenderType,
                 TraceParent = traceParent,
-                TraceState = "pxa=integration-test",
+                TraceState = "pvad=integration-test",
                 RetentionMode = PvadJobRetentionMode.Retained,
                 PayloadJson = JsonSerializer.Serialize(new TemplateRenderJobPayload(
                     templateId.ToString(),
@@ -278,7 +278,7 @@ public sealed class PvadJobProcessorTests
             var completed = await context.BackgroundJobs.SingleAsync(value => value.Id == jobId);
             Assert.Equal(PvadBackgroundJobStatus.Completed, completed.Status);
             Assert.Equal(traceParent, completed.TraceParent);
-            Assert.Equal("pxa=integration-test", completed.TraceState);
+            Assert.Equal("pvad=integration-test", completed.TraceState);
             Assert.NotNull(completed.ResultObjectId);
             var result = await storedObjects.OpenAsync(
                 completed.ResultObjectId.Value,

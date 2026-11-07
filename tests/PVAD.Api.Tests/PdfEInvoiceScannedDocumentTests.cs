@@ -76,7 +76,7 @@ public sealed class PdfEInvoiceScannedDocumentTests
 
         // "Not evaluated" is not "inconsistent", so the operation proceeds - and says so.
         Assert.IsType<FileContentResult>(attached);
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Consistency"]);
     }
 
     [Fact]

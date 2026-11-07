@@ -127,7 +127,7 @@ public sealed class PdfTrustControllerTests
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
         Assert.Equal("trust-pdfa2b.pdf", file.FileDownloadName);
-        Assert.Equal("PDF/A-2b", controller.Response.Headers["PXA-Compliance-Profile"]);
+        Assert.Equal("PDF/A-2b", controller.Response.Headers["PVAD-Compliance-Profile"]);
         Assert.Equal(controller.Response.Headers["PXA-Compliance-Profile"], controller.Response.Headers["PVAD-Compliance-Profile"]);
         Assert.Equal(controller.Response.Headers["PXA-Source-SHA256"], controller.Response.Headers["PVAD-Source-SHA256"]);
         Assert.Equal(controller.Response.Headers["PXA-Result-SHA256"], controller.Response.Headers["PVAD-Result-SHA256"]);

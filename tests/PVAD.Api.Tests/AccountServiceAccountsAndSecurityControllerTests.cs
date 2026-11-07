@@ -230,7 +230,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             HttpMethod.Get, "/api/pvad/v1/mcp/templates");
         templateRequest.Headers.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "PXA-MCP",
+                "PVAD-MCP",
                 CreateMcpDelegation(accountId, organizationId));
         var templateResponse = await client.SendAsync(templateRequest);
         Assert.Equal(HttpStatusCode.OK, templateResponse.StatusCode);
@@ -242,7 +242,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             HttpMethod.Get, $"/api/pvad/v1/mcp/templates/{foreignTemplate.Id}");
         foreignTemplateRequest.Headers.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "PXA-MCP",
+                "PVAD-MCP",
                 CreateMcpDelegation(accountId, organizationId));
         Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(foreignTemplateRequest)).StatusCode);
 
@@ -473,11 +473,11 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var payload = JsonSerializer.SerializeToUtf8Bytes(new
         {
-            iss = "pxa-mcp-server",
-            aud = "pxa-api",
+            iss = "pvad-mcp-server",
+            aud = "pvad-api",
             sub = subjectId.ToString(),
             org = organizationId.ToString(),
-            scope = new[] { "pxa.templates.read" },
+            scope = new[] { "pvad.templates.read" },
             iat = now,
             exp = now + 30,
             jti = Guid.NewGuid().ToString(),

@@ -42,7 +42,7 @@ public sealed class PdfSignaturesControllerTests
         await using var stream = new MemoryStream(file.FileContents);
         var trust = await new PdfTrustInspector().InspectAsync(stream);
         Assert.Equal("SHA-384", Assert.Single(trust.Signatures).DigestAlgorithm);
-        Assert.Equal("B-B", controller.Response.Headers["X-PXA-PAdES-Profile"]);
+        Assert.Equal("B-B", controller.Response.Headers["X-PVAD-PAdES-Profile"]);
     }
 
     [Fact]

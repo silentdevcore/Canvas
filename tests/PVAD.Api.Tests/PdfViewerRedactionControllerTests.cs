@@ -52,7 +52,7 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
 
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
         Assert.DoesNotContain("Source PDF", System.Text.Encoding.Latin1.GetString(file.FileContents), StringComparison.Ordinal);
     }
 
@@ -69,8 +69,8 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
 
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Result-Sha256"].ToString().Length);
 
         var content = System.Text.Encoding.Latin1.GetString(file.FileContents);
         Assert.DoesNotContain("Source PDF", content, StringComparison.Ordinal);

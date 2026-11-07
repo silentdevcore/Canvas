@@ -1,0 +1,11 @@
+{
+  "id": "pvad-current-document-header-test-data",
+  "impact": "none",
+  "components": ["api", "designer", "observability"],
+  "category": "improved",
+  "summary": "Expanded current-identity workflow tests while preserving compatibility coverage.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only synthetic test inputs, expectations and internal review records change. Runtime headers, authentication contracts, original fixtures and published releases remain unchanged."
+}

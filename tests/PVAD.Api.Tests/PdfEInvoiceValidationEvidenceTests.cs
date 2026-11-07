@@ -357,7 +357,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
         Assert.Equal("attach", record.Operation);
         Assert.Equal(Sha256(InvoiceXml), record.DocumentSha256);
         Assert.NotNull(record.ContainerSha256);
-        Assert.Equal(record.Id.ToString(), controller.Response.Headers["PXA-Validation-Record"]);
+        Assert.Equal(record.Id.ToString(), controller.Response.Headers["PVAD-Validation-Record"]);
     }
 
     [Fact]

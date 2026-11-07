@@ -127,7 +127,7 @@ public sealed class PdfEInvoiceCanonicalValueParityTests
             false, false, false, false, false, null, CancellationToken.None);
 
         var result = Assert.IsType<FileContentResult>(attached);
-        Assert.Equal("true", controller.Response.Headers["PXA-Pages-Unchanged"]);
+        Assert.Equal("true", controller.Response.Headers["PVAD-Pages-Unchanged"]);
         var inspected = await CreateController().Inspect(
             FormFile(result.FileContents, "invoice.pdf", "application/pdf"),
             CancellationToken.None);

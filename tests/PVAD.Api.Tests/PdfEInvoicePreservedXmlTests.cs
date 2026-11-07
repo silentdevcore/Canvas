@@ -48,10 +48,10 @@ public sealed class PdfEInvoicePreservedXmlTests
         var extracted = await CreateController().Extract(
             Pdf(attached.FileContents), "preserved-invoice.xml", CancellationToken.None);
         Assert.Equal(UnknownXml, Assert.IsType<FileContentResult>(extracted).FileContents);
-        Assert.Equal("PreservedUnknownXml", controller.Response.Headers["PXA-Invoice-Mode"]);
-        Assert.Equal("unrecognized", controller.Response.Headers["PXA-Invoice-Recognition"]);
-        Assert.Equal("false", controller.Response.Headers["PXA-Invoice-Editable"]);
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Conformance"]);
+        Assert.Equal("PreservedUnknownXml", controller.Response.Headers["PVAD-Invoice-Mode"]);
+        Assert.Equal("unrecognized", controller.Response.Headers["PVAD-Invoice-Recognition"]);
+        Assert.Equal("false", controller.Response.Headers["PVAD-Invoice-Editable"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Conformance"]);
     }
 
     [Fact]
