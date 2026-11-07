@@ -708,6 +708,62 @@ The internal release fragment is `pvad-current-document-header-test-data` with
 `none` impact. Raw occurrence counts are not a completion percentage: additional
 explicit compatibility/conflict assertions deliberately contain old inputs.
 
+### Generator And Importer Artifact Metadata - 2026-11-07
+
+Baseline: `231769ff`. The reviewed area includes the PDF Trust operation
+generator, deterministic invoice fixtures, parser/corpus producers and their
+validation consumers. Five nonvisual document metadata values in newly created
+operation PDFs and one repository-root error message are freely replaceable.
+They now use PVAD. This is not a bulk rewrite of approved invoice or visual
+evidence, and does not claim all repository residuals have been eliminated.
+
+- [x] Normalize the four generated operation-document titles and archival author metadata.
+- [x] Read generated PDFs back through the importer and assert current title/author metadata.
+- [x] Normalize the invoice fixture tool's current repository-root error message.
+- [x] Keep the hash-bound invoice contents, provenance, schema IDs and approved manifest unchanged.
+- [x] Keep the visible signature title and signer subject that produce the approved image contract.
+- [x] Add a source guard that distinguishes replaceable metadata from the two exact visible signature inputs.
+- [x] Verify the four operations against existing visual references without updating any baseline.
+- [x] Record final naming, evidence-preservation and versioning validation.
+
+Specific retained findings:
+
+| Source | Why the remaining identity is retained |
+| --- | --- |
+| `EInvoicePdfaFixtureTests.cs` | Seller, buyer, provenance/license strings and the manifest schema reproduce approved deterministic PDF and manifest hashes. A mismatch writes a candidate rather than overwriting approval. |
+| `PdfTrustVisualArtifactTests.cs` | Only the signature appearance title and certificate subject retain the previous identity; both are visibly drawn by `PdfPadesSigningService.CreateAppearance`. Other document metadata is canonical. |
+| `tools/pdfa/einvoice-pdfa-evidence.mjs` | The report schema is a retained versioned contract, not a current display label. No schema migration is introduced here. |
+| `tools/pdf-trust/validate-standards-baseline.mjs` | The validator checks the exact approved policy identity; relaxing or replacing that check would change its evidence contract. |
+| Parser, corpus and security tools | Diagnostic families, explicit reader aliases and original encrypted-fixture credentials remain exact. Current producers already use canonical general names. |
+
+Existing original review notes and primary acceptance states remain unchanged.
+The pending semantic-review and closure tasks remain open. The internal release
+fragment is `pvad-generated-trust-metadata`, with `none` impact; VERSION stays
+1.1.0. No commit, push, deployment or approval of new baselines is implied.
+
+Validation: all five focused operation/importer tests (including four
+new metadata roundtrips), 64 generator/corpus/totals tests and 418
+configuration/versioning contracts passed, with no failures or skips. Strict
+residual, structural JSON and Markdown guards passed. All 816 original review
+notes, 91 protected evidence originals, both operation baseline files, invoice
+manifest, compatibility registers and published version/release records remain
+unchanged. The visual comparison additionally passed for all four operations
+and eight source/output page images: exact PNG hashes, page counts, widths and
+heights match the original macOS operation baseline, without updated references
+or relaxed thresholds.
+
+The standard visual wrapper's redundant dependency build was explicitly stopped
+and is not counted as a pass. The verified focused test assembly then generated
+the actual source/output PDFs using `--no-build`; the first launch was blocked
+by the test-platform socket sandbox and the authorized repeat passed all five
+tests. The comparison reused the existing baseline validator, platform selection,
+72-DPI Poppler rasterization and ImageMagick dimensions, and compared every page
+against the original exact hashes. This is not a new full Solution or Linux run.
+
+TRX files and the enforced `visual/comparison-report.json` with side-by-side
+images are local ignored artifacts under
+`artifacts/rename/generator-importer-naming/`.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

@@ -85,6 +85,10 @@ replaces general workflow test defaults while retaining explicit protocol and
 original-fixture cases. Repository naming remains under semantic review; the
 classified scan is not a blanket completion claim.
 
+The [Generator/Importer artifact review](PVAD.Remaining-Code-Naming-Cleanup.md#generator-and-importer-artifact-metadata---2026-11-07)
+normalizes new nonvisual PDF metadata and retains specific hash-bound invoice
+and signature-appearance inputs. Remaining semantic review is still open.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

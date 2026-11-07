@@ -129,6 +129,20 @@ They remain exact so that the original file still decrypts. No original archive,
 signed document, published release or cryptographic binding is changed.
 Classifying these specific findings does not close the remaining semantic review.
 
+## Generator And Importer Review (2026-11-07)
+
+The [artifact-metadata review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#generator-and-importer-artifact-metadata---2026-11-07)
+separates newly generated nonvisual document metadata from approved visual and
+invoice evidence. Four operation titles and an archival author now use PVAD;
+roundtrip tests reopen those PDFs and check their actual metadata. The invoice
+tool's repository-root error also uses the current name.
+
+The retained invoice parties, manifest provenance/schema and visible signature
+appearance are not new branding defaults: they reproduce specific approved
+hashes or drawn baseline content. Original files, manifest pins, schema contracts
+and visual thresholds are not changed. These concrete findings do not close the
+remaining repository semantic review.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the
