@@ -80,6 +80,11 @@ uses current generic project filenames and telemetry inputs. Explicit tests
 retain both project-extension generations and both recovery storage readers;
 original fixtures, diagnostic IDs and audit contracts remain unchanged.
 
+The [current header/delegation follow-up](PVAD.Remaining-Code-Naming-Cleanup.md#current-pdf-header-and-delegation-workflows---2026-11-07)
+replaces general workflow test defaults while retaining explicit protocol and
+original-fixture cases. Repository naming remains under semantic review; the
+classified scan is not a blanket completion claim.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

@@ -174,14 +174,14 @@ describe('pdf viewer annotation API client', () => {
     expect(form.get('sidecar')).toBe(JSON.stringify(sidecar));
   });
 
-  test('applyRedactions surfaces the audit headers alongside the file', async () => {
+  test.each(['PVAD', 'PXA'])('applyRedactions surfaces %s audit headers alongside the file', async (prefix) => {
     const annotation = { ...sampleAnnotation(), type: 'redaction' as const };
     const sidecar = createAnnotationSidecar('review.pdf', [annotation]);
     const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
     fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), {
-      'PXA-Redaction-Result-Sha256': 'a'.repeat(64),
-      'PXA-Redaction-Audit': 'b'.repeat(64),
-      'PXA-Redaction-Audit-Signed': 'true',
+      [`${prefix}-Redaction-Result-Sha256`]: 'a'.repeat(64),
+      [`${prefix}-Redaction-Audit`]: 'b'.repeat(64),
+      [`${prefix}-Redaction-Audit-Signed`]: 'true',
     }));
 
     const response = await applyRedactions(file, sidecar, 'Privacy request');
@@ -193,17 +193,46 @@ describe('pdf viewer annotation API client', () => {
     expect(form.get('reason')).toBe('Privacy request');
   });
 
-  test('applyRedactions reports an unsigned audit record as unsigned', async () => {
+  test.each(['PVAD', 'PXA'])('applyRedactions reports an unsigned %s audit record as unsigned', async (prefix) => {
     const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
     const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
     fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), {
-      'PXA-Redaction-Audit-Signed': 'false',
+      [`${prefix}-Redaction-Audit-Signed`]: 'false',
     }));
 
     const response = await applyRedactions(file, sidecar);
 
     expect(response.auditSigned).toBe(false);
   });
+
+  test('applyRedactions accepts equal current and retained audit headers together', async () => {
+    const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
+    const values = { 'Redaction-Result-Sha256': 'a'.repeat(64), 'Redaction-Audit': 'b'.repeat(64), 'Redaction-Audit-Signed': 'true' };
+    const headers = Object.fromEntries(Object.entries(values).flatMap(([suffix, value]) =>
+      ['PVAD', 'PXA'].map(prefix => [`${prefix}-${suffix}`, value])));
+    fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), headers));
+
+    const result = await applyRedactions(new File(['%PDF input'], 'review.pdf'), sidecar);
+
+    expect(result.resultSha256).toBe(values['Redaction-Result-Sha256']);
+    expect(result.auditRecordSha256).toBe(values['Redaction-Audit']);
+    expect(result.auditSigned).toBe(true);
+  });
+
+  test.each(['Redaction-Result-Sha256', 'Redaction-Audit', 'Redaction-Audit-Signed'])(
+    'applyRedactions rejects conflicting %s aliases without disclosing their values', async (suffix) => {
+      const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);
+      fetchMock.mockResolvedValueOnce(blobResponse(200, new Blob(['%PDF']), {
+        [`PVAD-${suffix}`]: 'private-current', [`PXA-${suffix}`]: 'private-retained',
+      }));
+
+      const error = await applyRedactions(new File(['%PDF input'], 'review.pdf'), sidecar).catch(error => error);
+
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(`Conflicting PVAD-${suffix} response header aliases.`);
+      expect(error.message).not.toMatch(/private-current|private-retained/);
+    },
+  );
 
   test('preflightRedactions posts to the preflight route and returns the report', async () => {
     const sidecar = createAnnotationSidecar('review.pdf', [{ ...sampleAnnotation(), type: 'redaction' as const }]);

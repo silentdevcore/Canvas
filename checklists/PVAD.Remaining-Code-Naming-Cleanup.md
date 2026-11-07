@@ -664,6 +664,50 @@ beside the scan; `git diff --check` passes. No new full-stack or deployed test r
 is claimed for this internal documentation-only review. The completion statement
 is withdrawn; remaining current source names need individual semantic review.
 
+### Current PDF Header And Delegation Workflows - 2026-11-07
+
+Baseline: `2941cb62`. This batch reviews fourteen workflow test files rather
+than treating a matching-file classification as completion. Thirty-five direct
+replacements change general API header assertions, the synthetic browser
+response, the Account delegation envelope and job trace data to current names.
+The Viewer API tests additionally exercise both header generations explicitly,
+equal dual headers and conflicting values for each redaction evidence header.
+
+- [x] Use canonical headers in general invoice, signature, compliance and redaction assertions.
+- [x] Keep explicit equal-alias assertions and the full backend document-header compatibility matrix.
+- [x] Use the current delegation scheme, issuer, audience and scope together in the Account workflow.
+- [x] Keep signed legacy-envelope acceptance and cross-generation rejection in dedicated delegation tests.
+- [x] Use canonical synthetic job trace state in both the producer and persisted-value assertion.
+- [x] Check both Viewer header generations, equal dual values and non-disclosing conflict failures.
+- [x] Add independent source contracts against reintroducing old general workflow defaults.
+- [x] Finish and record the focused backend, PostgreSQL, browser and naming validation.
+
+The inspected AES interoperability defaults are credentials for the original
+encrypted external fixture, not freely chosen new passwords. Its importer test,
+generator and checked-in validator evidence agree on those bytes. Replacing only
+the defaults would break decryption; regenerating that fixture would replace
+original evidence. They remain unchanged, as do original signature/visual
+baselines, released text and exact protocol identifiers.
+
+This is test-fixture normalization, not an application behavior change or proof
+that every remaining source identifier is unreplaceable. The pending semantic
+review and final closure tasks above stay open. VERSION remains 1.1.0.
+
+Validation:
+
+- Focused API suite: 172 passed. Its seven PostgreSQL opt-in skips were then exercised in a separate enabled container run: 8 passed, none skipped, including one repeated queue test.
+- Designer: 31 focused Jest tests passed; typecheck and production build passed. Existing bundler/configuration warnings were not suppressed.
+- Browser: both synthetic-API Viewer workflows passed on desktop and mobile. The first selector found no tests, and the first Chromium launch was sandbox-blocked; the corrected, authorized browser run is the accepted result, not a live Account/API acceptance.
+- Naming/configuration/versioning contracts: 417 passed, none failed or skipped. Residual and structural JSON checks passed; all 281 tracked Markdown files remain free of the former short-name substring.
+- All 816 original review notes, 91 protected evidence originals, compatibility registers, audit inventories, VERSION and published release notes remain unchanged. Only reviewed file hashes, statuses and additive current review notes are updated.
+- The API test assembly was rebuilt with unchanged project references reused. This is not a full Solution build. The temporary Viewer server was stopped after validation; no commit, push, deployment or version change was performed.
+
+Backend result files and browser artifacts are under
+`artifacts/rename/current-header-naming/`; they are local ignored output.
+The internal release fragment is `pvad-current-document-header-test-data` with
+`none` impact. Raw occurrence counts are not a completion percentage: additional
+explicit compatibility/conflict assertions deliberately contain old inputs.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

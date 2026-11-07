@@ -54,12 +54,12 @@ public sealed class PdfEInvoicesAttachControllerTests
         Assert.Equal("application/pdf", file.ContentType);
         Assert.Equal("statement-hybrid.pdf", file.FileDownloadName);
         Assert.Equal(source, file.FileContents[..source.Length]);
-        Assert.Equal("IncrementalUpdate", controller.Response.Headers["PXA-Attachment-Strategy"]);
-        Assert.Equal("true", controller.Response.Headers["PXA-Pages-Unchanged"]);
-        Assert.Equal("PDF/A-3b", controller.Response.Headers["PXA-Compliance-Profile"]);
-        Assert.Equal("consistent", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("IncrementalUpdate", controller.Response.Headers["PVAD-Attachment-Strategy"]);
+        Assert.Equal("true", controller.Response.Headers["PVAD-Pages-Unchanged"]);
+        Assert.Equal("PDF/A-3b", controller.Response.Headers["PVAD-Compliance-Profile"]);
+        Assert.Equal("consistent", controller.Response.Headers["PVAD-Invoice-Consistency"]);
         // Structural validation alone never yields a conformance claim.
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Conformance"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Conformance"]);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             CancellationToken.None);
 
         Assert.IsType<FileContentResult>(result);
-        Assert.Equal("ArchiveConversion", controller.Response.Headers["PXA-Attachment-Strategy"]);
+        Assert.Equal("ArchiveConversion", controller.Response.Headers["PVAD-Attachment-Strategy"]);
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             CancellationToken.None);
 
         Assert.IsType<FileContentResult>(result);
-        Assert.Equal("reviewRequired", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("reviewRequired", controller.Response.Headers["PVAD-Invoice-Consistency"]);
     }
 
     [Fact]

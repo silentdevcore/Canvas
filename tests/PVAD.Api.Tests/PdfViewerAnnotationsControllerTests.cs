@@ -434,10 +434,10 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         // The audit record travels out of band. It is deliberately not written into the
         // redacted document: the reason and the actor would otherwise be disclosed to every
         // downstream recipient of a file that was redacted precisely to limit disclosure.
-        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")).Length);
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")).Length);
         Assert.Equal(Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")),
             Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")));
-        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Result-Sha256")).Length);
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Result-Sha256")).Length);
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
         var content = System.Text.Encoding.ASCII.GetString(bytes);

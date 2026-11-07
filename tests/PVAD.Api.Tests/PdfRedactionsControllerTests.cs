@@ -97,13 +97,13 @@ public sealed class PdfRedactionsControllerTests : IDisposable
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
         Assert.NotEmpty(file.FileContents);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
         Assert.Equal(controller.Response.Headers["PXA-Redaction-Audit"], controller.Response.Headers["PVAD-Redaction-Audit"]);
         Assert.Equal(controller.Response.Headers["PXA-Redaction-Audit-Location"], controller.Response.Headers["PVAD-Redaction-Audit-Location"]);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Result-Sha256"].ToString().Length);
         Assert.StartsWith(
             "/api/pvad/v1/pdf/redactions/audits/",
-            controller.Response.Headers["PXA-Redaction-Audit-Location"].ToString(),
+            controller.Response.Headers["PVAD-Redaction-Audit-Location"].ToString(),
             StringComparison.Ordinal);
     }
 
@@ -136,7 +136,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
         Assert.Equal(stored.Id, operation.AuditEventId);
         Assert.Equal("pdf.redaction.applied", operation.Operation);
         Assert.Equal(
-            controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString(),
+            controller.Response.Headers["PVAD-Redaction-Result-Sha256"].ToString(),
             operation.OutputSha256);
         Assert.Equal(auditKey.Certificate.Thumbprint, operation.KeyIdentifier);
 

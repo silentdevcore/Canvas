@@ -114,6 +114,21 @@ Solution, a fresh authenticated application stack or a live deployment. The
 own dated evidence. The operational tasks below and all eight primary
 release/cutover gates remain open and separate from repository naming.
 
+## Current Workflow Review (2026-11-07)
+
+The [header and delegation batch](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#current-pdf-header-and-delegation-workflows---2026-11-07)
+normalizes fourteen current workflow test files. General invoice, signature,
+redaction and browser expectations now exercise canonical headers. Account
+delegation uses the current scheme, issuer, audience and scope together.
+Synthetic job trace state is also canonical. Dedicated legacy cases remain;
+Viewer API tests cover both header generations, equal dual values and conflicts.
+
+The security-tool password candidates from the preceding review are confirmed
+credentials of an immutable encrypted PDF fixture, not free display strings.
+They remain exact so that the original file still decrypts. No original archive,
+signed document, published release or cryptographic binding is changed.
+Classifying these specific findings does not close the remaining semantic review.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the

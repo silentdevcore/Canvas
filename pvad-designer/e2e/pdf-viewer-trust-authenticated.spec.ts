@@ -257,9 +257,9 @@ test('Viewer UI completes PDF Trust workflow with synthetic API fixtures', async
     status: 200,
     contentType: 'application/pdf',
     headers: {
-      'PXA-Redaction-Result-Sha256': 'd'.repeat(64),
-      'PXA-Redaction-Audit': 'e'.repeat(64),
-      'PXA-Redaction-Audit-Signed': 'false',
+      'PVAD-Redaction-Result-Sha256': 'd'.repeat(64),
+      'PVAD-Redaction-Audit': 'e'.repeat(64),
+      'PVAD-Redaction-Audit-Signed': 'false',
     },
     body: pdfBuffer,
   }));
