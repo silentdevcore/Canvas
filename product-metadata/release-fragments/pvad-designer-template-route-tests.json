@@ -1,0 +1,11 @@
+{
+  "id": "pvad-designer-template-route-tests",
+  "impact": "none",
+  "components": ["api", "designer", "documentation"],
+  "category": "improved",
+  "summary": "Expanded authenticated template workflow tests across current and compatibility routes.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only integration-test route inputs, coverage and internal review records change. Runtime routes, authentication, rendering, compatibility contracts and published releases remain unchanged."
+}

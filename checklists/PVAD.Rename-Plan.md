@@ -89,6 +89,11 @@ The [Generator/Importer artifact review](PVAD.Remaining-Code-Naming-Cleanup.md#g
 normalizes new nonvisual PDF metadata and retains specific hash-bound invoice
 and signature-appearance inputs. Remaining semantic review is still open.
 
+The [Designer authentication/template route review](PVAD.Remaining-Code-Naming-Cleanup.md#designer-authentication-and-template-adapter-routes---2026-11-07)
+uses current render requests and explicit current/legacy adapter lifecycles,
+without removing compatibility. A pre-existing stored-template render limitation
+is tracked separately; this pass does not claim document-fidelity completion.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but
