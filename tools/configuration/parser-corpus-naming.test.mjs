@@ -161,6 +161,27 @@ test('PAdES evidence reader rejects incomplete generations without mixing them',
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
+test('new operation metadata is canonical without changing approved visual and invoice evidence', () => {
+  const read = file => readFileSync(resolve(root, file), 'utf8');
+  const visual = read('tests/PVAD.Importer.Tests/PdfTrustVisualArtifactTests.cs');
+  for (const title of ['signature', 'redaction', 'PDF/A', 'PDF/UA'])
+    assert.ok(visual.includes(`document.Info.Title = "PVAD Trust visual ${title}"`), title);
+  assert.ok(visual.includes('document.Info.Author = "PVAD QA"'));
+  assert.doesNotMatch(visual, /document\.Info\.(?:Title|Author) = "PXA/);
+  assert.ok(visual.includes('Generated_visual_documents_use_current_metadata'));
+  assert.ok(visual.includes('Assert.IsType<PdfString>(imported.Metadata["Title"]).ToLatin1String()'));
+  // These two values render on the approved signature appearance, unlike document metadata.
+  assert.deepEqual(visual.split('\n').filter(line => /pxa/i.test(line)).map(line => line.trim()), [
+    'Title = "PXA Trust Signature"', '"CN=PXA PDF Trust Visual Test",',
+  ]);
+  const generator = read('tests/PVAD.Generator.Tests/EInvoicePdfaFixtureTests.cs');
+  assert.ok(generator.includes('Could not locate the PVAD repository root.'));
+  assert.doesNotMatch(generator, /Could not locate the PXA repository root/);
+  assert.ok(generator.includes('VerifyApprovedManifest(manifestPath, Path.Combine(outputDirectory, "candidate-pdfa-fixtures.json"), expected)'));
+  assert.ok(generator.includes('Seller = new("PXA Synthetic Seller GmbH"'));
+  assert.ok(generator.includes('Buyer = new("PXA Synthetic Buyer AG"'));
+});
+
 test('current parser and corpus producers write canonical identities and retain only deliberate contracts', () => {
   const read = file => readFileSync(resolve(root, file), 'utf8');
   const fuzzer = read('tools/pdf-parser-fuzzer/Program.cs');

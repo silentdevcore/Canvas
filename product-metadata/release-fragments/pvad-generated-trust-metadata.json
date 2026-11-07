@@ -1,0 +1,11 @@
+{
+  "id": "pvad-generated-trust-metadata",
+  "impact": "none",
+  "components": ["generator", "importer", "documentation"],
+  "category": "improved",
+  "summary": "Aligned generated PDF test metadata with the current technical identity while retaining approved evidence.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only internal test artifact metadata, a fixture-tool error message and verification records change. Shipped rendering, original corpora, signed fixtures, schema contracts and approved visual baselines remain unchanged."
+}

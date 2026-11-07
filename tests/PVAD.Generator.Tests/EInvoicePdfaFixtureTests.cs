@@ -390,6 +390,6 @@ public sealed class EInvoicePdfaFixtureTests
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
         return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+            ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
     }
 }
