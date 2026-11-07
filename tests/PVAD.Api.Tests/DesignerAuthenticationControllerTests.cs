@@ -746,7 +746,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using (var foreignRender = await CreateCsrfRequestAsync(
                    designerClient,
                    HttpMethod.Post,
-                   $"/api/pxa/templates/render?templateId={templateId}",
+                   $"/api/pvad/templates/render?templateId={templateId}",
                    new { customer = "Other tenant" },
                    designer: true))
         {
@@ -880,12 +880,27 @@ public sealed partial class DesignerAuthenticationControllerTests
     }
 
     [PostgreSqlFact]
-    public async Task Legacy_template_api_uses_designer_persistence_and_enforces_revision_and_tenant()
+    public Task Current_template_adapter_uses_designer_persistence_and_enforces_revision_and_tenant() =>
+        AssertTemplateAdapterLifecycleAsync("/api/pvad/templates", legacy: false);
+
+    [PostgreSqlFact]
+    public Task Legacy_template_api_uses_designer_persistence_and_enforces_revision_and_tenant() =>
+        AssertTemplateAdapterLifecycleAsync("/api/pxa/templates", legacy: true);
+
+    private static async Task AssertTemplateAdapterLifecycleAsync(string apiBase, bool legacy)
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
         using var factory = CreateFactory(postgres.GetConnectionString());
         var seeded = await SeedCustomerAsync(factory.Services);
+
+        using (var anonymousClient = CreateClient(factory))
+        using (var anonymous = DesignerGet(apiBase))
+        using (var anonymousResponse = await anonymousClient.SendAsync(anonymous))
+        {
+            Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+            AssertTemplateRouteIdentity(anonymousResponse, legacy);
+        }
 
         using var accountClient = CreateClient(factory);
         await LoginAsync(accountClient);
@@ -896,10 +911,23 @@ public sealed partial class DesignerAuthenticationControllerTests
             Assert.Equal(HttpStatusCode.OK, (await designerClient.SendAsync(exchange)).StatusCode);
         }
 
+        using (var missingCsrf = new HttpRequestMessage(HttpMethod.Post, apiBase)
+               {
+                   Content = JsonContent.Create(new { id = "csrf-probe", name = "CSRF probe" }),
+               })
+        {
+            missingCsrf.Headers.Add("X-PVAD-Application", "designer");
+            using var rejected = await designerClient.SendAsync(missingCsrf);
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+            Assert.Equal(PvadApiProblems.InvalidCsrf,
+                (await rejected.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+            AssertTemplateRouteIdentity(rejected, legacy);
+        }
+
         using var create = await CreateCsrfRequestAsync(
             designerClient,
             HttpMethod.Post,
-            "/api/pxa/templates",
+            apiBase,
             new
             {
                 id = "legacy-invoice",
@@ -923,6 +951,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         var createResponse = await designerClient.SendAsync(create);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        AssertTemplateRouteIdentity(createResponse, legacy);
         var created = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("legacy-invoice", created.GetProperty("id").GetString());
         Assert.Equal(1, created.GetProperty("revision").GetInt64());
@@ -930,10 +959,11 @@ public sealed partial class DesignerAuthenticationControllerTests
             seeded.UserId.ToString(),
             created.GetProperty("metadata").GetProperty("createdBy").GetString());
 
-        using (var list = DesignerGet("/api/pxa/templates"))
+        using (var list = DesignerGet(apiBase))
         {
             var listResponse = await designerClient.SendAsync(list);
             Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+            AssertTemplateRouteIdentity(listResponse, legacy);
             var items = await listResponse.Content.ReadFromJsonAsync<JsonElement[]>();
             Assert.Single(items!);
             Assert.Equal("legacy-invoice", items![0].GetProperty("id").GetString());
@@ -941,10 +971,20 @@ public sealed partial class DesignerAuthenticationControllerTests
                 value.GetProperty("id").GetString() == "sample-invoice");
         }
 
+        using (var render = await CreateCsrfRequestAsync(designerClient, HttpMethod.Post,
+                   $"{apiBase}/render?templateId=legacy-invoice", new { customer = "Owner" }, designer: true))
+        using (var rendered = await designerClient.SendAsync(render))
+        {
+            Assert.Equal(HttpStatusCode.OK, rendered.StatusCode);
+            Assert.Equal("application/pdf", rendered.Content.Headers.ContentType?.MediaType);
+            Assert.True((await rendered.Content.ReadAsByteArrayAsync()).AsSpan().StartsWith("%PDF-"u8));
+            AssertTemplateRouteIdentity(rendered, legacy, "/render");
+        }
+
         using var update = await CreateCsrfRequestAsync(
             designerClient,
             HttpMethod.Put,
-            "/api/pxa/templates/legacy-invoice",
+            $"{apiBase}/legacy-invoice",
             new
             {
                 revision = 1,
@@ -956,6 +996,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         var updateResponse = await designerClient.SendAsync(update);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        AssertTemplateRouteIdentity(updateResponse, legacy, "/legacy-invoice");
         var updated = await updateResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, updated.GetProperty("revision").GetInt64());
         Assert.Equal(
@@ -965,7 +1006,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using var noOpUpdate = await CreateCsrfRequestAsync(
             designerClient,
             HttpMethod.Put,
-            "/api/pxa/templates/legacy-invoice",
+            $"{apiBase}/legacy-invoice",
             new { revision = 2 },
             designer: true);
         var noOpResponse = await designerClient.SendAsync(noOpUpdate);
@@ -979,11 +1020,12 @@ public sealed partial class DesignerAuthenticationControllerTests
         using var staleUpdate = await CreateCsrfRequestAsync(
             designerClient,
             HttpMethod.Put,
-            "/api/pxa/templates/legacy-invoice",
+            $"{apiBase}/legacy-invoice",
             new { revision = 1, name = "Stale overwrite" },
             designer: true);
         var staleResponse = await designerClient.SendAsync(staleUpdate);
         Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
+        AssertTemplateRouteIdentity(staleResponse, legacy, "/legacy-invoice");
         Assert.Equal(
             2,
             (await staleResponse.Content.ReadFromJsonAsync<JsonElement>())
@@ -991,10 +1033,11 @@ public sealed partial class DesignerAuthenticationControllerTests
             .GetInt64());
 
         using (var versionRead = DesignerGet(
-                   "/api/pxa/templates/legacy-invoice?version=before-update"))
+                   $"{apiBase}/legacy-invoice?version=before-update"))
         {
             var versionResponse = await designerClient.SendAsync(versionRead);
             Assert.Equal(HttpStatusCode.OK, versionResponse.StatusCode);
+            AssertTemplateRouteIdentity(versionResponse, legacy, "/legacy-invoice");
             Assert.Equal(
                 "Legacy Invoice",
                 (await versionResponse.Content.ReadFromJsonAsync<JsonElement>())
@@ -1015,11 +1058,23 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         Assert.Equal(HttpStatusCode.OK, (await designerClient.SendAsync(switchOrganization)).StatusCode);
 
-        using (var foreignRead = DesignerGet("/api/pxa/templates/legacy-invoice"))
-            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignRead)).StatusCode);
-        using (var foreignList = DesignerGet("/api/pxa/templates"))
+        using (var foreignRead = DesignerGet($"{apiBase}/legacy-invoice"))
+        using (var rejectedRead = await designerClient.SendAsync(foreignRead))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, rejectedRead.StatusCode);
+            AssertTemplateRouteIdentity(rejectedRead, legacy, "/legacy-invoice");
+        }
+        using (var foreignList = DesignerGet(apiBase))
             Assert.Empty((await (await designerClient.SendAsync(foreignList)).Content
                 .ReadFromJsonAsync<JsonElement[]>())!);
+
+        using (var foreignRender = await CreateCsrfRequestAsync(designerClient, HttpMethod.Post,
+                   $"{apiBase}/render?templateId=legacy-invoice", new { customer = "Foreign tenant" }, designer: true))
+        using (var rejectedRender = await designerClient.SendAsync(foreignRender))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, rejectedRender.StatusCode);
+            AssertTemplateRouteIdentity(rejectedRender, legacy, "/render");
+        }
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
@@ -1244,6 +1299,17 @@ public sealed partial class DesignerAuthenticationControllerTests
         var request = new HttpRequestMessage(HttpMethod.Get, path);
         request.Headers.Add("X-PVAD-Application", "designer");
         return request;
+    }
+
+    private static void AssertTemplateRouteIdentity(HttpResponseMessage response, bool legacy, string suffix = "")
+    {
+        Assert.Equal(legacy, response.Headers.Contains("Deprecation"));
+        if (legacy)
+        {
+            Assert.Equal("true", Assert.Single(response.Headers.GetValues("Deprecation")));
+            Assert.Contains($"</api/pvad/templates{suffix}>; rel=\"successor-version\"",
+                response.Headers.GetValues("Link"));
+        }
     }
 
     private static async Task<SeededCustomer> SeedCustomerAsync(IServiceProvider services)

@@ -327,6 +327,29 @@ test('Viewer workflow defaults use canonical headers and API tests retain both g
   assert.ok(client.includes('accepts equal current and retained audit headers together'));
 });
 
+test('Designer persistence uses current render routes and tests both template adapter generations explicitly', () => {
+  const source = read('tests/PVAD.Api.Tests/DesignerAuthenticationControllerTests.cs');
+  assert.ok(source.includes('$"/api/pvad/templates/render?templateId={templateId}"'));
+  assert.doesNotMatch(source, /\/api\/pxa\/templates\/render/);
+  assert.ok(source.includes('Current_template_adapter_uses_designer_persistence_and_enforces_revision_and_tenant'));
+  assert.ok(source.includes('Legacy_template_api_uses_designer_persistence_and_enforces_revision_and_tenant'));
+  assert.ok(source.includes('AssertTemplateAdapterLifecycleAsync("/api/pvad/templates", legacy: false)'));
+  assert.ok(source.includes('AssertTemplateAdapterLifecycleAsync("/api/pxa/templates", legacy: true)'));
+  const lifecycle = source.slice(source.indexOf('private static async Task AssertTemplateAdapterLifecycleAsync'),
+    source.indexOf('public async Task Code_workspace_uses_designer_handoff'));
+  assert.doesNotMatch(lifecycle, /\/api\/pxa\//);
+  for (const route of ['apiBase', '$"{apiBase}/legacy-invoice"',
+    '$"{apiBase}/legacy-invoice?version=before-update"', '$"{apiBase}/render?templateId=legacy-invoice"'])
+    assert.ok(lifecycle.includes(route), route);
+  for (const assertion of ['PvadApiProblems.InvalidCsrf', 'HttpStatusCode.Unauthorized',
+    'HttpStatusCode.Conflict', 'HttpStatusCode.NotFound', 'AssertTemplateRouteIdentity',
+    'StartsWith("%PDF-"u8)', 'Assert.Equal(2, persisted.Revision)'])
+    assert.ok(lifecycle.includes(assertion), assertion);
+  assert.ok(source.includes('compatibilityRead = DesignerGet($"/api/pxa/templates/{templateId}")'));
+  assert.ok(source.includes('response.Headers.Contains("Deprecation")'));
+  assert.ok(source.includes('</api/pvad/templates{suffix}>; rel=\\"successor-version\\"'));
+});
+
 test('gateway renames local helpers but retains upstream and legacy header contracts', () => {
   const gateway = read('deploy/observability/operator-gateway/templates/default.conf.template');
   assert.match(gateway, /map \$http_upgrade \$pvad_connection_upgrade/);

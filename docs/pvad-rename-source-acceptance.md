@@ -143,6 +143,20 @@ hashes or drawn baseline content. Original files, manifest pins, schema contract
 and visual thresholds are not changed. These concrete findings do not close the
 remaining repository semantic review.
 
+## Designer Template Route Review (2026-11-07)
+
+The [authentication/template pass](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#designer-authentication-and-template-adapter-routes---2026-11-07)
+corrects the current persistence workflow's rendering prefix. Separate enabled
+PostgreSQL tests run the older template DTO adapter lifecycle through both the
+current and retained prefixes. They check authentication, CSRF, revisions,
+version reads, tenant boundaries and legacy successor headers. The modern v1
+Designer document API remains a separate contract.
+
+The stored-template adapter's pre-existing confirmation-only rendering is
+recorded as a separate unfinished follow-up. A valid PDF response in these access
+tests must not be described as complete design/data rendering. No production
+rendering code is changed or certified here, and repository closure remains open.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the

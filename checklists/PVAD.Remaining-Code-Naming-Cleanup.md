@@ -764,6 +764,49 @@ TRX files and the enforced `visual/comparison-report.json` with side-by-side
 images are local ignored artifacts under
 `artifacts/rename/generator-importer-naming/`.
 
+### Designer Authentication And Template Adapter Routes - 2026-11-07
+
+Baseline: `83853e12`. The modern template-persistence test still sent its
+foreign-tenant render request through the previous branded prefix; it now uses
+the canonical render route. The existing adapter lifecycle was deliberately a
+legacy test, not eight independent naming defects. It is now exercised through
+separate current-prefix and legacy-prefix test entrypoints sharing one lifecycle.
+The versioned Designer template API and the older template DTO adapter remain
+distinct contracts; this change does not merge their document formats.
+
+- [x] Use the canonical rendering route in the current template-persistence workflow.
+- [x] Run the full adapter lifecycle for both explicit prefix generations without duplicating its business assertions.
+- [x] Cover anonymous access and missing-CSRF rejection on both generations.
+- [x] Cover creation, trusted creator/updater metadata, listing, version reads, no-op updates and stale-revision conflicts.
+- [x] Add owner PDF-response and foreign-tenant rendering checks to both lifecycles.
+- [x] Check deprecation and exact successor links on legacy success and error responses, and no deprecation on current responses.
+- [x] Keep the explicit legacy read and existing dual-generation feature-gate tests.
+- [x] Add an independent source contract for current routes and explicit compatibility coverage.
+- [x] Complete and record enabled PostgreSQL, authentication, template, alias and naming validation.
+
+Outside the rename scope, inspection found an existing limitation in
+`TemplatesController.RenderStoredTemplateAsync`: the older stored-template
+adapter ignores its data payload and writes a confirmation-text PDF rather than
+rendering the full stored design. The new owner-render assertion verifies access,
+status, content type and PDF signature only; it is not a layout-fidelity test.
+
+- [ ] Separate follow-up: replace the older stored-template render adapter's confirmation output with actual design/data rendering and dedicated content/binding regression tests.
+
+No production route, session, cookie, permission, rendering implementation,
+schema or original evidence is changed by this test-only pass. The internal
+release fragment is `pvad-designer-template-route-tests`, with `none` impact.
+VERSION stays 1.1.0; remaining repository semantic review and release gates are
+not closed by these tests.
+
+Validation:
+
+- The three focused current-persistence/current-adapter/legacy-adapter PostgreSQL workflows passed.
+- The broader authenticated template, handoff/cookie transition, product-feature and API-alias regression selection passed all 56 tests with PostgreSQL enabled; none failed or skipped. This includes the three focused cases, not 59 unique tests.
+- Configuration/versioning contracts passed all 419 tests without failures or skips. Residual, structural JSON and tracked-Markdown checks passed; `git diff --check` is clean.
+- The two remaining previous-prefix literals in the inspected authentication test are the explicit compatibility read and legacy lifecycle entrypoint. Shared lifecycle paths are exercised for both generations, not simply hidden behind an untested prefix variable.
+- All 816 original review notes, 91 protected evidence files, compatibility/audit registers, production template controller/middleware, VERSION and published release records are unchanged. Reviewed test/plan hashes and additive review notes alone were refreshed.
+- The API test assembly was rebuilt with unchanged project references reused. No full Solution, browser, deployment or document-fidelity acceptance is claimed. TRX results are ignored local artifacts under `artifacts/rename/designer-template-auth-naming/`.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.
