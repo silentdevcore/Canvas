@@ -3,6 +3,8 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import CodePreviewPane, { type ParsedDesign } from '@/components/CodeEditor/CodePreviewPane';
 
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
 const mockLivePreview = jest.fn((_props: unknown) => <div data-testid="live-preview" />);
 
 jest.mock('react-i18next', () => ({
@@ -15,6 +17,24 @@ jest.mock('@/components/Preview/LivePreview', () => ({
 }));
 
 describe('generated code preview parity', () => {
+  it.each(['csharpModel', 'csharpPdf', 'csharpBase64'] as const)('projects %s execution failures without changing the input', language => {
+    const props = {
+      raw: 'return originalDocument;', language, validation: { valid: true, errors: [] },
+      parsed: null, pdfBlobUrl: null, onExport: jest.fn(), isExporting: false, isConverting: false,
+      convertError: 'PXACODE042: No worker result.\nPXACODE040: Try again.',
+    };
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    try {
+      act(() => root.render(<CodePreviewPane {...props} />));
+      expect(container.querySelectorAll('li')).toHaveLength(2);
+      expect([...container.querySelectorAll('li')].map(item => item.textContent))
+        .toEqual(['PVADCODE042: No worker result.', 'PVADCODE040: Try again.']);
+      expect(props.convertError).toBe('PXACODE042: No worker result.\nPXACODE040: Try again.');
+      expect(props.raw).toBe('return originalDocument;');
+    } finally { act(() => root.unmount()); }
+  });
+
   it('preserves per-page layouts and every normalized document setting', () => {
     const design: ParsedDesign = {
       id: 'mixed-code-preview',

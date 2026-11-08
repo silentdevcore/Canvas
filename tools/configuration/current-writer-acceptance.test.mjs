@@ -9,6 +9,42 @@ const read = path => readFileSync(resolve(root, path), 'utf8');
 // These writer contracts do not consult the residual exception ledger.
 const boundaries = [
   {
+    name: 'project failure text uses display aliases without changing source names',
+    path: 'pvad-designer/src/components/Project/ProjectImportNotice.tsx',
+    from: 'displaySystemMessage(state.message)', to: 'state.message',
+    verify(source) {
+      assert.ok(source.includes('<p>{displaySystemMessage(state.message)}</p>'));
+      assert.ok(source.includes('displaySystemMessage(diagnostic.code ==='));
+      assert.ok(source.includes('` (${diagnostic.source})`'));
+    },
+  },
+  {
+    name: 'workspace failure banners project diagnostics only at the render boundary',
+    path: 'pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx',
+    from: 'role="alert">{displaySystemMessage(error)}', to: 'role="alert">{error}',
+    verify(source) {
+      assert.ok(source.includes('role="alert">{displaySystemMessage(error)}'));
+    },
+  },
+  {
+    name: 'CSharp error previews project messages without rewriting source or JSON validation',
+    path: 'pvad-designer/src/components/CodeEditor/CodePreviewPane.tsx',
+    from: '<li key={i}>{displaySystemMessage(e)}</li>', to: '<li key={i}>{e}</li>',
+    verify(source) {
+      assert.ok(source.includes("convertError.split('\\n').map((e, i) => <li key={i}>{displaySystemMessage(e)}</li>)"));
+      assert.ok(source.includes('validation.errors.map((e, i) => <li key={i}>{e}</li>)'));
+    },
+  },
+  {
+    name: 'PDF signing and blocked-mutation states share the current diagnostic presentation',
+    path: 'pvad-designer/src/features/pdf-viewer/PdfViewer.tsx',
+    from: 'role="status">{displaySystemMessage(signingStatus)}', to: 'role="status">{signingStatus}',
+    verify(source) {
+      assert.ok(source.includes('role="status">{displaySystemMessage(signingStatus)}'));
+      assert.ok(source.includes('${displaySystemMessage(trustError.message)}'));
+    },
+  },
+  {
     name: 'all five internal step-up policy names are canonical',
     path: 'PVAD.WebApi/Security/PvadStepUpAuthorization.cs',
     from: '"pvad.security.recent-authentication"', to: '"pxa.security.recent-authentication"',
