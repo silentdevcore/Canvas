@@ -167,6 +167,22 @@ thresholds. This is internal tooling work, not production protocol migration or
 new validation approval. The source checklist records actual test outcomes and
 the initial sandbox socket restriction separately.
 
+## Generated Document Follow-up (2026-11-08)
+
+The [fresh-output review](PVAD.Remaining-Code-Naming-Cleanup.md#generated-document-output-review---2026-11-08)
+tests six output formats and native PDF/Spreadsheet facades with current sample
+data and explicit customer metadata. All 15 new cases pass in the existing API
+branding suite. Current writer behavior needed no additional rename; production
+code and the strict general-example guard are unchanged. Broader selections
+passed 50 API, 64 export and five filename tests. Fourteen synthetic artifacts
+were inspected separately through PDF metadata and Office/XML package readers.
+
+The source checklist records interrupted build attempts, test-harness fixes,
+existing warnings and the precise validation limits. Source inspection is not
+substituted for artifact checks, and retained customer content is not counted
+as outdated product naming. No original document, signature, schema contract,
+licence approval, deployment or published release changes in this pass.
+
 ## Verification Still Outstanding
 
 - [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.

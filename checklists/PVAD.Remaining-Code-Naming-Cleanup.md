@@ -1246,6 +1246,87 @@ passwords or permissions are changed. Residual hash updates are limited to the
 reviewed changed files; no new whole-file or directory exception is introduced.
 Markdown, JSON, release-fragment, version, link and whitespace checks pass.
 
+### Generated Document Output Review - 2026-11-08
+
+Baseline: `08258e16`. Inspect freshly generated output rather than inferring
+document naming solely from source matches. Check PDF, DOCX, XLSX, ODT, HTML
+and XML, plus native PDF/Spreadsheet generator facades. Existing documents and
+signed evidence are inputs to preserve, not material to rebrand.
+
+- [x] Inspect PDF creator/producer serialization, Office metadata, document-export filename selection and the canonical XML writer.
+- [x] Add real-export tests for six formats with current synthetic data and a separate supplied-customer-name case.
+- [x] Verify controller file-result metadata, filename, MIME type, source immutability, parsed PDF metadata and Office package contents.
+- [x] Cover the Spreadsheet facade and explicit customer PDF creator/producer values without rewriting them.
+- [x] Run the fresh-output tests and inspect generated artifacts; correct only confirmed naming defects.
+- [x] Run relevant export/API and naming regressions, preserve original evidence and validate the final diff.
+
+The tests write synthetic generated files only under ignored
+`artifacts/rename/generated-document-output-naming/exports/`. Both variants
+assert meaningful metadata/cell/body values, not just file signatures. PDF
+checks parse metadata instead of searching arbitrary compressed or encoded
+bytes for incidental substrings. Office checks inspect package paths and XML;
+neutral third-party package metadata is not relabeled as PVADE.
+
+Production writer inspection and the fresh-output tests found no additional
+confirmed current-branding defect. All production writers remain unchanged;
+the added coverage is retained instead of manufacturing a replacement. No
+compatibility export, schema, diagnostic, database, signed fixture or published
+release is changed by the added tests.
+
+The 15 new cases live in the existing API branding suite alongside its two
+original metadata/chart cases. The general facade example file is byte-identical
+to the baseline and the existing canonical-example source guard is unchanged.
+Initial test development exposed two harness errors: XML must be read as bytes
+so its valid UTF-8 BOM is handled, and PDF dictionary values must be enumerated
+through the underlying value collection. Both were corrected; metadata checks
+also require a nonempty collection. Office checks include core-property parts
+with the `.psmdcp` extension, not only `.xml` and `.rels` files.
+
+Final .NET selections passed 50 API tests, 64 export tests and five filename
+tests, with no failures or skips. They cover the new output cases, existing
+HTTP export MIME/filename/signature and page-image ZIP cases, supported PDF
+compliance settings, Word element output, Spreadsheet roundtrips and encryption
+export behavior. This is focused regression coverage, not a full Solution,
+browser, visual-parity or independent standards-conformance acceptance.
+
+The first build attempt hit the sandbox MSBuild named-pipe restriction and was
+stopped. The first serial retry compiled dependencies but reached its time
+limit before tests. The incremental retry and final selections completed.
+These interrupted attempts are retained in separate logs and do not count as
+passing tests. Existing compiler/obsolete-API and NPOI licensing warnings remain
+visible; no warning suppression, package update or licence acceptance was added.
+
+All 14 synthetic files were independently inspected with Poppler `pdfinfo`,
+`unzip` and a separate XML parser. The current PDF carries the expected PVADE
+title and PVAD renderer creator; supplied customer metadata remains exact.
+Neutral DOCX/XLSX/ODT packages contain no old product names in checked paths,
+core properties, content types, relationships or XML content. The XML envelope
+uses the canonical technical name. The local inspection report contains the
+actual file sizes and SHA-256 values and does not replace original evidence.
+Its initial archive reader was adjusted for literal square brackets in the
+OpenXML content-types filename, without altering any exported bytes.
+
+Final configuration, deployment and versioning selections passed all 451 tests
+with no failures or skips. The residual path/hash review and structural JSON
+guard pass; 282 tracked Markdown files have zero old-name occurrences. All 157
+local links in the four updated review documents resolve. Version synchronization,
+release-fragment validation and `git diff --check` pass.
+
+Preservation checks against the baseline verify all 936 production files, 50
+hash-pinned originals, 87 public PDF Trust files, both compatibility registers,
+the original inventories, VERSION and published releases unchanged. All 817
+original review notes and reason sets and all preceding checklist task states
+are preserved. Only two existing residual-review hashes and their additive
+current-review notes change for the extended tests and linked rename plan.
+The 14 generated artifact hashes still match the independent inspection report.
+Local results are stored under the ignored artifact directory, including
+`artifact-review.json` and `preservation-verification.json`.
+
+The release fragment has impact `none`: only tests and scoped review documents
+change. VERSION, published releases, contracts and live databases remain intact.
+No code defect, production rename, full metadata-feature parity or new external
+approval is claimed by this review.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.
