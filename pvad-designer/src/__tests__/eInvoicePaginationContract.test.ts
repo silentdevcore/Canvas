@@ -198,7 +198,7 @@ describe('electronic invoice pagination contract', () => {
   });
 
   it('reports a description beyond the bound rather than rendering it', () => {
-    // The public API cannot produce this: PXAEINV109 caps a description at 4 096 characters. The
+    // The public API cannot produce this: invoice validation caps a description at 4 096 characters. The
     // planner is driven directly, which is the only way to reach the bound.
     const plan = planInvoicePages({
       layout,

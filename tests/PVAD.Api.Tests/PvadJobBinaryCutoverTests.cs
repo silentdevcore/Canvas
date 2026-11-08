@@ -7,7 +7,7 @@ namespace PVAD.Api.Tests;
 public sealed class PvadJobBinaryCutoverTests
 {
     [BinaryCutoverFact]
-    public async Task Pxa_worker_process_is_killed_and_pvad_resumes_its_persisted_job()
+    public async Task Legacy_worker_process_is_killed_and_current_worker_resumes_its_persisted_job()
     {
         var legacy = Environment.GetEnvironmentVariable("PVAD_LEGACY_JOB_HARNESS");
         var current = Environment.GetEnvironmentVariable("PVAD_CURRENT_JOB_HARNESS");

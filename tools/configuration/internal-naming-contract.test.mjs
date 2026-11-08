@@ -10,6 +10,65 @@ import test from 'node:test';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(join(root, path), 'utf8');
 
+test('general website JavaScript tests use current names while explicit legacy cases remain', () => {
+  const telemetry = read('websites/shared/browserTelemetry.test.js');
+  const generalTests = telemetry.slice(telemetry.indexOf("test('records only allowlisted status pages"));
+  assert.ok(generalTests.includes('globalThis.__pvadBrowserTelemetry'));
+  assert.doesNotMatch(generalTests, /pxa/i);
+  assert.ok(telemetry.includes('globalThis.__pxaBrowserTelemetry = bridge;'));
+  assert.ok(telemetry.includes("values.has('pxa-status-loop-v1'), false"));
+  const formats = read('websites/PVAD.Documentation/tests/native-project-formats-documentation-contract.test.js');
+  assert.ok(formats.includes('the public manifest schema distinguishes PVADP and PVADS'));
+  assert.doesNotMatch(formats, /pxa/i);
+  const status = read('websites/shared/statusPages.test.js');
+  assert.ok(status.includes("[['current', 'PVADAPI018'], ['legacy', 'PXAAPI018']]"));
+  assert.ok(status.includes('assert.equal(model.diagnosticCode, diagnosticCode)'));
+});
+
+test('frontend review separates current commentary and dual-generation tests from stable contracts', () => {
+  const validation = read('pvad-designer/src/features/e-invoice/invoiceValidation.ts');
+  assert.ok(validation.includes('Every rule mirrors a diagnostic from `EInvoice.ValidateDocument`'));
+  assert.ok(validation.includes("required(line.description, 4_096, 'PXAEINV109'"));
+  assert.ok(read('pvad-designer/src/features/e-invoice/invoicePagination.ts')
+    .includes('`EInvoice.ValidateDocument` caps a description at 4 096'));
+  assert.ok(read('pvad-designer/src/__tests__/eInvoicePaginationContract.test.ts')
+    .includes('invoice validation caps a description at 4 096 characters'));
+  const exports = read('pvad-designer/src/__tests__/ExportService.test.ts');
+  assert.ok(exports.includes("test.each(['pvadMetadata', 'pxaMetadata'] as const)"));
+  assert.ok(exports.includes('expect(chart.chart?.recognition?.sourceKind).toBe(sourceKind)'));
+  assert.ok(exports.includes("expect(element.chart?.recognition?.sourceKind).toBe('pvadMetadata')"));
+  const urls = read('websites/PVAD.Account/tests/returnUrl.test.ts');
+  assert.ok(urls.includes("['VITE_PVAD_DESIGNER_URL', 'VITE_PXA_DESIGNER_URL']"));
+  assert.ok(urls.includes("sanitizeReturnUrl('https://unconfigured.example/doc/1', configured), null"));
+  const spreadsheet = read('pvad-designer/src/__tests__/spreadsheetStore.test.ts');
+  assert.ok(spreadsheet.includes('keeps unscoped previous-generation drafts untouched'));
+  assert.ok(spreadsheet.includes("expect(values.get('pxa-spreadsheet')).toBe('current')"));
+});
+
+test('backend workflows use current defaults and keep old OAuth and migration results explicit', () => {
+  const account = read('tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs');
+  assert.ok(account.includes('["scope"] = "pvad.docs.read"'));
+  assert.ok(account.includes('["scope"] = "pvad.docs.read pvad.templates.read"'));
+  assert.ok(account.includes('authorizePath.Replace("pvad.docs.read", "pxa.docs.read", StringComparison.Ordinal)'));
+  assert.ok(account.includes('foreach (var path in new[] { authorizePath, legacyAuthorizePath })'));
+  assert.ok(account.includes('using var legacyTokenRequest = new HttpRequestMessage'));
+  assert.ok(account.includes('["scope"] = "pxa.docs.read pxa.templates.read"'));
+  assert.ok(account.includes('foreach (var requestedScope in new[] { "pvad.docs.read", "pxa.docs.read" })'));
+  const migration = read('tests/PVAD.Api.Tests/MigrationControllerTests.cs');
+  assert.equal((migration.match(/Assert\.Contains\("using PVAD\.Pdf;", body\.GetProperty\("pvadCode"\)/g) ?? []).length, 2);
+  assert.ok(migration.includes('var generatedCode = body.GetProperty("pvadCode").GetString()'));
+  assert.ok(migration.includes('Assert.Equal(generatedCode, body.GetProperty("pxaCode").GetString())'));
+  const cutover = read('tests/PVAD.Api.Tests/PvadJobBinaryCutoverTests.cs');
+  assert.ok(cutover.includes('Legacy_worker_process_is_killed_and_current_worker_resumes_its_persisted_job'));
+  assert.doesNotMatch(cutover, /Pxa_worker_process/);
+  assert.ok(read('src/Generation/PVAD.Generator/EInvoiceGeneration.cs')
+    .includes('invoice validation caps it well below the'));
+  assert.ok(read('src/Generation/PVAD.Generator/EInvoicePageLayout.cs')
+    .includes('<c>EInvoice.ValidateDocument</c> caps a description at 4 096'));
+  assert.ok(read('tests/PVAD.Generator.Tests/EInvoicePaginationContractTests.cs')
+    .includes('invoice validation caps a description at 4 096 characters'));
+});
+
 test('current account, admin and Designer test factories use canonical configuration and request headers', () => {
   const factories = [
     'AccountClosureControllerTests', 'AccountCrossTenantAccessTests',
@@ -143,7 +202,8 @@ test('current recovery and converter examples use canonical names without rewrit
   assert.ok(workspace.includes('[InlineData("pxa-element-id:")]'));
   assert.doesNotMatch(workspace, /pxa-worker-test-|<strong>PXA<\/strong>/);
   const migration = read('tests/PVAD.Api.Tests/MigrationControllerTests.cs');
-  assert.ok(migration.includes('var generatedCode = body.GetProperty("pxaCode").GetString();'));
+  assert.ok(migration.includes('var generatedCode = body.GetProperty("pvadCode").GetString();'));
+  assert.ok(migration.includes('Assert.Equal(generatedCode, body.GetProperty("pxaCode").GetString())'));
   assert.doesNotMatch(migration, /var pxaCode/);
   const fidelity = read('tools/document-fidelity/fidelity.test.mjs');
   assert.ok(fidelity.includes("provenance: 'pvad-synthetic'"));

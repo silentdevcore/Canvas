@@ -94,6 +94,32 @@ uses current render requests and explicit current/legacy adapter lifecycles,
 without removing compatibility. A pre-existing stored-template render limitation
 is tracked separately; this pass does not claim document-fidelity completion.
 
+The [JavaScript/XML review](PVAD.Remaining-Code-Naming-Cleanup.md#javascript-and-xml-review---2026-11-07)
+checks all 115 tracked files of those extensions. General test defaults and a
+format label are canonicalized; explicit compatibility inputs remain. All 27
+matching XML files are original hash-bound DSS reports and remain unchanged.
+This scoped pass does not close the overall semantic review or release gates.
+
+The [Designer/Account TypeScript review](PVAD.Remaining-Code-Naming-Cleanup.md#designer-and-account-typescript-review---2026-11-07)
+inspects all 330 tracked frontend TypeScript files. Commentary and test labels
+are normalized, and export/configuration tests cover both naming generations.
+Stable diagnostic, reader and original-fixture contracts remain unchanged;
+repository-wide closure is not inferred from the scoped inventory.
+
+The [backend CSharp review](PVAD.Remaining-Code-Naming-Cleanup.md#backend-csharp-review---2026-11-07)
+inspects production and test source, uses current OAuth/generated-code defaults
+with explicit old-input coverage, and normalizes explanatory invoice comments
+and a test-method name. Stable diagnostics, persisted audit formats, security
+identities and original evidence are retained rather than globally replaced.
+
+The [build/configuration review](PVAD.Remaining-Code-Naming-Cleanup.md#build-and-configuration-review---2026-11-08)
+covers 444 tracked files and preserves actual historical runtime bindings while
+normalizing free display labels. The [consolidated remaining-items list](PVAD.Rename-Remaining-Items.md)
+separates current source changes, retained contracts, original evidence and
+unverified Release-build prerequisites. A repeatable tracked-only inventory
+records positions and hashes without copying source lines; raw counts and the
+exception ledger do not establish overall completion.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

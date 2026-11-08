@@ -1,7 +1,7 @@
 /**
  * Localized, client-side invoice validation.
  *
- * Every rule mirrors one `PXAEINV1xx` diagnostic from `EInvoice.ValidateDocument`, and each
+ * Every rule mirrors a diagnostic from `EInvoice.ValidateDocument`, and each
  * finding carries that stable code. The point is a fast, translated hint while the user types -
  * the backend remains the authority, and passing this check is never presented as conformance.
  */

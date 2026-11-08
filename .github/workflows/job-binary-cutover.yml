@@ -23,8 +23,8 @@ jobs:
           node-version: 22
       - name: Restore test dependencies
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --disable-parallel -m:1 -nr:false
-      # PXA identifies the pinned historical binary, not the current product name.
-      - name: Build pinned PXA and current PVAD workers and test process cutover
+      # The pinned historical binary retains its original identity; current output uses PVAD.
+      - name: Build pinned legacy and current workers and test process cutover
         env:
           PVAD_CUTOVER_NUGET_SOURCE: https://api.nuget.org/v3/index.json
         run: node tools/job-cutover/run.mjs

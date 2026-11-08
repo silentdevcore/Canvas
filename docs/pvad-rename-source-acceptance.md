@@ -157,6 +157,71 @@ recorded as a separate unfinished follow-up. A valid PDF response in these acces
 tests must not be described as complete design/data rendering. No production
 rendering code is changed or certified here, and repository closure remains open.
 
+## JavaScript And XML Review (2026-11-07)
+
+The [extension-specific review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#javascript-and-xml-review---2026-11-07)
+covers all 68 tracked JavaScript and 47 tracked XML files. General telemetry
+tests use the current collector, the manifest test names the current project
+formats, and status-model tests exercise both diagnostic generations. Specific
+compatibility readers, negative naming guards and customer-input preservation
+tests remain intact.
+
+All 27 matching XML paths are original DSS reports. Their content matches the
+existing corpus-manifest hashes and baseline bytes; network-disabled parsing
+passes. They are retained evidence, not current configuration awaiting cosmetic
+replacement. The ignored detailed inventory is
+`artifacts/rename/javascript-xml-naming/scan.json`. Original reports, manifests,
+historical review notes, runtime contracts and release gates are unchanged.
+Overall repository semantic review remains open.
+
+## Designer And Account TypeScript Review (2026-11-07)
+
+The [frontend review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#designer-and-account-typescript-review---2026-11-07)
+inspects all 330 tracked frontend TypeScript files, including all 77 initially
+matching files. General comments and a test label are normalized; chart export
+and Account origin-override tests now exercise current inputs as well as retained
+ones. Runtime code changes only in comments, not executable behavior.
+
+The remaining values are specific diagnostic, input-reader, schema, publication
+or preservation-test contracts. Their boundaries and verification are recorded
+in the checklist; inventory counts and previous whole-file review categories
+are not semantic approval. The ignored detailed report is
+`artifacts/rename/frontend-typescript-naming/scan.json`. No original evidence,
+published release, runtime contract or operational approval is changed. Overall
+repository semantic review remains open.
+
+## Backend CSharp Review (2026-11-07)
+
+The [backend review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#backend-csharp-review---2026-11-07)
+covers tracked production and test C# source, including null-containing text.
+General OAuth and migration tests use current inputs/results; explicit former
+scope requests and result aliases remain covered. Missing PKCE and revoked
+credentials are checked across both scope generations. A binary-cutover test
+method and explanatory invoice comments are normalized without changing runtime
+behavior or claiming a fresh paired-binary drill.
+
+Raw diagnostics, public compatibility members, installed identities, signed
+license material, original fixtures, retention migration and audit identifiers
+remain exact. The detailed ignored inventory is
+`artifacts/rename/backend-csharp-naming/scan.json`; it is not a new allowlist or
+overall repository-closure assertion. Earlier uncommitted frontend work and
+all operational release gates remain unchanged.
+
+## Build And Configuration Review (2026-11-08)
+
+The [scoped review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#build-and-configuration-review---2026-11-08)
+covers 444 tracked build/script/workflow/project/template and HTML/CSS files.
+Free workflow and test labels are normalized; protected bindings and original
+evidence remain exact. The [consolidated remaining-items list](../checklists/PVAD.Rename-Remaining-Items.md)
+records each retained boundary and the repeatable read-only inventory command.
+Its separate binary offsets do not imply visible branding or semantic approval.
+
+Focused tests and MCP validation passed. The broad Node run passed 557 of 559
+tests; two coverage checks require missing genuine Release dependency outputs.
+They remain outstanding, not waived or counted as passes. No full Solution
+build, deployment, fresh paired-binary drill or overall repository closure is
+claimed. Earlier uncommitted work and historical acceptance states remain intact.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the

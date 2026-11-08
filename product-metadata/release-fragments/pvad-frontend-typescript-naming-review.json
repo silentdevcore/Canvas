@@ -1,0 +1,11 @@
+{
+  "id": "pvad-frontend-typescript-naming-review",
+  "impact": "none",
+  "components": ["account", "designer", "documentation"],
+  "category": "improved",
+  "summary": "Aligned frontend maintenance terminology and expanded current and compatibility configuration and chart export tests.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only source comments, test labels, test coverage and internal review records change. Runtime diagnostics, legacy readers, original evidence, published releases and the product version remain unchanged."
+}

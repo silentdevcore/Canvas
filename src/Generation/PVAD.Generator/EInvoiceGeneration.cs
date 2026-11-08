@@ -123,7 +123,7 @@ public static partial class EInvoice
             if (plan.OverflowingLines.Count > 0)
             {
                 // Fail closed rather than emit a document of unbounded length. A description this
-                // long cannot reach here through the public API: PXAEINV109 caps it well below the
+                // long cannot reach here through the public API: invoice validation caps it well below the
                 // bound, so this guards the renderer itself.
                 var positions = string.Join(", ", plan.OverflowingLines.Select(static index => index + 1));
                 return new(false, ReadOnlyMemory<byte>.Empty, generated.Xml, generated.SemanticData,

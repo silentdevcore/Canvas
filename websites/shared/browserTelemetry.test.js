@@ -115,8 +115,8 @@ test('classifies API statuses without exposing endpoint or response details', ()
 
 test('records only allowlisted status pages and recovery actions', () => {
   const recorded = [];
-  const previousTelemetry = globalThis.__pxaBrowserTelemetry;
-  globalThis.__pxaBrowserTelemetry = {
+  const previousTelemetry = globalThis.__pvadBrowserTelemetry;
+  globalThis.__pvadBrowserTelemetry = {
     record: (...args) => recorded.push(args),
   };
 
@@ -127,7 +127,7 @@ test('records only allowlisted status pages and recovery actions', () => {
     recordBrowserRecoveryAction('customer-private-action');
     recordBrowserUnknownDiagnosticMapping();
   } finally {
-    globalThis.__pxaBrowserTelemetry = previousTelemetry;
+    globalThis.__pvadBrowserTelemetry = previousTelemetry;
   }
 
   assert.deepEqual(recorded, [
@@ -139,12 +139,12 @@ test('records only allowlisted status pages and recovery actions', () => {
 
 test('drops free-form correlation values before recording status telemetry', () => {
   const recorded = [];
-  const previousTelemetry = globalThis.__pxaBrowserTelemetry;
-  globalThis.__pxaBrowserTelemetry = { record: (...args) => recorded.push(args) };
+  const previousTelemetry = globalThis.__pvadBrowserTelemetry;
+  globalThis.__pvadBrowserTelemetry = { record: (...args) => recorded.push(args) };
   try {
     recordBrowserStatusPage('unexpected', 'customer@example.test/path?secret=yes');
   } finally {
-    globalThis.__pxaBrowserTelemetry = previousTelemetry;
+    globalThis.__pvadBrowserTelemetry = previousTelemetry;
   }
   assert.deepEqual(recorded, [
     ['status_page', 'shown', { name: 'unexpected', correlationId: undefined }],

@@ -1,0 +1,11 @@
+{
+  "id": "pvad-backend-csharp-naming-review",
+  "impact": "none",
+  "components": ["account", "api", "migration", "documentation"],
+  "category": "improved",
+  "summary": "Aligned backend workflow test defaults and expanded current and compatibility authorization and migration checks.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only explanatory source comments, test inputs, test naming, coverage and internal review records change. Production contracts, raw diagnostics, stored audit keys, original evidence and published releases remain unchanged."
+}

@@ -430,7 +430,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("using PVAD.Pdf;", body.GetProperty("pxaCode").GetString());
+        Assert.Contains("using PVAD.Pdf;", body.GetProperty("pvadCode").GetString());
         Assert.Equal(body.GetProperty("pxaCode").GetString(), body.GetProperty("pvadCode").GetString());
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
@@ -459,8 +459,9 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("using PVAD.Pdf;", body.GetProperty("pxaCode").GetString());
-        Assert.Contains("var document = new PdfDocument();", body.GetProperty("pxaCode").GetString());
+        Assert.Contains("using PVAD.Pdf;", body.GetProperty("pvadCode").GetString());
+        Assert.Contains("var document = new PdfDocument();", body.GetProperty("pvadCode").GetString());
+        Assert.Equal(body.GetProperty("pvadCode").GetString(), body.GetProperty("pxaCode").GetString());
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
             body.GetProperty("diagnostics").EnumerateArray(),
@@ -487,10 +488,11 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         var response = await client.PostAsync("/api/pvad/migration/convert", Json(json));
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var generatedCode = body.GetProperty("pxaCode").GetString();
+        var generatedCode = body.GetProperty("pvadCode").GetString();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("new PvadWorkbook()", generatedCode);
+        Assert.Equal(generatedCode, body.GetProperty("pxaCode").GetString());
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", generatedCode);
         Assert.Contains("ws.Cell(0, 1).Value(10)", generatedCode);
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
