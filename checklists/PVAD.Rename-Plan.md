@@ -138,6 +138,12 @@ use the market name while original signed files, reports, hashes, filenames and
 classifications stay exact. This is an editorial presentation correction, not
 new validation evidence or permission to change historical artifacts.
 
+The [CLI/MCP tool review](PVAD.Remaining-Code-Naming-Cleanup.md#cli-mcp-and-diagnostic-tool-review---2026-11-08)
+corrects internal smoke/validator presentation while retaining exact protocol
+data, original schema resources and standards policy validation. It exercises
+all catalog example surfaces without claiming C# compilation or new backend
+rendering coverage. Original evidence and operational gates remain unchanged.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

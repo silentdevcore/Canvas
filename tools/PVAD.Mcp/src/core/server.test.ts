@@ -5,7 +5,8 @@ import test from 'node:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
-import { createExample, findElement, PvadMcpContentRepository } from './content.js';
+import { createExample, elementCatalog, findElement, PvadMcpContentRepository } from './content.js';
+import { toolResult } from './results.js';
 import { createPvadMcpServer, type PvadMcpServerOptions } from './server.js';
 
 async function withClient(
@@ -41,6 +42,43 @@ test('canonical resources and deprecated resource aliases remain readable', asyn
       assert.ok(result.contents.some((item) => 'text' in item && item.text.length > 0), uri);
     }
   });
+});
+
+test('every catalog element exposes current metadata and exact JSON/CSharp source examples', async () => {
+  await withClient({}, async client => {
+    const tools = (await client.listTools()).tools;
+    for (const tool of tools)
+      assert.doesNotMatch(`${tool.title ?? ''} ${tool.description ?? ''}`, /pxa|power\s?dox/i, tool.name);
+    for (const element of elementCatalog) {
+      const schema = await client.callTool({ name: 'get_element_schema', arguments: { type: element.type } });
+      assert.deepEqual((schema.structuredContent as { data: { element: unknown } }).data.element, element);
+      assert.doesNotMatch(JSON.stringify(element), /pxa|power\s?dox/i, element.type);
+      const json = await client.callTool({ name: 'get_example', arguments: { type: element.type, surface: 'json' } });
+      const example = (json.structuredContent as { data: { example: unknown } }).data.example;
+      assert.deepEqual(example, createExample(element.example, element.label));
+      const csharp = await client.callTool({ name: 'get_example', arguments: { type: element.type, surface: 'csharp' } });
+      const output = csharp.structuredContent as { data: { example?: unknown }; diagnostics: Array<{ code: string }> };
+      if (element.csharpExample) {
+        assert.equal(output.data.example, element.csharpExample);
+        assert.deepEqual(output.diagnostics, []);
+      } else {
+        assert.equal(output.data.example, undefined);
+        assert.equal(output.diagnostics[0].code, 'PXAMCP011');
+      }
+    }
+  });
+});
+
+test('MCP structured results and text payloads preserve customer data and raw diagnostics', () => {
+  const data = { name: 'PXA supplied title', namespace: 'PXA.Customer', file: 'PXA customer.pdf' };
+  const diagnostics = [{ code: 'PXAMCP010', severity: 'error' as const, message: 'PXA supplied detail', path: '/name' }];
+  const before = JSON.stringify({ data, diagnostics });
+  const result = toolResult(data, diagnostics, true);
+  assert.equal(result.structuredContent.data, data);
+  assert.equal(result.structuredContent.diagnostics, diagnostics);
+  assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+  assert.equal(result.isError, true);
+  assert.equal(JSON.stringify({ data, diagnostics }), before);
 });
 
 test('resource display names are canonical while aliases return the exact original schema content', async () => {

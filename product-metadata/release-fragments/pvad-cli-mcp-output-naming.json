@@ -1,0 +1,11 @@
+{
+  "id": "pvad-cli-mcp-output-naming",
+  "impact": "none",
+  "components": ["sdk", "documentation"],
+  "category": "improved",
+  "summary": "Aligned diagnostic-tool and MCP smoke-test summaries with current naming while preserving compatibility identifiers.",
+  "reason": "Only internal validation-tool output and regression coverage change; public APIs, protocol data and packaged server behavior are unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

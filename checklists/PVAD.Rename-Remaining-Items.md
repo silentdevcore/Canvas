@@ -155,6 +155,18 @@ retain their existing protection. The source checklist records actual tests,
 browser limits and any outstanding verification; this is not a zero-match claim
 for binary downloads or compatibility data.
 
+## CLI And MCP Follow-up (2026-11-08)
+
+The [tool-output review](PVAD.Remaining-Code-Naming-Cleanup.md#cli-mcp-and-diagnostic-tool-review---2026-11-08)
+corrects one standards error explanation and the MCP smoke summaries. Resource
+addresses, stable diagnostics, structured payloads and original schema contents
+remain exact. Tool tests cover all catalog examples, customer-data preservation,
+both resource generations and retained standards-policy rejection behavior.
+Parser/fidelity/corpus evidence checks continue to enforce original hashes and
+thresholds. This is internal tooling work, not production protocol migration or
+new validation approval. The source checklist records actual test outcomes and
+the initial sandbox socket restriction separately.
+
 ## Verification Still Outstanding
 
 - [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.

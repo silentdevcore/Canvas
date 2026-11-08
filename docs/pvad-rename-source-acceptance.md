@@ -305,6 +305,22 @@ the single deliberate old-name reference in current public application source.
 User-supplied filenames, namespaces and parsed document content are not branded
 system text; raw example diagnostics remain exact contracts.
 
+## CLI And MCP Output Boundaries
+
+The [tool-output follow-up](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#cli-mcp-and-diagnostic-tool-review---2026-11-08)
+keeps plain smoke-test summaries distinct from exact machine contracts. Resource
+requests still use their registered URIs; schemas still resolve under original
+registry keys. Current resource titles and manifest/alias positions identify
+checks without rewriting those inputs. The standards mismatch explanation is
+neutral, while its required policy identity and release-approval checks remain
+unchanged.
+
+All catalog JSON/C# example responses are checked over MCP. This asserts naming
+and exact source delivery, not that every C# snippet is compiled or that every
+example renders a PDF. Customer content and diagnostic codes remain unchanged
+in both structured results and their JSON text representation. The smoke output
+is not the production MCP protocol, and no new diagnostic alias is introduced.
+
 ## Retained Findings
 
 | Category | Specific retention boundary | What is not permitted |

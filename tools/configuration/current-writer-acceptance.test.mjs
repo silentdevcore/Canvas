@@ -8,6 +8,27 @@ const read = path => readFileSync(resolve(root, path), 'utf8');
 
 // These writer contracts do not consult the residual exception ledger.
 const boundaries = [
+  {
+    name: 'standards CLI error uses neutral presentation without renaming the recorded policy',
+    path: 'tools/pdf-trust/validate-standards-baseline.mjs',
+    from: 'policyId does not match the recorded PDF Trust policy.', to: 'policyId must be pxa-pdf-trust.',
+    verify(source) {
+      assert.ok(source.includes("baseline.policyId !== 'pxa-pdf-trust'"));
+      assert.ok(source.includes("errors.push('policyId does not match the recorded PDF Trust policy.')"));
+    },
+  },
+  {
+    name: 'MCP smoke summaries use display titles while requests retain actual resource identities',
+    path: 'tools/PVAD.Mcp/smoke.ts',
+    from: '${resource.title} (${kind}) contains packaged content', to: '${resource.uri} contains packaged content',
+    verify(source) {
+      assert.ok(source.includes('client.readResource({ uri: resource.uri })'));
+      assert.ok(source.includes('${resource.title} (${kind}) contains packaged content'));
+      assert.ok(source.includes('registry.getSchema(id)'));
+      assert.ok(source.includes('offline packaged schema ${schemaIndex + 1} resolves'));
+      assert.doesNotMatch(source, /offline packaged schema resolves: \$\{id\}/);
+    },
+  },
   ...[
     ['pades', 'PVADE PAdES Interoperability Corpus'],
     ['pades/negative', 'PVADE PAdES Negative Trust Corpus'],

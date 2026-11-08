@@ -1189,6 +1189,63 @@ compatibility registers, original audit inventories and published releases are
 unchanged. Only the two catalog HTML presentation wrappers change shipped
 output. No API, database, authorization or deployment change is made.
 
+### CLI MCP And Diagnostic Tool Review - 2026-11-08
+
+Baseline: `b00577f0`. Review current tool output separately from protocol data,
+compatibility readers and reproducible validation inputs. The tracked-only
+tool inventory covers 259 regular files; its 111 matching files and 1,100 text
+occurrences include explicit negative tests and are not outstanding rename
+defects. The inventory is an ignored local artifact, not a new historical audit.
+
+- [x] Correct the standards CLI policy-mismatch explanation without changing the recorded policy identifier or its validation condition.
+- [x] Make MCP smoke summaries use current resource titles and primary/compatibility labels while continuing to request every original URI.
+- [x] Identify offline schema checks by manifest/alias position, preserving exact registry keys and original packaged schema bytes.
+- [x] Verify all 38 catalog element definitions and both JSON/C# example responses through MCP; keep missing C# examples explicitly unsupported rather than inventing code.
+- [x] Preserve MCP structured result data and its text serialization exactly, including supplied names, paths, namespaces and stable diagnostics.
+- [x] Keep scope/claim/environment aliases, retained deployment/job harnesses, corpus credentials, signature evidence and schema contracts unchanged.
+- [x] Pass MCP tests, typecheck, build, toolchain contracts and both source/distribution Stdio smoke tests.
+- [x] Run parser/corpus, fidelity, visual-tool, configuration/deployment/versioning and standards/evidence regression tests.
+- [x] Finish exact source/evidence preservation, residual guards and review-document link checks.
+
+Only two tool source files change presentation: one standards CLI error sentence
+and MCP smoke summaries. Neither the production MCP server nor its tool-result
+serializer, resource registrations, authorization, API client or schema content
+changes. Raw protocol JSON remains raw; no new diagnostic aliases are added.
+The standards CLI accepts the same recorded policy and rejects both an invalid
+value and an unapproved technical-name replacement. Its release gate remains
+closed until the independently governed standards approval is actually present.
+
+All 35 MCP tests and nine toolchain contracts passed, as did typecheck and build.
+The first npm/tsx test attempt was blocked by the sandbox IPC socket; the retry
+with local test sockets passed. The initial source and distribution Stdio checks
+passed without old product names in their console summaries. Expanded final
+checks exercise 76 example responses per server (JSON and C# for 38 elements).
+This tests returned source examples, not C# compilation or actual backend PDF
+rendering. Existing AJV date/date-time format warnings remain visible and are
+not interpreted as complete date validation. No schema strictness is weakened.
+
+The 63-file tool regression selection passed 482 tests with no failures or
+skips. It includes the standards mismatch, explicit release rejection, parser
+aliases, corpus hashes, fidelity thresholds and all direct writer mutation
+guards. Evidence logs are ignored under
+`artifacts/rename/cli-mcp-tool-output-naming/`. The release fragment has impact
+`none` because only internal validator/smoke output and regression coverage
+change. VERSION, published releases and live databases remain unchanged.
+
+Both expanded final Stdio runs passed all 76 example-response checks. The built
+distribution resolved all 31 registered schema identities/aliases offline and
+served all ten resource registrations. Their console output contains no old
+product names, while the actual resource/alias keys remain unchanged. All 20
+packaged resource files match repository source bytes exactly.
+
+Preservation checks confirm that all 50 hash-pinned audit originals, 87 public
+corpus files and 16 selected runtime/contract files match the baseline. The
+standards validator differs by exactly its one explanation string. No original
+review notes, historical results, hashes, schema IDs, signatures, fixture
+passwords or permissions are changed. Residual hash updates are limited to the
+reviewed changed files; no new whole-file or directory exception is introduced.
+Markdown, JSON, release-fragment, version, link and whitespace checks pass.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.
