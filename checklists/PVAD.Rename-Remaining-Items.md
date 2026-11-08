@@ -110,6 +110,35 @@ specific reasons above. Raw code/document previews are not branding surfaces:
 altering customer content to reduce search counts is prohibited. This follow-up
 does not certify a browser deployment or make the repository a zero-match tree.
 
+## Account And Admin Follow-up (2026-11-08)
+
+The [portal-output review](PVAD.Remaining-Code-Naming-Cleanup.md#account-and-admin-output-review---2026-11-08)
+corrects dynamic error presentation in both entry points and nine Account pages.
+Admin also accepts structured JSON Problem Details instead of discarding its
+diagnostic fields. Raw response bodies, machine codes and support traces remain
+unchanged. Error displays are projected and escaped; stored customer names,
+license/key identifiers, audit actions and Legal content are not renamed.
+
+- [x] Correct Account/Admin dynamic diagnostic displays and retain original error/state objects.
+- [x] Verify license/subscription failures without rewriting signed license identifiers or customer organization data.
+- [x] Preserve structured Problem Details in the Admin transport and cover JSON media-type variants.
+- [x] Pass Account/Admin tests and builds, Account typecheck and all 846 Designer tests.
+- [x] Inspect four desktop/mobile browser scenarios using synthetic responses and stop the isolated preview servers.
+- [x] Add a Patch fragment while keeping the product version and published history intact.
+
+Release presentation was already projected; historical manifests and persisted
+notifications were not rewritten. The browser checks prove the mocked failure
+workflow only, not a real backend authorization/licensing deployment. Remaining
+raw contract identifiers and protected evidence still have the boundaries listed
+above; this pass does not make a repository-wide zero-match claim.
+
+Final verification passed 447 configuration/deployment/versioning tests. AST
+comparison limits the 11 UI source changes to presentation and confirms that
+the transport change only reads additional JSON error media types. All 817
+original review notes/reasons and 91 protected evidence files are preserved;
+the version, published releases, original inventories and compatibility
+registers are unchanged. No additional diagnostic alias was created.
+
 ## Verification Still Outstanding
 
 - [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.

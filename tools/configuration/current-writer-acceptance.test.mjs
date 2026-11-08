@@ -9,6 +9,42 @@ const read = path => readFileSync(resolve(root, path), 'utf8');
 // These writer contracts do not consult the residual exception ledger.
 const boundaries = [
   {
+    name: 'Account authentication errors project display text without changing raw code branches',
+    path: 'websites/PVAD.Account/src/main.ts',
+    from: 'escapeHtml(displaySystemMessage(apiError.message))', to: 'escapeHtml(apiError.message)',
+    verify(source) {
+      const handler = source.split('function bindForm(')[1]?.split('\nfunction bindEvents(')[0];
+      assert.ok(handler);
+      assert.equal([...handler.matchAll(/displaySystemMessage\(apiError\.message\)/g)].length, 4);
+      assert.ok(handler.includes('apiError.code === PROBLEM_CODE_VERIFICATION_REQUIRED'));
+      assert.ok(handler.includes('apiError.code === PROBLEM_CODE_ACCOUNT_DISABLED'));
+      assert.ok(handler.includes('apiError.code === PROBLEM_CODE_ORGANIZATION_SUSPENDED'));
+    },
+  },
+  {
+    name: 'Admin login and action errors project text without applying aliases to identifiers',
+    path: 'websites/PVAD.Admin/src/main.js',
+    from: 'error.textContent = displaySystemMessage(requestError.message)', to: 'error.textContent = requestError.message',
+    verify(source) {
+      assert.equal([...source.matchAll(/error\.textContent = displaySystemMessage\(requestError\.message\)/g)].length, 2);
+      assert.doesNotMatch(source, /escapeHtml\([^()\n]*\.error\b/);
+      assert.ok(source.includes('escapeHtml(license.keyId)'));
+      assert.ok(source.includes('escapeHtml(license.licenseNumber)'));
+      assert.ok(source.includes('escapeHtml(event.action)'));
+    },
+  },
+  {
+    name: 'Admin parses structured JSON error media types without losing raw diagnostic data',
+    path: 'websites/PVAD.Admin/src/api.js',
+    from: "contentType.includes('+json')", to: 'false',
+    verify(source) {
+      assert.ok(source.includes("(response.headers.get('content-type') || '').toLowerCase()"));
+      assert.ok(source.includes("contentType.includes('application/json') || contentType.includes('+json')"));
+      assert.ok(source.includes('error.code = body?.code'));
+      assert.ok(source.includes('error.body = body'));
+    },
+  },
+  {
     name: 'project failure text uses display aliases without changing source names',
     path: 'pvad-designer/src/components/Project/ProjectImportNotice.tsx',
     from: 'displaySystemMessage(state.message)', to: 'state.message',
@@ -132,6 +168,19 @@ const boundaries = [
 
 for (const boundary of boundaries)
   test(boundary.name, () => boundary.verify(read(boundary.path)));
+
+test('Account page errors and license validation notices use display projections only at output', () => {
+  for (const name of ['closure', 'developerAccess', 'licenses', 'organization', 'profile', 'security', 'subscription', 'usage']) {
+    const source = read(`websites/PVAD.Account/src/pages/${name}.ts`);
+    assert.ok(source.includes('escapeHtml(displaySystemMessage(state.error))'), name);
+    assert.doesNotMatch(source, /escapeHtml\(state\.error\)/, name);
+    assert.doesNotMatch(source, /error\.textContent = \(submitError as ApiError\)\.message/, name);
+  }
+  const licenses = read('websites/PVAD.Account/src/pages/licenses.ts');
+  assert.ok(licenses.includes('escapeHtml(displaySystemMessage(validity))'));
+  assert.ok(licenses.includes('escapeHtml(license.licenseNumber)'));
+  assert.ok(read('websites/PVAD.Account/src/pages/legalReview.ts').includes('displaySystemMessage(apiError.message)'));
+});
 
 test('current-output guards reject reverted writers independently of any file/hash exception', () => {
   for (const boundary of boundaries) {

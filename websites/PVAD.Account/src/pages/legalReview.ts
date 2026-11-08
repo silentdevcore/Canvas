@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { companyPage } from '../../../shared/siteLinks.js';
 import type { AccountProfileResponse, ApiError } from '../api';
 import { updateAccountConsent } from '../api';
@@ -97,7 +98,7 @@ export function bindLegalReviewEvents(
       const apiError = submitError as ApiError;
       error.textContent = apiError.status === 409
         ? 'The legal documents changed while you were reviewing them. Reload and review the current versions.'
-        : apiError.message;
+        : displaySystemMessage(apiError.message);
       error.hidden = false;
       error.tabIndex = -1;
       error.focus();

@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import { getAccountSessions, revokeAccountSession, revokeAllAccountSessions } from '../api';
 import type { ApiError, AccountSessionResponse } from '../api';
@@ -67,7 +68,7 @@ export function securityPage(): string {
     </header>
     <section class="account-form">
       ${state.notice ? `<p class="account-message account-message--info">${escapeHtml(state.notice)}</p>` : ''}
-      ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
+      ${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : ''}
       <table class="account-table">
         <thead><tr><th>Device</th><th>Last active</th><th>Status</th><th></th></tr></thead>
         <tbody>${state.sessions.map(sessionRow).join('') || `<tr><td colspan="4">${state.loading ? 'Loading…' : 'No sessions found.'}</td></tr>`}</tbody>

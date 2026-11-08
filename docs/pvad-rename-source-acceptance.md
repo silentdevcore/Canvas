@@ -238,6 +238,21 @@ browser or deployment result is inferred from these DOM/build checks. The two
 earlier Release-output coverage prerequisites and operational gates stay open.
 See the [updated remaining-items list](../checklists/PVAD.Rename-Remaining-Items.md#current-output-follow-up-2026-11-08).
 
+## Account And Admin Output Review (2026-11-08)
+
+The [portal review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#account-and-admin-output-review---2026-11-08)
+projects error text in Account/Admin without modifying raw diagnostic fields or
+customer/license/key data. The Admin media-type reader now retains structured
+Problem Details. Historical release projection was already present and is left
+unchanged; Legal text, notifications and audit evidence are not cosmetically
+rewritten.
+
+Account/Admin tests, both builds, Account typecheck and the full Designer suite
+passed. Four inspected desktop/mobile browser scenarios use mocked API responses
+and are not evidence of real authentication, licensing or deployment. Test
+servers were shut down. See the [remaining-items record](../checklists/PVAD.Rename-Remaining-Items.md#account-and-admin-follow-up-2026-11-08)
+for this scope and the separately outstanding Release-output prerequisites.
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the

@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import {
   getAccountOrganization,
@@ -101,7 +102,7 @@ export function organizationPage(user: UserInfo): string {
     return `
       <header class="account-page-header"><div><p class="pvad-kicker">Customer workspace</p><h1>Organization</h1></div></header>
       <section class="account-section">
-        <div>${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : '<p>Loading your organization…</p>'}</div>
+        <div>${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : '<p>Loading your organization…</p>'}</div>
       </section>
     `;
   }
@@ -157,7 +158,7 @@ function bindOrganizationForm(formId: string, handler: (form: HTMLFormElement) =
     try {
       await handler(form);
     } catch (submitError) {
-      error.textContent = (submitError as ApiError).message;
+      error.textContent = displaySystemMessage((submitError as ApiError).message);
       error.hidden = false;
       button.disabled = false;
     }

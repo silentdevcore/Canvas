@@ -1,0 +1,10 @@
+{
+  "id": "pvad-account-admin-diagnostic-presentation",
+  "impact": "patch",
+  "components": ["account", "admin"],
+  "category": "fixed",
+  "summary": "Account and Admin errors now use consistent PVAD diagnostic labels. Admin also preserves structured API error details.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
