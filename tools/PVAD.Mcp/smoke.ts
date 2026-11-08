@@ -6,7 +6,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { fileURLToPath } from 'node:url';
-import { PvadMcpContentRepository } from './src/core/content.js';
+import { findElement, PvadMcpContentRepository } from './src/core/content.js';
 import { createSchemaRegistry } from './src/core/validation.js';
 
 function assert(cond: unknown, msg: string) {
@@ -29,9 +29,23 @@ assert(['get_access_context', 'list_elements', 'get_element_schema', 'get_exampl
     .every((t) => tools.includes(t)), `all tools registered (${tools.join(', ')})`);
 assert(listedTools.every((tool) => tool.outputSchema), 'all tools expose structured output schemas');
 assert(listedTools.every((tool) => tool.annotations?.readOnlyHint === true), 'all current tools are annotated read-only');
+assert(listedTools.every(tool => !/pxa|power\s?dox/i.test(`${tool.title ?? ''} ${tool.description ?? ''}`)),
+  'tool display metadata uses current product names');
 
 const list = data(await client.callTool({ name: 'list_elements', arguments: {} })).items;
 assert(list.length === 38, `list_elements returns 38 elements`);
+
+for (const element of list) {
+  const documented = findElement(element.type)!;
+  for (const surface of ['json', 'csharp'] as const) {
+    const result = await client.callTool({ name: 'get_example', arguments: { type: element.type, surface } });
+    const example = data(result).example;
+    const matches = surface === 'json'
+      ? example?.pages?.[0]?.elements?.[0]?.type === element.type
+      : example === documented.csharpExample;
+    assert(!result.isError && matches, `${element.type}: ${surface} example retains its documented result`);
+  }
+}
 
 const textDoc = data(await client.callTool({ name: 'get_element_schema', arguments: { type: 'text' } })).element;
 assert(textDoc.type === 'text' && Array.isArray(textDoc.properties), `get_element_schema("text") returns a doc`);
@@ -80,9 +94,11 @@ assert(resources.includes('pvad://schema/design-export'), `PVAD design-schema re
 assert(resources.includes('pvad://schema/pvad-workbook'), `PVAD workbook-schema resource is exposed`);
 assert(resources.includes('pxa://schema/design-export'), `Legacy design-schema resource remains readable`);
 assert(resources.includes('pxa://schema/pxa-workbook'), `Legacy workbook-schema resource remains readable`);
-for (const uri of resources) {
-  const result = await client.readResource({ uri });
-  assert(result.contents.some((item) => 'text' in item && item.text.length > 0), `${uri} contains packaged content`);
+for (const resource of listedResources) {
+  const result = await client.readResource({ uri: resource.uri });
+  const kind = resource.uri.startsWith('pvad:') ? 'primary' : 'compatibility alias';
+  assert(result.contents.some((item) => 'text' in item && item.text.length > 0),
+    `${resource.title} (${kind}) contains packaged content`);
 }
 
 await client.close();
@@ -92,9 +108,10 @@ if (useDistribution) {
   const manifest = content.readJson('docs/schema/schema-aliases.json') as {
     schemas: Array<{ canonicalId: string; legacyIds: string[] }>;
   };
-  for (const schema of manifest.schemas) {
-    for (const id of [schema.canonicalId, ...schema.legacyIds])
-      assert(registry.getSchema(id), `offline packaged schema resolves: ${id}`);
+  for (const [schemaIndex, schema] of manifest.schemas.entries()) {
+    for (const [aliasIndex, id] of [schema.canonicalId, ...schema.legacyIds].entries())
+      assert(registry.getSchema(id),
+        `offline packaged schema ${schemaIndex + 1} resolves (${aliasIndex === 0 ? 'primary' : `compatibility alias ${aliasIndex}`})`);
   }
 }
 console.log(`\nMCP ${useDistribution ? 'distribution ' : ''}smoke test passed.`);
