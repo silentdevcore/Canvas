@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
 using PVAD.Migration.Report.Designer.Rdl;
@@ -1493,7 +1494,13 @@ public sealed class RdlToDesignConverterTests
     [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
-        var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
+        var fixture = Fixture("ComprehensiveSyncfusionReport.rdl");
+        var source = XDocument.Parse(fixture);
+        var ns = source.Root!.Name.Namespace;
+        Assert.Equal("PVAD Migration Tests", source.Root.Element(ns + "Author")!.Value);
+        Assert.Equal("Large Syncfusion/Bold Reports style RDL fixture for PVADE designer migration fidelity.",
+            source.Root.Element(ns + "Description")!.Value);
+        var r = Convert(fixture);
         var d = r.Design;
 
         Assert.Equal("Comprehensive Syncfusion Sales Report", d.Name);

@@ -1,5 +1,16 @@
 # PVAD Rename Classification And Historical Exceptions
 
+## Scoped Retention Corrections - 2026-11-08
+
+The [closeout audit](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+corrects two prior broad explanations. Author/description in the editable
+comprehensive RDL fixture are current synthetic metadata, not a legacy reader
+contract. The local Alertmanager mail probe's synthetic runbook marker is not
+an installed production runbook ID. Both are normalized with regression checks.
+The exact dashboard link, established operational IDs, original vendor templates,
+all prior review notes and signed/hash-pinned evidence remain unchanged. These
+corrections do not authorize blanket changes to either source directory.
+
 ## Public Catalog Wrapper Review - 2026-11-08
 
 The [public website review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)

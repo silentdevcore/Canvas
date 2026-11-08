@@ -4,6 +4,24 @@ Historical record: results and task states are retained. Names and rerun referen
 are editorially normalized; original commands and wording remain in Git at
 `30496722`. This is not a new execution or release approval.
 
+## Repository-Only Acceptance (2026-11-08)
+
+The current source naming scope is complete under the agreed retention rules.
+The [closeout audit](PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+rechecks all 3,229 tracked regular files, including tracked ignored vendor inputs,
+corrects two overbroad retention decisions, and records actual regression results.
+The latest decision supersedes earlier pending semantic-review statements only
+for repository naming; their historical counts and evidence remain intact.
+
+Current technical identities use PVAD and product/Designer presentation uses
+PVADE. Exact supported readers, diagnostics, persisted/cryptographic identities,
+original evidence, negative tests, neutral drawing APIs and incidental encoded
+substrings remain for their specific documented reasons. This is not a promise
+of zero old-name search matches. The [consolidated remaining-items list](PVAD.Rename-Remaining-Items.md)
+separates these contracts from independent product defects and future operations.
+The original 90/98 release/cutover matrix and its eight open gates are unchanged;
+no publication, deployment, publisher approval, version bump or commit is implied.
+
 ## Current Repository-Only Scope (2026-11-06)
 
 The owner has confirmed that the active task is **repository renaming only**.

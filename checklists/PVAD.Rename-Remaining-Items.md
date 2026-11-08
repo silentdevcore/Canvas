@@ -1,6 +1,29 @@
 # PVAD Rename Remaining Items
 
+## Repository-Only Acceptance (2026-11-08)
+
+Repository source naming is complete under the agreed compatibility/evidence
+boundaries. The latest closeout rechecks all tracked regular files and corrects
+the synthetic RDL metadata and mail-probe marker, rather than allowing their
+former whole-file classifications to hide current names. The broad tooling
+selection passes 573 tests and the RDL suite passes 94 tests, with no skips.
+
+Remaining matches are specifically retained contracts, original evidence,
+negative/compatibility tests, neutral drawing APIs or incidental encoded bytes.
+They are not an instruction for another unrestricted search-and-replace pass.
+The rows and dated findings below keep their original scopes. Retirement of
+supported old contracts requires a separate major-version decision; live
+cutover, publication and the stored-template rendering defect remain separate
+future work, not unfinished current product naming.
+
 ## Current Source Review
+
+The [2026-11-08 closeout audit](PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+rechecks all tracked regular files, including the otherwise ignored vendor
+examples. It corrects two overbroad prior retention decisions: current synthetic
+RDL metadata and the mail-probe marker. Original contracts and evidence stay
+intact. Final source acceptance is recorded in that audit after validation;
+the earlier area reviews below retain their own dates and limits.
 
 Updated 2026-11-08 against baseline `d909de2b`. Technical naming is PVAD;
 the public product and Designer brand is PVADE. This is the consolidated
@@ -185,8 +208,15 @@ licence approval, deployment or published release changes in this pass.
 
 ## Verification Still Outstanding
 
-- [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.
+- [x] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The earlier broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. The 2026-11-08 follow-up built all 53 selected Release hosts, passed all six coverage contract tests and passed a fresh 572/572 broad run. No placeholder outputs or relaxed assertions were used.
 - [x] Review the combined pending JavaScript, TypeScript, C#, build-tooling and documentation diff. This source review does not authorize a commit or declare overall repository semantic closure.
+
+See the [collector-host follow-up](PVAD.Remaining-Code-Naming-Cleanup.md#collector-host-release-verification---2026-11-08)
+for the corrected build invocation, separate relay execution, real collector
+runtime results and explicit scope limits. All 52 collector hosts passed the
+955-test smoke matrix; a subsequent audit verified every report set. The relay
+passed its seven tests separately. The preceding broad-run failure remains
+historical evidence rather than being retroactively relabeled.
 
 Final verification passed all 439 configuration, deployment and versioning
 tests across 56 files, with no failures or skips. All 32 shell scripts passed

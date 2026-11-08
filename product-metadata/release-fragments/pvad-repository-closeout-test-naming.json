@@ -1,0 +1,11 @@
+{
+  "id": "pvad-repository-closeout-test-naming",
+  "impact": "none",
+  "components": ["migration", "observability"],
+  "category": "improved",
+  "summary": "Aligned synthetic migration metadata and operational test markers with current PVAD and PVADE naming.",
+  "reason": "Changes affect synthetic RDL metadata, a local smoke-test marker and internal regression/review records; production rendering and stable identifiers remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

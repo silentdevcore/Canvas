@@ -1,5 +1,31 @@
 # PVAD Remaining Code Source Acceptance
 
+## Repository Closeout Review (2026-11-08)
+
+Repository-only source acceptance passes for the audited working tree under the
+agreed retention rules. Earlier pending semantic-review statements below are
+dated evidence, superseded only for this source scope by the new closeout.
+This is not zero-substring, production, legal or deployment certification.
+
+The [closeout audit](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+revisits the current writers, test data and retained boundaries after the
+individual source reviews below and the genuine Release-host verification.
+It includes tracked ignored vendor inputs in a separately bounded XML review.
+
+The synthetic comprehensive RDL fixture's author/description and the local
+mail-probe marker were not stable contracts. Their earlier broad retention
+explanations are superseded for these exact occurrences; source metadata and
+probe expectations now use PVAD/PVADE. Existing geometry assertions and actual
+dashboard identities remain unchanged. Historical reviews are not rewritten.
+
+Remaining exact contracts, original cryptographic/evidence files, compatibility
+readers, negative tests, drawing APIs and encoded substrings are distinct from
+current branding. A permitted raw match must still have its exact reviewed
+path/hash/reason or independent original-evidence proof. A local operating-system
+shortcut and vendor payloads are not application output and are not byte-edited
+to reduce match counts. External release/cutover approval and the separate
+stored-template rendering limitation do not follow from a source naming audit.
+
 ## Current Repository-Only Scope (2026-11-06)
 
 The owner's active instruction is to finish renaming the repository, not to

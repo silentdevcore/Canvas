@@ -1,0 +1,11 @@
+{
+  "id": "pvad-collector-host-release-verification",
+  "impact": "none",
+  "components": ["infrastructure", "observability"],
+  "category": "improved",
+  "summary": "Verified Release test-host compatibility and coverage contracts across the test catalog.",
+  "reason": "Only internal validation records change; production behavior, package versions and public contracts remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
