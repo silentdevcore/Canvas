@@ -1,8 +1,33 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import test from 'node:test';
 import { pvadBrand } from './brand.js';
 import { renderPvadFooter } from './footer.js';
+
+test('current public website sources retain only the agreed Company naming-history note', () => {
+  const root = new URL('../../', import.meta.url);
+  const files = execFileSync('git', ['ls-files', '-z', '--',
+    'websites/PVAD.Company', 'websites/PVAD.Documentation', 'websites/PVAD.Demo',
+  ], { cwd: root, encoding: 'utf8' }).split('\0').filter(file =>
+    /\/src\//.test(file) && !/\.test\./.test(file)
+    || /\.html$/.test(file) && !file.includes('/public/'));
+  assert.ok(files.length > 25);
+  const note = 'PXA has been renamed to PVAD. PVADE is the product and Designer name.';
+  let historyNotes = 0;
+  for (const file of files) {
+    const absolute = new URL(file, root);
+    assert.ok(fs.lstatSync(absolute).isFile(), file);
+    let source = fs.readFileSync(absolute, 'utf8');
+    if (file === 'websites/PVAD.Company/src/main.js') {
+      assert.equal(source.split(note).length - 1, 1);
+      source = source.replace(note, '');
+      historyNotes++;
+    }
+    assert.doesNotMatch(source, /pxa|power[\s_-]*dox/i, file);
+  }
+  assert.equal(historyNotes, 1);
+});
 
 test('owned website and Designer styles use canonical technical symbols', () => {
   const visit = directory => {

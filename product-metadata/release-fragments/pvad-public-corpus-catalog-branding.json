@@ -1,0 +1,10 @@
+{
+  "id": "pvad-public-corpus-catalog-branding",
+  "impact": "patch",
+  "components": ["documentation"],
+  "category": "fixed",
+  "summary": "PAdES sample download pages now display PVADE branding while preserving original validation files and download links.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

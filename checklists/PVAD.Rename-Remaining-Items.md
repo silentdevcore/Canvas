@@ -139,6 +139,22 @@ original review notes/reasons and 91 protected evidence files are preserved;
 the version, published releases, original inventories and compatibility
 registers are unchanged. No additional diagnostic alias was created.
 
+## Public Websites Follow-up (2026-11-08)
+
+The [public website review](PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+checks Company, Documentation and Demo as one scope. Two public PAdES catalog
+wrappers needed editorial naming corrections. Their download targets, signed
+documents, validator reports, manifests and recorded classifications are kept
+exact. Current app sources, Company metadata, release presentation and all eight
+Demo example functions are covered without rewriting raw customer content.
+
+The earlier blanket retention of these two HTML wrappers is narrowed to their
+artifact references and original evidence. Current catalog headings are product
+presentation, not a historical validation result. All other corpus artifacts
+retain their existing protection. The source checklist records actual tests,
+browser limits and any outstanding verification; this is not a zero-match claim
+for binary downloads or compatibility data.
+
 ## Verification Still Outstanding
 
 - [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.

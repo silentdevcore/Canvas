@@ -288,6 +288,23 @@ do not read the residual exception ledger. Reverting any of their eight writer
 boundaries must fail even if somebody refreshes a file hash. These source checks
 supplement the runtime tests; they do not replace execution or deployed checks.
 
+## Public Website Catalog Presentation
+
+The [public websites follow-up](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+separates current catalog presentation from original download evidence. The
+positive and negative PAdES catalog wrappers now display PVADE titles and
+headings. Their original artifact paths, validation classifications and linked
+files remain unchanged. This narrowly supersedes the earlier broad wrapper
+retention decision; it does not alter signed PDFs, independent reports, pinned
+manifests or historical approvals.
+
+Independent guards cover the current public app sources and catalog headings.
+Tests execute all eight downloadable Demo functions and verify artifact hashes
+against the existing PAdES manifests. The Company naming-history note remains
+the single deliberate old-name reference in current public application source.
+User-supplied filenames, namespaces and parsed document content are not branded
+system text; raw example diagnostics remain exact contracts.
+
 ## Retained Findings
 
 | Category | Specific retention boundary | What is not permitted |

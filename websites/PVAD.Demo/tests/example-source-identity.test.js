@@ -4,6 +4,44 @@ import { readFileSync } from 'node:fs';
 import { importFile } from '../public/examples/file-importer-flow/source.js';
 import { importSpreadsheet } from '../public/examples/spreadsheet-import-export/source.js';
 import { createViewerSession } from '../public/examples/pdf-viewer-annotations-forms/source.js';
+import { migrateProviderCode } from '../public/examples/provider-migration-examples/source.js';
+import { demos } from '../src/demoData.js';
+
+test('all eight demo descriptors resolve to current downloadable examples', async () => {
+  assert.equal(demos.length, 8);
+  for (const demo of demos) {
+    const read = relative => readFileSync(new URL(`../public${relative}`, import.meta.url), 'utf8');
+    const input = JSON.parse(read(demo.inputFile));
+    const output = JSON.parse(read(demo.outputFile));
+    const module = await import(new URL(`../public${demo.source}`, import.meta.url));
+    const functions = Object.values(module).filter(value => typeof value === 'function');
+    assert.equal(functions.length, 1, demo.id);
+    const result = functions[0](structuredClone(input));
+    assert.ok(result && typeof result === 'object', demo.id);
+    assert.equal(demo.download, demo.outputFile);
+    const currentData = structuredClone({ output, result });
+    if (demo.id === 'provider-migration-examples') {
+      for (const value of Object.values(currentData)) {
+        assert.deepEqual(value.diagnostics.map(item => item.id), ['PXAMIG001', 'PXAMIG101']);
+        value.diagnostics.forEach(item => { delete item.id; });
+      }
+    }
+    assert.doesNotMatch(JSON.stringify({ ...demo, ...currentData }), /pxa|power[\s_-]*dox/i, demo.id);
+  }
+});
+
+test('provider example keeps stable raw diagnostics and supplied namespace unchanged', () => {
+  const input = { provider: 'PXA customer provider', domain: 'pdf', kind: 'code', targetNamespace: 'PXA.Customer' };
+  const result = migrateProviderCode(input);
+  assert.equal(result.provider, input.provider);
+  assert.equal(result.targetNamespace, input.targetNamespace);
+  assert.deepEqual(result.diagnostics.map(item => item.id), ['PXAMIG001', 'PXAMIG101']);
+  assert.equal(result.diagnostics[0].message, `Provider detected: ${input.provider} pdf code`);
+  const output = JSON.parse(readFileSync(new URL(
+    '../public/examples/provider-migration-examples/output.json', import.meta.url), 'utf8'));
+  assert.equal(output.targetApi, 'PVAD.Generator');
+  assert.deepEqual(output.diagnostics.map(item => item.id), result.diagnostics.map(item => item.id));
+});
 
 test('downloadable illustrative JSON uses the same identities as executable demo descriptors', () => {
   const read = path => JSON.parse(readFileSync(new URL(`../public/examples/${path}`, import.meta.url), 'utf8'));
