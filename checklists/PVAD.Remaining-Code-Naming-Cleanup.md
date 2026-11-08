@@ -643,10 +643,10 @@ image bytes. The three affected screenshots were visually inspected; no old
 branding is visible. No binary, original audit or accepted evidence is edited.
 
 - [x] Classify every reported text, path and binary finding without directory-wide exemptions.
-- [ ] Review remaining current identifiers and defaults individually; classification alone is not proof that replacement is unnecessary.
+- [x] Review remaining current identifiers and defaults individually; classification alone is not proof that replacement is unnecessary.
 - [x] Keep the self-referential review register explicit rather than treating it as product output.
 - [x] Pass all 414 configuration/versioning tests, strict Markdown/JSON/residual gates and evidence-preservation checks.
-- [ ] Close repository-only naming after the remaining semantic review, separately from operational and release gates.
+- [x] Close repository-only naming after the remaining semantic review, separately from operational and release gates.
 
 The detailed [naming review](../docs/pvad-rename-source-acceptance.md#repository-only-naming-review-2026-11-06)
 records scope and limits. Existing checklist states and historical 90/98
@@ -1326,6 +1326,189 @@ The release fragment has impact `none`: only tests and scoped review documents
 change. VERSION, published releases, contracts and live databases remain intact.
 No code defect, production rename, full metadata-feature parity or new external
 approval is claimed by this review.
+
+### Collector Host Release Verification - 2026-11-08
+
+Source baseline: `36b9e1d2`. This follow-up addresses the missing Release
+dependencies behind the earlier two coverage-host contract failures. The
+earlier 557/559 result remains historical evidence, not a passing run.
+
+- [x] Inventory the 52 collector hosts and separate collector-free relay host without changing package references or tests.
+- [x] Identify and correct the temporary build selection's configuration handling so referenced projects keep Release configuration.
+- [x] Complete genuine Release builds for all 53 selected test hosts and verify their dependency manifests.
+- [x] Pass all coverage-smoke contract tests, including both previously failing dependency checks.
+- [x] Repeat the broad tracked Node tooling/deployment selection without skipping tests or weakening assertions.
+- [x] Execute the collector smoke selections with real coverage attachments and run the relay tests separately.
+- [x] Validate naming, links, original evidence and the final diff; keep product version and published releases unchanged.
+
+The initial inventory found 47 of the 52 collector Release manifests missing.
+A generated temporary solution under ignored
+`artifacts/rename/collector-host-release-verification/` selects the existing
+projects, not substitute hosts. Its first build resolved omitted project
+references as Debug and was deliberately stopped. The corrected invocation
+sets `ShouldUnsetParentConfigurationAndPlatform=false`; the interrupted
+attempt is not counted as a successful Release build.
+
+The sandbox-only registry preflight could not bind local HTTP/TLS listeners.
+The unchanged three registry tests passed with the required loopback permission.
+This is a test-environment limitation, not a reason to relax the assertions.
+No production source, runtime identity, database or external service is changed.
+
+The corrected build completed with zero errors and 115 warnings. All 53 real
+host DLLs, runtime configurations and dependency manifests exist; each manifest
+resolves the required private test host. The corrected log contains no Debug
+outputs. Existing compiler, nullable, analyzer and compatibility warnings remain
+visible and are not suppressed. The six coverage contract tests pass, including
+both previously failing checks, with no skips. An initial Application collector
+preflight passed five tests and produced nonempty Cobertura and JSON production
+coverage; this smoke selection is not a full product-coverage percentage.
+
+The fresh broad run passed all 572 tests across the same 79 tracked tooling
+and deployment test files, with zero failures or skips. The original 557/559
+result is not rewritten; this is a new execution against the current source.
+The separate collector-free relay passed all seven Release tests, including
+canonical and retained signature headers. Logs and TRX results are kept under
+the ignored verification directory. No test source, package reference or
+production implementation was changed to obtain these results.
+
+The unchanged collector runner completed all 52 projects with 955/955 selected
+tests passed, none skipped. Its per-project validation requires matching TRX
+counts/test names, nonempty production hits and consistent Cobertura/JSON module
+sets, excluding test/tool assemblies. The separate audit then reread all 52
+report sets successfully without changing their raw evidence. The earlier five
+Application preflight tests are not counted again in the 955-test matrix.
+
+The run produced 52 TRX files and 104 coverage attachments. Their SHA-256 values
+are recorded in the local preservation report. All 53 host DLL/dependency
+manifest pairs still match their post-build hashes after instrumentation. The
+additional hash-report reader initially counted a VSTest auxiliary results
+directory as a coverage directory; it was corrected to select actual Cobertura
+attachment directories, matching the unchanged coverage reader. No
+coverage attachment was deleted, substituted or rewritten.
+
+Actual corrected build invocation, using the locally generated selection:
+
+```bash
+dotnet build artifacts/rename/collector-host-release-verification/collector-hosts.slnx \
+  --configuration Release --no-restore --disable-build-servers -m:1 \
+  -p:UseSharedCompilation=false \
+  -p:ShouldUnsetParentConfigurationAndPlatform=false
+```
+
+The selection is generated from `collectorProjects()` plus the separate relay
+project. A later execution must regenerate that selection and choose a fresh
+coverage output directory rather than overwrite the retained run. The stored
+`release-build-verification.json`, `coverage-all/summary.json`,
+`coverage-all/audited-summary.json` and `preservation-verification.json` record
+the actual local outputs and source baseline.
+
+Preservation checks confirm 936 production files, all test/tool/workflow sources,
+50 hash-pinned originals, 87 public PDF Trust files, both compatibility registers,
+the original inventories and all 817 review records unchanged from the baseline.
+This is the selected Release host/catalog verification, not a claim that every
+Solution project, every test case or browser workflow was exercised. Existing
+product-rendering limitations and operational/release gates stay separate.
+The new fragment has `none` impact because only internal review records change.
+VERSION remains `1.1.0`; published releases, databases and deployments are intact.
+
+Final residual path/hash, structural JSON and tracked-Markdown guards pass.
+All 158 local links in the four review documents resolve, and the audited
+coverage summary exactly matches the completed run. Version synchronization,
+fragment validation and `git diff --check` pass. No commit, push, package
+publication or deployment was performed in this follow-up.
+
+### Repository Closeout Audit - 2026-11-08
+
+Baseline: `36b9e1d2`, with the preceding uncommitted collector-host verification
+preserved as a separate work block. This audit includes all 3,229 tracked regular
+files, including 228 tracked-but-ignored vendor/sample files. Private IDE data,
+untracked notes, symlinks and ignored untracked build outputs are not read.
+
+- [x] Capture a fresh short-name inventory and a separate broad former-name scan, without rewriting original audit inventories.
+- [x] Review current defaults, writers, readers, diagnostic presentation, fixtures and operational probes against their actual consumers.
+- [x] Correct the synthetic RDL author/description and mail-probe marker previously hidden behind overly broad retention explanations.
+- [x] Assert canonical RDL metadata while preserving all existing geometry and conversion expectations.
+- [x] Execute the mail probe with real Bash/jq and simulated Docker/Mailpit, and prove that substituting the old marker fails.
+- [x] Parse affected vendor XML and verify all 192 matches are within canonical Base64 payloads rather than editable product text.
+- [x] Refresh only changed review hashes/statuses, retaining all original review notes and reason sets.
+- [x] Pass broad tooling, naming, RDL, link, version and preservation checks on the final working tree.
+- [x] Consolidate repository-only acceptance separately from compatibility retirement and external release/cutover gates.
+
+The fresh short-name-only scope scans 3,001 nonignored tracked files; its initial
+597 matching files, 20,170 text matches, 153 raw binary matches and 42 path matches
+are inventory values, not unresolved-defect counts. The additional broad scan
+covers earlier long names and neutral drawing terminology too. Its initial 779
+matching files include original evidence and the review register itself.
+
+Two prior whole-file explanations were too broad. The comprehensive synthetic
+RDL fixture's Author and Description are editorial metadata, not compatibility
+inputs or hash-pinned external evidence. Only those two nodes change to current
+technical/Designer names; report geometry, data, IDs and styling remain exact.
+The mail probe's synthetic runbook marker is also freely chosen. Both its sent
+payload and expected receipt now use the current marker, while the actual
+dashboard UID and established operational runbook IDs remain unchanged.
+
+All 94 RDL migration tests passed, none skipped, with the new source-metadata
+assertions and existing layout expectations. The mail harness executes the real
+shell and JSON predicates against isolated synthetic responses and rejects a
+deliberate old-marker mutation. This is not an actual SMTP/container deployment
+or Mailpit delivery acceptance. No stable runtime diagnostic is renamed.
+
+The supplemental tracked-vendor scan found 192 short-name matches in 17 of 228
+files. XML parsing locates each inside a canonical Base64 ImageData, VectorData,
+or custom-report-item payload. Custom-property Value nodes are additionally
+verified to decode to PDF or PNG. An initial attachment-only classification
+assumption was corrected for these custom properties; no vendor bytes change.
+
+Local reports live under `artifacts/rename/repository-closeout-review/`:
+`all-tracked-legacy-names.json` records exact file/line hashes and positions,
+`ignored-tracked-vendor-inventory.json` and
+`vendor-encoded-value-verification.json` record the supplemental XML proof.
+They supplement rather than overwrite the original tracked JSON/Markdown audits.
+Hash matches identify unchanged reviewed inputs; they are not directory-wide
+approval or permission to rewrite a future occurrence.
+
+Final acceptance: the repository-only naming scope passes. The two pending
+semantic/source-closeout tasks in the dated classification section above are
+closed by this new review, not by retroactively changing its recorded results.
+Earlier withdrawals of broad completion claims remain dated history; the
+current decision does not assert a zero-substring repository or production
+release readiness. No additional freely renameable current name was identified
+in the reviewed source/default/output scope after the two corrections.
+
+The broad selection passed 573 tests across 79 files, with no failures or skips;
+the RDL suite passed all 94 tests. Independent guards reject regressions in the
+synthetic marker, while the real shell/JSON harness verifies its producer and
+receipt and rejects the specific old-marker mutation. Live SMTP/container
+delivery, a new authenticated browser deployment and a whole-Solution test run
+are not claimed by this pass. The preceding collector proof remains its own
+unchanged 53-host build, 955-test matrix and seven relay tests.
+
+All original review notes/reasons, protected audit and Legal records, compatibility
+registers, signed documents and vendor inputs remain unchanged. The RDL fixture
+is a resolved reviewed entry after only its two metadata edits; changed review
+notes explicitly narrow the earlier overbroad retention decisions. The new
+fragment has `none` impact. VERSION, published releases, databases, installed
+resources and external gates are unchanged. No commit or push is performed.
+
+Final short-name counts are 596 matching files, 20,170 text matches, 153 raw
+binary matches and 42 path matches within the 3,001-file nonignored scope. The
+broader 3,229-file scan has 779 matching files: 740 text and 39 binary, including
+17 tracked vendor inputs. Apart from the explicitly self-inventoried review
+register, every matching nonvendor text file has its exact reviewed hash/reason.
+Raw text totals do not decrease because deliberate regression
+inputs and retained-dashboard assertions counterbalance the four corrected
+source occurrences. They are not an open-defect count or a new allowlist.
+
+The final 573-test tooling run passed after documentation consolidation. Naming,
+structural JSON, strict tracked-Markdown, version/fragment and whitespace checks
+pass; all 197 local links in the five review documents resolve. Preservation
+checks confirm 936 unchanged production files, 50 original hash pins, 87 public
+Trust files, 228 vendor inputs, all 817 original review notes/reason sets and the
+unchanged primary rename-plan record beneath its new dated acceptance. Only the
+two pending source-review checkbox states advance; the preceding uncommitted
+collector section and fragment are preserved exactly. Reports and execution
+logs remain local ignored output under the closeout directory.
 
 ## Acceptance
 

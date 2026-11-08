@@ -486,7 +486,8 @@ test('ephemeral test identities and Mailpit-only addresses are consistent', () =
   assert.ok(mail.includes('pvad-alerts@example.test'));
   assert.ok(mail.includes('pvad-alert-email-'));
   assert.doesNotMatch(mail, /pxa-alert-email-|powerdox\.local|Service: pxa-observability/);
-  assert.ok(mail.includes('PXA-OBS-TEST'));
+  assert.equal([...mail.matchAll(/PVAD-OBS-TEST/g)].length, 2);
+  assert.doesNotMatch(mail, /PXA-OBS-TEST/);
   assert.ok(mail.includes('/d/pxa-platform-overview/pxa-platform-overview'));
   const status = read('deploy/websites/status-hosting-smoke-test.sh');
   assert.ok(status.includes('/not-a-pvad-route'));
