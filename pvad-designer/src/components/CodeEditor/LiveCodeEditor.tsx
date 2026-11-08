@@ -407,7 +407,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     {pendingApply && <CodeApplyReview review={pendingApply} busy={!!busy}
       onConfirm={() => void confirmApply()} onCancel={() => setPendingApply(null)} />}
     {busy && <div className="code-workspace-progress" role="status">{busy}...</div>}
-    {error && <div className="code-workspace-error" role="alert">{error}</div>}
+    {error && <div className="code-workspace-error" role="alert">{displaySystemMessage(error)}</div>}
     {pendingConversion && diff && <section className="code-conversion-review" role="dialog" aria-label="Conversion review">
       <strong>{pendingConversion.sourceLanguage} to {pendingConversion.targetLanguage}</strong>
       <span>{t('workspace.documentFidelity')}: {pendingConversion.documentFidelity ?? pendingConversion.fidelity}</span>

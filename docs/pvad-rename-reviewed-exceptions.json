@@ -469,7 +469,7 @@
     },
     {
       "path": "checklists/PVAD.Rename-Plan.md",
-      "sha256": "22e1d946f0b4a317833fb6bba3c4fa35fd4848dc7b42e701458191a952f4311e",
+      "sha256": "66c451a7a83f018afb270bd942b7342ac219a9c1627421533f86fb5f2348a5e1",
       "reasons": [
         "compatibility-contract",
         "historical-checklist"
@@ -479,7 +479,7 @@
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
       "followupReview": "2026-11-05: Prepended the final acceptance matrix and dated read-only GitHub observations after the earlier authentication/Grafana follow-ups. All 98 primary tasks, their 90 completed states, historical results and external release gates are unchanged.",
       "projectArchiveReview": "2026-11-06: Add a scoped link to the generic project archive test cleanup. Original task states, historical results, compatibility boundaries and release gates remain unchanged.",
-      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged. Current workflow example follow-up (2026-11-06): Additive link to the current-route/project-example replacement batch; original approvals, compatibility boundaries and historical checkbox states remain unchanged. MCP test-setup follow-up (2026-11-06): Additive link to the scoped MCP test naming pass; original checkbox states, release gates and historical results remain unchanged. Smoke/browser follow-up (2026-11-06): Add a scoped link to the smoke/browser input pass. Original task states, historical results, compatibility boundaries and operational release gates remain unchanged. Project API/recovery follow-up (2026-11-06): Add a scoped project API/recovery naming link while preserving preceding smoke/browser notes, original task states, historical results and release gates. Repository-only review (2026-11-06): Record the classified tracked-file audit without declaring completion. Individual semantic review of remaining current identifiers is still pending. Original primary checkbox states, historical results, compatibility contracts and all eight operational/release gates remain unchanged. This is not publication or deployment approval.\n2026-11-07: Review canonical general document-header assertions, current Account delegation and synthetic job trace inputs, and explicit Viewer alias/conflict coverage. Only test fixtures, source guards and scoped review documentation change. Exact compatibility assertions and original evidence remain intact; remaining semantic review and release gates stay open.\n2026-11-07: Canonicalize new nonvisual PDF Trust operation titles/author and the invoice tool repository-root error. New import roundtrips and a source guard verify these values. Retain the exact visibly rendered signature inputs and hash-bound invoice contents/provenance/schema; no original evidence, visual baseline, historical review note or release gate is changed.\n2026-11-07: The current template-persistence render request uses the canonical prefix. Explicit current and retained adapter test entrypoints share lifecycle assertions for authentication, CSRF, versions, conflicts, PDF responses, tenant isolation and successor headers. Existing legacy reads, diagnostics and feature-gate cases remain exact. Only tests and review records change; the pre-existing confirmation-only render limitation is separately tracked and no fidelity or repository-closure claim is made.\n2026-11-07: Review all tracked JavaScript/XML files. General telemetry tests use the canonical collector; the project-format test label is canonical; status tests explicitly preserve both diagnostic generations. Original XML reports are verified against existing manifest hashes without alteration. Current source contracts and scoped review notes change only; original notes, evidence, runtime aliases and release gates remain unchanged.\n2026-11-07 frontend TypeScript review: Inspect all tracked Designer/website TypeScript findings. Normalize explanatory invoice comments and a historical spreadsheet test label; cover both chart recognition-source generations and both explicit Account origin-override key generations. Retain stable raw diagnostics, storage/header/configuration readers and original schema/publication evidence. Only comments, tests and review records change; current/legacy inputs remain covered and repository closure is not claimed.\n2026-11-07 backend CSharp review: General OAuth and migration workflows use current scope/result values while explicit old inputs and equal result aliases remain tested. Missing PKCE and revoked credentials are checked for both scope generations. Invoice commentary and the binary-cutover method label are normalized without executable production changes. Stable raw diagnostics, stored audit/schema/security identities, migration history and original evidence remain unchanged; scoped review is not repository closure. 2026-11-08 build/configuration review: linked the 444-file scoped review and consolidated remaining-items list. Record actual coverage prerequisites and retained contracts separately; historical totals, approvals and original evidence remain unchanged."
+      "currentReviewNotes": "2026-11-06: Record the owner's repository-only scope and the fresh Grafana provider milestone separately from historical release gates. Original counts, checkbox states and results stay unchanged; existing URL/drawing substrings remain retained context. The same repository-only scope includes the explicit 120-match mechanical test/example replacement batch, without changing historical checkboxes or release approval. The next API/tooling mechanical batch records 70 reviewed old-name removals without changing original task states, evidence, serialized aliases or release gates. Recovery/example follow-up (2026-11-06): Additive link to the scoped recovery-command and current-example review. Prior results, compatibility boundaries and operational checkbox states remain unchanged. Current workflow example follow-up (2026-11-06): Additive link to the current-route/project-example replacement batch; original approvals, compatibility boundaries and historical checkbox states remain unchanged. MCP test-setup follow-up (2026-11-06): Additive link to the scoped MCP test naming pass; original checkbox states, release gates and historical results remain unchanged. Smoke/browser follow-up (2026-11-06): Add a scoped link to the smoke/browser input pass. Original task states, historical results, compatibility boundaries and operational release gates remain unchanged. Project API/recovery follow-up (2026-11-06): Add a scoped project API/recovery naming link while preserving preceding smoke/browser notes, original task states, historical results and release gates. Repository-only review (2026-11-06): Record the classified tracked-file audit without declaring completion. Individual semantic review of remaining current identifiers is still pending. Original primary checkbox states, historical results, compatibility contracts and all eight operational/release gates remain unchanged. This is not publication or deployment approval.\n2026-11-07: Review canonical general document-header assertions, current Account delegation and synthetic job trace inputs, and explicit Viewer alias/conflict coverage. Only test fixtures, source guards and scoped review documentation change. Exact compatibility assertions and original evidence remain intact; remaining semantic review and release gates stay open.\n2026-11-07: Canonicalize new nonvisual PDF Trust operation titles/author and the invoice tool repository-root error. New import roundtrips and a source guard verify these values. Retain the exact visibly rendered signature inputs and hash-bound invoice contents/provenance/schema; no original evidence, visual baseline, historical review note or release gate is changed.\n2026-11-07: The current template-persistence render request uses the canonical prefix. Explicit current and retained adapter test entrypoints share lifecycle assertions for authentication, CSRF, versions, conflicts, PDF responses, tenant isolation and successor headers. Existing legacy reads, diagnostics and feature-gate cases remain exact. Only tests and review records change; the pre-existing confirmation-only render limitation is separately tracked and no fidelity or repository-closure claim is made.\n2026-11-07: Review all tracked JavaScript/XML files. General telemetry tests use the canonical collector; the project-format test label is canonical; status tests explicitly preserve both diagnostic generations. Original XML reports are verified against existing manifest hashes without alteration. Current source contracts and scoped review notes change only; original notes, evidence, runtime aliases and release gates remain unchanged.\n2026-11-07 frontend TypeScript review: Inspect all tracked Designer/website TypeScript findings. Normalize explanatory invoice comments and a historical spreadsheet test label; cover both chart recognition-source generations and both explicit Account origin-override key generations. Retain stable raw diagnostics, storage/header/configuration readers and original schema/publication evidence. Only comments, tests and review records change; current/legacy inputs remain covered and repository closure is not claimed.\n2026-11-07 backend CSharp review: General OAuth and migration workflows use current scope/result values while explicit old inputs and equal result aliases remain tested. Missing PKCE and revoked credentials are checked for both scope generations. Invoice commentary and the binary-cutover method label are normalized without executable production changes. Stable raw diagnostics, stored audit/schema/security identities, migration history and original evidence remain unchanged; scoped review is not repository closure. 2026-11-08 build/configuration review: linked the 444-file scoped review and consolidated remaining-items list. Record actual coverage prerequisites and retained contracts separately; historical totals, approvals and original evidence remain unchanged. 2026-11-08 application-output review: record the corrected diagnostic render boundaries and actual Designer validation. Historical counts, machine identifiers, approvals and VERSION stay unchanged."
     },
     {
       "path": "checklists/PVAD.Legacy-Rename-Archive.md",
@@ -1437,14 +1437,14 @@
     },
     {
       "path": "pvad-designer/src/__tests__/codePreviewParity.test.tsx",
-      "sha256": "a5546133b349e4089b79581cce77e63a00a232bd496c37954fbfe5eebf275cff",
+      "sha256": "d905e0b7fa4f459dc3035f8ab56d9cb20f0285d8277715a57c61d3e7e1fca70a",
       "reasons": [
         "test-contract"
       ],
-      "reviewStatus": "resolved",
+      "reviewStatus": "reviewed",
       "reviewNotes": "pvad-designer/src/__tests__/codePreviewParity.test.tsx: Retain synthetic compatibility inputs, legacy storage/configuration paths, expected diagnostic IDs or neutral drawing terminology in regression tests; replacing them would remove old-generation coverage.",
       "boundaryGuide": "docs/pvad-rename-exceptions.md",
-      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged."
+      "currentReviewNotes": "2026-11-06: Explicit mechanical replacements update current synthetic data, example metadata, test labels, comments or temporary paths. Matching producers and assertions change together. Existing diagnostic IDs, reader aliases, published release fixtures and original external evidence stay unchanged. 2026-11-08 application-output review: exact former diagnostic inputs test all three CSharp error tabs with exact projected list contents and unchanged raw error/source strings. The original canonical page-layout fixture remains unchanged. Current review status reflects the new explicit diagnostic fixtures; original notes remain intact."
     },
     {
       "path": "pvad-designer/src/__tests__/codeViewerExport.test.tsx",
@@ -1677,13 +1677,14 @@
     },
     {
       "path": "pvad-designer/src/__tests__/pdfViewerSmoke.test.tsx",
-      "sha256": "386acf2913f332209950f93ca0f951a5a9ece4fb166521eea09ba39b9ab324ab",
+      "sha256": "baa0261c4c11b21b77fc32b949dd17fb6c43d5514077b08dbd07add2b0ed1287",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-08 application-output review: signing and inspection failure DOM tests retain exact old diagnostic inputs and preserve original Problem Details and customer filenames. No wire-code alias is added."
     },
     {
       "path": "pvad-designer/src/__tests__/productExperiencePanel.test.tsx",
@@ -1699,13 +1700,14 @@
     },
     {
       "path": "pvad-designer/src/__tests__/projectImportNotice.test.tsx",
-      "sha256": "d50d112496f0d9e951fbf96f29a8da6bc6bd1e42c7c8844997b40e8e3815129c",
+      "sha256": "adf69268b76f83e56a840ca6e20babe4b2d82f1672b16d4ae9d3dcd8a7810715",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-30 visible-identity review: Historical inputs, selector/data contracts and negative visibility assertions remain deliberate test evidence. Current displayed labels use canonical aliases without changing raw backend values.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-08 application-output review: review/failure DOM tests preserve raw diagnostic codes, messages and customer filenames while checking projected visible text."
     },
     {
       "path": "pvad-designer/src/__tests__/pvadDocumentHeaders.test.ts",
@@ -1852,13 +1854,14 @@
     },
     {
       "path": "pvad-designer/src/components/CodeEditor/LiveCodeEditor.tsx",
-      "sha256": "769ece80f02a8e3761bdd030e3a834d8aad33f6144a91c928987218aa74ea1f0",
+      "sha256": "e1d93961159d28ba0c9ffbd6686b0b913596022056c72fdd46f8faf533d215ce",
       "reasons": [
         "compatibility-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-10-30 visible-identity review: Remaining raw codes and locale keys are compatibility inputs or neutral drawing APIs. Rendered diagnostics/releases use canonical presentation; authorization, translation lookups and customer data retain their original semantics.",
-      "boundaryGuide": "docs/pvad-rename-exceptions.md"
+      "boundaryGuide": "docs/pvad-rename-exceptions.md",
+      "currentReviewNotes": "2026-11-08 application-output review: project the error banner only when rendering it. Existing recovery keys, local diagnostic IDs, drafts and conversion payloads remain exact."
     },
     {
       "path": "pvad-designer/src/components/Editor/ElementBoundary.tsx",
@@ -8418,13 +8421,14 @@
     },
     {
       "path": "tools/configuration/current-writer-acceptance.test.mjs",
-      "sha256": "1abc92eb239bdd706760e05d00fbb8544faf5fab5ad034202b301e9ce33f9928",
+      "sha256": "e8f779c196fb5cee9bcfc60b79986011441aa86edde5ee8db3b04b9470d89632",
       "reasons": [
         "test-contract"
       ],
       "reviewStatus": "reviewed",
       "reviewNotes": "Previous names occur only as deliberate reverted-writer fixtures or required reader/header aliases. The eight direct writer contracts and mutation rejection do not consult the residual exception ledger.",
-      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md",
+      "currentReviewNotes": "2026-11-08 application-output review: four display-boundary guards supplement the eight original writer guards. Reverted displays fail independently of this ledger; original mutation fixtures remain exact."
     },
     {
       "path": "tools/configuration/rename-grafana-provider.test.mjs",
@@ -8435,6 +8439,16 @@
       "reviewStatus": "reviewed",
       "reviewNotes": "2026-11-06: Old provider names are explicit compatibility and mixed-profile rejection fixtures. Tests require canonical idempotent defaults, byte-preserved original input, both profile hashes, unchanged references and no apply command.",
       "boundaryGuide": "docs/pvad-grafana-provider-cutover.md"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/codeWorkspace.test.tsx",
+      "sha256": "b2b4869bfb09c884cdb0b2b2ddb75153c2649a53a5aba0f3b367f1ab3de77eda",
+      "reasons": [
+        "test-contract"
+      ],
+      "reviewStatus": "reviewed",
+      "reviewNotes": "2026-11-08 application-output review: an exact former diagnostic fixture verifies projected failure text, unchanged original Error text and byte-identical initial draft source. This is a diagnostic regression input, not current product branding.",
+      "boundaryGuide": "docs/pvad-rename-source-acceptance.md"
     }
   ],
   "reviewStatus": "reviewed",

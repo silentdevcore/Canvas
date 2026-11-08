@@ -222,6 +222,22 @@ They remain outstanding, not waived or counted as passes. No full Solution
 build, deployment, fresh paired-binary drill or overall repository closure is
 claimed. Earlier uncommitted work and historical acceptance states remain intact.
 
+## Current Application Output Review (2026-11-08)
+
+The [render-boundary follow-up](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#current-application-output-review---2026-11-08)
+corrects project-import diagnostics/failure text, code-workspace failure banners,
+C# error previews, PDF signing status and the Trust mutation-blocking warning.
+All use the existing display projection without modifying raw error objects,
+API contracts, editor source or customer filenames. Raw JSON validation and
+document/code previews remain unchanged rather than being cosmetically rewritten.
+
+Eight regression cases and four ledger-independent source guards supplement
+the original writer contracts. All 827 Designer tests, the snapshot, typecheck
+and production build passed. No backend runtime, full Solution, authenticated
+browser or deployment result is inferred from these DOM/build checks. The two
+earlier Release-output coverage prerequisites and operational gates stay open.
+See the [updated remaining-items list](../checklists/PVAD.Rename-Remaining-Items.md#current-output-follow-up-2026-11-08).
+
 ## Scope
 
 This review closes the internal source acceptance criteria of the

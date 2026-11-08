@@ -1020,6 +1020,60 @@ signature or published release is changed. The internal release fragment has
 `none` impact; VERSION is unchanged. Overall semantic review and historical
 operational approvals are not closed by this scoped review.
 
+### Current Application Output Review - 2026-11-08
+
+Baseline: `13ec82ed`. Inspect remaining productive findings separately from
+rendered output: raw diagnostic codes, obsolete response members, input readers,
+audit identities and protected evidence are not freely renameable display text.
+The Company naming-history note and compatibility fields in system metadata
+remain intentional. No new diagnostic alias or machine-readable identifier is
+introduced in this pass.
+
+Eight new regression cases cover previously unprojected project/code/signing
+failure surfaces and the blocked-mutation banner. Seven initially failed on
+the old visible diagnostic references; the additional banner regression and
+four independent source guards cover the complete correction. One new test's
+initial draft assertion was corrected to match the actual pretty-printed initial
+source; no production formatting or roundtrip behavior was changed.
+
+- [x] Project import review and failure messages use the existing diagnostic display projection, while source filenames and original failure objects remain exact.
+- [x] Workspace error banners and all three C# preview tabs apply the same projection at rendering time, without changing editor drafts or raw JSON validation messages.
+- [x] PDF signing failure status and Trust mutation-blocking warnings agree with the existing Trust error presentation; request routes, uploaded files and raw Problem Details remain unchanged.
+- [x] Add four source guards independent of the exception ledger and verify that reverting the corrected rendering boundary fails.
+- [x] Run the complete Designer tests, typecheck and production build; preserve the published release manifest and VERSION.
+- [x] Record the correction in the [remaining-items list](PVAD.Rename-Remaining-Items.md#current-output-follow-up-2026-11-08) with a customer-facing Patch fragment.
+
+All 827 Designer tests in 92 suites and the existing snapshot passed. The focused
+selection passed all 35 tests in five suites. Typecheck and production build
+passed; existing Vite module-format, mixed locale-import and bundle-size warnings
+remain visible. These are rendered-DOM and build checks, not a fresh authenticated
+browser, full Solution, backend runtime or deployment test. The earlier two
+broad coverage-host failures remain pending their genuine Release-build outputs.
+Detailed test results are ignored artifacts under
+`artifacts/rename/current-application-output-naming/`.
+
+Final configuration/deployment/versioning validation passed all 443 tests across
+56 files without failures or skips. The first run rejected a new negative-brand
+assertion and a customer-title fixture in the general parity example. That
+example was restored to its original canonical content; the C# failure cases
+now assert the complete displayed list exactly. Customer-filename preservation
+remains tested in the dedicated import/signing cases. No source guard was relaxed.
+
+All 816 original review notes/reason sets and 91 protected evidence files are
+unchanged. One exact diagnostic-regression review record was added, and a prior
+resolved parity-test record now explicitly describes its new raw diagnostic
+fixtures. The diagnostic projection helper, backend alias catalog, branding API,
+diagnostic serialization contract, compatibility registers, original inventories,
+VERSION and published releases are byte-identical to the baseline. The refreshed
+tracked-only inventory contains 597 matching files; the additional matching
+test sources are intentional failure inputs, not new product naming defects.
+
+Raw code and structured document previews deliberately remain raw; customer
+names and document contents are not application branding and must not be
+rewritten. Historical release data, schemas, signed evidence, cookie/header
+contracts and translation keys remain unchanged. The Patch fragment changes
+neither VERSION nor published releases; no commit or push is implied.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

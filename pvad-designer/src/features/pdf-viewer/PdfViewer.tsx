@@ -2176,7 +2176,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                   <span>{signingBusy ? labels.signingInProgress : labels.signPdf}</span>
                 </button>
                 <small>{labels.signingPrivacy}</small>
-                {signingStatus && <span className="pdfv-api-status" role="status">{signingStatus}</span>}
+                {signingStatus && <span className="pdfv-api-status" role="status">{displaySystemMessage(signingStatus)}</span>}
               </form>
             )}
             {canConvertCompliance && (
@@ -2872,7 +2872,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 <FiShield aria-hidden="true" />
                 <div>
                   <strong>{labels.inspectTrust}</strong>
-                  <span>{trustError ? `${trustFailureLabel(trustError.kind)}: ${trustError.message}` : labels.trustInspectionRequired}</span>
+                  <span>{trustError ? `${trustFailureLabel(trustError.kind)}: ${displaySystemMessage(trustError.message)}` : labels.trustInspectionRequired}</span>
                 </div>
                 {!trustLoading && (
                   <button className="pdfv-button" type="button" onClick={() => void runTrustInspection()}>

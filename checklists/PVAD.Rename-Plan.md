@@ -120,6 +120,12 @@ unverified Release-build prerequisites. A repeatable tracked-only inventory
 records positions and hashes without copying source lines; raw counts and the
 exception ledger do not establish overall completion.
 
+The [current application-output follow-up](PVAD.Remaining-Code-Naming-Cleanup.md#current-application-output-review---2026-11-08)
+fixes dynamically supplied diagnostic references in project/code/signing failure
+surfaces without changing machine IDs, source drafts or customer filenames.
+All 827 Designer tests, typecheck and production build passed. This extends the
+scoped acceptance record; original rollout gates, evidence and VERSION stay intact.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

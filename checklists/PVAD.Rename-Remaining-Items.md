@@ -81,6 +81,35 @@ not be compared directly with earlier inventories that used different scopes
 or binary detection. Audit and exception files participate in the counts; a
 large count does not represent the same number of unfinished defects.
 
+## Current Output Follow-up (2026-11-08)
+
+Baseline `13ec82ed`: the remaining-file inventory did not expose these display
+gaps because the components receive old diagnostic references dynamically.
+The [application-output review](PVAD.Remaining-Code-Naming-Cleanup.md#current-application-output-review---2026-11-08)
+corrects project-import messages, workspace banners, the three C# error previews,
+PDF signing status and the Trust mutation-blocking warning using the existing
+display-only helper. Stable codes, original errors, API responses, editor drafts
+and customer filenames remain exact. No new alias or wire contract is created.
+
+- [x] Reproduce the visible failures, correct their rendering boundaries and test both projected output and untouched original data.
+- [x] Add independent guards that reject regressions even if an exception hash is refreshed.
+- [x] Pass all 827 Designer tests, 92 suites, the snapshot, typecheck and production build.
+- [x] Add a customer-facing Patch fragment without changing VERSION or published history.
+
+All 443 final configuration/deployment/versioning tests also passed. The existing
+generic-example naming guard remains unchanged; dedicated failure fixtures are
+checked separately with exact expected display output. All 816 original review
+notes/reasons and 91 protected evidence files remain intact. The added review
+record covers only the exact new workspace diagnostic fixture. Fresh inventory
+counts include the explicit regression inputs and are not completion percentages.
+
+The API still exposes explicit compatibility fields and the Company page keeps
+the agreed single naming-history note. Diagnostic raw IDs, cryptographic and
+persisted identities, historical evidence and old readers are retained for the
+specific reasons above. Raw code/document previews are not branding surfaces:
+altering customer content to reduce search counts is prohibited. This follow-up
+does not certify a browser deployment or make the repository a zero-match tree.
+
 ## Verification Still Outstanding
 
 - [ ] Build the genuine Release outputs for the collector test hosts and relay before rerunning the two broad coverage-host checks. The broad run passed 557 of 559 tests; those two failed on missing output files, not on naming assertions. No placeholder outputs or relaxed assertions are allowed.
