@@ -321,6 +321,23 @@ example renders a PDF. Customer content and diagnostic codes remain unchanged
 in both structured results and their JSON text representation. The smoke output
 is not the production MCP protocol, and no new diagnostic alias is introduced.
 
+## Fresh Export Artifact Acceptance
+
+The [generated-document review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#generated-document-output-review---2026-11-08)
+checks real PDF, DOCX, XLSX, ODT, HTML and XML output and PDF/Spreadsheet facades.
+Default/current sample metadata is checked separately from intentionally supplied
+customer names. Controller file results preserve the expected filename and MIME
+type, and existing HTTP export tests also exercise response headers/signatures.
+PDF metadata is parsed, not inferred from arbitrary compressed bytes. Office
+checks include core-property parts and original namespace/relationship values.
+
+No new writer naming defect was confirmed, so all production exporters remain
+unchanged. The canonical facade-example source guard is intact; customer-name
+regressions belong to the existing branding suite. Artifact-level naming
+acceptance is not full rendering fidelity, complete cross-format metadata
+support or standards conformance. Third-party identities and genuine customer
+text are not rebranded to reduce match counts.
+
 ## Retained Findings
 
 | Category | Specific retention boundary | What is not permitted |

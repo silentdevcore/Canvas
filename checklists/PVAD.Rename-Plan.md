@@ -144,6 +144,12 @@ data, original schema resources and standards policy validation. It exercises
 all catalog example surfaces without claiming C# compilation or new backend
 rendering coverage. Original evidence and operational gates remain unchanged.
 
+The [generated-document review](PVAD.Remaining-Code-Naming-Cleanup.md#generated-document-output-review---2026-11-08)
+tests fresh PDF, Office and text/XML exports, file-response names and explicit
+customer metadata. It separates real artifact checks from source inspection
+and preserves original signed documents and compatibility outputs. Actual
+results and remaining test prerequisites are recorded in that scoped review.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but

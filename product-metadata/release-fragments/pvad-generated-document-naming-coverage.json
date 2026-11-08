@@ -1,0 +1,11 @@
+{
+  "id": "pvad-generated-document-naming-coverage",
+  "impact": "none",
+  "components": ["api", "generator", "infrastructure"],
+  "category": "improved",
+  "summary": "Added generated-document naming checks for PDF, Office and text exports, including preservation of supplied customer metadata.",
+  "reason": "Only regression coverage and its review documentation change; production export behavior and public contracts remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
