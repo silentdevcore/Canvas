@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import { getAccountSubscription, getAccountSubscriptionSeats } from '../api';
 import type { ApiError, AccountSubscriptionResponse, AccountSubscriptionSeatResponse } from '../api';
@@ -136,7 +137,7 @@ export function subscriptionPage(): string {
     return `
       <header class="account-page-header"><div><p class="pvad-kicker">Customer workspace</p><h1>Subscription</h1></div></header>
       <section class="account-section">
-        <div>${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : '<p>Loading your subscription…</p>'}</div>
+        <div>${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : '<p>Loading your subscription…</p>'}</div>
       </section>
     `;
   }

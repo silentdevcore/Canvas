@@ -2,7 +2,7 @@ import { escapeHtml } from '../shell';
 import { accountLicenseDownloadUrl, getAccountLicenses, validateAccountLicense } from '../api';
 import type { ApiError, AccountLicenseResponse } from '../api';
 import { registerAccountStateReset } from '../accountContext';
-import { displayDiagnosticCode } from '../../../shared/diagnosticPresentation';
+import { displayDiagnosticCode, displaySystemMessage } from '../../../shared/diagnosticPresentation';
 
 interface LicensesPageState {
   licenses: AccountLicenseResponse[];
@@ -49,7 +49,7 @@ function licenseRow(license: AccountLicenseResponse): string {
       <td>
         <button class="pvad-button pvad-button--secondary account-license-validate" type="button" data-license-id="${escapeHtml(license.id)}">Validate</button>
         <a class="pvad-button pvad-button--secondary" href="${accountLicenseDownloadUrl(license.id)}">Download</a>
-        ${validity ? `<div>${escapeHtml(validity)}</div>` : ''}
+        ${validity ? `<div>${escapeHtml(displaySystemMessage(validity))}</div>` : ''}
       </td>
     </tr>
   `;
@@ -68,7 +68,7 @@ export function licensesPage(): string {
     </header>
     <section class="account-section">
       <div>
-        ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
+        ${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : ''}
         <table class="account-table">
           <thead><tr><th>License</th><th>Status</th><th>Valid</th><th>Instances</th><th></th></tr></thead>
           <tbody>${state.licenses.map(licenseRow).join('') || `<tr><td colspan="5">${state.loading ? 'Loading…' : 'No offline licenses issued yet.'}</td></tr>`}</tbody>

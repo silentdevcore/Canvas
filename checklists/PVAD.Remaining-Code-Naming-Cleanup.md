@@ -1074,6 +1074,55 @@ rewritten. Historical release data, schemas, signed evidence, cookie/header
 contracts and translation keys remain unchanged. The Patch fragment changes
 neither VERSION nor published releases; no commit or push is implied.
 
+### Account And Admin Output Review - 2026-11-08
+
+Baseline: `9e0be8aa`. Review dynamic Account/Admin output independently of raw
+source search. Correct 51 display expressions across both entry points and nine
+Account page modules using the existing display helper. Keep structured error
+objects unchanged for routing, authorization decisions and support evidence.
+
+- [x] Project Account authentication, verification/confirmation, permission and page-load errors only at the display boundary; retain password clearing, recovery links, focus and retry behavior.
+- [x] Project Admin login/public-action errors, system/governance failures, user/organization/role pages, subscriptions, licenses, service accounts, mail and audit error banners.
+- [x] Keep informational customer text, organization names, license numbers, signing-key IDs, API-key secrets, Legal content and actual audit events unmodified.
+- [x] Preserve license-validation result codes in API data and retain the already existing display-only projection for the successful result.
+- [x] Fix the Admin client's JSON media-type reader to accept structured Problem Details and case variants, retaining raw detail, code, trace and body fields.
+- [x] Verify that historical release text is already projected by the existing release presenter; do not rewrite the manifest or persisted notifications.
+- [x] Execute production rendering/event functions in a synthetic DOM and add independent source/mutation guards.
+- [x] Validate both production builds, Account typecheck, Account/Admin tests and the complete Designer regression suite.
+- [x] Run and inspect desktop/mobile Chromium screenshots with isolated production previews and synthetic API responses; shut down the test processes afterward.
+
+All 846 Designer tests in 92 suites and the snapshot passed, including 19 new
+Account/Admin rendering/event regressions. All 54 Account tests and 42 Admin
+tests passed; the Admin selection includes three raw-response tests for JSON,
+Problem Details and uppercase media types. Account typecheck and both production
+builds passed. Existing build-module warnings remain unchanged. Initial tests
+exposed unprojected output and discarded Problem Details; the event harness was
+also adjusted to await its asynchronous submit handler before asserting.
+
+Four browser scenarios passed at 1280x900 and 390x844: one canonical-CSRF login
+request, the projected diagnostic, literal rather than injected HTML, enabled
+recovery controls, no page errors and no horizontal overflow. Screenshots were
+visually inspected. These are mocked-API browser checks, not real authenticated
+sessions, commercial licensing acceptance or deployment evidence. Logs, test
+results and images are ignored artifacts in
+`artifacts/rename/account-admin-output-naming/`.
+
+The customer-facing Patch fragment changes neither VERSION nor published
+releases. No real credentials, database rows, policy acceptances, signing keys,
+original fixtures, cookie/header contracts or operational approvals are changed.
+The earlier Release-output coverage prerequisites remain a separate follow-up.
+
+Final verification passed all 447 configuration/deployment/versioning tests
+across 56 files with no failures or skips. AST comparison confirms that all 11
+UI source changes are limited to display-helper imports and rendered text
+projection; state mutations and authorization branches are otherwise identical.
+The Admin transport differs only in its JSON media-type reader. All 817 original
+review notes/reason sets, 91 protected evidence files, both compatibility
+registers, original audit inventories, existing diagnostic projector/catalog,
+Account transport, VERSION and published releases remain unchanged. No new
+diagnostic alias or review-record exception was introduced. Naming, version,
+fragment and whitespace checks passed, and all review-document links resolve.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

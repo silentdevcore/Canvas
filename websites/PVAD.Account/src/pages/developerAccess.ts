@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import {
   createAccountApiKey,
@@ -107,7 +108,7 @@ export function developerAccessPage(user: UserInfo): string {
       </div>
     </header>
     <section class="account-profile-forms">
-      ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
+      ${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : ''}
       ${state.accounts.map((account) => accountBlock(account, canManage)).join('') || (state.loading ? '<p>Loading…</p>' : '')}
       ${canManage ? `<form class="account-form" id="create-service-account-form">
         <h2>New service account</h2>
@@ -130,7 +131,7 @@ export function bindDeveloperAccessEvents(): void {
       await createAccountServiceAccount(name);
       await loadServiceAccounts();
     } catch (submitError) {
-      error.textContent = (submitError as ApiError).message;
+      error.textContent = displaySystemMessage((submitError as ApiError).message);
       error.hidden = false;
     }
   });

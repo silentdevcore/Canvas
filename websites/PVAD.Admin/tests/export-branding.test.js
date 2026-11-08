@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { exportAdminAudit, exportAdminLegalAcceptance } from '../src/api.js';
+import { currentUser, exportAdminAudit, exportAdminLegalAcceptance } from '../src/api.js';
 
 test('Admin exports use current fallbacks and preserve server-provided customer filenames', async (context) => {
   const previousWindow = globalThis.window;
@@ -39,3 +39,26 @@ test('Admin exports use current fallbacks and preserve server-provided customer 
       assert.equal(request.options.headers['X-PVAD-CSRF'], 'synthetic-csrf');
   }
 });
+
+for (const contentType of ['application/json', 'application/problem+json; charset=utf-8', 'APPLICATION/PROBLEM+JSON']) {
+  test(`Admin preserves raw Problem Details from ${contentType}`, async context => {
+    const previousWindow = globalThis.window;
+    globalThis.window = new EventTarget();
+    context.after(() => {
+      if (previousWindow === undefined) delete globalThis.window;
+      else globalThis.window = previousWindow;
+    });
+    const problem = { code: 'PXAAPI018', canonicalCode: 'PVADAPI018', detail: 'PXAAPI018: Service unavailable.', traceId: 'synthetic-trace' };
+    context.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(problem), {
+      status: 503, headers: { 'Content-Type': contentType },
+    }));
+    await assert.rejects(currentUser(), error => {
+      assert.equal(error.message, problem.detail);
+      assert.equal(error.code, problem.code);
+      assert.equal(error.traceId, problem.traceId);
+      assert.deepEqual(error.body, problem);
+      assert.equal(error.status, 503);
+      return true;
+    });
+  });
+}

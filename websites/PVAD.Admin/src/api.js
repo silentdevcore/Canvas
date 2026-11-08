@@ -34,8 +34,9 @@ async function request(path, options = {}) {
     return null;
   }
 
-  const contentType = response.headers.get('content-type') || '';
-  const body = contentType.includes('application/json') ? await response.json() : null;
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  const body = contentType.includes('application/json') || contentType.includes('+json')
+    ? await response.json() : null;
   if (!response.ok) {
     const error = new Error(body?.detail || body?.title || `Request failed with status ${response.status}.`);
     error.status = response.status;

@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import {
   changePassword,
@@ -61,7 +62,7 @@ export function profilePage(): string {
     return `
       <header class="account-page-header"><div><p class="pvad-kicker">Customer workspace</p><h1>Profile</h1></div></header>
       <section class="account-section">
-        <div>${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : '<p>Loading your profile…</p>'}</div>
+        <div>${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : '<p>Loading your profile…</p>'}</div>
       </section>
     `;
   }
@@ -141,7 +142,7 @@ function bindProfileForm(formId: string, handler: (data: FormData) => Promise<vo
     try {
       await handler(new FormData(form));
     } catch (submitError) {
-      error.textContent = (submitError as ApiError).message;
+      error.textContent = displaySystemMessage((submitError as ApiError).message);
       error.hidden = false;
       button.disabled = false;
     }
