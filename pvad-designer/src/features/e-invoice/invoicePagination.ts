@@ -20,7 +20,7 @@ import type { InvoiceTemplateLayout } from './invoiceTemplates';
 /**
  * A description longer than this many fragments is refused rather than rendered.
  *
- * The bound cannot be reached by a valid invoice: `PXAEINV109` caps a description at 4 096
+ * The bound cannot be reached by a valid invoice: `EInvoice.ValidateDocument` caps a description at 4 096
  * characters, which is at most four fragments even when every character is full-em. It exists so
  * that an unbounded description fails closed with a stable diagnostic instead of producing a
  * document of unbounded length.

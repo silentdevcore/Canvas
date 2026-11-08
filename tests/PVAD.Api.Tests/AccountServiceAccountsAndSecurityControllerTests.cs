@@ -89,7 +89,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             ["client_id"] = dynamicClientId!,
             ["redirect_uri"] = "http://127.0.0.1:45678/oauth/callback",
             ["response_type"] = "code",
-            ["scope"] = "pxa.docs.read",
+            ["scope"] = "pvad.docs.read",
             ["code_challenge"] = challenge,
             ["code_challenge_method"] = "S256",
             ["state"] = "oauth-test-state",
@@ -100,14 +100,18 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             "http://localhost:5178/login?returnUrl=",
             authorizeResponse.Headers.Location?.ToString(),
             StringComparison.Ordinal);
-        var canonicalAuthorizeResponse = await client.GetAsync(authorizePath.Replace("pxa.docs.read", "pvad.docs.read"));
-        Assert.Equal(HttpStatusCode.Redirect, canonicalAuthorizeResponse.StatusCode);
-        Assert.StartsWith("http://localhost:5178/login?returnUrl=", canonicalAuthorizeResponse.Headers.Location?.ToString());
+        var legacyAuthorizePath = authorizePath.Replace("pvad.docs.read", "pxa.docs.read", StringComparison.Ordinal);
+        var legacyAuthorizeResponse = await client.GetAsync(legacyAuthorizePath);
+        Assert.Equal(HttpStatusCode.Redirect, legacyAuthorizeResponse.StatusCode);
+        Assert.StartsWith("http://localhost:5178/login?returnUrl=", legacyAuthorizeResponse.Headers.Location?.ToString());
 
-        var missingPkce = await client.GetAsync(
-            authorizePath.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
-                .Replace("&code_challenge_method=S256", string.Empty));
-        Assert.Equal(HttpStatusCode.BadRequest, missingPkce.StatusCode);
+        foreach (var path in new[] { authorizePath, legacyAuthorizePath })
+        {
+            var missingPkce = await client.GetAsync(
+                path.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
+                    .Replace("&code_challenge_method=S256", string.Empty));
+            Assert.Equal(HttpStatusCode.BadRequest, missingPkce.StatusCode);
+        }
     }
 
     [PostgreSqlFact]
@@ -168,7 +172,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
                 ["grant_type"] = "client_credentials",
                 ["client_id"] = oauthClientId!,
                 ["client_secret"] = secret!,
-                ["scope"] = "pxa.docs.read pxa.templates.read",
+                ["scope"] = "pvad.docs.read pvad.templates.read",
             }),
         };
         var tokenResponse = await client.SendAsync(tokenRequest);
@@ -178,20 +182,20 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var accessToken = token.GetProperty("access_token").GetString();
         Assert.False(string.IsNullOrWhiteSpace(accessToken));
 
-        using var canonicalTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        using var legacyTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
                 ["client_id"] = oauthClientId!,
                 ["client_secret"] = secret!,
-                ["scope"] = "pvad.docs.read pvad.templates.read",
+                ["scope"] = "pxa.docs.read pxa.templates.read",
             }),
         };
-        var canonicalTokenResponse = await client.SendAsync(canonicalTokenRequest);
-        Assert.Equal(HttpStatusCode.OK, canonicalTokenResponse.StatusCode);
-        var canonicalToken = await canonicalTokenResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.False(string.IsNullOrWhiteSpace(canonicalToken.GetProperty("access_token").GetString()));
+        var legacyTokenResponse = await client.SendAsync(legacyTokenRequest);
+        Assert.Equal(HttpStatusCode.OK, legacyTokenResponse.StatusCode);
+        var legacyToken = await legacyTokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(string.IsNullOrWhiteSpace(legacyToken.GetProperty("access_token").GetString()));
 
         using var forbiddenScopeRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
@@ -261,17 +265,20 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             await GetCsrfAsync(client), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeKey)).StatusCode);
 
-        using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        foreach (var requestedScope in new[] { "pvad.docs.read", "pxa.docs.read" })
         {
-            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
             {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = oauthClientId!,
-                ["client_secret"] = secret!,
-                ["scope"] = "pxa.docs.read",
-            }),
-        };
-        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(revokedTokenRequest)).StatusCode);
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "client_credentials",
+                    ["client_id"] = oauthClientId!,
+                    ["client_secret"] = secret!,
+                    ["scope"] = requestedScope,
+                }),
+            };
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(revokedTokenRequest)).StatusCode);
+        }
 
         using var revokeAccount = CreateCsrfRequest(
             HttpMethod.Post, $"/api/pvad/v1/account/service-accounts/{accountId}/revoke",

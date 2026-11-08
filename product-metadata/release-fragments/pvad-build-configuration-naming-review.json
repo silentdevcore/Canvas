@@ -1,0 +1,11 @@
+{
+  "id": "pvad-build-configuration-naming-review",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Improved internal naming inventories and clarified historical build and deployment test labels.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only internal inventory tooling, regression tests, workflow display labels and review records change. Runtime bindings, historical binaries, original evidence, product version and published releases remain unchanged."
+}

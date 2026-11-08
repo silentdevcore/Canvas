@@ -172,7 +172,7 @@ public sealed class EInvoicePaginationContractTests
     public void A_description_beyond_the_bound_is_reported_rather_than_rendered()
     {
         // Longer than MaximumDescriptionFragments pages of text. The public API cannot produce this
-        // - PXAEINV109 caps a description at 4 096 characters - so the planner is driven directly.
+        // - invoice validation caps a description at 4 096 characters - so the planner is driven directly.
         var words = Enumerable.Repeat("maintenance", 4_000);
         var plan = EInvoicePageLayout.Plan([string.Join(' ', words)], 1);
 

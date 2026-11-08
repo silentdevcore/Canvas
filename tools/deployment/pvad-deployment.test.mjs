@@ -106,7 +106,7 @@ test('verifies an immutable stable release and every required artifact digest', 
   assert.ok(release.assets.every(asset => asset.name.startsWith('pvad-')));
 });
 
-test('historical releases retain their complete PXA artifact set without mixed-name fallback', () => {
+test('historical releases retain their complete original artifact set without mixed-name fallback', () => {
   const args = {
     version, repositoryVersion: version,
     releaseManifest: { releases: [{ version, channel: 'stable' }] },

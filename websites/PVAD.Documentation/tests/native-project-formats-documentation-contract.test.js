@@ -43,7 +43,7 @@ test('the technical guide documents all canonical project operations and boundar
   assert.match(guide, /passwords and password hashes are never saved/i);
 });
 
-test('the public manifest schema distinguishes PXAP and PXAS', () => {
+test('the public manifest schema distinguishes PVADP and PVADS', () => {
   assert.deepEqual(schema.properties.formatId.enum, ['pvadp', 'pvads']);
   assert.deepEqual(schema.properties.magic.enum, ['PVAD-PVADP-1', 'PVAD-PVADS-1']);
   assert.equal(schema.properties.entryDocument.const, 'document.json');

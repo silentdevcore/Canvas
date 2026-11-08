@@ -807,6 +807,219 @@ Validation:
 - All 816 original review notes, 91 protected evidence files, compatibility/audit registers, production template controller/middleware, VERSION and published release records are unchanged. Reviewed test/plan hashes and additive review notes alone were refreshed.
 - The API test assembly was rebuilt with unchanged project references reused. No full Solution, browser, deployment or document-fidelity acceptance is claimed. TRX results are ignored local artifacts under `artifacts/rename/designer-template-auth-naming/`.
 
+### JavaScript And XML Review - 2026-11-07
+
+Baseline: `d909de2b`. This extension-specific review scans all tracked regular
+`.js` and `.xml` files, including filename matches, case-insensitively. Private
+IDE files, untracked notes, symlinks and ignored build outputs are excluded.
+
+| Extension | Files scanned | Matching files before / after | Content matches before / after | Matching paths |
+| --- | ---: | ---: | ---: | ---: |
+| JavaScript | 68 | 16 / 15 | 81 / 72 | 0 |
+| XML | 47 | 27 / 27 | 379 / 379 | 27 |
+
+- [x] Review every matching JavaScript location, separating general defaults from explicit compatibility and customer-content preservation tests.
+- [x] Rename the project-format test label to PVADP/PVADS; its schema assertions were already canonical.
+- [x] Use the canonical browser-telemetry collector in general status/privacy tests, retaining the explicit legacy bridge and cache-migration cases.
+- [x] Exercise both current and legacy diagnostics in separate status-model cases without changing the raw diagnostic contract.
+- [x] Add a source contract preventing general test inputs from reverting to the old identity.
+- [x] Verify all 27 original XML reports against the existing positive/negative corpus manifests and the baseline bytes; parse each with network access disabled.
+- [x] Run all tracked JavaScript test files, configuration/versioning contracts, affected website builds and naming guards.
+
+The remaining JavaScript occurrences are specific compatibility readers/tests,
+stable diagnostic IDs, installed dashboard UIDs, negative branding/secret checks,
+deliberate customer-input preservation cases and the single approved public
+rename-history notice. None is replaced by a new permissive exception.
+
+All matching XML files are original DSS PAdES validation reports, not editable
+application configuration. Their filenames, PDF references, certificate subjects
+and encoded material belong to the original evidence. Editing their text or
+renaming them in isolation would break the manifest hashes and evidence links.
+The other 20 XML files have no old-name content or filename finding. No XML
+report, certificate, corpus manifest or report link is changed.
+
+The complete per-file before/after inventory, finding locations, line hashes and
+dispositions are generated locally at
+`artifacts/rename/javascript-xml-naming/scan.json`. This ignored report does not
+replace or rewrite earlier audit evidence. XML hash/parsing results are in
+`xml-evidence-verification.json` alongside it.
+
+Validation: 139 tests across all 28 tracked JavaScript test files and all 420
+configuration/versioning tests passed, without failures or skips. The first
+JavaScript invocation omitted the repository's TypeScript-stripping flag and
+could not load the shared TypeScript status module; the complete rerun used
+`node --experimental-strip-types --test` and passed. Admin and Documentation
+production builds passed. Documentation retains existing Vite configuration
+module-format warnings; this test-only change does not suppress them.
+
+Residual, structural JSON, tracked-Markdown, version/fragment validation and
+`git diff --check` passed. All 816 original review notes and 91 protected
+evidence files remain unchanged, as do both compatibility registers and the
+original JSON/Markdown inventories. The reviewed-file ledger refresh is limited
+to the five edited entries already present in that ledger.
+
+The internal fragment `pvad-website-javascript-naming-tests` has `none` impact.
+VERSION, published releases, compatibility registers, historical audits and
+primary release-gate states remain unchanged. This scoped review is not a
+zero-substring claim or completion of the overall repository semantic review.
+
+### Designer And Account TypeScript Review - 2026-11-07
+
+Baseline: `d909de2b`; the preceding JavaScript/XML changes remain uncommitted
+and are preserved. This pass scans all 330 tracked regular `.ts`/`.tsx` files
+under Designer and websites. Initially 77 files contain 368 former-short-name
+occurrences; afterward 76 contain 361. There are no matching filenames.
+These are inventory counts, not seven independent runtime defects or a progress
+percentage. Private/untracked files, symlinks and ignored outputs are excluded.
+
+- [x] Inspect every matching Designer, Account and shared-website source/test location.
+- [x] Normalize three invoice-validation/pagination comments and one explanatory spreadsheet test label without changing diagnostic codes, validation limits or storage inputs.
+- [x] Exercise chart export with both current and legacy recognition sources, checking nested/style normalization, shared/page elements, unchanged series and non-mutating input drafts.
+- [x] Exercise Account return-origin overrides through both configuration-key generations, rejecting implicit old-host trust and unrelated origins.
+- [x] Add independent source checks for canonical commentary, current-input coverage and exact retained diagnostic/storage expectations.
+- [x] Run the complete Designer/Account unit suites, both typechecks and production builds, configuration/versioning contracts and naming guards.
+
+Retained findings were individually inspected, not approved merely because a
+whole-file hash was already recorded:
+
+| Boundary | Concrete reason |
+| --- | --- |
+| Authentication, feature decisions, accessibility, project operations, invoice and Trust diagnostics | Exact raw codes are stable contracts used by backend matching, localization, telemetry allowlists and tests. Current display aliases are separate; no new raw diagnostic family is invented. |
+| PKCE, locale, favorites, code drafts, sidebars, recent content, workbook recovery and handoffs | Old storage/input readers and cleanup prevent data loss or cross-owner assignment. Current producers already use canonical keys. Tests intentionally seed and preserve or remove old inputs. |
+| Runtime configuration, security/document headers and Account URL markers | Explicit former-input readers, precedence and conflict cases remain necessary. Current requests/configuration are tested separately. The old deployment host is not an implicit trusted origin. |
+| Chart recognition and migration artifacts | Old source/artifact IDs remain accepted and canonical values are emitted. Both chart sources are now exercised through the actual export payload builder. |
+| Native file inputs and invoice/schema fixtures | File pickers accept both generations. Schema IDs, original fixture/schema paths and versioned parity contracts remain exact rather than being cosmetically rewritten. |
+| Release, customer-content and visible-branding tests | Historical release titles, supplied text/filenames, raw/display assertions and negative branding checks deliberately contain the former identity. The tests would lose their purpose if globally replaced. |
+
+The generated per-file before/after inventory, line locations/hashes, original
+review provenance and scoped change notes are in
+`artifacts/rename/frontend-typescript-naming/scan.json`. Existing review categories
+are provenance, not a new allowlist or semantic completion claim.
+
+Validation: all 819 Designer tests in 92 suites and the existing snapshot passed;
+all 54 Account tests and 421 configuration/versioning contracts passed, with no
+failures or skips. Designer and Account typechecks and production builds passed.
+Existing Vite module-format, mixed static/dynamic locale import and bundle-size
+warnings remain visible. No browser, deployment or fresh .NET run is claimed
+for this comment/test-only pass.
+
+Residual, structural JSON, tracked-Markdown, version/fragment validation and
+`git diff --check` passed. Transpiling the two edited production files with
+comments removed produces exactly the same JavaScript as the baseline. All
+816 original review notes, 91 protected evidence files, compatibility registers,
+original JSON/Markdown audits, VERSION and published release records are intact.
+The earlier uncommitted JavaScript/XML work remains present and is not reverted.
+
+The `pvad-frontend-typescript-naming-review` fragment has `none` impact. Runtime
+behavior, original evidence, published release text, VERSION, compatibility
+registers and previous task/approval states remain unchanged. Remaining overall
+repository semantic review and the eight historical release gates stay open.
+
+### Backend CSharp Review - 2026-11-07
+
+Baseline: `d909de2b`. This pass covers all tracked regular C# files under
+`src/`, `PVAD.WebApi/` and `tests/`, including source containing null bytes.
+The preceding uncommitted JavaScript/TypeScript work remains intact.
+
+| Group | Files scanned | Matching files before / after | Content matches before / after |
+| --- | ---: | ---: | ---: |
+| Production | 840 | 114 / 114 | 1,431 / 1,429 |
+| Tests | 322 | 117 / 115 | 834 / 829 |
+
+There are no matching C# filenames in this scope. Counts include intentional
+contracts and incidental substrings; they are not independent naming defects.
+Production changes are limited to two comments, not executable statements.
+
+- [x] Inspect remaining production identifiers and non-diagnostic values separately from the stable diagnostic families and their central display-alias registry.
+- [x] Make current OAuth scopes the general discovery/PKCE and service-account test inputs, retaining explicit old-scope requests.
+- [x] Check missing PKCE and revoked credentials for both scope generations and run both current and retained service-account lifecycles.
+- [x] Read current generated-code fields in PDF/Spreadsheet provider tests, checking equal compatibility fields for all three providers.
+- [x] Rename the binary-cutover test method neutrally without changing either harness, process arguments or persisted-state checks.
+- [x] Normalize three invoice comments while preserving the raw validation code and 4,096-character limit.
+- [x] Update the existing source guard to require current generated-code usage and a separate exact compatibility equality assertion; do not weaken the wire-contract check.
+- [x] Run the focused PostgreSQL/OAuth, migration and diagnostic/artifact contract selection: 103 passed without failures or skips.
+- [x] Complete generator/core/importer regression validation, final naming guards and preservation checks, and record their actual results.
+
+Specific retained boundaries:
+
+| Area | Why the remaining identity stays |
+| --- | --- |
+| Code-worker, accessibility, invoice, Trust, layout, project and API diagnostics | Raw diagnostic IDs and compiler-warning IDs are stable. Display aliases are derived separately, and unknown IDs must not acquire invented aliases. |
+| Native project manifests, migration results and audit writes | Exact legacy readers, public obsolete CLR aliases, serialized property names and stored event/format IDs remain compatible. Existing canonical output fields are tested alongside them. |
+| Authentication, cookies, headers, OAuth scopes/clients, claims and data protection | Historical inputs, installed operator pseudonyms and cryptographic purposes remain valid during transition. Current producers are already canonical; replacing all readers would break old sessions or protected data. |
+| License signing and replacement | Key IDs, signed envelopes and explicit retained-license test inputs are not free display names. A replacement must preserve the old signed record, not rewrite its identity. |
+| Validation evidence and retention migration | Existing invoice-schema IDs and the database setting used by the immutable retention trigger remain exact. The applied migration and stored evidence are not cosmetically edited. |
+| PDF/fixture tests and installed storage | Original corpus IDs, encrypted-fixture passwords, visible signature baselines, old mount/content preservation and independent validator identities remain unchanged. |
+| Provider and codec substrings | Report-provider metadata and JPEG-2000 terminology can contain the searched letters incidentally; they are not first-party branding. |
+
+The complete inventory with exact finding locations and line hashes is generated
+locally at `artifacts/rename/backend-csharp-naming/scan.json`. Original review
+categories are recorded as provenance, not blanket semantic approval. The
+source containing a null byte remains unchanged and participates in the scan.
+
+Validation:
+
+- The API test project, Generator and Generator test project built successfully with unchanged project references reused. Existing API-test obsolete-constructor and analyzer warnings remain visible; Generator builds had no warnings. This is not a full Solution build.
+- All 283 selected .NET tests passed without skips: 103 API/OAuth/contract tests, 32 generator pagination/totals tests, 96 Core project/layout/chart tests and 52 importer chart/attachment/encryption tests. The API selection includes three real PostgreSQL workflows.
+- All 422 configuration/versioning tests passed serially. The first parallel run timed out in an unchanged five-second fake-launcher test; the complete serial rerun passed without changing that timeout or relaxing assertions.
+- Residual, structural JSON, tracked-Markdown, version/fragment validation and `git diff --check` passed.
+- Comparing all 840 production sources to the baseline confirms that only the two exact comment replacements changed; executable production statements are unchanged. All 816 original review notes, 91 protected evidence files, both compatibility registers, original JSON/Markdown audits, applied retention migration and null-containing importer source remain intact.
+- TRX results, serial/parallel configuration logs, preservation verification and the full inventory are ignored local artifacts in `artifacts/rename/backend-csharp-naming/`.
+
+The internal `pvad-backend-csharp-naming-review` fragment has `none` impact.
+No database, session, signing key, runtime contract, original evidence, published
+release, VERSION or operational approval is changed. The paired legacy-binary
+process drill is a separate opt-in test; renaming its method is not a new claim
+that the drill was executed. Overall semantic review remains open.
+
+### Build And Configuration Review - 2026-11-08
+
+Baseline: `d909de2b`. The extended scope covers 444 tracked regular files:
+module/shell scripts, YAML/workflows, project/build properties, HTML/CSS,
+Dockerfiles, server templates, environment scripts and the explicit historical
+binding example. The earlier 430-file extension-only selection is included.
+Private paths, symlinks and ignored outputs are excluded.
+
+- [x] Review freely chosen labels separately from actual historical binary, environment, metric, database and storage identities.
+- [x] Normalize the binary-cutover workflow comment/step title and deployment test title without changing execution or compatibility inputs.
+- [x] Review remaining MCP/tool TypeScript and C# findings alongside the prior frontend/backend passes.
+- [x] Add mixed-case and embedded-identifier coverage to the central detector.
+- [x] Add a read-only tracked-file inventory with explicit opt-in report writing, text positions/hashes, binary offsets and private/symlink/ignored-path exclusions.
+- [x] Test null-containing source, case variants, path-only matches, invalid UTF-8, PDF detection, unchanged source/index and parent-directory symlink substitution.
+- [x] Consolidate retained contracts, original evidence and real follow-ups in the [remaining-items list](PVAD.Rename-Remaining-Items.md).
+
+The scoped before/after artifact is
+`artifacts/rename/build-configuration-naming/scan.json`. At baseline it contains
+1,278 matches in 115 files; the working review contains 1,313 in 114 files.
+The additional occurrences are explicit detector and exclusion regression
+inputs/assertions, including the preceding uncommitted source-guard work, not
+new product branding. Counts are not a completion metric. Newly untracked
+implementation files are tested separately until they enter the Git index.
+
+Specific retained findings include old Docker/configuration aliases and conflict
+guards; Grafana UIDs and existing provider/folder names; stable metric/runbook
+identifiers; template aliases; historical release artifact inputs; schema and
+resource readers; and exact names used by the paired-binary proof. Signed PDF
+indexes and original recovery HTML are evidence, not current naming defaults.
+The tool-source review additionally retains fixed MCP diagnostics, scopes and
+resource readers, reference-archive checksums and original warning pragmas.
+
+Validation:
+
+- All 25 focused inventory, workflow and deployment tests passed without skips.
+- MCP typecheck and build passed; all 33 MCP runtime tests passed on the authorized local-host rerun. The sandbox-only attempt could not create its IPC listener. Existing schema-format warnings remain unchanged.
+- The serial broad run across 79 tracked Node test files passed 557 of 559 tests with no skips. Two coverage-host checks failed because genuine Application/relay Release dependency manifests are absent; other collector hosts also lack Release outputs. This is not a passing full-suite result. The sandbox run additionally could not bind two loopback test listeners; the authorized rerun passed both without test changes.
+- Full Release collector-host builds and the two coverage checks remain explicit follow-ups, not waived requirements. Logs are ignored artifacts alongside the scoped scan.
+- The final serial selection passed all 439 configuration, deployment and versioning tests across 56 files without failures or skips.
+- All 32 shell scripts passed syntax checks; all 119 project/build XML files parsed. The edited workflow's executable fields are unchanged after excluding the display title.
+- All 135 local links/section references in the four review documents resolve. Residual, structural JSON, tracked-Markdown, version/fragment guards and whitespace validation passed; the new untracked documents and fragments were checked separately.
+- All 816 original review notes/reason records and 91 protected original evidence files are unchanged. Compatibility registers, original inventories, VERSION and published releases remain intact.
+
+No executable workflow configuration, runtime deployment binding, database,
+signature or published release is changed. The internal release fragment has
+`none` impact; VERSION is unchanged. Overall semantic review and historical
+operational approvals are not closed by this scoped review.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

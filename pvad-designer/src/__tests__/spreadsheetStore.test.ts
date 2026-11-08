@@ -275,7 +275,7 @@ describe('spreadsheet storage compatibility', () => {
     expect(values.get('canvas-spreadsheet')).toBe('{"state":{"name":"Legacy workbook"}}');
   });
 
-  test('keeps unscoped PXA drafts untouched without loading them', () => {
+  test('keeps unscoped previous-generation drafts untouched without loading them', () => {
     const values = new Map<string, string>([
       ['pxa-spreadsheet', 'current'],
       ['canvas-spreadsheet', 'legacy'],
