@@ -1,5 +1,17 @@
 # PVAD Rename Classification And Historical Exceptions
 
+## Public Catalog Wrapper Review - 2026-11-08
+
+The [public website review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+narrows the earlier retention decision for the positive and negative PAdES HTML
+catalog wrappers: current titles, headings and introductory prose use PVADE or
+neutral descriptions. Download links, classifications and underlying evidence
+remain exact. These navigational wrappers are not signed or hash-pinned by the
+corpus manifests. Original wrapper text remains in Git; PDFs, certificates,
+revocation evidence, validator reports and manifest provenance are not edited.
+This clarification supersedes only the wrapper-presentation wording below,
+not the original evidence or compatibility boundaries.
+
 ## Grafana Default Selection - 2026-11-06
 
 Fresh local installations now use canonical PVAD provider/folder names. The

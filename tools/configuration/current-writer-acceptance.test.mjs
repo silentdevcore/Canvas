@@ -8,6 +8,20 @@ const read = path => readFileSync(resolve(root, path), 'utf8');
 
 // These writer contracts do not consult the residual exception ledger.
 const boundaries = [
+  ...[
+    ['pades', 'PVADE PAdES Interoperability Corpus'],
+    ['pades/negative', 'PVADE PAdES Negative Trust Corpus'],
+  ].map(([directory, title]) => ({
+    name: `${directory} public catalog uses current presentation over original evidence`,
+    path: `websites/PVAD.Documentation/public/downloads/pdf-trust/${directory}/index.html`,
+    from: `<h1>${title}</h1>`, to: `<h1>${title.replace('PVADE', 'PXA')}</h1>`,
+    verify(source) {
+      assert.ok(source.includes(`<title>${title}</title>`));
+      assert.ok(source.includes(`<h1>${title}</h1>`));
+      assert.doesNotMatch(source.replace(/<[^>]+>/g, ''), /pxa|power\s*dox/i);
+      assert.ok(source.includes('Downloads retain their original filenames and recorded producer identities'));
+    },
+  })),
   {
     name: 'Account authentication errors project display text without changing raw code branches',
     path: 'websites/PVAD.Account/src/main.ts',

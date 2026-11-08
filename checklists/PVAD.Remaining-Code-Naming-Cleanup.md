@@ -1123,6 +1123,72 @@ Account transport, VERSION and published releases remain unchanged. No new
 diagnostic alias or review-record exception was introduced. Naming, version,
 fragment and whitespace checks passed, and all review-document links resolve.
 
+### Public Websites Output Review - 2026-11-08
+
+Baseline: `754d3566`. Review Company, Documentation and Demo together, including
+current source text, HTML metadata, release presentation, downloadable examples
+and public PDF Trust catalogs. Separate editorial catalog presentation from the
+original validation artifacts it links to.
+
+- [x] Check tracked application sources and page entry points, allowing only the agreed single Company naming-history note.
+- [x] Correct titles, headings and introductory product wording in the positive and negative PAdES download catalogs; explain retained original filenames without relabeling producer identities.
+- [x] Keep every original download link, result classification and manifest unchanged; verify the hashes of all nine signed PDFs, 27 validator reports and eight trust artifacts against their existing manifests.
+- [x] Execute all eight downloadable Demo example functions and verify current DTO/namespace labels, sample-file availability and exact retained migration diagnostic IDs.
+- [x] Preserve supplied provider names, namespaces, document text and filenames; do not treat raw example diagnostics as editable product branding.
+- [x] Add independent current-source and catalog-presentation guards, including two reverted-heading mutation cases.
+- [x] Pass Company, Documentation and Demo tests and production builds.
+- [x] Finish desktop/mobile production-preview browser checks and inspect screenshots.
+- [x] Complete exact residual review, protected-evidence verification and naming/version/fragment checks.
+
+The two catalog HTML wrappers are current navigation/presentation, not signed
+PDFs or independent validator reports. Their six visible naming expressions are
+corrected editorially; original wrapper wording remains in Git. This scoped
+decision supersedes their earlier broad wrapper-retention classification only
+for titles, headings and introductory prose. It does not authorize renaming
+artifact paths, changing evidence bytes or reapproving historical results.
+
+Company error handling already uses neutral outage text, Documentation already
+projects historical release text at presentation, and Demo descriptors already
+use current model labels. No new naming defect was confirmed in those paths,
+so their production code is unchanged. The JSON playground's parse error may
+quote user input and is not globally rebranded. Raw downloads and historical
+PDF metadata intentionally retain their recorded identities.
+
+Company passed 83 tests, Documentation 62, Demo six and the direct writer guard
+19; all three production builds passed. Detailed logs are ignored artifacts in
+`artifacts/rename/public-websites-output-naming/`. The Patch fragment concerns
+only the corrected Documentation catalogs. VERSION and published release
+history remain unchanged; no commit, push or deployment is implied.
+
+All 60 production-preview browser scenarios passed at 1280x900 and 390x844:
+19 Company pages, the Documentation release view, two PAdES catalogs and eight
+Demo details at each viewport. Every displayed page uses current names except
+the single agreed Company history note. All catalog targets and Demo source,
+input and output downloads returned HTTP 200. Ten screenshots were inspected.
+The two changed catalogs have no viewport overflow; their tables scroll
+internally on narrow screens. Existing Demo workbench long-path/code overflow
+is outside this naming correction and is not claimed fixed by these checks.
+APIs were mocked unavailable, external requests blocked and all isolated
+preview servers/browser contexts stopped. These are local presentation checks,
+not real backend authentication, legal publication or deployment acceptance.
+
+Final configuration/deployment/versioning validation passed all 449 tests across
+56 files with no failures or skips. All 50 hash-pinned JSON-audit originals and
+85 unchanged public corpus artifacts match the baseline. All 817 original review
+notes/reason sets remain intact. For the two edited wrappers, comparison after
+removing only title/heading/paragraph lines is exact, and every href remains
+byte-for-byte unchanged. The independent artifact tests verify nine PDFs,
+27 reports and eight trust artifacts against the original stored hashes; they
+do not re-run an external signature validator or reapprove historical verdicts.
+
+The residual ledger refresh is limited to eight reviewed changed files; no
+new residual exception is added. Markdown has zero old-name matches, JSON has
+zero unclassified findings, version/fragment checks and whitespace checks pass.
+Current Company/Documentation/Demo entrypoint logic, shared diagnostic helper,
+compatibility registers, original audit inventories and published releases are
+unchanged. Only the two catalog HTML presentation wrappers change shipped
+output. No API, database, authorization or deployment change is made.
+
 ## Acceptance
 
 - [x] All reviewed current-output defects are fixed and covered by regression tests.

@@ -132,6 +132,12 @@ Details reader. Original response fields, customer/license/key data and audit
 evidence remain exact. Both portal builds and four mocked-API browser scenarios
 passed; no real authorization, licensing or deployment acceptance is inferred.
 
+The [public websites output review](PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+covers Company, Documentation and Demo together. Two PAdES catalog wrappers now
+use the market name while original signed files, reports, hashes, filenames and
+classifications stay exact. This is an editorial presentation correction, not
+new validation evidence or permission to change historical artifacts.
+
 ## Repository-Only Naming Review (2026-11-06)
 
 Source baseline: `24390509`. The tracked-file classification is recorded, but
