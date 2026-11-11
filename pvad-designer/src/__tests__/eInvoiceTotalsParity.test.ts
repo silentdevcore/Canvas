@@ -62,7 +62,7 @@ function invoiceFor(testCase: ParityCase): EInvoiceDocument {
 
 describe('invoice totals parity with PVAD.Generator', () => {
   it('loads the shared corpus', () => {
-    expect(corpus.schema).toBe('pxa.e-invoice.totals-parity/1');
+    expect(corpus.schema).toBe('pvad.e-invoice.totals-parity/1');
     expect(corpus.cases.length).toBeGreaterThanOrEqual(10);
     // Large enough that the Designer paginates it, so the totals are proven across page breaks.
     const multiPage = corpus.cases.find(testCase => testCase.id === 'multi-page-projection');

@@ -26,13 +26,13 @@ internal static class PdfSnapshotDesignMapper
             foreach (var element in page.Elements)
             {
                 if (++sequence > maximumElements)
-                    throw new InvalidOperationException($"PXACODE021: The result exceeds {maximumElements} elements.");
+                    throw new InvalidOperationException($"PVADCODE021: The result exceeds {maximumElements} elements.");
                 var mapped = MapElement(element, page.Height, elementIds.ElementAtOrDefault(sequence - 1)?.Id ?? $"el-{pageIndex}-{element.OperationIndex}");
                 if (mapped is null)
                 {
                     diagnostics.Add(new PvadCodeDiagnosticDto
                     {
-                        Code = "PXACODE022", Severity = "warning",
+                        Code = "PVADCODE022", Severity = "warning",
                         Message = $"The PDF operation '{element.Kind}' is preserved in the PDF but cannot be edited visually.",
                     });
                     continue;

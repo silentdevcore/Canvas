@@ -49,7 +49,7 @@ public sealed class PvadPdfRevocationEvidenceProvider : IPdfRevocationEvidencePr
             .Select(static host => host.Trim().TrimEnd('.'))
             .Where(static host => host.Length > 0)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        _cacheDirectory = ResolvePath(_options.CacheDirectory, environment.ContentRootPath);
+        _cacheDirectory = ResolveCacheDirectory(_options, environment);
         Directory.CreateDirectory(_cacheDirectory);
         _suppliedCrls = _options.CrlPaths.Select(path =>
         {
@@ -355,6 +355,9 @@ public sealed class PvadPdfRevocationEvidenceProvider : IPdfRevocationEvidencePr
             return null;
         }
     }
+
+    public static string ResolveCacheDirectory(PvadPdfRevocationEvidenceOptions options, IHostEnvironment environment) =>
+        ResolvePath(options.CacheDirectory, environment.ContentRootPath);
 
     private async Task<byte[]?> ReadCacheAsync(string cacheKey, CancellationToken cancellationToken)
     {

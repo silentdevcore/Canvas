@@ -306,9 +306,9 @@ public class TemplatesController : ControllerBase
             Version = templateVersion
         });
 
-#pragma warning disable PXA0001 // Stored-template rendering targets the PVAD PDF engine boundary.
+#pragma warning disable PVAD0001 // Stored-template rendering targets the PVAD PDF engine boundary.
         var pdfDocument = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = pdfDocument.AddPage();
         page.DrawText($"Template Rendered Successfully: {template.Name}", 100, 700, 14);
         return pdfDocument.ToBytes();

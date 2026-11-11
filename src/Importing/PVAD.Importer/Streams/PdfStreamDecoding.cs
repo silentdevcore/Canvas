@@ -149,7 +149,7 @@ internal static class PdfStreamBudget
         if (decodedLength > budget)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE008",
+                "PVADPDFPARSE008",
                 $"A stream decodes to {decodedLength} bytes, above the permitted {budget} bytes.");
         }
     }
@@ -170,7 +170,7 @@ internal static class PdfStreamBudget
             if (output.Length + read > budget)
             {
                 throw new PdfParseLimitExceededException(
-                    "PXAPDFPARSE008",
+                    "PVADPDFPARSE008",
                     $"A stream decodes to more than the permitted {budget} bytes.");
             }
 
@@ -360,7 +360,7 @@ internal static class PdfPredictor
         if (colors is <= 0 or > 32 || bitsPerComponent is <= 0 or > 32 || columns <= 0)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE010",
+                "PVADPDFPARSE010",
                 "A stream predictor declares out-of-range /Colors, /BitsPerComponent, or /Columns values.");
         }
 
@@ -371,7 +371,7 @@ internal static class PdfPredictor
         if (rowLength64 > limits.MaxPredictorRowLength)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE010",
+                "PVADPDFPARSE010",
                 $"A stream predictor declares a row length of {rowLength64} bytes, above the permitted {limits.MaxPredictorRowLength}.");
         }
 
@@ -675,14 +675,14 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         if (columns <= 0 || columns > _limits.MaxCcittColumns)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE011",
+                "PVADPDFPARSE011",
                 $"CCITT /Columns is {columns}, outside the permitted range 1..{_limits.MaxCcittColumns}.");
         }
 
         if (rows < 0 || rows > _limits.MaxCcittRows)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE011",
+                "PVADPDFPARSE011",
                 $"CCITT /Rows is {rows}, outside the permitted range 0..{_limits.MaxCcittRows}.");
         }
 
@@ -693,7 +693,7 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         if (rows > 0 && declaredBytes > budget)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE011",
+                "PVADPDFPARSE011",
                 $"The declared CCITT image requires {declaredBytes} bytes, above the permitted {budget} bytes.");
         }
 
@@ -742,7 +742,7 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
         if ((long)currentBytes + rowBytes > budget)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE011",
+                "PVADPDFPARSE011",
                 $"A CCITT stream decodes to more than the permitted {budget} bytes.");
         }
     }
@@ -1044,7 +1044,7 @@ public sealed class LzwStreamDecoder : IPdfStreamDecoder
             if (output.Count + entry.Length > budget)
             {
                 throw new PdfParseLimitExceededException(
-                    "PXAPDFPARSE009",
+                    "PVADPDFPARSE009",
                     $"An LZW stream decodes to more than the permitted {budget} bytes.");
             }
 

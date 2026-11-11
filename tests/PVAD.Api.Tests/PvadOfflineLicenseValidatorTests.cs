@@ -20,19 +20,18 @@ public sealed class PvadOfflineLicenseValidatorTests
 
         Assert.True(result.Valid);
         Assert.True(result.SignatureValid);
-        Assert.Equal("PXA_LICENSE_VALID", result.Code);
-        Assert.Equal("PVAD_LICENSE_VALID", result.CanonicalCode);
+        Assert.Equal("PVAD_LICENSE_VALID", result.Code);
     }
 
     [Theory]
-    [InlineData("version", "PXA_LICENSE_VERSION_INCOMPATIBLE")]
-    [InlineData("deployment", "PXA_LICENSE_DEPLOYMENT_MISMATCH")]
-    [InlineData("instances", "PXA_LICENSE_INSTANCE_LIMIT_EXCEEDED")]
-    [InlineData("future", "PXA_LICENSE_NOT_YET_VALID")]
-    [InlineData("expired", "PXA_LICENSE_EXPIRED")]
-    [InlineData("revoked", "PXA_LICENSE_REVOKED")]
-    [InlineData("record", "PXA_LICENSE_ENVELOPE_MISMATCH")]
-    [InlineData("subscription", "PXA_LICENSE_SUBSCRIPTION_MISMATCH")]
+    [InlineData("version", "PVAD_LICENSE_VERSION_INCOMPATIBLE")]
+    [InlineData("deployment", "PVAD_LICENSE_DEPLOYMENT_MISMATCH")]
+    [InlineData("instances", "PVAD_LICENSE_INSTANCE_LIMIT_EXCEEDED")]
+    [InlineData("future", "PVAD_LICENSE_NOT_YET_VALID")]
+    [InlineData("expired", "PVAD_LICENSE_EXPIRED")]
+    [InlineData("revoked", "PVAD_LICENSE_REVOKED")]
+    [InlineData("record", "PVAD_LICENSE_ENVELOPE_MISMATCH")]
+    [InlineData("subscription", "PVAD_LICENSE_SUBSCRIPTION_MISMATCH")]
     public void Invalid_license_conditions_return_stable_codes(string condition, string expectedCode)
     {
         var scenario = CreateScenario();
@@ -74,7 +73,6 @@ public sealed class PvadOfflineLicenseValidatorTests
         Assert.False(result.Valid);
         Assert.True(result.SignatureValid);
         Assert.Equal(expectedCode, result.Code);
-        Assert.Equal("PVAD" + expectedCode[3..], result.CanonicalCode);
     }
 
     [Fact]
@@ -100,7 +98,7 @@ public sealed class PvadOfflineLicenseValidatorTests
 
         Assert.False(result.Valid);
         Assert.False(result.SignatureValid);
-        Assert.Equal("PXA_LICENSE_SIGNATURE_INVALID", result.Code);
+        Assert.Equal("PVAD_LICENSE_SIGNATURE_INVALID", result.Code);
         Assert.Null(result.Envelope);
         Assert.Contains("signature_invalid", outcomes);
     }
@@ -123,7 +121,7 @@ public sealed class PvadOfflineLicenseValidatorTests
 
         Assert.False(result.Valid);
         Assert.True(result.SignatureValid);
-        Assert.Equal("PXA_LICENSE_ENVELOPE_MISMATCH", result.Code);
+        Assert.Equal("PVAD_LICENSE_ENVELOPE_MISMATCH", result.Code);
     }
 
     [Fact]
@@ -136,7 +134,7 @@ public sealed class PvadOfflineLicenseValidatorTests
 
         Assert.False(result.Valid);
         Assert.True(result.SignatureValid);
-        Assert.Equal("PXA_LICENSE_MALFORMED", result.Code);
+        Assert.Equal("PVAD_LICENSE_MALFORMED", result.Code);
     }
 
     [Fact]
@@ -163,7 +161,7 @@ public sealed class PvadOfflineLicenseValidatorTests
         Assert.True(scenario.Validator.Validate(
             scenario.License, scenario.Subscription, Now).Valid);
         Assert.Equal(
-            "PXA_LICENSE_SCHEMA_UPGRADE_REQUIRED",
+            "PVAD_LICENSE_SCHEMA_UPGRADE_REQUIRED",
             scenario.Validator.Validate(
                 scenario.License, scenario.Subscription, Now, expectedProductVersion: "1.2.3").Code);
     }

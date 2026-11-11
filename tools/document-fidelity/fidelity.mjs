@@ -17,13 +17,13 @@ const workflows = new Set([...migrationWorkflows, 'export-roundtrip', 'render-pa
 const provenances = new Set(['pvad-synthetic', 'third-party-generated', 'public-real-world', 'customer-anonymized']);
 
 export function normalizeFixtureIdentity(fixture) {
-  const formats = { 'pxa-json': 'pvad-json', 'pxa-workbook-json': 'pvad-workbook-json' };
-  const providers = { 'pxa-pdf-importer': 'pvad-pdf-importer', 'pxa-docx-importer': 'pvad-docx-importer', 'pxa-xlsx-importer': 'pvad-xlsx-importer' };
+  const formats = { 'pvad-json': 'pvad-json', 'pvad-workbook-json': 'pvad-workbook-json' };
+  const providers = { 'pvad-pdf-importer': 'pvad-pdf-importer', 'pvad-docx-importer': 'pvad-docx-importer', 'pvad-xlsx-importer': 'pvad-xlsx-importer' };
   return {
     ...fixture,
     sourceFormat: Object.hasOwn(formats, fixture.sourceFormat) ? formats[fixture.sourceFormat] : fixture.sourceFormat,
     ...(Object.hasOwn(providers, fixture.provider) ? { provider: providers[fixture.provider] } : {}),
-    provenance: fixture.provenance === 'pxa-synthetic' ? 'pvad-synthetic' : fixture.provenance,
+    provenance: fixture.provenance === 'pvad-synthetic' ? 'pvad-synthetic' : fixture.provenance,
   };
 }
 

@@ -12,7 +12,7 @@ public static class ChartDefinitionNormalizer
     public const string MetadataSourceKind = "pvadMetadata";
 
     public static string? NormalizeRecognitionSource(string? source) =>
-        source == "pxaMetadata" ? MetadataSourceKind : source;
+        source == "pvadMetadata" ? MetadataSourceKind : source;
 
     private static readonly string[] Palette =
     [

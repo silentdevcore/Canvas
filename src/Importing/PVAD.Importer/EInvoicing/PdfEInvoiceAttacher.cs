@@ -161,13 +161,13 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         if (source.IsEncrypted)
         {
             findings.Add(Error(
-                "PXAEINVATTACH001",
+                "PVADEINVATTACH001",
                 "The source PDF is encrypted. Decrypt it before an invoice can be attached."));
         }
         if (source.Pages.Count == 0)
         {
             findings.Add(Error(
-                "PXAEINVATTACH003",
+                "PVADEINVATTACH003",
                 "The source PDF does not contain a resolvable page. PVAD does not attach invoices to page-less documents."));
         }
 
@@ -175,7 +175,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         if (requiresConversion)
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAEINVATTACH004",
+                "PVADEINVATTACH004",
                 PdfTrustDiagnosticSeverity.Warning,
                 source.ArchiveProfile is null
                     ? "The source is not identified as PDF/A-3b, so a hybrid invoice requires a PDF/A-3b conversion. This rewrites the file and needs explicit approval."
@@ -186,7 +186,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         else
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAEINVATTACH002",
+                "PVADEINVATTACH002",
                 PdfTrustDiagnosticSeverity.Info,
                 "The source already identifies PDF/A-3b. The invoice is appended as a new revision and no existing object is rewritten."));
         }
@@ -195,11 +195,11 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         {
             findings.Add(requiresConversion
                 ? new PdfComplianceConversionFinding(
-                    "PXAEINVATTACH008",
+                    "PVADEINVATTACH008",
                     PdfTrustDiagnosticSeverity.Warning,
                     $"The required rewrite removes {source.SignatureCount} existing signature object(s). Explicit approval is required.")
                 : new PdfComplianceConversionFinding(
-                    "PXAEINVATTACH007",
+                    "PVADEINVATTACH007",
                     PdfTrustDiagnosticSeverity.Warning,
                     $"{source.SignatureCount} existing signature(s) stay cryptographically intact, but readers will report the document as modified after signing."));
         }
@@ -209,19 +209,19 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
             if (!options.ReplaceExistingInvoiceAttachment)
             {
                 findings.Add(Error(
-                    "PXAEINVATTACH010",
+                    "PVADEINVATTACH010",
                     $"The PDF already carries the invoice attachment(s) {string.Join(", ", conflicts.Select(static item => item.Name))}. Replacing an existing invoice requires explicit approval."));
             }
             else if (conflicts.FirstOrDefault(static item => !item.SafelyRemovable) is { } retained)
             {
                 findings.Add(Error(
-                    "PXAEINVATTACH016",
+                    "PVADEINVATTACH016",
                     $"The existing invoice attachment '{retained.Name}' is also referenced outside the document catalog, for example by a file-attachment annotation. PVAD does not remove it, because that would change visible or interactive content."));
             }
             else
             {
                 findings.Add(new PdfComplianceConversionFinding(
-                    "PXAEINVATTACH009",
+                    "PVADEINVATTACH009",
                     PdfTrustDiagnosticSeverity.Warning,
                     $"{conflicts.Count} existing invoice attachment(s) are dereferenced in the new revision. In an incremental update their bytes remain readable in the earlier revision of the file."));
             }
@@ -230,7 +230,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         if (!source.HasReadableXmp && !requiresConversion)
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAEINVATTACH012",
+                "PVADEINVATTACH012",
                 PdfTrustDiagnosticSeverity.Warning,
                 "The document XMP packet could not be read and is replaced by a minimal PDF/A-3b packet. Metadata it contained is not carried over."));
         }
@@ -239,14 +239,14 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         if (estimatedOutput > options.MaximumOutputSizeBytes)
         {
             findings.Add(Error(
-                "PXAEINVATTACH011",
+                "PVADEINVATTACH011",
                 $"The result would be about {estimatedOutput} bytes and exceeds the configured output limit of {options.MaximumOutputSizeBytes} bytes."));
         }
 
         if (source.EmbeddedFileNames.Count > 0 && conflicts.Count == 0)
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAEINVATTACH015",
+                "PVADEINVATTACH015",
                 PdfTrustDiagnosticSeverity.Info,
                 $"{source.EmbeddedFileNames.Count} unrelated embedded file(s) are retained and stay associated with the document."));
         }
@@ -254,7 +254,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         if (findings.All(static item => item.Severity != PdfTrustDiagnosticSeverity.Error))
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAEINVATTACH000",
+                "PVADEINVATTACH000",
                 PdfTrustDiagnosticSeverity.Info,
                 $"The invoice can be attached while all {source.Pages.Count} visible page(s) are preserved."));
         }

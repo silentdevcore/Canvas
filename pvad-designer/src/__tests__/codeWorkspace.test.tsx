@@ -226,13 +226,13 @@ describe('Code workspace', () => {
   });
 
   test('projects workspace failure text without changing errors or editor source', async () => {
-    const failure = new Error('PXACODE042: The code execution worker returned no result.');
+    const failure = new Error('PVADCODE042: The code execution worker returned no result.');
     getMock.mockRejectedValueOnce(failure);
     const { container } = await renderWorkspace();
     expect(container.querySelector('[role="alert"]')?.textContent)
       .toBe('PVADCODE042: The code execution worker returned no result.');
     expect(container.querySelector('[data-testid="draft"]')?.textContent).toBe(JSON.stringify(initialDesign, null, 2));
-    expect(failure.message).toBe('PXACODE042: The code execution worker returned no result.');
+    expect(failure.message).toBe('PVADCODE042: The code execution worker returned no result.');
   });
 
   const comparison = () => ({

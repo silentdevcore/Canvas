@@ -255,7 +255,7 @@ files. Completion stays 88/97 (90.7%). No commit, push or VERSION change.
 ## 2026-10-22 Bundled Local Validation
 
 All twelve steps in `node tools/configuration/rename-local-validation.mjs`
-passed. See [scope and execution](../deploy/rename/LOCAL-VALIDATION.md).
+passed. See scope and execution (`deploy/rename/LOCAL-VALIDATION.md`, removed 2026-11-09).
 
 - Configuration/recovery selection: 31 tests passed; API keyring/CORS selection: 24 passed,
   zero skipped. Two new cases restore both protected payload generations after
@@ -343,7 +343,7 @@ Completion stays **88/97 (90.7%)**. VERSION remains 1.1.0; no commit or push.
 ## 2026-10-22 Cutover Preparation Follow-up
 
 Completion remains **88/97 (90.7%)**; the nine combined release/cutover tasks are
-not closed by preparation alone. See [the preparation guide](../deploy/rename/README.md).
+not closed by preparation alone. See the preparation guide (`deploy/rename/README.md`, removed 2026-11-09).
 
 - API CORS now supports explicit configured origins without retaining localhost
   implicitly. Origin validation rejects wildcard, credential, path, query,

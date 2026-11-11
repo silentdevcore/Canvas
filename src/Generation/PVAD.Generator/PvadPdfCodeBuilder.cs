@@ -36,7 +36,7 @@ public sealed class PvadPdfCodeBuilder
     public PvadPdfCodeDocument Build()
     {
         if (_design.Pages.Count == 0)
-            throw new InvalidOperationException("PXACODE140: A PDF code document must contain at least one page.");
+            throw new InvalidOperationException("PVADCODE140: A PDF code document must contain at least one page.");
         return new PvadPdfCodeDocument { Design = _design };
     }
 }

@@ -82,7 +82,7 @@ export class DesignerProjectApiError extends Error {
 }
 
 export const isProjectOperationCancelled = (error: unknown): boolean =>
-  (error instanceof DesignerProjectApiError && error.code === 'PXAPROJECT_CANCELLED') ||
+  (error instanceof DesignerProjectApiError && error.code === 'PVADPROJECT_CANCELLED') ||
   (error instanceof DOMException && error.name === 'AbortError');
 
 const safeFileStem = (name: string, fallback: string): string => {
@@ -129,7 +129,7 @@ const parseProjectResponse = <T>(text: string, status: number): ProjectOpenRespo
       status >= 200 && status < 300
         ? 'The server returned an invalid project response.'
         : `Project operation failed (${status}).`,
-      status >= 200 && status < 300 ? 'PXAPROJECT009' : undefined,
+      status >= 200 && status < 300 ? 'PVADPROJECT009' : undefined,
       status,
     );
   }
@@ -150,7 +150,7 @@ const openWithProgress = async <T>(
   signal: AbortSignal | undefined,
   onProgress: (progress: ProjectTransferProgress) => void,
 ): Promise<ProjectOpenResponse<T>> => {
-  const cancelled = () => new DesignerProjectApiError('The project operation was cancelled.', 'PXAPROJECT_CANCELLED', 499);
+  const cancelled = () => new DesignerProjectApiError('The project operation was cancelled.', 'PVADPROJECT_CANCELLED', 499);
   if (signal?.aborted) throw cancelled();
   const headers = await designerMutationHeaders();
   if (signal?.aborted) throw cancelled();
@@ -191,14 +191,14 @@ const openWithProgress = async <T>(
     }
   });
   request.addEventListener('error', () => fail(new DesignerProjectApiError(
-    'The project service could not be reached.', 'PXAPROJECT_NETWORK', 0,
+    'The project service could not be reached.', 'PVADPROJECT_NETWORK', 0,
   )));
   request.addEventListener('abort', () => fail(new DesignerProjectApiError(
-    'The project operation was cancelled.', 'PXAPROJECT_CANCELLED', 499,
+    'The project operation was cancelled.', 'PVADPROJECT_CANCELLED', 499,
   )));
   if (signal?.aborted) {
     fail(new DesignerProjectApiError(
-      'The project operation was cancelled.', 'PXAPROJECT_CANCELLED', 499,
+      'The project operation was cancelled.', 'PVADPROJECT_CANCELLED', 499,
     ));
     return;
   }
@@ -225,7 +225,7 @@ const save = async (
   const blob = await response.blob();
   const expected = kind === 'pdf' ? 'application/vnd.pvad.pvadp+zip' : 'application/vnd.pvad.pvads+zip';
   if ((response.headers.get('Content-Type') ?? blob.type).split(';')[0] !== expected)
-    throw new DesignerProjectApiError('The server returned an unexpected project format.', 'PXAPROJECT002');
+    throw new DesignerProjectApiError('The server returned an unexpected project format.', 'PVADPROJECT002');
   const extension = kind === 'pdf' ? '.pvadp' : '.pvads';
   download(blob, responseFileName(response, `${safeFileStem(name, kind === 'pdf' ? 'document' : 'workbook')}${extension}`));
 };
@@ -362,7 +362,7 @@ export const preparePdfProjectAssets = async (
       if (blob.type !== 'image/png' && blob.type !== 'image/jpeg') {
         throw new DesignerProjectApiError(
           `Project image '${element.id}' uses unsupported media type '${blob.type || 'unknown'}'.`,
-          'PXAPROJECT010',
+          'PVADPROJECT010',
         );
       }
       const extension = blob.type === 'image/jpeg' ? 'jpg' : 'png';

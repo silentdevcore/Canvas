@@ -386,23 +386,23 @@
             },
             {
               "label": "Platform overview dashboard",
-              "href": "http://localhost:3001/operator/grafana/d/pxa-platform-overview/pxa-platform-overview"
+              "href": "http://localhost:3001/operator/grafana/d/pvad-platform-overview/pvad-platform-overview"
             },
             {
               "label": "Infrastructure dashboard",
-              "href": "http://localhost:3001/operator/grafana/d/pxa-infrastructure/pxa-infrastructure"
+              "href": "http://localhost:3001/operator/grafana/d/pvad-infrastructure/pvad-infrastructure"
             },
             {
               "label": "Mail and OCR operations dashboard",
-              "href": "http://localhost:3001/operator/grafana/d/pxa-operations/pxa-operations"
+              "href": "http://localhost:3001/operator/grafana/d/pvad-operations/pvad-operations"
             },
             {
               "label": "Document operations dashboard",
-              "href": "http://localhost:3001/operator/grafana/d/pxa-document-operations/pxa-document-operations"
+              "href": "http://localhost:3001/operator/grafana/d/pvad-document-operations/pvad-document-operations"
             },
             {
               "label": "Browser health dashboard",
-              "href": "http://localhost:3001/operator/grafana/d/pxa-browser-health/pxa-browser-health"
+              "href": "http://localhost:3001/operator/grafana/d/pvad-browser-health/pvad-browser-health"
             },
             {
               "label": "Local operator gateway health",

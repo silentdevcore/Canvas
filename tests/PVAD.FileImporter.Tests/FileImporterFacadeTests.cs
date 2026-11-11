@@ -76,9 +76,9 @@ public sealed class FileImporterFacadeTests
     [Fact]
     public async Task PdfImporter_PreservesEverySourcePageBox()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var pdf = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         pdf.AddPage(595, 842);
         var landscape = pdf.AddPage(842, 595);
         landscape.SetPageBoundary(PdfPageBoundary.CropBox, new PdfPoint(10, 20), new PdfPoint(810, 570));

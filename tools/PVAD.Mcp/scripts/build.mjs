@@ -29,7 +29,7 @@ for (const relativePath of new Set([
   'VERSION',
   'llms-full.txt',
   'docs/csharp-cookbook.md',
-  'docs/schema/pxa-workbook.schema.json',
+  'docs/schema/pvad-workbook.schema.json',
   'docs/schema/schema-aliases.json',
   ...schemaManifest.schemas.map(entry => entry.path),
   'docs/schema/openapi.json',

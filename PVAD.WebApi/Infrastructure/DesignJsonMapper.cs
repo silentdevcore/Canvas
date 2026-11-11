@@ -94,9 +94,9 @@ public static class DesignJsonMapper
         if (evaluationProps.Count > 0)
             design = ApplyPropertySubstitutions(design, evaluationProps);
 
-#pragma warning disable PXA0001 // Web API mapper targets the PVAD PDF engine behind the API routes.
+#pragma warning disable PVAD0001 // Web API mapper targets the PVAD PDF engine behind the API routes.
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.FontLoader = fontLoader;
         document.Info.Title   = string.IsNullOrWhiteSpace(design.PageSettings?.Metadata?.Title)
             ? design.Name

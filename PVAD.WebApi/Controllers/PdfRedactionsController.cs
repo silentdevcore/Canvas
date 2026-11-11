@@ -51,13 +51,13 @@ public sealed class PdfRedactionsController(
     {
         if (file is null || file.Length == 0)
         {
-            return ProblemFor("A PDF file is required", "Upload a non-empty PDF in the 'file' multipart field.", "PXAPDFREDACTAPI001");
+            return ProblemFor("A PDF file is required", "Upload a non-empty PDF in the 'file' multipart field.", "PVADPDFREDACTAPI001");
         }
 
         if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
             !file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
         {
-            return ProblemFor("The uploaded file is not a PDF", "Use a .pdf file or the application/pdf content type.", "PXAPDFREDACTAPI002");
+            return ProblemFor("The uploaded file is not a PDF", "Use a .pdf file or the application/pdf content type.", "PVADPDFREDACTAPI002");
         }
 
         if (file.Length > MaximumUploadBytes)
@@ -66,12 +66,12 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF is too large to preflight",
                 detail: $"Redaction preflight accepts files up to {MaximumUploadBytes} bytes.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI003" });
         }
 
         if (!TryReadRegions(regions, out var parsedRegions, out var regionError))
         {
-            return ProblemFor("The redaction regions are invalid", regionError, "PXAPDFREDACTAPI004");
+            return ProblemFor("The redaction regions are invalid", regionError, "PVADPDFREDACTAPI004");
         }
 
         try
@@ -81,11 +81,11 @@ public sealed class PdfRedactionsController(
         }
         catch (ArgumentOutOfRangeException exception)
         {
-            return ProblemFor("The redaction request exceeds a limit", exception.Message, "PXAPDFREDACTAPI005");
+            return ProblemFor("The redaction request exceeds a limit", exception.Message, "PVADPDFREDACTAPI005");
         }
         catch (ArgumentException exception)
         {
-            return ProblemFor("The redaction request is invalid", exception.Message, "PXAPDFREDACTAPI004");
+            return ProblemFor("The redaction request is invalid", exception.Message, "PVADPDFREDACTAPI004");
         }
         catch (InvalidDataException)
         {
@@ -93,7 +93,7 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF exceeds the preflight limit",
                 detail: "The uploaded stream exceeded the configured redaction preflight limit.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI003" });
         }
     }
 
@@ -121,12 +121,12 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Organization context required",
                 detail: "An active organization and authenticated user are required to retain redaction evidence.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI008" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI008" });
         }
 
         if (file is null || file.Length == 0)
         {
-            return ProblemFor("A PDF file is required", "Upload a non-empty PDF in the 'file' multipart field.", "PXAPDFREDACTAPI001");
+            return ProblemFor("A PDF file is required", "Upload a non-empty PDF in the 'file' multipart field.", "PVADPDFREDACTAPI001");
         }
 
         if (file.Length > MaximumUploadBytes)
@@ -135,19 +135,19 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF is too large to redact",
                 detail: $"Redaction accepts files up to {MaximumUploadBytes} bytes.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI003" });
         }
 
         if (!TryReadRegions(regions, out var parsedRegions, out var regionError))
         {
-            return ProblemFor("The redaction regions are invalid", regionError, "PXAPDFREDACTAPI004");
+            return ProblemFor("The redaction regions are invalid", regionError, "PVADPDFREDACTAPI004");
         }
         if (reason?.Length > MaximumReasonCharacters)
         {
             return ProblemFor(
                 "The redaction reason is too long",
                 $"The reason may contain at most {MaximumReasonCharacters} characters.",
-                "PXAPDFREDACTAPI004");
+                "PVADPDFREDACTAPI004");
         }
 
         try
@@ -173,7 +173,7 @@ public sealed class PdfRedactionsController(
                     detail: "Verification found residual covered content, so the result was not returned.",
                     extensions: new Dictionary<string, object?>
                     {
-                        ["code"] = "PXAPDFREDACTAPI007",
+                        ["code"] = "PVADPDFREDACTAPI007",
                         ["verification"] = result.Verification
                     });
             }
@@ -185,7 +185,7 @@ public sealed class PdfRedactionsController(
                     statusCode: StatusCodes.Status500InternalServerError,
                     title: "The redaction audit record exceeds its safety limit",
                     detail: "The redacted PDF was not returned because its complete audit evidence could not be retained safely.",
-                    extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+                    extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI011" });
             }
 
             await auditWriter.WriteAsync(new PvadPdfTrustAuditEntry(
@@ -223,13 +223,13 @@ public sealed class PdfRedactionsController(
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAPDFREDACTAPI006",
+                    ["code"] = "PVADPDFREDACTAPI006",
                     ["preflight"] = exception.Preflight
                 });
         }
         catch (ArgumentException exception)
         {
-            return ProblemFor("The redaction request is invalid", exception.Message, "PXAPDFREDACTAPI004");
+            return ProblemFor("The redaction request is invalid", exception.Message, "PVADPDFREDACTAPI004");
         }
         catch (DbUpdateException)
         {
@@ -237,7 +237,7 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "The redaction audit record could not be retained",
                 detail: "The redacted PDF was not returned because its audit evidence could not be stored.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI011" });
         }
         catch (Exception exception) when (exception is PdfTimestampAuthorityException or CryptographicException)
         {
@@ -245,7 +245,7 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "The redaction audit signature could not be timestamped",
                 detail: "The redacted PDF was not returned because the configured timestamp authority did not produce valid audit evidence.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI012" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI012" });
         }
     }
 
@@ -269,14 +269,14 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Organization context required",
                 detail: "Select an active organization before reading redaction evidence.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI008" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI008" });
         }
         if (!IsSha256(recordSha256))
         {
             return ProblemFor(
                 "The redaction audit identifier is invalid",
                 "Use the 64-character SHA-256 identifier returned by the apply operation.",
-                "PXAPDFREDACTAPI009");
+                "PVADPDFREDACTAPI009");
         }
 
         var normalizedHash = recordSha256.ToLowerInvariant();
@@ -293,7 +293,7 @@ public sealed class PdfRedactionsController(
                 statusCode: StatusCodes.Status404NotFound,
                 title: "Redaction audit record not found",
                 detail: "No redaction audit record with that identifier exists in the active organization.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI010" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI010" });
         }
         if (Encoding.UTF8.GetByteCount(auditJson) > MaximumAuditRecordBytes)
         {
@@ -388,7 +388,7 @@ public sealed class PdfRedactionsController(
         statusCode: StatusCodes.Status500InternalServerError,
         title: "The redaction audit record is unavailable",
         detail: "The stored audit evidence did not pass its integrity and size checks.",
-        extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFREDACTAPI011" });
+        extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFREDACTAPI011" });
 
     private static bool IsSha256(string value) =>
         value.Length == 64 && value.All(static character =>

@@ -3,7 +3,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const canonicalParser = id => id === 'pxa' ? 'pvad' : id;
+const canonicalParser = id => id === 'pvad' ? 'pvad' : id;
 const statuses = new Set(['accepted', 'rejected', 'crashed', 'timeout']);
 
 export function readFuzzReport(source) {

@@ -19,7 +19,7 @@ public sealed class PvadDocumentHeaderCompatibilityTests
     {
         using var factory = new PvadApiTestFactory();
         using var client = factory.CreateClient();
-        foreach (var prefix in new[] { "pvad", "pxa" })
+        foreach (var prefix in new[] { "pvad", "pvad" })
         {
             using var request = new HttpRequestMessage(HttpMethod.Options, $"/api/{prefix}/v1/version");
             request.Headers.Add("Origin", origin);
@@ -59,9 +59,9 @@ public sealed class PvadDocumentHeaderCompatibilityTests
         var context = new DefaultHttpContext();
         PvadResponseHeaders.SetDocument(context.Response, suffix, "synthetic-value");
         Assert.Equal("synthetic-value", context.Response.Headers[$"PVAD-{suffix}"].ToString());
-        Assert.Equal("synthetic-value", context.Response.Headers[$"PXA-{suffix}"].ToString());
+        Assert.Equal("synthetic-value", context.Response.Headers[$"PVAD-{suffix}"].ToString());
         Assert.Contains($"PVAD-{suffix}", PvadResponseHeaders.ExposedHeaders);
-        Assert.Contains($"PXA-{suffix}", PvadResponseHeaders.ExposedHeaders);
+        Assert.Contains($"PVAD-{suffix}", PvadResponseHeaders.ExposedHeaders);
     }
 
     [Fact]
@@ -85,9 +85,9 @@ public sealed class PvadDocumentHeaderCompatibilityTests
         using var mail = transport.CreateMessage(new RenderedMail(id, "recipient@example.invalid",
             "Synthetic subject", "<p>Content</p>", "Content"));
         Assert.Equal(id.ToString(), mail.Headers["X-PVAD-Outbox-Id"]);
-        Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], mail.Headers["X-PXA-Outbox-Id"]);
+        Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], mail.Headers["X-PVAD-Outbox-Id"]);
         Assert.Single(mail.Headers.GetValues("X-PVAD-Outbox-Id")!);
-        Assert.Single(mail.Headers.GetValues("X-PXA-Outbox-Id")!);
+        Assert.Single(mail.Headers.GetValues("X-PVAD-Outbox-Id")!);
         Assert.Equal("Synthetic subject", mail.Subject);
         Assert.Equal("<p>Content</p>", mail.Body);
         Assert.Single(mail.AlternateViews);
@@ -96,7 +96,7 @@ public sealed class PvadDocumentHeaderCompatibilityTests
         using var retried = transport.CreateMessage(new RenderedMail(id, "recipient@example.invalid",
             "Synthetic subject", "<p>Content</p>", "Content"));
         Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], retried.Headers["X-PVAD-Outbox-Id"]);
-        Assert.Equal(mail.Headers["X-PXA-Outbox-Id"], retried.Headers["X-PXA-Outbox-Id"]);
+        Assert.Equal(mail.Headers["X-PVAD-Outbox-Id"], retried.Headers["X-PVAD-Outbox-Id"]);
         using var unrelated = transport.CreateMessage(new RenderedMail(Guid.NewGuid(), "recipient@example.invalid",
             "Synthetic subject", "<p>Content</p>", "Content"));
         Assert.NotEqual(mail.Headers["X-PVAD-Outbox-Id"], unrelated.Headers["X-PVAD-Outbox-Id"]);

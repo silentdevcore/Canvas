@@ -7,7 +7,7 @@ public sealed class PdfEInvoiceRenameAliasTests
 {
     [Theory]
     [InlineData("pvadEquivalent")]
-    [InlineData("pxaEquivalent")]
+    [InlineData("pvadEquivalent")]
     public void Capability_reads_each_name_and_writes_matching_values_for_both_generations(string property)
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -18,12 +18,12 @@ public sealed class PdfEInvoiceRenameAliasTests
         Assert.Equal("PVAD.Generator.EInvoice", model.PvadEquivalent);
         using var output = JsonDocument.Parse(JsonSerializer.Serialize(model, options));
         Assert.Equal(output.RootElement.GetProperty("pvadEquivalent").GetString(),
-            output.RootElement.GetProperty("pxaEquivalent").GetString());
+            output.RootElement.GetProperty("pvadEquivalent").GetString());
     }
 
     [Theory]
     [InlineData("pvadEquivalent")]
-    [InlineData("pxaEquivalent")]
+    [InlineData("pvadEquivalent")]
     public void Finding_reads_each_name_without_losing_diagnostics_or_source_markers(string property)
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -36,6 +36,6 @@ public sealed class PdfEInvoiceRenameAliasTests
         Assert.Equal("vendor.Api", Assert.Single(model.MatchedMarkers));
         using var output = JsonDocument.Parse(JsonSerializer.Serialize(model, options));
         Assert.Equal(output.RootElement.GetProperty("pvadEquivalent").GetString(),
-            output.RootElement.GetProperty("pxaEquivalent").GetString());
+            output.RootElement.GetProperty("pvadEquivalent").GetString());
     }
 }

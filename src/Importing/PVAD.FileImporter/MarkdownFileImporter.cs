@@ -99,7 +99,7 @@ public sealed class MarkdownFileImporter : IFileImporter
         if (pages.Count > 1)
         {
             ctx.AddDiagnostic(
-                "PXA-MD-100",
+                "PVAD-MD-100",
                 "info",
                 $"The Markdown document was split across {pages.Count} pages.");
         }
@@ -362,7 +362,7 @@ public sealed class MarkdownFileImporter : IFileImporter
     {
         settings.Diagnostics.Add(new ImportDiagnosticDto
         {
-            Code = "PXA-MD-006",
+            Code = "PVAD-MD-006",
             Severity = "warning",
             Message = $"The YAML front matter value for '{key}' was invalid and was ignored.",
             Source = value,
@@ -522,7 +522,7 @@ public sealed class MarkdownFileImporter : IFileImporter
 
             default:
                 ctx.AddDiagnostic(
-                    "PXA-MD-004",
+                    "PVAD-MD-004",
                     "warning",
                     $"Unsupported Markdown block '{block.GetType().Name}' was skipped.");
                 break;
@@ -575,7 +575,7 @@ public sealed class MarkdownFileImporter : IFileImporter
                 imageSource.Length == 0)
             {
                 ctx.AddDiagnostic(
-                    "PXA-MD-002",
+                    "PVAD-MD-002",
                     "warning",
                     "An embedded image was rejected because it was invalid or unsupported.",
                     originalSource[..Math.Min(originalSource.Length, 80)]);
@@ -595,14 +595,14 @@ public sealed class MarkdownFileImporter : IFileImporter
         if (removedLinks > 0)
         {
             ctx.AddDiagnostic(
-                "PXA-MD-001",
+                "PVAD-MD-001",
                 "warning",
                 $"{removedLinks} unsafe Markdown link target(s) were removed.");
         }
         if (inline.Descendants<LinkInline>().Any(link => link.IsImage))
         {
             ctx.AddDiagnostic(
-                "PXA-MD-003",
+                "PVAD-MD-003",
                 "warning",
                 "Inline images inside text are not supported and were omitted.");
         }
@@ -622,7 +622,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             if (lineH > ctx.MaxContentHeight)
             {
                 ctx.AddDiagnostic(
-                    "PXA-MD-005",
+                    "PVAD-MD-005",
                     "warning",
                     "Inline formatting was simplified while splitting an oversized paragraph across pages.");
                 RenderPaginatedParagraphText(plainForHeight, ctx);
@@ -1336,7 +1336,7 @@ public sealed class MarkdownFileImporter : IFileImporter
                     image.Content = "";
                     AddImportDiagnostic(
                         design,
-                        "PXA-MD-201",
+                        "PVAD-MD-201",
                         "warning",
                         "A relative image could not be resolved because no asset base URI was provided.",
                         source);
@@ -1349,7 +1349,7 @@ public sealed class MarkdownFileImporter : IFileImporter
                 image.Content = "";
                 AddImportDiagnostic(
                     design,
-                    "PXA-MD-202",
+                    "PVAD-MD-202",
                     "warning",
                     "An image source was rejected because only HTTP(S) assets are supported.",
                     source);
@@ -1363,7 +1363,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             {
                 AddImportDiagnostic(
                     design,
-                    "PXA-MD-203",
+                    "PVAD-MD-203",
                     "warning",
                     "A remote image could not be downloaded or failed image validation.",
                     uri.AbsoluteUri);

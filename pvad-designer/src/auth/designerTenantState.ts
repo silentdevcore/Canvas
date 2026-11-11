@@ -3,15 +3,12 @@ import { clearNativeProjects } from '@/native/nativeProjectLaunch';
 
 const localTenantKeys = [
   'editor-storage',
-  'pxa-spreadsheet',
   'pvad-spreadsheet',
   'canvas-spreadsheet',
-  'pxa-code-editor-draft-v2',
   'pvad-code-editor-draft-v2',
 ];
 
 const sessionTenantKeys = [
-  'pxa_migration_designer_handoff',
   'pvad_migration_designer_handoff',
   'pdf_viewer_handoff',
   'pvad_pdf_viewer_handoff',

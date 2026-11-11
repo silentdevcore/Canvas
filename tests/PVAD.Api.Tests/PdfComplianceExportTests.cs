@@ -325,7 +325,7 @@ public sealed class PdfComplianceExportTests
 
         var exception = Assert.Throws<InvalidDataException>(() => DesignJsonMapper.BuildSaveOptions(design));
 
-        Assert.Contains("PXAPDFTRUST204", exception.Message);
+        Assert.Contains("PVADPDFTRUST204", exception.Message);
     }
 
     private static void WriteValidationArtifact(string fileName, byte[] bytes)

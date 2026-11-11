@@ -174,5 +174,4 @@ public sealed record DesignerFeatureResponse(
     string DecisionCode,
     string DecisionReason)
 {
-    public string? CanonicalDecisionCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(DecisionCode);
 }

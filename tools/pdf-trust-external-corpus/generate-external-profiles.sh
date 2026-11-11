@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-. "$(dirname "$0")/../configuration/environment.sh"
-pvad_environment_alias PVAD_OWNER_PASSWORD PXA_OWNER_PASSWORD "${PVAD_OWNER_PASSWORD+x}" "${PVAD_OWNER_PASSWORD-}" "${PXA_OWNER_PASSWORD+x}" "${PXA_OWNER_PASSWORD-}"
-pvad_environment_alias PVAD_USER_PASSWORD PXA_USER_PASSWORD "${PVAD_USER_PASSWORD+x}" "${PVAD_USER_PASSWORD-}" "${PXA_USER_PASSWORD+x}" "${PXA_USER_PASSWORD-}"
 
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 readonly TOOL_DIRECTORY="$ROOT/tools/pdf-trust-external-corpus"
@@ -11,8 +8,8 @@ readonly SOURCE="$TOOL_DIRECTORY/sources/trust-profile.html"
 readonly FIXTURE_DIRECTORY="$ROOT/tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal"
 readonly BASE_PDF="$ROOT/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf"
 readonly IMAGE="pvad-pdf-trust-external-tools:1"
-readonly USER_PASSWORD="PXA-reader-ä漢字"
-readonly OWNER_PASSWORD="PXA-owner-ßЖ"
+readonly USER_PASSWORD="PVAD-reader-ä漢字"
+readonly OWNER_PASSWORD="PVAD-owner-ßЖ"
 
 for command in soffice docker dotnet; do
   if ! command -v "$command" >/dev/null 2>&1; then

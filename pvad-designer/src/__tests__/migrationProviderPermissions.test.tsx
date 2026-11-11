@@ -151,8 +151,8 @@ describe('migration provider permissions', () => {
   });
 
   it.each([
-    ['pdf', 'pvad-csharp'], ['pdf', 'pxa-csharp'],
-    ['spreadsheet', 'pvad-spreadsheet-csharp'], ['spreadsheet', 'pxa-spreadsheet-csharp'],
+    ['pdf', 'pvad-csharp'], ['pdf', 'pvad-csharp'],
+    ['spreadsheet', 'pvad-spreadsheet-csharp'], ['spreadsheet', 'pvad-spreadsheet-csharp'],
   ] as const)('downloads only the selected %s code artifact (%s)', async (domain, id) => {
     const code = '// Downloaded verbatim\nusing PVAD.Pdf;';
     (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => Promise.resolve({

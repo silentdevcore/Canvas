@@ -19,19 +19,19 @@ public static class PdfTrustSettingsValidator
         var encryption = settings.Encryption;
 
         if (compliance is not ("None" or "PdfA2B" or "PdfA3B"))
-            issues.Add(new("PXAPDFTRUST201", $"Unsupported PDF compliance profile '{compliance}'."));
+            issues.Add(new("PVADPDFTRUST201", $"Unsupported PDF compliance profile '{compliance}'."));
         if (accessibility is not ("None" or "PdfUa1"))
-            issues.Add(new("PXAPDFTRUST202", $"Unsupported PDF accessibility profile '{accessibility}'."));
+            issues.Add(new("PVADPDFTRUST202", $"Unsupported PDF accessibility profile '{accessibility}'."));
 
         if (encryption?.Enabled == true)
         {
             if (compliance is "PdfA2B" or "PdfA3B")
-                issues.Add(new("PXAPDFTRUST203", "PDF/A output and PDF encryption cannot be enabled together."));
+                issues.Add(new("PVADPDFTRUST203", "PDF/A output and PDF encryption cannot be enabled together."));
             if (accessibility == "PdfUa1")
-                issues.Add(new("PXAPDFTRUST204", "PDF/UA output and PDF encryption cannot be enabled together."));
+                issues.Add(new("PVADPDFTRUST204", "PDF/UA output and PDF encryption cannot be enabled together."));
             var algorithm = encryption.Algorithm?.Trim().ToUpperInvariant();
             if (algorithm is not ("AES256" or "AES128" or "RC4_128"))
-                issues.Add(new("PXAPDFTRUST205", $"Unsupported PDF encryption algorithm '{encryption.Algorithm}'."));
+                issues.Add(new("PVADPDFTRUST205", $"Unsupported PDF encryption algorithm '{encryption.Algorithm}'."));
 
             var permissions = encryption.Permissions ?? new PdfEncryptionPermissionsDto();
             var restricted = !permissions.Print || !permissions.Modify || !permissions.Copy ||
@@ -41,7 +41,7 @@ public static class PdfTrustSettingsValidator
                 (string.IsNullOrEmpty(encryption.OwnerPassword) ||
                  string.Equals(encryption.OwnerPassword, encryption.UserPassword, StringComparison.Ordinal)))
             {
-                issues.Add(new("PXAPDFTRUST206", "Restricted AES permissions require a distinct owner password."));
+                issues.Add(new("PVADPDFTRUST206", "Restricted AES permissions require a distinct owner password."));
             }
         }
 

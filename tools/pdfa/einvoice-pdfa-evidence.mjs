@@ -167,7 +167,7 @@ function main() {
   }
 
   const evidence = {
-    schema: 'pxa.e-invoice.pdfa-evidence/1',
+    schema: 'pvad.e-invoice.pdfa-evidence/1',
     description:
       'veraPDF results for the deterministic electronic-invoice PDF/A fixtures. veraPDF proves '
       + 'PDF/A properties only; this is not a Factur-X, ZUGFeRD or XRechnung conformance claim, and '

@@ -215,9 +215,9 @@ test('offline authentication is distinct from authorization failure', async ({ p
 
 test('Designer keeps entitlement, Trial, and suspension failures distinct', async ({ browser }) => {
   const scenarios = [
-    { code: 'PXA_ENTITLEMENT_MISSING', statusKey: 'entitlementDenied' },
-    { code: 'PXA_TRIAL_EXPIRED', statusKey: 'trialExpired' },
-    { code: 'PXA_ORGANIZATION_INACTIVE', statusKey: 'suspended' },
+    { code: 'PVAD_ENTITLEMENT_MISSING', statusKey: 'entitlementDenied' },
+    { code: 'PVAD_TRIAL_EXPIRED', statusKey: 'trialExpired' },
+    { code: 'PVAD_ORGANIZATION_INACTIVE', statusKey: 'suspended' },
   ] as const;
 
   for (const scenario of scenarios) {
@@ -253,7 +253,7 @@ test('unauthenticated Designer handoff sends only the local path to Account', as
   await page.route('**/api/pvad/v1/auth/me', route => route.fulfill({
     status: 401,
     contentType: 'application/problem+json',
-    body: JSON.stringify({ status: 401, title: 'Authentication required', code: 'PXAAPI001' }),
+    body: JSON.stringify({ status: 401, title: 'Authentication required', code: 'PVADAPI001' }),
   }));
 
   await page.goto('http://localhost:5176/private-designer-path?returnUrl=https://attacker.example/private');
@@ -264,7 +264,7 @@ test('unauthenticated Designer handoff sends only the local path to Account', as
 
 for (const [generation, storageKey] of [
   ['current', 'pvad-status-recovery-v1'],
-  ['legacy', 'pxa-status-recovery-v1'],
+  ['legacy', 'pvad-status-recovery-v1'],
 ] as const) {
   test(`recovery navigation reports completed and failed outcomes without route details (${generation} storage)`, async ({ page }) => {
     const events: Array<{ type: string; outcome: string; route: string; name?: string }> = [];
@@ -289,7 +289,7 @@ for (const [generation, storageKey] of [
     await expect(page.locator('[data-status-key="notFound"]')).toBeVisible();
     await expect.poll(() => events.some(event =>
       event.type === 'status_recovery' && event.outcome === 'failed' && event.name === 'retry')).toBe(true);
-    for (const key of ['pvad-status-recovery-v1', 'pxa-status-recovery-v1'])
+    for (const key of ['pvad-status-recovery-v1', 'pvad-status-recovery-v1'])
       expect(await page.evaluate(value => sessionStorage.getItem(value), key)).toBeNull();
 
     const recoveryEvents = events.filter(event => event.type === 'status_recovery');

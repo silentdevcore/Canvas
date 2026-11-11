@@ -26,9 +26,9 @@ public sealed class UnifiedMigrationsController(
     public IActionResult GetCatalog([FromQuery] string? domain = null, [FromQuery] string? kind = null)
     {
         if (domain is not null && !MigrationDomains.All.Contains(domain))
-            return MigrationProblem(400, "Invalid migration domain", $"Unknown migration domain '{domain}'.", "PXAMIG001");
+            return MigrationProblem(400, "Invalid migration domain", $"Unknown migration domain '{domain}'.", "PVADMIG001");
         if (kind is not null && !MigrationKinds.All.Contains(kind))
-            return MigrationProblem(400, "Invalid migration kind", $"Unknown migration kind '{kind}'.", "PXAMIG002");
+            return MigrationProblem(400, "Invalid migration kind", $"Unknown migration kind '{kind}'.", "PVADMIG002");
 
         var providers = MigrationProviderCatalog.All
             .Where(item => domain is null || string.Equals(item.Domain, domain, StringComparison.OrdinalIgnoreCase))
@@ -99,7 +99,7 @@ public sealed class UnifiedMigrationsController(
             Status = 404,
             Title = "Migration example unavailable",
             Detail = $"No backend-owned example is available for '{descriptor.ProviderKey}'.",
-            Extensions = { ["code"] = "PXAMIG006" }
+            Extensions = { ["code"] = "PVADMIG006" }
         });
     }
 
@@ -114,14 +114,14 @@ public sealed class UnifiedMigrationsController(
         if (!TryResolve(domain, kind, provider, out var descriptor, out var error)) return error!;
         if (!CanExecute(descriptor)) return PermissionDenied(descriptor.PermissionKey);
         if (string.IsNullOrWhiteSpace(request.Source) && string.IsNullOrWhiteSpace(request.SourceBase64))
-            return MigrationProblem(400, "Migration source required", "Provide source or sourceBase64.", "PXAMIG003");
+            return MigrationProblem(400, "Migration source required", "Provide source or sourceBase64.", "PVADMIG003");
         if (descriptor.MigrationKind is MigrationKinds.Code or MigrationKinds.Viewer && string.IsNullOrWhiteSpace(request.Source))
-            return MigrationProblem(400, "Migration source required", "This migration provider requires text source.", "PXAMIG003");
+            return MigrationProblem(400, "Migration source required", "This migration provider requires text source.", "PVADMIG003");
         if (!string.IsNullOrWhiteSpace(request.SourceName)
             && !AcceptsSourceName(descriptor, request.InputType, request.SourceName))
             return UnsupportedSourceFile(descriptor, request.InputType, request.SourceName);
         if (ExceedsInputLimit(request, descriptor.MaximumInputBytes))
-            return MigrationProblem(413, "Migration source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PXAMIG010");
+            return MigrationProblem(413, "Migration source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PVADMIG010");
 
         try
         {
@@ -130,7 +130,7 @@ public sealed class UnifiedMigrationsController(
                 MigrationKinds.Code => ConvertCode(descriptor, request),
                 MigrationKinds.Viewer => ConvertViewer(descriptor, request),
                 MigrationKinds.Designer => ConvertReport(descriptor, request),
-                _ => MigrationProblem(400, "Unsupported migration kind", "No datasource migration provider is registered.", "PXAMIG004")
+                _ => MigrationProblem(400, "Unsupported migration kind", "No datasource migration provider is registered.", "PVADMIG004")
             };
         }
         catch (NutrientViewerSourceException exception)
@@ -143,7 +143,7 @@ public sealed class UnifiedMigrationsController(
         }
         catch (ArgumentException exception)
         {
-            return MigrationProblem(400, "Migration input is invalid", exception.Message, "PXAMIG005");
+            return MigrationProblem(400, "Migration input is invalid", exception.Message, "PVADMIG005");
         }
     }
 
@@ -165,12 +165,12 @@ public sealed class UnifiedMigrationsController(
         if (request.Pdf.Length > 50 * 1024 * 1024)
             return MigrationProblem(413, "Source PDF is too large", "The Nutrient Designer migration accepts PDFs up to 50 MiB.", "CANMIGNUTDESIGN102");
         if (string.IsNullOrWhiteSpace(request.Source))
-            return MigrationProblem(400, "Nutrient source required", "Provide Viewer JavaScript, TypeScript, or Instant JSON.", "PXAMIG003");
+            return MigrationProblem(400, "Nutrient source required", "Provide Viewer JavaScript, TypeScript, or Instant JSON.", "PVADMIG003");
         if (!string.IsNullOrWhiteSpace(request.SourceName)
             && !AcceptsSourceName(descriptor, request.InputType, request.SourceName))
             return UnsupportedSourceFile(descriptor, request.InputType, request.SourceName);
         if (Encoding.UTF8.GetByteCount(request.Source) > descriptor.MaximumInputBytes)
-            return MigrationProblem(413, "Nutrient source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PXAMIG010");
+            return MigrationProblem(413, "Nutrient source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PVADMIG010");
 
         try
         {
@@ -223,7 +223,7 @@ public sealed class UnifiedMigrationsController(
         }
         catch (ArgumentException exception)
         {
-            return MigrationProblem(400, "Migration input is invalid", exception.Message, "PXAMIG005");
+            return MigrationProblem(400, "Migration input is invalid", exception.Message, "PVADMIG005");
         }
         catch (InvalidDataException exception)
         {
@@ -249,11 +249,11 @@ public sealed class UnifiedMigrationsController(
         if (!TryResolve(domain, kind, provider, out var descriptor, out var error)) return error!;
         if (!CanExecute(descriptor)) return PermissionDenied(descriptor.PermissionKey);
         if (!descriptor.SupportsPreview || descriptor.MigrationKind != MigrationKinds.Code)
-            return MigrationProblem(400, "Preview is not supported", $"'{descriptor.ProviderKey}' has no server preview.", "PXAMIG007");
+            return MigrationProblem(400, "Preview is not supported", $"'{descriptor.ProviderKey}' has no server preview.", "PVADMIG007");
         if (string.IsNullOrWhiteSpace(request.Source))
-            return MigrationProblem(400, "Migration source required", "Provide source.", "PXAMIG003");
+            return MigrationProblem(400, "Migration source required", "Provide source.", "PVADMIG003");
         if (ExceedsInputLimit(request, descriptor.MaximumInputBytes))
-            return MigrationProblem(413, "Migration source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PXAMIG010");
+            return MigrationProblem(413, "Migration source is too large", $"The provider accepts at most {descriptor.MaximumInputBytes} bytes.", "PVADMIG010");
 
         try
         {
@@ -264,7 +264,7 @@ public sealed class UnifiedMigrationsController(
         }
         catch (ArgumentException exception)
         {
-            return MigrationProblem(400, "Preview could not be generated", exception.Message, "PXAMIG008");
+            return MigrationProblem(400, "Preview could not be generated", exception.Message, "PVADMIG008");
         }
     }
 
@@ -412,9 +412,7 @@ public sealed class UnifiedMigrationsController(
         IReadOnlyList<NutrientPageGeometry>? pages) => new()
     {
         ["schemaVersion"] = 1,
-        ["kind"] = PvadLegacyApiMiddleware.IsLegacyRequest(HttpContext)
-            ? MigrationArtifactIdentities.LegacyViewerPackageKind : MigrationArtifactIdentities.ViewerPackageKind,
-        ["canonicalKind"] = MigrationArtifactIdentities.ViewerPackageKind,
+        ["kind"] = MigrationArtifactIdentities.ViewerPackageKind,
         ["provider"] = "nutrient",
         ["sourceType"] = inputType,
         ["viewerSettings"] = viewerSettings,
@@ -469,18 +467,18 @@ public sealed class UnifiedMigrationsController(
         if (!MigrationDomains.All.Contains(domain))
         {
             descriptor = null!;
-            error = MigrationProblem(400, "Invalid migration domain", $"Unknown migration domain '{domain}'.", "PXAMIG001");
+            error = MigrationProblem(400, "Invalid migration domain", $"Unknown migration domain '{domain}'.", "PVADMIG001");
             return false;
         }
         if (!MigrationKinds.All.Contains(kind))
         {
             descriptor = null!;
-            error = MigrationProblem(400, "Invalid migration kind", $"Unknown migration kind '{kind}'.", "PXAMIG002");
+            error = MigrationProblem(400, "Invalid migration kind", $"Unknown migration kind '{kind}'.", "PVADMIG002");
             return false;
         }
         if (!MigrationProviderCatalog.TryGet(domain, kind, provider, out descriptor!))
         {
-            error = MigrationProblem(404, "Migration provider not found", $"No provider exists at '{domain}/{kind}/{provider}'.", "PXAMIG009");
+            error = MigrationProblem(404, "Migration provider not found", $"No provider exists at '{domain}/{kind}/{provider}'.", "PVADMIG009");
             return false;
         }
         error = null;
@@ -527,7 +525,7 @@ public sealed class UnifiedMigrationsController(
             "Unsupported migration source file",
             $"'{Path.GetFileName(sourceName)}' is not supported by {descriptor.DisplayName}. " +
             $"Choose one of: {string.Join(", ", extensions)}.",
-            "PXAMIG011");
+            "PVADMIG011");
     }
 
     private static bool AcceptsSourceName(
@@ -561,7 +559,7 @@ public sealed class UnifiedMigrationsController(
     private IActionResult PermissionDenied(string permission) => MigrationProblem(
         403, "Designer migration permission required",
         "Your organization role does not allow this migration provider.",
-        "PXA_DESIGNER_PERMISSION_REQUIRED", permission);
+        "PVAD_DESIGNER_PERMISSION_REQUIRED", permission);
 
     private ObjectResult MigrationProblem(
         int status,
@@ -572,8 +570,6 @@ public sealed class UnifiedMigrationsController(
     {
         var problem = new ProblemDetails { Status = status, Title = title, Detail = detail };
         problem.Extensions["code"] = code;
-        if (PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(code) is { } canonicalCode)
-            problem.Extensions["canonicalCode"] = canonicalCode;
         if (requiredPermission is not null) problem.Extensions["requiredPermission"] = requiredPermission;
         return StatusCode(status, problem);
     }
@@ -582,8 +578,7 @@ public sealed class UnifiedMigrationsController(
     {
         var canonical = MigrationArtifactIdentities.Resolve(descriptor.Id, descriptor.MediaType, descriptor.FileExtension);
         if (canonical is null) return descriptor;
-        var identity = MigrationArtifactIdentities.ForOutput(canonical, PvadLegacyApiMiddleware.IsLegacyRequest(HttpContext));
-        return new(identity.Id, identity.MediaType, identity.FileExtension);
+        return new(canonical.Id, canonical.MediaType, canonical.FileExtension);
     }
 
     private MigrationArtifactResponse CreateArtifact(MigrationArtifactDescriptor descriptor, object content)
@@ -647,14 +642,5 @@ public sealed record UnifiedMigrationResponse(
     object? PdfTrust = null);
 
 public sealed record MigrationSummaryResponse(int ConvertedCount, int WarningCount, int ErrorCount, int TotalDiagnostics);
-public sealed record MigrationArtifactResponse(string Id, string MediaType, string? FileExtension, object Content)
-{
-    private MigrationArtifactIdentity? Canonical => MigrationArtifactIdentities.Resolve(Id, MediaType, FileExtension);
-    public string? CanonicalId => Canonical?.Id;
-    public string? CanonicalMediaType => Canonical?.MediaType;
-    public string? CanonicalFileExtension => Canonical?.FileExtension;
-}
-public sealed record MigrationDiagnosticResponse(string Code, string Severity, string Message)
-{
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
-}
+public sealed record MigrationArtifactResponse(string Id, string MediaType, string? FileExtension, object Content);
+public sealed record MigrationDiagnosticResponse(string Code, string Severity, string Message);

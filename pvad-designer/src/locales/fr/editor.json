@@ -50,16 +50,16 @@
     "markdownImport": "Import Markdown",
     "importIssue": "Problème d'importation",
     "markdownCodes": {
-      "PXA-MD-001": "Des cibles de liens Markdown non sécurisées ont été supprimées.",
-      "PXA-MD-002": "Une image intégrée non valide ou non prise en charge a été supprimée.",
-      "PXA-MD-003": "Les images intégrées dans le texte ne sont pas prises en charge et ont été omises.",
-      "PXA-MD-004": "Un bloc Markdown non pris en charge a été ignoré.",
-      "PXA-MD-005": "La mise en forme a été simplifiée lors du fractionnement d’un paragraphe trop grand.",
-      "PXA-MD-006": "Une valeur YAML front matter non valide a été ignorée.",
-      "PXA-MD-100": "Le document Markdown a été réparti sur plusieurs pages.",
-      "PXA-MD-201": "Une image relative n’a pas pu être résolue sans URL de base des ressources.",
-      "PXA-MD-202": "Une image a été rejetée, car seules les ressources HTTP(S) sont prises en charge.",
-      "PXA-MD-203": "Une image distante n’a pas pu être téléchargée ou validée."
+      "PVAD-MD-001": "Des cibles de liens Markdown non sécurisées ont été supprimées.",
+      "PVAD-MD-002": "Une image intégrée non valide ou non prise en charge a été supprimée.",
+      "PVAD-MD-003": "Les images intégrées dans le texte ne sont pas prises en charge et ont été omises.",
+      "PVAD-MD-004": "Un bloc Markdown non pris en charge a été ignoré.",
+      "PVAD-MD-005": "La mise en forme a été simplifiée lors du fractionnement d’un paragraphe trop grand.",
+      "PVAD-MD-006": "Une valeur YAML front matter non valide a été ignorée.",
+      "PVAD-MD-100": "Le document Markdown a été réparti sur plusieurs pages.",
+      "PVAD-MD-201": "Une image relative n’a pas pu être résolue sans URL de base des ressources.",
+      "PVAD-MD-202": "Une image a été rejetée, car seules les ressources HTTP(S) sont prises en charge.",
+      "PVAD-MD-203": "Une image distante n’a pas pu être téléchargée ou validée."
     }
   },
   "help": {
@@ -601,15 +601,15 @@
     "exportBlocked": "Corrigez les erreurs PDF/UA avant l’export.",
     "scopes": { "None": "Aucune", "Row": "Ligne", "Column": "Colonne", "Both": "Ligne et colonne" },
     "diagnostics": {
-      "PXAPDFUA002": "Définissez un titre dans les métadonnées d’export.", "PXAPDFUA003": "Sélectionnez une langue de document.",
-      "PXAPDFUA004": "Le chiffrement n’est pas encore pris en charge pour l’export PDF/UA.", "PXAPDFUA005": "Attribuez une sémantique ou marquez cet élément comme décoratif.",
-      "PXAPDFUA007": "Ajoutez un texte alternatif significatif.", "PXAPDFUA009": "Sélectionnez la portée de ligne ou de colonne de cet en-tête.",
-      "PXAPDFUA010": "Ce lien ou ce champ de formulaire ne possède aucune annotation PDF interactive prise en charge.", "PXAPDFUA011": "Un ID d’en-tête associé n’existe pas.",
-      "PXAPDFUA013": "Le parent logique sélectionné n’existe plus.", "PXAPDFUA014": "La hiérarchie logique contient un cycle.", "PXAPDFUA015": "Utilisez une balise de langue BCP 47 valide.",
-      "PXAPDFUA016": "L’ordre de lecture ne peut pas être négatif.", "PXAPDFUA017": "Ajoutez un texte de lien significatif.",
-      "PXAPDFUA018": "Ajoutez une étiquette de formulaire accessible.", "PXAPDFUA019": "Marquez la première ligne comme en-tête.",
-      "PXAPDFUA020": "Le tableau nécessite une structure complète de lignes et de cellules.", "PXAPDFUA021": "Sélectionnez un rôle de structure.", "PXAPDFUA022": "Un groupe d'options nécessite au moins deux options uniques et une seule valeur sélectionnée au maximum.", "PXAPDFUA023": "Définissez un ordre de lecture explicite pour un focus clavier prévisible.", "PXAPDFUA024": "Cette position de focus est également attribuée à un autre contrôle interactif.",
-      "PXAPDFUA025": "Utilisez un rôle personnalisé distinct avec des lettres, chiffres, points, tirets ou traits de soulignement.", "PXAPDFUA026": "Ce rôle personnalisé correspond à des rôles standard contradictoires.", "PXAPDFUA027": "Utilisez une URI d’espace de noms absolue uniquement avec un rôle personnalisé.", "PXAPDFUA028": "Ce rôle personnalisé utilise des espaces de noms source contradictoires."
+      "PVADPDFUA002": "Définissez un titre dans les métadonnées d’export.", "PVADPDFUA003": "Sélectionnez une langue de document.",
+      "PVADPDFUA004": "Le chiffrement n’est pas encore pris en charge pour l’export PDF/UA.", "PVADPDFUA005": "Attribuez une sémantique ou marquez cet élément comme décoratif.",
+      "PVADPDFUA007": "Ajoutez un texte alternatif significatif.", "PVADPDFUA009": "Sélectionnez la portée de ligne ou de colonne de cet en-tête.",
+      "PVADPDFUA010": "Ce lien ou ce champ de formulaire ne possède aucune annotation PDF interactive prise en charge.", "PVADPDFUA011": "Un ID d’en-tête associé n’existe pas.",
+      "PVADPDFUA013": "Le parent logique sélectionné n’existe plus.", "PVADPDFUA014": "La hiérarchie logique contient un cycle.", "PVADPDFUA015": "Utilisez une balise de langue BCP 47 valide.",
+      "PVADPDFUA016": "L’ordre de lecture ne peut pas être négatif.", "PVADPDFUA017": "Ajoutez un texte de lien significatif.",
+      "PVADPDFUA018": "Ajoutez une étiquette de formulaire accessible.", "PVADPDFUA019": "Marquez la première ligne comme en-tête.",
+      "PVADPDFUA020": "Le tableau nécessite une structure complète de lignes et de cellules.", "PVADPDFUA021": "Sélectionnez un rôle de structure.", "PVADPDFUA022": "Un groupe d'options nécessite au moins deux options uniques et une seule valeur sélectionnée au maximum.", "PVADPDFUA023": "Définissez un ordre de lecture explicite pour un focus clavier prévisible.", "PVADPDFUA024": "Cette position de focus est également attribuée à un autre contrôle interactif.",
+      "PVADPDFUA025": "Utilisez un rôle personnalisé distinct avec des lettres, chiffres, points, tirets ou traits de soulignement.", "PVADPDFUA026": "Ce rôle personnalisé correspond à des rôles standard contradictoires.", "PVADPDFUA027": "Utilisez une URI d’espace de noms absolue uniquement avec un rôle personnalisé.", "PVADPDFUA028": "Ce rôle personnalisé utilise des espaces de noms source contradictoires."
     }
   },
   "layers": {

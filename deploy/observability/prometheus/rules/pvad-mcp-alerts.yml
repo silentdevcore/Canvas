@@ -2,7 +2,7 @@ groups:
   - name: pvad-mcp
     rules:
       - alert: PvadMcpDependencyUnavailable
-        expr: '{__name__=~"(pvad|pxa)_mcp_dependency_ready"} == 0'
+        expr: '{__name__=~"pvad_mcp_dependency_ready"} == 0'
         for: 2m
         labels:
           severity: critical
@@ -11,7 +11,7 @@ groups:
           summary: PVAD MCP dependency is unavailable
           description: The MCP host cannot reach a required API or identity dependency.
       - alert: PvadMcpServerErrors
-        expr: 'sum(rate({__name__=~"(pvad|pxa)_mcp_http_requests_total",route="/mcp",status=~"5.."}[5m])) > 0.1'
+        expr: 'sum(rate({__name__=~"pvad_mcp_http_requests_total",route="/mcp",status=~"5.."}[5m])) > 0.1'
         for: 5m
         labels:
           severity: warning
@@ -20,7 +20,7 @@ groups:
           summary: PVAD MCP server errors are elevated
           description: The remote MCP endpoint is returning elevated server errors.
       - alert: PvadMcpAuthorizationFailures
-        expr: 'sum(rate({__name__=~"(pvad|pxa)_mcp_http_requests_total",route="/mcp",status=~"401|403"}[5m])) > 1'
+        expr: 'sum(rate({__name__=~"pvad_mcp_http_requests_total",route="/mcp",status=~"401|403"}[5m])) > 1'
         for: 10m
         labels:
           severity: warning

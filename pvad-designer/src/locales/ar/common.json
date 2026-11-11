@@ -63,7 +63,7 @@
     "maturity": { "alpha": "ألفا", "beta": "بيتا", "stable": "مستقر" },
     "changeCategories": { "added": "تمت الإضافة", "improved": "تم التحسين", "fixed": "تم الإصلاح", "security": "الأمان", "deprecated": "مهمل", "breaking": "غير متوافق" },
     "notificationCategories": { "System": "النظام", "Security": "الأمان", "Subscription": "الاشتراك", "ActionRequired": "إجراء مطلوب", "Legal": "قانوني" },
-    "decisions": { "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "لا تسمح مؤسستك بميزة ألفا هذه.", "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "فعّل ميزة ألفا هذه قبل استخدامها.", "PXA_DESIGNER_FEATURE_DISABLED": "هذه الميزة معطّلة حاليًا.", "PXA_DESIGNER_FEATURE_ENABLED": "الميزة متاحة.", "PXA_DESIGNER_FEATURE_UNKNOWN": "هذه الميزة غير متاحة في إصدار المصمم هذا." }
+    "decisions": { "PVAD_DESIGNER_ALPHA_NOT_ALLOWED": "لا تسمح مؤسستك بميزة ألفا هذه.", "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED": "فعّل ميزة ألفا هذه قبل استخدامها.", "PVAD_DESIGNER_FEATURE_DISABLED": "هذه الميزة معطّلة حاليًا.", "PVAD_DESIGNER_FEATURE_ENABLED": "الميزة متاحة.", "PVAD_DESIGNER_FEATURE_UNKNOWN": "هذه الميزة غير متاحة في إصدار المصمم هذا." }
   },
   "features": {
     "releaseNotes": { "title": "ملاحظات الإصدار", "description": "راجع إمكانات المصمم الجديدة والمحسّنة والمصححة." },

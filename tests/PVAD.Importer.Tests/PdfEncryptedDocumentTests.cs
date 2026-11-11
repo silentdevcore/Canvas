@@ -19,9 +19,9 @@ public sealed class PdfEncryptedDocumentTests
     [Fact]
     public async Task GeneratorAes256_ShouldRoundTripThroughTheImporterFacade()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.Info.Title = "Generator AES interoperability";
         document.AddPage().DrawText(Secret, 40, 700);
         var encrypted = document.ToBytes(new PdfSaveOptions
@@ -49,9 +49,9 @@ public sealed class PdfEncryptedDocumentTests
     public async Task GeneratorLegacyEncryption_ShouldRoundTripThroughTheImporterFacade(
         PdfEncryptionAlgorithm algorithm)
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.Info.Title = $"Generator {algorithm} interoperability";
         document.AddPage().DrawText(Secret, 40, 700);
         var encrypted = document.ToBytes(new PdfSaveOptions
@@ -88,9 +88,9 @@ public sealed class PdfEncryptedDocumentTests
         using var certificate = request.CreateSelfSigned(
             DateTimeOffset.UtcNow.AddMinutes(-5),
             DateTimeOffset.UtcNow.AddDays(1));
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.AddPage().DrawText(Secret, 40, 700);
         var encrypted = document.ToBytes(new PdfSaveOptions
         {
@@ -116,9 +116,9 @@ public sealed class PdfEncryptedDocumentTests
     {
         using var recipient = CreateRecipientCertificate("PVAD Intended Recipient");
         using var unrelated = CreateRecipientCertificate("PVAD Unrelated Recipient");
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.AddPage().DrawText(Secret, 40, 700);
         var encrypted = document.ToBytes(new PdfSaveOptions
         {

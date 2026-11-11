@@ -1,5 +1,11 @@
 # PVAD API and MCP Compose Overlay
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 This stack contains PostgreSQL, the hardened WebApi image, and the optional remote MCP server.
 Use the launcher below for legacy PVAD environment aliases and conflict validation.
 For an env file outside the current directory, pass an explicit `--env-file`.

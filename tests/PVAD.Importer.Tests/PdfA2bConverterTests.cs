@@ -22,7 +22,7 @@ public sealed class PdfA2bConverterTests
         Assert.Equal("PDF/A-2b", report.TargetProfile);
         Assert.True(report.OriginalPreserved);
         Assert.Equal(64, report.SourceSha256.Length);
-        Assert.Contains(report.Findings, finding => finding.Code == "PXAPDFACONVERT000");
+        Assert.Contains(report.Findings, finding => finding.Code == "PVADPDFACONVERT000");
     }
 
     [Fact]
@@ -59,9 +59,9 @@ public sealed class PdfA2bConverterTests
         var report = await converter.PreflightAsync(stream);
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        var finding = Assert.Single(report.Findings, finding => finding.Code == "PXAPDFTRUST314");
-        Assert.Equal("diagnostics.PXAPDFTRUST314", finding.LocalizationKey);
-        Assert.Equal("PXAPDFTRUST314", finding.LocalizationParameters!["code"]);
+        var finding = Assert.Single(report.Findings, finding => finding.Code == "PVADPDFTRUST314");
+        Assert.Equal("diagnostics.PVADPDFTRUST314", finding.LocalizationKey);
+        Assert.Equal("PVADPDFTRUST314", finding.LocalizationParameters!["code"]);
         Assert.Equal(1, finding.PageNumber);
     }
 
@@ -98,7 +98,7 @@ public sealed class PdfA2bConverterTests
 
         Assert.Equal(PdfComplianceConversionCapability.ReviewRequired, preflight.Capability);
         Assert.True(preflight.InvalidatesSignatures);
-        Assert.Contains(preflight.Findings, finding => finding.Code == "PXAPDFACONVERT007");
+        Assert.Contains(preflight.Findings, finding => finding.Code == "PVADPDFACONVERT007");
 
         await using var blockedStream = new MemoryStream(signed, writable: false);
         await Assert.ThrowsAsync<PdfA2bConversionBlockedException>(() => converter.ConvertAsync(blockedStream));

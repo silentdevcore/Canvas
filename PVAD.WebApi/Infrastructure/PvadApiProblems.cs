@@ -4,45 +4,29 @@ namespace PVAD.WebApi.Infrastructure;
 
 public static class PvadApiProblems
 {
-    public const string AuthenticationRequired = "PXAAPI001";
-    public const string PermissionDenied = "PXAAPI002";
-    public const string OrganizationRequired = "PXAAPI003";
-    public const string ResourceNotFound = "PXAAPI004";
-    public const string InvalidRequest = "PXAAPI005";
-    public const string Conflict = "PXAAPI006";
-    public const string RateLimited = "PXAAPI007";
-    public const string InvalidCsrf = "PXAAPI008";
-    public const string AccountLocked = "PXAAPI009";
-    public const string VerificationRequired = "PXAAPI010";
-    public const string TrialAlreadyClaimed = "PXAAPI011";
-    public const string OrganizationSlugUnavailable = "PXAAPI012";
-    public const string LastOwnerProtected = "PXAAPI013";
-    public const string ClosureConflict = "PXAAPI014";
-    public const string AccountDisabled = "PXAAPI015";
-    public const string OrganizationSuspended = "PXAAPI016";
-    public const string PolicyAcceptanceRequired = "PXAAPI017";
-    public const string UnexpectedError = "PXAAPI018";
+    public const string AuthenticationRequired = "PVADAPI001";
+    public const string PermissionDenied = "PVADAPI002";
+    public const string OrganizationRequired = "PVADAPI003";
+    public const string ResourceNotFound = "PVADAPI004";
+    public const string InvalidRequest = "PVADAPI005";
+    public const string Conflict = "PVADAPI006";
+    public const string RateLimited = "PVADAPI007";
+    public const string InvalidCsrf = "PVADAPI008";
+    public const string AccountLocked = "PVADAPI009";
+    public const string VerificationRequired = "PVADAPI010";
+    public const string TrialAlreadyClaimed = "PVADAPI011";
+    public const string OrganizationSlugUnavailable = "PVADAPI012";
+    public const string LastOwnerProtected = "PVADAPI013";
+    public const string ClosureConflict = "PVADAPI014";
+    public const string AccountDisabled = "PVADAPI015";
+    public const string OrganizationSuspended = "PVADAPI016";
+    public const string PolicyAcceptanceRequired = "PVADAPI017";
+    public const string UnexpectedError = "PVADAPI018";
 
-    public static string? CanonicalCode(string code) =>
-        PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(code);
+    public static string TypeFor(string code) =>
+        "https://docs.pvade.com/problems/" + Uri.EscapeDataString(code.ToLowerInvariant());
 
-    public static (string Type, string CanonicalType, string LegacyType) TypeIdentity(
-        HttpContext context, string code)
-    {
-        var canonical = "https://docs.pvade.com/problems/" +
-            Uri.EscapeDataString((CanonicalCode(code) ?? code).ToLowerInvariant());
-        var legacy = "https://docs.powerdoxautomation.com/problems/" +
-            Uri.EscapeDataString(code.ToLowerInvariant());
-        return (PvadLegacyApiMiddleware.IsLegacyRequest(context) ? legacy : canonical, canonical, legacy);
-    }
-
-    public static (string Type, string CanonicalType, string LegacyType) TemplateConflictTypeIdentity(
-        HttpContext context)
-    {
-        const string canonical = "https://docs.pvade.com/problems/designer-template-conflict";
-        const string legacy = "https://powerdoxautomation.com/problems/designer-template-conflict";
-        return (PvadLegacyApiMiddleware.IsLegacyRequest(context) ? legacy : canonical, canonical, legacy);
-    }
+    public const string TemplateConflictType = "https://docs.pvade.com/problems/designer-template-conflict";
 
     public static ProblemDetails Create(
         HttpContext context,
@@ -73,33 +57,9 @@ public static class PvadApiProblems
         problem.Status = status;
         problem.Title ??= ResolveTitle(status);
         problem.Instance ??= context.Request.Path;
-        var identity = TypeIdentity(context, code);
-        problem.Type ??= identity.Type;
-        if (problem.Type == identity.CanonicalType || problem.Type == identity.LegacyType)
-        {
-            problem.Extensions["canonicalType"] = identity.CanonicalType;
-            problem.Extensions["legacyType"] = identity.LegacyType;
-        }
-        else
-        {
-            problem.Extensions.Remove("canonicalType");
-            problem.Extensions.Remove("legacyType");
-        }
+        problem.Type ??= TypeFor(code);
         problem.Extensions["code"] = code;
-        if (CanonicalCode(code) is { } canonicalCode)
-            problem.Extensions["canonicalCode"] = canonicalCode;
-        else
-            problem.Extensions.Remove("canonicalCode");
         problem.Extensions.TryAdd("traceId", context.TraceIdentifier);
-        CompleteTitle(problem);
-    }
-
-    private static void CompleteTitle(ProblemDetails problem)
-    {
-        if (problem.Title is { } title && CanonicalCode(title) is { } canonicalTitle)
-            problem.Extensions["canonicalTitle"] = canonicalTitle;
-        else
-            problem.Extensions.Remove("canonicalTitle");
     }
 
     public static string ResolveCode(int status, string? title = null)

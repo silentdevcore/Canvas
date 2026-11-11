@@ -5,12 +5,12 @@ export function migrateProviderCode(input) {
     targetNamespace: input.targetNamespace,
     diagnostics: [
       {
-        id: 'PXAMIG001',
+        id: 'PVADMIG001',
         severity: 'info',
         message: `Provider detected: ${input.provider} ${input.domain} ${input.kind}`,
       },
       {
-        id: 'PXAMIG101',
+        id: 'PVADMIG101',
         severity: 'warning',
         message: 'Manual review required for processor lifetime and file IO.',
       },

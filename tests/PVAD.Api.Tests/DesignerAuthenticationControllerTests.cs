@@ -119,7 +119,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         var csrfFailure = await designerClient.SendAsync(mutationWithoutCsrf);
         Assert.Equal(HttpStatusCode.BadRequest, csrfFailure.StatusCode);
         Assert.Equal(
-            "PXAAPI008",
+            "PVADAPI008",
             (await csrfFailure.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var anonymousClient = CreateClient(factory);
@@ -158,7 +158,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         var deniedMeResponse = await designerClient.SendAsync(deniedMe);
         Assert.Equal(HttpStatusCode.Forbidden, deniedMeResponse.StatusCode);
         Assert.Equal(
-            "PXA_ENTITLEMENT_DENIED",
+            "PVAD_ENTITLEMENT_DENIED",
             (await deniedMeResponse.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("code")
             .GetString());
@@ -344,7 +344,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             var response = await client.SendAsync(exchange);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(
-                "PXA_DESIGNER_VERIFICATION_REQUIRED",
+                "PVAD_DESIGNER_VERIFICATION_REQUIRED",
                 (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
         }
 
@@ -360,7 +360,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             var response = await client.SendAsync(exchange);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(
-                "PXA_ORGANIZATION_INACTIVE",
+                "PVAD_ORGANIZATION_INACTIVE",
                 (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
         }
 
@@ -376,7 +376,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             var response = await client.SendAsync(exchange);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(
-                "PXA_ENTITLEMENT_EXPIRED",
+                "PVAD_ENTITLEMENT_EXPIRED",
                 (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
         }
 
@@ -425,13 +425,13 @@ public sealed partial class DesignerAuthenticationControllerTests
                 (await existingSessionClient.SendAsync(me)).StatusCode);
         }
         await AssertExchangeDeniedAsync(
-            factory, lockedHandoff, "PXA_DESIGNER_ACCOUNT_LOCKED");
+            factory, lockedHandoff, "PVAD_DESIGNER_ACCOUNT_LOCKED");
 
         user.LockoutEnd = null;
         user.IsActive = false;
         await dbContext.SaveChangesAsync();
         await AssertExchangeDeniedAsync(
-            factory, inactiveHandoff, "PXA_DESIGNER_ACCOUNT_DISABLED");
+            factory, inactiveHandoff, "PVAD_DESIGNER_ACCOUNT_DISABLED");
 
         user.IsActive = true;
         var entitlement = await dbContext.SubscriptionEntitlements.SingleAsync(
@@ -439,7 +439,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         dbContext.SubscriptionEntitlements.Remove(entitlement);
         await dbContext.SaveChangesAsync();
         await AssertExchangeDeniedAsync(
-            factory, missingEntitlementHandoff, "PXA_ENTITLEMENT_MISSING");
+            factory, missingEntitlementHandoff, "PVAD_ENTITLEMENT_MISSING");
 
         var sourceSessionId = await dbContext.DesignerAuthorizationCodes
             .Where(value => value.CodeHash == Hash(expiredSessionHandoff.Code))
@@ -450,7 +450,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         sourceSession.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
         await dbContext.SaveChangesAsync();
         await AssertExchangeDeniedAsync(
-            factory, expiredSessionHandoff, "PXA_DESIGNER_SESSION_EXPIRED");
+            factory, expiredSessionHandoff, "PVAD_DESIGNER_SESSION_EXPIRED");
     }
 
     [PostgreSqlFact]
@@ -566,10 +566,9 @@ public sealed partial class DesignerAuthenticationControllerTests
         var conflict = await updateResponses.Single(response => response.StatusCode == HttpStatusCode.Conflict)
             .Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, conflict.GetProperty("currentRevision").GetInt64());
-        Assert.Equal("PXADESIGNER001", conflict.GetProperty("code").GetString());
-        Assert.Equal("PVADDESIGNER001", conflict.GetProperty("canonicalCode").GetString());
+        Assert.Equal("PVADDESIGNER001", conflict.GetProperty("code").GetString());
 
-        using (var compatibilityRead = DesignerGet($"/api/pxa/templates/{templateId}"))
+        using (var compatibilityRead = DesignerGet($"/api/pvad/templates/{templateId}"))
         {
             var compatibilityResponse = await designerClient.SendAsync(compatibilityRead);
             Assert.Equal(HttpStatusCode.OK, compatibilityResponse.StatusCode);
@@ -872,7 +871,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             var response = await expiredEntitlementClient.SendAsync(list);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(
-                "PXA_ENTITLEMENT_EXPIRED",
+                "PVAD_ENTITLEMENT_EXPIRED",
                 (await response.Content.ReadFromJsonAsync<JsonElement>())
                 .GetProperty("code")
                 .GetString());
@@ -880,15 +879,9 @@ public sealed partial class DesignerAuthenticationControllerTests
     }
 
     [PostgreSqlFact]
-    public Task Current_template_adapter_uses_designer_persistence_and_enforces_revision_and_tenant() =>
-        AssertTemplateAdapterLifecycleAsync("/api/pvad/templates", legacy: false);
-
-    [PostgreSqlFact]
-    public Task Legacy_template_api_uses_designer_persistence_and_enforces_revision_and_tenant() =>
-        AssertTemplateAdapterLifecycleAsync("/api/pxa/templates", legacy: true);
-
-    private static async Task AssertTemplateAdapterLifecycleAsync(string apiBase, bool legacy)
+    public async Task Current_template_adapter_uses_designer_persistence_and_enforces_revision_and_tenant()
     {
+        const string apiBase = "/api/pvad/templates";
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
         using var factory = CreateFactory(postgres.GetConnectionString());
@@ -899,7 +892,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using (var anonymousResponse = await anonymousClient.SendAsync(anonymous))
         {
             Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
-            AssertTemplateRouteIdentity(anonymousResponse, legacy);
+            AssertTemplateRouteIdentity(anonymousResponse);
         }
 
         using var accountClient = CreateClient(factory);
@@ -921,7 +914,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.Equal(PvadApiProblems.InvalidCsrf,
                 (await rejected.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
-            AssertTemplateRouteIdentity(rejected, legacy);
+            AssertTemplateRouteIdentity(rejected);
         }
 
         using var create = await CreateCsrfRequestAsync(
@@ -951,7 +944,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         var createResponse = await designerClient.SendAsync(create);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
-        AssertTemplateRouteIdentity(createResponse, legacy);
+        AssertTemplateRouteIdentity(createResponse);
         var created = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("legacy-invoice", created.GetProperty("id").GetString());
         Assert.Equal(1, created.GetProperty("revision").GetInt64());
@@ -963,7 +956,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         {
             var listResponse = await designerClient.SendAsync(list);
             Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-            AssertTemplateRouteIdentity(listResponse, legacy);
+            AssertTemplateRouteIdentity(listResponse);
             var items = await listResponse.Content.ReadFromJsonAsync<JsonElement[]>();
             Assert.Single(items!);
             Assert.Equal("legacy-invoice", items![0].GetProperty("id").GetString());
@@ -978,7 +971,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             Assert.Equal(HttpStatusCode.OK, rendered.StatusCode);
             Assert.Equal("application/pdf", rendered.Content.Headers.ContentType?.MediaType);
             Assert.True((await rendered.Content.ReadAsByteArrayAsync()).AsSpan().StartsWith("%PDF-"u8));
-            AssertTemplateRouteIdentity(rendered, legacy, "/render");
+            AssertTemplateRouteIdentity(rendered);
         }
 
         using var update = await CreateCsrfRequestAsync(
@@ -996,7 +989,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         var updateResponse = await designerClient.SendAsync(update);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-        AssertTemplateRouteIdentity(updateResponse, legacy, "/legacy-invoice");
+        AssertTemplateRouteIdentity(updateResponse);
         var updated = await updateResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, updated.GetProperty("revision").GetInt64());
         Assert.Equal(
@@ -1025,7 +1018,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             designer: true);
         var staleResponse = await designerClient.SendAsync(staleUpdate);
         Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
-        AssertTemplateRouteIdentity(staleResponse, legacy, "/legacy-invoice");
+        AssertTemplateRouteIdentity(staleResponse);
         Assert.Equal(
             2,
             (await staleResponse.Content.ReadFromJsonAsync<JsonElement>())
@@ -1037,7 +1030,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         {
             var versionResponse = await designerClient.SendAsync(versionRead);
             Assert.Equal(HttpStatusCode.OK, versionResponse.StatusCode);
-            AssertTemplateRouteIdentity(versionResponse, legacy, "/legacy-invoice");
+            AssertTemplateRouteIdentity(versionResponse);
             Assert.Equal(
                 "Legacy Invoice",
                 (await versionResponse.Content.ReadFromJsonAsync<JsonElement>())
@@ -1062,7 +1055,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using (var rejectedRead = await designerClient.SendAsync(foreignRead))
         {
             Assert.Equal(HttpStatusCode.NotFound, rejectedRead.StatusCode);
-            AssertTemplateRouteIdentity(rejectedRead, legacy, "/legacy-invoice");
+            AssertTemplateRouteIdentity(rejectedRead);
         }
         using (var foreignList = DesignerGet(apiBase))
             Assert.Empty((await (await designerClient.SendAsync(foreignList)).Content
@@ -1073,7 +1066,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         using (var rejectedRender = await designerClient.SendAsync(foreignRender))
         {
             Assert.Equal(HttpStatusCode.NotFound, rejectedRender.StatusCode);
-            AssertTemplateRouteIdentity(rejectedRender, legacy, "/render");
+            AssertTemplateRouteIdentity(rejectedRender);
         }
 
         await using var scope = factory.Services.CreateAsyncScope();
@@ -1218,7 +1211,7 @@ public sealed partial class DesignerAuthenticationControllerTests
             var response = await designerClient.SendAsync(denied);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(
-                "PXA_ENTITLEMENT_DENIED",
+                "PVAD_ENTITLEMENT_DENIED",
                 (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
         }
     }
@@ -1301,16 +1294,9 @@ public sealed partial class DesignerAuthenticationControllerTests
         return request;
     }
 
-    private static void AssertTemplateRouteIdentity(HttpResponseMessage response, bool legacy, string suffix = "")
-    {
-        Assert.Equal(legacy, response.Headers.Contains("Deprecation"));
-        if (legacy)
-        {
-            Assert.Equal("true", Assert.Single(response.Headers.GetValues("Deprecation")));
-            Assert.Contains($"</api/pvad/templates{suffix}>; rel=\"successor-version\"",
-                response.Headers.GetValues("Link"));
-        }
-    }
+    private static void AssertTemplateRouteIdentity(HttpResponseMessage response) =>
+        Assert.False(response.Headers.Contains("Deprecation"));
+
 
     private static async Task<SeededCustomer> SeedCustomerAsync(IServiceProvider services)
     {
@@ -1440,8 +1426,7 @@ public sealed partial class DesignerAuthenticationControllerTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(expectedCode, problem.GetProperty("code").GetString());
-        Assert.Equal(PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(expectedCode),
-            problem.GetProperty("canonicalCode").GetString());
+        Assert.False(problem.TryGetProperty("canonicalCode", out _));
     }
 
     private static async Task ExchangeSuccessfullyAsync(

@@ -51,7 +51,7 @@ public sealed class PdfRevisionAndChangeImpactTests
             new PdfParseContext(bytes, new PdfImporterOptions()));
 
         var diagnostic = Assert.Single(table.Diagnostics);
-        Assert.Equal("PXAPDFXREF003", diagnostic.Code);
+        Assert.Equal("PVADPDFXREF003", diagnostic.Code);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class PdfRevisionAndChangeImpactTests
         var table = new PdfCrossReferenceParser().Parse(
             new PdfParseContext(bytes, new PdfImporterOptions()));
 
-        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF004");
+        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF004");
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class PdfRevisionAndChangeImpactTests
         var table = new PdfCrossReferenceParser().Parse(
             new PdfParseContext(bytes, new PdfImporterOptions()));
 
-        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
+        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF005");
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class PdfRevisionAndChangeImpactTests
         Assert.True(impact.RequiresExplicitConfirmation);
         Assert.Equal(PdfChangeImpactStatus.RequiresValidation, Assert.Single(impact.Signatures).Status);
         Assert.Equal(PdfChangeImpactStatus.RequiresValidation, Assert.Single(impact.ComplianceClaims).Status);
-        Assert.Contains(impact.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST502");
+        Assert.Contains(impact.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST502");
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class PdfRevisionAndChangeImpactTests
 
         Assert.True(impact.RequiresExplicitConfirmation);
         Assert.Equal(PdfChangeImpactStatus.Invalidated, Assert.Single(impact.Signatures).Status);
-        Assert.Contains(impact.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST501");
+        Assert.Contains(impact.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST501");
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public sealed class PdfRevisionAndChangeImpactTests
                 BuildCyclicRevisionPdf(),
                 [new PdfIncrementalObjectUpdate(new PdfObjectId(2, 0), new PdfInteger(1))]));
 
-        Assert.Contains("PXAPDFXREF003", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("PVADPDFXREF003", exception.Message, StringComparison.Ordinal);
     }
 
     private static PdfTrustReport CreateTrustReport() => new(

@@ -36,7 +36,7 @@ public sealed class PdfTrustVisualArtifactTests
                     Y = 700,
                     Width = 180,
                     Height = 64,
-                    Title = "PXA Trust Signature"
+                    Title = "PVAD Trust Signature"
                 }
             }).Bytes;
         await AssertPdfTrustSignatureAsync(signed);
@@ -184,7 +184,7 @@ public sealed class PdfTrustVisualArtifactTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA PDF Trust Visual Test",
+            "CN=PVAD PDF Trust Visual Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

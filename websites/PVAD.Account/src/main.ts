@@ -50,9 +50,9 @@ import { displayDiagnosticCode, displaySystemMessage } from '../../shared/diagno
 initializeBrowserTelemetry({ application: 'account' });
 
 // Stable Problem Details codes from PVAD.WebApi.Infrastructure.PvadApiProblems.
-const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
-const PROBLEM_CODE_ACCOUNT_DISABLED = 'PXAAPI015';
-const PROBLEM_CODE_ORGANIZATION_SUSPENDED = 'PXAAPI016';
+const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PVADAPI010';
+const PROBLEM_CODE_ACCOUNT_DISABLED = 'PVADAPI015';
+const PROBLEM_CODE_ORGANIZATION_SUSPENDED = 'PVADAPI016';
 
 interface PortalPage {
   render: (user: UserInfo) => string;

@@ -56,7 +56,7 @@ describe('ProjectImportNotice', () => {
           compatibility: {
             requiresReview: true,
             missingFeatures: ['pdf.future'],
-            diagnostics: [{ code: 'PXAPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link', source: 'page-1' }],
+            diagnostics: [{ code: 'PVADPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link', source: 'page-1' }],
           },
         }}
         labels={labels}
@@ -75,7 +75,7 @@ describe('ProjectImportNotice', () => {
   test('keeps stable diagnostics visible after a failed open', () => {
     act(() => root.render(
       <ProjectImportNotice
-        state={{ kind: 'error', code: 'PXAPROJECT007', message: 'Integrity validation failed.' }}
+        state={{ kind: 'error', code: 'PVADPROJECT007', message: 'Integrity validation failed.' }}
         labels={labels}
         onCancel={jest.fn()}
         onDismiss={jest.fn()}
@@ -90,8 +90,8 @@ describe('ProjectImportNotice', () => {
 
   test('projects diagnostic references in review messages without renaming source documents', () => {
     const diagnostic = {
-      code: 'PXAPROJECT_EXTERNAL_LINK', severity: 'warning' as const,
-      message: 'Review PXAPROJECT_EXTERNAL_LINK before opening.', source: 'PXA-customer.pdf',
+      code: 'PVADPROJECT_EXTERNAL_LINK', severity: 'warning' as const,
+      message: 'Review PVADPROJECT_EXTERNAL_LINK before opening.', source: 'PVAD-customer.pdf',
     };
     act(() => root.render(
       <ProjectImportNotice
@@ -100,22 +100,22 @@ describe('ProjectImportNotice', () => {
       />,
     ));
     expect(container.textContent).toContain('Review PVADPROJECT_EXTERNAL_LINK before opening.');
-    expect(container.textContent).toContain('(PXA-customer.pdf)');
-    expect(diagnostic.code).toBe('PXAPROJECT_EXTERNAL_LINK');
-    expect(diagnostic.message).toContain('PXAPROJECT_EXTERNAL_LINK');
-    expect(diagnostic.source).toBe('PXA-customer.pdf');
+    expect(container.textContent).toContain('(PVAD-customer.pdf)');
+    expect(diagnostic.code).toBe('PVADPROJECT_EXTERNAL_LINK');
+    expect(diagnostic.message).toContain('PVADPROJECT_EXTERNAL_LINK');
+    expect(diagnostic.source).toBe('PVAD-customer.pdf');
   });
 
   test('projects diagnostic references in failure text without changing the failure object', () => {
-    const state = { kind: 'error' as const, code: 'PXAPROJECT007', message: 'PXAPROJECT007: Integrity validation failed.' };
+    const state = { kind: 'error' as const, code: 'PVADPROJECT007', message: 'PVADPROJECT007: Integrity validation failed.' };
     act(() => root.render(
       <ProjectImportNotice state={state} labels={labels}
         onCancel={jest.fn()} onDismiss={jest.fn()} onReviewDecision={jest.fn()} />,
     ));
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('PVADPROJECT007: Integrity validation failed.');
     expect(container.querySelector('[role="alert"]')?.textContent).not.toContain('PXA');
-    expect(state.message).toBe('PXAPROJECT007: Integrity validation failed.');
-    expect(state.code).toBe('PXAPROJECT007');
+    expect(state.message).toBe('PVADPROJECT007: Integrity validation failed.');
+    expect(state.code).toBe('PVADPROJECT007');
   });
 
   test('uses a bounded full-width action surface on mobile', () => {

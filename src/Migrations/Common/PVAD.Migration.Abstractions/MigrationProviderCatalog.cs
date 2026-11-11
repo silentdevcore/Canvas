@@ -35,13 +35,7 @@ public sealed record MigrationInputDescriptor(
 public sealed record MigrationArtifactDescriptor(
     string Id,
     string MediaType,
-    string? FileExtension = null)
-{
-    private MigrationArtifactIdentity? Canonical => MigrationArtifactIdentities.Resolve(Id, MediaType, FileExtension);
-    public string? CanonicalId => Canonical?.Id;
-    public string? CanonicalMediaType => Canonical?.MediaType;
-    public string? CanonicalFileExtension => Canonical?.FileExtension;
-}
+    string? FileExtension = null);
 
 public sealed record MigrationProviderDescriptor(
     string ProviderKey,

@@ -52,7 +52,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         if (version is null)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST001",
+                "PVADPDFTRUST001",
                 PdfTrustDiagnosticSeverity.Error,
                 "The input does not begin with a supported PDF header."));
         }
@@ -95,13 +95,13 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST002",
+                "PVADPDFTRUST002",
                 PdfTrustDiagnosticSeverity.Error,
                 $"The PDF object graph could not be inspected: {exception.GetType().Name}."));
         }
 
         PdfShadowObjectAnalyzer.Analyze(source, xref, graph, diagnostics);
-        if (diagnostics.Any(static diagnostic => diagnostic.Code is "PXAPDFTRUST150" or "PXAPDFTRUST151"))
+        if (diagnostics.Any(static diagnostic => diagnostic.Code is "PVADPDFTRUST150" or "PVADPDFTRUST151"))
         {
             structureStatus = PdfTrustStatus.Invalid;
         }
@@ -152,7 +152,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         diagnostics.Add(new PdfTrustDiagnostic(
-            "PXAPDFTRUST010",
+            "PVADPDFTRUST010",
             PdfTrustDiagnosticSeverity.Info,
             "Signature integrity, revision coverage, certificate trust, timestamps, and configured revocation policy are evaluated separately. PDF/A uses the PVAD structural validator; independent release validation and dedicated PDF/UA validation remain separate."));
 
@@ -250,7 +250,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         if (result.HasRiskyContent)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST020",
+                "PVADPDFTRUST020",
                 PdfTrustDiagnosticSeverity.Warning,
                 "The document contains active or embedded content that requires policy review."));
         }
@@ -278,7 +278,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             }
 
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST121",
+                "PVADPDFTRUST121",
                 PdfTrustDiagnosticSeverity.Info,
                 $"Embedded PAdES validation material was found ({material.Certificates.Count} certificate(s), {material.Crls.Count} CRL(s), {material.OcspResponses.Count} OCSP response(s), {material.VriEntryCount} VRI entry/entries). Signature-bound B-LT validation is reported for each matching signature."));
             return new PdfEmbeddedValidationMaterialInspection(
@@ -292,7 +292,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or CryptographicException)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST122",
+                "PVADPDFTRUST122",
                 PdfTrustDiagnosticSeverity.Warning,
                 $"Embedded PAdES validation material could not be inspected: {exception.GetType().Name}."));
             return new PdfEmbeddedValidationMaterialInspection(0, 0, 0, 0, 0, PdfTrustStatus.Unsupported);
@@ -360,7 +360,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         if (dictionary is null)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST201",
+                "PVADPDFTRUST201",
                 PdfTrustDiagnosticSeverity.Warning,
                 "An encryption entry exists, but its security dictionary could not be resolved."));
             return new PdfEncryptionInspection(true, PdfTrustStatus.Indeterminate);
@@ -372,7 +372,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         var length = ReadInteger(graph, dictionary["Length"]);
         var algorithm = DescribeEncryptionAlgorithm(version, revision, dictionary, graph);
         diagnostics.Add(new PdfTrustDiagnostic(
-            "PXAPDFTRUST200",
+            "PVADPDFTRUST200",
             PdfTrustDiagnosticSeverity.Info,
             $"Encrypted PDF detected ({algorithm ?? "unknown algorithm"}); password and permission validation has not been performed."));
 
@@ -448,7 +448,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         if (!bindings.TryGetValue(signatureId, out var fields) || fields.Count == 0)
         {
             findings.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST131",
+                "PVADPDFTRUST131",
                 PdfTrustDiagnosticSeverity.Error,
                 "The signature dictionary is not reachable from the current AcroForm field tree.",
                 signatureId.Number,
@@ -457,7 +457,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         else if (fields.Count > 1)
         {
             findings.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST132",
+                "PVADPDFTRUST132",
                 PdfTrustDiagnosticSeverity.Error,
                 "Multiple current AcroForm fields reference the same signature dictionary.",
                 signatureId.Number,
@@ -474,7 +474,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             if (signatureDefinitions > 1)
             {
                 findings.Add(new PdfTrustDiagnostic(
-                    "PXAPDFTRUST133",
+                    "PVADPDFTRUST133",
                     PdfTrustDiagnosticSeverity.Error,
                     "The signature object was redefined by a later incremental revision.",
                     signatureId.Number,
@@ -495,7 +495,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                     if (fieldRevision is not null && fieldRevision.EndOffset > signedRevisionEnd)
                     {
                         findings.Add(new PdfTrustDiagnostic(
-                            "PXAPDFTRUST134",
+                            "PVADPDFTRUST134",
                             PdfTrustDiagnosticSeverity.Error,
                             "The current signature field was introduced or replaced after the signed revision.",
                             signatureId.Number,
@@ -708,7 +708,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 return signature;
             }
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST130",
+                "PVADPDFTRUST130",
                 PdfTrustDiagnosticSeverity.Info,
                 "A trusted RFC 3161 document timestamp protects the signature-bound B-LT validation material.",
                 signature.ObjectNumber,
@@ -745,7 +745,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         if (archiveProfile is null || graph is null || !PdfA2bConformanceValidator.CanValidate(graph, archiveProfile.Value))
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST301",
+                "PVADPDFTRUST301",
                 PdfTrustDiagnosticSeverity.Warning,
                 $"The document claims {profile}; this profile is not validated by the current PVAD PDF/A validator."));
             return new PdfComplianceClaim("PDF/A", profile, true, PdfTrustStatus.Indeterminate, "XMP pdfaid identification metadata");
@@ -775,7 +775,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
         var profile = $"PDF/UA-{part.Groups[1].Value}";
         diagnostics.Add(new PdfTrustDiagnostic(
-            "PXAPDFTRUST401",
+            "PVADPDFTRUST401",
             PdfTrustDiagnosticSeverity.Warning,
             $"The document claims {profile} in metadata; this is not an accessibility or conformance validation result."));
         return new PdfComplianceClaim("PDF/UA", profile, true, PdfTrustStatus.Indeterminate, "XMP pdfuaid identification metadata");

@@ -25,13 +25,13 @@ test('new acknowledgements write only the canonical cookie', () => withPage(docu
   assert.equal(document.querySelector('[data-pvad-storage-notice]'), null);
 }));
 test('a legacy acknowledgement migrates without showing the notice again', () => withPage(document => {
-  document.cookie = 'PXA.StorageNotice=2026-08; Path=/; Secure';
+  document.cookie = 'PVAD.StorageNotice=2026-08; Path=/; Secure';
   initializeStorageNotice();
   assert.match(document.cookie, /PVAD\.StorageNotice=2026-08/);
   assert.equal(document.querySelector('[data-pvad-storage-notice]'), null);
 }));
 test('an explicit current-version mismatch cannot fall back to the old cookie', () => withPage(document => {
-  document.cookie = 'PXA.StorageNotice=2026-08; Path=/; Secure';
+  document.cookie = 'PVAD.StorageNotice=2026-08; Path=/; Secure';
   document.cookie = 'PVAD.StorageNotice=outdated; Path=/; Secure';
   initializeStorageNotice();
   assert.ok(document.querySelector('[data-pvad-storage-notice]'));

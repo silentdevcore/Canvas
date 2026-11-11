@@ -59,7 +59,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (table.Trailer?["Encrypt"] is not null)
         {
             documentFindings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT101",
+                "PVADPDFREDACT101",
                 PdfRedactionCapability.Unsupported,
                 "The document is encrypted; redaction requires encrypted serialization that is not enabled yet."));
             return new PdfRedactionPreflightReport(
@@ -75,7 +75,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         foreach (var diagnostic in context.Diagnostics)
         {
             documentFindings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT106",
+                "PVADPDFREDACT106",
                 PdfRedactionCapability.Unsupported,
                 $"The document could not be parsed in full ({diagnostic.Code}), so covered content cannot be assessed."));
         }
@@ -114,7 +114,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (page is null)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT110",
+                "PVADPDFREDACT110",
                 PdfRedactionCapability.Unsupported,
                 $"The document does not contain page {region.PageNumber}.",
                 region.PageNumber,
@@ -126,7 +126,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (region.Bounds.Width <= 0 || region.Bounds.Height <= 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT111",
+                "PVADPDFREDACT111",
                 PdfRedactionCapability.Unsupported,
                 "The redaction region has no area.",
                 region.PageNumber,
@@ -139,7 +139,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (pageBox is { } box && !box.Intersects(region.Bounds))
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT112",
+                "PVADPDFREDACT112",
                 PdfRedactionCapability.ReviewRequired,
                 "The redaction region lies outside the page geometry.",
                 region.PageNumber,
@@ -151,7 +151,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (page.GraphicsObjects.Count == 0 && page.ContentStreams.Count > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT105",
+                "PVADPDFREDACT105",
                 PdfRedactionCapability.Unsupported,
                 "The page has content streams but produced no interpreted content, so covered content cannot be assessed.",
                 region.PageNumber,
@@ -190,7 +190,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (depth > 64)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT113",
+                "PVADPDFREDACT113",
                 PdfRedactionCapability.Unsupported,
                 "The page nests content too deeply to assess.",
                 pageNumber,
@@ -206,7 +206,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 if (bounds.Intersects(region))
                 {
                     findings.Add(new PdfRedactionFinding(
-                        "PXAPDFREDACT203",
+                        "PVADPDFREDACT203",
                         PdfRedactionCapability.ReviewRequired,
                         "Optional content overlaps the region; visibility depends on viewer state.",
                         pageNumber,
@@ -233,7 +233,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (isClipped)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT213",
+                "PVADPDFREDACT213",
                 PdfRedactionCapability.ReviewRequired,
                 "Covered content is clipped; PVAD narrows coverage by the clipping path bounds, which is an approximation of the real clip shape.",
                 pageNumber,
@@ -249,7 +249,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 {
                     textCapability = PdfRedactionCapability.ReviewRequired;
                     findings.Add(new PdfRedactionFinding(
-                        "PXAPDFREDACT201",
+                        "PVADPDFREDACT201",
                         PdfRedactionCapability.ReviewRequired,
                         $"A text run only partially overlaps the region and cannot be split safely. {textReason}",
                         pageNumber,
@@ -267,7 +267,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                     imageCapability = PdfRedactionCapability.ReviewRequired;
                     var masked = PdfImageRedactionEngine.RequiresMaskReconstruction(graph, resources, image);
                     findings.Add(new PdfRedactionFinding(
-                        masked ? "PXAPDFREDACT209" : "PXAPDFREDACT204",
+                        masked ? "PVADPDFREDACT209" : "PVADPDFREDACT204",
                         PdfRedactionCapability.ReviewRequired,
                         masked
                             ? $"The image only partially overlaps the region and its mask cannot be reconstructed safely. {reason}"
@@ -282,7 +282,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             case PdfShadingElement:
                 accumulator.Add("shading", coverage, 1);
                 findings.Add(new PdfRedactionFinding(
-                    "PXAPDFREDACT205",
+                    "PVADPDFREDACT205",
                     PdfRedactionCapability.ReviewRequired,
                     "A shading overlaps the region and is carried through a separate preservation path.",
                     pageNumber,
@@ -301,7 +301,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             default:
                 accumulator.Add("other", coverage, 1);
                 findings.Add(new PdfRedactionFinding(
-                    "PXAPDFREDACT206",
+                    "PVADPDFREDACT206",
                     PdfRedactionCapability.ReviewRequired,
                     "Content of an unrecognised kind overlaps the region.",
                     pageNumber,
@@ -349,7 +349,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (fields > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT207",
+                "PVADPDFREDACT207",
                 PdfRedactionCapability.ReviewRequired,
                 $"{fields} form field widget(s) overlap the region; field values are not interpreted content.",
                 region.PageNumber,
@@ -359,7 +359,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (overlapping > fields)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT202",
+                "PVADPDFREDACT202",
                 PdfRedactionCapability.ReviewRequired,
                 $"{overlapping - fields} annotation(s) overlap the region; annotation content is not interpreted content.",
                 region.PageNumber,
@@ -376,7 +376,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (table.Revisions.Count > 1)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT102",
+                "PVADPDFREDACT102",
                 PdfRedactionCapability.ReviewRequired,
                 $"The document has {table.Revisions.Count} revisions; earlier revisions retain covered content unless the apply stage performs a full rewrite."));
         }
@@ -385,7 +385,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (catalog is not null && HasEmbeddedFiles(graph, catalog))
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT103",
+                "PVADPDFREDACT103",
                 PdfRedactionCapability.ReviewRequired,
                 "The document contains embedded files; attachments may repeat covered content."));
         }
@@ -393,7 +393,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (document.Metadata.Values.Count > 0 || catalog?["Metadata"] is not null)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT104",
+                "PVADPDFREDACT104",
                 PdfRedactionCapability.ReviewRequired,
                 "The document carries information-dictionary or XMP metadata that may repeat covered content."));
         }
@@ -402,7 +402,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             Resolve(graph, catalog?["Names"]) is PdfDictionary names && names["JavaScript"] is not null)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT107",
+                "PVADPDFREDACT107",
                 PdfRedactionCapability.ReviewRequired,
                 "The document declares actions or JavaScript that may carry covered content."));
         }
@@ -410,7 +410,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         if (catalog?["OCProperties"] is not null)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT108",
+                "PVADPDFREDACT108",
                 PdfRedactionCapability.ReviewRequired,
                 "The document declares optional content groups; covered content may be on a layer that is not currently visible."));
         }

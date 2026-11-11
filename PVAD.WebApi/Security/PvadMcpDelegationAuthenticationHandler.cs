@@ -16,7 +16,7 @@ public sealed class PvadMcpDelegationAuthenticationHandler(
     : AuthenticationHandler<AuthenticationSchemeOptions>(schemeOptions, logger, encoder)
 {
     public static bool HasDelegationPrefix(string value) =>
-        value.StartsWith("PVAD-MCP ", StringComparison.Ordinal) || value.StartsWith("PXA-MCP ", StringComparison.Ordinal);
+        value.StartsWith("PVAD-MCP ", StringComparison.Ordinal);
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -25,13 +25,12 @@ public sealed class PvadMcpDelegationAuthenticationHandler(
             return Task.FromResult(AuthenticateResult.NoResult());
         if (authorization.Length > 16_384)
             return Task.FromResult(AuthenticateResult.Fail("MCP delegation exceeds its size limit."));
-        var canonical = authorization.StartsWith("PVAD-MCP ", StringComparison.Ordinal);
 
         var secret = oauthOptions.Value.McpDelegationSecret;
         if (string.IsNullOrWhiteSpace(secret) || Encoding.UTF8.GetByteCount(secret) < 32)
             return Task.FromResult(AuthenticateResult.Fail("MCP delegation is not configured."));
 
-        var compact = authorization[(canonical ? "PVAD-MCP ".Length : "PXA-MCP ".Length)..];
+        var compact = authorization["PVAD-MCP ".Length..];
         var separator = compact.LastIndexOf('.');
         if (separator <= 0 || separator == compact.Length - 1)
             return Task.FromResult(AuthenticateResult.Fail("Invalid MCP delegation."));
@@ -54,15 +53,14 @@ public sealed class PvadMcpDelegationAuthenticationHandler(
                 payloadBytes,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var validIdentity = payload is not null && (canonical
-                ? payload.Iss == "pvad-mcp-server" && payload.Aud == "pvad-api"
-                : payload.Aud == "pxa-api" && payload.Iss is "pxa-mcp-server" or "pvad-mcp-server");
+            var validIdentity = payload is not null &&
+                payload.Iss == "pvad-mcp-server" && payload.Aud == "pvad-api";
             if (payload is null || !validIdentity ||
                 payload.Iat > now + 10 || payload.Iat < now - 60 ||
                 payload.Exp <= now || payload.Exp > now + 60 || payload.Exp <= payload.Iat || payload.Exp - payload.Iat > 60 ||
                 !Guid.TryParse(payload.Sub, out _) || !Guid.TryParse(payload.Org, out _) ||
                 payload.Scope is null || payload.Scope.Length is 0 or > 16 ||
-                payload.Scope.Any(scope => !PvadScopeCompatibility.IsReadOnly(scope)) ||
+                payload.Scope.Any(scope => !PvadOAuthScopes.IsReadOnly(scope)) ||
                 string.IsNullOrWhiteSpace(payload.Jti) || payload.Jti.Length > 200)
             {
                 return Task.FromResult(AuthenticateResult.Fail("Expired or invalid MCP delegation."));
@@ -74,7 +72,7 @@ public sealed class PvadMcpDelegationAuthenticationHandler(
                 new(PvadClaimTypes.Organization, payload.Org),
                 new(PvadClaimTypes.ActiveOrganization, payload.Org),
             };
-            claims.AddRange(payload.Scope.Select(PvadScopeCompatibility.Canonical).Distinct(StringComparer.Ordinal)
+            claims.AddRange(payload.Scope.Distinct(StringComparer.Ordinal)
                 .Select(scope => new Claim("scope", scope)));
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             return Task.FromResult(AuthenticateResult.Success(

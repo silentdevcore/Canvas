@@ -277,8 +277,8 @@ public sealed class PdfPadesSigningServiceTests
     }
 
     [Theory]
-    [InlineData(PdfTrustStatus.Valid, PdfTrustStatus.Valid, "PXAPDFTRUST115")]
-    [InlineData(PdfTrustStatus.Invalid, PdfTrustStatus.Invalid, "PXAPDFTRUST116")]
+    [InlineData(PdfTrustStatus.Valid, PdfTrustStatus.Valid, "PVADPDFTRUST115")]
+    [InlineData(PdfTrustStatus.Invalid, PdfTrustStatus.Invalid, "PVADPDFTRUST116")]
     public async Task Inspect_ShouldApplyValidatedApplicationRevocationEvidence(
         PdfTrustStatus evidenceStatus,
         PdfTrustStatus expectedSignatureStatus,
@@ -365,7 +365,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(2, report.Signatures.Count);
         Assert.All(report.Signatures, signature => Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus));
         Assert.DoesNotContain(report.Diagnostics, diagnostic =>
-            diagnostic.Code is "PXAPDFTRUST131" or "PXAPDFTRUST132" or "PXAPDFTRUST133" or "PXAPDFTRUST134");
+            diagnostic.Code is "PVADPDFTRUST131" or "PVADPDFTRUST132" or "PVADPDFTRUST133" or "PVADPDFTRUST134");
         Assert.False(report.Signatures[0].CoversWholeDocument);
         Assert.True(report.Signatures[1].CoversWholeDocument);
         Assert.Equal(first.RevisionCount + 1, second.RevisionCount);
@@ -390,7 +390,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST105");
     }
 
     [Fact]
@@ -410,8 +410,8 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF005");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST102");
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST133");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST133");
     }
 
     [Fact]
@@ -478,7 +478,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST131");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST131");
     }
 
     [Fact]
@@ -524,7 +524,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST134");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST134");
     }
 
     [Theory]
@@ -556,7 +556,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST102");
     }
 
     [Theory]
@@ -579,7 +579,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST105");
     }
 
     [Fact]

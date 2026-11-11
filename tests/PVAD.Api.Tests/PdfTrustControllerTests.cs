@@ -46,7 +46,7 @@ public sealed class PdfTrustControllerTests
         var problem = Assert.IsType<ObjectResult>(response.Result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI001", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI001", details.Extensions["code"]);
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public sealed class PdfTrustControllerTests
         var problem = Assert.IsType<ObjectResult>(response.Result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
         var details = Assert.IsAssignableFrom<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFACONVERTAPI006", Assert.Contains("code", details.Extensions)?.ToString());
+        Assert.Equal("PVADPDFACONVERTAPI006", Assert.Contains("code", details.Extensions)?.ToString());
     }
 
     [Fact]
@@ -128,9 +128,9 @@ public sealed class PdfTrustControllerTests
         Assert.Equal("application/pdf", file.ContentType);
         Assert.Equal("trust-pdfa2b.pdf", file.FileDownloadName);
         Assert.Equal("PDF/A-2b", controller.Response.Headers["PVAD-Compliance-Profile"]);
-        Assert.Equal(controller.Response.Headers["PXA-Compliance-Profile"], controller.Response.Headers["PVAD-Compliance-Profile"]);
-        Assert.Equal(controller.Response.Headers["PXA-Source-SHA256"], controller.Response.Headers["PVAD-Source-SHA256"]);
-        Assert.Equal(controller.Response.Headers["PXA-Result-SHA256"], controller.Response.Headers["PVAD-Result-SHA256"]);
+        Assert.Equal(controller.Response.Headers["PVAD-Compliance-Profile"], controller.Response.Headers["PVAD-Compliance-Profile"]);
+        Assert.Equal(controller.Response.Headers["PVAD-Source-SHA256"], controller.Response.Headers["PVAD-Source-SHA256"]);
+        Assert.Equal(controller.Response.Headers["PVAD-Result-SHA256"], controller.Response.Headers["PVAD-Result-SHA256"]);
     }
 
     private static PdfTrustController CreateController() => new(

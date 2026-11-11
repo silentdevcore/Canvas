@@ -31,21 +31,6 @@ public sealed class ConverterFacadeTests
     }
 
     [Fact]
-    public void XmlExport_ChangesOnlyEnvelopeIdentityInExplicitLegacyMode()
-    {
-        var exporter = new XmlDocumentExporter();
-        var design = BuildDesign();
-        var canonical = XDocument.Load(new MemoryStream(exporter.Export(design)));
-        var legacy = XDocument.Load(new MemoryStream(exporter.ExportLegacy(design)));
-        Assert.Equal("PvadDocument", canonical.Root!.Name.LocalName);
-        Assert.Equal("PxaDocument", legacy.Root!.Name.LocalName);
-        Assert.Equal("1.0", canonical.Root.Attribute("version")?.Value);
-        Assert.Contains("Hello PVAD", canonical.ToString());
-        legacy.Root.Name = canonical.Root.Name;
-        Assert.True(XNode.DeepEquals(canonical, legacy));
-    }
-
-    [Fact]
     public void ImageExporter_ExportsPngFromPvadCoreDesign()
     {
         var bytes = new ImageDocumentExporter().Export(BuildDesign(), new ExportOptions(Dpi: 72));

@@ -164,7 +164,7 @@ public sealed class PdfEInvoicesControllerTests
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAEINV106", details.Extensions["code"]);
+        Assert.Equal("PVADEINV106", details.Extensions["code"]);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public sealed class PdfEInvoicesControllerTests
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAEINV106", details.Extensions["code"]);
+        Assert.Equal("PVADEINV106", details.Extensions["code"]);
     }
 
     [Fact]

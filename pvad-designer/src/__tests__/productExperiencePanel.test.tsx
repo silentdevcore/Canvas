@@ -41,7 +41,7 @@ jest.mock('@/product/ProductExperienceProvider', () => ({
       version: '1.1.0',
       publishedAt: '2026-08-03',
       channel: 'stable',
-      title: 'PXA 1.1.0',
+      title: 'PVAD 1.1.0',
       summary: 'A release that has already been read.',
       documentationPath: '/releases/1.1.0',
       components: ['designer'],
@@ -79,13 +79,13 @@ describe('ProductExperiencePanel release history', () => {
     });
 
     const release = [...container.querySelectorAll('button')]
-      .find(button => button.textContent === 'PXA 1.1.0');
+      .find(button => button.textContent === 'PVAD 1.1.0');
     expect(release).toBeDefined();
     // Current shell branding must not rewrite historical release content.
     expect(container.querySelector('header small')?.textContent).toBe('PVADE 1.1.0');
     expect(release).toBeInTheDocument();
     expect(release).toBeEnabled();
-    expect(release).toHaveAccessibleName('PXA 1.1.0');
+    expect(release).toHaveAccessibleName('PVAD 1.1.0');
     expect(release?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => release?.click());

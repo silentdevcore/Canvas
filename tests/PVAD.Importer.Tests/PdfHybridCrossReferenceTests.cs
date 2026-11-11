@@ -32,7 +32,7 @@ public sealed class PdfHybridCrossReferenceTests
 
         var (table, _) = ParseGraph(pdf);
 
-        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF010");
+        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF010");
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class PdfHybridCrossReferenceTests
 
         Assert.True(table.Entries.ContainsKey(new PdfObjectId(1, 0)));
         Assert.NotNull(graph.Resolve(new PdfObjectId(1, 0)));
-        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF008");
+        Assert.Contains(table.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF008");
     }
 
     private static (PdfCrossReferenceTable Table, PdfObjectGraph Graph) ParseGraph(byte[] pdf)

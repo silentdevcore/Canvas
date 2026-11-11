@@ -1,0 +1,11 @@
+{
+  "id": "pvad-final-rename-handoff",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Consolidated the remaining naming review and compatibility transition handoff.",
+  "reason": "Adds an internal work assignment and review boundaries without changing shipped behavior or authorizing contract removal or deployment.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

@@ -50,7 +50,7 @@ public sealed class PvadComplianceIdentityTests
         var report = PdfCompliancePreflight.Validate(document, options);
         Assert.True(report.IsValid);
         Assert.StartsWith("PVAD ", report.Validator);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA000");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA000");
         var bytes = document.ToBytes(options);
         var text = Encoding.ASCII.GetString(bytes);
         Assert.Contains("PVAD sRGB output intent", text);
@@ -70,7 +70,7 @@ public sealed class PvadComplianceIdentityTests
             AccessibilityProfile = PdfAccessibilityProfile.PdfUa1,
         });
         Assert.StartsWith("PVAD ", PdfAccessibilityPreflight.ValidatorName);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA002");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA002");
     }
 
     private static uint Read(byte[] bytes, int offset) => BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(offset, 4));

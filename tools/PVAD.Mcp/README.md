@@ -25,7 +25,7 @@ The server exposes PVAD resources through the `pvad://...` scheme.
 | `get_access_context` | Effective remote client, subject, organization, and granted scopes. |
 
 Every tool declares an output schema and returns `structuredContent` with `status`, `data`, and stable
-[compatibility entry `compat-30dd63955344`](../../docs/reference/compatibility-identifiers.v1.json) diagnostics. All current tools are annotated as read-only and idempotent.
+`PVADMCP...` diagnostics. All current tools are annotated as read-only and idempotent.
 
 ## Resources
 
@@ -33,16 +33,14 @@ Primary resources:
 
 `pvad://schema/design-export`, `pvad://schema/pvad-workbook`, `pvad://openapi`, `pvad://docs/llms-full`, `pvad://docs/cookbook`.
 
-Use `pvad://` for new clients. The five historical [compatibility entry `compat-82d933aea411`](../../docs/reference/compatibility-identifiers.v1.json) resource URIs remain readable as deprecated compatibility aliases. The legacy workbook resource retains its original schema identity; canonical and historical schema IDs resolve offline through the packaged alias manifest.
+Only `pvad://` resources are registered. Schema IDs resolve offline through the packaged schema registry.
 
-Maintained schema IDs use `https://pvade.com/schemas/...`. The previous domain
-and older schema IDs remain explicit offline aliases, including `$defs` fragment
-references. The package contains every schema definition listed in the registry,
-not operational metadata documents or approval data. Legacy native schemas retain
-their generation-specific constraints. Schema URLs are identifiers, not proof
+Maintained schema IDs use `https://pvade.com/schemas/...`, including `$defs`
+fragment references. The package contains every schema definition listed in the
+registry, not operational metadata documents or approval data. Schema URLs are identifiers, not proof
 that public endpoints are deployed.
 
-The [compatibility entry `compat-6729a58eebb7`](../../docs/reference/compatibility-identifiers.v1.json), [compatibility entry `compat-9bd90c90ea0d`](../../docs/reference/compatibility-identifiers.v1.json), and `canvas-mcp` commands and [compatibility entry `compat-98a5bfaffa79`](../../docs/reference/compatibility-identifiers.v1.json) environment names remain compatibility aliases. Conflicting canonical and legacy environment values fail startup. Organization claims default to `pvad_organization` with a conflict-checked legacy reader. Internal delegation now writes `PVAD-MCP` with canonical issuer/audience and read-only scopes; the API accepts both explicit historical formats. Canonical `pvad.*` scopes have explicit historical [compatibility entry `compat-7cf668ff61aa`](../../docs/reference/compatibility-identifiers.v1.json) equivalents. Existing stored grants are not rewritten automatically: apply and verify the opt-in store migration before switching public OAuth requests. See [identity compatibility](../../docs/pvad-identity-compatibility.md) before deploying mixed versions.
+The `pvad-mcp` and `pvad-mcp-server` commands and `PVAD_*` environment names are the only supported names; former names are not read. Organization claims default to `pvad_organization`. Internal delegation writes `PVAD-MCP` with the canonical issuer, audience and read-only `pvad.*` scopes, and the API accepts only that format.
 
 ## Run
 
@@ -96,11 +94,7 @@ the shared `PVAD_MCP_DELEGATION_SECRET` must be mounted into MCP Server and as
 `OAuth__McpDelegationSecret` into WebApi. The remote
 baseline requires `pvad.docs.read`; `validate_design` additionally requires
 `pvad.documents.validate`, while template tools require `pvad.templates.read`.
-The corresponding historical [compatibility entry `compat-7cf668ff61aa`](../../docs/reference/compatibility-identifiers.v1.json) scopes remain compatibility aliases.
-Protected-resource discovery now advertises canonical scope spellings.
-Scope normalization still accepts either form; existing stored OAuth grants
-are not rewritten automatically. Apply the opt-in scope migration before
-requesting canonical scopes with a retained registration.
+Protected-resource discovery advertises only canonical `pvad.*` scopes.
 The example API hostname assumes the shared Compose network; use the actual
 reachable API origin when running outside that network. Remote
 `render_preview` remains disabled until it can return a tenant-bound, expiring artifact instead of
@@ -117,12 +111,9 @@ as service-account `client_credentials`. Compatible interactive MCP clients may 
 PKCE client through the discovery-advertised `/connect/register` endpoint. Registration accepts
 only HTTPS or loopback HTTP callbacks and never issues a client secret. Service-account key creation returns `oAuthClientId` beside
 the one-time secret; revoking the key or service account also revokes the OAuth client.
-New keys receive `pvad-sa-<id>` clients. Retained [compatibility entry `compat-8f9995c94bfe`](../../docs/reference/compatibility-identifiers.v1.json) registrations keep
-their stored IDs and credentials; use the ID returned by Account, never construct
-one from a prefix. Revocation checks both generations. Built-in client defaults
-are `pvad-mcp-public` and `pvad-mcp-server`. Stores containing their old counterparts
-require explicit maintenance approval before parallel registrations are created.
-See [OAuth client transition](../../docs/pvad-oauth-client-transition.md).
+Keys receive `pvad-sa-<id>` clients; use the ID returned by Account, never construct
+one from a prefix. Built-in client defaults
+are `pvad-mcp-public` and `pvad-mcp-server`.
 
 `/health/ready` checks both PVAD WebApi readiness and the configured JWKS endpoint and returns `503`
 when either dependency is unavailable. `PVAD_MCP_READINESS_TIMEOUT_MS` controls the bounded probe.

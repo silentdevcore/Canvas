@@ -36,7 +36,7 @@ public sealed class PdfObjectParser
             if (_parsedObjectCount >= _context.Limits.MaxIndirectObjectCount)
             {
                 _context.AddDiagnostic(new PdfParseDiagnostic(
-                    "PXAPDFPARSE005",
+                    "PVADPDFPARSE005",
                     $"The document exceeds the maximum of {_context.Limits.MaxIndirectObjectCount} indirect objects; the remaining objects were not parsed."));
                 break;
             }
@@ -131,7 +131,7 @@ public sealed class PdfObjectParser
         if (depth > _context.Limits.MaxNestingDepth)
         {
             throw new PdfParseLimitExceededException(
-                "PXAPDFPARSE001",
+                "PVADPDFPARSE001",
                 $"The object exceeds the maximum nesting depth of {_context.Limits.MaxNestingDepth}.");
         }
 
@@ -166,7 +166,7 @@ public sealed class PdfObjectParser
             if (values.Count >= _context.Limits.MaxArrayItemCount)
             {
                 throw new PdfParseLimitExceededException(
-                    "PXAPDFPARSE002",
+                    "PVADPDFPARSE002",
                     $"An array exceeds the maximum of {_context.Limits.MaxArrayItemCount} elements.");
             }
 
@@ -195,7 +195,7 @@ public sealed class PdfObjectParser
             if (dictionary.Values.Count >= _context.Limits.MaxDictionaryEntryCount)
             {
                 throw new PdfParseLimitExceededException(
-                    "PXAPDFPARSE003",
+                    "PVADPDFPARSE003",
                     $"A dictionary exceeds the maximum of {_context.Limits.MaxDictionaryEntryCount} entries.");
             }
 
@@ -301,7 +301,7 @@ public sealed class PdfObjectParser
         if (!_resolving.Add(id))
         {
             _context.AddDiagnostic(new PdfParseDiagnostic(
-                "PXAPDFPARSE006",
+                "PVADPDFPARSE006",
                 "An indirect reference chain is cyclic and was not resolved.",
                 id.Number,
                 id.Generation));
@@ -311,7 +311,7 @@ public sealed class PdfObjectParser
         if (_resolving.Count > _context.Limits.MaxReferenceResolutionDepth)
         {
             _context.AddDiagnostic(new PdfParseDiagnostic(
-                "PXAPDFPARSE007",
+                "PVADPDFPARSE007",
                 $"An indirect reference chain exceeds the maximum resolution depth of {_context.Limits.MaxReferenceResolutionDepth}.",
                 id.Number,
                 id.Generation));
@@ -382,7 +382,7 @@ public sealed class PdfObjectParser
         if (objectCount > _context.Limits.MaxObjectStreamEntryCount)
         {
             _context.AddDiagnostic(new PdfParseDiagnostic(
-                "PXAPDFPARSE004",
+                "PVADPDFPARSE004",
                 $"An object stream declares {objectCount} entries, above the maximum of {_context.Limits.MaxObjectStreamEntryCount}."));
             return [];
         }

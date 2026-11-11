@@ -12,18 +12,19 @@ namespace PVAD.Api.Tests;
 public sealed class PvadLicenseRenameCompatibilityTests
 {
     [Theory]
-    [InlineData("PXA-RETAINED-1", "pxa", false)]
-    [InlineData("CUSTOM-RETAINED-1", "pxa", false)]
-    [InlineData("PVAD-NEW-1", "pvad", true)]
-    public void Download_identity_does_not_rewrite_signed_fields(string number, string identity, bool hasExactText)
+    [InlineData("PVAD-NEW-1")]
+    [InlineData("CUSTOM-1")]
+    public void Download_identity_does_not_rewrite_signed_fields(string number)
     {
-        const string raw = "{ \"licenseNumber\": \"synthetic\", \"custom\": \"PXA retained\" }";
+        const string identity = "pvad";
+        const bool hasExactText = true;
+        const string raw = "{ \"licenseNumber\": \"synthetic\", \"custom\": \"PVAD retained\" }";
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var signature = Convert.ToBase64String(key.SignData(Encoding.UTF8.GetBytes(raw), HashAlgorithmName.SHA256));
         var license = new OfflineLicense
         {
             LicenseNumber = number, EnvelopeJson = raw, Signature = signature,
-            KeyId = "pxa-retained-signing-key", Algorithm = "ECDSA_P256_SHA256",
+            KeyId = "pvad-retained-signing-key", Algorithm = "ECDSA_P256_SHA256",
         };
         var result = PvadLicenseDownload.Create(license);
         Assert.Equal($"application/vnd.{identity}.license+json", result.ContentType);
@@ -50,7 +51,7 @@ public sealed class PvadLicenseRenameCompatibilityTests
             var options = Options.Create(new PvadLicensingOptions());
             var environment = new TestEnvironment { ContentRootPath = root };
             var first = new PvadLicenseSigningService(options, environment);
-            const string raw = "{\"legacy\":\"PXA\"}";
+            const string raw = "{\"product\":\"PVAD\"}";
             var privatePath = Path.Combine(root, options.Value.PrivateKeyPath);
             using var key = ECDsa.Create();
             key.ImportFromPem(File.ReadAllText(privatePath));
@@ -58,10 +59,10 @@ public sealed class PvadLicenseRenameCompatibilityTests
             var before = File.ReadAllBytes(privatePath);
             var restarted = new PvadLicenseSigningService(options, environment);
             Assert.Equal(first.PublicKeyPem, restarted.PublicKeyPem);
-            Assert.Equal("pxa-development-1", restarted.KeyId);
+            Assert.Equal("pvad-development-1", restarted.KeyId);
             Assert.Equal(before, File.ReadAllBytes(privatePath));
             Assert.True(restarted.Verify(raw, signature));
-            Assert.False(restarted.Verify(raw.Replace("PXA", "PVAD"), signature));
+            Assert.False(restarted.Verify(raw.Replace("PVAD", "PVADE"), signature));
         });
     }
 
@@ -84,7 +85,7 @@ public sealed class PvadLicenseRenameCompatibilityTests
             var license = new OfflineLicense
             {
                 OrganizationId = subscription.OrganizationId, SubscriptionId = subscription.Id,
-                LicenseNumber = "PXA-SYNTHETIC-RETAINED", EnvelopeJson = "", Signature = "",
+                LicenseNumber = "PVAD-SYNTHETIC-RETAINED", EnvelopeJson = "", Signature = "",
                 KeyId = signer.KeyId, Algorithm = "ECDSA_P256_SHA256",
                 ValidFrom = now.AddDays(-1), ValidUntil = now.AddDays(30), IssuedAt = now,
             };

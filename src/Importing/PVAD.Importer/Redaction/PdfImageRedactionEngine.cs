@@ -25,7 +25,6 @@ internal sealed record PdfRedactedImageMask(string DictionaryKey, PdfStreamObjec
 internal static class PdfImageRedactionEngine
 {
     private const string RedactedMarker = "PVADRedacted";
-    private const string LegacyRedactedMarker = "PXARedacted";
     private const long MaximumPixels = 32_000_000;
     private const long MaximumSampleBytes = 64L * 1024 * 1024;
     private const int MaximumEncodedCodecBytes = 16 * 1024 * 1024;
@@ -160,7 +159,6 @@ internal static class PdfImageRedactionEngine
 
         dictionary["DecodeParms"] = null;
         dictionary["Length"] = null;
-        dictionary[LegacyRedactedMarker] = null;
         dictionary[RedactedMarker] = new PdfBoolean(true);
         return new PdfStreamObject(dictionary, Compress(pixels.Samples));
     }
@@ -201,7 +199,7 @@ internal static class PdfImageRedactionEngine
     }
 
     private static bool HasRedactionMarker(PdfObjectGraph graph, PdfDictionary dictionary) =>
-        IsTruthy(Resolve(graph, dictionary[RedactedMarker] ?? dictionary[LegacyRedactedMarker]));
+        IsTruthy(Resolve(graph, dictionary[RedactedMarker]));
 
     private static bool CoveredPixelsAreZero(
         PixelBuffer pixels,

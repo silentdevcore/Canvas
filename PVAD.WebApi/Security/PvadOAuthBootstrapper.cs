@@ -29,10 +29,6 @@ public static class PvadOAuthBootstrapper
         var settings = services.GetRequiredService<IOptions<PvadOAuthOptions>>().Value;
         if (!settings.Enabled)
             return;
-        var transition = ActivatorUtilities.CreateInstance<PvadOAuthClientTransition>(services);
-        await transition.InitializeAsync(dryRun: true);
-        if (settings.MigrateLegacyScopeAliases)
-            await ActivatorUtilities.CreateInstance<PvadOAuthScopeMigration>(services).RunAsync(dryRun: false);
-        await transition.InitializeAsync();
+        await ActivatorUtilities.CreateInstance<PvadOAuthClientProvisioner>(services).RunAsync();
     }
 }

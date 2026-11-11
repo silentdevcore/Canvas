@@ -39,24 +39,24 @@ const DesignerAuthContext = createContext<DesignerAuthContextValue | null>(null)
 function authStatusKey(error: DesignerAuthError): PvadStatusKey {
   if (error.offline) return 'offline';
   switch (error.code) {
-    case 'PXA_SUBSCRIPTION_CANCELLED':
-    case 'PXA_SUBSCRIPTION_INACTIVE':
-    case 'PXA_TRIAL_EXPIRED':
-    case 'PXA_GRACE_PERIOD_EXPIRED':
-    case 'PXA_ENTITLEMENT_EXPIRED':
+    case 'PVAD_SUBSCRIPTION_CANCELLED':
+    case 'PVAD_SUBSCRIPTION_INACTIVE':
+    case 'PVAD_TRIAL_EXPIRED':
+    case 'PVAD_GRACE_PERIOD_EXPIRED':
+    case 'PVAD_ENTITLEMENT_EXPIRED':
       return 'trialExpired';
-    case 'PXA_ENTITLEMENT_MISSING':
-    case 'PXA_ENTITLEMENT_DENIED':
+    case 'PVAD_ENTITLEMENT_MISSING':
+    case 'PVAD_ENTITLEMENT_DENIED':
       return 'entitlementDenied';
-    case 'PXA_DESIGNER_ACCOUNT_DISABLED':
-    case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
-    case 'PXA_ORGANIZATION_INACTIVE':
-    case 'PXAAPI015':
-    case 'PXAAPI016':
+    case 'PVAD_DESIGNER_ACCOUNT_DISABLED':
+    case 'PVAD_DESIGNER_MEMBERSHIP_INACTIVE':
+    case 'PVAD_ORGANIZATION_INACTIVE':
+    case 'PVADAPI015':
+    case 'PVADAPI016':
       return 'suspended';
-    case 'PXA_DESIGNER_SESSION_EXPIRED':
+    case 'PVAD_DESIGNER_SESSION_EXPIRED':
       return 'sessionExpired';
-    case 'PXA_API_VERSION_INCOMPATIBLE':
+    case 'PVAD_API_VERSION_INCOMPATIBLE':
       return 'incompatibleVersion';
     default:
       return error.status === 403 ? 'forbidden' : 'unavailable';

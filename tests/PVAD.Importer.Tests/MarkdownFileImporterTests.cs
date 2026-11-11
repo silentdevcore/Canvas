@@ -55,7 +55,7 @@ public sealed class MarkdownFileImporterTests
         Assert.Equal("", Assert.Single(design.Pages[0].Elements).Content);
         Assert.Empty(resolver.Sources);
         var diagnostic = Assert.Single(design.ImportDiagnostics!);
-        Assert.Equal("PXA-MD-201", diagnostic.Code);
+        Assert.Equal("PVAD-MD-201", diagnostic.Code);
         Assert.Equal("assets/photo.png", diagnostic.Source);
     }
 
@@ -363,7 +363,7 @@ public sealed class MarkdownFileImporterTests
         Assert.Equal(48, settings.Margins!.Top);
         Assert.Null(settings.SystemLanguage);
         Assert.Equal(4, design.ImportDiagnostics!.Count(
-            diagnostic => diagnostic.Code == "PXA-MD-006"));
+            diagnostic => diagnostic.Code == "PVAD-MD-006"));
         Assert.Single(design.Pages[0].Elements);
     }
 
@@ -375,7 +375,7 @@ public sealed class MarkdownFileImporterTests
 
         Assert.Equal("Test Doc", design.Name);
         var diagnostic = Assert.Single(design.ImportDiagnostics!);
-        Assert.Equal("PXA-MD-006", diagnostic.Code);
+        Assert.Equal("PVAD-MD-006", diagnostic.Code);
         Assert.Contains("title", diagnostic.Message);
     }
 
@@ -432,7 +432,7 @@ public sealed class MarkdownFileImporterTests
         var image = Assert.Single(design.Pages[0].Elements);
         Assert.Equal("image", image.Type);
         Assert.Equal("", image.Content);
-        Assert.Contains(design.ImportDiagnostics!, diagnostic => diagnostic.Code == "PXA-MD-002");
+        Assert.Contains(design.ImportDiagnostics!, diagnostic => diagnostic.Code == "PVAD-MD-002");
     }
 
     [Fact]

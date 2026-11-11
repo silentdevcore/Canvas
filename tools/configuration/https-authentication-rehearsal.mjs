@@ -223,7 +223,6 @@ export async function runHttpsAuthentication({ docker = dockerCommand, progress 
       const editor = fixture.userIds.find(value => value.email === 'editor@https.test');
       switch (message.action) {
         case 'session-count': return { count: Number(sql('SELECT count(*) FROM identity.user_sessions;')) };
-        case 'legacy-ticket': return helper({ Action: 'legacy-ticket', Surface: message.surface, Cookie: message.cookie });
         case 'restart': await stop(api); await startApi('api-restarted'); return { sessions: sql('SELECT count(*) FROM identity.user_sessions;') };
         case 'backup':
           await stop(api); backupSnapshot = dataSnapshot(); originalKeys = keys;

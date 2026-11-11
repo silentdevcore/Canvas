@@ -39,13 +39,12 @@ test('remaining test and PDF validation callers use canonical keys accepted by t
   for (const key of ['PVAD_PDFA_REPORT_DIR', 'PVAD_VERAPDF_IMAGE']) {
     assert.ok(evidence.includes(`${key}:`));
     assert.ok(!evidence.includes(`${key.replace('PVAD_', 'PXA_')}:`));
-    assert.ok(validator.includes(`pvad_environment_alias ${key} ${key.replace('PVAD_', 'PXA_')}`));
+    assert.ok(!validator.includes('pvad_environment_alias'));
   }
-  assert.ok(evidence.includes("schema: 'pxa.e-invoice.pdfa-evidence/1'"));
+  assert.ok(evidence.includes("schema: 'pvad.e-invoice.pdfa-evidence/1'"));
   const helper = await read('tests/Shared/PvadTestEnvironment.cs');
-  assert.ok(helper.includes('var legacy = "PXA_" + name[5..];'));
-  assert.ok(helper.includes('return current ?? previous;'));
-  assert.ok(helper.includes('Conflicting configuration keys:'));
+  assert.ok(!helper.includes('var legacy'));
+  assert.ok(!helper.includes('Conflicting configuration keys:'));
   assert.ok((await read('tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/README.md'))
     .includes('PVAD_RUN_PDF_RECOVERY_TESTS=1 dotnet test'));
 });
@@ -101,9 +100,7 @@ test('AES-256 local fallback image matches its current producer and documentatio
   assert.ok(runner.includes(`readPvadEnvironment('PVAD_AES256_QPDF_IMAGE') ?? '${image}'`));
   assert.ok(documentation.includes(`\`${image}\``));
   assert.doesNotMatch(runner, /pxa-pdf-trust-external-tools:1/);
-  assert.ok(documentation.includes('operator-only compatibility entry `compat-5622f2143f23`'));
-  const registry = JSON.parse(await read('operator-docs/compatibility-identifiers.v1.json'));
-  assert.ok(registry.entries.some(entry => entry.value === 'PXA_AES256_QPDF_IMAGE'));
+  assert.ok(!documentation.includes('compat-5622f2143f23'));
 });
 
 test('JavaScript tools do not bypass the configuration alias resolver', async () => {

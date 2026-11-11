@@ -5,7 +5,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { exerciseMonitoring } from './monitoring-operator-checks.mjs';
-import { grafanaDatasourcePath, grafanaProviderPath } from './rename-grafana-provider.mjs';
+import { grafanaDatasourcePath, grafanaProviderPath } from './grafana-inventory.mjs';
 
 const services = ['pvad-otel-collector', 'pvad-prometheus', 'pvad-loki', 'pvad-tempo', 'pvad-alertmanager'];
 export const monitoringSources = [
@@ -52,7 +52,7 @@ export function relayHeaderContract(source) {
   };
   const family = identity => ({ timestampHeader: header(identity, 'Timestamp'),
     signatureHeader: header(identity, 'Signature'), idempotencyHeader: header(identity, 'Idempotency-Key') });
-  return { ...family('PVAD'), legacyHeaders: family('PXA') };
+  return { ...family('PVAD'), legacyHeaders: family('PVAD') };
 }
 
 export async function createMonitoringLab(context) {
@@ -76,7 +76,7 @@ export async function createMonitoringLab(context) {
   for (const type of ['dashboards', 'datasources']) {
     await mkdir(resolve(provisioning, type), { recursive: true });
     const file = `${type}.yml`;
-    const source = type === 'dashboards' ? grafanaProviderPath('legacy') : grafanaDatasourcePath;
+    const source = type === 'dashboards' ? grafanaProviderPath : grafanaDatasourcePath;
     await writeFile(resolve(provisioning, type, file), await readFile(resolve(root, source)));
   }
   const configuration = monitoringConfiguration({

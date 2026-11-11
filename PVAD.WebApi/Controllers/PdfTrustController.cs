@@ -96,7 +96,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "A PDF file is required",
                 detail: "Upload a non-empty PDF in the 'file' multipart field.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI001" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI001" });
         }
 
         if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
@@ -106,7 +106,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The uploaded file is not a PDF",
                 detail: "Use a .pdf file or the application/pdf content type.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI002" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI002" });
         }
 
         if (file.Length > MaximumUploadBytes)
@@ -115,7 +115,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF is too large to inspect",
                 detail: $"PDF Trust inspection accepts files up to {MaximumUploadBytes} bytes.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI003" });
         }
 
         try
@@ -144,7 +144,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF exceeds the inspection limit",
                 detail: "The uploaded stream exceeded the configured PDF Trust inspection limit.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI003" });
         }
     }
 
@@ -155,20 +155,20 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "A PDF file is required",
                 detail: "Upload a non-empty PDF in the 'file' multipart field.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI001" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI001" });
         if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
             !file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
             return Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The uploaded file is not a PDF",
                 detail: "Use a .pdf file or the application/pdf content type.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI002" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI002" });
         if (file.Length > MaximumUploadBytes)
             return Problem(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF is too large to inspect",
                 detail: $"PDF Trust inspection accepts files up to {MaximumUploadBytes} bytes.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFTRUSTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFTRUSTAPI003" });
         return null;
     }
 
@@ -207,7 +207,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The requested archival profile is not supported",
                 detail: "Use 'PDF/A-2b' or 'PDF/A-3b'.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI006" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI006" });
         }
 
         try
@@ -232,7 +232,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The PDF could not be preflighted",
                 detail: exception.Message,
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI004" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI004" });
         }
     }
 
@@ -261,7 +261,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The requested archival profile is not supported",
                 detail: "Use 'PDF/A-2b' or 'PDF/A-3b'.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI006" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI006" });
         }
 
         try
@@ -295,7 +295,7 @@ public sealed class PdfTrustController(
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAPDFACONVERTAPI005",
+                    ["code"] = "PVADPDFACONVERTAPI005",
                     ["preflight"] = exception.Preflight
                 });
         }
@@ -305,7 +305,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The PDF could not be converted",
                 detail: exception.Message,
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI004" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI004" });
         }
     }
 
@@ -341,7 +341,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "A PDF file is required",
                 detail: "Upload a non-empty PDF in the 'file' multipart field.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI001" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI001" });
         }
 
         if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
@@ -351,7 +351,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "The uploaded file is not a PDF",
                 detail: "Use a .pdf file or the application/pdf content type.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI002" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI002" });
         }
 
         if (file.Length > MaximumUploadBytes)
@@ -360,7 +360,7 @@ public sealed class PdfTrustController(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
                 title: "The PDF is too large to convert",
                 detail: $"PDF/A conversion accepts files up to {MaximumUploadBytes} bytes.",
-                extensions: new Dictionary<string, object?> { ["code"] = "PXAPDFACONVERTAPI003" });
+                extensions: new Dictionary<string, object?> { ["code"] = "PVADPDFACONVERTAPI003" });
         }
 
         return null;

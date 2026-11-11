@@ -230,9 +230,9 @@ public sealed class PvadJobProcessor(
                 throw new PvadPermanentJobException("The requested template version was not found.");
         }
 
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage();
         page.DrawText($"Template Rendered Successfully: {template.Name}", 100, 700, 14);
         await using var content = new MemoryStream(document.ToBytes(), writable: false);
@@ -330,7 +330,6 @@ public sealed class PvadJobProcessor(
             var resultJson = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 migration.PvadCode,
-                PxaCode = migration.PvadCode,
                 migration.Summary,
                 migration.Diagnostics,
             });

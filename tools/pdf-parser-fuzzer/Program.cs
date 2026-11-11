@@ -370,8 +370,8 @@ static bool IsExpectedMalformedInput(Exception exception) => exception is
     PVAD.Importer.Security.PdfEncryptionIntegrityException;
 
 static bool IsParseDiagnostic(PdfTrustDiagnostic diagnostic) =>
-    diagnostic.Code.StartsWith("PXAPDFPARSE", StringComparison.Ordinal) ||
-    diagnostic.Code.StartsWith("PXAPDFXREF", StringComparison.Ordinal);
+    diagnostic.Code.StartsWith("PVADPDFPARSE", StringComparison.Ordinal) ||
+    diagnostic.Code.StartsWith("PVADPDFXREF", StringComparison.Ordinal);
 
 static string? ReadOption(string[] arguments, string option)
 {

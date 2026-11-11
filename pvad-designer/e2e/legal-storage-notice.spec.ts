@@ -67,7 +67,7 @@ test('a legacy storage acknowledgement migrates and still allows reopening setti
   page,
 }) => {
   await context.addCookies([{
-    name: 'PXA.StorageNotice',
+    name: 'PVAD.StorageNotice',
     value: '2026-08',
     url: 'http://localhost:5173',
   }]);
@@ -75,7 +75,7 @@ test('a legacy storage acknowledgement migrates and still allows reopening setti
   await expect(page.locator('[data-pvad-storage-notice]')).toHaveCount(0);
   await expect.poll(async () => (await context.cookies()).some(cookie =>
     cookie.name === 'PVAD.StorageNotice' && cookie.value === '2026-08')).toBe(true);
-  expect((await context.cookies()).find(cookie => cookie.name === 'PXA.StorageNotice')?.value).toBe('2026-08');
+  expect((await context.cookies()).find(cookie => cookie.name === 'PVAD.StorageNotice')?.value).toBe('2026-08');
 
   await page.getByRole('button', { name: 'Storage settings' }).click();
   await expect(page.locator('[data-pvad-storage-notice]')).toBeVisible();

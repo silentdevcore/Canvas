@@ -26,7 +26,7 @@ const verifier: OAuthTokenVerifier = {
   },
 };
 
-for (const scope of ['pvad.docs.read', 'pxa.docs.read']) {
+for (const scope of ['pvad.docs.read', 'pvad.docs.read']) {
   test(`${scope} grants pass the HTTP bearer gate and access context stays canonical`, async () => {
     const running = await listen({ verifier: {
       async verifyAccessToken(token) {
@@ -210,7 +210,7 @@ test('authenticated Streamable HTTP client receives its tenant context', async (
     assert.equal(remotePreview.isError, true);
     assert.equal((remotePreview.structuredContent as {
       diagnostics: Array<{ code: string }>;
-    }).diagnostics[0].code, 'PXAMCP032');
+    }).diagnostics[0].code, 'PVADMCP032');
 
     const metrics = await (await fetch(new URL('/metrics', running.baseUrl))).text();
     assert.match(metrics, /pvad_mcp_tool_calls_total\{tool="get_access_context",status="200"\} 1/);

@@ -20,7 +20,7 @@ public sealed class PvadSystemHealthService(
             registration => registration.Tags.Contains("ready"),
             cancellationToken);
         var database = FromHealthCheck(report, PvadHealthCheckNames.Database,
-            PvadHealthCheckNames.LegacyDatabase, "database", "PostgreSQL");
+            "database", "PostgreSQL");
         var components = new List<PvadSystemHealthComponent>
         {
             Component("webapi", "Web API", PvadSystemHealthStatus.Healthy,
@@ -39,7 +39,7 @@ public sealed class PvadSystemHealthService(
 
         components.Add(mailOptions.Value.IsDeliveryEnabled
             ? FromHealthCheck(report, PvadHealthCheckNames.Mail,
-                PvadHealthCheckNames.LegacyMail, "mail", "Mail delivery")
+                "mail", "Mail delivery")
             : Component(
                 "mail",
                 "Mail delivery",
@@ -140,12 +140,10 @@ public sealed class PvadSystemHealthService(
     internal static PvadSystemHealthComponent FromHealthCheck(
         HealthReport report,
         string healthCheckName,
-        string legacyHealthCheckName,
         string key,
         string name)
     {
-        if (!report.Entries.TryGetValue(healthCheckName, out var entry) &&
-            !report.Entries.TryGetValue(legacyHealthCheckName, out entry))
+        if (!report.Entries.TryGetValue(healthCheckName, out var entry))
         {
             return Component(
                 key,

@@ -26,7 +26,7 @@ public sealed class PvadPdfTrustAvailabilityMiddleware(
             Status = StatusCodes.Status503ServiceUnavailable,
             Title = "PDF Trust feature unavailable",
             Detail = $"The {unavailableFeature} capability is disabled by the server trust configuration.",
-            Extensions = { ["code"] = "PXAPDFTRUSTAPI901", ["feature"] = unavailableFeature },
+            Extensions = { ["code"] = "PVADPDFTRUSTAPI901", ["feature"] = unavailableFeature },
         };
         PVAD.WebApi.Infrastructure.PvadApiProblems.Complete(context, problem, StatusCodes.Status503ServiceUnavailable);
         await context.Response.WriteAsJsonAsync(problem, options: null,

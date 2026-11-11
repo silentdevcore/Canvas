@@ -5,8 +5,6 @@ public sealed class PvadOAuthOptions
     public const string SectionName = "OAuth";
 
     public bool Enabled { get; set; } = true;
-    public bool MigrateLegacyScopeAliases { get; set; }
-    public bool MigrateLegacyClientIdentities { get; set; }
     public string Issuer { get; set; } = "http://localhost:5178";
     public string McpResource { get; set; } = "http://localhost:3000/mcp";
     public string ApiResource { get; set; } = "pvad-api";
@@ -27,6 +25,8 @@ public static class PvadOAuthScopes
     public const string TemplatesRead = "pvad.templates.read";
     public const string DocumentsValidate = "pvad.documents.validate";
     public const string DocumentsRender = "pvad.documents.render";
+
+    public static bool IsReadOnly(string scope) => ReadOnly.Contains(scope, StringComparer.Ordinal);
 
     public static readonly string[] ReadOnly =
     [
@@ -56,18 +56,14 @@ public static class PvadOAuthClients
 {
     public const string Public = "pvad-mcp-public";
     public const string McpServer = "pvad-mcp-server";
-    public const string LegacyPublic = "pxa-mcp-public";
-    public const string LegacyMcpServer = "pxa-mcp-server";
 
     public static string ForApiKey(Guid apiKeyId) => $"pvad-sa-{apiKeyId:N}";
-    public static string LegacyForApiKey(Guid apiKeyId) => $"pxa-sa-{apiKeyId:N}";
 
     public static bool TryParseServiceAccountId(string? clientId, out Guid apiKeyId)
     {
         apiKeyId = Guid.Empty;
-        var prefix = clientId?.StartsWith("pvad-sa-", StringComparison.Ordinal) == true ? "pvad-sa-"
-            : clientId?.StartsWith("pxa-sa-", StringComparison.Ordinal) == true ? "pxa-sa-" : null;
-        return prefix is not null && clientId!.Length == prefix.Length + 32
+        const string prefix = "pvad-sa-";
+        return clientId?.StartsWith(prefix, StringComparison.Ordinal) == true && clientId.Length == prefix.Length + 32
             && Guid.TryParseExact(clientId[prefix.Length..], "N", out apiKeyId)
             && apiKeyId != Guid.Empty;
     }

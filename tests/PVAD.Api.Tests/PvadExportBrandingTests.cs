@@ -36,15 +36,15 @@ public sealed class PvadExportBrandingTests
     public async Task Generated_exports_keep_current_defaults_and_supplied_customer_names(string format, bool customer)
     {
         var design = CreateDesign();
-        design.Name = customer ? "PXA customer report" : "PVADE Export Audit";
-        var text = customer ? "PXA customer body" : "PVADE sample content";
+        design.Name = customer ? "PVAD customer report" : "PVADE Export Audit";
+        var text = customer ? "PVAD customer body" : "PVADE sample content";
         design.Pages[0].Elements[0].Content = text;
         var metadata = new PdfMetadataDto
         {
-            Title = customer ? "PXA original title" : "PVADE sample title",
-            Author = customer ? "PXA supplied author" : "Sample owner",
-            Subject = customer ? "PXA supplied subject" : "Export naming review",
-            Keywords = customer ? "PXA,original" : "sample,review",
+            Title = customer ? "PVAD original title" : "PVADE sample title",
+            Author = customer ? "PVAD supplied author" : "Sample owner",
+            Subject = customer ? "PVAD supplied subject" : "Export naming review",
+            Keywords = customer ? "PVAD,original" : "sample,review",
         };
         design.PageSettings!.Metadata = metadata;
         var original = JsonSerializer.Serialize(design);
@@ -63,7 +63,7 @@ public sealed class PvadExportBrandingTests
             "html" => ("html", "text/html; charset=utf-8"),
             _ => ("xml", "application/xml; charset=utf-8"),
         };
-        Assert.Equal($"{(customer ? "PXA-customer-report" : "PVADE-Export-Audit")}.{extension}", result.FileDownloadName);
+        Assert.Equal($"{(customer ? "PVAD-customer-report" : "PVADE-Export-Audit")}.{extension}", result.FileDownloadName);
         Assert.Equal(mime, result.ContentType);
         Assert.Equal(original, JsonSerializer.Serialize(design));
         WriteGeneratedExport($"{(customer ? "customer" : "current")}.{extension}", result.FileContents);
@@ -142,7 +142,7 @@ public sealed class PvadExportBrandingTests
     [InlineData(true)]
     public void Spreadsheet_facade_retains_workbook_sheet_and_cell_names(bool customer)
     {
-        var name = customer ? "PXA customer" : "Sample";
+        var name = customer ? "PVAD customer" : "Sample";
         var workbook = PVAD.Generator.Spreadsheet.CreateWorkbook(name);
         var sheet = workbook.AddSheet(name);
         sheet.Cell("A1").Value(name);
@@ -159,9 +159,9 @@ public sealed class PvadExportBrandingTests
     {
         var document = PVAD.Generator.Pdf.CreateDocument();
         document.AddPage(595, 842);
-        document.Info.Title = "PXA original title";
-        document.Info.Creator = "PXA customer creator";
-        document.Info.Producer = "PXA customer producer";
+        document.Info.Title = "PVAD original title";
+        document.Info.Creator = "PVAD customer creator";
+        document.Info.Producer = "PVAD customer producer";
         await using var input = new MemoryStream(document.ToBytes());
         var imported = await new PdfImporter().LoadAsync(input);
         Assert.Equal(document.Info.Title, Assert.IsType<PdfString>(imported.Metadata["Title"]).ToLatin1String());
@@ -249,7 +249,7 @@ public sealed class PvadExportBrandingTests
         var document = DesignJsonMapper.MapToPdfDocument(design);
 
         Assert.True(document.Info.CustomProperties.ContainsKey(ChartMetadataCodec.PdfInfoKey));
-        Assert.False(document.Info.CustomProperties.ContainsKey(ChartMetadataCodec.LegacyPdfInfoKey));
+        Assert.False(document.Info.CustomProperties.ContainsKey("PXAChartsV2"));
         Assert.True(ChartMetadataCodec.TryDecode(
             document.Info.CustomProperties[ChartMetadataCodec.PdfInfoKey], out var metadata));
         Assert.Equal("chart-1", Assert.Single(metadata.Charts).ElementId);
@@ -260,15 +260,15 @@ public sealed class PvadExportBrandingTests
     {
         var design = new DesignExportDto
         {
-            Name = "Customer PXA document",
+            Name = "Customer PVAD document",
             PageSettings = new PageSettingsDto
             {
                 Metadata = new PdfMetadataDto
                 {
-                    Title = "Canvas and PXA customer archive",
-                    Author = "PXA customer",
+                    Title = "Canvas and PVAD customer archive",
+                    Author = "PVAD customer",
                     Subject = "Original Canvas documents",
-                    Keywords = "Canvas,PXA"
+                    Keywords = "Canvas,PVAD"
                 }
             },
             Pages = [new PageDto { Id = "page-1", Elements = [] }]

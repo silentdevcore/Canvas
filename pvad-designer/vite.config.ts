@@ -14,7 +14,7 @@ const version = buildInfo.productVersion
 export default defineConfig({
   plugins: [react(), pvadBuildInfoPlugin(buildInfo), pvadStaticStatusPagesPlugin('PVADE Designer')],
   define: {
-    __PVAD_ABOUT_URL__: JSON.stringify(`${resolveSiteLinks(process.env.NODE_ENV, process.env).company}about.html#rename-history`),
+    __PVAD_ABOUT_URL__: JSON.stringify(`${resolveSiteLinks(process.env.NODE_ENV, process.env).company}about.html`),
     __PVAD_VERSION__: JSON.stringify(version),
     __PVAD_BUILD_COMMIT__: JSON.stringify(buildInfo.commitId),
     __PVAD_BUILD_TIME__: JSON.stringify(buildInfo.buildTime),

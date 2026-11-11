@@ -27,7 +27,7 @@ test('unknown status keys fail closed', () => {
   assert.throws(() => getStatusDefinition('madeUp'), /Unknown PVADE status key/);
 });
 
-for (const [generation, diagnosticCode] of [['current', 'PVADAPI018'], ['legacy', 'PXAAPI018']]) {
+for (const [generation, diagnosticCode] of [['current', 'PVADAPI018'], ['legacy', 'PVADAPI018']]) {
   test(`status model preserves ${generation} diagnostics and bounded recovery fields`, () => {
     const model = createStatusPageModel('upstreamUnavailable', {
       diagnosticCode,

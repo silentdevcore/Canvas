@@ -1,6 +1,6 @@
 import { workbookToWire, type SheetState } from './types';
 
-export const legacyWorkbookKeys = ['pxa-spreadsheet', 'canvas-spreadsheet', 'pvad-spreadsheet'] as const;
+export const legacyWorkbookKeys = ['pvad-spreadsheet', 'canvas-spreadsheet'] as const;
 export interface LegacyWorkbookDraft { key: string; raw: string; }
 
 /** Explicit recovery only: never hydrate or delete an unassigned document. */

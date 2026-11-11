@@ -4,8 +4,8 @@ groups:
       - alert: PvadWebApiContainerTelemetryMissing
         expr: |
           time() - max(
-            {__name__=~"(pvad|pxa)_service_heartbeat_seconds",
-              service_instance_id=~"(pvad|pxa)-webapi-container"
+            {__name__=~"pvad_service_heartbeat_seconds",
+              service_instance_id=~"pvad-webapi-container"
             }
           ) > 120
         labels:
@@ -15,5 +15,5 @@ groups:
         annotations:
           summary: The PVAD WebApi container telemetry is missing
           description: No dependency-health metric arrived from the expected WebApi container for two minutes.
-          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
-          runbook_id: PXA-OBS-034
+          dashboard_path: /d/pvad-platform-overview/pvad-platform-overview
+          runbook_id: PVAD-OBS-034

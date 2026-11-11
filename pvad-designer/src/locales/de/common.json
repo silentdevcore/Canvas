@@ -70,11 +70,11 @@
     "changeCategories": { "added": "Hinzugefügt", "improved": "Verbessert", "fixed": "Behoben", "security": "Sicherheit", "deprecated": "Veraltet", "breaking": "Inkompatibel" },
     "notificationCategories": { "System": "System", "Security": "Sicherheit", "Subscription": "Abonnement", "ActionRequired": "Aktion erforderlich", "Legal": "Rechtliches" },
     "decisions": {
-      "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "Ihre Organisation erlaubt diese Alpha-Funktion nicht.",
-      "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Aktivieren Sie diese Alpha-Funktion vor der Verwendung.",
-      "PXA_DESIGNER_FEATURE_DISABLED": "Diese Funktion ist derzeit deaktiviert.",
-      "PXA_DESIGNER_FEATURE_ENABLED": "Die Funktion ist verfügbar.",
-      "PXA_DESIGNER_FEATURE_UNKNOWN": "Diese Funktion ist in dieser Designer-Version nicht verfügbar."
+      "PVAD_DESIGNER_ALPHA_NOT_ALLOWED": "Ihre Organisation erlaubt diese Alpha-Funktion nicht.",
+      "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Aktivieren Sie diese Alpha-Funktion vor der Verwendung.",
+      "PVAD_DESIGNER_FEATURE_DISABLED": "Diese Funktion ist derzeit deaktiviert.",
+      "PVAD_DESIGNER_FEATURE_ENABLED": "Die Funktion ist verfügbar.",
+      "PVAD_DESIGNER_FEATURE_UNKNOWN": "Diese Funktion ist in dieser Designer-Version nicht verfügbar."
     }
   },
   "features": {

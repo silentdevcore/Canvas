@@ -1,12 +1,11 @@
 import { pvadVersion } from './buildInfo.js';
-import { readMigratedStorage } from './storageMigration.js';
 
 const TELEMETRY_PATH = '/api/pvad/v1/telemetry/browser';
 const MAX_BATCH_SIZE = 20;
 const FLUSH_DELAY_MS = 1000;
 const STATUS_LOOP_STORAGE_KEY = 'pvad-status-loop-v1';
 const STATUS_RECOVERY_STORAGE_KEY = 'pvad-status-recovery-v1';
-const currentTelemetry = () => globalThis.__pvadBrowserTelemetry ?? globalThis.__pxaBrowserTelemetry;
+const currentTelemetry = () => globalThis.__pvadBrowserTelemetry;
 const statusKeys = new Set([
   'badRequest', 'unauthenticated', 'sessionExpired', 'forbidden',
   'entitlementDenied', 'suspended', 'trialExpired', 'notFound', 'conflict',
@@ -23,7 +22,7 @@ export function createStatusLoopDetector({ threshold = 3, windowMs = 60_000, sto
   return (statusKey, route, now = Date.now()) => {
     if (!statusKeys.has(statusKey) || typeof route !== 'string' || !targetStorage) return false;
     try {
-      const previous = JSON.parse(readMigratedStorage(targetStorage, STATUS_LOOP_STORAGE_KEY, 'pxa-status-loop-v1') || '[]');
+      const previous = JSON.parse(targetStorage.getItem(STATUS_LOOP_STORAGE_KEY) || '[]');
       const recent = Array.isArray(previous)
         ? previous.filter(item => Number.isFinite(item?.at) && now - item.at <= windowMs)
         : [];
@@ -136,9 +135,9 @@ export function rememberStatusRecovery(action, correlationId, storage = globalTh
 export function consumeStatusRecovery(storage = globalThis.sessionStorage, now = Date.now(), maxAgeMs = 120_000) {
   if (!storage) return undefined;
   try {
-    const value = JSON.parse(readMigratedStorage(storage, STATUS_RECOVERY_STORAGE_KEY, 'pxa-status-recovery-v1') || 'null');
+    const value = JSON.parse(storage.getItem(STATUS_RECOVERY_STORAGE_KEY) || 'null');
     storage.removeItem(STATUS_RECOVERY_STORAGE_KEY);
-    storage.removeItem('pxa-status-recovery-v1');
+    storage.removeItem('pvad-status-recovery-v1');
     if (!value || !recoveryActions.has(value.action) || !Number.isFinite(value.at) || now - value.at > maxAgeMs)
       return undefined;
     return {
@@ -355,6 +354,4 @@ export function initializeBrowserTelemetry({ application, endpoint = TELEMETRY_P
 
   const bridge = { flush, stopVitals, record: event };
   globalThis.__pvadBrowserTelemetry = bridge;
-  // One compatibility alias, not a second collector or a second fetch wrapper.
-  globalThis.__pxaBrowserTelemetry = bridge;
 }

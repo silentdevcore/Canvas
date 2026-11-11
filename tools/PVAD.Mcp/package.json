@@ -7,8 +7,6 @@
   "bin": {
     "pvad-mcp": "dist/pvad-mcp.js",
     "pvad-mcp-server": "dist/pvad-mcp-server.js",
-    "pxa-mcp": "dist/pvad-mcp.js",
-    "pxa-mcp-server": "dist/pvad-mcp-server.js",
     "canvas-mcp": "dist/pvad-mcp.js"
   },
   "files": [

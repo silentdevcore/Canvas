@@ -34,25 +34,25 @@ public static partial class PvadProjectVersionPolicy
 
         if (source == current)
             return new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.Current,
-                true, false, "PXAPROJECT_VERSION_CURRENT", "The project uses the current schema version.");
+                true, false, "PVADPROJECT_VERSION_CURRENT", "The project uses the current schema version.");
 
         if (source.Major == current.Major && source.Minor < current.Minor)
             return new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.BackwardCompatible,
-                true, false, "PXAPROJECT_VERSION_COMPATIBLE",
+                true, false, "PVADPROJECT_VERSION_COMPATIBLE",
                 "The project uses an older backward-compatible minor schema version.");
 
         if (source.Major == current.Major && source.Minor > current.Minor)
             return new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.NewerApplicationRequired,
-                false, false, "PXAPROJECT014", "The project schema requires a newer PVAD version.");
+                false, false, "PVADPROJECT014", "The project schema requires a newer PVAD version.");
 
         if (source.Major == current.Major - 1 && hasMajorUpgradePath)
             return new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.UpgradeRequired,
-                true, true, "PXAPROJECT_VERSION_UPGRADE_REQUIRED",
+                true, true, "PVADPROJECT_VERSION_UPGRADE_REQUIRED",
                 "The project requires an explicit schema upgrade before it can be saved.");
 
         if (source.Major > current.Major)
             return new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.NewerApplicationRequired,
-                false, false, "PXAPROJECT014", "The project schema requires a newer PVAD version.");
+                false, false, "PVADPROJECT014", "The project schema requires a newer PVAD version.");
 
         return Unsupported(sourceVersion, currentVersion, "The project schema version is no longer supported.");
     }
@@ -104,7 +104,7 @@ public static partial class PvadProjectVersionPolicy
         string currentVersion,
         string message) =>
         new(sourceVersion, currentVersion, PvadProjectVersionCompatibility.Unsupported,
-            false, false, "PXAPROJECT008", message);
+            false, false, "PVADPROJECT008", message);
 
     [GeneratedRegex("^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", RegexOptions.CultureInvariant)]
     private static partial Regex SchemaVersionPattern();

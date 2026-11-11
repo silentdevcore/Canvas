@@ -997,12 +997,6 @@ function renderAboutPage() {
         <div class="pvad-company-story-grid">
           ${renderTextCards(aboutStory, 'pvad-company-story-card')}
         </div>
-        <section id="rename-history" aria-labelledby="rename-history-title">
-          <h2 id="rename-history-title">Product naming</h2>
-          <p>PXA has been renamed to PVAD. PVADE is the product and Designer name.
-            Earlier project files and supported integrations remain compatible.
-            Diagnostic display aliases use PVAD while established technical identifiers remain stable.</p>
-        </section>
       </div>
     </section>
   `;

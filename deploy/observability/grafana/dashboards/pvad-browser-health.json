@@ -8,7 +8,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -40,7 +40,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_browser_events_total\",browser_event=~\"error|unhandled_rejection\"}[24h]))",
+          "expr": "sum(increase({__name__=~\"pvad_browser_events_total\",browser_event=~\"error|unhandled_rejection\"}[24h]))",
           "legendFormat": "Browser errors",
           "range": true,
           "refId": "A"
@@ -52,7 +52,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -84,7 +84,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_browser_events_total\",browser_event=\"api_failure\"}[24h]))",
+          "expr": "sum(increase({__name__=~\"pvad_browser_events_total\",browser_event=\"api_failure\"}[24h]))",
           "legendFormat": "API failures",
           "range": true,
           "refId": "A"
@@ -96,7 +96,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -128,7 +128,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_browser_events_total\",browser_event=\"web_vital\",browser_outcome=\"poor\"}[24h])) / clamp_min(sum(increase({__name__=~\"(pvad|pxa)_browser_events_total\",browser_event=\"web_vital\"}[24h])), 1)",
+          "expr": "sum(increase({__name__=~\"pvad_browser_events_total\",browser_event=\"web_vital\",browser_outcome=\"poor\"}[24h])) / clamp_min(sum(increase({__name__=~\"pvad_browser_events_total\",browser_event=\"web_vital\"}[24h])), 1)",
           "legendFormat": "Poor",
           "range": true,
           "refId": "A"
@@ -140,7 +140,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -179,7 +179,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (browser_application, browser_event, browser_outcome) (rate({__name__=~\"(pvad|pxa)_browser_events_total\"}[5m]))",
+          "expr": "sum by (browser_application, browser_event, browser_outcome) (rate({__name__=~\"pvad_browser_events_total\"}[5m]))",
           "legendFormat": "{{browser_application}} / {{browser_event}} / {{browser_outcome}}",
           "range": true,
           "refId": "A"
@@ -191,7 +191,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -230,7 +230,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, browser_application, browser_vital) (rate({__name__=~\"(pvad|pxa)_browser_web_vital_bucket\",browser_vital=~\"lcp|inp\"}[15m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, browser_application, browser_vital) (rate({__name__=~\"pvad_browser_web_vital_bucket\",browser_vital=~\"lcp|inp\"}[15m])))",
           "legendFormat": "{{browser_application}} / {{browser_vital}}",
           "range": true,
           "refId": "A"
@@ -242,7 +242,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -281,7 +281,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (browser_application, browser_route) (rate({__name__=~\"(pvad|pxa)_browser_events_total\",browser_event=\"navigation\"}[5m]))",
+          "expr": "sum by (browser_application, browser_route) (rate({__name__=~\"pvad_browser_events_total\",browser_event=\"navigation\"}[5m]))",
           "legendFormat": "{{browser_application}} / {{browser_route}}",
           "range": true,
           "refId": "A"
@@ -307,6 +307,6 @@
   },
   "timezone": "browser",
   "title": "PVADE Browser Health",
-  "uid": "pxa-browser-health",
+  "uid": "pvad-browser-health",
   "version": 1
 }

@@ -19,9 +19,9 @@ namespace PVAD.Api.Tests;
 public sealed class PdfViewerRedactionControllerTests : IDisposable
 {
     [Theory]
-    [InlineData(1, 409, "PXAPDFREDACTVIEWER001")]
-    [InlineData(2, 409, "PXAPDFREDACTVIEWER002")]
-    [InlineData(3, 503, "PXAPDFREDACTVIEWER003")]
+    [InlineData(1, 409, "PVADPDFREDACTVIEWER001")]
+    [InlineData(2, 409, "PVADPDFREDACTVIEWER002")]
+    [InlineData(3, 503, "PVADPDFREDACTVIEWER003")]
     public async Task RedactionFailures_AddAliasesWithoutReturningPdf(int mode, int status, string code)
     {
         var response = await CreateController(new FailureApplier(mode)).Redact(
@@ -30,7 +30,6 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
         Assert.Equal(status, failure.StatusCode);
         using var json = System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(failure.Value));
         Assert.Equal(code, json.RootElement.GetProperty("code").GetString());
-        Assert.Equal("PVAD" + code[3..], json.RootElement.GetProperty("canonicalCode").GetString());
         Assert.True(json.RootElement.TryGetProperty("error", out _));
         Assert.False(json.RootElement.TryGetProperty("bytes", out _));
     }

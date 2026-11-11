@@ -139,7 +139,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var diagnostic = body.GetProperty("importDiagnostics")[0];
-        Assert.Equal("PXA-MD-201", diagnostic.GetProperty("code").GetString());
+        Assert.Equal("PVAD-MD-201", diagnostic.GetProperty("code").GetString());
         Assert.Equal("warning", diagnostic.GetProperty("severity").GetString());
         Assert.Equal("asset.png", diagnostic.GetProperty("source").GetString());
     }

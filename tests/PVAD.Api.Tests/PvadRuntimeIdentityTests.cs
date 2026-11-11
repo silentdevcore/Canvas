@@ -10,24 +10,18 @@ namespace PVAD.Api.Tests;
 public sealed class PvadRuntimeIdentityTests
 {
     [Theory]
-    [InlineData(false, HealthStatus.Healthy, "Healthy")]
-    [InlineData(true, HealthStatus.Healthy, "Healthy")]
-    [InlineData(false, HealthStatus.Degraded, "Degraded")]
-    [InlineData(true, HealthStatus.Degraded, "Degraded")]
-    [InlineData(false, HealthStatus.Unhealthy, "Unhealthy")]
-    [InlineData(true, HealthStatus.Unhealthy, "Unhealthy")]
-    public void Health_readers_accept_both_generations_without_exposing_details(
-        bool legacy, HealthStatus status, string expected)
+    [InlineData(HealthStatus.Healthy, "Healthy")]
+    [InlineData(HealthStatus.Degraded, "Degraded")]
+    [InlineData(HealthStatus.Unhealthy, "Unhealthy")]
+    public void Health_readers_use_canonical_registrations_without_exposing_details(HealthStatus status, string expected)
     {
-        foreach (var (canonical, oldName, key, display) in new[]
+        foreach (var (name, key, display) in new[]
                  {
-                     (PvadHealthCheckNames.Database, PvadHealthCheckNames.LegacyDatabase, "database", "PostgreSQL"),
-                     (PvadHealthCheckNames.Mail, PvadHealthCheckNames.LegacyMail, "mail", "Mail delivery"),
+                     (PvadHealthCheckNames.Database, "database", "PostgreSQL"),
+                     (PvadHealthCheckNames.Mail, "mail", "Mail delivery"),
                  })
         {
-            var report = Report((legacy ? oldName : canonical, status));
-
-            var component = PvadSystemHealthService.FromHealthCheck(report, canonical, oldName, key, display);
+            var component = PvadSystemHealthService.FromHealthCheck(Report((name, status)), name, key, display);
 
             Assert.Equal(key, component.Key);
             Assert.Equal(expected, component.Status);
@@ -37,17 +31,15 @@ public sealed class PvadRuntimeIdentityTests
     }
 
     [Fact]
-    public void Missing_health_registration_fails_closed_and_canonical_registration_is_authoritative()
+    public void Missing_or_former_health_registrations_fail_closed()
     {
         var missing = PvadSystemHealthService.FromHealthCheck(Report(),
-            PvadHealthCheckNames.Database, PvadHealthCheckNames.LegacyDatabase, "database", "PostgreSQL");
-        var mixed = PvadSystemHealthService.FromHealthCheck(Report(
-                (PvadHealthCheckNames.Database, HealthStatus.Unhealthy),
-                (PvadHealthCheckNames.LegacyDatabase, HealthStatus.Healthy)),
-            PvadHealthCheckNames.Database, PvadHealthCheckNames.LegacyDatabase, "database", "PostgreSQL");
+            PvadHealthCheckNames.Database, "database", "PostgreSQL");
+        var former = PvadSystemHealthService.FromHealthCheck(Report(("pxa-database", HealthStatus.Healthy)),
+            PvadHealthCheckNames.Database, "database", "PostgreSQL");
 
         Assert.Equal("Unhealthy", missing.Status);
-        Assert.Equal("Unhealthy", mixed.Status);
+        Assert.Equal("Unhealthy", former.Status);
     }
 
     [Fact]

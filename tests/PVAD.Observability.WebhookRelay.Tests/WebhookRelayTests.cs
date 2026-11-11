@@ -38,8 +38,8 @@ public sealed class WebhookRelayTests
                   "annotations": {
                     "summary": "WebApi error rate is high",
                     "description": "Operational description",
-                    "dashboard_path": "/d/pxa-platform-overview",
-                    "runbook_id": "PXA-OBS-004",
+                    "dashboard_path": "/d/pvad-platform-overview",
+                    "runbook_id": "PVAD-OBS-004",
                     "request_body": "must-not-appear"
                   }
                 }
@@ -51,7 +51,7 @@ public sealed class WebhookRelayTests
         var json = Encoding.UTF8.GetString(payload);
 
         Assert.Contains("PvadWebApiHighErrorRate", json, StringComparison.Ordinal);
-        Assert.Contains("PXA-OBS-004", json, StringComparison.Ordinal);
+        Assert.Contains("PVAD-OBS-004", json, StringComparison.Ordinal);
         Assert.DoesNotContain("must-not-appear", json, StringComparison.Ordinal);
         Assert.DoesNotContain("fingerprint", json, StringComparison.Ordinal);
         Assert.DoesNotContain("externalURL", json, StringComparison.Ordinal);
@@ -103,7 +103,7 @@ public sealed class WebhookRelayTests
 
     [Theory]
     [InlineData("PVAD")]
-    [InlineData("PXA")]
+    [InlineData("PVAD")]
     public async Task Relay_sends_equal_signed_headers_for_canonical_and_legacy_receivers(string identity)
     {
         var secret = Encoding.UTF8.GetBytes("pvad-test-webhook-signing-secret-value-2026");
@@ -152,7 +152,7 @@ public sealed class WebhookRelayTests
                     "application/json"),
             };
             request.Headers.Add("X-PVAD-Webhook-Signature", "caller-supplied-value");
-            request.Headers.Add("X-PXA-Webhook-Signature", "caller-supplied-value");
+            request.Headers.Add("X-PVAD-Webhook-Signature", "caller-supplied-value");
             using var response = await client.SendAsync(request);
 
             Assert.Equal(System.Net.HttpStatusCode.Accepted, response.StatusCode);
@@ -220,7 +220,7 @@ public sealed class WebhookRelayTests
             {
                 Assert.Equal(
                     Assert.Single(request.Headers.GetValues($"X-PVAD-Webhook-{suffix}")),
-                    Assert.Single(request.Headers.GetValues($"X-PXA-Webhook-{suffix}")));
+                    Assert.Single(request.Headers.GetValues($"X-PVAD-Webhook-{suffix}")));
             }
             Timestamp = Assert.Single(request.Headers.GetValues($"X-{identity}-Webhook-Timestamp"));
             Signature = Assert.Single(request.Headers.GetValues($"X-{identity}-Webhook-Signature"));

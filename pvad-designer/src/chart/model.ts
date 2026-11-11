@@ -4,8 +4,7 @@ export const CHART_PALETTE = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3a
 export const CHART_TYPES: PvadChartType[] = ['bar', 'line', 'area', 'pie', 'doughnut', 'stackedBar', 'combo'];
 
 type ChartRecognitionSource = NonNullable<ChartDefinition['recognition']>['sourceKind'];
-export const normalizeChartRecognitionSource = (source: ChartRecognitionSource): ChartRecognitionSource =>
-  source === 'pxaMetadata' ? 'pvadMetadata' : source;
+export const normalizeChartRecognitionSource = (source: ChartRecognitionSource): ChartRecognitionSource => source;
 
 export function normalizeChartMetadataElement<T extends {
   chart?: ChartDefinition;

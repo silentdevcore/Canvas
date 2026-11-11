@@ -43,7 +43,7 @@ public sealed class EInvoiceArtifactGovernanceTests
     {
         using var fixture = Fixture.Create(governance => governance with { LicenseReview = state });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV029");
+        AssertUnavailable(fixture.Validate(), "PVADEINV029");
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             LicenseReviewedOn = null
         });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV029");
+        AssertUnavailable(fixture.Validate(), "PVADEINV029");
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             ExpiresOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1)
         });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV030");
+        AssertUnavailable(fixture.Validate(), "PVADEINV030");
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             _ => governance with { SupportedProfiles = [] }
         });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV028");
+        AssertUnavailable(fixture.Validate(), "PVADEINV028");
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public sealed class EInvoiceArtifactGovernanceTests
     {
         using var fixture = Fixture.Create(governance: null);
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV028");
+        AssertUnavailable(fixture.Validate(), "PVADEINV028");
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             Family = PvadEInvoiceArtifactFamily.KositXRechnung
         });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV026");
+        AssertUnavailable(fixture.Validate(), "PVADEINV026");
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public sealed class EInvoiceArtifactGovernanceTests
             SupportedProfiles = ["MINIMUM", "BASIC"]
         });
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV026");
+        AssertUnavailable(fixture.Validate(), "PVADEINV026");
     }
 
     [Theory]
@@ -140,7 +140,7 @@ public sealed class EInvoiceArtifactGovernanceTests
     {
         using var fixture = Fixture.Create(schemaVersion: schemaVersion);
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV027");
+        AssertUnavailable(fixture.Validate(), "PVADEINV027");
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public sealed class EInvoiceArtifactGovernanceTests
         using var fixture = Fixture.Create();
         File.AppendAllText(Path.Combine(fixture.Root, "rules.xsl"), "<!-- edited -->");
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV022");
+        AssertUnavailable(fixture.Validate(), "PVADEINV022");
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class EInvoiceArtifactGovernanceTests
         using var fixture = Fixture.Create();
         File.Delete(Path.Combine(fixture.Root, "invoice.xsd"));
 
-        AssertUnavailable(fixture.Validate(), "PXAEINV020");
+        AssertUnavailable(fixture.Validate(), "PVADEINV020");
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public sealed class EInvoiceArtifactGovernanceTests
         var report = fixture.Validate();
 
         Assert.Equal("invalid", report.ConformanceStatus);
-        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PXAEINV024");
+        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PVADEINV024");
         // Mapped to a stable PVAD code, without discarding what the artifact set actually said.
         var original = diagnostic.OriginalFinding;
         Assert.NotNull(original);
@@ -207,7 +207,7 @@ public sealed class EInvoiceArtifactGovernanceTests
         var report = fixture.Validate();
 
         Assert.Equal("valid", report.ConformanceStatus);
-        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PXAEINV024");
+        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PVADEINV024");
         Assert.Equal("warning", diagnostic.Severity);
         Assert.Equal("warning", diagnostic.OriginalFinding!.Severity);
         Assert.Equal("BR-DE-ADVISORY", diagnostic.OriginalFinding.RuleId);
@@ -221,7 +221,7 @@ public sealed class EInvoiceArtifactGovernanceTests
         var report = fixture.Validate();
 
         Assert.Equal("valid", report.ConformanceStatus);
-        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PXAEINV024");
+        var diagnostic = Assert.Single(report.Diagnostics, item => item.Code == "PVADEINV024");
         Assert.Equal("information", diagnostic.Severity);
         Assert.Equal("information", diagnostic.OriginalFinding!.Severity);
     }

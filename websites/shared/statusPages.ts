@@ -54,9 +54,8 @@ interface PvadBrowserTelemetryBridge {
 function browserTelemetry(): PvadBrowserTelemetryBridge | undefined {
   const bridge = globalThis as typeof globalThis & {
     __pvadBrowserTelemetry?: PvadBrowserTelemetryBridge;
-    __pxaBrowserTelemetry?: PvadBrowserTelemetryBridge;
   };
-  return bridge.__pvadBrowserTelemetry ?? bridge.__pxaBrowserTelemetry;
+  return bridge.__pvadBrowserTelemetry;
 }
 
 export function recordStatusPageShown(statusKey: PvadStatusKey, correlationId?: string) {

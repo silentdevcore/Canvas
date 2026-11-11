@@ -159,7 +159,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
             return structural;
 
         var diagnostics = structural.Diagnostics
-            .Where(static item => item.Code != "PXAEINV000")
+            .Where(static item => item.Code != "PVADEINV000")
             .ToList();
 
         try
@@ -176,7 +176,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
                 return Report(structural, diagnostics, "invalid");
 
             diagnostics.Add(new PvadEInvoiceDiagnostic(
-                "PXAEINV019",
+                "PVADEINV019",
                 "information",
                 $"XSD and Schematron validation passed with artifact set '{_manifest.ArtifactSetId}'."));
             return Report(structural, diagnostics, "valid", true);
@@ -193,7 +193,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
         catch (Exception exception) when (exception is XmlException or XmlSchemaException or XsltException or IOException)
         {
             diagnostics.Add(new PvadEInvoiceDiagnostic(
-                "PXAEINV025",
+                "PVADEINV025",
                 "error",
                 "The pinned electronic-invoice validation rules could not be executed safely."));
             return Report(structural, diagnostics, "unavailable");
@@ -203,26 +203,26 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
     private void ValidateManifest(PvadEInvoiceOptions options, string? syntax)
     {
         if (_manifest.SchemaVersion != 2)
-            throw ArtifactError("PXAEINV027", "The validation artifact manifest version is not supported by this build.");
+            throw ArtifactError("PVADEINV027", "The validation artifact manifest version is not supported by this build.");
         ValidateGovernance();
         if (string.IsNullOrWhiteSpace(_manifest.ArtifactSetId) ||
             _manifest.ArtifactSetId.Length > 128 ||
             string.IsNullOrWhiteSpace(_manifest.StandardVersion) ||
             string.IsNullOrWhiteSpace(_manifest.Profile) ||
             string.IsNullOrWhiteSpace(_manifest.Syntax))
-            throw ArtifactError("PXAEINV021", "The validation artifact manifest is invalid.");
+            throw ArtifactError("PVADEINV021", "The validation artifact manifest is invalid.");
         if (_manifest.Standard != options.Standard ||
             !string.Equals(_manifest.StandardVersion, options.Version.Trim(), StringComparison.Ordinal) ||
             !string.Equals(Normalize(_manifest.Profile), Normalize(options.Profile), StringComparison.Ordinal) ||
             !string.Equals(_manifest.Syntax, syntax, StringComparison.Ordinal))
         {
-            throw ArtifactError("PXAEINV026", "The validation artifact set does not match the requested standard, version, profile, and syntax.");
+            throw ArtifactError("PVADEINV026", "The validation artifact set does not match the requested standard, version, profile, and syntax.");
         }
         if (_manifest.SourceUri is null || !_manifest.SourceUri.IsAbsoluteUri ||
             string.IsNullOrWhiteSpace(_manifest.License) || _manifest.License.Length > 512)
-            throw ArtifactError("PXAEINV021", "The validation artifact source and license are required.");
+            throw ArtifactError("PVADEINV021", "The validation artifact source and license are required.");
         if (_manifest.XmlSchemas is null || _manifest.XmlSchemas.Count == 0 || _manifest.SchematronXslt is null)
-            throw ArtifactError("PXAEINV021", "At least one XML schema is required.");
+            throw ArtifactError("PVADEINV021", "At least one XML schema is required.");
         ValidateProfileIsSupported(options);
     }
 
@@ -237,25 +237,25 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
     private void ValidateGovernance()
     {
         var governance = _manifest.Governance
-            ?? throw ArtifactError("PXAEINV028", "The validation artifact manifest is missing its governance record.");
+            ?? throw ArtifactError("PVADEINV028", "The validation artifact manifest is missing its governance record.");
 
         if (governance.Family == PvadEInvoiceArtifactFamily.Unspecified)
-            throw ArtifactError("PXAEINV028", "The validation artifact set does not state which upstream family it comes from.");
+            throw ArtifactError("PVADEINV028", "The validation artifact set does not state which upstream family it comes from.");
         if (string.IsNullOrWhiteSpace(governance.UpstreamVersion) || governance.UpstreamVersion.Length > 128)
-            throw ArtifactError("PXAEINV028", "The validation artifact set does not state its upstream version.");
+            throw ArtifactError("PVADEINV028", "The validation artifact set does not state its upstream version.");
         if (governance.RetrievedOn is null)
-            throw ArtifactError("PXAEINV028", "The validation artifact set does not state when it was retrieved.");
+            throw ArtifactError("PVADEINV028", "The validation artifact set does not state when it was retrieved.");
         if (string.IsNullOrWhiteSpace(governance.UpdatePolicy) || governance.UpdatePolicy.Length > 1024)
-            throw ArtifactError("PXAEINV028", "The validation artifact set does not state an update policy.");
+            throw ArtifactError("PVADEINV028", "The validation artifact set does not state an update policy.");
 
         if (governance.LicenseReview != PvadEInvoiceLicenseReviewState.Approved)
-            throw ArtifactError("PXAEINV029",
+            throw ArtifactError("PVADEINV029",
                 $"The validation artifact set's licence review is '{governance.LicenseReview}'; only an approved set may be used.");
         if (string.IsNullOrWhiteSpace(governance.LicenseReviewedBy) || governance.LicenseReviewedOn is null)
-            throw ArtifactError("PXAEINV029", "An approved licence review must record who concluded it and when.");
+            throw ArtifactError("PVADEINV029", "An approved licence review must record who concluded it and when.");
 
         if (governance.SupportedProfiles is null || governance.SupportedProfiles.Count == 0)
-            throw ArtifactError("PXAEINV028", "The validation artifact set does not state which profiles it supports.");
+            throw ArtifactError("PVADEINV028", "The validation artifact set does not state which profiles it supports.");
 
         // The family has to match the standard, or a ZUGFeRD set could validate an XRechnung.
         var expectedFamily = _manifest.Standard switch
@@ -265,11 +265,11 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
             _ => PvadEInvoiceArtifactFamily.KositXRechnung
         };
         if (governance.Family != expectedFamily)
-            throw ArtifactError("PXAEINV026",
+            throw ArtifactError("PVADEINV026",
                 $"The artifact set is a {governance.Family} distribution but the manifest declares {_manifest.Standard}.");
 
         if (governance.ExpiresOn is { } expiry && expiry < DateOnly.FromDateTime(DateTime.UtcNow))
-            throw ArtifactError("PXAEINV030",
+            throw ArtifactError("PVADEINV030",
                 $"The validation artifact set expired on {expiry:yyyy-MM-dd} and must be refreshed before it is used again.");
     }
 
@@ -281,7 +281,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
         if (!governance.SupportedProfiles.Any(profile =>
             string.Equals(Normalize(profile), requested, StringComparison.Ordinal)))
         {
-            throw ArtifactError("PXAEINV026",
+            throw ArtifactError("PVADEINV026",
                 $"The validation artifact set does not support profile '{options.Profile.Trim()}'.");
         }
     }
@@ -290,7 +290,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
     {
         var artifacts = _manifest.XmlSchemas.Append(_manifest.SchematronXslt).ToArray();
         if (artifacts.Select(static artifact => artifact.Path).Distinct(StringComparer.Ordinal).Count() != artifacts.Length)
-            throw ArtifactError("PXAEINV021", "Validation artifact paths must be unique.");
+            throw ArtifactError("PVADEINV021", "Validation artifact paths must be unique.");
         var files = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var artifact in artifacts)
         {
@@ -298,26 +298,26 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
                 Path.IsPathRooted(artifact.Path) ||
                 artifact.Path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Contains(".."))
             {
-                throw ArtifactError("PXAEINV021", "Validation artifact paths must remain inside the artifact directory.");
+                throw ArtifactError("PVADEINV021", "Validation artifact paths must remain inside the artifact directory.");
             }
 
             var fullPath = Path.GetFullPath(Path.Combine(_artifactRoot, artifact.Path));
             if (!fullPath.StartsWith(_artifactRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) ||
                 !File.Exists(fullPath))
             {
-                throw ArtifactError("PXAEINV020", "A pinned validation artifact is unavailable.");
+                throw ArtifactError("PVADEINV020", "A pinned validation artifact is unavailable.");
             }
             if (File.ResolveLinkTarget(fullPath, returnFinalTarget: true) is not null)
-                throw ArtifactError("PXAEINV021", "Validation artifacts cannot be symbolic links.");
+                throw ArtifactError("PVADEINV021", "Validation artifacts cannot be symbolic links.");
 
             var fileInfo = new FileInfo(fullPath);
             if (fileInfo.Length > EInvoice.MaximumXmlBytes)
-                throw ArtifactError("PXAEINV021", "A validation artifact exceeds the configured size limit.");
+                throw ArtifactError("PVADEINV021", "A validation artifact exceeds the configured size limit.");
             using var artifactStream = File.OpenRead(fullPath);
             var actualHash = Convert.ToHexString(SHA256.HashData(artifactStream)).ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(artifact.Sha256) || artifact.Sha256.Trim().Length != 64 ||
                 !string.Equals(actualHash, artifact.Sha256.Trim(), StringComparison.OrdinalIgnoreCase))
-                throw ArtifactError("PXAEINV022", "A validation artifact failed SHA-256 verification.");
+                throw ArtifactError("PVADEINV022", "A validation artifact failed SHA-256 verification.");
             files[artifact.Path] = fullPath;
         }
         return files;
@@ -344,7 +344,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
         settings.ValidationType = ValidationType.Schema;
         settings.ValidationFlags = XmlSchemaValidationFlags.ReportValidationWarnings;
         settings.ValidationEventHandler += (_, args) => diagnostics.Add(new PvadEInvoiceDiagnostic(
-            "PXAEINV023",
+            "PVADEINV023",
             args.Severity == XmlSeverityType.Error ? "error" : "warning",
             args.Message)
         {
@@ -404,7 +404,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
             var severity = MapSchematronSeverity(finding.Name.LocalName, flag);
 
             diagnostics.Add(new PvadEInvoiceDiagnostic(
-                "PXAEINV024",
+                "PVADEINV024",
                 severity,
                 string.IsNullOrWhiteSpace(location) ? message : $"{message} ({location})")
             {
@@ -541,7 +541,7 @@ public sealed class PvadEInvoiceConformanceValidator : IPvadEInvoiceConformanceV
         private void EnsureCapacityLimit(int count)
         {
             if (Position + count > maximumBytes)
-                throw new InvalidDataException("PXAEINV025: Schematron output exceeded the configured limit.");
+                throw new InvalidDataException("PVADEINV025: Schematron output exceeded the configured limit.");
         }
     }
 }

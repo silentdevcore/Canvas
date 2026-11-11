@@ -6,7 +6,7 @@ namespace PVAD.Core.Tests;
 public sealed class ChartDefinitionNormalizerTests
 {
     [Theory]
-    [InlineData("pxaMetadata", "pvadMetadata")]
+    [InlineData("pvadMetadata", "pvadMetadata")]
     [InlineData("pvadMetadata", "pvadMetadata")]
     [InlineData("pdfVector", "pdfVector")]
     [InlineData("pdfRaster", "pdfRaster")]

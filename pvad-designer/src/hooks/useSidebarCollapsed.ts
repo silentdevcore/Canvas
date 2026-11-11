@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { readMigratedStorage } from '@/utils/storageMigration';
 
 /** Persists a hub sidebar's collapsed/expanded state per storage key across navigation and reloads. */
-export function useSidebarCollapsed(storageKey: string, legacyKey = storageKey): [boolean, () => void] {
+export function useSidebarCollapsed(storageKey: string): [boolean, () => void] {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
-      return readMigratedStorage(localStorage, storageKey, legacyKey) === '1';
+      return localStorage.getItem(storageKey) === '1';
     } catch {
       return false;
     }

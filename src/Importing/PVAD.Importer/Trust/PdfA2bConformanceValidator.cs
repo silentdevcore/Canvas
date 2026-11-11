@@ -65,24 +65,24 @@ internal static class PdfA2bConformanceValidator
         var valid = true;
         if (isEncrypted)
         {
-            Error("PXAPDFTRUST310", $"{PdfA2bConverter.ProfileName(profile)} does not permit encryption.");
+            Error("PVADPDFTRUST310", $"{PdfA2bConverter.ProfileName(profile)} does not permit encryption.");
         }
 
         var catalog = Resolve(graph, graph.Trailer?["Root"]) as PdfDictionary;
         if (catalog is null)
         {
-            Error("PXAPDFTRUST311", "The PDF catalog could not be resolved for PDF/A validation.");
+            Error("PVADPDFTRUST311", "The PDF catalog could not be resolved for PDF/A validation.");
             return false;
         }
 
         if (!HasPdfAMetadata(graph, catalog, profile))
         {
-            Error("PXAPDFTRUST312", $"The catalog does not reference XMP metadata identifying {PdfA2bConverter.ProfileName(profile)}.");
+            Error("PVADPDFTRUST312", $"The catalog does not reference XMP metadata identifying {PdfA2bConverter.ProfileName(profile)}.");
         }
 
         if (!HasRgbOutputIntent(graph, catalog))
         {
-            Error("PXAPDFTRUST313", "A valid RGB PDF/A output intent with an ICC profile was not found.");
+            Error("PVADPDFTRUST313", "A valid RGB PDF/A output intent with an ICC profile was not found.");
         }
 
         ValidateOptionalContent(catalog);
@@ -103,7 +103,7 @@ internal static class PdfA2bConformanceValidator
                     !HasEmbeddedFontProgram(graph, dictionary))
                 {
                     Error(
-                        "PXAPDFTRUST314",
+                        "PVADPDFTRUST314",
                         "A font dictionary does not reference an embedded font program.",
                         indirectObject.Id);
                 }
@@ -118,7 +118,7 @@ internal static class PdfA2bConformanceValidator
         if (valid)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST300",
+                "PVADPDFTRUST300",
                 PdfTrustDiagnosticSeverity.Info,
                 $"The document passed the PVAD structural {PdfA2bConverter.ProfileName(profile)} validator. Independent validation is still recommended for release evidence."));
         }
@@ -133,24 +133,24 @@ internal static class PdfA2bConformanceValidator
         {
             if (depth > 64)
             {
-                Error("PXAPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
+                Error("PVADPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
                 return;
             }
 
             if (dictionary["JS"] is not null || dictionary["JavaScript"] is not null)
             {
-                Error("PXAPDFTRUST315", "PDF/A-2 and PDF/A-3 do not permit JavaScript actions or name trees.", objectId);
+                Error("PVADPDFTRUST315", "PDF/A-2 and PDF/A-3 do not permit JavaScript actions or name trees.", objectId);
             }
 
             if (dictionary["AA"] is not null)
             {
-                Error("PXAPDFTRUST324", "Additional-action dictionaries are not accepted by the PVAD PDF/A-2b/3b profile policy.", objectId);
+                Error("PVADPDFTRUST324", "Additional-action dictionaries are not accepted by the PVAD PDF/A-2b/3b profile policy.", objectId);
             }
 
             if (ReadName(graph, dictionary["S"]) is { } actionType &&
                 ForbiddenActionTypes.Contains(actionType))
             {
-                Error("PXAPDFTRUST325", $"Action type '/{actionType}' is forbidden by PDF/A-2 and PDF/A-3.", objectId);
+                Error("PVADPDFTRUST325", $"Action type '/{actionType}' is forbidden by PDF/A-2 and PDF/A-3.", objectId);
             }
 
 
@@ -159,7 +159,7 @@ internal static class PdfA2bConformanceValidator
 
             foreach (var key in dictionary.Values.Keys.Where(ForbiddenMultimediaKeys.Contains))
             {
-                Error("PXAPDFTRUST326", $"Multimedia key '/{key}' is not permitted by the supported PDF/A profiles.", objectId);
+                Error("PVADPDFTRUST326", $"Multimedia key '/{key}' is not permitted by the supported PDF/A profiles.", objectId);
             }
 
             var annotationSubtype = ReadName(graph, dictionary["Subtype"]);
@@ -170,25 +170,25 @@ internal static class PdfA2bConformanceValidator
                                    "Sound" or "Movie" or "Screen" or "3D" or "RichMedia";
             if (isAnnotation && annotationSubtype is null)
             {
-                Error("PXAPDFTRUST316", "An annotation dictionary has no recognized /Subtype.", objectId);
+                Error("PVADPDFTRUST316", "An annotation dictionary has no recognized /Subtype.", objectId);
             }
             if (isAnnotation && annotationSubtype is { } subtype)
             {
                 if (subtype == "Widget" && (dictionary["A"] is not null || dictionary["AA"] is not null))
                 {
-                    Error("PXAPDFTRUST335", "A Widget annotation must not contain /A or /AA actions.", objectId);
+                    Error("PVADPDFTRUST335", "A Widget annotation must not contain /A or /AA actions.", objectId);
                 }
 
                 if (ForbiddenAnnotationSubtypes.Contains(subtype) || !AllowedAnnotationSubtypes.Contains(subtype) ||
                     profile == PdfArchiveProfile.PdfA2b && subtype == "FileAttachment")
                 {
-                    Error("PXAPDFTRUST316", $"Annotation subtype '/{subtype}' is not accepted for {PdfA2bConverter.ProfileName(profile)}.", objectId);
+                    Error("PVADPDFTRUST316", $"Annotation subtype '/{subtype}' is not accepted for {PdfA2bConverter.ProfileName(profile)}.", objectId);
                 }
                 else if (subtype == "FileAttachment" &&
                          (Resolve(graph, dictionary["FS"]) is not PdfDictionary specification ||
                           Resolve(graph, specification["EF"]) is not PdfDictionary))
                 {
-                    Error("PXAPDFTRUST331", "A PDF/A-3 file-attachment annotation must reference an embedded file specification through /FS.", objectId);
+                    Error("PVADPDFTRUST331", "A PDF/A-3 file-attachment annotation must reference an embedded file specification through /FS.", objectId);
                 }
 
                 var flags = ReadInteger(graph, dictionary["F"]);
@@ -199,8 +199,8 @@ internal static class PdfA2bConformanceValidator
                      (annotationFlags & 4) == 0))
                 {
                     var code = subtype == "Widget" && ResolveFieldType(graph, dictionary) == "Sig"
-                        ? "PXAPDFTRUST332"
-                        : "PXAPDFTRUST328";
+                        ? "PVADPDFTRUST332"
+                        : "PVADPDFTRUST328";
                     Error(code, "PDF/A annotations must be printable and must not be Invisible, Hidden, or NoView.", objectId);
                 }
 
@@ -209,20 +209,20 @@ internal static class PdfA2bConformanceValidator
 
             if (dictionary["FT"] is not null && (dictionary["A"] is not null || dictionary["AA"] is not null))
             {
-                Error("PXAPDFTRUST335", "A form field dictionary must not contain /A or /AA actions.", objectId);
+                Error("PVADPDFTRUST335", "A form field dictionary must not contain /A or /AA actions.", objectId);
             }
 
             if ((isStreamDictionary && dictionary["F"] is not null) ||
                 dictionary["OPI"] is not null ||
                 string.Equals(ReadName(graph, dictionary["Type"]), "XObject", StringComparison.Ordinal) && dictionary["Ref"] is not null)
             {
-                Error("PXAPDFTRUST327", "The document depends on external stream or reference content that is not self-contained.", objectId);
+                Error("PVADPDFTRUST327", "The document depends on external stream or reference content that is not self-contained.", objectId);
             }
 
             if (dictionary["TR"] is { } transfer && ReadName(graph, transfer) is not ("Identity" or "Default") ||
                 dictionary["TR2"] is { } transfer2 && ReadName(graph, transfer2) is not ("Identity" or "Default"))
             {
-                Error("PXAPDFTRUST329", "A non-default transfer function is not permitted by the supported PDF/A profiles.", objectId);
+                Error("PVADPDFTRUST329", "A non-default transfer function is not permitted by the supported PDF/A profiles.", objectId);
             }
 
             foreach (var nested in dictionary.Values.Values)
@@ -239,14 +239,14 @@ internal static class PdfA2bConformanceValidator
             var appearance = Resolve(graph, annotation["AP"]) as PdfDictionary;
             if (appearanceRequired && appearance is null)
             {
-                var code = fieldType == "Sig" ? "PXAPDFTRUST332" : "PXAPDFTRUST333";
+                var code = fieldType == "Sig" ? "PVADPDFTRUST332" : "PVADPDFTRUST333";
                 Error(code, "The annotation requires a normal appearance dictionary.", objectId);
                 return;
             }
 
             if (annotation["AP"] is not null && appearance is null)
             {
-                Error("PXAPDFTRUST333", "The annotation /AP entry is not an appearance dictionary.", objectId);
+                Error("PVADPDFTRUST333", "The annotation /AP entry is not an appearance dictionary.", objectId);
                 return;
             }
 
@@ -258,7 +258,7 @@ internal static class PdfA2bConformanceValidator
             var unsupportedKeys = appearance.Values.Keys.Where(static key => key != "N").ToArray();
             if (unsupportedKeys.Length > 0)
             {
-                Error("PXAPDFTRUST334", $"The annotation appearance dictionary contains entries other than /N: {string.Join(", ", unsupportedKeys.Select(static key => $"/{key}"))}.", objectId);
+                Error("PVADPDFTRUST334", $"The annotation appearance dictionary contains entries other than /N: {string.Join(", ", unsupportedKeys.Select(static key => $"/{key}"))}.", objectId);
             }
 
             var normal = Resolve(graph, appearance["N"]);
@@ -267,12 +267,12 @@ internal static class PdfA2bConformanceValidator
                 if (normal is not PdfDictionary states || states.Values.Count == 0 ||
                     states.Values.Values.Any(value => Resolve(graph, value) is not PdfStreamObject))
                 {
-                    Error("PXAPDFTRUST334", "A button Widget /N appearance must be a non-empty state dictionary containing only appearance streams.", objectId);
+                    Error("PVADPDFTRUST334", "A button Widget /N appearance must be a non-empty state dictionary containing only appearance streams.", objectId);
                 }
             }
             else if (normal is not PdfStreamObject)
             {
-                Error("PXAPDFTRUST334", "The annotation /N entry must resolve to an appearance stream.", objectId);
+                Error("PVADPDFTRUST334", "The annotation /N entry must resolve to an appearance stream.", objectId);
             }
         }
 
@@ -280,7 +280,7 @@ internal static class PdfA2bConformanceValidator
         {
             if (ReadBoolean(graph, rootCatalog["NeedsRendering"]) == true)
             {
-                Error("PXAPDFTRUST335", "The document catalog must not require dynamic XFA rendering.", ObjectId(rootCatalog));
+                Error("PVADPDFTRUST335", "The document catalog must not require dynamic XFA rendering.", ObjectId(rootCatalog));
             }
 
             if (Resolve(graph, rootCatalog["AcroForm"]) is not PdfDictionary acroForm)
@@ -291,12 +291,12 @@ internal static class PdfA2bConformanceValidator
             var acroFormId = ObjectId(acroForm) ?? ObjectId(rootCatalog);
             if (ReadBoolean(graph, acroForm["NeedAppearances"]) == true)
             {
-                Error("PXAPDFTRUST335", "The AcroForm /NeedAppearances flag must be absent or false.", acroFormId);
+                Error("PVADPDFTRUST335", "The AcroForm /NeedAppearances flag must be absent or false.", acroFormId);
             }
 
             if (acroForm["XFA"] is not null)
             {
-                Error("PXAPDFTRUST335", "PDF/A-2 and PDF/A-3 do not permit XFA form content.", acroFormId);
+                Error("PVADPDFTRUST335", "PDF/A-2 and PDF/A-3 do not permit XFA form content.", acroFormId);
             }
         }
 
@@ -314,7 +314,7 @@ internal static class PdfA2bConformanceValidator
                 : [];
             if (groups is null || groups.Items.Any(static item => item is not PdfReference))
             {
-                Error("PXAPDFTRUST338", "The optional-content /OCGs entry must be an array of indirect OCG references.", ownerId);
+                Error("PVADPDFTRUST338", "The optional-content /OCGs entry must be an array of indirect OCG references.", ownerId);
             }
 
             var configurations = new List<PdfDictionary>();
@@ -324,7 +324,7 @@ internal static class PdfA2bConformanceValidator
             }
             else
             {
-                Error("PXAPDFTRUST336", "The optional-content properties require a default /D configuration dictionary.", ownerId);
+                Error("PVADPDFTRUST336", "The optional-content properties require a default /D configuration dictionary.", ownerId);
             }
 
             if (Resolve(graph, properties["Configs"]) is PdfArray additionalConfigurations)
@@ -337,7 +337,7 @@ internal static class PdfA2bConformanceValidator
                     }
                     else
                     {
-                        Error("PXAPDFTRUST336", "Every /Configs item must resolve to an optional-content configuration dictionary.", ownerId);
+                        Error("PVADPDFTRUST336", "Every /Configs item must resolve to an optional-content configuration dictionary.", ownerId);
                     }
                 }
             }
@@ -349,30 +349,30 @@ internal static class PdfA2bConformanceValidator
                 var name = ReadText(graph, configuration["Name"]);
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    Error("PXAPDFTRUST336", "Every optional-content configuration requires a non-empty /Name.", configurationId);
+                    Error("PVADPDFTRUST336", "Every optional-content configuration requires a non-empty /Name.", configurationId);
                 }
                 else if (!names.Add(name))
                 {
-                    Error("PXAPDFTRUST337", $"Optional-content configuration name '{name}' is duplicated.", configurationId);
+                    Error("PVADPDFTRUST337", $"Optional-content configuration name '{name}' is duplicated.", configurationId);
                 }
 
                 if (configuration["AS"] is not null)
                 {
-                    Error("PXAPDFTRUST339", "The /AS key is not permitted in an optional-content configuration.", configurationId);
+                    Error("PVADPDFTRUST339", "The /AS key is not permitted in an optional-content configuration.", configurationId);
                 }
 
                 if (configuration["Order"] is not null)
                 {
                     if (Resolve(graph, configuration["Order"]) is not PdfArray order)
                     {
-                        Error("PXAPDFTRUST338", "The optional-content /Order entry must be an array.", configurationId);
+                        Error("PVADPDFTRUST338", "The optional-content /Order entry must be an array.", configurationId);
                     }
                     else
                     {
                         var ordered = EnumerateReferences(order).ToHashSet();
                         if (!ocgIds.IsSubsetOf(ordered))
                         {
-                            Error("PXAPDFTRUST338", "The optional-content /Order entry does not contain every OCG reference.", configurationId);
+                            Error("PVADPDFTRUST338", "The optional-content /Order entry does not contain every OCG reference.", configurationId);
                         }
                     }
                 }
@@ -389,7 +389,7 @@ internal static class PdfA2bConformanceValidator
             var intent = ReadName(graph, value);
             if (intent is null || !AllowedRenderingIntents.Contains(intent))
             {
-                Error("PXAPDFTRUST340", $"Rendering intent '{intent ?? "<invalid>"}' is not one of the four ISO 32000-1 values.", objectId);
+                Error("PVADPDFTRUST340", $"Rendering intent '{intent ?? "<invalid>"}' is not one of the four ISO 32000-1 values.", objectId);
             }
         }
 
@@ -410,7 +410,7 @@ internal static class PdfA2bConformanceValidator
             {
                 if (mode is null || !AllowedBlendModes.Contains(mode))
                 {
-                    Error("PXAPDFTRUST341", $"Blend mode '{mode ?? "<invalid>"}' is not defined by ISO 32000-1.", objectId);
+                    Error("PVADPDFTRUST341", $"Blend mode '{mode ?? "<invalid>"}' is not defined by ISO 32000-1.", objectId);
                 }
             }
         }
@@ -425,7 +425,7 @@ internal static class PdfA2bConformanceValidator
                     var support = decoder.Evaluate(stream.Dictionary["Filter"]);
                     if (support.Any(static item => item.Status != PdfStreamDecoderSupportStatus.Supported))
                     {
-                        Error("PXAPDFTRUST343", "A content stream uses a filter that the structural validator cannot decode safely.", objectId);
+                        Error("PVADPDFTRUST343", "A content stream uses a filter that the structural validator cannot decode safely.", objectId);
                         continue;
                     }
 
@@ -437,7 +437,7 @@ internal static class PdfA2bConformanceValidator
                 }
                 catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or OverflowException)
                 {
-                    Error("PXAPDFTRUST343", "A content stream could not be decoded and inspected for PDF/A graphics-state rules.", objectId);
+                    Error("PVADPDFTRUST343", "A content stream could not be decoded and inspected for PDF/A graphics-state rules.", objectId);
                 }
             }
         }
@@ -446,7 +446,7 @@ internal static class PdfA2bConformanceValidator
         {
             if (depth > 64)
             {
-                Error("PXAPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
+                Error("PVADPDFTRUST330", "A direct PDF object structure exceeds the supported PDF/A validation depth.", objectId);
                 return;
             }
 
@@ -475,7 +475,7 @@ internal static class PdfA2bConformanceValidator
             {
                 foreach (var item in embedded)
                 {
-                    Error("PXAPDFTRUST317", "PDF/A-2b does not permit embedded files.", item.Id);
+                    Error("PVADPDFTRUST317", "PDF/A-2b does not permit embedded files.", item.Id);
                 }
                 return;
             }
@@ -487,30 +487,30 @@ internal static class PdfA2bConformanceValidator
             {
                 if (!item.IsIndirect)
                 {
-                    Error("PXAPDFTRUST323", "A direct embedded file specification cannot be associated safely; materialize it as an indirect object before PDF/A-3 conversion.", item.Id);
+                    Error("PVADPDFTRUST323", "A direct embedded file specification cannot be associated safely; materialize it as an indirect object before PDF/A-3 conversion.", item.Id);
                     continue;
                 }
 
                 if (!AllowedAfRelationships.Contains(ReadName(graph, item.Dictionary["AFRelationship"]) ?? string.Empty))
                 {
-                    Error("PXAPDFTRUST318", "A PDF/A-3 embedded file specification has no valid /AFRelationship.", item.Id);
+                    Error("PVADPDFTRUST318", "A PDF/A-3 embedded file specification has no valid /AFRelationship.", item.Id);
                 }
 
                 if (item.Dictionary["F"] is not PdfString && item.Dictionary["UF"] is not PdfString)
                 {
-                    Error("PXAPDFTRUST319", "A PDF/A-3 embedded file specification has no /F or /UF filename.", item.Id);
+                    Error("PVADPDFTRUST319", "A PDF/A-3 embedded file specification has no /F or /UF filename.", item.Id);
                 }
 
                 if (!associated.Contains(item.Id))
                 {
-                    Error("PXAPDFTRUST320", "A PDF/A-3 embedded file specification is not associated through the catalog /AF array.", item.Id);
+                    Error("PVADPDFTRUST320", "A PDF/A-3 embedded file specification is not associated through the catalog /AF array.", item.Id);
                 }
 
                 var fileStreams = Resolve(graph, item.Dictionary["EF"]) as PdfDictionary;
                 var references = fileStreams?.Values.Values.OfType<PdfReference>().ToArray() ?? [];
                 if (references.Length == 0)
                 {
-                    Error("PXAPDFTRUST321", "A PDF/A-3 /EF dictionary does not reference an embedded-file stream.", item.Id);
+                    Error("PVADPDFTRUST321", "A PDF/A-3 /EF dictionary does not reference an embedded-file stream.", item.Id);
                     continue;
                 }
 
@@ -519,7 +519,7 @@ internal static class PdfA2bConformanceValidator
                     if (graph.Resolve(reference.Id)?.Value is not PdfStreamObject stream ||
                         !IsMimeTypeName(ReadName(graph, stream.Dictionary["Subtype"])))
                     {
-                        Error("PXAPDFTRUST322", "A PDF/A-3 embedded-file stream has no valid MIME /Subtype name.", reference.Id);
+                        Error("PVADPDFTRUST322", "A PDF/A-3 embedded-file stream has no valid MIME /Subtype name.", reference.Id);
                     }
                 }
             }

@@ -92,7 +92,7 @@ test('Account legal review is keyboard operable, fails closed, and submits exact
       await route.fulfill({
         status: 409,
         contentType: 'application/problem+json',
-        body: JSON.stringify({ title: 'Legal policy changed', status: 409, code: 'PXAAPI017' }),
+        body: JSON.stringify({ title: 'Legal policy changed', status: 409, code: 'PVADAPI017' }),
       });
       return;
     }

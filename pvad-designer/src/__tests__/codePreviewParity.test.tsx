@@ -21,7 +21,7 @@ describe('generated code preview parity', () => {
     const props = {
       raw: 'return originalDocument;', language, validation: { valid: true, errors: [] },
       parsed: null, pdfBlobUrl: null, onExport: jest.fn(), isExporting: false, isConverting: false,
-      convertError: 'PXACODE042: No worker result.\nPXACODE040: Try again.',
+      convertError: 'PVADCODE042: No worker result.\nPVADCODE040: Try again.',
     };
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -30,7 +30,7 @@ describe('generated code preview parity', () => {
       expect(container.querySelectorAll('li')).toHaveLength(2);
       expect([...container.querySelectorAll('li')].map(item => item.textContent))
         .toEqual(['PVADCODE042: No worker result.', 'PVADCODE040: Try again.']);
-      expect(props.convertError).toBe('PXACODE042: No worker result.\nPXACODE040: Try again.');
+      expect(props.convertError).toBe('PVADCODE042: No worker result.\nPVADCODE040: Try again.');
       expect(props.raw).toBe('return originalDocument;');
     } finally { act(() => root.unmount()); }
   });

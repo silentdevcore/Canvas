@@ -56,7 +56,7 @@ test('capability client rejects a response that does not match the API contract'
 
   const result = await client.listExportFormats();
   assert.equal(result.data, undefined);
-  assert.equal(result.diagnostic?.code, 'PXAMCP044');
+  assert.equal(result.diagnostic?.code, 'PVADMCP044');
 });
 
 test('template client delegates the caller token and validates tenant-scoped results', async () => {
@@ -118,7 +118,7 @@ test('legacy template grants produce only canonical scopes in the delegated requ
   });
 
   const result = await client.listTemplates({
-    subject: 'synthetic-user', organizationId: 'synthetic-organization', scopes: ['pxa.templates.read'],
+    subject: 'synthetic-user', organizationId: 'synthetic-organization', scopes: ['pvad.templates.read'],
   }, {});
 
   assert.equal(result.diagnostic, undefined);

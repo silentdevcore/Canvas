@@ -115,7 +115,7 @@ public sealed class DesignerAuthorizationCodeService(
                     "legal-review-required");
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DesignerHandoffResult.Denied(
-                    "PXAAPI017",
+                    "PVADAPI017",
                     "Review the current legal documents in PVADE Account before opening Designer.");
             }
             var denial = ResolveAccessDenial(
@@ -337,19 +337,19 @@ public sealed class DesignerAuthorizationCodeService(
         PvadEntitlementDecision entitlement)
     {
         if (user is null or { IsActive: false })
-            return ("PXA_DESIGNER_ACCOUNT_DISABLED", "The account is disabled.");
+            return ("PVAD_DESIGNER_ACCOUNT_DISABLED", "The account is disabled.");
         if (userIsLocked)
-            return ("PXA_DESIGNER_ACCOUNT_LOCKED", "The account is temporarily locked.");
+            return ("PVAD_DESIGNER_ACCOUNT_LOCKED", "The account is temporarily locked.");
         if (!user.EmailConfirmed)
-            return ("PXA_DESIGNER_VERIFICATION_REQUIRED", "Verify the account email before using PVADE Designer.");
+            return ("PVAD_DESIGNER_VERIFICATION_REQUIRED", "Verify the account email before using PVADE Designer.");
         if (!sessionIsActive)
-            return ("PXA_DESIGNER_SESSION_EXPIRED", "The Account session is expired or revoked.");
+            return ("PVAD_DESIGNER_SESSION_EXPIRED", "The Account session is expired or revoked.");
         if (!membershipIsActive)
-            return ("PXA_DESIGNER_MEMBERSHIP_INACTIVE", "The organization membership is not active.");
+            return ("PVAD_DESIGNER_MEMBERSHIP_INACTIVE", "The organization membership is not active.");
         if (!designerAccessAllowed)
-            return ("PXA_DESIGNER_PERMISSION_REQUIRED", "Your organization role does not allow Designer access.");
+            return ("PVAD_DESIGNER_PERMISSION_REQUIRED", "Your organization role does not allow Designer access.");
         if (!organizationIsActive)
-            return ("PXA_ORGANIZATION_INACTIVE", "The organization is not active.");
+            return ("PVAD_ORGANIZATION_INACTIVE", "The organization is not active.");
         return (entitlement.Code, entitlement.Reason);
     }
 
@@ -407,12 +407,11 @@ public sealed record DesignerHandoffResult(
     string? Code,
     string? Reason)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 
     public static DesignerHandoffResult Created(string redirectUrl) =>
         new(true, false, redirectUrl, null, null);
     public static DesignerHandoffResult Invalid() =>
-        new(false, false, null, "PXA_DESIGNER_HANDOFF_INVALID", "The Designer handoff request is invalid.");
+        new(false, false, null, "PVAD_DESIGNER_HANDOFF_INVALID", "The Designer handoff request is invalid.");
     public static DesignerHandoffResult Denied(string code, string reason) =>
         new(false, true, null, code, reason);
 }
@@ -426,7 +425,6 @@ public sealed record DesignerExchangeResult(
     string? Code,
     string? Reason)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 
     public static DesignerExchangeResult Exchanged(
         ClaimsPrincipal principal,
@@ -434,7 +432,7 @@ public sealed record DesignerExchangeResult(
         string returnPath) =>
         new(true, false, principal, expiresAt, returnPath, null, null);
     public static DesignerExchangeResult Invalid() =>
-        new(false, false, null, null, null, "PXA_DESIGNER_HANDOFF_INVALID",
+        new(false, false, null, null, null, "PVAD_DESIGNER_HANDOFF_INVALID",
             "The Designer handoff is invalid or expired.");
     public static DesignerExchangeResult Denied(string code, string reason) =>
         new(false, true, null, null, null, code, reason);

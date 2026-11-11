@@ -24,7 +24,6 @@ test('backup and restore scripts require protected inputs and integrity checks',
   assert.match(backup, /--format=custom/);
   assert.match(backup, /pg_restore --list/);
   assert.match(backup, /write_sha256/);
-  assert.match(restore, /RESTORE PXA DATABASE/);
   assert.match(restore, /Set PVAD_RESTORE_CONFIRM="RESTORE PVAD DATABASE"/);
   assert.match(restore, /verify_sha256/);
   assert.match(restore, /Restore target is not empty/);
@@ -51,9 +50,9 @@ test('recovery drill is isolated, synthetic, and always cleans up', () => {
 });
 
 test('recovery drill waits for the configured database and diagnoses timeouts', () => {
-  assert.match(drill, /PXA_POSTGRES_READY_ATTEMPTS/);
-  assert.match(drill, /PXA_POSTGRES_READY_DELAY_SECONDS/);
-  assert.match(drill, /PXA_POSTGRES_STARTUP_DELAY_SECONDS/);
+  assert.match(drill, /PVAD_POSTGRES_READY_ATTEMPTS/);
+  assert.match(drill, /PVAD_POSTGRES_READY_DELAY_SECONDS/);
+  assert.match(drill, /PVAD_POSTGRES_STARTUP_DELAY_SECONDS/);
   assert.match(drill, /psql -U pvad -d pvad[\s\S]*SELECT 1/);
   assert.doesNotMatch(drill, /pg_isready/);
   assert.match(drill, /docker inspect --format=/);
@@ -115,10 +114,6 @@ printf '%s\n' "$PVAD_TEST_TABLE_COUNT"
 
 for (const [name, confirmation] of [
   ['canonical key and phrase', { PVAD_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE' }],
-  ['canonical key with retained phrase', { PVAD_RESTORE_CONFIRM: 'RESTORE PXA DATABASE' }],
-  ['retained key and phrase', { PXA_RESTORE_CONFIRM: 'RESTORE PXA DATABASE' }],
-  ['retained key with canonical phrase', { PXA_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE' }],
-  ['identical keys', { PVAD_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE', PXA_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE' }],
 ]) {
   test(`restore accepts ${name} without bypassing archive and target checks`, t => {
     const result = runRestore(t, confirmation);
@@ -136,14 +131,16 @@ for (const phrase of [undefined, '', 'RESTORE', 'RESTORE PVAD', 'restore pvad da
   });
 }
 
-test('conflicting confirmation aliases fail before database commands', t => {
-  const result = runRestore(t, {
-    PVAD_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE', PXA_RESTORE_CONFIRM: 'RESTORE PXA DATABASE',
+for (const [name, confirmation] of [
+  ['former phrase', { PVAD_RESTORE_CONFIRM: 'RESTORE PXA DATABASE' }],
+  ['former key', { PXA_RESTORE_CONFIRM: 'RESTORE PVAD DATABASE' }],
+]) {
+  test(`restore rejects the ${name} before database commands`, t => {
+    const result = runRestore(t, confirmation);
+    assert.notEqual(result.status, 0);
+    assert.deepEqual(result.calls, []);
   });
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /Conflicting configuration keys/);
-  assert.deepEqual(result.calls, []);
-});
+}
 
 for (const [name, options, message, calls] of [
   ['missing checksum', { missingChecksum: true }, /adjacent .sha256 file is required/, []],

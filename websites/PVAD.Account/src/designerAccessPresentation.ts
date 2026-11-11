@@ -147,8 +147,8 @@ const copy: Record<AccountLocale, AccessCopy> = {
 };
 
 const subscriptionCodes = new Set([
-  'PXA_SUBSCRIPTION_CANCELLED', 'PXA_SUBSCRIPTION_INACTIVE', 'PXA_TRIAL_EXPIRED',
-  'PXA_GRACE_PERIOD_EXPIRED', 'PXA_ENTITLEMENT_EXPIRED',
+  'PVAD_SUBSCRIPTION_CANCELLED', 'PVAD_SUBSCRIPTION_INACTIVE', 'PVAD_TRIAL_EXPIRED',
+  'PVAD_GRACE_PERIOD_EXPIRED', 'PVAD_ENTITLEMENT_EXPIRED',
 ]);
 
 export function describeDesignerAccessError(
@@ -162,27 +162,27 @@ export function describeDesignerAccessError(
     return { kicker: value.restricted, title: value.trialTitle, message: value.trialMessage, primaryAction: 'subscription', secondaryAction: 'dashboard' };
 
   switch (error.code) {
-    case 'PXA_ENTITLEMENT_MISSING':
-    case 'PXA_ENTITLEMENT_DENIED':
+    case 'PVAD_ENTITLEMENT_MISSING':
+    case 'PVAD_ENTITLEMENT_DENIED':
       return { kicker: value.restricted, title: value.entitlementTitle, message: value.entitlementMessage, primaryAction: 'subscription', secondaryAction: 'dashboard' };
-    case 'PXA_DESIGNER_PERMISSION_REQUIRED':
+    case 'PVAD_DESIGNER_PERMISSION_REQUIRED':
       return { kicker: value.restricted, title: value.permissionTitle, message: value.permissionMessage, primaryAction: 'dashboard', secondaryAction: 'support' };
-    case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
-    case 'PXA_ORGANIZATION_INACTIVE':
-    case 'PXAAPI016':
+    case 'PVAD_DESIGNER_MEMBERSHIP_INACTIVE':
+    case 'PVAD_ORGANIZATION_INACTIVE':
+    case 'PVADAPI016':
       return { kicker: value.restricted, title: value.organizationTitle, message: value.organizationMessage, primaryAction: 'dashboard', secondaryAction: 'support' };
-    case 'PXA_DESIGNER_VERIFICATION_REQUIRED':
-    case 'PXAAPI010':
+    case 'PVAD_DESIGNER_VERIFICATION_REQUIRED':
+    case 'PVADAPI010':
       return { kicker: value.restricted, title: value.verificationTitle, message: value.verificationMessage, primaryAction: 'dashboard', secondaryAction: 'support' };
-    case 'PXA_DESIGNER_ACCOUNT_DISABLED':
-    case 'PXA_DESIGNER_ACCOUNT_LOCKED':
-    case 'PXAAPI015':
+    case 'PVAD_DESIGNER_ACCOUNT_DISABLED':
+    case 'PVAD_DESIGNER_ACCOUNT_LOCKED':
+    case 'PVADAPI015':
       return { kicker: value.restricted, title: value.accountTitle, message: value.accountMessage, primaryAction: 'support', secondaryAction: 'dashboard' };
-    case 'PXAAPI017':
+    case 'PVADAPI017':
       return { kicker: value.restricted, title: value.legalTitle, message: value.legalMessage, primaryAction: 'legalReview', secondaryAction: 'dashboard' };
-    case 'PXA_DESIGNER_SESSION_EXPIRED':
+    case 'PVAD_DESIGNER_SESSION_EXPIRED':
       return { kicker: value.restricted, title: value.sessionTitle, message: value.sessionMessage, primaryAction: 'retry', secondaryAction: 'dashboard' };
-    case 'PXA_DESIGNER_HANDOFF_INVALID':
+    case 'PVAD_DESIGNER_HANDOFF_INVALID':
       return { kicker: value.restricted, title: value.invalidTitle, message: value.invalidMessage, primaryAction: 'retry', secondaryAction: 'dashboard' };
     default:
       return { kicker: value.restricted, title: value.unavailableTitle, message: value.unavailableMessage, primaryAction: error.status === 400 ? 'retry' : 'dashboard', secondaryAction: 'support' };

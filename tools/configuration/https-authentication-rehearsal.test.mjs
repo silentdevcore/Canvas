@@ -81,7 +81,7 @@ test('browser validation uses real UI, isolated trust and no ignored certificate
   assert.match(browser, /'certutil', \['-A'/);
   assert.match(browser, /#login-form/);
   assert.match(browser, /getByLabel\('Email or username'\)/);
-  assert.match(browser, /sessionsBeforeMigration/);
+  assert.doesNotMatch(browser, /legacy-ticket|sessionsBeforeMigration/);
   assert.match(browser, /designer-handoff\/exchange/);
   assert.doesNotMatch(browser, /ignoreHTTPSErrors: true|ignore-certificate-errors|route\.fulfill|storageState\(|tracing\.start|recordVideo/);
 });
@@ -97,7 +97,7 @@ test('recovery reads ciphertext created before backup and the unchanged retentio
   assert.match(runner, /pg_restore/);
   assert.match(runner, /assert\.deepEqual\(dataSnapshot\(\), backupSnapshot\)/);
   assert.match(helper, /File\.ReadAllTextAsync\(Path\.Combine\(request\.WorkDirectory, "protected-consumers.json"\)\)/);
-  assert.match(helper, /value\.RevokedAt == null/);
+  assert.doesNotMatch(helper, /LegacyTicketAsync|LegacyMailPayloadPurpose/);
   assert.match(helper, /PvadDataProtection\.ApplicationName/);
   assert.doesNotMatch(runner + helper, /ProductionApproved.*true|security.*add-trusted-cert|ignoreHTTPSErrors: true/);
 });

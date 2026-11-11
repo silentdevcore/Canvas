@@ -18,18 +18,8 @@ by changing artifact identities. Neutral `design` JSON remains unchanged.
 
 ## Compatibility Boundary
 
-For one major release, [compatibility entry `compat-dc3e6a2f7970`](reference/compatibility-identifiers.v1.json) adapters retain the original
-primary artifact tuples and Viewer [compatibility entry `compat-ed65f665f3d0`](reference/compatibility-identifiers.v1.json). They include
-the canonical projections. The middleware's internal request marker preserves
-this behavior after routing to the canonical path; no client header can request
-that internal marker. The static provider registry remains canonical and is not
-mutated when a legacy request is served.
-
-The shared resolver accepts only complete known old or current tuples. It does
-not infer support from a plausible ID or a supplied `canonicalId`. Mixed Viewer
-IDs, media types and extensions remain unrecognized. Unknown and neutral
-artifacts are not silently reclassified. Existing saved packages and source
-fixtures are not rewritten.
+Since the 2026-11-09 hard cut only the canonical artifact tuples and the canonical
+Viewer package kind are written and resolved; former-name tuples are rejected.
 
 ## Designer Downloads And Imports
 

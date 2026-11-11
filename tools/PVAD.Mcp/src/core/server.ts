@@ -14,7 +14,7 @@ import {
 import { PvadApiClient } from './apiClient.js';
 import { toolOutputSchema, toolResult } from './results.js';
 import { createSchemaRegistry, DesignValidator } from './validation.js';
-import { canonicalScopes, hasCompatibleScope } from './scopeCompatibility.js';
+import { uniqueScopes, hasScope } from './scopes.js';
 
 const MAX_PREVIEW_BYTES = 50 * 1024 * 1024;
 const RENDER_TIMEOUT_MS = 30_000;
@@ -52,7 +52,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
   }, async (_arguments, extra) => toolResult({
     authenticated: Boolean(extra.authInfo),
     clientId: extra.authInfo?.clientId ?? null,
-    scopes: canonicalScopes(extra.authInfo?.scopes ?? []),
+    scopes: uniqueScopes(extra.authInfo?.scopes ?? []),
     subject: extra.authInfo?.extra?.subject ?? null,
     organizationId: extra.authInfo?.extra?.organizationId ?? null,
   }));
@@ -87,7 +87,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     const element = findElement(type);
     if (!element) {
       return toolResult({}, [{
-        code: 'PXAMCP010',
+        code: 'PVADMCP010',
         severity: 'error',
         message: `Unknown element type "${type}".`,
         path: '/type',
@@ -109,7 +109,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     const element = findElement(type);
     if (!element) {
       return toolResult({}, [{
-        code: 'PXAMCP010',
+        code: 'PVADMCP010',
         severity: 'error',
         message: `Unknown element type "${type}".`,
         path: '/type',
@@ -117,7 +117,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     }
     if (surface === 'csharp' && !element.csharpExample) {
       return toolResult({ type, surface }, [{
-        code: 'PXAMCP011',
+        code: 'PVADMCP011',
         severity: 'warning',
         message: `No C# example is available for "${type}". Use the JSON surface.`,
       }]);
@@ -161,9 +161,9 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     outputSchema: toolOutputSchema,
     annotations: readOnlyAnnotations,
   }, async ({ design }, extra) => {
-    if (extra.authInfo && !hasCompatibleScope(extra.authInfo.scopes, 'pvad.documents.validate')) {
+    if (extra.authInfo && !hasScope(extra.authInfo.scopes, 'pvad.documents.validate')) {
       return toolResult({ valid: false }, [{
-        code: 'PXAMCP030',
+        code: 'PVADMCP030',
         severity: 'error',
         message: 'The pvad.documents.validate scope is required for remote design validation.',
       }], true);
@@ -181,7 +181,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
   }, async ({ design }, extra) => {
     if (extra.authInfo) {
       return toolResult({ rendered: false }, [{
-        code: 'PXAMCP032',
+        code: 'PVADMCP032',
         severity: 'error',
         message: 'Remote preview rendering is unavailable until tenant-bound expiring artifact resources are enabled.',
       }], true);
@@ -204,7 +204,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
       });
       if (!response.ok) {
         return toolResult({ rendered: false, httpStatus: response.status }, [{
-          code: 'PXAMCP020',
+          code: 'PVADMCP020',
           severity: 'error',
           message: `PVAD WebApi rejected the render request with HTTP ${response.status}.`,
         }], true);
@@ -214,7 +214,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
       const declaredLength = Number(response.headers.get('content-length') ?? 0);
       if (contentType !== 'application/pdf' || declaredLength > MAX_PREVIEW_BYTES) {
         return toolResult({ rendered: false }, [{
-          code: 'PXAMCP021',
+          code: 'PVADMCP021',
           severity: 'error',
           message: 'PVAD WebApi returned an invalid or oversized preview response.',
         }], true);
@@ -223,7 +223,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
       const bytes = Buffer.from(await response.arrayBuffer());
       if (bytes.length > MAX_PREVIEW_BYTES || !bytes.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
         return toolResult({ rendered: false }, [{
-          code: 'PXAMCP021',
+          code: 'PVADMCP021',
           severity: 'error',
           message: 'PVAD WebApi returned bytes that are not a valid bounded PDF preview.',
         }], true);
@@ -235,7 +235,7 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     } catch (error) {
       const timedOut = abortController.signal.aborted;
       return toolResult({ rendered: false }, [{
-        code: timedOut ? 'PXAMCP022' : 'PXAMCP023',
+        code: timedOut ? 'PVADMCP022' : 'PVADMCP023',
         severity: 'error',
         message: timedOut
           ? `Preview rendering exceeded ${RENDER_TIMEOUT_MS} milliseconds.`
@@ -283,9 +283,9 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     outputSchema: toolOutputSchema,
     annotations: readOnlyAnnotations,
   }, async (filters, extra) => {
-    if (!extra.authInfo || !hasCompatibleScope(extra.authInfo.scopes, 'pvad.templates.read')) {
+    if (!extra.authInfo || !hasScope(extra.authInfo.scopes, 'pvad.templates.read')) {
       return toolResult({}, [{
-        code: 'PXAMCP030',
+        code: 'PVADMCP030',
         severity: 'error',
         message: 'The pvad.templates.read scope is required to list organization templates.',
       }], true);
@@ -306,9 +306,9 @@ export function createPvadMcpServer(options: PvadMcpServerOptions = {}): McpServ
     outputSchema: toolOutputSchema,
     annotations: readOnlyAnnotations,
   }, async ({ id }, extra) => {
-    if (!extra.authInfo || !hasCompatibleScope(extra.authInfo.scopes, 'pvad.templates.read')) {
+    if (!extra.authInfo || !hasScope(extra.authInfo.scopes, 'pvad.templates.read')) {
       return toolResult({}, [{
-        code: 'PXAMCP030',
+        code: 'PVADMCP030',
         severity: 'error',
         message: 'The pvad.templates.read scope is required to read organization templates.',
       }], true);
@@ -348,19 +348,12 @@ function registerResources(server: McpServer, content: PvadMcpContentRepository)
     ['pvad-openapi', 'pvad://openapi', 'PVAD OpenAPI', 'docs/schema/openapi.json', 'application/json'],
     ['pvad-llms-full', 'pvad://docs/llms-full', 'PVADE AI reference', 'llms-full.txt', 'text/markdown'],
     ['pvad-cookbook', 'pvad://docs/cookbook', 'PVAD PDF C# Cookbook', 'docs/csharp-cookbook.md', 'text/markdown'],
-    ['pxa-design-schema', 'pxa://schema/design-export', 'DesignExportDto JSON Schema', 'docs/schema/design-export.schema.json', 'application/json'],
-    ['pxa-workbook-schema', 'pxa://schema/pxa-workbook', 'PVAD Workbook JSON Schema (compatibility format)', 'docs/schema/pxa-workbook.schema.json', 'application/json'],
-    ['pxa-openapi', 'pxa://openapi', 'PVAD OpenAPI', 'docs/schema/openapi.json', 'application/json'],
-    ['pxa-llms-full', 'pxa://docs/llms-full', 'PVADE AI reference', 'llms-full.txt', 'text/markdown'],
-    ['pxa-cookbook', 'pxa://docs/cookbook', 'PVAD PDF C# Cookbook', 'docs/csharp-cookbook.md', 'text/markdown'],
   ] as const;
 
   for (const [name, uri, title, relativePath, mimeType] of resources) {
     server.registerResource(name, uri, {
       title,
-      description: uri.startsWith('pxa:')
-        ? 'Deprecated compatibility resource; use the corresponding pvad:// resource. Schema contents retain their original format contract.'
-        : `Versioned PVAD content from ${relativePath}.`,
+      description: `Versioned PVAD content from ${relativePath}.`,
       mimeType,
     }, async (resourceUri) => ({
       contents: [{ uri: resourceUri.href, text: content.read(relativePath), mimeType }],

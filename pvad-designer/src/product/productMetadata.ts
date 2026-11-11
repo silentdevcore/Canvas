@@ -41,7 +41,7 @@ export interface DesignerReleaseDefinition {
 export const designerVersion =
   typeof __PVAD_VERSION__ === 'undefined' ? '1.0.0' : __PVAD_VERSION__;
 export const designerAboutUrl = typeof __PVAD_ABOUT_URL__ === 'undefined'
-  ? 'https://pvade.com/about.html#rename-history' : __PVAD_ABOUT_URL__;
+  ? 'https://pvade.com/about.html' : __PVAD_ABOUT_URL__;
 export const designerCommit =
   typeof __PVAD_BUILD_COMMIT__ === 'undefined' ? 'test' : __PVAD_BUILD_COMMIT__;
 export const designerBuildTime =

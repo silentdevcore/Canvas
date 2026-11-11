@@ -64,7 +64,6 @@ public class MigrationController : ControllerBase
             return Ok(new
             {
                 pvadCode = result.PvadCode,
-                pxaCode = result.PvadCode,
                 summary = new
                 {
                     convertedCount = result.Summary.ConvertedCount,
@@ -232,7 +231,7 @@ public class MigrationController : ControllerBase
         {
             title = "Designer migration permission required",
             detail = "Your organization role does not allow this migration provider.",
-            code = "PXA_DESIGNER_PERMISSION_REQUIRED",
+            code = "PVAD_DESIGNER_PERMISSION_REQUIRED",
             requiredPermission = permission,
         });
 

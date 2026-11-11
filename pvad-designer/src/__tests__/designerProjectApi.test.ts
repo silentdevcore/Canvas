@@ -150,14 +150,14 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: false,
       status: 400,
-      json: async () => ({ code: 'PXAPROJECT007', detail: 'The package was tampered with.' }),
+      json: async () => ({ code: 'PVADPROJECT007', detail: 'The package was tampered with.' }),
     });
 
     const operation = openPdfProject(new File(['broken'], 'broken.pvadp'));
 
     await expect(operation).rejects.toThrow('The package was tampered with.');
     await expect(operation).rejects.toMatchObject({
-      code: 'PXAPROJECT007',
+      code: 'PVADPROJECT007',
       status: 400,
     } satisfies Partial<DesignerProjectApiError>);
   });
@@ -240,7 +240,7 @@ describe('Designer project API', () => {
       });
       controller.abort();
       await expect(operation).rejects.toMatchObject({
-        code: 'PXAPROJECT_CANCELLED',
+        code: 'PVADPROJECT_CANCELLED',
         status: 499,
       });
     } finally {
@@ -253,10 +253,10 @@ describe('Designer project API', () => {
       requiresReview: true,
       missingFeatures: ['pdf.future-feature'],
       diagnostics: [
-        { code: 'PXAPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link.', source: 'page-1' },
-        { code: 'PXAPROJECT_INFO', severity: 'info', message: 'Informational.' },
+        { code: 'PVADPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link.', source: 'page-1' },
+        { code: 'PVADPROJECT_INFO', severity: 'info', message: 'Informational.' },
       ],
-    })).toBe('Feature: pdf.future-feature | PXAPROJECT_EXTERNAL_LINK: External link.');
+    })).toBe('Feature: pdf.future-feature | PVADPROJECT_EXTERNAL_LINK: External link.');
     expect(projectCompatibilitySummary({
       requiresReview: false,
       missingFeatures: [],
@@ -268,7 +268,7 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Legacy', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Legacy', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: { id: 'legacy', name: 'Legacy', pages: [] },
         packageSha256: 'original-hash',
         compatibility: { requiresReview: false, missingFeatures: [], diagnostics: [] },
@@ -276,7 +276,7 @@ describe('Designer project API', () => {
           sourceVersion: '0.9', targetVersion: '1.0', originalPackageSha256: 'original-hash',
           isLossy: false, steps: [{ fromVersion: '0.9', toVersion: '1.0', isLossy: false }],
           diagnostics: [{
-            code: 'PXAPROJECT_UPGRADED', severity: 'warning',
+            code: 'PVADPROJECT_UPGRADED', severity: 'warning',
             message: 'The project was upgraded in memory.', source: 'document',
           }],
         },
@@ -284,11 +284,11 @@ describe('Designer project API', () => {
       }),
     });
 
-    const result = await openPdfProject(new File(['project'], 'legacy.pxap'));
+    const result = await openPdfProject(new File(['project'], 'legacy.pvadp'));
 
     expect(result.compatibility).toMatchObject({ requiresReview: true });
     expect(result.compatibility?.diagnostics).toContainEqual(expect.objectContaining({
-      code: 'PXAPROJECT_UPGRADED',
+      code: 'PVADPROJECT_UPGRADED',
     }));
   });
 
@@ -314,7 +314,7 @@ describe('Designer project API', () => {
       }],
     });
 
-    await expect(operation).rejects.toMatchObject({ code: 'PXAPROJECT010' });
+    await expect(operation).rejects.toMatchObject({ code: 'PVADPROJECT010' });
   });
 
   test('removes assets already uploaded when a later project image fails', async () => {

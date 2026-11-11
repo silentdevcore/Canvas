@@ -21,8 +21,6 @@ public sealed record ApiBrandingResponse(
     string DeveloperName,
     string CliName,
     string NativeFileExtension,
-    string LegacyProductName,
-    string LegacyNamespacePrefix,
     string[] CompatibilityNotes)
 {
     public string[] NativeFileExtensions { get; init; } =
@@ -33,13 +31,11 @@ public sealed record ApiBrandingResponse(
         DeveloperName: "PVAD",
         CliName: "pvad",
         NativeFileExtension: PvadProjectFormat.PvadpExtension,
-        LegacyProductName: "PXA",
-        LegacyNamespacePrefix: "PXA",
         CompatibilityNotes:
         [
-            "Legacy /api routes remain compatible.",
-            "Use PVAD.* namespaces for new code integrations.",
-            "The primary PDF project extension is .pvadp; Spreadsheet projects use .pvads. Legacy .pxap and .pxas readers remain compatible.",
+            "Unprefixed /api routes remain available.",
+            "Use PVAD.* namespaces for code integrations.",
+            "PDF projects use .pvadp; Spreadsheet projects use .pvads.",
             "CANMIG diagnostic identifiers remain stable."
         ]);
 }

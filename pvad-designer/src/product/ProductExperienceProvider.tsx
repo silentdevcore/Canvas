@@ -62,8 +62,8 @@ const fallbackEffectiveFeatures: EffectiveDesignerFeature[] = fallbackFeatures.m
   ...feature,
   enabled: feature.maturity !== 'alpha' && feature.defaultEnabled,
   decisionCode: feature.maturity === 'alpha'
-    ? 'PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED'
-    : 'PXA_DESIGNER_FEATURE_ENABLED',
+    ? 'PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED'
+    : 'PVAD_DESIGNER_FEATURE_ENABLED',
   decisionReason: feature.maturity === 'alpha'
     ? 'Enable this Alpha feature before use.'
     : 'The feature is available.',

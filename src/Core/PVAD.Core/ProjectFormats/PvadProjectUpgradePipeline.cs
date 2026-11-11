@@ -48,7 +48,7 @@ public static class PvadProjectUpgradePipeline
     {
         if (!PvadProjectVersionPolicy.TryParseSchemaVersion(sourceVersion, out var source) ||
             !PvadProjectVersionPolicy.TryParseSchemaVersion(targetVersion, out var target))
-            throw new PvadProjectFormatException("PXAPROJECT008", "The project upgrade version is invalid.");
+            throw new PvadProjectFormatException("PVADPROJECT008", "The project upgrade version is invalid.");
         if (sourceVersion == targetVersion)
             return new(documentBytes.ToArray(), null);
         if (source.Major == target.Major && source.Minor < target.Minor)
@@ -57,7 +57,7 @@ public static class PvadProjectUpgradePipeline
         var availableSteps = steps ?? BuiltInSteps;
         if (!TryBuildPath(kind, sourceVersion, targetVersion, availableSteps, out var path))
             throw new PvadProjectFormatException(
-                "PXAPROJECT008",
+                "PVADPROJECT008",
                 $"No safe {kind} project upgrade path exists from schema {sourceVersion} to {targetVersion}.");
 
         JsonObject node;
@@ -69,11 +69,11 @@ public static class PvadProjectUpgradePipeline
                 CommentHandling = JsonCommentHandling.Disallow,
                 AllowTrailingCommas = false,
             }) as JsonObject ?? throw new PvadProjectFormatException(
-                "PXAPROJECT009", "The project document must be a JSON object before it can be upgraded.");
+                "PVADPROJECT009", "The project document must be a JSON object before it can be upgraded.");
         }
         catch (JsonException)
         {
-            throw new PvadProjectFormatException("PXAPROJECT009", "The project contains invalid upgrade JSON.");
+            throw new PvadProjectFormatException("PVADPROJECT009", "The project contains invalid upgrade JSON.");
         }
         var report = new PvadProjectUpgradeReport
         {
@@ -86,23 +86,23 @@ public static class PvadProjectUpgradePipeline
             var protectedInput = node.DeepClone().AsObject();
             var inputFingerprint = PvadCanonicalJson.Serialize(protectedInput);
             var result = step.Apply(protectedInput.DeepClone().AsObject())
-                ?? throw new PvadProjectFormatException("PXAPROJECT015", "A project upgrade step returned no result.");
+                ?? throw new PvadProjectFormatException("PVADPROJECT015", "A project upgrade step returned no result.");
             var verification = step.Apply(protectedInput.DeepClone().AsObject())
-                ?? throw new PvadProjectFormatException("PXAPROJECT015", "A project upgrade step returned no result.");
+                ?? throw new PvadProjectFormatException("PVADPROJECT015", "A project upgrade step returned no result.");
             if (!inputFingerprint.AsSpan().SequenceEqual(PvadCanonicalJson.Serialize(protectedInput)))
-                throw new PvadProjectFormatException("PXAPROJECT015", "A project upgrade step modified its source document.");
+                throw new PvadProjectFormatException("PVADPROJECT015", "A project upgrade step modified its source document.");
             if (!PvadCanonicalJson.Serialize(result).AsSpan().SequenceEqual(PvadCanonicalJson.Serialize(verification)))
-                throw new PvadProjectFormatException("PXAPROJECT015", "A project upgrade step is not deterministic.");
+                throw new PvadProjectFormatException("PVADPROJECT015", "A project upgrade step is not deterministic.");
 
             node = result.Document ?? throw new PvadProjectFormatException(
-                "PXAPROJECT015", "A project upgrade step returned no document.");
+                "PVADPROJECT015", "A project upgrade step returned no document.");
             var diagnostics = result.Diagnostics ?? [];
             report.Steps.Add(new(step.FromVersion, step.ToVersion, result.IsLossy));
             report.Diagnostics.AddRange(diagnostics);
             if (result.IsLossy && !diagnostics.Any(item => item.Severity == "warning" || item.Severity == "error"))
                 report.Diagnostics.Add(new PvadProjectDiagnostic
                 {
-                    Code = "PXAPROJECT_UPGRADE_LOSSY",
+                    Code = "PVADPROJECT_UPGRADE_LOSSY",
                     Severity = "warning",
                     Message = $"The upgrade from {step.FromVersion} to {step.ToVersion} simplified unsupported data.",
                     Source = "document",
@@ -111,7 +111,7 @@ public static class PvadProjectUpgradePipeline
 
         report.Diagnostics.Insert(0, new PvadProjectDiagnostic
         {
-            Code = "PXAPROJECT_UPGRADED",
+            Code = "PVADPROJECT_UPGRADED",
             Severity = "warning",
             Message = $"The project was upgraded in memory from schema {sourceVersion} to {targetVersion}. " +
                       "The original file remains unchanged until the upgraded project is saved.",

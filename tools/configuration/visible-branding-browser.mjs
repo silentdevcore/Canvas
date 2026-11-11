@@ -34,7 +34,7 @@ try {
             if (url.origin !== origin) return route.fulfill({ status: 200, contentType: 'text/css', body: '' });
             if (!url.pathname.startsWith('/api/')) return route.continue();
             if (url.pathname.endsWith('/auth/me')) return route.fulfill(denyDesigner
-              ? { status: 403, json: { code: 'PXA_TRIAL_EXPIRED', detail: 'The evaluation has expired.' } }
+              ? { status: 403, json: { code: 'PVAD_TRIAL_EXPIRED', detail: 'The evaluation has expired.' } }
               : { status: 200, json: user });
             if (url.pathname.endsWith('/auth/csrf')) return route.fulfill({ json: { token: 'synthetic-csrf' } });
             if (url.pathname.endsWith('/designer/releases')) return route.fulfill({ json: { releases, readVersions: releases.map(item => item.version) } });
@@ -48,12 +48,9 @@ try {
           page.on('pageerror', error => errors.push(error.message));
           const path = { Company: '/about.html', Documentation: '/#release-notes-1-0-0', Demo: '/', Admin: '/release-notes', Account: '/not-a-page', Designer: '/' }[app];
           await page.goto(origin + path, { waitUntil: 'networkidle' });
-          if (app === 'Company') {
-            await expect(page.locator('#rename-history')).toContainText('PXA has been renamed to PVAD');
-            assert.equal((await page.locator('body').innerText()).match(/PXA/g)?.length, 1);
-          } else {
-            await expect(page.locator('body')).not.toContainText('PXA');
-          }
+          // The former name, including the retired rename notice, appears on no visible page.
+          await expect(page.locator('#rename-history')).toHaveCount(0);
+          assert.doesNotMatch(await page.locator('body').innerText(), /PXA|Power ?Dox/i);
           if (app === 'Documentation') await expect(page.locator('#release-notes-1-0-0')).toContainText('PVADE');
           if (app === 'Admin') await expect(page.locator('.admin-release').first()).toBeVisible();
           await page.screenshot({ path: resolve(output, `${app}-${device}.png`), fullPage: true });

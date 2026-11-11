@@ -110,7 +110,6 @@ import { ELEMENT_GROUP_ORDER, ELEMENT_REGISTRY, registryEntry, type ElementGroup
 import { CONTENT_LIBRARY, buildContentPages, type ContentLibraryEntry } from '@/data/contentLibrary';
 import { prepareBlockInsertion, preparePageKitInsertion } from '@/utils/contentInsertion';
 import { useElementFavorites } from '@/hooks/useElementFavorites';
-import { readMigratedStorage } from '@/utils/storageMigration';
 import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
@@ -611,7 +610,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
   const [isDragOverSurface, setIsDragOverSurface] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
     try {
-      const saved = JSON.parse(readMigratedStorage(localStorage, 'pvad-designer-element-groups-v1', 'pxa-designer-element-groups-v1') ?? '[]');
+      const saved = JSON.parse(localStorage.getItem('pvad-designer-element-groups-v1') ?? '[]');
       if (Array.isArray(saved) && saved.length) return saved;
     } catch { /* use defaults */ }
     return ['favorites', 'textData', 'formsInput', 'tablesCharts', 'mediaCodes', 'shapesLayout', 'documentNavigation'];
@@ -2205,7 +2204,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
           notify.warning(t('contentLibrary.scaled', { percent: Math.round(prepared.scale * 100) }));
         }
       }
-      const recent = JSON.parse(readMigratedStorage(localStorage, 'pvad-designer-recent-content-v1', 'pxa-designer-recent-content-v1') ?? '[]') as string[];
+      const recent = JSON.parse(localStorage.getItem('pvad-designer-recent-content-v1') ?? '[]') as string[];
       localStorage.setItem('pvad-designer-recent-content-v1', JSON.stringify([entry.id, ...recent.filter(id => id !== entry.id)].slice(0, 8)));
       notify.success(t('contentLibrary.inserted'));
     } catch (error) {
@@ -2218,7 +2217,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     setIsDragOverSurface(false);
 
     const contentId = event.dataTransfer.getData('application/x-pvad-content-block')
-      || event.dataTransfer.getData('application/x-pxa-content-block');
+      || event.dataTransfer.getData('application/x-pvad-content-block');
     if (contentId) {
       const entry = CONTENT_LIBRARY.find(value => value.id === contentId && value.kind === 'block');
       if (entry) insertLibraryContent(entry, undefined, getSurfacePoint(event.clientX, event.clientY));

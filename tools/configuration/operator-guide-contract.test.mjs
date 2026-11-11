@@ -12,7 +12,7 @@ const { load } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-
 test('operator guidance uses current routes and mounted secret paths without approving a deployment', () => {
   const admin = read('operator-docs/PVAD.Admin-Operations.md');
   const observability = read('deploy/observability/README.md');
-  const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
+  const targets = JSON.parse(read('deploy/pvade-targets.candidate.json'));
   assert.ok(admin.includes(targets.hosts.admin));
   assert.ok(admin.includes('not evidence of'));
   assert.ok(admin.includes('Shared production link defaults now use the selected domain'));
@@ -40,30 +40,27 @@ test('restricted recovery examples agree with the new filename producer and pres
   assert.ok(recovery.includes('/protected/pvad-backups/pvad-UTC.dump'));
   assert.ok(recovery.includes('pvad-<timestamp>-<pid>.dump'));
   assert.ok(recovery.includes('original basename of either generation'));
-  assert.ok(recovery.includes('compatibility-identifiers.v1.json'));
-  const contracts = JSON.parse(read('operator-docs/compatibility-identifiers.v1.json'));
-  assert.ok(contracts.entries.some(entry => entry.value.includes("PVAD_RESTORE_CONFIRM='RESTORE PXA DATABASE'")));
-  assert.ok(read('tools/legal/restore-postgres.sh').includes('RESTORE PXA DATABASE'));
+  assert.ok(read('tools/legal/restore-postgres.sh').includes('RESTORE PVAD DATABASE'));
   assert.ok(recovery.includes('not permission to move installed secrets'));
   assert.ok(read('tools/legal/backup-postgres.sh').includes('/pvad-$timestamp-$$.dump'));
 });
 
-test('MCP setup describes canonical discovery and retained scope readers accurately', () => {
+test('MCP setup describes canonical discovery and scopes accurately', () => {
   const doc = read('tools/PVAD.Mcp/README.md');
   assert.ok(doc.includes('PVAD_API_URL=http://pvad-webapi:8080'));
   assert.doesNotMatch(doc, /http:\/\/pxa-api:/);
   for (const scope of ['docs.read', 'documents.validate', 'templates.read']) {
     assert.ok(doc.includes('`pvad.' + scope + '`'));
-    assert.ok(read('tools/PVAD.Mcp/src/core/scopeCompatibility.ts').includes("'" + scope + "'"));
   }
-  assert.ok(doc.includes('discovery now advertises canonical scope spellings'));
+  assert.ok(doc.includes('discovery advertises only canonical `pvad.*` scopes'));
+  assert.doesNotMatch(doc, /compat-|compatibility alias/);
   assert.ok(read('tools/PVAD.Mcp/src/remote/config.ts').includes("['pvad.docs.read']"));
-  assert.ok(read('tools/PVAD.Mcp/src/remote/auth.ts').includes('compatibleScopes(readScopes('));
+  assert.ok(read('tools/PVAD.Mcp/src/remote/auth.ts').includes('uniqueScopes(readScopes('));
 });
 
 test('production link defaults and backend allowlists use the same explicit candidate origins', async () => {
   const { siteLinkDefaults } = await import('../../websites/shared/siteLinks.js');
-  const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
+  const targets = JSON.parse(read('deploy/pvade-targets.candidate.json'));
   for (const [role, url] of Object.entries(siteLinkDefaults.production))
     assert.equal(url, `${targets.hosts[role]}/`, role);
   const auth = read('pvad-designer/src/auth/designerAuth.ts');
@@ -85,7 +82,7 @@ test('production link defaults and backend allowlists use the same explicit cand
 });
 
 test('approved sender keeps delivery disabled while container selection remains separate from package publishers', () => {
-  const targets = JSON.parse(read('deploy/rename/pvade-targets.candidate.json'));
+  const targets = JSON.parse(read('deploy/pvade-targets.candidate.json'));
   const configuration = JSON.parse(read('PVAD.WebApi/appsettings.json'));
   assert.equal(targets.senderAddress, 'no-reply@pvade.com');
   assert.equal(targets.supportAddress, 'support@pvade.com');
@@ -106,11 +103,11 @@ test('Grafana changes datasource labels without deleting active identities or ch
   const config = load(read('deploy/observability/grafana/provisioning/datasources/datasources.yml'));
   const sources = config.datasources;
   assert.deepEqual(sources.map(source => [source.name, source.uid, source.url]), [
-    ['PVAD Prometheus', 'pxa-prometheus', 'http://pvad-prometheus:9090'],
-    ['PVAD Loki', 'pxa-loki', 'http://pvad-loki:3100'],
-    ['PVAD Tempo', 'pxa-tempo', 'http://pvad-tempo:3200'],
+    ['PVAD Prometheus', 'pvad-prometheus', 'http://pvad-prometheus:9090'],
+    ['PVAD Loki', 'pvad-loki', 'http://pvad-loki:3100'],
+    ['PVAD Tempo', 'pvad-tempo', 'http://pvad-tempo:3200'],
   ]);
-  assert.deepEqual(config.deleteDatasources, [{ name: 'PXA Alertmanager', orgId: 1 }]);
+  assert.deepEqual(config.deleteDatasources, [{ name: 'PVAD Alertmanager', orgId: 1 }]);
   const targets = new Set(sources.map(source => source.uid));
   function verifyReferences(value) {
     if (!value || typeof value !== 'object') return;
@@ -124,7 +121,4 @@ test('Grafana changes datasource labels without deleting active identities or ch
   assert.equal(dashboard.providers[0].name, 'PVAD');
   assert.equal(dashboard.providers[0].folder, 'PVAD');
   assert.equal(dashboard.providers[0].disableDeletion, true);
-  const legacy = load(read('deploy/observability/grafana/provisioning/dashboards/dashboards.yml'));
-  assert.equal(legacy.providers[0].name, 'PXA');
-  assert.equal(legacy.providers[0].folder, 'PXA');
 });

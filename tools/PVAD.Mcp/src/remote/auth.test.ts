@@ -46,7 +46,7 @@ test('JWT verifier enforces issuer, audience, expiry, subject, organization, and
 
   const auth = await verifier.verifyAccessToken(token);
   assert.equal(auth.clientId, 'client-1');
-  assert.deepEqual(auth.scopes, ['pvad.docs.read', 'pxa.docs.read', 'pvad.documents.validate', 'pxa.documents.validate']);
+  assert.deepEqual(auth.scopes, ['pvad.docs.read', 'pvad.documents.validate']);
   assert.equal(auth.extra?.organizationId, 'organization-1');
 
   const wrongAudience = await new SignJWT({ pvad_organization: 'organization-1', scope: 'pvad.docs.read' })
@@ -67,41 +67,34 @@ test('JWT verifier enforces issuer, audience, expiry, subject, organization, and
   await assert.rejects(() => verifier.verifyAccessToken(missingExpiry), InvalidTokenError);
 });
 
-test('claim and scope aliases stay equivalent while conflicting or malformed aliases fail closed', async () => {
+test('only canonical organization claims and scopes are accepted', async () => {
   const { privateKey, publicKey } = await generateKeyPair('ES256');
   const publicJwk = await exportJWK(publicKey);
-  publicJwk.kid = 'alias-key';
+  publicJwk.kid = 'claim-key';
   const verifier = new PvadJwtTokenVerifier({ ...baseConfig, organizationClaim: 'pvad_organization' },
     createLocalJWKSet({ keys: [publicJwk] }));
   const sign = (payload: Record<string, unknown>) => new SignJWT(payload)
-    .setProtectedHeader({ alg: 'ES256', kid: 'alias-key' }).setIssuer(baseConfig.issuer)
+    .setProtectedHeader({ alg: 'ES256', kid: 'claim-key' }).setIssuer(baseConfig.issuer)
     .setAudience(baseConfig.resourceUri.href).setSubject('synthetic-user').setExpirationTime('5m').sign(privateKey);
+  const auth = await verifier.verifyAccessToken(await sign({ pvad_organization: 'org', scope: 'pvad.docs.read', scp: ['pvad.docs.read'] }));
+  assert.equal(auth.extra?.organizationId, 'org');
+  assert.deepEqual(auth.scopes, ['pvad.docs.read']);
   for (const claims of [
-    { pxa_organization: 'org', scope: 'pxa.docs.read' },
-    { pvad_organization: 'org', scope: 'pvad.docs.read' },
-    { pvad_organization: 'org', pxa_organization: 'org', scope: 'pvad.docs.read', scp: ['pxa.docs.read'] },
-  ]) {
-    const auth = await verifier.verifyAccessToken(await sign(claims));
-    assert.equal(auth.extra?.organizationId, 'org');
-    assert.ok(auth.scopes.includes('pvad.docs.read'));
-    assert.ok(auth.scopes.includes('pxa.docs.read'));
-  }
-  for (const claims of [
-    { pvad_organization: 'first', pxa_organization: 'second', scope: 'pxa.docs.read' },
-    { pvad_organization: '', pxa_organization: 'org', scope: 'pxa.docs.read' },
-    { pvad_organization: 'org', scope: 'pxa.docs.read', scp: ['pxa.templates.read'] },
+    { pxa_organization: 'org', scope: 'pvad.docs.read' },
+    { pvad_organization: '', scope: 'pvad.docs.read' },
+    { pvad_organization: 'org', scope: 'pvad.docs.read', scp: ['pvad.templates.read'] },
     { pvad_organization: 'org', scope: 42 },
-    { pvad_organization: 'org', scp: ['pxa.docs.read', 42] },
+    { pvad_organization: 'org', scp: ['pvad.docs.read', 42] },
   ]) await assert.rejects(() => sign(claims).then((token) => verifier.verifyAccessToken(token)), InvalidTokenError);
 });
 
-test('unregistered legacy scopes are preserved without promotion to current capabilities', async () => {
+test('former scopes are preserved verbatim without promotion to current capabilities', async () => {
   const { privateKey, publicKey } = await generateKeyPair('RS256');
   const publicJwk = await exportJWK(publicKey);
   publicJwk.kid = 'unregistered-scope-test';
   const verifier = new PvadJwtTokenVerifier(baseConfig, createLocalJWKSet({ keys: [publicJwk] }));
   const token = await new SignJWT({
-    pvad_organization: 'synthetic-organization', scope: 'pxa.documents.render',
+    pvad_organization: 'synthetic-organization', scope: 'pxa.documents.render pxa.docs.read',
   })
     .setProtectedHeader({ alg: 'RS256', kid: publicJwk.kid })
     .setIssuer(baseConfig.issuer).setAudience(baseConfig.resourceUri.href)
@@ -109,7 +102,7 @@ test('unregistered legacy scopes are preserved without promotion to current capa
 
   const auth = await verifier.verifyAccessToken(token);
 
-  assert.deepEqual(auth.scopes, ['pxa.documents.render']);
+  assert.deepEqual(auth.scopes, ['pxa.documents.render', 'pxa.docs.read']);
   assert.ok(!auth.scopes.includes('pvad.documents.render'));
   assert.ok(!auth.scopes.includes('pvad.documents.validate'));
   assert.ok(!auth.scopes.includes('pvad.docs.read'));

@@ -566,11 +566,10 @@ describe('app route smoke tests', () => {
 
   test('invalid runtime settings show a safe state instead of starting authentication', async () => {
     const globals = globalThis as RuntimeConfigGlobals;
-    const previous = { current: globals.__PVAD_CONFIG__, legacy: globals.__PXA_CONFIG__ };
+    const previous = globals.__PVAD_CONFIG__;
     const previousUrl = `${location.pathname}${location.search}${location.hash}`;
     history.replaceState({}, '', '/auth/callback?code=synthetic-code&state=synthetic-state');
     globals.__PVAD_CONFIG__ = { accountUrl: 'https://private.example/?secret=token' };
-    globals.__PXA_CONFIG__ = undefined;
     try {
       root = await renderRoute(container, '/pdf/create');
       await waitUntil(() => {
@@ -580,8 +579,7 @@ describe('app route smoke tests', () => {
       expect(location.search).toBe('');
       expect(container.textContent).not.toMatch(/private\.example|secret=token/);
     } finally {
-      globals.__PVAD_CONFIG__ = previous.current;
-      globals.__PXA_CONFIG__ = previous.legacy;
+      globals.__PVAD_CONFIG__ = previous;
       history.replaceState({}, '', previousUrl);
     }
   });

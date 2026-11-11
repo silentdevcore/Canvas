@@ -16,9 +16,8 @@ When qpdf is unavailable locally, the runner uses the pinned
 `tools/pdf-trust-external-corpus/generate-external-profiles.sh`. Set
 `PVAD_AES256_QPDF_IMAGE` to an equivalent reviewed image if required.
 
-An explicitly configured older local image remains usable through that option;
-the legacy operator-only compatibility entry `compat-5622f2143f23` (available in the protected operator register) environment alias is still accepted, with
-conflicting old/new values rejected. This does not rename archived reports,
+An explicitly configured older local image remains usable through that option.
+Only the canonical environment key is read. This does not rename archived reports,
 fixture passwords or recorded tool-image provenance, and no image is published.
 
 PVAD's native suites separately cover every supported permission-bit combination,

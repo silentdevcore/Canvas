@@ -80,7 +80,7 @@ public sealed class PdfEInvoiceBoundaryTests
         var generated = Generate(Invoice([Line(1, new string('A', 4_097))]));
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV109");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV109");
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public sealed class PdfEInvoiceBoundaryTests
         var generated = Generate(Invoice(lines));
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV107");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV107");
     }
 
     // ── Currency minor units and rounding ────────────────────────────────────
@@ -164,10 +164,10 @@ public sealed class PdfEInvoiceBoundaryTests
         // produce something that is not a credit note either, so both are refused outright.
         Assert.Contains(
             Generate(Invoice([Line(1, "Credit", 1, -100m)])).Diagnostics,
-            diagnostic => diagnostic.Code == "PXAEINV114");
+            diagnostic => diagnostic.Code == "PVADEINV114");
         Assert.Contains(
             Generate(Invoice([Line(1, "Credit", -1m, 100m)])).Diagnostics,
-            diagnostic => diagnostic.Code == "PXAEINV113");
+            diagnostic => diagnostic.Code == "PVADEINV113");
     }
 
     [Fact]

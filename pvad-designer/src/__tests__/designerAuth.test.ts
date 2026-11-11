@@ -16,14 +16,14 @@ function error(code?: string, status = 403, message = 'Denied'): DesignerAuthErr
 
 describe('Designer authentication states', () => {
   test.each([
-    ['PXA_DESIGNER_VERIFICATION_REQUIRED', 'Email verification required'],
-    ['PXA_DESIGNER_ACCOUNT_DISABLED', 'Account disabled'],
-    ['PXA_DESIGNER_ACCOUNT_LOCKED', 'Account locked'],
-    ['PXA_ORGANIZATION_INACTIVE', 'Organization unavailable'],
-    ['PXA_TRIAL_EXPIRED', 'Designer subscription expired'],
-    ['PXA_ENTITLEMENT_DENIED', 'Designer access not included'],
-    ['PXA_API_VERSION_INCOMPATIBLE', 'Designer update required'],
-    ['PXA_DESIGNER_SESSION_EXPIRED', 'Session expired'],
+    ['PVAD_DESIGNER_VERIFICATION_REQUIRED', 'Email verification required'],
+    ['PVAD_DESIGNER_ACCOUNT_DISABLED', 'Account disabled'],
+    ['PVAD_DESIGNER_ACCOUNT_LOCKED', 'Account locked'],
+    ['PVAD_ORGANIZATION_INACTIVE', 'Organization unavailable'],
+    ['PVAD_TRIAL_EXPIRED', 'Designer subscription expired'],
+    ['PVAD_ENTITLEMENT_DENIED', 'Designer access not included'],
+    ['PVAD_API_VERSION_INCOMPATIBLE', 'Designer update required'],
+    ['PVAD_DESIGNER_SESSION_EXPIRED', 'Session expired'],
   ])('maps %s to an explicit access state', (code, title) => {
     expect(describeDesignerAuthError(error(code)).title).toBe(title);
   });
@@ -60,7 +60,7 @@ describe('Designer authentication states', () => {
   });
 
   test('classifies diagnostic codes without exposing unknown values to telemetry', () => {
-    expect(isKnownDesignerAuthCode('PXA_TRIAL_EXPIRED')).toBe(true);
+    expect(isKnownDesignerAuthCode('PVAD_TRIAL_EXPIRED')).toBe(true);
     expect(isKnownDesignerAuthCode('customer-private-diagnostic')).toBe(false);
     expect(isKnownDesignerAuthCode()).toBe(true);
   });

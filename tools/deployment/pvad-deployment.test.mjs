@@ -126,14 +126,6 @@ test('historical releases retain their complete original artifact set without mi
     /mixed|ambiguous|duplicate/);
 });
 
-test('old command delegates to canonical validation without changing versions or deploying', () => {
-  for (const name of ['pvad', 'pxa']) {
-    const output = execFileSync(process.execPath, [new URL(`./${name}-deployment.mjs`, import.meta.url).pathname,
-      'request', '--version', version, '--environment', 'staging', '--operation', 'deploy'], { encoding: 'utf8' });
-    assert.match(output, /Validated deploy request for PVAD 1\.1\.0 in staging/);
-  }
-});
-
 test('release archives and new container producers use canonical names without changing historical readers', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/release.yml', import.meta.url), 'utf8');
   assert.match(workflow, /artifacts\/pvad-webapi-\$\{\{/);

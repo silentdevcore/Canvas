@@ -19,7 +19,7 @@ afterEach(() => { act(() => root.unmount()); jest.restoreAllMocks(); });
 
 test('recovery only reads on request, downloads on explicit action and retains the original', () => {
   const raw = JSON.stringify({ state: { name: 'Old', sheets: [emptySheet()] } });
-  localStorage.setItem('pxa-spreadsheet', raw);
+  localStorage.setItem('pvad-spreadsheet', raw);
   const read = jest.spyOn(Storage.prototype, 'getItem');
   act(() => root.render(<LegacyWorkbookRecovery />));
   expect(read).not.toHaveBeenCalled();
@@ -29,7 +29,7 @@ test('recovery only reads on request, downloads on explicit action and retains t
   expect(downloadText).not.toHaveBeenCalled();
   act(() => button.click());
   expect(downloadText).toHaveBeenCalledWith(expect.stringContaining('"name": "Old"'), 'recovered-workbook.json', 'application/json');
-  expect(localStorage.getItem('pxa-spreadsheet')).toBe(raw);
+  expect(localStorage.getItem('pvad-spreadsheet')).toBe(raw);
 });
 
 test('invalid data shows a localized failure without downloading or deleting it', () => {

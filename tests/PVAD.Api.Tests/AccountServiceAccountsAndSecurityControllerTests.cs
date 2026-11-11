@@ -63,14 +63,14 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             var application = await manager.FindByClientIdAsync(dynamicClientId!);
             Assert.NotNull(application);
             var permissions = await manager.GetPermissionsAsync(application!);
-            Assert.Contains("scp:pxa.docs.read", permissions);
+            Assert.Contains("scp:pvad.docs.read", permissions);
             Assert.Contains("scp:pvad.docs.read", permissions);
             Assert.DoesNotContain("scp:pvad.templates.write", permissions);
         }
         var advertisedScopes = discovery.GetProperty("scopes_supported").EnumerateArray()
             .Select(value => value.GetString()).ToArray();
         Assert.Contains("pvad.docs.read", advertisedScopes);
-        Assert.Contains("pxa.docs.read", advertisedScopes);
+        Assert.Contains("pvad.docs.read", advertisedScopes);
 
         var unsafeRegistration = await client.PostAsJsonAsync("/connect/register", new
         {
@@ -100,12 +100,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             "http://localhost:5178/login?returnUrl=",
             authorizeResponse.Headers.Location?.ToString(),
             StringComparison.Ordinal);
-        var legacyAuthorizePath = authorizePath.Replace("pvad.docs.read", "pxa.docs.read", StringComparison.Ordinal);
-        var legacyAuthorizeResponse = await client.GetAsync(legacyAuthorizePath);
-        Assert.Equal(HttpStatusCode.Redirect, legacyAuthorizeResponse.StatusCode);
-        Assert.StartsWith("http://localhost:5178/login?returnUrl=", legacyAuthorizeResponse.Headers.Location?.ToString());
-
-        foreach (var path in new[] { authorizePath, legacyAuthorizePath })
+        foreach (var path in new[] { authorizePath })
         {
             var missingPkce = await client.GetAsync(
                 path.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
@@ -115,14 +110,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
     }
 
     [PostgreSqlFact]
-    public Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once() =>
-        ExerciseServiceAccountLifecycleAsync(legacyClient: false);
-
-    [PostgreSqlFact]
-    public Task Retained_legacy_service_account_can_exchange_both_scope_generations_and_be_revoked() =>
-        ExerciseServiceAccountLifecycleAsync(legacyClient: true);
-
-    private static async Task ExerciseServiceAccountLifecycleAsync(bool legacyClient)
+    public async Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
@@ -151,20 +139,6 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var oauthClientId = key.GetProperty("oAuthClientId").GetString();
         Assert.Equal($"pvad-sa-{keyId:N}", oauthClientId);
 
-        if (legacyClient)
-        {
-            // Seed the pre-rename registration before issuing any tokens.
-            await using var legacyScope = factory.Services.CreateAsyncScope();
-            var manager = legacyScope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-            var legacyDb = legacyScope.ServiceProvider.GetRequiredService<PvadDbContext>();
-            var application = (OpenIddictEntityFrameworkCoreApplication)(await manager.FindByClientIdAsync(oauthClientId!))!;
-            oauthClientId = PvadOAuthClients.LegacyForApiKey(keyId);
-            application.ClientId = oauthClientId;
-            await manager.UpdateAsync(application);
-            (await legacyDb.ApiKeys.SingleAsync(value => value.Id == keyId)).OAuthClientId = oauthClientId;
-            await legacyDb.SaveChangesAsync();
-        }
-
         using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -182,7 +156,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var accessToken = token.GetProperty("access_token").GetString();
         Assert.False(string.IsNullOrWhiteSpace(accessToken));
 
-        using var legacyTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        using var formerScopeRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -192,10 +166,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
                 ["scope"] = "pxa.docs.read pxa.templates.read",
             }),
         };
-        var legacyTokenResponse = await client.SendAsync(legacyTokenRequest);
-        Assert.Equal(HttpStatusCode.OK, legacyTokenResponse.StatusCode);
-        var legacyToken = await legacyTokenResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.False(string.IsNullOrWhiteSpace(legacyToken.GetProperty("access_token").GetString()));
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.SendAsync(formerScopeRequest)).StatusCode);
 
         using var forbiddenScopeRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
@@ -265,7 +236,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             await GetCsrfAsync(client), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeKey)).StatusCode);
 
-        foreach (var requestedScope in new[] { "pvad.docs.read", "pxa.docs.read" })
+        foreach (var requestedScope in new[] { "pvad.docs.read", "pvad.docs.read" })
         {
             using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
             {

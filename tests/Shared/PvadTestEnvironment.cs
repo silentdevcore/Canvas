@@ -8,12 +8,6 @@ internal static class PvadTestEnvironment
     {
         if (!name.StartsWith("PVAD_", StringComparison.Ordinal))
             throw new ArgumentException("Expected a PVAD environment key.", nameof(name));
-        read ??= Environment.GetEnvironmentVariable;
-        var legacy = "PXA_" + name[5..];
-        var current = read(name);
-        var previous = read(legacy);
-        if (current is not null && previous is not null && current != previous)
-            throw new InvalidOperationException($"Conflicting configuration keys: {name} and {legacy}.");
-        return current ?? previous;
+        return (read ?? Environment.GetEnvironmentVariable)(name);
     }
 }

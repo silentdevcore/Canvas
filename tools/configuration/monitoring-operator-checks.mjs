@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { prepareGrafanaProvider } from './rename-grafana-provider.mjs';
-import { checkFolderTarget, grafanaRestoreScript } from './grafana-cutover-smoke.mjs';
+import { grafanaRestoreScript } from './grafana-backup-smoke.mjs';
 
 export async function eventually(description, operation, { attempts = 120, interval = 1000 } = {}) {
   for (let attempt = 0; attempt < attempts; attempt++) {
@@ -42,10 +40,9 @@ export function normalizedSnapshot(value) {
 }
 
 export async function exerciseMonitoring(context) {
-  const { root, directory, provisioning, runId, network, label, names, docker, resources, namesByService,
+  const { root, directory, runId, network, label, names, docker, resources, namesByService,
     data, backup, configuration, receiverUrl, report, grafanaImage, request, page, anonymousRequest, memberRequest, output, collectorEndpoint,
     screenshot, checked, origin, inventory, step, owned } = context;
-  const { load, dump } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
   const grafana = '/operator/grafana';
   const api = async (method, path, body) => {
     const response = await request[method](`${origin}${grafana}${path}`, { data: body,
@@ -127,14 +124,11 @@ export async function exerciseMonitoring(context) {
     idempotencyStableAcrossRetry: true, collectorIngressPreserved: true, invalidDeliveries: recovered.invalid, deliveryAttempts: recovered.events.length };
   checked('real-prometheus-alertmanager-signed-https-retry-and-recovery');
 
-  step('monitoring/grafana-cutover');
+  step('monitoring/grafana-backup');
   const folders = await api('get', '/api/folders?limit=100');
   assert.equal(folders.length, 1);
+  assert.equal(folders[0].title, 'PVAD', 'The lab must provision the current Grafana profile.');
   const folderUid = folders[0].uid;
-  const providerFile = resolve(provisioning, 'dashboards/dashboards.yml');
-  const originalSource = await readFile(providerFile, 'utf8');
-  const candidate = prepareGrafanaProvider(originalSource).candidate;
-  candidate.providers[0].folderUid = folderUid;
   const snapshot = async () => {
     const folder = await api('get', `/api/folders/${folderUid}`);
     const permissions = await api('get', `/api/folders/${folderUid}/permissions`);
@@ -145,7 +139,6 @@ export async function exerciseMonitoring(context) {
     return normalizedSnapshot({ folderUid, title: folder.title, permissions, dashboards, datasourceUids: datasources.map(value => value.uid) });
   };
   const baseline = await snapshot();
-  checkFolderTarget(folders, folderUid, candidate.providers[0].folder);
   const assertAccess = async phase => {
     assert.equal((await anonymousRequest.get(`${origin}${grafana}/api/user`, { maxRedirects: 0 })).status(), 401);
     assert.equal((await memberRequest.get(`${origin}${grafana}/api/user`, { maxRedirects: 0 })).status(), 403);
@@ -193,27 +186,19 @@ export async function exerciseMonitoring(context) {
   helper('cp /tmp/grafana-backup.tar /tmp/tampered.tar; printf tampered >> /tmp/tampered.tar');
   assert.throws(() => helper(grafanaRestoreScript(backupHash, 'tampered.tar'), true), error => error.status === 42);
   await readyGrafana();
-  const folder = await api('get', `/api/folders/${folderUid}`);
-  await api('put', `/api/folders/${folderUid}`, { title: candidate.providers[0].folder, version: folder.version });
-  stopGrafana();
-  await writeFile(providerFile, dump(candidate, { noRefs: true }));
-  await readyGrafana();
-  const afterCutover = await snapshot();
-  assert.equal(afterCutover.title, candidate.providers[0].folder);
-  assert.deepEqual({ ...afterCutover, title: baseline.title }, baseline, 'Cutover changed IDs, content or ACLs.');
-  assert.equal(await assertAccess('renamed'), operatorIdentity);
+  assert.deepEqual(await snapshot(), baseline, 'Restarting the current profile changed IDs, content or ACLs.');
+  assert.equal(await assertAccess('restarted'), operatorIdentity);
   assert.equal((await request.get(`${origin}/api/pvad/v1/version`)).status(), 200);
-  await eventually('live datasource after rename', async () => (await metric()) > 0);
+  await eventually('live datasource after restart', async () => (await metric()) > 0);
   await api('post', '/api/annotations', { time: 1700000000000, tags: ['pvad-post-backup'], text: 'Synthetic post-backup marker' });
   assert.equal((await api('get', '/api/annotations?tags=pvad-post-backup')).length, 1);
-  checked('protected-grafana-rename-preserves-uids-acls-and-live-query');
+  checked('protected-grafana-backup-restart-preserves-uids-acls-and-live-query');
 
   step('monitoring/grafana-restore');
   stopGrafana();
   helper('find /var/lib/grafana -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +', true);
   const restoredHash = helper(grafanaRestoreScript(backupHash), true).split(/\s/)[0];
   assert.equal(restoredHash, backupHash);
-  await writeFile(providerFile, originalSource);
   await readyGrafana();
   const restored = await snapshot();
   assert.deepEqual(restored, baseline, 'Restored Grafana differs from its original point-in-time state.');
@@ -222,7 +207,7 @@ export async function exerciseMonitoring(context) {
   assert.equal((await request.get(`${origin}/api/pvad/v1/version`)).status(), 200);
   await eventually('live datasource after restore', async () => (await metric()) > 0);
   const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-  report.cutover = { folderUidPreserved: true, datasourceUidsPreserved: true, dashboardContentPreserved: true,
+  report.backupRestore = { folderUidPreserved: true, datasourceUidsPreserved: true, dashboardContentPreserved: true,
     permissionsPreserved: true, operatorIdentityPreserved: true, anonymousDeniedAllPhases: true, organizationAdminDeniedAllPhases: true,
     corruptBackupRejected: true, pointInTimeRestoreVerified: true, postBackupMarkerRemoved: true,
     backupSha256: backupHash, baselineSha256: digest(baseline), restoredSha256: digest(restored) };

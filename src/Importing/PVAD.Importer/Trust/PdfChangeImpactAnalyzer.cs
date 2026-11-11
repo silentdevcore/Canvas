@@ -68,14 +68,14 @@ public sealed class PdfChangeImpactAnalyzer
         if (saveStrategy == PdfSaveStrategy.FullRewrite && signatureImpacts.Length > 0)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST501",
+                "PVADPDFTRUST501",
                 PdfTrustDiagnosticSeverity.Error,
                 "A full rewrite changes signed byte ranges and invalidates existing PDF signatures."));
         }
         else if (saveStrategy == PdfSaveStrategy.IncrementalUpdate && signatureImpacts.Length > 0)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST502",
+                "PVADPDFTRUST502",
                 PdfTrustDiagnosticSeverity.Warning,
                 "An incremental update preserves earlier signed bytes, but certification permissions and post-signature changes still require validation."));
         }
@@ -83,7 +83,7 @@ public sealed class PdfChangeImpactAnalyzer
         if (complianceImpacts.Length > 0)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST503",
+                "PVADPDFTRUST503",
                 PdfTrustDiagnosticSeverity.Warning,
                 "Declared compliance profiles must be validated again after the planned mutation."));
         }

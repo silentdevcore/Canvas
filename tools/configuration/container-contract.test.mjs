@@ -120,29 +120,24 @@ test('isolated OCR worker resolves distro libraries through the wrapper names fo
   assert.ok(dockerfile.includes('test -r /app/ocr-worker/libdl.so'));
 });
 
-test('MCP container defaults do not conflict with user-supplied legacy or canonical hosts', () => {
-  for (const environment of [{}, { PVAD_MCP_HOST: '127.0.0.1' }, { PXA_MCP_HOST: '127.0.0.1' }]) {
+test('MCP container defaults keep a user-supplied canonical host', () => {
+  for (const [environment, expected] of [[{}, '0.0.0.0'], [{ PVAD_MCP_HOST: '127.0.0.1' }, '127.0.0.1'],
+    [{ PXA_MCP_HOST: '127.0.0.1' }, '0.0.0.0']]) {
     const run = spawnSync('sh', [resolve(root, 'tools/PVAD.Mcp/scripts/container-entrypoint.sh'),
-      process.execPath, '-p',
-      'JSON.stringify({current:process.env.PVAD_MCP_HOST,legacy:process.env.PXA_MCP_HOST})'],
-    { encoding: 'utf8', env: environment });
+      process.execPath, '-p', 'process.env.PVAD_MCP_HOST'], { encoding: 'utf8', env: environment });
     assert.equal(run.status, 0, run.stderr);
-    assert.deepEqual(JSON.parse(run.stdout), Object.keys(environment).length
-      ? Object.fromEntries(Object.entries(environment).map(([key, value]) =>
-        [key.startsWith('PVAD') ? 'current' : 'legacy', value]))
-      : { current: '0.0.0.0' });
+    assert.equal(run.stdout.trim(), expected);
   }
 });
 
-test('both dotnet container definitions pass canonical build metadata and retain legacy argument inputs', async () => {
+test('both dotnet container definitions pass canonical build metadata', async () => {
   for (const relative of ['PVAD.WebApi/Dockerfile',
     'src/Observability/PVAD.Observability.WebhookRelay/Dockerfile']) {
     const source = await readFile(resolve(root, relative), 'utf8');
-    assert.match(source, /ARG PVAD_COMMIT=\$\{PXA_COMMIT:-unknown\}/);
-    assert.match(source, /ARG PVAD_VERSION=\$\{PXA_VERSION:-1\.1\.0\}/);
+    assert.match(source, /ARG PVAD_COMMIT=unknown/);
+    assert.match(source, /ARG PVAD_VERSION=1\.1\.0/);
     assert.match(source, /PvadBuildMetadata=\$PVAD_COMMIT/);
-    assert.doesNotMatch(source, /PxaBuildMetadata=/);
-    assert.match(source, /Conflicting PVAD_VERSION and PXA_VERSION/);
+    assert.doesNotMatch(source, /PXA|PxaBuildMetadata/);
   }
 });
 

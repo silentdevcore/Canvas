@@ -16,8 +16,8 @@ public sealed class SystemControllerTests : IClassFixture<PvadApiTestFactory>
     [Theory]
     [InlineData("/api/system/brand")]
     [InlineData("/api/pvad/system/brand")]
-    [InlineData("/api/pxa/system/brand")]
-    public async Task GetBranding_ReturnsPvadBrandingAndLegacyCompatibility(string route)
+    [InlineData("/api/pvad/system/brand")]
+    public async Task GetBranding_ReturnsPvadBranding(string route)
     {
         var response = await client.GetAsync(route);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -29,10 +29,10 @@ public sealed class SystemControllerTests : IClassFixture<PvadApiTestFactory>
         Assert.Equal(".pvadp", body.GetProperty("nativeFileExtension").GetString());
         Assert.Equal(new[] { ".pvadp", ".pvads" },
             body.GetProperty("nativeFileExtensions").EnumerateArray().Select(value => value.GetString()));
-        Assert.Equal("PXA", body.GetProperty("legacyProductName").GetString());
-        Assert.Equal("PXA", body.GetProperty("legacyNamespacePrefix").GetString());
+        Assert.False(body.TryGetProperty("legacyProductName", out _));
+        Assert.False(body.TryGetProperty("legacyNamespacePrefix", out _));
         Assert.Contains(
             body.GetProperty("compatibilityNotes").EnumerateArray(),
-            note => note.GetString() == "Legacy /api routes remain compatible.");
+            note => note.GetString() == "Unprefixed /api routes remain available.");
     }
 }

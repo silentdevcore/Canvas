@@ -36,7 +36,7 @@ test('public Documentation and Company do not expose Admin guidance', () => {
 
 test('protected handbook uses selected host targets and retains dashboard and diagnostic identities', async () => {
   const targets = JSON.parse(await readFile(
-    new URL('../../../deploy/rename/pvade-targets.candidate.json', import.meta.url), 'utf8'));
+    new URL('../../../deploy/pvade-targets.candidate.json', import.meta.url), 'utf8'));
   assert.doesNotMatch(handbookJson, /powerdoxautomation\.com/i);
   const links = topics.flatMap(topic => (topic.references ?? []).map(reference => reference.href));
   for (const [role, path] of [
@@ -47,11 +47,11 @@ test('protected handbook uses selected host targets and retains dashboard and di
     ['operator', '/documentation/'],
   ]) assert.ok(links.includes(targets.hosts[role] + path), `${role}${path}`);
   assert.ok(topics.some(topic => topic.notes.some(note => note.includes(new URL(targets.hosts.admin).hostname))));
-  const dashboardIds = ['pxa-platform-overview', 'pxa-infrastructure', 'pxa-operations',
-    'pxa-document-operations', 'pxa-browser-health'];
+  const dashboardIds = ['pvad-platform-overview', 'pvad-infrastructure', 'pvad-operations',
+    'pvad-document-operations', 'pvad-browser-health'];
   for (const id of dashboardIds) {
     const dashboard = JSON.parse(await readFile(new URL(
-      `../../../deploy/observability/grafana/dashboards/${id.replace(/^pxa-/, 'pvad-')}.json`,
+      `../../../deploy/observability/grafana/dashboards/${id.replace(/^pvad-/, 'pvad-')}.json`,
       import.meta.url), 'utf8'));
     assert.equal(dashboard.uid, id);
     assert.ok(links.some(link => new URL(link).pathname.includes(`/d/${dashboard.uid}/`)), id);
@@ -72,18 +72,18 @@ test('Admin diagnostic examples preserve actual server meanings and explain rout
   const diagnostic = topics.find(topic => topic.title === 'Admin API and diagnostics');
   const text = diagnostic.notes.join(' ');
   for (const [constant, code, meaning] of [
-    ['AuthenticationRequired', 'PXAAPI001', 'authentication required'],
-    ['PermissionDenied', 'PXAAPI002', 'permission denied'],
-    ['OrganizationRequired', 'PXAAPI003', 'organization required'],
-    ['ResourceNotFound', 'PXAAPI004', 'resource not found'],
-    ['InvalidRequest', 'PXAAPI005', 'invalid request'],
-    ['Conflict', 'PXAAPI006', 'conflict'],
-    ['RateLimited', 'PXAAPI007', 'rate limited'],
-    ['InvalidCsrf', 'PXAAPI008', 'invalid CSRF'],
-    ['UnexpectedError', 'PXAAPI018', 'unexpected server error'],
+    ['AuthenticationRequired', 'PVADAPI001', 'authentication required'],
+    ['PermissionDenied', 'PVADAPI002', 'permission denied'],
+    ['OrganizationRequired', 'PVADAPI003', 'organization required'],
+    ['ResourceNotFound', 'PVADAPI004', 'resource not found'],
+    ['InvalidRequest', 'PVADAPI005', 'invalid request'],
+    ['Conflict', 'PVADAPI006', 'conflict'],
+    ['RateLimited', 'PVADAPI007', 'rate limited'],
+    ['InvalidCsrf', 'PVADAPI008', 'invalid CSRF'],
+    ['UnexpectedError', 'PVADAPI018', 'unexpected server error'],
   ]) {
     assert.ok(source.includes(`const string ${constant} = "${code}";`));
-    assert.ok(text.includes(`${code.replace('PXA', 'PVAD')} ${meaning}`));
+    assert.ok(text.includes(`${code.replace('PVAD', 'PVAD')} ${meaning}`));
   }
   assert.ok(text.includes('canonicalType and legacyType'));
   assert.ok(text.includes('Legacy API routes keep their original type URLs'));

@@ -61,7 +61,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI104", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI104", details.Extensions["code"]);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI105", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI105", details.Extensions["code"]);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI124", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI124", details.Extensions["code"]);
     }
 
     [Fact]

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using PVAD.Infrastructure.Persistence;
 using PVAD.WebApi.Security;
 
 namespace PVAD.Api.Tests;
@@ -17,6 +20,10 @@ public sealed class PvadApiTestFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<IHostedService>();
             services.PostConfigure<PvadOAuthOptions>(options => options.Enabled = false);
+            // The startup re-protection check needs a database; an empty one has nothing to convert.
+            services.RemoveAll<DbContextOptions<PvadDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<PvadDbContext>>();
+            services.AddDbContext<PvadDbContext>(options => options.UseInMemoryDatabase($"openapi-{Guid.NewGuid():N}"));
         });
     }).CreateClient();
 

@@ -204,8 +204,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
                 return Conflict(new
                 {
                     error = "The redaction could not be verified, so no file was produced.",
-                    code = "PXAPDFREDACTVIEWER002",
-                    canonicalCode = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode("PXAPDFREDACTVIEWER002"),
+                    code = "PVADPDFREDACTVIEWER002",
                     verification = result.Verification
                 });
             }
@@ -222,8 +221,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
             return Conflict(new
             {
                 error = ex.Message,
-                code = "PXAPDFREDACTVIEWER001",
-                canonicalCode = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode("PXAPDFREDACTVIEWER001"),
+                code = "PVADPDFREDACTVIEWER001",
                 preflight = ex.Preflight
             });
         }
@@ -232,8 +230,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
                 error = "The redaction audit signature could not be timestamped, so no file was produced.",
-                code = "PXAPDFREDACTVIEWER003",
-                canonicalCode = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode("PXAPDFREDACTVIEWER003")
+                code = "PVADPDFREDACTVIEWER003",
             });
         }
     }

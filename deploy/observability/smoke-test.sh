@@ -114,7 +114,7 @@ fi
 curl --fail --silent --show-error --max-time 10 \
   --cookie "${cookie_jar}" "${grafana_url}/api/health" >/dev/null
 
-for datasource in pxa-prometheus pxa-loki pxa-tempo; do
+for datasource in pvad-prometheus pvad-loki pvad-tempo; do
   response="$(
     curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
       "${grafana_url}/api/datasources/uid/${datasource}/health"
@@ -127,10 +127,10 @@ done
 
 prometheus_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-prometheus"
+    "${grafana_url}/api/datasources/uid/pvad-prometheus"
 )"
 if ! jq -e \
-  '.jsonData.exemplarTraceIdDestinations[] | select(.datasourceUid == "pxa-tempo")' \
+  '.jsonData.exemplarTraceIdDestinations[] | select(.datasourceUid == "pvad-tempo")' \
   <<<"${prometheus_datasource}" >/dev/null; then
   echo "Prometheus exemplars are not linked to Tempo." >&2
   exit 1
@@ -138,10 +138,10 @@ fi
 
 loki_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-loki"
+    "${grafana_url}/api/datasources/uid/pvad-loki"
 )"
 if ! jq -e \
-  '.jsonData.derivedFields[] | select(.datasourceUid == "pxa-tempo")' \
+  '.jsonData.derivedFields[] | select(.datasourceUid == "pvad-tempo")' \
   <<<"${loki_datasource}" >/dev/null; then
   echo "Loki trace IDs are not linked to Tempo." >&2
   exit 1
@@ -149,10 +149,10 @@ fi
 
 tempo_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-tempo"
+    "${grafana_url}/api/datasources/uid/pvad-tempo"
 )"
-if [[ "$(jq -r '.jsonData.tracesToLogsV2.datasourceUid' <<<"${tempo_datasource}")" != "pxa-loki" ]] ||
-   [[ "$(jq -r '.jsonData.tracesToMetrics.datasourceUid' <<<"${tempo_datasource}")" != "pxa-prometheus" ]]; then
+if [[ "$(jq -r '.jsonData.tracesToLogsV2.datasourceUid' <<<"${tempo_datasource}")" != "pvad-loki" ]] ||
+   [[ "$(jq -r '.jsonData.tracesToMetrics.datasourceUid' <<<"${tempo_datasource}")" != "pvad-prometheus" ]]; then
   echo "Tempo trace drilldowns are not linked to Loki and Prometheus." >&2
   exit 1
 fi
@@ -182,11 +182,11 @@ dashboards="$(
     "${grafana_url}/api/search?query=PVAD"
 )"
 for dashboard_uid in \
-  pxa-platform-overview \
-  pxa-infrastructure \
-  pxa-operations \
-  pxa-document-operations \
-  pxa-browser-health; do
+  pvad-platform-overview \
+  pvad-infrastructure \
+  pvad-operations \
+  pvad-document-operations \
+  pvad-browser-health; do
   if ! jq -e --arg uid "${dashboard_uid}" \
     '.[] | select(.uid == $uid)' <<<"${dashboards}" >/dev/null; then
     echo "The provisioned dashboard ${dashboard_uid} was not found." >&2

@@ -31,15 +31,11 @@ public sealed class PvadHttpDiagnosticPrivacyTests
         Assert.Equal(PvadLogPrivacy.SuppressedMessage, PvadLogPrivacy.ResolveMessageTemplate(values));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Http_console_diagnostics_keep_correlation_without_query_payloads(bool legacy)
+    [Fact]
+    public void Http_console_diagnostics_keep_correlation_without_query_payloads()
     {
         var settings = Options.Create(new PvadObservabilityOptions());
-        PvadJsonConsoleFormatter formatter = legacy
-            ? new LegacyPvadJsonConsoleFormatter(settings, new TestEnvironment())
-            : new PvadJsonConsoleFormatter(settings, new TestEnvironment());
+        PvadJsonConsoleFormatter formatter = new PvadJsonConsoleFormatter(settings, new TestEnvironment());
         var values = new List<KeyValuePair<string, object?>>
         {
             new("{OriginalFormat}", "Request starting {Method} {Path}{QueryString}"),

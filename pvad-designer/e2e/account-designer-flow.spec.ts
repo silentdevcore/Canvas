@@ -467,13 +467,13 @@ test('customer can register, verify, enter Designer, persist and version a templ
       cells: {}, colWidths: {}, merges: [] }],
   }, version: 0 });
   await page.evaluate(raw => {
-    localStorage.removeItem('pxa-spreadsheet');
+    localStorage.removeItem('pvad-spreadsheet');
     localStorage.setItem('canvas-spreadsheet', raw);
   }, legacyWorkbook);
   await page.goto(`${designerUrl}/spreadsheet/create`);
   await expect(page.getByRole('button', { name: 'Find old local drafts' })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('canvas-spreadsheet'))).toBe(legacyWorkbook);
-  expect(await page.evaluate(() => localStorage.getItem('pxa-spreadsheet'))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem('pvad-spreadsheet'))).toBeNull();
   await page.getByRole('button', { name: 'Find old local drafts' }).click();
   const recoveryDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download workbook 1' }).click();
@@ -492,11 +492,11 @@ test('customer can register, verify, enter Designer, persist and version a templ
     },
     pageSettings: { width: 595, height: 842 },
   };
-  await page.evaluate(payload => sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify(payload)), handoffPayload);
+  await page.evaluate(payload => sessionStorage.setItem('pvad_migration_designer_handoff', JSON.stringify(payload)), handoffPayload);
   await page.goto(`${designerUrl}/create`);
   await expect(page).toHaveURL(`${designerUrl}/pdf/create`);
   await expect(page.getByRole('button', { name: 'Rename Untitled document' })).toBeVisible();
-  expect(await page.evaluate(() => sessionStorage.getItem('pxa_migration_designer_handoff'))).toBe(JSON.stringify(handoffPayload));
+  expect(await page.evaluate(() => sessionStorage.getItem('pvad_migration_designer_handoff'))).toBe(JSON.stringify(handoffPayload));
 
   // Current handoffs must belong to the actual authenticated user and active tenant.
   await page.evaluate(async payload => {
@@ -631,10 +631,10 @@ test('mobile Designer shows an explicit entitlement denial state', async ({ brow
     body: JSON.stringify({
       type: 'https://docs.pvade.com/problems/pvad_trial_expired',
       canonicalType: 'https://docs.pvade.com/problems/pvad_trial_expired',
-      legacyType: 'https://docs.powerdoxautomation.com/problems/pxa_trial_expired',
+      legacyType: 'https://docs.powerdoxautomation.com/problems/pvad_trial_expired',
       title: 'Designer access denied',
       status: 403,
-      code: 'PXA_TRIAL_EXPIRED',
+      code: 'PVAD_TRIAL_EXPIRED',
     }),
   }));
 

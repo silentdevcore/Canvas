@@ -89,7 +89,7 @@ public sealed class AdminAuditController : ControllerBase
         if (!await IsEnterpriseAsync(organizationId, cancellationToken))
             return Problem(
                 statusCode: StatusCodes.Status403Forbidden,
-                title: "PXA_AUDIT_EXPORT_REQUIRES_ENTERPRISE",
+                title: "PVAD_AUDIT_EXPORT_REQUIRES_ENTERPRISE",
                 detail: "Audit export is available for Enterprise subscriptions.");
 
         var query = ApplyFilter(BuildTenantQuery(organizationId), filter)

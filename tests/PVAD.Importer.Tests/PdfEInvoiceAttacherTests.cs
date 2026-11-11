@@ -138,7 +138,7 @@ public sealed class PdfEInvoiceAttacherTests
         Assert.Equal(1, report.PageCount);
         Assert.Equal("PDF/A-3B", report.SourceArchiveProfile);
         Assert.Empty(report.ConflictingAttachmentNames);
-        Assert.Contains(report.Findings, finding => finding.Code == "PXAEINVATTACH000");
+        Assert.Contains(report.Findings, finding => finding.Code == "PVADEINVATTACH000");
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class PdfEInvoiceAttacherTests
         Assert.Equal(PdfEInvoiceAttachmentStrategy.ArchiveConversion, report.Strategy);
         Assert.True(report.RequiresArchiveConversion);
         Assert.True(report.RequiresApproval);
-        Assert.Contains(report.Findings, finding => finding.Code == "PXAEINVATTACH004");
+        Assert.Contains(report.Findings, finding => finding.Code == "PVADEINVATTACH004");
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class PdfEInvoiceAttacherTests
         Assert.True(report.RequiresArchiveConversion);
         Assert.Equal(PdfComplianceConversionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Findings, finding =>
-            finding.Code == "PXAEINVATTACH004" &&
+            finding.Code == "PVADEINVATTACH004" &&
             finding.Message.Contains("does not pass", StringComparison.Ordinal));
     }
 
@@ -196,7 +196,7 @@ public sealed class PdfEInvoiceAttacherTests
 
         Assert.Equal(1, report.SignatureCount);
         Assert.True(report.RequiresApproval);
-        Assert.Contains(report.Findings, finding => finding.Code is "PXAEINVATTACH007" or "PXAEINVATTACH008");
+        Assert.Contains(report.Findings, finding => finding.Code is "PVADEINVATTACH007" or "PVADEINVATTACH008");
         Assert.Contains("Approve", exception.Message, StringComparison.Ordinal);
     }
 
@@ -242,7 +242,7 @@ public sealed class PdfEInvoiceAttacherTests
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, exception.Preflight.Capability);
         Assert.Contains("factur-x.xml", exception.Preflight.ConflictingAttachmentNames);
-        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PXAEINVATTACH010");
+        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PVADEINVATTACH010");
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public sealed class PdfEInvoiceAttacherTests
         var files = await new PdfAssociatedFileExtractor().ExtractAsync(new MemoryStream(result.Bytes));
         var invoice = Assert.Single(files, file => file.FileName == "factur-x.xml");
         Assert.Equal(replacement.Xml.ToArray(), invoice.Content.ToArray());
-        Assert.Contains(result.Preflight.Findings, finding => finding.Code == "PXAEINVATTACH009");
+        Assert.Contains(result.Preflight.Findings, finding => finding.Code == "PVADEINVATTACH009");
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public sealed class PdfEInvoiceAttacherTests
                 Payload(),
                 new PdfEInvoiceAttachmentOptions { MaximumOutputSizeBytes = 1024 }));
 
-        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PXAEINVATTACH011");
+        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PVADEINVATTACH011");
     }
 
     [Fact]
@@ -352,7 +352,7 @@ public sealed class PdfEInvoiceAttacherTests
         var exception = await Assert.ThrowsAsync<PdfEInvoiceAttachmentBlockedException>(
             () => CreateAttacher().AttachAsync(new MemoryStream(source), Payload()));
 
-        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PXAEINVATTACH001");
+        Assert.Contains(exception.Preflight.Findings, finding => finding.Code == "PVADEINVATTACH001");
     }
 
     [Fact]

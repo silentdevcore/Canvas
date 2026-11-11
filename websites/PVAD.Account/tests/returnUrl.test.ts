@@ -37,7 +37,7 @@ test('does not mix local and production origins', () => {
   );
 });
 
-for (const key of ['VITE_PVAD_DESIGNER_URL', 'VITE_PXA_DESIGNER_URL']) {
+for (const key of ['VITE_PVAD_DESIGNER_URL', 'VITE_PVAD_DESIGNER_URL']) {
   test(`${key} requires an explicit origin override, not an implicit second trust set`, () => {
     const legacy = 'https://designer.powerdoxautomation.com/doc/1';
     assert.equal(sanitizeReturnUrl(legacy, siteLinkDefaults.production), null);

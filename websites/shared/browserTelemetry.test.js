@@ -14,33 +14,28 @@ import {
   initializeBrowserTelemetry,
 } from './browserTelemetry.js';
 
-test('canonical telemetry wins and repeated setup reuses a legacy collector', () => {
-  const previousCanonical = globalThis.__pvadBrowserTelemetry;
-  const previousLegacy = globalThis.__pxaBrowserTelemetry;
+test('repeated setup reuses the canonical collector', () => {
+  const previous = globalThis.__pvadBrowserTelemetry;
   const events = [];
   const bridge = { record: (...args) => events.push(args) };
   try {
     globalThis.__pvadBrowserTelemetry = bridge;
-    globalThis.__pxaBrowserTelemetry = { record: () => { throw new Error('duplicate collector'); } };
     recordBrowserStatusPage('offline');
     assert.equal(events.length, 1);
-    globalThis.__pvadBrowserTelemetry = undefined;
-    globalThis.__pxaBrowserTelemetry = bridge;
     initializeBrowserTelemetry({ application: 'company' });
     initializeBrowserTelemetry({ application: 'company' });
     assert.equal(globalThis.__pvadBrowserTelemetry, bridge);
     recordBrowserUnknownDiagnosticMapping();
     assert.equal(events.length, 2);
   } finally {
-    globalThis.__pvadBrowserTelemetry = previousCanonical;
-    globalThis.__pxaBrowserTelemetry = previousLegacy;
+    globalThis.__pvadBrowserTelemetry = previous;
   }
 });
 
 test('legacy status caches migrate and recovery is consumed once', () => {
   const values = new Map([
-    ['pxa-status-loop-v1', JSON.stringify([{ statusKey: 'offline', route: 'home', at: 1000 }])],
-    ['pxa-status-recovery-v1', JSON.stringify({ action: 'retry', at: 1000 })],
+    ['pvad-status-loop-v1', JSON.stringify([{ statusKey: 'offline', route: 'home', at: 1000 }])],
+    ['pvad-status-recovery-v1', JSON.stringify({ action: 'retry', at: 1000 })],
   ]);
   const storage = {
     getItem: key => values.get(key) ?? null,

@@ -277,7 +277,7 @@ describe('spreadsheet storage compatibility', () => {
 
   test('keeps unscoped previous-generation drafts untouched without loading them', () => {
     const values = new Map<string, string>([
-      ['pxa-spreadsheet', 'current'],
+      ['pvad-spreadsheet', 'current'],
       ['canvas-spreadsheet', 'legacy'],
     ]);
     const storage = createSpreadsheetStorage({
@@ -286,8 +286,8 @@ describe('spreadsheet storage compatibility', () => {
       removeItem: key => { values.delete(key); },
     });
 
-    expect(storage.getItem('pxa-spreadsheet')).toBeNull();
-    expect(values.get('pxa-spreadsheet')).toBe('current');
+    expect(storage.getItem('pvad-spreadsheet')).toBeNull();
+    expect(values.get('pvad-spreadsheet')).toBe('current');
     expect(values.get('canvas-spreadsheet')).toBe('legacy');
   });
 });

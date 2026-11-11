@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "fixture": {
-    "id": "pxa-pdfua1-supported-elements",
-    "path": "artifacts/pdfua/fixtures/pxa-pdfua1-structure.pdf",
+    "id": "pvad-pdfua1-supported-elements",
+    "path": "artifacts/pdfua/fixtures/pvad-pdfua1-structure.pdf",
     "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "review": {

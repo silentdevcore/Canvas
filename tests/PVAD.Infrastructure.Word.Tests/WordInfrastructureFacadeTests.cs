@@ -36,7 +36,7 @@ public sealed class WordInfrastructureFacadeTests
 
     [Theory]
     [InlineData(null, "PVADE")]
-    [InlineData("PXA", "PXA")]
+    [InlineData("PVAD", "PVAD")]
     [InlineData("Example Author", "Example Author")]
     public void Exporter_DefaultsNewCommentAndRevisionAuthorsWithoutRewritingExplicitAuthors(
         string? suppliedAuthor, string expectedAuthor)

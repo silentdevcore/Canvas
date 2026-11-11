@@ -435,7 +435,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         // redacted document: the reason and the actor would otherwise be disclosed to every
         // downstream recipient of a file that was redacted precisely to limit disclosure.
         Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")).Length);
-        Assert.Equal(Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")),
+        Assert.Equal(Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")),
             Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")));
         Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Result-Sha256")).Length);
 

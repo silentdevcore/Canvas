@@ -118,10 +118,6 @@ static async Task<IResult> RelayAsync(
         outbound.Headers.Add("X-PVAD-Webhook-Timestamp", timestampValue);
         outbound.Headers.Add("X-PVAD-Webhook-Signature", signature);
         outbound.Headers.Add("X-PVAD-Webhook-Idempotency-Key", idempotencyKey);
-        // Keep identical aliases for receivers from the rename compatibility major.
-        outbound.Headers.Add("X-PXA-Webhook-Timestamp", timestampValue);
-        outbound.Headers.Add("X-PXA-Webhook-Signature", signature);
-        outbound.Headers.Add("X-PXA-Webhook-Idempotency-Key", idempotencyKey);
 
         using var response = await httpClientFactory
             .CreateClient("webhook")

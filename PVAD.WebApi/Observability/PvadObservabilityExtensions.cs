@@ -59,7 +59,6 @@ internal static class PvadObservabilityExtensions
             tracing
                 .AddSource(PvadTelemetry.ActivitySourceName)
                 .AddSource(ProcessIsolatedTesseractOcrEngine.ActivitySourceName)
-                .AddSource(ProcessIsolatedTesseractOcrEngine.LegacyActivitySourceName)
                 .AddNpgsql()
                 .AddProcessor(new PvadTelemetrySanitizingProcessor())
                 .AddAspNetCoreInstrumentation(options =>
@@ -119,7 +118,6 @@ internal static class PvadObservabilityExtensions
         builder.Logging.AddConsole(options =>
             options.FormatterName = PvadJsonConsoleFormatter.FormatterName);
         builder.Logging.AddConsoleFormatter<PvadJsonConsoleFormatter, ConsoleFormatterOptions>();
-        builder.Logging.AddConsoleFormatter<LegacyPvadJsonConsoleFormatter, ConsoleFormatterOptions>();
     }
 
     private static ResourceBuilder CreateResource(

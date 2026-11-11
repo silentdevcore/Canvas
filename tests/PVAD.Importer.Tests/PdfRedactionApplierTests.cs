@@ -124,7 +124,7 @@ public sealed class PdfRedactionApplierTests
                 Sanitization = new PdfRedactionSanitizationPolicy { RemoveHiddenRepresentations = false }
             }));
 
-        Assert.Contains("PXAPDFREDACT108", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("PVADPDFREDACT108", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

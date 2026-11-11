@@ -31,9 +31,9 @@ public sealed class PvadCodeWorkerClient(
     public async Task<PvadCodeWorkerResponse> RunAsync(PvadCodeWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!settings.Enabled)
-            return Failure("PXACODE040", "The code execution worker is disabled.");
+            return Failure("PVADCODE040", "The code execution worker is disabled.");
         if (System.Text.Encoding.UTF8.GetByteCount(request.Source) > settings.MaximumSourceBytes)
-            return Failure("PXACODE009", "Source code exceeds the configured sandbox limit.");
+            return Failure("PVADCODE009", "Source code exceeds the configured sandbox limit.");
 
         var directory = Directory.CreateTempSubdirectory("pvad-code-").FullName;
         var inputPath = Path.Combine(directory, "request.json");
@@ -50,7 +50,7 @@ public sealed class PvadCodeWorkerClient(
             catch (FileNotFoundException exception)
             {
                 logger.LogWarning(exception, "Code worker package is unavailable.");
-                return Failure("PXACODE041", "The code execution worker is unavailable.");
+                return Failure("PVADCODE041", "The code execution worker is unavailable.");
             }
             using var process = new Process
             {
@@ -71,12 +71,12 @@ public sealed class PvadCodeWorkerClient(
             try
             {
                 if (!process.Start())
-                    return Failure("PXACODE041", "The code execution worker could not be started.");
+                    return Failure("PVADCODE041", "The code execution worker could not be started.");
             }
             catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
             {
                 logger.LogWarning(exception, "Code worker process could not be started.");
-                return Failure("PXACODE041", "The code execution worker could not be started.");
+                return Failure("PVADCODE041", "The code execution worker could not be started.");
             }
 
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -88,20 +88,20 @@ public sealed class PvadCodeWorkerClient(
             catch (OperationCanceledException)
             {
                 TryKill(process);
-                return Failure("PXACODE031", "Execution exceeded the sandbox time limit.");
+                return Failure("PVADCODE031", "Execution exceeded the sandbox time limit.");
             }
 
             if (!File.Exists(outputPath))
             {
                 var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
                 logger.LogWarning("Code worker returned no response. Exit={ExitCode}; stderr={WorkerError}", process.ExitCode, stderr[..Math.Min(stderr.Length, 500)]);
-                return Failure("PXACODE042", "The code execution worker returned no result.");
+                return Failure("PVADCODE042", "The code execution worker returned no result.");
             }
             if (new FileInfo(outputPath).Length > settings.MaximumOutputBytes * 2L)
-                return Failure("PXACODE043", "The code execution result exceeds the configured limit.");
+                return Failure("PVADCODE043", "The code execution result exceeds the configured limit.");
             return JsonSerializer.Deserialize<PvadCodeWorkerResponse>(
                        await File.ReadAllTextAsync(outputPath, cancellationToken), JsonOptions)
-                   ?? Failure("PXACODE044", "The code execution result is invalid.");
+                   ?? Failure("PVADCODE044", "The code execution result is invalid.");
         }
         finally
         {

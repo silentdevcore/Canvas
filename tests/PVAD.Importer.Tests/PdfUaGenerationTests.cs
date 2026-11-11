@@ -72,9 +72,9 @@ public sealed class PdfUaGenerationTests
         var exception = Assert.Throws<PdfAccessibilityException>(() => document.ToBytes(
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 }));
 
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA002");
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA003");
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA005");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA002");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA003");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA005");
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class PdfUaGenerationTests
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
 
         Assert.False(report.IsValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA015");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA015");
     }
 
     [Fact]
@@ -134,8 +134,8 @@ public sealed class PdfUaGenerationTests
 
         var invalidReport = PdfAccessibilityPreflight.Validate(invalidDocument,
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA025");
-        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA027");
+        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA025");
+        Assert.Contains(invalidReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA027");
 
         var conflictingDocument = CreateDocument();
         var conflictingPage = conflictingDocument.AddPage();
@@ -158,8 +158,8 @@ public sealed class PdfUaGenerationTests
 
         var conflictingReport = PdfAccessibilityPreflight.Validate(conflictingDocument,
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA026");
-        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA028");
+        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA026");
+        Assert.Contains(conflictingReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA028");
     }
 
     [Fact]
@@ -176,8 +176,8 @@ public sealed class PdfUaGenerationTests
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
 
         Assert.False(report.IsValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA007" && diagnostic.ElementId == "figure");
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA009" && diagnostic.ElementId == "header");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA007" && diagnostic.ElementId == "figure");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA009" && diagnostic.ElementId == "header");
     }
 
     [Fact]
@@ -413,10 +413,10 @@ public sealed class PdfUaGenerationTests
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
 
         Assert.False(report.IsValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA022");
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA023"
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA022");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA023"
             && diagnostic.Severity == PdfAccessibilityDiagnosticSeverity.Warning);
-        Assert.Equal(2, report.Diagnostics.Count(diagnostic => diagnostic.Code == "PXAPDFUA024"));
+        Assert.Equal(2, report.Diagnostics.Count(diagnostic => diagnostic.Code == "PVADPDFUA024"));
         Assert.All(report.Diagnostics, diagnostic =>
         {
             Assert.Equal($"diagnostics.{diagnostic.Code}", diagnostic.LocalizationKey);
@@ -473,9 +473,9 @@ public sealed class PdfUaGenerationTests
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
 
         Assert.False(report.IsValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA010");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA010");
         Assert.Contains(report.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAPDFUA020" && diagnostic.ElementId == "incomplete-table");
+            diagnostic.Code == "PVADPDFUA020" && diagnostic.ElementId == "incomplete-table");
     }
 
     [Fact]
@@ -517,7 +517,7 @@ public sealed class PdfUaGenerationTests
         });
         var missingReport = PdfAccessibilityPreflight.Validate(missingParentDocument,
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        Assert.Contains(missingReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA013");
+        Assert.Contains(missingReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA013");
 
         var cyclicDocument = CreateDocument();
         var cyclicPage = cyclicDocument.AddPage();
@@ -537,7 +537,7 @@ public sealed class PdfUaGenerationTests
         });
         var cyclicReport = PdfAccessibilityPreflight.Validate(cyclicDocument,
             new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
-        Assert.Contains(cyclicReport.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA014");
+        Assert.Contains(cyclicReport.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA014");
     }
 
     private static PdfDocument CreateDocument()
